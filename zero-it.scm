@@ -55,6 +55,19 @@
 ;;; fact / ass / qrfl through the surface, each checked by its rule checker; the only oracle
 ;;; is crs, and the printed R comes from the calculator crs itself uses.
 ;;;
+;;; THE EXISTENTIAL CASE (the user, 2026-09-28: "rather than changing the kernel, use cut with
+;;; the reduced formula").  A goal  forsome([a in C], P = Q)  under typed universals: the
+;;; witness is an atom typed by its binder, R is computed and printed as before, and the one
+;;; recorded step CUTS the reduced existential  forsome([a in C], R = 0)  -- the side leaf, left
+;;; to the user -- and closes the main branch  forsome([a in C], R = 0) |- forsome([a in C], P = Q)
+;;; by skolemising the assumption (dk-skolem!: a fresh w with w in C and R[w] = 0), `ew' w,
+;;; `di' to split the typing off, `ass' on it, and the closing branch above on P[w] = Q[w].
+;;; When R is identically 0 nothing is cut: every w in C is a witness, and the report says so.
+;;; When R is a non-zero constant the goal is FALSE for every witness.  ONE existential binder
+;;; (nested ones are declined with the reason); an atom left untyped under the existential
+;;; declines the rewrite (its typing could not be posted outside the binder).  NN is refused
+;;; exactly as in the universal case.
+;;;
 ;;; Loaded at the root right after counterexample (before suggest.scm, which calls the
 ;;; what-now lane defined at the end of this file).  Prefix `zi-'.
 
@@ -108,6 +121,23 @@
         (loop (caddr (caddr g))
               (cons (cons (cadr g) (caddr (cadr (caddr g)))) bs))
         (cons (reverse bs) g))))
+
+;;; The TYPED existential prefix (FORSOME v (AND (IN v C) ...)) of a peeled core.
+(define (zi--peel-exists g)
+  (let loop ((g g) (es '()))
+    (if (and (pair? g) (eq? (car g) 'FORSOME) (= (length g) 3) (symbol? (cadr g))
+             (let ((b (caddr g)))
+               (and (pair? b) (eq? (car b) 'AND) (= (length b) 3)
+                    (let ((h (cadr b)))
+                      (and (pair? h) (eq? (car h) 'IN) (= (length h) 3)
+                           (eq? (cadr h) (cadr g)))))))
+        (loop (caddr (caddr g))
+              (cons (cons (cadr g) (caddr (cadr (caddr g)))) es))
+        (cons (reverse es) g))))
+
+(define (zi--wrap-exists exists core)
+  (fold-right (lambda (b f) (list 'FORSOME (car b) (list 'AND (list 'IN (car b) (cdr b)) f)))
+              core exists))
 
 (define (zi--rel? f)
   (and (pair? f) (memq (car f) '(= ==)) (= (length f) 3)))
@@ -234,16 +264,41 @@
 (define (zi--analyse g asms)
   (let* ((pk      (zi--peel g))
          (binders (car pk))
-         (core    (cdr pk)))
+         (pe      (zi--peel-exists (cdr pk)))
+         (exists  (car pe))
+         (core    (cdr pe)))
     (cond
       ((not (zi--rel? core))
-       (zi--decline "the goal is not an equation P = Q (or P == Q), bare or under typed universals"))
+       (zi--decline (string-append "the goal is not an equation P = Q (or P == Q), bare or under"
+                                   " typed universals or one typed existential")))
       (#t
        (let* ((rel (car core)) (P (cadr core)) (Q (caddr core))
-              (a   (or (find-cring P) (find-cring Q))))
-         (if a
-             (zi--analyse-generic rel P Q a asms binders)
-             (zi--analyse-concrete rel P Q asms binders)))))))
+              (a   (or (find-cring P) (find-cring Q)))
+              (r   (if a
+                       (zi--analyse-generic rel P Q a asms binders exists)
+                       (zi--analyse-concrete rel P Q asms binders exists))))
+         (zi--exists-verdict (cons (cons 'exists exists) r)))))))
+
+;;; Under an existential the verdict is narrowed: a rewrite needs every atom typed (an owed
+;;; typing could not be posted outside the binder), one binder only, and a non-trivial R.
+(define (zi--exists-verdict a)
+  (let ((exists (zi--get a 'exists)) (st (zi--get a 'status)))
+    (cond
+      ((or (null? exists) (memq st '(decline false))) a)
+      ((pair? (cdr exists))
+       (append (zi--decline "the goal has nested existentials; zero-it handles one") a))
+      ((pair? (zi--get a 'untyped))
+       (append (zi--decline (string-append "an atom is untyped under the existential: "
+                                           (zi--list-string (zi--get a 'untyped))
+                                           "; type it before zero-it"))
+               a))
+      ((eq? st 'zero)
+       (append (zi--decline (string-append "the difference is 0 for every "
+                                           (symbol->string (car (car exists))) " in "
+                                           (expression->string (cdr (car exists)))
+                                           ": any witness works -- (ew TERM), then (zero-it)"))
+               a))
+      (#t a))))
 
 ;;; The common tail: numeral verdicts, the rewrite plan.
 (define (zi--finish rel P Q binders surface ring poly untyped plans owed)
@@ -280,19 +335,20 @@
                                      " be rewritten to R = 0 by substitution"))
                      base)))))))
 
-(define (zi--analyse-concrete rel P Q asms binders)
-  (let* ((e1 (cvnb-expand-pow P)) (e2 (cvnb-expand-pow Q))
+(define (zi--analyse-concrete rel P Q asms binders exists)
+  (let* ((tb (append binders exists))
+         (e1 (cvnb-expand-pow P)) (e2 (cvnb-expand-pow Q))
          (p1 (cvnb->poly e1))     (p2 (cvnb->poly e2)))
     (if (not (and p1 p2))
         (zi--decline "a side of the equation is not a ring term")
         (let* ((gens    (cvnb-eq-source-generators e1 e2))
                (ranked  (filter-map
                          (lambda (g)
-                           (let ((rs (filter-map zi--rank (zi--typings g asms binders))))
+                           (let ((rs (filter-map zi--rank (zi--typings g asms tb))))
                              (and (pair? rs) (apply max rs))))
                          gens))
                (untyped (filter (lambda (g)
-                                  (not (any zi--rank (zi--typings g asms binders))))
+                                  (not (any zi--rank (zi--typings g asms tb))))
                                 gens))
                ;; the ring: the largest class an atom is typed in; failing that, the
                ;; smallest class type-term can type an untyped atom in (f(x) with f in
@@ -339,8 +395,8 @@
                                (map (lambda (g) (list 'IN g D)) untyped))))
                (zi--finish rel P Q binders 'concrete D poly untyped plans owed))))))))
 
-(define (zi--analyse-generic rel P Q a asms binders)
-  (let ((p1 (cring->poly P a)) (p2 (cring->poly Q a)))
+(define (zi--analyse-generic rel P Q a asms binders exists)
+  (let ((p1 (cring->poly P a)) (p2 (cring->poly Q a)) (tb (append binders exists)))
     (cond
       ((not (and p1 p2)) (zi--decline "a side of the equation is not a ring term"))
       ((not (member (list 'IS-COMMUTATIVE-RING a) asms))
@@ -350,7 +406,7 @@
       (#t
        (let* ((carrier (list 'CARR a))
               (gens    (cring-eq-source-generators P Q a))
-              (untyped (filter (lambda (g) (not (member carrier (zi--typings g asms binders))))
+              (untyped (filter (lambda (g) (not (member carrier (zi--typings g asms tb))))
                                gens)))
          (zi--finish rel P Q binders 'generic a (poly-add p1 (poly-neg p2)) untyped '()
                      (map (lambda (g) (list 'IN g carrier)) untyped)))))))
@@ -432,6 +488,49 @@
     (set! *zi-last-analysis* a)
     (and (memq (zi--get a 'status) '(zero rewrite))
          (null? (zi--get a 'binders))
+         (if (pair? (zi--get a 'exists))
+             (zi--drive-exists! a)
+             (zi--drive-core! a)))))
+
+;;; The analysis A with the bound variable V renamed to the fresh W in P, Q and R, and no
+;;; binders: the closing branch reads it after `ew'.
+(define (zi--instantiate a v w)
+  (let ((sub (lambda (t) (subst-free v w t))))
+    (append (list (cons 'P (sub (zi--get a 'P))) (cons 'Q (sub (zi--get a 'Q)))
+                  (cons 'R (sub (zi--get a 'R))) (cons 'exists '()) (cons 'binders '()))
+            a)))
+
+;;; forsome([v in C], P = Q): cut forsome([v in C], R = 0); on the main branch skolemise it
+;;; (w in C, R[w] = 0), `ew' w, split the typing off and close the equation as in the bare
+;;; case.  -> #t when the main branch is grounded; the focus ends on the reduced side leaf.
+(define (zi--drive-exists! a)
+  (let* ((b       (car (zi--get a 'exists)))
+         (v       (car b))
+         (reduced (zi--wrap-exists (zi--get a 'exists)
+                                   (list '= (zi--get a 'R) (zi--zero (zi--get a 'surface) (zi--get a 'ring))))))
+    (if (alpha-equiv? reduced (dk-goal))
+        #f
+        (let* ((sm (zi--cut! reduced)) (side (car sm)) (main (cdr sm))
+               (w  (dk-skolem! reduced))
+               (a2 (zi--instantiate a v w)))
+          (ew w)
+          (for-each
+            (lambda (lf)
+              (dk-focus! lf)
+              (let ((g (dk-goal)))
+                (cond ((sequent-node-grounded? lf) #t)
+                      ((dk-asm? g) (ass))
+                      ((zi--rel? g) (zi--close-branch! a2))
+                      (#t (error "zero-it: an unexpected leaf after the witness" (expression->string g))))))
+            (dk-opened (lambda () (di))))
+          (and (sequent-node-grounded? main)
+               (begin
+                 (if (and side (not (sequent-node-grounded? side)))
+                     (dk-focus! side))
+                 #t))))))
+
+(define (zi--drive-core! a)
+  (and #t
          (begin
            (zi--land-typings! a)
            (if (eq? (zi--get a 'status) 'zero)
@@ -445,7 +544,7 @@
                             (begin
                               (if (and side (not (sequent-node-grounded? side)))
                                   (dk-focus! side))
-                              #t))))))))))
+                              #t)))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Printing
@@ -621,8 +720,10 @@
                (begin (display ";;   an identity of commutative rings: (zero-it) closes it by crs") (newline))
                (begin
                  (display ";;   (zero-it) leaves the goal  ")
-                 (display (expression->string (list '= (zi--get a 'R)
-                                                    (zi--zero (zi--get a 'surface) (zi--get a 'ring)))))
+                 (display (expression->string
+                           (zi--wrap-exists (zi--get a 'exists)
+                                            (list '= (zi--get a 'R)
+                                                  (zi--zero (zi--get a 'surface) (zi--get a 'ring))))))
                  (newline)
                  (for-each (lambda (f) (display ";;   owed: ") (display (expression->string f)) (newline))
                            (zi--get a 'owed))))

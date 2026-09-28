@@ -222,3 +222,25 @@ processed by a calling procedure which is attempting to find the correct stateme
 and `zero-it-reason` (a decline's reason). The printout is unchanged: printed once at the end as a
 `;;VNB-REPORT-BEGIN` / `-END` block (echoed in the Emacs minibuffer), or handed to the Scratch Workspace
 through the report channel when the surface evaluates under the quiet flag.
+
+## Built (2): the existential case (2026-09-28)
+
+The user's goal `forall([x, y in nn], forsome([a in nn], (x + y)^4 = x^4 + a * y))` was declined twice
+over: the core under the universals is an existential, which the peel did not take, and NN is not a
+ring. The second refusal stands (NN has no subtraction). For the first the user proposed, "rather than
+changing the kernel, use `cut` with the reduced formula", and that is what was built. On
+`forsome([a in C], P = Q)` under typed universals, the witness `a` is an atom typed by its binder; `R`
+is computed and printed as before; and the one recorded step cuts the reduced existential
+`forsome([a in C], R = 0)`, which is left to the user, and closes the main branch
+`forsome([a in C], R = 0) |- forsome([a in C], P = Q)` by skolemising the assumption (`dk-skolem!`: a
+fresh `w` with `w in C` and `R[w] = 0`), `ew w`, `di` to split the typing off, `ass` on it, and the
+closing branch of section "Built" on `P[w] = Q[w]`. On the example over ZZ the goal becomes
+
+    forsome([a in zz], 4 * x^3 * y + 6 * x^2 * y^2 + 4 * x * y^3 + y^4 - a * y = 0)
+
+which is the display the notes asked for: it says what `a` has to be. When `R` is identically 0
+nothing is cut (every `w in C` is a witness; the report says so and suggests `ew`); when `R` is a
+non-zero constant the goal is FALSE for every witness. One existential binder is handled; nested ones
+and an atom left untyped under the existential decline with the reason. Suite checks (E1) to (E6):
+the ZZ example, the NN control, the FALSE case, the two declines, the replay through
+`apply-recorded-cmd!`. No kernel file is touched.

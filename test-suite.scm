@@ -13332,6 +13332,83 @@
                (zero-it-owed v) (zero-it-reason v))))))
   '(false 6 #t #t () #f))
 
+;;; THE EXISTENTIAL CASE (the user, 2026-09-28: "rather than changing the kernel, use cut with the
+;;; reduced formula").  forsome([a in C], P = Q): the witness is an atom typed by its binder, R is
+;;; printed, and the one step cuts forsome([a in C], R = 0) and closes the main branch by
+;;; skolemising it, `ew', and the closing branch.  (E2) is the control that NN is still refused;
+;;; (E4) and (E5) are the declines with their reasons; (E6) the replay.
+(define zi-e1-goal
+  '(FORALL x (IMPLIES (IN x ZZ) (FORALL y (IMPLIES (IN y ZZ)
+      (FORSOME a (AND (IN a ZZ) (= (power (+ x y) 4) (+ (power x 4) (* a y))))))))))
+
+(check-true "zero-it (E1) forall x, y in zz. forsome a in zz. (x + y)^4 = x^4 + a*y: ONE step, the goal is forsome a in zz. R = 0, R mentions a and y, the main branch is closed"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff zi-e1-goal))))
+       (let* ((r (zi-run)) (nf (zero-it-normal-form (car r))) (g (dk-goal)))   ; nf, never R beside r (case folding)
+         (and (eq? (zero-it-status (car r)) 'rewrite)
+              (pair? nf) (zi--occurs? 'a nf) (zi--occurs? 'y nf) (zi--occurs? 'x nf)
+              (alpha-equiv? g (list 'forsome 'a (list 'and '(in a zz) (list '= nf 0))))
+              (= 1 (length (proof-open-leaves *ps*)))
+              (zi-says? (cdr r) "the goal is now  forsome([a in zz]")
+              (equal? (map car *proof-script*) '(zero-it))))))))
+
+(check-true "zero-it (E2) CONTROL: the same over NN is refused (NN is not a ring) and nothing is recorded"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff (subst-free* '((ZZ . NN)) zi-e1-goal)))))
+       (let* ((n (length *proof-script*)) (g0 (dk-goal)) (r (zi-run)))
+         (and (eq? (zero-it-status (car r)) 'declined)
+              (zi-says? (cdr r) "NN is not a ring")
+              (= n (length *proof-script*))
+              (equal? g0 (dk-goal))))))))
+
+(check-true "zero-it (E3) forsome a in rr. a = a + 1 is FALSE for every witness: reduces to -1 = 0, nothing recorded"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (FORSOME a (AND (IN a RR) (= a (+ a 1))))))))))
+       (let* ((n (length *proof-script*)) (r (zi-run)))
+         (and (eq? (zero-it-status (car r)) 'false)
+              (equal? (zero-it-normal-form (car r)) '(- 1))
+              (zi-says? (cdr r) "FALSE over rr")
+              (= n (length *proof-script*))))))))
+
+(check-true "zero-it (E4) nested existentials are declined with the reason"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORSOME a (AND (IN a RR) (FORSOME b (AND (IN b RR) (= (+ a b) 1)))))))))
+       (let ((r (zi-run)))
+         (and (eq? (zero-it-status (car r)) 'declined)
+              (zi-says? (cdr r) "nested existentials")))))))
+
+(check-true "zero-it (E5) forsome a in rr. a + a = 2 * a: the difference is 0 for every a; declined with 'any witness works', nothing recorded"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORSOME a (AND (IN a RR) (= (+ a a) (* 2 a))))))))
+       (let* ((n (length *proof-script*)) (r (zi-run)))
+         (and (eq? (zero-it-status (car r)) 'declined)
+              (zi-says? (cdr r) "any witness works")
+              (= n (length *proof-script*))))))))
+
+(check-true "zero-it (E6) CONTROL: replaying the recorded (zero-it) of (E1) through apply-recorded-cmd! reproduces the same open goal"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff zi-e1-goal)) (zero-it)))
+       (let ((g1 (dk-goal)) (n1 (length (proof-open-leaves *ps*))) (script *proof-script*))
+         (quietly (lambda () (sp (make-wff zi-e1-goal))))
+         (quietly (lambda ()
+                    (fluid-let ((*replaying?* #t))
+                      (for-each (lambda (e) (apply-recorded-cmd! (car e) (cdr e))) script))))
+         (and (equal? (map car script) '(zero-it))
+              (alpha-equiv? g1 (dk-goal))
+              (= n1 (length (proof-open-leaves *ps*)))))))))
+
 ;;; =======================================================================
 ;;; BATCH 39 (2026-09-28): THE CATEGORY OF A STRUCTURE -- the two FAMILY slot
 ;;; kinds, declare-category!, the category-obligations audit, the SETOID hom-set.
