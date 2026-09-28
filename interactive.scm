@@ -254,6 +254,22 @@
 ;; so it still prints under quiet.
 (define *vnb-quiet* #f)
 
+;;; THE REPORT CHANNEL (2026-09-28).  A command whose printout IS its deliverable
+;;; (zero-it: the normal form, the FALSE verdict, the owed typings) records each
+;;; line here as well as printing it, because the Emacs Scratch Workspace sets
+;;; *vnb-quiet* around every form it evaluates and inserts only the value -- the
+;;; user's first (zero-it) came back as a bare `0'.  The surface calls
+;;; (vnb-report-reset!) before the form and (vnb-report-take!) after; the latter
+;;; returns the lines as ONE string (newline-separated) and empties the channel.
+;;; Printing is unchanged when quiet is off.
+(define *vnb-report-lines* '())
+(define (vnb-report! line) (set! *vnb-report-lines* (cons line *vnb-report-lines*)))
+(define (vnb-report-reset!) (set! *vnb-report-lines* '()))
+(define (vnb-report-take!)
+  (let ((lines (reverse *vnb-report-lines*)))
+    (set! *vnb-report-lines* '())
+    (apply string-append (map (lambda (l) (string-append l "\n")) lines))))
+
 ;; *vnb-loading* is defined at the top of load.scm and held #t for the whole
 ;; load so the interactive proof scripts in *vnb-files* don't flood the terminal
 ;; with a per-tactic state dump at startup.  Fallback to #f here so interactive.scm

@@ -61,9 +61,22 @@
 ;;; Small helpers
 
 (define (zi--say . strs)
+  (vnb-report! (apply string-append strs))       ; the report channel (interactive.scm)
   (unless *vnb-quiet*
     (for-each display strs)
     (newline)))
+
+;;; A decline is part of the report too: under a quiet surface the reason must
+;;; still reach the user.
+(define (zi--warn msg)
+  (vnb-report! (string-append ";VNB warning: " msg))
+  (vnb--print-warning msg))
+
+;;; The warning OBJECT vnb--run! prints for a step that did not go through: on the
+;;; channel as well.
+(define (zi--warning msg)
+  (vnb-report! (string-append ";VNB warning: " msg))
+  (make-vnb-warning msg))
 
 (define (zi--get a key) (let ((p (assq key a))) (and p (cdr p))))
 
@@ -467,14 +480,14 @@
 (define (zero-it)
   (cond
     ((not (and (proof-state? *ps*) (not (proof-done? *ps*))))
-     (vnb--print-warning "zero-it: no open goal; nothing changed")
+     (zi--warn "zero-it: no open goal; nothing changed")
      #f)
     (#t
      (let ((a (zi--analyse (dk-goal) (dk-asms))))
        (case (zi--get a 'status)
          ((decline)
           (if (zi--get a 'R) (zi--say-normal-form a))
-          (vnb--print-warning (string-append "zero-it: " (zi--get a 'reason) "; nothing changed"))
+          (zi--warn (string-append "zero-it: " (zi--get a 'reason) "; nothing changed"))
           #f)
          ((false)
           (zi--say-normal-form a)
@@ -507,7 +520,7 @@
                             (dk--transaction (lambda () (zi--drive! a)))))
                  (if ok
                      *ps*
-                     (make-vnb-warning
+                     (zi--warning
                       (string-append "zero-it: " (zi--difference-string a) " normalises to "
                                      (expression->string (zi--get a 'R))
                                      ", but the rewriting steps did not go through"

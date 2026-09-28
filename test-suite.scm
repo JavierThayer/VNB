@@ -13280,6 +13280,21 @@
          (and (null? *proof-script*) (equal? g0 (dk-goal))
               (= 1 (length (proof-open-leaves *ps*)))))))))
 
+;;; The report channel (2026-09-28): under *vnb-quiet* -- the Emacs Scratch Workspace's
+;;; setting -- zero-it's lines reach the user through (vnb-report-take!).  CONTROL: before
+;;; the channel the same run left nothing to read.
+(check-true "zero-it: the report survives *vnb-quiet* on the report channel"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (sp (make-wff "forall([x in rr], x + 1 = x)"))
+       (vnb-report-reset!)
+       (fluid-let ((*vnb-quiet* #t)) (zero-it))
+       (let ((r (vnb-report-take!)))
+         (and (zi-says? r "normalises to  1")
+              (zi-says? r "FALSE")
+              (equal? (vnb-report-take!) "")))))))
+
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")
 (display *fail-count*) (display " failed ===\n")

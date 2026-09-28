@@ -721,6 +721,17 @@ these get a state-summary comment instead of a raw value."
         (string= r "No return value")
         (string-prefix-p ";" r))))
 
+(defun vnb--report-take ()
+  "The lines the last form recorded on the prover's report channel, or nil.
+The channel (`vnb-report!', interactive.scm, 2026-09-28) carries what a
+command like `zero-it' prints, which `vnb-command-eval-print' otherwise hides
+behind *vnb-quiet*.  Nil on an older prover without the channel."
+  (let* ((raw (condition-case nil
+                  (vnb--unquote (vnb-eval-string "(vnb-report-take!)"))
+                (error "")))
+         (s (vnb--trim (replace-regexp-in-string "\\\\n" "\n" raw))))
+    (and (> (length s) 0) (not (string-prefix-p ";Unbound" s)) s)))
+
 (defun vnb--unquote (s)
   "Strip one leading and trailing double quote from Scheme string literal S."
   (let ((s (vnb--trim (or s ""))))
@@ -816,17 +827,21 @@ Point is left after the inserted text."
     ;; reserved-name (!!!!!) warning make-wff emits during the eval -- it prints
     ;; to the process buffer before the ;Value: line, so vnb--extract-value drops
     ;; it; read it straight from the *VNB* buffer and surface it above the result.
-    (vnb-eval-string "(set! *vnb-quiet* #t)")
+    (vnb-eval-string "(begin (set! *vnb-quiet* #t) (if (environment-bound? system-global-environment (quote vnb-report-reset!)) (vnb-report-reset!)))")
     (let* ((vbuf   (get-buffer vnb-buffer-name))
            (vstart (and vbuf (with-current-buffer vbuf (point-max))))
            (result (condition-case err
                        (vnb-eval-string expr)
                      (error (format "(error: %s)" (error-message-string err)))))
-           (warn   (vnb--reserved-warning-since vbuf vstart)))
+           (warn   (vnb--reserved-warning-since vbuf vstart))
+           (report (vnb--report-take)))
       (vnb-eval-string "(set! *vnb-quiet* #f)")
       (goto-char insert-at)
       (unless (bolp) (insert "\n"))
       (when warn (insert warn "\n"))
+      ;; The command's own report (zero-it's normal form and verdict), recorded on
+      ;; the prover's report channel while *vnb-quiet* hid its printout.
+      (when report (insert report "\n"))
       (cond
         ;; The form errored: the prover has already been climbed back to top
         ;; level by `vnb-eval-string'; just show the error, do not touch state.
