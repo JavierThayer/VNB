@@ -182,7 +182,28 @@ Handles sentinel blocks that arrive in multiple output chunks."
                   (setq result (concat result pre state))
                   (setq vnb--preoutput-acc after)))))))))
     (vnb--scan-for-errors result)
+    (setq result (vnb--surface-reports result))
     result))
+
+(defvar vnb--last-report nil
+  "The last report block a command printed (zero-it's normal form and verdict).")
+
+(defun vnb--surface-reports (text)
+  "Echo every complete ;;VNB-REPORT-BEGIN ... ;;VNB-REPORT-END block in TEXT in the
+minibuffer and return TEXT with the two marker lines removed (the lines stay in
+the REPL).  The block is what `zero-it' prints once, at its end (zero-it.scm), so a
+button or M-x vnb-cmd-zero-it, whose output lands only in the process buffer, is
+still seen.  A block split across two output chunks is left as it arrives."
+  (let ((start 0))
+    (while (string-match ";;VNB-REPORT-BEGIN\n\\(\\(?:.*\n\\)*?\\);;VNB-REPORT-END\n?" text start)
+      (let ((lines (string-trim-right (match-string 1 text))))
+        (setq vnb--last-report lines)
+        (message "%s" (if (string-match-p "FALSE" lines)
+                          (propertize lines 'face 'warning)
+                        lines))
+        (setq text (replace-match (concat lines "\n") t t text))
+        (setq start (+ (match-beginning 0) (length lines) 1)))))
+  text)
 
 ;;; Runs vnb--preoutput-filter on the incoming string, then passes the
 ;;; result to whatever filter comint had installed before us.

@@ -60,9 +60,11 @@
 ;;; -----------------------------------------------------------------------
 ;;; Small helpers
 
+(define *zi-deferred* #f)   ; #t inside (zero-it): the lines are printed once, as a block, at the end
+
 (define (zi--say . strs)
   (vnb-report! (apply string-append strs))       ; the report channel (interactive.scm)
-  (unless *vnb-quiet*
+  (unless (or *vnb-quiet* *zi-deferred*)
     (for-each display strs)
     (newline)))
 
@@ -463,8 +465,14 @@
                            " * 1 = 0 in " (expression->string (zi--get a 'ring))
                            ": FALSE unless the characteristic of the ring divides "
                            (number->string (zi--mag c))))
-           (#t (string-append ";; zero-it: the goal is FALSE in every ring where 1 /= 0: it reduces to "
-                              (expression->string (list '= (zi--get a 'R) (zi--zero (zi--get a 'surface) (zi--get a 'ring)))))))
+           ((eq? (zi--get a 'surface) 'generic)
+            (string-append ";; zero-it: the goal is FALSE in every ring where 1 /= 0: it reduces to "
+                           (expression->string (list '= (zi--get a 'R) (zi--zero 'generic (zi--get a 'ring))))))
+           ;; a concrete number domain has characteristic 0: a non-zero numeral is not 0 (the
+           ;; user, 2026-09-28: "-6 = 0" does hold in Z_2 and Z_3, so do not say "every ring")
+           (#t (string-append ";; zero-it: the goal is FALSE over " (expression->string (zi--get a 'ring))
+                              ": it reduces to "
+                              (expression->string (list '= (zi--get a 'R) 0)))))
      (if (and (eq? (zi--get a 'rel) '==) (pair? (zi--get a 'untyped)))
          (string-append " (unless an untyped atom is undefined: "
                         (zi--list-string (zi--get a 'untyped)) ")")
@@ -477,7 +485,28 @@
 ;;; -----------------------------------------------------------------------
 ;;; (zero-it) -- the surface command.
 
+;;; THE REPORT BLOCK (2026-09-28).  The launcher's buttons and M-x vnb-cmd-zero-it send
+;;; "(zero-it)" to the *VNB* process buffer and look away; the user watches the Focus
+;;; Workspace and the minibuffer.  So the report is printed ONCE, at the end, between
+;;; markers the Emacs preoutput filter recognises (the way ;;VNB-STATE-BEGIN is), and
+;;; echoed in the minibuffer; the lines themselves are the same as before.  Under
+;;; *vnb-quiet* nothing is printed and the Scratch Workspace reads the channel.
 (define (zero-it)
+  (vnb-report-reset!)
+  (let ((v (fluid-let ((*zi-deferred* #t)) (zi--zero-it-body))))
+    (zi--flush-report!)
+    v))
+
+(define (zi--flush-report!)
+  (unless *vnb-quiet*
+    (let ((lines (reverse *vnb-report-lines*)))
+      (if (pair? lines)
+          (begin
+            (display ";;VNB-REPORT-BEGIN") (newline)
+            (for-each (lambda (l) (display l) (newline)) lines)
+            (display ";;VNB-REPORT-END") (newline))))))
+
+(define (zi--zero-it-body)
   (cond
     ((not (and (proof-state? *ps*) (not (proof-done? *ps*))))
      (zi--warn "zero-it: no open goal; nothing changed")
