@@ -3616,6 +3616,23 @@
        ;; prover root, so a browser resolves ../structure-library/X.scm correctly.
        (string-append "*Declared in* [`" rel "`](../" rel ").\n\n")))))
 
+;;; A slot's KIND in words, for the Slots line of STRUCTURE-INDEX.md.
+(define (struct-index--slot-kind slot)
+  (let ((kind (cadr slot)) (extra (cddr slot)))
+    (case kind
+      ((carrier)      "carrier")
+      ((derived)      (string-append "derived carrier, carved out of "
+                                     (symbol->string (car extra))))
+      ((op)           (string-append "operation " (expression->string (car extra))
+                                     " -> " (expression->string (cadr extra))))
+      ((constant)     (string-append "constant in " (expression->string (car extra))))
+      ((substructure) (string-append "substructure, a " (symbol->string (car extra))))
+      ((family)       (string-append "family of subsets of " (symbol->string (car extra))))
+      ((family-fun)   (string-append "function on the family " (symbol->string (car extra))
+                                     " into " (expression->string (cadr extra))))
+      ((relation)     (string-append "relation on " (symbol->string (car extra))))
+      (else           (symbol->string kind)))))
+
 (define (struct-index--emit-structure name all-theorem-names)
   (let* ((sd        (lookup-structure name))
          (is-pred   (symbol-append 'IS- name))
@@ -3628,10 +3645,25 @@
     (display "\n<a id=\"") (display (struct-index--anchor name)) (display "\"></a>\n\n")
     (display (struct-index--source-link (structure-def-source-file sd)))
     (display "*Kind.* Shape structure — `declare-structure` with slot clauses.\n\n")
+    ;; every slot WITH ITS KIND (batch 40, 2026-09-28): the hom generator has
+    ;; one rule per kind, so the kind is what says what the default arrows do
     (display "*Slots* (") (display n-slots) (display "): ")
-    (display "carriers ") (display (structure-def-carriers sd))
-    (display ", ops/constants ") (display (map car (structure-def-op-specs sd)))
+    (let loop ((ss (structure-def-slots sd)) (first? #t))
+      (when (pair? ss)
+        (if (not first?) (display "; "))
+        (display "`") (display (caar ss)) (display "` ")
+        (display (struct-index--slot-kind (car ss)))
+        (loop (cdr ss) #f)))
+    (display ".")
     (newline) (newline)
+    ;; the DEFAULT category's arrows, as generated (or as declare-hom! replaced them)
+    (let* ((hdef (symbol-append (structure-hom-name name) '-def))
+           (h    (hash-table-ref/default *theorem-table* hdef #f)))
+      (when h
+        (display "*Default arrows* (`") (display hdef) (display "`")
+        (if (hom-overridden? name) (display ", replaced by `declare-hom!`"))
+        (display "): ") (display (expression->string h))
+        (newline) (newline)))
     (struct-index--emit-declaration name is-pred)
     (newline)
     (when (not (null? thms))
@@ -3756,7 +3788,8 @@
 ;;; buffer and splices the user's editable notes underneath.
 
 (define (describe-structure--slot-line slot)
-  ;; slot = (name kind . extra); kind in {carrier, op, constant}
+  ;; slot = (name kind . extra); kind in {carrier, op, constant, substructure,
+  ;; family, family-fun, relation}
   (let ((nm (car slot)) (kind (cadr slot)) (extra (cddr slot)))
     (display "    ") (display nm)
     (case kind
@@ -3771,6 +3804,14 @@
       ((substructure) (display "   ")
                   (display (string-downcase (symbol->string (car extra))))
                   (display " — a substructure of this kind"))
+      ((family)   (display "   a family of subsets of ")
+                  (display (car extra)))
+      ((family-fun) (display "   a function on the family ")
+                  (display (car extra))
+                  (display " into ")
+                  (display (expression->string (cadr extra))))
+      ((relation) (display "   a relation on ")
+                  (display (car extra)))
       (else       (display "   ?")))
     (newline)))
 
@@ -4477,6 +4518,13 @@
       ((substructure) (string-append "- **" nm "** — a "
                                  (string-downcase (symbol->string (car extra)))
                                  " substructure"))
+      ((family)   (string-append "- **" nm "** — a family of subsets of "
+                                 (symbol->string (car extra))))
+      ((family-fun) (string-append "- **" nm "** — a function on the family "
+                                 (symbol->string (car extra)) " into $"
+                                 (expr->tex (cadr extra)) "$"))
+      ((relation) (string-append "- **" nm "** — a relation on "
+                                 (symbol->string (car extra))))
       (else       (string-append "- **" nm "**")))))
 
 ;;; The IS-X law, peeled to its defining conditions and emitted as one

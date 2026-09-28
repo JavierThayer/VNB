@@ -1010,7 +1010,7 @@ characterized by \texttt{pre-compose}  \textit{(proven)}:
 forall([a, b, c, u, s, s2, f, h, k], a in set implies b in set implies k in fun(a, b) implies h in fun(b, c) implies f in fun(c, u) implies f in s implies compose(f, h) in s2 implies (vnb-lambda(hmpf\_, s, compose(hmpf\_, compose(h, k))))(f) = (vnb-lambda(hmpf\_, s2, compose(hmpf\_, k)))((vnb-lambda(hmpf\_, s, compose(hmpf\_, h)))(f)))
 \end{quote}
 also: \texttt{compose-type} \texttt{post-compose} \texttt{compose-apply} \texttt{compose-assoc} \texttt{compose-id-left} \texttt{hom-pid-compose} \texttt{compose-id-right} \texttt{hom-ring-compose} ... (40 in all) \\
-mentioned by 132 result(s)
+mentioned by 134 result(s)
 
 \smallskip
 
@@ -2040,7 +2040,7 @@ characterized by \texttt{is-linear-functional}  \textit{(definitional)}:
 forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x\_ in vec(m), y\_ in vec(m)], f((vadd(m))(x\_, y\_)) = f(x\_) + f(y\_)) and forall([r\_ in rr, x\_ in vec(m)], f((act(m))(r\_, x\_)) = r\_ * f(x\_)))
 \end{quote}
 also: \texttt{is-linear-functional-on} \texttt{dom-of-fun} \texttt{is-fun-def} \texttt{fun-no-junk} \texttt{fun-set-iff} \texttt{fun-apply-type} \texttt{fun-codomain-iff} \texttt{dom-fun-membership} ... (138 in all) \\
-mentioned by 1493 result(s)
+mentioned by 1495 result(s)
 
 \smallskip
 
@@ -2643,14 +2643,14 @@ mentioned by 5 result(s)
 reads: the setoid morphisms from \$1 to \$2 \\
 definition:
 \begin{quote}\ttfamily\footnotesize\noindent
-\{homp\_ in cartesian(fun(pts(a), pts(b)), fun(rel(a), rel(b))): is-hom-setoid(a, b, nth(1, homp\_), nth(2, homp\_))\}
+\{homf\_ in fun(pts(a), pts(b)): is-hom-setoid(a, b, homf\_)\}
 \end{quote}
 characterized by \texttt{hom-setoid-in-set}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-setoid(a) implies is-setoid(b) implies hom-setoid(a, b) in set)
 \end{quote}
-also: \texttt{hom-setoid-member-iff} \\
-mentioned by 3 result(s)
+also: \texttt{hom-setoid-pre-type} \texttt{hom-setoid-post-type} \texttt{hom-setoid-member-iff} \\
+mentioned by 5 result(s)
 
 \smallskip
 
@@ -2815,7 +2815,7 @@ characterized by \texttt{is-ring}  \textit{(definitional)}:
 forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 \end{quote}
 also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1317 in all) \\
-mentioned by 5075 result(s)
+mentioned by 5077 result(s)
 
 \smallskip
 
@@ -3913,12 +3913,12 @@ mentioned by 6 result(s)
 
 \smallskip
 
-\noindent\textbf{\texttt{is-hom-setoid(a, b, f1, f2)}}\quad\textit{predicate}\index{is-hom-setoid(a, b, f1, f2)@\texttt{is-hom-setoid(a, b, f1, f2)}}\\
-reads: \$3 is a setoid homomorphism from \$1 to \$2 \\
+\noindent\textbf{\texttt{is-hom-setoid(a, b, f)}}\quad\textit{predicate}\index{is-hom-setoid(a, b, f)@\texttt{is-hom-setoid(a, b, f)}}\\
+reads: \$3 is a setoid morphism from \$1 to \$2 \\
 a predicate \\
 characterized by \texttt{is-hom-setoid-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([a, b, f1, f2], is-hom-setoid(a, b, f1, f2) iff is-setoid(a) and is-setoid(b) and f1 in fun(pts(a), pts(b)) and f2 in fun(rel(a), rel(b)))
+forall([a, b, f], is-hom-setoid(a, b, f) iff is-setoid(a) and is-setoid(b) and f in fun(pts(a), pts(b)) and forall([x1\_ in pts(a), x2\_ in pts(a)], [x1\_, x2\_] in rel(a) implies [f(x1\_), f(x2\_)] in rel(b)))
 \end{quote}
 mentioned by 6 result(s)
 
@@ -4711,10 +4711,10 @@ reads: a setoid \\
 a predicate \\
 characterized by \texttt{is-setoid}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([s], is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in set and is-equivalence(rel(s), pts(s)))
+forall([s], is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in power(cartesian(pts(s), pts(s))) and is-equivalence(rel(s), pts(s)))
 \end{quote}
 also: \texttt{cauchy-setoid-is-setoid} \texttt{ringoid-setoid-is-setoid} \\
-mentioned by 30 result(s)
+mentioned by 32 result(s)
 
 \smallskip
 
@@ -5083,7 +5083,7 @@ characterized by \texttt{nary-plus-2-list}  \textit{(asserted)}:
 forall([x, y], x + y == reduce(binplus, fam-of-list([x, y]), 2))
 \end{quote}
 also: \texttt{nary-plus-3-list} \texttt{nary-plus-4-list} \texttt{nary-plus-5-list} \texttt{nary-times-2-list} \texttt{nary-times-3-list} \texttt{nary-times-4-list} \texttt{nary-times-5-list} \\
-mentioned by 250 result(s)
+mentioned by 252 result(s)
 
 \smallskip
 
@@ -5831,7 +5831,7 @@ characterized by \texttt{nth-cons-1}  \textit{(definitional)}:
 forall([x, l], nth(1, cons(x, l)) = x)
 \end{quote}
 also: \texttt{nth-cons-succ} \texttt{nth-in-range} \texttt{ms-nth-2} \texttt{nth1-pair} \texttt{nth2-pair} \texttt{cartesian-nth} \\
-mentioned by 82 result(s)
+mentioned by 80 result(s)
 
 \smallskip
 
@@ -6134,7 +6134,7 @@ characterized by \texttt{power-neg}  \textit{(primitive)}:
 forall([x, n], x in cc and n in nn and not(x = 0) implies x \textasciicircum{} (-n) = recip(x \textasciicircum{} n))
 \end{quote}
 also: \texttt{power-set} \texttt{power-succ} \texttt{power-zero} \texttt{power-typing-nonneg} \texttt{power-set-membership} \texttt{deriv-power} \texttt{cc-power-add} \texttt{cc-power-mul} ... (60 in all) \\
-mentioned by 342 result(s)
+mentioned by 344 result(s)
 
 \smallskip
 
@@ -6591,7 +6591,7 @@ characterized by \texttt{r6b-setoid-rel}  \textit{(proven)}:
 forall([r], rel(ringoid-setoid(r)) == ringoid-rel(r))
 \end{quote}
 also: \texttt{rko2-related-unfold} \texttt{rko2-cauchy-setoid-rel} \\
-mentioned by 13 result(s)
+mentioned by 10 result(s)
 
 \smallskip
 
@@ -7896,7 +7896,7 @@ declared in \texttt{tactics-help.scm}
 
 \noindent\textbf{\texttt{vnb-lambda}}\quad\textit{operator}\index{vnb-lambda@\texttt{vnb-lambda}}\\
 a term-forming head \\
-mentioned by 991 result(s)
+mentioned by 993 result(s)
 
 \smallskip
 

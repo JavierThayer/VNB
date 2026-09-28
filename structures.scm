@@ -9,6 +9,7 @@
 ;;;                   (NAME constant SET)
 ;;;                   (NAME family CARRIER)          a set of subsets of CARRIER
 ;;;                   (NAME family-fun FAMILY RANGE) a function on the family FAMILY
+;;;                   (NAME relation CARRIER)        a set of pairs of points of CARRIER
 ;;;                 (also `derived' and `substructure', below).
 ;;;                 Carrier and op accessor names appear bare in domain/range;
 ;;;                 def-structure expands them to (ACCESSOR s) automatically.
@@ -21,7 +22,7 @@
 ;;; `declare-structure`, which expands to the procedure
 ;;; `def-structure-from-clauses`; that parses `(carriers ...)`, `(op ...)`,
 ;;; `(constant ...)`, `(derived ...)`, `(substructure ...)`, `(family ...)`,
-;;; `(family-fun ...)`, `(property ...)`
+;;; `(family-fun ...)`, `(relation ...)`, `(property ...)`
 ;;; and `(law ...)` clauses into the slot list.  The two are the same thing:
 ;;; the macro exists only to spare the caller the quoting.
 ;;;
@@ -562,6 +563,13 @@
                       (let ((dom (expand-accessors (caddr  slot) all-accessors ivar))
                             (rng (expand-accessors (cadddr slot) all-accessors ivar)))
                         `((IN (,name ,ivar) (FUN ,dom ,rng)))))
+                     ;; A RELATION slot (relation R C) holds a set of PAIRS of
+                     ;; points of the carrier C (batch 40, 2026-09-28): SETOID's
+                     ;; REL.  Its typing is the honest one, a subset of C x C;
+                     ;; as a second carrier it was only (IN (R s) SET).
+                     ((relation)
+                      (let ((c (expand-accessors (caddr slot) all-accessors ivar)))
+                        `((IN (,name ,ivar) (POWER (CARTESIAN ,c ,c))))))
                      ;; A substructure slot is typed by its structure predicate:
                      ;; (substructure K FIELD) -> conjunct (IS-FIELD (K s)).
                      ((substructure)
@@ -870,7 +878,7 @@
           (let ((strays (filter (lambda (c)
                                   (and (pair? c)
                                        (memq (car c) '(carriers op constant substructure
-                                                       family family-fun))))
+                                                       family family-fun relation))))
                                 clauses)))
             (if (pair? strays)
                 (error (string-append
@@ -925,6 +933,15 @@
              (loop (cdr rest)
                    (cons (list (cadr clause) 'family-fun (caddr clause) (cadddr clause))
                          slots)
+                   props laws))
+            ;; (relation R C) -- R(s) is a set of pairs of points of the carrier
+            ;; C(s) (batch 40, 2026-09-28): a relation ON the carrier, not a
+            ;; second carrier.  IS-X types it R(s) in POWER(CARTESIAN(C s, C s));
+            ;; the hom rule (build-hom-axiom) is "related points go to related
+            ;; points" under the ONE map of C.
+            ((eq? kind 'relation)
+             (loop (cdr rest)
+                   (cons (list (cadr clause) 'relation (caddr clause)) slots)
                    props laws))
             ;; (substructure NAME TYPE) -- the slot holds a whole structure
             ;; (e.g. a vector space's base FIELD), typed by IS-TYPE rather than
@@ -1445,11 +1462,16 @@
 ;;;   fj(OP(a)(x...)) = OP(b)(f(x)...)   for each OP slot, argument by argument
 ;;;   forall u in F(b). fi^-1(u) in F(a)            for each FAMILY slot F over carrier i
 ;;;   forall u in F(b). M(b)(u) = M(a)(fi^-1(u))    for each FAMILY-FUN slot M on F
+;;;   forall x1, x2 in Ci(a). (x1, x2) in R(a) => (fi x1, fi x2) in R(b)
+;;;                                                 for each RELATION slot R on carrier i
 ;;;
 ;;; (the last two since batch 39, 2026-09-28: a sigma-algebra or a topology is
 ;;; pulled back, a measure transported; they were constant slots before and
 ;;; generated F(a) = F(b), the wrong arrows -- docs/categories-per-structure-2026-09-28.md.
-;;; When a family slot is present the hom variables are s and t, not a and b.)
+;;; When a family slot is present the hom variables are s and t, not a and b.
+;;; The RELATION kind since batch 40, 2026-09-28: SETOID's REL was a second
+;;; carrier, so a setoid arrow was a PAIR of unrelated maps; now it is one map
+;;; of points sending related points to related points.)
 ;;;
 ;;; Two conventions, both deliberate:
 ;;;
@@ -1555,6 +1577,17 @@
                           (= ((,nm ,bvar) u)
                              ,(hom--apply rmap
                                 (list (list nm avar) (hom--preimage (caddr fam) 'u))))))))
+          ;; A RELATION on carrier C is PRESERVED by C's map: related points go
+          ;; to related points.  Pairs are (LIST x y), as is-equivalence spells
+          ;; them; the binders are the op clause's.
+          ((relation)
+           (let* ((c    (caddr slot))
+                  (mapf (or (hom--map-for c carriers fvars dbase)
+                            (error "build-hom-axiom: a relation over a non-carrier" c name))))
+             `(FORALL x1_ (IMPLIES (IN x1_ (,c ,avar))
+                (FORALL x2_ (IMPLIES (IN x2_ (,c ,avar))
+                  (IMPLIES (IN (LIST x1_ x2_) (,nm ,avar))
+                           (IN (LIST (,mapf x1_) (,mapf x2_)) (,nm ,bvar)))))))))
           ((constant)
            (let ((mapf (hom--map-for (caddr slot) carriers fvars dbase)))
              `(= ,(hom--apply mapf `(,nm ,avar)) (,nm ,bvar))))
@@ -1629,8 +1662,9 @@
 ;;; def-substructure: the refinement form), and a later `declare-hom!' -- which
 ;;; REPLACES the predicate's definition (TOP-SPACE, METRIZABLE-TOP-SPACE,
 ;;; RINGOID) -- is seen through it with nothing reinstalled.  A structure with
-;;; TWO carriers (SETOID: PTS and REL) gets the set of PAIRS of maps (below);
-;;; three or more get nothing yet (no SEP over triples).
+;;; TWO carriers gets the set of PAIRS of maps (below); three or more get
+;;; nothing yet (no SEP over triples).  (SETOID, the case that branch was
+;;; written for, has ONE carrier since batch 40: its REL is a RELATION slot.)
 ;;; What the unfold cannot give -- a def-functoid unfolds only in a GOAL -- is
 ;;; the membership theorem hom-NAME-member-iff (f in HOM-NAME(a, b) iff f in
 ;;; FUN(C a, C b) and IS-HOM-NAME(a, b, f)); it is PROVEN, with the identity,
@@ -1656,7 +1690,8 @@
                      'english (string-append "the " (structure--noun-of name)
                                              " morphisms from $1 to $2"))
           hs))
-      ;; TWO carriers (SETOID: PTS, REL; batch 39, 2026-09-28): an arrow is a
+      ;; TWO carriers (batch 39, 2026-09-28, for SETOID's old PTS, REL; no
+      ;; structure of the tree has two since batch 40): an arrow is a
       ;; PAIR of maps, so the hom-set is a set of pairs -- the SEP of the binary
       ;; CARTESIAN of the two FUN sets by the hom predicate on the components.
       ;; k >= 3 waits for the tuple machinery (no SEP over triples; CLAUDE.md,

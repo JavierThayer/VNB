@@ -238,7 +238,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### hom-setoid
 
-    hom-setoid(a, b) := {homp_ in cartesian(fun(pts(a), pts(b)), fun(rel(a), rel(b))): is-hom-setoid(a, b, nth(1, homp_), nth(2, homp_))}
+    hom-setoid(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-setoid(a, b, homf_)}
 
 ### hom-top-space
 

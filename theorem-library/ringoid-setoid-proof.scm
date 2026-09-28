@@ -158,7 +158,7 @@
 (sp (make-wff '(FORALL r (IMPLIES (IS-RINGOID r) (IS-SETOID (RINGOID-SETOID r))))))
 (di)(di)
 (fact 'ringoid-carr-in-set 'r)                ; carr(r) in set
-(mac 'IS-SETOID)                              ; length=2 and pts in set and rel in set and is-equivalence
+(mac 'IS-SETOID)                              ; length=2, pts in set, rel in power(pts x pts), is-equivalence
 (slot 'pts)                                   ; pts(RINGOID-SETOID r) -> nth(1, RINGOID-SETOID r)
 (slot 'rel)                                   ; rel(RINGOID-SETOID r) -> nth(2, RINGOID-SETOID r)
 (mac 'RINGOID-SETOID)                         ; RINGOID-SETOID r -> [carr(r), RINGOID-REL r]
@@ -171,17 +171,14 @@
 ;; carr(r) in set
 (rg-foc! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (equal? (cadr g) '(CARR r)) (eq? (caddr g) 'SET))))
 (ass)
-;; RINGOID-REL r in set  (sep-set, cartesian-set-iff, carr in set)
-(rg-foc! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (pair? (cadr g)) (eq? (car (cadr g)) 'RINGOID-REL) (eq? (caddr g) 'SET))))
-(mac 'RINGOID-REL)
-(sep-set)
-(rg-foc! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (pair? (cadr g)) (eq? (car (cadr g)) 'CARTESIAN) (eq? (caddr g) 'SET))))
-(mac 'cartesian-set-iff)
-(vnb-guard (lambda () (di)))
-(for-each (lambda (l) (dk-focus! l) (vnb-guard (lambda () (ass))))
-          (filter (lambda (l) (let ((g (rg-gof l)))
-                    (and (pair? g) (eq? (car g) 'IN) (equal? (cadr g) '(CARR r)) (eq? (caddr g) 'SET))))
-                  (proof-leaves)))
+;; RINGOID-REL r in POWER(CARTESIAN(carr r, carr r)) -- the RELATION slot's typing
+;; (batch 40: REL was a second carrier, typed only `in set').  It is the first
+;; conjunct of is-equivalence, the theorem above, opened on this leaf only.
+(rg-foc! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (pair? (cadr g)) (eq? (car (cadr g)) 'RINGOID-REL)
+                          (pair? (caddr g)) (eq? (car (caddr g)) 'POWER))))
+(mac-h 'IS-EQUIVALENCE (dk-fact! 'ringoid-rel-is-equivalence 'r))
+(dk-split-all!)
+(ass)
 ;; is-equivalence(RINGOID-REL r, carr(r))  -- the theorem just proved
 (rg-foc! (lambda (g) (and (pair? g) (eq? (car g) 'is-equivalence))))
 (fact 'ringoid-rel-is-equivalence 'r)

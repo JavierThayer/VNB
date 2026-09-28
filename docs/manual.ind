@@ -341,7 +341,7 @@
   \item \texttt{ii}, \hyperpage{200}
   \item \texttt{ii} (tactic), \hyperpage{75}
   \item \texttt{imag-part}, \hyperpage{200}
-  \item \texttt{image}, \hyperpage{201}
+  \item \texttt{image}, \hyperpage{200}
   \item \texttt  {implies-intro} (kernel operation), \hyperpage{43}
   \item \texttt{in}, \hyperpage{201}
   \item \texttt{indicator(omega, a)}, \hyperpage{201}
@@ -372,7 +372,7 @@
   \item \texttt{iota-d} (tactic), \hyperpage{92}
   \item \texttt  {iota-def} (kernel operation), \hyperpage{45}
   \item \texttt  {iota-in-elim} (kernel operation), \hyperpage{45}
-  \item \texttt{ip(s)}, \hyperpage{204}
+  \item \texttt{ip(s)}, \hyperpage{203}
   \item \texttt{ip-norm(v, x)}, \hyperpage{204}
   \item \texttt{ip-normed-ag(v)}, \hyperpage{204}
   \item \texttt{is-abelian-group(s)}, \hyperpage{204}
@@ -457,7 +457,7 @@
   \item \texttt{is-hom-ring(a, b, f)}, \hyperpage{217}
   \item \texttt{is-hom-ringoid(a, b, f)}, \hyperpage{218}
   \item \texttt{is-hom-semigroup(a, b, f)}, \hyperpage{218}
-  \item \texttt{is-hom-setoid(a, b, f1, f2)}, \hyperpage{218}
+  \item \texttt{is-hom-setoid(a, b, f)}, \hyperpage{218}
   \item \texttt{is-hom-top-space(s, t, f)}, \hyperpage{218}
   \item \texttt{is-hom-vector-space(a, b, f)}, \hyperpage{218}
   \item \texttt{is-ideal(s, i)}, \hyperpage{218}

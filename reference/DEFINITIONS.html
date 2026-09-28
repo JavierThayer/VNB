@@ -744,7 +744,7 @@ forall([grd, porel, lam], limit-ord(lam) implies zup(grd, porel, lam) = choice({
 <h4 id="d-hom-semigroup">hom-semigroup</h4>
 <pre>hom-semigroup(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-semigroup(a, b, homf_)}</pre>
 <h4 id="d-hom-setoid">hom-setoid</h4>
-<pre>hom-setoid(a, b) := {homp_ in cartesian(fun(pts(a), pts(b)), fun(rel(a), rel(b))): is-hom-setoid(a, b, nth(1, homp_), nth(2, homp_))}</pre>
+<pre>hom-setoid(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-setoid(a, b, homf_)}</pre>
 <h4 id="d-hom-top-space">hom-top-space</h4>
 <pre>hom-top-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-top-space(a, b, homf_)}</pre>
 <h4 id="d-hom-uniformly-continuous">hom-uniformly-continuous</h4>
@@ -1178,7 +1178,7 @@ forall([grd, porel, lam], limit-ord(lam) implies zup(grd, porel, lam) = choice({
 <h4 id="d-is-hom-semigroup-def">is-hom-semigroup-def</h4>
 <pre>forall([a, b, f], is-hom-semigroup(a, b, f) iff is-semigroup(a) and is-semigroup(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))))</pre>
 <h4 id="d-is-hom-setoid-def">is-hom-setoid-def</h4>
-<pre>forall([a, b, f1, f2], is-hom-setoid(a, b, f1, f2) iff is-setoid(a) and is-setoid(b) and f1 in fun(pts(a), pts(b)) and f2 in fun(rel(a), rel(b)))</pre>
+<pre>forall([a, b, f], is-hom-setoid(a, b, f) iff is-setoid(a) and is-setoid(b) and f in fun(pts(a), pts(b)) and forall([x1_ in pts(a), x2_ in pts(a)], [x1_, x2_] in rel(a) implies [f(x1_), f(x2_)] in rel(b)))</pre>
 <h4 id="d-is-hom-top-space-def">is-hom-top-space-def</h4>
 <pre>forall([s, t, f], is-hom-top-space(s, t, f) iff is-top-space(s) and is-top-space(t) and f in fun(pts(s), pts(t)) and forall([u in opens(t)], preimage(s, f, u) in opens(s)))</pre>
 <h4 id="d-is-hom-vector-space-def">is-hom-vector-space-def</h4>

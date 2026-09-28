@@ -949,10 +949,15 @@
 (mac 'rko2-cauchy-setoid-rel)
 (dk-conj-close!
  (lambda ()
-   (if (not (eq? (car (dk-goal)) 'IS-EQUIVALENCE))
-       (ass)
-       (begin (mac 'IS-EQUIVALENCE)
-              (dk-conj-close! (lambda () (rko2-equiv-leaf!)))))))
+   (cond ((eq? (car (dk-goal)) 'IS-EQUIVALENCE)
+          (mac 'IS-EQUIVALENCE)
+          (dk-conj-close! (lambda () (rko2-equiv-leaf!))))
+         ;; REL's typing CREL(M) in POWER(CARTESIAN(CSEQ M, CSEQ M)) (batch 40: the
+         ;; RELATION slot kind) is is-equivalence's first conjunct, leaf (a)
+         ((and (eq? (car (dk-goal)) 'IN) (pair? (caddr (dk-goal)))
+               (eq? (car (caddr (dk-goal))) 'POWER))
+          (rko2-equiv-leaf!))
+         (#t (ass)))))
 (qed 'cauchy-setoid-is-setoid)
 (topic! 'cauchy-setoid-is-setoid 'set-quotient)
 

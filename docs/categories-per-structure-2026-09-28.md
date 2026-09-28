@@ -201,3 +201,73 @@ occurs inside `PREIMAGE(V a, f, u)`, where its accessor rewriting does not reach
 
 **The audit.** At the end of batch 39 the four declared categories owe nothing
 (`;; category obligations: none outstanding (4 declared categories)`).
+
+## Built (batch 40, 2026-09-28)
+
+The user's decision of 2026-09-28: the relation of a setoid is not a second carrier. It is a slot of a
+new kind, and a setoid arrow is ONE map of points that sends related points to related points. (An
+indicator-function design, `r : X x X -> {0, 1}`, was considered and withdrawn. The reflecting arrow,
+`x ~ y iff f(x) ~ f(y)`, is not built; it is one `declare-category!` on `SETOID` away.)
+
+**The generator (`structures.scm`).** A third slot kind beside the two family kinds:
+
+* `(relation R C)` -- `R(s)` is a set of pairs of points of the carrier `C(s)`. Its conjunct of `IS-X`
+  is `R(s) in POWER(CARTESIAN(C s, C s))`. Its hom clause, under the map `f` of `C`, is
+  `forall x1_ in C(a). forall x2_ in C(a). [x1_, x2_] in R(a) implies [f(x1_), f(x2_)] in R(b)`.
+  A relation over a slot that is not a carrier is an error at declaration time.
+
+`SETOID` is re-declared `(carriers PTS) (relation REL PTS) (property is-equivalence REL PTS)`. Its
+predicate changes, and this is the only structure predicate that changes:
+
+    before: is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in set
+              and is-equivalence(rel(s), pts(s))
+    after:  is-setoid(s) iff length(s) = 2 and pts(s) in set
+              and rel(s) in power(cartesian(pts(s), pts(s))) and is-equivalence(rel(s), pts(s))
+
+The new typing repeats the first conjunct of `is-equivalence`. The duplication is harmless and
+`is-equivalence` is left as it is. The generated arrows now read:
+
+    is-hom-setoid(a, b, f) iff is-setoid(a) and is-setoid(b) and f in fun(pts(a), pts(b))
+      and forall([x1_ in pts(a), x2_ in pts(a)], [x1_, x2_] in rel(a) implies [f(x1_), f(x2_)] in rel(b))
+
+In words: "f is a setoid morphism from a to b". With one carrier, `SETOID` gets the one-carrier hom-set
+`HOM-SETOID(a, b) = {f in FUN(PTS a, PTS b) : IS-HOM-SETOID(a, b, f)}`. The two-carrier branch of
+`install-hom-set!` (the set of pairs of maps) is kept as generic code, although no structure in the tree
+now has two carriers. A suite check pins it on a toy structure.
+
+**The laws (`theorem-library/hom-kinds.scm`).** The batch 39 `SETOID` section proved the laws for pairs
+of maps; it is replaced. `hom-setoid-member-iff`, `-id`, `-compose` and `-in-set` are now proved in the
+one-carrier shapes, all `proven modulo 0`. The identity and composition are driven by one rule for the
+relation kind:
+
+* identity: `id-fun-apply` rewrites `ID-FUN(PTS a)(x)` to `x`;
+* composition: f's clause, then f's typing, then g's clause, with `compose-apply` for `(g o f)(x)`.
+
+`SETOID` is added to the list of `hom-functors.scm`, which gives `hom-setoid-post-type` and
+`hom-setoid-pre-type` (both modulo 0). The driver needed no new case. `SETOID` stays out of
+`hom-laws.scm`'s generic list, because that driver closes an equation and this clause is an implication.
+
+**The cone.** Two constructions of setoids prove the new typing conjunct from the `is-equivalence`
+they already establish:
+
+* `ringoid-setoid-is-setoid` (ringoid-setoid-proof.scm): the typing conjunct is closed by
+  `is-equivalence`'s first conjunct;
+* `cauchy-setoid-is-setoid` (rake-setoid2.scm): the conjunct goes to the driver's existing leaf (a).
+
+Every other citer of `IS-SETOID` re-proved unchanged.
+
+**The structure cards.** `describe-structure` and the Markdown card now print the three kinds that
+printed "?": "a family of subsets of C", "a function on the family F into R" and "a relation on C".
+`reference/STRUCTURE-INDEX.md` (`struct-index--emit-structure`, interactive.scm) lists every slot with
+its kind, and gives one line per structure with the default arrows, as the generated (or
+`declare-hom!`-replaced) definition.
+
+**The definedness certificate.** `pi--defined?` (primitive-inferences.scm) certifies an applied structure
+operation `((ACC s) a1 .. an)` for a `family-fun` slot as well as for an `op` slot. With
+`IS-MEASURE-SPACE(s)` and `u in SIGMA(s)` in context, `MEAS(s)(u)` is certified. This is a kernel file,
+so every certificate is invalid until the next exam.
+
+**`dk-name!`** (driver-kit.scm). `(dk-name! T [CLASS])` names a term typed in context as a fresh symbol
+`v`, landing `v in CLASS` and `v = T`. It is the cure for `ineq` dropping a non-linear premise. It
+replaces the verbatim copies `cpsl-name!` (cc-power-series-laws.scm) and `clh-name!`
+(cc-log-holomorphic.scm).

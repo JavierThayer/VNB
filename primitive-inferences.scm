@@ -1054,7 +1054,7 @@
           (let* ((acc (car (car t))) (s (cadr (car t)))
                  (sd (pi--structure-hyp asms s))
                  (spec (and sd (assq acc (structure-def-slots sd)))))
-            (and spec (eq? (cadr spec) 'op) (pair? (cddr spec))
+            (and spec (memq (cadr spec) '(op family-fun)) (pair? (cddr spec))
                  (let ((dom (caddr spec)) (args (cdr t)))
                    (cond ((and (pair? dom) (eq? (car dom) 'CARTESIAN)
                                (= (length (cdr dom)) (length args)))

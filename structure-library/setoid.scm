@@ -43,11 +43,18 @@
 ;;; The structure.
 ;;; =======================================================================
 
-;; REL is declared as a `carriers' slot: that imposes the bare shape
-;; constraint (IN (REL s) SET) -- a relation IS a set.  The tighter typing
-;; (REL s) subset CARTESIAN(X,X) and the three laws come from the property.
+;; ONE carrier, PTS; REL is a RELATION slot (batch 40, 2026-09-28, the user's
+;; decision): a set of pairs of points of PTS, typed in IS-SETOID as
+;; REL(s) in POWER(CARTESIAN(PTS s, PTS s)).  Until then REL was declared as a
+;; second CARRIER, which typed it only as a set and made a setoid arrow a PAIR
+;; of maps (one of points, one of related pairs) with nothing linking them.  The
+;; relation kind generates the arrow one wants: ONE map of points sending
+;; related points to related points (structures.scm, build-hom-axiom).  The
+;; three laws come from the property; is-equivalence repeats the subset typing
+;; as its first conjunct, which is harmless.
 (declare-structure SETOID
-  (carriers PTS REL)
+  (carriers PTS)
+  (relation REL PTS)
   (property is-equivalence REL PTS))
 
 ;; The three equivalence laws (refl/sym/trans) and the typing REL subset
@@ -182,5 +189,5 @@
 ;;; so it is written here, once, next to what it means.
 (notation! 'IS-EQUIVALENCE 'kind 'predicate 'arity 2
            'english "$1 is an equivalence relation on $2")
-(notation! 'IS-HOM-SETOID 'kind 'predicate 'arity 4
-           'english "$3 is a setoid homomorphism from $1 to $2")
+(notation! 'IS-HOM-SETOID 'kind 'predicate 'arity 3
+           'english "$3 is a setoid morphism from $1 to $2")

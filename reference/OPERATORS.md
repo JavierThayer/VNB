@@ -754,7 +754,7 @@ Declared by: `fam-of-list-apply`
 
 > _Reads as:_  the setoid morphisms from a to b
 
-    hom-setoid(a, b) := {homp_ in cartesian(fun(pts(a), pts(b)), fun(rel(a), rel(b))): is-hom-setoid(a, b, nth(1, homp_), nth(2, homp_))}
+    hom-setoid(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-setoid(a, b, homf_)}
 
 ### `hom-top-space`  — def-functoid · set-valued
 
@@ -2070,9 +2070,9 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  f is a homomorphism from a to b
 
-### `is-hom-setoid`  — def-predicate · proposition (arity 4)
+### `is-hom-setoid`  — def-predicate · proposition (arity 3)
 
-> _Reads as:_  f1 is a setoid homomorphism from a to b
+> _Reads as:_  f is a setoid morphism from a to b
 
 ### `is-hom-top-space`  — def-predicate · proposition (arity 3)
 

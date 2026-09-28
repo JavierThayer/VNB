@@ -81,7 +81,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (4): carriers (carr), ops/constants (opr iden inv)
+*Slots* (4): `carr` carrier; `opr` operation cartesian(carr, carr) -> carr; `iden` constant in carr; `inv` operation carr -> carr.
+
+*Default arrows* (`is-hom-abelian-group-def`): forall([a, b, f], is-hom-abelian-group(a, b, f) iff is-abelian-group(a) and is-abelian-group(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b) and forall([x1_ in carr(a)], f((inv(a))(x1_)) = (inv(b))(f(x1_))))
 
 *Declaration.*
 
@@ -238,7 +240,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (2): carriers (pts), ops/constants (dists)
+*Slots* (2): `pts` carrier; `dists` operation nn -> fun(cartesian(pts, pts), rr).
+
+*Default arrows* (`is-hom-c-metric-space-def`): forall([a, b, f], is-hom-c-metric-space(a, b, f) iff is-c-metric-space(a) and is-c-metric-space(b) and f in fun(pts(a), pts(b)) and forall([x1_ in nn], (dists(a))(x1_) = (dists(b))(x1_)))
 
 *Declaration.*
 
@@ -312,7 +316,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (3): carriers (carr), ops/constants (opr iden)
+*Slots* (3): `carr` carrier; `opr` operation cartesian(carr, carr) -> carr; `iden` constant in carr.
+
+*Default arrows* (`is-hom-comm-monoid-def`): forall([a, b, f], is-hom-comm-monoid(a, b, f) iff is-comm-monoid(a) and is-comm-monoid(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b))
 
 *Declaration.*
 
@@ -509,7 +515,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (7): carriers (vec), ops/constants (vadd vzero vneg act ip)
+*Slots* (7): `scal` substructure, a ring; `vec` carrier; `vadd` operation cartesian(vec, vec) -> vec; `vzero` constant in vec; `vneg` operation vec -> vec; `act` operation cartesian(carr(scal), vec) -> vec; `ip` operation cartesian(vec, vec) -> cc.
+
+*Default arrows* (`is-hom-complex-inner-product-space-def`): forall([a, b, f], is-hom-complex-inner-product-space(a, b, f) iff is-complex-inner-product-space(a) and is-complex-inner-product-space(b) and f in fun(vec(a), vec(b)) and scal(a) = scal(b) and forall([x1_ in vec(a), x2_ in vec(a)], f((vadd(a))(x1_, x2_)) = (vadd(b))(f(x1_), f(x2_))) and f(vzero(a)) = vzero(b) and forall([x1_ in vec(a)], f((vneg(a))(x1_)) = (vneg(b))(f(x1_))) and forall([x1_ in carr(scal(a)), x2_ in vec(a)], f((act(a))(x1_, x2_)) = (act(b))(x1_, f(x2_))) and forall([x1_ in vec(a), x2_ in vec(a)], (ip(a))(x1_, x2_) = (ip(b))(f(x1_), f(x2_))))
 
 *Declaration.*
 
@@ -681,7 +689,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (8): carriers (carr non-zero), ops/constants (add mul neg zero one mul-inv)
+*Slots* (8): `carr` carrier; `add` operation cartesian(carr, carr) -> carr; `mul` operation cartesian(carr, carr) -> carr; `neg` operation carr -> carr; `zero` constant in carr; `one` constant in carr; `non-zero` derived carrier, carved out of carr; `mul-inv` operation non-zero -> non-zero.
+
+*Default arrows* (`is-hom-field-def`): forall([a, b, f], is-hom-field(a, b, f) iff is-field(a) and is-field(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((add(a))(x1_, x2_)) = (add(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a), x2_ in carr(a)], f((mul(a))(x1_, x2_)) = (mul(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a)], f((neg(a))(x1_)) = (neg(b))(f(x1_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b) and forall([x1_ in non-zero(a)], f((mul-inv(a))(x1_)) = (mul-inv(b))(f(x1_))))
 
 *Declaration.*
 
@@ -765,7 +775,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (4): carriers (carr), ops/constants (opr iden inv)
+*Slots* (4): `carr` carrier; `opr` operation cartesian(carr, carr) -> carr; `iden` constant in carr; `inv` operation carr -> carr.
+
+*Default arrows* (`is-hom-group-def`): forall([a, b, f], is-hom-group(a, b, f) iff is-group(a) and is-group(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b) and forall([x1_ in carr(a)], f((inv(a))(x1_)) = (inv(b))(f(x1_))))
 
 *Declaration.*
 
@@ -845,7 +857,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (2): carriers (pts), ops/constants ()
+*Slots* (2): `pts` carrier; `sigma` family of subsets of pts.
+
+*Default arrows* (`is-hom-measurable-space-def`): forall([s, t, f], is-hom-measurable-space(s, t, f) iff is-measurable-space(s) and is-measurable-space(t) and f in fun(pts(s), pts(t)) and forall([u in sigma(t)], preimage(s, f, u) in sigma(s)))
 
 *Declaration.*
 
@@ -876,7 +890,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (3): carriers (pts), ops/constants ()
+*Slots* (3): `pts` carrier; `sigma` family of subsets of pts; `meas` function on the family sigma into rr-pos-star.
+
+*Default arrows* (`is-hom-measure-space-def`): forall([s, t, f], is-hom-measure-space(s, t, f) iff is-measure-space(s) and is-measure-space(t) and f in fun(pts(s), pts(t)) and forall([u in sigma(t)], preimage(s, f, u) in sigma(s)) and forall([u in sigma(t)], (meas(t))(u) = (meas(s))(preimage(s, f, u))))
 
 *Declaration.*
 
@@ -909,7 +925,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (2): carriers (pts), ops/constants (dist)
+*Slots* (2): `pts` carrier; `dist` operation cartesian(pts, pts) -> rr.
+
+*Default arrows* (`is-hom-metric-space-def`): forall([a, b, f], is-hom-metric-space(a, b, f) iff is-metric-space(a) and is-metric-space(b) and f in fun(pts(a), pts(b)) and forall([x1_ in pts(a), x2_ in pts(a)], (dist(a))(x1_, x2_) = (dist(b))(f(x1_), f(x2_))))
 
 *Declaration.*
 
@@ -1094,7 +1112,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (6): carriers (vec), ops/constants (vadd vzero vneg act)
+*Slots* (6): `scal` substructure, a ring; `vec` carrier; `vadd` operation cartesian(vec, vec) -> vec; `vzero` constant in vec; `vneg` operation vec -> vec; `act` operation cartesian(carr(scal), vec) -> vec.
+
+*Default arrows* (`is-hom-module-def`): forall([a, b, f], is-hom-module(a, b, f) iff is-module(a) and is-module(b) and f in fun(vec(a), vec(b)) and scal(a) = scal(b) and forall([x1_ in vec(a), x2_ in vec(a)], f((vadd(a))(x1_, x2_)) = (vadd(b))(f(x1_), f(x2_))) and f(vzero(a)) = vzero(b) and forall([x1_ in vec(a)], f((vneg(a))(x1_)) = (vneg(b))(f(x1_))) and forall([x1_ in carr(scal(a)), x2_ in vec(a)], f((act(a))(x1_, x2_)) = (act(b))(x1_, f(x2_))))
 
 *Declaration.*
 
@@ -1241,7 +1261,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (3): carriers (carr), ops/constants (opr iden)
+*Slots* (3): `carr` carrier; `opr` operation cartesian(carr, carr) -> carr; `iden` constant in carr.
+
+*Default arrows* (`is-hom-monoid-def`): forall([a, b, f], is-hom-monoid(a, b, f) iff is-monoid(a) and is-monoid(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b))
 
 *Declaration.*
 
@@ -1307,7 +1329,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (5): carriers (carr), ops/constants (opr iden inv nrm)
+*Slots* (5): `carr` carrier; `opr` operation cartesian(carr, carr) -> carr; `iden` constant in carr; `inv` operation carr -> carr; `nrm` operation carr -> rr.
+
+*Default arrows* (`is-hom-normed-ag-def`): forall([a, b, f], is-hom-normed-ag(a, b, f) iff is-normed-ag(a) and is-normed-ag(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b) and forall([x1_ in carr(a)], f((inv(a))(x1_)) = (inv(b))(f(x1_))) and forall([x1_ in carr(a)], (nrm(a))(x1_) = (nrm(b))(f(x1_))))
 
 *Declaration.*
 
@@ -1360,7 +1384,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (7): carriers (carr), ops/constants (add mul neg zero one fnrm)
+*Slots* (7): `carr` carrier; `add` operation cartesian(carr, carr) -> carr; `mul` operation cartesian(carr, carr) -> carr; `neg` operation carr -> carr; `zero` constant in carr; `one` constant in carr; `fnrm` operation carr -> rr.
+
+*Default arrows* (`is-hom-normed-field-def`): forall([a, b, f], is-hom-normed-field(a, b, f) iff is-normed-field(a) and is-normed-field(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((add(a))(x1_, x2_)) = (add(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a), x2_ in carr(a)], f((mul(a))(x1_, x2_)) = (mul(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a)], f((neg(a))(x1_)) = (neg(b))(f(x1_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b) and forall([x1_ in carr(a)], (fnrm(a))(x1_) = (fnrm(b))(f(x1_))))
 
 *Declaration.*
 
@@ -1488,7 +1514,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (7): carriers (vec), ops/constants (vadd vzero vneg act vnrm)
+*Slots* (7): `scal` substructure, a ring; `vec` carrier; `vadd` operation cartesian(vec, vec) -> vec; `vzero` constant in vec; `vneg` operation vec -> vec; `act` operation cartesian(carr(scal), vec) -> vec; `vnrm` operation vec -> rr.
+
+*Default arrows* (`is-hom-normed-vector-space-def`): forall([a, b, f], is-hom-normed-vector-space(a, b, f) iff is-normed-vector-space(a) and is-normed-vector-space(b) and f in fun(vec(a), vec(b)) and scal(a) = scal(b) and forall([x1_ in vec(a), x2_ in vec(a)], f((vadd(a))(x1_, x2_)) = (vadd(b))(f(x1_), f(x2_))) and f(vzero(a)) = vzero(b) and forall([x1_ in vec(a)], f((vneg(a))(x1_)) = (vneg(b))(f(x1_))) and forall([x1_ in carr(scal(a)), x2_ in vec(a)], f((act(a))(x1_, x2_)) = (act(b))(x1_, f(x2_))) and forall([x1_ in vec(a)], (vnrm(a))(x1_) = (vnrm(b))(f(x1_))))
 
 *Declaration.*
 
@@ -1709,7 +1737,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (2): carriers (pts), ops/constants (dist)
+*Slots* (2): `pts` carrier; `dist` operation cartesian(pts, pts) -> rr.
+
+*Default arrows* (`is-hom-pseudometric-space-def`): forall([a, b, f], is-hom-pseudometric-space(a, b, f) iff is-pseudometric-space(a) and is-pseudometric-space(b) and f in fun(pts(a), pts(b)) and forall([x1_ in pts(a), x2_ in pts(a)], (dist(a))(x1_, x2_) = (dist(b))(f(x1_), f(x2_))))
 
 *Declaration.*
 
@@ -1800,7 +1830,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (6): carriers (carr), ops/constants (add mul neg zero one)
+*Slots* (6): `carr` carrier; `add` operation cartesian(carr, carr) -> carr; `mul` operation cartesian(carr, carr) -> carr; `neg` operation carr -> carr; `zero` constant in carr; `one` constant in carr.
+
+*Default arrows* (`is-hom-ring-def`): forall([a, b, f], is-hom-ring(a, b, f) iff is-ring(a) and is-ring(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((add(a))(x1_, x2_)) = (add(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a), x2_ in carr(a)], f((mul(a))(x1_, x2_)) = (mul(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a)], f((neg(a))(x1_)) = (neg(b))(f(x1_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b))
 
 *Declaration.*
 
@@ -2069,7 +2101,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (7): carriers (carr), ops/constants (add mul neg zero one idl)
+*Slots* (7): `carr` carrier; `add` operation cartesian(carr, carr) -> carr; `mul` operation cartesian(carr, carr) -> carr; `neg` operation carr -> carr; `zero` constant in carr; `one` constant in carr; `idl` constant in power(carr).
+
+*Default arrows* (`is-hom-ringoid-def`, replaced by `declare-hom!`): forall([a, b, f], is-hom-ringoid(a, b, f) iff is-ringoid(a) and is-ringoid(b) and f in fun(carr(a), carr(b)) and is-hom-ring(ringoid-as-ring(a), ringoid-as-ring(b), f) and forall([x_ in idl(a)], f(x_) in idl(b)))
 
 *Declaration.*
 
@@ -2274,7 +2308,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (2): carriers (carr), ops/constants (opr)
+*Slots* (2): `carr` carrier; `opr` operation cartesian(carr, carr) -> carr.
+
+*Default arrows* (`is-hom-semigroup-def`): forall([a, b, f], is-hom-semigroup(a, b, f) iff is-semigroup(a) and is-semigroup(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))))
 
 *Declaration.*
 
@@ -2302,19 +2338,22 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (2): carriers (pts rel), ops/constants ()
+*Slots* (2): `pts` carrier; `rel` relation on pts.
+
+*Default arrows* (`is-hom-setoid-def`): forall([a, b, f], is-hom-setoid(a, b, f) iff is-setoid(a) and is-setoid(b) and f in fun(pts(a), pts(b)) and forall([x1_ in pts(a), x2_ in pts(a)], [x1_, x2_] in rel(a) implies [f(x1_), f(x2_)] in rel(b)))
 
 *Declaration.*
 
 ```scheme
 (declare-structure setoid
-  (carriers pts rel)
+  (carriers pts)
+  (relation rel pts)
   (property is-equivalence rel pts))
 ```
 
 *Defining predicate* (as stored):
 
-- `is-setoid` — forall([s], is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in set and is-equivalence(rel(s), pts(s)))
+- `is-setoid` — forall([s], is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in power(cartesian(pts(s), pts(s))) and is-equivalence(rel(s), pts(s)))
 
 *Theorems quantifying over `is-setoid`.*
 
@@ -2331,7 +2370,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `descend2-computes` — forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies forall([a, b], a in pts(s) implies b in pts(s) implies (descend2(s, f))(class(s, a), class(s, b)) = f(a, b))))
 - `descend2-computes-rev` — forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies forall([a, b], a in pts(s) implies b in pts(s) implies f(a, b) = (descend2(s, f))(class(s, a), class(s, b)))))
 - `descend2-in-fun` — forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies descend2(s, f) in fun(cartesian(quotient(s), quotient(s)), z)))
-- `hom-setoid-id` — forall([a], is-setoid(a) implies is-hom-setoid(a, a, id-fun(pts(a)), id-fun(rel(a))))
+- `hom-setoid-id` — forall([a], is-setoid(a) implies is-hom-setoid(a, a, id-fun(pts(a))))
 - `proj-in-fun` — forall([s], is-setoid(s) implies proj(s) in fun(pts(s), quotient(s)))
 - `quotient-is-set` — forall([s], is-setoid(s) implies quotient(s) in set)
 - `quotient-rep` — forall([s], is-setoid(s) implies forall([x in quotient(s)], forsome([a in pts(s)], x = class(s, a))))
@@ -2347,7 +2386,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (2): carriers (pts), ops/constants ()
+*Slots* (2): `pts` carrier; `opens` family of subsets of pts.
+
+*Default arrows* (`is-hom-top-space-def`): forall([s, t, f], is-hom-top-space(s, t, f) iff is-top-space(s) and is-top-space(t) and f in fun(pts(s), pts(t)) and forall([u in opens(t)], preimage(s, f, u) in opens(s)))
 
 *Declaration.*
 

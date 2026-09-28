@@ -13363,6 +13363,8 @@
 (define (b39-term t env)
   (cond ((symbol? t) (let ((p (assq t env))) (if p (cdr p) (error "b39-term: unbound" t))))
         ((number? t) t)
+        ((and (pair? t) (eq? (car t) 'LIST))              ; batch 40: an ordered pair
+         (list->vector (map (lambda (x) (b39-term x env)) (cdr t))))
         ((and (pair? t) (eq? (car t) 'PREIMAGE))
          (let ((s (b39-term (cadr t) env)) (f (b39-term (caddr t) env)) (u (b39-term (cadddr t) env)))
            (filter (lambda (x) (b39-member? (b39-apply f x) u)) (cdr (assq 'PTS s)))))
@@ -13374,6 +13376,7 @@
 (define (b39-eval f env)
   (case (car f)
     ((AND) (and (b39-eval (cadr f) env) (b39-eval (caddr f) env)))
+    ((IMPLIES) (or (not (b39-eval (cadr f) env)) (b39-eval (caddr f) env)))   ; batch 40
     ((FORALL)
      (let* ((v (cadr f)) (imp (caddr f)) (guard (cadr imp)))
        (every (lambda (x) (b39-eval (caddr imp) (cons (cons v x) env)))
@@ -13447,15 +13450,16 @@
                (AND (IS-TOP-SPACE s) (AND (IS-TOP-SPACE t) (AND (IN f (FUN (PTS s) (PTS t)))
                  (FORALL u (IMPLIES (IN u (OPENS t)) (IN (PREIMAGE s f u) (OPENS s))))))))))))))
 
-(check-true "SETOID (two carriers) has its hom-set: pairs of maps, by the hom on the components"
+(declare-structure TOY-TWO
+  (carriers PTS TSRT))
+
+(check-true "a structure with TWO carriers has its hom-set: pairs of maps, by the hom on the components"
   (lambda ()
-    (let ((reg (hash-table-ref/default *functoid-registry* 'HOM-SETOID #f)))
+    (let ((reg (hash-table-ref/default *functoid-registry* 'HOM-TOY-TWO #f)))
       (and reg
            (equal? (cadr reg)
-                   '(SEP homp_ (CARTESIAN (FUN (PTS a) (PTS b)) (FUN (REL a) (REL b)))
-                         (IS-HOM-SETOID a b (NTH 1 homp_) (NTH 2 homp_))))
-           (every (lambda (n) (eq? (provenance-of n) 'proven))
-                  '(hom-setoid-member-iff hom-setoid-id hom-setoid-compose hom-setoid-in-set))
+                   '(SEP homp_ (CARTESIAN (FUN (PTS a) (PTS b)) (FUN (TSRT a) (TSRT b)))
+                         (IS-HOM-TOY-TWO a b (NTH 1 homp_) (NTH 2 homp_))))
            #t))))
 
 ;; --- declare-category! -------------------------------------------------------
@@ -13496,6 +13500,121 @@
 (check "... and the audit then lists two"
   (lambda () (map car (category-obligations-audit)))
   '(hom-toy-cat-id hom-toy-cat-compose))
+
+;;; =======================================================================
+;;; BATCH 40 (2026-09-28): the RELATION slot kind (SETOID has ONE carrier), the
+;;; family-fun clause of the definedness certificate, dk-name!.
+;;; docs/categories-per-structure-2026-09-28.md, "Built (batch 40)".
+;;; =======================================================================
+
+(display "\n=== batch 40: relation slots, SETOID's arrows, the family-fun certificate, dk-name! ===\n")
+
+(check-true "SETOID is one carrier and a RELATION: REL(s) is typed a subset of PTS(s) x PTS(s)"
+  (lambda ()
+    (equal? (hash-table-ref/default *theorem-table* 'is-setoid #f)
+            '(FORALL s (IFF (IS-SETOID s)
+               (AND (= (LENGTH s) 2)
+                 (AND (IN (PTS s) SET)
+                   (AND (IN (REL s) (POWER (CARTESIAN (PTS s) (PTS s))))
+                        (IS-EQUIVALENCE (REL s) (PTS s))))))))))
+
+(check-true "the relation kind's hom clause: ONE map of points, related points go to related points"
+  (lambda ()
+    (equal? (hash-table-ref/default *theorem-table* 'is-hom-setoid-def #f)
+            '(FORALL a (FORALL b (FORALL f (IFF (IS-HOM-SETOID a b f)
+               (AND (IS-SETOID a) (AND (IS-SETOID b) (AND (IN f (FUN (PTS a) (PTS b)))
+                 (FORALL x1_ (IMPLIES (IN x1_ (PTS a))
+                   (FORALL x2_ (IMPLIES (IN x2_ (PTS a))
+                     (IMPLIES (IN (LIST x1_ x2_) (REL a))
+                              (IN (LIST (f x1_) (f x2_)) (REL b)))))))))))))))))
+
+;; {0, 1, 2} with the classes {0, 1} and {2}.  A CONTROL: the batch 39 generator
+;; had REL as a second carrier, IS-HOM-SETOID(a, b, f1, f2) with no clause linking
+;; f1 to the relation, so the splitting map below was an arrow there (with any f2).
+(define b40-setoid '((PTS . (0 1 2)) (REL . (#(0 0) #(1 1) #(2 2) #(0 1) #(1 0)))))
+(check "relation slot: the generated hom accepts the identity and a collapse, REFUSES a map splitting a class (control)"
+  (lambda () (list (b39-hom-holds? 'setoid b40-setoid b40-setoid '((0 . 0) (1 . 1) (2 . 2)))
+                   (b39-hom-holds? 'setoid b40-setoid b40-setoid '((0 . 2) (1 . 2) (2 . 2)))
+                   (b39-hom-holds? 'setoid b40-setoid b40-setoid '((0 . 0) (1 . 2) (2 . 2)))))
+  '(#t #t #f))
+
+(check-true "HOM-SETOID is the one-carrier SEP, and its laws and Hom-functor typings are theorems"
+  (lambda ()
+    (let ((reg (hash-table-ref/default *functoid-registry* 'HOM-SETOID #f)))
+      (and reg
+           (equal? (cadr reg) '(SEP homf_ (FUN (PTS a) (PTS b)) (IS-HOM-SETOID a b homf_)))
+           (every (lambda (n) (memq (provenance-of n) '(proven certified)))
+                  '(hom-setoid-member-iff hom-setoid-id hom-setoid-compose hom-setoid-in-set
+                    hom-setoid-post-type hom-setoid-pre-type))
+           #t))))
+
+(check-true "the structure card prints the three new kinds, never \"?\""
+  (lambda ()
+    (let ((line (lambda (slot)
+                  (with-output-to-string (lambda () (describe-structure--slot-line slot))))))
+      (and (string-search-forward "a relation on pts" (line '(REL relation PTS)) 0)
+           (string-search-forward "a family of subsets of pts" (line '(SIGMA family PTS)) 0)
+           (string-search-forward "a function on the family sigma" (line '(MEAS family-fun SIGMA RR)) 0)
+           (not (string-search-forward "?" (line '(REL relation PTS)) 0))
+           (string-search-forward "a relation on pts" (structure-card--sig-md '(REL relation PTS)) 0)
+           #t))))
+
+;; --- the definedness certificate: an applied FAMILY-FUN slot ---------------------
+;; pi--defined? certified an applied structure operation ((ACC s) a1 .. an) only
+;; for slot kind `op'; since batch 40 a `family-fun' slot too (primitive-
+;; inferences.scm, one clause).  The first check FAILS on the old kernel (it
+;; returned #f); the second is the control: the argument's typing is required.
+(check-true "certificate: MEAS(s)(u) is DEFINED with IS-MEASURE-SPACE(s) and u in SIGMA(s)"
+  (lambda ()
+    (and (pi--defined? (list (make-wff '(IS-MEASURE-SPACE s)) (make-wff '(IN u (SIGMA s))))
+                       '((MEAS s) u) 0)
+         #t)))
+
+(check "certificate CONTROL: without u in SIGMA(s), MEAS(s)(u) is not certified"
+  (lambda () (pi--defined? (list (make-wff '(IS-MEASURE-SPACE s))) '((MEAS s) u) 0))
+  #f)
+
+(check-true "certificate: rfl closes MEAS(s)(u) = MEAS(s)(u) from the structure and the typing"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL s (FORALL u (IMPLIES (IS-MEASURE-SPACE s) (IMPLIES (IN u (SIGMA s))
+                       (= ((MEAS s) u) ((MEAS s) u))))))))
+      (dk-peel!)
+      (vnb-guard (lambda () (rfl)))
+      (proof-done? *ps*)))))
+
+;; --- dk-name! -------------------------------------------------------------------
+(define (b40-cubic-setup!)
+  (sp (make-wff '(FORALL xq_ (IMPLIES (IN xq_ RR) (IMPLIES (<= 0 xq_) (IMPLIES (<= (* xq_ (* xq_ xq_)) 1)
+         (<= (* 2 (* xq_ (* xq_ xq_))) 2)))))))
+  (dk-peel!))
+
+(check-false "dk-name! CONTROL: ineq drops the cubic premise and cannot close the goal"
+  (lambda ()
+    (quietly (lambda ()
+      (b40-cubic-setup!)
+      (vnb-guard (lambda () (dk-ineq! '(<= (* xq_ (* xq_ xq_)) 1) '(IN xq_ RR))))
+      (proof-done? *ps*)))))
+
+(check-true "dk-name!: the cubic named, (= v t) handed to dk-ineq!, the goal closes"
+  (lambda ()
+    (quietly (lambda ()
+      (b40-cubic-setup!)
+      (fact 'rr-mul-in-rr 'xq_ 'xq_)
+      (fact 'rr-mul-in-rr 'xq_ '(* xq_ xq_))
+      (let ((v (dk-name! '(* xq_ (* xq_ xq_)))))
+        (and (symbol? v)
+             (dk-asm? (list 'IN v 'RR))
+             (dk-asm? (list '= v '(* xq_ (* xq_ xq_))))
+             (begin (dk-ineq! (list '= v '(* xq_ (* xq_ xq_))) (list 'IN v 'RR)
+                              '(<= (* xq_ (* xq_ xq_)) 1))
+                    (proof-done? *ps*))))))))
+
+(check-error "dk-name! errors on a term not typed in context"
+  (lambda ()
+    (quietly (lambda ()
+      (b40-cubic-setup!)
+      (vnb-guard (lambda () (dk-name! '(* xq_ (* xq_ xq_)))))))))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

@@ -153,10 +153,18 @@ ordinary definition of that system.
   $\forall u \in F(t).\ \mathit{preimage}(s, f, u) \in F(s)$; and a
   \emph{function on a family}, declared \texttt{(family-fun M F R)} (a
   measure), is transported, $M(t)(u) = M(s)(\mathit{preimage}(s, f, u))$ for
-  $u \in F(t)$.  So the generated arrows are the homomorphisms of an algebraic
+  $u \in F(t)$; and a \emph{relation} slot, declared \texttt{(relation R C)}
+  and holding a set of pairs of points of the carrier $C$, typed
+  $R(s) \in \mathit{power}(\mathit{cartesian}(C(s), C(s)))$ in
+  \texttt{IS-\textit{NAME}}, is preserved by the map of $C$:
+  $\forall x_1, x_2 \in C(a).\ [x_1, x_2] \in R(a) \Rightarrow [f(x_1), f(x_2)] \in R(b)$.
+  So the generated arrows are the homomorphisms of an algebraic
   structure, the isometries of a metric space, the continuous maps of a
-  topological space, the measurable maps of a measurable space and the
-  measure-preserving measurable maps of a measure space.  A species whose arrows
+  topological space, the measurable maps of a measurable space, the
+  measure-preserving measurable maps of a measure space, and the maps of a
+  setoid that send related points to related points (\texttt{SETOID} declares
+  one carrier \texttt{PTS} and its equivalence \texttt{REL} as a relation
+  slot).  A species whose arrows
   are none of these replaces the definition with \texttt{declare-hom!}
   (\texttt{RINGOID}, \texttt{METRIZABLE-TOP-SPACE},
   Section~\ref{sec:declare-hom}).  This generated category is the DEFAULT one;
@@ -180,7 +188,7 @@ ordinary definition of that system.
   and the library proves, for each, that the identity is a morphism, that
   morphisms compose, and that the hom-set is a set
   (\texttt{theorem-library/hom-laws.scm}, one generic driver over the slot list;
-  \texttt{hom-kinds.scm} for the family kinds and for two carriers; the
+  \texttt{hom-kinds.scm} for the family and relation kinds; the
   replaced definitions by hand).  The Hom functors $\mathrm{Hom}(a, -)$ and
   $\mathrm{Hom}(-, b)$ are post- and pre-composition by a morphism, maps between
   hom-sets with the functor laws proven once over any set of functions

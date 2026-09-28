@@ -1280,12 +1280,8 @@
 (define clh-lia '(recip clha_))
 (define clh-limag (list 'magnitude clh-lia))
 (define (clh-lz x) (list '+ clh-la (list 'CC-LOG (list '* clh-lia x))))
-;;; a real term as a SYMBOL (so that ineq sees an atom, not a cubic): lands
-;;; (IN v RR) and (= v T); returns v
-(define (clh-name! b t)
-  (let ((ex (list 'FORSOME b (list 'AND (list 'IN b 'RR) (list '= b t)))))
-    (dk-have! ex (lambda () (ew t) (dk-conj-close! (lambda () (if (dk-head-is? (dk-goal) '=) (rfl) (ass))))))
-    (dk-skolem! (dk-ctx-form ex))))
+;;; a real term as a SYMBOL (so that ineq sees an atom, not a cubic): `dk-name!'
+;;; (driver-kit.scm; this file's clh-name! retired, batch 40)
 (define clh-ldv #f) (define clh-lr #f) (define clh-lrho #f) (define clh-lB #f) (define clh-lB1 #f)
 (define clh-lL #f) (define clh-lptf #f)
 (sp (make-wff (list 'FORALL 'clha_ (list 'IMPLIES '(IN clha_ CC) (list 'IMPLIES (clh-slit 'clha_)
@@ -1303,7 +1299,7 @@
 (dk-have! (list '<= clh-lAY clh-lAY) (lambda () (dk-ineq!)))
 (dk-split-all! (list (clh-chain! (dk-fact! 'rr-abs-le-parts clh-lY clh-lAY))))
 (clh-chain! (dk-fact! 'rr-abs-lt-of-parts clh-lY 'PI))
-(set! clh-ldv (clh-name! 'clhdv_ clh-lD))
+(set! clh-ldv (dk-name! clh-lD))
 (dk-have! (list '< 0 clh-ldv) (lambda () (dk-ineq! (list '< clh-lAY 'PI) (list '= clh-ldv clh-lD))))
 (dk-have! (list '<= clh-ldv 'PI) (lambda () (dk-ineq! (list '<= 0 clh-lAY) (list '= clh-ldv clh-lD))))
 ;; r = D / (2 (1 + pi))
@@ -1314,7 +1310,7 @@
 (fact 'rr-recip-pos clh-lm)
 (define clh-lK-inv (clh-chain! (dk-fact! 'rr-recip-inverse clh-lm)))
 (clh-rr-typ! (list '* clh-ldv clh-lK))
-(set! clh-lr (clh-name! 'clhrv_ (list '* clh-ldv clh-lK)))
+(set! clh-lr (dk-name! (list '* clh-ldv clh-lK)))
 (clh-chain! (dk-fact! 'rr-lt-scale-pos clh-ldv 0 clh-lK))
 (clh-rr-typ! (list '* clh-ldv 0))
 (dk-have! (list '= (list '* clh-ldv 0) 0) (lambda () (subst (clh-ring-id! '(clhu_) '(= (* clhu_ 0) 0) (list clh-ldv))) (rfl)))

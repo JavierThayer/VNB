@@ -1302,7 +1302,7 @@ TRAP worth knowing before citing one: `mac` unfolds a functoid in a GOAL, but `m
 
 ### hom-setoid
 
-    hom-setoid(a, b) := {homp_ in cartesian(fun(pts(a), pts(b)), fun(rel(a), rel(b))): is-hom-setoid(a, b, nth(1, homp_), nth(2, homp_))}
+    hom-setoid(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-setoid(a, b, homf_)}
 
 ### hom-top-space
 
@@ -2170,7 +2170,7 @@ Conservative defining `iff`/`==` axioms installed via `add-axiom!`, so absent fr
 
 ### is-hom-setoid-def
 
-    forall([a, b, f1, f2], is-hom-setoid(a, b, f1, f2) iff is-setoid(a) and is-setoid(b) and f1 in fun(pts(a), pts(b)) and f2 in fun(rel(a), rel(b)))
+    forall([a, b, f], is-hom-setoid(a, b, f) iff is-setoid(a) and is-setoid(b) and f in fun(pts(a), pts(b)) and forall([x1_ in pts(a), x2_ in pts(a)], [x1_, x2_] in rel(a) implies [f(x1_), f(x2_)] in rel(b)))
 
 ### is-hom-top-space-def
 

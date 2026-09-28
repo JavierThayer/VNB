@@ -1244,7 +1244,7 @@ forall([a, b, c, u, s, s2, f, h, k], a in set implies b in set implies k in fun(
 
 also: `compose-type` `post-compose` `compose-apply` `compose-assoc` `compose-id-left` `hom-pid-compose` `compose-id-right` `hom-ring-compose` ... (40 in all)
 
-[mentioned by 132 result(s)](BY-OPERATOR.md#compose)
+[mentioned by 134 result(s)](BY-OPERATOR.md#compose)
 
 ### `conjugate`  *(operator)*
 
@@ -2531,7 +2531,7 @@ forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x
 
 also: `is-linear-functional-on` `dom-of-fun` `is-fun-def` `fun-no-junk` `fun-set-iff` `fun-apply-type` `fun-codomain-iff` `dom-fun-membership` ... (138 in all)
 
-[mentioned by 1493 result(s)](BY-OPERATOR.md#fun)
+[mentioned by 1495 result(s)](BY-OPERATOR.md#fun)
 
 
 ## G
@@ -3312,7 +3312,7 @@ reads: the setoid morphisms from $1 to $2
 definition:
 
 ```
-{homp_ in cartesian(fun(pts(a), pts(b)), fun(rel(a), rel(b))): is-hom-setoid(a, b, nth(1, homp_), nth(2, homp_))}
+{homf_ in fun(pts(a), pts(b)): is-hom-setoid(a, b, homf_)}
 ```
 
 characterized by `hom-setoid-in-set`  *(proven)*:
@@ -3321,9 +3321,9 @@ characterized by `hom-setoid-in-set`  *(proven)*:
 forall([a, b], is-setoid(a) implies is-setoid(b) implies hom-setoid(a, b) in set)
 ```
 
-also: `hom-setoid-member-iff` 
+also: `hom-setoid-pre-type` `hom-setoid-post-type` `hom-setoid-member-iff` 
 
-[mentioned by 3 result(s)](BY-OPERATOR.md#hom-setoid)
+[mentioned by 5 result(s)](BY-OPERATOR.md#hom-setoid)
 
 ### `hom-top-space(a, b)`  *(functoid)*
 
@@ -3528,7 +3528,7 @@ forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(ca
 
 also: `is-chain` `is-ringoid` `ring-class` `rr-min-def` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` ... (1317 in all)
 
-[mentioned by 5075 result(s)](BY-OPERATOR.md#in)
+[mentioned by 5077 result(s)](BY-OPERATOR.md#in)
 
 ### `indicator(omega, a)`  *(functoid)*
 
@@ -4936,16 +4936,16 @@ forall([a, b, f], is-hom-semigroup(a, b, f) iff is-semigroup(a) and is-semigroup
 
 [mentioned by 6 result(s)](BY-OPERATOR.md#is-hom-semigroup)
 
-### `is-hom-setoid(a, b, f1, f2)`  *(predicate)*
+### `is-hom-setoid(a, b, f)`  *(predicate)*
 
-reads: $3 is a setoid homomorphism from $1 to $2
+reads: $3 is a setoid morphism from $1 to $2
 
 a predicate
 
 characterized by `is-hom-setoid-def`  *(definitional)*:
 
 ```
-forall([a, b, f1, f2], is-hom-setoid(a, b, f1, f2) iff is-setoid(a) and is-setoid(b) and f1 in fun(pts(a), pts(b)) and f2 in fun(rel(a), rel(b)))
+forall([a, b, f], is-hom-setoid(a, b, f) iff is-setoid(a) and is-setoid(b) and f in fun(pts(a), pts(b)) and forall([x1_ in pts(a), x2_ in pts(a)], [x1_, x2_] in rel(a) implies [f(x1_), f(x2_)] in rel(b)))
 ```
 
 [mentioned by 6 result(s)](BY-OPERATOR.md#is-hom-setoid)
@@ -5971,12 +5971,12 @@ a predicate
 characterized by `is-setoid`  *(definitional)*:
 
 ```
-forall([s], is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in set and is-equivalence(rel(s), pts(s)))
+forall([s], is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in power(cartesian(pts(s), pts(s))) and is-equivalence(rel(s), pts(s)))
 ```
 
 also: `cauchy-setoid-is-setoid` `ringoid-setoid-is-setoid` 
 
-[mentioned by 30 result(s)](BY-OPERATOR.md#is-setoid)
+[mentioned by 32 result(s)](BY-OPERATOR.md#is-setoid)
 
 ### `is-sigma-algebra(omega, ca)`  *(predicate)*
 
@@ -6439,7 +6439,7 @@ forall([x, y], x + y == reduce(binplus, fam-of-list([x, y]), 2))
 
 also: `nary-plus-3-list` `nary-plus-4-list` `nary-plus-5-list` `nary-times-2-list` `nary-times-3-list` `nary-times-4-list` `nary-times-5-list` 
 
-[mentioned by 250 result(s)](BY-OPERATOR.md#list)
+[mentioned by 252 result(s)](BY-OPERATOR.md#list)
 
 ### `little-o-at(g, a)`  *(predicate)*
 
@@ -7361,7 +7361,7 @@ forall([x, l], nth(1, cons(x, l)) = x)
 
 also: `nth-cons-succ` `nth-in-range` `ms-nth-2` `nth1-pair` `nth2-pair` `cartesian-nth` 
 
-[mentioned by 82 result(s)](BY-OPERATOR.md#nth)
+[mentioned by 80 result(s)](BY-OPERATOR.md#nth)
 
 ### `nth-deriv`  *(defined-fn)*
 
@@ -7733,7 +7733,7 @@ forall([x, n], x in cc and n in nn and not(x = 0) implies x ^ (-n) = recip(x ^ n
 
 also: `power-set` `power-succ` `power-zero` `power-typing-nonneg` `power-set-membership` `deriv-power` `cc-power-add` `cc-power-mul` ... (60 in all)
 
-[mentioned by 342 result(s)](BY-OPERATOR.md#power)
+[mentioned by 344 result(s)](BY-OPERATOR.md#power)
 
 ### `pred(n_)`  *(functoid)*
 
@@ -8291,7 +8291,7 @@ forall([r], rel(ringoid-setoid(r)) == ringoid-rel(r))
 
 also: `rko2-related-unfold` `rko2-cauchy-setoid-rel` 
 
-[mentioned by 13 result(s)](BY-OPERATOR.md#rel)
+[mentioned by 10 result(s)](BY-OPERATOR.md#rel)
 
 ### `rel-free(md, n, u)`  *(predicate)*
 
@@ -9891,7 +9891,7 @@ declared in `tactics-help.scm`
 
 a term-forming head
 
-[mentioned by 991 result(s)](BY-OPERATOR.md#vnb-lambda)
+[mentioned by 993 result(s)](BY-OPERATOR.md#vnb-lambda)
 
 ### `vneg(s)`  *(accessor)*
 

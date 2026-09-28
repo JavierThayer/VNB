@@ -587,7 +587,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-pre-compose"><code>pre-compose</code></a>  <em>(proven)</em>:</p>
 <pre>forall([a, b, c, u, s, s2, f, h, k], a in set implies b in set implies k in fun(a, b) implies h in fun(b, c) implies f in fun(c, u) implies f in s implies compose(f, h) in s2 implies (vnb-lambda(hmpf_, s, compose(hmpf_, compose(h, k))))(f) = (vnb-lambda(hmpf_, s2, compose(hmpf_, k)))((vnb-lambda(hmpf_, s, compose(hmpf_, h)))(f)))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-compose-type"><code>compose-type</code></a> <a class="x" href="THEOREMS.html#t-post-compose"><code>post-compose</code></a> <a class="x" href="THEOREMS.html#t-compose-apply"><code>compose-apply</code></a> <a class="x" href="THEOREMS.html#t-compose-assoc"><code>compose-assoc</code></a> <a class="x" href="THEOREMS.html#t-compose-id-left"><code>compose-id-left</code></a> <a class="x" href="THEOREMS.html#t-hom-pid-compose"><code>hom-pid-compose</code></a> <a class="x" href="THEOREMS.html#t-compose-id-right"><code>compose-id-right</code></a> <a class="x" href="THEOREMS.html#t-hom-ring-compose"><code>hom-ring-compose</code></a> ... (40 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__compose-132">mentioned by 132 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__compose-134">mentioned by 134 result(s)</a></p>
 <h4 id="GLOSSARY__conjugate-*-operator-*"><code>conjugate</code>  <em>(operator)</em></h4>
 <p>a term-forming head</p>
 <p>characterized by <a class="x" href="THEOREMS.html#t-cc-conjugate-i"><code>cc-conjugate-i</code></a>  <em>(primitive)</em>:</p>
@@ -1120,7 +1120,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-is-linear-functional"><code>is-linear-functional</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x_ in vec(m), y_ in vec(m)], f((vadd(m))(x_, y_)) = f(x_) + f(y_)) and forall([r_ in rr, x_ in vec(m)], f((act(m))(r_, x_)) = r_ * f(x_)))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-is-linear-functional-on"><code>is-linear-functional-on</code></a> <a class="x" href="THEOREMS.html#t-dom-of-fun"><code>dom-of-fun</code></a> <a class="x" href="THEOREMS.html#t-is-fun-def"><code>is-fun-def</code></a> <a class="x" href="THEOREMS.html#t-fun-no-junk"><code>fun-no-junk</code></a> <a class="x" href="THEOREMS.html#t-fun-set-iff"><code>fun-set-iff</code></a> <a class="x" href="THEOREMS.html#t-fun-apply-type"><code>fun-apply-type</code></a> <a class="x" href="THEOREMS.html#t-fun-codomain-iff"><code>fun-codomain-iff</code></a> <a class="x" href="THEOREMS.html#t-dom-fun-membership"><code>dom-fun-membership</code></a> ... (138 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__fun-1493">mentioned by 1493 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__fun-1495">mentioned by 1495 result(s)</a></p>
 <h3 id="GLOSSARY__g">G</h3>
 <h4 id="GLOSSARY__gauge-s-*-functoid-*"><code>gauge(s)</code>  <em>(functoid)</em></h4>
 <p>definition:</p>
@@ -1440,11 +1440,11 @@
 <h4 id="GLOSSARY__hom-setoid-a-b-*-functoid-*"><code>hom-setoid(a, b)</code>  <em>(functoid)</em></h4>
 <p>reads: the setoid morphisms from $1 to $2</p>
 <p>definition:</p>
-<pre>{homp_ in cartesian(fun(pts(a), pts(b)), fun(rel(a), rel(b))): is-hom-setoid(a, b, nth(1, homp_), nth(2, homp_))}</pre>
+<pre>{homf_ in fun(pts(a), pts(b)): is-hom-setoid(a, b, homf_)}</pre>
 <p>characterized by <a class="x" href="THEOREMS.html#t-hom-setoid-in-set"><code>hom-setoid-in-set</code></a>  <em>(proven)</em>:</p>
 <pre>forall([a, b], is-setoid(a) implies is-setoid(b) implies hom-setoid(a, b) in set)</pre>
-<p>also: <a class="x" href="THEOREMS.html#t-hom-setoid-member-iff"><code>hom-setoid-member-iff</code></a></p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__hom-setoid-3">mentioned by 3 result(s)</a></p>
+<p>also: <a class="x" href="THEOREMS.html#t-hom-setoid-pre-type"><code>hom-setoid-pre-type</code></a> <a class="x" href="THEOREMS.html#t-hom-setoid-post-type"><code>hom-setoid-post-type</code></a> <a class="x" href="THEOREMS.html#t-hom-setoid-member-iff"><code>hom-setoid-member-iff</code></a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__hom-setoid-5">mentioned by 5 result(s)</a></p>
 <h4 id="GLOSSARY__hom-top-space-a-b-*-functoid-*"><code>hom-top-space(a, b)</code>  <em>(functoid)</em></h4>
 <p>reads: the top space morphisms from $1 to $2</p>
 <p>definition:</p>
@@ -1531,7 +1531,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-is-ring"><code>is-ring</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-is-chain"><code>is-chain</code></a> <a class="x" href="THEOREMS.html#t-is-ringoid"><code>is-ringoid</code></a> <a class="x" href="THEOREMS.html#t-ring-class"><code>ring-class</code></a> <a class="x" href="THEOREMS.html#t-rr-min-def"><code>rr-min-def</code></a> <a class="x" href="THEOREMS.html#t-is-cont-lin"><code>is-cont-lin</code></a> <a class="x" href="THEOREMS.html#t-is-ideal-in"><code>is-ideal-in</code></a> <a class="x" href="THEOREMS.html#t-is-k-linear"><code>is-k-linear</code></a> <a class="x" href="THEOREMS.html#t-is-seminorm"><code>is-seminorm</code></a> ... (1317 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__in-5075">mentioned by 5075 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__in-5077">mentioned by 5077 result(s)</a></p>
 <h4 id="GLOSSARY__indicator-omega-a-*-functoid-*"><code>indicator(omega, a)</code>  <em>(functoid)</em></h4>
 <p>reads: the indicator function of $2 in $1</p>
 <p>definition:</p>
@@ -2135,11 +2135,11 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-is-hom-semigroup-def"><code>is-hom-semigroup-def</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([a, b, f], is-hom-semigroup(a, b, f) iff is-semigroup(a) and is-semigroup(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))))</pre>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__is-hom-semigroup-6">mentioned by 6 result(s)</a></p>
-<h4 id="GLOSSARY__is-hom-setoid-a-b-f1-f2-*-predicate-*"><code>is-hom-setoid(a, b, f1, f2)</code>  <em>(predicate)</em></h4>
-<p>reads: $3 is a setoid homomorphism from $1 to $2</p>
+<h4 id="GLOSSARY__is-hom-setoid-a-b-f-*-predicate-*"><code>is-hom-setoid(a, b, f)</code>  <em>(predicate)</em></h4>
+<p>reads: $3 is a setoid morphism from $1 to $2</p>
 <p>a predicate</p>
 <p>characterized by <a class="x" href="THEOREMS.html#t-is-hom-setoid-def"><code>is-hom-setoid-def</code></a>  <em>(definitional)</em>:</p>
-<pre>forall([a, b, f1, f2], is-hom-setoid(a, b, f1, f2) iff is-setoid(a) and is-setoid(b) and f1 in fun(pts(a), pts(b)) and f2 in fun(rel(a), rel(b)))</pre>
+<pre>forall([a, b, f], is-hom-setoid(a, b, f) iff is-setoid(a) and is-setoid(b) and f in fun(pts(a), pts(b)) and forall([x1_ in pts(a), x2_ in pts(a)], [x1_, x2_] in rel(a) implies [f(x1_), f(x2_)] in rel(b)))</pre>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__is-hom-setoid-6">mentioned by 6 result(s)</a></p>
 <h4 id="GLOSSARY__is-hom-top-space-s-t-f-*-predicate-*"><code>is-hom-top-space(s, t, f)</code>  <em>(predicate)</em></h4>
 <p>reads: $3 is continuous from $1 to $2</p>
@@ -2582,9 +2582,9 @@
 <p>reads: a setoid</p>
 <p>a predicate</p>
 <p>characterized by <a class="x" href="THEOREMS.html#t-is-setoid"><code>is-setoid</code></a>  <em>(definitional)</em>:</p>
-<pre>forall([s], is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in set and is-equivalence(rel(s), pts(s)))</pre>
+<pre>forall([s], is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in power(cartesian(pts(s), pts(s))) and is-equivalence(rel(s), pts(s)))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-cauchy-setoid-is-setoid"><code>cauchy-setoid-is-setoid</code></a> <a class="x" href="THEOREMS.html#t-ringoid-setoid-is-setoid"><code>ringoid-setoid-is-setoid</code></a></p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__is-setoid-30">mentioned by 30 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__is-setoid-32">mentioned by 32 result(s)</a></p>
 <h4 id="GLOSSARY__is-sigma-algebra-omega-ca-*-predicate-*"><code>is-sigma-algebra(omega, ca)</code>  <em>(predicate)</em></h4>
 <p>reads: $2 is a sigma-algebra of subsets of $1</p>
 <p>defined by <a class="x" href="THEOREMS.html#t-is-sigma-algebra"><code>is-sigma-algebra</code></a></p>
@@ -2780,7 +2780,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-nary-plus-2-list"><code>nary-plus-2-list</code></a>  <em>(asserted)</em>:</p>
 <pre>forall([x, y], x + y == reduce(binplus, fam-of-list([x, y]), 2))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-nary-plus-3-list"><code>nary-plus-3-list</code></a> <a class="x" href="THEOREMS.html#t-nary-plus-4-list"><code>nary-plus-4-list</code></a> <a class="x" href="THEOREMS.html#t-nary-plus-5-list"><code>nary-plus-5-list</code></a> <a class="x" href="THEOREMS.html#t-nary-times-2-list"><code>nary-times-2-list</code></a> <a class="x" href="THEOREMS.html#t-nary-times-3-list"><code>nary-times-3-list</code></a> <a class="x" href="THEOREMS.html#t-nary-times-4-list"><code>nary-times-4-list</code></a> <a class="x" href="THEOREMS.html#t-nary-times-5-list"><code>nary-times-5-list</code></a></p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__list-250">mentioned by 250 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__list-252">mentioned by 252 result(s)</a></p>
 <h4 id="GLOSSARY__little-o-at-g-a-*-predicate-*"><code>little-o-at(g, a)</code>  <em>(predicate)</em></h4>
 <p>reads: $1 is little-o at $2</p>
 <p>defined by <a class="x" href="THEOREMS.html#t-little-o-at"><code>little-o-at</code></a></p>
@@ -3165,7 +3165,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-nth-cons-1"><code>nth-cons-1</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([x, l], nth(1, cons(x, l)) = x)</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-nth-cons-succ"><code>nth-cons-succ</code></a> <a class="x" href="THEOREMS.html#t-nth-in-range"><code>nth-in-range</code></a> <a class="x" href="THEOREMS.html#t-ms-nth-2"><code>ms-nth-2</code></a> <a class="x" href="THEOREMS.html#t-nth1-pair"><code>nth1-pair</code></a> <a class="x" href="THEOREMS.html#t-nth2-pair"><code>nth2-pair</code></a> <a class="x" href="THEOREMS.html#t-cartesian-nth"><code>cartesian-nth</code></a></p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__nth-82">mentioned by 82 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__nth-80">mentioned by 80 result(s)</a></p>
 <h4 id="GLOSSARY__nth-deriv-*-defined-fn-*"><a class="x" href="DEFINITIONS.html#d-nth-deriv"><code>nth-deriv</code></a>  <em>(defined-fn)</em></h4>
 <p>defined by <a class="x" href="THEOREMS.html#t-nth-deriv-zero"><code>nth-deriv-zero</code></a> <a class="x" href="THEOREMS.html#t-nth-deriv-succ"><code>nth-deriv-succ</code></a></p>
 <p>characterized by <a class="x" href="THEOREMS.html#t-nth-deriv-succ"><code>nth-deriv-succ</code></a>  <em>(definitional)</em>:</p>
@@ -3325,7 +3325,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-power-neg"><code>power-neg</code></a>  <em>(primitive)</em>:</p>
 <pre>forall([x, n], x in cc and n in nn and not(x = 0) implies x ^ (-n) = recip(x ^ n))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-power-set"><code>power-set</code></a> <a class="x" href="THEOREMS.html#t-power-succ"><code>power-succ</code></a> <a class="x" href="THEOREMS.html#t-power-zero"><code>power-zero</code></a> <a class="x" href="THEOREMS.html#t-power-typing-nonneg"><code>power-typing-nonneg</code></a> <a class="x" href="THEOREMS.html#t-power-set-membership"><code>power-set-membership</code></a> <a class="x" href="THEOREMS.html#t-deriv-power"><code>deriv-power</code></a> <a class="x" href="THEOREMS.html#t-cc-power-add"><code>cc-power-add</code></a> <a class="x" href="THEOREMS.html#t-cc-power-mul"><code>cc-power-mul</code></a> ... (60 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__power-342">mentioned by 342 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__power-344">mentioned by 344 result(s)</a></p>
 <h4 id="GLOSSARY__pred-n-*-functoid-*"><code>pred(n_)</code>  <em>(functoid)</em></h4>
 <p>reads: the predecessor of $1</p>
 <p>definition:</p>
@@ -3556,7 +3556,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-r6b-setoid-rel"><code>r6b-setoid-rel</code></a>  <em>(proven)</em>:</p>
 <pre>forall([r], rel(ringoid-setoid(r)) == ringoid-rel(r))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-rko2-related-unfold"><code>rko2-related-unfold</code></a> <a class="x" href="THEOREMS.html#t-rko2-cauchy-setoid-rel"><code>rko2-cauchy-setoid-rel</code></a></p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__rel-13">mentioned by 13 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__rel-10">mentioned by 10 result(s)</a></p>
 <h4 id="GLOSSARY__rel-free-md-n-u-*-predicate-*"><code>rel-free(md, n, u)</code>  <em>(predicate)</em></h4>
 <p>reads: the $2 vectors $3 are linearly independent in $1</p>
 <p>defined by <a class="x" href="THEOREMS.html#t-rel-free"><code>rel-free</code></a></p>
@@ -4231,7 +4231,7 @@
 <p>declared in <code>tactics-help.scm</code></p>
 <h4 id="GLOSSARY__vnb-lambda-*-operator-*"><code>vnb-lambda</code>  <em>(operator)</em></h4>
 <p>a term-forming head</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__vnb-lambda-991">mentioned by 991 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__vnb-lambda-993">mentioned by 993 result(s)</a></p>
 <h4 id="GLOSSARY__vneg-s-*-accessor-*"><code>vneg(s)</code>  <em>(accessor)</em></h4>
 <p>reads: the vector negation of $1</p>
 <p>a structure slot</p>

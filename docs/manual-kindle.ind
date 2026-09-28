@@ -457,7 +457,7 @@
   \item \texttt{is-hom-ring(a, b, f)}, \hyperpage{305}
   \item \texttt{is-hom-ringoid(a, b, f)}, \hyperpage{305}
   \item \texttt{is-hom-semigroup(a, b, f)}, \hyperpage{305}
-  \item \texttt{is-hom-setoid(a, b, f1, f2)}, \hyperpage{305}
+  \item \texttt{is-hom-setoid(a, b, f)}, \hyperpage{305}
   \item \texttt{is-hom-top-space(s, t, f)}, \hyperpage{306}
   \item \texttt{is-hom-vector-space(a, b, f)}, \hyperpage{306}
   \item \texttt{is-ideal(s, i)}, \hyperpage{306}

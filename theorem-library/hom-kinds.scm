@@ -1,5 +1,6 @@
 ;;; hom-kinds.scm -- the category laws for the arrows the generic driver of
-;;; hom-laws.scm does not reach: the FAMILY slot kinds, and two carriers.
+;;; hom-laws.scm does not reach: the FAMILY slot kinds, and the RELATION kind
+;;; (SETOID, since batch 40; two carriers in batch 39).
 ;;;
 ;;; Batch 39 (2026-09-28; docs/categories-per-structure-2026-09-28.md).  The hom
 ;;; generator (structures.scm, build-hom-axiom) has two slot kinds it did not
@@ -28,10 +29,12 @@
 ;;; hom-NAME-member-iff and hom-NAME-in-set are the generic ones (they see only
 ;;; the predicate), copied from hom-laws.scm.
 ;;;
-;;; SETOID (two carriers PTS, REL): structures.scm now installs its hom-set as a
-;;; set of PAIRS, HOM-SETOID(a, b) = {p in CARTESIAN(FUN(PTS a, PTS b), FUN(REL a,
-;;; REL b)) : IS-HOM-SETOID(a, b, NTH(1, p), NTH(2, p))}; its four laws are here
-;;; too, componentwise.
+;;; SETOID (batch 40, 2026-09-28): ONE carrier PTS and a RELATION slot REL, whose
+;;; generated clause is "related points go to related points".  Its hom-set is the
+;;; one-carrier SEP, HOM-SETOID(a, b) = {f in FUN(PTS a, PTS b) : IS-HOM-SETOID(a,
+;;; b, f)}; its four laws are here, the identity and composition by the relation
+;;; rule.  (Batch 39 had REL as a second carrier and the hom-set as a set of PAIRS
+;;; of unrelated maps; that section is replaced.)
 ;;;
 ;;; Nothing is asserted; every qed is expected modulo 0.
 ;;; Window: after theorem-library/hom-laws (with MEASURABLE-SPACE and
@@ -336,94 +339,133 @@
             (hmk-prove-in-set! name))
           '(MEASURABLE-SPACE MEASURE-SPACE))
 
-;;; --- SETOID: two carriers, arrows are PAIRS of maps -------------------------------
+;;; --- the RELATION kind: SETOID -----------------------------------------------------
 ;;;
-;;;   hom-setoid-member-iff  p in HOM-SETOID(a, b) iff p in CARTESIAN(FUN(PTS a, PTS b),
-;;;                          FUN(REL a, REL b)) and IS-HOM-SETOID(a, b, NTH(1, p), NTH(2, p))
-;;;   hom-setoid-id          IS-SETOID(a) => IS-HOM-SETOID(a, a, ID-FUN(PTS a), ID-FUN(REL a))
-;;;   hom-setoid-compose     componentwise
-;;;   hom-setoid-in-set      IS-SETOID(a) => IS-SETOID(b) => HOM-SETOID(a, b) in SET
+;;; Since batch 40 (2026-09-28, the user's decision) SETOID has ONE carrier, PTS,
+;;; and REL is a slot of the RELATION kind, (relation REL PTS): a set of pairs of
+;;; points.  The generated clause of IS-HOM-SETOID(a, b, f) is
+;;;   forall x1_ in PTS(a). forall x2_ in PTS(a).
+;;;     (x1_, x2_) in REL(a) => (f x1_, f x2_) in REL(b)
+;;; -- f is a map of points and related points go to related points.  One rule
+;;; per kind, as for the family kinds above:
 ;;;
-;;; The generated IS-HOM-SETOID has no clause beyond the two typings (SETOID has
-;;; no operation slot): the relation is a CARRIER, so a setoid arrow is a map of
-;;; points together with a map of related pairs, unrelated to each other.  That
-;;; is what the declaration says; the arrows one wants (f maps related points to
-;;; related points) are a declare-category! away, and are not built here.
+;;;   identity   the clause at ID-FUN(PTS a): id-fun-apply rewrites ID-FUN(PTS a)(x)
+;;;              to x, and the goal is the pair membership peeled into context;
+;;;   composite  f's clause at x1, x2 gives (f x1, f x2) in REL(b); f's FUN typing
+;;;              puts f x1, f x2 in PTS(b); g's clause at them gives
+;;;              (g (f x1), g (f x2)) in REL(c); compose-apply rewrites (g o f) x.
+;;;
+;;; The clauses of f and g are found in context BY CONTENT (the guard's carrier,
+;;; the relation of the conclusion), never by instantiating the definition with
+;;; subst-free: the instance at (b, c, g) would rename the definition's own binder
+;;; b, minting a name that record-cmd! charges to the next recorded step (batch 39,
+;;; finding 1).  hom-SETOID-member-iff and -in-set are the generic one-carrier
+;;; drivers above.  SETOID stays out of hom-laws.scm's *hml-generated*: its generic
+;;; closer proves an EQUATION at an eigenvariable, and this clause is an implication.
 
-(sp (make-wff '(FORALL a (FORALL b (FORALL p
-       (IFF (IN p (HOM-SETOID a b))
-            (AND (IN p (CARTESIAN (FUN (PTS a) (PTS b)) (FUN (REL a) (REL b))))
-                 (IS-HOM-SETOID a b (NTH 1 p) (NTH 2 p)))))))))
-(dk-peel!)
-(mac 'HOM-SETOID)
-(for-each
-  (lambda (lf)
-    (dk-focus! lf)
-    (if (dk-head-is? (dk-goal) 'AND)
-        (begin
-          (sep-me (dk-pick (lambda (x) (and (dk-head-is? x 'IN) (dk-head-is? (caddr x) 'SEP)))
-                           "the SEP membership"))
-          (dk-conj-close!))
-        (begin
-          (dk-split-all!)
-          (in-sep! (lambda () (ass)) (lambda () (ass))))))
-  (dk-opened (lambda () (di))))
-(hmk-done! 'hom-setoid-member-iff)
+;;; c = (FORALL x1 (IMPLIES (IN x1 D) (FORALL x2 (IMPLIES (IN x2 D)
+;;;        (IMPLIES (IN (LIST x1 x2) (R v)) (IN (LIST ..) (R w)))))))
+(define (hmk-rel-parts c)             ; -> (D hyp concl) or #f
+  (and (dk-head-is? c 'FORALL)
+       (let ((b1 (caddr c)))
+         (and (dk-head-is? b1 'IMPLIES) (dk-head-is? (cadr b1) 'IN)
+              (let ((f2 (caddr b1)))
+                (and (dk-head-is? f2 'FORALL)
+                     (let ((b2 (caddr f2)))
+                       (and (dk-head-is? b2 'IMPLIES)
+                            (let ((i3 (caddr b2)))
+                              (and (dk-head-is? i3 'IMPLIES)
+                                   (dk-head-is? (cadr i3) 'IN)
+                                   (dk-head-is? (cadr (cadr i3)) 'LIST)
+                                   (dk-head-is? (caddr i3) 'IN)
+                                   (list (caddr (cadr b1)) (cadr i3) (caddr i3))))))))))))
+(define (hmk-relation-clause? c) (and (hmk-rel-parts c) #t))
 
-(sp (make-wff '(FORALL a (IMPLIES (IS-SETOID a)
-       (IS-HOM-SETOID a a (ID-FUN (PTS a)) (ID-FUN (REL a)))))))
-(dk-peel!)
-(let ((v (cadr (dk-goal))))
-  (hmk-land-typings! 'SETOID v)
-  (mac 'IS-HOM-SETOID-def)
-  (dk-conj-close!
-    (lambda ()
-      (let ((g (dk-goal)))
-        (cond ((dk-asm? g) (ass))
-              (#t (dk-cite! 'id-fun-type (cadr (cadr g))) (ass)))))))
-(hmk-done! 'hom-setoid-id)
+;;; the relation clause in context whose points range over DOM and whose
+;;; conclusion lands in the class TO
+(define (hmk-rel-clause-in-ctx dom to who)
+  (dk-pick (lambda (x)
+             (let ((p (hmk-rel-parts x)))
+               (and p (equal? (car p) dom) (equal? (caddr (caddr p)) to))))
+           who))
 
-(sp (make-wff '(FORALL a (FORALL b (FORALL c (FORALL f1 (FORALL f2 (FORALL g1 (FORALL g2
-       (IMPLIES (IS-HOM-SETOID a b f1 f2) (IMPLIES (IS-HOM-SETOID b c g1 g2)
-         (IS-HOM-SETOID a c (COMPOSE g1 f1) (COMPOSE g2 f2)))))))))))))
-(dk-peel!)
-(let* ((gl (dk-goal)) (va (cadr gl)) (vc (caddr gl))
-       (c1 (cadddr gl)) (c2 (car (cddddr gl)))
-       (vg1 (cadr c1)) (vf1 (caddr c1)) (vg2 (cadr c2)) (vf2 (caddr c2))
-       (hf (dk-pick (lambda (x) (and (dk-head-is? x 'IS-HOM-SETOID) (equal? (cadddr x) vf1)))
-                    "the f hom"))
-       (vb (caddr hf))
-       (hg (hmk-ctx (list 'IS-HOM-SETOID vb vc vg1 vg2) "the g hom")))
-  (mac-h 'IS-HOM-SETOID-def hf)
-  (mac-h 'IS-HOM-SETOID-def hg)
-  (dk-split-all!)
-  (hmk-land-typings! 'SETOID va)
-  (mac 'IS-HOM-SETOID-def)
-  (dk-conj-close!
-    (lambda ()
-      (let ((g (dk-goal)))
-        (cond ((dk-asm? g) (ass))
-              (#t                                  ; (IN (COMPOSE gi fi) (FUN (C a) (C c)))
-               (let* ((gf (cadr g)) (gi (cadr gf)) (fi (caddr gf))
-                      (ca (cadr (caddr g))) (cc (caddr (caddr g)))
-                      (cb (list (car ca) vb)))
-                 (dk-have! (list 'AND (list 'IN fi (list 'FUN ca cb)) (list 'IN gi (list 'FUN cb cc))))
-                 (dk-cite! 'compose-type ca cb cc gi fi)
-                 (ass))))))))
-(hmk-done! 'hom-setoid-compose)
+;;; rewrite the goal by E1, E2 and close it from context, on one lane (a `subst'
+;;; that makes the goal an assumption may close it and move the focus)
+(define (hmk-subst2-close! e1 e2)
+  ((dk-lane (lambda ()
+              (subst e1)
+              (dk-lane-if! (lambda () (subst e2)))
+              (dk-lane-if! ass)))))
 
-(sp (make-wff '(FORALL a (FORALL b (IMPLIES (IS-SETOID a) (IMPLIES (IS-SETOID b)
-       (IN (HOM-SETOID a b) SET)))))))
-(dk-peel!)
-(let* ((hs (cadr (dk-goal))) (va (cadr hs)) (vb (caddr hs)))
-  (hmk-land-typings! 'SETOID va)
-  (hmk-land-typings! 'SETOID vb)
-  (mac 'HOM-SETOID)
-  (sep-set)
-  (mac 'cartesian-set-iff)
-  (mac 'fun-set-iff)
-  (dk-conj-close!))
-(hmk-done! 'hom-setoid-in-set)
+(define (hmk-prove-relation-id! name)
+  (let ((cacc (hmk-carrier name)))
+    (sp (make-wff `(FORALL a (IMPLIES (,(hmk-is name) a)
+                     (,(hmk-hom name) a a (ID-FUN (,cacc a)))))))
+    (dk-peel!)
+    (let* ((v (cadr (dk-goal))) (cv (list cacc v)))
+      (hmk-land-typings! name v)
+      (mac (hmk-hom-def name))
+      (dk-conj-close!
+        (lambda ()
+          (let ((g (dk-goal)))
+            (cond ((dk-asm? g) (ass))
+                  ((and (dk-head-is? g 'IN) (dk-head-is? (cadr g) 'ID-FUN))
+                   (dk-cite! 'id-fun-type cv) (ass))
+                  ((hmk-relation-clause? g)
+                   (dk-peel!)
+                   ;; (IN (LIST ((ID-FUN cv) x1) ((ID-FUN cv) x2)) (R v))
+                   (let* ((pr (cadr (dk-goal)))
+                          (x1 (cadr (cadr pr))) (x2 (cadr (caddr pr))))
+                     (hmk-subst2-close! (dk-cite! 'id-fun-apply cv x1)
+                                        (dk-cite! 'id-fun-apply cv x2))))
+                  (#t (error "hmk-prove-relation-id!: unknown clause" (expression->string g)))))))
+      (hmk-done! (hmk-thm name '-id)))))
+
+(define (hmk-prove-relation-compose! name)
+  (let ((hom (hmk-hom name)) (cacc (hmk-carrier name)))
+    (sp (make-wff `(FORALL a (FORALL b (FORALL c (FORALL f (FORALL g
+           (IMPLIES (,hom a b f) (IMPLIES (,hom b c g) (,hom a c (COMPOSE g f)))))))))))
+    (dk-peel!)
+    (let* ((gl (dk-goal)) (va (cadr gl)) (vc (caddr gl)) (gf (cadddr gl))
+           (vg (cadr gf)) (vf (caddr gf))
+           (hf (dk-pick (lambda (x) (and (dk-head-is? x hom) (equal? (cadddr x) vf))) "the f hom"))
+           (vb (caddr hf))
+           (hg (hmk-ctx (list hom vb vc vg) "the g hom"))
+           (ca (list cacc va)) (cb (list cacc vb)) (cc (list cacc vc)))
+      (mac-h (hmk-hom-def name) hf)
+      (mac-h (hmk-hom-def name) hg)
+      (dk-split-all!)
+      (hmk-land-typings! name va)
+      (dk-have! (list 'AND (list 'IN vf (list 'FUN ca cb)) (list 'IN vg (list 'FUN cb cc))))
+      (let ((cu (dk-cite! 'compose-apply ca cb cc vg vf)))
+        (mac (hmk-hom-def name))
+        (dk-conj-close!
+          (lambda ()
+            (let ((g (dk-goal)))
+              (cond ((dk-asm? g) (ass))
+                    ((and (dk-head-is? g 'IN) (dk-head-is? (cadr g) 'COMPOSE))
+                     (dk-cite! 'compose-type ca cb cc vg vf) (ass))
+                    ((hmk-relation-clause? g)
+                     (let* ((r  (car (caddr (caddr (hmk-rel-parts g)))))   ; the relation R
+                            (rf (hmk-rel-clause-in-ctx ca (list r vb) "f's relation clause"))
+                            (rg (hmk-rel-clause-in-ctx cb (list r vc) "g's relation clause")))
+                       (dk-peel!)
+                       ;; (IN (LIST ((COMPOSE g f) x1) ((COMPOSE g f) x2)) (R c))
+                       (let* ((pr (cadr (dk-goal)))
+                              (x1 (cadr (cadr pr))) (x2 (cadr (caddr pr))))
+                         (dk-apply! rf x1 x2)                        ; (f x1, f x2) in R(b)
+                         (dk-cite! 'fun-apply-type-c vf ca cb x1)    ; f x1 in PTS(b)
+                         (dk-cite! 'fun-apply-type-c vf ca cb x2)
+                         (dk-apply! rg (list vf x1) (list vf x2))    ; (g f x1, g f x2) in R(c)
+                         (hmk-subst2-close! (dk-apply! cu x1) (dk-apply! cu x2)))))
+                    (#t (error "hmk-prove-relation-compose!: unknown clause"
+                               (expression->string g))))))))
+      (hmk-done! (hmk-thm name '-compose)))))
+
+(hmk-prove-member-iff! 'SETOID)
+(hmk-prove-relation-id! 'SETOID)
+(hmk-prove-relation-compose! 'SETOID)
+(hmk-prove-in-set! 'SETOID)
 
 ;;; --- the view that forgets the measure is a functor ---------------------------
 ;;;

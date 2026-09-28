@@ -191,7 +191,7 @@
 <h4 id="FUNCTORS__hom-semigroup">hom-semigroup</h4>
 <pre>hom-semigroup(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-semigroup(a, b, homf_)}</pre>
 <h4 id="FUNCTORS__hom-setoid">hom-setoid</h4>
-<pre>hom-setoid(a, b) := {homp_ in cartesian(fun(pts(a), pts(b)), fun(rel(a), rel(b))): is-hom-setoid(a, b, nth(1, homp_), nth(2, homp_))}</pre>
+<pre>hom-setoid(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-setoid(a, b, homf_)}</pre>
 <h4 id="FUNCTORS__hom-top-space">hom-top-space</h4>
 <pre>hom-top-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-top-space(a, b, homf_)}</pre>
 <h4 id="FUNCTORS__hom-uniformly-continuous">hom-uniformly-continuous</h4>

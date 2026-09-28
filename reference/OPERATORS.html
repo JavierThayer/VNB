@@ -447,7 +447,7 @@
 <pre>hom-semigroup(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-semigroup(a, b, homf_)}</pre>
 <h4 id="OPERATORS__hom-setoid-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-setoid"><code>hom-setoid</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the setoid morphisms from a to b</p>
-<pre>hom-setoid(a, b) := {homp_ in cartesian(fun(pts(a), pts(b)), fun(rel(a), rel(b))): is-hom-setoid(a, b, nth(1, homp_), nth(2, homp_))}</pre>
+<pre>hom-setoid(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-setoid(a, b, homf_)}</pre>
 <h4 id="OPERATORS__hom-top-space-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-top-space"><code>hom-top-space</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the top space morphisms from a to b</p>
 <pre>hom-top-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-top-space(a, b, homf_)}</pre>
@@ -1105,8 +1105,8 @@
 <p>&gt; _Reads as:_  f is a ringoid homomorphism from a to b</p>
 <h4 id="OPERATORS__is-hom-semigroup-def-predicate-proposition-arity-3"><code>is-hom-semigroup</code>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  f is a homomorphism from a to b</p>
-<h4 id="OPERATORS__is-hom-setoid-def-predicate-proposition-arity-4"><code>is-hom-setoid</code>  — def-predicate · proposition (arity 4)</h4>
-<p>&gt; _Reads as:_  f1 is a setoid homomorphism from a to b</p>
+<h4 id="OPERATORS__is-hom-setoid-def-predicate-proposition-arity-3"><code>is-hom-setoid</code>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  f is a setoid morphism from a to b</p>
 <h4 id="OPERATORS__is-hom-top-space-def-predicate-proposition-arity-3"><code>is-hom-top-space</code>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  f is continuous from s to t</p>
 <h4 id="OPERATORS__is-hom-vector-space-def-predicate-proposition-arity-3"><code>is-hom-vector-space</code>  — def-predicate · proposition (arity 3)</h4>

@@ -3293,6 +3293,37 @@
       (cons g ve))))
 
 ;;; -----------------------------------------------------------------------
+;;; (dk-name! T) / (dk-name! T CLASS) -- NAME A TERM AS A FRESH SYMBOL (batch 40,
+;;; 2026-09-28).  Proves  exists v in CLASS. v = T  (CLASS defaults to RR) with
+;;; the witness T -- its conjuncts close by `ass' (the typing (IN T CLASS) must
+;;; ALREADY be in context) and `rfl' (which the typing certifies DEFINED) --
+;;; skolemises it, and returns the fresh symbol v, with (IN v CLASS) and
+;;; (= v T) landed.  The cure for `ineq' dropping a premise that is not linear
+;;; (a compound product, a cubic) and then blaming the goal: name the product,
+;;; state what is known of it about the NAME, and hand `dk-ineq!' the equation
+;;; (= v T) as a premise.  The claim goes through `dk-have!' (an existential
+;;; already in context is not proved twice) and the binder `dknv_' is used by no
+;;; predicate body.  Errors, before any step, when T is not typed in CLASS in
+;;; context: type it first.  MODELS (verbatim copies, retired): cpsl-name!
+;;; (cc-power-series-laws.scm), clh-name! (cc-log-holomorphic.scm).
+(define (dk-name! t0 . opt)
+  (let* ((t      (->raw-formula t0))
+         (cls    (if (pair? opt) (->raw-formula (car opt)) 'RR))
+         (typing (list 'IN t cls))
+         (ex     (list 'FORSOME 'dknv_ (list 'AND (list 'IN 'dknv_ cls) (list '= 'dknv_ t)))))
+    (if (or (dk-contains? t 'dknv_) (dk-contains? cls 'dknv_))
+        (error "dk-name!: the term already uses the binder dknv_" (expression->string t)))
+    (if (not (dk-asm? typing))
+        (error "dk-name!: the term is not typed -- type it first; not in context:"
+               (expression->string typing)))
+    (dk-have! ex
+      (lambda ()
+        (ew t)
+        (dk-conj-close! (lambda () (if (dk-head-is? (dk-goal) '=) (rfl) (ass))))))
+    (dk-skolem! (or (dk-ctx-form ex)
+                    (error "dk-name!: the existential did not land" (expression->string ex))))))
+
+;;; -----------------------------------------------------------------------
 ;;; (iff-for LHS) -- the context's IFF whose left-hand side is LHS (up to
 ;;; alpha), as the context holds it (item 15).  `fact' of a membership IFF
 ;;; lands BOTH the instance and the universal, and `dk-deepest' cannot tell

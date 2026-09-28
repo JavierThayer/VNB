@@ -85,7 +85,8 @@
 <h4 id="abelian-group">abelian-group</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/abelian-group.scm"><code>structure-library/abelian-group.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (4): carriers (carr), ops/constants (opr iden inv)</p>
+<p><em>Slots</em> (4): <code>carr</code> carrier; <code>opr</code> operation cartesian(carr, carr) -&gt; carr; <code>iden</code> constant in carr; <code>inv</code> operation carr -&gt; carr.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-abelian-group-def"><code>is-hom-abelian-group-def</code></a>): forall([a, b, f], is-hom-abelian-group(a, b, f) iff is-abelian-group(a) and is-abelian-group(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b) and forall([x1_ in carr(a)], f((inv(a))(x1_)) = (inv(b))(f(x1_))))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure abelian-group
   (carriers carr)
@@ -107,7 +108,8 @@
 <h4 id="c-metric-space">c-metric-space</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/c-metric-space.scm"><code>structure-library/c-metric-space.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (2): carriers (pts), ops/constants (dists)</p>
+<p><em>Slots</em> (2): <code>pts</code> carrier; <code>dists</code> operation nn -&gt; fun(cartesian(pts, pts), rr).</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-c-metric-space-def"><code>is-hom-c-metric-space-def</code></a>): forall([a, b, f], is-hom-c-metric-space(a, b, f) iff is-c-metric-space(a) and is-c-metric-space(b) and f in fun(pts(a), pts(b)) and forall([x1_ in nn], (dists(a))(x1_) = (dists(b))(x1_)))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure c-metric-space
   (instance-var s)
@@ -137,7 +139,8 @@
 <h4 id="comm-monoid">comm-monoid</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/monoid.scm"><code>structure-library/monoid.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (3): carriers (carr), ops/constants (opr iden)</p>
+<p><em>Slots</em> (3): <code>carr</code> carrier; <code>opr</code> operation cartesian(carr, carr) -&gt; carr; <code>iden</code> constant in carr.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-comm-monoid-def"><code>is-hom-comm-monoid-def</code></a>): forall([a, b, f], is-hom-comm-monoid(a, b, f) iff is-comm-monoid(a) and is-comm-monoid(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure comm-monoid
   (carriers carr)
@@ -171,7 +174,8 @@
 <h4 id="complex-inner-product-space">complex-inner-product-space</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/complex-inner-product.scm"><code>structure-library/complex-inner-product.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (7): carriers (vec), ops/constants (vadd vzero vneg act ip)</p>
+<p><em>Slots</em> (7): <code>scal</code> substructure, a ring; <code>vec</code> carrier; <code>vadd</code> operation cartesian(vec, vec) -&gt; vec; <code>vzero</code> constant in vec; <code>vneg</code> operation vec -&gt; vec; <code>act</code> operation cartesian(carr(scal), vec) -&gt; vec; <code>ip</code> operation cartesian(vec, vec) -&gt; cc.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-complex-inner-product-space-def"><code>is-hom-complex-inner-product-space-def</code></a>): forall([a, b, f], is-hom-complex-inner-product-space(a, b, f) iff is-complex-inner-product-space(a) and is-complex-inner-product-space(b) and f in fun(vec(a), vec(b)) and scal(a) = scal(b) and forall([x1_ in vec(a), x2_ in vec(a)], f((vadd(a))(x1_, x2_)) = (vadd(b))(f(x1_), f(x2_))) and f(vzero(a)) = vzero(b) and forall([x1_ in vec(a)], f((vneg(a))(x1_)) = (vneg(b))(f(x1_))) and forall([x1_ in carr(scal(a)), x2_ in vec(a)], f((act(a))(x1_, x2_)) = (act(b))(x1_, f(x2_))) and forall([x1_ in vec(a), x2_ in vec(a)], (ip(a))(x1_, x2_) = (ip(b))(f(x1_), f(x2_))))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure complex-inner-product-space
   (instance-var s)
@@ -232,7 +236,8 @@
 <h4 id="field">field</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/field.scm"><code>structure-library/field.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (8): carriers (carr non-zero), ops/constants (add mul neg zero one mul-inv)</p>
+<p><em>Slots</em> (8): <code>carr</code> carrier; <code>add</code> operation cartesian(carr, carr) -&gt; carr; <code>mul</code> operation cartesian(carr, carr) -&gt; carr; <code>neg</code> operation carr -&gt; carr; <code>zero</code> constant in carr; <code>one</code> constant in carr; <code>non-zero</code> derived carrier, carved out of carr; <code>mul-inv</code> operation non-zero -&gt; non-zero.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-field-def"><code>is-hom-field-def</code></a>): forall([a, b, f], is-hom-field(a, b, f) iff is-field(a) and is-field(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((add(a))(x1_, x2_)) = (add(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a), x2_ in carr(a)], f((mul(a))(x1_, x2_)) = (mul(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a)], f((neg(a))(x1_)) = (neg(b))(f(x1_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b) and forall([x1_ in non-zero(a)], f((mul-inv(a))(x1_)) = (mul-inv(b))(f(x1_))))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure field
   (instance-var s)
@@ -278,7 +283,8 @@
 <h4 id="group">group</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/group.scm"><code>structure-library/group.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (4): carriers (carr), ops/constants (opr iden inv)</p>
+<p><em>Slots</em> (4): <code>carr</code> carrier; <code>opr</code> operation cartesian(carr, carr) -&gt; carr; <code>iden</code> constant in carr; <code>inv</code> operation carr -&gt; carr.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-group-def"><code>is-hom-group-def</code></a>): forall([a, b, f], is-hom-group(a, b, f) iff is-group(a) and is-group(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b) and forall([x1_ in carr(a)], f((inv(a))(x1_)) = (inv(b))(f(x1_))))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure group
   (carriers carr)
@@ -313,7 +319,8 @@
 <h4 id="measurable-space">measurable-space</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/measurable-space.scm"><code>structure-library/measurable-space.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (2): carriers (pts), ops/constants ()</p>
+<p><em>Slots</em> (2): <code>pts</code> carrier; <code>sigma</code> family of subsets of pts.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-measurable-space-def"><code>is-hom-measurable-space-def</code></a>): forall([s, t, f], is-hom-measurable-space(s, t, f) iff is-measurable-space(s) and is-measurable-space(t) and f in fun(pts(s), pts(t)) and forall([u in sigma(t)], preimage(s, f, u) in sigma(s)))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure measurable-space
   (instance-var s)
@@ -329,7 +336,8 @@
 <h4 id="measure-space">measure-space</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/measurable-space.scm"><code>structure-library/measurable-space.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (3): carriers (pts), ops/constants ()</p>
+<p><em>Slots</em> (3): <code>pts</code> carrier; <code>sigma</code> family of subsets of pts; <code>meas</code> function on the family sigma into rr-pos-star.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-measure-space-def"><code>is-hom-measure-space-def</code></a>): forall([s, t, f], is-hom-measure-space(s, t, f) iff is-measure-space(s) and is-measure-space(t) and f in fun(pts(s), pts(t)) and forall([u in sigma(t)], preimage(s, f, u) in sigma(s)) and forall([u in sigma(t)], (meas(t))(u) = (meas(s))(preimage(s, f, u))))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure measure-space
   (instance-var s)
@@ -346,7 +354,8 @@
 <h4 id="metric-space">metric-space</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/metric-space.scm"><code>structure-library/metric-space.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (2): carriers (pts), ops/constants (dist)</p>
+<p><em>Slots</em> (2): <code>pts</code> carrier; <code>dist</code> operation cartesian(pts, pts) -&gt; rr.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-metric-space-def"><code>is-hom-metric-space-def</code></a>): forall([a, b, f], is-hom-metric-space(a, b, f) iff is-metric-space(a) and is-metric-space(b) and f in fun(pts(a), pts(b)) and forall([x1_ in pts(a), x2_ in pts(a)], (dist(a))(x1_, x2_) = (dist(b))(f(x1_), f(x2_))))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure metric-space
   (carriers pts)
@@ -371,7 +380,8 @@
 <h4 id="module">module</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/module.scm"><code>structure-library/module.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (6): carriers (vec), ops/constants (vadd vzero vneg act)</p>
+<p><em>Slots</em> (6): <code>scal</code> substructure, a ring; <code>vec</code> carrier; <code>vadd</code> operation cartesian(vec, vec) -&gt; vec; <code>vzero</code> constant in vec; <code>vneg</code> operation vec -&gt; vec; <code>act</code> operation cartesian(carr(scal), vec) -&gt; vec.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-module-def"><code>is-hom-module-def</code></a>): forall([a, b, f], is-hom-module(a, b, f) iff is-module(a) and is-module(b) and f in fun(vec(a), vec(b)) and scal(a) = scal(b) and forall([x1_ in vec(a), x2_ in vec(a)], f((vadd(a))(x1_, x2_)) = (vadd(b))(f(x1_), f(x2_))) and f(vzero(a)) = vzero(b) and forall([x1_ in vec(a)], f((vneg(a))(x1_)) = (vneg(b))(f(x1_))) and forall([x1_ in carr(scal(a)), x2_ in vec(a)], f((act(a))(x1_, x2_)) = (act(b))(x1_, f(x2_))))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure module
   (instance-var s)
@@ -403,7 +413,8 @@
 <h4 id="monoid">monoid</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/monoid.scm"><code>structure-library/monoid.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (3): carriers (carr), ops/constants (opr iden)</p>
+<p><em>Slots</em> (3): <code>carr</code> carrier; <code>opr</code> operation cartesian(carr, carr) -&gt; carr; <code>iden</code> constant in carr.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-monoid-def"><code>is-hom-monoid-def</code></a>): forall([a, b, f], is-hom-monoid(a, b, f) iff is-monoid(a) and is-monoid(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure monoid
   (carriers carr)
@@ -427,7 +438,8 @@
 <h4 id="normed-ag">normed-ag</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/normed-ag.scm"><code>structure-library/normed-ag.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (5): carriers (carr), ops/constants (opr iden inv nrm)</p>
+<p><em>Slots</em> (5): <code>carr</code> carrier; <code>opr</code> operation cartesian(carr, carr) -&gt; carr; <code>iden</code> constant in carr; <code>inv</code> operation carr -&gt; carr; <code>nrm</code> operation carr -&gt; rr.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-normed-ag-def"><code>is-hom-normed-ag-def</code></a>): forall([a, b, f], is-hom-normed-ag(a, b, f) iff is-normed-ag(a) and is-normed-ag(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b) and forall([x1_ in carr(a)], f((inv(a))(x1_)) = (inv(b))(f(x1_))) and forall([x1_ in carr(a)], (nrm(a))(x1_) = (nrm(b))(f(x1_))))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure normed-ag
   (carriers carr)
@@ -451,7 +463,8 @@
 <h4 id="normed-field">normed-field</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/normed-field.scm"><code>structure-library/normed-field.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (7): carriers (carr), ops/constants (add mul neg zero one fnrm)</p>
+<p><em>Slots</em> (7): <code>carr</code> carrier; <code>add</code> operation cartesian(carr, carr) -&gt; carr; <code>mul</code> operation cartesian(carr, carr) -&gt; carr; <code>neg</code> operation carr -&gt; carr; <code>zero</code> constant in carr; <code>one</code> constant in carr; <code>fnrm</code> operation carr -&gt; rr.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-normed-field-def"><code>is-hom-normed-field-def</code></a>): forall([a, b, f], is-hom-normed-field(a, b, f) iff is-normed-field(a) and is-normed-field(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((add(a))(x1_, x2_)) = (add(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a), x2_ in carr(a)], f((mul(a))(x1_, x2_)) = (mul(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a)], f((neg(a))(x1_)) = (neg(b))(f(x1_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b) and forall([x1_ in carr(a)], (fnrm(a))(x1_) = (fnrm(b))(f(x1_))))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure normed-field
   (carriers carr)
@@ -479,7 +492,8 @@
 <h4 id="normed-vector-space">normed-vector-space</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/normed-vector-space.scm"><code>structure-library/normed-vector-space.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (7): carriers (vec), ops/constants (vadd vzero vneg act vnrm)</p>
+<p><em>Slots</em> (7): <code>scal</code> substructure, a ring; <code>vec</code> carrier; <code>vadd</code> operation cartesian(vec, vec) -&gt; vec; <code>vzero</code> constant in vec; <code>vneg</code> operation vec -&gt; vec; <code>act</code> operation cartesian(carr(scal), vec) -&gt; vec; <code>vnrm</code> operation vec -&gt; rr.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-normed-vector-space-def"><code>is-hom-normed-vector-space-def</code></a>): forall([a, b, f], is-hom-normed-vector-space(a, b, f) iff is-normed-vector-space(a) and is-normed-vector-space(b) and f in fun(vec(a), vec(b)) and scal(a) = scal(b) and forall([x1_ in vec(a), x2_ in vec(a)], f((vadd(a))(x1_, x2_)) = (vadd(b))(f(x1_), f(x2_))) and f(vzero(a)) = vzero(b) and forall([x1_ in vec(a)], f((vneg(a))(x1_)) = (vneg(b))(f(x1_))) and forall([x1_ in carr(scal(a)), x2_ in vec(a)], f((act(a))(x1_, x2_)) = (act(b))(x1_, f(x2_))) and forall([x1_ in vec(a)], (vnrm(a))(x1_) = (vnrm(b))(f(x1_))))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure normed-vector-space
   (instance-var s)
@@ -530,7 +544,8 @@
 <h4 id="pseudometric-space">pseudometric-space</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/pseudometric.scm"><code>structure-library/pseudometric.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (2): carriers (pts), ops/constants (dist)</p>
+<p><em>Slots</em> (2): <code>pts</code> carrier; <code>dist</code> operation cartesian(pts, pts) -&gt; rr.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-pseudometric-space-def"><code>is-hom-pseudometric-space-def</code></a>): forall([a, b, f], is-hom-pseudometric-space(a, b, f) iff is-pseudometric-space(a) and is-pseudometric-space(b) and f in fun(pts(a), pts(b)) and forall([x1_ in pts(a), x2_ in pts(a)], (dist(a))(x1_, x2_) = (dist(b))(f(x1_), f(x2_))))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure pseudometric-space
   (carriers pts)
@@ -564,7 +579,8 @@
 <h4 id="ring">ring</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/ring.scm"><code>structure-library/ring.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (6): carriers (carr), ops/constants (add mul neg zero one)</p>
+<p><em>Slots</em> (6): <code>carr</code> carrier; <code>add</code> operation cartesian(carr, carr) -&gt; carr; <code>mul</code> operation cartesian(carr, carr) -&gt; carr; <code>neg</code> operation carr -&gt; carr; <code>zero</code> constant in carr; <code>one</code> constant in carr.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-ring-def"><code>is-hom-ring-def</code></a>): forall([a, b, f], is-hom-ring(a, b, f) iff is-ring(a) and is-ring(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((add(a))(x1_, x2_)) = (add(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a), x2_ in carr(a)], f((mul(a))(x1_, x2_)) = (mul(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a)], f((neg(a))(x1_)) = (neg(b))(f(x1_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure ring
   (carriers carr)
@@ -591,7 +607,8 @@
 <h4 id="ringoid">ringoid</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/ringoid.scm"><code>structure-library/ringoid.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (7): carriers (carr), ops/constants (add mul neg zero one idl)</p>
+<p><em>Slots</em> (7): <code>carr</code> carrier; <code>add</code> operation cartesian(carr, carr) -&gt; carr; <code>mul</code> operation cartesian(carr, carr) -&gt; carr; <code>neg</code> operation carr -&gt; carr; <code>zero</code> constant in carr; <code>one</code> constant in carr; <code>idl</code> constant in power(carr).</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-ringoid-def"><code>is-hom-ringoid-def</code></a>, replaced by <code>declare-hom!</code>): forall([a, b, f], is-hom-ringoid(a, b, f) iff is-ringoid(a) and is-ringoid(b) and f in fun(carr(a), carr(b)) and is-hom-ring(ringoid-as-ring(a), ringoid-as-ring(b), f) and forall([x_ in idl(a)], f(x_) in idl(b)))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure ringoid
   (carriers carr)
@@ -646,7 +663,8 @@
 <h4 id="semigroup">semigroup</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/semigroup.scm"><code>structure-library/semigroup.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (2): carriers (carr), ops/constants (opr)</p>
+<p><em>Slots</em> (2): <code>carr</code> carrier; <code>opr</code> operation cartesian(carr, carr) -&gt; carr.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-semigroup-def"><code>is-hom-semigroup-def</code></a>): forall([a, b, f], is-hom-semigroup(a, b, f) iff is-semigroup(a) and is-semigroup(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure semigroup
   (carriers carr)
@@ -659,19 +677,22 @@
 <h4 id="setoid">setoid</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/setoid.scm"><code>structure-library/setoid.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (2): carriers (pts rel), ops/constants ()</p>
+<p><em>Slots</em> (2): <code>pts</code> carrier; <code>rel</code> relation on pts.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-setoid-def"><code>is-hom-setoid-def</code></a>): forall([a, b, f], is-hom-setoid(a, b, f) iff is-setoid(a) and is-setoid(b) and f in fun(pts(a), pts(b)) and forall([x1_ in pts(a), x2_ in pts(a)], [x1_, x2_] in rel(a) implies [f(x1_), f(x2_)] in rel(b)))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure setoid
-  (carriers pts rel)
+  (carriers pts)
+  (relation rel pts)
   (property is-equivalence rel pts))</pre>
 <p><em>Defining predicate</em> (as stored):</p>
-<ul><li><code>is-setoid</code> — forall([s], is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in set and is-equivalence(rel(s), pts(s)))</li></ul>
+<ul><li><code>is-setoid</code> — forall([s], is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in power(cartesian(pts(s), pts(s))) and is-equivalence(rel(s), pts(s)))</li></ul>
 <p><em>Theorems quantifying over <a class="x" href="THEOREMS.html#t-is-setoid"><code>is-setoid</code></a>.</em></p>
-<ul><li><code>class-disjoint</code> — forall([s], is-setoid(s) implies forall([a in pts(s), b in pts(s)], class(s, a) = class(s, b) or intersection(class(s, a), class(s, b)) = empty-set))</li><li><code>class-eq-iff</code> — forall([s], is-setoid(s) implies forall([a in pts(s), b in pts(s)], class(s, a) = class(s, b) iff related(s, a, b)))</li><li><code>class-eq-iff-rev</code> — forall([s], is-setoid(s) implies forall([a in pts(s), b in pts(s)], related(s, a, b) iff class(s, a) = class(s, b)))</li><li><code>class-in-quotient</code> — forall([s], is-setoid(s) implies forall([a in pts(s)], class(s, a) in quotient(s)))</li><li><code>class-is-set</code> — forall([s], is-setoid(s) implies forall([a in pts(s)], class(s, a) in set))</li><li><code>class-self</code> — forall([s], is-setoid(s) implies forall([a in pts(s)], a in class(s, a)))</li><li><code>class-subset-carrier</code> — forall([s], is-setoid(s) implies forall([a in pts(s)], class(s, a) subset pts(s)))</li><li><code>descend-computes</code> — forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies forall([a in pts(s)], (descend(s, f))(class(s, a)) = f(a))))</li><li><code>descend-computes-rev</code> — forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies forall([a in pts(s)], f(a) = (descend(s, f))(class(s, a)))))</li><li><code>descend-in-fun</code> — forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies descend(s, f) in fun(quotient(s), z)))</li><li><code>descend2-computes</code> — forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies forall([a, b], a in pts(s) implies b in pts(s) implies (descend2(s, f))(class(s, a), class(s, b)) = f(a, b))))</li><li><code>descend2-computes-rev</code> — forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies forall([a, b], a in pts(s) implies b in pts(s) implies f(a, b) = (descend2(s, f))(class(s, a), class(s, b)))))</li><li><code>descend2-in-fun</code> — forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies descend2(s, f) in fun(cartesian(quotient(s), quotient(s)), z)))</li><li><code>hom-setoid-id</code> — forall([a], is-setoid(a) implies is-hom-setoid(a, a, id-fun(pts(a)), id-fun(rel(a))))</li><li><code>proj-in-fun</code> — forall([s], is-setoid(s) implies proj(s) in fun(pts(s), quotient(s)))</li><li><code>quotient-is-set</code> — forall([s], is-setoid(s) implies quotient(s) in set)</li><li><code>quotient-rep</code> — forall([s], is-setoid(s) implies forall([x in quotient(s)], forsome([a in pts(s)], x = class(s, a))))</li><li><code>quotient-universal</code> — forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies forsome([g in fun(quotient(s), z)], forall([a in pts(s)], g(class(s, a)) = f(a)) and forall([g_], g_ in fun(quotient(s), z) and forall([a in pts(s)], g_(class(s, a)) = f(a)) implies g_ = g))))</li><li><code>rko2-refl</code> — forall([s], is-setoid(s) implies forall([a_ in pts(s)], related(s, a_, a_)))</li><li><code>rko2-sym</code> — forall([s], is-setoid(s) implies forall([a_, b_], a_ in pts(s) implies b_ in pts(s) implies related(s, a_, b_) implies related(s, b_, a_)))</li><li><code>rko2-trans</code> — forall([s], is-setoid(s) implies forall([a_, b_, c_], a_ in pts(s) implies b_ in pts(s) implies c_ in pts(s) implies related(s, a_, b_) implies related(s, b_, c_) implies related(s, a_, c_)))</li></ul>
+<ul><li><code>class-disjoint</code> — forall([s], is-setoid(s) implies forall([a in pts(s), b in pts(s)], class(s, a) = class(s, b) or intersection(class(s, a), class(s, b)) = empty-set))</li><li><code>class-eq-iff</code> — forall([s], is-setoid(s) implies forall([a in pts(s), b in pts(s)], class(s, a) = class(s, b) iff related(s, a, b)))</li><li><code>class-eq-iff-rev</code> — forall([s], is-setoid(s) implies forall([a in pts(s), b in pts(s)], related(s, a, b) iff class(s, a) = class(s, b)))</li><li><code>class-in-quotient</code> — forall([s], is-setoid(s) implies forall([a in pts(s)], class(s, a) in quotient(s)))</li><li><code>class-is-set</code> — forall([s], is-setoid(s) implies forall([a in pts(s)], class(s, a) in set))</li><li><code>class-self</code> — forall([s], is-setoid(s) implies forall([a in pts(s)], a in class(s, a)))</li><li><code>class-subset-carrier</code> — forall([s], is-setoid(s) implies forall([a in pts(s)], class(s, a) subset pts(s)))</li><li><code>descend-computes</code> — forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies forall([a in pts(s)], (descend(s, f))(class(s, a)) = f(a))))</li><li><code>descend-computes-rev</code> — forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies forall([a in pts(s)], f(a) = (descend(s, f))(class(s, a)))))</li><li><code>descend-in-fun</code> — forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies descend(s, f) in fun(quotient(s), z)))</li><li><code>descend2-computes</code> — forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies forall([a, b], a in pts(s) implies b in pts(s) implies (descend2(s, f))(class(s, a), class(s, b)) = f(a, b))))</li><li><code>descend2-computes-rev</code> — forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies forall([a, b], a in pts(s) implies b in pts(s) implies f(a, b) = (descend2(s, f))(class(s, a), class(s, b)))))</li><li><code>descend2-in-fun</code> — forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies descend2(s, f) in fun(cartesian(quotient(s), quotient(s)), z)))</li><li><code>hom-setoid-id</code> — forall([a], is-setoid(a) implies is-hom-setoid(a, a, id-fun(pts(a))))</li><li><code>proj-in-fun</code> — forall([s], is-setoid(s) implies proj(s) in fun(pts(s), quotient(s)))</li><li><code>quotient-is-set</code> — forall([s], is-setoid(s) implies quotient(s) in set)</li><li><code>quotient-rep</code> — forall([s], is-setoid(s) implies forall([x in quotient(s)], forsome([a in pts(s)], x = class(s, a))))</li><li><code>quotient-universal</code> — forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies forsome([g in fun(quotient(s), z)], forall([a in pts(s)], g(class(s, a)) = f(a)) and forall([g_], g_ in fun(quotient(s), z) and forall([a in pts(s)], g_(class(s, a)) = f(a)) implies g_ = g))))</li><li><code>rko2-refl</code> — forall([s], is-setoid(s) implies forall([a_ in pts(s)], related(s, a_, a_)))</li><li><code>rko2-sym</code> — forall([s], is-setoid(s) implies forall([a_, b_], a_ in pts(s) implies b_ in pts(s) implies related(s, a_, b_) implies related(s, b_, a_)))</li><li><code>rko2-trans</code> — forall([s], is-setoid(s) implies forall([a_, b_, c_], a_ in pts(s) implies b_ in pts(s) implies c_ in pts(s) implies related(s, a_, b_) implies related(s, b_, c_) implies related(s, a_, c_)))</li></ul>
 <h4 id="top-space">top-space</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/top-space.scm"><code>structure-library/top-space.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (2): carriers (pts), ops/constants ()</p>
+<p><em>Slots</em> (2): <code>pts</code> carrier; <code>opens</code> family of subsets of pts.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-top-space-def"><code>is-hom-top-space-def</code></a>): forall([s, t, f], is-hom-top-space(s, t, f) iff is-top-space(s) and is-top-space(t) and f in fun(pts(s), pts(t)) and forall([u in opens(t)], preimage(s, f, u) in opens(s)))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure top-space
   (instance-var s)

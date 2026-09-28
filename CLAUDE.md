@@ -531,7 +531,16 @@ and `card-subset-nn` demand -- so the given cover never has to be one (`compact-
 such that P": bound by `ORD-SEGMENT(succ_ORD al0)` for a known witness, separate,
 `ord-well-ordered` (no COMP anywhere in the tree).
 
-**Structures and views.** `slot` on a `def-functor` view has no per-slot projection: use
+**Structures and views.** THE SLOT KINDS of `declare-structure` (structures.scm) are `carrier`, `op`,
+`constant`, `derived`, `substructure`, `family` (a set of subsets of a carrier: a sigma-algebra, a topology),
+`family-fun` (a function on such a family: a measure) and `relation` (a set of pairs of points of a carrier:
+SETOID's `REL`, since batch 40, 2026-09-28; a setoid is ONE carrier). Each kind has ONE typing conjunct in
+`IS-X` and ONE arrow clause in the generated `IS-HOM-X` (preservation for an op, pullback for a family,
+transport for a family-fun, "related points go to related points" for a relation); `hom-kinds.scm` proves the
+category laws for the family and relation kinds, `hom-laws.scm` for the rest. A structure's default arrows
+are the generated ones; a named alternative is a `declare-category!` with three PROVEN obligations (fatal
+gate). Tightening a slot's typing breaks every proof that CONSTRUCTS an instance by hand (two in batch 40).
+`slot` on a `def-functor` view has no per-slot projection: use
 `(slot 'X) (mac 'THE-VIEW) (nth-r)`, iterate to a fixpoint when target and source accessor
 are the same symbol, and ASSERT the goal literally before `qrfl`. Never fire an accessor or
 instance-value macete by name (the suite pins `slot` as the one door; use `slot` twice when
@@ -616,7 +625,9 @@ cure for focus drift inside `have!` thunks); `dk-lam-type!` (the `lam-t` typing 
 THIS `lam-t` opened, not a global leaf diff: the repair of `dk-lam-t!`'s known defect, which is
 left as it was for its callers); `dk-absurd!` (FALSITY from contradictory linear premises via
 `0 < 0` and `rr-lt-irrefl`, since `ineq` declines a FALSITY goal); `dk-abstract!` (skolemise a
-lambda family into a function symbol with its value equation); `dk-have!` of a claim EQUAL TO THE
+lambda family into a function symbol with its value equation); `dk-name!` (2026-09-28, batch 40: name a
+typed term as a fresh symbol, landing `v in C` and `v = t` and returning `v`, the cure for `ineq` dropping a
+compound product; the term must be TYPED in context first, else it errors with the reason); `dk-have!` of a claim EQUAL TO THE
 FOCUS GOAL now proves it in place instead of dying with `cut left no main branch`; `dk-cite!`
 (`dk-fact!` that returns the instance whether it lands or is already in context; `dk-fact!` stays
 strict); `dk-congr!` (f(a) = f(b) from a = b where `subst` cannot be used because one side contains
@@ -632,7 +643,8 @@ within one form differing only by case, warn-only, ~20 s per load; backlog 2 on 
 added (`dd-diff-typ!` in directional-derivative.scm, a latent bug -- the lambda's `x` IS the
 parameter `X`, so its "already in context" test never matches; `r5u-ff-step!` in
 rake-combinatorics2.scm, harmless).
-STILL OWED: the view slot read-off (`slot-close!` / `readoff!` / `dk-read-off!`), `dk-finite!`,
+STILL OWED: a helper closing a structure predicate's TYPING conjunct from a property already proven
+(batch 40, finding 3); the view slot read-off (`slot-close!` / `readoff!` / `dk-read-off!`), `dk-finite!`,
 `dk-least-ordinal!`, a hypothesis-side rewrite, the quotient-of-a-structure driver (`rep!` /
 `compute-down!` / `close!`), and the retirement of the local copies the 27-B report lists. KNOWN
 DEFECTS not yet fixed: `arith` raising on the ground goal `2 = 2` (did not reproduce on the band,

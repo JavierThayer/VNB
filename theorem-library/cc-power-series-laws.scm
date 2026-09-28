@@ -385,11 +385,7 @@
             (ai '(NOT (IN POS-INF RR))))
           (ass)))))
 
-;;; a real t as a SYMBOL: lands (IN v RR) and (= v t); returns v
-(define (cpsl-name! t)
-  (let ((ex (list 'FORSOME 'cpsv_ (list 'AND '(IN cpsv_ RR) (list '= 'cpsv_ t)))))
-    (have! ex (lambda () (ew t) (dk-conj-close! (lambda () (if (eq? (cpsl-head (dk-goal)) '=) (rfl) (ass))))))
-    (dk-skolem! ex)))
+;;; a real t as a SYMBOL: `dk-name!' (driver-kit.scm; this file's cpsl-name! retired, batch 40)
 
 ;;; for r >= 0 there is s > 0 with r s < 1
 (sp (make-wff
@@ -398,7 +394,7 @@
 (dk-peel!)
 (fact 'rr-one-in)
 (fact 'rr-add-in-rr 'cpsr_ 1)
-(define cpsl-sf-t (cpsl-name! '(+ cpsr_ 1)))
+(define cpsl-sf-t (dk-name! '(+ cpsr_ 1)))
 (have! (list '< 0 cpsl-sf-t) (lambda () (dk-ineq! (list '= cpsl-sf-t '(+ cpsr_ 1)) '(<= 0 cpsr_))))
 (define cpsl-sf-w (cpsl-recip! cpsl-sf-t))
 (fact 'rr-mul-in-rr 'cpsr_ cpsl-sf-w)
@@ -563,7 +559,7 @@
     (fact 'rr-add-in-rr cpsl-c-e cpsl-c-u)
     (have! '(IN 1/2 RR) (lambda () (arith)))
     (fact 'rr-mul-in-rr 1/2 (list '+ cpsl-c-e cpsl-c-u))
-    (let ((r (cpsl-name! (list '* 1/2 (list '+ cpsl-c-e cpsl-c-u)))))
+    (let ((r (dk-name! (list '* 1/2 (list '+ cpsl-c-e cpsl-c-u)))))
       (have! (list '< cpsl-c-e r) (lambda () (dk-ineq! (list '= r (list '* 1/2 (list '+ cpsl-c-e cpsl-c-u))) (list '< cpsl-c-e cpsl-c-u))))
       (have! (list '< r cpsl-c-u) (lambda () (dk-ineq! (list '= r (list '* 1/2 (list '+ cpsl-c-e cpsl-c-u))) (list '< cpsl-c-e cpsl-c-u))))
       (have! (list '< 0 r) (lambda () (dk-ineq! (list '< cpsl-c-e r) (list '<= 0 cpsl-c-e))))
@@ -600,7 +596,7 @@
                         (lambda () (contra!)))))))))
         (fact 'rr-add-in-rr cpsl-rho w)
         (fact 'rr-mul-in-rr 1/2 (list '+ cpsl-rho w))
-        (let* ((s (cpsl-name! (list '* 1/2 (list '+ cpsl-rho w))))
+        (let* ((s (dk-name! (list '* 1/2 (list '+ cpsl-rho w))))
                (rs (list '* r s)))
           (fact 'rr-mul-in-rr r s)
           (have! (list '= rs (list '+ (list '* 1/2 rr-) (list '* 1/2 rw)))
@@ -1589,7 +1585,7 @@
 (cpsl-lt-le! 0 'cpst_)
 (define cpsl-k-w (cpsl-recip! 'cpst_))
 (fact 'rr-mul-in-rr 'cpsrad_ cpsl-k-w)
-(define cpsl-k-q (cpsl-name! (list '* 'cpsrad_ cpsl-k-w)))
+(define cpsl-k-q (dk-name! (list '* 'cpsrad_ cpsl-k-w)))
 (define cpsl-k-rw (list '* 'cpsrad_ cpsl-k-w))
 (have! (list 'AND '(IN cpsrad_ RR) (list 'IN cpsl-k-w 'RR)))
 (have! (list 'AND '(<= 0 cpsrad_) (list '<= 0 cpsl-k-w)))
@@ -1761,7 +1757,7 @@
                   (have! '(IN 1/2 RR) (lambda () (arith)))
                   (fact 'rr-mul-in-rr 1/2 (list '+ cpsl-n-eab x))
                   (let* ((half (list '* 1/2 (list '+ cpsl-n-eab x)))
-                         (r (cpsl-name! half)))
+                         (r (dk-name! half)))
                     (have! (list '<= 0 r) (lambda () (dk-ineq! (list '= r half) (list '<= 0 cpsl-n-eab) (list '< cpsl-n-eab x))))
                     (have! (list '< r x) (lambda () (dk-ineq! (list '= r half) (list '< cpsl-n-eab x))))
                     (have! (list '< cpsl-n-eab r) (lambda () (dk-ineq! (list '= r half) (list '< cpsl-n-eab x))))
