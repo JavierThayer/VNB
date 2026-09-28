@@ -90,3 +90,38 @@ tree cites either predicate.
 * D3. The isometric default for metric and normed structures: keep (recommended, as the restrictive
   default the note describes), or make `CONTINUOUS` the default of `METRIC-SPACE` as structures.scm's
   own comment once anticipated.
+
+## notes-44 (2026-09-28): carriers, their names, and several of them
+
+**Which slots are carriers.** A slot is a carrier because the declaration's `(carriers ...)` clause names
+it, whatever it is called: `CARR` for the algebraic species (semigroup to field, ringoid, the normed
+groups and fields), `PTS` for the spaces (metric, pseudometric, C-metric, topological, metrizable,
+measurable, measure), `VEC` for module, normed vector space and complex inner-product space, whose
+scalars are the SUBSTRUCTURE slot `SCAL`. The generator reads the KIND of a slot, never its name, so
+`PTS` is a carrier exactly as `CARR` is. `FIELD` declares a second, DERIVED carrier `NON-ZERO` (the domain
+of `INV`); the hom generator counts INDEPENDENT carriers only, so a field morphism is one map, and that it
+maps `NON-ZERO(a)` into `NON-ZERO(b)` is the theorem `hom-field-non-zero`.
+
+**More than one carrier.** The generated predicate already handles k independent carriers with k maps,
+`IS-HOM-X(a, b, f1, ..., fk)` (a Malcev-style two-sorted structure "just works", structures.scm:1400).
+`SETOID` (`PTS`, `REL`) is the one such structure in the tree. What was NOT built for it is the hom-SET,
+because an arrow is a k-tuple of maps: `HOM-SETOID(a, b)` is the SEP of `CARTESIAN(FUN(PTS a, PTS b),
+FUN(REL a, REL b))` by `IS-HOM-SETOID` on the components, and the identity, composition and functors are
+componentwise. `CARTESIAN` is binary in the tree, so k = 2 is available now and k >= 3 waits for the open
+foundational item (no SEP over triples). `declare-category!` takes `(a b f1 ... fk)` for the same reason.
+Proposal 1 (the family-of-subsets and transport clauses) is per slot and per carrier, so it applies
+unchanged with several carriers.
+
+**A systematic notation for the components.** Today the names are per role, from a closed vocabulary:
+`CARR`, `PTS`, `VEC` for carriers, `SCAL` for the scalar substructure, and the operation and constant
+names as mathematics writes them (`ADD`, `MUL`, `DIST`, `NRM`, `ZERO`, `ONE`); every accessor is one
+global name for one slot (the 2026-09 rule, after `X`, `D`, `ID` collided with binders). Two ways to make
+this systematic: (a) a POSITIONAL notation, `CARRIER(s, 1)`, `OP(s, 2)`, uniform across species -- it
+would undo the one-name-one-slot rule, read badly in statements ("`(OP(s, 1))(x, y)`" for a sum) and cost
+a rename of `PTS` / `CARR` across the tree for no logical gain; (b) keep the role names and make the ROLES
+the systematic part: the declaration's slot kinds (`carrier`, independent or derived; `op`; `constant`;
+`substructure`; and, after proposal 1, `family` for a set of subsets of a carrier and the measure-like
+`function on a family`), a fixed vocabulary for carrier names by role documented in structures.scm, and
+the generated `reference/STRUCTURES.md` listing every structure's slots WITH their kinds and the arrow
+notion each kind generates. Recommended: (b). The hom generator then has one rule per KIND, which is what
+notes-43 asked for, and a reader can see for each structure what its default category is.
