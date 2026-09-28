@@ -137,7 +137,10 @@ sequent (the reason a lemma was cut). Those remain the user's rules, or `sketch`
 * Phase 1, the preamble: the rule reader, the sequent matcher over `match-expr` with the four guards,
   the loop with probe-before-commit, the report, the default file with about fifteen rules (peel, split
   a conjunction, close by context or reflexivity or arithmetic, type by citation when the typing is one
-  citation away, `use` the goal head, `dk-ineq!` and `crs` on arithmetic atoms, the tentative cut), the
+  citation away, `use` the goal head, `dk-ineq!` and `crs` on arithmetic atoms, the tentative cut, and the
+  user's clause of 2026-09-28: a goal `t in C` with `C` a number class and `t` an arithmetic term is closed by
+  `(type-term)`, which is bottom-up over the closure laws, so the recursion the note asks for is inside the
+  action, not in the rule), the
   Emacs button and chooser, suite checks with controls (a rule rejected by its probe leaves no step; the
   loop stops on a cap; a raising rule is named). One agent-day.
 * Phase 2, the postamble: the attributing replay over the page audit's re-run, the pruner, the
