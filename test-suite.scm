@@ -13409,6 +13409,19 @@
               (alpha-equiv? g1 (dk-goal))
               (= n1 (length (proof-open-leaves *ps*)))))))))
 
+
+(check-true "what-now (E7) offers (type-term) on x in zz, y in zz |- 3 * x^2 + y in zz, and is silent on x in rr |- x in zz (the user, 2026-09-28)"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x ZZ) (FORALL y (IMPLIES (IN y ZZ)
+                                            (IN (+ (* 3 (power x 2)) y) ZZ))))))) (di)))
+       (let* ((m1 #f) (t1 (with-output-to-string (lambda () (set! m1 (what-now--show-type-term (dk-goal)))))))
+         (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (IN x ZZ))))) (di)))
+         (let* ((m2 #f) (t2 (with-output-to-string (lambda () (set! m2 (what-now--show-type-term (dk-goal)))))))
+           (and (pair? m1) (zi-says? t1 "TYPE-TERM") (zi-says? t1 "(type-term)")
+                (null? m2) (string=? t2 ""))))))))
+
 ;;; =======================================================================
 ;;; BATCH 39 (2026-09-28): THE CATEGORY OF A STRUCTURE -- the two FAMILY slot
 ;;; kinds, declare-category!, the category-obligations audit, the SETOID hom-set.

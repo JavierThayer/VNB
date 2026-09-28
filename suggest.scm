@@ -595,6 +595,31 @@
          (typed (what-now--show-ew-typed)))
     (append poly typed)))
 
+;;; TYPE-TERM lane (the user, 2026-09-28, left with `4 * x^3 + ... in zz' after a witness:
+;;; "any default preamble should have a clause [goal is the typing of an algebraic term]
+;;; [do it recursively]").  On a goal t in C, C one of NN ZZ QQ RR CC, when type-term's
+;;; planner (driver-kit.scm, notes-37) finds the closure-law route, offer (type-term).  The
+;;; membership lane is silent here (ZZ is not a constructed class) and the fire probes do
+;;; not include type-term, so until this lane nothing on the panel named it.  Silent when
+;;; the planner has no route; the offer is measured on a scratch copy like every move.
+(define (what-now--show-type-term goal)
+  (if (not (and *ps* (not (proof-done? *ps*))
+                (pair? goal) (eq? (car goal) 'IN) (= (length goal) 3)
+                (memq (caddr goal) *type-term-classes*)))
+      '()
+      (let ((plan (dk--silently (lambda () (type-term--plan (cadr goal) (caddr goal))))))
+        (if (not plan)
+            '()
+            (let ((fired (what-now--measure-firing '((type-term)))))
+              (if (null? fired)
+                  '()
+                  (begin
+                    (display ";; TYPE-TERM -- the goal types an arithmetic term in ")
+                    (display (expression->string (caddr goal)))
+                    (display ": the class's closure laws close it, bottom-up:") (newline)
+                    (display ";;   (type-term)") (newline)
+                    fired)))))))
+
 ;;; The polynomial-division witness (notes-37, 2026-09-24).  On a goal
 ;;; forsome([a in C], L = R), `ew-poly' (driver-kit.scm) computes the witness
 ;;; by exact division in crs's normal form and closes the goal in one command.
@@ -5009,6 +5034,9 @@
          ;; counterexample lane its move would be dropped from the flat list.
          (set! moves (append moves (lane! 'zero-it "normal form of P - Q"
                                           (what-now--show-zero-it goal))))
+         ;; TYPE-TERM lane (2026-09-28): a typing of an arithmetic term in a number class.
+         (set! moves (append moves (lane! 'type-term "type an arithmetic term"
+                                          (what-now--show-type-term goal))))
          ;; EXPAND (notes-39, 2026-09-25): when a side of an equation in the goal
          ;; is a polynomial whose normal form differs from it, show the expansion
          ;; as a step, ahead of every non-structural lane (placed after the
