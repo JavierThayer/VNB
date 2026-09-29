@@ -944,7 +944,7 @@ subformula and declines when $G'$ is $G$.  Tuples of different lengths
 are not rewritten.  That two of them cannot be equal is a separate fact
 and not this operation's business.
 
-\subsection{Oracles}
+\subsection{Oracles}\label{sec:oracles}
 
 An oracle decides a class of assertions by computation.  Six of the
 seven, on success, record an inference with no hypotheses, so $N$ is
@@ -1326,9 +1326,17 @@ When it succeeds the oracle prints the certificate:
 \end{VNBcode}
 \texttt{sos} prints its decomposition in the same way.  \texttt{proof-tex}
 prints, for each step, the command and the sequent it leaves, read from
-the command trace recorded while the proof ran; it does not print the
-certificate.  The command \texttt{(proof-rules)} reads the graph of the
+the command trace recorded while the proof ran; since 2026-09-25 that trace
+also keeps, with each step that closed a node by \texttt{ineq} or
+\texttt{sos}, the certificate the oracle recorded together with the
+formulas of the node it closed, and \texttt{proof-tex} prints it beside the
+step.  A step of a composite tactic that runs an oracle with recording
+suppressed (\texttt{zero-it} on a numeral difference) is recorded as the
+composite alone: its certificate is on the node and in the printout, not on
+the page.  The command \texttt{(proof-rules)} reads the graph of the
 current proof and lists the rules its inferences recorded.
+%% vnb--capture-step!, interactive.scm:178 (the sixth field, `certs');
+%% proof-tex.scm:184; zi--run-step!, zero-it.scm (recording suppressed)
 %% ineq-report, ineq-oracle.scm:215; sos-report, sos-oracle.scm:49;
 %% proof-tex--steps-from-live, proof-tex.scm:94; proof-rules, suggest.scm:5795
 
@@ -1380,6 +1388,238 @@ record, and which proof commands reach it) is
 \texttt{reference/KERNEL-MAP.md}.
 
 %% =========================================================
+\section{Certificates}\label{sec:certificates}
+\index{certificate}
+
+VNB uses the word \emph{certificate} for several distinct objects.  What
+they share is the division of labour: a certificate is evidence produced
+by one part of the system and verified by another, and what a proof rests
+on is the verification, never the producer.  This section lists every
+kind, each with what it certifies, who issues it, its form, where it is
+kept, who verifies it, and what it does not do.  The first five are
+consumed by the inference check of Section~\ref{sec:inference-checked};
+the sixth is the mechanism by which a load installs a theorem without
+running its proof.
+
+\subsection{The Farkas certificate}
+\index{certificate!Farkas}\index{ineq@\texttt{ineq}!certificate}
+
+\begin{description}
+\item[Certifies] that an assertion $s \le t$, $s < t$ or $s = t$ over the
+  reals, possibly under universals typed in $\mathbb{R}$, follows from the
+  linear order facts among the assumptions of the node.
+\item[Issued by] the oracle \texttt{ineq}.  Fourier--Motzkin elimination
+  finds a nonnegative combination of the premises and the negated
+  assertion whose atoms cancel and whose constant is absurd; that
+  combination is the certificate.
+\item[Form] a list of pairs $(\mathit{id}\ .\ m)$ with $m$ an exact
+  nonnegative rational and $\mathit{id}$ one of \texttt{goal},
+  \texttt{h}$I$, \texttt{h}$I$\texttt{-rev}; a pair of such lists for an
+  equation (Section~\ref{sec:oracles}).
+\item[Kept] as the rule tag \texttt{(ineq $c$)} on the inference node of
+  the deduction graph, for the life of the graph; in the sixth field of the
+  step's trace record, from which \texttt{proof-tex} prints it beside the
+  step; and in the printout.  Not in the script, which records the command
+  as typed, and not in the proof certificate below, whose bill names the
+  oracle and not its combination.  Replay recomputes it.
+\item[Verified by] the checker of the \texttt{ineq} operation: every
+  multiplier nonnegative and exact, every $\mathit{id}$ naming an order
+  formula read in the claimed direction, the combination cancelling to an
+  absurd constant, every atom certified real (below), and no peeled
+  variable free in a premise the certificate uses.
+\item[Does not] search beyond linear arithmetic: a product of two
+  non-constant terms is not an atom of the combination, and a premise
+  containing one is dropped before the search.
+\end{description}
+
+\subsection{The sum-of-squares certificate}
+\index{certificate!sum of squares}\index{sos@\texttt{sos}!certificate}
+
+\begin{description}
+\item[Certifies] $a \le b$ over the reals by exhibiting
+  $b - a = \sum_i \lambda_i c_i^2$ with each $\lambda_i \ge 0$.
+\item[Issued by] the user.  The squares $c_i$ and the weights are the
+  arguments of the command; \texttt{sos} verifies a certificate, it does
+  not search for one.  A certificate that does not account for $b - a$ is
+  refused with the reason.
+\item[Form] the list $((c_1\ .\ \lambda_1) \ldots)$.
+\item[Kept and verified] as the Farkas certificate: the rule tag
+  \texttt{(sos $c$)}, the trace's sixth field, the printout; the checker
+  recomputes the identity $b - a = \sum \lambda_i c_i^2$ by the ring
+  normal form and re-tests the typing of every generator.
+\end{description}
+
+\subsection{The atom certificate}
+\index{certificate!atom (real)}
+
+\begin{description}
+\item[Certifies] that a term the arithmetic oracles treat as an atom
+  denotes a real number, which is what licenses the order laws the
+  certificate combines.
+\item[Issued by] the context.  An atom $a$ is certified real when
+  $\Gamma$ contains the standalone assumption $a \in \mathbb{R}$, when $a$
+  is a variable the oracle peeled from a universal typed in $\mathbb{R}$,
+  or when $a$ is $|t|$ with every atom of $t$ certified.  A typing in
+  $\mathbb{N}$ or $\mathbb{Z}$ does not certify: the composites
+  \texttt{contra}, \texttt{supply}, \texttt{prep} and the kit's
+  \texttt{dk-ineq!} land the typing lemmas (the \emph{typing
+  certificates}) before the oracle runs, by the inclusion theorems.
+\item[Form] a decision, not an object: the test
+  \texttt{ineq-atom-rr-ok?} on $\Gamma$ and $a$.
+\item[Verified by] the checker, which re-decides it for every atom the
+  Farkas certificate uses with a positive multiplier.
+\item[Does not] complain: a premise with an uncertified atom is dropped
+  silently, and the oracle then blames the goal.  Name the premises by
+  formula after \texttt{keep} to see which one was dropped.
+\end{description}
+
+\subsection{The generator certification of the ring oracles}
+\index{certificate!generator (ring)}
+
+\begin{description}
+\item[Certifies] that every generator of the terms \texttt{crs} or
+  \texttt{rs} normalises, a variable or an opaque compound term, is an
+  element of the ring's carrier.
+\item[Issued by] the context: an assumption $v \in D$ for a number class
+  $D$, or for $\mathrm{CARR}(a)$ when the goal is over an abstract ring
+  $a$ with $\mathrm{IS\text{-}COMMUTATIVE\text{-}RING}(a)$ in context; the
+  typing of a quantifier the oracle peels certifies its variable.
+\item[Verified by] the checker of the rewrite, which is a second decision
+  rather than a certificate check: it recomputes the normal forms of both
+  sides under the same typing test and refuses when they differ.
+\item[Does not] type a generator itself.  An uncertified generator leaves
+  the goal untouched, with the generator named in the refusal; the
+  command \texttt{type-term} lands the typing.
+\end{description}
+
+\subsection{The definedness certificate}
+\index{certificate!definedness}\index{LUTINS}
+
+\begin{description}
+\item[Certifies] that a term $t$ denotes, in the context $\Gamma$, which
+  is what \texttt{forall-elim} needs before instantiating a universal at
+  $t$ and what \texttt{rfl} needs before closing $t = t$, since \texttt{=}
+  is strict (the LUTINS rule, Section~\ref{sec:kernel-ops-detail}).
+\item[Issued by] a fixed test on $\Gamma$ and $t$, \texttt{pi--defined?}:
+  a variable or atomic constant, a ground number, a term typed or equated
+  in context or occurring outside binders in a true membership, equation
+  or order hypothesis, a class term on defined arguments, a lambda,
+  separation or indexed union over a certified domain, arithmetic on
+  number-typed arguments, an accessor of a structure whose predicate is in
+  context, an applied structure operation on typed arguments, $f(a)$ with
+  $f \in \mathrm{FUN}(D, \_)$ and $a \in D$; and, for a predicate
+  hypothesis whose defining iff is definitional, primitive or proven, what
+  the conjuncts of that iff certify, for the parameters only.  Never a
+  choice, a description, an untyped application, an entry without its
+  range typing, a finite sum, or the description-bodied matrix
+  constructors.
+\item[Form] a decision, recomputed wherever it is needed; nothing is
+  stored.  When the test declines, \texttt{forall-elim} posts the side
+  sequent $\Gamma \Rightarrow t = t$ as an owed leaf, in the same context
+  as its parent, and the driver discharges it by landing the typing
+  (\texttt{dk-discharge-owed!}).
+\item[Verified by] the checker of \texttt{forall-elim}, which re-decides
+  whether the omitted side sequent was permitted, independently of the
+  builder.
+\item[Does not] reach a witness: the symbol a stripped existential
+  introduces is fresh and certifies nothing until it is typed.  The policy
+  and its cases are \texttt{docs/definedness-instantiation-2026-09-18.md}.
+\end{description}
+
+\subsection{The proof certificate}
+\index{certificate!proof}\index{VNB\_CERTIFIED@\texttt{VNB\_CERTIFIED}}
+\index{exam}
+
+\begin{description}
+\item[Certifies] that the proof of a named theorem ran to \texttt{qed} and
+  passed the inference check, on a stated kernel, on a stated date and
+  host, and what that proof depended on.  It is the mechanism by which the
+  everyday load installs a theorem without running its proof.
+\item[Issued by] a load that ran the proof: the \emph{exam},
+  \texttt{VNB\_CERTIFIED=off ./prover --build-band}, which runs every proof
+  and rewrites the store; or an ordinary load meeting a theorem with no
+  valid record, which proves it and writes one.
+\item[Form] one file per proof file, \texttt{certificates/}$\langle$load
+  key$\rangle$\texttt{.cert}, one record per \texttt{qed} in installation
+  order.  A record holds the theorem's name, the hash of its statement and
+  the statement itself; \texttt{cites}, the names the ledger read off the
+  script, each with the hash of its installed statement; \texttt{defs},
+  the defined heads the statement mentions, with their hashes;
+  \texttt{uses}, every macete the kernel saw fire in the proof, with the
+  hash of its rewrite rule, the kernel's own list kept independent of the
+  ledger's; the oracles the script called and the bill and oracles
+  \texttt{qed} announced; and the kernel hash, date and host.  A hash is
+  the MD5 of the canonical text of a formula, with counter-minted names
+  relabelled in order of first occurrence so that it does not depend on
+  how much was proved before.  The \emph{kernel hash} is the MD5 of the
+  source of the files that may call \texttt{dg-apply-rule!}, of the
+  deduction-graph file and of the four checker files; tactics, the kit and
+  the drivers are not in it, because every inference they produce is
+  checked.
+\item[Read by] \texttt{sp}, at load, under \texttt{VNB\_CERTIFIED=on}
+  (the default) or \texttt{strict}.  A record is valid when the statement
+  being started hashes to its statement hash, every cited, defined and
+  used name hashes the same in this tree, and the kernel hash is this
+  tree's.  On a valid record the theorem is installed with provenance
+  \texttt{certified}, its bill recomputed from the recorded citations, and
+  the driver's steps are skipped.  Under \texttt{on} a theorem without a
+  valid record is proved and its record written; under \texttt{strict}
+  nothing is proved, the uncovered theorems are listed and the load exits
+  non-zero.  The bill line of such a theorem reads \texttt{certified (exam
+  DATE) modulo \{\ldots\}}; the load summary counts \texttt{proven} and
+  \texttt{certified} separately, and the word \texttt{proven} alone means
+  the proof ran in this image.  The page audit covers the proofs that ran.
+\item[Invalidated by] a change to the statement, to the statement of a
+  cited name, to a definition the statement mentions or a macete the proof
+  fired, or to any kernel file, which invalidates every record at once.  A
+  record without a \texttt{uses} field, written before 2026-09-26, is not
+  valid.
+\item[Does not] certify what the record cannot see: a functoid reduced by
+  \texttt{beta} or an accessor read by \texttt{slot} is not in the key,
+  and the exam is the backstop for those.  A certificate is not a proof:
+  it says a proof ran and was checked, and where.  The design is
+  \texttt{docs/certificates-2026-09-24.md}.
+\end{description}
+
+\subsection{The bill, and \texttt{proof-rules}}
+\index{bill}\index{proof-rules@\texttt{proof-rules}}
+
+Two further things are certified about a completed proof, neither called
+a certificate in the code.  The \emph{bill} that \texttt{qed} prints,
+\texttt{proven modulo \{\ldots\} [trust: \ldots]}, is the kernel's
+certification of the theorem relative to the asserted facts it names
+(Section~\ref{sec:proof-debt}): the theorem holds if those do.  The
+command \texttt{(proof-rules)} walks the grounded derivation of the
+current proof from its root and tallies every kernel inference by its
+rule tag; because every tag is one of the fixed set of kernel operations,
+this shows that a proof driven by composite tactics rests on nothing but
+those operations, independently of the command trace, which is lossy.
+
+\subsection{The certification stamp of the VNB test}
+\index{certificate!VNB test stamp}
+
+The classification pages of Chapter~\ref{ch:classification} report a
+result as ``certified by the VNB test on \textit{date}''.  That stamp is
+written by \texttt{vnb-test} to \texttt{reference/certification.scm}, one
+\texttt{(certify!\ '\textit{name} "\textit{date}")} per theorem the test
+re-proved to \texttt{qed}, and read back at the next load.  It certifies a
+run of the test, not a proof, and predates the proof certificate above,
+which has replaced it as the everyday mechanism: the exam that writes the
+store is the run that re-proves the library.
+
+\subsection{What is not a certificate}
+
+A \emph{refutation} is evidence that a goal is false: the countermodel
+\texttt{prop} returns when the atoms do not entail the goal, the
+counterexample the counterexample lane finds by evaluating the goal at a
+value, the non-zero numeral \texttt{zero-it} reports when a difference
+normalises to a constant.  Each is printed and none is recorded, because
+no inference is made.  A \emph{warrant} (Section~\ref{sec:warrants})
+records a claim about a support and its tier of trust; nobody verifies it,
+which is why it is debt.  A provenance stamp, \texttt{primitive} or
+\texttt{definitional}, is a decision of the user that a fact is not debt,
+recorded in the file with its claim.
+
 \section{Starting and inspecting a proof}
 
 \begin{VNBcode}
