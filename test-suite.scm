@@ -13706,6 +13706,328 @@
       (b40-cubic-setup!)
       (vnb-guard (lambda () (dk-name! '(* xq_ (* xq_ xq_)))))))))
 
+;;; =======================================================================
+;;; BATCH 41 (2026-09-28): THE PREAMBLE, phase 1 (notes-45) -- rule-based drivers a
+;;; human can edit (preamble.scm, preambles/default.pre), and the type-term gate lifted
+;;; (driver-kit.scm, suggest.scm).  docs/preambles-2026-09-28.md, "Built (phase 1)".
+;;; Each group carries its CONTROL: a malformed rule is refused by name, a pattern that
+;;; must not match does not, a rule rejected by its probe leaves no step, a FALSE
+;;; equation stalls the preamble instead of being reported proved, type-term declines
+;;; without the typing it needs.
+;;; =======================================================================
+
+(display "\n=== batch 41: preambles, type-term on any class ===\n")
+
+(define (b41-safe thunk)
+  (call-with-current-continuation
+   (lambda (k) (with-exception-handler (lambda (e) (k #f)) thunk))))
+
+;;; Run (preamble ARG ...) with the printout captured; -> (value . text).
+(define (b41-run . args)
+  (let* ((v #f)
+         (text (with-output-to-string
+                 (lambda () (fluid-let ((*vnb-quiet* #f)) (set! v (apply preamble args)))))))
+    (cons v text)))
+
+(define (b41-says? text s) (and (string? text) (string-search-forward s text 0) #t))
+
+(define (b41-rules forms) (call-with-values (lambda () (pa-parse-rules forms)) list))
+
+(define (b41-fired-names v) (map car (preamble-fired v)))
+
+;; --- the reader -------------------------------------------------------------------
+(check "reader: preambles/default.pre parses, 20 rules, no malformed one"
+  (lambda ()
+    (let ((rd (pa-read-rule-file *preamble-default-file*)))
+      (list (length (car rd)) (cadr rd))))
+  '(20 ()))
+
+(check-true "reader CONTROL: a malformed rule is left out and REPORTED WITH ITS NAME; the good one is kept"
+  (lambda ()
+    (let* ((r (b41-rules '((rule fine-one (goal ?g) (do (ass)))
+                           (rule no-action-here (goal ?g))
+                           (rule bad-guard-here (goal ?g) (guard (fuba ?g)) (do (ass)))
+                           (rule bad-side-here (goal ?g) (do (ass)) (side owed)))))
+           (rules (car r)) (errs (cadr r)))
+      (and (= (length rules) 1) (eq? (pa-rule-name (car rules)) 'fine-one)
+           (= (length errs) 3)
+           (b41-says? (car errs) "no-action-here") (b41-says? (car errs) "no (do FORM)")
+           (b41-says? (cadr errs) "bad-guard-here") (b41-says? (cadr errs) "fuba")
+           (b41-says? (caddr errs) "bad-side-here") (b41-says? (caddr errs) "(cut F)")))))
+
+(check-true "reader CONTROL: a missing rule file is reported, and (preamble \"missing\") does nothing"
+  (lambda ()
+    (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x ZZ) (IN (+ x 1) ZZ)))))))
+    (let* ((r (b41-run "/nonexistent/b41-none.pre")) (v (car r)))
+      (and (eq? (preamble-status v) 'error)
+           (b41-says? (preamble-report v) "no such rule file")
+           (null? *proof-script*)))))
+
+;; --- the matcher (pure) ------------------------------------------------------------
+(check "matcher: a variable bound by the goal is SHARED with the with-patterns"
+  (lambda ()
+    (let* ((ru (car (car (b41-rules '((rule le (goal (<= ?a ?b)) (with (in ?a rr)) (with (in ?b rr)) (do (ass))))))))
+           (b  (pa-match-rule ru '(<= x y) '((in y rr) (in x rr)))))
+      (list (cdr (assq '?a b)) (cdr (assq '?b b))
+            (pa-match-rule ru '(<= x y) '((in y rr) (in z rr))))))
+  '(x y #f))
+
+(check "matcher: a schema variable in BINDER position binds the goal's bound name (match-expr alone refuses it: control)"
+  (lambda ()
+    (let ((pat '(forall ?x (implies (in ?x ?c) ?body)))
+          (g   '(forall u (implies (in u zz) (in (* u u) zz)))))
+      (let ((b (pa-match pat g '())))
+        (list (cdr (assq '?x b)) (cdr (assq '?c b)) (cdr (assq '?body b))
+              (match-expr pat g '(?x ?c ?body))))))
+  '(u zz (in (* u u) zz) #f))
+
+(check "matcher: a literal binder matches up to alpha; a different head does not match"
+  (lambda ()
+    (list (and (pa-match '(forall y (in y ?c)) '(forall w (in w rr)) '()) #t)
+          (pa-match '(and ?p ?q) '(or a b) '())))
+  '(#t #f))
+
+(check "matcher: the with-patterns BACKTRACK (the first implication's antecedent is not in context, the second's is)"
+  (lambda ()
+    (let* ((ru (car (car (b41-rules '((rule mp2 (goal ?g) (with (implies ?h ?g)) (with ?h) (do (ass))))))))
+           (b  (pa-match-rule ru '(in u bb) '((implies (in u aa) (in u bb)) (implies (in u dd) (in u bb)) (in u dd)))))
+      (cdr (assq '?h b))))
+  '(in u dd))
+
+(check "matcher: guards -- typed through the inclusion chain (control: untyped), occurs binds inside a subterm"
+  (lambda ()
+    (let ((ru (car (car (b41-rules '((rule t1 (goal (<= ?a ?b)) (guard (typed ?a rr)) (do (ass))))))))
+          (rb (car (car (b41-rules '((rule t2 (goal ?g) (guard (occurs ((vnb-lambda ?v ?d ?body) ?arg) ?g)) (do (ass)))))))))
+      (list (and (pa-match-rule ru '(<= k 3) '((in k nn))) #t)
+            (pa-match-rule ru '(<= k 3) '((in k set)))
+            (cdr (assq '?arg (pa-match-rule rb '(= ((vnb-lambda w rr (* w w)) 3) 9) '()))))))
+  '(#t #f 3))
+
+;; --- the loop ----------------------------------------------------------------------
+(define b41-goal-1
+  "forall([x in zz, y in zz], 4 * x^3 + 6 * x^2 * y + 4 * x * y^2 + y^3 in zz)")
+
+(check-true "loop CONTROL: a rule REJECTED by its probe leaves NO step (di cannot ground the goal); the same rule with the default probe fires"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (let ((strict (car (b41-rules '((rule peel-strict (goal (forall ?x ?b)) (do (di)) (probe grounded))))))
+             (loose  (car (b41-rules '((rule peel-loose (goal (forall ?x ?b)) (do (di))))))))
+         (quietly (lambda () (sp b41-goal-1)))
+         (let* ((st1 (pa--make-state strict 0 '() '() '() '() #f))
+                (s1  (quietly (lambda () (pa--loop! st1))))
+                (script1 *proof-script*)
+                (st2 (pa--make-state loose 0 '() '() '() '() #f))
+                (s2  (quietly (lambda () (pa--loop! st2)))))
+           (and (eq? s1 'stalled) (null? script1)
+                (equal? (map car (pa-state-rejected st1)) '(peel-strict))
+                (eq? s2 'stalled) (equal? (map car *proof-script*) '(di)))))))))
+
+(check-true "loop: the cap stops it (*preamble-cap* = 1: one firing, status cap)"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (quietly (lambda () (sp b41-goal-1)))
+       (let ((v (fluid-let ((*preamble-cap* 1)) (car (b41-run)))))
+         (and (eq? (preamble-status v) 'cap) (= (preamble-steps v) 1)
+              (equal? (map car *proof-script*) '(di))
+              (b41-says? (preamble-report v) "the cap")))))))
+
+(check-true "loop: a rule that RAISES (and one whose action names an unbound variable) is named in the report and skipped; the loop goes on"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (let ((file "/tmp/b41-raise.pre"))
+         (call-with-output-file file
+           (lambda (port)
+             (write '(rule boom (goal (forall ?x ?b)) (do (car '()))) port) (newline port)
+             (write '(rule unbound-var (goal (forall ?x ?b)) (do (fact 'foo ?nowhere))) port) (newline port)
+             (write '(rule peel (goal (forall ?x ?b)) (do (di))) port) (newline port)
+             (write '(rule close (goal (in ?t ?c)) (do (type-term)) (probe grounded)) port) (newline port)))
+         (quietly (lambda () (sp b41-goal-1)))
+         (let ((v (car (b41-run file))))
+           (delete-file file)
+           (and (eq? (preamble-status v) 'done)
+                (equal? (map car (preamble-raised v)) '(boom unbound-var))
+                (equal? (b41-fired-names v) '(peel close))
+                (b41-says? (preamble-report v) "RAISED    boom")
+                (b41-says? (preamble-report v) "not bound")
+                (proof-done? *ps*))))))))
+
+;; --- the default preamble on the user's goals of 2026-09-28 --------------------------
+(check-true "default: forall x, y in zz. 4x^3 + 6x^2y + 4xy^2 + y^3 in zz CLOSES by peel-universal then type-arithmetic-term; the page is ordinary steps"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (quietly (lambda () (sp b41-goal-1)))
+       (let ((v (car (b41-run))))
+         (and (eq? (preamble-status v) 'done)
+              (equal? (b41-fired-names v) '(peel-universal type-arithmetic-term))
+              (proof-done? *ps*)
+              (eq? (car (car *proof-script*)) 'di)
+              (not (assq 'preamble *proof-script*))))))))
+
+(check-true "default: his identity forall x, y in zz. (x + y)^4 - x^4 - y (4x^3 + 6x^2y + 4xy^2 + y^3) = 0 CLOSES by peel-universal then ring-equation (zero-it)"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (quietly (lambda () (sp "forall([x in zz, y in zz], (x + y)^4 - x^4 - y * (4 * x^3 + 6 * x^2 * y + 4 * x * y^2 + y^3) = 0)")))
+       (let ((v (car (b41-run))))
+         (and (eq? (preamble-status v) 'done)
+              (equal? (b41-fired-names v) '(peel-universal ring-equation))
+              (proof-done? *ps*)))))))
+
+(check-true "default: a conjunction of two typings closes (peel, split, type, type)"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (quietly (lambda () (sp "forall([x in zz], x^2 + 1 in zz and 3 * x in rr)")))
+       (let ((v (car (b41-run))))
+         (and (eq? (preamble-status v) 'done)
+              (equal? (b41-fired-names v)
+                      '(peel-universal split-conjunction type-arithmetic-term type-arithmetic-term))
+              (proof-done? *ps*)))))))
+
+(check-true "default CONTROL: forall x in rr. x + 1 = x STALLS -- ring-equation matched and was REJECTED (zero-it: FALSE, no change); the page is (di) only"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (quietly (lambda () (sp "forall([x in rr], x + 1 = x)")))
+       (let* ((r (b41-run)) (v (car r)))
+         (and (eq? (preamble-status v) 'stalled)
+              (equal? (b41-fired-names v) '(peel-universal))
+              (memq 'ring-equation (map car (preamble-rejected v)))
+              (b41-says? (cdr r) "rejected  ring-equation")
+              (b41-says? (cdr r) "FALSE over rr")
+              (b41-says? (cdr r) "every rule that matched was rejected on x + 1 = x")
+              (equal? (map car *proof-script*) '(di))
+              (not (proof-done? *ps*))))))))
+
+(check-true "tentative cut: u in rr => u in bb |- u in bb, with u in nn: the side u in rr is PROVED by the preamble in place; modus-ponens closes"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL u (IMPLIES (IN u NN)
+                                             (IMPLIES (IMPLIES (IN u RR) (IN u bb)) (IN u bb))))))))
+       (let ((v (car (b41-run))))
+         (and (eq? (preamble-status v) 'done)
+              (memq 'cut-antecedent (b41-fired-names v))
+              (memq 'modus-ponens (b41-fired-names v))
+              (null? (preamble-owed v))
+              (proof-done? *ps*)))))))
+
+(check-true "tentative cut: u in aa => u in bb |- u in bb: the side u in aa is left OPEN and reported BY NAME as owed; the main branch closes"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL u (IMPLIES (IMPLIES (IN u aa) (IN u bb)) (IN u bb)))))))
+       (let* ((r (b41-run)) (v (car r)))
+         (and (eq? (preamble-status v) 'owed)
+              (equal? (preamble-owed v) '((in u aa)))
+              (b41-says? (cdr r) "OWED      u in aa")
+              (= (length (proof-open-leaves *ps*)) 1)
+              (equal? (dk-goal) '(in u aa))))))))
+
+(check-true "user file: a named file OVERRIDES the default, and so does *preamble-user-file* when it exists (control: deleted, the default is read again)"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (let ((file "/tmp/b41-user.pre"))
+         (call-with-output-file file
+           (lambda (port) (write '(rule only-peel (goal (forall ?x ?b)) (do (di))) port) (newline port)))
+         (quietly (lambda () (sp b41-goal-1)))
+         (let ((v1 (car (b41-run file))))
+           (quietly (lambda () (sp b41-goal-1)))
+           (let ((v2 (fluid-let ((*preamble-user-file* file)) (car (b41-run)))))
+             (delete-file file)
+             (quietly (lambda () (sp b41-goal-1)))
+             (let ((v3 (fluid-let ((*preamble-user-file* file)) (car (b41-run)))))
+               (and (eq? (preamble-status v1) 'stalled) (equal? (b41-fired-names v1) '(only-peel))
+                    (equal? (cdr (assq 'file v2)) file) (equal? (b41-fired-names v2) '(only-peel))
+                    (equal? (cdr (assq 'file v3)) *preamble-default-file*)
+                    (eq? (preamble-status v3) 'done))))))))))
+
+(check "phase 2 entry point: preamble-attribute matches the rules against a (goal, context) pair and a recorded step, running nothing"
+  (lambda ()
+    (let ((rules (car (pa-read-rule-file *preamble-default-file*))))
+      (preamble-attribute rules '(in (+ x 1) zz) '((in x zz)) '(type-term))))
+  '((type-arithmetic-term type-by-context) (type-by-in-rr)))
+
+(check-true "the 2026-08-21 clause pipeline is still reachable: (preamble '(peel)) returns the steps it committed"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (quietly (lambda () (sp b41-goal-1)))
+       (let ((steps #f))
+         (with-output-to-string (lambda () (set! steps (quietly (lambda () (preamble '(peel)))))))
+         (and (equal? steps '((di))) (equal? (map car *proof-script*) '(di))))))))
+
+;; The page of a preamble-driven proof is the steps the rules took, recorded as themselves:
+;; it types back in with no rule file (the reason the firings are not one `(preamble)' step).
+(define (b41-page-of! name goal)
+  (quietly (lambda () (sp (if (string? goal) goal (make-wff goal)))))
+  (let ((v (fluid-let ((*vnb-quiet* #t)) (preamble))))
+    (quietly (lambda () (qed name)))
+    (and (eq? (preamble-status v) 'done)
+         (hash-table-ref/default *theorem-table* name #f)
+         (not (assq 'preamble (hash-table-ref/default *proof-script-table* name '())))
+         (eq? (page--type-in (page-of name)) 'grounded))))
+
+(check "page: four preamble-driven proofs (a typing, a conjunction, a tentative cut proven in place, a real comparison) qed and their pages type back in grounded"
+  (lambda ()
+    (map (lambda (p) (and (b41-safe (lambda () (b41-page-of! (car p) (cadr p)))) #t))
+         (list (list 'b41-page-typing b41-goal-1)
+               (list 'b41-page-conj "forall([x in zz], x^2 + 1 in zz and 3 * x in rr)")
+               (list 'b41-page-cut '(FORALL u (IMPLIES (IN u NN) (IMPLIES (IMPLIES (IN u RR) (IN u bb)) (IN u bb)))))
+               (list 'b41-page-ineq "forall([x in rr, y in rr], x <= y implies x + 1 <= y + 1)"))))
+  '(#t #t #t #t))
+
+;; --- type-term on any class (part C) -----------------------------------------------
+(define (b41-app-goal! typed-x?)
+  (quietly
+   (lambda ()
+     (sp (make-wff (if typed-x?
+                       '(FORALL f (FORALL x (IMPLIES (IN f (FUN ZZ bb)) (IMPLIES (IN x ZZ) (IN (f (+ (* 3 x) 1)) bb)))))
+                       '(FORALL f (FORALL x (IMPLIES (IN f (FUN ZZ bb)) (IN (f (+ (* 3 x) 1)) bb)))))))
+     (dk-peel!))))
+
+(check-true "type-term, any class: f in fun(zz, bb), x in zz |- f(3 * x + 1) in bb closes by (type-term)"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (b41-app-goal! #t)
+       (quietly (lambda () (type-term)))
+       (proof-done? *ps*)))))
+
+(check-true "type-term CONTROL: without x in zz it declines, and nothing changes"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (b41-app-goal! #f)
+       (let ((g (dk-goal)) (n (length *proof-script*)))
+         (with-output-to-string (lambda () (type-term)))
+         (and (not (proof-done? *ps*)) (equal? (dk-goal) g) (= (length *proof-script*) n)))))))
+
+(check-true "what-now's TYPE-TERM lane offers (type-term) on f(3 * x + 1) in bb, and is silent without x in zz"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (b41-app-goal! #t)
+       (let* ((m1 #f) (t1 (with-output-to-string (lambda () (set! m1 (what-now--show-type-term (dk-goal)))))))
+         (b41-app-goal! #f)
+         (let* ((m2 #f) (t2 (with-output-to-string (lambda () (set! m2 (what-now--show-type-term (dk-goal)))))))
+           (and (pair? m1) (b41-says? t1 "TYPE-TERM") (b41-says? t1 "(type-term)")
+                (null? m2) (string=? t2 ""))))))))
+
+(check-true "what-now's PREAMBLE lane names the rules that match, running nothing"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (quietly (lambda () (sp b41-goal-1)))
+       (let* ((m #f) (t (with-output-to-string (lambda () (set! m (what-now--show-preamble (dk-goal)))))))
+         (and (null? m) (b41-says? t "PREAMBLE") (b41-says? t "peel-universal")
+              (null? *proof-script*)))))))
+
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")
 (display *fail-count*) (display " failed ===\n")

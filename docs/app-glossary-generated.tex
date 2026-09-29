@@ -7,7 +7,7 @@
 Every other listing in this manual and in the browser reference is grouped by
 something: operators by class, structures by structure, tactics by task.  This
 one has the ordering nobody has to learn.  It carries the whole
-\emph{vocabulary} -- 727 names: 20 structure, 7 refinement, 11 instance, 19 view, 226 predicate, 233 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 92 tactic -- and no results: the theorems, axioms and
+\emph{vocabulary} -- 728 names: 20 structure, 7 refinement, 11 instance, 19 view, 226 predicate, 233 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 93 tactic -- and no results: the theorems, axioms and
 supports are catalogued in \texttt{THEOREMS.md}, \texttt{BY-OPERATOR.md} and
 \texttt{PROOF-DEBT.md}, and each entry here says how many of them mention it.
 
@@ -6138,6 +6138,12 @@ mentioned by 344 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{preamble}}\quad\textit{tactic}\index{preamble@\texttt{preamble}}\\
+\texttt{(preamble)  |  (preamble 'NAME)  |  (preamble "file.pre")} -- Apply an editable RULE FILE to the focus goal, one step at a time: each rule reads `if the sequent looks like this, do that', and the first rule that matches AND makes progress is kept; the loop repeats on the new focus until the goal is done, no rule applies, or 40 steps.  Rules come from \textasciitilde{}/.vnb-preamble.pre when it exists, else the shipped preambles/default.pre (peel, split, close by context, reflexivity, arithmetic, type-term, zero-it, ineq, beta, unfold, and a tentative cut).  Prints one report: what each rule did, which rules matched but were rejected, and where it stopped and why. \\
+declared in \texttt{tactics-help.scm}
+
+\smallskip
+
 \noindent\textbf{\texttt{pred(n\_)}}\quad\textit{functoid}\index{pred(n_)@\texttt{pred(n\_)}}\\
 reads: the predecessor of \$1 \\
 definition:
@@ -7803,7 +7809,7 @@ mentioned by 23 result(s)
 \smallskip
 
 \noindent\textbf{\texttt{type-term}}\quad\textit{tactic}\index{type-term@\texttt{type-term}}\\
-\texttt{(type-term)} -- Close a typing goal (IN t C), C one of NN ZZ QQ RR CC, where t is built from context-typed atoms (or atoms typed in a subclass: NN in ZZ, ZZ in RR, ...), numerals, + * -, and powers, by the class's closure laws, bottom-up.  Declines -- with a warning, and nothing changed -- on an untyped atom or an operation the class is not closed under. \\
+\texttt{(type-term)} -- Close a typing goal (IN t C).  In a number class (NN ZZ QQ RR CC) t may be built from context-typed atoms (or atoms typed in a subclass: NN in ZZ, ZZ in RR, ...), numerals, + * -, and powers, typed by the class's closure laws, bottom-up.  In ANY class C, t may be an atom typed in a subclass, or an application f(a) with f in fun(A, C) in context and a typable in A, recursively: f(3 * x + 1) in B from f in fun(zz, B) and x in zz.  Declines -- with a warning, and nothing changed -- when there is no plan. \\
 declared in \texttt{tactics-help.scm}
 
 \smallskip

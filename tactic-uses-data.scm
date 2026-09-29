@@ -80,6 +80,7 @@
   (oi-r or-intro-right)
   (orelse)
   (pbc proof-by-contradiction)
+  (preamble cut)
   (prep)
   (prop and-elim and-intro arith-forsome arith-ground arith-simplify assumption cartesian-decompose cut detach eq-subst forall-elim forall-intro forsome-elim iff-elim iff-intro implies-intro macete not-elim not-intro or-elim or-intro-left or-intro-right proof-by-contradiction theorem-assumption tuple-equality-decompose)
   (push-not-h and-elim and-intro arith-forsome arith-ground arith-simplify assumption cartesian-decompose cut detach eq-subst forall-elim forall-intro forsome-elim forsome-intro iff-elim iff-intro implies-intro macete not-elim not-intro or-elim or-intro-left or-intro-right proof-by-contradiction theorem-assumption tuple-equality-decompose)

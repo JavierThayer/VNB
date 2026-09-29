@@ -3635,16 +3635,27 @@
   #f)
 
 ;;; (type-term) -- the surface command.
+;;;
+;;; ANY CLASS (batch 41, 2026-09-28; the user: "Typing issue? Got you covered --
+;;; type-term").  The command used to refuse a class other than NN ZZ QQ RR CC before
+;;; asking the planner, although the planner has a route for any class: the context
+;;; (an inclusion NN in ZZ in ... from a subclass typing), and an application f(a) with
+;;; f in FUN(A, C) in context and a typable in A -- recursively, so f(3 * x + 1) in B
+;;; is typed from f in fun(zz, B) and x in zz.  The gate is gone: the planner is asked
+;;; on every membership goal and the command declines only when there is no plan.  A
+;;; closure law is still sought only in a number class (type-term--plan's own branch).
 (define (type-term)
   (let ((g (and (proof-state? *ps*) (not (proof-done? *ps*)) (dk-goal))))
     (cond
       ((not (and (pair? g) (eq? (car g) 'IN) (= (length g) 3)))
        (type-term--decline! "the goal is not a membership (IN t C)"))
-      ((not (memq (caddr g) *type-term-classes*))
-       (type-term--decline! "the class is not one of NN ZZ QQ RR CC:" (caddr g)))
       (#t
        (let ((plan (type-term--plan (cadr g) (caddr g))))
          (cond
+           ((and (not plan) (not (memq (caddr g) *type-term-classes*)))
+            (type-term--decline!
+             "no typing: the class is not a number class, and neither the context (a typing in a subclass) nor an application f(a) with f in FUN(A, C) in context and a typable in A types the term:"
+             g))
            ((not plan)
             (type-term--decline!
              "no typing: an atom is not typed in the class or a subclass, or an operation has no closure law there (NN has no minus; ZZ/QQ/NN powers need a numeral exponent; / and recip are not handled):"

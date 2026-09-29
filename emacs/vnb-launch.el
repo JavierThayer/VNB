@@ -4030,6 +4030,7 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (define-key m "g" 'vnb-pf-refresh)
     (define-key m "n" 'vnb-what-now)                ; the [What now?] button
     (define-key m "I" 'vnb-what-is)                 ; the [What is...?] button
+    (define-key m "P" 'vnb-pf-preamble)             ; the [Preamble] button (batch 41)
     m)
   "Keymap for the Focus Workspace buffer.")
 
@@ -4091,6 +4092,11 @@ no such guard -- it talks to nothing."
     (insert "  ")
     (vnb-launch--insert-button "What is…?" 'vnb-what-is
                                "Look up a structure, number, or constant (I)")
+    ;; The preamble (notes-45, batch 41, 2026-09-28): the editable rule file
+    ;; does the routine steps on the focused goal and reports where it stopped.
+    (insert "  ")
+    (vnb-launch--insert-button "Preamble" 'vnb-pf-preamble
+                               "Run the rule file on the focused goal: routine steps, then a report (P)")
     ;; Undo sits with the other two questions rather than only on the toolbar:
     ;; it is a thing you ask of the proof, not a tool.  Shown only while a proof
     ;; is open -- "previous node" with no proof is nonsense.  (User's call.)
@@ -4104,6 +4110,9 @@ no such guard -- it talks to nothing."
                         'face 'vnb-body))
     (insert (propertize "     what-is " 'face 'vnb-accent))
     (insert (propertize "  — look up a structure, number, or constant\n" 'face 'vnb-body))
+    (insert (propertize "     preamble" 'face 'vnb-accent))
+    (insert (propertize "  — rules do the routine steps, then report where they stopped\n"
+                        'face 'vnb-body))
     (when (vnb-pf--proof-live-p)
       (insert (propertize "     undo    " 'face 'vnb-accent))
       (insert (propertize "  — roll back the last step (the graph, not a state stack)\n"
@@ -5169,6 +5178,19 @@ ends in a precise `user-error\=' if there is nothing to write, and a button
 that is wrongly dead teaches the user the feature is broken."
   (let ((parsed (vnb-launch--parse-state vnb-proof--last-state)))
     (not (and parsed (eq (plist-get parsed :status) 'none)))))
+
+(defun vnb-pf-preamble ()
+  "Run the PREAMBLE -- the editable rule file -- on the focused goal.  Wraps (preamble).
+
+The rules (~/.vnb-preamble.pre when it exists, else the shipped
+preambles/default.pre) each say `if the sequent looks like this, do that'; the
+first that matches and makes progress is kept, and the loop repeats on the new
+focus until the goal is done, no rule applies, or 40 steps.  Every kept step is
+an ordinary recorded step, so the page reads as the steps.  The report -- what
+fired, what was rejected, where it stopped -- comes back on the report channel
+and is echoed in the minibuffer, like zero-it's (notes-45, batch 41, 2026-09-28)."
+  (interactive)
+  (vnb-launch--send-tactic "(preamble)"))
 
 (defun vnb-pf-backup ()
   "Undo the last proof step.  Wraps (backup-one), aliased `undo' at the REPL.

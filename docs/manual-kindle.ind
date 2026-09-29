@@ -1,990 +1,992 @@
 \begin{theindex}
 
-  \item \texttt{*}, \hyperpage{220}
-  \item \texttt{+}, \hyperpage{220}
-  \item \texttt{-}, \hyperpage{220}
-  \item \texttt{/}, \hyperpage{221}
-  \item \texttt{<(x, y)}, \hyperpage{221}
-  \item \texttt{<=}, \hyperpage{221}
-  \item \texttt{=}, \hyperpage{221}
-  \item \texttt{==}, \hyperpage{221}
-  \item \texttt{>}, \hyperpage{221}
-  \item \texttt{>=}, \hyperpage{221}
+  \item \texttt{*}, \hyperpage{222}
+  \item \texttt{+}, \hyperpage{222}
+  \item \texttt{-}, \hyperpage{222}
+  \item \texttt{/}, \hyperpage{223}
+  \item \texttt{<(x, y)}, \hyperpage{223}
+  \item \texttt{<=}, \hyperpage{223}
+  \item \texttt{=}, \hyperpage{223}
+  \item \texttt{==}, \hyperpage{223}
+  \item \texttt{>}, \hyperpage{223}
+  \item \texttt{>=}, \hyperpage{223}
 
   \indexspace
 
-  \item \texttt{abelian-group}, \hyperpage{221}
-  \item \texttt{abelian-group-as-monoid(s)}, \hyperpage{221}
-  \item \texttt{abs}, \hyperpage{222}
-  \item \texttt{act(s)}, \hyperpage{222}
-  \item \texttt{add(s)}, \hyperpage{222}
-  \item \texttt{ai}, \hyperpage{223}
+  \item \texttt{abelian-group}, \hyperpage{223}
+  \item \texttt{abelian-group-as-monoid(s)}, \hyperpage{223}
+  \item \texttt{abs}, \hyperpage{224}
+  \item \texttt{act(s)}, \hyperpage{224}
+  \item \texttt{add(s)}, \hyperpage{224}
+  \item \texttt{ai}, \hyperpage{225}
   \item \texttt{ai} (tactic), \hyperpage{98}
   \item \texttt  {and-elim} (kernel operation), \hyperpage{63}
   \item \texttt  {and-intro} (kernel operation), \hyperpage{63}
-  \item \texttt{apply-functoid}, \hyperpage{223}
-  \item \texttt{arith}, \hyperpage{223}
+  \item \texttt{apply-functoid}, \hyperpage{225}
+  \item \texttt{arith}, \hyperpage{225}
   \item \texttt{arith} (tactic), \hyperpage{112}
   \item \texttt  {arith-forsome} (kernel operation), \hyperpage{64}
   \item \texttt  {arith-ground} (kernel operation), \hyperpage{64}
   \item \texttt  {arith-simplify} (kernel operation), \hyperpage{64}
-  \item \texttt{ass}, \hyperpage{223}
+  \item \texttt{ass}, \hyperpage{225}
   \item \texttt{ass} (tactic), \hyperpage{98}
   \item \texttt  {assumption} (kernel operation), \hyperpage{63}
 
   \indexspace
 
   \item \texttt  {backchain} (kernel operation), \hyperpage{63}
-  \item \texttt{backup-one}, \hyperpage{223}
+  \item \texttt{backup-one}, \hyperpage{225}
   \item \texttt{backup-one} (tactic), \hyperpage{128}
-  \item \texttt{ball(s, c, r)}, \hyperpage{223}
-  \item \texttt{ball-cover(s, r)}, \hyperpage{223}
-  \item \texttt{bc}, \hyperpage{224}
+  \item \texttt{ball(s, c, r)}, \hyperpage{225}
+  \item \texttt{ball-cover(s, r)}, \hyperpage{225}
+  \item \texttt{bc}, \hyperpage{226}
   \item \texttt{bc} (tactic), \hyperpage{123}
-  \item \texttt{bc*}, \hyperpage{224}
+  \item \texttt{bc*}, \hyperpage{226}
   \item \texttt{bc*} (tactic), \hyperpage{123}
-  \item \texttt{bdd-metric(s)}, \hyperpage{224}
-  \item \texttt{bernstein-basis(n, x)}, \hyperpage{224}
-  \item \texttt{bernstein-poly(f, n, x)}, \hyperpage{225}
-  \item \texttt{beta}, \hyperpage{225}
+  \item \texttt{bdd-metric(s)}, \hyperpage{226}
+  \item \texttt{bernstein-basis(n, x)}, \hyperpage{226}
+  \item \texttt{bernstein-poly(f, n, x)}, \hyperpage{227}
+  \item \texttt{beta}, \hyperpage{227}
   \item \texttt{beta} (tactic), \hyperpage{110}
-  \item \texttt{big-union}, \hyperpage{225}
+  \item \texttt{big-union}, \hyperpage{227}
   \item \texttt  {big-union-mem-elim} (kernel operation), 
 		\hyperpage{64}
   \item \texttt  {big-union-mem-intro} (kernel operation), 
 		\hyperpage{64}
   \item \texttt  {big-union-sethood} (kernel operation), \hyperpage{64}
-  \item \texttt{bijection}, \hyperpage{225}
-  \item \texttt{binneg}, \hyperpage{226}
-  \item \texttt{binplus}, \hyperpage{226}
-  \item \texttt{bintimes}, \hyperpage{226}
-  \item \texttt{block(p, k, l)}, \hyperpage{226}
-  \item \texttt{border(a, b, m, p, q)}, \hyperpage{226}
-  \item \texttt{bu-me}, \hyperpage{227}
+  \item \texttt{bijection}, \hyperpage{227}
+  \item \texttt{binneg}, \hyperpage{228}
+  \item \texttt{binplus}, \hyperpage{228}
+  \item \texttt{bintimes}, \hyperpage{228}
+  \item \texttt{block(p, k, l)}, \hyperpage{228}
+  \item \texttt{border(a, b, m, p, q)}, \hyperpage{228}
+  \item \texttt{bu-me}, \hyperpage{229}
   \item \texttt{bu-me} (tactic), \hyperpage{127}
-  \item \texttt{bu-mi}, \hyperpage{227}
-  \item \texttt{bu-mi} (tactic), \hyperpage{126}
-  \item \texttt{bu-set}, \hyperpage{227}
+  \item \texttt{bu-mi}, \hyperpage{229}
+  \item \texttt{bu-mi} (tactic), \hyperpage{127}
+  \item \texttt{bu-set}, \hyperpage{229}
   \item \texttt{bu-set} (tactic), \hyperpage{126}
 
   \indexspace
 
-  \item \texttt{c-int(phi, a, b)}, \hyperpage{227}
-  \item \texttt{c-int-or(phi, a, b)}, \hyperpage{228}
-  \item \texttt{c-metric(s)}, \hyperpage{228}
-  \item \texttt{c-metric-space}, \hyperpage{228}
-  \item \texttt{c-metric-w(s, w)}, \hyperpage{228}
-  \item \texttt{c-pseudo-family(s)}, \hyperpage{228}
-  \item \texttt{calc}, \hyperpage{228}
-  \item \texttt{calc} (tactic), \hyperpage{119}
-  \item \texttt{caratheodory-sets(omega, mu)}, \hyperpage{229}
-  \item \texttt{card(a\_)}, \hyperpage{229}
-  \item \texttt{carr(s)}, \hyperpage{229}
-  \item \texttt{cartesian}, \hyperpage{230}
+  \item \texttt{c-int(phi, a, b)}, \hyperpage{229}
+  \item \texttt{c-int-or(phi, a, b)}, \hyperpage{230}
+  \item \texttt{c-metric(s)}, \hyperpage{230}
+  \item \texttt{c-metric-space}, \hyperpage{230}
+  \item \texttt{c-metric-w(s, w)}, \hyperpage{230}
+  \item \texttt{c-pseudo-family(s)}, \hyperpage{230}
+  \item \texttt{calc}, \hyperpage{230}
+  \item \texttt{calc} (tactic), \hyperpage{120}
+  \item \texttt{caratheodory-sets(omega, mu)}, \hyperpage{231}
+  \item \texttt{card(a\_)}, \hyperpage{231}
+  \item \texttt{carr(s)}, \hyperpage{231}
+  \item \texttt{cartesian}, \hyperpage{232}
   \item \texttt  {cartesian-decompose} (kernel operation), 
 		\hyperpage{64}
   \item \texttt  {cartesian-elim} (kernel operation), \hyperpage{64}
   \item \texttt  {cartesian-intro} (kernel operation), \hyperpage{63}
-  \item \texttt{cauchy-setoid(m)}, \hyperpage{230}
-  \item \texttt{cc-coords}, \hyperpage{230}
-  \item \texttt{cc-cos(z)}, \hyperpage{230}
-  \item \texttt{cc-exp(z)}, \hyperpage{230}
-  \item \texttt{cc-int(pphi\_, a, b)}, \hyperpage{231}
-  \item \texttt{cc-log(clgw\_)}, \hyperpage{231}
-  \item \texttt{cc-mid(cmx\_, cmy\_)}, \hyperpage{232}
-  \item \texttt{cc-ms}, \hyperpage{232}
-  \item \texttt{cc-normed-field}, \hyperpage{232}
-  \item \texttt{cc-of-pair}, \hyperpage{232}
-  \item \texttt{cc-series-converges(f)}, \hyperpage{232}
-  \item \texttt{cc-series-converges-to(f, l)}, \hyperpage{233}
-  \item \texttt{cc-series-limit(f)}, \hyperpage{233}
-  \item \texttt{cc-series-partial-sum(f, k)}, \hyperpage{233}
-  \item \texttt{cc-sin(z)}, \hyperpage{233}
-  \item \texttt{cc-sup-norm(u, cpsxs\_)}, \hyperpage{234}
-  \item \texttt{ccint(a, b)}, \hyperpage{234}
-  \item \texttt{ce}, \hyperpage{235}
+  \item \texttt{cauchy-setoid(m)}, \hyperpage{232}
+  \item \texttt{cc-coords}, \hyperpage{232}
+  \item \texttt{cc-cos(z)}, \hyperpage{232}
+  \item \texttt{cc-exp(z)}, \hyperpage{232}
+  \item \texttt{cc-int(pphi\_, a, b)}, \hyperpage{233}
+  \item \texttt{cc-log(clgw\_)}, \hyperpage{233}
+  \item \texttt{cc-mid(cmx\_, cmy\_)}, \hyperpage{234}
+  \item \texttt{cc-ms}, \hyperpage{234}
+  \item \texttt{cc-normed-field}, \hyperpage{234}
+  \item \texttt{cc-of-pair}, \hyperpage{234}
+  \item \texttt{cc-series-converges(f)}, \hyperpage{234}
+  \item \texttt{cc-series-converges-to(f, l)}, \hyperpage{235}
+  \item \texttt{cc-series-limit(f)}, \hyperpage{235}
+  \item \texttt{cc-series-partial-sum(f, k)}, \hyperpage{235}
+  \item \texttt{cc-sin(z)}, \hyperpage{235}
+  \item \texttt{cc-sup-norm(u, cpsxs\_)}, \hyperpage{236}
+  \item \texttt{ccint(a, b)}, \hyperpage{236}
+  \item \texttt{ce}, \hyperpage{237}
   \item \texttt{ce} (tactic), \hyperpage{101}
-  \item \texttt{centre-set(s, r, f)}, \hyperpage{235}
-  \item \texttt{centres(s, b, r)}, \hyperpage{235}
-  \item \texttt{choice}, \hyperpage{235}
-  \item \texttt{choose}, \hyperpage{235}
-  \item \texttt{choose} (tactic), \hyperpage{130}
-  \item \texttt{choose-set(n, m)}, \hyperpage{236}
-  \item \texttt{ci}, \hyperpage{236}
+  \item \texttt{centre-set(s, r, f)}, \hyperpage{237}
+  \item \texttt{centres(s, b, r)}, \hyperpage{237}
+  \item \texttt{choice}, \hyperpage{237}
+  \item \texttt{choose}, \hyperpage{237}
+  \item \texttt{choose} (tactic), \hyperpage{131}
+  \item \texttt{choose-set(n, m)}, \hyperpage{238}
+  \item \texttt{ci}, \hyperpage{238}
   \item \texttt{ci} (tactic), \hyperpage{96}
-  \item \texttt{clamp(a, b, x)}, \hyperpage{236}
-  \item \texttt{class(s, a)}, \hyperpage{236}
-  \item \texttt{closed-ball(s, c, r)}, \hyperpage{237}
-  \item \texttt{closure(s, a)}, \hyperpage{237}
-  \item \texttt{cluster-point(s, f, x)}, \hyperpage{237}
-  \item \texttt{coint(a, b)}, \hyperpage{238}
-  \item \texttt{collapse-at(k\_)}, \hyperpage{238}
-  \item \texttt{comb-kk}, \hyperpage{238}
-  \item \texttt{comm-monoid}, \hyperpage{238}
+  \item \texttt{clamp(a, b, x)}, \hyperpage{238}
+  \item \texttt{class(s, a)}, \hyperpage{238}
+  \item \texttt{closed-ball(s, c, r)}, \hyperpage{239}
+  \item \texttt{closure(s, a)}, \hyperpage{239}
+  \item \texttt{cluster-point(s, f, x)}, \hyperpage{239}
+  \item \texttt{coint(a, b)}, \hyperpage{240}
+  \item \texttt{collapse-at(k\_)}, \hyperpage{240}
+  \item \texttt{comb-kk}, \hyperpage{240}
+  \item \texttt{comm-monoid}, \hyperpage{240}
   \item \texttt  {comm-ring-simplify} (kernel operation), 
 		\hyperpage{64}
-  \item \texttt{commutative-ring}, \hyperpage{238}
-  \item \texttt{commutative-ring-additive-ag(s)}, \hyperpage{239}
-  \item \texttt{commutative-ring-multiplicative-cm(s)}, \hyperpage{239}
-  \item \texttt{comp}, \hyperpage{239}
-  \item \texttt{comp-me}, \hyperpage{239}
+  \item \texttt{commutative-ring}, \hyperpage{240}
+  \item \texttt{commutative-ring-additive-ag(s)}, \hyperpage{241}
+  \item \texttt{commutative-ring-multiplicative-cm(s)}, \hyperpage{241}
+  \item \texttt{comp}, \hyperpage{241}
+  \item \texttt{comp-me}, \hyperpage{241}
   \item \texttt{comp-me} (tactic), \hyperpage{126}
   \item \texttt  {comp-mem-elim} (kernel operation), \hyperpage{64}
   \item \texttt  {comp-mem-intro} (kernel operation), \hyperpage{64}
-  \item \texttt{comp-mi}, \hyperpage{239}
-  \item \texttt{comp-mi} (tactic), \hyperpage{125}
-  \item \texttt{complement-in}, \hyperpage{239}
-  \item \texttt{completion(m)}, \hyperpage{240}
-  \item \texttt{completion-dist(m)}, \hyperpage{240}
-  \item \texttt{complex-inner-product-space}, \hyperpage{240}
+  \item \texttt{comp-mi}, \hyperpage{241}
+  \item \texttt{comp-mi} (tactic), \hyperpage{126}
+  \item \texttt{complement-in}, \hyperpage{241}
+  \item \texttt{completion(m)}, \hyperpage{242}
+  \item \texttt{completion-dist(m)}, \hyperpage{242}
+  \item \texttt{complex-inner-product-space}, \hyperpage{242}
   \item \texttt{complex-inner-product-space-as-module(s)}, 
-		\hyperpage{240}
-  \item \texttt{compose(f, g)}, \hyperpage{240}
-  \item \texttt{conjugate}, \hyperpage{241}
-  \item \texttt{cons}, \hyperpage{241}
+		\hyperpage{242}
+  \item \texttt{compose(f, g)}, \hyperpage{242}
+  \item \texttt{conjugate}, \hyperpage{243}
+  \item \texttt{cons}, \hyperpage{243}
   \item \texttt  {contraposition} (kernel operation), \hyperpage{63}
-  \item \texttt{conv3(cva\_, cvb\_, cvc\_)}, \hyperpage{241}
-  \item \texttt{converges(s, f)}, \hyperpage{242}
-  \item \texttt{converges-along(s, g, b, p)}, \hyperpage{242}
-  \item \texttt{converges-on(s, fam, dseq)}, \hyperpage{242}
-  \item \texttt{converges-to(s, f, l)}, \hyperpage{242}
-  \item \texttt{converges-uniformly(s, seq, g)}, \hyperpage{243}
-  \item \texttt{cos}, \hyperpage{243}
-  \item \texttt{cps-radius(cf)}, \hyperpage{243}
-  \item \texttt{crel(m)}, \hyperpage{243}
-  \item \texttt{crs}, \hyperpage{244}
+  \item \texttt{conv3(cva\_, cvb\_, cvc\_)}, \hyperpage{243}
+  \item \texttt{converges(s, f)}, \hyperpage{244}
+  \item \texttt{converges-along(s, g, b, p)}, \hyperpage{244}
+  \item \texttt{converges-on(s, fam, dseq)}, \hyperpage{244}
+  \item \texttt{converges-to(s, f, l)}, \hyperpage{244}
+  \item \texttt{converges-uniformly(s, seq, g)}, \hyperpage{245}
+  \item \texttt{cos}, \hyperpage{245}
+  \item \texttt{cps-radius(cf)}, \hyperpage{245}
+  \item \texttt{crel(m)}, \hyperpage{245}
+  \item \texttt{crs}, \hyperpage{246}
   \item \texttt{crs} (tactic), \hyperpage{113}
-  \item \texttt{cseq(m)}, \hyperpage{244}
-  \item \texttt{cseq-equiv(m, f, g)}, \hyperpage{244}
+  \item \texttt{cseq(m)}, \hyperpage{246}
+  \item \texttt{cseq-equiv(m, f, g)}, \hyperpage{246}
   \item \texttt  {cut} (kernel operation), \hyperpage{63}
-  \item \texttt{cut}, \hyperpage{244}
+  \item \texttt{cut}, \hyperpage{246}
   \item \texttt{cut} (tactic), \hyperpage{102}
 
   \indexspace
 
-  \item \texttt{dc-iter}, \hyperpage{245}
-  \item \texttt{deg(a, p)}, \hyperpage{245}
-  \item \texttt{deg-bound(a, p, n)}, \hyperpage{245}
-  \item \texttt{delete-at}, \hyperpage{245}
-  \item \texttt{deriv(f, a)}, \hyperpage{246}
-  \item \texttt{deriv-on(k, u, f, a)}, \hyperpage{246}
-  \item \texttt{deriv-v(m, f, a)}, \hyperpage{246}
-  \item \texttt{descend(s, f)}, \hyperpage{246}
-  \item \texttt{descend2(s, f)}, \hyperpage{247}
-  \item \texttt{det}, \hyperpage{247}
+  \item \texttt{dc-iter}, \hyperpage{247}
+  \item \texttt{deg(a, p)}, \hyperpage{247}
+  \item \texttt{deg-bound(a, p, n)}, \hyperpage{247}
+  \item \texttt{delete-at}, \hyperpage{247}
+  \item \texttt{deriv(f, a)}, \hyperpage{248}
+  \item \texttt{deriv-on(k, u, f, a)}, \hyperpage{248}
+  \item \texttt{deriv-v(m, f, a)}, \hyperpage{248}
+  \item \texttt{descend(s, f)}, \hyperpage{248}
+  \item \texttt{descend2(s, f)}, \hyperpage{249}
+  \item \texttt{det}, \hyperpage{249}
   \item \texttt  {detach} (kernel operation), \hyperpage{63}
-  \item \texttt{detach!}, \hyperpage{247}
+  \item \texttt{detach!}, \hyperpage{249}
   \item \texttt{detach!} (tactic), \hyperpage{100}
-  \item \texttt{di}, \hyperpage{247}
+  \item \texttt{di}, \hyperpage{249}
   \item \texttt{di} (tactic), \hyperpage{95}
-  \item \texttt{dial}, \hyperpage{247}
-  \item \texttt{dial} (tactic), \hyperpage{128}
-  \item \texttt{dial-wff}, \hyperpage{248}
+  \item \texttt{dial}, \hyperpage{249}
+  \item \texttt{dial} (tactic), \hyperpage{129}
+  \item \texttt{dial-wff}, \hyperpage{250}
   \item \texttt{dial-wff} (tactic), \hyperpage{129}
-  \item \texttt{difference(u\_, b\_)}, \hyperpage{248}
-  \item \texttt{dir-deriv(m, f, a, eta)}, \hyperpage{248}
-  \item \texttt{discrete-space(a\_)}, \hyperpage{249}
-  \item \texttt{dist(s)}, \hyperpage{249}
-  \item \texttt{dist-seq(m, f, g)}, \hyperpage{249}
-  \item \texttt{dists(s)}, \hyperpage{249}
-  \item \texttt{dom}, \hyperpage{249}
-  \item \texttt{dual(m)}, \hyperpage{250}
-  \item \texttt{dual-norm(m, f)}, \hyperpage{250}
-  \item \texttt{dual-norm-on(m, s, f)}, \hyperpage{250}
-  \item \texttt{dual-vec(m)}, \hyperpage{251}
+  \item \texttt{difference(u\_, b\_)}, \hyperpage{250}
+  \item \texttt{dir-deriv(m, f, a, eta)}, \hyperpage{250}
+  \item \texttt{discrete-space(a\_)}, \hyperpage{251}
+  \item \texttt{dist(s)}, \hyperpage{251}
+  \item \texttt{dist-seq(m, f, g)}, \hyperpage{251}
+  \item \texttt{dists(s)}, \hyperpage{251}
+  \item \texttt{dom}, \hyperpage{251}
+  \item \texttt{dual(m)}, \hyperpage{252}
+  \item \texttt{dual-norm(m, f)}, \hyperpage{252}
+  \item \texttt{dual-norm-on(m, s, f)}, \hyperpage{252}
+  \item \texttt{dual-vec(m)}, \hyperpage{253}
 
   \indexspace
 
-  \item \texttt{econverges-to(f, l)}, \hyperpage{251}
+  \item \texttt{econverges-to(f, l)}, \hyperpage{253}
   \item eigenvariable, \hyperpage{66}
-  \item \texttt{einf(s)}, \hyperpage{251}
-  \item \texttt{elem-f(a, n, k, l)}, \hyperpage{252}
-  \item \texttt{elem-g(a, n, r, k, l)}, \hyperpage{252}
-  \item \texttt{elem-h(a, n, r, k)}, \hyperpage{253}
-  \item \texttt{eliminf(f)}, \hyperpage{253}
-  \item \texttt{elimsup(f)}, \hyperpage{253}
-  \item \texttt{ell-one}, \hyperpage{254}
-  \item \texttt{ell-two}, \hyperpage{254}
-  \item \texttt{elower-bounds(s)}, \hyperpage{254}
-  \item \texttt{embed(m)}, \hyperpage{254}
-  \item \texttt{embed-seq(m, u)}, \hyperpage{254}
-  \item \texttt{entry(m, i, j)}, \hyperpage{255}
-  \item \texttt{enum-fam(ag, f, phi, n)}, \hyperpage{255}
-  \item \texttt{eplus}, \hyperpage{255}
+  \item \texttt{einf(s)}, \hyperpage{253}
+  \item \texttt{elem-f(a, n, k, l)}, \hyperpage{254}
+  \item \texttt{elem-g(a, n, r, k, l)}, \hyperpage{254}
+  \item \texttt{elem-h(a, n, r, k)}, \hyperpage{255}
+  \item \texttt{eliminf(f)}, \hyperpage{255}
+  \item \texttt{elimsup(f)}, \hyperpage{255}
+  \item \texttt{ell-one}, \hyperpage{256}
+  \item \texttt{ell-two}, \hyperpage{256}
+  \item \texttt{elower-bounds(s)}, \hyperpage{256}
+  \item \texttt{embed(m)}, \hyperpage{256}
+  \item \texttt{embed-seq(m, u)}, \hyperpage{256}
+  \item \texttt{entry(m, i, j)}, \hyperpage{257}
+  \item \texttt{enum-fam(ag, f, phi, n)}, \hyperpage{257}
+  \item \texttt{eplus}, \hyperpage{257}
   \item \texttt  {eq-subst} (kernel operation), \hyperpage{63}
-  \item \texttt{esum(f\_)}, \hyperpage{256}
-  \item \texttt{esup(s\_)}, \hyperpage{256}
-  \item \texttt{etail(f, n)}, \hyperpage{256}
-  \item \texttt{etimes(x, y)}, \hyperpage{256}
-  \item \texttt{euclidean-gauges(s)}, \hyperpage{257}
-  \item \texttt{euclidean-ring}, \hyperpage{257}
-  \item \texttt{even(x)}, \hyperpage{257}
-  \item \texttt{ew}, \hyperpage{257}
+  \item \texttt{esum(f\_)}, \hyperpage{258}
+  \item \texttt{esup(s\_)}, \hyperpage{258}
+  \item \texttt{etail(f, n)}, \hyperpage{258}
+  \item \texttt{etimes(x, y)}, \hyperpage{258}
+  \item \texttt{euclidean-gauges(s)}, \hyperpage{259}
+  \item \texttt{euclidean-ring}, \hyperpage{259}
+  \item \texttt{even(x)}, \hyperpage{259}
+  \item \texttt{ew}, \hyperpage{259}
   \item \texttt{ew} (tactic), \hyperpage{96}
-  \item \texttt{ew-poly}, \hyperpage{257}
+  \item \texttt{ew-poly}, \hyperpage{259}
   \item \texttt{ew-poly} (tactic), \hyperpage{115}
-  \item \texttt{exp}, \hyperpage{258}
-  \item \texttt{expand}, \hyperpage{258}
-  \item \texttt{expand} (tactic), \hyperpage{115}
-  \item \texttt{extend-const(f, a, b)}, \hyperpage{258}
-  \item \texttt{extends-on(s, g, f)}, \hyperpage{258}
+  \item \texttt{exp}, \hyperpage{260}
+  \item \texttt{expand}, \hyperpage{260}
+  \item \texttt{expand} (tactic), \hyperpage{116}
+  \item \texttt{extend-const(f, a, b)}, \hyperpage{260}
+  \item \texttt{extends-on(s, g, f)}, \hyperpage{260}
 
   \indexspace
 
-  \item \texttt{fact}, \hyperpage{258}
+  \item \texttt{fact}, \hyperpage{260}
   \item \texttt{fact} (tactic), \hyperpage{101}
-  \item \texttt{factorial}, \hyperpage{259}
-  \item \texttt{falling}, \hyperpage{259}
-  \item \texttt{fam-of-list}, \hyperpage{259}
-  \item \texttt{field}, \hyperpage{259}
-  \item \texttt{field-additive-ag(s)}, \hyperpage{259}
-  \item \texttt{field-as-euclidean-ring(s)}, \hyperpage{259}
-  \item \texttt{field-as-integral-domain(s)}, \hyperpage{260}
-  \item \texttt{field-multiplicative-group(s)}, \hyperpage{260}
-  \item \texttt{field-ring}, \hyperpage{260}
-  \item \texttt{fin-enum(s)}, \hyperpage{260}
-  \item \texttt{fin-subset-monoid(a\_)}, \hyperpage{260}
-  \item \texttt{fin-subsets(a\_)}, \hyperpage{260}
-  \item \texttt{finprod(m, f, s)}, \hyperpage{261}
-  \item \texttt{finsum(ag, f, s)}, \hyperpage{261}
-  \item \texttt{finsupp(a, m)}, \hyperpage{261}
-  \item \texttt{fnrm(s)}, \hyperpage{261}
-  \item \texttt{focus}, \hyperpage{262}
-  \item \texttt{focus} (tactic), \hyperpage{127}
+  \item \texttt{factorial}, \hyperpage{261}
+  \item \texttt{falling}, \hyperpage{261}
+  \item \texttt{fam-of-list}, \hyperpage{261}
+  \item \texttt{field}, \hyperpage{261}
+  \item \texttt{field-additive-ag(s)}, \hyperpage{261}
+  \item \texttt{field-as-euclidean-ring(s)}, \hyperpage{261}
+  \item \texttt{field-as-integral-domain(s)}, \hyperpage{262}
+  \item \texttt{field-multiplicative-group(s)}, \hyperpage{262}
+  \item \texttt{field-ring}, \hyperpage{262}
+  \item \texttt{fin-enum(s)}, \hyperpage{262}
+  \item \texttt{fin-subset-monoid(a\_)}, \hyperpage{262}
+  \item \texttt{fin-subsets(a\_)}, \hyperpage{262}
+  \item \texttt{finprod(m, f, s)}, \hyperpage{263}
+  \item \texttt{finsum(ag, f, s)}, \hyperpage{263}
+  \item \texttt{finsupp(a, m)}, \hyperpage{263}
+  \item \texttt{fnrm(s)}, \hyperpage{263}
+  \item \texttt{focus}, \hyperpage{264}
+  \item \texttt{focus} (tactic), \hyperpage{128}
   \item \texttt  {forall-elim} (kernel operation), \hyperpage{63}
   \item \texttt  {forall-intro} (kernel operation), \hyperpage{63}
   \item \texttt  {forsome-elim} (kernel operation), \hyperpage{63}
   \item \texttt  {forsome-intro} (kernel operation), \hyperpage{63}
-  \item \texttt{fr-ball(m, fam, n, eps)}, \hyperpage{262}
-  \item \texttt{fr-cauchy(m, fam, seq)}, \hyperpage{262}
-  \item \texttt{fr-conv(m, fam, seq, lim)}, \hyperpage{262}
-  \item \texttt{fun}, \hyperpage{262}
+  \item \texttt{fr-ball(m, fam, n, eps)}, \hyperpage{264}
+  \item \texttt{fr-cauchy(m, fam, seq)}, \hyperpage{264}
+  \item \texttt{fr-conv(m, fam, seq, lim)}, \hyperpage{264}
+  \item \texttt{fun}, \hyperpage{264}
   \item \texttt  {functoid-beta} (kernel operation), \hyperpage{64}
 
   \indexspace
 
-  \item \texttt{gauge(s)}, \hyperpage{263}
-  \item \texttt{generates(md, n, u)}, \hyperpage{263}
-  \item \texttt{goal-status}, \hyperpage{263}
-  \item \texttt{goal-status} (tactic), \hyperpage{129}
-  \item \texttt{good-sub(m, s, f, t)}, \hyperpage{263}
-  \item \texttt{greedy-chain(phi, grd, porel)}, \hyperpage{264}
-  \item \texttt{grind}, \hyperpage{264}
+  \item \texttt{gauge(s)}, \hyperpage{265}
+  \item \texttt{generates(md, n, u)}, \hyperpage{265}
+  \item \texttt{goal-status}, \hyperpage{265}
+  \item \texttt{goal-status} (tactic), \hyperpage{130}
+  \item \texttt{good-sub(m, s, f, t)}, \hyperpage{265}
+  \item \texttt{greedy-chain(phi, grd, porel)}, \hyperpage{266}
+  \item \texttt{grind}, \hyperpage{266}
   \item \texttt{grind} (tactic), \hyperpage{106}
-  \item \texttt{grind-and-mp}, \hyperpage{264}
+  \item \texttt{grind-and-mp}, \hyperpage{266}
   \item \texttt{grind-and-mp} (tactic), \hyperpage{100}
-  \item \texttt{group}, \hyperpage{264}
+  \item \texttt{group}, \hyperpage{266}
 
   \indexspace
 
   \item \texttt{has-closed-graph(m1, fam1, m2, fam2, tt)}, 
-		\hyperpage{264}
-  \item \texttt{has-deriv-at(f, a, l)}, \hyperpage{265}
-  \item \texttt{has-deriv-at-within(f, w, x, l)}, \hyperpage{265}
-  \item \texttt{has-div-remainder(s, dg)}, \hyperpage{265}
-  \item \texttt{has-fip(s, c)}, \hyperpage{265}
-  \item \texttt{has-inverses(op, unit, invop, crr)}, \hyperpage{266}
-  \item \texttt{has-left-deriv-at(f, x, l)}, \hyperpage{266}
-  \item \texttt{has-right-deriv-at(f, x, l)}, \hyperpage{266}
-  \item \texttt{have!}, \hyperpage{267}
+		\hyperpage{266}
+  \item \texttt{has-deriv-at(f, a, l)}, \hyperpage{267}
+  \item \texttt{has-deriv-at-within(f, w, x, l)}, \hyperpage{267}
+  \item \texttt{has-div-remainder(s, dg)}, \hyperpage{267}
+  \item \texttt{has-fip(s, c)}, \hyperpage{267}
+  \item \texttt{has-inverses(op, unit, invop, crr)}, \hyperpage{268}
+  \item \texttt{has-left-deriv-at(f, x, l)}, \hyperpage{268}
+  \item \texttt{has-right-deriv-at(f, x, l)}, \hyperpage{268}
+  \item \texttt{have!}, \hyperpage{269}
   \item \texttt{have!} (tactic), \hyperpage{121}
-  \item \texttt{holomorphic-on(u, f)}, \hyperpage{267}
-  \item \texttt{hom-abelian-group(a, b)}, \hyperpage{267}
-  \item \texttt{hom-bounded-linear(a, b)}, \hyperpage{267}
-  \item \texttt{hom-c-metric-space(a, b)}, \hyperpage{268}
-  \item \texttt{hom-comm-monoid(a, b)}, \hyperpage{268}
-  \item \texttt{hom-commutative-ring(a, b)}, \hyperpage{268}
-  \item \texttt{hom-complex-inner-product-space(a, b)}, \hyperpage{269}
-  \item \texttt{hom-continuous(a, b)}, \hyperpage{269}
-  \item \texttt{hom-euclidean-ring(a, b)}, \hyperpage{269}
-  \item \texttt{hom-field(a, b)}, \hyperpage{270}
-  \item \texttt{hom-field-ring(a, b)}, \hyperpage{270}
-  \item \texttt{hom-group(a, b)}, \hyperpage{270}
-  \item \texttt{hom-integral-domain(a, b)}, \hyperpage{270}
-  \item \texttt{hom-lipschitz(a, b)}, \hyperpage{271}
-  \item \texttt{hom-measurable-space(a, b)}, \hyperpage{271}
-  \item \texttt{hom-measure-space(a, b)}, \hyperpage{271}
-  \item \texttt{hom-metric-space(a, b)}, \hyperpage{272}
-  \item \texttt{hom-metrizable-top-space(a, b)}, \hyperpage{272}
-  \item \texttt{hom-module(a, b)}, \hyperpage{272}
-  \item \texttt{hom-monoid(a, b)}, \hyperpage{273}
-  \item \texttt{hom-normed-ag(a, b)}, \hyperpage{273}
-  \item \texttt{hom-normed-field(a, b)}, \hyperpage{273}
-  \item \texttt{hom-normed-vector-space(a, b)}, \hyperpage{273}
-  \item \texttt{hom-pid(a, b)}, \hyperpage{274}
-  \item \texttt{hom-pseudometric-space(a, b)}, \hyperpage{274}
-  \item \texttt{hom-ring(a, b)}, \hyperpage{274}
-  \item \texttt{hom-ringoid(a, b)}, \hyperpage{275}
-  \item \texttt{hom-semigroup(a, b)}, \hyperpage{275}
-  \item \texttt{hom-setoid(a, b)}, \hyperpage{275}
-  \item \texttt{hom-top-space(a, b)}, \hyperpage{275}
-  \item \texttt{hom-uniformly-continuous(a, b)}, \hyperpage{276}
-  \item \texttt{hom-vector-space(a, b)}, \hyperpage{276}
+  \item \texttt{holomorphic-on(u, f)}, \hyperpage{269}
+  \item \texttt{hom-abelian-group(a, b)}, \hyperpage{269}
+  \item \texttt{hom-bounded-linear(a, b)}, \hyperpage{269}
+  \item \texttt{hom-c-metric-space(a, b)}, \hyperpage{270}
+  \item \texttt{hom-comm-monoid(a, b)}, \hyperpage{270}
+  \item \texttt{hom-commutative-ring(a, b)}, \hyperpage{270}
+  \item \texttt{hom-complex-inner-product-space(a, b)}, \hyperpage{271}
+  \item \texttt{hom-continuous(a, b)}, \hyperpage{271}
+  \item \texttt{hom-euclidean-ring(a, b)}, \hyperpage{271}
+  \item \texttt{hom-field(a, b)}, \hyperpage{272}
+  \item \texttt{hom-field-ring(a, b)}, \hyperpage{272}
+  \item \texttt{hom-group(a, b)}, \hyperpage{272}
+  \item \texttt{hom-integral-domain(a, b)}, \hyperpage{272}
+  \item \texttt{hom-lipschitz(a, b)}, \hyperpage{273}
+  \item \texttt{hom-measurable-space(a, b)}, \hyperpage{273}
+  \item \texttt{hom-measure-space(a, b)}, \hyperpage{273}
+  \item \texttt{hom-metric-space(a, b)}, \hyperpage{274}
+  \item \texttt{hom-metrizable-top-space(a, b)}, \hyperpage{274}
+  \item \texttt{hom-module(a, b)}, \hyperpage{274}
+  \item \texttt{hom-monoid(a, b)}, \hyperpage{275}
+  \item \texttt{hom-normed-ag(a, b)}, \hyperpage{275}
+  \item \texttt{hom-normed-field(a, b)}, \hyperpage{275}
+  \item \texttt{hom-normed-vector-space(a, b)}, \hyperpage{275}
+  \item \texttt{hom-pid(a, b)}, \hyperpage{276}
+  \item \texttt{hom-pseudometric-space(a, b)}, \hyperpage{276}
+  \item \texttt{hom-ring(a, b)}, \hyperpage{276}
+  \item \texttt{hom-ringoid(a, b)}, \hyperpage{277}
+  \item \texttt{hom-semigroup(a, b)}, \hyperpage{277}
+  \item \texttt{hom-setoid(a, b)}, \hyperpage{277}
+  \item \texttt{hom-top-space(a, b)}, \hyperpage{277}
+  \item \texttt{hom-uniformly-continuous(a, b)}, \hyperpage{278}
+  \item \texttt{hom-vector-space(a, b)}, \hyperpage{278}
 
   \indexspace
 
-  \item \texttt{id-fun(a\_)}, \hyperpage{276}
-  \item \texttt{iden(s)}, \hyperpage{277}
-  \item \texttt{identmat(a, n)}, \hyperpage{277}
-  \item \texttt{idl(s)}, \hyperpage{277}
-  \item \texttt{ie}, \hyperpage{277}
+  \item \texttt{id-fun(a\_)}, \hyperpage{278}
+  \item \texttt{iden(s)}, \hyperpage{279}
+  \item \texttt{identmat(a, n)}, \hyperpage{279}
+  \item \texttt{idl(s)}, \hyperpage{279}
+  \item \texttt{ie}, \hyperpage{279}
   \item \texttt{ie} (tactic), \hyperpage{102}
-  \item \texttt{if}, \hyperpage{277}
+  \item \texttt{if}, \hyperpage{279}
   \item \texttt  {if-false} (kernel operation), \hyperpage{63}
-  \item \texttt{if-false}, \hyperpage{278}
+  \item \texttt{if-false}, \hyperpage{280}
   \item \texttt{if-false} (tactic), \hyperpage{127}
   \item \texttt  {if-true} (kernel operation), \hyperpage{63}
-  \item \texttt{if-true}, \hyperpage{278}
+  \item \texttt{if-true}, \hyperpage{280}
   \item \texttt{if-true} (tactic), \hyperpage{127}
   \item \texttt  {iff-elim} (kernel operation), \hyperpage{63}
   \item \texttt  {iff-intro} (kernel operation), \hyperpage{63}
-  \item \texttt{ii}, \hyperpage{278}
+  \item \texttt{ii}, \hyperpage{280}
   \item \texttt{ii} (tactic), \hyperpage{97}
-  \item \texttt{imag-part}, \hyperpage{278}
-  \item \texttt{image}, \hyperpage{278}
+  \item \texttt{imag-part}, \hyperpage{280}
+  \item \texttt{image}, \hyperpage{280}
   \item \texttt  {implies-intro} (kernel operation), \hyperpage{63}
-  \item \texttt{in}, \hyperpage{279}
-  \item \texttt{indicator(omega, a)}, \hyperpage{279}
+  \item \texttt{in}, \hyperpage{281}
+  \item \texttt{indicator(omega, a)}, \hyperpage{281}
   \item \texttt  {ineq} (kernel operation), \hyperpage{64}
-  \item \texttt{ineq}, \hyperpage{279}
+  \item \texttt{ineq}, \hyperpage{281}
   \item \texttt{ineq} (tactic), \hyperpage{118}
-  \item \texttt{inf-subsets(a)}, \hyperpage{279}
-  \item \texttt{injection}, \hyperpage{280}
-  \item \texttt{injective-star(f)}, \hyperpage{280}
-  \item \texttt{insert-last(phi, x, n)}, \hyperpage{280}
-  \item \texttt{inst}, \hyperpage{280}
+  \item \texttt{inf-subsets(a)}, \hyperpage{281}
+  \item \texttt{injection}, \hyperpage{282}
+  \item \texttt{injective-star(f)}, \hyperpage{282}
+  \item \texttt{insert-last(phi, x, n)}, \hyperpage{282}
+  \item \texttt{inst}, \hyperpage{282}
   \item \texttt{inst} (tactic), \hyperpage{98}
-  \item \texttt{inst+}, \hyperpage{280}
+  \item \texttt{inst+}, \hyperpage{282}
   \item \texttt{inst+} (tactic), \hyperpage{99}
-  \item \texttt{integral(omega, ca, mu, f)}, \hyperpage{281}
-  \item \texttt{integral-domain}, \hyperpage{281}
-  \item \texttt{interior(s, a)}, \hyperpage{281}
-  \item \texttt{intersection}, \hyperpage{281}
+  \item \texttt{integral(omega, ca, mu, f)}, \hyperpage{283}
+  \item \texttt{integral-domain}, \hyperpage{283}
+  \item \texttt{interior(s, a)}, \hyperpage{283}
+  \item \texttt{intersection}, \hyperpage{283}
   \item \texttt  {intersection-elim} (kernel operation), \hyperpage{64}
   \item \texttt  {intersection-intro} (kernel operation), 
 		\hyperpage{64}
-  \item \texttt{intersection-of(c)}, \hyperpage{281}
-  \item \texttt{interval(a, b)}, \hyperpage{282}
-  \item \texttt{inv(s)}, \hyperpage{282}
-  \item \texttt{inverse-bij(phi, x, y)}, \hyperpage{282}
-  \item \texttt{iota}, \hyperpage{282}
-  \item \texttt{iota-d}, \hyperpage{283}
+  \item \texttt{intersection-of(c)}, \hyperpage{283}
+  \item \texttt{interval(a, b)}, \hyperpage{284}
+  \item \texttt{inv(s)}, \hyperpage{284}
+  \item \texttt{inverse-bij(phi, x, y)}, \hyperpage{284}
+  \item \texttt{iota}, \hyperpage{284}
+  \item \texttt{iota-d}, \hyperpage{285}
   \item \texttt{iota-d} (tactic), \hyperpage{126}
   \item \texttt  {iota-def} (kernel operation), \hyperpage{64}
   \item \texttt  {iota-in-elim} (kernel operation), \hyperpage{64}
-  \item \texttt{ip(s)}, \hyperpage{283}
-  \item \texttt{ip-norm(v, x)}, \hyperpage{283}
-  \item \texttt{ip-normed-ag(v)}, \hyperpage{283}
-  \item \texttt{is-abelian-group(s)}, \hyperpage{284}
-  \item \texttt{is-absolutely-summable(grp, f)}, \hyperpage{284}
-  \item \texttt{is-algebra-of-sets(omega, ca)}, \hyperpage{284}
+  \item \texttt{ip(s)}, \hyperpage{285}
+  \item \texttt{ip-norm(v, x)}, \hyperpage{285}
+  \item \texttt{ip-normed-ag(v)}, \hyperpage{285}
+  \item \texttt{is-abelian-group(s)}, \hyperpage{286}
+  \item \texttt{is-absolutely-summable(grp, f)}, \hyperpage{286}
+  \item \texttt{is-algebra-of-sets(omega, ca)}, \hyperpage{286}
   \item \texttt{is-analytic-at(anlf\_, anlu\_, anla\_)}, 
-		\hyperpage{285}
-  \item \texttt{is-antiderivable(phi, a, b)}, \hyperpage{285}
-  \item \texttt{is-antiderivative(f, phi, a, b)}, \hyperpage{285}
-  \item \texttt{is-associative(op, crr)}, \hyperpage{286}
-  \item \texttt{is-bounded-linear-arrow(a, b, f)}, \hyperpage{286}
-  \item \texttt{is-bounded-linear-functional(m, f)}, \hyperpage{286}
-  \item \texttt{is-bounded-linear-functional-on(m, s, f)}, 
-		\hyperpage{286}
-  \item \texttt{is-bounded-metric-space(s)}, \hyperpage{287}
-  \item \texttt{is-c-metric-space(s)}, \hyperpage{287}
-  \item \texttt{is-caratheodory-measurable(omega, mu, es)}, 
 		\hyperpage{287}
-  \item \texttt{is-cauchy-seq(s, f)}, \hyperpage{287}
-  \item \texttt{is-cc-diff-at(g, a, l)}, \hyperpage{288}
-  \item \texttt{is-chain(grd, porel, ch)}, \hyperpage{288}
-  \item \texttt{is-closed(s, a)}, \hyperpage{288}
-  \item \texttt{is-comm-monoid(s)}, \hyperpage{289}
-  \item \texttt{is-commutative(op, crr)}, \hyperpage{289}
-  \item \texttt{is-commutative-ring(s)}, \hyperpage{289}
-  \item \texttt{is-compact(s)}, \hyperpage{289}
-  \item \texttt{is-complete(s)}, \hyperpage{290}
-  \item \texttt{is-complex-inner-product-space(s)}, \hyperpage{290}
-  \item \texttt{is-cont-lin(m1, fam1, m2, fam2, tt)}, \hyperpage{291}
-  \item \texttt{is-continuous(s, t, f)}, \hyperpage{291}
-  \item \texttt{is-continuous-arrow(a, b, f)}, \hyperpage{291}
-  \item \texttt{is-continuous-at(s, t, f, a)}, \hyperpage{291}
-  \item \texttt{is-continuous-on(f, d)}, \hyperpage{292}
-  \item \texttt{is-convex(cvu\_)}, \hyperpage{292}
-  \item \texttt{is-countable(rpc\_)}, \hyperpage{292}
+  \item \texttt{is-antiderivable(phi, a, b)}, \hyperpage{287}
+  \item \texttt{is-antiderivative(f, phi, a, b)}, \hyperpage{287}
+  \item \texttt{is-associative(op, crr)}, \hyperpage{288}
+  \item \texttt{is-bounded-linear-arrow(a, b, f)}, \hyperpage{288}
+  \item \texttt{is-bounded-linear-functional(m, f)}, \hyperpage{288}
+  \item \texttt{is-bounded-linear-functional-on(m, s, f)}, 
+		\hyperpage{288}
+  \item \texttt{is-bounded-metric-space(s)}, \hyperpage{289}
+  \item \texttt{is-c-metric-space(s)}, \hyperpage{289}
+  \item \texttt{is-caratheodory-measurable(omega, mu, es)}, 
+		\hyperpage{289}
+  \item \texttt{is-cauchy-seq(s, f)}, \hyperpage{289}
+  \item \texttt{is-cc-diff-at(g, a, l)}, \hyperpage{290}
+  \item \texttt{is-chain(grd, porel, ch)}, \hyperpage{290}
+  \item \texttt{is-closed(s, a)}, \hyperpage{290}
+  \item \texttt{is-comm-monoid(s)}, \hyperpage{291}
+  \item \texttt{is-commutative(op, crr)}, \hyperpage{291}
+  \item \texttt{is-commutative-ring(s)}, \hyperpage{291}
+  \item \texttt{is-compact(s)}, \hyperpage{291}
+  \item \texttt{is-complete(s)}, \hyperpage{292}
+  \item \texttt{is-complex-inner-product-space(s)}, \hyperpage{292}
+  \item \texttt{is-cont-lin(m1, fam1, m2, fam2, tt)}, \hyperpage{293}
+  \item \texttt{is-continuous(s, t, f)}, \hyperpage{293}
+  \item \texttt{is-continuous-arrow(a, b, f)}, \hyperpage{293}
+  \item \texttt{is-continuous-at(s, t, f, a)}, \hyperpage{293}
+  \item \texttt{is-continuous-on(f, d)}, \hyperpage{294}
+  \item \texttt{is-convex(cvu\_)}, \hyperpage{294}
+  \item \texttt{is-countable(rpc\_)}, \hyperpage{294}
   \item \texttt{is-countable-pseudometric-family(fam, ground)}, 
-		\hyperpage{293}
-  \item \texttt{is-dense-seq(s, dseq)}, \hyperpage{293}
-  \item \texttt{is-diagonal(a, m, n, d)}, \hyperpage{293}
-  \item \texttt{is-diff-at(f, a, l)}, \hyperpage{293}
-  \item \texttt{is-diff-at-v(m, f, a, l)}, \hyperpage{294}
-  \item \texttt{is-diff-on(k, u, f, a, l)}, \hyperpage{294}
-  \item \texttt{is-dir-diff-at(m, f, a, eta, dl)}, \hyperpage{294}
-  \item \texttt{is-distributive(addop, mulop, crr)}, \hyperpage{294}
-  \item \texttt{is-eps-cauchy-seq(s, eps, y)}, \hyperpage{295}
-  \item \texttt{is-equicontinuous(s, t, fam)}, \hyperpage{295}
-  \item \texttt{is-equivalence(rho, crr)}, \hyperpage{295}
-  \item \texttt{is-euclidean-ring(s)}, \hyperpage{296}
-  \item \texttt{is-field(s)}, \hyperpage{296}
-  \item \texttt{is-field-ring(s)}, \hyperpage{296}
-  \item \texttt{is-finite-cover(c, a)}, \hyperpage{297}
-  \item \texttt{is-finite-dimensional(m)}, \hyperpage{297}
-  \item \texttt{is-frechet-structure(m, fam)}, \hyperpage{297}
-  \item \texttt{is-fun}, \hyperpage{297}
-  \item \texttt{is-gauge-countable(s)}, \hyperpage{297}
-  \item \texttt{is-group(s)}, \hyperpage{298}
+		\hyperpage{295}
+  \item \texttt{is-dense-seq(s, dseq)}, \hyperpage{295}
+  \item \texttt{is-diagonal(a, m, n, d)}, \hyperpage{295}
+  \item \texttt{is-diff-at(f, a, l)}, \hyperpage{295}
+  \item \texttt{is-diff-at-v(m, f, a, l)}, \hyperpage{296}
+  \item \texttt{is-diff-on(k, u, f, a, l)}, \hyperpage{296}
+  \item \texttt{is-dir-diff-at(m, f, a, eta, dl)}, \hyperpage{296}
+  \item \texttt{is-distributive(addop, mulop, crr)}, \hyperpage{296}
+  \item \texttt{is-eps-cauchy-seq(s, eps, y)}, \hyperpage{297}
+  \item \texttt{is-equicontinuous(s, t, fam)}, \hyperpage{297}
+  \item \texttt{is-equivalence(rho, crr)}, \hyperpage{297}
+  \item \texttt{is-euclidean-ring(s)}, \hyperpage{298}
+  \item \texttt{is-field(s)}, \hyperpage{298}
+  \item \texttt{is-field-ring(s)}, \hyperpage{298}
+  \item \texttt{is-finite-cover(c, a)}, \hyperpage{299}
+  \item \texttt{is-finite-dimensional(m)}, \hyperpage{299}
+  \item \texttt{is-frechet-structure(m, fam)}, \hyperpage{299}
+  \item \texttt{is-fun}, \hyperpage{299}
+  \item \texttt{is-gauge-countable(s)}, \hyperpage{299}
+  \item \texttt{is-group(s)}, \hyperpage{300}
   \item \texttt{is-group-norm(nm, op, invop, unit, crr)}, 
-		\hyperpage{298}
-  \item \texttt{is-hausdorff(s)}, \hyperpage{298}
-  \item \texttt{is-hom-abelian-group(a, b, f)}, \hyperpage{299}
-  \item \texttt{is-hom-c-metric-space(a, b, f)}, \hyperpage{299}
-  \item \texttt{is-hom-comm-monoid(a, b, f)}, \hyperpage{299}
-  \item \texttt{is-hom-commutative-ring(a, b, f)}, \hyperpage{299}
-  \item \texttt{is-hom-complex-inner-product-space(a, b, f)}, 
 		\hyperpage{300}
-  \item \texttt{is-hom-euclidean-ring(a, b, f)}, \hyperpage{300}
-  \item \texttt{is-hom-field(a, b, f)}, \hyperpage{300}
-  \item \texttt{is-hom-field-ring(a, b, f)}, \hyperpage{301}
-  \item \texttt{is-hom-group(a, b, f)}, \hyperpage{301}
-  \item \texttt{is-hom-integral-domain(a, b, f)}, \hyperpage{301}
-  \item \texttt{is-hom-measurable-space(s, t, f)}, \hyperpage{301}
-  \item \texttt{is-hom-measure-space(s, t, f)}, \hyperpage{302}
-  \item \texttt{is-hom-metric-space(a, b, f)}, \hyperpage{302}
-  \item \texttt{is-hom-metrizable-top-space(s, t, f)}, \hyperpage{302}
-  \item \texttt{is-hom-module(a, b, f)}, \hyperpage{302}
-  \item \texttt{is-hom-monoid(a, b, f)}, \hyperpage{303}
-  \item \texttt{is-hom-normed-ag(a, b, f)}, \hyperpage{303}
-  \item \texttt{is-hom-normed-field(a, b, f)}, \hyperpage{303}
-  \item \texttt{is-hom-normed-vector-space(a, b, f)}, \hyperpage{304}
-  \item \texttt{is-hom-pid(a, b, f)}, \hyperpage{304}
-  \item \texttt{is-hom-pseudometric-space(a, b, f)}, \hyperpage{304}
-  \item \texttt{is-hom-ring(a, b, f)}, \hyperpage{305}
-  \item \texttt{is-hom-ringoid(a, b, f)}, \hyperpage{305}
-  \item \texttt{is-hom-semigroup(a, b, f)}, \hyperpage{305}
-  \item \texttt{is-hom-setoid(a, b, f)}, \hyperpage{305}
-  \item \texttt{is-hom-top-space(s, t, f)}, \hyperpage{306}
-  \item \texttt{is-hom-vector-space(a, b, f)}, \hyperpage{306}
-  \item \texttt{is-ideal(s, i)}, \hyperpage{306}
+  \item \texttt{is-hausdorff(s)}, \hyperpage{300}
+  \item \texttt{is-hom-abelian-group(a, b, f)}, \hyperpage{301}
+  \item \texttt{is-hom-c-metric-space(a, b, f)}, \hyperpage{301}
+  \item \texttt{is-hom-comm-monoid(a, b, f)}, \hyperpage{301}
+  \item \texttt{is-hom-commutative-ring(a, b, f)}, \hyperpage{301}
+  \item \texttt{is-hom-complex-inner-product-space(a, b, f)}, 
+		\hyperpage{302}
+  \item \texttt{is-hom-euclidean-ring(a, b, f)}, \hyperpage{302}
+  \item \texttt{is-hom-field(a, b, f)}, \hyperpage{302}
+  \item \texttt{is-hom-field-ring(a, b, f)}, \hyperpage{303}
+  \item \texttt{is-hom-group(a, b, f)}, \hyperpage{303}
+  \item \texttt{is-hom-integral-domain(a, b, f)}, \hyperpage{303}
+  \item \texttt{is-hom-measurable-space(s, t, f)}, \hyperpage{303}
+  \item \texttt{is-hom-measure-space(s, t, f)}, \hyperpage{304}
+  \item \texttt{is-hom-metric-space(a, b, f)}, \hyperpage{304}
+  \item \texttt{is-hom-metrizable-top-space(s, t, f)}, \hyperpage{304}
+  \item \texttt{is-hom-module(a, b, f)}, \hyperpage{304}
+  \item \texttt{is-hom-monoid(a, b, f)}, \hyperpage{305}
+  \item \texttt{is-hom-normed-ag(a, b, f)}, \hyperpage{305}
+  \item \texttt{is-hom-normed-field(a, b, f)}, \hyperpage{305}
+  \item \texttt{is-hom-normed-vector-space(a, b, f)}, \hyperpage{306}
+  \item \texttt{is-hom-pid(a, b, f)}, \hyperpage{306}
+  \item \texttt{is-hom-pseudometric-space(a, b, f)}, \hyperpage{306}
+  \item \texttt{is-hom-ring(a, b, f)}, \hyperpage{307}
+  \item \texttt{is-hom-ringoid(a, b, f)}, \hyperpage{307}
+  \item \texttt{is-hom-semigroup(a, b, f)}, \hyperpage{307}
+  \item \texttt{is-hom-setoid(a, b, f)}, \hyperpage{307}
+  \item \texttt{is-hom-top-space(s, t, f)}, \hyperpage{308}
+  \item \texttt{is-hom-vector-space(a, b, f)}, \hyperpage{308}
+  \item \texttt{is-ideal(s, i)}, \hyperpage{308}
   \item \texttt{is-ideal-in(i\_, carr\_, add\_, mul\_, neg\_, zero\_)}, 
-		\hyperpage{306}
-  \item \texttt{is-identity(op, unit, crr)}, \hyperpage{307}
-  \item \texttt{is-integral-domain(s)}, \hyperpage{307}
-  \item \texttt{is-invertible-mat(a, n, u)}, \hyperpage{307}
-  \item \texttt{is-isometry(s, t, f)}, \hyperpage{308}
-  \item \texttt{is-k-linear(m, f)}, \hyperpage{308}
-  \item \texttt{is-k-linear-on(m, s, f)}, \hyperpage{308}
-  \item \texttt{is-left-limit(f, x, l)}, \hyperpage{308}
+		\hyperpage{308}
+  \item \texttt{is-identity(op, unit, crr)}, \hyperpage{309}
+  \item \texttt{is-integral-domain(s)}, \hyperpage{309}
+  \item \texttt{is-invertible-mat(a, n, u)}, \hyperpage{309}
+  \item \texttt{is-isometry(s, t, f)}, \hyperpage{310}
+  \item \texttt{is-k-linear(m, f)}, \hyperpage{310}
+  \item \texttt{is-k-linear-on(m, s, f)}, \hyperpage{310}
+  \item \texttt{is-left-limit(f, x, l)}, \hyperpage{310}
   \item \texttt{is-left-limit-within(rpf\_, rpw\_, rpx\_, rpl\_)}, 
-		\hyperpage{309}
-  \item \texttt{is-linear-functional(m, f)}, \hyperpage{309}
-  \item \texttt{is-linear-functional-on(m, s, f)}, \hyperpage{309}
-  \item \texttt{is-linear-map(m1, m2, tt)}, \hyperpage{309}
-  \item \texttt{is-lipschitz-arrow(a, b, f)}, \hyperpage{310}
-  \item \texttt{is-local-max-at(f, d, lmt\_)}, \hyperpage{310}
-  \item \texttt{is-local-min-at(f, d, lmt\_)}, \hyperpage{310}
-  \item \texttt{is-maximal(grd, porel, mx)}, \hyperpage{311}
-  \item \texttt{is-meager(s, a)}, \hyperpage{311}
-  \item \texttt{is-measurable-fn(omega, ca, f)}, \hyperpage{311}
-  \item \texttt{is-measurable-map(omega, ca, omega2, cb, f)}, 
 		\hyperpage{311}
-  \item \texttt{is-measurable-space(s)}, \hyperpage{312}
-  \item \texttt{is-measure(omega, ca, mu)}, \hyperpage{312}
-  \item \texttt{is-measure-space(s)}, \hyperpage{312}
-  \item \texttt{is-metric(dst, crr)}, \hyperpage{312}
-  \item \texttt{is-metric-space(s)}, \hyperpage{313}
-  \item \texttt{is-metrizable-top-space(s)}, \hyperpage{313}
-  \item \texttt{is-module(s)}, \hyperpage{313}
-  \item \texttt{is-monoid(s)}, \hyperpage{314}
-  \item \texttt{is-ms-sequence(ms)}, \hyperpage{314}
-  \item \texttt{is-noetherian(m)}, \hyperpage{315}
-  \item \texttt{is-nonmeager(s, a)}, \hyperpage{315}
-  \item \texttt{is-norm(nm, addop, mulop, zr, crr)}, \hyperpage{315}
-  \item \texttt{is-normally-convergent(u, cpsxs\_)}, \hyperpage{315}
-  \item \texttt{is-normed-ag(s)}, \hyperpage{316}
-  \item \texttt{is-normed-field(s)}, \hyperpage{316}
-  \item \texttt{is-normed-vector-space(s)}, \hyperpage{316}
-  \item \texttt{is-nowhere-dense(s, a)}, \hyperpage{317}
-  \item \texttt{is-open(s, u)}, \hyperpage{317}
-  \item \texttt{is-open-cover(s, c)}, \hyperpage{318}
-  \item \texttt{is-open-gauge(fam, ground, u)}, \hyperpage{318}
+  \item \texttt{is-linear-functional(m, f)}, \hyperpage{311}
+  \item \texttt{is-linear-functional-on(m, s, f)}, \hyperpage{311}
+  \item \texttt{is-linear-map(m1, m2, tt)}, \hyperpage{311}
+  \item \texttt{is-lipschitz-arrow(a, b, f)}, \hyperpage{312}
+  \item \texttt{is-local-max-at(f, d, lmt\_)}, \hyperpage{312}
+  \item \texttt{is-local-min-at(f, d, lmt\_)}, \hyperpage{312}
+  \item \texttt{is-maximal(grd, porel, mx)}, \hyperpage{313}
+  \item \texttt{is-meager(s, a)}, \hyperpage{313}
+  \item \texttt{is-measurable-fn(omega, ca, f)}, \hyperpage{313}
+  \item \texttt{is-measurable-map(omega, ca, omega2, cb, f)}, 
+		\hyperpage{313}
+  \item \texttt{is-measurable-space(s)}, \hyperpage{314}
+  \item \texttt{is-measure(omega, ca, mu)}, \hyperpage{314}
+  \item \texttt{is-measure-space(s)}, \hyperpage{314}
+  \item \texttt{is-metric(dst, crr)}, \hyperpage{314}
+  \item \texttt{is-metric-space(s)}, \hyperpage{315}
+  \item \texttt{is-metrizable-top-space(s)}, \hyperpage{315}
+  \item \texttt{is-module(s)}, \hyperpage{315}
+  \item \texttt{is-monoid(s)}, \hyperpage{316}
+  \item \texttt{is-ms-sequence(ms)}, \hyperpage{316}
+  \item \texttt{is-noetherian(m)}, \hyperpage{317}
+  \item \texttt{is-nonmeager(s, a)}, \hyperpage{317}
+  \item \texttt{is-norm(nm, addop, mulop, zr, crr)}, \hyperpage{317}
+  \item \texttt{is-normally-convergent(u, cpsxs\_)}, \hyperpage{317}
+  \item \texttt{is-normed-ag(s)}, \hyperpage{318}
+  \item \texttt{is-normed-field(s)}, \hyperpage{318}
+  \item \texttt{is-normed-vector-space(s)}, \hyperpage{318}
+  \item \texttt{is-nowhere-dense(s, a)}, \hyperpage{319}
+  \item \texttt{is-open(s, u)}, \hyperpage{319}
+  \item \texttt{is-open-cover(s, c)}, \hyperpage{320}
+  \item \texttt{is-open-gauge(fam, ground, u)}, \hyperpage{320}
   \item \texttt{is-open-lin-map(m1, fam1, m2, fam2, tt)}, 
-		\hyperpage{318}
-  \item \texttt{is-ord(x)}, \hyperpage{318}
-  \item \texttt{is-outer-measure(omega, mu)}, \hyperpage{319}
-  \item \texttt{is-partial-order(grd, porel)}, \hyperpage{319}
-  \item \texttt{is-partition(p, n, a, b)}, \hyperpage{319}
-  \item \texttt{is-path(pgam, a, b)}, \hyperpage{320}
-  \item \texttt{is-pid(s)}, \hyperpage{320}
-  \item \texttt{is-piecewise-continuous(f, a, b)}, \hyperpage{320}
-  \item \texttt{is-primitive(rpg\_, rpf\_, rpa\_, rpb\_)}, 
 		\hyperpage{320}
-  \item \texttt{is-pseudometric(dst, crr)}, \hyperpage{321}
-  \item \texttt{is-pseudometric-space(s)}, \hyperpage{321}
-  \item \texttt{is-ptwise-cauchy(s, fam)}, \hyperpage{321}
-  \item \texttt{is-pw-antiderivable(pphi\_, a, b)}, \hyperpage{322}
-  \item \texttt{is-pw-continuous-on(pphi\_, a, b)}, \hyperpage{322}
-  \item \texttt{is-r-net(s, f, a, r)}, \hyperpage{322}
-  \item \texttt{is-regulated(f, a, b)}, \hyperpage{322}
-  \item \texttt{is-regulated-on(rpf\_, rpa\_, rpb\_)}, \hyperpage{323}
-  \item \texttt{is-right-limit(f, x, l)}, \hyperpage{323}
+  \item \texttt{is-ord(x)}, \hyperpage{320}
+  \item \texttt{is-outer-measure(omega, mu)}, \hyperpage{321}
+  \item \texttt{is-partial-order(grd, porel)}, \hyperpage{321}
+  \item \texttt{is-partition(p, n, a, b)}, \hyperpage{321}
+  \item \texttt{is-path(pgam, a, b)}, \hyperpage{322}
+  \item \texttt{is-pid(s)}, \hyperpage{322}
+  \item \texttt{is-piecewise-continuous(f, a, b)}, \hyperpage{322}
+  \item \texttt{is-primitive(rpg\_, rpf\_, rpa\_, rpb\_)}, 
+		\hyperpage{322}
+  \item \texttt{is-pseudometric(dst, crr)}, \hyperpage{323}
+  \item \texttt{is-pseudometric-space(s)}, \hyperpage{323}
+  \item \texttt{is-ptwise-cauchy(s, fam)}, \hyperpage{323}
+  \item \texttt{is-pw-antiderivable(pphi\_, a, b)}, \hyperpage{324}
+  \item \texttt{is-pw-continuous-on(pphi\_, a, b)}, \hyperpage{324}
+  \item \texttt{is-r-net(s, f, a, r)}, \hyperpage{324}
+  \item \texttt{is-regulated(f, a, b)}, \hyperpage{324}
+  \item \texttt{is-regulated-on(rpf\_, rpa\_, rpb\_)}, \hyperpage{325}
+  \item \texttt{is-right-limit(f, x, l)}, \hyperpage{325}
   \item \texttt{is-right-limit-within(rpf\_, rpw\_, rpx\_, rpl\_)}, 
-		\hyperpage{323}
-  \item \texttt{is-ring(s)}, \hyperpage{324}
-  \item \texttt{is-ringoid(s)}, \hyperpage{324}
-  \item \texttt{is-road(pgam, dgam, a, b)}, \hyperpage{324}
-  \item \texttt{is-semigroup(s)}, \hyperpage{325}
-  \item \texttt{is-seminorm(m, p)}, \hyperpage{325}
-  \item \texttt{is-seminorm-family(m, fam)}, \hyperpage{326}
-  \item \texttt{is-separable(s)}, \hyperpage{326}
-  \item \texttt{is-set(x)}, \hyperpage{326}
-  \item \texttt{is-setoid(s)}, \hyperpage{326}
-  \item \texttt{is-sigma-algebra(omega, ca)}, \hyperpage{327}
-  \item \texttt{is-simple-fn(omega, ca, f)}, \hyperpage{327}
-  \item \texttt{is-step-fn(f, a, b)}, \hyperpage{327}
-  \item \texttt{is-strictly-below(porel, x, y)}, \hyperpage{327}
-  \item \texttt{is-strictly-increasing-on(f, s)}, \hyperpage{328}
-  \item \texttt{is-submodule(m, s)}, \hyperpage{328}
-  \item \texttt{is-subsequence(s, y, f)}, \hyperpage{328}
-  \item \texttt{is-subspace(m, s)}, \hyperpage{328}
-  \item \texttt{is-summable(grp, f)}, \hyperpage{328}
-  \item \texttt{is-taylor-family(d, n, a, b)}, \hyperpage{329}
-  \item \texttt{is-top-space(s)}, \hyperpage{329}
-  \item \texttt{is-unif-cauchy(s, fam)}, \hyperpage{329}
-  \item \texttt{is-unif-limit-on(fam, g, a, b)}, \hyperpage{330}
-  \item \texttt{is-uniformly-continuous(s, t, f)}, \hyperpage{330}
+		\hyperpage{325}
+  \item \texttt{is-ring(s)}, \hyperpage{326}
+  \item \texttt{is-ringoid(s)}, \hyperpage{326}
+  \item \texttt{is-road(pgam, dgam, a, b)}, \hyperpage{326}
+  \item \texttt{is-semigroup(s)}, \hyperpage{327}
+  \item \texttt{is-seminorm(m, p)}, \hyperpage{327}
+  \item \texttt{is-seminorm-family(m, fam)}, \hyperpage{328}
+  \item \texttt{is-separable(s)}, \hyperpage{328}
+  \item \texttt{is-set(x)}, \hyperpage{328}
+  \item \texttt{is-setoid(s)}, \hyperpage{328}
+  \item \texttt{is-sigma-algebra(omega, ca)}, \hyperpage{329}
+  \item \texttt{is-simple-fn(omega, ca, f)}, \hyperpage{329}
+  \item \texttt{is-step-fn(f, a, b)}, \hyperpage{329}
+  \item \texttt{is-strictly-below(porel, x, y)}, \hyperpage{329}
+  \item \texttt{is-strictly-increasing-on(f, s)}, \hyperpage{330}
+  \item \texttt{is-submodule(m, s)}, \hyperpage{330}
+  \item \texttt{is-subsequence(s, y, f)}, \hyperpage{330}
+  \item \texttt{is-subspace(m, s)}, \hyperpage{330}
+  \item \texttt{is-summable(grp, f)}, \hyperpage{330}
+  \item \texttt{is-taylor-family(d, n, a, b)}, \hyperpage{331}
+  \item \texttt{is-top-space(s)}, \hyperpage{331}
+  \item \texttt{is-unif-cauchy(s, fam)}, \hyperpage{331}
+  \item \texttt{is-unif-limit-on(fam, g, a, b)}, \hyperpage{332}
+  \item \texttt{is-uniformly-continuous(s, t, f)}, \hyperpage{332}
   \item \texttt{is-uniformly-continuous-arrow(a, b, f)}, 
-		\hyperpage{330}
-  \item \texttt{is-upper-bound(grd, porel, ch, b)}, \hyperpage{330}
-  \item \texttt{is-vector-space(s)}, \hyperpage{331}
+		\hyperpage{332}
+  \item \texttt{is-upper-bound(grd, porel, ch, b)}, \hyperpage{332}
+  \item \texttt{is-vector-space(s)}, \hyperpage{333}
 
   \indexspace
 
   \item \texttt{juxta(jxp\_, jxq\_, jxa\_, jxb\_, jxc\_)}, 
-		\hyperpage{331}
+		\hyperpage{333}
 
   \indexspace
 
-  \item \texttt{keep}, \hyperpage{331}
+  \item \texttt{keep}, \hyperpage{333}
   \item \texttt{keep} (tactic), \hyperpage{103}
   \item \texttt{keep-set(phi, grd, porel, kset, alpha)}, 
-		\hyperpage{332}
+		\hyperpage{334}
 
   \indexspace
 
-  \item \texttt{lam-b}, \hyperpage{332}
+  \item \texttt{lam-b}, \hyperpage{334}
   \item \texttt{lam-b} (tactic), \hyperpage{124}
-  \item \texttt{lam-b-h}, \hyperpage{332}
-  \item \texttt{lam-b-h} (tactic), \hyperpage{124}
-  \item \texttt{lam-t}, \hyperpage{332}
+  \item \texttt{lam-b-h}, \hyperpage{334}
+  \item \texttt{lam-b-h} (tactic), \hyperpage{125}
+  \item \texttt{lam-t}, \hyperpage{334}
   \item \texttt{lam-t} (tactic), \hyperpage{124}
   \item \texttt  {lambda-beta} (kernel operation), \hyperpage{64}
   \item \texttt  {lambda-beta-hyp} (kernel operation), \hyperpage{64}
   \item \texttt  {lambda-type} (kernel operation), \hyperpage{64}
-  \item \texttt{lastcoeff-set(md, p, u, sm)}, \hyperpage{332}
-  \item \texttt{leadcoef(a, p)}, \hyperpage{333}
-  \item \texttt{len-r}, \hyperpage{333}
+  \item \texttt{lastcoeff-set(md, p, u, sm)}, \hyperpage{334}
+  \item \texttt{leadcoef(a, p)}, \hyperpage{335}
+  \item \texttt{len-r}, \hyperpage{335}
   \item \texttt{len-r} (tactic), \hyperpage{111}
-  \item \texttt{length}, \hyperpage{333}
+  \item \texttt{length}, \hyperpage{335}
   \item \texttt  {length-reduce} (kernel operation), \hyperpage{64}
-  \item \texttt{limit-ord}, \hyperpage{333}
-  \item \texttt{lincomb(md, n, c, u)}, \hyperpage{333}
-  \item \texttt{line(m, v)}, \hyperpage{334}
-  \item \texttt{line-int(pf, pgam, dgam, a, b)}, \hyperpage{334}
-  \item \texttt{list}, \hyperpage{335}
-  \item \texttt{little-o-at(g, a)}, \hyperpage{335}
-  \item \texttt{log(x\_)}, \hyperpage{335}
+  \item \texttt{limit-ord}, \hyperpage{335}
+  \item \texttt{lincomb(md, n, c, u)}, \hyperpage{335}
+  \item \texttt{line(m, v)}, \hyperpage{336}
+  \item \texttt{line-int(pf, pgam, dgam, a, b)}, \hyperpage{336}
+  \item \texttt{list}, \hyperpage{337}
+  \item \texttt{little-o-at(g, a)}, \hyperpage{337}
+  \item \texttt{log(x\_)}, \hyperpage{337}
 
   \indexspace
 
-  \item \texttt{mac}, \hyperpage{335}
+  \item \texttt{mac}, \hyperpage{337}
   \item \texttt{mac} (tactic), \hyperpage{103}
-  \item \texttt{mac-h}, \hyperpage{336}
+  \item \texttt{mac-h}, \hyperpage{338}
   \item \texttt{mac-h} (tactic), \hyperpage{105}
-  \item \texttt{mac-h*}, \hyperpage{336}
+  \item \texttt{mac-h*}, \hyperpage{338}
   \item \texttt{mac-h*} (tactic), \hyperpage{105}
   \item \texttt  {macete} (kernel operation), \hyperpage{64}
   \item \texttt  {macete-hyp} (kernel operation), \hyperpage{64}
-  \item \texttt{macm}, \hyperpage{336}
+  \item \texttt{macm}, \hyperpage{338}
   \item \texttt{macm} (tactic), \hyperpage{105}
-  \item \texttt{magnitude}, \hyperpage{336}
-  \item \texttt{make-set}, \hyperpage{336}
-  \item \texttt{mat(m, n, x)}, \hyperpage{337}
-  \item \texttt{mat-equiv(a, m, n, c, d)}, \hyperpage{337}
-  \item \texttt{mat-ring(a, n)}, \hyperpage{337}
-  \item \texttt{matact(md, p, u)}, \hyperpage{338}
-  \item \texttt{matadd(a, p, q)}, \hyperpage{338}
-  \item \texttt{matmul(a, p, q)}, \hyperpage{338}
-  \item \texttt{matneg(a, p)}, \hyperpage{339}
-  \item \texttt{matof(m, n, g)}, \hyperpage{339}
-  \item \texttt{matrix}, \hyperpage{339}
-  \item \texttt{matscale(a, r, p)}, \hyperpage{340}
-  \item \texttt{matunit(a, n, k, l)}, \hyperpage{340}
-  \item \texttt{max}, \hyperpage{340}
-  \item \texttt{meas(s)}, \hyperpage{340}
-  \item \texttt{measurable-space}, \hyperpage{341}
-  \item \texttt{measure-space}, \hyperpage{341}
-  \item \texttt{measure-space-as-measurable-space(s)}, \hyperpage{341}
-  \item \texttt{metric-space}, \hyperpage{341}
-  \item \texttt{metric-top(md)}, \hyperpage{341}
-  \item \texttt{metrizable-top-space}, \hyperpage{341}
-  \item \texttt{min}, \hyperpage{341}
-  \item \texttt{minimize!}, \hyperpage{342}
-  \item \texttt{minimize!} (tactic), \hyperpage{131}
-  \item \texttt{minor(s, r, c, n)}, \hyperpage{342}
-  \item \texttt{module}, \hyperpage{342}
-  \item \texttt{module-vector-ag(s)}, \hyperpage{342}
-  \item \texttt{monalg(a, m)}, \hyperpage{343}
-  \item \texttt{monalg-add(a, m, f, g)}, \hyperpage{343}
-  \item \texttt{monalg-mul(a, m, f, g)}, \hyperpage{343}
-  \item \texttt{monalg-neg(a, m, f)}, \hyperpage{344}
-  \item \texttt{monalg-one(a, m)}, \hyperpage{344}
-  \item \texttt{monalg-zero(a, m)}, \hyperpage{344}
-  \item \texttt{monoid}, \hyperpage{344}
-  \item \texttt{monomial(a, c, n)}, \hyperpage{345}
-  \item \texttt{mp}, \hyperpage{345}
+  \item \texttt{magnitude}, \hyperpage{338}
+  \item \texttt{make-set}, \hyperpage{338}
+  \item \texttt{mat(m, n, x)}, \hyperpage{339}
+  \item \texttt{mat-equiv(a, m, n, c, d)}, \hyperpage{339}
+  \item \texttt{mat-ring(a, n)}, \hyperpage{339}
+  \item \texttt{matact(md, p, u)}, \hyperpage{340}
+  \item \texttt{matadd(a, p, q)}, \hyperpage{340}
+  \item \texttt{matmul(a, p, q)}, \hyperpage{340}
+  \item \texttt{matneg(a, p)}, \hyperpage{341}
+  \item \texttt{matof(m, n, g)}, \hyperpage{341}
+  \item \texttt{matrix}, \hyperpage{341}
+  \item \texttt{matscale(a, r, p)}, \hyperpage{342}
+  \item \texttt{matunit(a, n, k, l)}, \hyperpage{342}
+  \item \texttt{max}, \hyperpage{342}
+  \item \texttt{meas(s)}, \hyperpage{342}
+  \item \texttt{measurable-space}, \hyperpage{343}
+  \item \texttt{measure-space}, \hyperpage{343}
+  \item \texttt{measure-space-as-measurable-space(s)}, \hyperpage{343}
+  \item \texttt{metric-space}, \hyperpage{343}
+  \item \texttt{metric-top(md)}, \hyperpage{343}
+  \item \texttt{metrizable-top-space}, \hyperpage{343}
+  \item \texttt{min}, \hyperpage{343}
+  \item \texttt{minimize!}, \hyperpage{344}
+  \item \texttt{minimize!} (tactic), \hyperpage{132}
+  \item \texttt{minor(s, r, c, n)}, \hyperpage{344}
+  \item \texttt{module}, \hyperpage{344}
+  \item \texttt{module-vector-ag(s)}, \hyperpage{344}
+  \item \texttt{monalg(a, m)}, \hyperpage{345}
+  \item \texttt{monalg-add(a, m, f, g)}, \hyperpage{345}
+  \item \texttt{monalg-mul(a, m, f, g)}, \hyperpage{345}
+  \item \texttt{monalg-neg(a, m, f)}, \hyperpage{346}
+  \item \texttt{monalg-one(a, m)}, \hyperpage{346}
+  \item \texttt{monalg-zero(a, m)}, \hyperpage{346}
+  \item \texttt{monoid}, \hyperpage{346}
+  \item \texttt{monomial(a, c, n)}, \hyperpage{347}
+  \item \texttt{mp}, \hyperpage{347}
   \item \texttt{mp} (tactic), \hyperpage{99}
-  \item \texttt{mpow}, \hyperpage{345}
-  \item \texttt{mul(s)}, \hyperpage{345}
-  \item \texttt{mul-inv(s)}, \hyperpage{345}
+  \item \texttt{mpow}, \hyperpage{347}
+  \item \texttt{mul(s)}, \hyperpage{347}
+  \item \texttt{mul-inv(s)}, \hyperpage{347}
 
   \indexspace
 
-  \item \texttt{nag-metric-space(nag)}, \hyperpage{346}
-  \item \texttt{neg(s)}, \hyperpage{346}
-  \item \texttt{neg-rr}, \hyperpage{346}
-  \item \texttt{nf-metric-space(nf)}, \hyperpage{346}
-  \item \texttt{ni}, \hyperpage{347}
+  \item \texttt{nag-metric-space(nag)}, \hyperpage{348}
+  \item \texttt{neg(s)}, \hyperpage{348}
+  \item \texttt{neg-rr}, \hyperpage{348}
+  \item \texttt{nf-metric-space(nf)}, \hyperpage{348}
+  \item \texttt{ni}, \hyperpage{349}
   \item \texttt{ni} (tactic), \hyperpage{97}
-  \item \texttt{nn-add-monoid}, \hyperpage{347}
-  \item \texttt{nn-enum(s)}, \hyperpage{347}
+  \item \texttt{nn-add-monoid}, \hyperpage{349}
+  \item \texttt{nn-enum(s)}, \hyperpage{349}
   \item \texttt  {nn-induction} (kernel operation), \hyperpage{64}
-  \item \texttt{nn-minus}, \hyperpage{347}
-  \item \texttt{nnfst(n\_)}, \hyperpage{347}
-  \item \texttt{nnpair(i\_, j\_)}, \hyperpage{347}
-  \item \texttt{nnsnd(n\_)}, \hyperpage{348}
-  \item \texttt{non-zero(s)}, \hyperpage{348}
-  \item \texttt{nonneg-rr}, \hyperpage{348}
-  \item \texttt{normed-ag}, \hyperpage{348}
-  \item \texttt{normed-ag-as-abelian-group(s)}, \hyperpage{348}
-  \item \texttt{normed-field}, \hyperpage{349}
-  \item \texttt{normed-field-additive-ag(s)}, \hyperpage{349}
-  \item \texttt{normed-field-as-commutative-ring(s)}, \hyperpage{349}
-  \item \texttt{normed-field-as-integral-domain(s)}, \hyperpage{349}
-  \item \texttt{normed-vector-space}, \hyperpage{349}
-  \item \texttt{normed-vector-space-as-module(s)}, \hyperpage{349}
-  \item \texttt{normed-vector-space-as-normed-ag(s)}, \hyperpage{350}
+  \item \texttt{nn-minus}, \hyperpage{349}
+  \item \texttt{nnfst(n\_)}, \hyperpage{349}
+  \item \texttt{nnpair(i\_, j\_)}, \hyperpage{349}
+  \item \texttt{nnsnd(n\_)}, \hyperpage{350}
+  \item \texttt{non-zero(s)}, \hyperpage{350}
+  \item \texttt{nonneg-rr}, \hyperpage{350}
+  \item \texttt{normed-ag}, \hyperpage{350}
+  \item \texttt{normed-ag-as-abelian-group(s)}, \hyperpage{350}
+  \item \texttt{normed-field}, \hyperpage{351}
+  \item \texttt{normed-field-additive-ag(s)}, \hyperpage{351}
+  \item \texttt{normed-field-as-commutative-ring(s)}, \hyperpage{351}
+  \item \texttt{normed-field-as-integral-domain(s)}, \hyperpage{351}
+  \item \texttt{normed-vector-space}, \hyperpage{351}
+  \item \texttt{normed-vector-space-as-module(s)}, \hyperpage{351}
+  \item \texttt{normed-vector-space-as-normed-ag(s)}, \hyperpage{352}
   \item \texttt  {not-elim} (kernel operation), \hyperpage{63}
   \item \texttt  {not-intro} (kernel operation), \hyperpage{63}
-  \item \texttt{npe(m, s, f, t, g)}, \hyperpage{350}
-  \item \texttt{nrm(s)}, \hyperpage{350}
-  \item \texttt{nth}, \hyperpage{351}
-  \item \texttt{nth-deriv}, \hyperpage{351}
-  \item \texttt{nth-deriv-on}, \hyperpage{351}
-  \item \texttt{nth-deriv-v}, \hyperpage{351}
-  \item \texttt{nth-r}, \hyperpage{352}
+  \item \texttt{npe(m, s, f, t, g)}, \hyperpage{352}
+  \item \texttt{nrm(s)}, \hyperpage{352}
+  \item \texttt{nth}, \hyperpage{353}
+  \item \texttt{nth-deriv}, \hyperpage{353}
+  \item \texttt{nth-deriv-on}, \hyperpage{353}
+  \item \texttt{nth-deriv-v}, \hyperpage{353}
+  \item \texttt{nth-r}, \hyperpage{354}
   \item \texttt{nth-r} (tactic), \hyperpage{111}
   \item \texttt  {nth-reduce} (kernel operation), \hyperpage{64}
-  \item \texttt{null-rr-seq(rad)}, \hyperpage{352}
-  \item \texttt{nvs-metric-space(m)}, \hyperpage{352}
+  \item \texttt{null-rr-seq(rad)}, \hyperpage{354}
+  \item \texttt{nvs-metric-space(m)}, \hyperpage{354}
 
   \indexspace
 
-  \item \texttt{obtain}, \hyperpage{352}
-  \item \texttt{obtain} (tactic), \hyperpage{132}
-  \item \texttt{ocint(a, b)}, \hyperpage{352}
-  \item \texttt{odd(x)}, \hyperpage{353}
-  \item \texttt{oi-l}, \hyperpage{353}
+  \item \texttt{obtain}, \hyperpage{354}
+  \item \texttt{obtain} (tactic), \hyperpage{133}
+  \item \texttt{ocint(a, b)}, \hyperpage{354}
+  \item \texttt{odd(x)}, \hyperpage{355}
+  \item \texttt{oi-l}, \hyperpage{355}
   \item \texttt{oi-l} (tactic), \hyperpage{96}
-  \item \texttt{oi-r}, \hyperpage{353}
+  \item \texttt{oi-r}, \hyperpage{355}
   \item \texttt{oi-r} (tactic), \hyperpage{96}
-  \item \texttt{one(s)}, \hyperpage{353}
-  \item \texttt{ooint(a, b)}, \hyperpage{353}
-  \item \texttt{opens(s)}, \hyperpage{354}
-  \item \texttt{opr(s)}, \hyperpage{354}
+  \item \texttt{one(s)}, \hyperpage{355}
+  \item \texttt{ooint(a, b)}, \hyperpage{355}
+  \item \texttt{opens(s)}, \hyperpage{356}
+  \item \texttt{opr(s)}, \hyperpage{356}
   \item \texttt  {or-elim} (kernel operation), \hyperpage{63}
   \item \texttt  {or-intro-left} (kernel operation), \hyperpage{63}
   \item \texttt  {or-intro-right} (kernel operation), \hyperpage{63}
-  \item \texttt{ord-le}, \hyperpage{354}
-  \item \texttt{ord-lt}, \hyperpage{354}
-  \item \texttt{ord-segment}, \hyperpage{355}
-  \item \texttt{orelse}, \hyperpage{355}
+  \item \texttt{ord-le}, \hyperpage{356}
+  \item \texttt{ord-lt}, \hyperpage{356}
+  \item \texttt{ord-segment}, \hyperpage{357}
+  \item \texttt{orelse}, \hyperpage{357}
   \item \texttt{orelse} (tactic), \hyperpage{130}
 
   \indexspace
 
-  \item \texttt{pair}, \hyperpage{355}
-  \item \texttt{partial-fun}, \hyperpage{355}
-  \item \texttt{pbc}, \hyperpage{355}
+  \item \texttt{pair}, \hyperpage{357}
+  \item \texttt{partial-fun}, \hyperpage{357}
+  \item \texttt{pbc}, \hyperpage{357}
   \item \texttt{pbc} (tactic), \hyperpage{95}
-  \item \texttt{permutations(n)}, \hyperpage{355}
-  \item \texttt{pi}, \hyperpage{356}
-  \item \texttt{pid}, \hyperpage{356}
-  \item \texttt{pointwise-bounded(s, fam)}, \hyperpage{356}
-  \item \texttt{poly(a)}, \hyperpage{356}
-  \item \texttt{pos-rr(r)}, \hyperpage{356}
-  \item \texttt{power}, \hyperpage{357}
-  \item \texttt{pred(n\_)}, \hyperpage{357}
-  \item \texttt{preimage(s, f, v)}, \hyperpage{357}
-  \item \texttt{prep}, \hyperpage{357}
+  \item \texttt{permutations(n)}, \hyperpage{357}
+  \item \texttt{pi}, \hyperpage{358}
+  \item \texttt{pid}, \hyperpage{358}
+  \item \texttt{pointwise-bounded(s, fam)}, \hyperpage{358}
+  \item \texttt{poly(a)}, \hyperpage{358}
+  \item \texttt{pos-rr(r)}, \hyperpage{358}
+  \item \texttt{power}, \hyperpage{359}
+  \item \texttt{preamble}, \hyperpage{359}
+  \item \texttt{preamble} (tactic), \hyperpage{130}
+  \item \texttt{pred(n\_)}, \hyperpage{359}
+  \item \texttt{preimage(s, f, v)}, \hyperpage{359}
+  \item \texttt{prep}, \hyperpage{360}
   \item \texttt{prep} (tactic), \hyperpage{109}
-  \item \texttt{principal-ideal(s, a)}, \hyperpage{358}
-  \item \texttt{prod-ord}, \hyperpage{358}
-  \item \texttt{prod-ring(r, f, s)}, \hyperpage{358}
-  \item \texttt{prod-set(cm, s, f)}, \hyperpage{358}
-  \item \texttt{product-carrier(ms)}, \hyperpage{359}
-  \item \texttt{product-metric(ms)}, \hyperpage{359}
-  \item \texttt{product-metric-w(ms, w)}, \hyperpage{359}
-  \item \texttt{product-proj(ms, n)}, \hyperpage{359}
-  \item \texttt{proj(s)}, \hyperpage{359}
+  \item \texttt{principal-ideal(s, a)}, \hyperpage{360}
+  \item \texttt{prod-ord}, \hyperpage{360}
+  \item \texttt{prod-ring(r, f, s)}, \hyperpage{360}
+  \item \texttt{prod-set(cm, s, f)}, \hyperpage{361}
+  \item \texttt{product-carrier(ms)}, \hyperpage{361}
+  \item \texttt{product-metric(ms)}, \hyperpage{361}
+  \item \texttt{product-metric-w(ms, w)}, \hyperpage{361}
+  \item \texttt{product-proj(ms, n)}, \hyperpage{362}
+  \item \texttt{proj(s)}, \hyperpage{362}
   \item \texttt  {proof-by-contradiction} (kernel operation), 
 		\hyperpage{63}
-  \item \texttt{prop}, \hyperpage{360}
+  \item \texttt{prop}, \hyperpage{362}
   \item \texttt{prop} (tactic), \hyperpage{112}
-  \item \texttt{ps-absolutely-converges-at(coef, x)}, \hyperpage{360}
-  \item \texttt{ps-converges-at(coef, x)}, \hyperpage{360}
-  \item \texttt{ps-converges-to-at(coef, x, l)}, \hyperpage{360}
-  \item \texttt{ps-partial-sum(coef, x, k)}, \hyperpage{361}
-  \item \texttt{ps-ratio-limit(coef, l)}, \hyperpage{361}
-  \item \texttt{pseudo-gauge-top(fam, ground)}, \hyperpage{361}
-  \item \texttt{pseudometric-space}, \hyperpage{361}
-  \item \texttt{pts(s)}, \hyperpage{361}
-  \item \texttt{ptwise-eplus(omega, f, g)}, \hyperpage{362}
-  \item \texttt{ptwise-etimes(omega, f, g)}, \hyperpage{362}
-  \item \texttt{ptwise-le(omega, f, g)}, \hyperpage{362}
-  \item \texttt{ptwise-liminf(omega, cf)}, \hyperpage{362}
-  \item \texttt{ptwise-scale(omega, c, f)}, \hyperpage{362}
-  \item \texttt{ptwise-sup(omega, cf)}, \hyperpage{362}
-  \item \texttt{pw-int(pphi\_, a, b)}, \hyperpage{363}
+  \item \texttt{ps-absolutely-converges-at(coef, x)}, \hyperpage{362}
+  \item \texttt{ps-converges-at(coef, x)}, \hyperpage{363}
+  \item \texttt{ps-converges-to-at(coef, x, l)}, \hyperpage{363}
+  \item \texttt{ps-partial-sum(coef, x, k)}, \hyperpage{363}
+  \item \texttt{ps-ratio-limit(coef, l)}, \hyperpage{363}
+  \item \texttt{pseudo-gauge-top(fam, ground)}, \hyperpage{363}
+  \item \texttt{pseudometric-space}, \hyperpage{364}
+  \item \texttt{pts(s)}, \hyperpage{364}
+  \item \texttt{ptwise-eplus(omega, f, g)}, \hyperpage{364}
+  \item \texttt{ptwise-etimes(omega, f, g)}, \hyperpage{364}
+  \item \texttt{ptwise-le(omega, f, g)}, \hyperpage{364}
+  \item \texttt{ptwise-liminf(omega, cf)}, \hyperpage{364}
+  \item \texttt{ptwise-scale(omega, c, f)}, \hyperpage{365}
+  \item \texttt{ptwise-sup(omega, cf)}, \hyperpage{365}
+  \item \texttt{pw-int(pphi\_, a, b)}, \hyperpage{365}
 
   \indexspace
 
-  \item \texttt{qed}, \hyperpage{363}
+  \item \texttt{qed}, \hyperpage{365}
   \item \texttt{qed} (tactic), \hyperpage{94}
-  \item \texttt{qq-field}, \hyperpage{363}
-  \item \texttt{qq-line}, \hyperpage{363}
-  \item \texttt{qq-ring}, \hyperpage{363}
-  \item \texttt{qrfl}, \hyperpage{363}
+  \item \texttt{qq-field}, \hyperpage{365}
+  \item \texttt{qq-line}, \hyperpage{366}
+  \item \texttt{qq-ring}, \hyperpage{366}
+  \item \texttt{qrfl}, \hyperpage{366}
   \item \texttt{qrfl} (tactic), \hyperpage{111}
   \item \texttt  {quasi-reflexivity} (kernel operation), \hyperpage{63}
-  \item \texttt{quietly}, \hyperpage{363}
-  \item \texttt{quietly} (tactic), \hyperpage{130}
-  \item \texttt{quotient(s)}, \hyperpage{364}
+  \item \texttt{quietly}, \hyperpage{366}
+  \item \texttt{quietly} (tactic), \hyperpage{131}
+  \item \texttt{quotient(s)}, \hyperpage{366}
 
   \indexspace
 
-  \item \texttt{r-exp(y\_)}, \hyperpage{364}
-  \item \texttt{ran(f)}, \hyperpage{364}
-  \item \texttt{real-part}, \hyperpage{364}
-  \item \texttt{recip}, \hyperpage{365}
-  \item \texttt{recip-star(u\_)}, \hyperpage{365}
-  \item \texttt{reduce}, \hyperpage{365}
+  \item \texttt{r-exp(y\_)}, \hyperpage{366}
+  \item \texttt{ran(f)}, \hyperpage{366}
+  \item \texttt{real-part}, \hyperpage{367}
+  \item \texttt{recip}, \hyperpage{367}
+  \item \texttt{recip-star(u\_)}, \hyperpage{367}
+  \item \texttt{reduce}, \hyperpage{367}
   \item \texttt  {reflexivity} (kernel operation), \hyperpage{63}
-  \item \texttt{rel(s)}, \hyperpage{365}
-  \item \texttt{rel-free(md, n, u)}, \hyperpage{365}
-  \item \texttt{related(s, a, b)}, \hyperpage{366}
-  \item \texttt{repeat}, \hyperpage{366}
-  \item \texttt{repeat} (tactic), \hyperpage{129}
-  \item \texttt{replay-proof}, \hyperpage{366}
+  \item \texttt{rel(s)}, \hyperpage{368}
+  \item \texttt{rel-free(md, n, u)}, \hyperpage{368}
+  \item \texttt{related(s, a, b)}, \hyperpage{368}
+  \item \texttt{repeat}, \hyperpage{368}
+  \item \texttt{repeat} (tactic), \hyperpage{130}
+  \item \texttt{replay-proof}, \hyperpage{368}
   \item \texttt{replay-proof} (tactic), \hyperpage{95}
-  \item \texttt{res}, \hyperpage{366}
-  \item \texttt{respects(s, f)}, \hyperpage{366}
-  \item \texttt{respects2(s, f)}, \hyperpage{367}
-  \item \texttt{restrict(f, a)}, \hyperpage{367}
-  \item \texttt{restvar}, \hyperpage{367}
-  \item \texttt{rfl}, \hyperpage{368}
+  \item \texttt{res}, \hyperpage{369}
+  \item \texttt{respects(s, f)}, \hyperpage{369}
+  \item \texttt{respects2(s, f)}, \hyperpage{369}
+  \item \texttt{restrict(f, a)}, \hyperpage{369}
+  \item \texttt{restvar}, \hyperpage{370}
+  \item \texttt{rfl}, \hyperpage{370}
   \item \texttt{rfl} (tactic), \hyperpage{111}
-  \item \texttt{ring}, \hyperpage{368}
-  \item \texttt{ring-additive-ag(s)}, \hyperpage{368}
-  \item \texttt{ring-multiplicative-monoid(s)}, \hyperpage{368}
-  \item \texttt{ring-power(r, x, n)}, \hyperpage{368}
-  \item \texttt{ring-prod(x, y)}, \hyperpage{369}
-  \item \texttt{ring-prod-n}, \hyperpage{369}
+  \item \texttt{ring}, \hyperpage{370}
+  \item \texttt{ring-additive-ag(s)}, \hyperpage{370}
+  \item \texttt{ring-multiplicative-monoid(s)}, \hyperpage{370}
+  \item \texttt{ring-power(r, x, n)}, \hyperpage{371}
+  \item \texttt{ring-prod(x, y)}, \hyperpage{371}
+  \item \texttt{ring-prod-n}, \hyperpage{371}
   \item \texttt  {ring-simplify} (kernel operation), \hyperpage{64}
-  \item \texttt{ringoid}, \hyperpage{369}
-  \item \texttt{ringoid-as-ring(s)}, \hyperpage{369}
-  \item \texttt{ringoid-quotient(r)}, \hyperpage{369}
-  \item \texttt{ringoid-quotient-ring(r)}, \hyperpage{369}
-  \item \texttt{ringoid-rel(r)}, \hyperpage{370}
-  \item \texttt{ringoid-setoid(r)}, \hyperpage{370}
-  \item \texttt{road-length(rld\_, rla\_, rlb\_)}, \hyperpage{370}
-  \item \texttt{rpow}, \hyperpage{371}
-  \item \texttt{rpow-star(x\_, s\_)}, \hyperpage{371}
-  \item \texttt{rr-bounded-above(s)}, \hyperpage{371}
-  \item \texttt{rr-bounded-ms}, \hyperpage{371}
-  \item \texttt{rr-ms}, \hyperpage{371}
-  \item \texttt{rr-normed-field}, \hyperpage{372}
-  \item \texttt{rr-nvs}, \hyperpage{372}
-  \item \texttt{rr-pos-star-add-monoid}, \hyperpage{372}
-  \item \texttt{rr-upper-bound(s, b)}, \hyperpage{372}
-  \item \texttt{rs}, \hyperpage{372}
+  \item \texttt{ringoid}, \hyperpage{371}
+  \item \texttt{ringoid-as-ring(s)}, \hyperpage{372}
+  \item \texttt{ringoid-quotient(r)}, \hyperpage{372}
+  \item \texttt{ringoid-quotient-ring(r)}, \hyperpage{372}
+  \item \texttt{ringoid-rel(r)}, \hyperpage{372}
+  \item \texttt{ringoid-setoid(r)}, \hyperpage{372}
+  \item \texttt{road-length(rld\_, rla\_, rlb\_)}, \hyperpage{373}
+  \item \texttt{rpow}, \hyperpage{373}
+  \item \texttt{rpow-star(x\_, s\_)}, \hyperpage{373}
+  \item \texttt{rr-bounded-above(s)}, \hyperpage{373}
+  \item \texttt{rr-bounded-ms}, \hyperpage{374}
+  \item \texttt{rr-ms}, \hyperpage{374}
+  \item \texttt{rr-normed-field}, \hyperpage{374}
+  \item \texttt{rr-nvs}, \hyperpage{374}
+  \item \texttt{rr-pos-star-add-monoid}, \hyperpage{374}
+  \item \texttt{rr-upper-bound(s, b)}, \hyperpage{374}
+  \item \texttt{rs}, \hyperpage{374}
   \item \texttt{rs} (tactic), \hyperpage{113}
 
   \indexspace
 
-  \item \texttt{save-proof}, \hyperpage{372}
+  \item \texttt{save-proof}, \hyperpage{374}
   \item \texttt{save-proof} (tactic), \hyperpage{94}
-  \item \texttt{scal(s)}, \hyperpage{372}
-  \item \texttt{scout}, \hyperpage{373}
+  \item \texttt{scal(s)}, \hyperpage{375}
+  \item \texttt{scout}, \hyperpage{375}
   \item \texttt{scout} (tactic), \hyperpage{107}
-  \item \texttt{scout-run}, \hyperpage{373}
+  \item \texttt{scout-run}, \hyperpage{375}
   \item \texttt{scout-run} (tactic), \hyperpage{108}
-  \item \texttt{scout-show}, \hyperpage{373}
+  \item \texttt{scout-show}, \hyperpage{375}
   \item \texttt{scout-show} (tactic), \hyperpage{108}
-  \item \texttt{seg-curve(m, f, a, eta)}, \hyperpage{373}
-  \item \texttt{seg-deriv(sgp\_, sgq\_)}, \hyperpage{373}
-  \item \texttt{seg-int(sgf\_, sgp\_, sgq\_)}, \hyperpage{374}
-  \item \texttt{seg-path(sgp\_, sgq\_)}, \hyperpage{374}
-  \item \texttt{semigroup}, \hyperpage{374}
-  \item \texttt{sep}, \hyperpage{374}
-  \item \texttt{sep-me}, \hyperpage{375}
+  \item \texttt{seg-curve(m, f, a, eta)}, \hyperpage{375}
+  \item \texttt{seg-deriv(sgp\_, sgq\_)}, \hyperpage{376}
+  \item \texttt{seg-int(sgf\_, sgp\_, sgq\_)}, \hyperpage{376}
+  \item \texttt{seg-path(sgp\_, sgq\_)}, \hyperpage{376}
+  \item \texttt{semigroup}, \hyperpage{377}
+  \item \texttt{sep}, \hyperpage{377}
+  \item \texttt{sep-me}, \hyperpage{377}
   \item \texttt{sep-me} (tactic), \hyperpage{125}
   \item \texttt  {sep-mem-elim} (kernel operation), \hyperpage{64}
   \item \texttt  {sep-mem-intro} (kernel operation), \hyperpage{64}
-  \item \texttt{sep-mi}, \hyperpage{375}
+  \item \texttt{sep-mi}, \hyperpage{377}
   \item \texttt{sep-mi} (tactic), \hyperpage{125}
-  \item \texttt{sep-set}, \hyperpage{375}
+  \item \texttt{sep-set}, \hyperpage{377}
   \item \texttt{sep-set} (tactic), \hyperpage{125}
   \item \texttt  {sep-sethood} (kernel operation), \hyperpage{64}
-  \item \texttt{seq-compact(s)}, \hyperpage{375}
-  \item \texttt{seq-limit(f)}, \hyperpage{375}
-  \item \texttt{series-converges(f)}, \hyperpage{376}
-  \item \texttt{series-converges-to(f, l)}, \hyperpage{376}
-  \item \texttt{series-limit(f)}, \hyperpage{376}
-  \item \texttt{series-partial-sum(f, k)}, \hyperpage{376}
-  \item \texttt{setoid}, \hyperpage{377}
-  \item \texttt{show}, \hyperpage{377}
-  \item \texttt{show} (tactic), \hyperpage{128}
-  \item \texttt{sigma(s)}, \hyperpage{377}
-  \item \texttt{sigma-generated(omega, ce)}, \hyperpage{377}
-  \item \texttt{simp}, \hyperpage{377}
+  \item \texttt{seq-compact(s)}, \hyperpage{377}
+  \item \texttt{seq-limit(f)}, \hyperpage{377}
+  \item \texttt{series-converges(f)}, \hyperpage{378}
+  \item \texttt{series-converges-to(f, l)}, \hyperpage{378}
+  \item \texttt{series-limit(f)}, \hyperpage{378}
+  \item \texttt{series-partial-sum(f, k)}, \hyperpage{379}
+  \item \texttt{setoid}, \hyperpage{379}
+  \item \texttt{show}, \hyperpage{379}
+  \item \texttt{show} (tactic), \hyperpage{129}
+  \item \texttt{sigma(s)}, \hyperpage{379}
+  \item \texttt{sigma-generated(omega, ce)}, \hyperpage{379}
+  \item \texttt{simp}, \hyperpage{380}
   \item \texttt{simp} (tactic), \hyperpage{113}
-  \item \texttt{sin}, \hyperpage{378}
-  \item \texttt{singleton(y\_)}, \hyperpage{378}
-  \item \texttt{size(m)}, \hyperpage{378}
-  \item \texttt{slot}, \hyperpage{378}
+  \item \texttt{sin}, \hyperpage{380}
+  \item \texttt{singleton(y\_)}, \hyperpage{380}
+  \item \texttt{size(m)}, \hyperpage{380}
+  \item \texttt{slot}, \hyperpage{380}
   \item \texttt{slot} (tactic), \hyperpage{104}
-  \item \texttt{slot-h}, \hyperpage{378}
+  \item \texttt{slot-h}, \hyperpage{381}
   \item \texttt{slot-h} (tactic), \hyperpage{104}
-  \item \texttt{smith-staircase(a, m, n, d, k)}, \hyperpage{378}
-  \item \texttt{snoc-col(w, n, x)}, \hyperpage{379}
-  \item \texttt{snoc-row(c, n, r)}, \hyperpage{379}
+  \item \texttt{smith-staircase(a, m, n, d, k)}, \hyperpage{381}
+  \item \texttt{snoc-col(w, n, x)}, \hyperpage{381}
+  \item \texttt{snoc-row(c, n, r)}, \hyperpage{381}
   \item \texttt  {sos} (kernel operation), \hyperpage{64}
-  \item \texttt{sos}, \hyperpage{379}
-  \item \texttt{sos} (tactic), \hyperpage{118}
-  \item \texttt{sp}, \hyperpage{380}
+  \item \texttt{sos}, \hyperpage{382}
+  \item \texttt{sos} (tactic), \hyperpage{119}
+  \item \texttt{sp}, \hyperpage{382}
   \item \texttt{sp} (tactic), \hyperpage{94}
-  \item \texttt{span(md, n, u)}, \hyperpage{380}
-  \item \texttt{span-add-one(m, s, v)}, \hyperpage{380}
-  \item \texttt{spans(md, n, u, sm)}, \hyperpage{380}
-  \item \texttt{splice}, \hyperpage{381}
-  \item \texttt{sqn(a)}, \hyperpage{381}
-  \item \texttt{sqrt(a\_)}, \hyperpage{381}
-  \item \texttt{strictly-mono-nn(phi)}, \hyperpage{381}
-  \item \texttt{submat(s, p, q)}, \hyperpage{381}
-  \item \texttt{subseq(f, phi)}, \hyperpage{382}
-  \item \texttt{subset}, \hyperpage{382}
-  \item \texttt{subspace-ms(s, a)}, \hyperpage{382}
-  \item \texttt{subsqn(y, f)}, \hyperpage{382}
-  \item \texttt{subst}, \hyperpage{383}
+  \item \texttt{span(md, n, u)}, \hyperpage{382}
+  \item \texttt{span-add-one(m, s, v)}, \hyperpage{382}
+  \item \texttt{spans(md, n, u, sm)}, \hyperpage{382}
+  \item \texttt{splice}, \hyperpage{383}
+  \item \texttt{sqn(a)}, \hyperpage{383}
+  \item \texttt{sqrt(a\_)}, \hyperpage{383}
+  \item \texttt{strictly-mono-nn(phi)}, \hyperpage{383}
+  \item \texttt{submat(s, p, q)}, \hyperpage{384}
+  \item \texttt{subseq(f, phi)}, \hyperpage{384}
+  \item \texttt{subset}, \hyperpage{384}
+  \item \texttt{subspace-ms(s, a)}, \hyperpage{385}
+  \item \texttt{subsqn(y, f)}, \hyperpage{385}
+  \item \texttt{subst}, \hyperpage{385}
   \item \texttt{subst} (tactic), \hyperpage{110}
-  \item \texttt{succ}, \hyperpage{383}
-  \item \texttt{succ\_ord}, \hyperpage{383}
-  \item \texttt{sum}, \hyperpage{383}
-  \item \texttt{sum-ag}, \hyperpage{383}
-  \item \texttt{sum-set(r, s, f)}, \hyperpage{384}
-  \item \texttt{summable-weight(w)}, \hyperpage{384}
-  \item \texttt{sums-to(grp, f, r)}, \hyperpage{384}
-  \item \texttt{sup}, \hyperpage{384}
-  \item \texttt{sup-ord}, \hyperpage{385}
-  \item \texttt{supp(a, m, f)}, \hyperpage{385}
-  \item \texttt{supply}, \hyperpage{385}
+  \item \texttt{succ}, \hyperpage{385}
+  \item \texttt{succ\_ord}, \hyperpage{385}
+  \item \texttt{sum}, \hyperpage{385}
+  \item \texttt{sum-ag}, \hyperpage{386}
+  \item \texttt{sum-set(r, s, f)}, \hyperpage{386}
+  \item \texttt{summable-weight(w)}, \hyperpage{386}
+  \item \texttt{sums-to(grp, f, r)}, \hyperpage{386}
+  \item \texttt{sup}, \hyperpage{387}
+  \item \texttt{sup-ord}, \hyperpage{387}
+  \item \texttt{supp(a, m, f)}, \hyperpage{387}
+  \item \texttt{supply}, \hyperpage{387}
   \item \texttt{supply} (tactic), \hyperpage{117}
 
   \indexspace
 
-  \item \texttt{ta}, \hyperpage{385}
+  \item \texttt{ta}, \hyperpage{388}
   \item \texttt{ta} (tactic), \hyperpage{122}
-  \item \texttt{taylor-aux(d, n, a, b)}, \hyperpage{386}
-  \item \texttt{taylor-differentiable(f, a, x, n)}, \hyperpage{386}
+  \item \texttt{taylor-aux(d, n, a, b)}, \hyperpage{388}
+  \item \texttt{taylor-differentiable(f, a, x, n)}, \hyperpage{388}
   \item \texttt{taylor-differentiable-v(m, f, a, x, n)}, 
-		\hyperpage{386}
-  \item \texttt{taylor-poly(f, a, n, x)}, \hyperpage{387}
-  \item \texttt{taylor-poly-v}, \hyperpage{387}
-  \item \texttt{taylor-rem(d, n, a, b)}, \hyperpage{387}
-  \item \texttt{taylor-sum(d, n, b, tv\_)}, \hyperpage{388}
-  \item \texttt{taylor-term(d, b, tv\_)}, \hyperpage{388}
-  \item \texttt{te}, \hyperpage{388}
+		\hyperpage{389}
+  \item \texttt{taylor-poly(f, a, n, x)}, \hyperpage{389}
+  \item \texttt{taylor-poly-v}, \hyperpage{389}
+  \item \texttt{taylor-rem(d, n, a, b)}, \hyperpage{389}
+  \item \texttt{taylor-sum(d, n, b, tv\_)}, \hyperpage{390}
+  \item \texttt{taylor-term(d, b, tv\_)}, \hyperpage{390}
+  \item \texttt{te}, \hyperpage{391}
   \item \texttt{te} (tactic), \hyperpage{101}
   \item \texttt  {theorem-assumption} (kernel operation), 
 		\hyperpage{63}
-  \item \texttt{ti}, \hyperpage{388}
+  \item \texttt{ti}, \hyperpage{391}
   \item \texttt{ti} (tactic), \hyperpage{97}
-  \item \texttt{top-space}, \hyperpage{389}
-  \item \texttt{totally-bounded(s)}, \hyperpage{389}
-  \item \texttt{trace(pgam, a, b)}, \hyperpage{389}
+  \item \texttt{top-space}, \hyperpage{391}
+  \item \texttt{totally-bounded(s)}, \hyperpage{391}
+  \item \texttt{trace(pgam, a, b)}, \hyperpage{391}
   \item \texttt  {transfinite-induction} (kernel operation), 
 		\hyperpage{64}
   \item \texttt  {transfinite-induction-3cases} (kernel operation), 
 		\hyperpage{64}
-  \item \texttt{transpose(a, m, n)}, \hyperpage{389}
-  \item \texttt{tri-int(sgf\_, sga\_, sgb\_, sgc\_)}, \hyperpage{390}
-  \item \texttt{tri-road(tra\_, trb\_, trc\_)}, \hyperpage{390}
-  \item \texttt{tri-road-deriv(tra\_, trb\_, trc\_)}, \hyperpage{391}
-  \item \texttt{trinum}, \hyperpage{391}
-  \item \texttt{trunc-metric(s)}, \hyperpage{391}
+  \item \texttt{transpose(a, m, n)}, \hyperpage{392}
+  \item \texttt{tri-int(sgf\_, sga\_, sgb\_, sgc\_)}, \hyperpage{392}
+  \item \texttt{tri-road(tra\_, trb\_, trc\_)}, \hyperpage{392}
+  \item \texttt{tri-road-deriv(tra\_, trb\_, trc\_)}, \hyperpage{393}
+  \item \texttt{trinum}, \hyperpage{393}
+  \item \texttt{trunc-metric(s)}, \hyperpage{393}
   \item \texttt  {truth-intro} (kernel operation), \hyperpage{63}
   \item \texttt  {tuple-equality-decompose} (kernel operation), 
 		\hyperpage{64}
-  \item \texttt{tuples}, \hyperpage{391}
+  \item \texttt{tuples}, \hyperpage{394}
   \item \texttt  {tuples-elim} (kernel operation), \hyperpage{64}
   \item \texttt  {tuples-intro} (kernel operation), \hyperpage{64}
-  \item \texttt{type-term}, \hyperpage{392}
+  \item \texttt{type-term}, \hyperpage{394}
   \item \texttt{type-term} (tactic), \hyperpage{114}
 
   \indexspace
 
-  \item \texttt{ue}, \hyperpage{392}
+  \item \texttt{ue}, \hyperpage{394}
   \item \texttt{ue} (tactic), \hyperpage{102}
-  \item \texttt{ui}, \hyperpage{392}
+  \item \texttt{ui}, \hyperpage{394}
   \item \texttt{ui} (tactic), \hyperpage{97}
-  \item \texttt{undo}, \hyperpage{392}
+  \item \texttt{undo}, \hyperpage{395}
   \item \texttt{undo} (tactic), \hyperpage{128}
-  \item \texttt{union}, \hyperpage{392}
+  \item \texttt{union}, \hyperpage{395}
   \item \texttt  {union-elim} (kernel operation), \hyperpage{64}
   \item \texttt  {union-intro} (kernel operation), \hyperpage{64}
-  \item \texttt{unitrow(a, n, i)}, \hyperpage{393}
+  \item \texttt{unitrow(a, n, i)}, \hyperpage{395}
 
   \indexspace
 
-  \item \texttt{vadd(s)}, \hyperpage{393}
-  \item \texttt{vec(s)}, \hyperpage{393}
-  \item \texttt{vector-space}, \hyperpage{393}
-  \item \texttt{vlet}, \hyperpage{394}
-  \item \texttt{vlet} (tactic), \hyperpage{133}
-  \item \texttt{vnb-lambda}, \hyperpage{394}
-  \item \texttt{vneg(s)}, \hyperpage{394}
-  \item \texttt{vnrm(s)}, \hyperpage{394}
-  \item \texttt{vzero(s)}, \hyperpage{394}
+  \item \texttt{vadd(s)}, \hyperpage{395}
+  \item \texttt{vec(s)}, \hyperpage{395}
+  \item \texttt{vector-space}, \hyperpage{396}
+  \item \texttt{vlet}, \hyperpage{396}
+  \item \texttt{vlet} (tactic), \hyperpage{134}
+  \item \texttt{vnb-lambda}, \hyperpage{396}
+  \item \texttt{vneg(s)}, \hyperpage{396}
+  \item \texttt{vnrm(s)}, \hyperpage{396}
+  \item \texttt{vzero(s)}, \hyperpage{397}
 
   \indexspace
 
-  \item \texttt{wbc}, \hyperpage{395}
+  \item \texttt{wbc}, \hyperpage{397}
   \item \texttt{wbc} (tactic), \hyperpage{122}
   \item \texttt  {weakening} (kernel operation), \hyperpage{63}
-  \item \texttt{wk}, \hyperpage{395}
+  \item \texttt{wk}, \hyperpage{397}
   \item \texttt{wk} (tactic), \hyperpage{102}
 
   \indexspace
 
-  \item \texttt{zen}, \hyperpage{395}
-  \item \texttt{zero(s)}, \hyperpage{395}
-  \item \texttt{zero-it}, \hyperpage{396}
+  \item \texttt{zen}, \hyperpage{397}
+  \item \texttt{zero(s)}, \hyperpage{398}
+  \item \texttt{zero-it}, \hyperpage{398}
   \item \texttt{zero-it} (tactic), \hyperpage{116}
-  \item \texttt{zero-ring}, \hyperpage{396}
-  \item \texttt{zeromat(a, m, n)}, \hyperpage{396}
-  \item \texttt{zkept}, \hyperpage{396}
-  \item \texttt{zup}, \hyperpage{396}
-  \item \texttt{zz-act(g\_, k\_, a\_)}, \hyperpage{397}
-  \item \texttt{zz-bezout-set(a, b)}, \hyperpage{397}
-  \item \texttt{zz-coprime(a, b)}, \hyperpage{397}
-  \item \texttt{zz-divides(a, b)}, \hyperpage{397}
-  \item \texttt{zz-is-gcd(a, b, d)}, \hyperpage{398}
-  \item \texttt{zz-ring}, \hyperpage{398}
+  \item \texttt{zero-ring}, \hyperpage{398}
+  \item \texttt{zeromat(a, m, n)}, \hyperpage{398}
+  \item \texttt{zkept}, \hyperpage{398}
+  \item \texttt{zup}, \hyperpage{399}
+  \item \texttt{zz-act(g\_, k\_, a\_)}, \hyperpage{399}
+  \item \texttt{zz-bezout-set(a, b)}, \hyperpage{399}
+  \item \texttt{zz-coprime(a, b)}, \hyperpage{400}
+  \item \texttt{zz-divides(a, b)}, \hyperpage{400}
+  \item \texttt{zz-is-gcd(a, b, d)}, \hyperpage{400}
+  \item \texttt{zz-ring}, \hyperpage{400}
 
 \end{theindex}

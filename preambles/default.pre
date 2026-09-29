@@ -1,0 +1,142 @@
+;;; preambles/default.pre -- the DEFAULT PREAMBLE (batch 41, 2026-09-28; notes-45).
+;;;
+;;; Read by (preamble) when ~/.vnb-preamble.pre does not exist.  To make your own, copy
+;;; this file to ~/.vnb-preamble.pre (then (preamble) reads yours) or to
+;;; preambles/NAME.pre (then (preamble 'NAME) reads it), and edit it.  The format is
+;;; preamble.scm's header and docs/preambles-2026-09-28.md, "Built (phase 1)".
+;;;
+;;; The rules are tried IN THIS ORDER on the focus goal; the first one whose patterns
+;;; and guards match AND whose probe holds (on a scratch copy, then on the proof) is
+;;; committed, and the loop starts again on the new focus.  Patterns are raw
+;;; S-expressions; ?x is a schema variable.  Nothing here adds trust: every action is
+;;; an ordinary surface command, recorded as itself.
+
+;; Peel a universal (typed or not): `di' fixes the variables and lands the guards.
+(rule peel-universal
+  (goal (forall ?x ?body))
+  (do   (di)))
+
+;; Peel an implication: `di' moves the antecedent into the context.
+(rule peel-implication
+  (goal (implies ?a ?b))
+  (do   (di)))
+
+;; Split a conjunction: `di' opens one leaf per conjunct (so the leaves grow: the probe
+;; is `changed', not `progress').
+(rule split-conjunction
+  (goal  (and ?p ?q))
+  (do    (di))
+  (probe changed))
+
+;; The goal is already an assumption.
+(rule close-by-context
+  (goal  ?g)
+  (with  ?g)
+  (do    (ass))
+  (probe grounded))
+
+;; t = t, t certified defined; then t == t.
+(rule reflexivity
+  (goal  (= ?a ?a))
+  (do    (rfl))
+  (probe grounded))
+
+(rule quasi-reflexivity
+  (goal  (== ?a ?a))
+  (do    (qrfl))
+  (probe grounded))
+
+;; A closed arithmetic sentence: evaluate it.
+(rule ground-arithmetic
+  (goal  ?g)
+  (guard (closed ?g))
+  (do    (arith))
+  (probe grounded))
+
+;; THE USER'S CLAUSE (2026-09-28): the typing of an arithmetic term in a number class,
+;; closed bottom-up by the class's closure laws -- the recursion is inside type-term.
+(rule type-arithmetic-term
+  (goal  (in ?t ?c))
+  (guard (one-of ?c nn zz qq rr cc))
+  (do    (type-term))
+  (probe grounded))
+
+;; Any other typing t in C the context closes: by an inclusion (NN in ZZ in RR ...) or
+;; an application f(a) with f in fun(A, C) and a typable in A (type-term, batch 41).
+(rule type-by-context
+  (goal  (in ?t ?c))
+  (do    (type-term))
+  (probe grounded))
+
+;; What in-rr knows beyond that (components of a tuple in a product, ...).
+(rule type-by-in-rr
+  (goal  (in ?t ?c))
+  (do    (in-rr))
+  (probe grounded))
+
+;; h => g and h are both in context: detach, landing g (close-by-context then closes).
+(rule modus-ponens
+  (goal  ?g)
+  (with  (implies ?h ?g))
+  (with  ?h)
+  (do    (detach! '(implies ?h ?g)))
+  (probe (lands ?g)))
+
+;; The goal is an instance of a universal in context whose guard is in context.
+(rule instance-of-universal
+  (goal  ?g)
+  (with  (forall ?y ?b))
+  (do    (mp))
+  (probe grounded))
+
+;; An equation over a ring: zero-it closes an identity, or rewrites P = Q to R = 0.  On
+;; a FALSE equation it changes nothing, so the rule is rejected and says so.
+(rule ring-equation
+  (goal  (= ?p ?q))
+  (do    (zero-it)))
+
+;; A real comparison: ineq over every context premise it can use (pa-ineq!, preamble.scm:
+;; contra's premise filter and typing lifts, then ineq; bare (ineq) would pass no premise).
+(rule real-order-le
+  (goal  (<= ?a ?b))
+  (do    (pa-ineq!))
+  (probe grounded))
+
+(rule real-order-lt
+  (goal  (< ?a ?b))
+  (do    (pa-ineq!))
+  (probe grounded))
+
+;; An applied lambda in the goal: beta to a fixpoint, closing the owed typings the
+;; context holds.
+(rule beta-redex
+  (goal  ?g)
+  (guard (occurs ((vnb-lambda ?v ?d ?body) ?arg) ?g))
+  (do    (dk-lam-b!)))
+
+;; A membership in a separation: the domain membership and the property, as two leaves.
+(rule sep-membership
+  (goal  (in ?t (sep ?v ?a ?p)))
+  (do    (sep-mi))
+  (probe changed))
+
+;; Unfold the goal's defined head (a predicate with a definitional macete), or the
+;; defined head of the class in a membership goal.
+(rule unfold-goal-head
+  (goal  ?g)
+  (guard (unfolds ?g ?m))
+  (do    (mac '?m)))
+
+(rule unfold-class-head
+  (goal  (in ?t ?c))
+  (guard (unfolds ?c ?m))
+  (do    (mac '?m)))
+
+;; LAST: the tentative cut.  h => g in context, h not: cut h, try these rules on it;
+;; proven in place, or left OWED and reported by name.  modus-ponens then closes g.
+(rule cut-antecedent
+  (goal  ?g)
+  (with  (implies ?h ?g))
+  (guard (not-in-context ?h))
+  (do    (cut ?h))
+  (side  preamble-or-owed))

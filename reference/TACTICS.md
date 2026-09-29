@@ -33,7 +33,7 @@ Every tactic is tagged with a **kind**, grounded in the `dg-apply-rule!` tag it 
 
 - **rule** -- a single primitive KERNEL inference rule (the fixed trusted base): `di` `ai` `pbc` `oi-l` `oi-r` `ew` `ci` `ti` `ii` `ui` `ni` `tfi` `tfi3` `ass` `ta` `inst` `detach!` `bc` `cut` `wk` `ce` `te` `ie` `ue` `mac` `macm` `mac-h` `subst` `rfl` `qrfl` `beta` `lam-b` `lam-b-h` `lam-t` `nth-r` `len-r` `if-true` `if-false` `sep-set` `sep-mi` `sep-me` `comp-mi` `comp-me` `iota-d` `iota-e` `bu-set` `bu-mi` `bu-me` 
 - **oracle** -- a trusted DECISION PROCEDURE run as a black box, sound+complete on its domain but trusted: `arith` `rs` `crs` `simp` `ineq` `sos` 
-- **composite** -- a Scheme procedure that only CHAINS kernel rules, adding no new inference rule: `type-term` `ew-poly` `expand` `zero-it` `inst+` `mp` `grind-and-mp` `fact` `bc*` `mac-h*` `grind` `wbc` `calc` `scout-run` `minimize!` `obtain` `have!` `vlet` 
+- **composite** -- a Scheme procedure that only CHAINS kernel rules, adding no new inference rule: `type-term` `ew-poly` `expand` `zero-it` `preamble` `inst+` `mp` `grind-and-mp` `fact` `bc*` `mac-h*` `grind` `wbc` `calc` `scout-run` `minimize!` `obtain` `have!` `vlet` 
 - **meta** -- no deduction: session / search / navigation: `sp` `qed` `save-proof` `replay-proof` `scout` `scout-show` `backup-one` `undo` 
 
 The `rule` set is the fixed kernel; a proof's trust surface is exactly its `rule` steps plus whichever `oracle`s and asserted premises it cites.  You can read any finished proof's actual rule inventory off its deduction graph (each node records its justifying rule).
@@ -746,13 +746,13 @@ Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g.
 
     (type-term)
 
-Close a typing goal (IN t C), C one of NN ZZ QQ RR CC, where t is built from context-typed atoms (or atoms typed in a subclass: NN in ZZ, ZZ in RR, ...), numerals, + * -, and powers, by the class's closure laws, bottom-up.  Declines -- with a warning, and nothing changed -- on an untyped atom or an operation the class is not closed under.
+Close a typing goal (IN t C).  In a number class (NN ZZ QQ RR CC) t may be built from context-typed atoms (or atoms typed in a subclass: NN in ZZ, ZZ in RR, ...), numerals, + * -, and powers, typed by the class's closure laws, bottom-up.  In ANY class C, t may be an atom typed in a subclass, or an application f(a) with f in fun(A, C) in context and a typable in A, recursively: f(3 * x + 1) in B from f in fun(zz, B) and x in zz.  Declines -- with a warning, and nothing changed -- when there is no plan.
 
 *Kind:* `composite` (emits `(cut theorem-assumption forall-elim detach assumption eq-subst comm-ring-simplify)`)
 
 *Uses:* `assumption` `comm-ring-simplify` `cut` `detach` `eq-subst` `forall-elim` `theorem-assumption` 
 
-*When useful:* the goal types an arithmetic term in NN/ZZ/QQ/RR/CC -- a polynomial in context-typed atoms, e.g. 3*x^2 + 3*x*y + y^2 in ZZ
+*When useful:* the goal types a term: a polynomial in context-typed atoms in NN/ZZ/QQ/RR/CC, e.g. 3*x^2 + 3*x*y + y^2 in ZZ, or f(a) in any class C with f in fun(A, C) in context
 
 The typing leaf that arithmetic leaves behind: `3 * x^2 + 3 * (x * y) + y^2 in ZZ' with x and y integers.  It plans the whole typing first -- which closure law types each subterm, or which subclass inclusion types an atom -- and only then runs it, so a term it cannot type leaves the proof untouched.  Each subterm's typing is proved on its own lane (cut) and lands in the context once.  A power x^k is typed by the power law in RR and CC; in ZZ, QQ and NN, where the library has no power law, by the identity x^k = x * ... * x (proved by crs) and the multiplication law, so the exponent must be a numeral there.  Subtraction in QQ goes through a - b = a + (-b) the same way; NN has no minus and declines.  Division and recip are not handled.  The kit twin (dk-type! t C) lands the typing in the context and returns it; in-rr hands its power goals to the same planner.  (Technically: composite -- cut, theorem-assumption, forall-elim, detach, assumption, eq-subst, and comm-ring-simplify for the power identities; no rule of its own.  Transactional: a run that does not close the goal is rolled back, script and undo stack included.)
 
@@ -1252,6 +1252,18 @@ Run thunk until it stops changing the proof state (LCF REPEAT).
 Run thunks in order, stop at the first that makes progress (LCF ORELSE).
 
 *Uses:* no kernel operation: it records no inference
+
+### preamble
+
+    (preamble)  |  (preamble 'NAME)  |  (preamble "file.pre")
+
+Apply an editable RULE FILE to the focus goal, one step at a time: each rule reads `if the sequent looks like this, do that', and the first rule that matches AND makes progress is kept; the loop repeats on the new focus until the goal is done, no rule applies, or 40 steps.  Rules come from ~/.vnb-preamble.pre when it exists, else the shipped preambles/default.pre (peel, split, close by context, reflexivity, arithmetic, type-term, zero-it, ineq, beta, unfold, and a tentative cut).  Prints one report: what each rule did, which rules matched but were rejected, and where it stopped and why.
+
+*Kind:* `composite` (emits `(cut)`)
+
+*When useful:* you want the routine steps done for you by rules you can read and edit, with a report of what each rule did and where it stopped
+
+The notes-45 `giant COND' as data you can edit.  A rule is (rule NAME (goal PATTERN) (with PATTERN) (guard ...) (do FORM) (probe ...)): patterns are raw S-expressions with schema variables ?x, matched against the goal and the assumptions (bindings shared, a ?x in binder position binds the bound variable's name); guards are typed, head, closed, not-in-context, one-of, occurs, unfolds; the action is an ordinary surface command with the variables filled in.  A rule is TRIED on a scratch copy first and KEPT only when its probe holds there and again on the proof (grounded: the goal closed; progress, the default: something changed and the open goals did not multiply; changed; (lands F)); otherwise nothing it did is kept.  A rule whose action is (cut F) is a TENTATIVE CUT: the rules (without their cuts) are run on F, and F is proven in place or left open and reported as OWED -- a support is never installed.  Each kept step is recorded AS ITSELF, so the page of the proof is the ordinary steps and replays without any rule file.  A malformed rule is reported by name and left out; a rule that raises is reported and skipped.  The value is a verdict: status (done, owed, stalled, cap, error), the steps, the rules fired and rejected, the owed claims, the report text.  (preamble '(induct) ...) with CLAUSE LISTS is the older strategy pipeline, also (preamble-clauses ...).  (Technically: composite -- no rule of its own; every action is kernel-checked; transactional per firing.)
 
 ### quietly
 

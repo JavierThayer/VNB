@@ -653,6 +653,16 @@ for its callers). (`dk-only!` grounding the focus leaf: FIXED 2026-09-23 -- `dk-
 surface command `keep`, ONE recorded step, which stops when the weakened sequent lands on an
 already-proven node and errors on any other drift.)
 
+**The preamble (batch 41, 2026-09-28; `docs/preambles-2026-09-28.md`).** `(preamble)` applies an EDITABLE RULE FILE
+(`preambles/default.pre`, or `~/.vnb-preamble.pre`) to the focus leaf: `(rule NAME (goal P) (with P)* (guard ..)*
+(do FORM) [(probe ..)] [(side ..)])`, raw-S-expression patterns with `?x` schema variables, each firing tried on a
+scratch copy and kept only on progress, recorded AS ITSELF (the page needs no rule file). The report names what
+fired, what was rejected and why, the OWED claims of a tentative cut, and where it stopped. `(preamble '(induct)
+...)` with a clause list is the older strategy pipeline (`preamble-clauses`). `(type-term)` types `t in C` for ANY
+class the planner has a route for (closure laws in a number class, an application `f(a)` from `f in FUN(A, C)`,
+an inclusion); it declines with nothing changed when there is no plan. Trap met 2026-09-28: the tree's `any`
+(sequents.scm) returns `#t`, not the value found.
+
 **Open foundational items.** The tree cannot form a SEP over triples (CARTESIAN is binary;
 no literal-LIST TUPLES read-off; no tuple extensionality), which blocks the injection
 recurrences (a triple that is only a TERM inside a SEP condition is free).

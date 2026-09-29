@@ -602,23 +602,56 @@
 ;;; membership lane is silent here (ZZ is not a constructed class) and the fire probes do
 ;;; not include type-term, so until this lane nothing on the panel named it.  Silent when
 ;;; the planner has no route; the offer is measured on a scratch copy like every move.
+;;;
+;;; ANY CLASS (batch 41): the lane asks the planner on every membership goal, as the
+;;; command now does.  In a class other than NN ZZ QQ RR CC the route is the context (an
+;;; inclusion) or an application f(a) with f in FUN(A, C); a plan that is only "the typing
+;;; is in context" is left to `ass' there, so the lane stays silent on it.
 (define (what-now--show-type-term goal)
   (if (not (and *ps* (not (proof-done? *ps*))
-                (pair? goal) (eq? (car goal) 'IN) (= (length goal) 3)
-                (memq (caddr goal) *type-term-classes*)))
+                (pair? goal) (eq? (car goal) 'IN) (= (length goal) 3)))
       '()
-      (let ((plan (dk--silently (lambda () (type-term--plan (cadr goal) (caddr goal))))))
-        (if (not plan)
+      (let* ((numclass? (and (memq (caddr goal) *type-term-classes*) #t))
+             (plan    (dk--silently (lambda () (type-term--plan (cadr goal) (caddr goal))))))
+        (if (or (not plan) (and (not numclass?) (eq? (car plan) 'ctx)))
             '()
             (let ((fired (what-now--measure-firing '((type-term)))))
               (if (null? fired)
                   '()
                   (begin
-                    (display ";; TYPE-TERM -- the goal types an arithmetic term in ")
-                    (display (expression->string (caddr goal)))
-                    (display ": the class's closure laws close it, bottom-up:") (newline)
+                    (if numclass?
+                        (begin
+                          (display ";; TYPE-TERM -- the goal types an arithmetic term in ")
+                          (display (expression->string (caddr goal)))
+                          (display ": the class's closure laws close it, bottom-up:"))
+                        (begin
+                          (display ";; TYPE-TERM -- the goal types a term in ")
+                          (display (expression->string (caddr goal)))
+                          (display ": the context types it (an inclusion, or f(a) with f in fun(A, C)):")))
+                    (newline)
                     (display ";;   (type-term)") (newline)
                     fired)))))))
+
+;;; PREAMBLE lane (batch 41, 2026-09-28; notes-45, preamble.scm): which rules of the
+;;; default preamble (~/.vnb-preamble.pre when it exists, else preambles/default.pre) MATCH
+;;; the focus, in file order.  Matching only: nothing is run (the rules' probes are what
+;;; (preamble) runs), so the line says what the preamble would TRY first, not what it would
+;;; commit.  Silent when preamble.scm is not loaded or no rule matches.  Offers no move.
+(define (what-now--show-preamble goal)
+  (if (not (and *ps* (not (proof-done? *ps*))
+                (environment-bound? user-initial-environment 'preamble-propose)))
+      '()
+      (let* ((rules (dk--silently (lambda () (pa-lane-rules))))
+             (props (and (pair? rules)
+                         (dk--silently (lambda () (preamble-propose rules goal (dk-asms)))))))
+        (if (not (pair? props))
+            '()
+            (begin
+              (display ";; PREAMBLE -- the rules that match, in the order (preamble) tries them: ")
+              (display (car (car props))) (display " ") (write (caddr (car props)))
+              (for-each (lambda (p) (display ", ") (display (car p))) (cdr props))
+              (newline)
+              '())))))
 
 ;;; The polynomial-division witness (notes-37, 2026-09-24).  On a goal
 ;;; forsome([a in C], L = R), `ew-poly' (driver-kit.scm) computes the witness
@@ -5037,6 +5070,9 @@
          ;; TYPE-TERM lane (2026-09-28): a typing of an arithmetic term in a number class.
          (set! moves (append moves (lane! 'type-term "type an arithmetic term"
                                           (what-now--show-type-term goal))))
+         ;; PREAMBLE lane (batch 41): the rules of the default preamble that match; no move.
+         (set! moves (append moves (lane! 'preamble "what the preamble would try"
+                                          (what-now--show-preamble goal))))
          ;; EXPAND (notes-39, 2026-09-25): when a side of an equation in the goal
          ;; is a polynomial whose normal form differs from it, show the expansion
          ;; as a step, ahead of every non-structural lane (placed after the
