@@ -5150,7 +5150,9 @@
   (vnb-guard
     (lambda ()
       (vnb--require-proof!)
-      (let ((g (let loop ((gs (proof-open-goals *ps*)))
+      ;; LEAVES, as `focus' (2026-09-29): an ungrounded ancestor is not a goal
+      ;; to work on, and the panel numbers the leaves.
+      (let ((g (let loop ((gs (proof-open-leaves *ps*)))
                  (cond ((null? gs) #f)
                        ((eqv? (sequent-node-number (car gs)) k) (car gs))
                        (else (loop (cdr gs)))))))
