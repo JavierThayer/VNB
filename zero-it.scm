@@ -140,7 +140,28 @@
               core exists))
 
 (define (zi--rel? f)
-  (and (pair? f) (memq (car f) '(= ==)) (= (length f) 3)))
+  (and (pair? f) (memq (car f) '(= == <= <)) (= (length f) 3)))
+
+;;; THE ORDER RELATIONS (2026-09-29, the user's first drive: "zero-it only applies if the
+;;; goal is ?a = ?b").  A goal P <= Q or P < Q is moved to  0 <= R  or  0 < R  where R is the
+;;; normal form of Q - P (the orientation of rr-le-from-diff-nonneg / rr-lt-from-diff-pos,
+;;; which close the branch  0 <= R |- P <= Q  once P and Q are typed in RR).  The ring is RR
+;;; whatever class the atoms are typed in (`<=' is the order of RR; a ZZ or NN atom is
+;;; lifted by type-term's inclusion route); CC and an abstract ring have no order and are
+;;; declined.  A numeral R decides the goal: 0 <= c is TRUE for c >= 0 and FALSE below, 0 < c
+;;; TRUE for c > 0 and FALSE at or below 0 (so x < x is reported FALSE, x <= x closed).
+(define (zi--order? rel) (memq rel '(<= <)))
+
+;;; The reduced atom of an analysis: R = 0, or 0 <= R / 0 < R.
+(define (zi--reduced a)
+  (let ((rel (zi--get a 'rel)) (R (zi--get a 'R)))
+    (if (zi--order? rel)
+        (list rel 0 R)
+        (list '= R (zi--zero (zi--get a 'surface) (zi--get a 'ring))))))
+
+;;; Does the numeral C decide the order goal, and which way?  -> true | false
+(define (zi--order-verdict rel c)
+  (if (eq? rel '<=) (if (>= c 0) 'true 'false) (if (> c 0) 'true 'false)))
 
 ;;; The classes C with (IN t C) among the binders and the context.
 (define (zi--typings t asms binders)
@@ -269,8 +290,9 @@
          (core    (cdr pe)))
     (cond
       ((not (zi--rel? core))
-       (zi--decline (string-append "the goal is not an equation P = Q (or P == Q), bare or under"
-                                   " typed universals or one typed existential")))
+       (zi--decline (string-append "the goal is not an equation P = Q (or P == Q) or an inequality"
+                                   " P <= Q, P < Q, bare or under typed universals or one typed"
+                                   " existential")))
       (#t
        (let* ((rel (car core)) (P (cadr core)) (Q (caddr core))
               (a   (or (find-cring P) (find-cring Q)))
@@ -310,6 +332,8 @@
                       (cons 'const const) (cons 'untyped untyped)
                       (cons 'plans plans) (cons 'owed owed))))
     (cond
+      ((and const (zi--order? rel))
+       (cons (cons 'status (if (eq? (zi--order-verdict rel const) 'true) 'zero 'false)) base))
       ((and const (zero? const)) (cons (cons 'status 'zero) base))
       (const (cons (cons 'status 'false) base))
       ((and (eq? surface 'concrete) (eqv? (zi--rank ring) 0))
@@ -319,9 +343,13 @@
                                " is not a statement about NN.  Type an atom in ZZ or RR"
                                " to work in a ring"))
                base))
-      ((and (null? binders) (alpha-equiv? (list '= R Z) (list rel P Q)))
-       (append (zi--decline "the goal already reads R = 0: there is nothing to simplify")
+      ((and (null? binders) (alpha-equiv? (zi--reduced base) (list rel P Q)))
+       (append (zi--decline (string-append "the goal already reads "
+                                           (expression->string (zi--reduced base))
+                                           ": there is nothing to simplify"))
                base))
+      ((zi--order? rel)
+       (append (list (cons 'status 'rewrite) (cons 'orient 'order)) base))
       (#t
        (let ((orient
               (cond ((and (not (zi--occurs? P Q)) (not (zi--inside-atom? surface ring R Q))) 'left)
@@ -347,14 +375,18 @@
                            (let ((rs (filter-map zi--rank (zi--typings g asms tb))))
                              (and (pair? rs) (apply max rs))))
                          gens))
-               (untyped (filter (lambda (g)
-                                  (not (any zi--rank (zi--typings g asms tb))))
+               (order?  (zi--order? rel))
+              (untyped (filter (lambda (g)
+                                  (if order?
+                                      (not (any (lambda (C) (eqv? (zi--rank C) 3))
+                                                (zi--typings g asms tb)))
+                                      (not (any zi--rank (zi--typings g asms tb)))))
                                 gens))
                ;; the ring: the largest class an atom is typed in; failing that, the
                ;; smallest class type-term can type an untyped atom in (f(x) with f in
                ;; FUN(RR, RR) gives RR) -- read off the CONTEXT, so under universals it is
                ;; decided after the `di' the step begins with
-               (D       (cond ((pair? ranked)
+               (D0      (cond ((pair? ranked)
                                (list-ref '(NN ZZ QQ RR CC) (apply max ranked)))
                               ((and (pair? untyped) (null? binders))
                                (let ((cs (filter-map
@@ -365,14 +397,18 @@
                                  (and (pair? cs)
                                       (list-ref '(NN ZZ QQ RR CC)
                                                 (apply max (map zi--rank cs))))))
-                              (#t #f))))
+                              (#t #f)))
+              ;; an order relation lives in RR: every atom is typed there or lifted
+              (D       (if (and order? D0 (< (zi--rank D0) 4)) 'RR D0))
+              (poly    (if order? (poly-add p2 (poly-neg p1)) (poly-add p1 (poly-neg p2)))))
           (cond
+            ((and order? D0 (eqv? (zi--rank D0) 4))
+             (zi--decline "CC has no order: an inequality between complex terms is not a goal zero-it can move"))
             ((and (pair? gens) (not D) (pair? binders)
                   (any (lambda (b) (not (zi--rank (cdr b)))) binders))
              ;; an atom typed through a binder that is not a number class (f in FUN(RR, RR)):
              ;; decide after the peel
-             (let ((poly (poly-add p1 (poly-neg p2))))
-               (zi--finish rel P Q binders 'concrete #f poly untyped '() '())))
+             (zi--finish rel P Q binders 'concrete #f poly untyped '() '()))
             ((and (pair? gens) (not D))
              (zi--decline
               (string-append "no atom of the equation is typed in a number class"
@@ -383,8 +419,7 @@
                            (concrete-ring-head? P) (concrete-ring-head? Q))))
              (zi--decline "the equation is not between ring terms"))
             (#t
-             (let* ((poly  (poly-add p1 (poly-neg p2)))
-                    (plans (if (null? binders)
+             (let* ((plans (if (null? binders)
                                (filter-map (lambda (g) (and D (zi--type-plan g D asms))) untyped)
                                '()))
                     (owed  (if (null? binders)
@@ -399,6 +434,9 @@
   (let ((p1 (cring->poly P a)) (p2 (cring->poly Q a)) (tb (append binders exists)))
     (cond
       ((not (and p1 p2)) (zi--decline "a side of the equation is not a ring term"))
+      ((zi--order? rel)
+       (zi--decline (string-append "an abstract ring has no order: " (expression->string a)
+                                   " is a ring, and <= is the order of RR")))
       ((not (member (list 'IS-COMMUTATIVE-RING a) asms))
        (zi--decline (string-append (expression->string (list 'IS-COMMUTATIVE-RING a))
                                    " is not in the context: the ring laws crs uses are not"
@@ -441,9 +479,10 @@
     (cons side main)))
 
 ;;; Close (rel P Q) on the focus leaf when P - Q normalises to 0.
-(define (zi--close-identity!)
+(define (zi--close-identity! a)
   (let* ((leaf (proof-state-focus *ps*)) (g (dk-goal)) (P (cadr g)) (Q (caddr g)))
     (cond
+      ((zi--order? (car g)) (zi--close-order! a #t))
       ((eq? (car g) '=) (crs))
       ((equal? P Q) (qrfl))
       (#t (let ((e (if (zi--occurs? P Q) (list '= Q P) (list '= P Q))))
@@ -453,7 +492,43 @@
     (sequent-node-grounded? leaf)))
 
 ;;; The branch R = 0 |- (rel P Q), on the focus leaf.
+;;; The order branch  0 <= R |- P <= Q  (or <): Q - P = R by crs on a lane; 0 <= Q - P on
+;;; a lane by that rewrite and `ass' (GROUND?: R is a numeral, the rewritten goal 0 <= c is
+;;; closed by ineq instead); P and Q typed in RR by type-term's plans, read off the context
+;;; after the atoms' typings were landed or cut; then the law, detached, closes the goal.
+(define (zi--close-order! a ground?)
+  (let* ((leaf (proof-state-focus *ps*))
+         (rel (zi--get a 'rel)) (P (zi--get a 'P)) (Q (zi--get a 'Q)) (R (zi--get a 'R))
+         (diff (list '- Q P))
+         (e1   (list '= diff R))
+         (law  (if (eq? rel '<=) 'rr-le-from-diff-nonneg 'rr-lt-from-diff-pos))
+         (pP   (type-term--plan P 'RR))
+         (pQ   (type-term--plan Q 'RR)))
+    (if (not (and pP pQ))
+        (begin
+          (set! *zi-last-analysis*
+                (append (zi--decline (string-append "a side of the inequality cannot be typed in rr: "
+                                                    (expression->string (if pP Q P))))
+                        a))
+          (error "zero-it: a side of the inequality cannot be typed in rr"))
+        (begin
+          (unless (equal? diff R) (dk-have! e1 (lambda () (crs))))
+          (dk-have! (list rel 0 diff)
+                    (lambda ()
+                      (unless (equal? diff R) (subst e1))
+                      (if ground? (ineq) (ass))))
+          (type-term--exec! pP)
+          (type-term--exec! pQ)
+          (fact law P Q)
+          (ass)
+          (sequent-node-grounded? leaf)))))
+
 (define (zi--close-branch! a)
+  (if (zi--order? (zi--get a 'rel))
+      (zi--close-order! a #f)
+      (zi--close-branch-eq! a)))
+
+(define (zi--close-branch-eq! a)
   (let* ((leaf (proof-state-focus *ps*))
          ;; NB case folding: `rng', never `r' beside `R' (they are ONE symbol)
          (s (zi--get a 'surface)) (rng (zi--get a 'ring))
@@ -467,7 +542,7 @@
         (dk-have! e1 (lambda () (crs)))
         (subst e1)))
     (subst (list '= R Z))
-    (zi--close-identity!)
+    (zi--close-identity! a)
     (sequent-node-grounded? leaf)))
 
 ;;; Land the typings that can be landed; cut the rest as owed side leaves.  Focus ends on
@@ -506,8 +581,7 @@
 (define (zi--drive-exists! a)
   (let* ((b       (car (zi--get a 'exists)))
          (v       (car b))
-         (reduced (zi--wrap-exists (zi--get a 'exists)
-                                   (list '= (zi--get a 'R) (zi--zero (zi--get a 'surface) (zi--get a 'ring))))))
+         (reduced (zi--wrap-exists (zi--get a 'exists) (zi--reduced a))))
     (if (alpha-equiv? reduced (dk-goal))
         #f
         (let* ((sm (zi--cut! reduced)) (side (car sm)) (main (cdr sm))
@@ -534,8 +608,8 @@
          (begin
            (zi--land-typings! a)
            (if (eq? (zi--get a 'status) 'zero)
-               (zi--close-identity!)
-               (let ((eqn (list '= (zi--get a 'R) (zi--zero (zi--get a 'surface) (zi--get a 'ring)))))
+               (zi--close-identity! a)
+               (let ((eqn (zi--reduced a)))
                  (if (dk-asm? eqn)
                      (zi--close-branch! a)
                      (let* ((sm (zi--cut! eqn)) (side (car sm)) (main (cdr sm)))
@@ -551,7 +625,9 @@
 
 (define (zi--difference-string a)
   (let ((s (zi--get a 'surface)) (rng (zi--get a 'ring)))
-    (expression->string (zi--sub s rng (zi--get a 'P) (zi--get a 'Q)))))
+    (expression->string (if (zi--order? (zi--get a 'rel))
+                            (zi--sub s rng (zi--get a 'Q) (zi--get a 'P))
+                            (zi--sub s rng (zi--get a 'P) (zi--get a 'Q))))))
 
 (define (zi--say-normal-form a)
   (zi--say ";; zero-it: " (zi--difference-string a) "  normalises to  "
@@ -560,7 +636,10 @@
 (define (zi--false-message a)
   (let ((c (zi--get a 'const)))
     (string-append
-     (cond ((and (eq? (zi--get a 'surface) 'generic) (not (= (zi--mag c) 1)))
+     (cond ((zi--order? (zi--get a 'rel))
+            (string-append ";; zero-it: the goal is FALSE over rr: it reduces to "
+                           (expression->string (zi--reduced a))))
+           ((and (eq? (zi--get a 'surface) 'generic) (not (= (zi--mag c) 1)))
             (string-append ";; zero-it: the goal reduces to " (number->string c)
                            " * 1 = 0 in " (expression->string (zi--get a 'ring))
                            ": FALSE unless the characteristic of the ring divides "
@@ -688,6 +767,11 @@
       ((not ok) (cons 'declined (zi--get a 'R)))
       ((sequent-node-grounded? leaf)
        (zi--say ";; zero-it: closed") (cons 'closed (zi--get a 'R)))
+      ((and (eq? (zi--get a 'status) 'zero) (zi--order? (zi--get a 'rel)))
+       (zi--say ";; zero-it: the inequality holds for every value of the atoms; closed"
+                (if (pair? (zi--get *zi-last-analysis* 'owed)) ", given the typings owed below" ""))
+       (zi--say-owed (zi--get *zi-last-analysis* 'owed))
+       (cons 'closed (zi--get a 'R)))
       ((eq? (zi--get a 'status) 'zero)
        (zi--say ";; zero-it: the identity is closed by crs, given the typings owed below")
        (zi--say-owed (zi--get *zi-last-analysis* 'owed))
@@ -717,13 +801,14 @@
            (display ";; ZERO-IT -- ") (display (zi--difference-string a))
            (display " normalises to ") (display (expression->string (zi--get a 'R))) (newline)
            (if (eq? (zi--get a 'status) 'zero)
-               (begin (display ";;   an identity of commutative rings: (zero-it) closes it by crs") (newline))
+               (begin (display (if (zi--order? (zi--get a 'rel))
+                                   ";;   the inequality holds for every value of the atoms: (zero-it) closes it"
+                                   ";;   an identity of commutative rings: (zero-it) closes it by crs"))
+                      (newline))
                (begin
                  (display ";;   (zero-it) leaves the goal  ")
                  (display (expression->string
-                           (zi--wrap-exists (zi--get a 'exists)
-                                            (list '= (zi--get a 'R)
-                                                  (zi--zero (zi--get a 'surface) (zi--get a 'ring))))))
+                           (zi--wrap-exists (zi--get a 'exists) (zi--reduced a))))
                  (newline)
                  (for-each (lambda (f) (display ";;   owed: ") (display (expression->string f)) (newline))
                            (zi--get a 'owed))))

@@ -13293,6 +13293,82 @@
                 (null? m2)
                 (zi-says? t2 "FALSE"))))))))
 
+;;; THE ORDER RELATIONS (2026-09-29; the user's first drive: "zero-it only applies if the goal
+;;; is ?a = ?b").  P <= Q and P < Q move to 0 <= R and 0 < R, R the normal form of Q - P, closed
+;;; through rr-le-from-diff-nonneg / rr-lt-from-diff-pos.  (12) and (13b) are controls: a FALSE
+;;; inequality records nothing; (14) replays a recorded (zero-it) on an inequality.
+
+(check-true "zero-it (11) RR: (x + 1)^2 <= x^2 + 3x + 1 leaves the goal 0 <= x; the normal form is x; one (zero-it) step; what-now offers it"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                                            (<= (power (+ x 1) 2) (+ (power x 2) (* 3 x) 1))))))))
+       (let* ((m #f)
+              (t (with-output-to-string (lambda () (set! m (what-now--show-zero-it (dk-goal))))))
+              (r (zi-run)))
+         (and (equal? m '((zero-it)))
+              (zi-says? t "leaves the goal  0 <= x")
+              (equal? (zero-it-normal-form (car r)) 'x)
+              (alpha-equiv? (dk-goal) '(<= 0 x))
+              (= 1 (length (proof-open-leaves *ps*)))
+              (equal? (map car *proof-script*) '(zero-it))))))))
+
+(check-true "zero-it (12) CONTROL: x + 1 <= x is FALSE, reduces to 0 <= -1, and NO step is recorded"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (<= (+ x 1) x)))))))
+       (let* ((n (length *proof-script*)) (g (dk-goal)) (r (zi-run)))
+         (and (equal? (zero-it-normal-form (car r)) '(- 1))   ; the term, not the numeral: -1 prints and re-reads as (- 1)
+              (eq? (zero-it-status (car r)) 'false)
+              (zi-says? (cdr r) "FALSE over rr: it reduces to 0 <= -1")
+              (= n (length *proof-script*))
+              (equal? g (dk-goal))))))))
+
+(check-true "zero-it (13a) ZZ atoms are lifted to RR: forall n in zz, n <= n + 1 closes (R = 1, a numeral that decides it)"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL n (IMPLIES (IN n ZZ) (<= n (+ n 1))))))))
+       (let ((r (zi-run)))
+         (and (eqv? (zero-it-normal-form (car r)) 1)
+              (eq? (zero-it-status (car r)) 'closed)
+              (proof-done? *ps*)))))))
+
+(check-true "zero-it (13b) CONTROL: x < x is FALSE (0 < 0), nothing recorded; x <= x closes"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (< x x)))))))
+       (let* ((n (length *proof-script*)) (r1 (zi-run)))
+         (and (eq? (zero-it-status (car r1)) 'false)
+              (zi-says? (cdr r1) "0 < 0")
+              (= n (length *proof-script*))
+              (begin
+                (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (<= x x)))))))
+                (let ((r2 (zi-run)))
+                  (and (eq? (zero-it-status (car r2)) 'closed)
+                       (proof-done? *ps*))))))))))
+
+(check-true "zero-it (14) a proof using zero-it on an inequality: page (di) (di) (zero-it), types back in grounded, bill lists crs"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (let ((name 'zi-order-page))
+         (quietly
+          (lambda ()
+            (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
+                             (IMPLIES (<= 0 y) (<= (* x 1) (+ x y)))))))))
+            (di) (di)
+            (zero-it)                   ; x + y - x * 1 normalises to y: 0 <= y is in context, closed
+            (qed name)))
+         (and (hash-table-ref/default *theorem-table* name #f)
+              (equal? (map car (hash-table-ref/default *proof-script-table* name '()))
+                      '(di di zero-it))
+              (eq? (page--type-in (page-of name)) 'grounded)
+              (and (memq 'crs (hash-table-ref/default *proof-oracles* name '())) #t)))))))
+
 (check-true "zero-it: (backup-one) takes the whole step back"
   (lambda ()
     (zi-safe
@@ -13736,11 +13812,11 @@
 (define (b41-fired-names v) (map car (preamble-fired v)))
 
 ;; --- the reader -------------------------------------------------------------------
-(check "reader: preambles/default.pre parses, 20 rules, no malformed one"
+(check "reader: preambles/default.pre parses, 22 rules, no malformed one"
   (lambda ()
     (let ((rd (pa-read-rule-file *preamble-default-file*)))
       (list (length (car rd)) (cadr rd))))
-  '(20 ()))
+  '(22 ()))          ; 22 since 2026-09-29: ring-order-le / ring-order-lt (zero-it on inequalities)
 
 (check-true "reader CONTROL: a malformed rule is left out and REPORTED WITH ITS NAME; the good one is kept"
   (lambda ()

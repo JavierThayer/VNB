@@ -107,6 +107,16 @@
   (do    (pa-ineq!))
   (probe grounded))
 
+;; An inequality over the reals that ineq could not close: zero-it moves P <= Q (or P < Q)
+;; to 0 <= R (or 0 < R), R the normal form of Q - P; a FALSE one is rejected and says so.
+(rule ring-order-le
+  (goal  (<= ?p ?q))
+  (do    (zero-it)))
+
+(rule ring-order-lt
+  (goal  (< ?p ?q))
+  (do    (zero-it)))
+
 ;; An applied lambda in the goal: beta to a fixpoint, closing the owed typings the
 ;; context holds.
 (rule beta-redex

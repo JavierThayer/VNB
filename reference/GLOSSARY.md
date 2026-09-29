@@ -9997,7 +9997,7 @@ also: `sum-zero` `comb-kk-zero` `qq-ring@zero` `ring-zero-in` `zz-ring@zero` `qq
 
 ### `zero-it`  *(tactic)*
 
-`(zero-it)` -- Move an equation goal P = Q (or P == Q, bare or under typed universals) to R = 0, where R is the normal form of P - Q (crs's calculator, highest degree first); prints `P - Q normalises to R' and returns R.  R = 0: closed by crs.  R a non-zero numeral: says the goal is FALSE and changes nothing.  Otherwise ONE recorded step leaves the goal R = 0, the atoms' typings landed or listed as owed side leaves.
+`(zero-it)` -- Move an equation goal P = Q (or P == Q, bare or under typed universals) to R = 0, where R is the normal form of P - Q (crs's calculator, highest degree first); prints `P - Q normalises to R' and returns R.  An inequality goal P <= Q or P < Q (the order of RR; atoms typed in NN, ZZ or QQ are lifted) is moved to 0 <= R or 0 < R, R the normal form of Q - P, the branch closed through rr-le-from-diff-nonneg / rr-lt-from-diff-pos; a numeral R decides it (0 <= -1: FALSE, nothing changed; 0 < 2: closed).  CC and an abstract ring have no order and are declined.  R = 0: closed by crs.  R a non-zero numeral: says the goal is FALSE and changes nothing.  Otherwise ONE recorded step leaves the goal R = 0, the atoms' typings landed or listed as owed side leaves.
 
 declared in `tactics-help.scm`
 

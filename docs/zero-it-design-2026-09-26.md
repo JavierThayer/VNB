@@ -81,7 +81,7 @@ rewrite until g in rr").
 
 ## Out of scope (follow-ups, each one line)
 
-* `P <= Q` and `P < Q` (to `0 <= R`): the same steps with `rr-le-sub` in place of the sub-zero law.
+* ~~`P <= Q` and `P < Q`~~ BUILT 2026-09-29, see the section below.
 * Simplifying a HYPOTHESIS (`zero-it-h`): the tree has no hypothesis-side rewrite yet (CLAUDE.md, owed).
 * A normal form that respects `recip` algebra (rational functions): `crs` does not; `dk-crs-opaque!`'s
   generalisation is what we have.
@@ -244,3 +244,30 @@ non-zero constant the goal is FALSE for every witness. One existential binder is
 and an atom left untyped under the existential decline with the reason. Suite checks (E1) to (E6):
 the ZZ example, the NN control, the FALSE case, the two declines, the replay through
 `apply-recorded-cmd!`. No kernel file is touched.
+
+## The order relations (built 2026-09-29)
+
+The user's first drive of the preamble (2026-09-29): "zero-it only applies if the goal is `?a = ?b`".
+Since then a goal `P <= Q` or `P < Q` is moved to `0 <= R` or `0 < R`, where `R` is the normal form of
+`Q - P` (the orientation of the closing laws). The printout reads `Q - P normalises to R`.
+
+* **The ring is RR** whatever class the atoms are typed in: `<=` is the order of RR, and an atom typed
+  in NN, ZZ or QQ is lifted by `type-term`'s inclusion route (its typing in RR is landed, or cut as an
+  owed leaf when no route exists). CC and an abstract ring have no order: declined with the reason.
+* **A numeral `R` decides the goal**: `0 <= c` is TRUE for `c >= 0` (closed, one `(zero-it)` step)
+  and FALSE below; `0 < c` is TRUE for `c > 0` and FALSE at or below 0. So `x < x` is reported FALSE
+  ("it reduces to 0 < 0") with nothing recorded, and `x <= x` closes.
+* **The closing branch** `0 <= R |- P <= Q`: `Q - P = R` by `crs` on a lane; `0 <= Q - P` on a lane by
+  that rewrite and `ass` (or `ineq`, when `R` is a numeral); `P in rr` and `Q in rr` by `type-term`'s
+  plans, read off the context after the atoms' typings were landed or cut; then
+  `rr-le-from-diff-nonneg` (or `rr-lt-from-diff-pos`), detached, closes the goal. No orientation
+  condition: nothing is substituted inside `P` or `Q`. When the reduced atom is already in context
+  the goal closes outright (the page of such a proof is `(di) (di) (zero-it)`).
+* **The existential case** carries over: `forsome([a in rr], 2a <= a + 3)` is cut to
+  `forsome([a in rr], 0 <= 3 - a)`.
+* **The preamble** has two new rules, `ring-order-le` and `ring-order-lt`, placed AFTER the `ineq`
+  rules: `ineq` closes what it can, and zero-it normalises what it declined.
+* Suite: checks (11)-(14), two of them controls (a FALSE inequality records nothing). Probed on the
+  band 2026-09-29: eleven goals, the block 17 / 0.
+* Not done: the inner `ineq` on a numeral `R` prints its Farkas line outside the report block
+  (cosmetic, process buffer only). The hypothesis side (`zero-it-h`) is still the open follow-up.

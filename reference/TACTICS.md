@@ -788,13 +788,13 @@ The step a hand proof writes as `expanding, ...': the goal after it says what th
 
     (zero-it)
 
-Move an equation goal P = Q (or P == Q, bare or under typed universals) to R = 0, where R is the normal form of P - Q (crs's calculator, highest degree first); prints `P - Q normalises to R' and returns R.  R = 0: closed by crs.  R a non-zero numeral: says the goal is FALSE and changes nothing.  Otherwise ONE recorded step leaves the goal R = 0, the atoms' typings landed or listed as owed side leaves.
+Move an equation goal P = Q (or P == Q, bare or under typed universals) to R = 0, where R is the normal form of P - Q (crs's calculator, highest degree first); prints `P - Q normalises to R' and returns R.  An inequality goal P <= Q or P < Q (the order of RR; atoms typed in NN, ZZ or QQ are lifted) is moved to 0 <= R or 0 < R, R the normal form of Q - P, the branch closed through rr-le-from-diff-nonneg / rr-lt-from-diff-pos; a numeral R decides it (0 <= -1: FALSE, nothing changed; 0 < 2: closed).  CC and an abstract ring have no order and are declined.  R = 0: closed by crs.  R a non-zero numeral: says the goal is FALSE and changes nothing.  Otherwise ONE recorded step leaves the goal R = 0, the atoms' typings landed or listed as owed side leaves.
 
 *Kind:* `composite` (emits `(cut comm-ring-simplify eq-subst)`)
 
 *Uses:* `comm-ring-simplify` `cut` `eq-subst` 
 
-*When useful:* an equation P = Q over a ring and you want to see (and prove) what it reduces to: R = 0, or a FALSE numeral that marks a dead path
+*When useful:* an equation P = Q over a ring, or an inequality P <= Q / P < Q over the reals, and you want to see (and prove) what it reduces to: R = 0 (0 <= R), or a FALSE numeral that marks a dead path
 
 The user's notes-42: `if in the end it means I have to prove 1 = 2, I can see I've been barking up the wrong tree'.  The ring is read off the typings of the atoms: the number surface (+ - * ^, numerals; atoms typed in NN ZZ QQ RR CC, the largest class wins, NN lifting) or an abstract ring a with IS-COMMUTATIVE-RING(a) in context ((ADD a) (MUL a) (NEG a) (ZERO a) (ONE a)).  NN alone is refused for the rewrite (no subtraction).  Each atom of P and Q must be typed in the ring: an untyped one is typed by type-term's plan or, for recip(t) with not(t = 0) in context, by the recip-closure law; what cannot be typed is CUT as an owed side leaf `g in D', listed in the printout, and the new goal carries it as a hypothesis -- the notes' `[the eliminated terms all defined]'.  Then R = 0 is cut, and the branch R = 0 |- P = Q is closed by crs (P = Q + R), subst (P -> Q + R, then R -> 0) and crs; no sub-zero law and no typing of P or Q is needed.  Universals typed in the ring are peeled first (di, inside the same step).  The step records as (zero-it) with no argument: replay recomputes the normal form from the goal.  what-now shows the normal form on an equation goal and offers (zero-it).  (Technically: composite -- cut, comm-ring-simplify, eq-subst, plus di / theorem-assumption / forall-elim for the peeling and typings; the inner steps run with recording suppressed on the bc*-handler path, their citations kept for the bill; transactional.)
 
@@ -1260,6 +1260,8 @@ Run thunks in order, stop at the first that makes progress (LCF ORELSE).
 Apply an editable RULE FILE to the focus goal, one step at a time: each rule reads `if the sequent looks like this, do that', and the first rule that matches AND makes progress is kept; the loop repeats on the new focus until the goal is done, no rule applies, or 40 steps.  Rules come from ~/.vnb-preamble.pre when it exists, else the shipped preambles/default.pre (peel, split, close by context, reflexivity, arithmetic, type-term, zero-it, ineq, beta, unfold, and a tentative cut).  Prints one report: what each rule did, which rules matched but were rejected, and where it stopped and why.
 
 *Kind:* `composite` (emits `(cut)`)
+
+*Uses:* `cut` 
 
 *When useful:* you want the routine steps done for you by rules you can read and edit, with a report of what each rule did and where it stopped
 
