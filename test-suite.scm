@@ -13351,6 +13351,21 @@
                   (and (eq? (zero-it-status (car r2)) 'closed)
                        (proof-done? *ps*))))))))))
 
+(check-true "show-graph (notes-49): after zero-it on forsome([a in zz], (x + y)^4 = x^4 + a y) the graph lists the cut's closed main branch (by cut, [GROUNDED]) and its open side leaf"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda ()
+                  (sp (make-wff '(FORALL x (IMPLIES (IN x ZZ) (FORALL y (IMPLIES (IN y ZZ)
+                                   (FORSOME a (AND (IN a ZZ) (= (power (+ x y) 4) (+ (power x 4) (* a y)))))))))))
+                  (zero-it)))
+       (let ((t (with-output-to-string (lambda () (fluid-let ((*vnb-quiet* #f)) (show-graph))))))
+         (and (= 1 (length (proof-open-leaves *ps*)))
+              (zi-says? t "by cut from")
+              (zi-says? t "[GROUNDED]")
+              (zi-says? t "<- focus, open")
+              (zi-says? t "a * y = 0)"))))))
+
 (check-true "zero-it (14) a proof using zero-it on an inequality: page (di) (di) (zero-it), types back in grounded, bill lists crs"
   (lambda ()
     (zi-safe

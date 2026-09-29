@@ -291,6 +291,51 @@
         (display "No current proof.  Use (sp (make-wff '(formula))) to start one.\n"))
     (display ";;VNB-STATE-END\n")))
 
+;;; (show-graph) -- EVERY node of the current proof, closed ones included (the user,
+;;; notes-49, 2026-09-29: after a composite closed the main branch of its cut, "where is
+;;; the cut node?" -- the panel lists open leaves only, so a branch a step closed is
+;;; invisible there).  One line per sequent node in creation order -- the number the
+;;; panel prints in brackets, the sequent, [GROUNDED] when justified -- and under each
+;;; node that has an inference into it, one line per inference: the rule's head and the
+;;; numbers of the hypothesis nodes it rests on.  The focus and the open leaves are
+;;; marked.  Printed as a report block (the markers the Emacs side recognises), so the
+;;; [Graph] button shows it; records nothing, like `show'.
+(define (show-graph)
+  (vnb-guard
+    (lambda ()
+      (vnb--require-proof!)
+      (let* ((dg    (proof-state-dg *ps*))
+             (nodes (dg-sequent-nodes dg))
+             (open  (proof-open-leaves *ps*))
+             (focus (proof-state-focus *ps*))
+             (rule-head (lambda (r) (if (pair? r) (car r) r)))
+             (num (lambda (sqn) (string-append "[" (number->string (or (sequent-node-number sqn) -1)) "]"))))
+        (display ";;VNB-REPORT-BEGIN\n")
+        (display ";; graph: ") (display (length nodes)) (display " node(s), ")
+        (display (length open)) (display " open leaf/leaves; root ")
+        (display (num (proof-state-root *ps*)))
+        (if (proof-done? *ps*) (display "; proof complete") (begin (display "; focus ") (display (num focus))))
+        (newline)
+        (for-each
+          (lambda (sqn)
+            (display ";;   ") (display (sequent-node->string sqn))
+            (cond ((and (memq sqn open) (eq? sqn focus)) (display "   <- focus, open"))
+                  ((memq sqn open) (display "   <- open"))
+                  ((eq? sqn focus) (display "   <- focus")))
+            (newline)
+            (for-each
+              (lambda (inf)
+                (display ";;       by ") (display (rule-head (inference-node-rule inf)))
+                (let ((hs (inference-node-hypotheses inf)))
+                  (if (null? hs)
+                      (display " (no hypotheses)")
+                      (begin (display " from")
+                             (for-each (lambda (h) (display " ") (display (num h))) hs))))
+                (newline))
+              (reverse (sequent-node-in-arrows sqn))))
+          nodes)
+        (display ";;VNB-REPORT-END\n")))))
+
 (define (pp w)
   (display (wff->string w))
   (newline))

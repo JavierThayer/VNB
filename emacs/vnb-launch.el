@@ -4031,6 +4031,7 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (define-key m "n" 'vnb-what-now)                ; the [What now?] button
     (define-key m "I" 'vnb-what-is)                 ; the [What is...?] button
     (define-key m "P" 'vnb-pf-preamble)             ; the [Preamble] button (batch 41)
+    (define-key m "G" 'vnb-pf-show-graph)           ; the [Graph] button (notes-49)
     m)
   "Keymap for the Focus Workspace buffer.")
 
@@ -4097,6 +4098,12 @@ no such guard -- it talks to nothing."
     (insert "  ")
     (vnb-launch--insert-button "Preamble" 'vnb-pf-preamble
                                "Run the rule file on the focused goal: routine steps, then a report (P)")
+    ;; The graph (notes-49, 2026-09-29): every node, closed branches included --
+    ;; where the branch a composite closed is found.  Shown only with a proof open.
+    (when (vnb-pf--proof-live-p)
+      (insert "  ")
+      (vnb-launch--insert-button "Graph" 'vnb-pf-show-graph
+                                 "Every node of the proof, closed ones included, with what grounds each (G)"))
     ;; Undo sits with the other two questions rather than only on the toolbar:
     ;; it is a thing you ask of the proof, not a tool.  Shown only while a proof
     ;; is open -- "previous node" with no proof is nonsense.  (User's call.)
@@ -4114,6 +4121,9 @@ no such guard -- it talks to nothing."
     (insert (propertize "  — rules do the routine steps, then report where they stopped\n"
                         'face 'vnb-body))
     (when (vnb-pf--proof-live-p)
+      (insert (propertize "     graph   " 'face 'vnb-accent))
+      (insert (propertize "  — every node, closed branches included, and what grounds each\n"
+                          'face 'vnb-body))
       (insert (propertize "     undo    " 'face 'vnb-accent))
       (insert (propertize "  — roll back the last step (the graph, not a state stack)\n"
                           'face 'vnb-body)))
@@ -5178,6 +5188,19 @@ ends in a precise `user-error\=' if there is nothing to write, and a button
 that is wrongly dead teaches the user the feature is broken."
   (let ((parsed (vnb-launch--parse-state vnb-proof--last-state)))
     (not (and parsed (eq (plist-get parsed :status) 'none)))))
+
+(defun vnb-pf-show-graph ()
+  "Print EVERY node of the current proof, closed ones included.  Wraps (show-graph).
+
+One line per sequent node in creation order (the bracketed number the Focus
+Workspace prints, the sequent, [GROUNDED] when justified) and, under each node,
+the rule and hypothesis numbers of every inference into it.  This is where the
+branch a composite closed is found -- after (cut L) both branches are nodes, and
+zero-it on an existential closes the main one (notes-49, 2026-09-29).  The block
+comes back on the report channel; longer than a few lines it opens in the
+*VNB Report* buffer (vnb.el)."
+  (interactive)
+  (vnb-launch--send-tactic "(show-graph)"))
 
 (defun vnb-pf-preamble ()
   "Run the PREAMBLE -- the editable rule file -- on the focused goal.  Wraps (preamble).
