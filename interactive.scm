@@ -5195,9 +5195,12 @@
   (vnb-guard
     (lambda ()
       (vnb--require-proof!)
-      ;; LEAVES, as `focus' (2026-09-29): an ungrounded ancestor is not a goal
-      ;; to work on, and the panel numbers the leaves.
-      (let ((g (let loop ((gs (proof-open-leaves *ps*)))
+      ;; EVERY ungrounded node, NOT the leaves (restored 2026-09-30 after two
+      ;; pages failed the audit): `dk-focus!' (driver-kit.scm) records a leaf by
+      ;; POSITION as `focus' and an ungrounded NON-leaf -- a node a rule has fired
+      ;; on that still waits on its children -- as `focus-id', so a page's
+      ;; `(focus-id k)' names such a node by contract, and the replay must find it.
+      (let ((g (let loop ((gs (proof-open-goals *ps*)))
                  (cond ((null? gs) #f)
                        ((eqv? (sequent-node-number (car gs)) k) (car gs))
                        (else (loop (cdr gs)))))))
