@@ -36,6 +36,15 @@
 (define (check-true  label thunk) (check label thunk #t))
 (define (check-false label thunk) (check label thunk #f))
 
+;; PROVEN, for a LIBRARY theorem, since 2026-09-30: in a daytime image (VNB_CERTIFIED=on,
+;; the default of `vnb-band --build') a theorem whose certificate is valid is installed
+;; with provenance `certified' and its proof does not run; the exam's image says
+;; `proven'.  A check that a library fact is proven and not asserted accepts both --
+;; certificates.scm: "a certified theorem is proven for every purpose that asks".  A
+;; check on a proof the suite itself runs, or on the certified fixtures, still says
+;; `proven' or `certified' literally.
+(define (suite-proven? nm) (and (memq (provenance-of nm) '(proven certified)) #t))
+
 (define (check-error label thunk)
   ;; Pass when thunk returns a <vnb-error> (i.e. input was rejected).
   (let ((result (thunk)))
@@ -730,7 +739,8 @@
     (let ((tag (ft--status-tag 'cont-transfer-ptwise-eq
                                (warrant-of 'cont-transfer-ptwise-eq))))
       (and (not (warrant-of 'cont-transfer-ptwise-eq))
-           (string-search-forward "PROVEN" tag 0)
+           ;; PROVEN in the exam's image, CERTIFIED in a daytime one (2026-09-30)
+           (or (string-search-forward "PROVEN" tag 0) (string-search-forward "CERTIFIED" tag 0))
            (not (string-search-forward "asserted" tag 0))
            #t))))
 
@@ -2632,12 +2642,12 @@
 ;; an unguarded (and, for the singleton, underdetermined) axiom is back in the theory.
 (check-true "sum-set-empty is a PROVEN theorem"
   (lambda () (and (lookup-theorem 'sum-set-empty)
-                  (eq? (provenance-of 'sum-set-empty) 'proven))))
+                  (suite-proven? 'sum-set-empty))))
 
 (for-each
  (lambda (nm)
    (check-true (string-append (symbol->string nm) " is a PROVEN theorem")
-     (lambda () (and (lookup-theorem nm) (eq? (provenance-of nm) 'proven)))))
+     (lambda () (and (lookup-theorem nm) (suite-proven? nm)))))
  '(sum-set-singleton-defined sum-set-disjoint-union-defined sum-set-type-defined))
 
 (for-each
@@ -2656,7 +2666,7 @@
 (for-each
  (lambda (nm)
    (check-true (string-append (symbol->string nm) " is PROVEN from the definition")
-     (lambda () (and (lookup-theorem nm) (eq? (provenance-of nm) 'proven)))))
+     (lambda () (and (lookup-theorem nm) (suite-proven? nm)))))
  '(eplus-in-fun etimes-in-fun eplus-real-defined etimes-real-defined))
 
 (check-true "(SUM-SET r S f) accepted in term position"
@@ -2999,8 +3009,8 @@
 ;; 2026-08-24).  It was a bare add-axiom! with no warrant -- `trust: none'
 ;; -- until then.  The three coordinate facts its proof had to add first are
 ;; pinned beside it: none of them was in the tree.
-(check "cc-complete is PROVEN, not asserted"
-  (lambda () (provenance-of 'cc-complete)) 'proven)
+(check-true "cc-complete is PROVEN, not asserted"
+  (lambda () (suite-proven? 'cc-complete)))
 (check-true "cc-abs-re-le-magnitude installed (|Re z| <= |z|)"
   (lambda () (and (lookup-theorem 'cc-abs-re-le-magnitude) #t)))
 (check-true "cc-magnitude-le-re-im installed (|z| <= |Re z| + |Im z|)"
@@ -3378,7 +3388,7 @@
 ;; (theorem-library/ball-is-open.scm), so the check is that it is a proven theorem
 ;; with an EMPTY bill, not that it carries a warrant.
 (check-true "ball-is-open is proven modulo 0"
-  (lambda () (and (eq? (provenance-of 'ball-is-open) 'proven) (null? (debt-of 'ball-is-open)))))
+  (lambda () (and (suite-proven? 'ball-is-open) (null? (debt-of 'ball-is-open)))))
 
 ;; Case-fold capture regression: the carrier accessor X folds to the symbol x
 ;; (MIT reader case-folds), so BALL's centre parameter must NOT be x -- else it
@@ -3425,7 +3435,7 @@
 ;; the guard (IN A SET) is what makes it provable -- `lam-t' types the unfolded
 ;; lambda over DOM(g), and `dom-of-fun' needs A's sethood to identify DOM(g) with A.
 (check-true "compose-type is proven, not an asserted leaf"
-  (lambda () (eq? (provenance-of 'compose-type) 'proven)))
+  (lambda () (suite-proven? 'compose-type)))
 (check-true "compose-type carries the (IN A SET) guard, outermost"
   (lambda ()
     (let loop ((f (lookup-theorem 'compose-type)))
@@ -4246,6 +4256,11 @@
 ;; "(closes)" under both read as though the auxiliary claim closed the theorem.
 ;; nn-lt-double is the specimen: `calc' emits three side goals (two cuts and the
 ;; NN->RR typing row) and then closes the main goal by `ass'.
+(if (and (certified-theorem? 'nn-lt-double)
+         (not (hash-table-ref/default *proof-live-trace* 'nn-lt-double #f)))
+    ;; a daytime image (certified): the proof did not run, there is no trace to read;
+    ;; the exam's suite runs this check every night (vnb-nightly-exam)
+    (display "  SKIP  a cut's closer says SIDE goal (nn-lt-double is certified in this image: no trace; the exam's suite runs it)\n")
 (check-true "a cut's closer says SIDE goal; the closer of the main goal does not"
   (lambda ()
     (let ((s (proof-reader 'nn-lt-double)))
@@ -4255,7 +4270,7 @@
            (string-search-forward "(holds by assumption)" s 0)
            (not (string-search-forward "(side goal holds by assumption)" s 0))
            (not (string-search-forward "(closes)" s 0))
-           #t))))
+           #t)))))
 
 ;; A universal in a NESTED position is part of the CLAIM, so it must read as a
 ;; quantifier.  "Suppose"/"Let" is imperative -- it instructs the reader to fix
@@ -4319,7 +4334,7 @@
   (lambda ()
     (let ((f (hash-table-ref/default *theorem-table* 'metric-top@preimage #f)))
       (and f
-           (eq? (provenance-of 'metric-top@preimage) 'proven)   ; proved, not asserted
+           (suite-proven? 'metric-top@preimage)   ; proved, not asserted
            (null? (debt-of 'metric-top@preimage))               ; ... modulo 0
            (string-search-forward "==" (expression->string f) 0)
            #t))))
@@ -6970,7 +6985,7 @@
   (lambda ()
     (every (lambda (nm)
              (and (hash-table-ref/default *theorem-table* nm #f)
-                  (eq? (provenance-of nm) 'proven)
+                  (suite-proven? nm)
                   (null? (debt-of nm))))
            '(rr-sup-approx ccint-creep continuous-bounded-above-on-ccint
              neg-fun-in-fun neg-continuous-at
@@ -7009,7 +7024,7 @@
   (lambda ()
     (every (lambda (nm)
              (and (hash-table-ref/default *theorem-table* nm #f)
-                  (eq? (provenance-of nm) 'proven)
+                  (suite-proven? nm)
                   (null? (debt-of nm))))
            '(empty-subset-any union-singleton-mem union-right-subset
              union-singleton-subset big-union-mono card-union-singleton-nn
@@ -8469,7 +8484,7 @@
   (lambda ()
     (every (lambda (nm)
              (and (hash-table-ref/default *theorem-table* nm #f)
-                  (eq? (provenance-of nm) 'proven)
+                  (suite-proven? nm)
                   (null? (debt-of nm))))
            '(anti-term-in-rr anti-term-lam-in-fun anti-lam-in-fun
              rr-zero-plus recip-succ-cancel deriv-anti-monomial
@@ -9146,7 +9161,7 @@
  (lambda (nm)
    (check-true (string-append (symbol->string nm) " is PROVEN and bills modulo 0")
      (lambda () (and (lookup-theorem nm)
-                     (eq? (provenance-of nm) 'proven)
+                     (suite-proven? nm)
                      (null? (debt-of nm))))))
  '(dc-on-nn-pred dc-on-nn subsequence-capture nn-step-strictly-mono
    esup-in esup-upper esup-least esup-empty esum-in esum-upper esum-least
@@ -9178,7 +9193,7 @@
    (check-true (string-append (symbol->string nm)
                               " was a CARD axiom and is now PROVEN, modulo 0")
      (lambda () (and (lookup-theorem nm)
-                     (eq? (provenance-of nm) 'proven)
+                     (suite-proven? nm)
                      (null? (debt-of nm))))))
  '(card-in-ord card-empty card-insert card-segment card-finite-bij
    card-union-disjoint finite-set-induction card-image-injection
@@ -9477,7 +9492,7 @@
 (check-true "intersection-of-membership is proven and bills modulo 0"
   (lambda ()
     (and (lookup-theorem 'intersection-of-membership)
-         (eq? (provenance-of 'intersection-of-membership) 'proven)
+         (suite-proven? 'intersection-of-membership)
          (null? (debt-of 'intersection-of-membership))
          #t)))
 
@@ -9485,7 +9500,7 @@
   (lambda ()
     (every (lambda (nm)
              (and (lookup-theorem nm)
-                  (eq? (provenance-of nm) 'proven)
+                  (suite-proven? nm)
                   (null? (debt-of nm))))
            '(intersection-of-unfold intersection-of-membership
              intersection-of-subset-member intersection-of-empty-family
@@ -14118,6 +14133,34 @@
        (let* ((m #f) (t (with-output-to-string (lambda () (set! m (what-now--show-preamble (dk-goal)))))))
          (and (null? m) (b41-says? t "PREAMBLE") (b41-says? t "peel-universal")
               (null? *proof-script*)))))))
+
+
+;;; ---------------------------------------------------------------------------
+;;; THE BUDGET (2026-09-30; interactive.scm `vnb-with-budget'): the demo froze on
+;;; zero-it and the preamble, with no way back but killing the process.
+(check "budget: a runaway thunk is stopped, the value says so, and the deadline is restored"
+  (lambda ()
+    (let* ((t0 (runtime))
+           (v (with-output-to-string
+                (lambda ()
+                  (display (vnb-with-budget 1 "(a runaway)" (lambda () (let loop () (loop))))))))
+           (dt (- (runtime) t0)))
+      (list (and (string-search-forward "budget-exhausted" v 0) #t)
+            (and (string-search-forward ";; STOPPED after 1 s: (a runaway)" v 0) #t)
+            (< dt 5)
+            *vnb-deadline*)))
+  '(#t #t #t #f))
+(check "budget: a thunk that returns in time returns its value, nothing printed, deadline restored"
+  (lambda ()
+    (let* ((out #f)
+           (v (with-output-to-string (lambda () (set! out (vnb-with-budget 5 "(+ 1 2)" (lambda () (+ 1 2))))))))
+      (list out (string=? v "") *vnb-deadline*)))
+  '(3 #t #f))
+(check-true "budget: the cooperative test is armed only inside a budget"
+  (lambda ()
+    (and (not (vnb-budget-exhausted?))
+         (vnb-with-budget 5 "cooperative" (lambda () (not (vnb-budget-exhausted?))))
+         (not (vnb-budget-exhausted?)))))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

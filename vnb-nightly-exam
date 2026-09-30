@@ -1,0 +1,152 @@
+#!/bin/bash
+# vnb-nightly-exam -- THE EXAM, once a night, on a worker, unattended.
+#
+#   vnb-nightly-exam [--worker NAME] [--type t3.medium] [--heap 200000] [--force] [--dry-run]
+#
+# THE POLICY (the user, 2026-09-30: no proof checks during the day).  A daytime
+# integration is a CERTIFIED build (`vnb-band W --build', VNB_CERTIFIED=on): the
+# proofs whose certificates are valid do not run, ~minutes.  The exam -- every
+# proof run, every certificate rewritten, the page audit over every page,
+# ~2 h at heap 200000 on a t3.medium -- runs HERE, at night, from cron on the
+# primary:
+#
+#     0 6 * * * PATH=$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin $HOME/prover/vnb-nightly-exam >> $HOME/mailbox/metrics/nightly-exam.out 2>&1
+#
+# What one run does, in order, each step logged to ~/mailbox/metrics/nightly-exam.log
+# and the outcome to ~/mailbox/metrics/last-exam.json (what the morning check reads):
+#   0. SKIP when the tree is the one the last exam passed (HEAD + the uncommitted
+#      diff hash), unless --force: nothing to examine, no worker started.
+#   1. capataz start WORKER (or launch it when it does not exist), wait for SSM,
+#      arm the idle stop, add swap when missing.
+#   2. push the tree (rsync; scratchpad/, scratch/, .git, vnb.band, reference/
+#      excluded), verify load.scm and certificates.scm by md5.
+#   3. vnb-band WORKER --build --exam [--heap H]; poll --wait until it ends (cap 4 h).
+#   4. vnb-suite WORKER --band --detach; poll --wait (cap 40 min).
+#   5. a CERTIFIED build on the worker (vnb-band --build, ~3.5 min), then
+#      vnb-band-pull WORKER: that 40 MB band, reference/, certificates/ back to the
+#      primary, ONLY when the exam built its band and the suite passed; a failed
+#      exam leaves the primary's copies alone and says so.  The exam's 595 MB band
+#      stays on the worker.
+#   6. capataz stop WORKER.
+# Exit 0 = passed or skipped; 1 = the exam or the suite failed; 2 = infrastructure.
+# Every step's timing lands in the ledger rows the underlying commands already write.
+set -u
+PROVER=/home/ubuntu/prover
+METRICS=/home/ubuntu/mailbox/metrics
+LOG=$METRICS/nightly-exam.log
+LAST=$METRICS/last-exam.json
+WORKER=worker-02; TYPE=t3.medium; HEAP=; FORCE=0; DRY=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --worker) WORKER=$2; shift 2 ;;
+    --type) TYPE=$2; shift 2 ;;
+    --heap) HEAP=$2; shift 2 ;;
+    --force) FORCE=1; shift ;;
+    --dry-run) DRY=1; shift ;;
+    *) echo "vnb-nightly-exam: unknown option $1" >&2; exit 2 ;;
+  esac
+done
+mkdir -p "$METRICS"
+say() { echo "$(date -u +%FT%TZ) nightly-exam: $*" | tee -a "$LOG"; }
+record() { # record OUTCOME DETAIL
+  python3 - "$LAST" "$1" "$2" "$TREE" "$WORKER" <<'PY'
+import json, sys, datetime
+p, outcome, detail, tree, worker = sys.argv[1:6]
+json.dump({"ts": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "outcome": outcome,
+           "detail": detail, "tree": tree, "worker": worker}, open(p, "w"))
+PY
+}
+cd "$PROVER" || exit 2
+# The tree identity: HEAD plus a hash of the uncommitted diff (an exam checks the
+# tree as it stands, committed or not).
+TREE="$(git rev-parse --short HEAD 2>/dev/null)+$(git diff HEAD 2>/dev/null | md5sum | cut -c1-8)"
+if [ "$FORCE" = 0 ] && [ -f "$LAST" ]; then
+  prev=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("tree",""), d.get("outcome",""))' "$LAST")
+  if [ "$prev" = "$TREE passed" ]; then
+    say "skip: tree $TREE already passed the exam of $(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["ts"])' "$LAST")"
+    exit 0
+  fi
+fi
+say "start: tree $TREE on $WORKER ($TYPE${HEAP:+, heap $HEAP})"
+[ "$DRY" = 1 ] && { say "dry run: would start $WORKER, push, exam, suite, pull, stop"; exit 0; }
+
+state=$(capataz list --json 2>/dev/null | python3 -c 'import json,sys; w=sys.argv[1]; print(next((r["state"] for r in json.load(sys.stdin) if r["name"]==w), "absent"))' "$WORKER")
+case "$state" in
+  running) ;;
+  stopped) capataz start "$WORKER" --yes --json > /dev/null 2>&1 || { say "FAIL: capataz start $WORKER"; record failed "start"; exit 2; } ;;
+  absent)  capataz launch worker --yes --json --type "$TYPE" > /dev/null 2>&1 || { say "FAIL: capataz launch"; record failed "launch"; exit 2; }
+           WORKER=$(capataz list --json | python3 -c 'import json,sys; rs=[r["name"] for r in json.load(sys.stdin) if r["role"]=="worker"]; print(sorted(rs)[-1])')
+           say "launched $WORKER" ;;
+  *) say "FAIL: $WORKER is $state"; record failed "state $state"; exit 2 ;;
+esac
+for i in $(seq 1 40); do
+  st=$(capataz list --json 2>/dev/null | python3 -c 'import json,sys; w=sys.argv[1]; print(next((r["ssm_status"] for r in json.load(sys.stdin) if r["name"]==w), "?"))' "$WORKER")
+  [ "$st" = Online ] && break; sleep 15
+done
+[ "$st" = Online ] || { say "FAIL: $WORKER never came online"; record failed "ssm"; exit 2; }
+capataz run "$WORKER" --json 'command -v mit-scheme >/dev/null || apt-get install -y -q mit-scheme >/dev/null; swapon --show | grep -q swapfile || { fallocate -l 2G /swapfile; chmod 600 /swapfile; mkswap /swapfile; swapon /swapfile; }; bash /home/ubuntu/prover/vnb-idle-stop-install 30 >/dev/null 2>&1; echo ready' > /dev/null 2>&1
+capataz push "$WORKER" --yes --rsync --src "$PROVER" --dest "$PROVER" --exclude .git --exclude scratchpad/ --exclude scratch/ --exclude vnb.band --exclude reference/ > /dev/null 2>&1 \
+  || { say "FAIL: push to $WORKER"; record failed "push"; exit 2; }
+want=$(md5sum load.scm certificates.scm | awk '{print $1}' | paste -sd' ')
+have=$(capataz run "$WORKER" --json --user ubuntu "cd $PROVER && md5sum load.scm certificates.scm" 2>/dev/null | python3 -c 'import json,sys; print(" ".join(l.split()[0] for l in json.load(sys.stdin)["stdout"].splitlines()))' 2>/dev/null)
+[ "$want" = "$have" ] || { say "FAIL: push not verified (load.scm/certificates.scm md5 differ)"; record failed "md5"; exit 2; }
+say "pushed and verified; exam starting"
+
+JOB=$("$PROVER/vnb-band" "$WORKER" --build --exam ${HEAP:+--heap $HEAP} 2>&1 | sed -n 's/.*started \(job-[^ ]*\).*/\1/p')
+[ -n "$JOB" ] || { say "FAIL: vnb-band --build --exam returned no job"; record failed "exam-start"; exit 2; }
+say "exam $JOB"
+deadline=$(( $(date +%s) + 4*3600 )); rc=124
+while [ $rc = 124 ] && [ "$(date +%s)" -lt $deadline ]; do
+  out=$("$PROVER/vnb-band" "$WORKER" --wait "$JOB" --timeout 900 2>&1); rc=$?
+done
+if [ $rc != 0 ]; then say "FAIL: exam job $JOB status $rc"; echo "$out" | tail -20 >> "$LOG"; record failed "exam rc=$rc job=$JOB"; exit 1; fi
+row=$(echo "$out" | grep '"job":"build-band"' | tail -1)
+summary=$(python3 -c 'import json,sys; r=json.loads(sys.argv[1]); print("wall %.0f s, gc %.0f s, audit %.0f s, theorems %s, band_replaced %s" % (r.get("wall_s",0), r.get("gc_s",0), r.get("audit_s",0), r.get("theorems"), r.get("band_replaced")))' "$row" 2>/dev/null || echo "no ledger row")
+if ! echo "$row" | grep -q '"band_replaced":true'; then say "FAIL: exam did not replace the band ($summary)"; echo "$out" | grep -E 'error|FAIL|qed' | tail -20 >> "$LOG"; record failed "exam: $summary"; exit 1; fi
+say "exam passed: $summary"
+
+SJOB=$("$PROVER/vnb-suite" "$WORKER" --band --detach 2>&1 | sed -n 's/.*\(job-[^ ]*\).*/\1/p' | head -1)
+[ -n "$SJOB" ] || { say "FAIL: vnb-suite --band --detach returned no job"; record failed "suite-start"; exit 2; }
+deadline=$(( $(date +%s) + 40*60 )); rc=124
+while [ $rc = 124 ] && [ "$(date +%s)" -lt $deadline ]; do
+  sout=$("$PROVER/vnb-suite" "$WORKER" --wait "$SJOB" --timeout 600 2>&1); rc=$?
+done
+sline=$(echo "$sout" | grep -o '=== SUMMARY: [0-9]* passed, [0-9]* failed ===' | tail -1)
+if [ -z "$sline" ] || ! echo "$sline" | grep -q ' 0 failed'; then
+  say "FAIL: suite ${sline:-printed no SUMMARY} (job $SJOB)"; echo "$sout" | grep -E 'FAIL|SUMMARY' | tail -20 >> "$LOG"
+  record failed "suite: ${sline:-no summary}"; exit 1
+fi
+say "suite $sline"
+# reference/ and certificates/ as the EXAM wrote them (the reference pages of a certified
+# build count its theorems as "installed from a certificate"); the band comes after the
+# certified build below.
+if ! "$PROVER/vnb-band-pull" "$WORKER" --no-band >> "$LOG" 2>&1; then
+  say "FAIL: vnb-band-pull --no-band (the exam and suite passed; rerun: vnb-band-pull $WORKER)"; record failed "pull-1"; exit 2
+fi
+say "pulled reference/ and certificates/ from the exam"
+
+# What comes back to the primary: reference/ and certificates/ as the exam wrote them,
+# and a CERTIFIED band built from those certificates (40 MB; the exam's own band is
+# 595 MB, since it holds every proof's graph and trace, and it stays on the worker).
+# The primary's band is what the user's pull-prover.sh rsyncs to his laptop: with the
+# certified band there his start is a band restore, 0.1 s, no load and no test (the
+# user, 2026-09-30: "why does it have to run a test on every reload").
+CJOB=$("$PROVER/vnb-band" "$WORKER" --build 2>&1 | sed -n 's/.*started \(job-[^ ]*\).*/\1/p')
+[ -n "$CJOB" ] || { say "FAIL: certified build after the exam returned no job"; record failed "certified-start"; exit 2; }
+deadline=$(( $(date +%s) + 30*60 )); rc=124
+while [ $rc = 124 ] && [ "$(date +%s)" -lt $deadline ]; do
+  cout=$("$PROVER/vnb-band" "$WORKER" --wait "$CJOB" --timeout 600 2>&1); rc=$?
+done
+if [ $rc != 0 ] || ! echo "$cout" | grep -q '"band_replaced":true'; then
+  say "FAIL: certified build $CJOB after the exam (status $rc); the exam passed, nothing pulled"; record failed "certified rc=$rc"; exit 1
+fi
+say "certified band built ($CJOB)"
+if "$PROVER/vnb-band-pull" "$WORKER" --band-only >> "$LOG" 2>&1; then
+  say "pulled the certified band from $WORKER"
+else
+  say "FAIL: vnb-band-pull (the exam and suite passed; rerun: vnb-band-pull $WORKER)"; record failed "pull"; exit 2
+fi
+capataz stop "$WORKER" --yes --json > /dev/null 2>&1 && say "stopped $WORKER"
+record passed "$summary; $sline"
+say "done"
+exit 0

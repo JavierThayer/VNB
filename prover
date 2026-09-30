@@ -209,12 +209,13 @@ case "$1" in
     fi
     trap - EXIT INT TERM
     BB_ROW="${BB_ROW#;;RUNS }"
-    python3 - "$BB_OUT" "$HOME/probes/runs.jsonl" "$BB_ROW" <<'PYEOF'
+    python3 - "$BB_OUT" "$HOME/probes/runs.jsonl" "$BB_ROW" "${VNB_CERTIFIED:-off}" <<'PYEOF'
 import json, sys
-outcome, out, row = sys.argv[1:4]
+outcome, out, row, cert = sys.argv[1:5]
 try: r = json.loads(row)
 except Exception: r = {'job': 'build-band', 'outcome': 'error'}
 r['band_replaced'] = (outcome == 'ok')
+r['certified'] = cert                     # on = certified build, off = the exam
 if outcome != 'ok' and r.get('outcome') == 'ok': r['outcome'] = 'error'
 line = json.dumps(r, separators=(',', ':'))
 print(';;RUNS ' + line)

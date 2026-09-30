@@ -109,10 +109,30 @@ or launched with `nohup ... &`, it dies silently mid-load with no SUMMARY, nothi
 stderr, and exit 0. `vnb-suite WORKER` runs it correctly on a worker. A suite that stops
 with `;lookup-theorem: unknown theorem X` is a stale check naming something retired.
 
-**The integration runs ONE cold load, not two (the user's decision, 2026-09-23).** The cold
-load on the worker saves the band (`prover --build-band`); `vnb-band WORKER --build`
+**NO PROOF CHECKS DURING THE DAY (the user, 2026-09-30).** A daytime integration is a
+CERTIFIED build: `vnb-band WORKER --build` runs `prover --build-band` with `VNB_CERTIFIED=on`
+(the default since 2026-09-30), installs every theorem whose certificate is valid without
+running its proof, re-proves only the rest, saves the band. Measured 2026-09-30 on worker-02,
+heap 200000: 205 s wall (GC 39 s, gates 52 s, reference 15 s, page audit 1 s; 3441 certified,
+39 proven -- the generated projections and functorials, which have no certificate file), then
+`vnb-suite WORKER --band --detach` from that band. THE EXAM -- `vnb-band WORKER --build --exam`,
+`VNB_CERTIFIED=off`, every proof run, every page typed back, every certificate rewritten:
+7300-7400 s on a t3.medium at heap 200000, a third of it GC, 1700 s of it the page audit -- runs
+at NIGHT: `vnb-nightly-exam` (cron on the primary, 06:00 UTC; log
+`~/mailbox/metrics/nightly-exam.log`, outcome `last-exam.json`) starts a worker, pushes the tree,
+runs the exam and the suite, pulls band + `reference/` + `certificates/` back with
+`vnb-band-pull WORKER`, stops the worker; it SKIPS when the tree is the one the last exam passed.
+Four exams had run in the 48 hours before this rule, two hours each, for integrations of which
+ONE had touched a certificate-key file; a key-file change re-proves everything under `on` anyway,
+so the certified build IS the exam exactly when it has to be. What the certified build does not
+exercise until the night: a driver-kit or tactic change under proofs whose statements did not
+move (the certificate skips the driver's steps). Read the morning's `last-exam.json` before
+integrating on top of a failed night.
+
+**The integration runs ONE load, not two (the user's decision, 2026-09-23).** The build on
+the worker saves the band (`prover --build-band`); `vnb-band WORKER --build`
 (2026-09-24) runs it as a detached `capataz run` job through `vnb-metrics-run` (job
-`build-band`) and carries its ledger row back to the primary the way `vnb-suite`'s `--band
+`build-band`, the row carries `certified: on|off`) and carries its ledger row back to the primary the way `vnb-suite`'s `--band
 --detach` does. The suite then starts FROM that band: `vnb-suite WORKER --band --detach`
 returns a job id at once, `vnb-suite WORKER --wait JOB` brings back the digest (124 = still
 running); `vnb-band WORKER --wait JOB` is the same pattern for a build-band or extend-band
@@ -172,6 +192,16 @@ extended band went live is re-verified; the mismatch is a bug in the extension. 
 cold load refreshes: a topic, warrant, gloss or rests-on REMOVED from a reloaded file survives
 in the band until the next cold load. `docs/extend-band-2026-09-23.md`,
 `docs/band-compare-2026-09-23.md`.
+
+**A command that does not come back (the user's demo froze on `zero-it` and the preamble,
+2026-09-30).** Every tactic the workspace sends is wrapped in `(vnb-with-budget SECONDS LABEL
+THUNK)` (interactive.scm; `vnb-command-budget`, 90 s, in vnb.el): a timer event escapes the
+command, prints `;; STOPPED after N s: LABEL` on the console and the report channel, and the
+REPL is back; what the command printed stays. `(vnb-budget-exhausted?)` is the cooperative
+test (the preamble's rule loop stops on it with its report). The `Stop` toolbar button / `M-x
+vnb-interrupt` is the backstop: SIGINT returns MIT Scheme to its top level (`;Quit!`), under a
+pipe and a pty. Suite: three `budget:` checks. A composite command escaped mid-way may have
+taken some steps: `(show)`, then `(undo)`.
 
 The Emacs surface has its own check; run it after ANY edit to `emacs/vnb-launch.el`:
 

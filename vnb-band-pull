@@ -1,0 +1,66 @@
+#!/bin/bash
+# vnb-band-pull -- bring a worker's build products back to the primary.
+#
+#   vnb-band-pull WORKER [--no-band | --band-only] [--port N]
+#
+# After `vnb-band WORKER --build' (or --extend) the worker holds the fresh
+# vnb.band, the regenerated reference/ and the rewritten certificates/; the
+# primary's copies are stale until they come back.  Until 2026-09-30 the pull was
+# a tunnel-plus-rsync recipe typed from a conversation log each time; this is
+# that recipe, as a command, so the nightly exam (vnb-nightly-exam) can run it.
+#
+# Mechanism: `capataz tunnel WORKER 22' to a local port, then rsync over it with
+# ~/.ssh/vnb-secondary (in every worker's authorized_keys), mtimes KEPT (-a):
+# the band's mtime is what `prover --band-if-fresh' compares against the sources,
+# and a band stamped with the time of the copy would read fresh forever.
+# reference/ is generated at load and never hand-edited except the files
+# build-reference-html.py lists as HAND-WRITTEN; those are the same on both
+# sides, so --delete is safe there.  certificates/ likewise: a certificate file
+# the worker's load did not write (a retired theorem-library file) must go.
+set -u
+[ $# -ge 1 ] || { echo "usage: vnb-band-pull WORKER [--no-band | --band-only] [--port N]" >&2; exit 2; }
+WORKER=$1; shift
+BAND=1; REST=1; PORT=2223
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --no-band) BAND=0; shift ;;
+    --band-only) REST=0; shift ;;
+    --port) PORT=$2; shift 2 ;;
+    *) echo "vnb-band-pull: unknown option $1" >&2; exit 2 ;;
+  esac
+done
+KEY=~/.ssh/vnb-secondary
+[ -r "$KEY" ] || { echo "vnb-band-pull: key not found: $KEY" >&2; exit 1; }
+capataz tunnel "$WORKER" 22 --local-port "$PORT" > /dev/null 2>&1 &
+TUNNEL=$!
+trap 'pkill -TERM -P $TUNNEL 2>/dev/null; kill $TUNNEL 2>/dev/null' EXIT
+for i in $(seq 1 30); do
+  (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && break
+  sleep 1
+  [ "$i" = 30 ] && { echo "vnb-band-pull: tunnel to $WORKER did not open on port $PORT" >&2; exit 1; }
+done
+SSH="ssh -i $KEY -p $PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+SRC=ubuntu@127.0.0.1:/home/ubuntu/prover
+rc=0
+if [ "$REST" = 1 ]; then
+  rsync -az --delete -e "$SSH" "$SRC/reference/" ~/prover/reference/ || rc=$?
+  rsync -az --delete -e "$SSH" "$SRC/certificates/" ~/prover/certificates/ || rc=$?
+fi
+if [ "$BAND" = 1 ]; then
+  # to a temporary name, renamed only when complete: a start during the copy
+  # must never see a truncated band (595 MB, ~1-2 min through the tunnel)
+  rsync -az -e "$SSH" "$SRC/vnb.band" ~/prover/vnb.band.pull || rc=$?
+  if [ "$rc" = 0 ] && [ -s ~/prover/vnb.band.pull ]; then
+    mv -f ~/prover/vnb.band.pull ~/prover/vnb.band
+  else
+    rm -f ~/prover/vnb.band.pull
+  fi
+fi
+if [ "$rc" = 0 ]; then
+  echo "=== vnb-band-pull: $WORKER -> primary:$([ "$REST" = 1 ] && echo ' reference/, certificates/')$([ "$BAND" = 1 ] && echo ' vnb.band')"
+  [ "$BAND" = 1 ] && ls -l --time-style=+%FT%TZ ~/prover/vnb.band | awk '{print "    band " $5 " bytes, built " $6}'
+  echo "    certificates: $(ls ~/prover/certificates | wc -l) files; band md5 $(md5sum ~/prover/vnb.band 2>/dev/null | cut -c1-12)"
+else
+  echo "=== vnb-band-pull: FAILED (rsync status $rc); the primary's copies are as they were or partly updated -- rerun" >&2
+fi
+exit $rc

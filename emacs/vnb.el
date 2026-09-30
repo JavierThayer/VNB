@@ -463,6 +463,47 @@ brick the rest of the session."
           (vnb--wait-until proc 10 (lambda () (vnb--prompt-past-p mark))))
         (setq tries (1+ tries))))))
 
+(defun vnb-interrupt ()
+  "Interrupt the prover: stop the command it is running and return it to its top level.
+For a command that does not come back -- the user's demo of 2026-09-30 froze on
+`zero-it' and on the preamble, and every later click waited its 30 s and failed.
+SIGINT takes MIT Scheme to `;Quit!' and a fresh top-level prompt (tested under a
+pipe and a pty); the proof is left as the last completed step left it.  The Stop
+button on the toolbar and M-x vnb-interrupt both run this; the budget the
+workspace puts on each command (`vnb-command-budget') is the first line of
+defence, this is the second."
+  (interactive)
+  (let* ((buf  (get-buffer vnb-buffer-name))
+         (proc (and buf (get-buffer-process buf))))
+    (unless (and proc (eq (process-status proc) 'run))
+      (user-error "VNB prover is not running"))
+    (with-current-buffer buf
+      (let ((mark (point-max)))
+        (interrupt-process proc)
+        (vnb--wait-until proc 10 (lambda () (vnb--prompt-past-p mark)))
+        (vnb--repl-recover proc)))
+    (condition-case nil
+        (vnb-eval-string "(begin (set! *vnb-quiet* #f) 'ok)" 5)
+      (error nil))
+    (message "VNB: prover interrupted.  The proof is as the last completed step left it: (show) to see it, (undo) if a step looks half done.")
+    (when (fboundp 'vnb-ws-refresh) (ignore-errors (vnb-ws-refresh)))))
+
+(defcustom vnb-command-budget 90
+  "Seconds a command sent from the workspace may run before the prover stops it.
+Each tactic form is sent as (vnb-with-budget N \"form\" (lambda () form))
+(interactive.scm): past N seconds the prover escapes from the command, prints
+`;; STOPPED after N s: form' with what the command had printed so far, and is
+ready for the next one.  Forms whose head is define, set!, load or begin are
+sent as they are."
+  :type 'integer :group 'vnb)
+
+(defun vnb--budgeted (expr)
+  "EXPR wrapped in the prover's time budget, or EXPR itself when it should not be."
+  (if (string-match-p "\\`\\s-*(\\s-*\\(define\\|set!\\|load\\|begin\\|cf\\|compile-file\\)\\_>" expr)
+      expr
+    (format "(vnb-with-budget %d %S (lambda () %s))" vnb-command-budget
+            (replace-regexp-in-string "[\n\t ]+" " " (string-trim expr)) expr)))
+
 (defun vnb--extract-error (raw)
   "Extract a one-line `;; error: MSG' summary from RAW error-REPL output.
 
@@ -885,8 +926,17 @@ Point is left after the inserted text."
     (let* ((vbuf   (get-buffer vnb-buffer-name))
            (vstart (and vbuf (with-current-buffer vbuf (point-max))))
            (result (condition-case err
-                       (vnb-eval-string expr)
-                     (error (format "(error: %s)" (error-message-string err)))))
+                       (vnb-eval-string (vnb--budgeted expr) (+ vnb-command-budget 20))
+                     (error
+                      ;; The prover did not answer even past its budget (stuck where
+                      ;; no interrupt check runs).  Offer the interrupt HERE, before the
+                      ;; two follow-up requests below each wait their turn and fail.
+                      (if (and (string-match-p "did not answer" (error-message-string err))
+                               (not noninteractive)
+                               (y-or-n-p (format "The prover has not answered in %d s.  Interrupt it? "
+                                                 (+ vnb-command-budget 20))))
+                          (progn (vnb-interrupt) "(interrupted)")
+                        (format "(error: %s)" (error-message-string err))))))
            (warn   (vnb--reserved-warning-since vbuf vstart))
            (report (vnb--report-take)))
       (vnb-eval-string "(set! *vnb-quiet* #f)")

@@ -3639,6 +3639,9 @@ user's Lisp Machine vintage Elisp instincts.)"
   (tool-bar-local-item "refresh"    'vnb-ws-refresh
                        'vnb-tb-refresh       vnb-launch--toolbar-map
                        :help "Refresh workspace")
+  (tool-bar-local-item "cancel"     'vnb-interrupt
+                       'vnb-tb-interrupt     vnb-launch--toolbar-map
+                       :help "Stop: interrupt the prover when a command does not come back")
   ;; SAVE SCRIPT.  On the toolbar because it is the one action whose absence
   ;; costs work that cannot be got back: a session's driving lives only in the
   ;; running prover, and `W' is invisible unless you already know it.  Gated on

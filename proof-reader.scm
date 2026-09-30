@@ -842,10 +842,26 @@
    proof-tex--preamble
    (if (pair? name-or-names)
        (apply string-append
-              (map (lambda (n) (string-append (proof-reader--body n) "\n\\bigskip\n\n"))
+              (map (lambda (n) (string-append (proof-reader--body* n) "\n\\bigskip\n\n"))
                    name-or-names))
-       (proof-reader--body name-or-names))
+       (proof-reader--body* name-or-names))
    "\\end{document}\n"))
+
+;; A theorem installed from its certificate (certificates.scm) has no proof in this
+;; image -- no trace, no script: say so, as `proof-tex' does, instead of dying with
+;; "no proof named this in *session-log*" (2026-09-30: the suite from a certified band
+;; died there).
+(define (proof-reader--body* name)
+  (if (and (certified-theorem? name)
+           (not (hash-table-ref/default *proof-live-trace* name #f)))
+      (string-append
+       "\\section*{Proof of \\texttt{" (proof-tex--escape-tt (symbol->string name)) "}}\n"
+       "Certified, no proof in this image: the theorem was installed from the "
+       "certificate written by the exam of "
+       (car (hash-table-ref *certified-theorems* name (lambda () '("?" "?"))))
+       ", which ran and checked its proof.  Read it from the exam's image "
+       "(\\texttt{VNB\\_CERTIFIED=off ./prover --build-band}).\n\n")
+      (proof-reader--body name)))
 
 (define (write-proof-reader name path)
   (call-with-output-file path

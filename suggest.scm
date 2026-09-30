@@ -3269,7 +3269,12 @@
                                          (caddr r)      ; needs a have! first?
                                          (cadddr r))    ; the instantiated hyps
                                    hits)))))))))))
-     (hash-table-keys *theorem-table*))
+     (sort (hash-table-keys *theorem-table*) symbol<?))
+     ;; ^ in NAME order (2026-09-30): hash-table order differs between images (a
+     ;; certified band allocates differently from the exam's), and the sort below is
+     ;; stable, so ties -- two theorems landing the same typing -- were decided by
+     ;; the image the lane ran in (supply closed the series-triangle step in the
+     ;; exam's image and failed in a certified one)
     ;; Drop a `-rev' companion when the forward form is also a hit: they land
     ;; the same equation turned around, and the reversed one is the churn.
     ;; (`find-thm' collapses the pair for the same reason.)

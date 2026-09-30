@@ -34,7 +34,7 @@
 # Needs capataz 0.2.4+ on the primary (--detach).
 set -u
 [ $# -ge 2 ] || {
-  echo "usage: vnb-band WORKER --build [--heap N] | WORKER --extend [--dry-run] [--retire NAME ...] [--heap N] | WORKER --wait JOB [--timeout SECONDS] | WORKER --pull" >&2
+  echo "usage: vnb-band WORKER --build [--exam] [--heap N] | WORKER --extend [--dry-run] [--retire NAME ...] [--heap N] | WORKER --wait JOB [--timeout SECONDS] | WORKER --pull" >&2
   exit 2
 }
 WORKER=$1; shift
@@ -117,10 +117,11 @@ case "$1" in
   --extend) MODE=extend; shift ;;
   *) echo "vnb-band: unknown mode $1 (want --build, --extend, --wait, or --pull)" >&2; exit 2 ;;
 esac
-DRY=0; RETIRE=""; HEAP=
+DRY=0; RETIRE=""; HEAP=; CERT=on
 while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) DRY=1; shift ;;
+    --exam) CERT=off; shift ;;
     --retire) shift
               while [ $# -gt 0 ] && [ "${1#--}" = "$1" ]; do RETIRE="$RETIRE $1"; shift; done ;;
     --heap) HEAP=$2; shift 2 ;;
@@ -133,8 +134,16 @@ fi
 
 if [ "$MODE" = build ]; then
   ARGS="--build-band"
-  # the exam: every proof runs, every certificate is rewritten (certificates.scm)
-  ENVV="VNB_HOST=$WORKER VNB_CERTIFIED=off"
+  # DEFAULT (2026-09-30, the user: no proof checks during the day): a CERTIFIED build,
+  # VNB_CERTIFIED=on -- every theorem whose certificate is valid is installed without
+  # running its proof, the rest (new or changed statements, the citers of a changed
+  # statement, everything when a kernel-key file changed) are re-proved and certified,
+  # the band is saved.  --exam is the old default, VNB_CERTIFIED=off: every proof runs,
+  # every certificate is rewritten (certificates.scm); it is the nightly job
+  # (vnb-nightly-exam) and the backstop, not the integration.  Four exams ran in the
+  # 48 hours before this line, ~2 h each; one of the four integrations had touched a
+  # key file.
+  ENVV="VNB_HOST=$WORKER VNB_CERTIFIED=$CERT"
   [ -n "$HEAP" ] && ENVV="$ENVV VNB_BUILD_HEAP=$HEAP"
 else
   ARGS="--extend-band"
@@ -149,4 +158,4 @@ fi
 SCRIPT="cd /home/ubuntu/prover && VNB_TIME_LOAD=1 $ENVV ./prover $ARGS"
 JOB=$(capataz run "$WORKER" --detach --json --user ubuntu --job-name band "$SCRIPT" | python3 -c 'import json,sys; print(json.load(sys.stdin)["job"])')
 [ -n "$JOB" ] || { echo "vnb-band: capataz run --detach returned no job id" >&2; exit 1; }
-echo "=== vnb-band: started $JOB on $WORKER (prover $ARGS); collect with:  vnb-band $WORKER --wait $JOB"
+echo "=== vnb-band: started $JOB on $WORKER (prover $ARGS, VNB_CERTIFIED=${CERT:-n/a}); collect with:  vnb-band $WORKER --wait $JOB"

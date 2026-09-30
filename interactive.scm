@@ -265,6 +265,59 @@
 (define *vnb-report-lines* '())
 (define (vnb-report! line) (set! *vnb-report-lines* (cons line *vnb-report-lines*)))
 (define (vnb-report-reset!) (set! *vnb-report-lines* '()))
+
+;;; THE BUDGET (2026-09-30).  The user's demo froze on `zero-it' and on the
+;;; preamble: a command that does not return leaves the REPL busy, every later
+;;; request from the workspace waits its 30 s and fails, and nothing short of
+;;; killing the process gets the prover back.  Two mechanisms, both general:
+;;;
+;;;   (vnb-with-budget SECONDS LABEL THUNK)
+;;;     runs THUNK; when it has not returned after SECONDS of real time a timer
+;;;     event (MIT `register-timer-event', delivered at the next interrupt check,
+;;;     which every procedure call is) escapes to the continuation of the call,
+;;;     prints `;; STOPPED after N s: LABEL' on the console AND on the report
+;;;     channel, and returns the symbol `budget-exhausted'.  What the command
+;;;     printed before the stop stays on screen (what-now's lanes, zero-it's normal
+;;;     form): a stop is not a silent failure.  The escape unwinds through every
+;;;     dynamic-wind on the way, so `quietly', `fluid-let' and the probe sandboxes
+;;;     restore themselves; a kernel write is one `dg-apply-rule!' call and cannot
+;;;     be left half done, but a COMPOSITE command (a driver, `supply', a rule
+;;;     firing) may have taken some of its steps: `(show)' says where the proof
+;;;     stands, `(undo)' takes the last recorded step back.
+;;;   (vnb-budget-exhausted?)
+;;;     the cooperative test, for a loop that would rather stop cleanly and print
+;;;     its own report than be escaped from (the preamble's rule loop, pa--loop!).
+;;;
+;;; The workspace wraps every tactic it sends in the first (vnb.el,
+;;; `vnb-command-eval-print', `vnb-command-budget'); the `Stop' button and
+;;; M-x vnb-interrupt are the backstop for a command stuck where no interrupt
+;;; check runs (a C primitive, a GC storm): SIGINT returns MIT Scheme to its top
+;;; level REPL, tested under a pipe and a pty.
+(define *vnb-deadline* #f)                 ; (runtime) at which the current budget ends
+(define (vnb-budget-exhausted?)
+  (and *vnb-deadline* (> (runtime) *vnb-deadline*)))
+(define (vnb-with-budget seconds label thunk)
+  (call-with-current-continuation
+    (lambda (k)
+      (let ((ev #f) (old *vnb-deadline*))
+        (dynamic-wind
+          (lambda ()
+            (set! *vnb-deadline* (+ (runtime) seconds))
+            (set! ev (register-timer-event
+                      (* 1000 seconds)
+                      (lambda ()
+                        (let ((line (string-append ";; STOPPED after "
+                                                   (number->string seconds) " s: "
+                                                   (if (string? label) label (write-to-string label))
+                                                   " -- the proof is as the last completed step left it; (show) to see it, (undo) if a step looks half done")))
+                          (vnb-report! line)
+                          (display line) (newline)
+                          (k 'budget-exhausted))))))
+          thunk
+          (lambda ()
+            (if ev (deregister-timer-event ev))
+            (set! ev #f)
+            (set! *vnb-deadline* old)))))))
 (define (vnb-report-take!)
   (let ((lines (reverse *vnb-report-lines*)))
     (set! *vnb-report-lines* '())

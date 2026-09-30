@@ -1091,6 +1091,11 @@
            (set-pa-state-stop! st (string-append "the cap: " (number->string *preamble-cap*)
                                                  " committed firings (*preamble-cap*)"))
            'cap)
+          ;; the workspace's time budget (vnb-with-budget, interactive.scm, 2026-09-30):
+          ;; stop here, with the report, rather than be escaped from mid-firing
+          ((vnb-budget-exhausted?)
+           (set-pa-state-stop! st "the time budget ran out (vnb-command-budget in Emacs; the rules fired so far are kept)")
+           'budget)
           (#t
            (if (not (memq (proof-state-focus *ps*) work)) (dk-focus! (car work)))
            (if (pa--step! st) (loop) 'stalled)))))))

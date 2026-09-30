@@ -201,11 +201,22 @@
 
 ;;; The first forward citation in FWD that lands WANT, as a `fact' form, or #f.
 (define (ineq-supply--fwd-cite fwd want)
-  (let lp ((h fwd))
-    (cond ((null? h) #f)
-          ((and (pair? (car h)) (alpha-equiv? want (caddr (car h))))
-           (ineq-supply--hit->fact (car h)))
-          (else (lp (cdr h))))))
+  ;; Two passes (2026-09-30).  A hit is (name svals landed rank needs-have? hyps);
+  ;; `needs-have?' marks a CONJUNCTIVE antecedent, which `fact' lands as an
+  ;; implication and does not detach (CLAUDE.md, "fact ... will NOT split a
+  ;; CONJUNCTIVE antecedent").  Several theorems land the same typing --
+  ;; `fun-apply-type' (primitive, `f in FUN(a,b) AND x in a') beside curried ones --
+  ;; and the lane used to take whichever came FIRST in hash-table order, which
+  ;; differs between images: the suite's series-triangle check closed in the
+  ;; exam's image and failed in a certified one.  Prefer a hit `fact' can detach.
+  (define (find pred)
+    (let lp ((h fwd))
+      (cond ((null? h) #f)
+            ((and (pair? (car h)) (alpha-equiv? want (caddr (car h))) (pred (car h)))
+             (ineq-supply--hit->fact (car h)))
+            (else (lp (cdr h))))))
+  (or (find (lambda (h) (not (and (> (length h) 4) (list-ref h 4)))))
+      (find (lambda (h) #t))))
 
 (define (ineq-supply--rr-typing-cite term asms fwd)
   (let ((want (list 'IN term 'RR)))
