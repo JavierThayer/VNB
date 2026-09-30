@@ -149,7 +149,7 @@ certified; ~3 min for the whole tree) | `off` (THE EXAM: `prover --build-band`, 
 `vnb-test`: every proof runs, the store is rewritten; ~55 min at heap 200000) | `strict` (nothing
 re-proved; an uncovered theorem lists and exits non-zero). A changed statement re-proves that theorem and
 its citers; a changed kernel file (the `dg-apply-rule!` callers and the four checker files) re-proves
-everything. The bill line reads `certified (exam DATE) modulo {...}`; the load summary counts `proven` and
+everything. The bill line reads `certified modulo {...}` (no date or host in a record since 2026-09-30: an exam that changes nothing rewrites nothing); the load summary counts `proven` and
 `certified` apart; the word `proven` alone means the proof ran in this image. The page audit covers the
 proofs that ran. A file the skipper cannot handle is retracted and reloaded in `off` mode with a warning
 (none in the tree on 2026-09-25). NOT in the key: a functoid reduced by `beta` or an accessor read by `slot`

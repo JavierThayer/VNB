@@ -12421,8 +12421,8 @@
                    (hash-table-ref/default *proof-script-table* 'cert-fx-b 'absent)
                    (certified-theorem? 'cert-fx-b)))
   '(certified #t absent #t))
-(check-true "certificates: the bill line of a certified theorem reads `certified (exam DATE) modulo'"
-  (lambda () (cfx-has? (cadddr cfx-r-on2) ";; qed cert-fx-b: certified (exam ")))
+(check-true "certificates: the bill line of a certified theorem reads `certified modulo'"
+  (lambda () (cfx-has? (cadddr cfx-r-on2) ";; qed cert-fx-b: certified modulo")))
 (check "certificates: debt-of and oracles-of accept a certified theorem as proven"
   (lambda () (list (debt-of 'cert-fx-b) (oracles-of 'cert-fx-b)))
   '(() ()))

@@ -1565,8 +1565,9 @@ running its proof.
   the driver's steps are skipped.  Under \texttt{on} a theorem without a
   valid record is proved and its record written; under \texttt{strict}
   nothing is proved, the uncovered theorems are listed and the load exits
-  non-zero.  The bill line of such a theorem reads \texttt{certified (exam
-  DATE) modulo \{\ldots\}}; the load summary counts \texttt{proven} and
+  non-zero.  The bill line of such a theorem reads \texttt{certified modulo
+  \{\ldots\}} (a record carries no date and no host, so an exam that changes
+  nothing rewrites nothing); the load summary counts \texttt{proven} and
   \texttt{certified} separately, and the word \texttt{proven} alone means
   the proof ran in this image.  The page audit covers the proofs that ran.
 \item[Invalidated by] a change to the statement, to the statement of a

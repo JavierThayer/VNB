@@ -856,10 +856,9 @@
            (not (hash-table-ref/default *proof-live-trace* name #f)))
       (string-append
        "\\section*{Proof of \\texttt{" (proof-tex--escape-tt (symbol->string name)) "}}\n"
-       "Certified, no proof in this image: the theorem was installed from the "
-       "certificate written by the exam of "
-       (car (hash-table-ref *certified-theorems* name (lambda () '("?" "?"))))
-       ", which ran and checked its proof.  Read it from the exam's image "
+       "Certified, no proof in this image: the theorem was installed from its "
+       "certificate, written by an exam that ran and checked its proof "
+       "(the last exam: mailbox/metrics/last-exam.json).  Read it from the exam's image "
        "(\\texttt{VNB\\_CERTIFIED=off ./prover --build-band}).\n\n")
       (proof-reader--body name)))
 

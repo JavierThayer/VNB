@@ -426,7 +426,7 @@
 
 ;;; (1) inline at qed: always print the modulo line.  LABEL is `proven' for a
 ;;; proof that ran in this image; a theorem installed from its certificate
-;;; (certificates.scm) passes "certified (exam DATE)" -- `proven' alone means the
+;;; (certificates.scm) passes "certified" -- `proven' alone means the
 ;;; proof ran here.
 (define *pd-last-citations* '())
 (define (announce-proof-debt name bill #!optional label)

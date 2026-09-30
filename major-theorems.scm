@@ -423,13 +423,12 @@
       ;; proof; this image holds its citations, oracles and bill, not its script
       ((and (not script) (certified-theorem? name))
        (let ((lemmas  (proof-citations-of name))
-             (oracles (oracles-of name))
-             (exam    (hash-table-ref *certified-theorems* name (lambda () '("?" "?")))))
+             (oracles (oracles-of name)))
          (list
           (string-append
-           "\\textbf{Tactics.} Certified: the proof ran in the exam of "
-           (mt--escape-tex (car exam)) " on " (mt--escape-tex (cadr exam))
-           " and is not in this image; the exam's image holds the script.")
+           "\\textbf{Tactics.} Certified: the proof ran in an exam (the last one is"
+           " recorded in mailbox/metrics/last-exam.json) and is not in this image;"
+           " the exam's image holds the script.")
           (string-append
            "\\textbf{Lemmas.} "
            (if (null? lemmas)

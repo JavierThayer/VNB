@@ -519,10 +519,9 @@
       (string-append
        proof-tex--preamble
        "\\section*{Proof of \\texttt{" (proof-tex--escape-tt (symbol->string name)) "}}\n"
-       "Certified, no proof in this image: the theorem was installed from the "
-       "certificate written by the exam of "
-       (car (hash-table-ref *certified-theorems* name (lambda () '("?" "?"))))
-       ", which ran and checked its proof.  Run the exam "
+       "Certified, no proof in this image: the theorem was installed from its "
+       "certificate, written by an exam that ran and checked its proof "
+       "(the last exam: mailbox/metrics/last-exam.json).  Run the exam "
        "(\\texttt{VNB\\_CERTIFIED=off ./prover --build-band}) and print the proof "
        "from that image.\n\n\\end{document}\n")
       (proof-tex--full name)))

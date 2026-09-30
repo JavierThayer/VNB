@@ -15,7 +15,7 @@
 ;;;         (uses (NAME . "HASH") ...)    ; every macete the KERNEL saw fire (2026-09-26)
 ;;;         (own-oracles VERB ...)        ; the oracles the script called directly
 ;;;         (bill NAME ...) (oracles VERB ...)   ; what qed announced
-;;;         (kernel "KERNEL-HASH") (date "YYYY-MM-DD") (host "..."))
+;;;         (kernel "KERNEL-HASH"))   ; no date, no host: see cert-make-record
 ;;;
 ;;; A HASH is the MD5 of the canonical text of a statement: `write' of the
 ;;; formula with every counter-minted name (x_1234) relabelled x_#k in order of
@@ -315,9 +315,11 @@
           (cons 'own-oracles (script-oracles (append *proof-script* (reverse *proof-hidden-citations*))))
           (cons 'bill bill)
           (cons 'oracles (hash-table-ref/default *proof-oracles* name '()))
-          (list 'kernel (cert-kernel-hash))
-          (list 'date (cert--today))
-          (list 'host (cert--host)))))
+          (list 'kernel (cert-kernel-hash)))))
+;;; No date and no host in a record or a file header (the user's decision, 2026-09-30):
+;;; they made every exam rewrite all 482 files (insertions = deletions), so a changed
+;;; certificate could not be told from an unchanged one in git.  The last exam and its
+;;; host are in ~/mailbox/metrics/last-exam.json and the ledger.
 
 ;;; Why RECORD is not valid here, or #f when it is.
 (define (cert-record-invalid-reason rec)
@@ -375,8 +377,6 @@
         (write-string ".scm -- written by a load that proved them; do not edit.\n" port)
         (write (list 'vnb-certificate-file f
                      (list 'kernel (cert-kernel-hash))
-                     (list 'date (cert--today))
-                     (list 'host (cert--host))
                      (list 'count (length records)))
                port)
         (newline port)
@@ -385,7 +385,7 @@
     p))
 
 ;;; ---------------------------------------------------------------- session state
-(define *certified-theorems* (make-equal-hash-table))   ; name -> (date host)
+(define *certified-theorems* (make-equal-hash-table))   ; name -> (file), the store file the record came from
 (define *cert-session-proven* 0)         ; proofs that RAN in this session (load-list files)
 (define *cert-session-certified* 0)      ; theorems installed from a certificate
 (define *cert-uncovered* '())            ; strict: (name-or-hash . reason), newest first
@@ -441,16 +441,12 @@
     (let ((bill (let loop ((cs cites) (bill '()))
                   (if (null? cs) bill (loop (cdr cs) (pd-union bill (debt-of (car cs))))))))
       (hash-table-set! *proof-debt* name bill)
-      (hash-table-set! *certified-theorems* name
-                       (list (or (cert-rec-field1 rec 'date) "?")
-                             (or (cert-rec-field1 rec 'host) "?")))
+      (hash-table-set! *certified-theorems* name (list (or (cert-rec-field1 rec 'date) "the store")))
       (set! *cert-session-certified* (+ *cert-session-certified* 1))
       (let ((port (or *cert-console* (current-output-port))))
         (cert--with-output-to-port port
           (lambda ()
-            (announce-proof-debt name bill
-                                 (string-append "certified (exam "
-                                                (or (cert-rec-field1 rec 'date) "?") ")"))
+            (announce-proof-debt name bill "certified")
             (if (not (equal? (sort (map symbol->string bill) string<?)
                              (sort (map symbol->string (cert-rec-field rec 'bill)) string<?)))
                 (begin (display ";;   (the exam's bill was ")
@@ -965,9 +961,7 @@
 (define (report-proof-counts)
   (display ";; proofs: ") (display *cert-session-proven*)
   (display " proven in this session, ") (display *cert-session-certified*)
-  (display " certified")
-  (if (> *cert-session-certified* 0)
-      (begin (display " (exam of ") (display (cert-exam-summary)) (display ")")))
+  (display " certified")          ; no exam date: records carry none (2026-09-30)
   (display " [VNB_CERTIFIED=") (display (cert-mode)) (display "]")
   (newline)
   (if (> *cert-files-written* 0)
