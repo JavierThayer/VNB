@@ -191,12 +191,21 @@ Handles sentinel blocks that arrive in multiple output chunks."
 (defvar vnb--last-report nil
   "The last report block a command printed (zero-it's normal form and verdict).")
 
+(defvar vnb--report-acc ""
+  "Buffer-local accumulator for a report block whose END has not arrived yet.
+A long block (show-graph) spans several output chunks; without this the block
+was surfaced only when it fitted in one chunk, and the graph stayed in the REPL
+while the panel went on showing the previous report (the user, 2026-09-30).")
+(make-variable-buffer-local 'vnb--report-acc)
+
 (defun vnb--surface-reports (text)
   "Echo every complete ;;VNB-REPORT-BEGIN ... ;;VNB-REPORT-END block in TEXT in the
 minibuffer and return TEXT with the two marker lines removed (the lines stay in
 the REPL).  The block is what `zero-it' prints once, at its end (zero-it.scm), so a
 button or M-x vnb-cmd-zero-it, whose output lands only in the process buffer, is
 still seen.  A block split across two output chunks is left as it arrives."
+  (setq text (concat vnb--report-acc text))
+  (setq vnb--report-acc "")
   (let ((start 0))
     (while (string-match ";;VNB-REPORT-BEGIN\n\\(\\(?:.*\n\\)*?\\);;VNB-REPORT-END\n?" text start)
       (let ((lines (string-trim-right (match-string 1 text))))
@@ -220,7 +229,13 @@ still seen.  A block split across two output chunks is left as it arrives."
                               (propertize lines 'face 'warning)
                             lines))))
         (setq text (replace-match (concat lines "\n") t t text))
-        (setq start (+ (match-beginning 0) (length lines) 1)))))
+        (setq start (+ (match-beginning 0) (length lines) 1))))
+    ;; A BEGIN with no END yet: hold the block back for the next chunk, as the
+    ;; state block is held (vnb--preoutput-acc); the text before it goes on.
+    (let ((open (string-match ";;VNB-REPORT-BEGIN\n" text start)))
+      (when open
+        (setq vnb--report-acc (substring text open))
+        (setq text (substring text 0 open)))))
   text)
 
 ;;; Runs vnb--preoutput-filter on the incoming string, then passes the
