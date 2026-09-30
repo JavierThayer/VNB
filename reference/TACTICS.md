@@ -1171,7 +1171,15 @@ Evaluate a conditional term `if p then a else b' on the assumption that p fails:
 
     (focus n)
 
-Switch the focus to the n-th open goal (1-based).
+Switch the focus to the n-th open goal (1-based, the POSITION in the list (show) prints: the focus first, then the others).  A position shifts as leaves close; the node number in brackets does not -- see focus-id.
+
+*Uses:* no kernel operation: it records no inference
+
+### focus-id
+
+    (focus-id k)
+
+Switch the focus to the ungrounded node whose NODE NUMBER is k, the number (show) and the Focus Workspace print in brackets before each sequent.  Any ungrounded node, not only a leaf: a driver records a leaf by position as (focus n) and an ungrounded node a rule has already fired on as (focus-id k), so a page may name either.  Recorded as a step, undone by backup-one.  The move to make when reading a goal off the panel, e.g. the side leaf of a cut: (cut L) opens  G |- L  (the side leaf) and  G, L |- goal  (the main branch), and a composite such as zero-it leaves the focus on whichever it did not close.
 
 *Uses:* no kernel operation: it records no inference
 
@@ -1208,6 +1216,12 @@ Alias for (backup-one).
 Redisplay the current proof state.
 
 *Uses:* no kernel operation: it records no inference
+
+### show-graph
+
+    (show-graph)
+
+Print EVERY node of the current proof, closed ones included: one line per sequent node in creation order (the bracketed number the panel prints, the sequent, [GROUNDED] when justified), and under each node one line per inference into it -- the rule and the numbers of the hypothesis nodes it rests on.  The focus and the open leaves are marked.  This is where a branch a composite closed is found: after (cut L), the side leaf G |- L and the main branch G, L |- goal are both nodes, and zero-it on an existential closes the main one.  Records nothing; the [Graph] button of the Focus Workspace shows it.
 
 ### dial
 

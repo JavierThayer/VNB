@@ -13364,7 +13364,7 @@
               (zi-says? t "by cut from")
               (zi-says? t "[GROUNDED]")
               (zi-says? t "<- focus, open")
-              (zi-says? t "a * y = 0)"))))))
+              (zi-says? t "a * y = 0)")))))))
 
 (check-true "zero-it (14) a proof using zero-it on an inequality: page (di) (di) (zero-it), types back in grounded, bill lists crs"
   (lambda ()
