@@ -204,17 +204,21 @@ still seen.  A block split across two output chunks is left as it arrives."
         ;; A short block (zero-it's verdict, the preamble's report) is echoed; a
         ;; long one (show-graph, notes-49) goes to its own buffer, since the
         ;; echo area is no place for a graph.
-        (if (> (length (split-string lines "\n")) vnb-report-echo-max-lines)
-            (with-current-buffer (get-buffer-create "*VNB Report*")
-              (let ((inhibit-read-only t))
-                (erase-buffer)
-                (insert lines "\n")
-                (goto-char (point-min))
-                (special-mode))
-              (display-buffer (current-buffer)))
-          (message "%s" (if (string-match-p "FALSE" lines)
-                            (propertize lines 'face 'warning)
-                          lines)))
+        ;; save-match-data: the buffer work and `message' below clobber the
+        ;; match `string-match' set, and `replace-match' after them ran on
+        ;; garbage -- error-in-process-filter on the first [Graph] press.
+        (save-match-data
+          (if (> (length (split-string lines "\n")) vnb-report-echo-max-lines)
+              (with-current-buffer (get-buffer-create "*VNB Report*")
+                (let ((inhibit-read-only t))
+                  (erase-buffer)
+                  (insert lines "\n")
+                  (goto-char (point-min))
+                  (special-mode))
+                (display-buffer (current-buffer)))
+            (message "%s" (if (string-match-p "FALSE" lines)
+                              (propertize lines 'face 'warning)
+                            lines))))
         (setq text (replace-match (concat lines "\n") t t text))
         (setq start (+ (match-beginning 0) (length lines) 1)))))
   text)
