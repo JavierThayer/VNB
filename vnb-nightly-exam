@@ -1,7 +1,13 @@
 #!/bin/bash
 # vnb-nightly-exam -- THE EXAM, once a night, on a worker, unattended.
 #
-#   vnb-nightly-exam [--worker NAME] [--type t3.medium] [--heap 200000] [--force] [--dry-run]
+#   vnb-nightly-exam [--worker NAME] [--type t3.medium] [--heap 200000] [--force] [--dry-run] [--smoke]
+#
+# --smoke: the exam step is a CERTIFIED build instead (3.5 min), every other step as in
+# the real thing -- the validation of this script without a two-hour exam.  NEVER EDIT
+# THIS FILE WHILE A RUN IS GOING: bash reads a script as it runs, and the first
+# validation run died with a syntax error in the middle of a word when an edit shifted
+# the bytes under it (2026-09-30).  Edit a copy and mv it over.
 #
 # THE POLICY (the user, 2026-09-30: no proof checks during the day).  A daytime
 # integration is a CERTIFIED build (`vnb-band W --build', VNB_CERTIFIED=on): the
@@ -35,7 +41,7 @@ PROVER=/home/ubuntu/prover
 METRICS=/home/ubuntu/mailbox/metrics
 LOG=$METRICS/nightly-exam.log
 LAST=$METRICS/last-exam.json
-WORKER=worker-02; TYPE=t3.medium; HEAP=; FORCE=0; DRY=0
+WORKER=worker-02; TYPE=t3.medium; HEAP=; FORCE=0; DRY=0; SMOKE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --worker) WORKER=$2; shift 2 ;;
@@ -43,6 +49,7 @@ while [ $# -gt 0 ]; do
     --heap) HEAP=$2; shift 2 ;;
     --force) FORCE=1; shift ;;
     --dry-run) DRY=1; shift ;;
+    --smoke) SMOKE=1; shift ;;
     *) echo "vnb-nightly-exam: unknown option $1" >&2; exit 2 ;;
   esac
 done
@@ -67,7 +74,7 @@ if [ "$FORCE" = 0 ] && [ -f "$LAST" ]; then
     exit 0
   fi
 fi
-say "start: tree $TREE on $WORKER ($TYPE${HEAP:+, heap $HEAP})"
+say "start: tree $TREE on $WORKER ($TYPE${HEAP:+, heap $HEAP}$([ "$SMOKE" = 1 ] && echo ", SMOKE: certified build in place of the exam"))"
 [ "$DRY" = 1 ] && { say "dry run: would start $WORKER, push, exam, suite, pull, stop"; exit 0; }
 
 state=$(capataz list --json 2>/dev/null | python3 -c 'import json,sys; w=sys.argv[1]; print(next((r["state"] for r in json.load(sys.stdin) if r["name"]==w), "absent"))' "$WORKER")
@@ -92,7 +99,8 @@ have=$(capataz run "$WORKER" --json --user ubuntu "cd $PROVER && md5sum load.scm
 [ "$want" = "$have" ] || { say "FAIL: push not verified (load.scm/certificates.scm md5 differ)"; record failed "md5"; exit 2; }
 say "pushed and verified; exam starting"
 
-JOB=$("$PROVER/vnb-band" "$WORKER" --build --exam ${HEAP:+--heap $HEAP} 2>&1 | sed -n 's/.*started \(job-[^ ]*\).*/\1/p')
+EXAM_OPT=--exam; [ "$SMOKE" = 1 ] && EXAM_OPT=""
+JOB=$("$PROVER/vnb-band" "$WORKER" --build $EXAM_OPT ${HEAP:+--heap $HEAP} 2>&1 | sed -n 's/.*started \(job-[^ ]*\).*/\1/p')
 [ -n "$JOB" ] || { say "FAIL: vnb-band --build --exam returned no job"; record failed "exam-start"; exit 2; }
 say "exam $JOB"
 deadline=$(( $(date +%s) + 4*3600 )); rc=124
@@ -147,6 +155,6 @@ else
   say "FAIL: vnb-band-pull (the exam and suite passed; rerun: vnb-band-pull $WORKER)"; record failed "pull"; exit 2
 fi
 capataz stop "$WORKER" --yes --json > /dev/null 2>&1 && say "stopped $WORKER"
-record passed "$summary; $sline"
+record "$([ "$SMOKE" = 1 ] && echo smoke-passed || echo passed)" "$summary; $sline"
 say "done"
 exit 0
