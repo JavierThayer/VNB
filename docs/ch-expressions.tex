@@ -227,7 +227,7 @@ False if either is undefined.  In particular:
 \item \texttt{george(s) = george(s)} is \emph{false} for the same
   reason.
 \item A term $t$ is defined iff $t = t$:
-  $\mathit{DEF}(t) \;\equiv\; (t = t)$.
+  $\mathtt{DEF}(t) \;\equiv\; (t = t)$.
 \end{itemize}
 
 \noindent
@@ -251,7 +251,7 @@ both are undefined.  Key properties:
   defined or not.
 \item \texttt{george(s) == george(s)} is \emph{true}.
 \item \texttt{$a$ = $b$} implies \texttt{$a$ == $b$}, but not vice versa.
-\item \texttt{$a$ == $b$} and $\mathit{DEF}(a)$ together imply
+\item \texttt{$a$ == $b$} and $\mathtt{DEF}(a)$ together imply
   \texttt{$a$ = $b$}.
 \end{itemize}
 
@@ -295,7 +295,7 @@ undefined, and \texttt{=}, being strict, is then false --- whereas
 \label{sec:class-set-discipline}
 
 Proper VNB has two kinds of object: \emph{sets} (elements of
-the class $\mathit{SET}$) and \emph{proper classes} (collections that can have
+the class $\mathtt{SET}$) and \emph{proper classes} (collections that can have
 members but are not themselves members of anything).  We retain that
 distinction and add a third kind, \emph{functoids}.
 
@@ -316,11 +316,11 @@ The \textbf{primitive class constant} \texttt{SET} has the following
 property: The formula \texttt{$a$ in SET} expresses ``$a$ is a set'';
 there is no separate predicate form \texttt{SET($a$)}.  The key axiom
 distinguishing VNB from typed systems: \[
-  (a \in b) \;\Longrightarrow\; a \in \mathit{SET}
+  (a \in b) \;\Longrightarrow\; a \in \mathtt{SET}
 \]
 Only sets can be members of anything: membership forces the \emph{left}
 argument to be a set.  The right argument---the containing class---may be
-a proper class.  ($3 \in \mathit{ORD}$ is well-formed even though the
+a proper class.  ($3 \in \mathtt{ORD}$ is well-formed even though the
 class of all ordinals is a proper class.)
 
 Function application is written $f(x_1, \ldots, x_n)$ in both cases:
@@ -334,7 +334,7 @@ The subset relation
 is a primitive binary predicate written \texttt{A subset B}
 (\texttt{subset-def}).  An immediate corollary of
 \texttt{membership-implies-sethood} is that \emph{every class is a
-subclass of $\mathit{SET}$} (axiom \texttt{subset-set}): only sets can
+subclass of $\mathtt{SET}$} (axiom \texttt{subset-set}): only sets can
 appear on the left of~$\in$.
 
 The constructors below are \emph{total} functoids: each is defined for
@@ -352,18 +352,18 @@ well-defined class for \emph{any} classes $X, Y$.  Three properties
 must be kept separate:
 \begin{itemize}
 \item \emph{Definability} --- always.
-\item \emph{Non-emptiness} --- only when $X \in \mathit{SET}$.
+\item \emph{Non-emptiness} --- only when $X \in \mathtt{SET}$.
   Functions in VNB are sets of ordered pairs, so a proper-class
-  domain forces $\mathit{FUN}(X) = \varnothing$; the existential in
-  \texttt{is-fun-def} ($\exists A \in \mathit{SET}.\; f \in
-  \mathit{FUN}(A)$) is load-bearing on this point.
-\item \emph{Sethood} --- only when $X, Y \in \mathit{SET}$
+  domain forces $\mathtt{FUN}(X) = \varnothing$; the existential in
+  \texttt{is-fun-def} ($\exists A \in \mathtt{SET}.\; f \in
+  \mathtt{FUN}(A)$) is load-bearing on this point.
+\item \emph{Sethood} --- only when $X, Y \in \mathtt{SET}$
   (\texttt{fun-set-iff}).
 \end{itemize}
 Functoids exist precisely for operations that genuinely act on
-proper classes (e.g.\ $\mathit{POWER}: \mathit{CLASS} \to
-\mathit{CLASS}$): they cannot be encoded as elements of any
-$\mathit{FUN}(\cdots)$.
+proper classes (e.g.\ $\mathtt{POWER}: \mathtt{CLASS} \to
+\mathtt{CLASS}$): they cannot be encoded as elements of any
+$\mathtt{FUN}(\cdots)$.
 \end{remark}
 
 \begin{remark}
@@ -386,11 +386,11 @@ varies between invocations but is fixed when the expression is written:
 any \emph{finite} number is allowed.
 
 This is distinct from variadic \emph{functions} of type
-$\mathit{FUN}(\mathit{TUPLES}(A), B)$, which take a single set-level
-tuple as their one argument (see the remark on $\mathit{TUPLES}$ in
+$\mathtt{FUN}(\mathtt{TUPLES}(A), B)$, which take a single set-level
+tuple as their one argument (see the remark on $\mathtt{TUPLES}$ in
 Section~\ref{sec:constructor-examples}), and from fixed-arity functoids
 such as ring addition
-$\mathit{ADD}(r) \in \mathit{FUN}(\mathit{CARTESIAN}(CARR(r), CARR(r)), CARR(r))$,
+$\mathtt{ADD}(r) \in \mathtt{FUN}(\mathtt{CARTESIAN}(CARR(r), CARR(r)), CARR(r))$,
 which have a single argument slot of fixed Cartesian type.
 \end{remark}
 
@@ -413,7 +413,7 @@ Section~\ref{sec:nary-proof-commands}.
   The macete \texttt{union-decompose} rewrites
   $x \in \text{union}(A_1,\ldots,A_n)$ to the disjunction
   $(x \in A_1) \lor \cdots \lor (x \in A_n)$ in one step.
-  Result is a set when all $A_i \in \mathit{SET}$
+  Result is a set when all $A_i \in \mathtt{SET}$
   (\texttt{union-set-closure}; n-ary by induction).
 
 \item \texttt{intersection($A_1$,\ldots,$A_n$)}
@@ -427,105 +427,105 @@ Section~\ref{sec:nary-proof-commands}.
   The macete \texttt{intersection-decompose} rewrites
   $x \in \text{intersection}(A_1,\ldots,A_n)$ to the conjunction
   $(x \in A_1) \land \cdots \land (x \in A_n)$ in one step.
-  Result is a set when any $A_i \in \mathit{SET}$
+  Result is a set when any $A_i \in \mathtt{SET}$
   (\texttt{intersection-set-closure}).
 
 \item \texttt{complement-in($A$, $B$)}
   Relative complement $A \setminus B$: $x \in C$ iff $x \in A$ and
   $x \notin B$ (\texttt{complement-in-membership}).
-  $B$ need not be a set; result is a set when $A \in \mathit{SET}$
+  $B$ need not be a set; result is a set when $A \in \mathtt{SET}$
   (\texttt{complement-in-set-closure}).
 
 \item \texttt{cartesian($A_1$,\ldots,$A_n$)}
   $x \in C$ iff $x = [a_1,\ldots,a_n]$ with $a_i \in A_i$.
-  Result is a set iff all $A_i \in \mathit{SET}$ (\texttt{cartesian-set-iff}).
+  Result is a set iff all $A_i \in \mathtt{SET}$ (\texttt{cartesian-set-iff}).
 
 \item \texttt{tuples($A$)}
   $x \in C$ iff $x = [a_1,\ldots,a_n]$ with all $a_i \in A$,
   for some $n \ge 0$.
-  Result is a set when $A \in \mathit{SET}$ (\texttt{tuples-sethood}).
+  Result is a set when $A \in \mathtt{SET}$ (\texttt{tuples-sethood}).
 
 \item \texttt{fun($A$)}, \texttt{fun($A$, $B$)}
-  The unary $\mathit{FUN}(A)$ is the class of all total functions with
+  The unary $\mathtt{FUN}(A)$ is the class of all total functions with
   domain $A$ (no codomain restriction); proper class in general.  The
-  binary $\mathit{FUN}(A,B)$ is the restriction
-  $\{f \in \mathit{FUN}(A) : \forall x \in A.\;f(x) \in B\}$.
-  $\mathit{FUN}(A,B) \in \mathit{SET}$ iff $A, B \in \mathit{SET}$
-  (\texttt{fun-set-iff}); $\mathit{FUN}(A) \in \mathit{SET}$ never holds
+  binary $\mathtt{FUN}(A,B)$ is the restriction
+  $\{f \in \mathtt{FUN}(A) : \forall x \in A.\;f(x) \in B\}$.
+  $\mathtt{FUN}(A,B) \in \mathtt{SET}$ iff $A, B \in \mathtt{SET}$
+  (\texttt{fun-set-iff}); $\mathtt{FUN}(A) \in \mathtt{SET}$ never holds
   in general because the codomain is unconstrained.
   See Section~\ref{sec:funapp}.
 
   The strengthened \texttt{fun-domain-apply-def} now reads
-  $f \in \mathit{FUN}(A) \Rightarrow ((f\,x) = (f\,x) \Leftrightarrow x \in A)$.
+  $f \in \mathtt{FUN}(A) \Rightarrow ((f\,x) = (f\,x) \Leftrightarrow x \in A)$.
   Recall VNB equality is partial: $(t = t)$ is the definedness predicate
   for $t$, so the iff says \emph{$f(x)$ is defined exactly when $x \in A$}.
   Consequence: the witness $A$ is unique, justifying ``the'' domain of $f$.
 
 \item \texttt{is-fun($f$)}
   The predicate ``$f$ is a function'': there exists a set $A$ with
-  $f \in \mathit{FUN}(A)$.  Axiom \texttt{is-fun-def}:
-  $\mathit{IS\text{-}FUN}(f) \Leftrightarrow \exists A \in \mathit{SET}.\;
-   f \in \mathit{FUN}(A)$.
+  $f \in \mathtt{FUN}(A)$.  Axiom \texttt{is-fun-def}:
+  $\mathit{IS\text{-}FUN}(f) \Leftrightarrow \exists A \in \mathtt{SET}.\;
+   f \in \mathtt{FUN}(A)$.
 
 \item \texttt{dom($f$)}
   The \emph{domain} of $f$ as a class.  Characterised by membership
   (\texttt{dom-membership}):
-  $x \in \mathit{DOM}(f) \Leftrightarrow x \in \mathit{SET}
+  $x \in \mathtt{DOM}(f) \Leftrightarrow x \in \mathtt{SET}
    \land (f\,x) = (f\,x)$, i.e.\ $x$ is a set on which $f$ is defined.
-  When $f \in \mathit{FUN}(A)$, $\mathit{DOM}(f)$ and $A$ agree on
+  When $f \in \mathtt{FUN}(A)$, $\mathtt{DOM}(f)$ and $A$ agree on
   members (\texttt{dom-fun-membership}).  When additionally
-  $A \in \mathit{SET}$, $\mathit{DOM}(f) \in \mathit{SET}$ and
-  $\mathit{DOM}(f) = A$ as sets, by extensionality
+  $A \in \mathtt{SET}$, $\mathtt{DOM}(f) \in \mathtt{SET}$ and
+  $\mathtt{DOM}(f) = A$ as sets, by extensionality
   (\texttt{dom-of-fun}).
 
 \item \texttt{res($f$, $B$)}
   The \emph{restriction} of $f$ to $B$.  Semantically
-  $\mathit{RES}(f, B) = \lambda x \in B.\;f(x)$.  Total as a constructor
+  $\mathtt{RES}(f, B) = \lambda x \in B.\;f(x)$.  Total as a constructor
   (defined for all $f$ and $B$ -- bongo-style); typed by:
   \begin{itemize}
   \item \texttt{res-typing}:
-    $f \in \mathit{FUN}(A) \land B \subseteq A
-    \Rightarrow \mathit{RES}(f, B) \in \mathit{FUN}(B)$.
+    $f \in \mathtt{FUN}(A) \land B \subseteq A
+    \Rightarrow \mathtt{RES}(f, B) \in \mathtt{FUN}(B)$.
   \item \texttt{res-apply}:
-    $f \in \mathit{FUN}(A) \land B \subseteq A \land x \in B
-    \Rightarrow (\mathit{RES}(f, B))(x) = f(x)$.
+    $f \in \mathtt{FUN}(A) \land B \subseteq A \land x \in B
+    \Rightarrow (\mathtt{RES}(f, B))(x) = f(x)$.
   \item \texttt{res-codomain} (derived): codomain inherits from
-    $f \in \mathit{FUN}(A, C)$.
+    $f \in \mathtt{FUN}(A, C)$.
   \end{itemize}
   Outside the case $B \subseteq A$ the term exists but carries no
-  $\mathit{FUN}$-typing guarantees.
+  $\mathtt{FUN}$-typing guarantees.
 
 \item \texttt{partial-fun($A$)}, \texttt{partial-fun($A$, $C$)}
   Partial functions on $A$.  Members are total functions whose domain
   is some subset of $A$:
-  $\mathit{PARTIAL\text{-}FUN}(A) = \{f \mid \exists B \in \mathit{POWER}(A).
-   \; f \in \mathit{FUN}(B)\}$
+  $\mathit{PARTIAL\text{-}FUN}(A) = \{f \mid \exists B \in \mathtt{POWER}(A).
+   \; f \in \mathtt{FUN}(B)\}$
   (\texttt{partial-fun-membership}, generally a proper class because
   the codomain is unconstrained).  The binary form fixes a codomain:
-  $\mathit{PARTIAL\text{-}FUN}(A, C) = \{f \mid \exists B \in \mathit{POWER}(A).
-   \; f \in \mathit{FUN}(B, C)\}$
+  $\mathit{PARTIAL\text{-}FUN}(A, C) = \{f \mid \exists B \in \mathtt{POWER}(A).
+   \; f \in \mathtt{FUN}(B, C)\}$
   (\texttt{partial-fun-binary-membership}).  Sethood
   (\texttt{partial-fun-binary-sethood}):
-  $A, C \in \mathit{SET} \Rightarrow \mathit{PARTIAL\text{-}FUN}(A, C)
-   \in \mathit{SET}$ (stated as axiom; provable once a class-union
+  $A, C \in \mathtt{SET} \Rightarrow \mathit{PARTIAL\text{-}FUN}(A, C)
+   \in \mathtt{SET}$ (stated as axiom; provable once a class-union
   principle over a set-indexed family is in place).
 
 \item \texttt{\{$x$ in $A$: $p$\}} / \texttt{\{$x$ in $A$ | $p$\}}
-  Separation $\mathit{SEP}(x, A, p) = \{x \in A \mid p\}$: $x \in C$
+  Separation $\mathtt{SEP}(x, A, p) = \{x \in A \mid p\}$: $x \in C$
   iff $x \in A$ and $p[x]$ holds.  Because $p$ is genuinely a schema
   (a formula, not a first-order term), the characterization is given
   by kernel rules rather than a single FOL axiom:
-  \texttt{pi-sep-sethood!} ($\mathit{SEP}(x, A, p) \in \mathit{SET}$
-  reduces to $A \in \mathit{SET}$);
-  \texttt{pi-sep-mem-intro!} ($y \in \mathit{SEP}(x, A, p)$ splits
+  \texttt{pi-sep-sethood!} ($\mathtt{SEP}(x, A, p) \in \mathtt{SET}$
+  reduces to $A \in \mathtt{SET}$);
+  \texttt{pi-sep-mem-intro!} ($y \in \mathtt{SEP}(x, A, p)$ splits
   into $y \in A$ and $p[x:=y]$);
-  \texttt{pi-sep-mem-elim!} (assumption $y \in \mathit{SEP}(x, A, p)$
+  \texttt{pi-sep-mem-elim!} (assumption $y \in \mathtt{SEP}(x, A, p)$
   yields both $y \in A$ and $p[x:=y]$ in context).
-  Result is a set when $A \in \mathit{SET}$.
+  Result is a set when $A \in \mathtt{SET}$.
 
 \item \texttt{\{$x$ | $p$\}}
-  Class comprehension $\mathit{COMP}(x, p) = \{x \mid p\}$: $y \in C$
-  iff $y \in \mathit{SET}$ and $p[x:=y]$ (members of any class are
+  Class comprehension $\mathtt{COMP}(x, p) = \{x \mid p\}$: $y \in C$
+  iff $y \in \mathtt{SET}$ and $p[x:=y]$ (members of any class are
   sets).  Same schema treatment as separation:
   \texttt{pi-comp-mem-intro!} and \texttt{pi-comp-mem-elim!}.
   Proper class in general unless provably bounded.
@@ -541,9 +541,9 @@ Section~\ref{sec:nary-proof-commands}.
   As with separation, $\mathit{body}$ is a class schema in $z$, so the
   characterization is by kernel rules:
   \texttt{pi-big-union-sethood!}
-  ($\mathit{BIG\text{-}UNION}(z, A, \mathit{body}) \in \mathit{SET}$
-   reduces to $A \in \mathit{SET}$ and
-   $\forall z \in A.\; \mathit{body} \in \mathit{SET}$);
+  ($\mathit{BIG\text{-}UNION}(z, A, \mathit{body}) \in \mathtt{SET}$
+   reduces to $A \in \mathtt{SET}$ and
+   $\forall z \in A.\; \mathit{body} \in \mathtt{SET}$);
   \texttt{pi-big-union-mem-intro!} (witness $w$:
    $x \in \mathit{BIG\text{-}UNION}(z, A, \mathit{body})$ splits into
    $w \in A$ and $x \in \mathit{body}[z := w]$);
@@ -562,11 +562,11 @@ Section~\ref{sec:nary-proof-commands}.
 
 \item \texttt{power($A$)}, \texttt{power($A$, $B$)}
   Unary \texttt{power($A$)} is the power set: $x \in C$ iff
-  $x \in \mathit{SET}$ and $x \subseteq A$ (\texttt{power-set}).
+  $x \in \mathtt{SET}$ and $x \subseteq A$ (\texttt{power-set}).
   Binary \texttt{power($A$, $B$)} is the function-space exponentiation
   $A^B$, axiomatized by \texttt{power-exp}:
   \[
-     \mathit{POWER}(A, B) \;=\; \mathit{FUN}(B, A)
+     \mathtt{POWER}(A, B) \;=\; \mathtt{FUN}(B, A)
   \]
   i.e.\ functions $B \to A$.  This convention matches the arithmetic
   evaluator: $\texttt{power}(2, 3) = 2^3 = 8$ counts functions from
@@ -595,9 +595,9 @@ representation are objects in the VNB universe.
 \item \texttt{length($L$)} number of elements in tuple $L$; a natural number:
   \begin{itemize}
   \item \texttt{length-of-empty}: $\texttt{length}([\,]) = 0$
-  \item \texttt{length-in-nn}: $L \in \mathit{TUPLES}(\mathit{SET}) \Rightarrow
-    \texttt{length}(L) \in \mathit{NN}$
-  \item \texttt{nth-in-range}: $L \in \mathit{TUPLES}(A),\; i \in \mathit{NN},\;
+  \item \texttt{length-in-nn}: $L \in \mathtt{TUPLES}(\mathtt{SET}) \Rightarrow
+    \texttt{length}(L) \in \mathtt{NN}$
+  \item \texttt{nth-in-range}: $L \in \mathtt{TUPLES}(A),\; i \in \mathtt{NN},\;
     1 \le i \le \texttt{length}(L) \Rightarrow \texttt{nth}(i,L) \in A$
   \end{itemize}
   The recursive characterisation is supplied by the constructor
@@ -608,16 +608,16 @@ representation are objects in the VNB universe.
   (Section~\ref{sec:list-recursion}).
 \item \texttt{EMPTY-SET} the empty set $\emptyset$; always a set; $= \texttt{make-set}([\,])$
 \item \texttt{\{$a$\}} singleton $\{a\}$; always a set; $= \texttt{make-set}([$a$])$
-\item \texttt{make-set($L$)} unordered finite set from tuple $L \in \mathit{TUPLES}(A)$,
-  $A \in \mathit{SET}$; always a set:
+\item \texttt{make-set($L$)} unordered finite set from tuple $L \in \mathtt{TUPLES}(A)$,
+  $A \in \mathtt{SET}$; always a set:
   \begin{itemize}
   \item \texttt{make-set-membership}: $x \in \texttt{make-set}(L)
-    \Longleftrightarrow \exists\,i \in \mathit{NN}.\;
+    \Longleftrightarrow \exists\,i \in \mathtt{NN}.\;
     1 \le i \le \texttt{length}(L) \land \texttt{nth}(i,L) = x$
     (the $1 \le i \le \texttt{length}(L)$ bounds matter:
     $\texttt{nth}$ out-of-range is unspecified)
-  \item \texttt{make-set-sethood}: $L \in \mathit{TUPLES}(A),\; A \in \mathit{SET}
-    \Rightarrow \texttt{make-set}(L) \in \mathit{SET}$
+  \item \texttt{make-set-sethood}: $L \in \mathtt{TUPLES}(A),\; A \in \mathtt{SET}
+    \Rightarrow \texttt{make-set}(L) \in \mathtt{SET}$
   \item \texttt{make-set-empty}: $\texttt{make-set}([\,]) = \emptyset$
   \end{itemize}
   The notation $\{a,b,c,\ldots\}$ is sugar for $\texttt{make-set}([a,b,c,\ldots])$;
@@ -652,18 +652,18 @@ representation are objects in the VNB universe.
   anonymous multi-argument \emph{set-function}; a binder.
   Each variable has its own independent domain, exactly as in quantification.
   All domains $A_i$ must belong to \texttt{SET}; the result is an element
-  of $\mathit{FUN}$.
+  of $\mathtt{FUN}$.
 
   \begin{quote}
   \textbf{This is not the same construct as \texttt{lambdoid}, and the
   distinction is the one most worth getting right.}  A \texttt{vnb-lambda}
   denotes a \emph{set of ordered pairs} --- an element of some
-  $\mathit{FUN}(A,B)$ --- and is an ordinary S-expression.  A
+  $\mathtt{FUN}(A,B)$ --- and is an ordinary S-expression.  A
   \texttt{lambdoid} denotes a \emph{functoid}, a tagged record that need not
   belong to any \texttt{FUN} class.  They carry different obligations and are
   reduced by different rules: \texttt{vnb-lambda} is typed by
   \texttt{pi-lambda-type!} (short form \texttt{(lam-t)}), which opens the
-  $A \in \mathit{SET}$ subgoal a set of pairs requires, and reduced by
+  $A \in \mathtt{SET}$ subgoal a set of pairs requires, and reduced by
   \texttt{pi-lambda-beta!} (\texttt{(lam-b)}); a functoid is reduced by
   \texttt{cmd-functoid-beta} (\texttt{(beta)}) and has no such typing rule.
   Essentially every proof in the shipped library uses \texttt{vnb-lambda};
@@ -693,9 +693,9 @@ representation are objects in the VNB universe.
     completed by guesswork.
     Typing rule \texttt{pi-lambda-type!}: the goal
     $\mathit{VNB\text{-}LAMBDA}(x, A, \mathit{body}) \in
-    \mathit{FUN}(A, B)$ reduces to two subgoals,
+    \mathtt{FUN}(A, B)$ reduces to two subgoals,
     $\forall x.\; x \in A \Rightarrow \mathit{body} \in B$ and
-    $A \in \mathit{SET}$.  Since 2026-08-14 the rule also accepts a
+    $A \in \mathtt{SET}$.  Since 2026-08-14 the rule also accepts a
     binder \emph{list} when the domain is a \texttt{CARTESIAN} of the
     same length, discharging the first subgoal componentwise as
     $\forall x_1 \in A_1 \ldots \forall x_n \in A_n.\;
@@ -712,7 +712,7 @@ representation are objects in the VNB universe.
     \bigl(\forall x_i \in A_i.\;\mathit{body}(x_1,\ldots,x_n) \in B\bigr)
     \;\Longrightarrow\; \\
     \texttt{vnb-lambda}([x_1 \in A_1,\ldots,x_n \in A_n],\,\mathit{body})
-      \in \mathit{FUN}(A_1 \times \cdots \times A_n,\,B)
+      \in \mathtt{FUN}(A_1 \times \cdots \times A_n,\,B)
   \end{multline*}
 
 \item \texttt{lambdoid([$x_1$ in $A_1$, \ldots, $x_n$ in $A_n$], $\mathit{body}$)}
@@ -762,10 +762,10 @@ For example, $\texttt{nth}(3,\,[a,b,c,c,e])$ reduces to $c$.
 \begin{remark}[Indexing convention: lists are 1-indexed]
 Tuples / lists in VNB are \emph{1-indexed}: \texttt{nth}$(i, L)$ is valid
 for $1 \le i \le \texttt{length}(L)$, and $\texttt{nth}(1,\,[a, b, c]) = a$.
-Lists and functions on initial segments of $\mathit{NN}$ are genuinely
+Lists and functions on initial segments of $\mathtt{NN}$ are genuinely
 different things, and we do \emph{not} reduce one to the other.  When an
 interval constructor is added, the canonical domain for an $n$-element list
-is $\mathit{INTERVAL}(1, n)$, \emph{not} $\mathit{INTERVAL}(0, n-1)$.
+is $\mathtt{INTERVAL}(1, n)$, \emph{not} $\mathtt{INTERVAL}(0, n-1)$.
 The 1-indexing convention matches IMPS and is built into every axiom
 that mentions \texttt{nth} or \texttt{length} (\texttt{make-set-membership},
 \texttt{nth-in-range}, \texttt{length-of-empty}).
@@ -843,13 +843,13 @@ resulting definedness, then substitute — making the per-structure
 primitive.
 \end{remark}
 
-\texttt{fun}($A$, $B$) (with $A, B \in \mathit{SET}$) is a primitive set constructor: its members are
-the total functions from $A$ to $B$.  Since $A, B \in \mathit{SET}$,
+\texttt{fun}($A$, $B$) (with $A, B \in \mathtt{SET}$) is a primitive set constructor: its members are
+the total functions from $A$ to $B$.  Since $A, B \in \mathtt{SET}$,
 \texttt{fun}($A$,$B$) is itself a set (\texttt{fun-set-iff}), and each
-$f \in \mathit{FUN}(A,B)$ is a set (\texttt{membership-implies-sethood}).
+$f \in \mathtt{FUN}(A,B)$ is a set (\texttt{membership-implies-sethood}).
 
 \begin{remark}
-The soundness of $\mathit{FUN}(A,B)$ is confirmed by the standard
+The soundness of $\mathtt{FUN}(A,B)$ is confirmed by the standard
 set-theoretic construction: a function $f : A \to B$ is a set of pairs
 $(a, b) \in A \times B$ that is functional (each $a$ has at most one $b$)
 and total (every $a \in A$ appears).  Since $A \times B$ is a set, so
@@ -858,16 +858,16 @@ is any subset of it, making $f$ a set.
 
 
 \begin{remark}
-Category theory motivates a natural extension of $\mathit{FUN}$.  A
+Category theory motivates a natural extension of $\mathtt{FUN}$.  A
 functor between large categories---such as the category of all groups or
 all metric spaces---maps a proper class of objects to a proper class of
-objects.  Since $\mathit{FUN}$ requires a set-valued domain, functors
-fall outside $\mathit{FUN}$ entirely.
+objects.  Since $\mathtt{FUN}$ requires a set-valued domain, functors
+fall outside $\mathtt{FUN}$ entirely.
 
 They are \emph{functoids} (Remark~\ref{rem:functoids-quantified}), the
 third kind of entity beside sets and classes, outside the range of the
 quantifiers; a \texttt{def-functor} view (Section~\ref{sec:view-as}) is
-one.  There is no class $\mathit{OPER}(A,B)$ of them---no such collection
+one.  There is no class $\mathtt{OPER}(A,B)$ of them---no such collection
 can exist without violating the set/class dichotomy---and there is no
 predicate that collects them.  A functoid applied to an argument is reduced by
 substitution (\texttt{beta}); it has no typing rule of its own, and a
@@ -881,53 +881,53 @@ the sethood of the value as a conjunct.
 
 %
 The base library installs the following axioms.  The primary form of
-\texttt{FUN} is the unary $\mathit{FUN}(A)$ -- all total functions whose
-domain is $A$, with no codomain restriction; the binary $\mathit{FUN}(A,B)$
-is the derived form $\{f \in \mathit{FUN}(A) : \forall x \in A.\;f(x) \in B\}$.
+\texttt{FUN} is the unary $\mathtt{FUN}(A)$ -- all total functions whose
+domain is $A$, with no codomain restriction; the binary $\mathtt{FUN}(A,B)$
+is the derived form $\{f \in \mathtt{FUN}(A) : \forall x \in A.\;f(x) \in B\}$.
 
 \begin{itemize}
 \item \texttt{fun-domain-apply-def}
-  $f \in \mathit{FUN}(A) \land x \in A \;\Rightarrow\; f(x) = f(x)$
+  $f \in \mathtt{FUN}(A) \land x \in A \;\Rightarrow\; f(x) = f(x)$
 \item \texttt{fun-domain-extensionality}
-  $f,g \in \mathit{FUN}(A) \land (\forall x \in A.\;f(x) = g(x)) \;\Rightarrow\; f = g$
+  $f,g \in \mathtt{FUN}(A) \land (\forall x \in A.\;f(x) = g(x)) \;\Rightarrow\; f = g$
 \item \texttt{fun-codomain-iff}
-  $f \in \mathit{FUN}(A,B) \;\Leftrightarrow\;
-   (f \in \mathit{FUN}(A) \land \forall x \in A.\;f(x) \in B)$
+  $f \in \mathtt{FUN}(A,B) \;\Leftrightarrow\;
+   (f \in \mathtt{FUN}(A) \land \forall x \in A.\;f(x) \in B)$
 \item \texttt{fun-apply-type}
-  $f \in \mathit{FUN}(A,B) \land x \in A \;\Rightarrow\; f(x) \in B$
+  $f \in \mathtt{FUN}(A,B) \land x \in A \;\Rightarrow\; f(x) \in B$
   (in \texttt{axioms.scm}; derivable from \texttt{fun-codomain-iff})
 \item \texttt{fun-set-iff}
-  $\mathit{FUN}(A,B) \in \mathit{SET} \;\Leftrightarrow\; (CARR \in \mathit{SET}) \land (B \in \mathit{SET})$
+  $\mathtt{FUN}(A,B) \in \mathtt{SET} \;\Leftrightarrow\; (CARR \in \mathtt{SET}) \land (B \in \mathtt{SET})$
 \item \texttt{fun-elements-are-sets}
-  $f \in \mathit{FUN}(A,B) \land A \in \mathit{SET} \;\Rightarrow\; f \in \mathit{SET}$
+  $f \in \mathtt{FUN}(A,B) \land A \in \mathtt{SET} \;\Rightarrow\; f \in \mathtt{SET}$
 \item \texttt{fun-domain-elements-are-sets}
-  $f \in \mathit{FUN}(A) \land A \in \mathit{SET} \;\Rightarrow\; f \in \mathit{SET}$
+  $f \in \mathtt{FUN}(A) \land A \in \mathtt{SET} \;\Rightarrow\; f \in \mathtt{SET}$
 \item \texttt{cartesian-set-iff}
-  $A \times B \in \mathit{SET} \;\Leftrightarrow\; (CARR \in \mathit{SET}) \land (B \in \mathit{SET})$
+  $A \times B \in \mathtt{SET} \;\Leftrightarrow\; (CARR \in \mathtt{SET}) \land (B \in \mathtt{SET})$
 \item \texttt{tuples-sethood}
-  $A \in \mathit{SET} \;\Rightarrow\; \mathit{TUPLES}(A) \in \mathit{SET}$
+  $A \in \mathtt{SET} \;\Rightarrow\; \mathtt{TUPLES}(A) \in \mathtt{SET}$
 \end{itemize}
 
 \begin{remark}
-The constructor $\mathit{TUPLES}(A)$ is the class of all finite sequences
+The constructor $\mathtt{TUPLES}(A)$ is the class of all finite sequences
 $[a_1, \ldots, a_n]$ with each $a_i \in A$, for any $n \ge 0$ (including
-the empty sequence $[\,]$).  It fills a gap that $\mathit{CARTESIAN}$ does
-not cover: $\mathit{CARTESIAN}(A_1, \ldots, A_n)$ fixes the arity $n$ at
-the time the expression is written, whereas $\mathit{TUPLES}(A)$ lets $n$
+the empty sequence $[\,]$).  It fills a gap that $\mathtt{CARTESIAN}$ does
+not cover: $\mathtt{CARTESIAN}(A_1, \ldots, A_n)$ fixes the arity $n$ at
+the time the expression is written, whereas $\mathtt{TUPLES}(A)$ lets $n$
 range over all natural numbers.
 
 This supports \emph{variadic} functions whose single argument is a tuple
-of any length: an element of $\mathit{FUN}(\mathit{TUPLES}(A), B)$ takes
+of any length: an element of $\mathtt{FUN}(\mathtt{TUPLES}(A), B)$ takes
 one tuple and returns a value in $B$.  This is \emph{not} the same as a
 fixed-arity $n$-ary function, which has type
-$\mathit{FUN}(\mathit{CARTESIAN}(A_1, \ldots, A_n), B)$ and is bound to
+$\mathtt{FUN}(\mathtt{CARTESIAN}(A_1, \ldots, A_n), B)$ and is bound to
 exactly $n$ argument slots by its type.  The variadic flavour is the
 right one when an operator must handle inputs of any length (e.g.\ a sum
 over an indexed sequence); the fixed-arity flavour is the right one when
 the arity is intrinsic to the operator (e.g.\ ring addition, which is
-honestly binary).  Since $\mathit{TUPLES}(A) \in \mathit{SET}$ when
-$A \in \mathit{SET}$, the variadic case is an ordinary instance of
-$\mathit{FUN}(A', B)$ with $A' = \mathit{TUPLES}(A)$.
+honestly binary).  Since $\mathtt{TUPLES}(A) \in \mathtt{SET}$ when
+$A \in \mathtt{SET}$, the variadic case is an ordinary instance of
+$\mathtt{FUN}(A', B)$ with $A' = \mathtt{TUPLES}(A)$.
 \end{remark}
 
 \subsection{The constant-head registry}
@@ -1004,17 +1004,17 @@ sethood-closure condition on the arguments (when there is one).
 \footnotesize
 \begin{tabular}{@{}p{4.5cm}p{4.8cm}p{3.0cm}@{}}
 \toprule
-Expression & $x \in C$ iff \ldots & $C \in \mathit{SET}$ when \\
+Expression & $x \in C$ iff \ldots & $C \in \mathtt{SET}$ when \\
 \midrule
-\texttt{union($A_1$,\ldots,$A_n$)} & $x \in A_i$ for some $i$ & all $A_i \in \mathit{SET}$ \\[2pt]
-\texttt{intersection($A_1$,\ldots,$A_n$)} & $x \in A_i$ for all $i$ & any $A_i \in \mathit{SET}$ \\[2pt]
-\texttt{complement-in($A$,$B$)} & $x \in A$ and $x \notin B$ & $A \in \mathit{SET}$ \\[2pt]
-\texttt{cartesian($A_1$,\ldots,$A_n$)} & $x = [a_1,\ldots,a_n]$, $a_i \in A_i$ & all $A_i \in \mathit{SET}$ \\[2pt]
-\texttt{tuples($A$)} & $x = [a_1,\ldots,a_n]$, $a_i \in A$, $n \ge 0$ & $A \in \mathit{SET}$ \\[2pt]
-\texttt{fun($A$,$B$)} & $x$ is a total function from $A$ to $B$ & $A, B \in \mathit{SET}$ \\[2pt]
-\texttt{\{$x$ in $A$: $p$\}} & $x \in A$ and $p(x)$ holds & $A \in \mathit{SET}$ \\[2pt]
+\texttt{union($A_1$,\ldots,$A_n$)} & $x \in A_i$ for some $i$ & all $A_i \in \mathtt{SET}$ \\[2pt]
+\texttt{intersection($A_1$,\ldots,$A_n$)} & $x \in A_i$ for all $i$ & any $A_i \in \mathtt{SET}$ \\[2pt]
+\texttt{complement-in($A$,$B$)} & $x \in A$ and $x \notin B$ & $A \in \mathtt{SET}$ \\[2pt]
+\texttt{cartesian($A_1$,\ldots,$A_n$)} & $x = [a_1,\ldots,a_n]$, $a_i \in A_i$ & all $A_i \in \mathtt{SET}$ \\[2pt]
+\texttt{tuples($A$)} & $x = [a_1,\ldots,a_n]$, $a_i \in A$, $n \ge 0$ & $A \in \mathtt{SET}$ \\[2pt]
+\texttt{fun($A$,$B$)} & $x$ is a total function from $A$ to $B$ & $A, B \in \mathtt{SET}$ \\[2pt]
+\texttt{\{$x$ in $A$: $p$\}} & $x \in A$ and $p(x)$ holds & $A \in \mathtt{SET}$ \\[2pt]
 \texttt{\{$x$ | $p$\}} & $p(x)$ holds & rarely \\[2pt]
-\texttt{power($A$)} & $x \in \mathit{SET}$ and $x \subseteq A$ & $A \in \mathit{SET}$ \\
+\texttt{power($A$)} & $x \in \mathtt{SET}$ and $x \subseteq A$ & $A \in \mathtt{SET}$ \\
 \bottomrule
 \end{tabular}
 \end{center}

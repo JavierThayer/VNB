@@ -64,17 +64,17 @@ exponentiation; it parses to the same internal form as
 matching the two-argument application syntax:
 \[
   \forall x\,\forall n.\;
-    (x \in \mathit{CC} \land n \in \mathit{NN})
-    \;\Rightarrow\; \texttt{power}(x,n) \in \mathit{CC}
+    (x \in \mathtt{CC} \land n \in \mathtt{NN})
+    \;\Rightarrow\; \texttt{power}(x,n) \in \mathtt{CC}
   \qquad\text{(axiom \texttt{power-typing-nonneg})}
 \]
 The defining axioms are \texttt{power-zero} ($x^0 = 1$) and
 \texttt{power-succ} ($x^{\mathrm{succ}(n)} = x \cdot x^n$ for
-$n \in \mathit{NN}$).  A conditional equation \texttt{power-neg}
+$n \in \mathtt{NN}$).  A conditional equation \texttt{power-neg}
 covers negative integer exponents: $x^{-n} = \mathrm{recip}(x^n)$
-for $n \in \mathit{NN}$, $x \neq 0$; but this does not extend the
-\texttt{FUN} typing to $\mathit{ZZ}$, since $0^{-1}$ is undefined.
-Complex exponentiation $x^z$ for $z \in \mathit{CC}$ will be defined
+for $n \in \mathtt{NN}$, $x \neq 0$; but this does not extend the
+\texttt{FUN} typing to $\mathtt{ZZ}$, since $0^{-1}$ is undefined.
+Complex exponentiation $x^z$ for $z \in \mathtt{CC}$ will be defined
 later via the power series for \texttt{exp}.
 %
 \end{remark}
@@ -215,39 +215,39 @@ The following axioms are installed in \texttt{ordinals.scm}.
 
 \begin{itemize}
 \item \texttt{burali-forti}
-  $\mathit{ORD} \notin \mathit{SET}$: \texttt{ORD} is a proper class.
+  $\mathtt{ORD} \notin \mathtt{SET}$: \texttt{ORD} is a proper class.
   Every \emph{set} of ordinals has a supremum in \texttt{ORD}
   (axiom \texttt{sup-ord-in}); the supremum need not lie in the set itself
-  (e.g.\ $\sup \mathit{NN} = \omega \notin \mathit{NN}$).
+  (e.g.\ $\sup \mathtt{NN} = \omega \notin \mathtt{NN}$).
   If \texttt{ORD} were a set, its supremum $\alpha$ would be an ordinal,
-  hence $\mathit{succ\_ORD}(\alpha) \in \mathit{ORD}$ would strictly
+  hence $\mathit{succ\_ORD}(\alpha) \in \mathtt{ORD}$ would strictly
   exceed $\alpha$---contradicting that $\alpha$ bounds \texttt{ORD}.
 \item \texttt{ord-le-closure}
-  $\alpha \leq_O \beta \;\Rightarrow\; \alpha \in \mathit{ORD} \land \beta \in \mathit{ORD}$
+  $\alpha \leq_O \beta \;\Rightarrow\; \alpha \in \mathtt{ORD} \land \beta \in \mathtt{ORD}$
 \item \texttt{ord-le-refl}
-  $\alpha \in \mathit{ORD} \;\Rightarrow\; \alpha \leq_O \alpha$
+  $\alpha \in \mathtt{ORD} \;\Rightarrow\; \alpha \leq_O \alpha$
 \item \texttt{ord-le-antisymm}
   $\alpha \leq_O \beta \land \beta \leq_O \alpha \;\Rightarrow\; \alpha = \beta$
 \item \texttt{ord-le-trans}
   $\alpha \leq_O \beta \land \beta \leq_O \gamma \;\Rightarrow\; \alpha \leq_O \gamma$
 \item \texttt{ord-le-total}
-  $\alpha,\beta \in \mathit{ORD} \;\Rightarrow\; \alpha \leq_O \beta \lor \beta \leq_O \alpha$
+  $\alpha,\beta \in \mathtt{ORD} \;\Rightarrow\; \alpha \leq_O \beta \lor \beta \leq_O \alpha$
 \item \texttt{ord-zero-least}
-  $\alpha \in \mathit{ORD} \;\Rightarrow\; 0 \leq_O \alpha$
+  $\alpha \in \mathtt{ORD} \;\Rightarrow\; 0 \leq_O \alpha$
 \item \texttt{ord-lt-iff}
   $\alpha <_O \beta \;\Leftrightarrow\; \alpha \leq_O \beta \land \alpha \neq \beta$
 \item \texttt{ord-succ-in}
-  $\alpha \in \mathit{ORD} \;\Rightarrow\; \mathit{succ\_ORD}(\alpha) \in \mathit{ORD}$
+  $\alpha \in \mathtt{ORD} \;\Rightarrow\; \mathit{succ\_ORD}(\alpha) \in \mathtt{ORD}$
 \item \texttt{ord-succ-above}
-  $\alpha \in \mathit{ORD} \;\Rightarrow\; \alpha <_O \mathit{succ\_ORD}(\alpha)$
+  $\alpha \in \mathtt{ORD} \;\Rightarrow\; \alpha <_O \mathit{succ\_ORD}(\alpha)$
 \item \texttt{ord-succ-immediate}
-  $\alpha,\beta \in \mathit{ORD},\; \alpha <_O \beta \;\Rightarrow\; \mathit{succ\_ORD}(\alpha) \leq_O \beta$
+  $\alpha,\beta \in \mathtt{ORD},\; \alpha <_O \beta \;\Rightarrow\; \mathit{succ\_ORD}(\alpha) \leq_O \beta$
 \item \texttt{ord-succ-injective}
   $\mathit{succ\_ORD}(\alpha) = \mathit{succ\_ORD}(\beta) \;\Rightarrow\; \alpha = \beta$
 \item \begin{sloppypar}\texttt{limit-ord-iff}
-  $\mathit{LIMIT\text{-}ORD}(\lambda) \;\Leftrightarrow\; \lambda \in \mathit{ORD} \land \lambda \neq 0 \land \lnot\exists\alpha.\,\lambda = \mathit{succ\_ORD}(\alpha)$\end{sloppypar}
+  $\mathit{LIMIT\text{-}ORD}(\lambda) \;\Leftrightarrow\; \lambda \in \mathtt{ORD} \land \lambda \neq 0 \land \lnot\exists\alpha.\,\lambda = \mathit{succ\_ORD}(\alpha)$\end{sloppypar}
 \item \texttt{ord-segment-is-set}
-  $\alpha \in \mathit{ORD} \;\Rightarrow\; \mathit{ORD\text{-}SEGMENT}(\alpha) \in \mathit{SET}$
+  $\alpha \in \mathtt{ORD} \;\Rightarrow\; \mathit{ORD\text{-}SEGMENT}(\alpha) \in \mathtt{SET}$
 \item \texttt{ord-segment-membership}
   $x \in \mathit{ORD\text{-}SEGMENT}(\alpha) \;\Leftrightarrow\; x <_O \alpha$
 \item \texttt{ord-segment-zero}
@@ -256,7 +256,7 @@ The following axioms are installed in \texttt{ordinals.scm}.
   \[x \in \mathit{ORD\text{-}SEGMENT}(\mathit{succ\_ORD}(\alpha))
   \;\Leftrightarrow\; x \in \mathit{ORD\text{-}SEGMENT}(\alpha) \lor x = \alpha\]
 \item \texttt{sup-ord-in}
-  $A \in \mathit{SET},\; A \subseteq \mathit{ORD} \;\Rightarrow\; \mathit{SUP\text{-}ORD}(A) \in \mathit{ORD}$
+  $A \in \mathtt{SET},\; A \subseteq \mathtt{ORD} \;\Rightarrow\; \mathit{SUP\text{-}ORD}(A) \in \mathtt{ORD}$
 \item \texttt{sup-ord-upper}
   $\mathit{SUP\text{-}ORD}(A)$ is an upper bound of $A$
 \item \texttt{sup-ord-least}
@@ -273,12 +273,12 @@ Here $\leq_O$ and $<_O$ abbreviate \texttt{ORD-LE} and \texttt{ORD-LT}.
 
 \texttt{NN} is a subset of \texttt{ORD} (axiom \texttt{nn-subset-ord}):
 \[
-  \forall n.\; n \in \mathit{NN} \;\Rightarrow\; n \in \mathit{ORD}
+  \forall n.\; n \in \mathtt{NN} \;\Rightarrow\; n \in \mathtt{ORD}
 \]
-Consequently $0 \in \mathit{ORD}$ (from \texttt{nn-zero-in} and
+Consequently $0 \in \mathtt{ORD}$ (from \texttt{nn-zero-in} and
 \texttt{nn-subset-ord}).  The ordinal successor agrees with the numeric
-successor on $\mathit{NN}$ (axiom \texttt{ord-succ-nn}), and
-\texttt{ORD-LE} restricted to $\mathit{NN}$ coincides with the numeric
+successor on $\mathtt{NN}$ (axiom \texttt{ord-succ-nn}), and
+\texttt{ORD-LE} restricted to $\mathtt{NN}$ coincides with the numeric
 \texttt{<=} (axiom \texttt{ord-le-nn-compat}).  The number systems
 \texttt{ZZ}, \texttt{QQ}, \texttt{RR}, \texttt{CC} are not subsets of
 \texttt{ORD}.
@@ -293,10 +293,10 @@ form: a class $C$ that contains every ordinal whose strict predecessors are
 all in $C$ must contain every ordinal.\end{sloppypar}
 \[
   \forall C.\;
-  \Bigl(\forall\alpha \in \mathit{ORD}.\;
+  \Bigl(\forall\alpha \in \mathtt{ORD}.\;
         (\forall\beta <_O \alpha.\; \beta \in C) \Rightarrow \alpha \in C\Bigr)
   \;\Rightarrow\;
-  \forall\alpha \in \mathit{ORD}.\; \alpha \in C
+  \forall\alpha \in \mathtt{ORD}.\; \alpha \in C
 \]
 
 \paragraph{The \texttt{(tfi)} proof command.}
@@ -304,12 +304,12 @@ all in $C$ must contain every ordinal.\end{sloppypar}
 \texttt{(tfi)} applies transfinite induction to the current focus goal.
 The goal must have the form
 \[
-  \forall \alpha.\; \alpha \in \mathit{ORD} \;\Rightarrow\; P(\alpha)
+  \forall \alpha.\; \alpha \in \mathtt{ORD} \;\Rightarrow\; P(\alpha)
 \]
 and \texttt{(tfi)} replaces it with the single inductive-step subgoal
 \[
   \forall \alpha.\;
-    \bigl(\alpha \in \mathit{ORD} \;\land\;
+    \bigl(\alpha \in \mathtt{ORD} \;\land\;
           \forall\beta <_O \alpha.\; P(\beta)\bigr)
     \;\Rightarrow\; P(\alpha)
 \]
@@ -320,7 +320,7 @@ and \texttt{(tfi)} replaces it with the single inductive-step subgoal
 standard Peano-style cases:
 \begin{enumerate}
 \item \textbf{Base:} $P(0)$.
-\item \textbf{Successor:} $\forall\alpha \in \mathit{ORD}.\; P(\alpha) \Rightarrow P(\mathit{succ\_ORD}(\alpha))$.
+\item \textbf{Successor:} $\forall\alpha \in \mathtt{ORD}.\; P(\alpha) \Rightarrow P(\mathit{succ\_ORD}(\alpha))$.
 \item \textbf{Limit:} $\forall\lambda.\;
   \mathit{LIMIT\text{-}ORD}(\lambda) \land
   (\forall\beta <_O \lambda.\; P(\beta)) \;\Rightarrow\; P(\lambda)$.
@@ -335,14 +335,14 @@ least-counterexample argument using well-foundedness of $\leq_O$.
 
 \begin{sloppypar}
 \begin{prop}[Transfinite recursion, sets]\label{prop:tfrec-set}
-Let $U = \mathit{ORD\text{-}SEGMENT}(\alpha)$ for some $\alpha \in \mathit{ORD}$,
-let $A \in \mathit{SET}$, and let
+Let $U = \mathit{ORD\text{-}SEGMENT}(\alpha)$ for some $\alpha \in \mathtt{ORD}$,
+let $A \in \mathtt{SET}$, and let
 \[
-  \mathcal{F}(U, A) \;=\; \bigcup_{x \in U}\,\mathit{FUN}(\mathit{ORD\text{-}SEGMENT}(x),\, A)
+  \mathcal{F}(U, A) \;=\; \bigcup_{x \in U}\,\mathtt{FUN}(\mathit{ORD\text{-}SEGMENT}(x),\, A)
 \]
 be the set of all functions defined on an initial segment within $U$ with
-values in $A$.  For any $\mathcal{E} \in \mathit{FUN}(\mathcal{F}(U,A),\, A)$ there
-is a unique $f \in \mathit{FUN}(U, A)$ such that
+values in $A$.  For any $\mathcal{E} \in \mathtt{FUN}(\mathcal{F}(U,A),\, A)$ there
+is a unique $f \in \mathtt{FUN}(U, A)$ such that
 \[
   f(x) \;=\; \mathcal{E}\bigl(f \!\restriction\! \mathit{ORD\text{-}SEGMENT}(x)\bigr)
   \quad \text{for every } x \in U.
@@ -354,19 +354,19 @@ is a unique $f \in \mathit{FUN}(U, A)$ such that
 Let $A$ be a class, and let $\mathcal{E}$ be a functoid from the class of
 all functions defined on initial ordinal segments with values in $A$ to $A$
 (a proper-class domain, so $\mathcal{E}$ cannot be an element of
-$\mathit{FUN}$).
-Then there is a unique functoid $f$ on $\mathit{ORD}$ with values in $A$ such that
+$\mathtt{FUN}$).
+Then there is a unique functoid $f$ on $\mathtt{ORD}$ with values in $A$ such that
 \[
   f(\xi) \;=\; \mathcal{E}\bigl(f \!\restriction\! \mathit{ORD\text{-}SEGMENT}(\xi)\bigr)
-  \quad \text{for every } \xi \in \mathit{ORD}.
+  \quad \text{for every } \xi \in \mathtt{ORD}.
 \]
 \end{prop}
 
 \begin{remark}
 Both $\mathcal{E}$ and $f$ in Proposition~\ref{prop:tfrec-class} are functoids, not
-elements of $\mathit{FUN}(A,B)$: their domains are proper classes ($\mathit{ORD}$
+elements of $\mathtt{FUN}(A,B)$: their domains are proper classes ($\mathtt{ORD}$
 for $f$; the class of all initial-segment functions for $\mathcal{E}$), and
-$\mathit{FUN}$ requires set-valued domains.  Each is nonetheless a well-defined
+$\mathtt{FUN}$ requires set-valued domains.  Each is nonetheless a well-defined
 class of ordered pairs with the function property.
 \end{remark}
 
@@ -383,24 +383,24 @@ provides the following named axioms (all usable via
 
 \begin{itemize}
 \item \texttt{membership-implies-sethood}
-  $\forall a\,\forall b.\;(a \in b) \Rightarrow a \in \mathit{SET}$
+  $\forall a\,\forall b.\;(a \in b) \Rightarrow a \in \mathtt{SET}$
 \item \texttt{extensionality}
-  $\forall a\,\forall b.\;(a \in \mathit{SET} \land b \in \mathit{SET}) \Rightarrow
+  $\forall a\,\forall b.\;(a \in \mathtt{SET} \land b \in \mathtt{SET}) \Rightarrow
   (a = b \Leftrightarrow \forall x.\,(x \in a \Leftrightarrow x \in b))$
 \item \texttt{empty-set-is-set}
-  $\texttt{EMPTY-SET} \in \mathit{SET}$
+  $\texttt{EMPTY-SET} \in \mathtt{SET}$
 \item \texttt{empty-set-has-no-members}
   $\forall x.\;\lnot(x \in \texttt{EMPTY-SET})$
 \item \texttt{pairing}
-  $\forall a\,\forall b.\;(a \in \mathit{SET} \land b \in \mathit{SET}) \Rightarrow \{a,b\} \in \mathit{SET}$
+  $\forall a\,\forall b.\;(a \in \mathtt{SET} \land b \in \mathtt{SET}) \Rightarrow \{a,b\} \in \mathtt{SET}$
 \item \texttt{pairing-membership}
-  $\forall a\,\forall b.\;(a \in \mathit{SET} \land b \in \mathit{SET}) \Rightarrow
+  $\forall a\,\forall b.\;(a \in \mathtt{SET} \land b \in \mathtt{SET}) \Rightarrow
   \forall x.\;(x \in \{a,b\}) \Leftrightarrow (x=a \lor x=b)$
 \item \texttt{power-set}
-  $\forall a.\;a \in \mathit{SET} \Rightarrow \texttt{power}(a) \in \mathit{SET}$
+  $\forall a.\;a \in \mathtt{SET} \Rightarrow \texttt{power}(a) \in \mathtt{SET}$
 \item \texttt{power-set-membership}
   $\forall a\,\forall x.\;(x \in \texttt{power}(a)) \Leftrightarrow
-  (x \in \mathit{SET} \land \forall z.\,(z \in x \Rightarrow z \in a))$
+  (x \in \mathtt{SET} \land \forall z.\,(z \in x \Rightarrow z \in a))$
 \end{itemize}
 
 A theorem is added by proving it.  State it with \texttt{sp}, prove it,
@@ -443,11 +443,11 @@ expression primitives.
   $a = b \land b = c \Rightarrow a = c$.
 
 \item \texttt{fun-apply-type}
-  $(f \in \mathit{FUN}(A,B)) \land (x \in A) \Rightarrow f(x) \in B$.
+  $(f \in \mathtt{FUN}(A,B)) \land (x \in A) \Rightarrow f(x) \in B$.
   Derivable from \texttt{fun-codomain-iff} but named for direct use.
 
 \item \texttt{list-sethood}
-  $A \in \mathit{SET} \land L \in \mathit{TUPLES}(A) \Rightarrow L \in \mathit{SET}$.
+  $A \in \mathtt{SET} \land L \in \mathtt{TUPLES}(A) \Rightarrow L \in \mathtt{SET}$.
   Derivable from \texttt{subset-set} (elements of any class are sets)
   but named for direct use in structure instance proofs.
 
@@ -505,10 +505,10 @@ inference: \texttt{theorem-library/tuples-induction.scm} proves
 \[
   \forall A, C.\;
   [\,]\in C \;\wedge\;
-  (\forall x, M.\; x \in A \wedge M \in \mathit{TUPLES}(A) \wedge M \in C
+  (\forall x, M.\; x \in A \wedge M \in \mathtt{TUPLES}(A) \wedge M \in C
      \Rightarrow \texttt{cons}(x,M) \in C)
   \;\Rightarrow\;
-  \forall L \in \mathit{TUPLES}(A).\; L \in C
+  \forall L \in \mathtt{TUPLES}(A).\; L \in C
 \]
 by induction on the \emph{length}, using \texttt{nn-induction} and the two
 generation axioms.  It is stated in class form, quantifying over a class $C$
@@ -537,17 +537,17 @@ and they are documented in \texttt{reference/KERNEL-RULES.md}.)
   first-order sentence.
 
 \item \texttt{separation}
-  $A \in \mathit{SET} \Rightarrow \{x \in A \mid p\} \in \mathit{SET}$.
+  $A \in \mathtt{SET} \Rightarrow \{x \in A \mid p\} \in \mathtt{SET}$.
   Requires the \texttt{SEPARATION} expression primitive.
 
 \item \texttt{union-set} and \texttt{union-set-membership}
-  $A \in \mathit{SET} \Rightarrow \bigcup A \in \mathit{SET}$, and
+  $A \in \mathtt{SET} \Rightarrow \bigcup A \in \mathtt{SET}$, and
   $x \in \bigcup A \Leftrightarrow \exists a \in A.\; x \in a$.
   Requires the \texttt{UNION-SET} (big union) expression primitive,
   distinct from the binary \texttt{UNION} constructor.
 
 \item \texttt{cartesian-n-ary-sethood}
-  All $A_i \in \mathit{SET} \Rightarrow A_1 \times \cdots \times A_n \in \mathit{SET}$.
+  All $A_i \in \mathtt{SET} \Rightarrow A_1 \times \cdots \times A_n \in \mathtt{SET}$.
   The binary case is installed (\texttt{cartesian-set-iff}); the $n$-ary
   case reduces to binary by associativity but requires explicit axioms.
 
@@ -557,7 +557,7 @@ and they are documented in \texttt{reference/KERNEL-RULES.md}.)
 
 \item \texttt{lambda-type}
   $(\forall x_i \in A_i.\;\mathit{body} \in B) \Rightarrow
-   \lambda([x_1,\ldots], \mathit{body}) \in \mathit{FUN}(A_1{\times}\cdots{\times}A_n, B)$.
+   \lambda([x_1,\ldots], \mathit{body}) \in \mathtt{FUN}(A_1{\times}\cdots{\times}A_n, B)$.
   Requires a schema-level primitive inference (\texttt{pi-lambda-type}).
 
 \item \texttt{lambda-beta}
@@ -571,7 +571,7 @@ and they are documented in \texttt{reference/KERNEL-RULES.md}.)
 
 \item \texttt{infinity}
   There exists an inductive set:
-  $\exists A \in \mathit{SET}.\;\emptyset \in A \land
+  $\exists A \in \mathtt{SET}.\;\emptyset \in A \land
    \forall x \in A.\; x \cup \{x\} \in A$.
 
 \end{itemize}

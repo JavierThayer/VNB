@@ -1698,7 +1698,7 @@ advances the focus to the first new ungrounded subgoal.
   be a closed formula (no free variables) built from numeric literals,
   $+$, $*$, $-$, \texttt{recip}, \texttt{abs}, \texttt{succ},
   \texttt{conjugate}, $\leq$, $=$,
-  $\in \mathit{NN}/\mathit{ZZ}/\mathit{QQ}/\mathit{RR}/\mathit{CC}$,
+  $\in \mathtt{NN}/\mathtt{ZZ}/\mathtt{QQ}/\mathtt{RR}/\mathtt{CC}$,
   and the propositional connectives.  Exact (rational) arithmetic only;
   no axiom chain is constructed.
   Related: \texttt{(vnb-do-arith \textit{f})} returns \texttt{\#t}/\texttt{\#f}
@@ -1729,8 +1729,8 @@ advances the focus to the first new ungrounded subgoal.
   \end{itemize}
 
   In both cases every generator must be certified as an element of one of
-  the five ring domains $\mathit{NN}$, $\mathit{ZZ}$, $\mathit{QQ}$,
-  $\mathit{RR}$, $\mathit{CC}$ --- a symbol \texttt{x} by an
+  the five ring domains $\mathtt{NN}$, $\mathtt{ZZ}$, $\mathtt{QQ}$,
+  $\mathtt{RR}$, $\mathtt{CC}$ --- a symbol \texttt{x} by an
   \texttt{(IN x $D$)} typing, a compound generator \texttt{f(x)} by an
   \texttt{(IN f(x) $D$)} assumption.  This certification is also what keeps
   the rule sound on partial terms.  Since \texttt{=} is strict (it requires
@@ -2474,7 +2474,7 @@ The conditions of a conditional macete are silently dropped.  This
 makes \texttt{(mac 'name)} fast for goals whose conditions are obviously
 satisfied, but it is the user's responsibility to verify them; the
 proof sketch above is technically unsound without separate proofs that
-$2 \in \mathit{NN}$ and $3 \in \mathit{NN}$.  For fully verified
+$2 \in \mathtt{NN}$ and $3 \in \mathtt{NN}$.  For fully verified
 condition discharge, use \texttt{(ta 'name)} followed by explicit
 instantiation and back-chaining.
 \end{remark}
@@ -2618,11 +2618,11 @@ of the same shape.
 \label{sec:ex-ni-type}
 
 The \texttt{(ni)} command reduces a goal
-$\forall n \in \mathit{NN}.\; P(n)$ to two subgoals:
+$\forall n \in \mathtt{NN}.\; P(n)$ to two subgoals:
 a base case $P(0)$ (focused first) and a step case
-$\forall n \in \mathit{NN}.\; P(n) \Rightarrow P(\mathrm{succ}(n))$.
+$\forall n \in \mathtt{NN}.\; P(n) \Rightarrow P(\mathrm{succ}(n))$.
 The following proof shows that $\mathit{PROD\text{-}ORD}(m, f, n)$
-stays in the carrier $\mathit{CARR}(m)$ for every $n \in \mathit{NN}$,
+stays in the carrier $\mathtt{CARR}(m)$ for every $n \in \mathtt{NN}$,
 deriving \texttt{prod-ord-type} from first principles.
 
 \begin{VNBcode}
@@ -2733,9 +2733,9 @@ the membership of each $a_i$ in its declared component.
 \label{sec:ex-sqrt3}
 
 Stated without reals or division --- the form the checker proves, entirely
-inside $\mathit{NN}$ --- $\sqrt3$ irrational is
+inside $\mathtt{NN}$ --- $\sqrt3$ irrational is
 \[
-  \forall p,q \in \mathit{NN}.\quad
+  \forall p,q \in \mathtt{NN}.\quad
   q \neq 0 \;\Longrightarrow\; p\cdot p \neq 3\cdot(q\cdot q) ,
 \]
 that is, the goal
@@ -2814,7 +2814,7 @@ the descent to three tools; the intermediate steps are elided.
 
 \begin{itemize}
 \item \texttt{minimize!} supplies the least-numerator witness together with its
-  two honest obligations --- the measure lands in $\mathit{NN}$, and the guard
+  two honest obligations --- the measure lands in $\mathtt{NN}$, and the guard
   is satisfiable --- and appeals to no choice principle.
 \item \texttt{obtain} names each descended witness --- the $k$ with $w = 3k$,
   the $m_0$ with $q_0 = 3m_0$ --- by \emph{reading it off the proof state} (the
@@ -2860,11 +2860,11 @@ author from writing it twice.  In general,
   \texttt{(minimize! '($v_1$ \ldots\ $v_k$) GUARD MEASURE)}
 \]
 means ``choose $v_1,\ldots,v_k$ satisfying the formula \texttt{GUARD} with the
-$\mathit{NN}$-valued term \texttt{MEASURE} as small as possible.''  On the main
+$\mathtt{NN}$-valued term \texttt{MEASURE} as small as possible.''  On the main
 branch it lands two hypotheses, for fresh eigenconstants $w_1,\ldots,w_k$: that
 \texttt{GUARD} holds of them, and that nothing satisfying \texttt{GUARD} has a
 strictly smaller \texttt{MEASURE}.  It leaves exactly the two obligations any
-minimisation owes --- that \texttt{MEASURE} lands in $\mathit{NN}$ wherever
+minimisation owes --- that \texttt{MEASURE} lands in $\mathtt{NN}$ wherever
 \texttt{GUARD} holds, and that \texttt{GUARD} holds somewhere.  Everything
 between --- forming the value set, well-ordering it, unpacking the least
 witness, restating minimality over the $v_i$ rather than the set --- it does for
@@ -2873,11 +2873,11 @@ is not one you are minimising over).
 
 It adds no kernel rule --- it chains \texttt{cut}, \texttt{di}, \texttt{ai},
 \texttt{ew}, \ldots --- and uses \emph{no choice principle}: its one appeal is
-\texttt{nn-least-element}, the well-ordering of $\mathit{NN}$, and well-ordering
+\texttt{nn-least-element}, the well-ordering of $\mathtt{NN}$, and well-ordering
 returns a genuine \emph{member} of the value set, from which the witness is read
 back.  Stated instead as a first-order lemma, the same fact would force every
 call site to tuple its variables into a Cartesian product, build a lambda, and
-prove that lambda inhabits $\mathit{FUN}(U,\mathit{NN})$ --- a typing obligation
+prove that lambda inhabits $\mathtt{FUN}(U,\mathtt{NN})$ --- a typing obligation
 larger than the minimisation it buys.  As a tactic it quantifies over the $v_i$
 at the meta level and never forms $U$ at all.
 \end{remark}

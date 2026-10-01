@@ -150,12 +150,12 @@ ordinary definition of that system.
   substructure (the scalars of a module) is held equal; a \emph{family} slot,
   declared \texttt{(family F C)} and holding a set of subsets of the carrier
   $C$ (a $\sigma$-algebra, a topology), is pulled back,
-  $\forall u \in F(t).\ \mathit{preimage}(s, f, u) \in F(s)$; and a
+  $\forall u \in F(t).\ \mathtt{preimage}(s, f, u) \in F(s)$; and a
   \emph{function on a family}, declared \texttt{(family-fun M F R)} (a
-  measure), is transported, $M(t)(u) = M(s)(\mathit{preimage}(s, f, u))$ for
+  measure), is transported, $M(t)(u) = M(s)(\mathtt{preimage}(s, f, u))$ for
   $u \in F(t)$; and a \emph{relation} slot, declared \texttt{(relation R C)}
   and holding a set of pairs of points of the carrier $C$, typed
-  $R(s) \in \mathit{power}(\mathit{cartesian}(C(s), C(s)))$ in
+  $R(s) \in \mathtt{power}(\mathtt{cartesian}(C(s), C(s)))$ in
   \texttt{IS-\textit{NAME}}, is preserved by the map of $C$:
   $\forall x_1, x_2 \in C(a).\ [x_1, x_2] \in R(a) \Rightarrow [f(x_1), f(x_2)] \in R(b)$.
   So the generated arrows are the homomorphisms of an algebraic
@@ -170,7 +170,7 @@ ordinary definition of that system.
   Section~\ref{sec:declare-hom}).  This generated category is the DEFAULT one;
   \texttt{(declare-category! 'CAT 'NAME '(a b f) BODY)} adds another on the same
   objects, with arrow predicate
-  $\texttt{IS-\textit{CAT}-ARROW}(a, b, f) \iff \texttt{IS-\textit{NAME}}(a) \wedge \texttt{IS-\textit{NAME}}(b) \wedge f \in \mathit{fun}(c(a), c(b)) \wedge \mathit{BODY}$
+  $\texttt{IS-\textit{CAT}-ARROW}(a, b, f) \iff \texttt{IS-\textit{NAME}}(a) \wedge \texttt{IS-\textit{NAME}}(b) \wedge f \in \mathtt{fun}(c(a), c(b)) \wedge \mathtt{BODY}$
   and hom-set \texttt{HOM-\textit{CAT}}$(a, b)$, and records as OBLIGATIONS, not
   as theorems, that identities are arrows, that arrows compose and that the
   hom-set is a set; the load reports every obligation not yet proven
@@ -182,9 +182,9 @@ ordinary definition of that system.
   and $\texttt{HOM-NORMED-VECTOR-SPACE}(a, b) \subseteq \texttt{HOM-BOUNDED-LINEAR}(a, b)$
   (\texttt{theorem-library/categories.scm}).  For every structure with one or two
   independent carriers the declaration installs the hom-set
-  $\texttt{HOM-\textit{NAME}}(a, b) = \{f \in \mathit{fun}(c(a), c(b)) : \texttt{IS-HOM-\textit{NAME}}(a, b, f)\}$
+  $\texttt{HOM-\textit{NAME}}(a, b) = \{f \in \mathtt{fun}(c(a), c(b)) : \texttt{IS-HOM-\textit{NAME}}(a, b, f)\}$
   (with two carriers, a set of pairs of maps in
-  $\mathit{cartesian}(\mathit{fun}(c_1(a), c_1(b)), \mathit{fun}(c_2(a), c_2(b)))$),
+  $\mathtt{cartesian}(\mathtt{fun}(c_1(a), c_1(b)), \mathtt{fun}(c_2(a), c_2(b)))$),
   and the library proves, for each, that the identity is a morphism, that
   morphisms compose, and that the hom-set is a set
   (\texttt{theorem-library/hom-laws.scm}, one generic driver over the slot list;
