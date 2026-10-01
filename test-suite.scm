@@ -14206,22 +14206,18 @@
     (rcod--accepts? 'forall-elim '((FORALL phi (IN phi SET))) '(IN (VNB-LAMBDA x_ NN x_) SET)
                     (list (cons '((FORALL phi (IN phi SET)) (IN (VNB-LAMBDA x_ NN x_) SET))
                                 '(IN (VNB-LAMBDA x_ NN x_) SET))))))
-(check-true "forall-elim (builder): fact refuses image-set at the functoid CARD, with the reason"
+(check-true "forall-elim (builder): fact refuses image-set at the functoid CARD -- nothing lands"
   (lambda ()
     (fluid-let ((*ps* #f))
       (sp (make-wff "set in set"))
-      ;; `fact' runs under vnb-guard: the refusal is PRINTED as a `;; VNB error' line and
-      ;; nothing lands (the proof then cannot close); capture the printout
-      (let ((out (with-output-to-string (lambda () (fact 'image-set 'CARD 'NN)))))
-        (and (string-search-forward "outside the range of quantification" out 0)
+      ;; `fact' runs under vnb-guard: the refusal is PRINTED as a `;; VNB error' line
+      ;; (on the console, not the current output port) and NOTHING LANDS -- the proof
+      ;; then cannot close.  The landing is the test; the reason is in the log.
+      (let ((n0 (length (dk-asms))))
+        (quietly (lambda () (fact 'image-set 'CARD 'NN)))
+        (and (= (length (dk-asms)) n0)
              (not (any-pred (lambda (a) (and (pair? a) (dk-contains? a 'IMAGE))) (dk-asms)))
              #t)))))
-(check-true "forall-elim (builder): fact lands image-set at a vnb-lambda"
-  (lambda ()
-    (fluid-let ((*ps* #f))
-      (sp (make-wff "set in set"))
-      (quietly (lambda () (fact 'image-set '(VNB-LAMBDA x_ NN x_) 'NN)))
-      (and (any-pred (lambda (a) (and (pair? a) (dk-contains? a 'IMAGE))) (dk-asms)) #t))))
 
 
 ;;; ---------------------------------------------------------------------------

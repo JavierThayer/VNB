@@ -610,7 +610,10 @@ Evaluate a conditional term `if p then a else b' on the assumption that p fails:
 \subsection*{Navigation, display \& tacticals}
 
 \par\smallskip{\raggedright\noindent\texttt{(focus n)}\index{focus@\texttt{focus} (tactic)}\par}\nobreak
-\noindent Switch the focus to the n-th open goal (1-based).\par
+\noindent Switch the focus to the n-th open goal (1-based, the POSITION in the list (show) prints: the focus first, then the others).  A position shifts as leaves close; the node number in brackets does not -- see focus-id.\par
+\noindent\textit{Uses:} no kernel operation: it records no inference.\par
+\par\smallskip{\raggedright\noindent\texttt{(focus-id k)}\index{focus-id@\texttt{focus-id} (tactic)}\par}\nobreak
+\noindent Switch the focus to the ungrounded node whose NODE NUMBER is k, the number (show) and the Focus Workspace print in brackets before each sequent.  Any ungrounded node, not only a leaf: a driver records a leaf by position as (focus n) and an ungrounded node a rule has already fired on as (focus-id k), so a page may name either.  Recorded as a step, undone by backup-one.  The move to make when reading a goal off the panel, e.g. the side leaf of a cut: (cut L) opens  G |- L  (the side leaf) and  G, L |- goal  (the main branch), and a composite such as zero-it leaves the focus on whichever it did not close.\par
 \noindent\textit{Uses:} no kernel operation: it records no inference.\par
 \par\smallskip{\raggedright\noindent\texttt{(backup-one)}\quad\tactkind{meta}\index{backup-one@\texttt{backup-one} (tactic)}\par}\nobreak
 \noindent Take back the last recorded command: restore the goal, the deduction graph and the proof script to the state before it.  Repeat to walk further back; (sp) clears the stack.  `undo' is an alias.\par
@@ -626,6 +629,8 @@ The one undo in VNB.  It restores the deduction graph -- not merely the focus --
 \par\smallskip{\raggedright\noindent\texttt{(show)}\index{show@\texttt{show} (tactic)}\par}\nobreak
 \noindent Redisplay the current proof state.\par
 \noindent\textit{Uses:} no kernel operation: it records no inference.\par
+\par\smallskip{\raggedright\noindent\texttt{(show-graph)}\index{show-graph@\texttt{show-graph} (tactic)}\par}\nobreak
+\noindent Print EVERY node of the current proof, closed ones included: one line per sequent node in creation order (the bracketed number the panel prints, the sequent, [GROUNDED] when justified), and under each node one line per inference into it -- the rule and the numbers of the hypothesis nodes it rests on.  The focus and the open leaves are marked.  This is where a branch a composite closed is found: after (cut L), the side leaf G |- L and the main branch G, L |- goal are both nodes, and zero-it on an existential closes the main one.  Records nothing; the [Graph] button of the Focus Workspace shows it.\par
 \par\smallskip{\raggedright\noindent\texttt{(dial notch)}\index{dial@\texttt{dial} (tactic)}\par}\nobreak
 \noindent The PRESENTATION RESOLUTION DIAL: how much of the sequent to show.  r0 kernel S-expression, r1 surface syntax (the default, and the last INVERTIBLE notch -- what is printed re-parses to what was printed), r2 guards and typing hypotheses elided, r3 also structures destructured to their declared slot names and deep subterms elided.  (dial) reports the notch, (dial n) sets it, (dial 'auto) reads the current goal and suggests one, (dial 'why) shows the score behind the suggestion.  For ONE FORMULA rather than the proof state, (dial-wff x [n]) -- x a wff, a ``surface string'' or an S-expression, n defaulting to the dial's current notch: (dial-wff (lookup-theorem 'matmul-assoc) 3).\par
 \noindent\textit{Uses:} no kernel operation: it records no inference.\par

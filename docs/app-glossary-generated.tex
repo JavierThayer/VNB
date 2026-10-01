@@ -7,7 +7,7 @@
 Every other listing in this manual and in the browser reference is grouped by
 something: operators by class, structures by structure, tactics by task.  This
 one has the ordering nobody has to learn.  It carries the whole
-\emph{vocabulary} -- 728 names: 20 structure, 7 refinement, 11 instance, 19 view, 226 predicate, 233 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 93 tactic -- and no results: the theorems, axioms and
+\emph{vocabulary} -- 730 names: 20 structure, 7 refinement, 11 instance, 19 view, 226 predicate, 233 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 95 tactic -- and no results: the theorems, axioms and
 supports are catalogued in \texttt{THEOREMS.md}, \texttt{BY-OPERATOR.md} and
 \texttt{PROOF-DEBT.md}, and each entry here says how many of them mention it.
 
@@ -185,7 +185,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{y in pts(s): (dist(s))(c, y) <= r and not((dist(s))(c, y) = r)\}
 \end{quote}
-characterized by \texttt{ball-is-set}  \textit{(proven)}:
+characterized by \texttt{ball-is-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-metric-space(s) implies forall([x, r], ball(s, x, r) in set))
 \end{quote}
@@ -199,7 +199,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 image(vnb-lambda(c, pts(s), ball(s, c, r)), pts(s))
 \end{quote}
-characterized by \texttt{ball-cover-unfold}  \textit{(proven)}:
+characterized by \texttt{ball-cover-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, r], ball-cover(s, r) == image(vnb-lambda(c, pts(s), ball(s, c, r)), pts(s)))
 \end{quote}
@@ -225,7 +225,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), (/)((dist(s))(u, v), 1 + (dist(s))(u, v)))]
 \end{quote}
-characterized by \texttt{bdd-metric-bounded}  \textit{(proven)}:
+characterized by \texttt{bdd-metric-bounded}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-metric-space(s) implies forall([x in pts(s), y in pts(s)], (dist(bdd-metric(s)))(x, y) < 1))
 \end{quote}
@@ -240,7 +240,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 comb-kk(normed-field-as-commutative-ring(rr-normed-field), x, 1 - x, n)
 \end{quote}
-characterized by \texttt{bernstein-basis-null}  \textit{(proven)}:
+characterized by \texttt{bernstein-basis-null}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([n\_, x\_, k\_], n\_ in nn implies x\_ in rr implies k\_ in zz implies k\_ < 0 implies (bernstein-basis(n\_, x\_))(k\_) = 0)
 \end{quote}
@@ -255,7 +255,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 series-partial-sum(vnb-lambda(l\_, nn, f((/)(l\_, n)) * (bernstein-basis(n, x))(l\_)), succ(n))
 \end{quote}
-characterized by \texttt{bernstein-poly-antiderivable}  \textit{(proven)}:
+characterized by \texttt{bernstein-poly-antiderivable}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f, n\_, a, b], f in fun(rr, rr) implies n\_ in nn implies not(n\_ = 0) implies a in rr and b in rr and a < b implies is-antiderivable(vnb-lambda(x, rr, bernstein-poly(f, n\_, x)), a, b))
 \end{quote}
@@ -272,7 +272,7 @@ declared in \texttt{tactics-help.scm}
 
 \noindent\textbf{\texttt{big-union}}\quad\textit{operator}\index{big-union@\texttt{big-union}}\\
 a term-forming head \\
-characterized by \texttt{big-union-mono}  \textit{(proven)}:
+characterized by \texttt{big-union-mono}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_, b\_], a\_ subset b\_ implies big-union(u\_, a\_, u\_) subset big-union(u\_, b\_, u\_))
 \end{quote}
@@ -327,7 +327,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(k, l, vnb-lambda([i, j], cartesian(interval(1, k), interval(1, l)), entry(p, i, j)))
 \end{quote}
-characterized by \texttt{block-type}  \textit{(proven)}:
+characterized by \texttt{block-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, n, x, p, k, l], k in nn implies l in nn implies p in mat(m, n, x) implies k <= m implies l <= n implies block(p, k, l) in mat(k, l, x))
 \end{quote}
@@ -341,7 +341,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(succ(p), succ(q), vnb-lambda([i, j], cartesian(interval(1, succ(p)), interval(1, succ(q))), if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))
 \end{quote}
-characterized by \texttt{bordering}  \textit{(proven)}:
+characterized by \texttt{bordering}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], is-ring(a) implies forall([p, q, b, w, g, e], p in nn implies q in nn implies b in carr(a) implies w in mat(p, q, carr(a)) implies g in mat(succ(p), succ(q), carr(a)) implies g = border(a, b, w, p, q) implies mat-equiv(a, p, q, w, e) implies mat-equiv(a, succ(p), succ(q), g, border(a, b, e, p, q))))
 \end{quote}
@@ -378,7 +378,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(v\_, v\_ in rr and forsome([f\_], is-antiderivative(f\_, phi, a, b) and v\_ = f\_(b) - f\_(a)))
 \end{quote}
-characterized by \texttt{c-int-add}  \textit{(proven)}:
+characterized by \texttt{c-int-add}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([phi, psi, a, b], is-antiderivable(phi, a, b) implies is-antiderivable(psi, a, b) implies c-int(vnb-lambda(x, rr, phi(x) + psi(x)), a, b) = c-int(phi, a, b) + c-int(psi, a, b))
 \end{quote}
@@ -393,7 +393,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 if(is-antiderivable(phi, a, b), c-int(phi, a, b), if(is-antiderivable(phi, b, a), -c-int(phi, b, a), 0))
 \end{quote}
-characterized by \texttt{c-int-or-anti}  \textit{(proven)}:
+characterized by \texttt{c-int-or-anti}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([phi, a, b], is-antiderivable(phi, a, b) implies c-int-or(phi, a, b) = c-int(phi, a, b))
 \end{quote}
@@ -461,7 +461,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(alpha, alpha in ord and forsome([phi], phi in bijection(a\_, ord-segment(alpha))) and forall([beta], ord-lt(beta, alpha) implies not(forsome([psi], psi in bijection(a\_, ord-segment(beta))))))
 \end{quote}
-characterized by \texttt{card-bij}  \textit{(proven)}:
+characterized by \texttt{card-bij}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([n\_ in nn, a\_, ph, et], ph in bijection(a\_, ord-segment(n\_)) and et in bijection(ord-segment(n\_), a\_) implies card(a\_) = n\_)
 \end{quote}
@@ -498,7 +498,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [cseq(m), crel(m)]
 \end{quote}
-characterized by \texttt{rkt-cauchy-setoid-pts}  \textit{(proven)}:
+characterized by \texttt{rkt-cauchy-setoid-pts}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m], pts(cauchy-setoid(m)) == cseq(m))
 \end{quote}
@@ -509,7 +509,7 @@ mentioned by 33 result(s)
 
 \noindent\textbf{\texttt{cc-coords}}\quad\textit{defined-fn}\index{cc-coords@\texttt{cc-coords}}\\
 defined by \texttt{cc-coords-def} \\
-characterized by \texttt{cc-coords-add}  \textit{(proven)}:
+characterized by \texttt{cc-coords-add}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([z in cc, w in cc], cc-coords(z + w) = [real-part(z) + real-part(w), imag-part(z) + imag-part(w)])
 \end{quote}
@@ -524,7 +524,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 cc-series-limit(vnb-lambda(cek\_, nn, (-1 \textasciicircum{} cek\_ * recip(factorial(2 * cek\_))) * z \textasciicircum{} (2 * cek\_)))
 \end{quote}
-characterized by \texttt{cc-cos-pi}  \textit{(proven)}:
+characterized by \texttt{cc-cos-pi}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 cc-cos(pi) = -1
 \end{quote}
@@ -539,7 +539,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 cc-series-limit(vnb-lambda(cek\_, nn, recip(factorial(cek\_)) * z \textasciicircum{} cek\_))
 \end{quote}
-characterized by \texttt{cc-exp-i}  \textit{(proven)}:
+characterized by \texttt{cc-exp-i}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([cexz\_ in cc], cc-exp(1i * cexz\_) = cc-cos(cexz\_) + 1i * cc-sin(cexz\_))
 \end{quote}
@@ -554,7 +554,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 pw-int(vnb-lambda(pat\_, ccint(a, b), real-part(pphi\_(pat\_))), a, b) + pw-int(vnb-lambda(pat\_, ccint(a, b), imag-part(pphi\_(pat\_))), a, b) * 1i
 \end{quote}
-characterized by \texttt{cc-int-sum}  \textit{(proven)}:
+characterized by \texttt{cc-int-sum}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], a in rr implies b in rr implies forall([pphi\_, ppsi\_, pchi\_], pphi\_ in fun(ccint(a, b), cc) implies ppsi\_ in fun(ccint(a, b), cc) implies pchi\_ in fun(ccint(a, b), cc) implies forall([pay\_ in ccint(a, b)], pchi\_(pay\_) == pphi\_(pay\_) + ppsi\_(pay\_)) implies forall([pwf\_, paw\_, pauh\_, pbw\_], is-primitive(pwf\_, vnb-lambda(pat\_, ccint(a, b), real-part(pphi\_(pat\_))), a, b) implies is-primitive(paw\_, vnb-lambda(pat\_, ccint(a, b), imag-part(pphi\_(pat\_))), a, b) implies is-primitive(pauh\_, vnb-lambda(pat\_, ccint(a, b), real-part(ppsi\_(pat\_))), a, b) implies is-primitive(pbw\_, vnb-lambda(pat\_, ccint(a, b), imag-part(ppsi\_(pat\_))), a, b) implies cc-int(pchi\_, a, b) = cc-int(pphi\_, a, b) + cc-int(ppsi\_, a, b))))
 \end{quote}
@@ -569,7 +569,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(clgz\_, clgz\_ in cc and -pi < imag-part(clgz\_) and imag-part(clgz\_) < pi and cc-exp(clgz\_) = clgw\_)
 \end{quote}
-characterized by \texttt{cc-log-exp}  \textit{(proven)}:
+characterized by \texttt{cc-log-exp}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([clgz\_ in cc], -pi < imag-part(clgz\_) implies imag-part(clgz\_) < pi implies cc-log(cc-exp(clgz\_)) = clgz\_)
 \end{quote}
@@ -584,7 +584,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 (cmx\_ + cmy\_) * recip(2)
 \end{quote}
-characterized by \texttt{cc-mid-affine}  \textit{(proven)}:
+characterized by \texttt{cc-mid-affine}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([goux\_ in cc, gouy\_ in cc], cc-mid(goux\_, gouy\_) = goux\_ + 1/2 * (gouy\_ - goux\_) and cc-mid(goux\_, gouy\_) = gouy\_ + 1/2 * (goux\_ - gouy\_))
 \end{quote}
@@ -605,7 +605,7 @@ an instance of normed-field; predicate \texttt{is-cc-normed-field}; same shape a
 
 \noindent\textbf{\texttt{cc-of-pair}}\quad\textit{defined-fn}\index{cc-of-pair@\texttt{cc-of-pair}}\\
 defined by \texttt{cc-of-pair-def} \\
-characterized by \texttt{cc-of-pair-add}  \textit{(proven)}:
+characterized by \texttt{cc-of-pair-add}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a1\_ in rr, b1\_ in rr, a2\_ in rr, b2\_ in rr], cc-of-pair([a1\_ + a2\_, b1\_ + b2\_]) = cc-of-pair([a1\_, b1\_]) + cc-of-pair([a2\_, b2\_]))
 \end{quote}
@@ -642,7 +642,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(cpsl\_, cc-series-converges-to(f, cpsl\_))
 \end{quote}
-characterized by \texttt{cc-series-limit-in-cc}  \textit{(proven)}:
+characterized by \texttt{cc-series-limit-in-cc}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f in fun(nn, cc)], cc-series-converges(f) implies cc-series-limit(f) in cc)
 \end{quote}
@@ -657,7 +657,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 sum-ag(normed-field-additive-ag(cc-normed-field), f, k)
 \end{quote}
-characterized by \texttt{cc-series-partial-sum-succ}  \textit{(proven)}:
+characterized by \texttt{cc-series-partial-sum-succ}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f, k in nn], cc-series-partial-sum(f, k) in cc implies f(k) in cc implies cc-series-partial-sum(f, succ(k)) == cc-series-partial-sum(f, k) + f(k))
 \end{quote}
@@ -672,7 +672,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 cc-series-limit(vnb-lambda(cek\_, nn, (-1 \textasciicircum{} cek\_ * recip(factorial(succ(2 * cek\_)))) * z \textasciicircum{} succ(2 * cek\_)))
 \end{quote}
-characterized by \texttt{cc-sin-pi}  \textit{(proven)}:
+characterized by \texttt{cc-sin-pi}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 cc-sin(pi) = 0
 \end{quote}
@@ -687,7 +687,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 esup(image(vnb-lambda(cpsx\_, cpsxs\_, magnitude(u(cpsx\_))), cpsxs\_))
 \end{quote}
-characterized by \texttt{cc-sup-norm-bound}  \textit{(proven)}:
+characterized by \texttt{cc-sup-norm-bound}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([u, cpsxs\_, cpsm\_ in rr], 0 <= cpsm\_ implies forall([cpsx\_ in cpsxs\_], u(cpsx\_) in cc) implies forall([cpsx\_ in cpsxs\_], magnitude(u(cpsx\_)) <= cpsm\_) implies cc-sup-norm(u, cpsxs\_) in rr and 0 <= cc-sup-norm(u, cpsxs\_) and cc-sup-norm(u, cpsxs\_) <= cpsm\_)
 \end{quote}
@@ -701,7 +701,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{x in rr: a <= x and x <= b\}
 \end{quote}
-characterized by \texttt{ccint-creep}  \textit{(proven)}:
+characterized by \texttt{ccint-creep}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, g\_], a in rr implies b in rr implies a <= b implies g\_ subset rr implies a in g\_ implies rr-upper-bound(g\_, b) implies forall([t\_ in ccint(a, b)], forsome([d\_ in rr], 0 < d\_ and (forsome([w\_ in g\_], t\_ - d\_ < w\_) implies forall([y\_], y\_ in ccint(a, b) and y\_ <= t\_ + d\_ implies y\_ in g\_)))) implies b in g\_)
 \end{quote}
@@ -721,7 +721,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 image(vnb-lambda(b, f, choice(centres(s, b, r))), f)
 \end{quote}
-characterized by \texttt{centre-set-unfold}  \textit{(proven)}:
+characterized by \texttt{centre-set-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, r, f], centre-set(s, r, f) == image(vnb-lambda(b, f, choice(centres(s, b, r))), f))
 \end{quote}
@@ -735,7 +735,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{c in pts(s): ball(s, c, r) = b\}
 \end{quote}
-characterized by \texttt{centres-unfold}  \textit{(proven)}:
+characterized by \texttt{centres-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, b, r], centres(s, b, r) == \{c in pts(s): ball(s, c, r) = b\})
 \end{quote}
@@ -757,7 +757,7 @@ mentioned by 21 result(s)
 
 \noindent\textbf{\texttt{choose}}\quad\textit{tactic}\index{choose@\texttt{choose}}\\
 \texttt{(choose ex witness [prover])} -- Choose eps such that FUBA(eps): cut the existential ex = `forsome([eps], FUBA(eps))', discharge it by exhibiting WITNESS (proving FUBA(WITNESS) by PROVER, or from the context), eliminate it, and RETURN the fresh eigenvariable with FUBA of it landed. \\
-characterized by \texttt{choose-n-0}  \textit{(proven)}:
+characterized by \texttt{choose-n-0}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([n in nn], choose(n, 0) = succ(0))
 \end{quote}
@@ -772,7 +772,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{a in power(ord-segment(n)): card(a) = m\}
 \end{quote}
-characterized by \texttt{choose-set-split}  \textit{(proven)}:
+characterized by \texttt{choose-set-split}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([n\_ in nn, k\_ in nn], choose-set(succ(n\_), succ(k\_)) = union(choose-set(n\_, succ(k\_)), image(vnb-lambda(s\_, choose-set(n\_, k\_), union(s\_, pair(n\_, n\_))), choose-set(n\_, k\_))))
 \end{quote}
@@ -793,7 +793,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 min(max(x, a), b)
 \end{quote}
-characterized by \texttt{clamp-fixes}  \textit{(proven)}:
+characterized by \texttt{clamp-fixes}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a in rr, b in rr, x in rr], a <= x implies x <= b implies clamp(a, b, x) = x)
 \end{quote}
@@ -807,7 +807,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{b in pts(s): related(s, a, b)\}
 \end{quote}
-characterized by \texttt{class-self}  \textit{(proven)}:
+characterized by \texttt{class-self}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-setoid(s) implies forall([a in pts(s)], a in class(s, a)))
 \end{quote}
@@ -821,7 +821,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{y in pts(s): (dist(s))(c, y) <= r\}
 \end{quote}
-characterized by \texttt{closed-ball-is-set}  \textit{(proven)}:
+characterized by \texttt{closed-ball-is-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-metric-space(s) implies forall([c, r], closed-ball(s, c, r) in set))
 \end{quote}
@@ -835,7 +835,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{x in pts(s): forall([u], is-open(s, u) and x in u implies forsome([y in u], y in a))\}
 \end{quote}
-characterized by \texttt{closure-is-set}  \textit{(proven)}:
+characterized by \texttt{closure-is-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-metric-space(s) implies forall([a], closure(s, a) in set))
 \end{quote}
@@ -862,7 +862,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{osq\_ in rr: a <= osq\_ and osq\_ < b\}
 \end{quote}
-characterized by \texttt{coint-shrink}  \textit{(proven)}:
+characterized by \texttt{coint-shrink}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([osx\_, osr\_, osv\_], osx\_ in rr implies pos-rr(osr\_) implies pos-rr(osv\_) implies osv\_ <= osr\_ implies coint(osx\_, osx\_ + osv\_) subset coint(osx\_, osx\_ + osr\_))
 \end{quote}
@@ -877,7 +877,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(z\_, nn, if(k\_ < z\_, pred(z\_), z\_))
 \end{quote}
-characterized by \texttt{collapse-at-hi}  \textit{(proven)}:
+characterized by \texttt{collapse-at-hi}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([k\_ in nn, j\_ in nn], k\_ < j\_ implies (collapse-at(k\_))(j\_) = pred(j\_))
 \end{quote}
@@ -962,7 +962,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [quotient(cauchy-setoid(m)), completion-dist(m)]
 \end{quote}
-characterized by \texttt{rkt-completion-pts}  \textit{(proven)}:
+characterized by \texttt{rkt-completion-pts}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m], pts(completion(m)) == quotient(cauchy-setoid(m)))
 \end{quote}
@@ -976,7 +976,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))
 \end{quote}
-characterized by \texttt{rko2-completion-dist}  \textit{(proven)}:
+characterized by \texttt{rko2-completion-dist}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m], dist(completion(m)) == completion-dist(m))
 \end{quote}
@@ -1005,7 +1005,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(z\_, dom(g), f(g(z\_)))
 \end{quote}
-characterized by \texttt{pre-compose}  \textit{(proven)}:
+characterized by \texttt{pre-compose}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, c, u, s, s2, f, h, k], a in set implies b in set implies k in fun(a, b) implies h in fun(b, c) implies f in fun(c, u) implies f in s implies compose(f, h) in s2 implies (vnb-lambda(hmpf\_, s, compose(hmpf\_, compose(h, k))))(f) = (vnb-lambda(hmpf\_, s2, compose(hmpf\_, k)))((vnb-lambda(hmpf\_, s, compose(hmpf\_, h)))(f)))
 \end{quote}
@@ -1042,7 +1042,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{cvz\_ in cc: forsome([cvl\_ in ccint(0, 1), cvm\_ in ccint(0, 1), cvn\_ in ccint(0, 1)], (cvl\_ + cvm\_) + cvn\_ = 1 and cvz\_ = (cvl\_ * cva\_ + cvm\_ * cvb\_) + cvn\_ * cvc\_)\}
 \end{quote}
-characterized by \texttt{conv3-intro}  \textit{(proven)}:
+characterized by \texttt{conv3-intro}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([goua\_ in cc, goub\_ in cc, gouc\_ in cc, goul\_ in ccint(0, 1), goum\_ in ccint(0, 1), goun\_ in ccint(0, 1), gouz\_], (goul\_ + goum\_) + goun\_ = 1 implies gouz\_ = (goul\_ * goua\_ + goum\_ * goub\_) + goun\_ * gouc\_ implies gouz\_ in conv3(goua\_, goub\_, gouc\_))
 \end{quote}
@@ -1119,7 +1119,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 esup(\{cpsr\_ in rr: 0 <= cpsr\_ and series-converges(vnb-lambda(cpsk\_, nn, magnitude(cf(cpsk\_)) * cpsr\_ \textasciicircum{} cpsk\_))\})
 \end{quote}
-characterized by \texttt{cps-radius-in}  \textit{(proven)}:
+characterized by \texttt{cps-radius-in}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([cf], cps-radius(cf) in rr-pos-star)
 \end{quote}
@@ -1133,7 +1133,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{p in cartesian(cseq(m), cseq(m)): cseq-equiv(m, nth(1, p), nth(2, p))\}
 \end{quote}
-characterized by \texttt{rko2-crel-elim}  \textit{(proven)}:
+characterized by \texttt{rko2-crel-elim}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, p\_, q\_], [p\_, q\_] in crel(m) implies cseq-equiv(m, p\_, q\_))
 \end{quote}
@@ -1153,7 +1153,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{f in fun(nn, pts(m)): is-cauchy-seq(m, f)\}
 \end{quote}
-characterized by \texttt{r7q-cseq-cauchy}  \textit{(proven)}:
+characterized by \texttt{r7q-cseq-cauchy}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, f\_ in cseq(m)], is-cauchy-seq(m, f\_))
 \end{quote}
@@ -1200,7 +1200,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(n\_, n\_ in nn and deg-bound(a, p, n\_) and forall([j\_ in nn], deg-bound(a, p, j\_) implies n\_ <= j\_))
 \end{quote}
-characterized by \texttt{deg-is}  \textit{(proven)}:
+characterized by \texttt{deg-is}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_, p\_, m\_], p\_ in carr(poly(a\_)) implies m\_ in nn implies deg-bound(a\_, p\_, m\_) implies forall([j\_ in nn], deg-bound(a\_, p\_, j\_) implies m\_ <= j\_) implies deg(a\_, p\_) = m\_)
 \end{quote}
@@ -1279,7 +1279,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(c, quotient(s), iota(z, forsome([a in c], z = f(a))))
 \end{quote}
-characterized by \texttt{descend-in-fun}  \textit{(proven)}:
+characterized by \texttt{descend-in-fun}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies descend(s, f) in fun(quotient(s), z)))
 \end{quote}
@@ -1293,7 +1293,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda([c, d], cartesian(quotient(s), quotient(s)), iota(z, forsome([a in c, b in d], z = f(a, b))))
 \end{quote}
-characterized by \texttt{descend2-in-fun}  \textit{(proven)}:
+characterized by \texttt{descend2-in-fun}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies descend2(s, f) in fun(cartesian(quotient(s), quotient(s)), z)))
 \end{quote}
@@ -1344,7 +1344,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 complement-in(u\_, b\_)
 \end{quote}
-characterized by \texttt{difference-set}  \textit{(proven)}:
+characterized by \texttt{difference-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x in set, b], difference(x, b) in set)
 \end{quote}
@@ -1358,7 +1358,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 deriv(seg-curve(m, f, a, eta), 0)
 \end{quote}
-characterized by \texttt{dir-deriv-value}  \textit{(proven)}:
+characterized by \texttt{dir-deriv-value}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, f, a, eta, dl], is-dir-diff-at(m, f, a, eta, dl) implies dir-deriv(m, f, a, eta) = dl)
 \end{quote}
@@ -1373,7 +1373,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [a\_, power(a\_)]
 \end{quote}
-characterized by \texttt{discrete-space-is-top-space}  \textit{(proven)}:
+characterized by \texttt{discrete-space-is-top-space}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_ in set], is-top-space(discrete-space(a\_)))
 \end{quote}
@@ -1399,7 +1399,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(n, nn, (dist(m))(f(n), g(n)))
 \end{quote}
-characterized by \texttt{r7q-dist-seq-sym}  \textit{(proven)}:
+characterized by \texttt{r7q-dist-seq-sym}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m], is-metric-space(m) implies forall([f\_ in fun(nn, pts(m)), g\_ in fun(nn, pts(m)), lv], converges-to(rr-ms, dist-seq(m, f\_, g\_), lv) implies converges-to(rr-ms, dist-seq(m, g\_, f\_), lv)))
 \end{quote}
@@ -1459,7 +1459,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(c\_, c\_ in rr and 0 <= c\_ and forall([x\_ in s], abs(f(x\_)) <= c\_ * (vnrm(m))(x\_)) and forall([d\_], d\_ in rr and 0 <= d\_ and forall([x\_ in s], abs(f(x\_)) <= d\_ * (vnrm(m))(x\_)) implies c\_ <= d\_))
 \end{quote}
-characterized by \texttt{dual-norm-on-spec}  \textit{(proven)}:
+characterized by \texttt{dual-norm-on-spec}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, s, f], is-normed-vector-space(m) implies s subset vec(m) implies is-bounded-linear-functional-on(m, s, f) implies dual-norm-on(m, s, f) in rr and 0 <= dual-norm-on(m, s, f) and forall([x\_ in s], abs(f(x\_)) <= dual-norm-on(m, s, f) * (vnrm(m))(x\_)) and forall([d\_], d\_ in rr and 0 <= d\_ and forall([x\_ in s], abs(f(x\_)) <= d\_ * (vnrm(m))(x\_)) implies dual-norm-on(m, s, f) <= d\_))
 \end{quote}
@@ -1503,7 +1503,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 esup(elower-bounds(s))
 \end{quote}
-characterized by \texttt{einf-in}  \textit{(proven)}:
+characterized by \texttt{einf-in}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([cpss\_], cpss\_ subset rr-pos-star implies einf(cpss\_) in rr-pos-star)
 \end{quote}
@@ -1517,7 +1517,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l or i = l and j = k or i = j and not(i = k) and not(i = l), one(a), zero(a))))
 \end{quote}
-characterized by \texttt{daf-elem-f}  \textit{(proven)}:
+characterized by \texttt{daf-elem-f}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, n, d, k, l], is-commutative-ring(r) implies n in nn implies d in fun(mat(n, n, carr(r)), carr(r)) implies forall([dfa\_, dfb\_, dfc\_, dfp\_, dfs\_], dfa\_ in mat(n, n, carr(r)) implies dfb\_ in mat(n, n, carr(r)) implies dfc\_ in mat(n, n, carr(r)) implies dfp\_ in interval(1, n) implies dfs\_ in carr(r) implies forall([dri\_ in interval(1, n)], not(dri\_ = dfp\_) implies forall([drk\_ in interval(1, n)], entry(dfb\_, dri\_, drk\_) = entry(dfa\_, dri\_, drk\_))) implies forall([dri\_ in interval(1, n)], not(dri\_ = dfp\_) implies forall([drk\_ in interval(1, n)], entry(dfc\_, dri\_, drk\_) = entry(dfa\_, dri\_, drk\_))) implies forall([drk\_ in interval(1, n)], entry(dfc\_, dfp\_, drk\_) = (add(r))((mul(r))(dfs\_, entry(dfa\_, dfp\_, drk\_)), entry(dfb\_, dfp\_, drk\_))) implies d(dfc\_) = (add(r))((mul(r))(dfs\_, d(dfa\_)), d(dfb\_))) implies forall([dfa\_, dfp\_, dfq\_], dfa\_ in mat(n, n, carr(r)) implies dfp\_ in interval(1, n) implies dfq\_ in interval(1, n) implies not(dfp\_ = dfq\_) implies forall([drk\_ in interval(1, n)], entry(dfa\_, dfp\_, drk\_) = entry(dfa\_, dfq\_, drk\_)) implies d(dfa\_) = zero(r)) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies d(elem-f(r, n, k, l)) = (neg(r))(d(identmat(r, n))))
 \end{quote}
@@ -1531,7 +1531,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), if(i = k and j = l, r, zero(a)))))
 \end{quote}
-characterized by \texttt{det-elem-g}  \textit{(proven)}:
+characterized by \texttt{det-elem-g}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, n, sc, k, l], is-commutative-ring(r) implies n in nn implies sc in carr(r) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies det(r, n, elem-g(r, n, sc, k, l)) = one(r))
 \end{quote}
@@ -1545,7 +1545,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, if(i = k, r, one(a)), zero(a))))
 \end{quote}
-characterized by \texttt{det-elem-h}  \textit{(proven)}:
+characterized by \texttt{det-elem-h}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, n, sc, k], is-commutative-ring(r) implies n in nn implies sc in carr(r) implies k in interval(1, n) implies det(r, n, elem-h(r, n, sc, k)) = sc)
 \end{quote}
@@ -1560,7 +1560,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 esup(image(vnb-lambda(n\_, nn, einf(etail(f, n\_))), nn))
 \end{quote}
-characterized by \texttt{eliminf-in-rr-pos-star}  \textit{(proven)}:
+characterized by \texttt{eliminf-in-rr-pos-star}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f], forall([cpsk\_ in nn], f(cpsk\_) in rr) implies forall([cpsk\_ in nn], 0 <= f(cpsk\_)) implies eliminf(f) in rr-pos-star)
 \end{quote}
@@ -1575,7 +1575,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 einf(image(vnb-lambda(n\_, nn, esup(etail(f, n\_))), nn))
 \end{quote}
-characterized by \texttt{elimsup-eventually-le}  \textit{(proven)}:
+characterized by \texttt{elimsup-eventually-le}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f], forall([cpsk\_ in nn], f(cpsk\_) in rr) implies forall([cpsk\_ in nn], 0 <= f(cpsk\_)) implies forall([rtpr\_ in rr, rtpn\_ in nn], forall([k\_ in nn], rtpn\_ <= k\_ implies f(k\_) <= rtpr\_) implies elimsup(f) <= rtpr\_))
 \end{quote}
@@ -1610,7 +1610,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(u, pts(m), class(cauchy-setoid(m), embed-seq(m, u)))
 \end{quote}
-characterized by \texttt{embed-in-fun}  \textit{(proven)}:
+characterized by \texttt{embed-in-fun}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m], is-metric-space(m) implies embed(m) in fun(pts(m), pts(completion(m))))
 \end{quote}
@@ -1624,7 +1624,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(n, nn, u)
 \end{quote}
-characterized by \texttt{rkt-embed-seq-cauchy}  \textit{(proven)}:
+characterized by \texttt{rkt-embed-seq-cauchy}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, u], is-metric-space(m) implies u in pts(m) implies is-cauchy-seq(m, embed-seq(m, u)))
 \end{quote}
@@ -1639,7 +1639,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 nth(j, nth(i, m))
 \end{quote}
-characterized by \texttt{minor-entry}  \textit{(proven)}:
+characterized by \texttt{minor-entry}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, s, p, q, n, u\_, v\_], is-ring(r) implies n in nn implies s in mat(succ(n), succ(n), carr(r)) implies u\_ in interval(1, n) implies v\_ in interval(1, n) implies entry(minor(s, p, q, n), u\_, v\_) = entry(s, if(u\_ < p, u\_, succ(u\_)), if(v\_ < q, v\_, succ(v\_))))
 \end{quote}
@@ -1653,7 +1653,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(i, nn, if(i in ord-segment(n), f(phi(i)), iden(ag)))
 \end{quote}
-characterized by \texttt{enum-fam-value}  \textit{(proven)}:
+characterized by \texttt{enum-fam-value}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([n in nn, ag, u, phi, i in ord-segment(n)], (enum-fam(ag, u, phi, n))(i) == u(phi(i)))
 \end{quote}
@@ -1664,7 +1664,7 @@ mentioned by 10 result(s)
 
 \noindent\textbf{\texttt{eplus}}\quad\textit{operator}\index{eplus@\texttt{eplus}}\\
 a term-forming head \\
-characterized by \texttt{eplus-comm}  \textit{(proven)}:
+characterized by \texttt{eplus-comm}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x, y], x in rr-pos-star and y in rr-pos-star implies eplus(x, y) = eplus(y, x))
 \end{quote}
@@ -1679,7 +1679,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 esup(\{v\_ in rr-pos-star: forsome([t\_], (t\_ in set and card(t\_) in nn and t\_ subset dom(f\_)) and v\_ = finsum(rr-pos-star-add-monoid, f\_, t\_))\})
 \end{quote}
-characterized by \texttt{esum-in}  \textit{(proven)}:
+characterized by \texttt{esum-in}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f in fun(dom(f), rr-pos-star)], esum(f) in rr-pos-star)
 \end{quote}
@@ -1694,7 +1694,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(bb\_, bb\_ in rr-pos-star and forall([x in s\_], x <= bb\_) and forall([b], b in rr-pos-star and forall([x in s\_], x <= b) implies bb\_ <= b))
 \end{quote}
-characterized by \texttt{esup-in}  \textit{(proven)}:
+characterized by \texttt{esup-in}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], s subset rr-pos-star implies esup(s) in rr-pos-star)
 \end{quote}
@@ -1709,7 +1709,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 image(f, \{p\_ in nn: n <= p\_\})
 \end{quote}
-characterized by \texttt{etail-subset-rr-pos-star}  \textit{(proven)}:
+characterized by \texttt{etail-subset-rr-pos-star}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f], forall([cpsk\_ in nn], f(cpsk\_) in rr) implies forall([cpsk\_ in nn], 0 <= f(cpsk\_)) implies forall([cpsn\_], etail(f, cpsn\_) subset rr-pos-star))
 \end{quote}
@@ -1720,7 +1720,7 @@ mentioned by 1 result(s)
 \noindent\textbf{\texttt{etimes(x, y)}}\quad\textit{operator}\index{etimes(x, y)@\texttt{etimes(x, y)}}\\
 reads: \$1 times \$2 in the extended reals \\
 a term-forming head \\
-characterized by \texttt{etimes-pos-inf-left}  \textit{(proven)}:
+characterized by \texttt{etimes-pos-inf-left}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([y in rr-pos-star], not(y = 0) implies etimes(pos-inf, y) = pos-inf)
 \end{quote}
@@ -1734,7 +1734,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{dg in fun(carr(s), nn): has-div-remainder(s, dg)\}
 \end{quote}
-characterized by \texttt{euclidean-gauges-unfold}  \textit{(proven)}:
+characterized by \texttt{euclidean-gauges-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], euclidean-gauges(s) == \{dg in fun(carr(s), nn): has-div-remainder(s, dg)\})
 \end{quote}
@@ -1788,7 +1788,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(ecx\_, rr, f(clamp(a, b, ecx\_)))
 \end{quote}
-characterized by \texttt{extend-const-fixes}  \textit{(proven)}:
+characterized by \texttt{extend-const-fixes}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a in rr, b in rr, icz\_ in rr], a <= icz\_ implies icz\_ <= b implies forall([f], (extend-const(f, a, b))(icz\_) == f(icz\_)))
 \end{quote}
@@ -1909,7 +1909,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 choice(bijection(ord-segment(card(s)), s))
 \end{quote}
-characterized by \texttt{fin-enum-is-bijection}  \textit{(proven)}:
+characterized by \texttt{fin-enum-is-bijection}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s in set], card(s) in nn implies fin-enum(s) in bijection(ord-segment(card(s)), s))
 \end{quote}
@@ -1923,7 +1923,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [fin-subsets(a\_), vnb-lambda([x\_, y\_], cartesian(fin-subsets(a\_), fin-subsets(a\_)), union(x\_, y\_)), empty-set]
 \end{quote}
-characterized by \texttt{fin-subset-monoid-is-comm-monoid}  \textit{(proven)}:
+characterized by \texttt{fin-subset-monoid-is-comm-monoid}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_ in set], is-comm-monoid(fin-subset-monoid(a\_)))
 \end{quote}
@@ -1937,7 +1937,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{t\_ in power(a\_): card(t\_) in nn\}
 \end{quote}
-characterized by \texttt{fin-subsets-is-set}  \textit{(proven)}:
+characterized by \texttt{fin-subsets-is-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_ in set], fin-subsets(a\_) in set)
 \end{quote}
@@ -1975,7 +1975,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{f in fun(carr(m), carr(a)): card(supp(a, m, f)) in nn\}
 \end{quote}
-characterized by \texttt{finsupp-in-set}  \textit{(proven)}:
+characterized by \texttt{finsupp-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_, m\_], is-ring(a\_) implies is-monoid(m\_) implies finsupp(a\_, m\_) in set)
 \end{quote}
@@ -1997,7 +1997,13 @@ mentioned by 53 result(s)
 \smallskip
 
 \noindent\textbf{\texttt{focus}}\quad\textit{tactic}\index{focus@\texttt{focus}}\\
-\texttt{(focus n)} -- Switch the focus to the n-th open goal (1-based). \\
+\texttt{(focus n)} -- Switch the focus to the n-th open goal (1-based, the POSITION in the list (show) prints: the focus first, then the others).  A position shifts as leaves close; the node number in brackets does not -- see focus-id. \\
+declared in \texttt{tactics-help.scm}
+
+\smallskip
+
+\noindent\textbf{\texttt{focus-id}}\quad\textit{tactic}\index{focus-id@\texttt{focus-id}}\\
+\texttt{(focus-id k)} -- Switch the focus to the ungrounded node whose NODE NUMBER is k, the number (show) and the Focus Workspace print in brackets before each sequent.  Any ungrounded node, not only a leaf: a driver records a leaf by position as (focus n) and an ungrounded node a rule has already fired on as (focus-id k), so a page may name either.  Recorded as a step, undone by backup-one.  The move to make when reading a goal off the panel, e.g. the side leaf of a cut: (cut L) opens  G |- L  (the side leaf) and  G, L |- goal  (the main branch), and a composite such as zero-it leaves the focus on whichever it did not close. \\
 declared in \texttt{tactics-help.scm}
 
 \smallskip
@@ -2053,7 +2059,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 choice(euclidean-gauges(s))
 \end{quote}
-characterized by \texttt{gauge-is-degree}  \textit{(proven)}:
+characterized by \texttt{gauge-is-degree}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-euclidean-ring(s) implies gauge(s) in fun(carr(s), nn) and has-div-remainder(s, gauge(s)))
 \end{quote}
@@ -2096,7 +2102,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 zkept(phi, grd, porel, card(grd))
 \end{quote}
-characterized by \texttt{greedy-chain-is-chain}  \textit{(proven)}:
+characterized by \texttt{greedy-chain-is-chain}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([phi, grd, porel], is-partial-order(grd, porel) implies is-chain(grd, porel, greedy-chain(phi, grd, porel)))
 \end{quote}
@@ -2240,7 +2246,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-abelian-group(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-abelian-group-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-abelian-group-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-abelian-group(a) implies is-abelian-group(b) implies hom-abelian-group(a, b) in set)
 \end{quote}
@@ -2255,7 +2261,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(vec(a), vec(b)): is-bounded-linear-arrow(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-bounded-linear-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-bounded-linear-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-normed-vector-space(a) implies is-normed-vector-space(b) implies hom-bounded-linear(a, b) in set)
 \end{quote}
@@ -2270,7 +2276,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(pts(a), pts(b)): is-hom-c-metric-space(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-c-metric-space-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-c-metric-space-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-c-metric-space(a) implies is-c-metric-space(b) implies hom-c-metric-space(a, b) in set)
 \end{quote}
@@ -2285,7 +2291,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-comm-monoid(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-comm-monoid-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-comm-monoid-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-comm-monoid(a) implies is-comm-monoid(b) implies hom-comm-monoid(a, b) in set)
 \end{quote}
@@ -2300,7 +2306,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-commutative-ring(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-commutative-ring-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-commutative-ring-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-commutative-ring(a) implies is-commutative-ring(b) implies hom-commutative-ring(a, b) in set)
 \end{quote}
@@ -2315,7 +2321,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(vec(a), vec(b)): is-hom-complex-inner-product-space(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-complex-inner-product-space-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-complex-inner-product-space-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-complex-inner-product-space(a) implies is-complex-inner-product-space(b) implies hom-complex-inner-product-space(a, b) in set)
 \end{quote}
@@ -2330,7 +2336,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(pts(a), pts(b)): is-continuous-arrow(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-continuous-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-continuous-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-metric-space(a) implies is-metric-space(b) implies hom-continuous(a, b) in set)
 \end{quote}
@@ -2345,7 +2351,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-euclidean-ring(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-euclidean-ring-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-euclidean-ring-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-euclidean-ring(a) implies is-euclidean-ring(b) implies hom-euclidean-ring(a, b) in set)
 \end{quote}
@@ -2360,7 +2366,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-field(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-field-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-field-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-field(a) implies is-field(b) implies hom-field(a, b) in set)
 \end{quote}
@@ -2375,7 +2381,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-field-ring(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-field-ring-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-field-ring-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-field-ring(a) implies is-field-ring(b) implies hom-field-ring(a, b) in set)
 \end{quote}
@@ -2390,7 +2396,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-group(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-group-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-group-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-group(a) implies is-group(b) implies hom-group(a, b) in set)
 \end{quote}
@@ -2405,7 +2411,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-integral-domain(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-integral-domain-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-integral-domain-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-integral-domain(a) implies is-integral-domain(b) implies hom-integral-domain(a, b) in set)
 \end{quote}
@@ -2420,7 +2426,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(pts(a), pts(b)): is-lipschitz-arrow(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-lipschitz-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-lipschitz-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-metric-space(a) implies is-metric-space(b) implies hom-lipschitz(a, b) in set)
 \end{quote}
@@ -2435,7 +2441,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(pts(a), pts(b)): is-hom-measurable-space(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-measurable-space-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-measurable-space-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-measurable-space(a) implies is-measurable-space(b) implies hom-measurable-space(a, b) in set)
 \end{quote}
@@ -2450,7 +2456,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(pts(a), pts(b)): is-hom-measure-space(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-measure-space-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-measure-space-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-measure-space(a) implies is-measure-space(b) implies hom-measure-space(a, b) in set)
 \end{quote}
@@ -2465,7 +2471,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(pts(a), pts(b)): is-hom-metric-space(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-metric-space-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-metric-space-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-metric-space(a) implies is-metric-space(b) implies hom-metric-space(a, b) in set)
 \end{quote}
@@ -2480,7 +2486,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(pts(a), pts(b)): is-hom-metrizable-top-space(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-metrizable-top-space-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-metrizable-top-space-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-metrizable-top-space(a) implies is-metrizable-top-space(b) implies hom-metrizable-top-space(a, b) in set)
 \end{quote}
@@ -2495,7 +2501,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(vec(a), vec(b)): is-hom-module(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-module-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-module-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-module(a) implies is-module(b) implies hom-module(a, b) in set)
 \end{quote}
@@ -2510,7 +2516,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-monoid(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-monoid-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-monoid-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-monoid(a) implies is-monoid(b) implies hom-monoid(a, b) in set)
 \end{quote}
@@ -2525,7 +2531,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-normed-ag(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-normed-ag-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-normed-ag-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-normed-ag(a) implies is-normed-ag(b) implies hom-normed-ag(a, b) in set)
 \end{quote}
@@ -2540,7 +2546,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-normed-field(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-normed-field-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-normed-field-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-normed-field(a) implies is-normed-field(b) implies hom-normed-field(a, b) in set)
 \end{quote}
@@ -2555,7 +2561,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(vec(a), vec(b)): is-hom-normed-vector-space(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-normed-vector-space-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-normed-vector-space-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-normed-vector-space(a) implies is-normed-vector-space(b) implies hom-normed-vector-space(a, b) in set)
 \end{quote}
@@ -2570,7 +2576,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-pid(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-pid-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-pid-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-pid(a) implies is-pid(b) implies hom-pid(a, b) in set)
 \end{quote}
@@ -2585,7 +2591,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(pts(a), pts(b)): is-hom-pseudometric-space(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-pseudometric-space-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-pseudometric-space-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-pseudometric-space(a) implies is-pseudometric-space(b) implies hom-pseudometric-space(a, b) in set)
 \end{quote}
@@ -2600,7 +2606,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-ring(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-ring-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-ring-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-ring(a) implies is-ring(b) implies hom-ring(a, b) in set)
 \end{quote}
@@ -2615,7 +2621,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-ringoid(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-ringoid-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-ringoid-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-ringoid(a) implies is-ringoid(b) implies hom-ringoid(a, b) in set)
 \end{quote}
@@ -2630,7 +2636,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(carr(a), carr(b)): is-hom-semigroup(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-semigroup-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-semigroup-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-semigroup(a) implies is-semigroup(b) implies hom-semigroup(a, b) in set)
 \end{quote}
@@ -2645,7 +2651,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(pts(a), pts(b)): is-hom-setoid(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-setoid-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-setoid-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-setoid(a) implies is-setoid(b) implies hom-setoid(a, b) in set)
 \end{quote}
@@ -2660,7 +2666,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(pts(a), pts(b)): is-hom-top-space(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-top-space-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-top-space-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-top-space(a) implies is-top-space(b) implies hom-top-space(a, b) in set)
 \end{quote}
@@ -2675,7 +2681,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(pts(a), pts(b)): is-uniformly-continuous-arrow(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-uniformly-continuous-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-uniformly-continuous-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-metric-space(a) implies is-metric-space(b) implies hom-uniformly-continuous(a, b) in set)
 \end{quote}
@@ -2690,7 +2696,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(vec(a), vec(b)): is-hom-vector-space(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-vector-space-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-vector-space-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-vector-space(a) implies is-vector-space(b) implies hom-vector-space(a, b) in set)
 \end{quote}
@@ -2709,7 +2715,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(idfx\_, a\_, idfx\_)
 \end{quote}
-characterized by \texttt{id-fun-type}  \textit{(proven)}:
+characterized by \texttt{id-fun-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a in set], id-fun(a) in fun(a, a))
 \end{quote}
@@ -2735,7 +2741,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), zero(a))))
 \end{quote}
-characterized by \texttt{identmat-type}  \textit{(proven)}:
+characterized by \texttt{identmat-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], is-ring(a) implies forall([n in nn], identmat(a, n) in mat(n, n, carr(a))))
 \end{quote}
@@ -2759,7 +2765,7 @@ declared in \texttt{tactics-help.scm}
 
 \noindent\textbf{\texttt{if}}\quad\textit{operator}\index{if@\texttt{if}}\\
 a term-forming head \\
-characterized by \texttt{matunit-col-shift}  \textit{(proven)}:
+characterized by \texttt{matunit-col-shift}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, n) implies l in interval(1, n) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, matunit(a, n, k, l)), i, c) = if(c = l, entry(p, i, k), zero(a)))))
 \end{quote}
@@ -2919,7 +2925,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{x in pts(s): forsome([u], is-open(s, u) and x in u and u subset a)\}
 \end{quote}
-characterized by \texttt{interior-in-set}  \textit{(proven)}:
+characterized by \texttt{interior-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, a], interior(s, a) subset a)
 \end{quote}
@@ -2945,7 +2951,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{iov\_ in big-union(iow\_, c, iow\_): forall([iou\_ in c], iov\_ in iou\_)\}
 \end{quote}
-characterized by \texttt{intersection-of-is-set}  \textit{(proven)}:
+characterized by \texttt{intersection-of-is-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([c\_], intersection-of(c\_) in set)
 \end{quote}
@@ -2960,7 +2966,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{i in nn: a <= i and i <= b\}
 \end{quote}
-characterized by \texttt{interval-hi}  \textit{(proven)}:
+characterized by \texttt{interval-hi}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, i in interval(a, b)], i <= b)
 \end{quote}
@@ -2972,7 +2978,7 @@ mentioned by 399 result(s)
 \noindent\textbf{\texttt{inv(s)}}\quad\textit{accessor}\index{inv(s)@\texttt{inv(s)}}\\
 reads: the inverse operation of \$1 \\
 a structure slot \\
-characterized by \texttt{ras-inv}  \textit{(proven)}:
+characterized by \texttt{ras-inv}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], is-ring(a) implies inv(ring-additive-ag(a)) = neg(a))
 \end{quote}
@@ -2986,7 +2992,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(y\_, y, choice(\{x\_ in x: phi(x\_) = y\_\}))
 \end{quote}
-characterized by \texttt{inverse-bij-left}  \textit{(proven)}:
+characterized by \texttt{inverse-bij-left}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([dm, cod, phi in bijection(dm, cod), x in dm], (inverse-bij(phi, dm, cod))(phi(x)) = x)
 \end{quote}
@@ -2997,7 +3003,7 @@ mentioned by 6 result(s)
 
 \noindent\textbf{\texttt{iota}}\quad\textit{operator}\index{iota@\texttt{iota}}\\
 a term-forming head \\
-characterized by \texttt{r7q-dhat-iota}  \textit{(proven)}:
+characterized by \texttt{r7q-dhat-iota}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, x\_, y\_], x\_ in quotient(cauchy-setoid(m)) implies y\_ in quotient(cauchy-setoid(m)) implies (dist(completion(m)))(x\_, y\_) == iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and x\_ = class(cauchy-setoid(m), f) and y\_ = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))
 \end{quote}
@@ -4922,7 +4928,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(jxt\_, ccint(jxa\_, jxc\_), if(jxt\_ <= jxb\_, jxp\_(jxt\_), jxq\_(jxt\_)))
 \end{quote}
-characterized by \texttt{juxta-trace}  \textit{(proven)}:
+characterized by \texttt{juxta-trace}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([p, q, a in rr, b in rr, c in rr], a <= b implies b <= c implies p in fun(ccint(a, b), cc) implies q in fun(ccint(b, c), cc) implies p(b) = q(b) implies trace(juxta(p, q, a, b, c), a, c) = union(trace(p, a, b), trace(q, b, c)))
 \end{quote}
@@ -4996,7 +5002,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 p(deg(a, p))
 \end{quote}
-characterized by \texttt{leadcoef-unfold}  \textit{(proven)}:
+characterized by \texttt{leadcoef-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_, p\_], leadcoef(a\_, p\_) == p\_(deg(a\_, p\_)))
 \end{quote}
@@ -5038,7 +5044,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (act(md))(entry(c, 1, j), entry(u, j, 1))), interval(1, n))
 \end{quote}
-characterized by \texttt{lincomb-snoc}  \textit{(proven)}:
+characterized by \texttt{lincomb-snoc}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([md], is-module(md) implies forall([n in nn, c in mat(1, n, carr(scal(md))), u in mat(n, 1, vec(md)), r in carr(scal(md)), x in vec(md)], lincomb(md, succ(n), snoc-row(c, n, r), snoc-col(u, n, x)) = (vadd(md))(lincomb(md, n, c, u), (act(md))(r, x))))
 \end{quote}
@@ -5052,7 +5058,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{y\_ in vec(m): forsome([r\_ in rr], y\_ = (act(m))(r\_, v))\}
 \end{quote}
-characterized by \texttt{line-has-v}  \textit{(proven)}:
+characterized by \texttt{line-has-v}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, v], is-normed-vector-space(m) implies v in vec(m) implies v in line(m, v))
 \end{quote}
@@ -5067,7 +5073,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 cc-int(vnb-lambda(pat\_, ccint(a, b), pf(pgam(pat\_)) * dgam(pat\_)), a, b)
 \end{quote}
-characterized by \texttt{line-int-sum}  \textit{(proven)}:
+characterized by \texttt{line-int-sum}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([u, f, g, pgam, dgam, a, b], u subset cc implies f in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), f, rgy\_)) implies g in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), g, rgy\_)) implies is-road(pgam, dgam, a, b) implies trace(pgam, a, b) subset u implies forall([lih\_ in fun(u, cc)], forall([liz\_ in u], lih\_(liz\_) == f(liz\_) + g(liz\_)) implies line-int(lih\_, pgam, dgam, a, b) = line-int(f, pgam, dgam, a, b) + line-int(g, pgam, dgam, a, b)))
 \end{quote}
@@ -5104,7 +5110,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 c-int-or(vnb-lambda(z\_, rr, recip-star(z\_)), 1, x\_)
 \end{quote}
-characterized by \texttt{log-mul}  \textit{(proven)}:
+characterized by \texttt{log-mul}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x\_, y\_], x\_ in rr implies y\_ in rr implies 0 < x\_ implies 0 < y\_ implies log(x\_ * y\_) = log(x\_) + log(y\_))
 \end{quote}
@@ -5195,7 +5201,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [mat(n, n, carr(a)), vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)), vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q)), vnb-lambda(p, mat(n, n, carr(a)), matneg(a, p)), zeromat(a, n, n), identmat(a, n)]
 \end{quote}
-characterized by \texttt{mat-ring-add}  \textit{(proven)}:
+characterized by \texttt{mat-ring-add}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, n], is-ring(a) implies n in nn implies add(mat-ring(a, n)) = vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)))
 \end{quote}
@@ -5209,7 +5215,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(nth(1, size(p)), nth(2, size(u)), vnb-lambda([i, c], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(u)))), finsum(module-vector-ag(md), vnb-lambda(j, interval(1, nth(2, size(p))), (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, nth(2, size(p))))))
 \end{quote}
-characterized by \texttt{matact-type}  \textit{(proven)}:
+characterized by \texttt{matact-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([md], is-module(md) implies forall([m, n, q, p, u], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies (n = 0 implies m = 0 or q = 0) implies matact(md, p, u) in mat(m, q, vec(md))))
 \end{quote}
@@ -5223,7 +5229,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (add(a))(entry(p, i, j), entry(q, i, j))))
 \end{quote}
-characterized by \texttt{matadd-comm}  \textit{(proven)}:
+characterized by \texttt{matadd-comm}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], is-ring(a) implies forall([m, n, p, q], p in mat(m, n, carr(a)) implies q in mat(m, n, carr(a)) implies matadd(a, p, q) = matadd(a, q, p)))
 \end{quote}
@@ -5237,7 +5243,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(nth(1, size(p)), nth(2, size(q)), vnb-lambda([i, k], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(q)))), finsum(ring-additive-ag(a), vnb-lambda(j, interval(1, nth(2, size(p))), (mul(a))(entry(p, i, j), entry(q, j, k))), interval(1, nth(2, size(p))))))
 \end{quote}
-characterized by \texttt{matmul-type}  \textit{(proven)}:
+characterized by \texttt{matmul-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], is-ring(a) implies forall([m, n, k, p, q], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies (n = 0 implies m = 0 or k = 0) implies matmul(a, p, q) in mat(m, k, carr(a))))
 \end{quote}
@@ -5251,7 +5257,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (neg(a))(entry(p, i, j))))
 \end{quote}
-characterized by \texttt{matneg-type}  \textit{(proven)}:
+characterized by \texttt{matneg-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matneg(a, p) in mat(m, n, carr(a))))
 \end{quote}
@@ -5265,7 +5271,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(p, p in mat(m, n, image(g, cartesian(interval(1, m), interval(1, n)))) and forall([i in interval(1, m), j in interval(1, n)], entry(p, i, j) = g(i, j)))
 \end{quote}
-characterized by \texttt{matof-in-mat}  \textit{(proven)}:
+characterized by \texttt{matof-in-mat}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, n, x, g], m in nn implies n in nn implies forall([i in interval(1, m), j in interval(1, n)], g(i, j) in x) implies matof(m, n, g) in mat(m, n, x))
 \end{quote}
@@ -5290,7 +5296,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (mul(a))(r, entry(p, i, j))))
 \end{quote}
-characterized by \texttt{matscale-type}  \textit{(proven)}:
+characterized by \texttt{matscale-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], is-ring(a) implies forall([m, n, r, p], r in carr(a) implies p in mat(m, n, carr(a)) implies matscale(a, r, p) in mat(m, n, carr(a))))
 \end{quote}
@@ -5304,7 +5310,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l, one(a), zero(a))))
 \end{quote}
-characterized by \texttt{matunit-type}  \textit{(proven)}:
+characterized by \texttt{matunit-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], is-ring(a) implies forall([n, k, l], n in nn implies matunit(a, n, k, l) in mat(n, n, carr(a))))
 \end{quote}
@@ -5404,7 +5410,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), entry(s, if(i < r, i, succ(i)), if(j < c, j, succ(j)))))
 \end{quote}
-characterized by \texttt{minor-type}  \textit{(proven)}:
+characterized by \texttt{minor-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, s, p, q, n], is-ring(r) implies p in nn implies q in nn implies n in nn implies s in mat(succ(n), succ(n), carr(r)) implies minor(s, p, q, n) in mat(n, n, carr(r)))
 \end{quote}
@@ -5435,7 +5441,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [finsupp(a, m), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-add(a, m, f, g)), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-mul(a, m, f, g)), vnb-lambda(f, finsupp(a, m), monalg-neg(a, m, f)), monalg-zero(a, m), monalg-one(a, m)]
 \end{quote}
-characterized by \texttt{monalg-carr}  \textit{(proven)}:
+characterized by \texttt{monalg-carr}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_, m\_], carr(monalg(a\_, m\_)) == finsupp(a\_, m\_))
 \end{quote}
@@ -5449,7 +5455,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(x\_, carr(m), (add(a))(f(x\_), g(x\_)))
 \end{quote}
-characterized by \texttt{monalg-add-op}  \textit{(proven)}:
+characterized by \texttt{monalg-add-op}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_, m\_], add(monalg(a\_, m\_)) == vnb-lambda([f, g], cartesian(finsupp(a\_, m\_), finsupp(a\_, m\_)), monalg-add(a\_, m\_, f, g)))
 \end{quote}
@@ -5463,7 +5469,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(x\_, carr(m), finsum(ring-additive-ag(a), vnb-lambda(p, \{p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x\_\}, (mul(a))(f(nth(1, p)), g(nth(2, p)))), \{p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x\_\}))
 \end{quote}
-characterized by \texttt{monalg-mul-op}  \textit{(proven)}:
+characterized by \texttt{monalg-mul-op}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_, m\_], mul(monalg(a\_, m\_)) == vnb-lambda([f, g], cartesian(finsupp(a\_, m\_), finsupp(a\_, m\_)), monalg-mul(a\_, m\_, f, g)))
 \end{quote}
@@ -5477,7 +5483,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(x\_, carr(m), (neg(a))(f(x\_)))
 \end{quote}
-characterized by \texttt{monalg-neg-op}  \textit{(proven)}:
+characterized by \texttt{monalg-neg-op}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_, m\_], neg(monalg(a\_, m\_)) == vnb-lambda(f, finsupp(a\_, m\_), monalg-neg(a\_, m\_, f)))
 \end{quote}
@@ -5491,7 +5497,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(x\_, carr(m), if(x\_ = iden(m), one(a), zero(a)))
 \end{quote}
-characterized by \texttt{monalg-one-in}  \textit{(proven)}:
+characterized by \texttt{monalg-one-in}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_, m\_], is-ring(a\_) implies is-monoid(m\_) implies monalg-one(a\_, m\_) in finsupp(a\_, m\_))
 \end{quote}
@@ -5505,7 +5511,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(x\_, carr(m), zero(a))
 \end{quote}
-characterized by \texttt{monalg-zero-in}  \textit{(proven)}:
+characterized by \texttt{monalg-zero-in}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_, m\_], is-ring(a\_) implies is-monoid(m\_) implies monalg-zero(a\_, m\_) in finsupp(a\_, m\_))
 \end{quote}
@@ -5525,7 +5531,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(x\_, nn, if(x\_ = n, c, zero(a)))
 \end{quote}
-characterized by \texttt{monomial-at}  \textit{(proven)}:
+characterized by \texttt{monomial-at}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_, c\_, n\_ in nn], (monomial(a\_, c\_, n\_))(n\_) = c\_)
 \end{quote}
@@ -5583,7 +5589,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [carr(nag), vnb-lambda([u, v], cartesian(carr(nag), carr(nag)), (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]
 \end{quote}
-characterized by \texttt{nag-metric-space-is-metric-space}  \textit{(proven)}:
+characterized by \texttt{nag-metric-space-is-metric-space}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([nag], is-normed-ag(nag) implies is-metric-space(nag-metric-space(nag)))
 \end{quote}
@@ -5614,7 +5620,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [carr(nf), vnb-lambda([x, y], cartesian(carr(nf), carr(nf)), (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]
 \end{quote}
-characterized by \texttt{nf-metric-space-is-metric-space}  \textit{(proven)}:
+characterized by \texttt{nf-metric-space-is-metric-space}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([nf], is-normed-field(nf) implies is-metric-space(nf-metric-space(nf)))
 \end{quote}
@@ -5638,7 +5644,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 choice(\{f in fun(nn, s): forall([m in nn, n in nn], m < n implies f(m) < f(n))\})
 \end{quote}
-characterized by \texttt{nn-enum-spec}  \textit{(proven)}:
+characterized by \texttt{nn-enum-spec}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s in inf-subsets(nn)], nn-enum(s) in fun(nn, s) and forall([m in nn, n in nn], m < n implies (nn-enum(s))(m) < (nn-enum(s))(n)))
 \end{quote}
@@ -5663,7 +5669,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(a\_, a\_ in nn and forsome([b\_ in nn], nnpair(a\_, b\_) = n\_))
 \end{quote}
-characterized by \texttt{nnfst-type}  \textit{(proven)}:
+characterized by \texttt{nnfst-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([n\_ in nn], nnfst(n\_) in nn)
 \end{quote}
@@ -5678,7 +5684,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 trinum(i\_ + j\_) + j\_
 \end{quote}
-characterized by \texttt{nnpair-inj}  \textit{(proven)}:
+characterized by \texttt{nnpair-inj}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([i\_, j\_, ii\_, jj\_], i\_ in nn implies j\_ in nn implies ii\_ in nn implies jj\_ in nn implies nnpair(i\_, j\_) = nnpair(ii\_, jj\_) implies i\_ = ii\_ and j\_ = jj\_)
 \end{quote}
@@ -5693,7 +5699,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(b\_, b\_ in nn and forsome([a\_ in nn], nnpair(a\_, b\_) = n\_))
 \end{quote}
-characterized by \texttt{nnsnd-type}  \textit{(proven)}:
+characterized by \texttt{nnsnd-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([n\_ in nn], nnsnd(n\_) in nn)
 \end{quote}
@@ -5912,7 +5918,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{osq\_ in rr: a < osq\_ and osq\_ <= b\}
 \end{quote}
-characterized by \texttt{ocint-shrink}  \textit{(proven)}:
+characterized by \texttt{ocint-shrink}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([osx\_, osr\_, osv\_], osx\_ in rr implies pos-rr(osr\_) implies pos-rr(osv\_) implies osv\_ <= osr\_ implies ocint(osx\_ - osv\_, osx\_) subset ocint(osx\_ - osr\_, osx\_))
 \end{quote}
@@ -5963,7 +5969,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{icx\_ in rr: a < icx\_ and icx\_ < b\}
 \end{quote}
-characterized by \texttt{ooint-open}  \textit{(proven)}:
+characterized by \texttt{ooint-open}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], a in rr implies b in rr implies is-open(rr-ms, ooint(a, b)))
 \end{quote}
@@ -5975,7 +5981,7 @@ mentioned by 107 result(s)
 \noindent\textbf{\texttt{opens(s)}}\quad\textit{accessor}\index{opens(s)@\texttt{opens(s)}}\\
 reads: the topology of \$1 \\
 a structure slot \\
-characterized by \texttt{ds-opens}  \textit{(proven)}:
+characterized by \texttt{ds-opens}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_], opens(discrete-space(a\_)) == power(a\_))
 \end{quote}
@@ -6071,7 +6077,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 injection(ord-segment(n), ord-segment(n))
 \end{quote}
-characterized by \texttt{permutations-zero}  \textit{(proven)}:
+characterized by \texttt{permutations-zero}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 card(permutations(0)) = succ(0)
 \end{quote}
@@ -6106,7 +6112,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 monalg(a, nn-add-monoid)
 \end{quote}
-characterized by \texttt{poly-carrier}  \textit{(proven)}:
+characterized by \texttt{poly-carrier}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_], carr(poly(a\_)) == finsupp(a\_, nn-add-monoid))
 \end{quote}
@@ -6150,7 +6156,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(m\_, m\_ in nn and succ(m\_) = n\_)
 \end{quote}
-characterized by \texttt{pred-succ}  \textit{(proven)}:
+characterized by \texttt{pred-succ}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([n\_ in nn], not(n\_ = 0) implies succ(pred(n\_)) = n\_)
 \end{quote}
@@ -6209,7 +6215,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 finprod(commutative-ring-multiplicative-cm(r), f, s)
 \end{quote}
-characterized by \texttt{prod-ring-type}  \textit{(proven)}:
+characterized by \texttt{prod-ring-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r], is-commutative-ring(r) implies forall([x], x in set and card(x) in nn implies forall([f in fun(x, carr(r))], prod-ring(r, f, x) in carr(r))))
 \end{quote}
@@ -6223,7 +6229,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 finsum(cm, f, s)
 \end{quote}
-characterized by \texttt{prod-set-empty}  \textit{(proven)}:
+characterized by \texttt{prod-set-empty}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([cm, f], prod-set(cm, empty-set, f) == iden(cm))
 \end{quote}
@@ -6237,7 +6243,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{x in fun(nn, big-union(n, nn, pts(ms(n)))): forall([n in nn], x(n) in pts(ms(n)))\}
 \end{quote}
-characterized by \texttt{product-carrier-coord}  \textit{(proven)}:
+characterized by \texttt{product-carrier-coord}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([ms, x\_ in product-carrier(ms), n\_ in nn], x\_(n\_) in pts(ms(n\_)))
 \end{quote}
@@ -6269,7 +6275,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(x, product-carrier(ms), x(n))
 \end{quote}
-characterized by \texttt{product-projection-continuous}  \textit{(proven)}:
+characterized by \texttt{product-projection-continuous}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([ms], is-ms-sequence(ms) implies forall([w], summable-weight(w) implies forall([n in nn], is-continuous(product-metric-w(ms, w), ms(n), product-proj(ms, n)))))
 \end{quote}
@@ -6282,7 +6288,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(a, pts(s), class(s, a))
 \end{quote}
-characterized by \texttt{proj-in-fun}  \textit{(proven)}:
+characterized by \texttt{proj-in-fun}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-setoid(s) implies proj(s) in fun(pts(s), quotient(s)))
 \end{quote}
@@ -6335,7 +6341,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 sum-ag(normed-field-additive-ag(rr-normed-field), vnb-lambda(n, nn, coef(n) * x \textasciicircum{} n), k)
 \end{quote}
-characterized by \texttt{ps-partial-sum-as-series}  \textit{(proven)}:
+characterized by \texttt{ps-partial-sum-as-series}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([coef in fun(nn, rr), x in rr, k in nn], ps-partial-sum(coef, x, k) = series-partial-sum(vnb-lambda(n, nn, coef(n) * x \textasciicircum{} n), k))
 \end{quote}
@@ -6448,7 +6454,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(pav\_, pav\_ in rr and forsome([paw\_], is-primitive(paw\_, pphi\_, a, b) and pav\_ = paw\_(b) - paw\_(a)))
 \end{quote}
-characterized by \texttt{pw-int-const}  \textit{(proven)}:
+characterized by \texttt{pw-int-const}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a in rr, b in rr], a < b implies forall([pac\_ in rr, pphi\_ in fun(ccint(a, b), rr)], forall([pay\_ in ccint(a, b)], pphi\_(pay\_) == pac\_) implies pw-int(pphi\_, a, b) = pac\_ * (b - a)))
 \end{quote}
@@ -6499,7 +6505,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 image(proj(s), pts(s))
 \end{quote}
-characterized by \texttt{quotient-rep}  \textit{(proven)}:
+characterized by \texttt{quotient-rep}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-setoid(s) implies forall([x in quotient(s)], forsome([a in pts(s)], x = class(s, a))))
 \end{quote}
@@ -6518,7 +6524,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(x\_, x\_ in rr and 0 < x\_ and log(x\_) = y\_)
 \end{quote}
-characterized by \texttt{log-r-exp}  \textit{(proven)}:
+characterized by \texttt{log-r-exp}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([y\_ in rr], log(r-exp(y\_)) = y\_)
 \end{quote}
@@ -6532,7 +6538,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 image(f, dom(f))
 \end{quote}
-characterized by \texttt{range-membership}  \textit{(proven)}:
+characterized by \texttt{range-membership}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f, a in dom(f)], f(a) in ran(f))
 \end{quote}
@@ -6569,7 +6575,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 if(u\_ = 0, 0, recip(u\_))
 \end{quote}
-characterized by \texttt{recip-star-zero}  \textit{(proven)}:
+characterized by \texttt{recip-star-zero}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 recip-star(0) = 0
 \end{quote}
@@ -6592,7 +6598,7 @@ mentioned by 26 result(s)
 \noindent\textbf{\texttt{rel(s)}}\quad\textit{accessor}\index{rel(s)@\texttt{rel(s)}}\\
 reads: the equivalence relation of \$1 \\
 a structure slot \\
-characterized by \texttt{r6b-setoid-rel}  \textit{(proven)}:
+characterized by \texttt{r6b-setoid-rel}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r], rel(ringoid-setoid(r)) == ringoid-rel(r))
 \end{quote}
@@ -6617,7 +6623,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [a, b] in rel(s)
 \end{quote}
-characterized by \texttt{r6b-related-in}  \textit{(proven)}:
+characterized by \texttt{r6b-related-in}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r], is-ringoid(r) implies forall([a, b], a in carr(r) implies b in carr(r) implies (add(r))(a, (neg(r))(b)) in idl(r) implies related(ringoid-setoid(r), a, b)))
 \end{quote}
@@ -6654,7 +6660,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a in pts(s), b in pts(s)], related(s, a, b) implies f(a) = f(b))
 \end{quote}
-characterized by \texttt{respects-unfold}  \textit{(proven)}:
+characterized by \texttt{respects-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, f], respects(s, f) iff forall([a\_ in pts(s), b\_ in pts(s)], related(s, a\_, b\_) implies f(a\_) = f(b\_)))
 \end{quote}
@@ -6668,7 +6674,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, a\_, b\_], a in pts(s) implies b in pts(s) implies a\_ in pts(s) implies b\_ in pts(s) implies related(s, a, a\_) and related(s, b, b\_) implies f(a, b) = f(a\_, b\_))
 \end{quote}
-characterized by \texttt{respects2-unfold}  \textit{(proven)}:
+characterized by \texttt{respects2-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, f], respects2(s, f) iff forall([a\_, b\_, c\_, d\_], a\_ in pts(s) implies b\_ in pts(s) implies c\_ in pts(s) implies d\_ in pts(s) implies related(s, a\_, c\_) and related(s, b\_, d\_) implies f(a\_, b\_) = f(c\_, d\_)))
 \end{quote}
@@ -6683,7 +6689,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(rsx\_, a, f(rsx\_))
 \end{quote}
-characterized by \texttt{road-restrict}  \textit{(proven)}:
+characterized by \texttt{road-restrict}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([pgam, dgam, a, b, licv\_ in rr, lidv\_ in rr], is-road(pgam, dgam, a, b) implies a <= licv\_ implies licv\_ < lidv\_ implies lidv\_ <= b implies is-road(restrict(pgam, ccint(licv\_, lidv\_)), restrict(dgam, ccint(licv\_, lidv\_)), licv\_, lidv\_))
 \end{quote}
@@ -6736,7 +6742,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 mpow(commutative-ring-multiplicative-cm(r), x, n)
 \end{quote}
-characterized by \texttt{ring-power-add}  \textit{(proven)}:
+characterized by \texttt{ring-power-add}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r], is-commutative-ring(r) implies forall([x in carr(r), j in nn, k in nn], ring-power(r, x, j + k) = (mul(r))(ring-power(r, x, j), ring-power(r, x, k))))
 \end{quote}
@@ -6837,7 +6843,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 pw-int(vnb-lambda(rlt\_, ccint(rla\_, rlb\_), magnitude(rld\_(rlt\_))), rla\_, rlb\_)
 \end{quote}
-characterized by \texttt{road-length-tri}  \textit{(proven)}:
+characterized by \texttt{road-length-tri}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a in cc, b in cc, c in cc], road-length(tri-road-deriv(a, b, c), 0, 3) = (magnitude(b - a) + magnitude(c - b)) + magnitude(a - c))
 \end{quote}
@@ -6863,7 +6869,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 if(0 < x\_, r-exp(s\_ * log(x\_)), if(0 < s\_, 0, 1))
 \end{quote}
-characterized by \texttt{log-rpow-star}  \textit{(proven)}:
+characterized by \texttt{log-rpow-star}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x\_, s\_ in rr], 0 < x\_ implies log(rpow-star(x\_, s\_)) = s\_ * log(x\_))
 \end{quote}
@@ -6970,7 +6976,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(u\_, rr, f((vadd(m))(a, (act(m))(u\_, eta))))
 \end{quote}
-characterized by \texttt{seg-curve-apply}  \textit{(proven)}:
+characterized by \texttt{seg-curve-apply}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, f, a, eta, t\_ in rr], (seg-curve(m, f, a, eta))(t\_) == f((vadd(m))(a, (act(m))(t\_, eta))))
 \end{quote}
@@ -6985,7 +6991,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(sgs\_, ccint(0, 1), sgq\_ - sgp\_)
 \end{quote}
-characterized by \texttt{seg-deriv-bridge}  \textit{(proven)}:
+characterized by \texttt{seg-deriv-bridge}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([goua\_, goub\_, gouw\_], goub\_ - goua\_ = gouw\_ implies seg-deriv(goua\_, goub\_) == vnb-lambda(psx\_, ccint(0, 1), gouw\_))
 \end{quote}
@@ -6999,7 +7005,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 line-int(sgf\_, seg-path(sgp\_, sgq\_), seg-deriv(sgp\_, sgq\_), 0, 1)
 \end{quote}
-characterized by \texttt{seg-int-sum}  \textit{(proven)}:
+characterized by \texttt{seg-int-sum}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([u, f, g], u subset cc implies f in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), f, rgy\_)) implies g in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), g, rgy\_)) implies forall([gouh\_ in fun(u, cc)], forall([gouz\_ in u], gouh\_(gouz\_) == f(gouz\_) + g(gouz\_)) implies forall([goua\_ in cc, goub\_ in cc], trace(seg-path(goua\_, goub\_), 0, 1) subset u implies seg-int(gouh\_, goua\_, goub\_) = seg-int(f, goua\_, goub\_) + seg-int(g, goua\_, goub\_))))
 \end{quote}
@@ -7014,7 +7020,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(sgs\_, ccint(0, 1), sgp\_ + sgs\_ * (sgq\_ - sgp\_))
 \end{quote}
-characterized by \texttt{seg-path-apply}  \textit{(proven)}:
+characterized by \texttt{seg-path-apply}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([goua\_ in cc, goub\_ in cc, gout\_ in ccint(0, 1)], (seg-path(goua\_, goub\_))(gout\_) = goua\_ + gout\_ * (goub\_ - goua\_))
 \end{quote}
@@ -7030,7 +7036,7 @@ predicate \texttt{is-semigroup}; slots: carr opr
 
 \noindent\textbf{\texttt{sep}}\quad\textit{operator}\index{sep@\texttt{sep}}\\
 a term-forming head \\
-characterized by \texttt{ball-sep-unfold}  \textit{(proven)}:
+characterized by \texttt{ball-sep-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, c, r], ball(s, c, r) == \{y in pts(s): (dist(s))(c, y) <= r and not((dist(s))(c, y) = r)\})
 \end{quote}
@@ -7075,7 +7081,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 if(converges(rr-ms, f), iota(lm\_, converges-to(rr-ms, f, lm\_)), 0)
 \end{quote}
-characterized by \texttt{seq-limit-in-rr}  \textit{(proven)}:
+characterized by \texttt{seq-limit-in-rr}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f], seq-limit(f) in rr)
 \end{quote}
@@ -7114,7 +7120,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(lm\_, series-converges-to(f, lm\_))
 \end{quote}
-characterized by \texttt{series-limit-add}  \textit{(proven)}:
+characterized by \texttt{series-limit-add}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f in fun(nn, rr), g in fun(nn, rr), h in fun(nn, rr)], forall([i\_ in nn], h(i\_) = f(i\_) + g(i\_)) implies series-converges(f) implies series-converges(g) implies series-limit(h) = series-limit(f) + series-limit(g))
 \end{quote}
@@ -7129,7 +7135,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 sum-ag(normed-field-additive-ag(rr-normed-field), f, k)
 \end{quote}
-characterized by \texttt{series-partial-sum-add}  \textit{(proven)}:
+characterized by \texttt{series-partial-sum-add}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([k in nn, f in fun(nn, rr), g in fun(nn, rr), h in fun(nn, rr)], forall([i\_ in nn], h(i\_) = f(i\_) + g(i\_)) implies series-partial-sum(h, k) = series-partial-sum(f, k) + series-partial-sum(g, k))
 \end{quote}
@@ -7149,10 +7155,16 @@ declared in \texttt{tactics-help.scm}
 
 \smallskip
 
+\noindent\textbf{\texttt{show-graph}}\quad\textit{tactic}\index{show-graph@\texttt{show-graph}}\\
+\texttt{(show-graph)} -- Print EVERY node of the current proof, closed ones included: one line per sequent node in creation order (the bracketed number the panel prints, the sequent, [GROUNDED] when justified), and under each node one line per inference into it -- the rule and the numbers of the hypothesis nodes it rests on.  The focus and the open leaves are marked.  This is where a branch a composite closed is found: after (cut L), the side leaf G |- L and the main branch G, L |- goal are both nodes, and zero-it on an existential closes the main one.  Records nothing; the [Graph] button of the Focus Workspace shows it. \\
+declared in \texttt{tactics-help.scm}
+
+\smallskip
+
 \noindent\textbf{\texttt{sigma(s)}}\quad\textit{accessor}\index{sigma(s)@\texttt{sigma(s)}}\\
 reads: the sigma-algebra of \$1 \\
 a structure slot \\
-characterized by \texttt{ds-sigma}  \textit{(proven)}:
+characterized by \texttt{ds-sigma}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_], sigma(discrete-space(a\_)) == power(a\_))
 \end{quote}
@@ -7191,7 +7203,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{y\_\}
 \end{quote}
-characterized by \texttt{singleton-unfold}  \textit{(proven)}:
+characterized by \texttt{singleton-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([y\_], singleton(y\_) == \{y\_\})
 \end{quote}
@@ -7205,7 +7217,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [length(m), if(length(m) = 0, 0, length(nth(1, m)))]
 \end{quote}
-characterized by \texttt{mat-size}  \textit{(proven)}:
+characterized by \texttt{mat-size}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, n, x, q in mat(m, n, x)], 1 <= m implies size(q) = [m, n])
 \end{quote}
@@ -7242,7 +7254,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(succ(n), 1, vnb-lambda([i\_, j\_], cartesian(interval(1, succ(n)), interval(1, 1)), if(i\_ = succ(n), x, entry(w, i\_, 1))))
 \end{quote}
-characterized by \texttt{snoc-col-last}  \textit{(proven)}:
+characterized by \texttt{snoc-col-last}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([w, n, v, x], n in nn implies w in mat(n, 1, x) implies v in x implies entry(snoc-col(w, n, v), succ(n), 1) = v)
 \end{quote}
@@ -7256,7 +7268,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(1, succ(n), vnb-lambda([i\_, j\_], cartesian(interval(1, 1), interval(1, succ(n))), if(j\_ = succ(n), r, entry(c, 1, j\_))))
 \end{quote}
-characterized by \texttt{snoc-row-last}  \textit{(proven)}:
+characterized by \texttt{snoc-row-last}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([c, n, r, x], n in nn implies c in mat(1, n, x) implies r in x implies entry(snoc-row(c, n, r), 1, succ(n)) = r)
 \end{quote}
@@ -7296,7 +7308,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{y\_ in vec(m): forsome([x\_ in s, r\_ in rr], y\_ = (vadd(m))(x\_, (act(m))(r\_, v)))\}
 \end{quote}
-characterized by \texttt{span-add-one-unfold}  \textit{(proven)}:
+characterized by \texttt{span-add-one-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, s, v], span-add-one(m, s, v) == \{y\_ in vec(m): forsome([x\_ in s, r\_ in rr], y\_ = (vadd(m))(x\_, (act(m))(r\_, v)))\})
 \end{quote}
@@ -7344,7 +7356,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(x\_, x\_ in rr and 0 <= x\_ and x\_ * x\_ = a\_)
 \end{quote}
-characterized by \texttt{sqrt-sq}  \textit{(proven)}:
+characterized by \texttt{sqrt-sq}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], a in rr and 0 <= a implies sqrt(a) * sqrt(a) = a)
 \end{quote}
@@ -7369,7 +7381,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(p, q, vnb-lambda([i, j], cartesian(interval(1, p), interval(1, q)), entry(s, succ(i), succ(j))))
 \end{quote}
-characterized by \texttt{submat-type}  \textit{(proven)}:
+characterized by \texttt{submat-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, p, q, s], p in nn implies q in nn implies s in mat(succ(p), succ(q), carr(a)) implies submat(s, p, q) in mat(p, q, carr(a)))
 \end{quote}
@@ -7476,7 +7488,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 finsum(ring-additive-ag(r), f, s)
 \end{quote}
-characterized by \texttt{sum-set-empty}  \textit{(proven)}:
+characterized by \texttt{sum-set-empty}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, f], sum-set(r, empty-set, f) == zero(r))
 \end{quote}
@@ -7536,7 +7548,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{x\_ in carr(m): not(f(x\_) = zero(a))\}
 \end{quote}
-characterized by \texttt{supp-in-set}  \textit{(proven)}:
+characterized by \texttt{supp-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_, m\_, f\_], carr(m\_) in set implies supp(a\_, m\_, f\_) in set)
 \end{quote}
@@ -7567,7 +7579,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(tu\_, ccint(a, b), taylor-sum(d, n, b, tu\_))
 \end{quote}
-characterized by \texttt{taylor-aux-step}  \textit{(proven)}:
+characterized by \texttt{taylor-aux-step}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([itd\_, itn\_, a, b], is-taylor-family(itd\_, itn\_, a, b) implies forall([itj\_ in nn], succ(itj\_) <= itn\_ implies forall([itz\_ in ccint(a, b)], (taylor-aux(itd\_, succ(itj\_), a, b))(itz\_) = (taylor-aux(itd\_, itj\_, a, b))(itz\_) + ((itd\_(itj\_))(itz\_) * (b - itz\_) \textasciicircum{} itj\_) * recip(factorial(itj\_)))))
 \end{quote}
@@ -7603,7 +7615,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 series-partial-sum(vnb-lambda(k, nn, ((nth-deriv(f, k))(a) * (x - a) \textasciicircum{} k) * recip(factorial(k))), succ(n))
 \end{quote}
-characterized by \texttt{taylor-poly-in-rr}  \textit{(proven)}:
+characterized by \texttt{taylor-poly-in-rr}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f in fun(rr, rr), a in rr, n in nn, x in rr], forall([k], k in nn and k <= n implies nth-deriv(f, k) in fun(rr, rr)) implies taylor-poly(f, a, n, x) in rr)
 \end{quote}
@@ -7629,7 +7641,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 (d(0))(b) - taylor-sum(d, n, b, a)
 \end{quote}
-characterized by \texttt{taylor-remainder-factor}  \textit{(proven)}:
+characterized by \texttt{taylor-remainder-factor}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a in rr, b in rr, tcf\_, tcm\_ in nn], a < b implies forall([tck\_ in nn], tck\_ <= succ(tcm\_) implies tcf\_(tck\_) in fun(ccint(a, b), rr)) implies forall([tck\_ in nn], tck\_ < succ(tcm\_) implies is-continuous-on(tcf\_(tck\_), ccint(a, b))) implies forall([tck\_ in nn], tck\_ < succ(tcm\_) implies forall([tcx\_ in ooint(a, b)], has-deriv-at(tcf\_(tck\_), tcx\_, (tcf\_(succ(tck\_)))(tcx\_)))) implies is-continuous-on(tcf\_(succ(tcm\_)), ccint(a, b)) implies forsome([tcs\_ in fun(ccint(a, b), rr)], is-continuous-on(tcs\_, ccint(a, b)) and tcs\_(a) = (tcf\_(succ(tcm\_)))(a) and forall([tct\_ in ccint(a, b)], taylor-rem(tcf\_, succ(tcm\_), a, tct\_) = (tcs\_(tct\_) * (tct\_ - a) \textasciicircum{} succ(tcm\_)) * recip(factorial(succ(tcm\_)))) and forall([tct\_ in ccint(a, b)], abs(tcs\_(tct\_)) <= sup(image(vnb-lambda(tcv\_, ccint(a, b), abs((tcf\_(succ(tcm\_)))(tcv\_))), ccint(a, b))))))
 \end{quote}
@@ -7644,7 +7656,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 series-partial-sum(taylor-term(d, b, tv\_), n)
 \end{quote}
-characterized by \texttt{taylor-sum-one}  \textit{(proven)}:
+characterized by \texttt{taylor-sum-one}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([itd\_, b in rr, itv\_ in rr], (itd\_(0))(itv\_) in rr implies taylor-sum(itd\_, succ(0), b, itv\_) = (itd\_(0))(itv\_))
 \end{quote}
@@ -7659,7 +7671,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(tk\_, nn, ((d(tk\_))(tv\_) * (b - tv\_) \textasciicircum{} tk\_) * recip(factorial(tk\_)))
 \end{quote}
-characterized by \texttt{taylor-term-value}  \textit{(proven)}:
+characterized by \texttt{taylor-term-value}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([itd\_, b, itv\_, itk\_ in nn], (taylor-term(itd\_, b, itv\_))(itk\_) == ((itd\_(itk\_))(itv\_) * (b - itv\_) \textasciicircum{} itk\_) * recip(factorial(itk\_)))
 \end{quote}
@@ -7702,7 +7714,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 image(pgam, ccint(a, b))
 \end{quote}
-characterized by \texttt{juxta-trace}  \textit{(proven)}:
+characterized by \texttt{juxta-trace}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([p, q, a in rr, b in rr, c in rr], a <= b implies b <= c implies p in fun(ccint(a, b), cc) implies q in fun(ccint(b, c), cc) implies p(b) = q(b) implies trace(juxta(p, q, a, b, c), a, c) = union(trace(p, a, b), trace(q, b, c)))
 \end{quote}
@@ -7717,7 +7729,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(n, m, vnb-lambda([tri\_, trj\_], cartesian(interval(1, n), interval(1, m)), entry(a, trj\_, tri\_)))
 \end{quote}
-characterized by \texttt{det-transpose}  \textit{(proven)}:
+characterized by \texttt{det-transpose}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, n, a], is-commutative-ring(r) implies n in nn implies a in mat(n, n, carr(r)) implies det(r, n, transpose(a, n, n)) = det(r, n, a))
 \end{quote}
@@ -7732,7 +7744,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 (seg-int(sgf\_, sga\_, sgb\_) + seg-int(sgf\_, sgb\_, sgc\_)) + seg-int(sgf\_, sgc\_, sga\_)
 \end{quote}
-characterized by \texttt{tri-int-fan}  \textit{(proven)}:
+characterized by \texttt{tri-int-fan}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([u, f], u subset cc implies f in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), f, rgy\_)) implies forall([goxa\_ in cc, goxb\_ in cc, goxc\_ in cc], conv3(goxa\_, goxb\_, goxc\_) subset u implies forall([goxx\_ in conv3(goxa\_, goxb\_, goxc\_)], tri-int(f, goxa\_, goxb\_, goxc\_) = (tri-int(f, goxa\_, goxb\_, goxx\_) + tri-int(f, goxb\_, goxc\_, goxx\_)) + tri-int(f, goxc\_, goxa\_, goxx\_))))
 \end{quote}
@@ -7747,7 +7759,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 juxta(juxta(seg-path(tra\_, trb\_), vnb-lambda(trs\_, ccint(1, 2), (seg-path(trb\_, trc\_))(trs\_ - 1)), 0, 1, 2), vnb-lambda(trs\_, ccint(2, 3), (seg-path(trc\_, tra\_))(trs\_ - 2)), 0, 2, 3)
 \end{quote}
-characterized by \texttt{tri-road-trace}  \textit{(proven)}:
+characterized by \texttt{tri-road-trace}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a in cc, b in cc, c in cc], trace(tri-road(a, b, c), 0, 3) = union(union(trace(seg-path(a, b), 0, 1), trace(seg-path(b, c), 0, 1)), trace(seg-path(c, a), 0, 1)))
 \end{quote}
@@ -7762,7 +7774,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 juxta(juxta(seg-deriv(tra\_, trb\_), vnb-lambda(trs\_, ccint(1, 2), (seg-deriv(trb\_, trc\_))(trs\_ - 1)), 0, 1, 2), vnb-lambda(trs\_, ccint(2, 3), (seg-deriv(trc\_, tra\_))(trs\_ - 2)), 0, 2, 3)
 \end{quote}
-characterized by \texttt{tri-road-deriv-unfold}  \textit{(proven)}:
+characterized by \texttt{tri-road-deriv-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([tra\_, trb\_, trc\_], tri-road-deriv(tra\_, trb\_, trc\_) == juxta(juxta(seg-deriv(tra\_, trb\_), vnb-lambda(trs\_, ccint(1, 2), (seg-deriv(trb\_, trc\_))(trs\_ - 1)), 0, 1, 2), vnb-lambda(trs\_, ccint(2, 3), (seg-deriv(trc\_, tra\_))(trs\_ - 2)), 0, 2, 3))
 \end{quote}
@@ -7788,7 +7800,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), min(1, (dist(s))(u, v)))]
 \end{quote}
-characterized by \texttt{trunc-metric-dist}  \textit{(proven)}:
+characterized by \texttt{trunc-metric-dist}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, u\_, v\_], u\_ in pts(s) implies v\_ in pts(s) implies (dist(trunc-metric(s)))(u\_, v\_) == min(1, (dist(s))(u\_, v\_)))
 \end{quote}
@@ -7852,7 +7864,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(1, n, vnb-lambda([rw, cl], cartesian(interval(1, 1), interval(1, n)), if(cl = i, one(a), zero(a))))
 \end{quote}
-characterized by \texttt{unitrow-type}  \textit{(proven)}:
+characterized by \texttt{unitrow-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], is-ring(a) implies forall([n, i], n in nn implies unitrow(a, n, i) in mat(1, n, carr(a))))
 \end{quote}
@@ -8001,7 +8013,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 matof(m, n, vnb-lambda([i, j], cartesian(interval(1, m), interval(1, n)), zero(a)))
 \end{quote}
-characterized by \texttt{zeromat-type}  \textit{(proven)}:
+characterized by \texttt{zeromat-type}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], is-ring(a) implies forall([m, n], m in nn implies n in nn implies zeromat(a, m, n) in mat(m, n, carr(a))))
 \end{quote}
