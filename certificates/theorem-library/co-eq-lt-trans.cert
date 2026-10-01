@@ -1,4 +1,4 @@
 ;;; VNB proof certificates for theorem-library/co-eq-lt-trans.scm -- written by a load that proved them; do not edit.
-(vnb-certificate-file "theorem-library/co-eq-lt-trans" (kernel "7e3b5cca0bccc955485de8e2a40f07b7") (count 2))
-(co-eq-lt-trans "2ffcca2b17de582b792bcbbb1cac4ffa" (forall a (forall b (forall c (implies (= a b) (implies (< b c) (< a c)))))) (cites) (defs (< . "Tf2a6ab47ce2a5a62d897bbc20a9f2097")) (uses) (own-oracles) (bill) (oracles) (kernel "7e3b5cca0bccc955485de8e2a40f07b7"))
-(co-lt-eq-trans "6c16a2108c6edbb8f728631e4a460b85" (forall a (forall b (forall c (implies (< a b) (implies (= b c) (< a c)))))) (cites) (defs (< . "Tf2a6ab47ce2a5a62d897bbc20a9f2097")) (uses) (own-oracles) (bill) (oracles) (kernel "7e3b5cca0bccc955485de8e2a40f07b7"))
+(vnb-certificate-file "theorem-library/co-eq-lt-trans" (kernel "b854a0fbe4f669cfaff99df7470e5db2") (count 2))
+(co-eq-lt-trans "2ffcca2b17de582b792bcbbb1cac4ffa" (forall a (forall b (forall c (implies (= a b) (implies (< b c) (< a c)))))) (cites) (defs (< . "Tf2a6ab47ce2a5a62d897bbc20a9f2097")) (uses) (own-oracles) (bill) (oracles) (kernel "b854a0fbe4f669cfaff99df7470e5db2"))
+(co-lt-eq-trans "6c16a2108c6edbb8f728631e4a460b85" (forall a (forall b (forall c (implies (< a b) (implies (= b c) (< a c)))))) (cites) (defs (< . "Tf2a6ab47ce2a5a62d897bbc20a9f2097")) (uses) (own-oracles) (bill) (oracles) (kernel "b854a0fbe4f669cfaff99df7470e5db2"))

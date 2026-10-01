@@ -1,3 +1,3 @@
 ;;; VNB proof certificates for theorem-library/interval-mem-intro.scm -- written by a load that proved them; do not edit.
-(vnb-certificate-file "theorem-library/interval-mem-intro" (kernel "7e3b5cca0bccc955485de8e2a40f07b7") (count 1))
-(interval-mem-intro "2df93699fe81020a85e6ee64b93a99b1" (forall a (forall b (forall i (implies (in i nn) (implies (<= a i) (implies (<= i b) (in i (interval a b)))))))) (cites (interval . "F42ec382fd4961b2d848e02cd05b7eee9")) (defs (interval . "F42ec382fd4961b2d848e02cd05b7eee9")) (uses (interval . "F42ec382fd4961b2d848e02cd05b7eee9")) (own-oracles) (bill) (oracles) (kernel "7e3b5cca0bccc955485de8e2a40f07b7"))
+(vnb-certificate-file "theorem-library/interval-mem-intro" (kernel "b854a0fbe4f669cfaff99df7470e5db2") (count 1))
+(interval-mem-intro "2df93699fe81020a85e6ee64b93a99b1" (forall a (forall b (forall i (implies (in i nn) (implies (<= a i) (implies (<= i b) (in i (interval a b)))))))) (cites (interval . "F42ec382fd4961b2d848e02cd05b7eee9")) (defs (interval . "F42ec382fd4961b2d848e02cd05b7eee9")) (uses (interval . "F42ec382fd4961b2d848e02cd05b7eee9")) (own-oracles) (bill) (oracles) (kernel "b854a0fbe4f669cfaff99df7470e5db2"))
