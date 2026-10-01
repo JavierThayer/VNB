@@ -157,6 +157,8 @@
    is-continuous-at(s, cc-ms, vnb-lambda(msz_, pts(s), phi(g(msz_))), x))"))
 (dk-peel!)
 (lfn-cc-setup!)
+;; u is a component of SUBSPACE-MS(_, u), a LIST: it must be a SET (2026-10-01, notes-54)
+(dk-have! '(IN u SET) (lambda () (fact 'cc-is-set) (fact 'subclass-of-set-is-set 'u 'CC) (ass)))
 (lfn-self-agree! 's)
 (lfn-to-nf! 's 'g 'x)
 (dk-have! (list 'SUBSET 'u (list 'PTS lfn-nfc))

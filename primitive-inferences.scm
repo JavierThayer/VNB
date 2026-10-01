@@ -675,7 +675,10 @@
 ;;; set or not -- library.scm): so a tree built from them over defined args is
 ;;; defined.  Conservative whitelist; extend only with genuinely-total ops.
 (define *total-term-heads*
-  '(UNION INTERSECTION COMPLEMENT-IN CARTESIAN LIST PAIR
+  '(UNION INTERSECTION COMPLEMENT-IN CARTESIAN
+    ;; LIST, PAIR and SINGLETON LEFT this list on 2026-10-01 (the user, notes-54): a
+    ;; list is an object only when its components are SETS -- [0, SET] is as
+    ;; undefined as {SET} -- so they are certified by `pi--sets-defined?' below.
     ;; 2026-09-18 (the user's policy, docs/definedness-instantiation-2026-09-18.md
     ;; section 4a): a CLASS TERM denotes whenever its arguments do.  These are
     ;; the primitive comprehension constructors; the binder forms SEP / COMP /
@@ -683,7 +686,7 @@
     ;; by `term-self-defined?' below.  NOT here, and never: CHOICE, IOTA,
     ;; function application, and the IOTA-bodied constructors (MATOF and its
     ;; family) -- CHOICE([]) may or may not denote, and nothing may assume it.
-    POWER IMAGE SINGLETON TUPLES FUN succ succ_ORD
+    POWER IMAGE TUPLES FUN succ succ_ORD
     ORD-SEGMENT INJECTION BIJECTION MATRIX MAKE-SET PARTIAL-FUN DOM RES SQN))
 
 ;;; The registered body / parameters of a def-functoid (structures.scm's
@@ -1052,6 +1055,21 @@
                       (and cs (pi--raw-conjuncts-certify? cs t 0))))
                (loop (cdr as)))))))
 
+(define *pi-set-component-heads* '(LIST PAIR SINGLETON))
+
+;;; A LIST / PAIR / SINGLETON denotes exactly when every component is a SET
+;;; (the user's doctrine, notes-54, 2026-10-01: "[e1, ..., en] is defined iff all
+;;; e1, ..., en are sets"; {SET} is well-formed and denotes nothing).  A
+;;; component is a set when it is certified defined AND the negative value
+;;; certificate of the beta licence cannot see it denoting a proper class
+;;; (`pi--value-may-be-class?': a bare untyped variable, SET, ORD, POWER of a
+;;; possibly-proper class, ... MAY be proper and so does not certify).
+(define (pi--sets-defined? asms t depth)
+  (every (lambda (a)
+           (and (pi--defined? asms a depth)
+                (not (pi--value-may-be-class? asms a))))
+         (cdr t)))
+
 (define (pi--defined? asms t depth)
   (cond
     ((> depth 8) #f)
@@ -1062,6 +1080,9 @@
     ;; a structure hypothesis ON the term (IS-METRIC-SPACE (ms n)) certifies it:
     ;; the predicate's IFF types the tuple's every slot, so the tuple denotes
     ((pi--structure-hyp asms t) #t)
+    ;; a list, pair or singleton: every component a SET (notes-54, 2026-10-01)
+    ((and (symbol? (car t)) (memq (car t) *pi-set-component-heads*))
+     (pi--sets-defined? asms t depth))
     ((and (symbol? (car t)) (memq (car t) *total-term-heads*))
      (every (lambda (a) (pi--defined? asms a depth)) (cdr t)))
     ((and (memq (car t) '(SEP BIG-UNION VNB-LAMBDA)) (= (length t) 4))

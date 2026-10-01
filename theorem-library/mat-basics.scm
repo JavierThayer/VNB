@@ -335,6 +335,14 @@
          (subst '(== (SIZE Q) (LIST (LENGTH Q) (LENGTH (NTH 1 Q)))))
          (subst '(= (LENGTH Q) m))
          (subst '(= (LENGTH (NTH 1 Q)) n))
+         ;; [m, n] = [m, n] closes only once m and n are SETS (2026-10-01, notes-54):
+         ;; n in NN is a hypothesis; m = LENGTH(Q) with Q a tuple of tuples.
+         (dk-have! '(IN m NN)
+           (lambda ()
+             (dk-project! '(IN Q (TUPLES (TUPLES X))) 'matrix-membership '(IN Q (MATRIX X)))
+             (fact 'length-in-nn '(TUPLES X) 'Q)
+             (subst '(= m (LENGTH Q)))
+             (ass)))
          (rfl))
        (begin                                    ; no rows: m = 0
          (subst '(= m (LENGTH Q)))

@@ -3250,6 +3250,20 @@
 (check-true "rfl guard: context (IN (f a) S) lets (= (f a)(f a)) close"
   (lambda () (sp (make-wff '(IMPLIES (IN (f a) S) (= (f a) (f a)))))
              (di) (rfl) (proof-done? *ps*)))
+;; A LIST denotes exactly when its components are SETS (the user, notes-54, 2026-10-01):
+;; [0, SET] is as undefined as {SET}.  Until that day LIST and PAIR were total heads and
+;; `rfl' closed [0, SET] = [0, SET].
+(check-true "rfl guard: [0, 1] = [0, 1] closes (numerals are sets)"
+  (lambda () (sp (make-wff '(= (LIST 0 1) (LIST 0 1)))) (rfl) (proof-done? *ps*)))
+(check-true "rfl guard: [0, SET] = [0, SET] is REFUSED (a proper class is no component)"
+  (lambda () (sp (make-wff '(= (LIST 0 SET) (LIST 0 SET)))) (rfl) (not (proof-done? *ps*))))
+(check-true "rfl guard: [x, y] = [x, y] with x, y UNTYPED is REFUSED (a variable may be a proper class)"
+  (lambda () (sp (make-wff '(= (LIST x y) (LIST x y)))) (rfl) (not (proof-done? *ps*))))
+(check-true "rfl guard: [x, y] = [x, y] closes once x in NN and y in RR are in context"
+  (lambda () (sp (make-wff '(IMPLIES (IN x NN) (IMPLIES (IN y RR) (= (LIST x y) (LIST x y))))))
+             (di) (di) (rfl) (proof-done? *ps*)))
+(check-true "rfl guard: {SET} = {SET} is REFUSED (PAIR of a proper class)"
+  (lambda () (sp (make-wff '(= (PAIR SET SET) (PAIR SET SET)))) (rfl) (not (proof-done? *ps*))))
 ;; ':=' is DEFINITION sugar: lexes to quasi-equality == (a definition's logical
 ;; content), while a lone ':' is still the set-builder separator.
 (check-true "':=' lexes to == (definition sugar)"

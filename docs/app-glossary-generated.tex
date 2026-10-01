@@ -7,7 +7,7 @@
 Every other listing in this manual and in the browser reference is grouped by
 something: operators by class, structures by structure, tactics by task.  This
 one has the ordering nobody has to learn.  It carries the whole
-\emph{vocabulary} -- 730 names: 20 structure, 7 refinement, 11 instance, 19 view, 226 predicate, 233 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 95 tactic -- and no results: the theorems, axioms and
+\emph{vocabulary} -- 732 names: 20 structure, 7 refinement, 11 instance, 19 view, 227 predicate, 234 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 95 tactic -- and no results: the theorems, axioms and
 supports are catalogued in \texttt{THEOREMS.md}, \texttt{BY-OPERATOR.md} and
 \texttt{PROOF-DEBT.md}, and each entry here says how many of them mention it.
 
@@ -64,7 +64,7 @@ mentioned by 633 result(s)
 \noindent\textbf{\texttt{<=}}\quad\textit{primitive}\index{<=@\texttt{<=}}\\
 reads: \$1 is at most \$2 \\
 a kernel relation \\
-mentioned by 945 result(s)
+mentioned by 946 result(s)
 
 \smallskip
 
@@ -277,7 +277,7 @@ characterized by \texttt{big-union-mono}  \textit{(certified)}:
 forall([a\_, b\_], a\_ subset b\_ implies big-union(u\_, a\_, u\_) subset big-union(u\_, b\_, u\_))
 \end{quote}
 also: \texttt{power-big-union-closed} \texttt{complement-in-big-union} \\
-mentioned by 36 result(s)
+mentioned by 38 result(s)
 
 \smallskip
 
@@ -466,7 +466,7 @@ characterized by \texttt{card-bij}  \textit{(certified)}:
 forall([n\_ in nn, a\_, ph, et], ph in bijection(a\_, ord-segment(n\_)) and et in bijection(ord-segment(n\_), a\_) implies card(a\_) = n\_)
 \end{quote}
 also: \texttt{card-pair} \texttt{card-empty} \texttt{card-in-ord} \texttt{card-insert} \texttt{card-segment} \texttt{card-zermelo} \texttt{card-empty-le} \texttt{card-power-nn} ... (35 in all) \\
-mentioned by 238 result(s)
+mentioned by 240 result(s)
 
 \smallskip
 
@@ -478,7 +478,7 @@ characterized by \texttt{rq-carr}  \textit{(definitional)}:
 forall([r], carr(ringoid-quotient-ring(r)) == quotient(ringoid-setoid(r)))
 \end{quote}
 also: \texttt{qq-ring@carr} \texttt{zz-ring@carr} \texttt{qq-field@carr} \texttt{cips-scal-carrier} \texttt{nf-metric-carrier} \texttt{nn-add-monoid@carr} \texttt{ringoid-carr-in-set} \texttt{cc-normed-field@carr} ... (55 in all) \\
-mentioned by 1270 result(s)
+mentioned by 1274 result(s)
 
 \smallskip
 
@@ -1010,7 +1010,7 @@ characterized by \texttt{pre-compose}  \textit{(certified)}:
 forall([a, b, c, u, s, s2, f, h, k], a in set implies b in set implies k in fun(a, b) implies h in fun(b, c) implies f in fun(c, u) implies f in s implies compose(f, h) in s2 implies (vnb-lambda(hmpf\_, s, compose(hmpf\_, compose(h, k))))(f) = (vnb-lambda(hmpf\_, s2, compose(hmpf\_, k)))((vnb-lambda(hmpf\_, s, compose(hmpf\_, h)))(f)))
 \end{quote}
 also: \texttt{compose-type} \texttt{post-compose} \texttt{compose-apply} \texttt{compose-assoc} \texttt{compose-id-left} \texttt{hom-pid-compose} \texttt{compose-id-right} \texttt{hom-ring-compose} ... (40 in all) \\
-mentioned by 134 result(s)
+mentioned by 136 result(s)
 
 \smallskip
 
@@ -1093,7 +1093,7 @@ characterized by \texttt{converges-to}  \textit{(definitional)}:
 forall([s, f, l], converges-to(s, f, l) iff is-metric-space(s) and f in fun(nn, pts(s)) and l in pts(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([n\_ in nn], n <= n\_ implies (dist(s))(f(n\_), l) <= eps))))
 \end{quote}
 also: \texttt{ps-converges-to-at} \texttt{series-converges-to} \texttt{cc-series-converges-to} \texttt{rr-converges-to-abs} \texttt{converges-to-transfer} \texttt{rr-const-converges-to} \texttt{subspace-converges-to} \texttt{seq-limit-converges-to} ... (9 in all) \\
-mentioned by 114 result(s)
+mentioned by 116 result(s)
 
 \smallskip
 
@@ -2045,8 +2045,8 @@ characterized by \texttt{is-linear-functional}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x\_ in vec(m), y\_ in vec(m)], f((vadd(m))(x\_, y\_)) = f(x\_) + f(y\_)) and forall([r\_ in rr, x\_ in vec(m)], f((act(m))(r\_, x\_)) = r\_ * f(x\_)))
 \end{quote}
-also: \texttt{is-linear-functional-on} \texttt{dom-of-fun} \texttt{is-fun-def} \texttt{fun-no-junk} \texttt{fun-set-iff} \texttt{fun-apply-type} \texttt{fun-codomain-iff} \texttt{dom-fun-membership} ... (138 in all) \\
-mentioned by 1495 result(s)
+also: \texttt{is-linear-functional-on} \texttt{dom-of-fun} \texttt{is-fun-def} \texttt{fun-no-junk} \texttt{fun-set-iff} \texttt{fun-apply-type} \texttt{fun-codomain-iff} \texttt{dom-fun-membership} ... (139 in all) \\
+mentioned by 1498 result(s)
 
 \smallskip
 
@@ -2806,10 +2806,10 @@ mentioned by 128 result(s)
 a term-forming head \\
 characterized by \texttt{image-membership-iff}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([phi, s, w], w in image(phi, s) iff forsome([x in s], phi(x) = w))
+forall([phi, s, w], w in image(phi, s) iff w in set and forsome([x in s], phi(x) = w))
 \end{quote}
-also: \texttt{image-set} \texttt{compact-image} \texttt{card-seg-image} \texttt{image-restrict} \texttt{countable-image} \texttt{seg-image-insert} \texttt{seg-image-subset} \texttt{card-image-finite} ... (22 in all) \\
-mentioned by 63 result(s)
+also: \texttt{image-set} \texttt{compact-image} \texttt{fun-image-set} \texttt{card-seg-image} \texttt{image-restrict} \texttt{countable-image} \texttt{seg-image-insert} \texttt{seg-image-subset} ... (26 in all) \\
+mentioned by 67 result(s)
 
 \smallskip
 
@@ -2821,7 +2821,7 @@ characterized by \texttt{is-ring}  \textit{(definitional)}:
 forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 \end{quote}
 also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1317 in all) \\
-mentioned by 5077 result(s)
+mentioned by 5087 result(s)
 
 \smallskip
 
@@ -2941,7 +2941,7 @@ characterized by \texttt{intersection-decompose}  \textit{(primitive)}:
 forall([x, as], x in intersection(restvar(as)) iff splice(and, e, as, x in e))
 \end{quote}
 also: \texttt{intersection-membership} \texttt{intersection-set-closure} \texttt{submodule-intersection} \texttt{intersection-empty-transfer} \texttt{intersection-complement-in-empty} \\
-mentioned by 47 result(s)
+mentioned by 49 result(s)
 
 \smallskip
 
@@ -3297,7 +3297,18 @@ characterized by \texttt{is-compact}  \textit{(definitional)}:
 forall([s], is-compact(s) iff is-metric-space(s) and forall([c], is-open-cover(s, c) implies forsome([f], f subset c and card(f) in nn and is-open-cover(s, f))))
 \end{quote}
 also: \texttt{closed-subset-of-compact-is-compact} \\
-mentioned by 29 result(s)
+mentioned by 32 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-compact-t(s)}}\quad\textit{predicate}\index{is-compact-t(s)@\texttt{is-compact-t(s)}}\\
+reads: the topological space \$1 is compact \\
+defined by \texttt{is-compact-t} \\
+characterized by \texttt{is-compact-t}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([s], is-compact-t(s) iff is-top-space(s) and forall([c], forall([u in c], u in opens(s)) implies big-union(u, c, u) == pts(s) implies forsome([f], f subset c and card(f) in nn and big-union(u, f, u) == pts(s))))
+\end{quote}
+mentioned by 8 result(s)
 
 \smallskip
 
@@ -3343,7 +3354,7 @@ characterized by \texttt{is-continuous}  \textit{(definitional)}:
 forall([s, t, f], is-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and forall([a in pts(s)], is-continuous-at(s, t, f, a)))
 \end{quote}
 also: \texttt{is-continuous-arrow-def} \texttt{metric-hom-is-continuous} \texttt{continuous-is-continuous-at} \texttt{uniformly-continuous-is-continuous} \\
-mentioned by 25 result(s)
+mentioned by 28 result(s)
 
 \smallskip
 
@@ -3937,7 +3948,7 @@ characterized by \texttt{is-hom-top-space-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, t, f], is-hom-top-space(s, t, f) iff is-top-space(s) and is-top-space(t) and f in fun(pts(s), pts(t)) and forall([u in opens(t)], preimage(s, f, u) in opens(s)))
 \end{quote}
-mentioned by 6 result(s)
+mentioned by 12 result(s)
 
 \smallskip
 
@@ -4230,7 +4241,7 @@ characterized by \texttt{is-metric-space}  \textit{(definitional)}:
 forall([s], is-metric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) in fun(cartesian(pts(s), pts(s)), rr) and is-metric(dist(s), pts(s)))
 \end{quote}
 also: \texttt{cc-is-metric-space} \texttt{rr-is-metric-space} \texttt{nf-cc-is-metric-space} \texttt{nf-rr-is-metric-space} \texttt{sub-rr-is-metric-space} \texttt{product-is-metric-space} \texttt{subspace-is-metric-space} \texttt{bdd-rr-ms-is-metric-space} ... (15 in all) \\
-mentioned by 270 result(s)
+mentioned by 284 result(s)
 
 \smallskip
 
@@ -4242,7 +4253,7 @@ characterized by \texttt{is-metrizable-top-space-def}  \textit{(definitional)}:
 forall([s], is-metrizable-top-space(s) iff is-top-space(s) and forsome([md], is-metric-space(md) and s == [pts(md), \{u in power(pts(md)): is-open(md, u)\}]))
 \end{quote}
 also: \texttt{metric-top-is-metrizable-top-space} \\
-mentioned by 17 result(s)
+mentioned by 19 result(s)
 
 \smallskip
 
@@ -4381,7 +4392,7 @@ characterized by \texttt{is-open}  \textit{(definitional)}:
 forall([s, u], is-open(s, u) iff is-metric-space(s) and u subset pts(s) and forall([y in u], forsome([r], pos-rr(r) and ball(s, y, r) subset u)))
 \end{quote}
 also: \texttt{is-open-cover} \texttt{ball-is-open} \texttt{empty-is-open} \texttt{carrier-is-open} \texttt{interior-is-open} \\
-mentioned by 83 result(s)
+mentioned by 85 result(s)
 
 \smallskip
 
@@ -4844,8 +4855,8 @@ characterized by \texttt{is-top-space}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-top-space(s) iff length(s) = 2 and pts(s) in set and opens(s) in power(power(pts(s))) and empty-set in opens(s) and pts(s) in opens(s) and forall([u in opens(s), v in opens(s)], intersection(u, v) in opens(s)) and forall([fam], fam subset opens(s) implies big-union(u, fam, u) in opens(s)))
 \end{quote}
-also: \texttt{metric-top-is-top-space} \texttt{discrete-space-is-top-space} \\
-mentioned by 24 result(s)
+also: \texttt{metric-top-is-top-space} \texttt{subspace-top-is-top-space} \texttt{discrete-space-is-top-space} \\
+mentioned by 27 result(s)
 
 \smallskip
 
@@ -5024,7 +5035,7 @@ characterized by \texttt{length-cons}  \textit{(definitional)}:
 forall([x, l], length(cons(x, l)) = succ(length(l)))
 \end{quote}
 also: \texttt{length-in-nn} \texttt{length-of-empty} \texttt{tuple-length-zero} \texttt{mat-length} \texttt{rko2-cauchy-setoid-length} \\
-mentioned by 80 result(s)
+mentioned by 81 result(s)
 
 \smallskip
 
@@ -5374,12 +5385,12 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [pts(md), \{u in power(pts(md)): is-open(md, u)\}]
 \end{quote}
-characterized by \texttt{metric-top@preimage}  \textit{(proven)}:
+characterized by \texttt{metric-top-hom}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([s, f, v], preimage(metric-top(s), f, v) == preimage(s, f, v))
+forall([s, t, f], is-metric-space(s) implies is-metric-space(t) implies is-hom-top-space(metric-top(s), metric-top(t), f) iff is-continuous(s, t, f))
 \end{quote}
-also: \texttt{metric-top-functorial} \texttt{metric-top-is-top-space} \texttt{metrizable-has-metric-top} \texttt{bdd-metric-preserves-metric-top} \texttt{metric-top-is-metrizable-top-space} \\
-mentioned by 12 result(s)
+also: \texttt{metric-top-compact} \texttt{metric-top@preimage} \texttt{metric-top-opens-iff} \texttt{metric-top-functorial} \texttt{metric-top-is-top-space} \texttt{metrizable-has-metric-top} \texttt{subspace-top-of-metric-top} \texttt{bdd-metric-preserves-metric-top} ... (9 in all) \\
+mentioned by 25 result(s)
 
 \smallskip
 
@@ -5533,7 +5544,7 @@ vnb-lambda(x\_, nn, if(x\_ = n, c, zero(a)))
 \end{quote}
 characterized by \texttt{monomial-at}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([a\_, c\_, n\_ in nn], (monomial(a\_, c\_, n\_))(n\_) = c\_)
+forall([a\_, c\_, n\_], c\_ in carr(a\_) implies n\_ in nn implies (monomial(a\_, c\_, n\_))(n\_) = c\_)
 \end{quote}
 also: \texttt{monomial-deg} \texttt{monomial-off} \texttt{monomial-in-poly} \texttt{monomial-support} \texttt{monomial-leadcoef} \\
 mentioned by 11 result(s)
@@ -5837,7 +5848,7 @@ characterized by \texttt{nth-cons-1}  \textit{(definitional)}:
 forall([x, l], nth(1, cons(x, l)) = x)
 \end{quote}
 also: \texttt{nth-cons-succ} \texttt{nth-in-range} \texttt{ms-nth-2} \texttt{nth1-pair} \texttt{nth2-pair} \texttt{cartesian-nth} \\
-mentioned by 80 result(s)
+mentioned by 81 result(s)
 
 \smallskip
 
@@ -5985,7 +5996,8 @@ characterized by \texttt{ds-opens}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a\_], opens(discrete-space(a\_)) == power(a\_))
 \end{quote}
-mentioned by 10 result(s)
+also: \texttt{subspace-top-opens} \texttt{metric-top-opens-iff} \\
+mentioned by 16 result(s)
 
 \smallskip
 
@@ -6140,7 +6152,7 @@ characterized by \texttt{power-neg}  \textit{(primitive)}:
 forall([x, n], x in cc and n in nn and not(x = 0) implies x \textasciicircum{} (-n) = recip(x \textasciicircum{} n))
 \end{quote}
 also: \texttt{power-set} \texttt{power-succ} \texttt{power-zero} \texttt{power-typing-nonneg} \texttt{power-set-membership} \texttt{deriv-power} \texttt{cc-power-add} \texttt{cc-power-mul} ... (60 in all) \\
-mentioned by 344 result(s)
+mentioned by 346 result(s)
 
 \smallskip
 
@@ -6382,8 +6394,8 @@ characterized by \texttt{cc-ms@pts}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 pts(cc-ms) == cc
 \end{quote}
-also: \texttt{rr-ms@pts} \texttt{ringoid-setoid-pts} \texttt{ds-pts} \texttt{nvs-ms-pts} \texttt{r7q-rr-pts} \texttt{subspace-pts} \texttt{ms-pts-is-set} \texttt{nf-cc-agree-pts} ... (14 in all) \\
-mentioned by 416 result(s)
+also: \texttt{rr-ms@pts} \texttt{ringoid-setoid-pts} \texttt{ds-pts} \texttt{nvs-ms-pts} \texttt{r7q-rr-pts} \texttt{subspace-pts} \texttt{ms-pts-is-set} \texttt{nf-cc-agree-pts} ... (15 in all) \\
+mentioned by 428 result(s)
 
 \smallskip
 
@@ -7041,7 +7053,7 @@ characterized by \texttt{ball-sep-unfold}  \textit{(certified)}:
 forall([s, c, r], ball(s, c, r) == \{y in pts(s): (dist(s))(c, y) <= r and not((dist(s))(c, y) = r)\})
 \end{quote}
 also: \texttt{closure-sep-unfold} \texttt{interior-sep-unfold} \texttt{closed-ball-sep-unfold} \\
-mentioned by 107 result(s)
+mentioned by 109 result(s)
 
 \smallskip
 
@@ -7070,8 +7082,8 @@ characterized by \texttt{seq-compact}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], seq-compact(s) iff is-metric-space(s) and forall([f in fun(nn, pts(s))], forsome([phi], strictly-mono-nn(phi) and forsome([l in pts(s)], converges-to(s, subseq(f, phi), l)))))
 \end{quote}
-also: \texttt{compact-iff-seq-compact} \texttt{compact-implies-seq-compact} \texttt{seq-compact-implies-compact} \texttt{seq-compact-countable-product} \texttt{seq-compact-implies-totally-bounded} \\
-mentioned by 12 result(s)
+also: \texttt{seq-compact-image} \texttt{compact-iff-seq-compact} \texttt{compact-implies-seq-compact} \texttt{seq-compact-implies-compact} \texttt{seq-compact-countable-product} \texttt{seq-compact-implies-totally-bounded} \texttt{metrizable-compact-t-iff-seq-compact} \\
+mentioned by 15 result(s)
 
 \smallskip
 
@@ -7346,7 +7358,7 @@ characterized by \texttt{sqn-sethood}  \textit{(definitional)}:
 forall([a in set], sqn(a) in set)
 \end{quote}
 also: \texttt{sqn-membership} \texttt{subsqn-preserves-sqn} \\
-mentioned by 24 result(s)
+mentioned by 26 result(s)
 
 \smallskip
 
@@ -7412,7 +7424,7 @@ characterized by \texttt{submodule-subset}  \textit{(definitional)}:
 forall([m, s], is-submodule(m, s) implies s subset vec(m))
 \end{quote}
 also: \texttt{ringoid-ideal-subset} \texttt{inf-subsets-membership} \texttt{subset-def} \texttt{subset-set} \texttt{subset-refl} \texttt{subset-trans} \texttt{subset-mem-fwd} \texttt{ccint-subset-rr} ... (48 in all) \\
-mentioned by 365 result(s)
+mentioned by 370 result(s)
 
 \smallskip
 
@@ -7422,7 +7434,22 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [a, vnb-lambda([sbu\_, sbv\_], cartesian(a, a), (dist(s))(sbu\_, sbv\_))]
 \end{quote}
-mentioned by 127 result(s)
+mentioned by 131 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{subspace-top(t, a)}}\quad\textit{functoid}\index{subspace-top(t, a)@\texttt{subspace-top(t, a)}}\\
+reads: the subspace topology of \$1 on \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+[a, \{stw\_ in power(a): forsome([stu\_ in opens(t)], stw\_ = intersection(stu\_, a))\}]
+\end{quote}
+characterized by \texttt{subspace-top-pts}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([t, a], pts(subspace-top(t, a)) == a)
+\end{quote}
+also: \texttt{subspace-top-opens} \texttt{subspace-top-is-top-space} \texttt{subspace-top-of-metric-top} \\
+mentioned by 8 result(s)
 
 \smallskip
 

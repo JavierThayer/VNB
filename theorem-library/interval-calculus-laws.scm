@@ -232,6 +232,11 @@
               (IS-CONTINUOUS-AT (SUBSPACE-MS s icv_) ict_ (RESTRICT f icv_) icz_)
      ))))))))))))))
 (dk-peel!)
+;; SUBSPACE-MS(_, u) is a LIST with u as a component, and a list denotes only when its
+;; components are SETS (2026-10-01, notes-54): type both subsets before instantiating at them.
+(fact 'ms-pts-is-set 's)
+(dk-have! '(IN icu_ SET) (lambda () (fact 'subclass-of-set-is-set 'icu_ '(PTS s)) (ass)))
+(dk-have! '(IN icv_ SET) (lambda () (fact 'subclass-of-set-is-set 'icv_ 'icu_) (ass)))
 (define ic-msa '(SUBSPACE-MS (SUBSPACE-MS s icu_) icv_))
 (define ic-msb '(SUBSPACE-MS s icv_))
 (fact 'subset-trans 'icv_ 'icu_ '(PTS s))
