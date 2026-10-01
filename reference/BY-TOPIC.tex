@@ -54,77 +54,77 @@
 {\small\[
 \forall f, a, l, m.\; ((\operatorname{is\text{-}diff\text{-}at}(f, a, l) \wedge \operatorname{is\text{-}diff\text{-}at}(f, a, m)) \Rightarrow (l = m))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Skolemize the two Caratheodory factors phi, psi from the two differentiability hypotheses; off the point they agree by cancelling (x-a) =/= 0, and continuity at a forces phi(a)=psi(a), i.e. L=M.
+\noindent\textbf{Asserted}. Skolemize the two Caratheodory factors phi, psi from the two differentiability hypotheses; off the point they agree by cancelling (x-a) =/= 0, and continuity at a forces phi(a)=psi(a), i.e. L=M.
 
 \subsubsection*{\texttt{diff-implies-continuous}}
 \emph{for every f, a, l, if f is differentiable at a, with derivative l, then f is continuous at a}
 {\small\[
 \forall f, a, l.\; (\operatorname{is\text{-}diff\text{-}at}(f, a, l) \Rightarrow \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, a))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). f coincides pointwise with the map x |-> f(a) + phi(x)*(x-a), which the continuity algebra makes continuous at a (a constant plus phi times x-a); continuity then transfers to f.
+\noindent\textbf{Asserted}. f coincides pointwise with the map x |-> f(a) + phi(x)*(x-a), which the continuity algebra makes continuous at a (a constant plus phi times x-a); continuity then transfers to f.
 
 \subsubsection*{\texttt{deriv-const}}
 \emph{for every c, a, if c is in rr and a is in rr, then vnb-lambda(x, rr, c) is differentiable at a, with derivative 0}
 {\small\[
 \forall c, a.\; (((c \in \mathbb{R}) \wedge (a \in \mathbb{R})) \Rightarrow \operatorname{is\text{-}diff\text{-}at}((\lambda x \in \mathbb{R}.\; c), a, 0))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Witness phi := 0: the difference f(x)-f(a) = 0 = 0*(x-a), and the zero map is continuous with value 0.
+\noindent\textbf{Asserted}. Witness phi := 0: the difference f(x)-f(a) = 0 = 0*(x-a), and the zero map is continuous with value 0.
 
 \subsubsection*{\texttt{deriv-identity}}
 \emph{for every a in rr, vnb-lambda(x, rr, x) is differentiable at a, with derivative 1}
 {\small\[
 \forall a \in \mathbb{R}.\; \operatorname{is\text{-}diff\text{-}at}((\lambda x \in \mathbb{R}.\; x), a, 1)
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Witness phi := 1: x-a = 1*(x-a), and the constant map 1 is continuous.
+\noindent\textbf{Asserted}. Witness phi := 1: x-a = 1*(x-a), and the constant map 1 is continuous.
 
 \subsubsection*{\texttt{deriv-sum}}
 \emph{for every f, g, a, l, m, if f is differentiable at a, with derivative l and g is differentiable at a, with derivative m, then vnb-lambda(x, rr, f(x) + g(x)) is differentiable at a, with derivative l + m}
 {\small\[
 \forall f, g, a, l, m.\; ((\operatorname{is\text{-}diff\text{-}at}(f, a, l) \wedge \operatorname{is\text{-}diff\text{-}at}(g, a, m)) \Rightarrow \operatorname{is\text{-}diff\text{-}at}((\lambda x \in \mathbb{R}.\; (f(x) + g(x))), a, (l + m)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{deriv-product}}
 \emph{for every f, g, a, l, m, if f is differentiable at a, with derivative l and g is differentiable at a, with derivative m, then vnb-lambda(x, rr, f(x) * g(x)) is differentiable at a, with derivative l * g(a) + f(a) * m}
 {\small\[
 \forall f, g, a, l, m.\; ((\operatorname{is\text{-}diff\text{-}at}(f, a, l) \wedge \operatorname{is\text{-}diff\text{-}at}(g, a, m)) \Rightarrow \operatorname{is\text{-}diff\text{-}at}((\lambda x \in \mathbb{R}.\; (f(x) \cdot g(x))), a, ((l \cdot g(a)) + (f(a) \cdot m))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{deriv-chain}}
 \emph{for every f, g, a, l, m, if f is differentiable at a, with derivative l, then if g is differentiable at f(a), with derivative m, then compose(g, f) is differentiable at a, with derivative m * l}
 {\small\[
 \forall f, g, a, l, m.\; (\operatorname{is\text{-}diff\text{-}at}(f, a, l) \Rightarrow (\operatorname{is\text{-}diff\text{-}at}(g, f(a), m) \Rightarrow \operatorname{is\text{-}diff\text{-}at}(\operatorname{compose}(g, f), a, (m \cdot l))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{deriv-chain-value}}
 \emph{for every f, g, a, dl, dm, if f is differentiable at a, with derivative dl, then if g is differentiable at f(a), with derivative dm, then deriv(compose(g, f), a) equals deriv(g, f(a)) * deriv(f, a)}
 {\small\[
 \forall f, g, a, \mathit{dl}, \mathit{dm}.\; (\operatorname{is\text{-}diff\text{-}at}(f, a, \mathit{dl}) \Rightarrow (\operatorname{is\text{-}diff\text{-}at}(g, f(a), \mathit{dm}) \Rightarrow (\operatorname{deriv}(\operatorname{compose}(g, f), a) = (\operatorname{deriv}(g, f(a)) \cdot \operatorname{deriv}(f, a)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{deriv-of-is-diff-at}}
 \emph{for every f, a, dv, if f is differentiable at a, with derivative dv, then deriv(f, a) equals dv}
 {\small\[
 \forall f, a, \mathit{dv}.\; (\operatorname{is\text{-}diff\text{-}at}(f, a, \mathit{dv}) \Rightarrow (\operatorname{deriv}(f, a) = \mathit{dv}))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{deriv-neg}}
 \emph{for every f, a, l, if f is differentiable at a, with derivative l, then vnb-lambda(z, rr, -f(z)) is differentiable at a, with derivative -l}
 {\small\[
 \forall f, a, l.\; (\operatorname{is\text{-}diff\text{-}at}(f, a, l) \Rightarrow \operatorname{is\text{-}diff\text{-}at}((\lambda z \in \mathbb{R}.\; -f(z)), a, -l))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{nth-deriv-one}}
 \emph{for every f, nth-deriv(f, 1) is identical to vnb-lambda(x, rr, deriv(f, x))}
 {\small\[
 \forall f.\; (\operatorname{nth\text{-}deriv}(f, 1) \simeq (\lambda x \in \mathbb{R}.\; \operatorname{deriv}(f, x)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Little-o calculus}
 
@@ -133,21 +133,21 @@
 {\small\[
 \forall f, a, l.\; (\operatorname{is\text{-}diff\text{-}at}(f, a, l) \Leftrightarrow ((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((l \in \mathbb{R}) \wedge \operatorname{little\text{-}o\text{-}at}((\lambda x \in \mathbb{R}.\; ((f(x) - f(a)) - (l \cdot (x - a)))), a)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{little-o-sum}}
 \emph{for every g, h, a, if g is little-o at a, then if h is little-o at a, then vnb-lambda(x, rr, g(x) + h(x)) is little-o at a}
 {\small\[
 \forall g, h, a.\; (\operatorname{little\text{-}o\text{-}at}(g, a) \Rightarrow (\operatorname{little\text{-}o\text{-}at}(h, a) \Rightarrow \operatorname{little\text{-}o\text{-}at}((\lambda x \in \mathbb{R}.\; (g(x) + h(x))), a)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{little-o-scalar}}
 \emph{for every c, g, a, if c is in rr, then if g is little-o at a, then vnb-lambda(x, rr, c * g(x)) is little-o at a}
 {\small\[
 \forall c \in \mathbb{R}, g, a.\; (\operatorname{little\text{-}o\text{-}at}(g, a) \Rightarrow \operatorname{little\text{-}o\text{-}at}((\lambda x \in \mathbb{R}.\; (c \cdot g(x))), a))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Extreme \& interior values (Fermat)}
 
@@ -156,28 +156,28 @@
 {\small\[
 \forall f, a, b.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a \leq b)))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \Rightarrow \exists c \in \operatorname{ccint}(a, b).\; \forall x \in \operatorname{ccint}(a, b).\; (f(x) \leq f(c))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{extreme-value-min}}
 \emph{for every f, a, b, if f is in fun(rr, rr) and a is in rr and b is in rr and a is at most b, then if for every x in ccint(a, b), f is continuous at x, then there is some c in ccint(a, b) such that for every x in ccint(a, b), f(c) is at most f(x)}
 {\small\[
 \forall f, a, b.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a \leq b)))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \Rightarrow \exists c \in \operatorname{ccint}(a, b).\; \forall x \in \operatorname{ccint}(a, b).\; (f(c) \leq f(x))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{interior-max-deriv-zero}}
 \emph{for every f, a, b, theta, l, if f is in fun(rr, rr) and a is in rr and b is in rr and theta is in rr and a is less than theta and theta is less than b, then if for every x in ccint(a, b), f(x) is at most f(theta), then if f is differentiable at theta, with derivative l, then l equals 0}
 {\small\[
 \forall f, a, b, \theta, l.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge ((\theta \in \mathbb{R}) \wedge ((a < \theta) \wedge (\theta < b)))))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; (f(x) \leq f(\theta)) \Rightarrow (\operatorname{is\text{-}diff\text{-}at}(f, \theta, l) \Rightarrow (l = 0))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{interior-min-deriv-zero}}
 \emph{for every f, a, b, theta, l, if f is in fun(rr, rr) and a is in rr and b is in rr and theta is in rr and a is less than theta and theta is less than b, then if for every x in ccint(a, b), f(theta) is at most f(x), then if f is differentiable at theta, with derivative l, then l equals 0}
 {\small\[
 \forall f, a, b, \theta, l.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge ((\theta \in \mathbb{R}) \wedge ((a < \theta) \wedge (\theta < b)))))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; (f(\theta) \leq f(x)) \Rightarrow (\operatorname{is\text{-}diff\text{-}at}(f, \theta, l) \Rightarrow (l = 0))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Mean value theorems}
 
@@ -186,21 +186,21 @@
 {\small\[
 \forall h, a, b.\; (((h \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a < b)))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, h, x) \Rightarrow (\forall x.\; (((x \in \mathbb{R}) \wedge ((a < x) \wedge (x < b))) \Rightarrow \exists l.\; \operatorname{is\text{-}diff\text{-}at}(h, x, l)) \Rightarrow ((h(a) = h(b)) \Rightarrow \exists \theta \in \mathbb{R}.\; ((a < \theta) \wedge ((\theta < b) \wedge \operatorname{is\text{-}diff\text{-}at}(h, \theta, 0)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). The extreme value theorem gives an interior maximum or minimum; Fermat's lemma kills the derivative there.  A three-way case split handles the degenerate case where both extrema sit at the (equal) endpoints.
+\noindent\textbf{Asserted}. The extreme value theorem gives an interior maximum or minimum; Fermat's lemma kills the derivative there.  A three-way case split handles the degenerate case where both extrema sit at the (equal) endpoints.
 
 \subsubsection*{\texttt{mvt}}
 \emph{for every f, a, b, if f is in fun(rr, rr) and a is in rr and b is in rr and a is less than b, then if for every x in ccint(a, b), f is continuous at x, then if for every x, if x is in rr and a is less than x and x is less than b, then there is some l such that f is differentiable at x, with derivative l, then there is some theta in rr such that a is less than theta and theta is less than b and there is some l such that f is differentiable at theta, with derivative l and l * (b - a) equals f(b) - f(a)}
 {\small\[
 \forall f, a, b.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a < b)))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \Rightarrow (\forall x.\; (((x \in \mathbb{R}) \wedge ((a < x) \wedge (x < b))) \Rightarrow \exists l.\; \operatorname{is\text{-}diff\text{-}at}(f, x, l)) \Rightarrow \exists \theta \in \mathbb{R}.\; ((a < \theta) \wedge ((\theta < b) \wedge \exists l.\; (\operatorname{is\text{-}diff\text{-}at}(f, \theta, l) \wedge ((l \cdot (b - a)) = (f(b) - f(a)))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Apply Rolle to the tilted auxiliary g(x) = f(x) - L(x), where L is the secant line through the two endpoints.
+\noindent\textbf{Asserted}. Apply Rolle to the tilted auxiliary g(x) = f(x) - L(x), where L is the secant line through the two endpoints.
 
 \subsubsection*{\texttt{generalized-mvt}}
 \emph{for every f, g, a, b, if f is in fun(rr, rr) and g is in fun(rr, rr) and a is in rr and b is in rr and a is less than b, then if for every x in ccint(a, b), f is continuous at x and g is continuous at x, then if for every x, if x is in rr and a is less than x and x is less than b, then there is some l such that f is differentiable at x, with derivative l and there is some m such that g is differentiable at x, with derivative m, then there is some theta in rr such that a is less than theta and theta is less than b and there is some l, m such that f is differentiable at theta, with derivative l and g is differentiable at theta, with derivative m and l * (g(b) - g(a)) equals m * (f(b) - f(a))}
 {\small\[
 \forall f, g, a, b.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((g \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a < b))))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; (\operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \wedge \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, g, x)) \Rightarrow (\forall x.\; (((x \in \mathbb{R}) \wedge ((a < x) \wedge (x < b))) \Rightarrow (\exists l.\; \operatorname{is\text{-}diff\text{-}at}(f, x, l) \wedge \exists m.\; \operatorname{is\text{-}diff\text{-}at}(g, x, m))) \Rightarrow \exists \theta \in \mathbb{R}.\; ((a < \theta) \wedge ((\theta < b) \wedge \exists l, m.\; (\operatorname{is\text{-}diff\text{-}at}(f, \theta, l) \wedge (\operatorname{is\text{-}diff\text{-}at}(g, \theta, m) \wedge ((l \cdot (g(b) - g(a))) = (m \cdot (f(b) - f(a)))))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Rolle applied to a two-function auxiliary -- the Cauchy mean value theorem.
+\noindent\textbf{Asserted}. Rolle applied to a two-function auxiliary -- the Cauchy mean value theorem.
 
 \subsection{Consequences of the mean value theorem}
 
@@ -209,28 +209,28 @@
 {\small\[
 \forall f, a, b.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a < b)))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \Rightarrow (\forall x.\; (((x \in \mathbb{R}) \wedge ((a < x) \wedge (x < b))) \Rightarrow \operatorname{is\text{-}diff\text{-}at}(f, x, 0)) \Rightarrow \forall u, v.\; (((u \in \operatorname{ccint}(a, b)) \wedge (v \in \operatorname{ccint}(a, b))) \Rightarrow (f(u) = f(v))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). For any two points the mean value theorem on the subinterval gives f(y)-f(x) = f'(c)*(y-x) = 0.
+\noindent\textbf{Asserted}. For any two points the mean value theorem on the subinterval gives f(y)-f(x) = f'(c)*(y-x) = 0.
 
 \subsubsection*{\texttt{mvt-upper-bound}}
 \emph{for every f, a, b, m, if f is in fun(rr, rr) and a is in rr and b is in rr and m is in rr and a is less than b, then if for every x in ccint(a, b), f is continuous at x, then if for every x, if x is in rr and a is less than x and x is less than b, then there is some l such that f is differentiable at x, with derivative l and l is at most m, then f(b) - f(a) is at most m * (b - a)}
 {\small\[
 \forall f, a, b, m.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge ((m \in \mathbb{R}) \wedge (a < b))))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \Rightarrow (\forall x.\; (((x \in \mathbb{R}) \wedge ((a < x) \wedge (x < b))) \Rightarrow \exists l.\; (\operatorname{is\text{-}diff\text{-}at}(f, x, l) \wedge (l \leq m))) \Rightarrow ((f(b) - f(a)) \leq (m \cdot (b - a))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mvt-lower-bound}}
 \emph{for every f, a, b, m, if f is in fun(rr, rr) and a is in rr and b is in rr and m is in rr and a is less than b, then if for every x in ccint(a, b), f is continuous at x, then if for every x, if x is in rr and a is less than x and x is less than b, then there is some l such that f is differentiable at x, with derivative l and m is at most l, then m * (b - a) is at most f(b) - f(a)}
 {\small\[
 \forall f, a, b, m.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge ((m \in \mathbb{R}) \wedge (a < b))))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \Rightarrow (\forall x.\; (((x \in \mathbb{R}) \wedge ((a < x) \wedge (x < b))) \Rightarrow \exists l.\; (\operatorname{is\text{-}diff\text{-}at}(f, x, l) \wedge (m \leq l))) \Rightarrow ((m \cdot (b - a)) \leq (f(b) - f(a))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{deriv-pos-strictly-increasing}}
 \emph{for every f, a, b, if f is in fun(rr, rr) and a is in rr and b is in rr and a is less than b, then if for every x in ccint(a, b), f is continuous at x, then if for every x, if x is in rr and a is less than x and x is less than b, then there is some l such that f is differentiable at x, with derivative l and 0 is less than l, then for every u, v, if u is in ccint(a, b) and v is in ccint(a, b) and u is less than v, then f(u) is less than f(v)}
 {\small\[
 \forall f, a, b.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a < b)))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \Rightarrow (\forall x.\; (((x \in \mathbb{R}) \wedge ((a < x) \wedge (x < b))) \Rightarrow \exists l.\; (\operatorname{is\text{-}diff\text{-}at}(f, x, l) \wedge (0 < l))) \Rightarrow \forall u, v.\; (((u \in \operatorname{ccint}(a, b)) \wedge ((v \in \operatorname{ccint}(a, b)) \wedge (u < v))) \Rightarrow (f(u) < f(v))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). The mean value theorem gives f(y)-f(x) = f'(c)*(y-x) > 0 whenever x < y.
+\noindent\textbf{Asserted}. The mean value theorem gives f(y)-f(x) = f'(c)*(y-x) > 0 whenever x < y.
 
 \subsection{Taylor's theorem}
 
@@ -239,14 +239,14 @@
 {\small\[
 \forall f, x \in \mathbb{R}, n \in \mathbb{N}.\; (\forall k.\; (((k \in \mathbb{N}) \wedge (k \leq n)) \Rightarrow (\operatorname{nth\text{-}deriv}(f, k)(x) \in \mathbb{R})) \Rightarrow (\operatorname{taylor\text{-}poly}(f, x, n, x) = f(x)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{taylor-lagrange}}
 \emph{for every f, a, x, n, if f is in fun(rr, rr) and a is in rr and x is in rr and n is in nn and a is less than x, then if f is n times differentiable from a to x, then there is some theta in rr such that a is less than theta and theta is less than x and factorial(succ(n)) * (f(x) - taylor-poly(f, a, n, x)) equals (nth-deriv(f, succ(n)))(theta) * (x - a) \textasciicircum{} succ(n)}
 {\small\[
 \forall f, a, x, n.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((x \in \mathbb{R}) \wedge ((n \in \mathbb{N}) \wedge (a < x))))) \Rightarrow (\operatorname{taylor\text{-}differentiable}(f, a, x, n) \Rightarrow \exists \theta \in \mathbb{R}.\; ((a < \theta) \wedge ((\theta < x) \wedge ((\operatorname{factorial}((n + 1)) \cdot (f(x) - \operatorname{taylor\text{-}poly}(f, a, n, x))) = (\operatorname{nth\text{-}deriv}(f, (n + 1))(\theta) \cdot \operatorname{power}((x - a), (n + 1))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). The Cauchy mean value theorem (generalized-mvt) applied to the Taylor remainder against (x-a)\textasciicircum{}(n+1).
+\noindent\textbf{Asserted}. The Cauchy mean value theorem (generalized-mvt) applied to the Taylor remainder against (x-a)\textasciicircum{}(n+1).
 
 \section{Vector calculus}
 
@@ -384,14 +384,14 @@
 {\small\[
 \forall m.\; (\operatorname{is\text{-}noetherian}(m) \Rightarrow \forall \mathit{sig} \in \mathbf{Set}.\; ((\mathit{sig} \subseteq \operatorname{power}(\operatorname{vec}(m))) \Rightarrow (\forall t \in \mathit{sig}.\; \operatorname{is\text{-}submodule}(m, t) \Rightarrow (\exists t_{0}.\; (t_{0} \in \mathit{sig}) \Rightarrow \exists t \in \mathit{sig}.\; \forall u.\; (((u \in \mathit{sig}) \wedge (t \subseteq u)) \Rightarrow (t = u))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). The ascending chain condition: a strictly increasing infinite chain of subspaces would, via dependent choice, exceed every finite dimension.
+\noindent\textbf{Asserted}. The ascending chain condition: a strictly increasing infinite chain of subspaces would, via dependent choice, exceed every finite dimension.
 
 \subsubsection*{\texttt{hb-good-has-maximal}}
 \emph{for every m, s, f, if m is a normed vector space, then if normed-vector-space-as-module(m) is finite dimensional, then if s is a submodule of m, then if f is a bounded linear functional on the subspace s of m, then there is some t such that f has a norm-preserving extension from s to t, in m and for every u, if f has a norm-preserving extension from s to u, in m and t is a subset of u, then t equals u}
 {\small\[
 \forall m, s, f.\; (\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \Rightarrow (\operatorname{is\text{-}finite\text{-}dimensional}(\operatorname{normed\text{-}vector\text{-}space\text{-}as\text{-}module}(m)) \Rightarrow (\operatorname{is\text{-}submodule}(m, s) \Rightarrow (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional\text{-}on}(m, s, f) \Rightarrow \exists t.\; (\operatorname{good\text{-}sub}(m, s, f, t) \wedge \forall u.\; ((\operatorname{good\text{-}sub}(m, s, f, u) \wedge (t \subseteq u)) \Rightarrow (t = u)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Hahn-Banach extension}
 
@@ -400,21 +400,21 @@
 {\small\[
 \forall m, s, f, v.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}submodule}(m, s) \wedge (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional\text{-}on}(m, s, f) \wedge ((v \in \operatorname{vec}(m)) \wedge \neg (v \in s))))) \Rightarrow \exists \operatorname{g\_}.\; (\operatorname{is\text{-}linear\text{-}functional\text{-}on}(m, \operatorname{span\text{-}add\text{-}one}(m, s, v), \operatorname{g\_}) \wedge (\operatorname{extends\text{-}on}(s, \operatorname{g\_}, f) \wedge \forall \operatorname{w\_} \in \operatorname{span\text{-}add\text{-}one}(m, s, v).\; (\lvert \operatorname{g\_}(\operatorname{w\_}) \rvert \leq (\operatorname{dual\text{-}norm\text{-}on}(m, s, f) \cdot \operatorname{vnrm}(m)(\operatorname{w\_}))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{good-step}}
 \emph{for every m, s, f, t, x, if m is a normed vector space and f is a bounded linear functional on the subspace s of m and f has a norm-preserving extension from s to t, in m and x is in vec(m) and x is not in t, then f has a norm-preserving extension from s to span-add-one(m, t, x), in m}
 {\small\[
 \forall m, s, f, t, x.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional\text{-}on}(m, s, f) \wedge (\operatorname{good\text{-}sub}(m, s, f, t) \wedge ((x \in \operatorname{vec}(m)) \wedge \neg (x \in t))))) \Rightarrow \operatorname{good\text{-}sub}(m, s, f, \operatorname{span\text{-}add\text{-}one}(m, t, x)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{hahn-banach}}
 \emph{for every m, s, f, if m is a normed vector space and normed-vector-space-as-module(m) is finite dimensional and s is a submodule of m and f is a bounded linear functional on the subspace s of m, then there is some g\_ such that g\_ is a linear functional on the subspace vec(m) of m and g\_ agrees with f on s and for every w\_ in vec(m), abs(g\_(w\_)) is at most dual-norm-on(m, s, f) * (vnrm(m))(w\_)}
 {\small\[
 \forall m, s, f.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}finite\text{-}dimensional}(\operatorname{normed\text{-}vector\text{-}space\text{-}as\text{-}module}(m)) \wedge (\operatorname{is\text{-}submodule}(m, s) \wedge \operatorname{is\text{-}bounded\text{-}linear\text{-}functional\text{-}on}(m, s, f)))) \Rightarrow \exists \operatorname{g\_}.\; (\operatorname{is\text{-}linear\text{-}functional\text{-}on}(m, \operatorname{vec}(m), \operatorname{g\_}) \wedge (\operatorname{extends\text{-}on}(s, \operatorname{g\_}, f) \wedge \forall \operatorname{w\_} \in \operatorname{vec}(m).\; (\lvert \operatorname{g\_}(\operatorname{w\_}) \rvert \leq (\operatorname{dual\text{-}norm\text{-}on}(m, s, f) \cdot \operatorname{vnrm}(m)(\operatorname{w\_}))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). A maximal norm-preserving extension exists by the ascending chain condition on the finite-dimensional space (via dependent choice on NN); were it proper, the one-step extension lemma would extend it further -- a contradiction.
+\noindent\textbf{Asserted}. A maximal norm-preserving extension exists by the ascending chain condition on the finite-dimensional space (via dependent choice on NN); were it proper, the one-step extension lemma would extend it further -- a contradiction.
 
 \subsection{The norm as a supremum of functionals}
 
@@ -423,21 +423,21 @@
 {\small\[
 \forall m, f, x.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional}(m, f) \wedge ((x \in \operatorname{vec}(m)) \wedge (\operatorname{dual\text{-}norm}(m, f) \leq 1)))) \Rightarrow (\lvert f(x) \rvert \leq \operatorname{vnrm}(m)(x)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{norm-attained-by-functional}}
 \emph{for every m, x, if m is a normed vector space and normed-vector-space-as-module(m) is finite dimensional and x is in vec(m), then there is some g such that g is a bounded linear functional on m and dual-norm(m, g) is at most 1 and g(x) equals (vnrm(m))(x)}
 {\small\[
 \forall m, x.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}finite\text{-}dimensional}(\operatorname{normed\text{-}vector\text{-}space\text{-}as\text{-}module}(m)) \wedge (x \in \operatorname{vec}(m)))) \Rightarrow \exists g.\; (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional}(m, g) \wedge ((\operatorname{dual\text{-}norm}(m, g) \leq 1) \wedge (g(x) = \operatorname{vnrm}(m)(x)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{norm-as-sup}}
 \emph{for every m, x, if m is a normed vector space and normed-vector-space-as-module(m) is finite dimensional and x is in vec(m), then for every f, if f is a bounded linear functional on m, then if dual-norm(m, f) is at most 1, then abs(f(x)) is at most (vnrm(m))(x) and for every d, if d is in rr and for every f, if f is a bounded linear functional on m, then if dual-norm(m, f) is at most 1, then abs(f(x)) is at most d, then (vnrm(m))(x) is at most d}
 {\small\[
 \forall m, x.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}finite\text{-}dimensional}(\operatorname{normed\text{-}vector\text{-}space\text{-}as\text{-}module}(m)) \wedge (x \in \operatorname{vec}(m)))) \Rightarrow (\forall f.\; (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional}(m, f) \Rightarrow ((\operatorname{dual\text{-}norm}(m, f) \leq 1) \Rightarrow (\lvert f(x) \rvert \leq \operatorname{vnrm}(m)(x)))) \wedge \forall d.\; (((d \in \mathbb{R}) \wedge \forall f.\; (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional}(m, f) \Rightarrow ((\operatorname{dual\text{-}norm}(m, f) \leq 1) \Rightarrow (\lvert f(x) \rvert \leq d)))) \Rightarrow (\operatorname{vnrm}(m)(x) \leq d))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). The Hahn-Banach payoff: on the line RR*x a norming functional attains ||x||, while every bounded functional is dominated by the norm, so ||x|| is exactly the supremum of the functional values.
+\noindent\textbf{Asserted}. The Hahn-Banach payoff: on the line RR*x a norming functional attains ||x||, while every bounded functional is dominated by the norm, so ||x|| is exactly the supremum of the functional values.
 
 \subsection{Vector-valued Taylor (remainder-norm bound, reduced to scalar)}
 
@@ -446,7 +446,7 @@
 {\small\[
 \forall m, f, a, x, n.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}finite\text{-}dimensional}(\operatorname{normed\text{-}vector\text{-}space\text{-}as\text{-}module}(m)) \wedge ((f \in (\mathbb{R} \to \operatorname{vec}(m))) \wedge ((a \in \mathbb{R}) \wedge ((x \in \mathbb{R}) \wedge ((n \in \mathbb{N}) \wedge (a < x))))))) \Rightarrow (\operatorname{taylor\text{-}differentiable\text{-}v}(m, f, a, x, n) \Rightarrow \exists \theta \in \mathbb{R}.\; ((a < \theta) \wedge ((\theta < x) \wedge ((\operatorname{factorial}((n + 1)) \cdot \operatorname{vnrm}(m)(\operatorname{vadd}(m)(f(x), \operatorname{vneg}(m)(\operatorname{taylor\text{-}poly\text{-}v}(m, f, a, x, n))))) \leq (\operatorname{vnrm}(m)(\operatorname{nth\text{-}deriv\text{-}v}(m, f, (n + 1))(\theta)) \cdot \operatorname{power}((x - a), (n + 1))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Reduce the vector remainder to a scalar: a norming functional g (Hahn-Banach) turns ||remainder|| into g(remainder); scalar Taylor on g o f, then bound g(f\textasciicircum{}(n+1)) by ||f\textasciicircum{}(n+1)||.
+\noindent\textbf{Asserted}. Reduce the vector remainder to a scalar: a norming functional g (Hahn-Banach) turns ||remainder|| into g(remainder); scalar Taylor on g o f, then bound g(f\textasciicircum{}(n+1)) by ||f\textasciicircum{}(n+1)||.
 
 \section{Linear algebra}
 
@@ -532,14 +532,14 @@
 {\small\[
 \forall x \in \mathbf{Set}, m, n.\; (\operatorname{mat}(m, n, x) \in \mathbf{Set})
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matrix-sethood}}
 \emph{for every s in set, matrix(s) is in set}
 {\small\[
 \forall s \in \mathbf{Set}.\; (\operatorname{matrix}(s) \in \mathbf{Set})
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matrix-membership}}
 \emph{for every s, m, m is in matrix(s) if and only if m is in tuples(tuples(s)) and for every i, if i is in nn and 1 is at most i and i is at most length(m), then for every j, if j is in nn and 1 is at most j and j is at most length(m), then length(nth(i, m)) equals length(nth(j, m))}
@@ -553,49 +553,49 @@
 {\small\[
 \forall m, n, x, p, q \in \operatorname{mat}(m, n, x).\; (\forall i \in \operatorname{interval}(1, m), j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(p, i, j) = \operatorname{entry}(q, i, j)) \Rightarrow (p = q))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-in-carrier}}
 \emph{for every m, n, x, p, i, j, if p is in mat(m, n, x), then if i is in interval(1, m), then if j is in interval(1, n), then entry(p, i, j) is in x}
 {\small\[
 \forall m, n, x, p \in \operatorname{mat}(m, n, x), i \in \operatorname{interval}(1, m), j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(p, i, j) \in x)
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matof-exists}}
 \emph{for every m, n, g, if m is in nn, then if n is in nn, then if for every i\_ in interval(1, m), j\_ in interval(1, n), g(i\_, j\_) is in set, then there is some p in mat(m, n, image(g, cartesian(interval(1, m), interval(1, n)))) such that for every i in interval(1, m), j in interval(1, n), entry(p, i, j) equals g(i, j)}
 {\small\[
 \forall m, n \in \mathbb{N}, g.\; (\forall \operatorname{i\_} \in \operatorname{interval}(1, m), \operatorname{j\_} \in \operatorname{interval}(1, n).\; (g(\operatorname{i\_}, \operatorname{j\_}) \in \mathbf{Set}) \Rightarrow \exists p \in \operatorname{mat}(m, n, \operatorname{image}(g, (\operatorname{interval}(1, m) \times \operatorname{interval}(1, n)))).\; \forall i \in \operatorname{interval}(1, m), j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(p, i, j) = g(i, j)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matof-in-mat}}
 \emph{for every m, n, x, g, if m is in nn, then if n is in nn, then if for every i in interval(1, m), j in interval(1, n), g(i, j) is in x, then matof(m, n, g) is in mat(m, n, x)}
 {\small\[
 \forall m, n \in \mathbb{N}, x, g.\; (\forall i \in \operatorname{interval}(1, m), j \in \operatorname{interval}(1, n).\; (g(i, j) \in x) \Rightarrow (\operatorname{matof}(m, n, g) \in \operatorname{mat}(m, n, x)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-matof}}
 \emph{for every m, n, g, i, j, if m is in nn, then if n is in nn, then if for every i\_ in interval(1, m), j\_ in interval(1, n), g(i\_, j\_) is in set, then if i is in interval(1, m), then if j is in interval(1, n), then entry(matof(m, n, g), i, j) equals g(i, j)}
 {\small\[
 \forall m, n \in \mathbb{N}, g, i, j.\; (\forall \operatorname{i\_} \in \operatorname{interval}(1, m), \operatorname{j\_} \in \operatorname{interval}(1, n).\; (g(\operatorname{i\_}, \operatorname{j\_}) \in \mathbf{Set}) \Rightarrow ((i \in \operatorname{interval}(1, m)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{matof}(m, n, g), i, j) = g(i, j)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-0-1-nonempty}}
 \emph{for every x, there is some p such that p is in mat(0, 1, x)}
 {\small\[
 \forall x.\; \exists p.\; (p \in \operatorname{mat}(0, 1, x))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-1-0-nonempty}}
 \emph{for every x, there is some p such that p is in mat(1, 0, x)}
 {\small\[
 \forall x.\; \exists p.\; (p \in \operatorname{mat}(1, 0, x))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Addition, negation, scaling}
 
@@ -604,77 +604,77 @@
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p, q \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, q) \in \operatorname{mat}(m, n, \operatorname{carr}(a))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matadd-entry}}
 \emph{for every a, m, n, p, q, if a is a ring, then if p is in mat(m, n, carr(a)), then if q is in mat(m, n, carr(a)), then for every i in interval(1, m), j in interval(1, n), entry(matadd(a, p, q), i, j) equals (add(a))(entry(p, i, j), entry(q, i, j))}
 {\small\[
 \forall a, m, n, p, q.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow \forall i \in \operatorname{interval}(1, m), j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matadd}(a, p, q), i, j) = \operatorname{add}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, i, j))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matadd-assoc}}
 \emph{for every ring a, for every m, n, p, q, r, if p is in mat(m, n, carr(a)), then if q is in mat(m, n, carr(a)), then if r is in mat(m, n, carr(a)), then matadd(a, matadd(a, p, q), r) equals matadd(a, p, matadd(a, q, r))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p, q, r \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, \operatorname{matadd}(a, p, q), r) = \operatorname{matadd}(a, p, \operatorname{matadd}(a, q, r))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matadd-comm}}
 \emph{for every ring a, for every m, n, p, q, if p is in mat(m, n, carr(a)), then if q is in mat(m, n, carr(a)), then matadd(a, p, q) equals matadd(a, q, p)}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p, q \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, q) = \operatorname{matadd}(a, q, p)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matadd-zero-left}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matadd(a, zeromat(a, m, n), p) equals p}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, \operatorname{zeromat}(a, m, n), p) = p))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matadd-zero-right}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matadd(a, p, zeromat(a, m, n)) equals p}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, \operatorname{zeromat}(a, m, n)) = p))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matadd-neg-left}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matadd(a, matneg(a, p), p) equals zeromat(a, m, n)}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, \operatorname{matneg}(a, p), p) = \operatorname{zeromat}(a, m, n)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matadd-neg-right}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matadd(a, p, matneg(a, p)) equals zeromat(a, m, n)}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, \operatorname{matneg}(a, p)) = \operatorname{zeromat}(a, m, n)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matneg-type}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matneg(a, p) is in mat(m, n, carr(a))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matneg}(a, p) \in \operatorname{mat}(m, n, \operatorname{carr}(a))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matscale-type}}
 \emph{for every ring a, for every m, n, r, p, if r is in carr(a), then if p is in mat(m, n, carr(a)), then matscale(a, r, p) is in mat(m, n, carr(a))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, r \in \operatorname{carr}(a), p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matscale}(a, r, p) \in \operatorname{mat}(m, n, \operatorname{carr}(a))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matscale-entry}}
 \emph{for every a, m, n, r, p, if a is a ring, then if r is in carr(a), then if p is in mat(m, n, carr(a)), then for every i in interval(1, m), j in interval(1, n), entry(matscale(a, r, p), i, j) equals (mul(a))(r, entry(p, i, j))}
 {\small\[
 \forall a, m, n, r, p.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((r \in \operatorname{carr}(a)) \Rightarrow ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow \forall i \in \operatorname{interval}(1, m), j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matscale}(a, r, p), i, j) = \operatorname{mul}(a)(r, \operatorname{entry}(p, i, j))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Multiplication}
 
@@ -683,49 +683,49 @@
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, k, \operatorname{carr}(a)).\; (((n = 0) \Rightarrow ((m = 0) \vee (k = 0))) \Rightarrow (\operatorname{matmul}(a, p, q) \in \operatorname{mat}(m, k, \operatorname{carr}(a)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matmul-entry}}
 \emph{for every ring a, for every m, n, k, p, q, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if 1 is at most n, then for every i in interval(1, m), c in interval(1, k), entry(matmul(a, p, q), i, c) equals finsum(ring-additive-ag(a), vnb-lambda(j, interval(1, n), (mul(a))(entry(p, i, j), entry(q, j, c))), interval(1, n))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, k, \operatorname{carr}(a)).\; ((1 \leq n) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, k).\; (\operatorname{entry}(\operatorname{matmul}(a, p, q), i, c) = \operatorname{finsum}(\operatorname{ring\text{-}additive\text{-}ag}(a), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, j, c))), \operatorname{interval}(1, n)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matmul-assoc}}
 \emph{for every ring a, for every m, n, k, l, p, q, r, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if r is in mat(k, l, carr(a)), then if if n equals 0, then m equals 0 or k equals 0 and l equals 0, then if if k equals 0, then l equals 0 or n equals 0 and m equals 0, then matmul(a, matmul(a, p, q), r) equals matmul(a, p, matmul(a, q, r))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, l, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, k, \operatorname{carr}(a)), r \in \operatorname{mat}(k, l, \operatorname{carr}(a)).\; (((n = 0) \Rightarrow ((m = 0) \vee ((k = 0) \wedge (l = 0)))) \Rightarrow (((k = 0) \Rightarrow ((l = 0) \vee ((n = 0) \wedge (m = 0)))) \Rightarrow (\operatorname{matmul}(a, \operatorname{matmul}(a, p, q), r) = \operatorname{matmul}(a, p, \operatorname{matmul}(a, q, r))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Both (PQ)R and P(QR) expand, via matmul-entry twice, to the same canonical double sum; finsum-fubini interchanges the two summation orders.
+\noindent\textbf{Asserted}. Both (PQ)R and P(QR) expand, via matmul-entry twice, to the same canonical double sum; finsum-fubini interchanges the two summation orders.
 
 \subsubsection*{\texttt{matmul-left-dist-guarded}}
 \emph{for every ring a, for every m, n, k, p, q, r, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if r is in mat(n, k, carr(a)), then if if n equals 0, then m equals 0 or k equals 0, then matmul(a, p, matadd(a, q, r)) equals matadd(a, matmul(a, p, q), matmul(a, p, r))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q, r \in \operatorname{mat}(n, k, \operatorname{carr}(a)).\; (((n = 0) \Rightarrow ((m = 0) \vee (k = 0))) \Rightarrow (\operatorname{matmul}(a, p, \operatorname{matadd}(a, q, r)) = \operatorname{matadd}(a, \operatorname{matmul}(a, p, q), \operatorname{matmul}(a, p, r)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matmul-right-dist-guarded}}
 \emph{for every ring a, for every m, n, k, p, q, r, if p is in mat(m, n, carr(a)), then if q is in mat(m, n, carr(a)), then if r is in mat(n, k, carr(a)), then if if n equals 0, then m equals 0 or k equals 0, then matmul(a, matadd(a, p, q), r) equals matadd(a, matmul(a, p, r), matmul(a, q, r))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, p, q \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{mat}(n, k, \operatorname{carr}(a)).\; (((n = 0) \Rightarrow ((m = 0) \vee (k = 0))) \Rightarrow (\operatorname{matmul}(a, \operatorname{matadd}(a, p, q), r) = \operatorname{matadd}(a, \operatorname{matmul}(a, p, r), \operatorname{matmul}(a, q, r)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matprod-summand-type}}
 \emph{for every ring a, for every m, n, kc, p, q, i, c, if p is in mat(m, n, carr(a)), then if q is in mat(n, kc, carr(a)), then if i is in interval(1, m), then if c is in interval(1, kc), then vnb-lambda(j, interval(1, n), (mul(a))(entry(p, i, j), entry(q, j, c))) is in fun(interval(1, n), carr(ring-additive-ag(a)))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, \mathit{kc}, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, \mathit{kc}, \operatorname{carr}(a)), i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, \mathit{kc}).\; ((\lambda j \in \operatorname{interval}(1, n).\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, j, c))) \in (\operatorname{interval}(1, n) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matmul-assoc-summand-type}}
 \emph{for every ring a, for every m, n, k, l, p, q, r, row, col, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if r is in mat(k, l, carr(a)), then if row is in interval(1, m), then if col is in interval(1, l), then vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (mul(a))((mul(a))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(r, nth(1, z), col))) is in fun(cartesian(interval(1, k), interval(1, n)), carr(ring-additive-ag(a)))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, l, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, k, \operatorname{carr}(a)), r \in \operatorname{mat}(k, l, \operatorname{carr}(a)), \mathit{row} \in \operatorname{interval}(1, m), \mathit{col} \in \operatorname{interval}(1, l).\; ((\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{mul}(a)(\operatorname{mul}(a)(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(r, \operatorname{nth}(1, z), \mathit{col}))) \in ((\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{The identity and zero matrices}
 
@@ -734,56 +734,56 @@
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; (\operatorname{identmat}(a, n) \in \operatorname{mat}(n, n, \operatorname{carr}(a))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{identmat-entry-diag}}
 \emph{for every a, n, i, if a is a ring, then if n is in nn, then if i is in interval(1, n), then entry(identmat(a, n), i, i) equals one(a)}
 {\small\[
 \forall a, n, i.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((i \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{identmat}(a, n), i, i) = \operatorname{one}(a)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{identmat-entry-off}}
 \emph{for every a, n, i, j, if a is a ring, then if n is in nn, then if i is in interval(1, n), then if j is in interval(1, n), then if i is not equal to j, then entry(identmat(a, n), i, j) equals zero(a)}
 {\small\[
 \forall a, n, i, j.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((i \in \operatorname{interval}(1, n)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\neg (i = j) \Rightarrow (\operatorname{entry}(\operatorname{identmat}(a, n), i, j) = \operatorname{zero}(a)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-identmat}}
 \emph{for every a, n, i, j, if a is a ring, then if n is in nn, then if i is in interval(1, n), then if j is in interval(1, n), then entry(identmat(a, n), i, j) equals if(i = j, one(a), zero(a))}
 {\small\[
 \forall a, n, i, j.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((i \in \operatorname{interval}(1, n)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{identmat}(a, n), i, j) = \left(\text{if }(i = j)\text{ then }\operatorname{one}(a)\text{ else }\operatorname{zero}(a)\right))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-zeromat}}
 \emph{for every a, m, n, i, j, if a is a ring, then if m is in nn, then if n is in nn, then if i is in interval(1, m), then if j is in interval(1, n), then entry(zeromat(a, m, n), i, j) equals zero(a)}
 {\small\[
 \forall a, m, n, i, j.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((m \in \mathbb{N}) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((i \in \operatorname{interval}(1, m)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{zeromat}(a, m, n), i, j) = \operatorname{zero}(a)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{identmat-left-identity}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matmul(a, identmat(a, m), p) equals p}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matmul}(a, \operatorname{identmat}(a, m), p) = p))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{identmat-right-identity}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matmul(a, p, identmat(a, n)) equals p}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matmul}(a, p, \operatorname{identmat}(a, n)) = p))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{identmat-invertible}}
 \emph{for every ring a, for every n in nn, identmat(a, n) is an invertible n-by-n matrix over a}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; \operatorname{is\text{-}invertible\text{-}mat}(a, n, \operatorname{identmat}(a, n)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{The matrix ring}
 
@@ -792,63 +792,63 @@
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; \operatorname{is\text{-}ring}(\operatorname{mat\text{-}ring}(a, n)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Each of the 14 ring axioms is reduced by matrix-entry-extensionality to an entry identity, then discharged against the entrywise ring axioms and the FINSUM distribution / Fubini lemmas.
+\noindent\textbf{Asserted}. Each of the 14 ring axioms is reduced by matrix-entry-extensionality to an entry identity, then discharged against the entrywise ring axioms and the FINSUM distribution / Fubini lemmas.
 
 \subsubsection*{\texttt{mat-ring-carr}}
 \emph{for every a, n, if a is a ring, then if n is in nn, then carr(mat-ring(a, n)) equals mat(n, n, carr(a))}
 {\small\[
 \forall a, n.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow (\operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)) = \operatorname{mat}(n, n, \operatorname{carr}(a)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-ring-add}}
 \emph{for every a, n, if a is a ring, then if n is in nn, then add(mat-ring(a, n)) equals vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q))}
 {\small\[
 \forall a, n.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow (\operatorname{add}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda \langle p, q \rangle \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matadd}(a, p, q)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-ring-mul}}
 \emph{for every a, n, if a is a ring, then if n is in nn, then mul(mat-ring(a, n)) equals vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q))}
 {\small\[
 \forall a, n.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow (\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda \langle p, q \rangle \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matmul}(a, p, q)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-ring-zero}}
 \emph{for every a, n, if a is a ring, then if n is in nn, then zero(mat-ring(a, n)) equals zeromat(a, n, n)}
 {\small\[
 \forall a, n.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow (\operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)) = \operatorname{zeromat}(a, n, n))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-ring-one}}
 \emph{for every a, n, if a is a ring, then if n is in nn, then one(mat-ring(a, n)) equals identmat(a, n)}
 {\small\[
 \forall a, n.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow (\operatorname{one}(\operatorname{mat\text{-}ring}(a, n)) = \operatorname{identmat}(a, n))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-ring-neg}}
 \emph{for every a, n, if a is a ring, then if n is in nn, then neg(mat-ring(a, n)) equals vnb-lambda(p, mat(n, n, carr(a)), matneg(a, p))}
 {\small\[
 \forall a, n.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow (\operatorname{neg}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda p \in \operatorname{mat}(n, n, \operatorname{carr}(a)).\; \operatorname{matneg}(a, p)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-ring-add-fun}}
 \emph{for every ring a, for every n in nn, vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)) is in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; ((\lambda \langle p, q \rangle \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matadd}(a, p, q)) \in ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-ring-mul-fun}}
 \emph{for every ring a, for every n in nn, vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q)) is in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; ((\lambda \langle p, q \rangle \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matmul}(a, p, q)) \in ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Cutting and extending: submatrices, blocks, bordered matrices}
 
@@ -857,63 +857,63 @@
 {\small\[
 \forall a, p, q \in \mathbb{N}, s \in \operatorname{mat}((p + 1), (q + 1), \operatorname{carr}(a)).\; (\operatorname{submat}(s, p, q) \in \operatorname{mat}(p, q, \operatorname{carr}(a)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-submat}}
 \emph{for every s, p, q, i, j, x, if p is in nn, then if q is in nn, then if s is in mat(succ(p), succ(q), x), then if i is in interval(1, p), then if j is in interval(1, q), then entry(submat(s, p, q), i, j) equals entry(s, succ(i), succ(j))}
 {\small\[
 \forall s, p, q \in \mathbb{N}, i, j, x.\; ((s \in \operatorname{mat}((p + 1), (q + 1), x)) \Rightarrow ((i \in \operatorname{interval}(1, p)) \Rightarrow ((j \in \operatorname{interval}(1, q)) \Rightarrow (\operatorname{entry}(\operatorname{submat}(s, p, q), i, j) = \operatorname{entry}(s, (i + 1), (j + 1))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-block}}
 \emph{for every p, k, l, i, j, m, n, x, if k is in nn, then if l is in nn, then if p is in mat(m, n, x), then if k is at most m, then if l is at most n, then if i is in interval(1, k), then if j is in interval(1, l), then entry(block(p, k, l), i, j) equals entry(p, i, j)}
 {\small\[
 \forall p, k, l \in \mathbb{N}, i, j, m, n, x.\; ((p \in \operatorname{mat}(m, n, x)) \Rightarrow ((k \leq m) \Rightarrow ((l \leq n) \Rightarrow ((i \in \operatorname{interval}(1, k)) \Rightarrow ((j \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{block}(p, k, l), i, j) = \operatorname{entry}(p, i, j)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{snoc-col-type}}
 \emph{for every x, n, w, v, if n is in nn, then if w is in mat(n, 1, x), then if v is in x, then snoc-col(w, n, v) is in mat(succ(n), 1, x)}
 {\small\[
 \forall x, n \in \mathbb{N}, w \in \operatorname{mat}(n, 1, x), v \in x.\; (\operatorname{snoc\text{-}col}(w, n, v) \in \operatorname{mat}((n + 1), 1, x))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{snoc-col-last}}
 \emph{for every w, n, v, x, if n is in nn, then if w is in mat(n, 1, x), then if v is in x, then entry(snoc-col(w, n, v), succ(n), 1) equals v}
 {\small\[
 \forall w, n \in \mathbb{N}, v, x.\; ((w \in \operatorname{mat}(n, 1, x)) \Rightarrow ((v \in x) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}col}(w, n, v), (n + 1), 1) = v)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-snoc-col}}
 \emph{for every w, n, v, i, x, if n is in nn, then if w is in mat(n, 1, x), then if v is in x, then if i is in interval(1, n), then entry(snoc-col(w, n, v), i, 1) equals entry(w, i, 1)}
 {\small\[
 \forall w, n \in \mathbb{N}, v, i, x.\; ((w \in \operatorname{mat}(n, 1, x)) \Rightarrow ((v \in x) \Rightarrow ((i \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}col}(w, n, v), i, 1) = \operatorname{entry}(w, i, 1)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{snoc-row-type}}
 \emph{for every x, n, c, r, if n is in nn, then if c is in mat(1, n, x), then if r is in x, then snoc-row(c, n, r) is in mat(1, succ(n), x)}
 {\small\[
 \forall x, n \in \mathbb{N}, c \in \operatorname{mat}(1, n, x), r \in x.\; (\operatorname{snoc\text{-}row}(c, n, r) \in \operatorname{mat}(1, (n + 1), x))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{snoc-row-last}}
 \emph{for every c, n, r, x, if n is in nn, then if c is in mat(1, n, x), then if r is in x, then entry(snoc-row(c, n, r), 1, succ(n)) equals r}
 {\small\[
 \forall c, n \in \mathbb{N}, r, x.\; ((c \in \operatorname{mat}(1, n, x)) \Rightarrow ((r \in x) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}row}(c, n, r), 1, (n + 1)) = r)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-snoc-row}}
 \emph{for every c, n, r, j, x, if n is in nn, then if c is in mat(1, n, x), then if r is in x, then if j is in interval(1, n), then entry(snoc-row(c, n, r), 1, j) equals entry(c, 1, j)}
 {\small\[
 \forall c, n \in \mathbb{N}, r, j, x.\; ((c \in \operatorname{mat}(1, n, x)) \Rightarrow ((r \in x) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}row}(c, n, r), 1, j) = \operatorname{entry}(c, 1, j)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{The matrix unit and its column shift (Lemma 3.3)}
 
@@ -922,42 +922,42 @@
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}, k, l.\; (\operatorname{matunit}(a, n, k, l) \in \operatorname{mat}(n, n, \operatorname{carr}(a))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matunit-entry-k-row}}
 \emph{for every a, n, k, l, c, if a is a ring, then if n is in nn, then if k is in interval(1, n), then if c is in interval(1, n), then entry(matunit(a, n, k, l), k, c) equals if(c = l, one(a), zero(a))}
 {\small\[
 \forall a, n, k, l, c.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((k \in \operatorname{interval}(1, n)) \Rightarrow ((c \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{matunit}(a, n, k, l), k, c) = \left(\text{if }(c = l)\text{ then }\operatorname{one}(a)\text{ else }\operatorname{zero}(a)\right))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matunit-entry-off-row}}
 \emph{for every a, n, k, l, j, c, if a is a ring, then if n is in nn, then if j is in interval(1, n), then if c is in interval(1, n), then if j is not equal to k, then entry(matunit(a, n, k, l), j, c) equals zero(a)}
 {\small\[
 \forall a, n, k, l, j, c.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow ((c \in \operatorname{interval}(1, n)) \Rightarrow (\neg (j = k) \Rightarrow (\operatorname{entry}(\operatorname{matunit}(a, n, k, l), j, c) = \operatorname{zero}(a)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-matunit}}
 \emph{for every a, n, k, l, i, j, if a is a ring, then if n is in nn, then if i is in interval(1, n), then if j is in interval(1, n), then entry(matunit(a, n, k, l), i, j) equals if(i = k and j = l, one(a), zero(a))}
 {\small\[
 \forall a, n, k, l, i, j.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((i \in \operatorname{interval}(1, n)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{matunit}(a, n, k, l), i, j) = \left(\text{if }((i = k) \wedge (j = l))\text{ then }\operatorname{one}(a)\text{ else }\operatorname{zero}(a)\right))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matunit-summand-type}}
 \emph{for every ring a, for every m, n, p, k, l, i, c, if p is in mat(m, n, carr(a)), then if i is in interval(1, m), then if c is in interval(1, n), then vnb-lambda(j, interval(1, n), (mul(a))(entry(p, i, j), entry(matunit(a, n, k, l), j, c))) is in fun(interval(1, n), carr(ring-additive-ag(a)))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), k, l, i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; ((\lambda j \in \operatorname{interval}(1, n).\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(\operatorname{matunit}(a, n, k, l), j, c))) \in (\operatorname{interval}(1, n) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matunit-col-shift}}
 \emph{for every ring a, for every m, n, p, k, l, if p is in mat(m, n, carr(a)), then if k is in interval(1, n), then if l is in interval(1, n), then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, p, matunit(a, n, k, l)), i, c) equals if(c = l, entry(p, i, k), zero(a))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), k, l \in \operatorname{interval}(1, n).\; \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{matunit}(a, n, k, l)), i, c) = \left(\text{if }(c = l)\text{ then }\operatorname{entry}(p, i, k)\text{ else }\operatorname{zero}(a)\right)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). matmul-entry expands (P.E[k,l])\_\{ic\} to FINSUM\_j P\_\{ij\}.E[k,l]\_\{jc\}; off the index k the summand vanishes, so finsum-single-support collapses the sum, and an excluded-middle split on c=l finishes.
+\noindent\textbf{Asserted}. matmul-entry expands (P.E[k,l])\_\{ic\} to FINSUM\_j P\_\{ij\}.E[k,l]\_\{jc\}; off the index k the summand vanishes, so finsum-single-support collapses the sum, and an excluded-middle split on c=l finishes.
 
 \subsection{Elementary column operations (Prop 3.5)}
 
@@ -966,63 +966,63 @@
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}, k, l.\; (\operatorname{elem\text{-}f}(a, n, k, l) \in \operatorname{mat}(n, n, \operatorname{carr}(a))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{elem-g-type}}
 \emph{for every ring a, for every n, r, k, l, if n is in nn, then if r is in carr(a), then elem-g(a, n, r, k, l) is in mat(n, n, carr(a))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}, r \in \operatorname{carr}(a), k, l.\; (\operatorname{elem\text{-}g}(a, n, r, k, l) \in \operatorname{mat}(n, n, \operatorname{carr}(a))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{elem-h-type}}
 \emph{for every ring a, for every n, r, k, if n is in nn, then if r is in carr(a), then elem-h(a, n, r, k) is in mat(n, n, carr(a))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}, r \in \operatorname{carr}(a), k.\; (\operatorname{elem\text{-}h}(a, n, r, k) \in \operatorname{mat}(n, n, \operatorname{carr}(a))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{elem-f-action}}
 \emph{for every ring a, for every m, n, p, k, l, if p is in mat(m, n, carr(a)), then if k is in interval(1, n), then if l is in interval(1, n), then if k is not equal to l, then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, p, elem-f(a, n, k, l)), i, c) equals if(c = k, entry(p, i, l), if(c = l, entry(p, i, k), entry(p, i, c)))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), k, l \in \operatorname{interval}(1, n).\; (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{elem\text{-}f}(a, n, k, l)), i, c) = \left(\text{if }(c = k)\text{ then }\operatorname{entry}(p, i, l)\text{ else }\left(\text{if }(c = l)\text{ then }\operatorname{entry}(p, i, k)\text{ else }\operatorname{entry}(p, i, c)\right)\right))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Right-multiplication by F[k,l] permutes columns k and l: a three-way column split, each branch a single-support finsum collapse of the transposition matrix.
+\noindent\textbf{Asserted}. Right-multiplication by F[k,l] permutes columns k and l: a three-way column split, each branch a single-support finsum collapse of the transposition matrix.
 
 \subsubsection*{\texttt{elem-g-action}}
 \emph{for every ring a, for every m, n, p, r, k, l, if p is in mat(m, n, carr(a)), then if r is in carr(a), then if k is in interval(1, n), then if l is in interval(1, n), then if k is not equal to l, then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, p, elem-g(a, n, r, k, l)), i, c) equals if(c = l, (add(a))(entry(p, i, l), (mul(a))(entry(p, i, k), r)), entry(p, i, c))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{carr}(a), k, l \in \operatorname{interval}(1, n).\; (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{elem\text{-}g}(a, n, r, k, l)), i, c) = \left(\text{if }(c = l)\text{ then }\operatorname{add}(a)(\operatorname{entry}(p, i, l), \operatorname{mul}(a)(\operatorname{entry}(p, i, k), r))\text{ else }\operatorname{entry}(p, i, c)\right))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). The l-column of G = I + r.E[k,l] has TWO supports (the diagonal l and the r-slot k), so a two-point finsum split gives P\_\{il\} + P\_\{ik\}.r; every other column is a single-support identity column.
+\noindent\textbf{Asserted}. The l-column of G = I + r.E[k,l] has TWO supports (the diagonal l and the r-slot k), so a two-point finsum split gives P\_\{il\} + P\_\{ik\}.r; every other column is a single-support identity column.
 
 \subsubsection*{\texttt{elem-h-action}}
 \emph{for every ring a, for every m, n, p, r, k, if p is in mat(m, n, carr(a)), then if r is in carr(a), then if k is in interval(1, n), then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, p, elem-h(a, n, r, k)), i, c) equals if(c = k, (mul(a))(entry(p, i, k), r), entry(p, i, c))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{carr}(a), k \in \operatorname{interval}(1, n).\; \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{elem\text{-}h}(a, n, r, k)), i, c) = \left(\text{if }(c = k)\text{ then }\operatorname{mul}(a)(\operatorname{entry}(p, i, k), r)\text{ else }\operatorname{entry}(p, i, c)\right)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). H[r,k] scales column k by r: a single-support finsum collapse at the diagonal, then a case split on c=k.
+\noindent\textbf{Asserted}. H[r,k] scales column k by r: a single-support finsum collapse at the diagonal, then a case split on c=k.
 
 \subsubsection*{\texttt{entry-of-elem-f}}
 \emph{for every a, n, k, l, i, j, if a is a ring, then if n is in nn, then if i is in interval(1, n), then if j is in interval(1, n), then entry(elem-f(a, n, k, l), i, j) equals if(i = k and j = l or i = l and j = k or i = j and not(i = k) and not(i = l), one(a), zero(a))}
 {\small\[
 \forall a, n, k, l, i, j.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((i \in \operatorname{interval}(1, n)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{elem\text{-}f}(a, n, k, l), i, j) = \left(\text{if }(((i = k) \wedge (j = l)) \vee (((i = l) \wedge (j = k)) \vee ((i = j) \wedge (\neg (i = k) \wedge \neg (i = l)))))\text{ then }\operatorname{one}(a)\text{ else }\operatorname{zero}(a)\right))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-elem-g}}
 \emph{for every a, n, r, k, l, i, j, if a is a ring, then if n is in nn, then if r is in carr(a), then if i is in interval(1, n), then if j is in interval(1, n), then entry(elem-g(a, n, r, k, l), i, j) equals if(i = j, one(a), if(i = k and j = l, r, zero(a)))}
 {\small\[
 \forall a, n, r, k, l, i, j.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((r \in \operatorname{carr}(a)) \Rightarrow ((i \in \operatorname{interval}(1, n)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{elem\text{-}g}(a, n, r, k, l), i, j) = \left(\text{if }(i = j)\text{ then }\operatorname{one}(a)\text{ else }\left(\text{if }((i = k) \wedge (j = l))\text{ then }r\text{ else }\operatorname{zero}(a)\right)\right)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-elem-h}}
 \emph{for every a, n, r, k, i, j, if a is a ring, then if n is in nn, then if r is in carr(a), then if i is in interval(1, n), then if j is in interval(1, n), then entry(elem-h(a, n, r, k), i, j) equals if(i = j, if(i = k, r, one(a)), zero(a))}
 {\small\[
 \forall a, n, r, k, i, j.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((r \in \operatorname{carr}(a)) \Rightarrow ((i \in \operatorname{interval}(1, n)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{elem\text{-}h}(a, n, r, k), i, j) = \left(\text{if }(i = j)\text{ then }\left(\text{if }(i = k)\text{ then }r\text{ else }\operatorname{one}(a)\right)\text{ else }\operatorname{zero}(a)\right)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Elementary row operations}
 
@@ -1031,21 +1031,21 @@
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), k, l \in \operatorname{interval}(1, m).\; (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, \operatorname{elem\text{-}f}(a, m, k, l), p), i, c) = \left(\text{if }(i = k)\text{ then }\operatorname{entry}(p, l, c)\text{ else }\left(\text{if }(i = l)\text{ then }\operatorname{entry}(p, k, c)\text{ else }\operatorname{entry}(p, i, c)\right)\right))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{elem-g-row-action}}
 \emph{for every ring a, for every m, n, p, r, k, l, if p is in mat(m, n, carr(a)), then if r is in carr(a), then if k is in interval(1, m), then if l is in interval(1, m), then if k is not equal to l, then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, elem-g(a, m, r, k, l), p), i, c) equals if(i = k, (add(a))(entry(p, k, c), (mul(a))(r, entry(p, l, c))), entry(p, i, c))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{carr}(a), k, l \in \operatorname{interval}(1, m).\; (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, \operatorname{elem\text{-}g}(a, m, r, k, l), p), i, c) = \left(\text{if }(i = k)\text{ then }\operatorname{add}(a)(\operatorname{entry}(p, k, c), \operatorname{mul}(a)(r, \operatorname{entry}(p, l, c)))\text{ else }\operatorname{entry}(p, i, c)\right))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{elem-h-row-action}}
 \emph{for every ring a, for every m, n, p, r, k, if p is in mat(m, n, carr(a)), then if r is in carr(a), then if k is in interval(1, m), then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, elem-h(a, m, r, k), p), i, c) equals if(i = k, (mul(a))(r, entry(p, k, c)), entry(p, i, c))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{carr}(a), k \in \operatorname{interval}(1, m).\; \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, \operatorname{elem\text{-}h}(a, m, r, k), p), i, c) = \left(\text{if }(i = k)\text{ then }\operatorname{mul}(a)(r, \operatorname{entry}(p, k, c))\text{ else }\operatorname{entry}(p, i, c)\right)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Elementary inverses (Cor 3.6)}
 
@@ -1054,35 +1054,35 @@
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}, k, l \in \operatorname{interval}(1, n).\; (\neg (k = l) \Rightarrow (\operatorname{matmul}(a, \operatorname{elem\text{-}f}(a, n, k, l), \operatorname{elem\text{-}f}(a, n, l, k)) = \operatorname{identmat}(a, n))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). F[k,l] is its own inverse: composing its column-swap action (Prop 3.5) with F[l,k] swaps the columns back, matching the identity entrywise.
+\noindent\textbf{Asserted}. F[k,l] is its own inverse: composing its column-swap action (Prop 3.5) with F[l,k] swaps the columns back, matching the identity entrywise.
 
 \subsubsection*{\texttt{elem-g-inverse}}
 \emph{for every ring a, for every n, r, k, l, if n is in nn, then if r is in carr(a), then if k is in interval(1, n), then if l is in interval(1, n), then if k is not equal to l, then matmul(a, elem-g(a, n, r, k, l), elem-g(a, n, (neg(a))(r), k, l)) equals identmat(a, n)}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}, r \in \operatorname{carr}(a), k, l \in \operatorname{interval}(1, n).\; (\neg (k = l) \Rightarrow (\operatorname{matmul}(a, \operatorname{elem\text{-}g}(a, n, r, k, l), \operatorname{elem\text{-}g}(a, n, \operatorname{neg}(a)(r), k, l)) = \operatorname{identmat}(a, n))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). G[r,k,l]\textasciicircum{}\{-1\} = G[-r,k,l]: on column l the added term P\_\{ik\}.(-r) cancels the r via r + (-r) = 0; every other column is unchanged.
+\noindent\textbf{Asserted}. G[r,k,l]\textasciicircum{}\{-1\} = G[-r,k,l]: on column l the added term P\_\{ik\}.(-r) cancels the r via r + (-r) = 0; every other column is unchanged.
 
 \subsubsection*{\texttt{elem-h-inverse}}
 \emph{for every ring a, for every n, r, s, k, if n is in nn, then if r is in carr(a), then if s is in carr(a), then if (mul(a))(r, s) equals one(a), then if k is in interval(1, n), then matmul(a, elem-h(a, n, r, k), elem-h(a, n, s, k)) equals identmat(a, n)}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}, r, s \in \operatorname{carr}(a), k.\; ((\operatorname{mul}(a)(r, s) = \operatorname{one}(a)) \Rightarrow ((k \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{matmul}(a, \operatorname{elem\text{-}h}(a, n, r, k), \operatorname{elem\text{-}h}(a, n, s, k)) = \operatorname{identmat}(a, n)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). H[r,k]\textasciicircum{}\{-1\} = H[r\textasciicircum{}\{-1\},k]: the (k,k) diagonal entry becomes r.s = 1 by the unit hypothesis; the rest of the diagonal stays 1 and off-diagonal 0.
+\noindent\textbf{Asserted}. H[r,k]\textasciicircum{}\{-1\} = H[r\textasciicircum{}\{-1\},k]: the (k,k) diagonal entry becomes r.s = 1 by the unit hypothesis; the rest of the diagonal stays 1 and off-diagonal 0.
 
 \subsubsection*{\texttt{elem-f-invertible}}
 \emph{for every ring a, for every n, k, l, if n is in nn, then if k is in interval(1, n), then if l is in interval(1, n), then if k is not equal to l, then elem-f(a, n, k, l) is an invertible n-by-n matrix over a}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}, k, l \in \operatorname{interval}(1, n).\; (\neg (k = l) \Rightarrow \operatorname{is\text{-}invertible\text{-}mat}(a, n, \operatorname{elem\text{-}f}(a, n, k, l))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{elem-g-invertible}}
 \emph{for every ring a, for every n, r, k, l, if n is in nn, then if r is in carr(a), then if k is in interval(1, n), then if l is in interval(1, n), then if k is not equal to l, then elem-g(a, n, r, k, l) is an invertible n-by-n matrix over a}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}, r \in \operatorname{carr}(a), k, l \in \operatorname{interval}(1, n).\; (\neg (k = l) \Rightarrow \operatorname{is\text{-}invertible\text{-}mat}(a, n, \operatorname{elem\text{-}g}(a, n, r, k, l))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Matrix equivalence}
 
@@ -1098,35 +1098,35 @@
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, c \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; \operatorname{mat\text{-}equiv}(a, m, n, c, c))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-equiv-trans}}
 \emph{for every ring a, for every m, n, c, d, e, if c is in mat(m, n, carr(a)), then if c and d are equivalent m-by-n matrices over a, then if d and e are equivalent m-by-n matrices over a, then c and e are equivalent m-by-n matrices over a}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, c \in \operatorname{mat}(m, n, \operatorname{carr}(a)), d, e.\; (\operatorname{mat\text{-}equiv}(a, m, n, c, d) \Rightarrow (\operatorname{mat\text{-}equiv}(a, m, n, d, e) \Rightarrow \operatorname{mat\text{-}equiv}(a, m, n, c, e))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-equiv-left-mult}}
 \emph{for every ring a, for every m, n, c, u, if c is in mat(m, n, carr(a)), then if u is an invertible m-by-m matrix over a, then c and matmul(a, u, c) are equivalent m-by-n matrices over a}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, c \in \operatorname{mat}(m, n, \operatorname{carr}(a)), u.\; (\operatorname{is\text{-}invertible\text{-}mat}(a, m, u) \Rightarrow \operatorname{mat\text{-}equiv}(a, m, n, c, \operatorname{matmul}(a, u, c))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-equiv-right-mult}}
 \emph{for every ring a, for every m, n, c, v, if c is in mat(m, n, carr(a)), then if v is an invertible n-by-n matrix over a, then c and matmul(a, c, v) are equivalent m-by-n matrices over a}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, c \in \operatorname{mat}(m, n, \operatorname{carr}(a)), v.\; (\operatorname{is\text{-}invertible\text{-}mat}(a, n, v) \Rightarrow \operatorname{mat\text{-}equiv}(a, m, n, c, \operatorname{matmul}(a, c, v))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-equiv-target-is-mat}}
 \emph{for every ring a, for every m, n, c, d, if c is in mat(m, n, carr(a)), then if c and d are equivalent m-by-n matrices over a, then d is in mat(m, n, carr(a))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, c \in \operatorname{mat}(m, n, \operatorname{carr}(a)), d.\; (\operatorname{mat\text{-}equiv}(a, m, n, c, d) \Rightarrow (d \in \operatorname{mat}(m, n, \operatorname{carr}(a)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Matrices acting on sequences of module elements}
 
@@ -1135,112 +1135,112 @@
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, q, p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md})).\; (((n = 0) \Rightarrow ((m = 0) \vee (q = 0))) \Rightarrow (\operatorname{matact}(\mathit{md}, p, u) \in \operatorname{mat}(m, q, \operatorname{vec}(\mathit{md})))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matact-entry}}
 \emph{for every module md, for every m, n, q, p, u, if p is in mat(m, n, carr(scal(md))), then if u is in mat(n, q, vec(md)), then if 1 is at most n, then for every i in interval(1, m), c in interval(1, q), entry(matact(md, p, u), i, c) equals finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, n))}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, q, p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md})).\; ((1 \leq n) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, q).\; (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, u), i, c) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{act}(\mathit{md})(\operatorname{entry}(p, i, j), \operatorname{entry}(u, j, c))), \operatorname{interval}(1, n)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matact-identmat}}
 \emph{for every module md, for every n, q, u in mat(n, q, vec(md)), matact(md, identmat(scal(md), n), u) equals u}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, q, u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md})).\; (\operatorname{matact}(\mathit{md}, \operatorname{identmat}(\operatorname{scal}(\mathit{md}), n), u) = u))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matact-assoc}}
 \emph{for every module md, for every m, n, k, l, p, q, u, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if if n equals 0, then m equals 0 or k equals 0 and l equals 0, then if if k equals 0, then l equals 0 or n equals 0 and m equals 0, then matact(md, matmul(scal(md), p, q), u) equals matact(md, p, matact(md, q, u))}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, k, l, p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md})).\; (((n = 0) \Rightarrow ((m = 0) \vee ((k = 0) \wedge (l = 0)))) \Rightarrow (((k = 0) \Rightarrow ((l = 0) \vee ((n = 0) \wedge (m = 0)))) \Rightarrow (\operatorname{matact}(\mathit{md}, \operatorname{matmul}(\operatorname{scal}(\mathit{md}), p, q), u) = \operatorname{matact}(\mathit{md}, p, \operatorname{matact}(\mathit{md}, q, u))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{lincomb-row-add}}
 \emph{for every module md, for every n, c1, c2, u, if c1 is in mat(1, n, carr(scal(md))), then if c2 is in mat(1, n, carr(scal(md))), then if u is in mat(n, 1, vec(md)), then lincomb(md, n, matadd(scal(md), c1, c2), u) equals (vadd(md))(lincomb(md, n, c1, u), lincomb(md, n, c2, u))}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, c_{1}, c_{2} \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, \operatorname{matadd}(\operatorname{scal}(\mathit{md}), c_{1}, c_{2}), u) = \operatorname{vadd}(\mathit{md})(\operatorname{lincomb}(\mathit{md}, n, c_{1}, u), \operatorname{lincomb}(\mathit{md}, n, c_{2}, u))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{lincomb-row-scale}}
 \emph{for every module md, for every n, r, c, u, if r is in carr(scal(md)), then if c is in mat(1, n, carr(scal(md))), then if u is in mat(n, 1, vec(md)), then lincomb(md, n, matscale(scal(md), r, c), u) equals (act(md))(r, lincomb(md, n, c, u))}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, r \in \operatorname{carr}(\operatorname{scal}(\mathit{md})), c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, \operatorname{matscale}(\operatorname{scal}(\mathit{md}), r, c), u) = \operatorname{act}(\mathit{md})(r, \operatorname{lincomb}(\mathit{md}, n, c, u))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{lincomb-row-peel}}
 \emph{for every module md, for every n in nn, c in mat(1, succ(n), carr(scal(md))), u in mat(succ(n), 1, vec(md)), lincomb(md, succ(n), c, u) equals (vadd(md))(lincomb(md, n, block(c, 1, n), block(u, n, 1)), (act(md))(entry(c, 1, succ(n)), entry(u, succ(n), 1)))}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n \in \mathbb{N}, c \in \operatorname{mat}(1, (n + 1), \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}((n + 1), 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, (n + 1), c, u) = \operatorname{vadd}(\mathit{md})(\operatorname{lincomb}(\mathit{md}, n, \operatorname{block}(c, 1, n), \operatorname{block}(u, n, 1)), \operatorname{act}(\mathit{md})(\operatorname{entry}(c, 1, (n + 1)), \operatorname{entry}(u, (n + 1), 1)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{lincomb-snoc}}
 \emph{for every module md, for every n in nn, c in mat(1, n, carr(scal(md))), u in mat(n, 1, vec(md)), r in carr(scal(md)), x in vec(md), lincomb(md, succ(n), snoc-row(c, n, r), snoc-col(u, n, x)) equals (vadd(md))(lincomb(md, n, c, u), (act(md))(r, x))}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n \in \mathbb{N}, c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})), r \in \operatorname{carr}(\operatorname{scal}(\mathit{md})), x \in \operatorname{vec}(\mathit{md}).\; (\operatorname{lincomb}(\mathit{md}, (n + 1), \operatorname{snoc\text{-}row}(c, n, r), \operatorname{snoc\text{-}col}(u, n, x)) = \operatorname{vadd}(\mathit{md})(\operatorname{lincomb}(\mathit{md}, n, c, u), \operatorname{act}(\mathit{md})(r, x))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{lincomb-unitrow}}
 \emph{for every module md, for every n, i, u in mat(n, 1, vec(md)), if i is in interval(1, n), then lincomb(md, n, unitrow(scal(md), n, i), u) equals entry(u, i, 1)}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, i \in \operatorname{interval}(1, n), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, \operatorname{unitrow}(\operatorname{scal}(\mathit{md}), n, i), u) = \operatorname{entry}(u, i, 1)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{lincomb-zerorow}}
 \emph{for every module md, for every n, u in mat(n, 1, vec(md)), lincomb(md, n, zeromat(scal(md), 1, n), u) equals vzero(md)}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, \operatorname{zeromat}(\operatorname{scal}(\mathit{md}), 1, n), u) = \operatorname{vzero}(\mathit{md})))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{lincomb-empty}}
 \emph{for every module md, for every c, u, lincomb(md, 0, c, u) equals vzero(md)}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall c, u.\; (\operatorname{lincomb}(\mathit{md}, 0, c, u) = \operatorname{vzero}(\mathit{md})))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{lincomb-unfold}}
 \emph{for every md, n, c, u, lincomb(md, n, c, u) is identical to finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (act(md))(entry(c, 1, j), entry(u, j, 1))), interval(1, n))}
 {\small\[
 \forall \mathit{md}, n, c, u.\; (\operatorname{lincomb}(\mathit{md}, n, c, u) \simeq \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{act}(\mathit{md})(\operatorname{entry}(c, 1, j), \operatorname{entry}(u, j, 1))), \operatorname{interval}(1, n)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{lincomb-type}}
 \emph{for every module md, for every n, c, u, if c is in mat(1, n, carr(scal(md))), then if u is in mat(n, 1, vec(md)), then lincomb(md, n, c, u) is in vec(md)}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, c, u) \in \operatorname{vec}(\mathit{md})))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matact-lincomb}}
 \emph{for every module md, for every n, c, u, if c is in mat(1, n, carr(scal(md))), then if u is in mat(n, 1, vec(md)), then if 1 is at most n, then entry(matact(md, c, u), 1, 1) equals lincomb(md, n, c, u)}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; ((1 \leq n) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, c, u), 1, 1) = \operatorname{lincomb}(\mathit{md}, n, c, u))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matact-triple-left}}
 \emph{for every module md, for every m, n, k, l, p, q, u, row, col, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if 1 is at most n, then if 1 is at most k, then if row is in interval(1, m), then if col is in interval(1, l), then entry(matact(md, matmul(scal(md), p, q), u), row, col) equals finsum(module-vector-ag(md), vnb-lambda(c, interval(1, k), finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, n))), interval(1, k))}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, k, l, p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md})), \mathit{row}, \mathit{col}.\; ((1 \leq n) \Rightarrow ((1 \leq k) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{matmul}(\operatorname{scal}(\mathit{md}), p, q), u), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c \in \operatorname{interval}(1, k).\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; (\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))(\langle c, j \rangle)), \operatorname{interval}(1, n))), \operatorname{interval}(1, k))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matact-triple-right}}
 \emph{for every module md, for every m, n, k, l, p, q, u, row, col, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if 1 is at most n, then if 1 is at most k, then if row is in interval(1, m), then if col is in interval(1, l), then entry(matact(md, p, matact(md, q, u)), row, col) equals finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), finsum(module-vector-ag(md), vnb-lambda(c, interval(1, k), (vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, k))), interval(1, n))}
 {\small\[
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, k, l, p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md})), \mathit{row}, \mathit{col}.\; ((1 \leq n) \Rightarrow ((1 \leq k) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, \operatorname{matact}(\mathit{md}, q, u)), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c \in \operatorname{interval}(1, k).\; (\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))(\langle c, j \rangle)), \operatorname{interval}(1, k))), \operatorname{interval}(1, n))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Determinants: minors and cofactor expansion}
 
@@ -1255,7 +1255,7 @@
 {\small\[
 \forall r, s, p, q, n.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((p \in \mathbb{N}) \Rightarrow ((q \in \mathbb{N}) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((s \in \operatorname{mat}((n + 1), (n + 1), \operatorname{carr}(r))) \Rightarrow (\operatorname{minor}(s, p, q, n) \in \operatorname{mat}(n, n, \operatorname{carr}(r))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{det-zero}}
 \emph{for every r, a, det(r, 0, a) is identical to one(r)}
@@ -1276,77 +1276,77 @@
 {\small\[
 \forall r, n, a.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((a \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow (\operatorname{det}(r, n, a) \in \operatorname{carr}(r)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{det-1x1}}
 \emph{for every r, a, if r is a ring, then if a is in mat(1, 1, carr(r)), then det(r, 1, a) equals entry(a, 1, 1)}
 {\small\[
 \forall r, a.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((a \in \operatorname{mat}(1, 1, \operatorname{carr}(r))) \Rightarrow (\operatorname{det}(r, 1, a) = \operatorname{entry}(a, 1, 1))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{det-2x2}}
 \emph{for every r, a, if r is a ring, then if a is in mat(2, 2, carr(r)), then det(r, 2, a) equals (add(r))((mul(r))(entry(a, 1, 1), entry(a, 2, 2)), (neg(r))((mul(r))(entry(a, 1, 2), entry(a, 2, 1))))}
 {\small\[
 \forall r, a.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((a \in \operatorname{mat}(2, 2, \operatorname{carr}(r))) \Rightarrow (\operatorname{det}(r, 2, a) = \operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{entry}(a, 1, 1), \operatorname{entry}(a, 2, 2)), \operatorname{neg}(r)(\operatorname{mul}(r)(\operatorname{entry}(a, 1, 2), \operatorname{entry}(a, 2, 1)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{det-identity}}
 \emph{for every r, n, if r is a ring, then if n is in nn, then det(r, n, one(mat-ring(r, n))) equals one(r)}
 {\small\[
 \forall r, n.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow (\operatorname{det}(r, n, \operatorname{one}(\operatorname{mat\text{-}ring}(r, n))) = \operatorname{one}(r))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{det-row-linear}}
 \emph{for every r, n, a, b, c, p, sc, if r is a commutative ring, then if n is in nn, then if a is in mat(n, n, carr(r)), then if b is in mat(n, n, carr(r)), then if c is in mat(n, n, carr(r)), then if p is in interval(1, n), then if sc is in carr(r), then if for every dri\_ in interval(1, n), if dri\_ is not equal to p, then for every drk\_ in interval(1, n), entry(b, dri\_, drk\_) equals entry(a, dri\_, drk\_), then if for every dri\_ in interval(1, n), if dri\_ is not equal to p, then for every drk\_ in interval(1, n), entry(c, dri\_, drk\_) equals entry(a, dri\_, drk\_), then if for every drk\_ in interval(1, n), entry(c, p, drk\_) equals (add(r))((mul(r))(sc, entry(a, p, drk\_)), entry(b, p, drk\_)), then det(r, n, c) equals (add(r))((mul(r))(sc, det(r, n, a)), det(r, n, b))}
 {\small\[
 \forall r, n, a, b, c, p, \mathit{sc}.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((a \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow ((b \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow ((c \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow ((p \in \operatorname{interval}(1, n)) \Rightarrow ((\mathit{sc} \in \operatorname{carr}(r)) \Rightarrow (\forall \operatorname{dri\_} \in \operatorname{interval}(1, n).\; (\neg (\operatorname{dri\_} = p) \Rightarrow \forall \operatorname{drk\_} \in \operatorname{interval}(1, n).\; (\operatorname{entry}(b, \operatorname{dri\_}, \operatorname{drk\_}) = \operatorname{entry}(a, \operatorname{dri\_}, \operatorname{drk\_}))) \Rightarrow (\forall \operatorname{dri\_} \in \operatorname{interval}(1, n).\; (\neg (\operatorname{dri\_} = p) \Rightarrow \forall \operatorname{drk\_} \in \operatorname{interval}(1, n).\; (\operatorname{entry}(c, \operatorname{dri\_}, \operatorname{drk\_}) = \operatorname{entry}(a, \operatorname{dri\_}, \operatorname{drk\_}))) \Rightarrow (\forall \operatorname{drk\_} \in \operatorname{interval}(1, n).\; (\operatorname{entry}(c, p, \operatorname{drk\_}) = \operatorname{add}(r)(\operatorname{mul}(r)(\mathit{sc}, \operatorname{entry}(a, p, \operatorname{drk\_})), \operatorname{entry}(b, p, \operatorname{drk\_}))) \Rightarrow (\operatorname{det}(r, n, c) = \operatorname{add}(r)(\operatorname{mul}(r)(\mathit{sc}, \operatorname{det}(r, n, a)), \operatorname{det}(r, n, b)))))))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{det-swap-rows}}
 \emph{for every r, n, a, b, p, q, if r is a commutative ring, then if n is in nn, then if a is in mat(n, n, carr(r)), then if b is in mat(n, n, carr(r)), then if p is in interval(1, n), then if q is in interval(1, n), then if p is not equal to q, then if for every dri\_ in interval(1, n), if dri\_ is not equal to p, then if dri\_ is not equal to q, then for every drk\_ in interval(1, n), entry(b, dri\_, drk\_) equals entry(a, dri\_, drk\_), then if for every drk\_ in interval(1, n), entry(b, p, drk\_) equals entry(a, q, drk\_), then if for every drk\_ in interval(1, n), entry(b, q, drk\_) equals entry(a, p, drk\_), then det(r, n, b) equals (neg(r))(det(r, n, a))}
 {\small\[
 \forall r, n, a, b, p, q.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((a \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow ((b \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow ((p \in \operatorname{interval}(1, n)) \Rightarrow ((q \in \operatorname{interval}(1, n)) \Rightarrow (\neg (p = q) \Rightarrow (\forall \operatorname{dri\_} \in \operatorname{interval}(1, n).\; (\neg (\operatorname{dri\_} = p) \Rightarrow (\neg (\operatorname{dri\_} = q) \Rightarrow \forall \operatorname{drk\_} \in \operatorname{interval}(1, n).\; (\operatorname{entry}(b, \operatorname{dri\_}, \operatorname{drk\_}) = \operatorname{entry}(a, \operatorname{dri\_}, \operatorname{drk\_})))) \Rightarrow (\forall \operatorname{drk\_} \in \operatorname{interval}(1, n).\; (\operatorname{entry}(b, p, \operatorname{drk\_}) = \operatorname{entry}(a, q, \operatorname{drk\_})) \Rightarrow (\forall \operatorname{drk\_} \in \operatorname{interval}(1, n).\; (\operatorname{entry}(b, q, \operatorname{drk\_}) = \operatorname{entry}(a, p, \operatorname{drk\_})) \Rightarrow (\operatorname{det}(r, n, b) = \operatorname{neg}(r)(\operatorname{det}(r, n, a)))))))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{det-alternating-rows}}
 \emph{for every r, n, a, p, q, if r is a commutative ring, then if n is in nn, then if a is in mat(n, n, carr(r)), then if p is in interval(1, n), then if q is in interval(1, n), then if p is not equal to q, then if for every k in interval(1, n), entry(a, p, k) equals entry(a, q, k), then det(r, n, a) equals zero(r)}
 {\small\[
 \forall r, n, a, p, q.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((a \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow ((p \in \operatorname{interval}(1, n)) \Rightarrow ((q \in \operatorname{interval}(1, n)) \Rightarrow (\neg (p = q) \Rightarrow (\forall k \in \operatorname{interval}(1, n).\; (\operatorname{entry}(a, p, k) = \operatorname{entry}(a, q, k)) \Rightarrow (\operatorname{det}(r, n, a) = \operatorname{zero}(r)))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{det-expand-row}}
 \emph{for every r, n, a, i, if r is a commutative ring, then if n is in nn, then if a is in mat(succ(n), succ(n), carr(r)), then if i is in interval(1, succ(n)), then det(r, succ(n), a) equals finsum(ring-additive-ag(r), vnb-lambda(dxj\_, interval(1, succ(n)), (mul(r))(mpow(ring-multiplicative-monoid(r), (neg(r))(one(r)), i + dxj\_), (mul(r))(entry(a, i, dxj\_), det(r, n, minor(a, i, dxj\_, n))))), interval(1, succ(n)))}
 {\small\[
 \forall r, n, a, i.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((a \in \operatorname{mat}((n + 1), (n + 1), \operatorname{carr}(r))) \Rightarrow ((i \in \operatorname{interval}(1, (n + 1))) \Rightarrow (\operatorname{det}(r, (n + 1), a) = \operatorname{finsum}(\operatorname{ring\text{-}additive\text{-}ag}(r), (\lambda \operatorname{dxj\_} \in \operatorname{interval}(1, (n + 1)).\; \operatorname{mul}(r)(\operatorname{mpow}(\operatorname{ring\text{-}multiplicative\text{-}monoid}(r), \operatorname{neg}(r)(\operatorname{one}(r)), (i + \operatorname{dxj\_})), \operatorname{mul}(r)(\operatorname{entry}(a, i, \operatorname{dxj\_}), \operatorname{det}(r, n, \operatorname{minor}(a, i, \operatorname{dxj\_}, n))))), \operatorname{interval}(1, (n + 1))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{det-alternating-form}}
 \emph{for every r, n, d, a, if r is a commutative ring, then if n is in nn, then if d is in fun(mat(n, n, carr(r)), carr(r)), then if for every dfa\_, dfb\_, dfc\_, dfp\_, dfs\_, if dfa\_ is in mat(n, n, carr(r)), then if dfb\_ is in mat(n, n, carr(r)), then if dfc\_ is in mat(n, n, carr(r)), then if dfp\_ is in interval(1, n), then if dfs\_ is in carr(r), then if for every dri\_ in interval(1, n), if dri\_ is not equal to dfp\_, then for every drk\_ in interval(1, n), entry(dfb\_, dri\_, drk\_) equals entry(dfa\_, dri\_, drk\_), then if for every dri\_ in interval(1, n), if dri\_ is not equal to dfp\_, then for every drk\_ in interval(1, n), entry(dfc\_, dri\_, drk\_) equals entry(dfa\_, dri\_, drk\_), then if for every drk\_ in interval(1, n), entry(dfc\_, dfp\_, drk\_) equals (add(r))((mul(r))(dfs\_, entry(dfa\_, dfp\_, drk\_)), entry(dfb\_, dfp\_, drk\_)), then d(dfc\_) equals (add(r))((mul(r))(dfs\_, d(dfa\_)), d(dfb\_)), then if for every dfa\_, dfp\_, dfq\_, if dfa\_ is in mat(n, n, carr(r)), then if dfp\_ is in interval(1, n), then if dfq\_ is in interval(1, n), then if dfp\_ is not equal to dfq\_, then if for every drk\_ in interval(1, n), entry(dfa\_, dfp\_, drk\_) equals entry(dfa\_, dfq\_, drk\_), then d(dfa\_) equals zero(r), then if a is in mat(n, n, carr(r)), then d(a) equals (mul(r))(det(r, n, a), d(identmat(r, n)))}
 {\small\[
 \forall r, n, d, a.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((d \in (\operatorname{mat}(n, n, \operatorname{carr}(r)) \to \operatorname{carr}(r))) \Rightarrow (\forall \operatorname{dfa\_}, \operatorname{dfb\_}, \operatorname{dfc\_} \in \operatorname{mat}(n, n, \operatorname{carr}(r)), \operatorname{dfp\_} \in \operatorname{interval}(1, n), \operatorname{dfs\_} \in \operatorname{carr}(r).\; (\forall \operatorname{dri\_} \in \operatorname{interval}(1, n).\; (\neg (\operatorname{dri\_} = \operatorname{dfp\_}) \Rightarrow \forall \operatorname{drk\_} \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{dfb\_}, \operatorname{dri\_}, \operatorname{drk\_}) = \operatorname{entry}(\operatorname{dfa\_}, \operatorname{dri\_}, \operatorname{drk\_}))) \Rightarrow (\forall \operatorname{dri\_} \in \operatorname{interval}(1, n).\; (\neg (\operatorname{dri\_} = \operatorname{dfp\_}) \Rightarrow \forall \operatorname{drk\_} \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{dfc\_}, \operatorname{dri\_}, \operatorname{drk\_}) = \operatorname{entry}(\operatorname{dfa\_}, \operatorname{dri\_}, \operatorname{drk\_}))) \Rightarrow (\forall \operatorname{drk\_} \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{dfc\_}, \operatorname{dfp\_}, \operatorname{drk\_}) = \operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{dfs\_}, \operatorname{entry}(\operatorname{dfa\_}, \operatorname{dfp\_}, \operatorname{drk\_})), \operatorname{entry}(\operatorname{dfb\_}, \operatorname{dfp\_}, \operatorname{drk\_}))) \Rightarrow (d(\operatorname{dfc\_}) = \operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{dfs\_}, d(\operatorname{dfa\_})), d(\operatorname{dfb\_})))))) \Rightarrow (\forall \operatorname{dfa\_} \in \operatorname{mat}(n, n, \operatorname{carr}(r)), \operatorname{dfp\_}, \operatorname{dfq\_} \in \operatorname{interval}(1, n).\; (\neg (\operatorname{dfp\_} = \operatorname{dfq\_}) \Rightarrow (\forall \operatorname{drk\_} \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{dfa\_}, \operatorname{dfp\_}, \operatorname{drk\_}) = \operatorname{entry}(\operatorname{dfa\_}, \operatorname{dfq\_}, \operatorname{drk\_})) \Rightarrow (d(\operatorname{dfa\_}) = \operatorname{zero}(r)))) \Rightarrow ((a \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow (d(a) = \operatorname{mul}(r)(\operatorname{det}(r, n, a), d(\operatorname{identmat}(r, n))))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{det-multiplicative}}
 \emph{for every r, n, p, q, if r is a commutative ring, then if n is in nn, then if p is in mat(n, n, carr(r)), then if q is in mat(n, n, carr(r)), then det(r, n, matmul(r, p, q)) equals (mul(r))(det(r, n, p), det(r, n, q))}
 {\small\[
 \forall r, n, p, q.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((p \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow ((q \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow (\operatorname{det}(r, n, \operatorname{matmul}(r, p, q)) = \operatorname{mul}(r)(\operatorname{det}(r, n, p), \operatorname{det}(r, n, q)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{det-mul-invertible}}
 \emph{for every r, n, a, v, if r is a field, then if n is in nn, then if a is in mat(n, n, carr(r)), then if v is an invertible n-by-n matrix over r, then det(r, n, matmul(r, a, v)) equals (mul(r))(det(r, n, a), det(r, n, v))}
 {\small\[
 \forall r, n, a, v.\; (\operatorname{is\text{-}field\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((a \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow (\operatorname{is\text{-}invertible\text{-}mat}(r, n, v) \Rightarrow (\operatorname{det}(r, n, \operatorname{matmul}(r, a, v)) = \operatorname{mul}(r)(\operatorname{det}(r, n, a), \operatorname{det}(r, n, v)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{The binomial theorem}
 
@@ -1355,14 +1355,14 @@
 {\small\[
 \forall n \in \mathbb{N}, r.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow \forall x, y \in \operatorname{carr}(r), g \in (\mathbb{Z} \to \operatorname{carr}(r)).\; (\operatorname{sum}(r, (\lambda k \in \mathbb{Z}.\; \operatorname{add}(r)(\operatorname{mul}(r)(x, g((k - 1))), \operatorname{mul}(r)(y, g(k)))), (n + 1)) = \operatorname{add}(r)(\operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{add}(r)(x, y), \operatorname{sum}(r, g, n)), \operatorname{mul}(r)(x, g((0 - 1)))), \operatorname{mul}(r)(y, g(n)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{binomial-theorem}}
 \emph{for every n in nn, r, if r is a commutative ring, then for every x in carr(r), y in carr(r), ring-power(r, (add(r))(x, y), n) equals sum(r, comb-kk(r, x, y, n), succ(n))}
 {\small\[
 \forall n \in \mathbb{N}, r.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow \forall x, y \in \operatorname{carr}(r).\; (\operatorname{ring\text{-}power}(r, \operatorname{add}(r)(x, y), n) = \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Induction on n via a multiply-and-shift sum expansion and Pascal's recurrence on the binomial coefficients, in integer-range SUM form (no bijections).
+\noindent\textbf{Asserted}. Induction on n via a multiply-and-shift sum expansion and Pascal's recurrence on the binomial coefficients, in integer-range SUM form (no bijections).
 
 \section{Combinatorial}
 
@@ -1385,14 +1385,14 @@
 {\small\[
 \forall x \in \mathbf{Set}, a \in x, r \in \mathbf{Set}.\; (\forall k \in \mathbb{N}, u \in x.\; \exists y \in x.\; (\langle k, u, y \rangle \in r) \Rightarrow \exists f \in (\mathbb{N} \to x).\; ((f(0) = a) \wedge \forall k \in \mathbb{N}.\; (\langle k, f(k), f((k + 1)) \rangle \in r)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{dc-on-nn-pred}}
 \emph{for every x in set, a in x, nxt, if for every k in nn, u in x, there is some y in x such that y is in nxt(k, u), then there is some f in fun(nn, x) such that f(0) equals a and for every k in nn, f(succ(k)) is in nxt(k, f(k))}
 {\small\[
 \forall x \in \mathbf{Set}, a \in x, \mathit{nxt}.\; (\forall k \in \mathbb{N}, u \in x.\; \exists y \in x.\; (y \in \operatorname{nxt}(k, u)) \Rightarrow \exists f \in (\mathbb{N} \to x).\; ((f(0) = a) \wedge \forall k \in \mathbb{N}.\; (f((k + 1)) \in \operatorname{nxt}(k, f(k)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Infinite pigeonhole and the block family}
 
@@ -1401,21 +1401,21 @@
 {\small\[
 \forall s.\; (((s \in \mathbf{Set}) \wedge \neg (|s| \in \mathbb{N})) \Rightarrow \forall f.\; (((f \in \mathbf{Set}) \wedge (|f| \in \mathbb{N})) \Rightarrow \forall \operatorname{pmap\_} \in (s \to f).\; \exists c \in f.\; \neg (|\{x \in s : (\operatorname{pmap\_}(x) = c)\}| \in \mathbb{N})))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{cover-block-step}}
 \emph{for every v in set, f in fun(nn, v), c, if c is a finite cover of v, then for every j in inf-subsets(nn), there is some j\_ in inf-subsets(nn) such that j\_ is a subset of j and there is some u in c such that for every i in j\_, f(i) is in u}
 {\small\[
 \forall v \in \mathbf{Set}, f \in (\mathbb{N} \to v), c.\; (\operatorname{is\text{-}finite\text{-}cover}(c, v) \Rightarrow \forall j \in \mathrm{Inf}(\mathbb{N}).\; \exists \operatorname{j\_} \in \mathrm{Inf}(\mathbb{N}).\; ((\operatorname{j\_} \subseteq j) \wedge \exists u \in c.\; \forall i \in \operatorname{j\_}.\; (f(i) \in u)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{block-family-combinatorial}}
 \emph{for every v in set, f in fun(nn, v), cov, if for every k in nn, cov(k) is a finite cover of v, then there is some blk in fun(nn, inf-subsets(nn)) such that for every k in nn, blk(succ(k)) is a subset of blk(k) and for every k in nn, there is some u in cov(k) such that for every i in blk(k), f(i) is in u}
 {\small\[
 \forall v \in \mathbf{Set}, f \in (\mathbb{N} \to v), \mathit{cov}.\; (\forall k \in \mathbb{N}.\; \operatorname{is\text{-}finite\text{-}cover}(\operatorname{cov}(k), v) \Rightarrow \exists \mathit{blk} \in (\mathbb{N} \to \mathrm{Inf}(\mathbb{N})).\; (\forall k \in \mathbb{N}.\; (\operatorname{blk}((k + 1)) \subseteq \operatorname{blk}(k)) \wedge \forall k \in \mathbb{N}.\; \exists u \in \operatorname{cov}(k).\; \forall i \in \operatorname{blk}(k).\; (f(i) \in u)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Dependent choice on NN whose step is one infinite-pigeonhole refinement (cover-block-step): each block is an infinite monochromatic sub-block of the previous one for the next cover.  The index shift blk(k)=aux(succ k) aligns capture with level.
+\noindent\textbf{Asserted}. Dependent choice on NN whose step is one infinite-pigeonhole refinement (cover-block-step): each block is an infinite monochromatic sub-block of the previous one for the next cover.  The index shift blk(k)=aux(succ k) aligns capture with level.
 
 \subsection{Diagonalization}
 
@@ -1424,28 +1424,28 @@
 {\small\[
 \forall s \in (\mathbb{N} \to \mathrm{Inf}(\mathbb{N})).\; (\forall k \in \mathbb{N}.\; (s((k + 1)) \subseteq s(k)) \Rightarrow \exists f.\; (\operatorname{strictly\text{-}mono\text{-}nn}(f) \wedge \forall k, j \in \mathbb{N}.\; ((k \leq j) \Rightarrow (f(j) \in s(k)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Dependent choice on NN (dc-on-nn-pred) builds a strictly increasing sequence, each term hopping into the next nested set; the nested chain then puts the whole tail inside every member.
+\noindent\textbf{Asserted}. Dependent choice on NN (dc-on-nn-pred) builds a strictly increasing sequence, each term hopping into the next nested set; the nested chain then puts the whole tail inside every member.
 
 \subsubsection*{\texttt{nn-step-strictly-mono}}
 \emph{for every g in fun(nn, nn), if for every k in nn, g(k) is less than g(succ(k)), then g is a strictly increasing sequence of naturals}
 {\small\[
 \forall g \in (\mathbb{N} \to \mathbb{N}).\; (\forall k \in \mathbb{N}.\; (g(k) < g((k + 1))) \Rightarrow \operatorname{strictly\text{-}mono\text{-}nn}(g))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{nn-nested-subset-chain}}
 \emph{for every t, if for every k in nn, t(succ(k)) is a subset of t(k), then for every k in nn, j in nn, if k is at most j, then t(j) is a subset of t(k)}
 {\small\[
 \forall t.\; (\forall k \in \mathbb{N}.\; (t((k + 1)) \subseteq t(k)) \Rightarrow \forall k, j \in \mathbb{N}.\; ((k \leq j) \Rightarrow (t(j) \subseteq t(k))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{inf-subset-nn-unbounded}}
 \emph{for every t in inf-subsets(nn), u in nn, there is some y in nn such that y is in t and u is less than y}
 {\small\[
 \forall t \in \mathrm{Inf}(\mathbb{N}), u \in \mathbb{N}.\; \exists y \in \mathbb{N}.\; ((y \in t) \wedge (u < y))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Well-ordering of NN}
 
@@ -1454,14 +1454,14 @@
 {\small\[
 \forall s \in \mathbf{Set}.\; \exists \varphi.\; (\varphi \in \mathrm{Bij}(\mathrm{OS}(|s|), s))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{nn-least-element}}
 \emph{for every t, if t is a subset of nn and there is some n such that n is in t, then there is some m in t such that for every k in t, m is at most k}
 {\small\[
 \forall t.\; (((t \subseteq \mathbb{N}) \wedge \exists n.\; (n \in t)) \Rightarrow \exists m \in t.\; \forall k \in t.\; (m \leq k))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \section{Metric spaces}
 
@@ -1576,42 +1576,42 @@
 {\small\[
 \forall s.\; (\operatorname{is\text{-}metric\text{-}space}(s) \Rightarrow \forall x \in \operatorname{pts}(s), r.\; (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow \operatorname{is\text{-}open}(s, \operatorname{ball}(s, x, r))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{ball-membership}}
 \emph{for every s, x, r, y, y is in ball(s, x, r) if and only if y is in pts(s) and (dist(s))(x, y) is at most r and (dist(s))(x, y) is not equal to r}
 {\small\[
 \forall s, x, r, y.\; ((y \in \operatorname{ball}(s, x, r)) \Leftrightarrow ((y \in \operatorname{pts}(s)) \wedge ((\operatorname{dist}(s)(x, y) \leq r) \wedge \neg (\operatorname{dist}(s)(x, y) = r))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{ball-center-in}}
 \emph{for every metric space s, for every x in pts(s), r, if r is in rr and 0 is at most r and 0 is not equal to r, then x is in ball(s, x, r)}
 {\small\[
 \forall s.\; (\operatorname{is\text{-}metric\text{-}space}(s) \Rightarrow \forall x \in \operatorname{pts}(s), r.\; (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow (x \in \operatorname{ball}(s, x, r))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{empty-is-open}}
 \emph{for every metric space s, empty-set is open in s}
 {\small\[
 \forall s.\; (\operatorname{is\text{-}metric\text{-}space}(s) \Rightarrow \operatorname{is\text{-}open}(s, \emptyset))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{carrier-is-open}}
 \emph{for every metric space s, pts(s) is open in s}
 {\small\[
 \forall s.\; (\operatorname{is\text{-}metric\text{-}space}(s) \Rightarrow \operatorname{is\text{-}open}(s, \operatorname{pts}(s)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{inter-of-opens-open}}
 \emph{for every metric space s, for every u, w, if u is open in s and w is open in s, then intersection(u, w) is open in s}
 {\small\[
 \forall s.\; (\operatorname{is\text{-}metric\text{-}space}(s) \Rightarrow \forall u, w.\; ((\operatorname{is\text{-}open}(s, u) \wedge \operatorname{is\text{-}open}(s, w)) \Rightarrow \operatorname{is\text{-}open}(s, (u \cap w))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Continuity}
 
@@ -1620,35 +1620,35 @@
 {\small\[
 \forall s, t, f.\; (\operatorname{is\text{-}continuous}(s, t, f) \Rightarrow \forall a \in \operatorname{pts}(s).\; \operatorname{is\text{-}continuous\text{-}at}(s, t, f, a))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{continuous-implies-open-preimage}}
 \emph{for every s, t, f, if f is continuous from s to t, then for every v, if v is open in t, then preimage(s, f, v) is open in s}
 {\small\[
 \forall s, t, f.\; (\operatorname{is\text{-}continuous}(s, t, f) \Rightarrow \forall v.\; (\operatorname{is\text{-}open}(t, v) \Rightarrow \operatorname{is\text{-}open}(s, \operatorname{preimage}(s, f, v))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{open-preimage-implies-continuous}}
 \emph{for every s, t, f, if s is a metric space and t is a metric space and f is in fun(pts(s), pts(t)), then if for every v, if v is open in t, then preimage(s, f, v) is open in s, then f is continuous from s to t}
 {\small\[
 \forall s, t, f.\; ((\operatorname{is\text{-}metric\text{-}space}(s) \wedge (\operatorname{is\text{-}metric\text{-}space}(t) \wedge (f \in (\operatorname{pts}(s) \to \operatorname{pts}(t))))) \Rightarrow (\forall v.\; (\operatorname{is\text{-}open}(t, v) \Rightarrow \operatorname{is\text{-}open}(s, \operatorname{preimage}(s, f, v))) \Rightarrow \operatorname{is\text{-}continuous}(s, t, f)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{continuous-implies-closed-preimage}}
 \emph{for every s, t, f, if f is continuous from s to t, then for every a, if a is closed in t, then preimage(s, f, a) is closed in s}
 {\small\[
 \forall s, t, f.\; (\operatorname{is\text{-}continuous}(s, t, f) \Rightarrow \forall a.\; (\operatorname{is\text{-}closed}(t, a) \Rightarrow \operatorname{is\text{-}closed}(s, \operatorname{preimage}(s, f, a))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{closed-preimage-implies-continuous}}
 \emph{for every s, t, f, if s is a metric space and t is a metric space and f is in fun(pts(s), pts(t)), then if for every a, if a is closed in t, then preimage(s, f, a) is closed in s, then f is continuous from s to t}
 {\small\[
 \forall s, t, f.\; ((\operatorname{is\text{-}metric\text{-}space}(s) \wedge (\operatorname{is\text{-}metric\text{-}space}(t) \wedge (f \in (\operatorname{pts}(s) \to \operatorname{pts}(t))))) \Rightarrow (\forall a.\; (\operatorname{is\text{-}closed}(t, a) \Rightarrow \operatorname{is\text{-}closed}(s, \operatorname{preimage}(s, f, a))) \Rightarrow \operatorname{is\text{-}continuous}(s, t, f)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Completion}
 
@@ -1657,21 +1657,21 @@
 {\small\[
 \forall m.\; (\operatorname{is\text{-}metric\text{-}space}(m) \Rightarrow \operatorname{is\text{-}metric\text{-}space}(\operatorname{completion}(m)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{completion-is-complete}}
 \emph{for every metric space m, completion(m) is complete}
 {\small\[
 \forall m.\; (\operatorname{is\text{-}metric\text{-}space}(m) \Rightarrow \operatorname{is\text{-}complete}(\operatorname{completion}(m)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{embed-isometry}}
 \emph{for every metric space m, for every u in pts(m), v in pts(m), (dist(completion(m)))((embed(m))(u), (embed(m))(v)) equals (dist(m))(u, v)}
 {\small\[
 \forall m.\; (\operatorname{is\text{-}metric\text{-}space}(m) \Rightarrow \forall u, v \in \operatorname{pts}(m).\; (\operatorname{dist}(\operatorname{completion}(m))(\operatorname{embed}(m)(u), \operatorname{embed}(m)(v)) = \operatorname{dist}(m)(u, v)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Compactness / total boundedness}
 
@@ -1680,14 +1680,14 @@
 {\small\[
 \forall s.\; (\operatorname{totally\text{-}bounded}(s) \Rightarrow \forall f \in (\mathbb{N} \to \operatorname{pts}(s)).\; \exists \varphi.\; (\operatorname{strictly\text{-}mono\text{-}nn}(\varphi) \wedge \operatorname{is\text{-}cauchy\text{-}seq}(s, \operatorname{subseq}(f, \varphi))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Total boundedness supplies a finite eps-net cover at each level; block-family-combinatorial builds nested infinite blocks pinned into shrinking balls; diagonalization extracts one subsequence, and the 2r triangle estimate makes it Cauchy.
+\noindent\textbf{Asserted}. Total boundedness supplies a finite eps-net cover at each level; block-family-combinatorial builds nested infinite blocks pinned into shrinking balls; diagonalization extracts one subsequence, and the 2r triangle estimate makes it Cauchy.
 
 \subsubsection*{\texttt{cauchy-rapid-subsequence}}
 \emph{for every s, f, rad, if is-cauchy-seq(s, f) and rad is in fun(nn, rr) and for every k in nn, rad(k) is a positive real, then there is some phi in fun(nn, nn) such that for every m in nn, n\_ in nn, if m is less than n\_, then phi(m) is less than phi(n\_) and for every k in nn, (dist(s))(f(phi(k)), f(phi(succ(k)))) is at most rad(k)}
 {\small\[
 \forall s, f, \mathit{rad}.\; ((\operatorname{is\text{-}cauchy\text{-}seq}(s, f) \wedge ((\mathit{rad} \in (\mathbb{N} \to \mathbb{R})) \wedge \forall k \in \mathbb{N}.\; \operatorname{pos\text{-}rr}(\operatorname{rad}(k)))) \Rightarrow \exists \varphi \in (\mathbb{N} \to \mathbb{N}).\; (\forall m, \operatorname{n\_} \in \mathbb{N}.\; ((m < \operatorname{n\_}) \Rightarrow (\varphi(m) < \varphi(\operatorname{n\_}))) \wedge \forall k \in \mathbb{N}.\; (\operatorname{dist}(s)(f(\varphi(k)), f(\varphi((k + 1)))) \leq \operatorname{rad}(k))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsection{Product metric spaces}
 
@@ -1696,28 +1696,28 @@
 {\small\[
 \forall \mathit{ms}.\; (\operatorname{is\text{-}ms\text{-}sequence}(\mathit{ms}) \Rightarrow \forall w.\; (\operatorname{summable\text{-}weight}(w) \Rightarrow \operatorname{is\text{-}metric\text{-}space}(\operatorname{product\text{-}metric\text{-}w}(\mathit{ms}, w))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{product-projection-continuous}}
 \emph{for every ms, if ms is a sequence of metric spaces, then for every w, if w is a summable sequence of positive weights, then for every n in nn, product-proj(ms, n) is continuous from product-metric-w(ms, w) to ms(n)}
 {\small\[
 \forall \mathit{ms}.\; (\operatorname{is\text{-}ms\text{-}sequence}(\mathit{ms}) \Rightarrow \forall w.\; (\operatorname{summable\text{-}weight}(w) \Rightarrow \forall n \in \mathbb{N}.\; \operatorname{is\text{-}continuous}(\operatorname{product\text{-}metric\text{-}w}(\mathit{ms}, w), \operatorname{ms}(n), \operatorname{product\text{-}proj}(\mathit{ms}, n))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{product-convergence-coordinatewise}}
 \emph{for every ms, if ms is a sequence of metric spaces, then for every w, if w is a summable sequence of positive weights, then for every seq in fun(nn, product-carrier(ms)), lv in product-carrier(ms), seq converges to lv in product-metric-w(ms, w) if and only if for every n\_ in nn, vnb-lambda(k, nn, (seq(k))(n\_)) converges to lv(n\_) in ms(n\_)}
 {\small\[
 \forall \mathit{ms}.\; (\operatorname{is\text{-}ms\text{-}sequence}(\mathit{ms}) \Rightarrow \forall w.\; (\operatorname{summable\text{-}weight}(w) \Rightarrow \forall \mathit{seq} \in (\mathbb{N} \to \operatorname{product\text{-}carrier}(\mathit{ms})), \mathit{lv} \in \operatorname{product\text{-}carrier}(\mathit{ms}).\; (\operatorname{converges\text{-}to}(\operatorname{product\text{-}metric\text{-}w}(\mathit{ms}, w), \mathit{seq}, \mathit{lv}) \Leftrightarrow \forall \operatorname{n\_} \in \mathbb{N}.\; \operatorname{converges\text{-}to}(\operatorname{ms}(\operatorname{n\_}), (\lambda k \in \mathbb{N}.\; \operatorname{seq}(k)(\operatorname{n\_})), \operatorname{lv}(\operatorname{n\_})))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{compact-countable-product}}
 \emph{for every ms, if ms is a sequence of metric spaces, then if for every n in nn, ms(n) is compact, then product-metric(ms) is compact}
 {\small\[
 \forall \mathit{ms}.\; (\operatorname{is\text{-}ms\text{-}sequence}(\mathit{ms}) \Rightarrow (\forall n \in \mathbb{N}.\; \operatorname{is\text{-}compact}(\operatorname{ms}(n)) \Rightarrow \operatorname{is\text{-}compact}(\operatorname{product\text{-}metric}(\mathit{ms}))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof). Sequential compactness of a countable metric product, obtained by a coordinatewise diagonal subsequence.
+\noindent\textbf{Asserted}. Sequential compactness of a countable metric product, obtained by a coordinatewise diagonal subsequence.
 
 \subsection{Normed-field metric}
 
@@ -1726,6 +1726,6 @@
 {\small\[
 \forall \mathit{nf}.\; (\operatorname{is\text{-}normed\text{-}field}(\mathit{nf}) \Rightarrow \operatorname{is\text{-}metric\text{-}space}(\operatorname{nf\text{-}metric\text{-}space}(\mathit{nf})))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \end{document}

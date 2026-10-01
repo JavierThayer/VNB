@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-590 operators: 3 functions, 11 syntax, 345 functoids, 228 predicates, 3 undeclared.
+592 operators: 3 functions, 11 syntax, 346 functoids, 229 predicates, 3 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (345)
+## Functoids  (346)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -1472,6 +1472,12 @@ Declared by: `intersection-decompose` `union-decompose`
 
     subspace-ms(s, a) := [a, vnb-lambda([sbu_, sbv_], cartesian(a, a), (dist(s))(sbu_, sbv_))]
 
+### `subspace-top`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the subspace topology of t on a
+
+    subspace-top(t, a) := [a, {stw_ in power(a): forsome([stu_ in opens(t)], stw_ = intersection(stu_, a))}]
+
 ### `succ_ord`  — characterized by axiom(s)
 
 Declared by: `card-insert` `card-insert-curried` `limit-ord-iff` `ord-lt-succ-iff-le` `ord-segment-succ` `ord-succ-above` `ord-succ-immediate` `ord-succ-in` 
@@ -1638,7 +1644,7 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (228)
+## Predicates  (229)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -1853,6 +1859,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-compact`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is compact
+
+### `is-compact-t`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  the topological space s is compact
 
 ### `is-complete`  — def-predicate · proposition (arity 1)
 

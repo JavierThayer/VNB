@@ -268,6 +268,9 @@
     ;; Needs IS-OPEN/IS-CLOSED (above), TOTALLY-BOUNDED/BALL (metric-topology),
     ;; IS-COMPLETE (metric-completeness).
     "structure-library/compactness"
+    ;; 2026-10-01: IS-CONTINUOUS-T / IS-COMPACT-T on TOP-SPACE (definitions only; the user's
+    ;; decision: the metrizable category, with sequences).  Needs top-space, metric-open-sets, cardinality.
+    "structure-library/top-continuity"
     "structure-library/separable"
     ;; Algebras and sigma-algebras of sets (measure-theory vocabulary).  Needs
     ;; POWER / COMPLEMENT-IN / BIG-UNION (library.scm) and NN (number-systems);
@@ -3292,6 +3295,9 @@
     ;; bdd-metric-preserves-metric-top).
     ;; rake batch 6 (2026-09-19): the three leaves of metrizable-iff-bounded-metrizable.  After bdd-metric-convergence.
     "theorem-library/rake-bdd-metric"
+    ;; 2026-10-01: the continuous image of a compact METRIZABLE space is compact, BY SEQUENCES
+    ;; (metrizable-compact-image; T1-T3 transfer theorems; seq-compact-image).  lo = rake-bdd-metric.
+    "theorem-library/metrizable-compact-image"
     "theorem-library/metrizable-bounded-proof"
     ;; A ringoid's congruence (a ~ b iff a-b in the ideal) is an equivalence
     ;; relation, so RINGOID-SETOID is a setoid.  Needs structure-library/ringoid.
