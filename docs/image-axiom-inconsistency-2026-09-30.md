@@ -91,3 +91,40 @@ function position, and that includes named functoids whose values are proper cla
 Functoids are not classes; `def-functor` views are functoids (`def-functoid` of a LIST
 of the source's slots, structures.scm:1247).  There is no inconsistency in QUANTIFYING
 over them; the inconsistency was in an axiom that let one of them manufacture a member.
+
+## Addendum, 2026-10-01: the third door, and the design question underneath
+
+`docs/probes/app-graph-probe.scm`, against the repaired tree: with `PROBE-C2(x_) := SET`,
+`app-graph` instantiated at the functoid gives `PROBE-C2(0) == iota(val_, [0, val_] in PROBE-C2)`;
+beta gives `PROBE-C2(0) = SET`; so the IOTA equals SET, `iota-e` grants its defining property, and
+
+    [0, SET] in PROBE-C2        proven modulo 0
+    [0, SET] in SET             proven modulo 0
+
+A pair with a proper class in it is a member of a functoid, and is a set.  No FALSITY was
+derived from it tonight (the tree has no axiom reading a component off a set pair), but it
+is a false statement proven, of the same species as the two repaired: an axiom with an
+unguarded variable in function position (`fn_` in `app-graph`, `f` in `dom-membership`,
+`phi` in `image-membership-iff`) read as a class of pairs, instantiated at a functoid.
+
+The user's argument (2026-10-01): if an unguarded `forall([x], P(x))` ranges over all classes
+and functoids fall within its scope, functoids are classes; if they are not classes, they
+must be outside the scope.  As the kernel stands they are inside (forall-elim accepts a
+named functoid) and not classes (no axiom gives `x in PHI` a truth value), and every axiom
+with an unguarded variable is therefore also an axiom about functoids.  Two coherent
+designs:
+
+  (i) Functoids OUTSIDE the range of quantification -- the manual's original sentence.
+      Enforced at one point: `forall-elim` refuses an instance term that is a bare
+      functoid (a registered functoid name, or a lambdoid record, which the definedness
+      certificate already refuses).  A functoid applied (`POWER(X)`) is a class term and
+      is unaffected.  app-graph and the rest are then sound as written; the two repairs
+      stay as improvements.  Cost: any library proof that instantiates an axiom variable
+      at a bare functoid name breaks (a keep-going load counts them).
+ (ii) Functoids INSIDE the range: a two-sorted universe under one variable sort, which
+      needs a primitive sort predicate (`IS-CLASS`) as a guard on app-graph and on every
+      axiom that reads a class of pairs off a variable in function position, plus an audit
+      gate for the pattern.  Costlier, and it makes a functoid an object with neither
+      members nor membership.
+
+Recommendation: (i).
