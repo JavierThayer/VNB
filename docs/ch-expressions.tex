@@ -101,12 +101,10 @@ Both \texttt{forall} and \texttt{forsome} require a bracket-enclosed
 Each \emph{binding} in the string syntax is one of:
 
 \begin{itemize}
-\item \texttt{$x$} unrestricted variable ranging over all classes --- and,
-  when the variable stands in \emph{function position} (as \texttt{phi} in
-  \texttt{phi(x)} or in \texttt{image(phi, S)}), over all functoids as well:
-  the instantiation rule accepts any term the language can apply there,
-  a class of pairs, a named functoid, a \texttt{lambdoid}
-  (Remark~\ref{rem:functoids-quantified})
+\item \texttt{$x$} unrestricted variable ranging over all classes, sets
+  among them --- and over nothing else: a functoid is not in the range
+  (Remark~\ref{rem:functoids-quantified}), and the instantiation rule
+  refuses one as an instance
 \item \texttt{$x$ in $A$} variable $x$ restricted to class $A$
 \item \texttt{[$n_1$, \ldots, $n_k$] in $A$} tuple destructuring: fresh $t \in A$, components bound to \texttt{nth(1,~$t$)}, \ldots, \texttt{nth($k$,~$t$)}
 \end{itemize}
@@ -312,7 +310,7 @@ product is implied).  This declaration specifies that the functoid in
 question takes $n$ arguments $a_1 \in A_1, a_2 \in A_2, \ldots, a_n
 \in A_n$ producing a value $b \in B$.
 
-\begin{remark}[Functoids are quantified over, and are not classes]
+\begin{remark}[Functoids are outside the range of quantification]
 \label{rem:functoids-quantified}
 The motivation comes from category theory.  A functor is conceptually a
 mapping between collections of mathematical structures, but its domain
@@ -328,38 +326,43 @@ via \texttt{def-functor} (Section~\ref{sec:view-as}): every functor between
 structures, every \emph{view-as}, \emph{is} a functoid --- the
 \texttt{def-functoid} of the list of the source structure's slots.
 
-An unguarded quantifier reaches them.  A variable in function position,
-such as \texttt{phi} in
+An unguarded quantifier does \emph{not} reach them.  A variable in
+function position, such as \texttt{phi} in
 \[
   \texttt{forall([phi, S], S in set implies image(phi, S) in set)},
 \]
-is instantiated by \texttt{forall-elim} at any term the language can
-apply: a class of pairs (a \texttt{vnb-lambda}, a function variable), a
-named functoid, a \texttt{lambdoid}.  A universal statement about an
-unguarded \texttt{phi} is therefore a statement about every class
-\emph{and} every functoid, and the library's class functions
-(\texttt{ord-no-injection-into-set}, Zorn's lemma) rely on exactly that.
+ranges over classes: \texttt{forall-elim} instantiates it at a class of
+pairs (a \texttt{vnb-lambda}, a function variable, a class term) and
+refuses a bare functoid --- a registered functoid name standing alone, or
+a \texttt{lambdoid} record --- as an instance.  ``All functoids $F$
+satisfy\ldots'' is metalanguage.  A functoid \emph{applied},
+\texttt{power(X)}, is a class term and is as legal an instance as any.
+The library's class functions (\texttt{ord-no-injection-into-set},
+Zorn's lemma) are classes of pairs over proper-class domains, not
+functoids, and are unaffected.
 
-Two facts follow and must be kept in view when an axiom is written.
-First, a functoid is never a member of anything and never an element of
-a class: it is not a class.  Its graph, the class of pairs
-$\langle x, F(x)\rangle$, exists as a class only at the points where
-$F(x)$ is a set --- a functoid may take a proper class as a value, and a
-pair with a proper class in it is not an object of the theory --- and
-when the domain is a proper class that graph is a proper class, hence a
-member of nothing.  A view-as functor from the category of all rings is
-of this kind.  Second, an axiom that turns an equation $\mathit{phi}(x)
-= w$ into a membership must say that $w$ is a set.  The image axiom
-reads
+The reason is that a functoid is not a class.  No axiom gives
+\texttt{x in PHI} a truth value; its graph, the class of pairs
+$\langle x, F(x)\rangle$, exists only at the points where $F(x)$ is a
+set --- a functoid may take a proper class as a value, and a pair with a
+proper class in it is not an object of the theory --- and when the domain
+is a proper class that graph is a proper class, a member of nothing.  A
+view-as functor from the category of all rings is of this kind.  Until
+2026-10-01 the instantiation rule did accept a functoid name, so every
+axiom with an unguarded variable in function position (\texttt{app-graph},
+\texttt{dom-membership}, \texttt{image-membership-iff}) was silently also
+an axiom about functoids, read as classes of pairs; at the functoid
+$\mathit{phi}(x) := \mathit{SET}$ the image axiom made $\mathit{SET}$ a
+member, hence a set, hence $\mathit{ORD}$ a set, against Burali-Forti:
+FALSITY (\texttt{docs/image-axiom-inconsistency-2026-09-30.md}).  The
+image axiom now carries the sethood of the member explicitly,
 \[
   w \in \mathit{IMAGE}(\mathit{phi}, S) \iff w \in \mathit{SET} \;\wedge\;
   \exists x \in S.\ \mathit{phi}(x) = w ,
 \]
-and without the conjunct $w \in \mathit{SET}$ the functoid
-$\mathit{phi}(x) := \mathit{SET}$ made $\mathit{SET}$ a member of
-$\mathit{IMAGE}(\mathit{phi}, \mathbb{N})$, hence a set, hence
-$\mathit{ORD}$ a set, against Burali-Forti: FALSITY, found and repaired on
-2026-09-30 (\texttt{docs/image-axiom-inconsistency-2026-09-30.md}).
+which is Bernays' definition of the image written with application
+instead of graph membership, and the instantiation rule closes the door
+the three axioms shared.
 \end{remark}
 
 The \textbf{primitive class constant} \texttt{SET} has the following
@@ -915,11 +918,11 @@ objects.  Since $\mathit{FUN}$ requires a set-valued domain, functors
 fall outside $\mathit{FUN}$ entirely.
 
 They are \emph{functoids} (Remark~\ref{rem:functoids-quantified}), the
-third kind of entity beside sets and classes; a \texttt{def-functor}
-view (Section~\ref{sec:view-as}) is one.  There is no class
-$\mathit{OPER}(A,B)$ of them---no such collection can exist without
-violating the set/class dichotomy---and there is no predicate that
-collects them.  A functoid applied to an argument is reduced by
+third kind of entity beside sets and classes, outside the range of the
+quantifiers; a \texttt{def-functor} view (Section~\ref{sec:view-as}) is
+one.  There is no class $\mathit{OPER}(A,B)$ of them---no such collection
+can exist without violating the set/class dichotomy---and there is no
+predicate that collects them.  A functoid applied to an argument is reduced by
 substitution (\texttt{beta}); it has no typing rule of its own, and a
 value that is a set is typed by the typing of the body.  Functoids are
 not members of anything---they do not appear on the left of $\in$---so

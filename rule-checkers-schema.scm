@@ -679,8 +679,15 @@
 ;;; the redexes sitting INSIDE the arguments, which the developed spelling of
 ;;; the licence commits this inference to.
 (define (rcs--rx-record e scope bvars)
-  (list (cdr e) (map rcs--dev (cdr e)) (caddr (car e)) scope bvars
-        (rcs--collect-list (cdr e) scope bvars)))
+  (let* ((lam   (car e))
+         (dargs (map rcs--dev (cdr e)))
+         ;; the VALUE of the contraction, on the developed arguments (2026-10-01)
+         (value (if (symbol? (cadr lam))
+                    (subst-free (cadr lam) (car dargs) (cadddr lam))
+                    (subst-free* (map cons (cdr (cadr lam)) dargs) (cadddr lam)))))
+    (list (cdr e) dargs (caddr lam) scope bvars
+          (rcs--collect-list (cdr e) scope bvars)
+          value)))
 
 ;;; THE FUEL.  Contraction does not terminate in general -- (\x.x x)(\x.x x) --
 ;;; and the search backtracks (contract this redex, or walk past it), so the
@@ -780,6 +787,7 @@
 (define (rcs--rx-scope r) (cadddr r))
 (define (rcs--rx-bvars r) (car (cddddr r)))   ; bound between the root and the redex
 (define (rcs--rx-inner r) (cadr (cddddr r)))  ; the redexes inside the arguments
+(define (rcs--rx-value r) (caddr (cddddr r)))  ; the reduct, on the developed arguments (2026-10-01)
 
 (define (rcs--beta-licensed? args A known)
   (cond
@@ -811,8 +819,74 @@
 ;;; old two-variant matcher did by collecting them.
 (define (rcs--rx-owed r)
   (let ((o1 (rcs--beta-obligation (rcs--rx-dargs r) (rcs--rx-dom r)))
-        (o2 (rcs--beta-obligation (rcs--rx-args  r) (rcs--rx-dom r))))
-    (if (equal? o1 o2) (list o1) (list o1 o2))))
+        (o2 (rcs--beta-obligation (rcs--rx-args  r) (rcs--rx-dom r)))
+        (o3 (list 'IN (rcs--rx-value r) 'SET)))          ; the value's sethood (2026-10-01)
+    (if (equal? o1 o2) (list o1 o3) (list o1 o2 o3))))
+
+;;; THE VALUE CERTIFICATE, the checker's own reading (the builder's is
+;;; `pi--value-may-be-class?', primitive-inferences.scm; written apart on purpose).
+;;; A contraction owes `(IN value SET)' exactly when the value MAY denote a proper
+;;; class: SET or ORD; an untyped bare symbol; POWER / FUN / TUPLES / INJECTION /
+;;; BIJECTION of such a thing; SEP, VNB-LAMBDA, BIG-UNION or IMAGE over such a domain;
+;;; COMP; UNION, INTERSECTION, DIFFERENCE, COMPLEMENT-IN, CARTESIAN with such a part;
+;;; an IF with such a branch; a registered functoid applied, by its body.  Everything
+;;; else -- numerals, typed symbols, the set constants, LIST, PAIR, INTERVAL, NTH,
+;;; LENGTH, CHOICE, IOTA, arithmetic, an application of a variable, an accessor of a
+;;; structure the context holds -- denotes a set or nothing, and owes nothing.
+;; the memberships a redex's argument carries, licensed or owed: they type the value
+(define (rcs--arg-typings args A)
+  (cond ((and (= (length args) 1) (pair? (car args)) (eq? (car (car args)) 'LIST)
+              (pair? A) (eq? (car A) 'CARTESIAN) (= (length (cdr (car args))) (length (cdr A))))
+         (cons (list 'IN (car args) A) (map (lambda (a d) (list 'IN a d)) (cdr (car args)) (cdr A))))
+        ((= (length args) 1) (list (list 'IN (car args) A)))
+        ((and (pair? A) (eq? (car A) 'CARTESIAN) (= (length args) (length (cdr A))))
+         (cons (list 'IN (cons 'LIST args) A) (map (lambda (a d) (list 'IN a d)) args (cdr A))))
+        (else (list (list 'IN (cons 'LIST args) A)))))
+
+(define (chk-value-may-be-class? t known)
+  (define (raw e) (if (wff? e) (wff-formula e) e))
+  (define (holds? pred)
+    (let loop ((es known))
+      (cond ((null? es) #f) ((pred (raw (car es))) #t) (else (loop (cdr es))))))
+  (define (typed? u)
+    (holds? (lambda (f) (and (pair? f) (eq? (car f) 'IN) (= (length f) 3) (chk-same? (cadr f) u)))))
+  (define (struct-pred? s)
+    (holds? (lambda (f) (and (pair? f) (= (length f) 2) (symbol? (car f)) (chk-same? (cadr f) s)
+                             (let ((nm (string-downcase (symbol->string (car f)))))
+                               (and (> (string-length nm) 3) (string=? (substring nm 0 3) "is-")
+                                    (environment-bound? system-global-environment 'find-shape-structure)
+                                    (find-shape-structure (string->symbol (substring nm 3 (string-length nm))))
+                                    #t))))))
+  (define (registry-ref name)             ; see pi--registry-ref: the registry lives in the
+    (call-with-current-continuation         ; load's environment, not system-global
+      (lambda (k)
+        (with-exception-handler (lambda (e) (k #f))
+          (lambda () (hash-table-ref/default *functoid-registry* name #f))))))
+  (define (unfold t)
+    (and (pair? t) (symbol? (car t))
+         (let ((reg (registry-ref (car t))))
+           (and reg (list? reg) (>= (length reg) 2)
+                (list? (car reg)) (= (length (car reg)) (length (cdr t)))
+                (subst-free* (map cons (car reg) (cdr t)) (cadr reg))))))
+  (define (any-may? ts d) (let loop ((ts ts)) (and (pair? ts) (or (may? (car ts) d) (loop (cdr ts))))))
+  (define (may? t d)
+    (cond ((> d 8) #t)
+          ((not (pair? t))
+           (and (symbol? t)
+                (not (memq t '(NN ZZ QQ RR CC EMPTY-SET RR-STAR RR-POS-STAR POS-INF NEG-INF)))
+                (or (memq t '(SET ORD)) (not (typed? t)))
+                #t))
+          ((memq (car t) '(LIST PAIR INTERVAL NTH LENGTH CHOICE IOTA + - * min max abs succ ^)) #f)
+          ((memq (car t) '(POWER FUN TUPLES INJECTION BIJECTION)) (any-may? (cdr t) (+ d 1)))
+          ((eq? (car t) 'COMP) #t)
+          ((and (memq (car t) '(SEP VNB-LAMBDA BIG-UNION)) (= (length t) 4)) (may? (caddr t) (+ d 1)))
+          ((and (eq? (car t) 'IMAGE) (= (length t) 3)) (may? (caddr t) (+ d 1)))
+          ((memq (car t) '(UNION INTERSECTION DIFFERENCE COMPLEMENT-IN CARTESIAN)) (any-may? (cdr t) (+ d 1)))
+          ((eq? (car t) 'IF) (any-may? (cddr t) (+ d 1)))
+          ((and (= (length t) 2) (symbol? (car t)) (struct-pred? (cadr t))) #f)
+          ((unfold t) => (lambda (b) (may? b (+ d 1))))
+          (else #f)))
+  (may? t 0))
 
 ;;; Each contracted redex must be licensed where it sits, or owe its membership
 ;;; among the obligation hypotheses; and no obligation may be owed by no redex.
@@ -848,6 +922,14 @@
               (developed  (rcs--beta-obligation (rcs--rx-dargs r) (rcs--rx-dom r))))
          (cond
            ;; the argument AS THE CONCLUSION WRITES IT: nothing else is needed
+           ;; the VALUE must be a set, by certificate or by obligation (2026-10-01)
+           ((and (chk-value-may-be-class? (rcs--rx-value r)
+                                          (append (rcs--arg-typings (rcs--rx-dargs r) (rcs--rx-dom r))
+                                                  (rcs--arg-typings (rcs--rx-args r) (rcs--rx-dom r))
+                                                  known gamma))
+                 (not (owed? (list 'IN (rcs--rx-value r) 'SET))))
+            (string-append
+             tag ": a redex was contracted to a value that may be a proper class, and no obligation (IN value SET) was posted"))
            ((or (rcs--beta-licensed? (rcs--rx-args r) (rcs--rx-dom r) known)
                 (owed? as-written))
             (loop (cdr rs)))

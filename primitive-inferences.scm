@@ -279,6 +279,34 @@
         #t)))
 
 
+;;; FUNCTOIDS ARE OUTSIDE THE RANGE OF QUANTIFICATION (the user's decision, 2026-10-01;
+;;; docs/image-axiom-inconsistency-2026-09-30.md, addendum).  An unguarded variable
+;;; ranges over classes.  A functoid -- a registered functoid NAME standing bare, or a
+;;; lambdoid record -- is not a class: no axiom gives `x in PHI' a truth value, and
+;;; three axioms with an unguarded variable in function position (image-membership-iff,
+;;; dom-membership, app-graph), read at a functoid, proved false statements, one of them
+;;; FALSITY.  So forall-elim refuses such an instance here and in its checker
+;;; (rule-checkers-logic.scm).  A functoid APPLIED, `(POWER X)', is a class term and is
+;;; as legal as ever; so is a `vnb-lambda', which is a class of pairs.
+;;; The registry is defined by structures.scm, which loads after this file and into the
+;;; load's environment, not system-global-environment -- an `environment-bound?' test
+;;; there says #f while the variable is in reach (the suite found it, 2026-10-01).  So the
+;;; lookup is guarded by catching the unbound-variable condition, not by a test.
+(define (pi--registry-ref name)
+  (call-with-current-continuation
+    (lambda (k)
+      (with-exception-handler (lambda (e) (k #f))
+        (lambda () (hash-table-ref/default *functoid-registry* name #f))))))
+
+(define (pi--functoid-instance? t)
+  (or (functoid? t)
+      (and (symbol? t) (pi--registry-ref t) #t)))
+
+(define (pi--refuse-functoid-instance! t)
+  (if (pi--functoid-instance? t)
+      (error "forall-elim: a functoid is outside the range of quantification; the instance must be a class term, not"
+             (if (symbol? t) t 'a-lambdoid))))
+
 (define (pi-instantiate! sqn forall-formula term)
   ;; forall-formula: raw S-expression
   (let* ((asms (sequent-node-assumptions sqn))
@@ -290,7 +318,8 @@
            (and (pair? raw-f) (eq? (car raw-f) 'FORALL)
                 (let* ((x    (quantifier-var  raw-f))
                        (body (quantifier-body raw-f))
-                       (inst (subst-free x term body)))
+                       (inst (begin (pi--refuse-functoid-instance! term)
+                                    (subst-free x term body))))
                   ;; Re-validate the substituted body: catches the case where
                   ;; `term` is malformed and would yield a junk new wff.
                   (validate-wff! inst)
@@ -334,7 +363,8 @@
                 (if (and (pair? raw) (eq? (car raw) 'FORALL))
                     (let* ((x     (quantifier-var  raw))
                            (body  (quantifier-body raw))
-                           (inst  (subst-free x (car ts) body))
+                           (inst  (begin (pi--refuse-functoid-instance! (car ts))
+                                         (subst-free x (car ts) body)))
                            (child (wff-child uwff inst)))
                       (validate-wff! inst)
                       ;; the same owed side sequent as pi-instantiate! (2026-09-18)
@@ -1926,21 +1956,9 @@
          (dg   (sqn-dg sqn)))
     (let* ((owed '())
            (new-g (reduce-lambda-in-expr/guard
-                    g (lambda (args A scope bvars)
-                        (or (pi--beta-licensed?
-                              (append scope (pi--unshadowed bvars asms)) args A)
-                            (let ((ob (pi--beta-obligation args A)))
-                              ;; an obligation naming a variable bound where the
-                              ;; redex sits would be read in the parent's context,
-                              ;; about another variable: refuse the redex instead
-                              (and (not (pi--mentions-any? bvars ob))
-                                   (begin
-                                     (if *lambda-beta-emit-obligations?*
-                                         (set! owed (cons ob owed))
-                                         (begin
-                                           (display ";VNB BETA-GUARD (not enforced): args=")
-                                           (write args) (display " A=") (write A) (newline)))
-                                     #t))))))))
+                    g (lambda (args A scope bvars value)
+                        (pi--beta-decide! asms args A scope bvars value
+                                          (lambda (ob) (set! owed (cons ob owed))))))))
       (if (alpha-equiv? new-g g)
           #f
           ;; Main subgoal plus one (IN u A) obligation per redex whose licence
@@ -1973,18 +1991,9 @@
          (let* ((h     (wff-formula f))
                 (owed '())
                 (new-h (reduce-lambda-in-expr/guard
-                         h (lambda (args A scope bvars)
-                             (or (pi--beta-licensed?
-                                   (append scope (pi--unshadowed bvars asms)) args A)
-                                 (let ((ob (pi--beta-obligation args A)))
-                                   (and (not (pi--mentions-any? bvars ob))
-                                        (begin
-                                          (if *lambda-beta-emit-obligations?*
-                                              (set! owed (cons ob owed))
-                                              (begin
-                                                (display ";VNB BETA-GUARD (not enforced): args=")
-                                                (write args) (display " A=") (write A) (newline)))
-                                          #t))))))))
+                         h (lambda (args A scope bvars value)
+                        (pi--beta-decide! asms args A scope bvars value
+                                          (lambda (ob) (set! owed (cons ob owed))))))))
            (and (not (alpha-equiv? new-h h))
                 (dg-apply-rule! dg 'lambda-beta-hyp
                   (cons (make-sequent
@@ -2036,6 +2045,118 @@
 
 ;;; The obligation a redex owes when its licence is not evident: (IN u A), or
 ;;; (IN (LIST u1..un) A) for the multi-binder form.
+;;; THE VALUE OF A CONTRACTION MUST BE A SET (2026-10-01; docs/image-axiom-inconsistency-
+;;; 2026-09-30.md, addendum).  (VNB-LAMBDA x A b) is a class of pairs <x, b(x)>, and a
+;;; pair with a proper class in it is not an object: where b(x) is a proper class the
+;;; lambda has no point, and its application there is undefined.  The licence used to
+;;; check the ARGUMENT's membership in A and nothing about the value, so
+;;; (vnb-lambda(x_, nn, SET))(0) reduced to SET and `rfl' closed `SET = SET' -- a false
+;;; equation of an undefined term, and the first step of the SET-in-SET derivation.
+;;; Now a contraction is licensed when the argument is in the domain (as before) AND the
+;;; value is certified a set; each half that is not certified is OWED as an obligation
+;;; leaf, `(IN arg A)' / `(IN value SET)', posted in the parent's context; a redex whose
+;;; obligation would name a variable bound where it sits is left standing.  Both
+;;; obligations are decided BEFORE either is emitted, so a refused redex leaves no
+;;; orphan obligation behind (the checker's hygiene rejects one).  The checker
+;;; (rule-checkers-schema.scm, rcs--beta-licences-ok?) demands the same of the value.
+(define (pi--arg-typings args A)      ; the memberships a licensed or owed argument gives
+  (cond ((and (= (length args) 1) (pair? (car args)) (eq? (car (car args)) 'LIST)
+              (pair? A) (eq? (car A) 'CARTESIAN) (= (length (cdr (car args))) (length (cdr A))))
+         (cons (list 'IN (car args) A) (map (lambda (a d) (list 'IN a d)) (cdr (car args)) (cdr A))))
+        ((= (length args) 1) (list (list 'IN (car args) A)))
+        ((and (pair? A) (eq? (car A) 'CARTESIAN) (= (length args) (length (cdr A))))
+         (cons (list 'IN (cons 'LIST args) A) (map (lambda (a d) (list 'IN a d)) args (cdr A))))
+        (else (list (list 'IN (cons 'LIST args) A)))))
+
+(define (pi--beta-decide! asms args A scope bvars value emit!)
+  (let* ((known  (append scope (pi--unshadowed bvars asms)))
+         (arg-ob (and (not (pi--beta-licensed? known args A))
+                      (pi--beta-obligation args A)))
+         ;; the argument's membership -- licensed or owed, either way established on the
+         ;; branch -- counts as a typing when the value is tested: (vnb-lambda z A z)(c)
+         ;; owes `c in A' and nothing more
+         (known* (append (pi--arg-typings args A) known))
+         (val-ob (and (pi--value-may-be-class? known* value)
+                      (list 'IN value 'SET))))
+    (and (or (not arg-ob) (not (pi--mentions-any? bvars arg-ob)))
+         (or (not val-ob) (not (pi--mentions-any? bvars val-ob)))
+         (begin
+           (if *lambda-beta-emit-obligations?*
+               (begin (if arg-ob (emit! arg-ob)) (if val-ob (emit! val-ob)))
+               (begin (display ";VNB BETA-GUARD (not enforced): args=") (write args)
+                      (display " A=") (write A) (display " value=") (write value) (newline)))
+           #t))))
+
+;;; THE VALUE CERTIFICATE, NEGATIVE FORM (2026-10-01).  Beta is sound as a rewrite by
+;;; quasi-equality: (L x) == b[x] holds when b[x] is a set (then <x, b[x]> is in L) and
+;;; when b[x] is undefined (then (L x) is undefined too).  It FAILS only when b[x]
+;;; denotes a PROPER CLASS: then (L x) is undefined and b[x] is not.  So the obligation
+;;; `(IN value SET)' is owed exactly when the value MAY denote a proper class, and the
+;;; test asks that question rather than its converse (the converse -- certify the value
+;;; a set -- broke 273 files on 2026-10-01: a library lambda's value is typically an
+;;; arithmetic term, an application, a CHOICE, an IOTA, none of them typed in context,
+;;; none of them a proper class).  KNOWN: raw formulas from the binder scope and wffs
+;;; from the context.  MAY BE A PROPER CLASS:
+;;;   SET, ORD (the proper-class constants); a bare symbol with no typing (IN v C) in
+;;;   KNOWN and no equation to a set-term (a variable may stand for a proper class);
+;;;   POWER, FUN, TUPLES, INJECTION, BIJECTION of a class that may be proper;
+;;;   SEP / VNB-LAMBDA / IMAGE / BIG-UNION / COMP whose domain may be proper (COMP:
+;;;   always); UNION / INTERSECTION / DIFFERENCE / COMPLEMENT-IN / CARTESIAN with a
+;;;   part that may be proper; a registered functoid applied, by its body with the
+;;;   arguments substituted (BALL, CLASS, QUOTIENT, ... unfold to SEP or IMAGE over a
+;;;   carrier); an IF whose branches may be proper.
+;;;   NOT: a numeral, a typed symbol, the set constants (NN ZZ QQ RR CC EMPTY-SET
+;;;   RR-STAR RR-POS-STAR POS-INF NEG-INF), LIST / PAIR (a pair with a proper class in
+;;;   it is no object: undefined, not proper), arithmetic (its values are numbers or
+;;;   junk sets), INTERVAL, NTH, LENGTH, CHOICE, IOTA (a chosen or described member),
+;;;   an application `(v args)' of a variable or an unregistered head (undefined or a
+;;;   set), an accessor of a structure KNOWN holds, any other term.
+(define *pi-proper-class-constants* '(SET ORD))
+(define *pi-set-constants* '(NN ZZ QQ RR CC EMPTY-SET RR-STAR RR-POS-STAR POS-INF NEG-INF))
+
+(define (pi--value-may-be-class? known t)
+  (define (raw e) (if (wff? e) (wff-formula e) e))
+  (define (holds? pred)
+    (let loop ((es known))
+      (cond ((null? es) #f) ((pred (raw (car es))) #t) (else (loop (cdr es))))))
+  (define (typed? u)
+    (holds? (lambda (f) (and (pair? f) (eq? (car f) 'IN) (= (length f) 3) (equal? (cadr f) u)))))
+  (define (structure-known? s)
+    (holds? (lambda (f) (and (pair? f) (= (length f) 2) (symbol? (car f)) (equal? (cadr f) s)
+                             (let ((nm (string-downcase (symbol->string (car f)))))
+                               (and (> (string-length nm) 3) (string=? (substring nm 0 3) "is-")
+                                    (environment-bound? system-global-environment 'find-shape-structure)
+                                    (find-shape-structure (string->symbol (substring nm 3 (string-length nm))))
+                                    #t))))))
+  (define (functoid-body-of t)            ; the registered functoid's body, arguments in
+    (and (pair? t) (symbol? (car t))
+         (let ((reg (pi--registry-ref (car t))))
+           (and reg (list? reg) (>= (length reg) 2)
+                (list? (car reg)) (= (length (car reg)) (length (cdr t)))
+                (subst-free* (map cons (car reg) (cdr t)) (cadr reg))))))
+  (let may? ((t t) (depth 0))
+    (cond
+      ((> depth 8) #t)                                   ; too deep to tell: owe it
+      ((not (pair? t))
+       (and (symbol? t)
+            (not (memq t *pi-set-constants*))
+            (or (memq t *pi-proper-class-constants*)
+                (not (typed? t)))
+            #t))
+      ((memq (car t) '(LIST PAIR INTERVAL NTH LENGTH CHOICE IOTA)) #f)
+      ((and (symbol? (car t)) (memq (car t) *pi-arith-total-heads*)) #f)
+      ((memq (car t) '(POWER FUN TUPLES INJECTION BIJECTION))
+       (let loop ((as (cdr t))) (and (pair? as) (or (may? (car as) (+ depth 1)) (loop (cdr as))))))
+      ((eq? (car t) 'COMP) #t)
+      ((and (memq (car t) '(SEP VNB-LAMBDA BIG-UNION)) (= (length t) 4)) (may? (caddr t) (+ depth 1)))
+      ((and (eq? (car t) 'IMAGE) (= (length t) 3)) (may? (caddr t) (+ depth 1)))
+      ((memq (car t) '(UNION INTERSECTION DIFFERENCE COMPLEMENT-IN CARTESIAN))
+       (let loop ((as (cdr t))) (and (pair? as) (or (may? (car as) (+ depth 1)) (loop (cdr as))))))
+      ((eq? (car t) 'IF) (or (may? (caddr t) (+ depth 1)) (may? (cadddr t) (+ depth 1))))
+      ((and (= (length t) 2) (symbol? (car t)) (structure-known? (cadr t))) #f)
+      ((functoid-body-of t) => (lambda (b) (may? b (+ depth 1))))
+      (else #f))))
+
 (define (pi--beta-obligation args A)
   (if (= (length args) 1)
       (list 'IN (car args) A)
@@ -2083,7 +2204,7 @@
 ;;; one-argument entry point keeps the unguarded behaviour and is for pure TERM
 ;;; manipulation (the test suite); the kernel rules below always pass a guard.
 (define (reduce-lambda-in-expr expr)
-  (reduce-lambda-in-expr/guard expr (lambda (args A scope bvars) #t)))
+  (reduce-lambda-in-expr/guard expr (lambda (args A scope bvars value) #t)))
 
 (define (reduce-lambda-in-expr/guard expr ok?)
   (reduce-lambda-in-expr/scope expr ok? '() '()))
@@ -2166,7 +2287,7 @@
   ;; the body of (VNB-LAMBDA bs A .) is walked with bs's memberships added
   (define (reduce-in-body bs A e)
     (reduce-under (pi--bspec-vars bs) (pi--binder-scope bs A) e))
-  (define (ok?* args A) (ok? args A scope bvars))
+  (define (ok?* args A value) (ok? args A scope bvars value))   ; value: the reduct (2026-10-01)
   (cond
     ;; (FORALL v (IMPLIES (IN v A) body)) -- v's membership holds inside body.
     ((and (pair? expr) (eq? (car expr) 'FORALL) (= (length expr) 3)
@@ -2194,10 +2315,11 @@
             (body (reduce-in-body (cadar expr) (caddr (car expr))
                                   (cadddr (car expr))))
             (arg  (reduce-lambda-in-expr (cadr expr))))
-       (if (ok?* (list arg) A)
-           (subst-free x arg body)
+       (let ((value (subst-free x arg body)))
+       (if (ok?* (list arg) A value)
+           value
            ;; not licensed: leave the redex alone, but still normalise inside it
-           (list (list 'VNB-LAMBDA x A body) arg))))
+           (list (list 'VNB-LAMBDA x A body) arg)))))
     ;; ((VNB-LAMBDA (LIST x1 ... xn) body) arg1 ... argn)  — multi-binder, parallel.
     ((and (pair? (car expr))
           (eq? (caar expr) 'VNB-LAMBDA)
@@ -2221,7 +2343,7 @@
                                   (subst-free (car pair) (cdr pair) b))
                                 renamed
                                 (map cons fresh args))))
-       (if (ok?* args (caddr (car expr)))
+       (if (ok?* args (caddr (car expr)) final)
            final
            (cons (list 'VNB-LAMBDA (cadar expr) (caddr (car expr)) body) args))))
     ;; The domain-carrying binders, all of shape (H v A body) with A OUTSIDE the

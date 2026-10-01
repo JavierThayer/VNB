@@ -845,6 +845,7 @@
               (delta (chk-added hyp concl))
               (side  (and (chk-arity? hyps 2) (binary-left (chk-goal (cadr hyps)))))
               (instance-seen #f)
+              (functoid-seen #f)                ; the instance is a functoid (2026-10-01)
               (ok
                (chk-any
                 (lambda (f)
@@ -858,13 +859,26 @@
                                  (begin (set! instance-seen #t) #t)
                                  (let ((t (chk-bound (quantifier-var f) b)))
                                    (or (not t)            ; x not in p: vacuous
-                                       (if side
-                                           (chk-same? side t)
-                                           (chk-elim-certified? concl t)))))))
+                                       ;; a functoid is outside the range of quantification
+                                       ;; (the user, 2026-10-01): a lambdoid record, or a
+                                       ;; bare registered functoid name -- and that ends
+                                       ;; the question; the certificate is not consulted
+                                       (if (or (functoid? t)
+                                               (and (symbol? t)
+                                                    (call-with-current-continuation
+                                                      (lambda (k)
+                                                        (with-exception-handler (lambda (e) (k #f))
+                                                          (lambda () (hash-table-ref/default *functoid-registry* t #f)))))))
+                                           (begin (set! functoid-seen #t) #f)
+                                           (if side
+                                               (chk-same? side t)
+                                               (chk-elim-certified? concl t))))))))
                         delta)))
                 asms)))
          (cond
            (ok #t)
+           (functoid-seen
+            "forall-elim: the instance is a functoid, which is outside the range of quantification")
            ((not instance-seen)
             "the context gained no INSTANCE of any universal it holds")
            (side

@@ -2467,9 +2467,16 @@
     (for-each (lambda (leaf)
                 (dk-focus! leaf)
                 (let ((g (dk-goal)))
-                  (if (and (pair? g) (eq? (car g) 'IN) (dk-asm? g))
-                      (ass)
-                      (set! rest (cons leaf rest)))))
+                  (cond ((and (pair? g) (eq? (car g) 'IN) (dk-asm? g)) (ass))
+                        ;; the value's sethood beta owes since 2026-10-01: the routes of
+                        ;; dk-sethood!; a leaf it cannot close is reported like the rest
+                        ((and (pair? g) (eq? (car g) 'IN) (= (length g) 3) (eq? (caddr g) 'SET)
+                              (call-with-current-continuation
+                                (lambda (k)
+                                  (with-exception-handler (lambda (e) (k #f))
+                                    (lambda () (dk-sethood! (cadr g)) #t)))))
+                         #t)
+                        (else (set! rest (cons leaf rest))))))
               opened)
     (cond ((null? rest) #f)
           ((null? (cdr rest)) (dk-focus! (car rest)) (car rest))

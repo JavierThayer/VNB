@@ -149,6 +149,9 @@
 (define r9d-1-f (cadr (dk-pick (r9d-typed? (list 'FUN 'NN (list 'PTS r9d-1-s))) "the sequence f")))
 (define r9d-1-r (cadr (dk-pick (dk-head? 'POS-RR) "the radius r")))
 (define r9d-1-PTS (list 'PTS r9d-1-s))
+;; r typed in RR (2026-10-01): the constant radius lambda below has r as its VALUE, and
+;; beta owes the value's sethood unless the context types it -- POS-RR(r) alone does not
+(fact 'rr-pos-rr-in-rr r9d-1-r)
 
 ;; 0 in NN -- the level at which the constant cover is read, and the LUTINS
 ;; certificate for every instantiation at it.
