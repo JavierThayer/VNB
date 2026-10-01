@@ -160,7 +160,7 @@
 (dk-have! (list 'IN gb-cr-pa gb-cr-tr)
   (lambda ()
     (mac 'trace-unfold)
-    (mac 'image-membership-iff)
+    (dk-image-goal!)
     (ew gb-cr-a)
     (dk-conj-close! (lambda () (if (dk-asm? (dk-goal)) (ass) (rfl))))))
 (fact 'subset-mem-fwd gb-cr-tr gb-cr-u gb-cr-pa)

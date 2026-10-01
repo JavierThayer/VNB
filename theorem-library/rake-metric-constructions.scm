@@ -363,7 +363,7 @@
          (if (equal? (caddr g) r5s-bcov)
              (begin
                (mac 'ball-cover-unfold)
-               (mac 'image-membership-iff)
+               (dk-image-goal!)
                (ew xv)
                (r5s-and!
                 (lambda ()

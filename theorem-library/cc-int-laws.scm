@@ -91,7 +91,7 @@
   (fact 'fun-apply-type-c 'pgam ci2-cc 'CC tv)
   (fact 'trace-unfold 'pgam 'a 'b)
   (subst (list '== (list 'TRACE 'pgam 'a 'b) (list 'IMAGE 'pgam ci2-cc)))
-  (mac 'image-membership-iff)
+  (dk-image-goal!)
   (ew tv)
   (dk-conj-close! (lambda () (if (eq? (ci2-head (dk-goal)) '=) (rfl) (ass)))))
 (qed 'trace-value-in)
@@ -109,7 +109,7 @@
   ;; NOT `image-subset-codomain': that axiom is ASSERTED (injection.scm) and
   ;; citing it puts a leaf on the bill.  The membership IFF is `definitional'
   ;; and contributes {} -- skolemize it and type the value instead.
-  (mac-h 'image-membership-iff (list 'IN w (list 'IMAGE 'pgam ci2-cc)))
+  (dk-image-hyp! (list 'IN w (list 'IMAGE 'pgam ci2-cc)))
   (let ((tv (dk-skolem! (dk-pick (dk-head? 'FORSOME) "the image existential"))))
     (dk-split-all!)
     (fact 'fun-apply-type-c 'pgam ci2-cc 'CC tv)

@@ -320,9 +320,13 @@
   (have! sub
     (lambda ()
       ;; both macetes BEFORE any di: they rewrite the antecedent in place
+      ;; (under the binder: the goal is not the membership itself, so not dk-image-goal!;
+      ;; the iff's sethood conjunct lands with the antecedent and mim-skolem-all! steps
+      ;; over it)
       (mac 'image-membership-iff)
       (mac 'cartesian-decompose)
       (dk-peel!)
+      (dk-split-all!)                    ; the iff's conjunction: (IN w SET) and the existential
       (mim-skolem-all!)
       (let* ((g1  (dk-goal))                               ; (IN w X)
              (w   (cadr g1))

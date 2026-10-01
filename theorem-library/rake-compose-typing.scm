@@ -53,7 +53,7 @@
               (IN (f a) (RAN f)))))))
 (di)
 (mac 'RAN)
-(mac 'image-membership-iff)
+(dk-image-goal!)
 (ew 'a)
 (di)                                    ; two leaves: a in DOM(f), and f(a)=f(a)
 (ass-all)                               ; closes the first

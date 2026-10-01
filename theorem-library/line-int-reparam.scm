@@ -418,7 +418,7 @@
    (if (not (eq? (lrp-head (dk-goal)) 'SUBSET))
        (ass)
        (let ((w (subset-by-element!)))
-         (mac-h 'image-membership-iff (list 'IN w (list 'IMAGE lrp-inv 'lrpe_)))
+         (dk-image-hyp! (list 'IN w (list 'IMAGE lrp-inv 'lrpe_)))
          (let ((z (dk-skolem! (dk-pick (dk-head? 'FORSOME) "the image existential"))))
            (dk-split-all!)
            (fact 'subset-mem-fwd 'lrpe_ lrp-ab z)
@@ -445,7 +445,7 @@
   (dk-have! imp
     (lambda ()
       (di)
-      (mac 'image-membership-iff)
+      (dk-image-goal!)
       (ew (lrp-map 'lrpt_))
       (dk-conj-close!
        (lambda ()
@@ -828,7 +828,7 @@
          (begin
            (dk-have! (list 'IN w (list 'IMAGE 'lrpr_ lrp-cd))
              (lambda () (subst (list '== (list 'IMAGE 'lrpr_ lrp-cd) '(TRACE lrpr_ lrpc_ lrpd_))) (ass)))
-           (mac-h 'image-membership-iff (list 'IN w (list 'IMAGE 'lrpr_ lrp-cd)))
+           (dk-image-hyp! (list 'IN w (list 'IMAGE 'lrpr_ lrp-cd)))
            (let* ((z (dk-skolem! (dk-pick (dk-head? 'FORSOME) "the image existential")))
                   (u (begin (dk-split-all!) (lrp-in-ab! z))))
              (dk-apply! lrp-ragree z)
@@ -839,7 +839,7 @@
          (begin
            (dk-have! (list 'IN w (list 'IMAGE 'pgam lrp-ab))
              (lambda () (subst (list '== (list 'IMAGE 'pgam lrp-ab) '(TRACE pgam a b))) (ass)))
-           (mac-h 'image-membership-iff (list 'IN w (list 'IMAGE 'pgam lrp-ab)))
+           (dk-image-hyp! (list 'IN w (list 'IMAGE 'pgam lrp-ab)))
            (let* ((z (dk-skolem! (dk-pick (dk-head? 'FORSOME) "the image existential")))
                   (q (begin (dk-split-all!) (lrp-inv-of z))))
              (dk-split-all! (list (dk-apply! (lrp-h6 'affine-reparam-inverse) z)))
@@ -1062,7 +1062,7 @@
   (let ((w (subset-by-element!)))
     (dk-have! (list 'IN w (list 'IMAGE rg lrp-cd))
       (lambda () (subst (list '== (list 'IMAGE rg lrp-cd) (list 'TRACE rg 'lrpc_ 'lrpd_))) (ass)))
-    (mac-h 'image-membership-iff (list 'IN w (list 'IMAGE rg lrp-cd)))
+    (dk-image-hyp! (list 'IN w (list 'IMAGE rg lrp-cd)))
     (let ((z (dk-skolem! (dk-pick (dk-head? 'FORSOME) "the image existential"))))
       (dk-split-all!)
       (fact 'subset-mem-fwd lrp-cd lrp-ab z)

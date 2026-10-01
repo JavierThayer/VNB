@@ -228,7 +228,7 @@
 (define (rko2-rep! mem)
   (let ((c (cadr mem)))
     (mac-h 'quotient-unfold mem)
-    (mac-h 'image-membership-iff
+    (dk-image-hyp!
            (rko2-find (lambda (f) (and ((rko2-in-head 'IMAGE) f) (equal? (cadr f) c)))
                       "the image membership"))
     (let ((a (dk-skolem! (rko2-hyp 'FORSOME "the representative existential"))))
@@ -304,7 +304,7 @@
        (IN (CLASS s a) (QUOTIENT s))))))))
 (dk-peel!)
 (mac 'QUOTIENT)
-(mac 'image-membership-iff)
+(dk-image-goal!)
 (ew 'a)
 (let ((cs (dk-opened (lambda () (di)))))
   (dk-focus! (any-pred (lambda (n) (rko2-goal-head? n 'IN)) cs))

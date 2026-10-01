@@ -172,7 +172,7 @@
     (let* ((mem (car (dk-peel!)))                       ; (IN w y)
            (w   (cadr mem))
            (z   (dk-skolem! (dk-apply! rkn-ibf-surj w))))
-      (mac 'image-membership-iff)
+      (dk-image-goal!)
       (ew z)
       (dk-conj-close! (lambda () (ass))))))
 (fact 'subclass-of-set-is-set 'y '(IMAGE phi x))        ; (IN y SET)

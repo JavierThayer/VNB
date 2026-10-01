@@ -764,9 +764,10 @@
     (r12e-ensure! (list 'IN zk im)
       (lambda ()
         (let* ((imi (r12e-mem-iff! (list 'IN zk im) 'image-membership-iff lmap p0 zk))
-               (ex  (caddr imi)))
+               (ex  (caddr (caddr imi))))             ; the existential conjunct of the iff's right side (2026-09-30)
           (have! ex (lambda () (ew zv) (prop)))
-          (dk-only! imi ex)
+          (dk-have! (list 'IN zk 'SET) (lambda () (dk-sethood! zk)))
+          (dk-only! imi ex (list 'IN zk 'SET))
           (prop))))
     ;; The reindexed summand is a lambda whose body applies a lambda to a
     ;; lambda's value: contracting all three redexes AT ONCE is refused by the

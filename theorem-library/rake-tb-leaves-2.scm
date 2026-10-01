@@ -447,7 +447,7 @@
                                 (if (equal? (cadr (dk-goal)) (list 'BALL 's cv radk))
                                     ;; (IN (BALL s c radk) (IMAGE bm NET(k)))
                                     (begin
-                                      (mac 'image-membership-iff)
+                                      (dk-image-goal!)
                                       (ew cv)
                                       (dk-conj-close!
                                        (lambda ()

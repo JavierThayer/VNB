@@ -116,7 +116,7 @@
       ;; what says phi(x) IS in grd, so land it before the reduction rather
       ;; than reducing first and typing afterwards.
       (inst*! oni-typ x)
-      (mac 'image-membership-iff)
+      (dk-image-goal!)
       (witness! `(phi ,x)
         (lambda ()
           (both! (lambda () (inst*! oni-claim2 x) (ass))          ; phi(x) is in R

@@ -1053,7 +1053,7 @@
                   (have! (list 'FORSOME 'x_ (list 'AND (list 'IN 'x_ rkp-pic-P)
                                                   (list '= (list rkp-pic-lam 'x_) A)))
                          (lambda () (ew D) (prop)))
-                  (dk-only! im um
+                  (dk-only! im um (list 'IN A 'SET)          ; the iff's sethood conjunct (2026-09-30)
                             (list 'FORSOME 'x_ (list 'AND (list 'IN 'x_ rkp-pic-P)
                                                      (list '= (list rkp-pic-lam 'x_) A))))
                   (prop)))

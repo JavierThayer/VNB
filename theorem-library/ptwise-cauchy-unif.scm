@@ -366,7 +366,7 @@
 
 ;; goal (IN w (IMAGE phi sub)) with w = CHOICE(CAPS u), u in sub
 (define (pcu-in-image! phi sub u w)
-  (mac 'image-membership-iff)
+  (dk-image-goal!)
   (ew u)
   (pcu-each-leaf!
    (lambda () (di))

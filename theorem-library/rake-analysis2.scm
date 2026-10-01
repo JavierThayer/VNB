@@ -172,7 +172,7 @@
             (dk-conj-close! (lambda () (if (rkl-head? (dk-goal) '=) (rfl) (ass))))))
         (dk-only! ifff ig mem)                    ; prop has an atom cap
         (have! (list 'IN pr 'f) (lambda () (prop))))
-      (mac 'image-membership-iff)
+      (dk-image-goal!)
       (ew pr)
       (dk-conj-close!
        (lambda ()
@@ -376,7 +376,7 @@
   (have! '(FORSOME c (IN c (CENTRES s u r))) (lambda () (ew c0) (ass))))
 (fact 'choice-axiom '(CENTRES s u r))    ; the guard IS choice-axiom's antecedent
 (mac 'CENTRE-SET)
-(mac 'image-membership-iff)
+(dk-image-goal!)
 (ew 'u)
 (dk-conj-close!
  (lambda ()

@@ -851,7 +851,7 @@
              (i0 (cadr en))
              (j0 (caddr en)))
         (let ((inner (dk-apply! dhyp i0))) (dk-apply! inner j0))
-        (mac 'image-membership-iff)
+        (dk-image-goal!)
         (ew (list 'LIST i0 j0))
         (dk-conj-close!
          (lambda ()

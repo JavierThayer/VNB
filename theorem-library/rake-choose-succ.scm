@@ -572,7 +572,7 @@
                (D   (r6g-del A nv))
                ;; the existential is READ OFF the image IFF, never rebuilt: its
                ;; binder is renamed whenever the eigenvariable takes the name.
-               (wit (caddr im)))
+               (wit (caddr (caddr im))))   ; the EXISTENTIAL conjunct of the iff's right side (2026-09-30)
           ;; ---------------- forward
           (have! (list 'IMPLIES (list 'IN A CST) (list 'IN A RHS))
             (lambda ()
@@ -589,7 +589,7 @@
                   (have! (list '= (list L D) A)
                          (lambda () (lam-b) (ass)))
                   (have! wit (lambda () (ew D) (prop)))
-                  (dk-only! im um wit)
+                  (dk-only! im um wit (list 'IN A 'SET))   ; the iff's sethood conjunct (2026-09-30)
                   (prop))
                 ;; ---- A avoids n: it is already a (succ k)-subset of OS(n)
                 (lambda ()
@@ -660,7 +660,7 @@
   (let* ((A   (dk-di-var! (lambda (gg) (cadr (cadr gg)))))
          (imm (r6g-mem-iff! (list 'IN A INT) 'intersection-membership CSsk B A))
          (im  (r6g-mem-iff! (list 'IN A B) 'image-membership-iff L CSk A))
-         (wit (caddr im)))
+         (wit (caddr (caddr im))))   ; the EXISTENTIAL conjunct of the iff's right side (2026-09-30)
     (fact 'empty-set-has-no-members A)
     (have! (list 'NOT (list 'IN A INT))
       (lambda ()

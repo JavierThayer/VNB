@@ -13,7 +13,7 @@
                (FORALL w
                  (IMPLIES (IN w (IMAGE phi dm)) (IN w cod)))))))))
 (dk-peel!)
-(mac-h 'image-membership-iff '(IN w (IMAGE phi dm)))
+(dk-image-hyp! '(IN w (IMAGE phi dm)))
 (let ((isc-x (dk-skolem! (dk-pick (dk-head? 'FORSOME) "the image witness"))))
   (fact 'fun-apply-type-c 'phi 'dm 'cod isc-x)
   (subst (list '= 'w (list 'phi isc-x)))

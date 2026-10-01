@@ -1199,7 +1199,7 @@
                    (ass))))
     (dk-have! (list 'IN (list 'ABS dd) sset)
       (lambda ()
-        (mac 'image-membership-iff)
+        (dk-image-goal!)
         (ew xi)
         (dk-conj-close!
           (lambda ()
@@ -2386,7 +2386,7 @@
                     (fact 'fun-apply-type-c dn cab 'RR z)
                     (fact 'rr-abs-closed (list dn z))
                     (dk-have! (list 'IN (list 'ABS (list dn z)) sset)
-                      (lambda () (mac 'image-membership-iff) (ew z)
+                      (lambda () (dk-image-goal!) (ew z)
                                  (dk-conj-close! (lambda () (if (dk-head-is? (dk-goal) 'IN) (ass)
                                                                 (begin (dk-lam-b!) (rfl))))))))))
         (mem! a)

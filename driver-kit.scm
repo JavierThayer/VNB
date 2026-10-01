@@ -1242,6 +1242,18 @@
 ;;; (Q x)), the antecedent a later `detach!' wants whole, since `fact' will not
 ;;; rebuild a conjunction -- survives; #f splits nothing.
 (define (dk-skolem! ex . opt)
+  ;; A CONJUNCTION whose one conjunct is the existential (2026-09-30: the repaired
+  ;; `image-membership-iff' lands `w in SET and forsome x in S. phi(x) = w'): split
+  ;; it, keep the other conjuncts in context, skolemise the existential.
+  (if (and (pair? ex) (eq? (car ex) 'AND))
+      (let* ((parts (dk-split! ex))
+             (exs   (filter (lambda (f) (and (pair? f) (eq? (car f) 'FORSOME))) parts)))
+        (cond ((null? exs) (error "dk-skolem!: no existential among the conjuncts of" (expression->string ex)))
+              ((pair? (cdr exs)) (error "dk-skolem!: more than one existential among the conjuncts of" (expression->string ex)))
+              (else (apply dk-skolem! (car exs) opt))))
+      (dk-skolem--one! ex opt)))
+
+(define (dk-skolem--one! ex opt)
   (let* ((split  (if (pair? opt) (car opt) #t))
          (fvs    (lambda ()
                    (let loop ((as (dk-asms)) (acc '()))
@@ -4049,3 +4061,161 @@
                               (not (proof-done? *ps*))))))
                     (begin (show) #t)
                     (expand--decline! "the rewriting steps did not go through"))))))))
+
+;;; -----------------------------------------------------------------------
+;;; IMAGE membership (2026-09-30).  `image-membership-iff' reads
+;;;     w in IMAGE(phi, S)  iff  w in SET and forsome x in S. phi(x) = w
+;;; since the repair of that day (docs/image-axiom-inconsistency-2026-09-30.md):
+;;; the sethood conjunct is what keeps a class-valued phi from manufacturing a
+;;; member.  Every driver that read the membership as the bare existential
+;;; meets the conjunction now; these two are the one place that knows its shape.
+;;;
+;;; (dk-sethood! t)       closes the focus goal (IN t SET): by `ass' when it is in
+;;;                       context, else from any typing (IN t C) in context through
+;;;                       membership-implies-sethood; errors when there is none.
+;;; (dk-image-goal!)      on the goal (IN w (IMAGE phi S)): rewrites by the iff,
+;;;                       splits the conjunction, closes the sethood of w, and leaves
+;;;                       the EXISTENTIAL focused -- the driver's next step is the
+;;;                       `ew' it always was.
+;;; (dk-image-hyp! mem)   opens the hypothesis mem = (IN w (IMAGE phi S)) by the iff,
+;;;                       splits the conjunction so (IN w SET) lands, and RETURNS the
+;;;                       existential as it landed -- what `(dk-landed-1 (lambda ()
+;;;                       (mac-h 'image-membership-iff mem)))' used to return.
+(define (dk-sethood! t)
+  (let ((want (list 'IN t 'SET)))
+    (define (in-ctx? f)
+      (let loop ((as (dk-asms)))
+        (cond ((null? as) #f) ((alpha-equiv? (car as) f) #t) (else (loop (cdr as))))))
+    (define (typing-of u)                 ; some (IN u C) in context, C not SET
+      (let loop ((as (dk-asms)))
+        (cond ((null? as) #f)
+              ((and (pair? (car as)) (eq? (caar as) 'IN) (= (length (car as)) 3)
+                    (equal? (cadr (car as)) u) (not (eq? (caddr (car as)) 'SET)))
+               (car as))
+              (else (loop (cdr as))))))
+    (define (fun-typing-of f)             ; some (IN f (FUN A B)) in context
+      (let loop ((as (dk-asms)))
+        (cond ((null? as) #f)
+              ((and (pair? (car as)) (eq? (caar as) 'IN) (= (length (car as)) 3)
+                    (equal? (cadr (car as)) f)
+                    (pair? (caddr (car as))) (eq? (car (caddr (car as))) 'FUN)
+                    (= (length (caddr (car as))) 3))
+               (car as))
+              (else (loop (cdr as))))))
+    (if (not (alpha-equiv? (dk-goal) want))
+        (error "dk-sethood!: the focus goal is not" (expression->string want)
+               "but" (expression->string (dk-goal))))
+    (cond
+      ;; already there
+      ((in-ctx? want) (ass))
+      ;; a typing in context: membership-implies-sethood
+      ((typing-of t)
+       => (lambda (typ) (fact 'membership-implies-sethood t (caddr typ)) (ass)))
+      ;; the classes the lam-t closer knows (NN, RR, intervals, products, ...)
+      ((and (or (symbol? t) (and (pair? t) (memq (car t) '(INTERVAL CARTESIAN))))
+            (dk-close-if! (lambda () (dk-set-close! t)) (lambda () #f)))
+       #t)
+      ;; a SEP: sep-set, then the sethood of its domain
+      ((and (pair? t) (eq? (car t) 'SEP) (= (length t) 4))
+       (let ((leaves (dk-opened (lambda () (sep-set)))))
+         (for-each (lambda (l) (dk-focus! l) (dk-sethood! (cadr (dk-goal-of l)))) leaves)))
+      ;; an IMAGE: replacement, then the sethood of the set it is taken over
+      ((and (pair? t) (eq? (car t) 'IMAGE) (= (length t) 3))
+       (dk-have! (list 'IN (caddr t) 'SET) (lambda () (dk-sethood! (caddr t))))
+       (fact 'image-set (cadr t) (caddr t))
+       (ass))
+      ;; an application f(a) with f in FUN(A, B) in context: f(a) in B, then sethood
+      ((and (pair? t) (= (length t) 2) (fun-typing-of (car t)))
+       => (lambda (ft)
+            (let ((A (cadr (caddr ft))) (B (caddr (caddr ft))))
+              (dk-have! (list 'IN (cadr t) A) (lambda () (ass)))
+              (fact 'fun-apply-type-c (car t) A B (cadr t))
+              (fact 'membership-implies-sethood t B)
+              (ass))))
+      ;; an accessor of a structure the context knows (PTS s, CARR r, ...): the typing
+      ;; conjunct of IS-X, projected on a lane so the predicate hypothesis survives
+      ((and (pair? t) (= (length t) 2) (symbol? (car t))
+            (let loop ((as (dk-asms)))
+              (cond ((null? as) #f)
+                    ((and (pair? (car as)) (= (length (car as)) 2)
+                          (symbol? (caar as)) (equal? (cadr (car as)) (cadr t))
+                          ;; symbols are folded to lower case (CLAUDE.md, "Case folding"): the
+                          ;; predicate reads `is-setoid', the structure `setoid'
+                          (let ((nm (string-downcase (symbol->string (caar as)))))
+                            (and (> (string-length nm) 3) (string=? (substring nm 0 3) "is-")
+                                 (find-shape-structure (string->symbol (substring nm 3 (string-length nm)))))))
+                     (car as))
+                    (else (loop (cdr as))))))
+       => (lambda (pred)
+            ;; on THIS leaf, which closes right here: mac-h may consume the predicate
+            ;; hypothesis (a lane would prove the claim in place and move the focus to a
+            ;; sibling, where a trailing `ass' fires on the wrong goal)
+            (mac-h (car pred) pred)
+            (dk-split-all!)
+            (ass)))
+      ;; a binary union: both halves, then union-set-closure (conjunctive antecedent:
+      ;; the whole AND must be in context for `fact' to detach it)
+      ((and (pair? t) (eq? (car t) 'UNION) (= (length t) 3))
+       (dk-have! (list 'AND (list 'IN (cadr t) 'SET) (list 'IN (caddr t) 'SET))
+                 (lambda () (dk-each-leaf! (lambda () (di))
+                                           (lambda () (dk-sethood! (cadr (dk-goal)))))))
+       (fact 'union-set-closure (cadr t) (caddr t))
+       (ass))
+      ;; a pair: both members, then the pairing axiom
+      ((and (pair? t) (eq? (car t) 'PAIR) (= (length t) 3))
+       (dk-have! (list 'AND (list 'IN (cadr t) 'SET) (list 'IN (caddr t) 'SET))
+                 (lambda () (dk-each-leaf! (lambda () (di))
+                                           (lambda () (dk-sethood! (cadr (dk-goal)))))))
+       (fact 'pairing (cadr t) (caddr t))
+       (ass))
+      ;; a relative complement: the sethood of the ambient set
+      ((and (pair? t) (eq? (car t) 'COMPLEMENT-IN) (= (length t) 3))
+       (dk-have! (list 'IN (cadr t) 'SET) (lambda () (dk-sethood! (cadr t))))
+       (fact 'complement-in-set-closure (cadr t) (caddr t))
+       (ass))
+      ;; a named functoid whose body is a SEP or an IMAGE (BALL, CLASS, COMPLEMENT-IN,
+      ;; ...): unfold it in the goal and look again
+      ((and (pair? t) (symbol? (car t))
+            (hash-table-ref/default *functoid-registry* (car t) #f))
+       (let ((g0 (dk-goal)))
+         (mac (car t))
+         (if (alpha-equiv? (dk-goal) g0)
+             (error "dk-sethood!: no route to the sethood of" (expression->string t)))
+         (dk-sethood! (cadr (dk-goal)))))
+      (else
+       (error "dk-sethood!: no typing of the term in context and no route to its sethood"
+              (expression->string t))))))
+
+(define (dk-image-goal!)
+  (let ((g (dk-goal)))
+    (if (not (and (pair? g) (eq? (car g) 'IN) (= (length g) 3)
+                  (pair? (caddr g)) (eq? (car (caddr g)) 'IMAGE)))
+        (error "dk-image-goal!: the goal is not a membership in an IMAGE"
+               (expression->string g)))
+    (let* ((w      (cadr g))
+           (leaves (dk-opened (lambda () (mac 'image-membership-iff) (di))))
+           (seth   (filter (lambda (l) (alpha-equiv? (dk-goal-of l) (list 'IN w 'SET))) leaves))
+           (ex     (filter (lambda (l) (let ((x (dk-goal-of l))) (and (pair? x) (eq? (car x) 'FORSOME))))
+                           leaves)))
+      (if (or (null? seth) (null? ex))
+          (error "dk-image-goal!: expected a sethood leaf and an existential leaf, got"
+                 (map (lambda (l) (expression->string (dk-goal-of l))) leaves)))
+      (dk-focus! (car seth))
+      (dk-sethood! w)
+      (dk-focus! (car ex)))))
+
+(define (dk-image-hyp! mem)
+  (let* ((landed (dk-landed (lambda () (mac-h 'image-membership-iff mem))))
+         (conj   (let loop ((ls landed))
+                   (cond ((null? ls) #f)
+                         ((and (pair? (car ls)) (eq? (caar ls) 'AND)) (car ls))
+                         (else (loop (cdr ls)))))))
+    (if (not conj)
+        (error "dk-image-hyp!: the iff did not land a conjunction; landed"
+               (map expression->string landed)))
+    (let ((ex (let loop ((ps (dk-split! conj)))
+                (cond ((null? ps) #f)
+                      ((and (pair? (car ps)) (eq? (caar ps) 'FORSOME)) (car ps))
+                      (else (loop (cdr ps)))))))
+      (if (not ex) (error "dk-image-hyp!: no existential among the conjuncts of" (expression->string conj)))
+      ex)))

@@ -227,7 +227,7 @@
            ;; ---- surjectivity -------------------------------------------
            (let* ((ex (dk-fact! 'bijection-surjective 'dm 'cod 'phi 'w_))
                   (z  (dk-skolem! ex)))
-             (mac 'image-membership-iff)
+             (dk-image-goal!)
              (ew z)
              (dk-conj-close!))))
      (dk-opened (lambda () (di))))))            ; split the IFF; antecedents land

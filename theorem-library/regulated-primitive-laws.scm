@@ -442,7 +442,7 @@
           (let* ((k (dk-di-var!)) (ek (list e k)))
             (fact 'fun-apply-type-c e 'NN 'rqd_ k)
             (fact 'subset-mem-fwd 'rqd_ 'rqa_ ek)
-            (mac 'image-membership-iff)
+            (dk-image-goal!)
             (ew ek)
             (dk-conj-close!
              (lambda ()

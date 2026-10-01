@@ -96,7 +96,7 @@
 
 ;; goal (IN z (IMAGE p S)) with (IN y S) and (= (p y) z) in context.
 (define (cif-in-image! y)
-  (mac 'image-membership-iff)
+  (dk-image-goal!)
   (ew y)
   (dk-conj-close!))
 

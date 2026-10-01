@@ -402,7 +402,7 @@
 
 ;; goal (IN w (IMAGE phi SUB)) with w = CHOICE(CAPS u), u in SUB
 (define (r8g-in-image! phi sub u w)
-  (mac 'image-membership-iff)
+  (dk-image-goal!)
   (ew u)
   (r8g-each-leaf!
    (lambda () (di))

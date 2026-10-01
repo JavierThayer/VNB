@@ -98,10 +98,8 @@
             (FORSOME c (AND (IN c (PTS s)) (= (BALL s c r) U)))))))))
 (dk-peel!)
 (mac-h 'ball-cover-unfold '(IN U (BALL-COVER s r)))
-(let* ((ex (dk-landed-1
-            (lambda ()
-              (mac-h 'image-membership-iff
-                     '(IN U (IMAGE (VNB-LAMBDA c (PTS s) (BALL s c r)) (PTS s)))))))
+(let* ((ex (dk-image-hyp!            ; returns the existential; (IN U SET) lands beside it
+            '(IN U (IMAGE (VNB-LAMBDA c (PTS s) (BALL s c r)) (PTS s)))))
        (cc (dk-skolem! ex))
        (eq (dk-pick (lambda (f) (and (pair? f) (eq? (car f) '=)
                                      (pair? (cadr f)) (pair? (car (cadr f)))

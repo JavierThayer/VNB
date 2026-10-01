@@ -321,7 +321,7 @@
                                                     (equal? (caddr f) r7x-r-segn)))
                                    "the peeled index"))))
             (r7x-r-lift! iv)
-            (mac 'image-membership-iff)
+            (dk-image-goal!)
             (ew iv)
             (dk-conj-close! (lambda () (if (r7x-head? (dk-goal) 'IN) (ass) (rfl)))))))
        ;; injectivity
@@ -337,7 +337,7 @@
        (#t
         (let* ((mem (car (dk-peel!)))
                (wv  (cadr mem)))
-          (r7x-mac-h! 'image-membership-iff mem)
+          (dk-image-hyp! mem)
           (let ((z (dk-skolem! (dk-pick (lambda (f) (and (r7x-head? f 'FORSOME)
                                                          (dk-contains? f wv)))
                                         "the image witness"))))
@@ -419,7 +419,7 @@
 (define r7x-u-segn (list 'ORD-SEGMENT r7x-u-n))
 (define r7x-u-parts (r7x-open-bijection! r7x-u-bij))
 
-(r7x-mac-h! 'image-membership-iff (list 'IN r7x-u-w (list 'IMAGE r7x-u-g r7x-u-segn)))
+(dk-image-hyp! (list 'IN r7x-u-w (list 'IMAGE r7x-u-g r7x-u-segn)))
 (define r7x-u-z
   (dk-skolem! (dk-pick (lambda (f) (and (r7x-head? f 'FORSOME) (dk-contains? f r7x-u-w)))
                        "the image witness")))
@@ -461,7 +461,7 @@
 (have! (list 'IN r7x-o-n r7x-o-segs)
        (lambda () (mac 'ord-segment-nn-succ) (oi-r) (rfl)))
 (di)                                                ; assume the membership, goal FALSITY
-(r7x-mac-h! 'image-membership-iff (list 'IN r7x-o-pt (list 'IMAGE r7x-o-g r7x-o-segn)))
+(dk-image-hyp! (list 'IN r7x-o-pt (list 'IMAGE r7x-o-g r7x-o-segn)))
 (define r7x-o-z
   (dk-skolem! (dk-pick (lambda (f) (and (r7x-head? f 'FORSOME) (dk-contains? f r7x-o-pt)))
                        "the image witness")))
@@ -555,7 +555,7 @@
                (use-em (list 'IN z r7x-n-segn)
                  (lambda ()
                    (oi-l)
-                   (mac 'image-membership-iff)
+                   (dk-image-goal!)
                    (ew z)
                    (dk-conj-close! (lambda () (ass))))
                  (lambda ()
@@ -1025,7 +1025,7 @@
                                                     (equal? (caddr f) r7x-j-dm)))
                                    "the peeled point"))))
             (dk-fact! 'fun-apply-type-c r7x-j-ph r7x-j-dm r7x-j-cod zv)
-            (mac 'image-membership-iff)
+            (dk-image-goal!)
             (ew zv)
             (dk-conj-close! (lambda () (if (r7x-head? (dk-goal) 'IN) (ass) (rfl)))))))
        ((r7x-head? (caddr (caddr g)) 'FORALL)
@@ -1037,7 +1037,7 @@
        (#t
         (let* ((mem (car (dk-peel!)))
                (wv  (cadr mem)))
-          (r7x-mac-h! 'image-membership-iff mem)
+          (dk-image-hyp! mem)
           (let ((z (dk-skolem! (dk-pick (lambda (f) (and (r7x-head? f 'FORSOME)
                                                          (dk-contains? f wv)))
                                         "the image witness"))))

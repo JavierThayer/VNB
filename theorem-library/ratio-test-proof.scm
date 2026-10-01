@@ -105,7 +105,7 @@
 (define rtp-el-e (list 'ESUP rtp-el-tl))
 (dk-have! (list 'IN rtp-el-e rtp-el-im)
   (lambda ()
-    (mac 'image-membership-iff)
+    (dk-image-goal!)
     (ew rtp-el-n)
     (dk-conj-close!
       (lambda ()

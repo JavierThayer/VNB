@@ -245,7 +245,7 @@
 (let ((rkt-v (caddr (caddr (cadr (dk-goal))))))   ; CLASS(s, EMBED-SEQ(M,v)) -> v
   (fact 'rkt-class-is-set 'M (list 'EMBED-SEQ 'M rkt-v))   ; definedness, for `rfl'
   (mac 'QUOTIENT) (mac 'PROJ) (mac 'rkt-cauchy-setoid-pts)
-  (mac 'image-membership-iff)
+  (dk-image-goal!)
   (ew (list 'EMBED-SEQ 'M rkt-v))
   (for-each
    (lambda (rkt-leaf)

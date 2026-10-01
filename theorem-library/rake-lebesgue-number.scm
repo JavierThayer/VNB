@@ -609,7 +609,7 @@
        (lambda ()
          (if (equal? (caddr (dk-goal)) sub)
              (begin
-               (mac 'image-membership-iff)
+               (dk-image-goal!)
                (witness! cv
                  (lambda ()
                    (r8k-each-leaf!

@@ -101,7 +101,12 @@ Both \texttt{forall} and \texttt{forsome} require a bracket-enclosed
 Each \emph{binding} in the string syntax is one of:
 
 \begin{itemize}
-\item \texttt{$x$} unrestricted variable ranging over all classes
+\item \texttt{$x$} unrestricted variable ranging over all classes --- and,
+  when the variable stands in \emph{function position} (as \texttt{phi} in
+  \texttt{phi(x)} or in \texttt{image(phi, S)}), over all functoids as well:
+  the instantiation rule accepts any term the language can apply there,
+  a class of pairs, a named functoid, a \texttt{lambdoid}
+  (Remark~\ref{rem:functoids-quantified})
 \item \texttt{$x$ in $A$} variable $x$ restricted to class $A$
 \item \texttt{[$n_1$, \ldots, $n_k$] in $A$} tuple destructuring: fresh $t \in A$, components bound to \texttt{nth(1,~$t$)}, \ldots, \texttt{nth($k$,~$t$)}
 \end{itemize}
@@ -307,19 +312,54 @@ product is implied).  This declaration specifies that the functoid in
 question takes $n$ arguments $a_1 \in A_1, a_2 \in A_2, \ldots, a_n
 \in A_n$ producing a value $b \in B$.
 
-\begin{remark}
+\begin{remark}[Functoids are quantified over, and are not classes]
+\label{rem:functoids-quantified}
 The motivation comes from category theory.  A functor is conceptually a
 mapping between collections of mathematical structures, but its domain
-is typically a proper class (e.g.\ the class of all groups, or all
-topological spaces).  In a reductionist treatment one could introduce a
-distinguished class $\mathit{FUNCTOID} \subseteq \mathit{CLASS}$,
-whose members are ordered pairs encoding signature and rule.  This
-system instead treats functoids as a new kind of object, coordinate
-with sets and classes rather than reducible to them.  The principal
-consequence is that the formal language does not quantify over
-functoids: ``all functoids $F$ satisfy\ldots'' is metalanguage, not an
-object-language formula.  Functoids are introduced from the predefined
-list below or via \texttt{def-functoid} (Section~\ref{sec:def-functoid}).
+is typically a proper class (the class of all groups, of all metric
+spaces).  In a reductionist treatment one could introduce a
+distinguished class $\mathit{FUNCTOID} \subseteq \mathit{CLASS}$ whose
+members are ordered pairs encoding signature and rule.  This system
+instead treats functoids as a third kind of object, coordinate with
+sets and classes rather than reducible to them.  Functoids are
+introduced from the predefined list below, via \texttt{def-functoid}
+(Section~\ref{sec:def-functoid}), via the \texttt{lambdoid} binder, and
+via \texttt{def-functor} (Section~\ref{sec:view-as}): every functor between
+structures, every \emph{view-as}, \emph{is} a functoid --- the
+\texttt{def-functoid} of the list of the source structure's slots.
+
+An unguarded quantifier reaches them.  A variable in function position,
+such as \texttt{phi} in
+\[
+  \texttt{forall([phi, S], S in set implies image(phi, S) in set)},
+\]
+is instantiated by \texttt{forall-elim} at any term the language can
+apply: a class of pairs (a \texttt{vnb-lambda}, a function variable), a
+named functoid, a \texttt{lambdoid}.  A universal statement about an
+unguarded \texttt{phi} is therefore a statement about every class
+\emph{and} every functoid, and the library's class functions
+(\texttt{ord-no-injection-into-set}, Zorn's lemma) rely on exactly that.
+
+Two facts follow and must be kept in view when an axiom is written.
+First, a functoid is never a member of anything and never an element of
+a class: it is not a class.  Its graph, the class of pairs
+$\langle x, F(x)\rangle$, exists as a class only at the points where
+$F(x)$ is a set --- a functoid may take a proper class as a value, and a
+pair with a proper class in it is not an object of the theory --- and
+when the domain is a proper class that graph is a proper class, hence a
+member of nothing.  A view-as functor from the category of all rings is
+of this kind.  Second, an axiom that turns an equation $\mathit{phi}(x)
+= w$ into a membership must say that $w$ is a set.  The image axiom
+reads
+\[
+  w \in \mathit{IMAGE}(\mathit{phi}, S) \iff w \in \mathit{SET} \;\wedge\;
+  \exists x \in S.\ \mathit{phi}(x) = w ,
+\]
+and without the conjunct $w \in \mathit{SET}$ the functoid
+$\mathit{phi}(x) := \mathit{SET}$ made $\mathit{SET}$ a member of
+$\mathit{IMAGE}(\mathit{phi}, \mathbb{N})$, hence a set, hence
+$\mathit{ORD}$ a set, against Burali-Forti: FALSITY, found and repaired on
+2026-09-30 (\texttt{docs/image-axiom-inconsistency-2026-09-30.md}).
 \end{remark}
 
 The \textbf{primitive class constant} \texttt{SET} has the following
@@ -870,27 +910,23 @@ is any subset of it, making $f$ a set.
 \begin{remark}
 Category theory motivates a natural extension of $\mathit{FUN}$.  A
 functor between large categories---such as the category of all groups or
-all topological spaces---maps a proper class of objects to a proper class
-of objects.  Since $\mathit{FUN}$ requires a set-valued domain, functors
+all metric spaces---maps a proper class of objects to a proper class of
+objects.  Since $\mathit{FUN}$ requires a set-valued domain, functors
 fall outside $\mathit{FUN}$ entirely.
 
-The planned treatment introduces \emph{operators} as a third kind of
-entity alongside sets and classes.  There is no class $\mathit{OPER}(A,B)$
-(no such collection can exist without violating the set/class dichotomy),
-but there will be a predicate
-\[
-  \mathit{ISOPER}(A,\, B,\, f)
-\]
-asserting that $f$ behaves as a total function from $A$ to $B$ even when
-$A$ or $B$ is a proper class.  An accompanying term constructor
-$\texttt{apply-operator}(f, x)$ then gives the value of $f$ at $x$, for
-any $x \in A$, under the hypothesis $\mathit{ISOPER}(A,B,f)$.
-
-Operators are not members of anything---they do not appear on the left of
-$\in$---so they are consistent with
-\texttt{membership-implies-sethood}.  The three-level ontology (sets,
-classes, operators) keeps the VNB foundation intact while accommodating
-the full generality of categorical constructions.
+They are \emph{functoids} (Remark~\ref{rem:functoids-quantified}), the
+third kind of entity beside sets and classes; a \texttt{def-functor}
+view (Section~\ref{sec:view-as}) is one.  There is no class
+$\mathit{OPER}(A,B)$ of them---no such collection can exist without
+violating the set/class dichotomy---and there is no predicate that
+collects them.  A functoid applied to an argument is reduced by
+substitution (\texttt{beta}); it has no typing rule of its own, and a
+value that is a set is typed by the typing of the body.  Functoids are
+not members of anything---they do not appear on the left of $\in$---so
+they are consistent with \texttt{membership-implies-sethood}; the one
+place this has to be enforced is in an axiom that turns a functoid's
+value into a member, as the image axiom does, and such an axiom carries
+the sethood of the value as a conjunct.
 \end{remark}
 
 %

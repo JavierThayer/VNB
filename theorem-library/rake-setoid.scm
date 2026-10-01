@@ -140,7 +140,7 @@
 (define (rks-rep! mem)
   (let ((c (cadr mem)))
     (mac-h 'quotient-unfold mem)
-    (mac-h 'image-membership-iff
+    (dk-image-hyp!
            (rks-find (lambda (f) (and ((rks-in-head 'IMAGE) f) (equal? (cadr f) c)))
                      "the image membership"))
     (let ((a (dk-skolem! (rks-hyp 'FORSOME "the representative existential"))))
@@ -280,7 +280,7 @@
          (ss (cadr (cadr g)))
          (a0 (caddr (cadr g))))
     (mac 'QUOTIENT)
-    (mac 'image-membership-iff)
+    (dk-image-goal!)
     (ew a0)
     (let ((cs (dk-opened (lambda () (di)))))
       (dk-focus! (any-pred (lambda (n) (rks-goal-head? n 'IN)) cs))

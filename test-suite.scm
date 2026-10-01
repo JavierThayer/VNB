@@ -14162,6 +14162,31 @@
          (vnb-with-budget 5 "cooperative" (lambda () (not (vnb-budget-exhausted?))))
          (not (vnb-budget-exhausted?)))))
 
+
+;;; ---------------------------------------------------------------------------
+;;; IMAGE membership after the repair of 2026-09-30 (the sethood conjunct).
+(check-true "image-membership-iff carries the sethood conjunct on w"
+  (lambda ()
+    (let ((f (lookup-theorem 'image-membership-iff)))
+      (and (string-search-forward "w in set and" (expression->string (wff-formula f)) 0) #t))))
+(check-true "dk-image-goal!: rewrites, closes the sethood of w, leaves the existential"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff "forall([w in nn, f in fun(nn, nn)], forsome([x in nn], f(x) = w) implies w in image(f, nn))"))
+      (quietly (lambda () (di) (di) (dk-image-goal!) (ass)))
+      (proof-done? *ps*))))
+(check-true "dk-image-hyp!: opens the membership, lands the sethood, returns the existential"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff "forall([w in nn, f in fun(nn, nn)], w in image(f, nn) implies forsome([x in nn], f(x) = w))"))
+      (quietly (lambda ()
+        (di) (di)
+        (let ((ex (dk-image-hyp! '(IN w (IMAGE f NN)))))
+          (and (pair? ex) (eq? (car ex) 'FORSOME)
+               (member '(IN w SET) (dk-asms))
+               (begin (ass) #t)))))
+      (proof-done? *ps*))))
+
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")
 (display *fail-count*) (display " failed ===\n")

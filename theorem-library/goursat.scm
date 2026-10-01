@@ -235,7 +235,7 @@
 (gou-cc! '(+ goua_ (* gout_ (- goub_ goua_))))
 (define gou-sti-v (dk-cite! 'seg-path-apply 'goua_ 'goub_ 'gout_))
 (subst (dk-cite! 'trace-unfold '(SEG-PATH goua_ goub_) 0 1))
-(mac 'image-membership-iff)
+(dk-image-goal!)
 (ew 'gout_)
 (dk-conj-close!
   (lambda ()
@@ -256,7 +256,7 @@
       (dk-cite! 'trace-unfold '(SEG-PATH goua_ goub_) 0 1)
       (subst '(= (IMAGE (SEG-PATH goua_ goub_) (CCINT 0 1)) (TRACE (SEG-PATH goua_ goub_) 0 1)))
       (ass))))
-(mac-h 'image-membership-iff (list 'IN gou-ste-z '(IMAGE (SEG-PATH goua_ goub_) (CCINT 0 1))))
+(dk-image-hyp! (list 'IN gou-ste-z '(IMAGE (SEG-PATH goua_ goub_) (CCINT 0 1))))
 (define gou-ste-t (dk-skolem! (dk-pick (lambda (f) (and (gou-op? f 'FORSOME 3) (dk-contains? f gou-ste-z)))
                                        "the image existential")))
 (define gou-ste-v (dk-cite! 'seg-path-apply 'goua_ 'goub_ gou-ste-t))

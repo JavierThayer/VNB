@@ -232,7 +232,7 @@
         (dk-cite! 'trace-unfold g lo hi)
         (subst (list '= (list 'IMAGE g (list 'CCINT lo hi)) (list 'TRACE g lo hi)))
         (ass)))
-    (mac-h 'image-membership-iff img)
+    (dk-image-hyp! img)
     (let ((t (dk-skolem! (dk-pick (lambda (f) (and (jxl-op? f 'FORSOME 3) (dk-contains? f w)
                                                    (dk-contains? f g)))
                                   "the image existential"))))

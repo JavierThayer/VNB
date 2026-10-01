@@ -469,12 +469,21 @@
 (define (xb-reset-derived-caches!)
   (set! *chk-theorem-index* #f)
   (set! *chk-theorem-index-size* -1)
-  (set! *what-now-head-index* #f)
-  (set! *what-now-membership-index* #f)
-  (set! *witness-producer-index* #f)
-  (set! *op-fun-typing-index* #f)
-  (cite-index-reset!)
-  (set! *page-audit-results* '())
+  ;; both variables belong to files that load AFTER the first proof file (suggest.scm,
+  ;; page-audit.scm); a retraction during the load -- the certified loader's FALLBACK on a
+  ;; file whose certified load failed -- used to die here on an unbound variable, and
+  ;; every citer of the file then failed in cascade (2026-09-30, 262 files)
+  (if (environment-bound? system-global-environment '*what-now-head-index*)
+      (set! *what-now-head-index* #f))
+  (if (environment-bound? system-global-environment '*what-now-membership-index*)
+      (set! *what-now-membership-index* #f))
+  (if (environment-bound? system-global-environment '*witness-producer-index*)
+      (set! *witness-producer-index* #f))
+  (set! *op-fun-typing-index* #f)                    ; interactive.scm: loaded before any proof
+  (if (environment-bound? system-global-environment 'cite-index-reset!)
+      (cite-index-reset!))                           ; cite-index.scm: loaded after the proofs
+  (if (environment-bound? system-global-environment '*page-audit-results*)
+      (set! *page-audit-results* '()))
   unspecific)
 
 ;;; THE PUBLIC RETRACTION.  (retract-theorem! 'NAME) removes NAME, its -rev

@@ -1065,6 +1065,14 @@ additive-group view and a multiplicative-monoid view).  We call these
 \emph{views}, not ``bridges'': a bridge sounds symmetric, and the
 asymmetry and the multiplicity are exactly the point.
 
+A view is a \emph{functoid} (Remark~\ref{rem:functoids-quantified}):
+\texttt{def-functor} installs the \texttt{def-functoid} that builds the
+target instance as the list of the source's slots, plus the definitional
+axiom that the result satisfies the target predicate.  Its domain, the
+class of all instances of the source structure, is a proper class, so a
+view is reached by an unguarded quantifier in function position and is a
+member of nothing.
+
 \subsection{The \texttt{def-functor} form}
 
 \begin{VNBcode}

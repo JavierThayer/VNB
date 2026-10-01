@@ -178,7 +178,7 @@
   (have! (list 'IN (list 'f k) (list 'ETAIL 'f m))
     (lambda ()
       (mac 'ETAIL)
-      (mac 'image-membership-iff)
+      (dk-image-goal!)
       (ew k)
       (dk-conj-close!
         (lambda ()
@@ -337,7 +337,7 @@
       (cps-im-subset! im 'esup-in)
       (have! (list 'IN cps-b-e im)
         (lambda ()
-          (mac 'image-membership-iff)
+          (dk-image-goal!)
           (ew 'cpsn_)
           (dk-conj-close!
             (lambda ()

@@ -316,7 +316,7 @@
                                                  (if (equal? (caddr g4) gg)
                                                      (in-sep!
                                                       (lambda ()
-                                                        (mac 'image-membership-iff)
+                                                        (dk-image-goal!)
                                                         (ew u0)
                                                         (both! (lambda () (ass))
                                                                (lambda () (lam-b) (rfl))))

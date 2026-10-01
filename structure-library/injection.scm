@@ -118,11 +118,23 @@
 ;;; Bound var x (domain element) / w (image value); the parameter is S, so
 ;;; no case-fold collision (an inner x with an outer X would capture).
 
-;;; w in IMAGE(phi, S) iff w = phi(x) for some x in S.
+;;; w in IMAGE(phi, S) iff w is a SET and w = phi(x) for some x in S.
+;;;
+;;; THE CONJUNCT (IN w SET) IS WHAT MAKES THIS A DEFINITION OF A CLASS (the user's
+;;; decision, 2026-09-30; docs/image-axiom-inconsistency-2026-09-30.md).  A member of
+;;; anything is a set (membership-implies-sethood), and `phi' is unguarded: it ranges
+;;; over everything the instantiation rule accepts in function position, including a
+;;; functoid whose value at some x is a proper class.  Without the conjunct such a phi
+;;; made that value a MEMBER: with phi(x) := SET the old axiom gave SET in IMAGE(phi, NN),
+;;; hence SET in SET, hence ORD in SET, against burali-forti -- FALSITY, modulo 0, found
+;;; by the probe docs/probes/image-functoid-probe.scm.  With the conjunct, IMAGE(phi, S)
+;;; is the image of the set-valued part of phi's graph: a class-valued point contributes
+;;; nothing, and `image-set' (replacement, below) is true of it.
 (add-axiom! *library* 'image-membership-iff
   '(FORALL phi (FORALL S (FORALL w
       (IFF (IN w (IMAGE phi S))
-           (FORSOME x (AND (IN x S) (= (phi x) w))))))))
+           (AND (IN w SET)
+                (FORSOME x (AND (IN x S) (= (phi x) w)))))))))
 
 ;;; IMAGE(phi, S) is a set when S is a set.
 ;;;

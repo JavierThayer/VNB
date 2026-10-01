@@ -118,7 +118,7 @@
 
 ;;; Goal (IN (PTS \ U) (IMAGE lam DOM)) with (IN U DOM) in context.
 (define (rcf-img-mi! pts dom u)
-  (mac 'image-membership-iff)
+  (dk-image-goal!)
   (witness! u
     (lambda ()
       (dk-conj-close!
