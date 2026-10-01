@@ -228,6 +228,13 @@
     (if (not f0)
         (vnb--warn "fact: unknown theorem"
                    (if (symbol? thm-name) (symbol->string thm-name) "(not a symbol)"))
+        ;; A functoid is outside the range of quantification (2026-10-01): refuse
+        ;; such an argument BEFORE the theorem lands, so a refused `fact' leaves
+        ;; no step behind (the kernel's forall-elim refuses it too, but by then
+        ;; `theorem-assumption' had landed the universal: the suite's builder
+        ;; control caught the half-step on the first exam band, 1846 / 1).
+        (begin
+        (for-each pi--refuse-functoid-instance! args)
         (let ((ps1 (cmd-theorem-assumption ps thm-name)))
           (if (vnb-warning? ps1) ps1
               (let loop ((ps ps1) (formula f0) (args args))
@@ -260,7 +267,7 @@
                          (let ((ps2 (cmd-detach ps* formula)))
                            (if (vnb-warning? ps2) ps2
                                (loop ps2 (binary-right formula) args))))))
-                  (else ps))))))))
+                  (else ps)))))))))
 
 ;;; inst+ -- instantiate an IN-CONTEXT universal at TERM, then discharge any
 ;;; in-context guards by forward detach, landing the specialised consequent.

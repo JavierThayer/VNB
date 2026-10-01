@@ -83,3 +83,42 @@ anything else.  Cost: one proof file plus seventeen one-token citation changes; 
 certified build re-proves the seventeen citers.
 
 Recommendation: after the two above are settled and the tree is whole again.
+
+## Decided and done, 2026-10-01 (morning)
+
+1. DOM: **yes.** `dom-membership` now reads `x in dom(f) iff (x in set and f(x) in set)`;
+   the comment in library.scm records the old reading and the reason.  `range-membership`
+   and its six companions (rake-compose-typing.scm) prove `modulo 0`: the driver projects
+   `f(a) in set` off the new axiom on a lane and closes the definedness leaf by `rfl`.
+2. Tuple tripwire: **yes.** `tuple-members-are-sets` is installed beside `nth-in-range`,
+   primitive, with the claim it makes written above it.  The suite pins both: the DOM shape by
+   alpha-equivalence, the tripwire's provenance.
+3. fun-image-set: **proven, in a different form.**  The statement proposed above,
+   `f in fun(A, B) implies (S in set implies image(f, S) in set)`, is NOT derivable in this
+   tree without replacement: ordered pairs are the primitive LIST, so the union of the second
+   components of f's pairs is not a term.  What is derivable, and is now
+   `theorem-library/fun-image-set.scm` (`modulo 0`, no citation of `image-set`, loaded after
+   `subset-lemmas`), is
+
+       forall([A, B, f, S], f in fun(A, B) implies (B in set implies image(f, S) in set))
+
+   with no hypothesis on S.  The re-routing is NOT seventeen one-token changes: a survey of
+   the 33 citation sites (17 files) found 4 reroutable as they stand, 16 needing a typing lane
+   for a driver-built lambda first, 13 that stay (codomain ORD, an arbitrary class, or the set
+   being proved).  Most of the 16 also cite `card-image-finite`, whose map is arbitrary and
+   which cites `image-set` itself, as does `fun-domain-in-set` under every `lam-t` domain leaf.
+   So the ledger property ("the analysis does not rest on replacement") needs FUN-typed
+   variants of those two before any reroute pays.  Recommendation: a batch of its own, later;
+   `fun-image-set` is the tool for new proofs from now on.
+
+**Found by the exam the same morning:** `monomial-at` and `monomial-off` (poly-degree-laws.scm)
+were stated with the coefficient `c` unrestricted and were FALSE at a proper class `c` (the lambda
+has no pair there); the beta value licence of 2026-10-01 owes `if(n = n, c, zero(A)) in set`, which
+nothing closes.  Both now carry `c in carr(A)`, which every citer already had in context; the
+file's fifteen theorems prove `modulo 0`.  Yesterday's full keep-going load had not shown it
+because that load ran before the licence's final form was in the tree.  The manual's new
+subsection "Sets, classes and functoids: what the quantifiers reach" (docs/sec-functoids.tex,
+in the expressions chapter) states the doctrine, with this example.
+
+**Also found:** `VNB_LOAD_LIMIT` is dead: `proof-file?` tests `*contain-proof-files?*`, which
+nothing sets to true, so the limit counts nothing and the whole tree loads.

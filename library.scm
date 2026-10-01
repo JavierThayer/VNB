@@ -509,9 +509,17 @@
     ;; uniquely determined by f, justifying the term "the" domain.
     ;;
     ;; DOM(f): the domain of f as a class.  Characterised by membership:
-    ;; x in DOM(f) iff x is a set and f(x) is defined.  Recall the VNB
-    ;; partial-equality convention: (= t t) is the definedness predicate
-    ;; for t.  When f in FUN(A) we have x in DOM(f) iff x in A
+    ;; x in DOM(f) iff x is a set and f(x) is a set.  Until 2026-10-01 the
+    ;; second conjunct was (= (f x) (f x)), definedness under the VNB
+    ;; partial-equality convention; the user changed it to (IN (f x) SET)
+    ;; (docs/decisions-pending-2026-10-01.md, item 1).  On a class of pairs
+    ;; the two readings agree -- f(x) is defined exactly when a unique set y
+    ;; has <x, y> in f, and that y is a set -- and since functoids are
+    ;; outside the range of quantification (2026-10-01) there is no other f.
+    ;; The repaired image axiom (injection.scm, `w in SET') asks for the
+    ;; sethood of f(a) and the kernel has no rule from "defined" to "a set",
+    ;; so `range-membership' (rake-compose-typing.scm) needs this form.
+    ;; When f in FUN(A) we have x in DOM(f) iff x in A
     ;; (dom-fun-membership); the class equality DOM(f) = A is a consequence
     ;; modulo class extensionality, which is not an axiom of VNB.
 
@@ -523,7 +531,7 @@
     (add-axiom! th 'dom-membership
       '(FORALL f (FORALL x
           (IFF (IN x (DOM f))
-               (AND (IN x SET) (= (f x) (f x)))))))
+               (AND (IN x SET) (IN (f x) SET))))))
 
     ;; Membership-level agreement between DOM(f) and the FUN-witness A.
     ;; DERIVED from dom-membership + fun-domain-apply-def (iff form) +
@@ -705,6 +713,27 @@
       '(FORALL A (FORALL i (FORALL L
           (IMPLIES (AND (IN i NN) (AND (IN L (TUPLES A)) (AND (<= 1 i) (<= i (LENGTH L)))))
                    (IN (NTH i L) A))))))
+
+    ;; tuple-members-are-sets -- a TRIPWIRE (the user's decision, 2026-10-01;
+    ;; docs/decisions-pending-2026-10-01.md, item 2).  A tuple that is a member
+    ;; of anything has set components: the sentence every reduction of ordered
+    ;; pairs supplies and the primitive constructor LIST does not.  For a
+    ;; non-tuple L, LENGTH(L) denotes junk, (<= k (LENGTH L)) is false under
+    ;; strict atoms, and the axiom is vacuous.
+    ;;
+    ;; THE CLAIM THE STAMP MAKES (`primitive', like the rest of this theory):
+    ;; no member of a class is a tuple with a proper class in a component.
+    ;; Nothing cites it.  The two doors that once manufactured [0, SET] in C
+    ;; (a functoid instantiated in app-graph; beta on a class-valued body) were
+    ;; closed in the kernel on 2026-10-01; should a future door open again,
+    ;; this axiom turns such a pair into FALSITY in two steps (`nth-r', then
+    ;; SET in SET against Burali-Forti) instead of leaving it inert.
+    (add-axiom! th 'tuple-members-are-sets
+      '(FORALL L (FORALL c (FORALL k
+          (IMPLIES (IN k NN)
+            (IMPLIES (IN L c)
+              (IMPLIES (AND (<= 1 k) (<= k (LENGTH L)))
+                       (IN (NTH k L) SET))))))))
 
     ;; -------------------------------------------------------------------
     ;; UNION, INTERSECTION, COMPLEMENT-IN are total over classes -- they

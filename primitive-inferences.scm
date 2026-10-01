@@ -346,6 +346,11 @@
 ;;; theorems correctly too -- this is a more direct mechanism, not a fix for a
 ;;; defect in the alpha-equivalence path.
 (define (pi-spec! sqn thm-name terms)
+  ;; Refuse a functoid instance BEFORE anything lands (2026-10-01): the loop below
+  ;; refuses too, but by then `theorem-assumption' has landed the universal, and a
+  ;; refused `fact' left the theorem in context (the suite's builder control found it
+  ;; on the first exam band).  A refused instantiation must leave no step behind.
+  (for-each pi--refuse-functoid-instance! terms)
   (let ((S (hash-table-ref/default *theorem-table* thm-name #f)))
     (and S
       (let* ((goal  (sequent-node-assertion sqn))

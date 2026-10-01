@@ -1116,7 +1116,7 @@ forall([grd, porel, lam], limit-ord(lam) implies zup(grd, porel, lam) = choice({
 <h4 id="d-imag-part-def">imag-part-def</h4>
 <pre>forall([z], imag-part(z) == (z - conjugate(z)) * recip(2 * 1i))</pre>
 <h4 id="d-image-membership-iff">image-membership-iff</h4>
-<pre>forall([phi, s, w], w in image(phi, s) iff forsome([x in s], phi(x) = w))</pre>
+<pre>forall([phi, s, w], w in image(phi, s) iff w in set and forsome([x in s], phi(x) = w))</pre>
 <h4 id="d-inf-subsets-membership">inf-subsets-membership</h4>
 <pre>forall([a, s], s in inf-subsets(a) iff s subset a and not(card(s) in nn))</pre>
 <h4 id="d-injection-membership-iff">injection-membership-iff</h4>

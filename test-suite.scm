@@ -209,7 +209,7 @@
     fun-domain-extensionality fun-codomain-iff
     cartesian-set-iff tuples-sethood
     make-set-membership make-set-sethood make-set-empty
-    length-of-empty length-in-nn nth-in-range
+    length-of-empty length-in-nn nth-in-range tuple-members-are-sets
     ;; NN
     nn-is-set nn-zero-in nn-succ-closed
     nn-add-closed nn-mul-closed
@@ -2423,6 +2423,17 @@
 (check-true "dom-fun-membership axiom installed"
   (lambda () (and (lookup-theorem 'dom-fun-membership) #t)))
 
+;; 2026-10-01 (the user's decision, docs/decisions-pending-2026-10-01.md): the second
+;; conjunct is SETHOOD of f(x), not definedness; range-membership rests on it.
+(check-true "dom-membership: x in DOM(f) iff x in SET and f(x) in SET"
+  (lambda () (alpha-equiv? (lookup-theorem 'dom-membership)
+                           '(FORALL f (FORALL x (IFF (IN x (DOM f))
+                                                     (AND (IN x SET) (IN (f x) SET))))))))
+
+;; The tuple tripwire (same page, item 2): primitive, cited by nothing.
+(check-true "tuple-members-are-sets is on the primitive shelf"
+  (lambda () (eq? (provenance-of 'tuple-members-are-sets) 'primitive)))
+
 (check-true "dom-of-fun axiom installed"
   (lambda () (and (lookup-theorem 'dom-of-fun) #t)))
 
@@ -3481,13 +3492,6 @@
 ;;; determined by matching, so these close in a single bc* (compose-typing.scm).
 
 (display "\n=== RAN + nested-application typing (compose-type-N) ===\n")
-;; GUARDED 2026-10-01: range-membership and its companions wait on the DOM axiom decision
-;; (docs/decisions-pending-2026-10-01.md); until then the section is skipped rather than
-;; stopping the suite on an unknown theorem.  No top-level define inside.
-(if (not (hash-table-ref/default *theorem-table* 'range-membership #f))
-    (display "  SKIP  RAN + compose-type section: range-membership absent (the DOM decision)\n")
-    (begin
-
 (check-true "RAN functoid + range-membership installed"
   (lambda () (and (lookup-theorem 'range-membership)
                   (lookup-theorem 'fun-range-membership)
@@ -3620,7 +3624,6 @@
 ;;; The rewrite analogue of suggest-backchain: rank rules whose LHS pattern
 ;;; fires on a subterm of the goal (mac) or a chosen assumption (mac-h).
 
-    ))   ; end of the guarded RAN section
 (display "\n=== suggest-rewrite (mac/mac-h name index) ===\n")
 
 ;; rewrite-names is the pool of symmetric-core (=/IFF/==) rules: a subset of
@@ -14213,6 +14216,9 @@
       ;; `fact' runs under vnb-guard: the refusal is PRINTED as a `;; VNB error' line
       ;; (on the console, not the current output port) and NOTHING LANDS -- the proof
       ;; then cannot close.  The landing is the test; the reason is in the log.
+      ;; 2026-10-01, first exam band: pi-spec! refused inside its loop, AFTER
+      ;; theorem-assumption had landed the universal, and this control caught the
+      ;; half-step (1846 / 1); the refusal now runs before anything lands.
       (let ((n0 (length (dk-asms))))
         (quietly (lambda () (fact 'image-set 'CARD 'NN)))
         (and (= (length (dk-asms)) n0)

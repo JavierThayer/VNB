@@ -2046,7 +2046,7 @@ Conservative defining `iff`/`==` axioms installed via `add-axiom!`, so absent fr
 
 ### image-membership-iff
 
-    forall([phi, s, w], w in image(phi, s) iff forsome([x in s], phi(x) = w))
+    forall([phi, s, w], w in image(phi, s) iff w in set and forsome([x in s], phi(x) = w))
 
 ### inf-subsets-membership
 

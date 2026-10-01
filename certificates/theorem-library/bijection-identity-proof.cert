@@ -1,3 +1,3 @@
 ;;; VNB proof certificates for theorem-library/bijection-identity-proof.scm -- written by a load that proved them; do not edit.
-(vnb-certificate-file "theorem-library/bijection-identity-proof" (kernel "628eb512cc76db2eff7e956aba3d9ffa") (date "2026-09-30") (host "worker-02") (count 1))
-(bijection-identity "c4567403532b089838ddfc8ad42c02d7" (forall x (implies (in x set) (in (vnb-lambda x_ x x_) (bijection x x)))) (cites (bijection-membership-iff . "Ted9a0c072197bb4a6fa3f77611b77193")) (defs) (uses (bijection-membership-iff . "Ted9a0c072197bb4a6fa3f77611b77193")) (own-oracles) (bill) (oracles) (kernel "628eb512cc76db2eff7e956aba3d9ffa") (date "2026-09-30") (host "worker-02"))
+(vnb-certificate-file "theorem-library/bijection-identity-proof" (kernel "7e3b5cca0bccc955485de8e2a40f07b7") (count 1))
+(bijection-identity "c4567403532b089838ddfc8ad42c02d7" (forall x (implies (in x set) (in (vnb-lambda x_ x x_) (bijection x x)))) (cites (bijection-membership-iff . "Ted9a0c072197bb4a6fa3f77611b77193")) (defs) (uses (bijection-membership-iff . "Ted9a0c072197bb4a6fa3f77611b77193")) (own-oracles) (bill) (oracles) (kernel "7e3b5cca0bccc955485de8e2a40f07b7"))

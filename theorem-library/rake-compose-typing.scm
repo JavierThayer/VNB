@@ -21,7 +21,8 @@
 ;;; Citations, all of them base-library axioms (`primitive', {} in every bill)
 ;;; except image-membership-iff, itself an axiom of injection.scm:
 ;;;
-;;;   dom-membership       library.scm:484    x in DOM(f) iff x in SET and f(x)=f(x)
+;;;   dom-membership       library.scm         x in DOM(f) iff x in SET and f(x) in SET
+;;;                        (the 2026-10-01 form; it read f(x)=f(x) before)
 ;;;   dom-fun-membership   library.scm:493    f in FUN(A) => (x in DOM f iff x in A)
 ;;;   fun-codomain-iff     library.scm:459    f in FUN(A,B) iff f in FUN(A) and ...
 ;;;   subset-def           library.scm:252
@@ -42,24 +43,27 @@
 ;;; ---------------------------------------------------------------------
 ;;; range-membership -- f(a) lands in RAN(f) for any a in DOM(f).
 ;;;
-;;; Unfold RAN, then image-membership-iff turns the goal into "some x in DOM(f)
-;;; has f(x) = f(a)".  Witness x := a.  The second conjunct (f a) = (f a) is
-;;; DEFINEDNESS, not reflexivity -- `=' is partial -- and it is the second
-;;; conjunct of dom-membership applied to the hypothesis.  `mac-h' is
-;;; destructive, but the two conjuncts are separate leaves by then, so the
-;;; branch that still needs (IN a (DOM f)) intact has already closed.
+;;; The repaired image axiom (2026-09-30) asks first that f(a) be a SET, and
+;;; the 2026-10-01 form of dom-membership says exactly that of a point of
+;;; DOM(f): project the two conjuncts off the hypothesis on a lane (the
+;;; hypothesis itself survives for the witness branch), then unfold RAN;
+;;; `dk-image-goal!' closes the sethood leaf from the context and leaves the
+;;; existential.  Witness x := a; the leaf (f a) = (f a) is DEFINEDNESS, not
+;;; reflexivity -- `=' is partial -- and `rfl' accepts it because (f a) is now
+;;; typed in context.
 (sp (make-wff '(FORALL f (FORALL a
      (IMPLIES (IN a (DOM f))
               (IN (f a) (RAN f)))))))
 (di)
+(dk-project! '(AND (IN a SET) (IN (f a) SET)) 'dom-membership '(IN a (DOM f)))
+(dk-split! '(AND (IN a SET) (IN (f a) SET)))
 (mac 'RAN)
 (dk-image-goal!)
 (ew 'a)
 (di)                                    ; two leaves: a in DOM(f), and f(a)=f(a)
 (ass-all)                               ; closes the first
 (dk-focus! (car (proof-leaves)))
-(dk-split! (dk-landed-1 (lambda () (mac-h 'dom-membership '(IN a (DOM f))))))
-(ass)
+(rfl)
 (qed 'range-membership)
 
 ;;; ---------------------------------------------------------------------

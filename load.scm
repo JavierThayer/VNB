@@ -934,6 +934,9 @@
     ;; subset-mem / subset-trans off subset-def, and subclass-of-set-is-set off
     ;; class-extensionality + separation.
     "theorem-library/subset-lemmas"
+    ;; 2026-10-01: fun-image-set -- IMAGE(f, S) is a set when f : A -> B with B a set, with no
+    ;; citation of image-set (replacement); docs/decisions-pending-2026-10-01.md, item 3.
+    "theorem-library/fun-image-set"
     ;; rake-analysis2 -- fun-domain-in-set, bijection-compose (was an informal axiom),
     ;; subseq-is-fun, metric-hom-is-continuous, le-bound-mono, centre-set-contains-choice.
     "theorem-library/rake-analysis2"

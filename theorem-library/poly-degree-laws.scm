@@ -528,9 +528,19 @@
 ;;; reduction as a genuine equation (`(= (IF p a b) a)'), so the definedness
 ;;; that `=' asserts is discharged by the rule that produced it.
 
+;;; THE COEFFICIENT IS TYPED, `c_ in CARR(A)' (2026-10-01).  Both value laws
+;;; were stated with c_ unrestricted, and were FALSE at a proper class c_:
+;;; the lambda has no pair <n, c_> there, its application is undefined, and the
+;;; strict equation fails.  The beta licence (primitive-inferences.scm, the
+;;; value certificate of 2026-10-01) owes `IF(n = n, c_, ZERO(A)) in SET' for
+;;; an untyped c_, and nothing can close it; with the typing in context the
+;;; value is certified and nothing is owed.  Every citer in this file already
+;;; carries `c_ in CARR(a_)' as a hypothesis, so `fact' detaches it.
+
 ;;; ---- the value at the exponent ---------------------------------------
 (sp (make-wff '(FORALL a_ (FORALL c_ (FORALL n_
-   (IMPLIES (IN n_ NN) (= ((MONOMIAL a_ c_ n_) n_) c_)))))))
+   (IMPLIES (IN c_ (CARR a_))
+     (IMPLIES (IN n_ NN) (= ((MONOMIAL a_ c_ n_) n_) c_))))))))
 (pd-peel!)
 (mac 'MONOMIAL)
 (lam-b)
@@ -544,8 +554,9 @@
 
 ;;; ---- the value anywhere else -----------------------------------------
 (sp (make-wff '(FORALL a_ (FORALL c_ (FORALL n_ (FORALL k_
-   (IMPLIES (IN k_ NN)
-     (IMPLIES (NOT (= k_ n_)) (= ((MONOMIAL a_ c_ n_) k_) (ZERO a_))))))))))
+   (IMPLIES (IN c_ (CARR a_))
+     (IMPLIES (IN k_ NN)
+       (IMPLIES (NOT (= k_ n_)) (= ((MONOMIAL a_ c_ n_) k_) (ZERO a_)))))))))))
 (pd-peel!)
 (mac 'MONOMIAL)
 (lam-b)

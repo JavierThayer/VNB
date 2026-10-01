@@ -1,3 +1,3 @@
 ;;; VNB proof certificates for theorem-library/rake-rr-order-leaves.scm -- written by a load that proved them; do not edit.
-(vnb-certificate-file "theorem-library/rake-rr-order-leaves" (kernel "628eb512cc76db2eff7e956aba3d9ffa") (date "2026-09-30") (host "worker-02") (count 1))
-(rr-lt-from-diff-pos "039b9cec30fe95dfe799a1dbf147e472" (forall x (implies (in x rr) (forall y (implies (in y rr) (implies (< 0 (- y x)) (< x y)))))) (cites) (defs (< . "Tf2a6ab47ce2a5a62d897bbc20a9f2097")) (uses) (own-oracles ineq) (bill) (oracles ineq) (kernel "628eb512cc76db2eff7e956aba3d9ffa") (date "2026-09-30") (host "worker-02"))
+(vnb-certificate-file "theorem-library/rake-rr-order-leaves" (kernel "7e3b5cca0bccc955485de8e2a40f07b7") (count 1))
+(rr-lt-from-diff-pos "039b9cec30fe95dfe799a1dbf147e472" (forall x (implies (in x rr) (forall y (implies (in y rr) (implies (< 0 (- y x)) (< x y)))))) (cites) (defs (< . "Tf2a6ab47ce2a5a62d897bbc20a9f2097")) (uses) (own-oracles ineq) (bill) (oracles ineq) (kernel "7e3b5cca0bccc955485de8e2a40f07b7"))

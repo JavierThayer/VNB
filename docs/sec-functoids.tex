@@ -1,0 +1,250 @@
+%% sec-functoids.tex -- Sets, classes and functoids: what the quantifiers reach.
+%% Written 2026-10-01 after the image-axiom incident of 2026-09-30 and the decisions
+%% of 2026-10-01 (functoids outside quantification; the beta value licence; the DOM
+%% axiom; the tuple tripwire; fun-image-set).  \input from ch-expressions.tex, in
+%% place of the remark that used to carry the label rem:functoids-quantified.
+
+\subsection{Sets, classes and functoids: what the quantifiers reach}
+\label{sec:functoids-doctrine}
+\label{rem:functoids-quantified}
+
+This subsection states the doctrine in one place: which things are objects of
+the theory, which are not, what an unguarded quantifier ranges over, what an
+application $f(x)$ means for each kind of $f$, what $\beta$-reduction of a
+\texttt{vnb-lambda} is licensed to do, and where the axiom of replacement
+enters.  Every statement here is enforced by a kernel rule or a gate, named
+in the text; the incident that forced the statements to be written down is
+summarised at the end.
+
+\subsubsection{Three kinds of thing}
+
+\begin{enumerate}
+\item A \textbf{set} is an element of the class $\mathit{SET}$.
+\item A \textbf{proper class} has members but is a member of nothing.
+  Sets and proper classes together are the \emph{objects} of the theory:
+  every variable ranges over them, and every term that denotes denotes one
+  of them.
+\item A \textbf{functoid} is an operation on objects, given by a signature
+  $A_1, \ldots, A_n \to B$ (metanotation: no Cartesian product is formed)
+  and a rule.  It is \emph{not} an object.  Functoids enter in four ways:
+  the primitive class constructors (\texttt{power}, \texttt{fun},
+  \texttt{image}, \texttt{tuples}, \ldots); \texttt{def-functoid}
+  (Section~\ref{sec:def-functoid}); the \texttt{lambdoid} binder; and
+  \texttt{def-functor}, since every view between structures is the
+  \texttt{def-functoid} that builds the target instance from the source's
+  slots (Section~\ref{sec:view-as}).
+\end{enumerate}
+
+A functoid \emph{applied} to arguments, $\texttt{power}(X)$,
+$\texttt{card}(A)$, $\mathit{view}(r)$, is a term, and the term denotes an
+object or is undefined.  A functoid \emph{name standing alone} is not a
+term of the object language.  The sentence ``for every functoid $F$'' is
+metalanguage.
+
+\subsubsection{What an unguarded quantifier reaches}
+
+An unrestricted binding \texttt{forall([x], \ldots)} ranges over all
+objects, sets and proper classes, and over nothing else.  The argument is
+short: if functoids were in the range of a quantifier that ranges over
+classes, they would be classes, and a class has a membership relation; no
+axiom gives $x \in F$ a truth value for a functoid $F$; hence functoids are
+outside the range.
+
+The kernel enforces this at the one place where a quantifier meets a term:
+\texttt{forall-elim} (\texttt{pi-instantiate!}, and its independent checker
+in \texttt{rule-checkers-logic.scm}) refuses an instance term that is a
+bare functoid, that is, a registered functoid name or a \texttt{lambdoid}
+record.  An applied functoid is a class term and is as legal an instance as
+any; so is a \texttt{vnb-lambda}, which is a class of pairs; so is a function
+variable.  The library's functions on proper-class domains (the class
+functions of \texttt{ord-no-injection-into-set} and of Zorn's lemma) are
+classes of pairs, not functoids, and are quantified over as classes.
+
+\begin{center}
+\begin{tabular}{lll}
+\hline
+ & \texttt{vnb-lambda} & \texttt{lambdoid} / \texttt{def-functoid} \\
+\hline
+denotes & a set of ordered pairs & a functoid (meta-level record) \\
+domains & sets & arbitrary classes, $\mathit{ORD}$ included \\
+typing rule & \texttt{lam-t}: $\in \mathit{FUN}(A, B)$ & none \\
+reduction & \texttt{lam-b}, under the licence below & \texttt{beta}, by unfolding \\
+instance of a quantifier & yes & refused \\
+in an \texttt{image}, a \texttt{dom}, an \texttt{app-graph} & yes & never formed \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{Application and its graph}
+
+For every object $f$ the axiom \texttt{app-graph} reads application off
+membership of pairs:
+\[
+  f(x) \;==\; \iota v.\ [x, v] \in f .
+\]
+For $f \in \mathit{FUN}(A)$ the axiom \texttt{fun-no-junk} adds that every
+member of $f$ is such a pair with $x \in A$; the two together say that a
+function is exactly its graph.  Equality is partial: an atomic formula is
+true only when its terms denote, and $t = t$ is the definedness predicate
+of $t$.  The domain of an arbitrary $f$ is the class
+\[
+  x \in \mathit{DOM}(f) \iff x \in \mathit{SET} \;\wedge\; f(x) \in \mathit{SET}
+\]
+(\texttt{dom-membership}, 2026-10-01).  Until that date the second conjunct
+was $f(x) = f(x)$, definedness.  On a class of pairs the two readings
+coincide, since $f(x)$ is defined exactly when a unique set $v$ has
+$[x, v] \in f$, and that $v$ is a set; the sethood form was adopted because
+the image axiom (below) asks for the sethood of $f(x)$ and the kernel has
+no rule from ``defined'' to ``a set''.  For $f \in \mathit{FUN}(A)$,
+$x \in \mathit{DOM}(f) \iff x \in A$ (\texttt{dom-fun-membership}).
+
+Since a functoid is refused as an instance of $f$, these axioms say nothing
+about functoids.  The value of a functoid at an argument is given by its
+defining rewrite alone, and that value may be a proper class
+($\texttt{power}(\mathit{ORD})$).
+
+\subsubsection{Pairs and tuples}
+
+Tuples $[e_1, \ldots, e_n]$ are a primitive constructor, \texttt{LIST};
+they are not reduced to sets.  A tuple is an object only when its
+components are sets: a ``pair'' $[0, \mathit{SET}]$ with a proper class in
+it is not an object of the theory, and an application whose value would be
+such a pair's second component is undefined.  The axiom
+\[
+  L \in c \;\Longrightarrow\; \bigl(1 \le k \le \texttt{length}(L)
+  \;\Longrightarrow\; \texttt{nth}(k, L) \in \mathit{SET}\bigr)
+  \qquad (k \in \mathit{NN})
+\]
+(\texttt{tuple-members-are-sets}, primitive, 2026-10-01) states this
+sentence, which every reduction of pairs to sets supplies and the primitive
+constructor does not.  Nothing cites it; it is a tripwire: should any
+derivation again produce a pair with a proper class as a member of
+something, two steps (\texttt{nth-r}, then $\mathit{SET} \in \mathit{SET}$
+against Burali-Forti) turn it into FALSITY instead of leaving it inert.
+
+One consequence deserves its own sentence.  Because pairs are not sets,
+``the union of the second components of the pairs of $f$'' is not a term
+the axioms reach, and the ZF derivation of the sethood of an image from
+union and separation (take $\bigcup\bigcup f$, then separate) is not
+available here.  See \emph{Images and replacement} below.
+
+\subsubsection{The $\beta$-licence of \texttt{vnb-lambda}}
+
+$(\texttt{vnb-lambda}(x \in A, b))(u) \;==\; b[u/x]$ is a sound rewrite
+exactly when $b[u/x]$ is a set (then $[u, b[u/x]]$ is a member of the
+lambda) or undefined (then both sides are undefined).  It fails in one
+case: $b[u/x]$ a proper class, where the right side denotes and the left
+does not.  The rule \texttt{lam-b} (\texttt{pi-lambda-beta!}; checker
+\texttt{rcs--beta-licences-ok?}) therefore licenses a contraction on two
+conditions, decided before either is posted:
+\begin{itemize}
+\item the \emph{argument} is in the domain, $u \in A$: owed as an
+  obligation leaf $(\mathit{IN}\; u\; A)$ when not evident from the context;
+\item the \emph{value} is not a proper class: owed as
+  $(\mathit{IN}\; b[u/x]\; \mathit{SET})$ exactly when the value \emph{may}
+  denote a proper class.  The test is negative: $\mathit{SET}$ and
+  $\mathit{ORD}$; a bare variable with no typing in context; \texttt{power},
+  \texttt{fun}, \texttt{tuples}, \texttt{injection}, \texttt{bijection} of a
+  class that may be proper; a separation, a lambda, an image or a big union
+  whose domain may be proper; a union, intersection, difference, relative
+  complement or product with a part that may be proper; a complement
+  (\texttt{comp}), always; a registered functoid applied, by its unfolded
+  body; an \texttt{if} with such a branch.  A numeral, a
+  typed variable, the set constants, arithmetic, a tuple, a choice or
+  description, an application of a variable, and every other term owe
+  nothing.  (The positive form, ``certify the value a set'', was tried the
+  same day and broke 273 files: a library lambda's value is typically an
+  arithmetic term, an application or a choice, typed nowhere, and never a
+  proper class.)
+\end{itemize}
+The argument's membership, licensed or owed, counts as a typing of the
+value, so $(\texttt{vnb-lambda}(z \in A, z))(c)$ owes $c \in A$ and nothing
+more.  A redex whose obligation would mention a variable bound where the
+redex sits is left standing.
+
+The example that the licence caught the same day.  The monomial
+$\texttt{MONOMIAL}(R, c, n) := \texttt{vnb-lambda}(k \in \mathit{NN},
+\texttt{if}(k = n, c, \mathit{ZERO}(R)))$ had the law
+$\texttt{MONOMIAL}(R, c, n)(n) = c$ stated with $c$ unrestricted.  At a
+proper class $c$ the lambda has no pair at $n$, the application is
+undefined, and the strict equation is false; the kernel owed
+$\texttt{if}(n = n, c, \mathit{ZERO}(R)) \in \mathit{SET}$, which nothing
+could close.  The law is true, and now proven, under the hypothesis
+$c \in \mathit{CARR}(R)$, which every use of it already had in context.  The
+species is the one Section~\ref{sec:class-set-discipline} warns of: a strict
+equation whose terms are untyped asserts their definedness, and here their
+sethood.
+
+\subsubsection{Images and replacement}
+
+The image of a class $S$ under an object $\phi$ is characterised by
+\[
+  w \in \mathit{IMAGE}(\phi, S) \iff
+  w \in \mathit{SET} \;\wedge\; \exists x \in S.\ \phi(x) = w
+\]
+(\texttt{image-membership-iff}, definitional).  The conjunct
+$w \in \mathit{SET}$ is Bernays' definition made explicit: the image
+collects the \emph{values that are sets}; a point where $\phi(x)$ is
+undefined contributes nothing, and since $\phi$ is an object there is no
+point where $\phi(x)$ is a proper class.  Two sethood facts stand beside
+it.
+
+\begin{description}
+\item[\texttt{image-set} (replacement, primitive).]
+  $S \in \mathit{SET} \Longrightarrow \mathit{IMAGE}(\phi, S) \in
+  \mathit{SET}$ for every object $\phi$.  This is the axiom of replacement
+  and it is installed as such, on the primitive shelf, by the user's
+  decision of 2026-07-28.  It is load-bearing in the ordinal and cardinal
+  layer: \texttt{ord-no-injection-into-set} (hence Zorn's lemma), the
+  definition of $\mathit{CARD}$, \texttt{card-image-finite},
+  \texttt{fun-domain-in-set}.
+\item[\texttt{fun-image-set} (proven, 2026-10-01).]
+  $f \in \mathit{FUN}(A, B) \Longrightarrow B \in \mathit{SET}
+  \Longrightarrow \mathit{IMAGE}(f, S) \in \mathit{SET}$, with no
+  hypothesis on $S$, from separation alone: every member of the image is
+  $f(x)$ with $f(x)$ defined, hence $x \in A$ (\texttt{fun-domain-apply-def}),
+  hence $f(x) \in B$, so the image is a subclass of the set $B$
+  (\texttt{subclass-of-set-is-set}).  The form with $S \in \mathit{SET}$
+  and no sethood of the codomain is not derivable without replacement, for
+  the reason given under \emph{Pairs and tuples}.
+\end{description}
+
+Where a proof forms an image under a set function into a set, which is
+every image in the analysis and algebra of the library, the second fact
+suffices and the bill need not mention replacement.  Most of those proofs
+still cite \texttt{image-set}, directly or through \texttt{card-image-finite},
+whose map is an arbitrary object; routing them through
+\texttt{fun-image-set} is recorded as open work.
+
+A functoid is never the first argument of \texttt{image}: the axioms
+quantify $\phi$ over objects, the instantiation rule refuses a functoid, and
+the library forms images only of classes of pairs.  The image of a proper
+class under a functoid, when it is wanted, is written as the class it is, by
+separation or by a \texttt{vnb-lambda} over a set.
+
+\subsubsection{The incident of 2026-09-30, and what closed it}
+
+A probe derived FALSITY, \texttt{modulo 0}: at the functoid
+$\phi(x) := \mathit{SET}$, the image axiom as it then stood made
+$\mathit{SET}$ a member of an image, hence a set, hence $\mathit{ORD}$ a
+set, against Burali-Forti.  Three doors were open and each is now closed.
+\begin{enumerate}
+\item The image axiom read at a functoid: closed by the conjunct
+  $w \in \mathit{SET}$ and by the instantiation refusal.
+\item $\beta$-reduction on a class-valued body, which reduced
+  $(\texttt{vnb-lambda}(x \in \mathit{NN}, \mathit{SET}))(0)$ to
+  $\mathit{SET}$ and let \texttt{rfl} close $\mathit{SET} = \mathit{SET}$:
+  closed by the value half of the licence.
+\item \texttt{app-graph} read at a functoid, which proved
+  $[0, \mathit{SET}] \in \phi$ and $[0, \mathit{SET}] \in \mathit{SET}$:
+  closed by the instantiation refusal; the tuple axiom stands behind it.
+\end{enumerate}
+Full record: \texttt{docs/image-axiom-inconsistency-2026-09-30.md} and its
+addendum; the decisions: \texttt{docs/decisions-pending-2026-10-01.md}.
+
+What remains open, so that the reader does not take this subsection for
+more than it is: a functoid reduced by \texttt{beta} and an accessor read by
+\texttt{slot} are not yet part of a proof certificate's key (the nightly
+exam is the backstop); the re-routing of the \texttt{image-set} citations
+named above; and the rename of \texttt{def-functoid}
+(\texttt{docs/functoids-and-functions.md}, \S8).
