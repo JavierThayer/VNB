@@ -59,6 +59,7 @@ gen: check-fresh
 	python3 gen-tactic-uses.py
 	python3 gen-tactics-ref.py
 	python3 gen-structures.py
+	python3 gen-categories.py
 	python3 gen-glossary.py
 	python3 gen-kernel-ops.py
 
@@ -79,6 +80,10 @@ check-fresh:
 	@if [ ../structures.scm -nt ../reference/STRUCTURE-INDEX.md ]; then \
 	  echo "*** WARNING: structures.scm is newer than reference/STRUCTURE-INDEX.md."; \
 	  echo "***   The structure sections may be STALE.  Reload the prover, then make."; \
+	fi
+	@if [ ../theorem-library/categories.scm -nt ../reference/CATEGORIES.md ]; then \
+	  echo "*** WARNING: theorem-library/categories.scm is newer than reference/CATEGORIES.md."; \
+	  echo "***   The categories section may be STALE.  Reload the prover, then make."; \
 	fi
 
 clean:

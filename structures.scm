@@ -1840,7 +1840,7 @@
 ;;; membership) and is supplied as a statement too, by category-member-iff.
 ;;; The one-map-per-carrier rule is the default hom's; the arrow variables are
 ;;; the caller's (BODY names them).
-(define *categories* (make-equal-hash-table))     ; CAT -> (X k obligations)
+(define *categories* (make-equal-hash-table))     ; CAT -> (X k obligations source-file)
 
 (define (category-arrow-name cat) (symbol-append 'IS- cat '-ARROW))
 (define (category-arrow-def-name cat) (symbol-append 'is- cat '-arrow-def))
@@ -1849,6 +1849,10 @@
 (define (category-arity cat) (let ((r (hash-table-ref/default *categories* cat #f))) (and r (cadr r))))
 (define (category-obligations cat)
   (let ((r (hash-table-ref/default *categories* cat #f))) (if r (caddr r) '())))
+;;; The file whose load declared the category (#f at the REPL), for CATEGORIES.md.
+(define (category-source-file cat)
+  (let ((r (hash-table-ref/default *categories* cat #f)))
+    (and r (pair? (cdddr r)) (cadddr r))))
 (define (known-categories)
   (sort (hash-table-keys *categories*)
         (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
@@ -1936,7 +1940,8 @@
       (notation! hs 'kind 'functoid 'arity 2
                  'english (string-append "the " noun " maps from $1 to $2")))
     (hash-table-set! *categories* cat
-      (list x k (list-head (category--statements cat x carriers) 3)))
+      (list x k (list-head (category--statements cat x carriers) 3)
+            (safe-load-pathname)))
     cat))
 
 ;;; The membership statement hom-CAT-member-iff (generic; not an obligation).

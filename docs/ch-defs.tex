@@ -1029,27 +1029,84 @@ provenance, so it costs no warrant.
 \subsection{Overriding the default: \texttt{declare-hom!}}
 \label{sec:declare-hom}
 
-Preservation-of-slots is the right notion for algebra, but not everywhere.  A
-topological space carries an \texttt{OPENS} slot, and the generated hom would
-demand \texttt{OPENS($a$) = OPENS($b$)} --- forcing the two topologies literally
-equal.  The morphisms of \texttt{TOP-SPACE} are the \emph{continuous} maps, a
-preimage condition, not a preservation law.  A species declares its own morphism
-notion with \texttt{declare-hom!}, beside the structure like \texttt{notation!}:
+The generated clause for each slot kind is the standard one: preservation for
+an operation or a constant, the pullback condition for a \texttt{family} slot
+(the arrows of \texttt{TOP-SPACE} are the continuous maps, those of
+\texttt{MEASURABLE-SPACE} the measurable maps), transport for a
+\texttt{family-fun} slot, ``related points go to related points'' for a
+\texttt{relation} slot.  For a \texttt{METRIC-SPACE} the generated arrows
+preserve the distance: they are the isometries, and a \texttt{notation!}
+beside the structure says so, since ``homomorphism'' is then the wrong word
+(Section~\ref{sec:notation}).  Where no generated clause is the right one, a
+species declares its own morphism notion with \texttt{declare-hom!}, beside the
+structure like \texttt{notation!}:
 
 \begin{VNBcode}
-(declare-hom! 'TOP-SPACE '(s t f)
+(declare-hom! 'METRIZABLE-TOP-SPACE '(s t f)
   '(FORALL u (IMPLIES (IN u (OPENS t))
       (IN (PREIMAGE s f u) (OPENS s)))))
 \end{VNBcode}
 
 The argument list is the two objects and one map per carrier.  The body states
-\emph{only} what is characteristic: the object typings \texttt{IS-TOP-SPACE($s$)},
-\texttt{IS-TOP-SPACE($t$)} and the map typing \texttt{$f$ in fun(pts($s$),
-pts($t$))} are supplied automatically and need not be repeated.  The declaration
-replaces the generated \texttt{IS-HOM-TOP-SPACE} entirely.  Because ``homomorphism''
-is then the wrong word, a \texttt{notation!} beside it names the arrow
-(``continuous''); see Section~\ref{sec:notation}.  \texttt{METRIC-SPACE} overrides
-the same way, its morphisms being the isometries.
+\emph{only} what is characteristic: the object typings
+\texttt{IS-METRIZABLE-TOP-SPACE($s$)}, \texttt{IS-METRIZABLE-TOP-SPACE($t$)}
+and the map typing \texttt{$f$ in fun(pts($s$), pts($t$))} are supplied
+automatically and need not be repeated.  The declaration replaces the generated
+\texttt{IS-HOM-METRIZABLE-TOP-SPACE} entirely.  Two species override today:
+\texttt{METRIZABLE-TOP-SPACE} (a refinement inherits its parent's shape, not
+its arrows, so continuity is restated) and \texttt{RINGOID} (a ring
+homomorphism of the underlying rings that preserves the ideal).  The table of
+Section~\ref{sec:declare-category} says, for every structure, which of the
+three cases its arrows are.
+
+\subsection{Several categories on one species: \texttt{declare-category!}}
+\label{sec:declare-category}
+
+A structure is a category: its objects are its models, its arrows the maps
+satisfying \texttt{IS-HOM-\textit{NAME}}, composed as functions.  That is the
+species' \emph{default} category, and for an algebraic species it is the right
+one.  For a metric space the default is the category of isometries, which is
+not the one analysis works in: the Lipschitz maps, the uniformly continuous
+maps and the continuous maps each form a category on the same objects.  A
+species may therefore carry several categories.  A second one is declared
+beside the structure:
+
+\begin{VNBcode}
+(declare-category! 'LIPSCHITZ 'METRIC-SPACE '(a b f)
+  '(FORSOME lpk_ (AND (IN lpk_ RR) (AND (<= 0 lpk_)
+     (FORALL lpx_ (IMPLIES (IN lpx_ (PTS a))
+       (FORALL lpy_ (IMPLIES (IN lpy_ (PTS a))
+         (<= ((DIST b) (f lpx_) (f lpy_))
+             (* lpk_ ((DIST a) lpx_ lpy_)))))))))))
+\end{VNBcode}
+
+The body states what is characteristic of an arrow $f \colon a \to b$; the
+object typings and the carrier typing of each map are supplied, as for
+\texttt{declare-hom!}.  The declaration installs, definitionally, the arrow
+predicate \texttt{IS-LIPSCHITZ-ARROW}$(a, b, f)$ and the hom-set
+\texttt{HOM-LIPSCHITZ}$(a, b)$, and registers three \emph{obligations} as
+statements, not as theorems: \texttt{hom-lipschitz-id} (the identity is an
+arrow), \texttt{hom-lipschitz-compose} (arrows compose) and
+\texttt{hom-lipschitz-in-set} (the hom-set is a set).  That the arrows of a
+declared category contain the identities and compose is where the
+mathematics is (Lipschitz constants multiply; an $\varepsilon$--$\delta$
+argument for the continuous maps), so the generator does not stamp it: the
+obligations are proven in \texttt{theorem-library/categories.scm}, and
+\texttt{category-obligations-audit}, run at the end of every load, lists
+every obligation that is not a proven theorem of exactly its statement.
+Until that list is empty the declared category is not yet a category.  The
+default category is untouched by the declaration.
+
+The categories the library knows are listed below.  The listing is generated
+at every load (\texttt{reference/CATEGORIES.md}, also a page of the browser
+reference): the default category of each structure with the status of its
+three laws, the declared categories with their defining equivalences, and the
+inclusions between categories on the same objects --- an isometry is
+$1$-Lipschitz, a Lipschitz map is uniformly continuous, a uniformly
+continuous map is continuous, a linear isometry is bounded linear --- which
+the page finds by the shape of the installed theorems.
+
+\input{app-categories-generated}
 
 \section{Viewing one structure as another: \texttt{view-as}}
 \label{sec:view-as}

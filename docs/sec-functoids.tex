@@ -1,5 +1,5 @@
 %% sec-functoids.tex -- Sets, classes and functoids: what the quantifiers reach.
-%% Written 2026-10-01 after the image-axiom incident of 2026-09-30 and the decisions
+%% Written 2026-10-01 after the image-axiom inconsistency of 2026-09-30 and the decisions
 %% of 2026-10-01 (functoids outside quantification; the beta value licence; the DOM
 %% axiom; the tuple tripwire; fun-image-set).  \input from ch-expressions.tex, in
 %% place of the remark that used to carry the label rem:functoids-quantified.
@@ -13,8 +13,8 @@ the theory, which are not, what an unguarded quantifier ranges over, what an
 application $f(x)$ means for each kind of $f$, what $\beta$-reduction of a
 \texttt{vnb-lambda} is licensed to do, and where the axiom of replacement
 enters.  Every statement here is enforced by a kernel rule or a gate, named
-in the text; the incident that forced the statements to be written down is
-summarised at the end.
+in the text; two remarks at the end show, on two terms the syntax admits,
+what the rules are there to handle.
 
 \subsubsection{Three kinds of thing}
 
@@ -227,28 +227,37 @@ the library forms images only of classes of pairs.  The image of a proper
 class under a functoid, when it is wanted, is written as the class it is, by
 separation or by a \texttt{vnb-lambda} over a set.
 
-\subsubsection{The incident of 2026-09-30, and what closed it}
+\begin{remark}
+$\texttt{vnb-lambda}(x \in \mathtt{NN}, \mathtt{SET})$ is a syntactically
+valid term, and so is its application
+$(\texttt{vnb-lambda}(x \in \mathtt{NN}, \mathtt{SET}))(0)$.  $\beta$-reduction
+formally returns the term $\mathtt{SET}$.  But $\mathtt{SET} \notin
+\mathtt{SET}$, so by the definition of $\mathtt{IMAGE}$ above
+$\mathtt{SET} \notin \mathtt{IMAGE}(\texttt{vnb-lambda}(x \in \mathtt{NN},
+\mathtt{SET}), \mathtt{NN})$, and the contradiction $\mathtt{SET} \in
+\mathtt{SET}$ is avoided.  This does place a burden on the handling of the
+\texttt{IMAGE} functoid, and it is carried in three places: the conjunct
+$w \in \mathtt{SET}$ of \texttt{image-membership-iff}; the refusal of the
+instantiation rule to take a functoid as an instance, so that the axiom is
+never read at $\phi(x) := \mathtt{SET}$; and the value half of the
+$\beta$ licence, under which the reduction above owes
+$\mathtt{SET} \in \mathtt{SET}$ and \texttt{rfl} cannot close
+$\mathtt{SET} = \mathtt{SET}$ from it.
+\end{remark}
 
-A probe derived FALSITY, \texttt{modulo 0}: at the functoid
-$\phi(x) := \mathtt{SET}$, the image axiom as it then stood made
-$\mathtt{SET}$ a member of an image, hence a set, hence $\mathtt{ORD}$ a
-set, against Burali-Forti.  Three doors were open and each is now closed.
-\begin{enumerate}
-\item The image axiom read at a functoid: closed by the conjunct
-  $w \in \mathtt{SET}$ and by the instantiation refusal.
-\item $\beta$-reduction on a class-valued body, which reduced
-  $(\texttt{vnb-lambda}(x \in \mathtt{NN}, \mathtt{SET}))(0)$ to
-  $\mathtt{SET}$ and let \texttt{rfl} close $\mathtt{SET} = \mathtt{SET}$:
-  closed by the value half of the licence.
-\item \texttt{app-graph} read at a functoid, which proved
-  $[0, \mathtt{SET}] \in \phi$ and $[0, \mathtt{SET}] \in \mathtt{SET}$:
-  closed by the instantiation refusal; the tuple axiom stands behind it.
-\end{enumerate}
-Full record: \texttt{docs/image-axiom-inconsistency-2026-09-30.md} and its
-addendum; the decisions: \texttt{docs/decisions-pending-2026-10-01.md}.
+\begin{remark}
+$\texttt{vnb-lambda}(x \in \mathtt{NN}, [x, \mathtt{SET}])$ is also a valid
+term.  $\beta$-reduction of
+$(\texttt{vnb-lambda}(x \in \mathtt{NN}, [x, \mathtt{SET}]))(0)$ formally
+gives $[0, \mathtt{SET}]$, which is undefined: a list denotes only when its
+components are sets (\emph{Pairs and tuples} above).  In particular
+\texttt{app-graph} proves nothing at such a term, since $[0, \mathtt{SET}]
+\in \phi$ would require $[0, \mathtt{SET}]$ to denote, and
+\texttt{forall-elim} posts that definedness as a side goal that nothing
+closes.
+\end{remark}
 
-What remains open, so that the reader does not take this subsection for
-more than it is: a functoid reduced by \texttt{beta} and an accessor read by
+Open at the time of writing: a functoid reduced by \texttt{beta} and an accessor read by
 \texttt{slot} are not yet part of a proof certificate's key (the nightly
 exam is the backstop); the re-routing of the \texttt{image-set} citations
 named above; and the rename of \texttt{def-functoid}

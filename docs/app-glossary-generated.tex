@@ -5385,7 +5385,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [pts(md), \{u in power(pts(md)): is-open(md, u)\}]
 \end{quote}
-characterized by \texttt{metric-top-hom}  \textit{(proven)}:
+characterized by \texttt{metric-top-hom}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, t, f], is-metric-space(s) implies is-metric-space(t) implies is-hom-top-space(metric-top(s), metric-top(t), f) iff is-continuous(s, t, f))
 \end{quote}
@@ -7444,7 +7444,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [a, \{stw\_ in power(a): forsome([stu\_ in opens(t)], stw\_ = intersection(stu\_, a))\}]
 \end{quote}
-characterized by \texttt{subspace-top-pts}  \textit{(proven)}:
+characterized by \texttt{subspace-top-pts}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([t, a], pts(subspace-top(t, a)) == a)
 \end{quote}

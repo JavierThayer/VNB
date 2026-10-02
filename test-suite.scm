@@ -13698,6 +13698,25 @@
                  '(SEP homf_ (FUN (PTS a) (PTS b)) (IS-TOY-CAT-ARROW a b homf_)))
          #t)))
 
+;; CATEGORIES.md (notes-55, 2026-10-02): every structure's default category, every
+;; declared one with the status of its laws, the inclusions found by shape.  Written
+;; to a scratch path: the suite's TOY-CAT must not reach reference/.
+(check-true "CATEGORIES.md lists the default and the declared categories, their laws, the inclusions"
+  (lambda ()
+    (let* ((p (write-categories-md "/tmp/vnb-suite-categories.md"))
+           (m (call-with-input-file p (lambda (port) (read-string 1000000 port)))))
+      (and (string? m)
+           (string-search-forward "| `metric-space` | " m 0)
+           (string-search-forward "declared by `declare-hom!`" m 0)
+           (string-search-forward "generated from the slot list" m 0)
+           (string-search-forward "### `lipschitz`, a category on `metric-space`" m 0)
+           (string-search-forward "### `toy-cat`, a category on `toy-ms`" m 0)
+           (string-search-forward "`hom-lipschitz-compose` -- proven" m 0)
+           (string-search-forward "`hom-toy-cat-id` -- not installed" m 0)
+           (string-search-forward "`hom-metric-space-is-lipschitz-arrow` (proven)" m 0)
+           (string-search-forward "`lipschitz-arrow-is-uniformly-continuous-arrow` (proven)" m 0)
+           #t))))
+
 (check "the audit lists the toy category's three unproven obligations"
   (lambda () (map car (category-obligations-audit)))
   '(hom-toy-cat-id hom-toy-cat-compose hom-toy-cat-in-set))

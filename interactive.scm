@@ -3090,6 +3090,7 @@
       (display (car fr)) (newline))
     (write-operators-md)
     (structure-index)
+    (write-categories-md)
     (fingerprint-index)
     ;; The rest of reference/.  These three had generators that NOTHING CALLED:
     ;; MACETE-INDEX.md and BY-OPERATOR.md were last written 2026-06-01 and the
@@ -5054,6 +5055,190 @@
   (let ((dot (string-append *reference-dir* "structure-graph.dot")))
     (write-structure-graph-dot dot)
     dot))
+
+;;; -----------------------------------------------------------------------
+;;; (write-categories-md [path]) -- CATEGORIES.md: every category the library
+;;; knows (the user's notes-55, 2026-10-02: beside the structure list and the
+;;; structure graph, a page listing the categories).
+;;;
+;;; Two kinds.  (1) The DEFAULT category of each declared structure X: objects
+;;; the models of IS-X, arrows IS-HOM-X -- generated from the slot list
+;;; (build-hom-axiom), replaced by declare-hom!, or, for a refinement, the
+;;; parent's arrows between models of IS-X -- and the hom-set HOM-X.  (2) The
+;;; categories declared beside a structure by declare-category! (*categories*),
+;;; each with its own arrow predicate and hom-set.  For both, the category laws
+;;; -- identity, composition, the hom-set a set -- are theorem NAMES
+;;; (hom-X-id, hom-X-compose, hom-X-in-set) whose status is read off the
+;;; theorem table at write time: a law that is not proven says so on the page.
+;;; Last, the INCLUSIONS: every installed theorem of the shape
+;;;   forall a b f... . P(a, b, f...) => Q(a, b, f...)       (P, Q arrow predicates)
+;;;   forall a b . H1(a, b) subset H2(a, b)                  (H1, H2 hom-sets)
+;;; found by SHAPE over the theorem table, so a new inclusion appears here
+;;; without registration.  docs/gen-categories.py renders this page into the
+;;; manual; keep its three headings and the table columns as they are.
+
+(define (categories-md--status name)
+  (if (hash-table-ref/default *theorem-table* name #f)
+      (case (provenance-of name)
+        ((proven certified) "proven")
+        ((definitional)     "definitional")
+        ((primitive)        "primitive")
+        (else               "ASSERTED"))
+      "not installed"))
+
+(define (categories-md--carriers name)
+  (let ((sd (find-shape-structure name)))
+    (if sd
+        (map car (filter (lambda (s) (eq? (cadr s) 'carrier)) (structure-def-slots sd)))
+        '())))
+
+(define (categories-md--maps k)
+  (if (= k 1) '("f") (map (lambda (i) (string-append "f" (number->string i))) (iota k 1))))
+
+;;; "f is an isometry from a to b", from the operator table; the bare
+;;; application when no reading is declared.
+(define (categories-md--arrow-reading head k)
+  (let ((args (append '("a" "b") (categories-md--maps k))))
+    (or (operator-render-english head args)
+        (string-append "`" (symbol->string head) "("
+                       (decorated-string-append "" ", " "" args) ")`"))))
+
+(define (categories-md--peel-foralls f)
+  (if (and (pair? f) (eq? (car f) 'FORALL) (= (length f) 3))
+      (categories-md--peel-foralls (caddr f))
+      f))
+
+;;; (name . statement) of every theorem stating an inclusion between two of the
+;;; HEADS (arrow predicates: an IMPLIES; hom-sets: a SUBSET) at the same arguments.
+(define (categories-md--inclusions arrow-heads hom-heads)
+  (let ((sym< (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+    (filter-map
+      (lambda (name)
+        (let* ((f (hash-table-ref/default *theorem-table* name #f))
+               (b (and (pair? f) (categories-md--peel-foralls f)))
+               (app-of? (lambda (t heads) (and (pair? t) (memq (car t) heads))))
+               (s (symbol->string name)))
+          (and b
+               (not (and (> (string-length s) 4)
+                         (string=? (substring s (- (string-length s) 4) (string-length s)) "-rev")))
+               (pair? b) (= (length b) 3)
+               (or (and (eq? (car b) 'IMPLIES)
+                        (app-of? (cadr b) arrow-heads) (app-of? (caddr b) arrow-heads)
+                        (equal? (cdr (cadr b)) (cdr (caddr b))))
+                   (and (eq? (car b) 'SUBSET)
+                        (app-of? (cadr b) hom-heads) (app-of? (caddr b) hom-heads)
+                        (equal? (cdr (cadr b)) (cdr (caddr b)))))
+               (cons name b))))
+      (sort (hash-table-keys *theorem-table*) sym<))))
+
+(define (write-categories-md #!optional path)
+  (let* ((path     (if (default-object? path)
+                       (string-append *reference-dir* "CATEGORIES.md")
+                       path))
+         (defaults (filter (lambda (nm)
+                             (hash-table-ref/default
+                               *theorem-table* (symbol-append (structure-hom-name nm) '-def) #f))
+                           (known-structures)))
+         (cats     (known-categories))
+         (arrow-heads (append (map structure-hom-name defaults) (map category-arrow-name cats)))
+         (hom-heads   (append (map structure-hom-set-name defaults) (map category-hom-set-name cats)))
+         (law      (lambda (prefix suffix)
+                     (let ((n (symbol-append 'hom- prefix suffix)))
+                       (string-append "`" (symbol->string n) "` -- " (categories-md--status n))))))
+    (with-output-to-file path
+      (lambda ()
+        (display "# VNB categories\n\n")
+        (display "Auto-generated by `(catalog)` -- do not edit.  ")
+        (display (length defaults)) (display " default categories (one per structure with a ")
+        (display "morphism predicate) and ") (display (length cats))
+        (display " declared with `declare-category!`.\n\n")
+        (display "Every declared structure `X` is a category: its objects are the models of `IS-X`, ")
+        (display "its arrows the maps `f` (one per carrier) with `IS-HOM-X(a, b, f)`, composed as ")
+        (display "functions.  The DEFAULT arrows are generated from the slot list -- each operation ")
+        (display "and constant preserved, a family pulled back, related points sent to related points ")
+        (display "-- unless the structure declares its own with `declare-hom!` (continuous maps for a ")
+        (display "topological space, isometries for a metric space); a refinement (`same-shape-as`) ")
+        (display "takes its parent's arrows between its own models.  A SECOND category on the same ")
+        (display "objects is declared with `declare-category!`: it carries its own arrow predicate ")
+        (display "and hom-set, and its three laws -- the identity is an arrow, arrows compose, the ")
+        (display "hom-set is a set -- are OBLIGATIONS, proven in `theorem-library/categories.scm` ")
+        (display "and audited at every load (`category-obligations-audit`).  The status beside each ")
+        (display "law below is read off the theorem table when this page is written.\n\n")
+        (display "## Default categories\n\n")
+        (display "| structure | arrows | arrows defined | hom-set | identity | composition | hom-set is a set |\n")
+        (display "|---|---|---|---|---|---|---|\n")
+        (for-each
+          (lambda (nm)
+            (let* ((k   (max 1 (length (categories-md--carriers nm))))
+                   (hom (structure-hom-name nm))
+                   (hs  (structure-hom-set-name nm))
+                   (parent (let ((d (lookup-definitional-structure nm)))
+                             (and d (definitional-structure-parent d))))
+                   (how (cond ((hom-overridden? nm) "declared by `declare-hom!`")
+                              (parent (string-append "refinement of `"
+                                                     (symbol->string parent)
+                                                     "`: its parent's arrows"))
+                              (else "generated from the slot list"))))
+              (display "| `") (display (symbol->string nm)) (display "` | ")
+              (display (categories-md--arrow-reading hom k)) (display " | ")
+              (display how) (display " | ")
+              (if (hash-table-ref/default *functoid-registry* hs #f)
+                  (begin (display "`") (display (symbol->string hs)) (display "(a, b)`"))
+                  (display "none (more than one carrier)"))
+              (display " | ")
+              (display (law nm '-id)) (display " | ")
+              (display (law nm '-compose)) (display " | ")
+              (display (law nm '-in-set)) (display " |\n")))
+          defaults)
+        (newline)
+        (display "## Declared categories\n\n")
+        (if (null? cats) (display "None.\n\n"))
+        (for-each
+          (lambda (cat)
+            (let* ((x     (category-structure cat))
+                   (k     (category-arity cat))
+                   (arrow (category-arrow-name cat))
+                   (hs    (category-hom-set-name cat))
+                   (dname (category-arrow-def-name cat))
+                   (def   (hash-table-ref/default *theorem-table* dname #f)))
+              (display "### `") (display (symbol->string cat))
+              (display "`, a category on `") (display (symbol->string x)) (display "`\n\n")
+              (display (struct-index--source-link (category-source-file cat)))
+              (display "Objects: the models of `is-") (display (symbol->string x))
+              (display "`.  Arrows: `") (display (symbol->string arrow)) (display "(a, b, ")
+              (display (decorated-string-append "" ", " "" (categories-md--maps k)))
+              (display ")` -- ") (display (categories-md--arrow-reading arrow k))
+              (display ".  Hom-set: `") (display (symbol->string hs)) (display "(a, b)`")
+              (let ((r (operator-render-english hs '("a" "b"))))
+                (if r (begin (display " -- ") (display r))))
+              (display ".\n\n")
+              (if def
+                  (begin (display "Definition (`") (display (symbol->string dname))
+                         (display "`, definitional):\n\n```\n")
+                         (display (expression->string def)) (display "\n```\n\n")))
+              (display "Laws: ")
+              (display (law cat '-id)) (display "; ")
+              (display (law cat '-compose)) (display "; ")
+              (display (law cat '-in-set)) (display "; membership ")
+              (display (law cat '-member-iff))
+              (if (hash-table-ref/default *theorem-table* (symbol-append 'hom- cat '-post-type) #f)
+                  (begin (display "; Hom functors ") (display (law cat '-post-type))
+                         (display ", ") (display (law cat '-pre-type))))
+              (display ".\n\n")))
+          cats)
+        (display "## Inclusions\n\n")
+        (display "Theorems of the form `P(a, b, f) => Q(a, b, f)` for two arrow predicates above, ")
+        (display "or `H1(a, b) subset H2(a, b)` for two hom-sets, found by shape.\n\n")
+        (let ((incl (categories-md--inclusions arrow-heads hom-heads)))
+          (if (null? incl) (display "None.\n"))
+          (for-each
+            (lambda (p)
+              (display "- `") (display (symbol->string (car p))) (display "` (")
+              (display (categories-md--status (car p))) (display "): `")
+              (display (expression->string (cdr p))) (display "`\n"))
+            incl))
+        (newline)))
+    path))
 
 (define (structure-index)
   (let* ((sym<        (lambda (a b) (string<? (symbol->string a) (symbol->string b))))
