@@ -481,7 +481,7 @@
          (cond
            ((null? cs)
             (cond ((not goal) (bad "no (goal PATTERN) clause"))
-                  ((not action) (bad "no (do FORM) clause"))
+                  ((not action) (bad "no (do FORM) or (ask TEXT) clause"))
                   ((and side (not (and (pair? action) (eq? (car action) 'cut)
                                        (= (length action) 2))))
                    (bad "a (side ...) clause needs the action (cut F)"))
@@ -515,8 +515,17 @@
                                                " one-of occurs unfolds)"))
                            (loop (cdr cs) goal withs (append (reverse (cdr c)) guards)
                                  action probe side))))
+                    ;; (ask TEXT): the rule kind for a step no rule can take -- a witness, the
+                    ;; choice of a lemma, an estimate (the user, 2026-10-01: "ask the user for
+                    ;; advice").  When it matches, the loop STOPS and the report carries the
+                    ;; advice beside the goal it applies to; nothing is run.
+                    ((ask)
+                     (cond (action (bad "two action clauses ((do ...) / (ask ...))"))
+                           ((not (and (= (length c) 2) (string? (cadr c))))
+                            (bad "(ask TEXT) takes one string"))
+                           (#t (loop (cdr cs) goal withs guards (list 'ask (cadr c)) probe side))))
                     ((do)
-                     (cond (action (bad "two (do ...) clauses"))
+                     (cond (action (bad "two action clauses ((do ...) / (ask ...))"))
                            ((not (and (= (length c) 2) (pair? (cadr c))))
                             (bad "(do FORM) takes one form"))
                            (#t (loop (cdr cs) goal withs guards (cadr c) probe side))))
@@ -791,7 +800,13 @@
                       (and (not churn) (or (not open?) (pair? new))))))
     (list (cons 'grounded ground) (cons 'changed changed)
           (cons 'n-before (length before)) (cons 'n-after (length after))
-          (cons 'goal goal1) (cons 'landed landed) (cons 'new new) (cons 'focus focus))))
+          (cons 'goal goal1) (cons 'landed landed) (cons 'new new) (cons 'focus focus)
+          (cons 'asms-before asms0)
+          ;; the leaf list emptied while the proof is not grounded: a step produced a
+          ;; node outside the leaf list (a cut, have! or fact of a formula already in
+          ;; context is a silent self-loop with no main branch -- CLAUDE.md); the first
+          ;; postamble met it, 2026-10-02, on a `fact' re-landing an equation
+          (cons 'vanished (and (not done) (null? after))))))
 
 (define (pa--get o k) (cdr (assq k o)))
 
@@ -801,9 +816,14 @@
         ((eq? probe 'progress)
          (or (pa--get o 'grounded)
              (and (pa--get o 'changed) (<= (pa--get o 'n-after) (pa--get o 'n-before)))))
+        ;; (lands F): F is NEW -- absent before the step, present after it.  A step that
+        ;; re-lands a formula already in context "changes" the graph (a fact's chain lands
+        ;; its intermediate forms again) and, repeated, self-loops: refuse it.
         ((and (pair? probe) (eq? (car probe) 'lands))
-         (and (pa--get o 'changed)
-              (pa--alpha-member? (pa--subst-datum (cadr probe) b) asms-after)))
+         (let ((f (pa--subst-datum (cadr probe) b)))
+           (and (pa--get o 'changed)
+                (not (pa--alpha-member? f (pa--get o 'asms-before)))
+                (pa--alpha-member? f asms-after))))
         (#t #f)))
 
 (define (pa--focus-asms) (if (proof-done? *ps*) '() (dk-asms)))
@@ -842,7 +862,7 @@
 
 ;;; The engine's state for one (preamble) call, nested runs included.
 (define-record-type <pa-state>
-  (pa--make-state rules steps fired rejected raised owed stop)
+  (pa--make-state rules steps fired rejected raised owed asked stop)
   pa-state?
   (rules    pa-state-rules    set-pa-state-rules!)
   (steps    pa-state-steps    set-pa-state-steps!)
@@ -850,6 +870,7 @@
   (rejected pa-state-rejected set-pa-state-rejected!)   ; newest first: (name form reason goal)
   (raised   pa-state-raised   set-pa-state-raised!)     ; newest first: (name message)
   (owed     pa-state-owed     set-pa-state-owed!)       ; newest first: (formula . leaf)
+  (asked    pa-state-asked    set-pa-state-asked!)      ; newest first: (name text goal)
   (stop     pa-state-stop     set-pa-state-stop!))
 
 (define (pa--push-fired! st x) (set-pa-state-fired! st (cons x (pa-state-fired st))))
@@ -862,7 +883,7 @@
 ;;; lists of its parent but has its own rules; `pa--sub' makes it and `pa--merge!' folds
 ;;; its lists back (a rolled-back sub-run's firings are reported as tried, not as fired).
 (define (pa--sub st rules)
-  (pa--make-state rules (pa-state-steps st) '() '() '() '() #f))
+  (pa--make-state rules (pa-state-steps st) '() '() '() '() '() #f))
 
 (define (pa--merge! st sub kept? #!optional tag)
   (let ((tag (if (default-object? tag) "" tag)))
@@ -885,6 +906,7 @@
                    (pa-state-rejected sub))
               (pa-state-rejected st))))
   (set-pa-state-raised! st (append (pa-state-raised sub) (pa-state-raised st)))
+  (set-pa-state-asked! st (append (pa-state-asked sub) (pa-state-asked st)))
   (if kept? (set-pa-state-owed! st (append (pa-state-owed sub) (pa-state-owed st)))))
 
 ;;; The thunk that performs an action FORM (a (preamble NAME) form runs a sub-loop).
@@ -938,6 +960,13 @@
                     (and (not (pa--raised? v))
                          (pa--probe-holds? probe o b (pa--focus-asms)))))))))))
          (cond
+           ((and committed (pa--get live-o 'vanished))
+            ;; committed by its probe, but the leaf list vanished under it: report it
+            (set-pa-state-steps! st (+ (pa-state-steps st) 1))
+            (pa--push-fired! st (list (pa-rule-name rule) form
+                                      "LEFT NO OPEN LEAF while the proof is not grounded (a self-loop: the step landed a formula already in context)"
+                                      goal0))
+            #t)
            (committed
             (if (and (pair? live-v) (eq? (car live-v) 'pa-sub))
                 (pa--merge! st (cdr live-v) #t
@@ -1065,9 +1094,16 @@
                (loop (cdr rs))
                (let ((form (cdr b)) (b (car b)))
                  (set! matched (+ matched 1))
-                 (if (if (pa-rule-side ru) (pa--fire-cut! st ru b form) (pa--fire! st ru b form))
-                     #t
-                     (loop (cdr rs)))))))))))
+                 (cond
+                   ((and (pair? form) (eq? (car form) 'ask))
+                    (set-pa-state-asked! st (cons (list (pa-rule-name ru) (cadr form) goal)
+                                                  (pa-state-asked st)))
+                    (set-pa-state-stop! st (string-append "the rule " (symbol->string (pa-rule-name ru))
+                                                          " asks the user: " (cadr form)))
+                    'ask)
+                   ((if (pa-rule-side ru) (pa--fire-cut! st ru b form) (pa--fire! st ru b form))
+                    #t)
+                   (#t (loop (cdr rs))))))))))))
 
 ;;; Run the rules from the current focus.  The leaves open when it starts (other than the
 ;;; focus) are never touched; owed side leaves are left alone.  -> the status symbol.
@@ -1082,6 +1118,13 @@
                                                (not (any (lambda (o) (eq? (cdr o) l)) (pa-state-owed st)))))
                               (proof-open-leaves *ps*)))))
         (cond
+          ;; the leaf list is empty but the proof is NOT grounded: a step produced a node
+          ;; outside the leaf list (a self-loop; see 'vanished in pa--outcome).  Say so,
+          ;; never "done".
+          ((and (null? work) (not (proof-done? *ps*)) (null? (pa-state-owed st))
+                (null? (proof-open-leaves *ps*)))
+           (set-pa-state-stop! st "the open-leaf list is empty but the proof is not grounded: a step landed a formula already in context (a self-loop); undo it")
+           'broken)
           ((null? work)
            (set-pa-state-stop! st (if (null? (pa-state-owed st))
                                       "done: the goal is proved"
@@ -1098,7 +1141,10 @@
            'budget)
           (#t
            (if (not (memq (proof-state-focus *ps*) work)) (dk-focus! (car work)))
-           (if (pa--step! st) (loop) 'stalled)))))))
+           (let ((r (pa--step! st)))
+             (cond ((eq? r 'ask) 'ask)
+                   (r (loop))
+                   (#t 'stalled)))))))))
 
 ;;; ---------------------------------------------------------------------------------
 ;;; The command
@@ -1122,6 +1168,9 @@
         (reverse (pa-state-raised st)))
    (map (lambda (o) (string-append ";;   OWED      " (expression->string (car o))))
         (reverse (pa-state-owed st)))
+   (map (lambda (a) (string-append ";;   ASK       " (symbol->string (car a)) ": " (cadr a)
+                                   " -- on " (expression->string (caddr a))))
+        (reverse (pa-state-asked st)))
    (list (string-append ";; preamble: " (symbol->string status) " after "
                         (number->string (pa-state-steps st)) " firing(s) -- "
                         (or (pa-state-stop st) "")))))
@@ -1133,6 +1182,7 @@
         (cons 'rejected (reverse (pa-state-rejected st)))
         (cons 'raised (reverse (pa-state-raised st)))
         (cons 'owed (reverse (map car (pa-state-owed st))))
+        (cons 'asked (reverse (pa-state-asked st)))
         (cons 'stop (pa-state-stop st))
         (cons 'file file)
         (cons 'report (pa--join lines "\n"))))
@@ -1143,6 +1193,7 @@
 (define (preamble-rejected v) (cdr (assq 'rejected v)))
 (define (preamble-raised v)   (cdr (assq 'raised v)))
 (define (preamble-owed v)     (cdr (assq 'owed v)))
+(define (preamble-asked v)    (cdr (assq 'asked v)))      ; ((name text goal) ...)
 (define (preamble-report v)   (cdr (assq 'report v)))
 
 (define (pa--flush! lines)
@@ -1161,16 +1212,16 @@
        (let ((lines (list (string-append ";; preamble: " (cadr rd) "; nothing done"))))
          (pa--flush! lines)
          (list (cons 'status 'error) (cons 'steps 0) (cons 'fired '()) (cons 'rejected '())
-               (cons 'raised '()) (cons 'owed '()) (cons 'stop (cadr rd)) (cons 'file file)
+               (cons 'raised '()) (cons 'owed '()) (cons 'asked '()) (cons 'stop (cadr rd)) (cons 'file file)
                (cons 'report (car lines)))))
       ((not (and (proof-state? *ps*) (not (proof-done? *ps*))))
        (let ((lines (list ";; preamble: no open goal; nothing done")))
          (pa--flush! lines)
          (list (cons 'status 'error) (cons 'steps 0) (cons 'fired '()) (cons 'rejected '())
-               (cons 'raised '()) (cons 'owed '()) (cons 'stop "no open goal") (cons 'file file)
+               (cons 'raised '()) (cons 'owed '()) (cons 'asked '()) (cons 'stop "no open goal") (cons 'file file)
                (cons 'report (car lines)))))
       (#t
-       (let* ((st     (pa--make-state (car rd) 0 '() '() '() '() #f))
+       (let* ((st     (pa--make-state (car rd) 0 '() '() '() '() '() #f))
               (status (pa--loop! st))
               (lines  (pa--report-lines st file (cadr rd) status)))
          (if (not *vnb-quiet*) (show))

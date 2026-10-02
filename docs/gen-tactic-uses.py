@@ -256,7 +256,12 @@ def main():
     for name, used, _ in rows:
         scm.append("  (%s%s)" % (name, "".join(" " + op for op in used)))
     scm += [")", ""]
-    open(SCM, "w").write("\n".join(scm) + "\n")
+    # Write ONLY on change: this file is in the tree and `prover --band-if-fresh' compares
+    # the band's mtime against every .scm, so an unchanged rewrite (every `make' in docs/)
+    # made the band read stale and refused the suite (2026-10-02).
+    new_scm = "\n".join(scm) + "\n"
+    if not (os.path.exists(SCM) and open(SCM).read() == new_scm):
+        open(SCM, "w").write(new_scm)
 
     n_ops = len({op for _, u, _ in rows for op in u})
     print("gen-tactic-uses: %d commands (%d from the kernel map, %d from the registry); "

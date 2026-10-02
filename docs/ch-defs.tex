@@ -1067,8 +1067,11 @@ satisfying \texttt{IS-HOM-\textit{NAME}}, composed as functions.  That is the
 species' \emph{default} category, and for an algebraic species it is the right
 one.  For a metric space the default is the category of isometries, which is
 not the one analysis works in: the Lipschitz maps, the uniformly continuous
-maps and the continuous maps each form a category on the same objects.  A
-species may therefore carry several categories.  A second one is declared
+maps and the continuous maps each form a category on the same objects; on the
+countably-metrised spaces (\texttt{C-METRIC-SPACE}) the continuous maps for
+the canonical metric form one, which rests on the canonical metric being a
+metric (\texttt{c-metric-is-metric-space}).  A species may therefore carry
+several categories.  A second one is declared
 beside the structure:
 
 \begin{VNBcode}

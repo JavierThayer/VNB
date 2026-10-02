@@ -1,0 +1,249 @@
+;;; postambles/bernstein-moments.pre -- THE FIRST POSTAMBLE, extracted BY HAND from the
+;;; driver theorem-library/bernstein-moments.scm (the user's test case, 2026-10-02:
+;;; "look at the proof drivers and attempt to extract a sequence of preamble-type
+;;; rules").  Same format as preambles/default.pre (preamble.scm's header), plus the
+;;; rule kind (ask TEXT), built with this file: the loop STOPS there and the report
+;;; carries the advice beside the goal it applies to.
+;;;
+;;; Run it on the statement of one of the file's theorems:
+;;;     (sp (make-wff ...))  (preamble "postambles/bernstein-moments.pre")
+;;;
+;;; WHAT THE DRIVER DOES, counted (699 lines, 8 theorems): 107 `fact' + 18 `dk-fact!'
+;;; landings of a hypothesis (typings, mostly), 52 `have!' claims (pointwise typings and
+;;; pointwise equations, each with a 3-4 step inner proof), 35 `subst' rewrites by a cited
+;;; equation, 37 `di', 27 `crs', 24 `ass', 13 `mac', 4 `mac-h', 2 inductions, 1 `sos'.
+;;; What a rule can say, by order of difficulty:
+;;;   (a) navigation (peel, split, close): the default rules;
+;;;   (b) a typing landed FORWARD, "the goal mentions T, T is not yet typed: cite its
+;;;       typing law" -- (goal ?g) + (occurs ...) + (not-in-context ...) + (lands ...),
+;;;       one rule per law, below;
+;;;   (c) a rewrite by a lemma the GOAL's shape determines (unfold, Pascal, the read-off
+;;;       of a ring operation): a (mac ...) rule;
+;;;   (d) a rewrite by a lemma AT A WITNESS the user chooses (the weight, the three
+;;;       families of the weighted step, the induction): an (ask ...) rule.
+;;; The rules are ordered so that each goal meets its typing rules before the rewrite
+;;; that consumes the typed term, and the asks come where the driver's author decided.
+
+;; ================================================================================
+;; 0. The decisions a shape does not make: ask.
+;; ================================================================================
+
+;; A statement about a sum to n.  The moments are proven by induction on n (the weight
+;; makes the sum recurse: bernstein-weighted-step); the variance identity, of the same
+;; shape, is NOT -- it follows from the three moments by linearity.  Only the author knows.
+(rule induct-or-peel
+  (goal  (forall ?n (implies (in ?n nn) ?body)))
+  (guard (occurs (series-partial-sum ?h (succ ?n)) ?body))
+  (ask   "A sum to n.  Either induct on n -- (use-induction); the base is the one-term sum (series-partial-sum-zero, dk-sps-succ!), the step is bernstein-weighted-step at THIS weight, then the partial-sum linearity laws and the earlier moments -- or, if the identity follows from earlier moments by linearity (the variance), peel with (di) and expand the summand pointwise."))
+
+;; ================================================================================
+;; 1. Navigation.
+;; ================================================================================
+
+(rule peel-universal   (goal (forall ?x ?body))  (do (di)))
+(rule peel-implication (goal (implies ?a ?b))    (do (di)))
+(rule close-by-context (goal ?g) (with ?g) (do (ass)) (probe grounded))
+
+;; ================================================================================
+;; 2. The ring context: every COMB-KK citation wants RR as a commutative ring (the view
+;;    NORMED-FIELD-AS-COMMUTATIVE-RING of RR-NORMED-FIELD) and the two points x, 1 - x
+;;    in its carrier.  The driver's bmo-ring-context!, as five rules.
+;; ================================================================================
+
+(rule rr-is-a-normed-field
+  (goal  ?g)
+  (guard (occurs (bernstein-basis ?n ?x) ?g)
+         (not-in-context (is-normed-field rr-normed-field)))
+  (do    (fact 'rr-is-normed-field))
+  (probe (lands (is-normed-field rr-normed-field))))
+
+(rule rr-ring-view-is-a-ring
+  (goal  ?g)
+  (with  (is-normed-field rr-normed-field))
+  (guard (occurs (bernstein-basis ?n ?x) ?g)
+         (not-in-context (is-commutative-ring (normed-field-as-commutative-ring rr-normed-field))))
+  (do    (fact 'NORMED-FIELD-AS-COMMUTATIVE-RING-is-COMMUTATIVE-RING 'RR-NORMED-FIELD))
+  (probe (lands (is-commutative-ring (normed-field-as-commutative-ring rr-normed-field)))))
+
+(rule one-is-real
+  (goal  ?g)
+  (guard (occurs (bernstein-basis ?n ?x) ?g) (not-in-context (in 1 rr)))
+  (do    (fact 'rr-one-in))
+  (probe (lands (in 1 rr))))
+
+(rule one-minus-x-is-real
+  (goal  ?g)
+  (with  (in 1 rr) (in ?x rr))
+  (guard (occurs (bernstein-basis ?n ?x) ?g) (not-in-context (in (- 1 ?x) rr)))
+  (do    (fact 'rr-sub-in-rr 1 ?x))
+  (probe (lands (in (- 1 ?x) rr))))
+
+;; x in the carrier of the ring view: a tentative cut whose side goal the rule
+;; ring-carrier-is-rr below rewrites to x in rr.
+(rule x-in-ring-carrier
+  (goal  ?g)
+  (with  (in ?x rr))
+  (guard (occurs (bernstein-basis ?n ?x) ?g)
+         (not-in-context (in ?x (carr (normed-field-as-commutative-ring rr-normed-field)))))
+  (do    (cut '(in ?x (carr (normed-field-as-commutative-ring rr-normed-field)))))
+  (side  preamble-or-owed))
+
+(rule one-minus-x-in-ring-carrier
+  (goal  ?g)
+  (with  (in (- 1 ?x) rr))
+  (guard (occurs (bernstein-basis ?n ?x) ?g)
+         (not-in-context (in (- 1 ?x) (carr (normed-field-as-commutative-ring rr-normed-field)))))
+  (do    (cut '(in (- 1 ?x) (carr (normed-field-as-commutative-ring rr-normed-field)))))
+  (side  preamble-or-owed))
+
+(rule ring-carrier-is-rr
+  (goal  (in ?t (carr (normed-field-as-commutative-ring rr-normed-field))))
+  (do    (mac 'rr-scalar-ring-carr)))
+
+;; ================================================================================
+;; 3. Typings landed forward: the atoms the closing `crs' will need.
+;; ================================================================================
+
+;; succ(n) in NN, for the basis at degree succ(n) (the driver's bt-succ-in-nn).  By
+;; citation: the default preamble's type-term has no route for succ (found 2026-10-02:
+;; the tentative cut of succ(n_) in nn was left owed).
+(rule succ-in-nn
+  (goal  ?g)
+  (with  (in ?n nn))
+  (guard (occurs (bernstein-basis (succ ?n) ?x) ?g) (not-in-context (in (succ ?n) nn)))
+  (do    (fact 'nn-succ-closed ?n))
+  (probe (lands (in (succ ?n) nn))))
+
+;; an NN index is a ZZ index (the basis is indexed by ZZ)
+(rule nn-index-in-zz
+  (goal  ?g)
+  (with  (in ?k nn))
+  (guard (occurs ((bernstein-basis ?n ?x) ?k) ?g) (not-in-context (in ?k zz)))
+  (do    (fact 'nn-subset-zz ?k))
+  (probe (lands (in ?k zz))))
+
+(rule one-in-zz
+  (goal  ?g)
+  (guard (occurs ((bernstein-basis ?n ?x) (- ?k 1)) ?g) (not-in-context (in 1 zz)))
+  (do    (fact 'zz-one-in))
+  (probe (lands (in 1 zz))))
+
+(rule shifted-index-in-zz
+  (goal  ?g)
+  (with  (in ?k zz) (in 1 zz))
+  (guard (occurs ((bernstein-basis ?n ?x) (- ?k 1)) ?g) (not-in-context (in (- ?k 1) zz)))
+  (do    (fact 'zz-sub-in-zz ?k 1))
+  (probe (lands (in (- ?k 1) zz))))
+
+;; a basis value is real (bernstein-basis-ptwise-in-rr), at any ZZ index
+(rule basis-value-is-real
+  (goal  ?g)
+  (with  (in ?k zz))
+  (guard (occurs ((bernstein-basis ?n ?x) ?k) ?g)
+         (not-in-context (in ((bernstein-basis ?n ?x) ?k) rr)))
+  (do    (fact 'bernstein-basis-ptwise-in-rr ?n ?x ?k))
+  (probe (lands (in ((bernstein-basis ?n ?x) ?k) rr))))
+
+;; ================================================================================
+;; 4. One basis value: unfold to COMB-KK and cite the combinatorial law.
+;;    (These fire only when no sum is in the goal: a sum goal is caught by the ask
+;;    above or by the rules of section 5.)
+;; ================================================================================
+
+;; the realness typings, brought to COMB-KK form before the unfold (`mac' rewrites
+;; only the goal; the typings must match the unfolded term)
+(rule basis-typing-to-comb-kk-form
+  (goal  ?g)
+  (with  (in ((bernstein-basis ?n ?x) ?k) rr))
+  (guard (occurs (comb-kk ?r ?y ?z ?m) ?g))
+  (do    (mac-h 'bernstein-basis-unfold '(in ((bernstein-basis ?n ?x) ?k) rr)))
+  (probe (lands (in ((comb-kk (normed-field-as-commutative-ring rr-normed-field) ?x (- 1 ?x) ?n) ?k) rr))))
+
+(rule unfold-bernstein-basis
+  (goal  (= ?l ?r))
+  (guard (occurs (bernstein-basis ?n ?x) (= ?l ?r)))
+  (do    (mac 'bernstein-basis)))
+
+;; below the range: comb-kk-null, then the ring's zero is the real 0
+(rule basis-vanishes-below
+  (goal  (= ((comb-kk ?r ?x ?y ?m) ?k) 0))
+  (with  (< ?k 0))
+  (do    (fact 'comb-kk-null ?r ?x ?y ?m ?k))
+  (probe (lands (= ((comb-kk ?r ?x ?y ?m) ?k) (zero ?r)))))
+
+(rule basis-vanishes-above
+  (goal  (= ((comb-kk ?r ?x ?y ?m) ?k) 0))
+  (with  (< ?m ?k))
+  (do    (fact 'comb-kk-above ?r ?x ?y ?m ?k))
+  (probe (lands (= ((comb-kk ?r ?x ?y ?m) ?k) (zero ?r)))))
+
+(rule ring-zero-is-zero
+  (goal  (= ?l 0))
+  (with  (= ?l (zero (normed-field-as-commutative-ring rr-normed-field))))
+  (do    (mac-h 'rr-scalar-ring-zero '(= ?l (zero (normed-field-as-commutative-ring rr-normed-field)))))
+  (probe (lands (= ?l 0))))
+
+;; the Pascal recurrence of COMB-KK at succ(m), then beta, then the ring's add / mul
+;; read off as the reals' + / *
+(rule pascal-recurrence
+  (goal  ?g)
+  (guard (occurs (comb-kk ?r ?x ?y (succ ?m)) ?g))
+  (do    (mac 'comb-kk-succ)))
+
+;; The applied ring operations typed in RR by the closure laws and the tupled read-offs
+;; fired (the driver's dk-saturate-slot-ops!, before its closing crs): beta on the tupled
+;; lambda OWES the pair's membership in cartesian(rr, rr), which is these typings.
+(rule saturate-ring-ops
+  (goal  (= ?l ?r))
+  (guard (occurs (cartesian rr rr) (= ?l ?r)))    ; the tupled lambda's domain (its binder is a LIST, which a pattern cannot carry)
+  (do    (dk-saturate-slot-ops! 'RR '((+ . rr-add-closed) (* . rr-mul-closed) (- . rr-neg-closed))))
+  (probe changed))
+
+;; the closing ring identity, atoms typed
+(rule ring-identity
+  (goal  (= ?l ?r))
+  (do    (crs))
+  (probe grounded))
+
+;; Beta, with no pattern: the ring's add / mul read off as TUPLED lambdas
+;; (vnb-lambda([x_, y_], cartesian(rr, rr), x_ + y_)) applied to two arguments, and the
+;; matcher refuses a destructuring binder in pattern position (found 2026-10-02).
+;; dk-lam-b! ERRORS when there is no redex, which the loop records as raised and skips.
+(rule beta-any
+  (goal  (= ?l ?r))
+  (do    (dk-lam-b!))
+  (probe changed))
+
+(rule ring-add-is-plus
+  (goal  ?g)
+  (guard (occurs ((add (normed-field-as-commutative-ring rr-normed-field)) ?a ?b) ?g))
+  (do    (mac 'rr-scalar-ring-add)))
+
+(rule ring-mul-is-times
+  (goal  ?g)
+  (guard (occurs ((mul (normed-field-as-commutative-ring rr-normed-field)) ?a ?b) ?g))
+  (do    (mac 'rr-scalar-ring-mul)))
+
+;; ================================================================================
+;; 5. Sums: the rewrites at a witness.  Ask.
+;; ================================================================================
+
+;; a pointwise claim forall k in NN. F(k) = G(k) with lambdas inside: peel (above),
+;; beta (above), type the atoms, close by ring arithmetic.  The driver's inner lane
+;; "(di) (type-k!) (bmo-lam-b* n) (crs)", 52 times.
+(rule pointwise-ring-identity
+  (goal  (= ?l ?r))
+  (do    (zero-it)))
+
+(rule sum-rewrite-at-a-witness
+  (goal  ?g)
+  (guard (occurs (series-partial-sum ?h ?m) ?g))
+  (ask   "A sum.  Rewrite it by a cited equation at the families YOU choose: bernstein-weighted-step at the weight (w = 1, k, or k(k-1)) with the three families p, q, s given as lambdas; series-partial-sum-add-ptwise / -scale-ptwise to split the summand; then the earlier moments (bernstein-partition, bernstein-moment-1, -2) and crs.  Each family's pointwise realness and its transfer equation are have! claims first: (di) (type the atoms) (lam-b) (crs)."))
+
+;; ================================================================================
+;; 6. Everything else: the default preamble, as one firing.
+;; ================================================================================
+
+(rule the-defaults
+  (goal ?g)
+  (do   (preamble 'default)))

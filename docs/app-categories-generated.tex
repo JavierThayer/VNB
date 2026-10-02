@@ -42,7 +42,7 @@ structure & arrows & defined & laws \\
 \subsubsection{The declared categories}
 
 \paragraph{\texttt{bounded-linear, on normed-vector-space}}
-*Declared in* \texttt{theorem-library/categories.scm}.
+\emph{Declared in} \texttt{theorem-library/categories.scm}.
 
 Objects: the models of \texttt{is-normed-vector-space}.  Arrows: \texttt{is-bounded-linear-arrow(a, b, f)} --- f is a bounded linear map from a to b.  Hom-set: \texttt{hom-bounded-linear(a, b)} --- the bounded linear maps from a to b.
 
@@ -53,8 +53,20 @@ forall([a, b, f], is-bounded-linear-arrow(a, b, f) iff is-normed-vector-space(a)
 
 Laws: \texttt{hom-bounded-linear-id} --- proven; \texttt{hom-bounded-linear-compose} --- proven; \texttt{hom-bounded-linear-in-set} --- proven; membership \texttt{hom-bounded-linear-member-iff} --- proven; Hom functors \texttt{hom-bounded-linear-post-type} --- proven, \texttt{hom-bounded-linear-pre-type} --- proven.
 
+\paragraph{\texttt{c-continuous, on c-metric-space}}
+\emph{Declared in} \texttt{theorem-library/c-continuous-category.scm}.
+
+Objects: the models of \texttt{is-c-metric-space}.  Arrows: \texttt{is-c-continuous-arrow(a, b, f)} --- f is a continuous map of countably-metrised spaces from a to b.  Hom-set: \texttt{hom-c-continuous(a, b)} --- the continuous maps of countably-metrised spaces from a to b.
+
+Definition (\texttt{is-c-continuous-arrow-def}, definitional):
+\begin{VNBsnip}
+forall([a, b, f], is-c-continuous-arrow(a, b, f) iff is-c-metric-space(a) and is-c-metric-space(b) and f in fun(pts(a), pts(b)) and is-continuous(c-metric(a), c-metric(b), f))
+\end{VNBsnip}
+
+Laws: \texttt{hom-c-continuous-id} --- proven; \texttt{hom-c-continuous-compose} --- proven; \texttt{hom-c-continuous-in-set} --- proven; membership \texttt{hom-c-continuous-member-iff} --- proven; Hom functors \texttt{hom-c-continuous-post-type} --- proven, \texttt{hom-c-continuous-pre-type} --- proven.
+
 \paragraph{\texttt{continuous, on metric-space}}
-*Declared in* \texttt{theorem-library/categories.scm}.
+\emph{Declared in} \texttt{theorem-library/categories.scm}.
 
 Objects: the models of \texttt{is-metric-space}.  Arrows: \texttt{is-continuous-arrow(a, b, f)} --- f is a continuous map from a to b.  Hom-set: \texttt{hom-continuous(a, b)} --- the continuous maps from a to b.
 
@@ -66,7 +78,7 @@ forall([a, b, f], is-continuous-arrow(a, b, f) iff is-metric-space(a) and is-met
 Laws: \texttt{hom-continuous-id} --- proven; \texttt{hom-continuous-compose} --- proven; \texttt{hom-continuous-in-set} --- proven; membership \texttt{hom-continuous-member-iff} --- proven; Hom functors \texttt{hom-continuous-post-type} --- proven, \texttt{hom-continuous-pre-type} --- proven.
 
 \paragraph{\texttt{lipschitz, on metric-space}}
-*Declared in* \texttt{theorem-library/categories.scm}.
+\emph{Declared in} \texttt{theorem-library/categories.scm}.
 
 Objects: the models of \texttt{is-metric-space}.  Arrows: \texttt{is-lipschitz-arrow(a, b, f)} --- f is a Lipschitz map from a to b.  Hom-set: \texttt{hom-lipschitz(a, b)} --- the Lipschitz maps from a to b.
 
@@ -78,7 +90,7 @@ forall([a, b, f], is-lipschitz-arrow(a, b, f) iff is-metric-space(a) and is-metr
 Laws: \texttt{hom-lipschitz-id} --- proven; \texttt{hom-lipschitz-compose} --- proven; \texttt{hom-lipschitz-in-set} --- proven; membership \texttt{hom-lipschitz-member-iff} --- proven; Hom functors \texttt{hom-lipschitz-post-type} --- proven, \texttt{hom-lipschitz-pre-type} --- proven.
 
 \paragraph{\texttt{uniformly-continuous, on metric-space}}
-*Declared in* \texttt{theorem-library/categories.scm}.
+\emph{Declared in} \texttt{theorem-library/categories.scm}.
 
 Objects: the models of \texttt{is-metric-space}.  Arrows: \texttt{is-uniformly-continuous-arrow(a, b, f)} --- f is a uniformly continuous map from a to b.  Hom-set: \texttt{hom-uniformly-continuous(a, b)} --- the uniformly continuous maps from a to b.
 

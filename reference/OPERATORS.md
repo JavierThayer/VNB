@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-592 operators: 3 functions, 11 syntax, 346 functoids, 229 predicates, 3 undeclared.
+594 operators: 3 functions, 11 syntax, 347 functoids, 230 predicates, 3 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (346)
+## Functoids  (347)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -599,6 +599,12 @@ Declared by: `fam-of-list-apply`
 > _Reads as:_  the bounded linear maps from a to b
 
     hom-bounded-linear(a, b) := {homf_ in fun(vec(a), vec(b)): is-bounded-linear-arrow(a, b, homf_)}
+
+### `hom-c-continuous`  — def-functoid · set-valued
+
+> _Reads as:_  the continuous maps of countably-metrised spaces from a to b
+
+    hom-c-continuous(a, b) := {homf_ in fun(pts(a), pts(b)): is-c-continuous-arrow(a, b, homf_)}
 
 ### `hom-c-metric-space`  — def-functoid · set-valued
 
@@ -1644,7 +1650,7 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (229)
+## Predicates  (230)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -1819,6 +1825,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-bounded-metric-space`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is a bounded metric space
+
+### `is-c-continuous-arrow`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a continuous map of countably-metrised spaces from a to b
 
 ### `is-c-metric-space`  — def-predicate · proposition (arity 1)
 

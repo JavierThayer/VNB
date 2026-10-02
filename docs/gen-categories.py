@@ -39,7 +39,9 @@ def inline(md):
         out.append(r'\texttt{%s}' % esc(m.group(1)))
         i = m.end()
     out.append(esc(md[i:]))
-    return ''.join(out).replace(' -- ', ' --- ')
+    txt = ''.join(out).replace(' -- ', ' --- ')
+    # *emphasis* (the source links read "*Declared in* ...")
+    return re.sub(r'\*([^*]+)\*', r'\\emph{\1}', txt)
 
 def section(md, heading):
     m = re.search(r'^## %s\n(.*?)(?=^## |\Z)' % re.escape(heading), md, re.S | re.M)

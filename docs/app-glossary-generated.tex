@@ -7,7 +7,7 @@
 Every other listing in this manual and in the browser reference is grouped by
 something: operators by class, structures by structure, tactics by task.  This
 one has the ordering nobody has to learn.  It carries the whole
-\emph{vocabulary} -- 732 names: 20 structure, 7 refinement, 11 instance, 19 view, 227 predicate, 234 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 95 tactic -- and no results: the theorems, axioms and
+\emph{vocabulary} -- 734 names: 20 structure, 7 refinement, 11 instance, 19 view, 228 predicate, 235 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 95 tactic -- and no results: the theorems, axioms and
 supports are catalogued in \texttt{THEOREMS.md}, \texttt{BY-OPERATOR.md} and
 \texttt{PROOF-DEBT.md}, and each entry here says how many of them mention it.
 
@@ -23,13 +23,13 @@ At the REPL, \texttt{(glossary 'NAME)} prints one entry and
 
 \noindent\textbf{\texttt{*}}\quad\textit{operator}\index{*@\texttt{*}}\\
 a term-forming head \\
-mentioned by 1006 result(s)
+mentioned by 1016 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{+}}\quad\textit{operator}\index{+@\texttt{+}}\\
 a term-forming head \\
-mentioned by 736 result(s)
+mentioned by 741 result(s)
 
 \smallskip
 
@@ -64,7 +64,7 @@ mentioned by 633 result(s)
 \noindent\textbf{\texttt{<=}}\quad\textit{primitive}\index{<=@\texttt{<=}}\\
 reads: \$1 is at most \$2 \\
 a kernel relation \\
-mentioned by 946 result(s)
+mentioned by 951 result(s)
 
 \smallskip
 
@@ -408,6 +408,12 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 c-metric-w(s, vnb-lambda(n, nn, (/)(1, 2 \textasciicircum{} (n + 1))))
 \end{quote}
+characterized by \texttt{c-metric-is-metric-space}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([s], is-c-metric-space(s) implies is-metric-space(c-metric(s)))
+\end{quote}
+also: \texttt{c-metric-canonical-carrier} \\
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -422,7 +428,11 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), iota(l, series-converges-to(vnb-lambda(k, nn, w(k) * min(1, ((dists(s))(k))(u, v))), l)))]
 \end{quote}
-mentioned by 5 result(s)
+characterized by \texttt{c-metric-w-is-metric-space}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([s], is-c-metric-space(s) implies forall([w], summable-weight(w) implies is-metric-space(c-metric-w(s, w))))
+\end{quote}
+mentioned by 15 result(s)
 
 \smallskip
 
@@ -1009,8 +1019,8 @@ characterized by \texttt{pre-compose}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, c, u, s, s2, f, h, k], a in set implies b in set implies k in fun(a, b) implies h in fun(b, c) implies f in fun(c, u) implies f in s implies compose(f, h) in s2 implies (vnb-lambda(hmpf\_, s, compose(hmpf\_, compose(h, k))))(f) = (vnb-lambda(hmpf\_, s2, compose(hmpf\_, k)))((vnb-lambda(hmpf\_, s, compose(hmpf\_, h)))(f)))
 \end{quote}
-also: \texttt{compose-type} \texttt{post-compose} \texttt{compose-apply} \texttt{compose-assoc} \texttt{compose-id-left} \texttt{hom-pid-compose} \texttt{compose-id-right} \texttt{hom-ring-compose} ... (40 in all) \\
-mentioned by 136 result(s)
+also: \texttt{compose-type} \texttt{post-compose} \texttt{compose-apply} \texttt{compose-assoc} \texttt{compose-id-left} \texttt{hom-pid-compose} \texttt{compose-id-right} \texttt{hom-ring-compose} ... (41 in all) \\
+mentioned by 139 result(s)
 
 \smallskip
 
@@ -1389,8 +1399,8 @@ characterized by \texttt{cc-ms@dist}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 dist(cc-ms) == vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))
 \end{quote}
-also: \texttt{rr-ms@dist} \texttt{nf-metric-distance} \texttt{cc-ms-dist} \texttt{rr-ms-dist} \texttt{subspace-dist} \texttt{dist-seq-apply} \texttt{nvs-dist-shift} \texttt{r7q-dist-value} ... (35 in all) \\
-mentioned by 176 result(s)
+also: \texttt{rr-ms@dist} \texttt{nf-metric-distance} \texttt{cc-ms-dist} \texttt{rr-ms-dist} \texttt{cmim-dist-sym} \texttt{subspace-dist} \texttt{dist-seq-apply} \texttt{nvs-dist-shift} ... (41 in all) \\
+mentioned by 185 result(s)
 
 \smallskip
 
@@ -1410,7 +1420,7 @@ mentioned by 25 result(s)
 
 \noindent\textbf{\texttt{dists(s)}}\quad\textit{functoid}\index{dists(s)@\texttt{dists(s)}}\\
 reads: the pseudometric family of \$1 \\
-mentioned by 13 result(s)
+mentioned by 23 result(s)
 
 \smallskip
 
@@ -2045,8 +2055,8 @@ characterized by \texttt{is-linear-functional}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x\_ in vec(m), y\_ in vec(m)], f((vadd(m))(x\_, y\_)) = f(x\_) + f(y\_)) and forall([r\_ in rr, x\_ in vec(m)], f((act(m))(r\_, x\_)) = r\_ * f(x\_)))
 \end{quote}
-also: \texttt{is-linear-functional-on} \texttt{dom-of-fun} \texttt{is-fun-def} \texttt{fun-no-junk} \texttt{fun-set-iff} \texttt{fun-apply-type} \texttt{fun-codomain-iff} \texttt{dom-fun-membership} ... (139 in all) \\
-mentioned by 1498 result(s)
+also: \texttt{is-linear-functional-on} \texttt{dom-of-fun} \texttt{is-fun-def} \texttt{fun-no-junk} \texttt{fun-set-iff} \texttt{fun-apply-type} \texttt{fun-codomain-iff} \texttt{dom-fun-membership} ... (140 in all) \\
+mentioned by 1505 result(s)
 
 \smallskip
 
@@ -2267,6 +2277,21 @@ forall([a, b], is-normed-vector-space(a) implies is-normed-vector-space(b) impli
 \end{quote}
 also: \texttt{hom-bounded-linear-pre-type} \texttt{hom-bounded-linear-post-type} \texttt{hom-bounded-linear-member-iff} \texttt{hom-normed-vector-space-subset-hom-bounded-linear} \\
 mentioned by 6 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-c-continuous(a, b)}}\quad\textit{functoid}\index{hom-c-continuous(a, b)@\texttt{hom-c-continuous(a, b)}}\\
+reads: the continuous maps of countably-metrised spaces from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(pts(a), pts(b)): is-c-continuous-arrow(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-c-continuous-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-c-metric-space(a) implies is-c-metric-space(b) implies hom-c-continuous(a, b) in set)
+\end{quote}
+also: \texttt{hom-c-continuous-pre-type} \texttt{hom-c-continuous-post-type} \texttt{hom-c-continuous-member-iff} \\
+mentioned by 5 result(s)
 
 \smallskip
 
@@ -2720,7 +2745,7 @@ characterized by \texttt{id-fun-type}  \textit{(certified)}:
 forall([a in set], id-fun(a) in fun(a, a))
 \end{quote}
 also: \texttt{id-fun-apply} \\
-mentioned by 42 result(s)
+mentioned by 44 result(s)
 
 \smallskip
 
@@ -2820,8 +2845,8 @@ characterized by \texttt{is-ring}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 \end{quote}
-also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1317 in all) \\
-mentioned by 5087 result(s)
+also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1324 in all) \\
+mentioned by 5113 result(s)
 
 \smallskip
 
@@ -3185,6 +3210,17 @@ mentioned by 7 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{is-c-continuous-arrow(a, b, f)}}\quad\textit{predicate}\index{is-c-continuous-arrow(a, b, f)@\texttt{is-c-continuous-arrow(a, b, f)}}\\
+reads: \$3 is a continuous map of countably-metrised spaces from \$1 to \$2 \\
+a predicate \\
+characterized by \texttt{is-c-continuous-arrow-def}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b, f], is-c-continuous-arrow(a, b, f) iff is-c-metric-space(a) and is-c-metric-space(b) and f in fun(pts(a), pts(b)) and is-continuous(c-metric(a), c-metric(b), f))
+\end{quote}
+mentioned by 7 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{is-c-metric-space(s)}}\quad\textit{predicate}\index{is-c-metric-space(s)@\texttt{is-c-metric-space(s)}}\\
 reads: a countably-metrised space \\
 a predicate \\
@@ -3192,7 +3228,7 @@ characterized by \texttt{is-c-metric-space}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-c-metric-space(s) iff length(s) = 2 and pts(s) in set and dists(s) in fun(nn, fun(cartesian(pts(s), pts(s)), rr)) and forall([k\_ in nn], is-pseudometric((dists(s))(k\_), pts(s))) and forall([u in pts(s), v in pts(s)], forall([k\_ in nn], ((dists(s))(k\_))(u, v) = 0) implies u = v))
 \end{quote}
-mentioned by 17 result(s)
+mentioned by 45 result(s)
 
 \smallskip
 
@@ -3354,7 +3390,7 @@ characterized by \texttt{is-continuous}  \textit{(definitional)}:
 forall([s, t, f], is-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and forall([a in pts(s)], is-continuous-at(s, t, f, a)))
 \end{quote}
 also: \texttt{is-continuous-arrow-def} \texttt{metric-hom-is-continuous} \texttt{continuous-is-continuous-at} \texttt{uniformly-continuous-is-continuous} \\
-mentioned by 28 result(s)
+mentioned by 30 result(s)
 
 \smallskip
 
@@ -4240,8 +4276,8 @@ characterized by \texttt{is-metric-space}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-metric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) in fun(cartesian(pts(s), pts(s)), rr) and is-metric(dist(s), pts(s)))
 \end{quote}
-also: \texttt{cc-is-metric-space} \texttt{rr-is-metric-space} \texttt{nf-cc-is-metric-space} \texttt{nf-rr-is-metric-space} \texttt{sub-rr-is-metric-space} \texttt{product-is-metric-space} \texttt{subspace-is-metric-space} \texttt{bdd-rr-ms-is-metric-space} ... (15 in all) \\
-mentioned by 284 result(s)
+also: \texttt{cc-is-metric-space} \texttt{rr-is-metric-space} \texttt{nf-cc-is-metric-space} \texttt{nf-rr-is-metric-space} \texttt{sub-rr-is-metric-space} \texttt{product-is-metric-space} \texttt{c-metric-is-metric-space} \texttt{subspace-is-metric-space} ... (17 in all) \\
+mentioned by 287 result(s)
 
 \smallskip
 
@@ -5406,7 +5442,7 @@ characterized by \texttt{rr-min-def}  \textit{(definitional)}:
 forall([x in rr, y in rr], (x <= y implies min(x, y) = x) and (not(x <= y) implies min(x, y) = y))
 \end{quote}
 also: \texttt{rr-le-min} \texttt{rr-lt-min} \texttt{rr-min-cases} \texttt{nn-min-closed} \texttt{rr-min-closed} \texttt{rr-min-le-left} \texttt{rr-min-left-le} \texttt{rr-min-le-right} ... (13 in all) \\
-mentioned by 25 result(s)
+mentioned by 35 result(s)
 
 \smallskip
 
@@ -6395,7 +6431,7 @@ characterized by \texttt{cc-ms@pts}  \textit{(definitional)}:
 pts(cc-ms) == cc
 \end{quote}
 also: \texttt{rr-ms@pts} \texttt{ringoid-setoid-pts} \texttt{ds-pts} \texttt{nvs-ms-pts} \texttt{r7q-rr-pts} \texttt{subspace-pts} \texttt{ms-pts-is-set} \texttt{nf-cc-agree-pts} ... (15 in all) \\
-mentioned by 428 result(s)
+mentioned by 455 result(s)
 
 \smallskip
 
@@ -7531,7 +7567,7 @@ characterized by \texttt{summable-weight}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([w], summable-weight(w) iff w in fun(nn, rr) and forall([n in nn], 0 < w(n)) and series-converges(w))
 \end{quote}
-mentioned by 28 result(s)
+mentioned by 48 result(s)
 
 \smallskip
 
@@ -7941,7 +7977,7 @@ declared in \texttt{tactics-help.scm}
 
 \noindent\textbf{\texttt{vnb-lambda}}\quad\textit{operator}\index{vnb-lambda@\texttt{vnb-lambda}}\\
 a term-forming head \\
-mentioned by 993 result(s)
+mentioned by 1005 result(s)
 
 \smallskip
 

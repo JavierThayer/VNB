@@ -185,7 +185,8 @@ rest of the tree. Each form is
       (goal  PATTERN)          ; required
       (with  PATTERN)          ; zero or more
       (guard GUARD ...)        ; zero or more
-      (do    FORM)             ; required
+      (do    FORM)             ; required, or (ask TEXT) in its place
+      (ask   TEXT)             ; the rule kind for a step no rule can take (2026-10-02)
       (probe WHAT)             ; optional: grounded | progress (default) | changed | (lands F)
       (side  HOW))             ; only with (do (cut F)): preamble-or-owed (default) | owed
 
@@ -226,6 +227,20 @@ alpha equivalence.
 
 `one-of`, `occurs` and `unfolds` go beyond the four guards of section 2. Without them the rule language
 cannot say "a number class", "a beta redex somewhere in the goal" or "a head with a definition".
+
+**The ask (2026-10-02, with the first postamble).** A rule may carry `(ask TEXT)` instead of `(do FORM)`:
+a step no rule can take -- a witness, the choice of a lemma, an estimate, whether to induct -- stated as
+advice. When such a rule matches, nothing is run: the loop STOPS with status `ask`, the rules that fired
+before it stay committed, and the report carries one line `ASK NAME: TEXT -- on GOAL`; the value's
+`(preamble-asked v)` is the list of `(name text goal)`. The rule's patterns and guards select WHEN the
+advice applies, so an ask placed before `peel-universal` on `forall n in NN. ... sum ...` asks about
+induction before the universal is peeled. `postambles/bernstein-moments.pre` is the first file with
+such rules; `docs/postamble-2026-10-02.md` is its account.
+
+**The `(lands F)` probe requires F to be NEW** (absent before the step, present after it; since
+2026-10-02): a `fact` of an instance already in context "changes" the graph by re-landing its chain, and
+repeated it self-loops, emptying the leaf list with the proof not grounded. The loop now reports that
+state as `broken` instead of `done`.
 
 **The action.** The `do` form is evaluated with its schema variables substituted. In an evaluated position
 `?x` becomes `(quote VALUE)`; inside a quoted datum it becomes `VALUE`. Thus `(fact 'thm ?t)` and

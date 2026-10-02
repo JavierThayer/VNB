@@ -2627,6 +2627,7 @@
     ;; dominated-convergence (series-limit-converges-to), pseudometric-laws,
     ;; rr-min-basics, pair-tuple-sethood and structure-library/c-metric-space.
     "theorem-library/c-metric-summable"
+    "theorem-library/c-metric-is-metric"       ; the canonical metric IS a metric space (2026-10-02)
     ;; The CREEPING PRINCIPLE on [a,b]: a property holding at `a' that a local
     ;; step carries a little to the right of wherever it holds already, holds at
     ;; `b'.  The shared mechanism under boundedness-on-[a,b], the attainment
@@ -2937,6 +2938,7 @@
     ;; then uniqueness, constants, identity, sum, product and CHAIN RULE for IS-DIFF-ON.
     "theorem-library/ms-continuity-algebra"
     "theorem-library/categories"
+    "theorem-library/c-continuous-category"    ; C-CONTINUOUS: countably-metrised spaces and continuous maps (2026-10-02)
     "theorem-library/diff-on-laws-2"
     ;; 2026-09-20 (batch 13-B): NF-METRIC-SPACE(cc-normed-field) agrees with CC-MS; HOLOMORPHIC-ON read in CC-MS.
     "theorem-library/holomorphic-basics"

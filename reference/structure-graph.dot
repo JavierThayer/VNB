@@ -45,8 +45,8 @@ digraph VNB {
 
   // refines (specialisation): child -> parent
   "cc-ms" -> "metric-space" [color="#2a4a6a", penwidth=1.4, tooltip="cc-ms refines metric-space"];
-  "cc-normed-field" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="cc-normed-field refines normed-field"];
   "zz-ring" -> "euclidean-ring" [color="#2a4a6a", penwidth=1.4, tooltip="zz-ring refines euclidean-ring"];
+  "cc-normed-field" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="cc-normed-field refines normed-field"];
   "rr-nvs" -> "normed-vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="rr-nvs refines normed-vector-space"];
   "rr-pos-star-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="rr-pos-star-add-monoid refines comm-monoid"];
   "qq-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="qq-ring refines integral-domain"];
@@ -54,10 +54,10 @@ digraph VNB {
   "nn-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="nn-add-monoid refines comm-monoid"];
   "commutative-ring" -> "ring" [color="#2a4a6a", penwidth=1.4, tooltip="commutative-ring refines ring"];
   "pid" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="pid refines integral-domain"];
-  "field-ring" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="field-ring refines commutative-ring"];
   "integral-domain" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="integral-domain refines commutative-ring"];
-  "rr-normed-field" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="rr-normed-field refines normed-field"];
+  "field-ring" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="field-ring refines commutative-ring"];
   "qq-line" -> "vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="qq-line refines vector-space"];
+  "rr-normed-field" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="rr-normed-field refines normed-field"];
   "qq-field" -> "field" [color="#2a4a6a", penwidth=1.4, tooltip="qq-field refines field"];
   "euclidean-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="euclidean-ring refines integral-domain"];
   "metrizable-top-space" -> "top-space" [color="#2a4a6a", penwidth=1.4, tooltip="metrizable-top-space refines top-space"];
@@ -66,21 +66,21 @@ digraph VNB {
   // view-as (forgetful / component maps): source -> target
   "field" -> "euclidean-ring" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-euclidean-ring", tooltip="field-as-euclidean-ring :  field -> euclidean-ring    (carr add mul neg zero one) |-> (carr add mul neg zero one)", URL="structure-graph.html#views"];
   "commutative-ring" -> "comm-monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-cm", tooltip="commutative-ring-multiplicative-cm :  commutative-ring -> comm-monoid    (carr mul one) |-> (carr opr iden)", URL="structure-graph.html#views"];
-  "ring" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="ring-additive-ag :  ring -> abelian-group    (carr add zero neg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "complex-inner-product-space" -> "module" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-module", tooltip="complex-inner-product-space-as-module :  complex-inner-product-space -> module    (scal vec vadd vzero vneg act) |-> (scal vec vadd vzero vneg act)", URL="structure-graph.html#views"];
+  "ring" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="ring-additive-ag :  ring -> abelian-group    (carr add zero neg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "commutative-ring" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="commutative-ring-additive-ag :  commutative-ring -> abelian-group    (carr add zero neg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "ringoid" -> "ring" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-ring", tooltip="ringoid-as-ring :  ringoid -> ring    (carr add mul neg zero one) |-> (carr add mul neg zero one)", URL="structure-graph.html#views"];
   "abelian-group" -> "monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-monoid", tooltip="abelian-group-as-monoid :  abelian-group -> monoid    (carr opr iden) |-> (carr opr iden)", URL="structure-graph.html#views"];
   "normed-vector-space" -> "normed-ag" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-normed-ag", tooltip="normed-vector-space-as-normed-ag :  normed-vector-space -> normed-ag    (vec vadd vzero vneg vnrm) |-> (carr opr iden inv nrm)", URL="structure-graph.html#views"];
-  "normed-field" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="normed-field-additive-ag :  normed-field -> abelian-group    (carr add zero neg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "field" -> "integral-domain" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-integral-domain", tooltip="field-as-integral-domain :  field -> integral-domain    (carr add mul neg zero one) |-> (carr add mul neg zero one)", URL="structure-graph.html#views"];
+  "normed-field" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="normed-field-additive-ag :  normed-field -> abelian-group    (carr add zero neg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "module" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="vector-ag", tooltip="module-vector-ag :  module -> abelian-group    (vec vadd vzero vneg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "field" -> "group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-group", tooltip="field-multiplicative-group :  field -> group    (non-zero mul one mul-inv) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
-  "normed-vector-space" -> "module" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-module", tooltip="normed-vector-space-as-module :  normed-vector-space -> module    (scal vec vadd vzero vneg act) |-> (scal vec vadd vzero vneg act)", URL="structure-graph.html#views"];
   "measure-space" -> "measurable-space" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-measurable-space", tooltip="measure-space-as-measurable-space :  measure-space -> measurable-space    (pts sigma) |-> (pts sigma)", URL="structure-graph.html#views"];
+  "normed-vector-space" -> "module" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-module", tooltip="normed-vector-space-as-module :  normed-vector-space -> module    (scal vec vadd vzero vneg act) |-> (scal vec vadd vzero vneg act)", URL="structure-graph.html#views"];
   "normed-field" -> "integral-domain" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-integral-domain", tooltip="normed-field-as-integral-domain :  normed-field -> integral-domain    (carr add mul neg zero one) |-> (carr add mul neg zero one)", URL="structure-graph.html#views"];
-  "ring" -> "monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-monoid", tooltip="ring-multiplicative-monoid :  ring -> monoid    (carr mul one) |-> (carr opr iden)", URL="structure-graph.html#views"];
   "field" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="field-additive-ag :  field -> abelian-group    (carr add zero neg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
+  "ring" -> "monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-monoid", tooltip="ring-multiplicative-monoid :  ring -> monoid    (carr mul one) |-> (carr opr iden)", URL="structure-graph.html#views"];
   "normed-ag" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-abelian-group", tooltip="normed-ag-as-abelian-group :  normed-ag -> abelian-group    (carr opr iden inv) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "normed-field" -> "commutative-ring" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-commutative-ring", tooltip="normed-field-as-commutative-ring :  normed-field -> commutative-ring    (carr add mul neg zero one) |-> (carr add mul neg zero one)", URL="structure-graph.html#views"];
 
@@ -91,6 +91,7 @@ digraph VNB {
   "normed-vector-space" -> "normed-vector-space" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="dual", tooltip="dual :  normed-vector-space -> normed-vector-space    (constructor functoid)", URL="structure-graph.html#normed-vector-space"];
   "metric-space" -> "metrizable-top-space" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="metric-top", tooltip="metric-top :  metric-space -> metrizable-top-space    (constructor functoid)", URL="structure-graph.html#metrizable-top-space"];
   "normed-vector-space" -> "metric-space" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="nvs-metric-space", tooltip="nvs-metric-space :  normed-vector-space -> metric-space    (constructor functoid)", URL="structure-graph.html#metric-space"];
+  "c-metric-space" -> "metric-space" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="c-metric", tooltip="c-metric :  c-metric-space -> metric-space    (constructor functoid)", URL="structure-graph.html#metric-space"];
   "complex-inner-product-space" -> "normed-ag" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="ip-normed-ag", tooltip="ip-normed-ag :  complex-inner-product-space -> normed-ag    (constructor functoid)", URL="structure-graph.html#normed-ag"];
   "ring" -> "ring" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="poly", tooltip="poly :  ring -> ring    (constructor functoid)", URL="structure-graph.html#ring"];
   "metric-space" -> "metric-space" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="trunc-metric", tooltip="trunc-metric :  metric-space -> metric-space    (constructor functoid)", URL="structure-graph.html#metric-space"];

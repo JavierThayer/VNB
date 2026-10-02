@@ -13684,7 +13684,7 @@
 
 ;; --- declare-category! -------------------------------------------------------
 (check-true "the library's declared categories owe nothing (their laws are PROVEN)"
-  (lambda () (and (= 4 (length (known-categories)))
+  (lambda () (and (= 5 (length (known-categories)))
                   (null? (category-obligations-audit)))))
 
 (declare-category! 'TOY-CAT 'TOY-MS '(a b f) '(= (TSIG a) (TSIG a)))
@@ -13963,10 +13963,10 @@
        (let ((strict (car (b41-rules '((rule peel-strict (goal (forall ?x ?b)) (do (di)) (probe grounded))))))
              (loose  (car (b41-rules '((rule peel-loose (goal (forall ?x ?b)) (do (di))))))))
          (quietly (lambda () (sp b41-goal-1)))
-         (let* ((st1 (pa--make-state strict 0 '() '() '() '() #f))
+         (let* ((st1 (pa--make-state strict 0 '() '() '() '() '() #f))
                 (s1  (quietly (lambda () (pa--loop! st1))))
                 (script1 *proof-script*)
-                (st2 (pa--make-state loose 0 '() '() '() '() #f))
+                (st2 (pa--make-state loose 0 '() '() '() '() '() #f))
                 (s2  (quietly (lambda () (pa--loop! st2)))))
            (and (eq? s1 'stalled) (null? script1)
                 (equal? (map car (pa-state-rejected st1)) '(peel-strict))
@@ -14095,6 +14095,41 @@
                     (equal? (cdr (assq 'file v2)) file) (equal? (b41-fired-names v2) '(only-peel))
                     (equal? (cdr (assq 'file v3)) *preamble-default-file*)
                     (eq? (preamble-status v3) 'done))))))))))
+
+;; (ask TEXT) -- the rule kind for a step no rule can take (the user, 2026-10-01: "ask the
+;; user for advice"; built with the first postamble, 2026-10-02): the loop STOPS with status
+;; ask, the rules before it stay fired, the report carries the advice beside the goal.
+(check-true "ask: an (ask TEXT) rule stops the loop with status ask; the rules before it fired; the report carries the advice and the goal"
+  (lambda ()
+    (b41-safe
+     (lambda ()
+       (let ((file "/tmp/b41-ask.pre"))
+         (call-with-output-file file
+           (lambda (port)
+             (write '(rule only-peel (goal (forall ?x ?b)) (do (di))) port) (newline port)
+             (write '(rule choose-the-lemma (goal ?g) (ask "pick the lemma that rewrites the goal")) port)
+             (newline port)))
+         (quietly (lambda () (sp b41-goal-1)))
+         (let* ((r (b41-run file)) (v (car r)) (text (cdr r)))
+           (delete-file file)
+           (and (eq? (preamble-status v) 'ask)
+                (equal? (b41-fired-names v) '(only-peel))
+                (= (length (preamble-asked v)) 1)
+                (eq? (car (car (preamble-asked v))) 'choose-the-lemma)
+                (b41-says? text "ASK       choose-the-lemma: pick the lemma that rewrites the goal -- on ")
+                (b41-says? text "asks the user: pick the lemma")
+                #t)))))))
+
+(check-true "ask CONTROL: (ask) with no string, and (ask ...) beside (do ...), are malformed and reported by name"
+  (lambda ()
+    (let* ((r (b41-rules '((rule ask-no-text (goal ?g) (ask))
+                           (rule ask-and-do (goal ?g) (do (ass)) (ask "both"))
+                           (rule ask-fine (goal ?g) (ask "fine")))))
+           (rules (car r)) (errs (cadr r)))
+      (and (= (length rules) 1) (eq? (pa-rule-name (car rules)) 'ask-fine)
+           (equal? (pa-rule-action (car rules)) '(ask "fine"))
+           (= (length errs) 2)
+           (b41-says? (car errs) "ask-no-text") (b41-says? (cadr errs) "ask-and-do")))))
 
 (check "phase 2 entry point: preamble-attribute matches the rules against a (goal, context) pair and a recorded step, running nothing"
   (lambda ()
