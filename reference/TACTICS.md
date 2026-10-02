@@ -1291,16 +1291,6 @@ Run thunk with state-dump output suppressed; returns its value.
 
 ## Choosing and naming witnesses
 
-### choose
-
-    (choose ex witness [prover])
-
-Choose eps such that FUBA(eps): cut the existential ex = `forsome([eps], FUBA(eps))', discharge it by exhibiting WITNESS (proving FUBA(WITNESS) by PROVER, or from the context), eliminate it, and RETURN the fresh eigenvariable with FUBA of it landed.
-
-*Uses:* `and-elim` `and-intro` `arith-forsome` `arith-ground` `arith-simplify` `assumption` `cartesian-decompose` `cut` `detach` `eq-subst` `forall-elim` `forall-intro` `forsome-elim` `forsome-intro` `iff-elim` `iff-intro` `implies-intro` `macete` `not-elim` `not-intro` `or-elim` `theorem-assumption` `tuple-equality-decompose` 
-
-The `we may assume without loss of generality that FUBA(eps)' step: a hypothesis `forall([eps in rr], GUBA(eps))' is about to be used at some eps satisfying FUBA, so choose one first and then instantiate the universal at the name this returns (use-at / obtain-at).  You pay for the existence on the spot -- WITNESS is the value and PROVER (a thunk) shows FUBA holds of it; with no PROVER the side goal is closed from the context.  The rest of the proof then depends on FUBA(eps) alone and never on which witness paid for it, which is what makes it read as `without loss of generality'.  If the existential is already in context the cut is skipped and this is plain elimination; a formula that is not an existential is an error.  choose-pos is this tactic with FUBA frozen at pos-rr and witness 1: `let eps > 0 be given' when nothing gives it.  (Technically: composite -- cut / ew / ai and the AND-splitting of what lands; no kernel rule, no choice principle, and the recorded script is the expansion.)
-
 ### minimize!
 
     (minimize! '(v1 ... vk) GUARD MEASURE)
