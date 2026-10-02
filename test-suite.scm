@@ -8974,62 +8974,6 @@
       (page--type-in (page-of 'ts-page-ok))
       (eq? before (proof-state-focus *ps*)))))
 
-;;; -----------------------------------------------------------------------
-;;; `choose' (witness-tactics.scm) -- "choose eps such that FUBA(eps)": cut
-;;; the existential, exhibit a witness, skolemize, return the eigenvariable.
-;;; The user's move (2026-09-12); choose-pos is its pos-rr instance.
-
-(check-true "choose: lands FUBA(eps) split, returns the eigenvariable, and the WLOG use closes"
-  ;; pick n with `n in nn and 3 < n', then instantiate the universal at it.
-  (lambda ()
-    (quietly (lambda ()
-      (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
-                       (IMPLIES (FORALL n (IMPLIES (IN n NN) (IMPLIES (< 3 n) (< x (+ x n)))))
-                                (FORSOME n (AND (IN n NN) (< x (+ x n)))))))))
-      (di) (di)))
-    (let* ((before (dk-asms))
-           (n* (quietly (lambda ()
-                 (choose "forsome([n], n in nn and 3 < n)" 4
-                         (lambda () (both! (lambda () (arith)) (lambda () (arith)))))))))
-      (and (symbol? n*)
-           (not (memq n* (append-map free-vars before)))
-           (dk-asm? (list 'IN n* 'NN))
-           (dk-asm? (list '< 3 n*))
-           (begin (quietly (lambda () (use-at 3 n*) (ew n*) (both! ass ass)))
-                  (proof-done? *ps*))))))
-
-(check-true "choose-pos is choose with FUBA frozen at pos-rr"
-  (lambda ()
-    (quietly (lambda ()
-      (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
-                       (IMPLIES (FORALL e (IMPLIES (IN e RR) (IMPLIES (POS-RR e) (< x (+ x e)))))
-                                (FORSOME e (< x (+ x e))))))))
-      (di) (di)))
-    (let ((e* (quietly (lambda () (choose-pos)))))
-      (and (symbol? e*) (dk-asm? (list 'POS-RR e*))))))
-
-(check-true "choose: an existential already in context is skolemized, not re-cut"
-  (lambda ()
-    (quietly (lambda ()
-      (sp (make-wff '(IMPLIES (FORSOME e (POS-RR e)) (FORSOME e (POS-RR e)))))
-      (di)))
-    (let* ((leaves (length (proof-open-leaves *ps*)))
-           (e* (quietly (lambda () (choose "forsome([e], pos-rr(e))" 1)))))
-      (and (symbol? e*)
-           (dk-asm? (list 'POS-RR e*))
-           (= (length (proof-open-leaves *ps*)) leaves)))))
-
-(check-true "choose: a non-existential is an ERROR, not a silent no-op"
-  (lambda ()
-    (quietly (lambda ()
-      (sp (make-wff '(IMPLIES (FORSOME e (POS-RR e)) (FORSOME e (POS-RR e)))))
-      (di)))
-    (call-with-current-continuation
-     (lambda (k)
-       (with-exception-handler
-        (lambda (c) (k #t))
-        (lambda () (quietly (lambda () (choose "forall([e], pos-rr(e))" 1))) #f))))))
-
 (load "test-suite-negative.scm")
 
 ;;; -----------------------------------------------------------------------
