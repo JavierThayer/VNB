@@ -122,7 +122,7 @@ constructor applied to certified arguments, a separation, comprehension
 or indexed union whose domain is certified, an accessor of a structure
 $\Gamma$ carries, an applied structure operation whose arguments
 $\Gamma$ types in its declared domain, or $f(a)$ with $f \in
-\mathrm{FUN}(D, \cdot)$ and $a \in D$ in $\Gamma$.  A term whose head is
+\mathrm{fun}(D, \cdot)$ and $a \in D$ in $\Gamma$.  A term whose head is
 \textsc{choice} or \textsc{iota}, and an application of an untyped
 function, are never certified.  The policy is
 \texttt{docs/definedness-instantiation-2026-09-18.md}.
@@ -511,10 +511,10 @@ between two undefined terms as well.
   (commands \texttt{if-true}, \texttt{if-false})}
 
 %% chk-if-rule, rule-checkers-logic.scm:900-933
-\VNBfig{if-true}{\Gamma \Longrightarrow p \qquad \Gamma, \mathrm{IF}(p,a,b) = a \Longrightarrow G}{\Gamma \Longrightarrow G}
-\VNBfig{if-false}{\Gamma \Longrightarrow \neg p \qquad \Gamma, \mathrm{IF}(p,a,b) = b \Longrightarrow G}{\Gamma \Longrightarrow G}
+\VNBfig{if-true}{\Gamma \Longrightarrow p \qquad \Gamma, \mathrm{if}(p,a,b) = a \Longrightarrow G}{\Gamma \Longrightarrow G}
+\VNBfig{if-false}{\Gamma \Longrightarrow \neg p \qquad \Gamma, \mathrm{if}(p,a,b) = b \Longrightarrow G}{\Gamma \Longrightarrow G}
 
-The argument is the conditional term $\mathrm{IF}(p, a, b)$.  It need not
+The argument is the conditional term $\mathrm{if}(p, a, b)$.  It need not
 occur in $G$.  The assertion is not rewritten: the branch equation
 arrives as an assumption, and it takes an \texttt{eq-subst} to use it.
 An argument that is not a conditional term raises an error rather than
@@ -539,22 +539,22 @@ declining.
 \subsubsection*{\texttt{tuples-intro}, \texttt{tuples-elim}
   (commands \texttt{ti}, \texttt{te})}
 
-$\mathrm{TUPLES}(A)$ is the class of finite tuples over $A$.
+$\mathrm{tuples}(A)$ is the class of finite tuples over $A$.
 %% rule-checkers-logic.scm:991, :1012
-\VNBfig{tuples-intro}{\Gamma \Longrightarrow a_1 \in A \quad \cdots \quad \Gamma \Longrightarrow a_n \in A}{\Gamma \Longrightarrow [a_1, \ldots, a_n] \in \mathrm{TUPLES}(A)}
+\VNBfig{tuples-intro}{\Gamma \Longrightarrow a_1 \in A \quad \cdots \quad \Gamma \Longrightarrow a_n \in A}{\Gamma \Longrightarrow [a_1, \ldots, a_n] \in \mathrm{tuples}(A)}
 \begin{VNBcond}
 \item[Arity] One hypothesis per component; none for the empty tuple.
 \end{VNBcond}
 \VNBfig{tuples-elim $k$}{\Gamma, a_k \in A \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
-\item[Assumption] $[a_1, \ldots, a_n] \in \mathrm{TUPLES}(A) \in \Gamma$.
+\item[Assumption] $[a_1, \ldots, a_n] \in \mathrm{tuples}(A) \in \Gamma$.
 \item[Index] $k$ is recorded with the name, and $1 \leq k \leq n$.
 \end{VNBcond}
 
 \subsubsection*{\texttt{union-intro}, \texttt{union-elim}
   (commands \texttt{ui}, \texttt{ue})}
 
-$\mathrm{UNION}$ takes $n$ arguments.
+$\mathrm{union}$ takes $n$ arguments.
 %% rule-checkers-logic.scm:1038, :1060
 \VNBfig{union-intro $k$}{\Gamma \Longrightarrow x \in A_k}{\Gamma \Longrightarrow x \in A_1 \cup \cdots \cup A_n}
 \begin{VNBcond}
@@ -589,8 +589,8 @@ The three have the same figure and differ in the contraction.
 \item[Contraction] $G' \not\aeq G$, and $G'$ is obtained from $G$ by
   contracting redexes, where a redex that a contraction creates may be
   contracted in its turn.  The redexes are, respectively:
-  $\mathrm{NTH}(k, [t_1, \ldots, t_n])$ with $1 \leq k \leq n$, which
-  contracts to $t_k$; $\mathrm{LENGTH}([t_1, \ldots, t_n])$, which
+  $\mathrm{nth}(k, [t_1, \ldots, t_n])$ with $1 \leq k \leq n$, which
+  contracts to $t_k$; $\mathrm{length}([t_1, \ldots, t_n])$, which
   contracts to $n$; and a functoid applied to as many arguments as it
   binds, which contracts to its body with the arguments substituted in
   parallel for the bound variables.
@@ -616,7 +616,7 @@ that quantifies over something else first is not of this shape.
 \subsubsection*{\texttt{transfinite-induction} (command \texttt{tfi})}
 
 %% rule-checkers-logic.scm:1247; chk-tfi-beta-ok? :1241
-\VNBfig{transfinite-induction}{\Gamma \Longrightarrow \forall \alpha.\, \bigl(\alpha \in \mathrm{ORD} \wedge \forall \beta.\, \beta <_{\mathrm{ORD}} \alpha \Rightarrow P[\alpha{:=}\beta]\bigr) \Rightarrow P}{\Gamma \Longrightarrow \forall \alpha.\, \alpha \in \mathrm{ORD} \Rightarrow P}
+\VNBfig{transfinite-induction}{\Gamma \Longrightarrow \forall \alpha.\, \bigl(\alpha \in \mathrm{ord} \wedge \forall \beta.\, \beta <_{\mathrm{ord}} \alpha \Rightarrow P[\alpha{:=}\beta]\bigr) \Rightarrow P}{\Gamma \Longrightarrow \forall \alpha.\, \alpha \in \mathrm{ord} \Rightarrow P}
 \begin{VNBcond}
 \item[Freshness] $\beta$ is a variable, $\beta \neq \alpha$,
   $\beta \notin \FV(P)$, $\beta \notin \FV(\Gamma)$.
@@ -639,13 +639,13 @@ objects.  One is code in the kernel, the other a formula in the catalog.
   \begin{array}{l}
   \Gamma \Longrightarrow P[\alpha{:=}0] \\[2pt]
   \Gamma \Longrightarrow \forall \alpha.\,
-    (\alpha \in \mathrm{ORD} \wedge P) \Rightarrow P[\alpha{:=}\mathrm{succ}_{\mathrm{ORD}}\,\alpha] \\[2pt]
+    (\alpha \in \mathrm{ord} \wedge P) \Rightarrow P[\alpha{:=}\mathrm{succ}_{\mathrm{ord}}\,\alpha] \\[2pt]
   \Gamma \Longrightarrow \forall \alpha.\,
-    \bigl(\mathrm{LIMIT\text{-}ORD}(\alpha) \wedge
-          \forall \beta.\, \beta <_{\mathrm{ORD}} \alpha \Rightarrow P[\alpha{:=}\beta]\bigr)
+    \bigl(\mathrm{limit\text{-}ord}(\alpha) \wedge
+          \forall \beta.\, \beta <_{\mathrm{ord}} \alpha \Rightarrow P[\alpha{:=}\beta]\bigr)
     \Rightarrow P
   \end{array}}
- {\displaystyle \Gamma \Longrightarrow \forall \alpha.\, \alpha \in \mathrm{ORD} \Rightarrow P}
+ {\displaystyle \Gamma \Longrightarrow \forall \alpha.\, \alpha \in \mathrm{ord} \Rightarrow P}
 \]
 \begin{VNBcond}
 \item[Freshness] As for \texttt{transfinite-induction}, with $\beta$ read
@@ -660,20 +660,20 @@ The three binders of this group carry a formula or a class expression in
 their body, with a variable of the binder free in it.  A first-order
 axiom would need a variable ranging over formulas, which VNB does not
 have, so each is characterised by operations instead.
-$\mathrm{SEP}(x, A, p)$ is $\{x \in A \mid p\}$,
-$\mathrm{COMP}(x, p)$ is $\{x \mid p\}$, and
-$\mathrm{BIG\text{-}UNION}(z, A, b)$ is $\bigcup_{z \in A} b$.
+$\mathrm{sep}(x, A, p)$ is $\{x \in A \mid p\}$,
+$\mathrm{comp}(x, p)$ is $\{x \mid p\}$, and
+$\mathrm{big\text{-}union}(z, A, b)$ is $\bigcup_{z \in A} b$.
 
 \subsubsection*{\texttt{sep-sethood}, \texttt{sep-mem-intro},
   \texttt{sep-mem-elim}
   (commands \texttt{sep-set}, \texttt{sep-mi}, \texttt{sep-me})}
 
 %% rcs-sep-sethood :107, rcs-sep-mem-intro :160, rcs-sep-mem-elim :167, rule-checkers-schema.scm
-\VNBfig{sep-sethood}{\Gamma \Longrightarrow A \in \mathrm{SET}}{\Gamma \Longrightarrow \mathrm{SEP}(x,A,p) \in \mathrm{SET}}
-\VNBfig{sep-mem-intro}{\Gamma \Longrightarrow y \in A \qquad \Gamma \Longrightarrow p[x{:=}y]}{\Gamma \Longrightarrow y \in \mathrm{SEP}(x,A,p)}
+\VNBfig{sep-sethood}{\Gamma \Longrightarrow A \in \mathrm{set}}{\Gamma \Longrightarrow \mathrm{sep}(x,A,p) \in \mathrm{set}}
+\VNBfig{sep-mem-intro}{\Gamma \Longrightarrow y \in A \qquad \Gamma \Longrightarrow p[x{:=}y]}{\Gamma \Longrightarrow y \in \mathrm{sep}(x,A,p)}
 \VNBfig{sep-mem-elim}{(\Gamma - F), y \in A, p[x{:=}y] \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
-\item[Assumption] $F = y \in \mathrm{SEP}(x,A,p)$, $F \in \Gamma$.  It
+\item[Assumption] $F = y \in \mathrm{sep}(x,A,p)$, $F \in \Gamma$.  It
   is consumed.
 \end{VNBcond}
 
@@ -682,12 +682,12 @@ $\mathrm{BIG\text{-}UNION}(z, A, b)$ is $\bigcup_{z \in A} b$.
 
 A comprehension is in general a proper class, and its members are sets,
 so the domain condition of separation is replaced by membership in
-$\mathrm{SET}$.
+$\mathrm{set}$.
 %% rcs-comp-mem-intro :177, rcs-comp-mem-elim :182, rule-checkers-schema.scm
-\VNBfig{comp-mem-intro}{\Gamma \Longrightarrow y \in \mathrm{SET} \qquad \Gamma \Longrightarrow p[x{:=}y]}{\Gamma \Longrightarrow y \in \mathrm{COMP}(x,p)}
-\VNBfig{comp-mem-elim}{(\Gamma - F), y \in \mathrm{SET}, p[x{:=}y] \Longrightarrow G}{\Gamma \Longrightarrow G}
+\VNBfig{comp-mem-intro}{\Gamma \Longrightarrow y \in \mathrm{set} \qquad \Gamma \Longrightarrow p[x{:=}y]}{\Gamma \Longrightarrow y \in \mathrm{comp}(x,p)}
+\VNBfig{comp-mem-elim}{(\Gamma - F), y \in \mathrm{set}, p[x{:=}y] \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
-\item[Assumption] $F = y \in \mathrm{COMP}(x,p)$, $F \in \Gamma$.  It is
+\item[Assumption] $F = y \in \mathrm{comp}(x,p)$, $F \in \Gamma$.  It is
   consumed.
 \end{VNBcond}
 There is no sethood operation for comprehension.  A comprehension is a
@@ -697,10 +697,10 @@ set only when it is separately shown to be bounded by one.
   \texttt{big-union-mem-elim}
   (commands \texttt{bu-set}, \texttt{bu-mi}, \texttt{bu-me})}
 
-Write $U$ for $\mathrm{BIG\text{-}UNION}(z, A, b)$.
+Write $U$ for $\mathrm{big\text{-}union}(z, A, b)$.
 %% rcs-big-union-sethood :194, rcs-big-union-mem-intro :234,
 %% rcs-big-union-mem-elim :260, rule-checkers-schema.scm
-\VNBfigS{big-union-sethood}{\Gamma \Longrightarrow A \in \mathrm{SET} \\ \Gamma \Longrightarrow \forall v.\, v \in A \Rightarrow b[z{:=}v] \in \mathrm{SET}}{\Gamma \Longrightarrow U \in \mathrm{SET}}
+\VNBfigS{big-union-sethood}{\Gamma \Longrightarrow A \in \mathrm{set} \\ \Gamma \Longrightarrow \forall v.\, v \in A \Rightarrow b[z{:=}v] \in \mathrm{set}}{\Gamma \Longrightarrow U \in \mathrm{set}}
 \begin{VNBcond}
 \item[Freshness] $v = z$, or $v \notin \FV(A)$.
 \item[Not checked] That $v \notin \FV(b)$ when $v \neq z$.  Without it
@@ -725,9 +725,9 @@ checks $x \in b[z{:=}w]$ for well-formedness.
 \subsubsection*{\texttt{iota-def}, \texttt{iota-in-elim}
   (commands \texttt{iota-d}, \texttt{iota-e})}
 
-$\mathrm{IOTA}(x, p)$ is the unique $x$ satisfying $p$, and denotes
+$\mathrm{iota}(x, p)$ is the unique $x$ satisfying $p$, and denotes
 nothing when there is no such $x$ or more than one.  Write $\iota$ for
-$\mathrm{IOTA}(x, p)$.  Both operations take the term as their argument;
+$\mathrm{iota}(x, p)$.  Both operations take the term as their argument;
 it need not occur in $G$.  Both grant the defining property
 $p[x{:=}\iota]$ as an assumption, and they differ in what pays for it.
 %% rcs-iota-def :308, rcs-iota-in-elim :372, rcs--context-defines? :350, rule-checkers-schema.scm
@@ -747,14 +747,14 @@ certificate, and the operation declines without one of them.
 
 \subsubsection*{\texttt{lambda-type} (command \texttt{lam-t})}
 
-$\mathrm{VNB\text{-}LAMBDA}(\sigma, A, b)$ is the set of pairs
+$\mathrm{vnb\text{-}lambda}(\sigma, A, b)$ is the set of pairs
 $\{(x, b) : x \in A\}$, with $\sigma$ the binder, a variable or a list of
 variables.  The term carries its domain.
 %% rcs-lambda-type :437, rcs--lambda-typing-ok? :414, rule-checkers-schema.scm
-\VNBfig{lambda-type}{\Gamma \Longrightarrow \forall v.\, v \in A \Rightarrow b[x{:=}v] \in B \qquad \Gamma \Longrightarrow A \in \mathrm{SET}}{\Gamma \Longrightarrow \mathrm{VNB\text{-}LAMBDA}(x, A, b) \in \mathrm{FUN}(A, B)}
+\VNBfig{lambda-type}{\Gamma \Longrightarrow \forall v.\, v \in A \Rightarrow b[x{:=}v] \in B \qquad \Gamma \Longrightarrow A \in \mathrm{set}}{\Gamma \Longrightarrow \mathrm{vnb\text{-}lambda}(x, A, b) \in \mathrm{fun}(A, B)}
 \begin{VNBcond}
 \item[Domain] The domain the term declares is $\aeq$ the domain of the
-  $\mathrm{FUN}$.
+  $\mathrm{fun}$.
 \item[Freshness] $v = x$, or $v \notin \FV(b) \cup \FV(B)$.
 \item[Binder list] For $\sigma = [x_1, \ldots, x_n]$ the domain is
   $A_1 \times \cdots \times A_n$ with the same $n$, and the first
@@ -765,16 +765,16 @@ variables.  The term carries its domain.
 \end{VNBcond}
 The operation has no argument, and declines unless the Domain and Binder
 list conditions hold.  Neither condition is decoration.  Without the
-first, one term types into $\mathrm{FUN}(A, B)$ for every $A$.  Without
+first, one term types into $\mathrm{fun}(A, B)$ for every $A$.  Without
 the sethood hypothesis, a function on a proper class, which is itself a
-proper class, would be certified into a $\mathrm{FUN}$.
+proper class, would be certified into a $\mathrm{fun}$.
 
 \subsubsection*{\texttt{lambda-beta}, \texttt{lambda-beta-hyp}
   (commands \texttt{lam-b}, \texttt{lam-b-h})}
 
 A \emph{redex} is a term
 \[
-  \mathrm{VNB\text{-}LAMBDA}(\sigma, A, b)(u_1, \ldots, u_n),
+  \mathrm{vnb\text{-}lambda}(\sigma, A, b)(u_1, \ldots, u_n),
 \]
 with $n = 1$ for a single binder and $n$ the length of $\sigma$ for a
 binder list.  It contracts to $b$ with the $u_i$ substituted in parallel
@@ -796,8 +796,8 @@ for the variables of $\sigma$.  Write $o_1, \ldots, o_m$ for the
   formulas known at $\pi$: the assumptions of $\Gamma$ in which no
   variable bound between the root and $\pi$ occurs free, together with
   the guards of the guarded universals that enclose $\pi$ and the domain
-  memberships of the $\mathrm{VNB\text{-}LAMBDA}$, $\mathrm{SEP}$ and
-  $\mathrm{BIG\text{-}UNION}$ binders that enclose it.  It is
+  memberships of the $\mathrm{vnb\text{-}lambda}$, $\mathrm{sep}$ and
+  $\mathrm{big\text{-}union}$ binders that enclose it.  It is
   \emph{owed} when that membership is one of the $o_j$ and contains no
   variable bound between the root and $\pi$.  The argument may be taken
   as written or with the redexes inside it contracted; in the second
@@ -811,7 +811,7 @@ for the variables of $\sigma$.  Write $o_1, \ldots, o_m$ for the
 the assumption $F$.  Each reduces every redex it can license or owe, in
 one bottom-up pass, and declines when the reduction changes nothing.
 The obligations are posted after the reduced formula, one per redex
-whose licence is not evident.  A member of $\mathrm{FUN}(A, B)$ is
+whose licence is not evident.  A member of $\mathrm{fun}(A, B)$ is
 defined exactly on $A$, so reducing off the domain without the
 obligation would make a term denote that the library says does not.
 
@@ -837,7 +837,7 @@ where $=$ may also be quasi-equality or $\Leftrightarrow$, and the
 conditions $C_i$ may be absent.  A name may also denote a rule that is
 not a theorem: a functoid $F$ with parameters $\vec p$ and body $e$
 denotes $F(\vec p) \to e$, a structure accessor with slot $k$ denotes
-$\mathrm{ACC}(s) \to \mathrm{NTH}(k, s)$, and a functor projection
+$\mathrm{ACC}(s) \to \mathrm{nth}(k, s)$, and a functor projection
 \texttt{F@ACC} denotes the corresponding component of $F$'s body.
 %% rkw--macete-definition/compute, rule-checkers-rewrite.scm:593
 The \emph{local context} of a position in a formula is $\Gamma$, with
@@ -845,8 +845,8 @@ conjunctions split into their conjuncts, extended on the way down:
 entering $B$ in $A \Rightarrow B$ adds $A$; entering either conjunct of a
 conjunction adds the other; entering either disjunct of $A \vee B$ adds
 the negation of the other; entering the scope of a binder
-($\forall$, $\exists$, $\mathrm{IOTA}$, $\mathrm{COMP}$, the body of
-$\mathrm{SEP}$, $\mathrm{BIG\text{-}UNION}$ or $\mathrm{VNB\text{-}LAMBDA}$,
+($\forall$, $\exists$, $\mathrm{iota}$, $\mathrm{comp}$, the body of
+$\mathrm{sep}$, $\mathrm{big\text{-}union}$ or $\mathrm{vnb\text{-}lambda}$,
 a functoid) removes every formula in which the bound variable occurs
 free (Monk~\cite{Monk1988}).
 %% rkw--descend, rule-checkers-rewrite.scm:471
@@ -1028,11 +1028,11 @@ denotes.
   free commutative ring $\mathbb{Z}[\textit{generators}]$, literal
   powers being expanded first.
 \item[Typing] Either as for \texttt{ring-simplify}; or the operations
-  are those of a structure $R$, $(\mathrm{ADD}\ R)$, $(\mathrm{MUL}\ R)$,
-  $(\mathrm{NEG}\ R)$, $(\mathrm{ZERO}\ R)$, $(\mathrm{ONE}\ R)$,
-  $\mathrm{IS\text{-}COMMUTATIVE\text{-}RING}(R)$ is a peeled guard or is
+  are those of a structure $R$, $(\mathrm{add}\ R)$, $(\mathrm{mul}\ R)$,
+  $(\mathrm{neg}\ R)$, $(\mathrm{zero}\ R)$, $(\mathrm{one}\ R)$,
+  $\mathrm{is\text{-}commutative\text{-}ring}(R)$ is a peeled guard or is
   in $\Gamma$, and every generator is a variable bound by a guard
-  $x_i \in \mathrm{CARR}(R)$ or is typed in $\mathrm{CARR}(R)$ by an
+  $x_i \in \mathrm{carr}(R)$ or is typed in $\mathrm{carr}(R)$ by an
   assumption.
 \end{VNBcond}
 No arguments.  The operation tries the number reading first and the
@@ -1481,8 +1481,8 @@ running its proof.
   \texttt{rs} normalises, a variable or an opaque compound term, is an
   element of the ring's carrier.
 \item[Issued by] the context: an assumption $v \in D$ for a number class
-  $D$, or for $\mathrm{CARR}(a)$ when the goal is over an abstract ring
-  $a$ with $\mathrm{IS\text{-}COMMUTATIVE\text{-}RING}(a)$ in context; the
+  $D$, or for $\mathrm{carr}(a)$ when the goal is over an abstract ring
+  $a$ with $\mathrm{is\text{-}commutative\text{-}ring}(a)$ in context; the
   typing of a quantifier the oracle peels certifies its variable.
 \item[Verified by] the checker of the rewrite, which is a second decision
   rather than a certificate check: it recomputes the normal forms of both
@@ -1507,7 +1507,7 @@ running its proof.
   separation or indexed union over a certified domain, arithmetic on
   number-typed arguments, an accessor of a structure whose predicate is in
   context, an applied structure operation on typed arguments, $f(a)$ with
-  $f \in \mathrm{FUN}(D, \_)$ and $a \in D$; and, for a predicate
+  $f \in \mathrm{fun}(D, \_)$ and $a \in D$; and, for a predicate
   hypothesis whose defining iff is definitional, primitive or proven, what
   the conjuncts of that iff certify, for the parameters only.  Never a
   choice, a description, an untyped application, an entry without its
@@ -1698,7 +1698,7 @@ advances the focus to the first new ungrounded subgoal.
   be a closed formula (no free variables) built from numeric literals,
   $+$, $*$, $-$, \texttt{recip}, \texttt{abs}, \texttt{succ},
   \texttt{conjugate}, $\leq$, $=$,
-  $\in \mathtt{NN}/\mathtt{ZZ}/\mathtt{QQ}/\mathtt{RR}/\mathtt{CC}$,
+  $\in \mathtt{nn}/\mathtt{zz}/\mathtt{qq}/\mathtt{rr}/\mathtt{cc}$,
   and the propositional connectives.  Exact (rational) arithmetic only;
   no axiom chain is constructed.
   Related: \texttt{(vnb-do-arith \textit{f})} returns \texttt{\#t}/\texttt{\#f}
@@ -1719,7 +1719,7 @@ advances the focus to the first new ungrounded subgoal.
   The goal may be in either of two forms:
   \begin{itemize}
   \item \textbf{Bare equality} \texttt{$e_1$ = $e_2$}: generators are
-    certified by \texttt{(IN $v$ $D$)} assumptions already in the sequent
+    certified by \texttt{(in $v$ $D$)} assumptions already in the sequent
     context.  Typically reached after \texttt{(di)} peels the leading
     \texttt{forall} chain.
   \item \textbf{Universally quantified identity}
@@ -1729,14 +1729,14 @@ advances the focus to the first new ungrounded subgoal.
   \end{itemize}
 
   In both cases every generator must be certified as an element of one of
-  the five ring domains $\mathtt{NN}$, $\mathtt{ZZ}$, $\mathtt{QQ}$,
-  $\mathtt{RR}$, $\mathtt{CC}$ --- a symbol \texttt{x} by an
-  \texttt{(IN x $D$)} typing, a compound generator \texttt{f(x)} by an
-  \texttt{(IN f(x) $D$)} assumption.  This certification is also what keeps
+  the five ring domains $\mathtt{nn}$, $\mathtt{zz}$, $\mathtt{qq}$,
+  $\mathtt{rr}$, $\mathtt{cc}$ --- a symbol \texttt{x} by an
+  \texttt{(in x $D$)} typing, a compound generator \texttt{f(x)} by an
+  \texttt{(in f(x) $D$)} assumption.  This certification is also what keeps
   the rule sound on partial terms.  Since \texttt{=} is strict (it requires
   both sides defined), \texttt{3 + f(x) = 1 + f(x) + 2}
   holds only when \texttt{f(x)} is defined; membership entails definedness,
-  so demanding \texttt{(IN f(x) $D$)} supplies exactly that guarantee.  A
+  so demanding \texttt{(in f(x) $D$)} supplies exactly that guarantee.  A
   generator that is not certified leaves the goal untouched --- the command
   never makes an unsound step.
 
@@ -1767,7 +1767,7 @@ advances the focus to the first new ungrounded subgoal.
   \emph{multiset} of generators, canonicalised as a sorted generator
   list, so \texttt{x*y} and \texttt{y*x} share one normal form and
   commutativity lives in the representation rather than in any rewrite
-  step.  Each side reduces to a sum of such monomials over \texttt{ZZ},
+  step.  Each side reduces to a sum of such monomials over \texttt{zz},
   and the goal closes iff the two normal forms coincide.  Use it for any
   identity whose proof needs reordering of factors, which \texttt{(rs)}
   cannot perform.
@@ -1775,14 +1775,14 @@ advances the focus to the first new ungrounded subgoal.
   The goal may take the same two shapes as for \texttt{(rs)} (a bare
   equality with generators certified by context typings, or a typed
   universally quantified identity), and additionally a \textbf{generic}
-  form over an arbitrary ring: \texttt{forall($R$, IS-COMMUTATIVE-RING($R$)
-  implies \ldots)} built from \texttt{(ADD $R$)}, \texttt{(MUL $R$)},
-  \texttt{(NEG $R$)}, \texttt{(ZERO $R$)}, \texttt{(ONE $R$)}, with the
-  generators ranging over the carrier \texttt{(CARR $R$)}.
+  form over an arbitrary ring: \texttt{forall($R$, is-commutative-ring($R$)
+  implies \ldots)} built from \texttt{(add $R$)}, \texttt{(mul $R$)},
+  \texttt{(neg $R$)}, \texttt{(zero $R$)}, \texttt{(one $R$)}, with the
+  generators ranging over the carrier \texttt{(carr $R$)}.
 
   Generators are detected and certified exactly as for \texttt{(rs)}: a
-  symbol or an opaque compound term, certified by an \texttt{(IN $v$ $D$)}
-  typing in the concrete form or an \texttt{(IN $v$ (CARR $R$))} assumption in
+  symbol or an opaque compound term, certified by an \texttt{(in $v$ $D$)}
+  typing in the concrete form or an \texttt{(in $v$ (carr $R$))} assumption in
   the generic form.  The same partiality caveat applies --- a compound
   generator fires only once certified, which in VNB guarantees it is
   defined.
@@ -1966,7 +1966,7 @@ collected the same way wherever it appears.
   \texttt{mac-h}).  It may be supplied three interchangeable ways:
   \begin{itemize}
   \item a \textbf{surface string}, parsed for you ---
-    \texttt{"n in NN and m in NN"};
+    \texttt{"n in nn and m in nn"};
   \item a \textbf{raw S-expression} ---
     \texttt{'(and (in n nn) (in m nn))};
   \item for a command that cites an existing \emph{assumption}, a
@@ -2020,7 +2020,7 @@ reports exactly which variables those are, without touching the proof.
 
 A front end uses that query to collect the values \emph{by name} instead of
 making the user write the quoted binding list: it asks for each undetermined
-variable's value as an ordinary \emph{term string} (\texttt{"RAN(f)"},
+variable's value as an ordinary \emph{term string} (\texttt{"ran(f)"},
 \texttt{"nn"}) and parses it.  In the Emacs Focus workspace this is the
 \texttt{B} key --- the argument \emph{builder}.  Its companion key
 \texttt{B+} is a saturating closer: it only commits a citation it
@@ -2204,7 +2204,7 @@ is suppressed at that site.
 ; => Proof complete.
 \end{VNBcode}
 
-\subsection{AND elimination}
+\subsection{\texttt{and} elimination}
 
 \begin{VNBcode}
 (sp (make-wff-from-string "n in NN and m in NN implies n in NN"))
@@ -2215,7 +2215,7 @@ is suppressed at that site.
 
 \subsection{VNB axiom instance}
 
-Proving \texttt{"a in b implies a in SET"} from the base axiom:
+Proving \texttt{"a in b implies a in set"} from the base axiom:
 
 \begin{VNBcode}
 (sp (make-wff-from-string "a in b implies a in SET"))
@@ -2270,24 +2270,24 @@ directly.
 ; (the group laws are folded in by additional (property ...) clauses)
 \end{VNBcode}
 
-\begin{sloppypar}The \texttt{(op name domain range)} clause declares
-$\texttt{name}(s) \in \texttt{FUN}(\texttt{domain}, \texttt{range})$.
+\begin{sloppypar}The \texttt{(op \textit{name} \textit{domain} \textit{range})} clause declares
+$\textit{name}(s) \in \texttt{fun}(\textit{domain}, \textit{range})$.
 Higher-arity operations write the Cartesian product explicitly:
-\texttt{(op OPR (CARTESIAN CARR CARR) CARR)} for a binary operation.
-A \texttt{(constant name S)} clause declares an element of set $S$.
+\texttt{(op opr (cartesian carr carr) carr)} for a binary operation.
+A \texttt{(constant \textit{name} S)} clause declares an element of set $S$.
 Accessor indices are assigned sequentially: carriers first (starting
 at~1), then operations in declaration order.\end{sloppypar}
 
 A \texttt{declare-structure} call installs two things automatically:
 \begin{itemize}
-\item \emph{Accessor macetes}: \texttt{CARR}$(s)$ rewrites to
-  \texttt{nth(1,$s$)}, \texttt{OPR}$(s)$ to \texttt{nth(2,$s$)}, etc.
-\item \emph{Definitional biconditional} \texttt{IS-NAME}: the axiom
-  $\forall s.\;\texttt{IS-GROUP}(s) \Leftrightarrow
-   (\texttt{CARR}(s)\in\mathrm{SET} \wedge \texttt{OPR}(s)\in\cdots)$.
+\item \emph{Accessor macetes}: \texttt{carr}$(s)$ rewrites to
+  \texttt{nth(1,$s$)}, \texttt{opr}$(s)$ to \texttt{nth(2,$s$)}, etc.
+\item \emph{Definitional biconditional} \texttt{is-\textit{name}}: the axiom
+  $\forall s.\;\texttt{is-group}(s) \Leftrightarrow
+   (\texttt{carr}(s)\in\mathrm{set} \wedge \texttt{opr}(s)\in\cdots)$.
 \end{itemize}
 
-Given \texttt{IS-GROUP(g)} in context, the \texttt{IS-GROUP} macete
+Given \texttt{is-group(g)} in context, the \texttt{is-group} macete
 unfolds to:
 \begin{VNBsnip}
 CARR(g) in SET
@@ -2305,29 +2305,29 @@ file per structure) and loaded automatically.
 \toprule
 \textbf{Structure} & \textbf{Accessor slots (index)} & \textbf{Characteristic axioms} \\
 \midrule
-\texttt{SEMIGROUP} &
-  \texttt{CARR}\,(1), \texttt{OPR}\,(2) &
+\texttt{semigroup} &
+  \texttt{carr}\,(1), \texttt{opr}\,(2) &
   \texttt{semigroup-assoc} \\[4pt]
-\texttt{MONOID} &
-  \texttt{CARR}\,(1), \texttt{OPR}\,(2), \texttt{IDEN}\,(3) &
+\texttt{monoid} &
+  \texttt{carr}\,(1), \texttt{opr}\,(2), \texttt{iden}\,(3) &
   \texttt{monoid-assoc},
   \texttt{monoid-left-id},
   \texttt{monoid-right-id} \\[4pt]
-\texttt{GROUP} &
-  \texttt{CARR}\,(1), \texttt{OPR}\,(2), \texttt{IDEN}\,(3), \texttt{INV}\,(4) &
+\texttt{group} &
+  \texttt{carr}\,(1), \texttt{opr}\,(2), \texttt{iden}\,(3), \texttt{inv}\,(4) &
   \texttt{group-assoc},
   \texttt{group-left-id},
   \texttt{group-left-inv} \\[4pt]
-\texttt{RING} &
-  \texttt{CARR}\,(1), \texttt{ADD}\,(2), \texttt{MUL}\,(3),
-  \texttt{NEG}\,(4), \texttt{ZERO}\,(5), \texttt{ONE}\,(6) &
+\texttt{ring} &
+  \texttt{carr}\,(1), \texttt{add}\,(2), \texttt{mul}\,(3),
+  \texttt{neg}\,(4), \texttt{zero}\,(5), \texttt{one}\,(6) &
   \texttt{ring-add-assoc}, \texttt{ring-add-comm},
   \texttt{ring-add-left-id}, \texttt{ring-add-left-inv},
   \texttt{ring-mul-assoc}, \texttt{ring-mul-left-id},
   \texttt{ring-mul-right-id},
   \texttt{ring-left-dist}, \texttt{ring-right-dist} \\[4pt]
-\texttt{METRIC-SPACE} &
-  \texttt{PTS}\,(1), \texttt{DIST}\,(2) &
+\texttt{metric-space} &
+  \texttt{pts}\,(1), \texttt{dist}\,(2) &
   \texttt{metric-pos},
   \texttt{metric-self-zero},
   \texttt{metric-zero-eq},
@@ -2342,7 +2342,7 @@ Each entry above is citable by name with \texttt{(ta 'name)}, which transports
 it into the current proof.  They do \emph{not} all have the same standing,
 however, and the column heading is a convenience rather than a claim.
 
-A structure declaration generates an \texttt{IS-X} defining biconditional, and
+A structure declaration generates an \texttt{is-\textit{x}} defining biconditional, and
 each operation-property conjunct of it, unfolded, \emph{is} one of the
 structure's laws.  Stating such a law separately therefore adds no mathematical
 content, and the question is only how the system records that fact.  Three
@@ -2376,8 +2376,8 @@ cancellation, not merely the definition of a ring).
 \texttt{reference/PROOF-DEBT.md} is the authority on which is which; this table
 is not.  For example, to apply
 \texttt{group-left-inv} (which asserts
-$\forall s,a.\;\texttt{IS-GROUP}(s)\Rightarrow a\in\texttt{CARR}(s)
- \Rightarrow \texttt{OPR}(s)(\texttt{INV}(s)(a),a)=\texttt{IDEN}(s)$),
+$\forall s,a.\;\texttt{is-group}(s)\Rightarrow a\in\texttt{carr}(s)
+ \Rightarrow \texttt{opr}(s)(\texttt{inv}(s)(a),a)=\texttt{iden}(s)$),
 supply the group and the element as instantiation witnesses.
 \end{remark}
 
@@ -2474,7 +2474,7 @@ The conditions of a conditional macete are silently dropped.  This
 makes \texttt{(mac 'name)} fast for goals whose conditions are obviously
 satisfied, but it is the user's responsibility to verify them; the
 proof sketch above is technically unsound without separate proofs that
-$2 \in \mathtt{NN}$ and $3 \in \mathtt{NN}$.  For fully verified
+$2 \in \mathtt{nn}$ and $3 \in \mathtt{nn}$.  For fully verified
 condition discharge, use \texttt{(ta 'name)} followed by explicit
 instantiation and back-chaining.
 \end{remark}
@@ -2502,8 +2502,8 @@ goal whose formula reduces to true under exact arithmetic evaluation:
 forsome([n in CLASS], EXPR = n)
 \end{VNBsnip}
 where \texttt{EXPR} is a ground arithmetic expression and \texttt{CLASS}
-is one of \texttt{NN}, \texttt{ZZ}, \texttt{QQ}, \texttt{RR},
-\texttt{CC}.  It evaluates \texttt{EXPR}, checks that the result belongs
+is one of \texttt{nn}, \texttt{zz}, \texttt{qq}, \texttt{rr},
+\texttt{cc}.  It evaluates \texttt{EXPR}, checks that the result belongs
 to \texttt{CLASS}, and closes the goal with that value as the witness.
 This lets the prover double as a calculator:
 
@@ -2614,15 +2614,15 @@ proof in a fresh session, or applying an identical script to a sequent
 of the same shape.
 
 %% =========================================================
-\subsection{NN induction for type properties}
+\subsection{\texttt{nn} induction for type properties}
 \label{sec:ex-ni-type}
 
 The \texttt{(ni)} command reduces a goal
-$\forall n \in \mathtt{NN}.\; P(n)$ to two subgoals:
+$\forall n \in \mathtt{nn}.\; P(n)$ to two subgoals:
 a base case $P(0)$ (focused first) and a step case
-$\forall n \in \mathtt{NN}.\; P(n) \Rightarrow P(\mathrm{succ}(n))$.
-The following proof shows that $\mathit{PROD\text{-}ORD}(m, f, n)$
-stays in the carrier $\mathtt{CARR}(m)$ for every $n \in \mathtt{NN}$,
+$\forall n \in \mathtt{nn}.\; P(n) \Rightarrow P(\mathrm{succ}(n))$.
+The following proof shows that $\mathit{prod\text{-}ord}(m, f, n)$
+stays in the carrier $\mathtt{carr}(m)$ for every $n \in \mathtt{nn}$,
 deriving \texttt{prod-ord-type} from first principles.
 
 \begin{VNBcode}
@@ -2699,7 +2699,7 @@ immediately after the AND-split:
 Second, \texttt{alpha-equiv?} --- used by \texttt{(inst)} and
 \texttt{(bc)} when searching assumptions --- relies on structural
 equality of formula heads.  Compound heads such as
-\texttt{((OPR m) a b)} (a curried two-argument application; see
+\texttt{((opr m) a b)} (a curried two-argument application; see
 Section~\ref{sec:apply-tupling}) are compared correctly only when
 the head pair is the same \emph{object}.  If \texttt{alpha-equiv?}
 fails to locate a formula you know is in context, the likely cause
@@ -2717,7 +2717,7 @@ takes one argument from the Cartesian product.  The two views are
 reconciled by the library axioms
 \begin{equation*}
 \texttt{apply-tupling-$n$:} \qquad
-(f\ a_1\ \ldots\ a_n)\ \mathrel{==}\ (f\ (\texttt{LIST}\ a_1\ \ldots\ a_n))
+(f\ a_1\ \ldots\ a_n)\ \mathrel{==}\ (f\ (\texttt{list}\ a_1\ \ldots\ a_n))
 \quad\text{for each arity }n
 \end{equation*}
 (installed for $n=1,2,3$ in \texttt{theorem-library/axioms.scm};
@@ -2733,9 +2733,9 @@ the membership of each $a_i$ in its declared component.
 \label{sec:ex-sqrt3}
 
 Stated without reals or division --- the form the checker proves, entirely
-inside $\mathtt{NN}$ --- $\sqrt3$ irrational is
+inside $\mathtt{nn}$ --- $\sqrt3$ irrational is
 \[
-  \forall p,q \in \mathtt{NN}.\quad
+  \forall p,q \in \mathtt{nn}.\quad
   q \neq 0 \;\Longrightarrow\; p\cdot p \neq 3\cdot(q\cdot q) ,
 \]
 that is, the goal
@@ -2814,7 +2814,7 @@ the descent to three tools; the intermediate steps are elided.
 
 \begin{itemize}
 \item \texttt{minimize!} supplies the least-numerator witness together with its
-  two honest obligations --- the measure lands in $\mathtt{NN}$, and the guard
+  two honest obligations --- the measure lands in $\mathtt{nn}$, and the guard
   is satisfiable --- and appeals to no choice principle.
 \item \texttt{obtain} names each descended witness --- the $k$ with $w = 3k$,
   the $m_0$ with $q_0 = 3m_0$ --- by \emph{reading it off the proof state} (the
@@ -2860,11 +2860,11 @@ author from writing it twice.  In general,
   \texttt{(minimize! '($v_1$ \ldots\ $v_k$) GUARD MEASURE)}
 \]
 means ``choose $v_1,\ldots,v_k$ satisfying the formula \texttt{GUARD} with the
-$\mathtt{NN}$-valued term \texttt{MEASURE} as small as possible.''  On the main
+$\mathtt{nn}$-valued term \texttt{MEASURE} as small as possible.''  On the main
 branch it lands two hypotheses, for fresh eigenconstants $w_1,\ldots,w_k$: that
 \texttt{GUARD} holds of them, and that nothing satisfying \texttt{GUARD} has a
 strictly smaller \texttt{MEASURE}.  It leaves exactly the two obligations any
-minimisation owes --- that \texttt{MEASURE} lands in $\mathtt{NN}$ wherever
+minimisation owes --- that \texttt{MEASURE} lands in $\mathtt{nn}$ wherever
 \texttt{GUARD} holds, and that \texttt{GUARD} holds somewhere.  Everything
 between --- forming the value set, well-ordering it, unpacking the least
 witness, restating minimality over the $v_i$ rather than the set --- it does for
@@ -2873,11 +2873,11 @@ is not one you are minimising over).
 
 It adds no kernel rule --- it chains \texttt{cut}, \texttt{di}, \texttt{ai},
 \texttt{ew}, \ldots --- and uses \emph{no choice principle}: its one appeal is
-\texttt{nn-least-element}, the well-ordering of $\mathtt{NN}$, and well-ordering
+\texttt{nn-least-element}, the well-ordering of $\mathtt{nn}$, and well-ordering
 returns a genuine \emph{member} of the value set, from which the witness is read
 back.  Stated instead as a first-order lemma, the same fact would force every
 call site to tuple its variables into a Cartesian product, build a lambda, and
-prove that lambda inhabits $\mathtt{FUN}(U,\mathtt{NN})$ --- a typing obligation
+prove that lambda inhabits $\mathtt{fun}(U,\mathtt{nn})$ --- a typing obligation
 larger than the minimisation it buys.  As a tactic it quantifies over the $v_i$
 at the meta level and never forms $U$ at all.
 \end{remark}
@@ -2928,7 +2928,7 @@ script is \emph{already} a sequence of interactive short forms: \texttt{di},
 types.  What the driver adds is the orchestration a human otherwise does by eye,
 and it is of two kinds.  \emph{Focus}: after a branching command one selects the
 next open leaf from the frontier, where the script calls \texttt{dk-focus!}.
-\emph{Names}: each \texttt{(ai\ (FORSOME \ldots))} skolemizes to a machine-chosen
+\emph{Names}: each \texttt{(ai\ (forsome \ldots))} skolemizes to a machine-chosen
 eigenconstant, printed in the resulting sequent, which the user reads and types
 into the following commands.  The $3\mid w$ step, done by hand, is
 \begin{VNBsnip}

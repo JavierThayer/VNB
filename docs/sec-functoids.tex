@@ -19,7 +19,7 @@ what the rules are there to handle.
 \subsubsection{Three kinds of thing}
 
 \begin{enumerate}
-\item A \textbf{set} is an element of the class $\mathtt{SET}$.
+\item A \textbf{set} is an element of the class $\mathtt{set}$.
 \item A \textbf{proper class} has members but is a member of nothing.
   Sets and proper classes together are the \emph{objects} of the theory:
   every variable ranges over them, and every term that denotes denotes one
@@ -66,8 +66,8 @@ classes of pairs, not functoids, and are quantified over as classes.
  & \texttt{vnb-lambda} & \texttt{lambdoid} / \texttt{def-functoid} \\
 \hline
 denotes & a set of ordered pairs & a functoid (meta-level record) \\
-domains & sets & arbitrary classes, $\mathtt{ORD}$ included \\
-typing rule & \texttt{lam-t}: $\in \mathtt{FUN}(A, B)$ & none \\
+domains & sets & arbitrary classes, $\mathtt{ord}$ included \\
+typing rule & \texttt{lam-t}: $\in \mathtt{fun}(A, B)$ & none \\
 reduction & \texttt{lam-b}, under the licence below & \texttt{beta}, by unfolding \\
 instance of a quantifier & yes & refused \\
 in an \texttt{image}, a \texttt{dom}, an \texttt{app-graph} & yes & never formed \\
@@ -82,50 +82,50 @@ membership of pairs:
 \[
   f(x) \;==\; \iota v.\ [x, v] \in f .
 \]
-For $f \in \mathtt{FUN}(A)$ the axiom \texttt{fun-no-junk} adds that every
+For $f \in \mathtt{fun}(A)$ the axiom \texttt{fun-no-junk} adds that every
 member of $f$ is such a pair with $x \in A$; the two together say that a
 function is exactly its graph.  Equality is partial: an atomic formula is
 true only when its terms denote, and $t = t$ is the definedness predicate
 of $t$.  The domain of an arbitrary $f$ is the class
 \[
-  x \in \mathtt{DOM}(f) \iff x \in \mathtt{SET} \;\wedge\; f(x) \in \mathtt{SET}
+  x \in \mathtt{dom}(f) \iff x \in \mathtt{set} \;\wedge\; f(x) \in \mathtt{set}
 \]
 (\texttt{dom-membership}, 2026-10-01).  Until that date the second conjunct
 was $f(x) = f(x)$, definedness.  On a class of pairs the two readings
 coincide, since $f(x)$ is defined exactly when a unique set $v$ has
 $[x, v] \in f$, and that $v$ is a set; the sethood form was adopted because
 the image axiom (below) asks for the sethood of $f(x)$ and the kernel has
-no rule from ``defined'' to ``a set''.  For $f \in \mathtt{FUN}(A)$,
-$x \in \mathtt{DOM}(f) \iff x \in A$ (\texttt{dom-fun-membership}).
+no rule from ``defined'' to ``a set''.  For $f \in \mathtt{fun}(A)$,
+$x \in \mathtt{dom}(f) \iff x \in A$ (\texttt{dom-fun-membership}).
 
 Since a functoid is refused as an instance of $f$, these axioms say nothing
 about functoids.  The value of a functoid at an argument is given by its
 defining rewrite alone, and that value may be a proper class
-($\texttt{power}(\mathtt{ORD})$).
+($\texttt{power}(\mathtt{ord})$).
 
 \subsubsection{Pairs and tuples}
 
-\texttt{LIST} is a primitive constructor; the lists it produces are
+\texttt{list} is a primitive constructor; the lists it produces are
 written $[e_1, \ldots, e_n]$ in the string syntax, and they are not reduced
 to sets.  A list is defined exactly when its components are sets, and
 then it is a set: $[e_1, \ldots, e_n]$ denotes only if every $e_i$ is a
 set (the definedness certificate of the kernel decides it, so $\texttt{rfl}$
 closes $[x, y] = [x, y]$ only once $x$ and $y$ are typed in context), and a
 list of sets is a set (\texttt{pair-tuple-is-set}, \texttt{list-sethood}).
-$[0, \mathtt{SET}]$ denotes nothing, as $\{\mathtt{SET}\}$ denotes nothing,
+$[0, \mathtt{set}]$ denotes nothing, as $\{\mathtt{set}\}$ denotes nothing,
 and an application whose value would be such a pair's second component is
 undefined.  The axiom
 \[
   L \in c \;\Longrightarrow\; \bigl(1 \le k \le \texttt{length}(L)
-  \;\Longrightarrow\; \texttt{nth}(k, L) \in \mathtt{SET}\bigr)
-  \qquad (k \in \mathtt{NN})
+  \;\Longrightarrow\; \texttt{nth}(k, L) \in \mathtt{set}\bigr)
+  \qquad (k \in \mathtt{nn})
 \]
 (\texttt{tuple-members-are-sets}, primitive, 2026-10-01) states this
 sentence, which every reduction of pairs to sets supplies and the primitive
 constructor does not.  Nothing cites it; it is a tripwire: should any
 derivation again produce a pair with a proper class as a member of
-something, two steps (\texttt{nth-r}, then $\mathtt{SET} \in \mathtt{SET}$
-against Burali-Forti) turn it into FALSITY instead of leaving it inert.
+something, two steps (\texttt{nth-r}, then $\mathtt{set} \in \mathtt{set}$
+against Burali-Forti) turn it into \texttt{falsity} instead of leaving it inert.
 
 One consequence deserves its own sentence.  Because pairs are not sets,
 ``the union of the second components of the pairs of $f$'' is not a term
@@ -144,11 +144,11 @@ does not.  The rule \texttt{lam-b} (\texttt{pi-lambda-beta!}; checker
 conditions, decided before either is posted:
 \begin{itemize}
 \item the \emph{argument} is in the domain, $u \in A$: owed as an
-  obligation leaf $(\mathtt{IN}\; u\; A)$ when not evident from the context;
+  obligation leaf $(\mathtt{in}\; u\; A)$ when not evident from the context;
 \item the \emph{value} is not a proper class: owed as
-  $(\mathtt{IN}\; b[u/x]\; \mathtt{SET})$ exactly when the value \emph{may}
-  denote a proper class.  The test is negative: $\mathtt{SET}$ and
-  $\mathtt{ORD}$; a bare variable with no typing in context; \texttt{power},
+  $(\mathtt{in}\; b[u/x]\; \mathtt{set})$ exactly when the value \emph{may}
+  denote a proper class.  The test is negative: $\mathtt{set}$ and
+  $\mathtt{ord}$; a bare variable with no typing in context; \texttt{power},
   \texttt{fun}, \texttt{tuples}, \texttt{injection}, \texttt{bijection} of a
   class that may be proper; a separation, a lambda, an image or a big union
   whose domain may be proper; a union, intersection, difference, relative
@@ -168,14 +168,14 @@ more.  A redex whose obligation would mention a variable bound where the
 redex sits is left standing.
 
 The example that the licence caught the same day.  The monomial
-$\texttt{MONOMIAL}(R, c, n) := \texttt{vnb-lambda}(k \in \mathtt{NN},
-\texttt{if}(k = n, c, \mathtt{ZERO}(R)))$ had the law
-$\texttt{MONOMIAL}(R, c, n)(n) = c$ stated with $c$ unrestricted.  At a
+$\texttt{monomial}(R, c, n) := \texttt{vnb-lambda}(k \in \mathtt{nn},
+\texttt{if}(k = n, c, \mathtt{zero}(R)))$ had the law
+$\texttt{monomial}(R, c, n)(n) = c$ stated with $c$ unrestricted.  At a
 proper class $c$ the lambda has no pair at $n$, the application is
 undefined, and the strict equation is false; the kernel owed
-$\texttt{if}(n = n, c, \mathtt{ZERO}(R)) \in \mathtt{SET}$, which nothing
+$\texttt{if}(n = n, c, \mathtt{zero}(R)) \in \mathtt{set}$, which nothing
 could close.  The law is true, and now proven, under the hypothesis
-$c \in \mathtt{CARR}(R)$, which every use of it already had in context.  The
+$c \in \mathtt{carr}(R)$, which every use of it already had in context.  The
 species is the one Section~\ref{sec:class-set-discipline} warns of: a strict
 equation whose terms are untyped asserts their definedness, and here their
 sethood.
@@ -184,11 +184,11 @@ sethood.
 
 The image of a class $S$ under an object $\phi$ is characterised by
 \[
-  w \in \mathtt{IMAGE}(\phi, S) \iff
-  w \in \mathtt{SET} \;\wedge\; \exists x \in S.\ \phi(x) = w
+  w \in \mathtt{image}(\phi, S) \iff
+  w \in \mathtt{set} \;\wedge\; \exists x \in S.\ \phi(x) = w
 \]
 (\texttt{image-membership-iff}, definitional).  The conjunct
-$w \in \mathtt{SET}$ is Bernays' definition made explicit: the image
+$w \in \mathtt{set}$ is Bernays' definition made explicit: the image
 collects the \emph{values that are sets}; a point where $\phi(x)$ is
 undefined contributes nothing, and since $\phi$ is an object there is no
 point where $\phi(x)$ is a proper class.  Two sethood facts stand beside
@@ -196,20 +196,20 @@ it.
 
 \begin{description}
 \item[\texttt{image-set} (replacement, primitive).]
-  $S \in \mathtt{SET} \Longrightarrow \mathtt{IMAGE}(\phi, S) \in
-  \mathtt{SET}$ for every object $\phi$.  This is the axiom of replacement
+  $S \in \mathtt{set} \Longrightarrow \mathtt{image}(\phi, S) \in
+  \mathtt{set}$ for every object $\phi$.  This is the axiom of replacement
   and it is installed as such, on the primitive shelf, by the user's
   decision of 2026-07-28.  It is load-bearing in the ordinal and cardinal
   layer: \texttt{ord-no-injection-into-set} (hence Zorn's lemma), the
-  definition of $\mathtt{CARD}$, \texttt{card-image-finite},
+  definition of $\mathtt{card}$, \texttt{card-image-finite},
   \texttt{fun-domain-in-set}.
 \item[\texttt{fun-image-set} (proven, 2026-10-01).]
-  $f \in \mathtt{FUN}(A, B) \Longrightarrow B \in \mathtt{SET}
-  \Longrightarrow \mathtt{IMAGE}(f, S) \in \mathtt{SET}$, with no
+  $f \in \mathtt{fun}(A, B) \Longrightarrow B \in \mathtt{set}
+  \Longrightarrow \mathtt{image}(f, S) \in \mathtt{set}$, with no
   hypothesis on $S$, from separation alone: every member of the image is
   $f(x)$ with $f(x)$ defined, hence $x \in A$ (\texttt{fun-domain-apply-def}),
   hence $f(x) \in B$, so the image is a subclass of the set $B$
-  (\texttt{subclass-of-set-is-set}).  The form with $S \in \mathtt{SET}$
+  (\texttt{subclass-of-set-is-set}).  The form with $S \in \mathtt{set}$
   and no sethood of the codomain is not derivable without replacement, for
   the reason given under \emph{Pairs and tuples}.
 \end{description}
@@ -228,31 +228,31 @@ class under a functoid, when it is wanted, is written as the class it is, by
 separation or by a \texttt{vnb-lambda} over a set.
 
 \begin{remark}
-$\texttt{vnb-lambda}(x \in \mathtt{NN}, \mathtt{SET})$ is a syntactically
+$\texttt{vnb-lambda}(x \in \mathtt{nn}, \mathtt{set})$ is a syntactically
 valid term, and so is its application
-$(\texttt{vnb-lambda}(x \in \mathtt{NN}, \mathtt{SET}))(0)$.  $\beta$-reduction
-formally returns the term $\mathtt{SET}$.  But $\mathtt{SET} \notin
-\mathtt{SET}$, so by the definition of $\mathtt{IMAGE}$ above
-$\mathtt{SET} \notin \mathtt{IMAGE}(\texttt{vnb-lambda}(x \in \mathtt{NN},
-\mathtt{SET}), \mathtt{NN})$, and the contradiction $\mathtt{SET} \in
-\mathtt{SET}$ is avoided.  This does place a burden on the handling of the
-\texttt{IMAGE} functoid, and it is carried in three places: the conjunct
-$w \in \mathtt{SET}$ of \texttt{image-membership-iff}; the refusal of the
+$(\texttt{vnb-lambda}(x \in \mathtt{nn}, \mathtt{set}))(0)$.  $\beta$-reduction
+formally returns the term $\mathtt{set}$.  But $\mathtt{set} \notin
+\mathtt{set}$, so by the definition of $\mathtt{image}$ above
+$\mathtt{set} \notin \mathtt{image}(\texttt{vnb-lambda}(x \in \mathtt{nn},
+\mathtt{set}), \mathtt{nn})$, and the contradiction $\mathtt{set} \in
+\mathtt{set}$ is avoided.  This does place a burden on the handling of the
+\texttt{image} functoid, and it is carried in three places: the conjunct
+$w \in \mathtt{set}$ of \texttt{image-membership-iff}; the refusal of the
 instantiation rule to take a functoid as an instance, so that the axiom is
-never read at $\phi(x) := \mathtt{SET}$; and the value half of the
+never read at $\phi(x) := \mathtt{set}$; and the value half of the
 $\beta$ licence, under which the reduction above owes
-$\mathtt{SET} \in \mathtt{SET}$ and \texttt{rfl} cannot close
-$\mathtt{SET} = \mathtt{SET}$ from it.
+$\mathtt{set} \in \mathtt{set}$ and \texttt{rfl} cannot close
+$\mathtt{set} = \mathtt{set}$ from it.
 \end{remark}
 
 \begin{remark}
-$\texttt{vnb-lambda}(x \in \mathtt{NN}, [x, \mathtt{SET}])$ is also a valid
+$\texttt{vnb-lambda}(x \in \mathtt{nn}, [x, \mathtt{set}])$ is also a valid
 term.  $\beta$-reduction of
-$(\texttt{vnb-lambda}(x \in \mathtt{NN}, [x, \mathtt{SET}]))(0)$ formally
-gives $[0, \mathtt{SET}]$, which is undefined: a list denotes only when its
+$(\texttt{vnb-lambda}(x \in \mathtt{nn}, [x, \mathtt{set}]))(0)$ formally
+gives $[0, \mathtt{set}]$, which is undefined: a list denotes only when its
 components are sets (\emph{Pairs and tuples} above).  In particular
-\texttt{app-graph} proves nothing at such a term, since $[0, \mathtt{SET}]
-\in \phi$ would require $[0, \mathtt{SET}]$ to denote, and
+\texttt{app-graph} proves nothing at such a term, since $[0, \mathtt{set}]
+\in \phi$ would require $[0, \mathtt{set}]$ to denote, and
 \texttt{forall-elim} posts that definedness as a side goal that nothing
 closes.
 \end{remark}

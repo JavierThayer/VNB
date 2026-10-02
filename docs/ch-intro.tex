@@ -53,12 +53,12 @@ value in a set-theoretic universe, the semantics of VNB is
 underdetermined.  In particular:
 
 \begin{itemize}
-\item \textbf{Number systems} \texttt{NN}, \texttt{ZZ}, \texttt{QQ},
-  \texttt{RR}, \texttt{CC} are primitive constants denoting sets.  Their
+\item \textbf{Number systems} \texttt{nn}, \texttt{zz}, \texttt{qq},
+  \texttt{rr}, \texttt{cc} are primitive constants denoting sets.  Their
   elements and operations are characterised by ring, field, and order
   axioms, not by Dedekind cuts, Cauchy sequences, or ordinal arithmetic.
-\item \textbf{Ordinals} \texttt{ORD} form a primitive proper class with
-  its own ordering predicate \texttt{ORD-LE}, independent of the
+\item \textbf{Ordinals} \texttt{ord} form a primitive proper class with
+  its own ordering predicate \texttt{ord-le}, independent of the
   set-membership relation.
 \item \textbf{Function spaces} \texttt{fun($A$, $B$)} are primitive
   set constructors.  A member of \texttt{fun($A$, $B$)} is a set of
@@ -136,15 +136,15 @@ ordinary definition of that system.
   (Section~\ref{sec:declare-structure}) takes the signature as its slot
   list---carriers, operations, constants, substructures---and the axioms as its
   \texttt{property} and \texttt{law} clauses, and installs one predicate
-  \texttt{IS-\textit{NAME}}$(s)$ saying that the VNB list $s$ is a model.
-  The models form the class \textit{NAME} $= \{s : \texttt{IS-\textit{NAME}}(s)\}$,
+  \texttt{is-\textit{name}}$(s)$ saying that the VNB list $s$ is a model.
+  The models form the class \textit{name} $= \{s : \texttt{is-\textit{name}}(s)\}$,
   a proper class, and a theorem of the ``theory'' is a statement
-  $\texttt{forall}([s \in \textit{NAME}], \ldots)$ of the ambient system.
+  $\texttt{forall}([s \in \textit{name}], \ldots)$ of the ambient system.
   There is nothing to interpret between: a group, a ring and a metric space are
   three classes of the same universe.
 
 \item \textbf{The models form a category.}  The declaration also generates the
-  morphism predicate \texttt{IS-HOM-\textit{NAME}}$(a, b, f_1 \ldots f_k)$, one
+  morphism predicate \texttt{is-hom-\textit{name}}$(a, b, f_1 \ldots f_k)$, one
   map per independent carrier, with one rule per KIND of slot
   (Section~\ref{sec:morphisms}): an operation or a constant is preserved; a
   substructure (the scalars of a module) is held equal; a \emph{family} slot,
@@ -156,33 +156,33 @@ ordinary definition of that system.
   $u \in F(t)$; and a \emph{relation} slot, declared \texttt{(relation R C)}
   and holding a set of pairs of points of the carrier $C$, typed
   $R(s) \in \mathtt{power}(\mathtt{cartesian}(C(s), C(s)))$ in
-  \texttt{IS-\textit{NAME}}, is preserved by the map of $C$:
+  \texttt{is-\textit{name}}, is preserved by the map of $C$:
   $\forall x_1, x_2 \in C(a).\ [x_1, x_2] \in R(a) \Rightarrow [f(x_1), f(x_2)] \in R(b)$.
   So the generated arrows are the homomorphisms of an algebraic
   structure, the isometries of a metric space, the continuous maps of a
   topological space, the measurable maps of a measurable space, the
   measure-preserving measurable maps of a measure space, and the maps of a
-  setoid that send related points to related points (\texttt{SETOID} declares
-  one carrier \texttt{PTS} and its equivalence \texttt{REL} as a relation
+  setoid that send related points to related points (\texttt{setoid} declares
+  one carrier \texttt{pts} and its equivalence \texttt{rel} as a relation
   slot).  A species whose arrows
   are none of these replaces the definition with \texttt{declare-hom!}
-  (\texttt{RINGOID}, \texttt{METRIZABLE-TOP-SPACE},
+  (\texttt{ringoid}, \texttt{metrizable-top-space},
   Section~\ref{sec:declare-hom}).  This generated category is the DEFAULT one;
   \texttt{(declare-category! 'CAT 'NAME '(a b f) BODY)} adds another on the same
   objects, with arrow predicate
-  $\texttt{IS-\textit{CAT}-ARROW}(a, b, f) \iff \texttt{IS-\textit{NAME}}(a) \wedge \texttt{IS-\textit{NAME}}(b) \wedge f \in \mathtt{fun}(c(a), c(b)) \wedge \mathtt{BODY}$
-  and hom-set \texttt{HOM-\textit{CAT}}$(a, b)$, and records as OBLIGATIONS, not
+  $\texttt{is-\textit{cat}-arrow}(a, b, f) \iff \texttt{is-\textit{name}}(a) \wedge \texttt{is-\textit{name}}(b) \wedge f \in \mathtt{fun}(c(a), c(b)) \wedge \mathtt{BODY}$
+  and hom-set \texttt{hom-\textit{cat}}$(a, b)$, and records as OBLIGATIONS, not
   as theorems, that identities are arrows, that arrows compose and that the
   hom-set is a set; the load reports every obligation not yet proven
   (\texttt{category-obligations-audit}).  The library declares
-  \texttt{LIPSCHITZ}, \texttt{UNIFORMLY-CONTINUOUS} and \texttt{CONTINUOUS} on
-  \texttt{METRIC-SPACE} and \texttt{BOUNDED-LINEAR} on
-  \texttt{NORMED-VECTOR-SPACE}, proves their laws, and proves the inclusions
-  $\texttt{HOM-METRIC-SPACE}(a, b) \subseteq \texttt{HOM-LIPSCHITZ}(a, b) \subseteq \texttt{HOM-UNIFORMLY-CONTINUOUS}(a, b) \subseteq \texttt{HOM-CONTINUOUS}(a, b)$
-  and $\texttt{HOM-NORMED-VECTOR-SPACE}(a, b) \subseteq \texttt{HOM-BOUNDED-LINEAR}(a, b)$
+  \texttt{lipschitz}, \texttt{uniformly-continuous} and \texttt{continuous} on
+  \texttt{metric-space} and \texttt{bounded-linear} on
+  \texttt{normed-vector-space}, proves their laws, and proves the inclusions
+  $\texttt{hom-metric-space}(a, b) \subseteq \texttt{hom-lipschitz}(a, b) \subseteq \texttt{hom-uniformly-continuous}(a, b) \subseteq \texttt{hom-continuous}(a, b)$
+  and $\texttt{hom-normed-vector-space}(a, b) \subseteq \texttt{hom-bounded-linear}(a, b)$
   (\texttt{theorem-library/categories.scm}).  For every structure with one or two
   independent carriers the declaration installs the hom-set
-  $\texttt{HOM-\textit{NAME}}(a, b) = \{f \in \mathtt{fun}(c(a), c(b)) : \texttt{IS-HOM-\textit{NAME}}(a, b, f)\}$
+  $\texttt{hom-\textit{name}}(a, b) = \{f \in \mathtt{fun}(c(a), c(b)) : \texttt{is-hom-\textit{name}}(a, b, f)\}$
   (with two carriers, a set of pairs of maps in
   $\mathtt{cartesian}(\mathtt{fun}(c_1(a), c_1(b)), \mathtt{fun}(c_2(a), c_2(b)))$),
   and the library proves, for each, that the identity is a morphism, that
@@ -538,12 +538,12 @@ and one law.  The theorem then quantifies over every model.
 (qed  'socrates-is-mortal-in-humanity)
 \end{VNBsnip}
 
-\texttt{(di)} lands \texttt{s in HUMANITY}; the class axiom
+\texttt{(di)} lands \texttt{s in humanity}; the class axiom
 \texttt{humanity-class} rewrites it to \texttt{is-humanity(s)}, and the
 definition \texttt{is-humanity} unfolds that to the structure's typing
 conditions and its law, one conjunction, which \texttt{dk-split-all!}
 splits into separate assumptions; the rest is the first reading with
-\texttt{SOCRATES(s)}, \texttt{PEOPLE(s)}, \texttt{MORTALS(s)} in place of
+\texttt{socrates(s)}, \texttt{people(s)}, \texttt{mortals(s)} in place of
 the free variables.
 
 \begin{remark}
@@ -623,7 +623,7 @@ rather than wrap a malformed expression.  The checks are:
   \texttt{(make-wff-from-string "choice(A)")} as a top-level wff fails because
   \texttt{choice} produces a term, not a wff.
 \item \textbf{Wff-forming heads in term positions} are rejected:
-  \texttt{(make-wff-from-string "(CARR and B) in C")} fails because \texttt{A and B}
+  \texttt{(make-wff-from-string "(A and B) in C")} fails because \texttt{A and B}
   is a wff and the first argument of \texttt{in} must be a term.
 \item \textbf{Bare symbols in wff positions} are rejected.  Only
   \texttt{truth} and \texttt{falsity} are valid bare-symbol wffs;

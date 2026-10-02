@@ -91,8 +91,8 @@ The axiom is immediately available via \texttt{(ta 'PRED-NAME)} in a proof.
 
 \noindent
 This is the predicate shipped in
-\texttt{structure-library/metric-completeness.scm}; \texttt{POS-RR}
-(``$r \in \mathtt{RR}$ and $r > 0$'') is the convenience predicate introduced
+\texttt{structure-library/metric-completeness.scm}; \texttt{pos-rr}
+(``$r \in \mathtt{rr}$ and $r > 0$'') is the convenience predicate introduced
 next.  It installs:
 \begin{VNBsnip}
 forall([s, f],
@@ -105,10 +105,10 @@ forall([s, f],
               DIST(s)(f(m), f(n_)) <= eps)))
 \end{VNBsnip}
 
-\paragraph{Order predicates: \texttt{<} and \texttt{POS-RR}.}  Two
+\paragraph{Order predicates: \texttt{<} and \texttt{pos-rr}.}  Two
 pre-installed convenience predicates relieve the two most pervasive
 analytic idioms.  The kernel has \texttt{<=} as a primitive predicate
-but no strict \texttt{<}; ``$r > 0$ for $r \in RR$'' similarly
+but no strict \texttt{<}; ``$r > 0$ for $r \in \mathtt{rr}$'' similarly
 expands to a three-conjunct mouthful.
 
 \begin{VNBcode}
@@ -127,7 +127,7 @@ has not been extended to dispatch on \texttt{<} directly).
 \begin{remark}
 Opt-in.  Existing axioms (\texttt{cc-complete}, the metric-topology
 vocabulary) retain the verbose forms for backward consistency; new
-axioms going forward should prefer \texttt{<} and \texttt{POS-RR}.
+axioms going forward should prefer \texttt{<} and \texttt{pos-rr}.
 \end{remark}
 
 %% =========================================================
@@ -140,39 +140,39 @@ the defining equations as axioms.  Both rely on the same
 (Section~\ref{sec:def-constant}), so every axiom is immediately
 available in proofs.
 
-\begin{prop}[Primitive recursion on $\mathtt{NN}$]\label{prop:nn-rec}
-Let $A \in \mathtt{SET}$ and let
+\begin{prop}[Primitive recursion on $\mathtt{nn}$]\label{prop:nn-rec}
+Let $A \in \mathtt{set}$ and let
 \[
-  \mathcal{F}(A) \;=\; \bigcup_{n \in \mathtt{NN}}\,\mathtt{FUN}(\mathit{ORD\text{-}SEGMENT}(n),\, A)
+  \mathcal{F}(A) \;=\; \bigcup_{n \in \mathtt{nn}}\,\mathtt{fun}(\mathit{ord\text{-}segment}(n),\, A)
 \]
-be the set of all functions defined on a finite initial segment of $\mathtt{NN}$
+be the set of all functions defined on a finite initial segment of $\mathtt{nn}$
 with values in $A$ (including the empty function at $n = 0$, since
-$\mathit{ORD\text{-}SEGMENT}(0) = \emptyset$).
-For any $\mathcal{E} \in \mathtt{FUN}(\mathcal{F}(A),\, A)$ there is a unique
-$f \in \mathtt{FUN}(\mathtt{NN},\, A)$ such that
+$\mathit{ord\text{-}segment}(0) = \emptyset$).
+For any $\mathcal{E} \in \mathtt{fun}(\mathcal{F}(A),\, A)$ there is a unique
+$f \in \mathtt{fun}(\mathtt{nn},\, A)$ such that
 \[
-  f(n) \;=\; \mathcal{E}\!\bigl(f \!\restriction\! \mathit{ORD\text{-}SEGMENT}(n)\bigr)
-  \qquad \text{for every } n \in \mathtt{NN}.
+  f(n) \;=\; \mathcal{E}\!\bigl(f \!\restriction\! \mathit{ord\text{-}segment}(n)\bigr)
+  \qquad \text{for every } n \in \mathtt{nn}.
 \]
 \end{prop}
 
 \begin{remark}
 This is the special case of Proposition~\ref{prop:tfrec-set} with
-$U = \mathtt{NN}$; it follows from the well-ordering of $\mathtt{NN}$ by the
+$U = \mathtt{nn}$; it follows from the well-ordering of $\mathtt{nn}$ by the
 standard least-counterexample argument.
-Since $\mathit{ORD\text{-}SEGMENT}(n)$ is the integer interval $\{0, 1, \ldots, n-1\}$,
+Since $\mathit{ord\text{-}segment}(n)$ is the integer interval $\{0, 1, \ldots, n-1\}$,
 the extension function $\mathcal{E}$ sees the entire history
 $f(0), f(1), \ldots, f(n-1)$ when computing $f(n)$.
 The \emph{predecessor form} --- $f(0) = b$ and
-$f(\mathrm{succ}(n)) = s(n,\, f(n))$ for $n \in \mathtt{NN}$ --- is the special case
+$f(\mathrm{succ}(n)) = s(n,\, f(n))$ for $n \in \mathtt{nn}$ --- is the special case
 where $\mathcal{E}$ only inspects the last value; this covers sums, products,
 and most concrete recursive definitions.
 \end{remark}
 
-\subsection{\texttt{def-by-nn-recursion}: primitive recursion on \texttt{NN}}
+\subsection{\texttt{def-by-nn-recursion}: primitive recursion on \texttt{nn}}
 
 Defines a function $F(p_1, \ldots, p_k, n)$ by two-clause recursion on the
-last argument $n \in \mathtt{NN}$, with arbitrary extra parameters
+last argument $n \in \mathtt{nn}$, with arbitrary extra parameters
 $p_1, \ldots, p_k$:
 \[
   F(p_1,\ldots,p_k,0) = b, \qquad
@@ -210,8 +210,8 @@ F-succ: forall([p1,p2,..., n in NN],
 \end{VNBcode}
 
 \paragraph{Example: partial sum (one parameter).}
-\begin{sloppypar}For $f \in \mathtt{FUN}(\mathtt{NN}, A)$, define
-$\mathrm{SUM}(f, n) = \sum_{k=0}^{n} f(k)$:\end{sloppypar}
+\begin{sloppypar}For $f \in \mathtt{fun}(\mathtt{nn}, A)$, define
+$\mathrm{sum}(f, n) = \sum_{k=0}^{n} f(k)$:\end{sloppypar}
 \begin{VNBcode}
 (def-by-nn-recursion 'SUM '(f)
   '(f 0)                          ; SUM(f, 0) = f(0)
@@ -221,16 +221,16 @@ $\mathrm{SUM}(f, n) = \sum_{k=0}^{n} f(k)$:\end{sloppypar}
 ; Installs SUM-succ: forall([f, n in NN], SUM(f,succ(n)) = SUM(f,n) + f(succ(n)))
 \end{VNBcode}
 
-\subsection{\texttt{def-by-ord-recursion}: transfinite recursion on \texttt{ORD}}
+\subsection{\texttt{def-by-ord-recursion}: transfinite recursion on \texttt{ord}}
 
 For functions on all ordinals, use the three-clause schema
 (Proposition~\ref{prop:tfrec-class}, Section~\ref{sec:ord-recursion}):
 \begin{itemize}
 \item \textbf{Base} ($\xi = 0$):\quad $F(0) = b$
-\item \textbf{Successor} ($\xi = \mathrm{succ\_ORD}(\alpha)$):\quad
-      $F(\mathrm{succ\_ORD}(\alpha)) = s(\alpha,\, F(\alpha))$
-\item \textbf{Limit} ($\mathrm{LIMIT\text{-}ORD}(\xi)$):\quad
-      $F(\xi) = \ell\!\left(\xi,\, F\!\restriction\!\mathrm{ORD\text{-}SEGMENT}(\xi)\right)$
+\item \textbf{Successor} ($\xi = \mathrm{succ\_ord}(\alpha)$):\quad
+      $F(\mathrm{succ\_ord}(\alpha)) = s(\alpha,\, F(\alpha))$
+\item \textbf{Limit} ($\mathrm{limit\text{-}ord}(\xi)$):\quad
+      $F(\xi) = \ell\!\left(\xi,\, F\!\restriction\!\mathrm{ord\text{-}segment}(\xi)\right)$
 \end{itemize}
 
 \begin{VNBcode}
@@ -280,9 +280,9 @@ A full definition would use nested ordinal recursion.)
 \texttt{declare-structure} declares a named mathematical structure at the
 meta-level --- in the Scheme REPL or a \texttt{.scm} source file, as the
 chapter opening explains, not inside the object language.  It registers
-the structure, installs NTH-based accessor
+the structure, installs \texttt{nth}-based accessor
 macetes for every carrier set and every operation, and posts a
-definitional axiom for the associated \texttt{IS-\textit{NAME}} predicate.
+definitional axiom for the associated \texttt{is-\textit{name}} predicate.
 No quoting is needed.
 
 \begin{VNBcode}
@@ -307,41 +307,41 @@ distinction is developed in the remark on shape versus properties below.
 
 \item \texttt{(op NAME DOMAIN RANGE)}
   Declares a function-valued slot: $\mathtt{NAME}(s) \in
-  \mathtt{FUN}(\mathtt{DOMAIN}, \mathtt{RANGE})$.  Every VNB function is
+  \mathtt{fun}(\mathtt{DOMAIN}, \mathtt{RANGE})$.  Every VNB function is
   unary on its domain, so binary and higher-arity operations use an explicit
-  Cartesian product: write \texttt{(op MUL (CARTESIAN A A) A)}, not
-  \texttt{(op MUL (CARR A) A)}.  All carrier and op names in domain and range
+  Cartesian product: write \texttt{(op mul (cartesian A A) A)}, not
+  \texttt{(op mul (carr A) A)}.  All carrier and op names in domain and range
   positions are automatically expanded to accessor applications.
 
   The unary typing is reconciled with the curried application form
-  $((\mathtt{MUL}\,s)\,a\,b)$ used throughout the library by the
+  $((\mathtt{mul}\,s)\,a\,b)$ used throughout the library by the
   \texttt{apply-tupling-$n$} axioms
   (Section~\ref{sec:curried-tupled-apply}): the $n$-arg apply equals the
-  unary apply to the $n$-tuple $(\texttt{LIST}\,a_1\,\ldots\,a_n)$.
+  unary apply to the $n$-tuple $(\texttt{list}\,a_1\,\ldots\,a_n)$.
   Together with \texttt{fun-apply-type} this closes
-  $((\mathtt{MUL}\,s)\,a\,b) \in CARR(s)$ from the typing of $\mathtt{MUL}(s)$
-  and $a,b \in CARR(s)$.
+  $((\mathtt{mul}\,s)\,a\,b) \in \mathtt{carr}(s)$ from the typing of $\mathtt{mul}(s)$
+  and $a,b \in \mathtt{carr}(s)$.
 
-\item \texttt{(constant NAME SET)}
-  Declares a constant-valued slot: $\mathtt{NAME}(s) \in \mathtt{SET}(s)$.
+\item \texttt{(constant \textit{name} \textit{set})}
+  Declares a constant-valued slot: $\textit{name}(s) \in \textit{set}(s)$.
 
 \item \texttt{(substructure NAME TYPE)}
   Declares a slot that holds a whole structure of kind \texttt{TYPE}
-  (for example a vector space's base \texttt{FIELD}).  It is typed by
-  \texttt{IS-\textit{TYPE}}$(\mathtt{NAME}(s))$ rather than by the bare
+  (for example a vector space's base \texttt{field}).  It is typed by
+  \texttt{is-\textit{type}}$(\mathtt{NAME}(s))$ rather than by the bare
   $\in \textsc{set}$ of a carrier.  An op signature may reach into it
   with foreign accessors --- e.g.\
-  \texttt{(op SMUL (CARTESIAN (CARR K) V) V)}, where \texttt{K} is a
-  \texttt{(substructure K FIELD)} slot and \texttt{(CARR K)} is the base
+  \texttt{(op smul (cartesian (carr K) V) V)}, where \texttt{K} is a
+  \texttt{(substructure K field)} slot and \texttt{(carr K)} is the base
   field's carrier.
 
 \item \texttt{(derived NAME BASE EXPR)}
   Declares a carrier \emph{carved out} of another rather than an independent
-  one.  \texttt{NAME(s)} still occupies its own slot, but \texttt{IS-\textit{NAME}}
+  one.  \texttt{NAME(s)} still occupies its own slot, but \texttt{is-\textit{name}}
   pins its value with an equation, \texttt{NAME(s) = EXPR}, where \texttt{EXPR}
   is a term over the other accessors --- not the bare $\in\textsc{set}$ a plain
-  carrier gets.  \texttt{FIELD} declares
-  \texttt{(derived NON-ZERO CARR (DIFFERENCE CARR (SINGLETON ZERO)))}: the unit
+  carrier gets.  \texttt{field} declares
+  \texttt{(derived non-zero carr (difference carr (singleton zero)))}: the unit
   group's carrier is the field carrier minus zero.  Because its value is fixed
   by the other slots, a derived carrier owes a homomorphism no map of its own;
   it rides the base carrier's (Section~\ref{sec:morphisms}).
@@ -350,15 +350,15 @@ distinction is developed in the remark on shape versus properties below.
   Names a characteristic law --- \emph{not} a component.  \texttt{PRED}
   is a property predicate (Section~\ref{sec:shape-vs-property}), applied
   to the named accessors, and is conjoined into the
-  \texttt{IS-\textit{NAME}} definition.  For example
+  \texttt{is-\textit{name}} definition.  For example
   \texttt{(property is-metric D X)} folds the metric axioms on
-  $\mathtt{DIST}(s)$ over $\mathtt{PTS}(s)$ into \texttt{IS-METRIC-SPACE}.
+  $\mathtt{dist}(s)$ over $\mathtt{pts}(s)$ into \texttt{is-metric-space}.
 
 \item \texttt{(law "\textit{formula}")}
-  Adds a raw conjunct to \texttt{IS-\textit{NAME}}, written in the surface
+  Adds a raw conjunct to \texttt{is-\textit{name}}, written in the surface
   string syntax and parsed like any user formula (its free variable is the
   instance \texttt{s}).  It is the escape hatch for a characteristic law that no
-  named \texttt{property} predicate captures --- \texttt{MODULE}'s scalar-action
+  named \texttt{property} predicate captures --- \texttt{module}'s scalar-action
   axioms are laws of this kind.  A \texttt{property} clause is just the special
   case where the law already has a name in \texttt{operation-properties.scm}.
 
@@ -370,12 +370,12 @@ at indices $m+1, m+2, \ldots$.
 
 Every slot name --- carrier, operation, constant, or substructure --- is
 registered as a global \emph{accessor constant} of that name.  The
-particular names are the declarer's to choose (\texttt{CARR} for a ring's
-carrier, \texttt{PTS} for a metric space's points, \texttt{OPR} for a
+particular names are the declarer's to choose (\texttt{carr} for a ring's
+carrier, \texttt{pts} for a metric space's points, \texttt{opr} for a
 group's operation); nothing forces one spelling over another.  But once
 declared, a name is \emph{reserved}: because the reader case-folds
 (Remark~\ref{rem:case-fold}), using it as a bound variable anywhere ---
-\texttt{forall([CARR in \ldots], \ldots)} --- makes the binder read as the
+\texttt{forall([carr in \ldots], \ldots)} --- makes the binder read as the
 accessor rather than the variable, and the load-time
 \texttt{constant-binder-audit} rejects it outright.  This is why the
 property-predicate parameters below (\texttt{op}, \texttt{crr}, \ldots)
@@ -386,7 +386,7 @@ are spelled to avoid the accessor constants they stand in for.
 admits any number of carriers, and operations of arbitrary signature over them,
 so an arbitrary finitary algebraic system --- many-sorted, in the sense of
 Mal'cev's \emph{algebraic systems} --- can be declared.  A setoid, for instance,
-declares two carriers (\texttt{PTS} and its relation \texttt{REL}), and a vector
+declares two carriers (\texttt{pts} and its relation \texttt{rel}), and a vector
 space has separate scalar and vector carriers.
 
 What the library's \emph{idiom} favours is narrower than what the form
@@ -405,34 +405,34 @@ material at hand, not a constraint the framework enforces.
 A \texttt{declare-structure} declaration involves three distinct things,
 which it is worth keeping clearly separated.
 \begin{enumerate}
-\item \textbf{The name} --- a symbol such as \texttt{RING} or
-  \texttt{METRIC-SPACE}, used as a label in declarations and prose.
+\item \textbf{The name} --- a symbol such as \texttt{ring} or
+  \texttt{metric-space}, used as a label in declarations and prose.
 \item \textbf{An instance} --- a specific VNB list, which is an
   \emph{element of \textsc{set}} (a concrete set-theoretic object).
   For example,
   \[
-    \mathtt{CC\text{-}MS} \;=\;
-      [\,\mathtt{CC},\;\mathtt{vnb\text{-}lambda}([\mathtt{x},\mathtt{y}],\,
+    \mathtt{cc\text{-}ms} \;=\;
+      [\,\mathtt{cc},\;\mathtt{vnb\text{-}lambda}([\mathtt{x},\mathtt{y}],\,
       \mathtt{magnitude}(\mathtt{x}-\mathtt{y}))\,]
   \]
-  is a 2-element VNB list.  Internally it is \texttt{(LIST CC (VNB-LAMBDA
-  (LIST x y) (CARTESIAN CC CC) (magnitude (- x y))))}.  The accessors \texttt{PTS(s)} and
-  \texttt{DIST(s)} are \texttt{nth(1,~s)} and \texttt{nth(2,~s)}.
+  is a 2-element VNB list.  Internally it is \texttt{(list cc (vnb-lambda
+  (list x y) (cartesian cc cc) (magnitude (- x y))))}.  The accessors \texttt{pts(s)} and
+  \texttt{dist(s)} are \texttt{nth(1,~s)} and \texttt{nth(2,~s)}.
 \item \textbf{The associated class} --- the collection
-  $\{\,s : \mathit{IS\text{-}NAME}(s)\,\}$ of \emph{all} VNB lists
+  $\{\,s : \mathit{is\text{-}name}(s)\,\}$ of \emph{all} VNB lists
   satisfying the structure's typing conditions.  \emph{This class
-  shares the structure's name}: \texttt{declare-structure NAME}
-  installs both the predicate \texttt{IS-NAME} and the class
-  \texttt{NAME}, related by the axiom \texttt{NAME-class}:
+  shares the structure's name}: \texttt{declare-structure \textit{name}}
+  installs both the predicate \texttt{is-\textit{name}} and the class
+  \texttt{\textit{name}}, related by the axiom \texttt{\textit{name}-class}:
   \[
-    \forall s.\; s \in \mathtt{NAME} \;\Leftrightarrow\; \mathit{IS\text{-}NAME}(s).
+    \forall s.\; s \in \mathit{name} \;\Leftrightarrow\; \mathit{is\text{-}name}(s).
   \]
   The class is a proper class (defined by a predicate), not an
   element of \textsc{set}.  Naming the class is what makes the
   natural quantification idiom
-  $\texttt{forall}([s \in \mathtt{NAME}], \ldots)$
+  $\texttt{forall}([s \in \mathit{name}], \ldots)$
   work --- without it, one would have to write the unbounded form
-  $\texttt{forall}([s], \mathit{IS\text{-}NAME}(s) \Rightarrow \ldots)$.
+  $\texttt{forall}([s], \mathit{is\text{-}name}(s) \Rightarrow \ldots)$.
 \end{enumerate}
 This matches the standard textbook presentation in which a ring, say,
 is defined as a 6-tuple $(R,+,\times,-,0,1)$ satisfying certain axioms:
@@ -443,9 +443,9 @@ is the class (point~3), now an addressable name.
 \subsection{What \texttt{declare-structure} installs}
 
 \paragraph{Accessor macetes.}
-For each carrier $C_i$ (at NTH index $i$) and each operation
-$\mathit{op}_j$ (at NTH index $m+j$), a macete is installed that
-rewrites the accessor term to the corresponding NTH projection:
+For each carrier $C_i$ (at \texttt{nth} index $i$) and each operation
+$\mathit{op}_j$ (at \texttt{nth} index $m+j$), a macete is installed that
+rewrites the accessor term to the corresponding \texttt{nth} projection:
 \[
   C_i(s) \;\longmapsto\; \texttt{nth}(i,\; s)
   \qquad
@@ -454,18 +454,18 @@ rewrites the accessor term to the corresponding NTH projection:
 The schema variable matches any expression, so the macete fires anywhere
 in a goal.
 
-\paragraph{IS-\textit{NAME} axiom.}
-The predicate \texttt{IS-\textit{NAME}} is axiomatized as a conjunction
+\paragraph{\texttt{is-\textit{name}} axiom.}
+The predicate \texttt{is-\textit{name}} is axiomatized as a conjunction
 of two groups of conjuncts: the \emph{shape} (a length condition plus a
 typing condition per slot) and the \emph{properties} (one conjunct per
 \texttt{property} clause):
 \begin{align*}
-  \forall s.\;\mathit{IS\text{-}NAME}(s) \;\Leftrightarrow\; &
+  \forall s.\;\mathit{is\text{-}name}(s) \;\Leftrightarrow\; &
   \mathtt{length}(s) = n
   && \text{\small(shape: length)}\\
-  &\land\; C_1(s) \in \mathtt{SET} \land \cdots \land C_m(s) \in \mathtt{SET}
+  &\land\; C_1(s) \in \mathtt{set} \land \cdots \land C_m(s) \in \mathtt{set}
   && \text{\small(shape: carriers)}\\
-  &\land\; \mathit{op}_1(s) \in \mathtt{FUN}(\mathtt{dom}_1, \mathit{rng}_1)
+  &\land\; \mathit{op}_1(s) \in \mathtt{fun}(\mathtt{dom}_1, \mathit{rng}_1)
   \land \cdots
   && \text{\small(shape: ops/constants)}\\
   &\land\; \mathtt{PRED}_1(\mathit{acc}(s), \ldots) \land \cdots
@@ -474,30 +474,30 @@ typing condition per slot) and the \emph{properties} (one conjunct per
 where $n = m + k$ is the total number of components ($m$ carriers and $k$
 operations/constants).  The length condition ties the predicate to the
 instance side of the three-part picture: only a VNB list of exactly $n$
-elements can satisfy \texttt{IS-\textit{NAME}}.  A declaration with no
-\texttt{property} clause has the property group empty --- \texttt{IS-NAME}
+elements can satisfy \texttt{is-\textit{name}}.  A declaration with no
+\texttt{property} clause has the property group empty --- \texttt{is-\textit{name}}
 is then a pure shape predicate.
 
-\begin{sloppypar}The axiom is named \texttt{IS-\textit{NAME}} and is immediately available
+\begin{sloppypar}The axiom is named \texttt{is-\textit{name}} and is immediately available
 via \texttt{cmd-theorem-assumption} and \texttt{cmd-apply-macete}.\end{sloppypar}
 
-\paragraph{\textit{NAME}-class axiom.}
-A second axiom named \texttt{\textit{NAME}-class} ties the predicate to
+\paragraph{\textit{name}-class axiom.}
+A second axiom named \texttt{\textit{name}-class} ties the predicate to
 the class:
 \[
-  \forall s.\; s \in \mathtt{NAME} \;\Leftrightarrow\; \mathit{IS\text{-}NAME}(s).
+  \forall s.\; s \in \mathit{name} \;\Leftrightarrow\; \mathit{is\text{-}name}(s).
 \]
-The symbol $\mathtt{NAME}$ thereby denotes the proper class
-$\{s \mid \mathit{IS\text{-}NAME}(s)\}$, ready to use as the
+The symbol $\mathit{name}$ thereby denotes the proper class
+$\{s \mid \mathit{is\text{-}name}(s)\}$, ready to use as the
 quantification range:
 \begin{VNBsnip}
 forall([r in RING],        some-claim-about(r))   ; bounded over the ring class
 forall([E in NORMEDSPACE], some-claim-about(E))   ; bounded over normed spaces
 \end{VNBsnip}
 which the parser expands to
-$\forall s.\; s \in \mathtt{NAME} \Rightarrow \ldots$; the
-\texttt{\textit{NAME}-class} axiom then converts the antecedent to
-the predicate form $\mathit{IS\text{-}NAME}(s)$ exactly when needed.
+$\forall s.\; s \in \mathit{name} \Rightarrow \ldots$; the
+\texttt{\textit{name}-class} axiom then converts the antecedent to
+the predicate form $\mathit{is\text{-}name}(s)$ exactly when needed.
 
 \subsection{Shape versus properties}
 \label{sec:shape-vs-property}
@@ -511,9 +511,9 @@ operation is associative, that the constant is a two-sided identity, that
 the distance function is a metric.  Shape is what \texttt{carriers},
 \texttt{op}, \texttt{constant}, and \texttt{substructure} contribute;
 properties are what \texttt{property} clauses contribute.  Both are
-conjoined into \texttt{IS-\textit{NAME}}, so the predicate means
-\emph{``$s$ is an $\mathtt{NAME}$,''} not merely \emph{``$s$ is
-$\mathtt{NAME}$-shaped.''}
+conjoined into \texttt{is-\textit{name}}, so the predicate means
+\emph{``$s$ is a $\mathit{name}$,''} not merely \emph{``$s$ is
+$\mathit{name}$-shaped.''}
 
 \paragraph{Property predicates.}
 Each \texttt{property} clause names a predicate defined once, on its own,
@@ -526,23 +526,23 @@ accessors:
 \item[\texttt{has-inverses}] $(op, unit, invop, crr)$ --- $invop$ gives two-sided inverses.
 \item[\texttt{is-distributive}] $(addop, mulop, crr)$ --- $mulop$ distributes over $addop$.
 \item[\texttt{is-metric}] $(dist, crr)$ --- $dist$ is a metric (nonneg, zero on the diagonal, symmetric, triangle).
-\item[\texttt{is-norm}, \texttt{is-group-norm}] --- norms for \texttt{NORMED-FIELD} / \texttt{NORMED-AG}.
+\item[\texttt{is-norm}, \texttt{is-group-norm}] --- norms for \texttt{normed-field} / \texttt{normed-ag}.
 \end{description}
 The parameter names (\texttt{op}, \texttt{crr}, \texttt{unit}, \ldots)
 deliberately avoid the registered accessor constants
-(\texttt{CARR}, \texttt{MUL}, \texttt{IDEN}, \texttt{PTS}, \texttt{DIST}, \ldots):
-the reader case-folds, so a bound \texttt{CARR} would collide with the
-carrier accessor \texttt{CARR}.
+(\texttt{carr}, \texttt{mul}, \texttt{iden}, \texttt{pts}, \texttt{dist}, \ldots):
+the reader case-folds, so a bound \texttt{carr} would collide with the
+carrier accessor \texttt{carr}.
 
 \begin{remark}
-Folding the laws into \texttt{IS-\textit{NAME}} is not cosmetic.  Without
+Folding the laws into \texttt{is-\textit{name}} is not cosmetic.  Without
 the property group, two structures of the same shape would have
-\emph{equivalent} predicates: \texttt{IS-ABELIAN-GROUP} would be
-$\Leftrightarrow$ \texttt{IS-GROUP}, since both are 4-slot
-$(\mathtt{CARR}, \mathtt{MUL}, \mathtt{ID}, \mathtt{INV})$ structures.  A
+\emph{equivalent} predicates: \texttt{is-abelian-group} would be
+$\Leftrightarrow$ \texttt{is-group}, since both are 4-slot
+$(\mathtt{carr}, \mathtt{mul}, \mathtt{id}, \mathtt{inv})$ structures.  A
 commutativity axiom stated separately would then force \emph{every}
-group commutative.  With the property clause, \texttt{IS-ABELIAN-GROUP}
-is \texttt{IS-GROUP}'s body \emph{plus} \texttt{is-commutative} --- a
+group commutative.  With the property clause, \texttt{is-abelian-group}
+is \texttt{is-group}'s body \emph{plus} \texttt{is-commutative} --- a
 genuine sub-predicate, and non-commutative groups remain expressible.
 \end{remark}
 
@@ -553,11 +553,11 @@ axioms, for citing a single law directly in a proof.  Once a structure
 carries the law through a \texttt{property} clause, these named
 restatements are derivable by projection rather than independent
 assumptions: the metric laws, for instance, are proven modulo~0 by
-projecting \texttt{is-metric} out of \texttt{IS-METRIC-SPACE}.  The
+projecting \texttt{is-metric} out of \texttt{is-metric-space}.  The
 ring-tower predicates
-(\texttt{COMMUTATIVE-RING}, \texttt{FIELD}, \ldots) still spell their
-\texttt{IS-\textit{NAME}} out by a hand-written
-$\texttt{IS-}\mathtt{NAME} \Leftrightarrow \texttt{IS-}\mathit{parent}
+(\texttt{commutative-ring}, \texttt{field}, \ldots) still spell their
+\texttt{is-\textit{name}} out by a hand-written
+$\texttt{is-}\mathit{name} \Leftrightarrow \texttt{is-}\mathit{parent}
 \land \text{properties}$ axiom rather than through \texttt{property}
 clauses --- equivalent in effect, a candidate for later unification.
 \end{remark}
@@ -569,7 +569,7 @@ The core algebraic species are declared in \texttt{structure-library/} (one file
 per structure) and loaded at startup.  The declarations below are \emph{generated}
 from the live catalogue (\texttt{reference/STRUCTURE-INDEX.md}), so their slots and
 laws match the running system.  Names are shown as \emph{stored}: the reader and
-MIT~Scheme fold case, so \texttt{MONOID} and \texttt{monoid}, \texttt{CARR} and
+MIT~Scheme fold case, so \texttt{monoid} and \texttt{monoid}, \texttt{carr} and
 \texttt{carr}, denote the same symbol.  Each \texttt{(property \ldots)} clause folds
 one characteristic law into the structure's \texttt{is-X} predicate.
 
@@ -601,8 +601,8 @@ forall([s],
     and NORM(s) in fun(VECTORS(s), RR))
 \end{VNBsnip}
 
-A characteristic axiom relating \texttt{MINUS} to \texttt{PLUS} and
-\texttt{SCALAR-TIMES} is installed separately.  Here the axiom is written
+A characteristic axiom relating \texttt{minus} to \texttt{plus} and
+\texttt{scalar-times} is installed separately.  Here the axiom is written
 in S-expression form rather than string notation, because the string
 parser reads \texttt{-1} as unary minus applied to \texttt{1} rather than
 as a negative integer literal; the S-expression \texttt{-1} is a genuine
@@ -630,12 +630,12 @@ A vector space over an arbitrary field:
 \end{VNBcode}
 
 \begin{remark}
-\texttt{NORMEDSPACE} and \texttt{VECTORSPACE} above are illustrations of
+\texttt{normedspace} and \texttt{vectorspace} above are illustrations of
 multi-carrier declaration, not pre-loaded structures.  The library's actual
-normed and vector spaces are \texttt{NORMED-VECTOR-SPACE} (carrier \texttt{VEC},
-with \texttt{VADD}/\texttt{VZERO}/\texttt{VNEG}/\texttt{ACT}/\texttt{VNRM} and a
-\texttt{(substructure SCAL RING)} for the scalars) and \texttt{VECTOR-SPACE}
-(declared \texttt{(same-shape-as MODULE)} with \texttt{(law "is-field(scal(s))")});
+normed and vector spaces are \texttt{normed-vector-space} (carrier \texttt{vec},
+with \texttt{vadd}/\texttt{vzero}/\texttt{vneg}/\texttt{act}/\texttt{vnrm} and a
+\texttt{(substructure scal ring)} for the scalars) and \texttt{vector-space}
+(declared \texttt{(same-shape-as module)} with \texttt{(law "is-field(scal(s))")});
 see \texttt{reference/STRUCTURE-INDEX.md}.
 \end{remark}
 
@@ -658,17 +658,17 @@ declaration adds only the new \texttt{(law "\ldots")} clauses:
 \end{VNBcode}
 
 The installed predicate is the parent's, strengthened, with
-\texttt{IS-\textit{PARENT}} as its \emph{first, literal} conjunct:
+\texttt{is-\textit{parent}} as its \emph{first, literal} conjunct:
 \[
-  \forall s.\;\mathit{IS\text{-}COMMUTATIVE\text{-}RING}(s)
+  \forall s.\;\mathit{is\text{-}commutative\text{-}ring}(s)
     \;\Leftrightarrow\;
-    \mathit{IS\text{-}RING}(s)\ \wedge\ (\text{multiplication commutes}).
+    \mathit{is\text{-}ring}(s)\ \wedge\ (\text{multiplication commutes}).
 \]
 Two things follow.  The refinement is transparently a sub-predicate of its
 parent --- the subtype machinery (\texttt{subtype-laws.scm}) reads
-\texttt{IS-RING} straight off the first conjunct --- and \texttt{CARR},
-\texttt{ADD}, \texttt{MUL}, \ldots keep exactly the indices they carry under
-\texttt{RING}, so every accessor macete is shared.
+\texttt{is-ring} straight off the first conjunct --- and \texttt{carr},
+\texttt{add}, \texttt{mul}, \ldots keep exactly the indices they carry under
+\texttt{ring}, so every accessor macete is shared.
 
 Because the shape is inherited, a \texttt{same-shape-as} declaration \emph{may
 not} declare slots of its own: a \texttt{(carriers \ldots)}, \texttt{(op
@@ -696,20 +696,20 @@ give its defining equation, and the tuple of slot values in declared slot order.
 The call:
 \begin{itemize}
 \item \textbf{checks the tuple against the shape} --- a tuple of the wrong length
-  for \texttt{RING} fails the load rather than silently asserting a false
-  \texttt{IS-RING};
+  for \texttt{ring} fails the load rather than silently asserting a false
+  \texttt{is-ring};
 \item \textbf{installs the defining equation} under the given name
-  (\texttt{zz-ring-def}: $\mathit{ZZ\text{-}RING} = \mathtt{LIST}(\ldots)$);
+  (\texttt{zz-ring-def}: $\mathit{zz\text{-}ring} = \mathtt{list}(\ldots)$);
 \item \textbf{installs one per-slot value macete}, \texttt{\textit{name}@\textit{acc}},
-  so \texttt{(MUL ZZ-RING)} reduces to \texttt{bintimes} in a single
-  \texttt{slot} step instead of exposing \texttt{(NTH 3 ZZ-RING)}.  These use
+  so \texttt{(mul zz-ring)} reduces to \texttt{bintimes} in a single
+  \texttt{slot} step instead of exposing \texttt{(nth 3 zz-ring)}.  These use
   \texttt{==}, not \texttt{=}: the slot value is unconditionally that term, so no
   definedness obligation is owed;
 \item \textbf{registers the instance} as a definitional structure with the
   species as parent, so it earns a card in \texttt{describe-structure}, a node in
   the structure graph, and a place in \texttt{known-structures}.
 \end{itemize}
-The instance still owes an \texttt{IS-\textit{SPECIES}} theorem to be
+The instance still owes an \texttt{is-\textit{species}} theorem to be
 \emph{certified}; once that is proved, \texttt{specialize-structure} (below)
 transports the species' theorems to it.
 
@@ -720,10 +720,10 @@ transports the species' theorems to it.
 Every characteristic axiom and every theorem proved about a structure class
 has the generic shape
 \[
-  \forall s.\;\mathit{IS\text{-}NAME}(s) \;\Rightarrow\; P[s].
+  \forall s.\;\mathit{is\text{-}name}(s) \;\Rightarrow\; P[s].
 \]
 Once a specific instance $h$ has been \emph{certified}---meaning a theorem
-of the form $\mathit{IS\text{-}RING}(h)$ has been proved and installed---every
+of the form $\mathit{is\text{-}ring}(h)$ has been proved and installed---every
 such generic statement can be specialized to $h$ by universal instantiation
 followed by modus ponens, yielding the concrete statement $P[h]$.
 
@@ -739,21 +739,21 @@ The interactive short form is \texttt{(spec instance struct is-thm)}.
 \paragraph{Arguments.}
 \begin{itemize}
 \item \textit{instance-name} --- symbol naming the specific structure, e.g.\
-  \texttt{HARP}.
-\item \textit{struct-name} --- the structure class, e.g.\ \texttt{RING}.
-  The predicate \texttt{IS-RING} is derived automatically.
+  \texttt{harp}.
+\item \textit{struct-name} --- the structure class, e.g.\ \texttt{ring}.
+  The predicate \texttt{is-ring} is derived automatically.
 \item \textit{is-thm-name} --- name of an installed theorem
-  whose formula is exactly $\mathit{IS\text{-}RING}(\mathtt{HARP})$.
+  whose formula is exactly $\mathit{is\text{-}ring}(\mathtt{harp})$.
 \end{itemize}
 
 \paragraph{What gets specialized.}
 Every entry in the global theorem table (axioms and proved theorems alike)
 whose formula matches
 \[
-  \forall s.\;\mathit{IS\text{-}RING}(s) \;\Rightarrow\; P[s]
+  \forall s.\;\mathit{is\text{-}ring}(s) \;\Rightarrow\; P[s]
 \]
 --- with $s$ the bound variable appearing as the sole argument to
-$\mathit{IS\text{-}RING}$ --- is specialized.  The result $P[\mathtt{HARP}]$
+$\mathit{is\text{-}ring}$ --- is specialized.  The result $P[\mathtt{harp}]$
 is installed under the name
 $\langle\textit{original\text{-}name}\rangle\texttt{-harp}$.
 Axioms such as \texttt{ring-add-assoc} are included, so
@@ -761,8 +761,8 @@ Axioms such as \texttt{ring-add-assoc} are included, so
 
 \paragraph{Soundness.}
 No new axioms are introduced.  Each specialized theorem $P[h]$ follows
-from the certified $\mathit{IS\text{-}RING}(h)$ and the generic
-$\forall s.\;\mathit{IS\text{-}RING}(s)\Rightarrow P[s]$ by two standard
+from the certified $\mathit{is\text{-}ring}(h)$ and the generic
+$\forall s.\;\mathit{is\text{-}ring}(s)\Rightarrow P[s]$ by two standard
 inferences: universal instantiation and modus ponens.
 \texttt{specialize-structure} performs these in bulk without requiring a
 separate interactive proof for each one.  The certification check at the
@@ -772,19 +772,19 @@ before any specialization occurs; an incorrect theorem name raises an error.
 \begin{remark}
 Theorems about sub-structures are \emph{not} automatically transported.
 For instance, theorems of the form
-$\forall s.\;\mathit{IS\text{-}GROUP}(s)\Rightarrow\ldots$
-are not touched by \texttt{(spec 'HARP 'RING ...)}.  To obtain them you
-would need to certify $\mathit{IS\text{-}GROUP}(\mathtt{HARP})$ separately
-and call \texttt{spec} again for the \texttt{GROUP} class.
+$\forall s.\;\mathit{is\text{-}group}(s)\Rightarrow\ldots$
+are not touched by \texttt{(spec 'harp 'ring ...)}.  To obtain them you
+would need to certify $\mathit{is\text{-}group}(\mathtt{harp})$ separately
+and call \texttt{spec} again for the \texttt{group} class.
 \end{remark}
 
 \paragraph{Example: the integers as a ring.}
-The constant \texttt{ZZ-RING} is defined in \texttt{numeric-instances.scm} as
-the 6-tuple $[\mathtt{ZZ},\,+,\,\times,\,-,\,0,\,1]$.  The axiom
-\texttt{zz-is-ring} asserts $\mathit{IS\text{-}RING}(\mathit{ZZ\text{-}RING})$.
-(We use $\mathbb{Z}$, not $\mathbb{C}$: \texttt{CC-NORMED-FIELD} is a 7-tuple normed
-field, so it cannot witness the length-6 \texttt{IS-RING} on the same tuple;
-it reaches the ring world through the \texttt{NORMED-FIELD-AS-*} views.)
+The constant \texttt{zz-ring} is defined in \texttt{numeric-instances.scm} as
+the 6-tuple $[\mathtt{zz},\,+,\,\times,\,-,\,0,\,1]$.  The axiom
+\texttt{zz-is-ring} asserts $\mathit{is\text{-}ring}(\mathit{zz\text{-}ring})$.
+(We use $\mathbb{Z}$, not $\mathbb{C}$: \texttt{cc-normed-field} is a 7-tuple normed
+field, so it cannot witness the length-6 \texttt{is-ring} on the same tuple;
+it reaches the ring world through the \texttt{normed-field-as-*} views.)
 
 \begin{VNBcode}
 (spec 'ZZ-RING 'RING 'zz-is-ring)
@@ -827,11 +827,11 @@ cannot express this mapping and a functoid is required:
          (VNB-LAMBDA (LIST x y) (CARTESIAN (CARR S) (CARR S)) ((NORM S) ((MINUS S) x y)))))
 \end{VNBcode}
 
-The result is a tuple \texttt{[VECTORS(S), D]} matching the
-\texttt{METRIC-SPACE} signature (carrier \texttt{PTS}, distance \texttt{DIST}).
-That it satisfies \texttt{IS-METRIC-SPACE} is a theorem, not automatic:
+The result is a tuple \texttt{[vectors(S), D]} matching the
+\texttt{metric-space} signature (carrier \texttt{pts}, distance \texttt{dist}).
+That it satisfies \texttt{is-metric-space} is a theorem, not automatic:
 the metric axioms follow from the norm axioms and the definition of
-\texttt{MINUS}.
+\texttt{minus}.
 
 \paragraph{Example: forgetful functor NORMEDSPACE $\to$ VECTORSPACE.}
 Dropping the norm recovers the underlying vector space:
@@ -846,14 +846,14 @@ Dropping the norm recovers the underlying vector space:
 (def-functoid 'GroupCarrier '(G) '(CARR G))
 \end{VNBcode}
 This maps every group to its underlying carrier set.  The result is
-always a set (\texttt{IS-GROUP} entails \texttt{CARR(G) in SET}),
+always a set (\texttt{is-group} entails \texttt{carr(G) in set}),
 even though the domain is a proper class.
 
 \paragraph{Transfinite recursion and functoids.}
 \begin{sloppypar}The transfinite recursion scheme
 (Section~\ref{sec:ord-recursion}) produces a functoid, not a
-set-theoretic function: its domain is the proper class $\mathtt{ORD}$
-of all ordinals, so the result cannot live in $\mathtt{FUN}(\mathtt{ORD}, B)$
+set-theoretic function: its domain is the proper class $\mathtt{ord}$
+of all ordinals, so the result cannot live in $\mathtt{fun}(\mathtt{ord}, B)$
 for any set-valued $B$.  A typical pattern is to define the step
 functor $\mathcal{E}$ as a functoid via \texttt{def-functoid} and
 then invoke \texttt{def-by-ord-recursion}:\end{sloppypar}
@@ -879,7 +879,7 @@ restricted to all earlier ordinals.
 \label{sec:notation}
 
 Every head the system knows --- a predicate, a functoid, a structure predicate,
-even a primitive like \texttt{=} or \texttt{IN} --- has an entry in a single
+even a primitive like \texttt{=} or \texttt{in} --- has an entry in a single
 operator table.  \texttt{def-predicate}, \texttt{def-functoid} and
 \texttt{declare-structure} fill in the \emph{structural} part of the entry (its
 kind, its arity) at the definition point.  \texttt{notation!} fills in the
@@ -910,46 +910,46 @@ The recognised keys are
   \#t)}.  When a template cannot express the rendering, \texttt{english} may
   instead be a \emph{procedure} from the list of argument strings to a string.
 \item \texttt{noun} and \texttt{article} are the special case of a unary
-  structure predicate: given them, \texttt{IS-RING($s$)} reads ``$s$ is a
+  structure predicate: given them, \texttt{is-ring($s$)} reads ``$s$ is a
   ring'' throughout the prose renderers, and the article joins correctly
   (``a ring'', ``an $R$-module'').
 \item \texttt{kind} and \texttt{arity} let a \texttt{notation!} register a head
   the def-forms never introduced --- a primitive such as \texttt{=} or
-  \texttt{IN} --- so it, too, gets a reading.
+  \texttt{in} --- so it, too, gets a reading.
 \end{itemize}
 
 One table, one declaration form, read by every renderer: \texttt{expr->tex} and
 \texttt{wff-english} for formulas, \texttt{describe-structure} for the structure
 cards, and the generated \texttt{OPERATORS.md}.  A head with no
 \texttt{notation!} still works --- it falls back to prefix application,
-\texttt{IS-RING($s$)} --- so notation is an addition, never a prerequisite.
+\texttt{is-ring($s$)} --- so notation is an addition, never a prerequisite.
 
 %%% -----------------------------------------------------------------------
-\section{Cardinality: \texttt{CARD}}
+\section{Cardinality: \texttt{card}}
 \label{sec:cardinality}
 
-\texttt{CARD} is a functoid mapping every set $A$ to its cardinality
-$\mathtt{CARD}(A) \in \mathtt{ORD}$.  Under the axiom of choice,
-$\mathtt{CARD}(A)$ is the least ordinal $\alpha$ that bijects with $A$
+\texttt{card} is a functoid mapping every set $A$ to its cardinality
+$\mathtt{card}(A) \in \mathtt{ord}$.  Under the axiom of choice,
+$\mathtt{card}(A)$ is the least ordinal $\alpha$ that bijects with $A$
 (the Hartogs--Scott construction).  We axiomatise the key properties
 directly in \texttt{cardinality.scm}.
 
 \begin{remark}
-Because the domain of $\mathtt{CARD}$ is the proper class $\mathtt{SET}$,
-it cannot be expressed as an element of $\mathtt{FUN}(\mathtt{SET}, \mathtt{ORD})$
+Because the domain of $\mathtt{card}$ is the proper class $\mathtt{set}$,
+it cannot be expressed as an element of $\mathtt{fun}(\mathtt{set}, \mathtt{ord})$
 (that class is not a set).  It is therefore a functoid, on the same
-footing as $\mathit{ORD\text{-}SEGMENT}$.
+footing as $\mathit{ord\text{-}segment}$.
 \end{remark}
 
 \begin{remark}
-$\mathtt{CARD}$ is total over all classes, but characterised only when
-its argument is a set.  The kernel does not define $\mathtt{CARD}(A)$
-for a proper class $A$: the term $\mathtt{CARD}(\mathtt{ORD})$, for
+$\mathtt{card}$ is total over all classes, but characterised only when
+its argument is a set.  The kernel does not define $\mathtt{card}(A)$
+for a proper class $A$: the term $\mathtt{card}(\mathtt{ord})$, for
 instance, is syntactically well-formed but no axiom constrains its
 value.  This is consistent with the totality framing (every functoid
 returns \emph{some} value), but means that any equational use of
-$\mathtt{CARD}(A)$ outside the established sethood-conditioned axioms
-will not discharge.  Convention: only invoke $\mathtt{CARD}$ on a
+$\mathtt{card}(A)$ outside the established sethood-conditioned axioms
+will not discharge.  Convention: only invoke $\mathtt{card}$ on a
 class you have proven to be a set.
 \end{remark}
 
@@ -957,39 +957,39 @@ class you have proven to be a set.
 
 \begin{description}
 \item[\texttt{card-in-ord}]
-  $A \in \mathtt{SET} \Rightarrow \mathtt{CARD}(A) \in \mathtt{ORD}$.
+  $A \in \mathtt{set} \Rightarrow \mathtt{card}(A) \in \mathtt{ord}$.
 
 \item[\texttt{card-empty}]
-  $\mathtt{CARD}(\emptyset) = 0$.
+  $\mathtt{card}(\emptyset) = 0$.
 
 \item[\texttt{card-insert}]
-  $A \in \mathtt{SET} \wedge x \notin A \;\Rightarrow\;
-   \mathtt{CARD}(A \cup \{x\}) = \mathit{succ_{ORD}}(\mathtt{CARD}(A))$.\\
-  Here $\{x\} = \mathtt{PAIR}(x,x)$ (by the pairing axiom with $a = b = x$).
+  $A \in \mathtt{set} \wedge x \notin A \;\Rightarrow\;
+   \mathtt{card}(A \cup \{x\}) = \mathit{succ_{ord}}(\mathtt{card}(A))$.\\
+  Here $\{x\} = \mathtt{pair}(x,x)$ (by the pairing axiom with $a = b = x$).
 
 \item[\texttt{card-segment}]
-  $n \in \mathtt{NN} \;\Rightarrow\; \mathtt{CARD}(\mathit{ORD\text{-}SEGMENT}(n)) = n$.\\
-  Bridge between cardinality and the $\mathtt{NN}$-indexed model of finite sets.
+  $n \in \mathtt{nn} \;\Rightarrow\; \mathtt{card}(\mathit{ord\text{-}segment}(n)) = n$.\\
+  Bridge between cardinality and the $\mathtt{nn}$-indexed model of finite sets.
 
 \item[\texttt{card-finite-bij}]
-  $A \in \mathtt{SET} \wedge \mathtt{CARD}(A) \in \mathtt{NN} \;\Rightarrow\;$
+  $A \in \mathtt{set} \wedge \mathtt{card}(A) \in \mathtt{nn} \;\Rightarrow\;$
   there exists a bijection
-  $\varphi : \mathit{ORD\text{-}SEGMENT}(\mathtt{CARD}(A)) \to A$.\\
+  $\varphi : \mathit{ord\text{-}segment}(\mathtt{card}(A)) \to A$.\\
   (Existence follows from AC; stated as an axiom here.)
 
 \item[\texttt{card-union-disjoint}]
-  $A, B \in \mathtt{SET},\;
-   \mathtt{CARD}(A), \mathtt{CARD}(B) \in \mathtt{NN},\;
+  $A, B \in \mathtt{set},\;
+   \mathtt{card}(A), \mathtt{card}(B) \in \mathtt{nn},\;
    A \cap B = \emptyset \;\Rightarrow\;
-   \mathtt{CARD}(A \cup B) = \mathtt{CARD}(A) + \mathtt{CARD}(B)$.\\
-  Finite additivity; the $+$ on the right is $\mathtt{NN}$ addition.
+   \mathtt{card}(A \cup B) = \mathtt{card}(A) + \mathtt{card}(B)$.\\
+  Finite additivity; the $+$ on the right is $\mathtt{nn}$ addition.
 \end{description}
 
 \subsection*{Finiteness criterion}
 
-A set $A$ is \emph{finite} iff $\mathtt{CARD}(A) \in \mathtt{NN}$.
+A set $A$ is \emph{finite} iff $\mathtt{card}(A) \in \mathtt{nn}$.
 For finite sets, \texttt{card-segment} says
-$\mathtt{CARD}(\mathit{ORD\text{-}SEGMENT}(n)) = n$, so the initial
+$\mathtt{card}(\mathit{ord\text{-}segment}(n)) = n$, so the initial
 segment $\{0, 1, \ldots, n-1\}$ has cardinality exactly $n$.  The
 axiom \texttt{card-finite-bij} supplies an enumeration bijection for
 any finite set, which is the key ingredient for defining unordered
@@ -1001,7 +1001,7 @@ finite sums in Section~\ref{sec:sequences}.
 
 Declaring a structure declares its morphisms too.  From the slot list alone,
 \texttt{declare-structure} generates a homomorphism predicate
-\texttt{IS-HOM-\textit{NAME}}$(a, b, f_1 \ldots f_k)$ --- one map $f_i$ per
+\texttt{is-hom-\textit{name}}$(a, b, f_1 \ldots f_k)$ --- one map $f_i$ per
 \emph{independent} carrier --- whose meaning is the obvious one: each map is
 typed between the corresponding carriers, and every operation and constant is
 preserved.
@@ -1015,7 +1015,7 @@ preserved.
 \item \textbf{substructure} \texttt{K}: agreement, \texttt{K($a$) = K($b$)} ---
   morphisms are taken between structures over the \emph{same} base.
 \item \textbf{derived} carrier: nothing.  Its value is pinned by
-  \texttt{IS-\textit{NAME}} (Section~\ref{sec:declare-structure}), so it rides
+  \texttt{is-\textit{name}} (Section~\ref{sec:declare-structure}), so it rides
   the base carrier's map and owes no map of its own.  This is why a field
   homomorphism is one map, not two.
 \end{itemize}
@@ -1031,10 +1031,10 @@ provenance, so it costs no warrant.
 
 The generated clause for each slot kind is the standard one: preservation for
 an operation or a constant, the pullback condition for a \texttt{family} slot
-(the arrows of \texttt{TOP-SPACE} are the continuous maps, those of
-\texttt{MEASURABLE-SPACE} the measurable maps), transport for a
+(the arrows of \texttt{top-space} are the continuous maps, those of
+\texttt{measurable-space} the measurable maps), transport for a
 \texttt{family-fun} slot, ``related points go to related points'' for a
-\texttt{relation} slot.  For a \texttt{METRIC-SPACE} the generated arrows
+\texttt{relation} slot.  For a \texttt{metric-space} the generated arrows
 preserve the distance: they are the isometries, and a \texttt{notation!}
 beside the structure says so, since ``homomorphism'' is then the wrong word
 (Section~\ref{sec:notation}).  Where no generated clause is the right one, a
@@ -1049,12 +1049,12 @@ structure like \texttt{notation!}:
 
 The argument list is the two objects and one map per carrier.  The body states
 \emph{only} what is characteristic: the object typings
-\texttt{IS-METRIZABLE-TOP-SPACE($s$)}, \texttt{IS-METRIZABLE-TOP-SPACE($t$)}
+\texttt{is-metrizable-top-space($s$)}, \texttt{is-metrizable-top-space($t$)}
 and the map typing \texttt{$f$ in fun(pts($s$), pts($t$))} are supplied
 automatically and need not be repeated.  The declaration replaces the generated
-\texttt{IS-HOM-METRIZABLE-TOP-SPACE} entirely.  Two species override today:
-\texttt{METRIZABLE-TOP-SPACE} (a refinement inherits its parent's shape, not
-its arrows, so continuity is restated) and \texttt{RINGOID} (a ring
+\texttt{is-hom-metrizable-top-space} entirely.  Two species override today:
+\texttt{metrizable-top-space} (a refinement inherits its parent's shape, not
+its arrows, so continuity is restated) and \texttt{ringoid} (a ring
 homomorphism of the underlying rings that preserves the ideal).  The table of
 Section~\ref{sec:declare-category} says, for every structure, which of the
 three cases its arrows are.
@@ -1063,12 +1063,12 @@ three cases its arrows are.
 \label{sec:declare-category}
 
 A structure is a category: its objects are its models, its arrows the maps
-satisfying \texttt{IS-HOM-\textit{NAME}}, composed as functions.  That is the
+satisfying \texttt{is-hom-\textit{name}}, composed as functions.  That is the
 species' \emph{default} category, and for an algebraic species it is the right
 one.  For a metric space the default is the category of isometries, which is
 not the one analysis works in: the Lipschitz maps, the uniformly continuous
 maps and the continuous maps each form a category on the same objects; on the
-countably-metrised spaces (\texttt{C-METRIC-SPACE}) the continuous maps for
+countably-metrised spaces (\texttt{c-metric-space}) the continuous maps for
 the canonical metric form one, which rests on the canonical metric being a
 metric (\texttt{c-metric-is-metric-space}).  A species may therefore carry
 several categories.  A second one is declared
@@ -1086,8 +1086,8 @@ beside the structure:
 The body states what is characteristic of an arrow $f \colon a \to b$; the
 object typings and the carrier typing of each map are supplied, as for
 \texttt{declare-hom!}.  The declaration installs, definitionally, the arrow
-predicate \texttt{IS-LIPSCHITZ-ARROW}$(a, b, f)$ and the hom-set
-\texttt{HOM-LIPSCHITZ}$(a, b)$, and registers three \emph{obligations} as
+predicate \texttt{is-lipschitz-arrow}$(a, b, f)$ and the hom-set
+\texttt{hom-lipschitz}$(a, b)$, and registers three \emph{obligations} as
 statements, not as theorems: \texttt{hom-lipschitz-id} (the identity is an
 arrow), \texttt{hom-lipschitz-compose} (arrows compose) and
 \texttt{hom-lipschitz-in-set} (the hom-set is a set).  That the arrows of a
@@ -1114,9 +1114,9 @@ the page finds by the shape of the installed theorems.
 \section{Viewing one structure as another: \texttt{view-as}}
 \label{sec:view-as}
 
-A ring's additive part $(\mathtt{CARR}, \mathtt{ADD}, \mathtt{ZERO},
-\mathtt{NEG})$ is an abelian group; its multiplicative part
-$(\mathtt{CARR}, \mathtt{MUL}, \mathtt{ONE})$ is a monoid.  A
+A ring's additive part $(\mathtt{carr}, \mathtt{add}, \mathtt{zero},
+\mathtt{neg})$ is an abelian group; its multiplicative part
+$(\mathtt{carr}, \mathtt{mul}, \mathtt{one})$ is a monoid.  A
 \emph{view-as} records such a relationship: a way of \emph{seeing} an
 instance of one structure as an instance of another.  The relationship
 is asymmetric (the ring's additive group forgets the multiplication;
@@ -1157,16 +1157,16 @@ forgetful functor does exactly one or both of two things (recall
 \begin{itemize}
 \item \textbf{forget shape} --- the source list keeps only a sub-list of the
   source's slots; the rest drop.  (A ring's additive group forgets
-  \texttt{MUL}/\texttt{ONE}; a field's multiplicative group keeps the
-  \texttt{NON-ZERO} carrier slot and forgets the additive ones.)
-\item \textbf{forget properties} --- \texttt{IS-TARGET} folds fewer laws than
-  \texttt{IS-SOURCE}, so the image satisfies less (a commutative ring viewed
+  \texttt{mul}/\texttt{one}; a field's multiplicative group keeps the
+  \texttt{non-zero} carrier slot and forgets the additive ones.)
+\item \textbf{forget properties} --- \texttt{is-\textit{target}} folds fewer laws than
+  \texttt{is-\textit{source}}, so the image satisfies less (a commutative ring viewed
   as a ring forgets commutativity).
 \end{itemize}
 
 \noindent These are the \emph{only} two forgetful operations.  Writing the kept
-slots in the target's coordinate order (a ring's \texttt{ADD} filling a group's
-\texttt{MUL} slot, or a non-first slot serving as the carrier) is just
+slots in the target's coordinate order (a ring's \texttt{add} filling a group's
+\texttt{mul} slot, or a non-first slot serving as the carrier) is just
 notation, not a third kind --- it is what lets shape-forgetting be expressed at
 all.  Genuinely \emph{non}-forgetful functors --- the quotient, the completion
 --- are constructions, not views; they are written as plain functoids.
@@ -1183,33 +1183,33 @@ all.  Genuinely \emph{non}-forgetful functors --- the quotient, the completion
 \subsection{What \texttt{def-functor} installs}
 
 \begin{enumerate}
-\item \textbf{A constructor functoid} \texttt{(NAME s)} whose defining
+\item \textbf{A constructor functoid} \texttt{(\textit{name} s)} whose defining
   equation gathers the named source components into a target-shaped list:
   \[
-    \mathtt{(RING\text{-}ADDITIVE\text{-}AG}\;r) \;=\;
-      \mathtt{LIST}(\mathtt{CARR}(r),\, \mathtt{ADD}(r),\,
-                    \mathtt{ZERO}(r),\, \mathtt{NEG}(r)).
+    \mathtt{(ring\text{-}additive\text{-}ag}\;r) \;=\;
+      \mathtt{list}(\mathtt{carr}(r),\, \mathtt{add}(r),\,
+                    \mathtt{zero}(r),\, \mathtt{neg}(r)).
   \]
-  Inside a proof, \texttt{(MUL (RING-ADDITIVE-AG r))} reduces to
-  \texttt{(ADD r)} by unfolding the functoid and the accessor.
+  Inside a proof, \texttt{(mul (ring-additive-ag r))} reduces to
+  \texttt{(add r)} by unfolding the functoid and the accessor.
 
 \item \textbf{A typing axiom}, named
   \texttt{\textit{name}-is-\textit{target}} (here
   \texttt{ring-additive-ag-is-abelian-group}):
   \[
-    \forall r.\; \mathit{IS\text{-}SOURCE}(r) \;\Rightarrow\;
-      \mathit{IS\text{-}TARGET}(\mathtt{NAME}(r)).
+    \forall r.\; \mathit{is\text{-}source}(r) \;\Rightarrow\;
+      \mathit{is\text{-}target}(\mathit{name}(r)).
   \]
   During the library-build phase this is installed as an \emph{axiom}
   (a warranted assertion, Section~\ref{sec:warrants}), not proved;
   promoting it to a theorem is a separate task.
 
 \item \textbf{Auto-specializations.}  Every theorem of the form
-  $\forall s.\; \mathit{IS\text{-}TARGET}(s) \Rightarrow P[s]$ already in
+  $\forall s.\; \mathit{is\text{-}target}(s) \Rightarrow P[s]$ already in
   the library is re-installed as
-  $\forall r.\; \mathit{IS\text{-}SOURCE}(r) \Rightarrow P[\mathtt{NAME}(r)]$,
+  $\forall r.\; \mathit{is\text{-}source}(r) \Rightarrow P[\mathit{name}(r)]$,
   with the target-slot accessors reduced to source components (so
-  $\mathtt{MUL}(s)$ becomes $\mathtt{ADD}(r)$, etc.), under the name
+  $\mathtt{mul}(s)$ becomes $\mathtt{add}(r)$, etc.), under the name
   \texttt{\textit{original}-\textit{name}}.  Thus declaring the additive
   view immediately carries every abelian-group theorem over to the
   additive structure of every ring.
@@ -1223,7 +1223,7 @@ along it.  Homomorphisms are now first-class
 (Section~\ref{sec:morphisms}); the morphism half --- transporting a
 homomorphism across a view --- remains deferred.  The
 auto-specializer currently matches only theorems guarded by exactly
-\texttt{IS-TARGET}; it does not chain through structure-inclusion axioms,
+\texttt{is-\textit{target}}; it does not chain through structure-inclusion axioms,
 so same-shape refinements (a commutative ring's additive view, say) are
 declared directly rather than derived.
 \end{remark}
@@ -1231,7 +1231,7 @@ declared directly rather than derived.
 \begin{remark}
 Same-shape inclusions --- every abelian group is a group, every
 commutative ring is a ring --- are \emph{not} views.  They are recorded
-as plain $\texttt{IS-}X \Rightarrow \texttt{IS-}Y$ typing axioms, because
+as plain $\texttt{is-}X \Rightarrow \texttt{is-}Y$ typing axioms, because
 the constructor would be a redundant identity list.  A \texttt{view-as}
 earns its keep when source and target have different shapes, so the
 constructor genuinely projects.
@@ -1256,7 +1256,7 @@ the object map is an arbitrary term, and the form is
 
 The arguments are the functor name, its source and target species, the
 parameter list, and the defining term --- installed as an ordinary functoid
-(Section~\ref{sec:def-functoid}), so \texttt{(NF-METRIC-SPACE nf)} rewrites to
+(Section~\ref{sec:def-functoid}), so \texttt{(nf-metric-space nf)} rewrites to
 that tuple.
 
 The decisive difference from \texttt{view-as} is what it \emph{claims}.  A view's
@@ -1269,10 +1269,10 @@ undischarged:
 \[
   \begin{aligned}
     \texttt{\textit{name}-is-\textit{tgt}} &:\quad
-      \mathit{IS\text{-}SRC}(r) \Rightarrow \mathit{IS\text{-}TGT}(\mathtt{NAME}(r)), \\
+      \mathit{is\text{-}src}(r) \Rightarrow \mathit{is\text{-}tgt}(\mathit{name}(r)), \\
     \texttt{\textit{name}-functorial} &:\quad
-      \mathit{IS\text{-}HOM\text{-}SRC}(a, b, f) \Rightarrow
-      \mathit{IS\text{-}HOM\text{-}TGT}(\mathtt{NAME}(a), \mathtt{NAME}(b), f).
+      \mathit{is\text{-}hom\text{-}src}(a, b, f) \Rightarrow
+      \mathit{is\text{-}hom\text{-}tgt}(\mathit{name}(a), \mathit{name}(b), f).
   \end{aligned}
 \]
 Both are available as goals, ready for \texttt{sp}.  A functor whose obligations
@@ -1283,24 +1283,24 @@ are unproved is a functor you do not yet have.
 \label{sec:sequences}
 
 \texttt{sequences.scm} defines two constants by primitive recursion on
-$\mathtt{NN}$:
+$\mathtt{nn}$:
 
 \begin{itemize}
-\item $\mathit{PROD\text{-}ORD}(m, f, n)$ --- product of $f(0) * f(1) * \cdots * f(n{-}1)$
+\item $\mathit{prod\text{-}ord}(m, f, n)$ --- product of $f(0) * f(1) * \cdots * f(n{-}1)$
   in a monoid $m$.
-\item $\mathtt{SUM}(r, f, n)$ --- sum $f(0) + f(1) + \cdots + f(n{-}1)$
+\item $\mathtt{sum}(r, f, n)$ --- sum $f(0) + f(1) + \cdots + f(n{-}1)$
   in a ring $r$.
 \end{itemize}
 
-Both are $\mathtt{NN}$-indexed: the third argument $n$ counts how many
+Both are $\mathtt{nn}$-indexed: the third argument $n$ counts how many
 terms are included.  The empty product ($n = 0$) is the identity;
-$\mathtt{SUM}(r, f, 0) = \mathtt{ZERO}(r)$.
+$\mathtt{sum}(r, f, 0) = \mathtt{zero}(r)$.
 
-\subsection{\texttt{PROD-ORD}: monoid product}
+\subsection{\texttt{prod-ord}: monoid product}
 
 \paragraph{Signature.}
-$\mathit{PROD\text{-}ORD}(m, f, n)$ where $m$ is a \textsc{Monoid},
-$f \in \mathtt{FUN}(\mathtt{NN}, \mathtt{CARR}(m))$, $n \in \mathtt{NN}$.
+$\mathit{prod\text{-}ord}(m, f, n)$ where $m$ is a \textsc{Monoid},
+$f \in \mathtt{fun}(\mathtt{nn}, \mathtt{carr}(m))$, $n \in \mathtt{nn}$.
 
 \paragraph{Defining recursion.}
 Installed by \texttt{def-by-nn-recursion} as two named axioms:
@@ -1308,94 +1308,94 @@ Installed by \texttt{def-by-nn-recursion} as two named axioms:
 \begin{align*}
 \mathtt{prod\text{-}ord\text{-}zero}: &\quad
   \forall m\, f.\;
-  \mathit{PROD\text{-}ORD}(m, f, 0) = \mathtt{ID}(m) \\
+  \mathit{prod\text{-}ord}(m, f, 0) = \mathtt{id}(m) \\
 \mathtt{prod\text{-}ord\text{-}succ}: &\quad
-  \forall m\, f\, n \in \mathtt{NN}.\;
-  \mathit{PROD\text{-}ORD}(m, f, \mathtt{succ}(n))
-  = \mathit{PROD\text{-}ORD}(m, f, n) * f(n)
+  \forall m\, f\, n \in \mathtt{nn}.\;
+  \mathit{prod\text{-}ord}(m, f, \mathtt{succ}(n))
+  = \mathit{prod\text{-}ord}(m, f, n) * f(n)
 \end{align*}
 
-where $*$ denotes $\mathtt{MUL}(m)$.
+where $*$ denotes $\mathtt{mul}(m)$.
 
 \paragraph{Additional axioms.}
 \begin{description}
 \item[\texttt{prod-ord-type}]
-  $\mathit{IS\text{-}MONOID}(m) \wedge f \in \mathtt{FUN}(\mathtt{NN}, \mathtt{CARR}(m))
-  \wedge n \in \mathtt{NN} \;\Rightarrow\;
-  \mathit{PROD\text{-}ORD}(m, f, n) \in \mathtt{CARR}(m)$.
+  $\mathit{is\text{-}monoid}(m) \wedge f \in \mathtt{fun}(\mathtt{nn}, \mathtt{carr}(m))
+  \wedge n \in \mathtt{nn} \;\Rightarrow\;
+  \mathit{prod\text{-}ord}(m, f, n) \in \mathtt{carr}(m)$.
   Installed as an axiom for convenience; formally derivable from
   \texttt{prod-ord-zero}, \texttt{prod-ord-succ}, \texttt{monoid-identity-in},
-  and \texttt{monoid-carrier-closed-opr} by $\mathtt{NN}$-induction
+  and \texttt{monoid-carrier-closed-opr} by $\mathtt{nn}$-induction
   (see Section~\ref{sec:ex-ni-type}).
 
 \item[\texttt{prod-ord-singleton}]
-  $\mathit{IS\text{-}MONOID}(m) \wedge f \in \mathtt{FUN}(\mathtt{NN}, \mathtt{CARR}(m))
-  \;\Rightarrow\; \mathit{PROD\text{-}ORD}(m, f, 1) = f(0)$.\\
+  $\mathit{is\text{-}monoid}(m) \wedge f \in \mathtt{fun}(\mathtt{nn}, \mathtt{carr}(m))
+  \;\Rightarrow\; \mathit{prod\text{-}ord}(m, f, 1) = f(0)$.\\
   (Derivable from \texttt{prod-ord-succ} at $n=0$, \texttt{prod-ord-zero},
   and \texttt{monoid-left-id}.)
 \end{description}
 
-\subsection{\texttt{SUM}: ring summation}
+\subsection{\texttt{sum}: ring summation}
 
-\texttt{SUM} is the special case of \texttt{PROD-ORD} for the additive
-monoid of a ring---\textit{i.e.}, $\mathtt{MUL} \to \mathtt{ADD}$,
-$\mathtt{ID} \to \mathtt{ZERO}$---defined independently for direct use.
+\texttt{sum} is the special case of \texttt{prod-ord} for the additive
+monoid of a ring---\textit{i.e.}, $\mathtt{mul} \to \mathtt{add}$,
+$\mathtt{id} \to \mathtt{zero}$---defined independently for direct use.
 
 \paragraph{Signature.}
-$\mathtt{SUM}(r, f, n)$ where $r$ is a \textsc{Ring},
-$f \in \mathtt{FUN}(\mathtt{NN}, \mathtt{CARR}(r))$, $n \in \mathtt{NN}$.
+$\mathtt{sum}(r, f, n)$ where $r$ is a \textsc{Ring},
+$f \in \mathtt{fun}(\mathtt{nn}, \mathtt{carr}(r))$, $n \in \mathtt{nn}$.
 
 \paragraph{Defining recursion.}
 
 \begin{align*}
 \mathtt{sum\text{-}zero}: &\quad
-  \forall r\, f.\; \mathtt{SUM}(r, f, 0) = \mathtt{ZERO}(r) \\
+  \forall r\, f.\; \mathtt{sum}(r, f, 0) = \mathtt{zero}(r) \\
 \mathtt{sum\text{-}succ}: &\quad
-  \forall r\, f\, n \in \mathtt{NN}.\;
-  \mathtt{SUM}(r, f, \mathtt{succ}(n))
-  = \mathtt{SUM}(r, f, n) + f(n)
+  \forall r\, f\, n \in \mathtt{nn}.\;
+  \mathtt{sum}(r, f, \mathtt{succ}(n))
+  = \mathtt{sum}(r, f, n) + f(n)
 \end{align*}
 
 \paragraph{Additional axioms.}
 \begin{description}
 \item[\texttt{sum-type}]
-  $\mathit{IS\text{-}RING}(r) \wedge f \in \mathtt{FUN}(\mathtt{NN}, \mathtt{CARR}(r))
-  \wedge n \in \mathtt{NN} \;\Rightarrow\; \mathtt{SUM}(r, f, n) \in \mathtt{CARR}(r)$.
+  $\mathit{is\text{-}ring}(r) \wedge f \in \mathtt{fun}(\mathtt{nn}, \mathtt{carr}(r))
+  \wedge n \in \mathtt{nn} \;\Rightarrow\; \mathtt{sum}(r, f, n) \in \mathtt{carr}(r)$.
   Installed as an axiom for convenience; formally derivable from
   \texttt{sum-zero}, \texttt{sum-succ}, \texttt{ring-zero-in},
-  and \texttt{ring-carrier-closed-add} by $\mathtt{NN}$-induction
+  and \texttt{ring-carrier-closed-add} by $\mathtt{nn}$-induction
   (Section~\ref{sec:ex-ni-type}).
 
 \item[\texttt{sum-singleton}]
-  $\mathit{IS\text{-}RING}(r) \wedge f \in \mathtt{FUN}(\mathtt{NN}, \mathtt{CARR}(r))
-  \;\Rightarrow\; \mathtt{SUM}(r, f, 1) = f(0)$.
+  $\mathit{is\text{-}ring}(r) \wedge f \in \mathtt{fun}(\mathtt{nn}, \mathtt{carr}(r))
+  \;\Rightarrow\; \mathtt{sum}(r, f, 1) = f(0)$.
 
 \item[\texttt{sum-left-scalar}]
-  $a \in \mathtt{CARR}(r) \wedge f \in \mathtt{FUN}(\mathtt{NN}, \mathtt{CARR}(r))
-  \wedge n \in \mathtt{NN} \;\Rightarrow\;$\\
-  $\mathtt{SUM}(r,\, \lambda i.\, a \cdot f(i),\, n)
-  = a \cdot \mathtt{SUM}(r, f, n)$.\\
-  (Derivable by $\mathtt{NN}$-induction using \texttt{ring-left-dist}.)
+  $a \in \mathtt{carr}(r) \wedge f \in \mathtt{fun}(\mathtt{nn}, \mathtt{carr}(r))
+  \wedge n \in \mathtt{nn} \;\Rightarrow\;$\\
+  $\mathtt{sum}(r,\, \lambda i.\, a \cdot f(i),\, n)
+  = a \cdot \mathtt{sum}(r, f, n)$.\\
+  (Derivable by $\mathtt{nn}$-induction using \texttt{ring-left-dist}.)
 \end{description}
 
 \begin{remark}
 The unordered finite sum $\sum_{x \in S} f(x)$ over an arbitrary finite
-set $S$ (not indexed by $\mathtt{NN}$) requires commutativity of
+set $S$ (not indexed by $\mathtt{nn}$) requires commutativity of
 addition and a well-definedness proof (independence of the enumeration
 bijection from \texttt{card-finite-bij}).  This more general
-$\mathit{SUM\text{-}SET}$ operation is implemented (\texttt{sequences.scm}); see
+$\mathit{sum\text{-}set}$ operation is implemented (\texttt{sequences.scm}); see
 Section~\ref{sec:sum-set} below.
 \end{remark}
 
 \begin{remark}
-The connection $\mathtt{SUM}(r, f, n) = \mathit{PROD\text{-}ORD}(m, f, n)$
-where $m = [\mathtt{CARR}(r),\, \mathtt{ADD}(r),\, \mathtt{ZERO}(r)]$ is the
+The connection $\mathtt{sum}(r, f, n) = \mathit{prod\text{-}ord}(m, f, n)$
+where $m = [\mathtt{carr}(r),\, \mathtt{add}(r),\, \mathtt{zero}(r)]$ is the
 additive monoid of $r$ is a theorem (by structural induction on $n$),
 not an axiom.
 \end{remark}
 
 \paragraph{Typical proof pattern.}
-To use \texttt{SUM} in a proof, unfold the recursion manually with
+To use \texttt{sum} in a proof, unfold the recursion manually with
 \texttt{(ta 'sum-succ)} and \texttt{(ta 'sum-zero)}, then close
 numeric identities with \texttt{(rs)} or \texttt{(arith)}.
 
@@ -1413,40 +1413,40 @@ numeric identities with \texttt{(rs)} or \texttt{(arith)}.
 \section{Set-indexed sums and products}
 \label{sec:sum-set-prod-set}
 
-\texttt{SUM} and \texttt{PROD-ORD} index by an initial segment
-$\{0, \ldots, n-1\}$ of $\mathtt{NN}$, so the order in which the
+\texttt{sum} and \texttt{prod-ord} index by an initial segment
+$\{0, \ldots, n-1\}$ of $\mathtt{nn}$, so the order in which the
 operation is applied is built into the definition.  Once the operation
 is commutative, the value depends only on the \emph{set} of indices.
-\texttt{SUM-SET} and \texttt{PROD-SET} package this directly.
+\texttt{sum-set} and \texttt{prod-set} package this directly.
 
-\subsection{\texttt{SUM-SET}: ring sum over a finite set}
+\subsection{\texttt{sum-set}: ring sum over a finite set}
 \label{sec:sum-set}
 
 \[
-   \mathit{SUM\text{-}SET}(r,\, S,\, f) \;=\; \sum_{x \in S} f(x)
+   \mathit{sum\text{-}set}(r,\, S,\, f) \;=\; \sum_{x \in S} f(x)
 \]
 The additive monoid of a ring is commutative
 (\texttt{ring-add-comm}), so the value depends only on $S$, not on any
 enumeration.  Four axioms:
 \begin{description}
 \item[\texttt{sum-set-empty}]
-  $\mathit{SUM\text{-}SET}(r,\, \emptyset,\, f) = \mathtt{ZERO}(r)$.
+  $\mathit{sum\text{-}set}(r,\, \emptyset,\, f) = \mathtt{zero}(r)$.
 \item[\texttt{sum-set-singleton}]
-  $\mathit{IS\text{-}RING}(r) \Rightarrow
-   \mathit{SUM\text{-}SET}(r,\, \{x\},\, f) = f(x)$.
+  $\mathit{is\text{-}ring}(r) \Rightarrow
+   \mathit{sum\text{-}set}(r,\, \{x\},\, f) = f(x)$.
 \item[\texttt{sum-set-disjoint-union}]
-  $\mathit{IS\text{-}RING}(r) \land S_1, S_2 \in \mathtt{SET}
-   \land S_1 \cap S_2 = \emptyset \land f \in \mathtt{FUN}(S_1 \cup S_2,\, \mathtt{CARR}(r))
+  $\mathit{is\text{-}ring}(r) \land S_1, S_2 \in \mathtt{set}
+   \land S_1 \cap S_2 = \emptyset \land f \in \mathtt{fun}(S_1 \cup S_2,\, \mathtt{carr}(r))
    \Rightarrow$
   \[
-    \mathit{SUM\text{-}SET}(r,\, S_1 \cup S_2,\, f)
-    \;=\; \mathtt{ADD}(r)(\mathit{SUM\text{-}SET}(r, S_1, f),\,
-                          \mathit{SUM\text{-}SET}(r, S_2, f))
+    \mathit{sum\text{-}set}(r,\, S_1 \cup S_2,\, f)
+    \;=\; \mathtt{add}(r)(\mathit{sum\text{-}set}(r, S_1, f),\,
+                          \mathit{sum\text{-}set}(r, S_2, f))
   \]
 \item[\texttt{sum-set-type}]
-  $\mathit{IS\text{-}RING}(r) \land X \in \mathtt{SET}
-   \land S \subseteq X \land f \in \mathtt{FUN}(X,\, \mathtt{CARR}(r))
-   \Rightarrow \mathit{SUM\text{-}SET}(r, S, f) \in \mathtt{CARR}(r)$.
+  $\mathit{is\text{-}ring}(r) \land X \in \mathtt{set}
+   \land S \subseteq X \land f \in \mathtt{fun}(X,\, \mathtt{carr}(r))
+   \Rightarrow \mathit{sum\text{-}set}(r, S, f) \in \mathtt{carr}(r)$.
   \\
   The explicit superset $X$ keeps the typing applicable in the
   disjoint-union axiom: $f$ is typed on $S_1 \cup S_2$, and the RHS
@@ -1454,44 +1454,44 @@ enumeration.  Four axioms:
   with $X = S_1 \cup S_2$.
 \end{description}
 
-\subsection{\texttt{PROD-SET}: commutative-monoid product over a finite set}
+\subsection{\texttt{prod-set}: commutative-monoid product over a finite set}
 
 \[
-   \mathit{PROD\text{-}SET}(\mathit{cm},\, S,\, f) \;=\; \prod_{x \in S} f(x)
+   \mathit{prod\text{-}set}(\mathit{cm},\, S,\, f) \;=\; \prod_{x \in S} f(x)
 \]
-Mirrors \texttt{SUM-SET} but in a commutative monoid; well-definedness
+Mirrors \texttt{sum-set} but in a commutative monoid; well-definedness
 rests on \texttt{comm-monoid-opr-comm}.
 \begin{description}
 \item[\texttt{prod-set-empty}]
-  $\mathit{PROD\text{-}SET}(\mathit{cm},\, \emptyset,\, f) = \mathtt{ID}(\mathit{cm})$.
+  $\mathit{prod\text{-}set}(\mathit{cm},\, \emptyset,\, f) = \mathtt{id}(\mathit{cm})$.
 \item[\texttt{prod-set-singleton}]
-  $\mathit{IS\text{-}COMM\text{-}MONOID}(\mathit{cm}) \Rightarrow
-   \mathit{PROD\text{-}SET}(\mathit{cm},\, \{x\},\, f) = f(x)$.
+  $\mathit{is\text{-}comm\text{-}monoid}(\mathit{cm}) \Rightarrow
+   \mathit{prod\text{-}set}(\mathit{cm},\, \{x\},\, f) = f(x)$.
 \item[\texttt{prod-set-disjoint-union}]
-  $\mathit{IS\text{-}COMM\text{-}MONOID}(\mathit{cm}) \land
-   S_1, S_2 \in \mathtt{SET} \land S_1 \cap S_2 = \emptyset \land
-   f \in \mathtt{FUN}(S_1 \cup S_2,\, \mathtt{CARR}(\mathit{cm})) \Rightarrow$
+  $\mathit{is\text{-}comm\text{-}monoid}(\mathit{cm}) \land
+   S_1, S_2 \in \mathtt{set} \land S_1 \cap S_2 = \emptyset \land
+   f \in \mathtt{fun}(S_1 \cup S_2,\, \mathtt{carr}(\mathit{cm})) \Rightarrow$
   \[
-    \mathit{PROD\text{-}SET}(\mathit{cm},\, S_1 \cup S_2,\, f)
-    \;=\; \mathtt{MUL}(\mathit{cm})(\mathit{PROD\text{-}SET}(\mathit{cm}, S_1, f),\,
-                                    \mathit{PROD\text{-}SET}(\mathit{cm}, S_2, f))
+    \mathit{prod\text{-}set}(\mathit{cm},\, S_1 \cup S_2,\, f)
+    \;=\; \mathtt{mul}(\mathit{cm})(\mathit{prod\text{-}set}(\mathit{cm}, S_1, f),\,
+                                    \mathit{prod\text{-}set}(\mathit{cm}, S_2, f))
   \]
 \item[\texttt{prod-set-type}]
-  $\mathit{IS\text{-}COMM\text{-}MONOID}(\mathit{cm}) \land X \in \mathtt{SET}
-   \land S \subseteq X \land f \in \mathtt{FUN}(X,\, \mathtt{CARR}(\mathit{cm}))
-   \Rightarrow \mathit{PROD\text{-}SET}(\mathit{cm}, S, f) \in \mathtt{CARR}(\mathit{cm}).$
+  $\mathit{is\text{-}comm\text{-}monoid}(\mathit{cm}) \land X \in \mathtt{set}
+   \land S \subseteq X \land f \in \mathtt{fun}(X,\, \mathtt{carr}(\mathit{cm}))
+   \Rightarrow \mathit{prod\text{-}set}(\mathit{cm}, S, f) \in \mathtt{carr}(\mathit{cm}).$
 \end{description}
 
 \begin{remark}
-The connection $\mathtt{SUM}(r, f, n) =
-\mathit{SUM\text{-}SET}(r,\, \mathit{ORD\text{-}SEGMENT}(n),\, f)$
-relates the two presentations: \texttt{SUM} indexes by the canonical
-initial segment, \texttt{SUM-SET} by an arbitrary finite set.
-The equation is a theorem (by $\mathtt{NN}$-induction), not an axiom.
-A general unordered $\mathit{SUM\text{-}SET}(r, S, f)$ can be
+The connection $\mathtt{sum}(r, f, n) =
+\mathit{sum\text{-}set}(r,\, \mathit{ord\text{-}segment}(n),\, f)$
+relates the two presentations: \texttt{sum} indexes by the canonical
+initial segment, \texttt{sum-set} by an arbitrary finite set.
+The equation is a theorem (by $\mathtt{nn}$-induction), not an axiom.
+A general unordered $\mathit{sum\text{-}set}(r, S, f)$ can be
 \emph{computed} via any enumeration $\mathit{bij}:\{0,\ldots,|S|-1\}\to S$
 (existence by \texttt{card-finite-bij}) as
-$\mathtt{SUM}(r,\, \lambda i.\, f(\mathit{bij}(i)),\, |S|)$;
+$\mathtt{sum}(r,\, \lambda i.\, f(\mathit{bij}(i)),\, |S|)$;
 independence of the enumeration is the permutation lemma, a future
 derived theorem.
 \end{remark}
@@ -1515,10 +1515,10 @@ Both follow Path~2: the operations are \emph{total} functoids, defined
 for any arguments; typing theorems fire conditionally when the inputs
 are rings.
 
-\subsection{Zero ring: \texttt{ZERO-RING}}
+\subsection{Zero ring: \texttt{zero-ring}}
 
-\texttt{ZERO-RING} is the terminal ring: carrier $\{0\}$, all operations
-returning $0$, with $\mathtt{ZERO} = \mathtt{ONE} = 0$.
+\texttt{zero-ring} is the terminal ring: carrier $\{0\}$, all operations
+returning $0$, with $\mathtt{zero} = \mathtt{one} = 0$.
 
 \begin{VNBsnip}
 ZERO-RING = [{0},
@@ -1531,10 +1531,10 @@ ZERO-RING = [{0},
 
 \begin{description}
 \item[\texttt{zero-ring-def}]
-  $\mathit{ZERO\text{-}RING} = [\{0\},\,
+  $\mathit{zero\text{-}ring} = [\{0\},\,
    \lambda(p,q).\,0,\; \lambda(p,q).\,0,\; \lambda(p).\,0,\; 0,\; 0]$.
 \item[\texttt{zero-ring-is-ring}]
-  $\mathit{IS\text{-}RING}(\mathit{ZERO\text{-}RING})$.
+  $\mathit{is\text{-}ring}(\mathit{zero\text{-}ring})$.
   (Asserted; the proof would verify the nine ring properties for
   the trivial one-element ring.)
 \end{description}
@@ -1542,15 +1542,15 @@ ZERO-RING = [{0},
 \begin{remark}
 The zero ring is the terminal object in the category of rings: there is
 exactly one ring homomorphism from \emph{any} ring $R$ to
-$\mathit{ZERO\text{-}RING}$ (mapping everything to $0$).  It is also
-the identity for \texttt{RING-PROD} up to isomorphism:
-$\mathit{RING\text{-}PROD}(\mathit{ZERO\text{-}RING}, R) \cong R$.
+$\mathit{zero\text{-}ring}$ (mapping everything to $0$).  It is also
+the identity for \texttt{ring-prod} up to isomorphism:
+$\mathit{ring\text{-}prod}(\mathit{zero\text{-}ring}, R) \cong R$.
 \end{remark}
 
-\subsection{Binary product: \texttt{RING-PROD}}
+\subsection{Binary product: \texttt{ring-prod}}
 
-\texttt{RING-PROD(X,~Y)} is the product ring with carrier
-$\mathtt{CARTESIAN}(\mathtt{CARR}(X),\,\mathtt{CARR}(Y))$ and
+\texttt{ring-prod(X,~Y)} is the product ring with carrier
+$\mathtt{cartesian}(\mathtt{carr}(X),\,\mathtt{carr}(Y))$ and
 componentwise operations.
 
 \paragraph{Definition.}
@@ -1569,31 +1569,31 @@ RING-PROD(X, Y) =
    [ONE(X),  ONE(Y)]]
 \end{VNBsnip}
 
-Elements of $\mathtt{CARR}(\mathit{RING\text{-}PROD}(X,Y))$ are pairs $[a,b]$
-with $a \in \mathtt{CARR}(X)$ and $b \in \mathtt{CARR}(Y)$;
+Elements of $\mathtt{carr}(\mathit{ring\text{-}prod}(X,Y))$ are pairs $[a,b]$
+with $a \in \mathtt{carr}(X)$ and $b \in \mathtt{carr}(Y)$;
 all six operations act componentwise.
 
 \paragraph{Accessor expansion.}
-The \texttt{RING-PROD} macete chain is:
+The \texttt{ring-prod} macete chain is:
 \[
-  \mathtt{CARR}(\mathit{RING\text{-}PROD}(X,Y))
-  \;\longrightarrow\; \mathtt{CARTESIAN}(\mathtt{CARR}(X),\,\mathtt{CARR}(Y))
+  \mathtt{carr}(\mathit{ring\text{-}prod}(X,Y))
+  \;\longrightarrow\; \mathtt{cartesian}(\mathtt{carr}(X),\,\mathtt{carr}(Y))
 \]
-and similarly for \texttt{ADD}, \texttt{MUL}, \texttt{NEG}, \texttt{ZERO},
-\texttt{ONE}: each expands by first applying the \texttt{RING-PROD}
+and similarly for \texttt{add}, \texttt{mul}, \texttt{neg}, \texttt{zero},
+\texttt{one}: each expands by first applying the \texttt{ring-prod}
 rewrite and then the accessor macete.
 
 \paragraph{Typing axiom.}
 \begin{description}
 \item[\texttt{ring-prod-is-ring}]
-  $\mathit{IS\text{-}RING}(X) \wedge \mathit{IS\text{-}RING}(Y)
-  \;\Rightarrow\; \mathit{IS\text{-}RING}(\mathit{RING\text{-}PROD}(X,Y))$.
+  $\mathit{is\text{-}ring}(X) \wedge \mathit{is\text{-}ring}(Y)
+  \;\Rightarrow\; \mathit{is\text{-}ring}(\mathit{ring\text{-}prod}(X,Y))$.
   (Asserted.  The proof would verify that the componentwise
   operations satisfy each ring property, given that $X$ and $Y$ do.)
 \end{description}
 
 \begin{remark}[Totality]
-\texttt{RING-PROD} is total: $\mathit{RING\text{-}PROD}(X,Y)$ is a
+\texttt{ring-prod} is total: $\mathit{ring\text{-}prod}(X,Y)$ is a
 well-defined tuple for \emph{any} $X$ and $Y$.  When neither is a ring
 --- when bongos are passed in --- the result is some tuple that satisfies
 no ring properties.  \texttt{ring-prod-is-ring} is silent on this case (its
@@ -1601,61 +1601,61 @@ antecedent is false), so no contradiction arises.  This is the VNB
 tradition: totality and typing are separate concerns.
 \end{remark}
 
-\subsection{Finite indexed product: \texttt{RING-PROD-N}}
+\subsection{Finite indexed product: \texttt{ring-prod-n}}
 
-$\mathit{RING\text{-}PROD\text{-}N}(f, n)$ is the $n$-fold product ring
+$\mathit{ring\text{-}prod\text{-}n}(f, n)$ is the $n$-fold product ring
 $f(0) \times f(1) \times \cdots \times f(n-1)$, defined by primitive
 recursion on~$n$.
 
 \paragraph{Signature.}
-$f$ is any function on $\mathtt{NN}$ (not required to map to rings;
+$f$ is any function on $\mathtt{nn}$ (not required to map to rings;
 the typing axiom states when the result is a ring).
-$n \in \mathtt{NN}$.
+$n \in \mathtt{nn}$.
 
 \paragraph{Defining recursion.}
 Installed by \texttt{def-by-nn-recursion}:
 
 \begin{align*}
 \mathtt{ring\text{-}prod\text{-}n\text{-}zero}: &\quad
-  \forall f.\; \mathit{RING\text{-}PROD\text{-}N}(f, 0) = \mathit{ZERO\text{-}RING} \\
+  \forall f.\; \mathit{ring\text{-}prod\text{-}n}(f, 0) = \mathit{zero\text{-}ring} \\
 \mathtt{ring\text{-}prod\text{-}n\text{-}succ}: &\quad
-  \forall f,\, n \in \mathtt{NN}.\;
-  \mathit{RING\text{-}PROD\text{-}N}(f, \mathtt{succ}(n))
-  = \mathit{RING\text{-}PROD}(\mathit{RING\text{-}PROD\text{-}N}(f, n),\; f(n))
+  \forall f,\, n \in \mathtt{nn}.\;
+  \mathit{ring\text{-}prod\text{-}n}(f, \mathtt{succ}(n))
+  = \mathit{ring\text{-}prod}(\mathit{ring\text{-}prod\text{-}n}(f, n),\; f(n))
 \end{align*}
 
 \paragraph{Typing axiom.}
 \begin{description}
 \item[\texttt{ring-prod-n-is-ring}]
-  $(\forall i \in \mathtt{NN}.\;\mathit{IS\text{-}RING}(f(i)))
-  \;\wedge\; n \in \mathtt{NN}
-  \;\Rightarrow\; \mathit{IS\text{-}RING}(\mathit{RING\text{-}PROD\text{-}N}(f,n))$.\\
-  (Derivable by $\mathtt{NN}$-induction using \texttt{zero-ring-is-ring}
+  $(\forall i \in \mathtt{nn}.\;\mathit{is\text{-}ring}(f(i)))
+  \;\wedge\; n \in \mathtt{nn}
+  \;\Rightarrow\; \mathit{is\text{-}ring}(\mathit{ring\text{-}prod\text{-}n}(f,n))$.\\
+  (Derivable by $\mathtt{nn}$-induction using \texttt{zero-ring-is-ring}
   and \texttt{ring-prod-is-ring}; installed as an axiom for direct use.)
 \end{description}
 
 \begin{remark}
 The indexed-family product $\prod_{i \in I} f(i)$ for an arbitrary
-index set $I$ (not necessarily $\mathtt{NN}$) will use
-\texttt{big-union($i$, $I$, $CARR(f(i))$)} as the function codomain.
+index set $I$ (not necessarily $\mathtt{nn}$) will use
+\texttt{big-union($i$, $I$, carr($f(i)$))} as the function codomain.
 The big-union binder is now in place
 (Section~\ref{sec:class-set-discipline}); the family product is the next
 step.
 \end{remark}
 
 %% =========================================================
-\section{Basic rings: officialising $\mathtt{NN}, \mathtt{ZZ}, \mathtt{QQ}, \mathtt{RR}, \mathtt{CC}$}
+\section{Basic rings: officialising $\mathtt{nn}, \mathtt{zz}, \mathtt{qq}, \mathtt{rr}, \mathtt{cc}$}
 \label{sec:basic-rings}
 
-The basic numeric domains $\mathtt{NN}, \mathtt{ZZ}, \mathtt{QQ},
-\mathtt{RR}, \mathtt{CC}$ ship with $n$-ary arithmetic operators
+The basic numeric domains $\mathtt{nn}, \mathtt{zz}, \mathtt{qq},
+\mathtt{rr}, \mathtt{cc}$ ship with $n$-ary arithmetic operators
 $(+\; x\; y\; z)$, $(*\; a\; b\; c\; d)$, decided by the
 \texttt{arith-eval} oracle.  This is the form arithmetic is taught and
 computed in: a flat sum or product of many arguments.
 
-The algebraic structures \texttt{RING} and \texttt{COMM-MONOID}, by
+The algebraic structures \texttt{ring} and \texttt{comm-monoid}, by
 contrast, require their operations to be \emph{binary} ---
-elements of $\mathtt{FUN}(\mathtt{CARTESIAN}(A, A),\, A)$.  The file
+elements of $\mathtt{fun}(\mathtt{cartesian}(A, A),\, A)$.  The file
 \texttt{numeric-instances.scm} (loaded after \texttt{complex.scm}) bridges
 the two presentations.
 
@@ -1685,7 +1685,7 @@ negation).  They are polymorphic in the sense that the \emph{same}
 Typing axioms attach to each domain:
 \begin{center}
 \begin{tabular}{l|ccccc}
-                 & $\mathtt{NN}$ & $\mathtt{ZZ}$ & $\mathtt{QQ}$ & $\mathtt{RR}$ & $\mathtt{CC}$ \\
+                 & $\mathtt{nn}$ & $\mathtt{zz}$ & $\mathtt{qq}$ & $\mathtt{rr}$ & $\mathtt{cc}$ \\
 \hline
 \texttt{binplus} & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
 \texttt{bintimes}& \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
@@ -1693,55 +1693,55 @@ Typing axioms attach to each domain:
 \end{tabular}
 \end{center}
 Names follow the pattern \texttt{binplus-in-fun-zz}, etc.
-\texttt{binneg} is absent on $\mathtt{NN}$ because $\mathtt{NN}$ is
+\texttt{binneg} is absent on $\mathtt{nn}$ because $\mathtt{nn}$ is
 not closed under negation.
 
-\subsection{Ring instances: $\mathtt{ZZ}, \mathtt{QQ}, \mathtt{RR}, \mathtt{CC}$ as rings}
+\subsection{Ring instances: $\mathtt{zz}, \mathtt{qq}, \mathtt{rr}, \mathtt{cc}$ as rings}
 
 Each domain pairs with the binary operators above to form a
-\texttt{RING} instance --- a 6-element VNB list:
+\texttt{ring} instance --- a 6-element VNB list:
 \[
-   \mathit{ZZ\text{-}RING} \;=\;
-   [\,\mathtt{ZZ},\; \mathtt{binplus},\; \mathtt{bintimes},\;
+   \mathit{zz\text{-}ring} \;=\;
+   [\,\mathtt{zz},\; \mathtt{binplus},\; \mathtt{bintimes},\;
      \mathtt{binneg},\; 0,\; 1\,]
 \]
 with definitional axiom \texttt{zz-ring-def}, and analogously
-\texttt{qq-ring-def} (also a 6-tuple).  \texttt{RR-NORMED-FIELD} and \texttt{CC-NORMED-FIELD}
-are 7-tuples in the \texttt{NORMED-FIELD} shape (norm at slot~7).
+\texttt{qq-ring-def} (also a 6-tuple).  \texttt{rr-normed-field} and \texttt{cc-normed-field}
+are 7-tuples in the \texttt{normed-field} shape (norm at slot~7).
 
 A structure predicate pins \texttt{length(s) = n}, so a tuple witnesses only
-the predicates of its own shape.  The \texttt{IS-RING} witnesses are thus
+the predicates of its own shape.  The \texttt{is-ring} witnesses are thus
 installed only for the genuine 6-tuples: \texttt{zz-is-ring} and
 \texttt{qq-is-ring}.  The 7-tuples carry \texttt{rr-is-normed-field} /
 \texttt{cc-is-normed-field} and reach the ring world through the
-\texttt{NORMED-FIELD-AS-*} views, not an \texttt{IS-RING} assertion (that
-would assert \texttt{length}~$=6$ of a length-7 list).  \texttt{QQ} as a field
-is the 8-tuple \texttt{QQ-FIELD} (\texttt{qq-field-is-field}), since
-\texttt{FIELD} is an 8-slot shape.
+\texttt{normed-field-as-*} views, not an \texttt{is-ring} assertion (that
+would assert \texttt{length}~$=6$ of a length-7 list).  \texttt{qq} as a field
+is the 8-tuple \texttt{qq-field} (\texttt{qq-field-is-field}), since
+\texttt{field} is an 8-slot shape.
 
 \paragraph{Use via \texttt{specialize-structure}.}
-Once the IS-RING witness is in place, every generic ring theorem can
+Once the \texttt{is-ring} witness is in place, every generic ring theorem can
 be transported to the instance:
 \begin{VNBcode}
 (specialize-structure 'ZZ-RING 'RING 'zz-is-ring)
 ;; Installs ring-add-comm-zz-ring, ring-mul-assoc-zz-ring, ...
 \end{VNBcode}
 This is what turns abstract ring theorems into usable facts about
-$\mathtt{ZZ}$.  The same call works for $\mathtt{QQ}$-RING (the other genuine
-6-tuple ring); for $\mathtt{RR}$/$\mathtt{CC}$ the analogue runs through the
-\texttt{NORMED-FIELD-AS-*} views instead.
+$\mathtt{zz}$.  The same call works for \texttt{qq-ring} (the other genuine
+6-tuple ring); for $\mathtt{rr}$/$\mathtt{cc}$ the analogue runs through the
+\texttt{normed-field-as-*} views instead.
 
-\subsection{$\mathtt{NN}$ as a commutative monoid under addition}
+\subsection{$\mathtt{nn}$ as a commutative monoid under addition}
 
-$\mathtt{NN}$ is not a ring (no negation), but it is a commutative
+$\mathtt{nn}$ is not a ring (no negation), but it is a commutative
 monoid under $+$ with identity $0$:
 \[
-   \mathit{NN\text{-}ADD\text{-}MONOID} \;=\; [\,\mathtt{NN},\;
+   \mathit{nn\text{-}add\text{-}monoid} \;=\; [\,\mathtt{nn},\;
      \mathtt{binplus},\; 0\,]
 \]
 with \texttt{nn-add-monoid-def} and witness
 \texttt{nn-add-monoid-is-comm-monoid}.  A multiplicative
-comm-monoid for $\mathtt{NN}$ under $\cdot$ is left for later.
+comm-monoid for $\mathtt{nn}$ under $\cdot$ is left for later.
 
 \begin{remark}
 The $n$-ary arithmetic operators do not disappear.  Any proof can
@@ -1753,18 +1753,18 @@ mediate translation in either direction.
 \end{remark}
 
 %% =========================================================
-\section{$\mathtt{CC}$ as a metric space: \texttt{CC-MS}}
+\section{$\mathtt{cc}$ as a metric space: \texttt{cc-ms}}
 \label{sec:cc-ms}
 
-The \texttt{METRIC-SPACE} structure (Section~\ref{sec:declare-structure})
+The \texttt{metric-space} structure (Section~\ref{sec:declare-structure})
 is one of the basic algebraic structures.  Its sole instance shipped
-with the prover is \texttt{CC-MS}, the complex plane with the standard
+with the prover is \texttt{cc-ms}, the complex plane with the standard
 metric:
 \[
-   \mathit{CC\text{-}MS} \;=\; \bigl[\,\mathtt{CC},\;
+   \mathit{cc\text{-}ms} \;=\; \bigl[\,\mathtt{cc},\;
      \lambda([x, y],\; \mathtt{magnitude}(x - y))\,\bigr]
 \]
-i.e.\ the 2-element VNB list whose carrier is $\mathtt{CC}$ and whose
+i.e.\ the 2-element VNB list whose carrier is $\mathtt{cc}$ and whose
 distance function is $d(x, y) = |x - y|$ (the user's
 ``$\mathtt{abs}(y - x)$'' --- the standard Euclidean metric on the
 complex plane, expressed via the \texttt{magnitude} primitive).
@@ -1772,10 +1772,10 @@ complex plane, expressed via the \texttt{magnitude} primitive).
 \paragraph{Defining axiom.}
 \begin{description}
 \item[\texttt{cc-ms-def}]
-  $\mathit{CC\text{-}MS} = [\mathtt{CC},\; \lambda([x, y],\;
+  $\mathit{cc\text{-}ms} = [\mathtt{cc},\; \lambda([x, y],\;
    \mathtt{magnitude}(x - y))]$
 \item[\texttt{cc-is-metric-space}]
-  $\mathit{IS\text{-}METRIC\text{-}SPACE}(\mathit{CC\text{-}MS})$.
+  $\mathit{is\text{-}metric\text{-}space}(\mathit{cc\text{-}ms})$.
   A theorem (\texttt{theorem-library/cc-metric-space-proof.scm}): the
   proof unfolds the defining equivalence of the structure predicate and
   discharges each metric-space axiom (positivity, self-zero,
@@ -1785,7 +1785,7 @@ complex plane, expressed via the \texttt{magnitude} primitive).
 
 \paragraph{Use via \texttt{specialize-structure}.}
 Once \texttt{cc-is-metric-space} is in place, every generic
-metric-space theorem can be transported to \texttt{CC-MS}:
+metric-space theorem can be transported to \texttt{cc-ms}:
 \begin{VNBcode}
 (specialize-structure 'CC-MS 'METRIC-SPACE 'cc-is-metric-space)
 ;; Installs metric-pos-cc-ms, metric-triangle-cc-ms, ...
@@ -1793,7 +1793,7 @@ metric-space theorem can be transported to \texttt{CC-MS}:
 
 \paragraph{Completeness.}
 The axiom \texttt{cc-complete} asserts that every Cauchy sequence in
-$\mathtt{CC}$ converges, but is currently stated directly in terms of
+$\mathtt{cc}$ converges, but is currently stated directly in terms of
 \texttt{magnitude} rather than through the metric-space structure:
 \begin{VNBsnip}
 forall([f in fun(NN, CC)],
@@ -1806,32 +1806,32 @@ forall([f in fun(NN, CC)],
       forsome([N in NN], forall([n in NN], N <= n implies
         magnitude(f(n) - L) <= eps)))))
 \end{VNBsnip}
-A future refactor will introduce generic \texttt{IS-CAUCHY-SEQ},
-\texttt{CONVERGES-TO}, and \texttt{IS-COMPLETE} predicates at the
-\texttt{METRIC-SPACE} level (the
+A future refactor will introduce generic \texttt{is-cauchy-seq},
+\texttt{converges-to}, and \texttt{is-complete} predicates at the
+\texttt{metric-space} level (the
 \texttt{def-predicate} example in Section~\ref{sec:def-predicate}
 sketches one of these), at which point \texttt{cc-complete} can be
-restated as $\mathit{IS\text{-}COMPLETE}(\mathit{CC\text{-}MS})$ and the
+restated as $\mathit{is\text{-}complete}(\mathit{cc\text{-}ms})$ and the
 explicit-magnitude form becomes a derived equivalent.
 
 %% =========================================================
-\section{Extended reals: $\mathtt{RR}^{*}$}
+\section{Extended reals: $\mathtt{rr}^{*}$}
 \label{sec:extended-reals}
 
 The extended real line
 \[
-   \mathtt{RR}^{*} \;=\; \mathtt{RR} \;\cup\; \{-\infty,\, +\infty\}
+   \mathtt{rr}^{*} \;=\; \mathtt{rr} \;\cup\; \{-\infty,\, +\infty\}
 \]
-adds two new constants $\mathtt{POS\text{-}INF}$ and
-$\mathtt{NEG\text{-}INF}$ at the top and bottom of the real line.  The
+adds two new constants $\mathtt{pos\text{-}inf}$ and
+$\mathtt{neg\text{-}inf}$ at the top and bottom of the real line.  The
 file \texttt{extended-reals.scm} (loaded after \texttt{numeric-instances.scm})
 installs the carrier class and the ordering.
 
 \begin{remark}
-The class is spelled \texttt{RR-STAR}.  It was written \texttt{RR*}
+The class is spelled \texttt{rr-star}.  It was written \texttt{RR*}
 until 2026-08-24, and that spelling could not be tokenized: the
 \texttt{*} lexes as an operator, so \texttt{x in rr*} parsed as a
-product rather than as a membership.  \texttt{RR-STAR} is the spelling
+product rather than as a membership.  \texttt{rr-star} is the spelling
 the axioms below already use, and it parses from a string like any
 other name.
 \end{remark}
@@ -1840,52 +1840,52 @@ other name.
 
 \begin{description}
 \item[\texttt{rr-star-membership}]
-  $\forall x.\; x \in \mathtt{RR}^{*} \;\Leftrightarrow\;
-   x \in \mathtt{RR} \lor x = \mathtt{POS\text{-}INF}
-                     \lor x = \mathtt{NEG\text{-}INF}.$
+  $\forall x.\; x \in \mathtt{rr}^{*} \;\Leftrightarrow\;
+   x \in \mathtt{rr} \lor x = \mathtt{pos\text{-}inf}
+                     \lor x = \mathtt{neg\text{-}inf}.$
 \item[\texttt{rr-subset-rr-star}]
-  $\mathtt{RR} \subseteq \mathtt{RR}^{*}$ (immediate from the iff).
+  $\mathtt{rr} \subseteq \mathtt{rr}^{*}$ (immediate from the iff).
 \item[\texttt{pos-inf-in-rr-star}]
-  $\mathtt{POS\text{-}INF} \in \mathtt{RR}^{*}$.
+  $\mathtt{pos\text{-}inf} \in \mathtt{rr}^{*}$.
 \item[\texttt{neg-inf-in-rr-star}]
-  $\mathtt{NEG\text{-}INF} \in \mathtt{RR}^{*}$.
+  $\mathtt{neg\text{-}inf} \in \mathtt{rr}^{*}$.
 \end{description}
 
 \subsection{Distinctness}
 
 The two infinities are distinct from each other and from every real
 number.  Without these, the membership iff could be satisfied
-vacuously --- e.g.\ \texttt{POS-INF} could coincide with $0$.
+vacuously --- e.g.\ \texttt{pos-inf} could coincide with $0$.
 \begin{description}
 \item[\texttt{pos-inf-neq-neg-inf}]
-  $\mathtt{POS\text{-}INF} \neq \mathtt{NEG\text{-}INF}$.
+  $\mathtt{pos\text{-}inf} \neq \mathtt{neg\text{-}inf}$.
 \item[\texttt{pos-inf-not-in-rr}]
-  $\mathtt{POS\text{-}INF} \notin \mathtt{RR}$.
+  $\mathtt{pos\text{-}inf} \notin \mathtt{rr}$.
 \item[\texttt{neg-inf-not-in-rr}]
-  $\mathtt{NEG\text{-}INF} \notin \mathtt{RR}$.
+  $\mathtt{neg\text{-}inf} \notin \mathtt{rr}$.
 \end{description}
 
 \subsection{Ordering}
 
-The existing $\le$ on $\mathtt{RR}$ is extended to $\mathtt{RR}^{*}$ by
-two bound axioms.  Reflexivity at the infinities ($\mathtt{POS\text{-}INF}
-\le \mathtt{POS\text{-}INF}$, etc.) follows by substituting
-$x := \mathtt{POS\text{-}INF}$ (or $\mathtt{NEG\text{-}INF}$) in their
+The existing $\le$ on $\mathtt{rr}$ is extended to $\mathtt{rr}^{*}$ by
+two bound axioms.  Reflexivity at the infinities ($\mathtt{pos\text{-}inf}
+\le \mathtt{pos\text{-}inf}$, etc.) follows by substituting
+$x := \mathtt{pos\text{-}inf}$ (or $\mathtt{neg\text{-}inf}$) in their
 respective bounds.
 \begin{description}
 \item[\texttt{pos-inf-upper-bound}]
-  $\forall x \in \mathtt{RR}^{*}.\; x \le \mathtt{POS\text{-}INF}.$
+  $\forall x \in \mathtt{rr}^{*}.\; x \le \mathtt{pos\text{-}inf}.$
 \item[\texttt{neg-inf-lower-bound}]
-  $\forall x \in \mathtt{RR}^{*}.\; \mathtt{NEG\text{-}INF} \le x.$
+  $\forall x \in \mathtt{rr}^{*}.\; \mathtt{neg\text{-}inf} \le x.$
 \end{description}
 
 \begin{remark}
 Arithmetic on the extended reals is intentionally \emph{not} provided.
-The standard pitfalls --- $\mathtt{POS\text{-}INF} + \mathtt{NEG\text{-}INF}$,
-$\mathtt{POS\text{-}INF} - \mathtt{POS\text{-}INF}$,
-$0 \cdot \mathtt{POS\text{-}INF}$, \ldots --- have no canonical
+The standard pitfalls --- $\mathtt{pos\text{-}inf} + \mathtt{neg\text{-}inf}$,
+$\mathtt{pos\text{-}inf} - \mathtt{pos\text{-}inf}$,
+$0 \cdot \mathtt{pos\text{-}inf}$, \ldots --- have no canonical
 resolution, and the convergence machinery that motivates
-$\mathtt{RR}^{*}$ does not need them.  $\mathtt{RR}^{*}$ here is purely
+$\mathtt{rr}^{*}$ does not need them.  $\mathtt{rr}^{*}$ here is purely
 an \emph{ordered carrier}: a place to put limits and bounds that may
 fail to be finite.
 \end{remark}
@@ -1902,53 +1902,53 @@ matrix by giving its entry function, prove two matrices equal by
 comparing entries---so that no proof performs list surgery.  The ring
 operations are defined on top of the bridge.
 
-\subsection{What a matrix is: \texttt{MAT} and \texttt{ENTRY}}
+\subsection{What a matrix is: \texttt{mat} and \texttt{entry}}
 
 \paragraph{Signature.}
-$\mathtt{MAT}(m, n, X)$ is the class of $m \times n$ matrices with
-entries in $X$; $\mathtt{ENTRY}(M, i, j)$ is the $(i,j)$ entry.
+$\mathtt{mat}(m, n, X)$ is the class of $m \times n$ matrices with
+entries in $X$; $\mathtt{entry}(M, i, j)$ is the $(i,j)$ entry.
 
 \begin{align*}
-\mathtt{SIZE}(P) &\;=\; [\,\mathtt{LENGTH}(P),\;
-   \mathbf{if}\; \mathtt{LENGTH}(P) = 0 \;\mathbf{then}\; 0
-   \;\mathbf{else}\; \mathtt{LENGTH}(\mathtt{NTH}(1, P))\,] \\
-\mathtt{MAT}(m, n, X) &\;=\; \mathtt{SEP}\, P \in \mathtt{MATRIX}(X).\;
-   n \in \mathtt{NN} \;\wedge\;
-   (\mathtt{LENGTH}(P) = 0 \Rightarrow m = 0) \\
+\mathtt{size}(P) &\;=\; [\,\mathtt{length}(P),\;
+   \mathbf{if}\; \mathtt{length}(P) = 0 \;\mathbf{then}\; 0
+   \;\mathbf{else}\; \mathtt{length}(\mathtt{nth}(1, P))\,] \\
+\mathtt{mat}(m, n, X) &\;=\; \mathtt{sep}\, P \in \mathtt{matrix}(X).\;
+   n \in \mathtt{nn} \;\wedge\;
+   (\mathtt{length}(P) = 0 \Rightarrow m = 0) \\
  &\qquad\qquad \wedge\;
-   (\mathtt{LENGTH}(P) \neq 0 \Rightarrow \mathtt{SIZE}(P) = [m, n]) \\
-\mathtt{ENTRY}(M, i, j) &\;=\; \mathtt{NTH}(j,\, \mathtt{NTH}(i, M))
+   (\mathtt{length}(P) \neq 0 \Rightarrow \mathtt{size}(P) = [m, n]) \\
+\mathtt{entry}(M, i, j) &\;=\; \mathtt{nth}(j,\, \mathtt{nth}(i, M))
 \end{align*}
 
 \noindent
-$\mathtt{SIZE}$ is total.  A matrix with no rows is $[\,]$, and it is
-the unique member of $\mathtt{MAT}(0, n, X)$ for every natural $n$: a
+$\mathtt{size}$ is total.  A matrix with no rows is $[\,]$, and it is
+the unique member of $\mathtt{mat}(0, n, X)$ for every natural $n$: a
 matrix with no rows does not determine its column count, and membership
-in $\mathtt{MAT}$ does not pretend that it does.  Both clauses are
+in $\mathtt{mat}$ does not pretend that it does.  Both clauses are
 decisions of 2026-09-16 (\texttt{docs/size-mat-surgery-2026-09-16.md}).
-Until then $\mathtt{MAT}(m,n,X)$ was $\mathtt{SEP}\, P \in
-\mathtt{MATRIX}(X).\; \mathtt{SIZE}(P) = [m,n]$ with $\mathtt{SIZE}$
+Until then $\mathtt{mat}(m,n,X)$ was $\mathtt{sep}\, P \in
+\mathtt{matrix}(X).\; \mathtt{size}(P) = [m,n]$ with $\mathtt{size}$
 reading the column count off the first row, so no zero-row matrix had a
-size and no $\mathtt{MAT}(0,n,X)$ had a member.  Proofs read a
-$\mathtt{MAT}$ membership only through the lemmas of
+size and no $\mathtt{mat}(0,n,X)$ had a member.  Proofs read a
+$\mathtt{mat}$ membership only through the lemmas of
 \texttt{theorem-library/mat-basics.scm} (\texttt{mat-in-matrix},
 \texttt{mat-length}, \texttt{mat-cols}, \texttt{mat-rows-in-nn},
 \texttt{mat-intro}, \texttt{nil-in-mat}, \ldots), never by unfolding the
 definition.
 
-Indices are \emph{1-based}, matching the library's $\mathtt{NTH}$
-convention: row $i$ is $\mathtt{NTH}(i, M)$, and the index range of a
-row or column is $\mathtt{INTERVAL}(1, n)$.  Because
-$\mathtt{MAT}(m,n,X)$ is a $\mathtt{SEP}$ over $\mathtt{MATRIX}(X)$ it
-inherits sethood and the $\mathtt{SEP}$ membership characterisation for
+Indices are \emph{1-based}, matching the library's $\mathtt{nth}$
+convention: row $i$ is $\mathtt{nth}(i, M)$, and the index range of a
+row or column is $\mathtt{interval}(1, n)$.  Because
+$\mathtt{mat}(m,n,X)$ is a $\mathtt{sep}$ over $\mathtt{matrix}(X)$ it
+inherits sethood and the $\mathtt{sep}$ membership characterisation for
 free (\texttt{mat-is-set}, \texttt{matrix-membership},
-\texttt{matrix-sethood}), and $\mathtt{MAT}(m,n,X)$ really is a subclass
-of $\mathtt{MATRIX}(X)$.
+\texttt{matrix-sethood}), and $\mathtt{mat}(m,n,X)$ really is a subclass
+of $\mathtt{matrix}(X)$.
 
-\subsection{The tabulation bridge: \texttt{MATOF}}
+\subsection{The tabulation bridge: \texttt{matof}}
 
-$\mathtt{MATOF}(m, n, g)$ is the $m \times n$ matrix whose $(i,j)$ entry
-is $g(i,j)$, defined as the $\mathtt{IOTA}$ of the obvious description.
+$\mathtt{matof}(m, n, g)$ is the $m \times n$ matrix whose $(i,j)$ entry
+is $g(i,j)$, defined as the $\mathtt{iota}$ of the obvious description.
 Two facts make it usable, and they are of different kinds:
 
 \begin{description}
@@ -1965,17 +1965,17 @@ Two facts make it usable, and they are of different kinds:
 \end{description}
 
 \noindent
-Together the two pin $\mathtt{MATOF}$ down, and \texttt{entry-of-matof}
+Together the two pin $\mathtt{matof}$ down, and \texttt{entry-of-matof}
 and \texttt{matof-in-mat} are derived from them by \texttt{iota-def}
 (\texttt{tuple-tabulation.scm}, \texttt{matof-in-mat.scm}).  All three
-are theorems guarded on $m, n \in \mathtt{NN}$, and a \texttt{qed} that
+are theorems guarded on $m, n \in \mathtt{nn}$, and a \texttt{qed} that
 cites them pays nothing.
 
 The guard is not decoration.  Until 2026-09-16 \texttt{matof-exists}
 was an asserted support with $m$ and $n$ unquantified, and the library
-proved \texttt{FALSITY} from it: instantiated at $m := \mathtt{ORD}$ it
-gave a matrix with $\mathtt{ORD}$ rows, \texttt{mat-rows-in-nn} read
-$\mathtt{ORD} \in \mathtt{NN}$ off that matrix, and Burali-Forti refuted
+proved \texttt{falsity} from it: instantiated at $m := \mathtt{ord}$ it
+gave a matrix with $\mathtt{ord}$ rows, \texttt{mat-rows-in-nn} read
+$\mathtt{ord} \in \mathtt{nn}$ off that matrix, and Burali-Forti refuted
 it (the derivation is \texttt{scratchpad/mx/mx-probe3.scm}, kept as a
 control that must \emph{fail}).  The assertion had been harmless for
 weeks; the lemma that met it was proved much later for an unrelated
@@ -1983,47 +1983,47 @@ reason.  That is the case for the bill ledger of
 Section~\ref{sec:proof-debt}: an asserted step is a liability whose
 size is not known when it is taken.
 
-Every construction below is a $\mathtt{MATOF}$, so each carries its
+Every construction below is a $\mathtt{matof}$, so each carries its
 typing lemma and its entry lemma, and proofs about it reduce to
 arithmetic on entries.
 
 \subsection{Arithmetic}
 
-Writing $P_{ij}$ for $\mathtt{ENTRY}(P,i,j)$---an abbreviation of the
+Writing $P_{ij}$ for $\mathtt{entry}(P,i,j)$---an abbreviation of the
 argument, the operators stay prefix:
 
 \begin{align*}
-\mathtt{MATADD}(A, P, Q) &\;=\;
-  \mathtt{MATOF}(m, n,\; \lambda i\, j.\;
-     \mathtt{ADD}(A)(P_{ij},\, Q_{ij})) \\
-\mathtt{MATMUL}(A, P, Q) &\;=\;
-  \mathtt{MATOF}(m, k,\; \lambda i\, k.\; \mu(i,k)),
+\mathtt{matadd}(A, P, Q) &\;=\;
+  \mathtt{matof}(m, n,\; \lambda i\, j.\;
+     \mathtt{add}(A)(P_{ij},\, Q_{ij})) \\
+\mathtt{matmul}(A, P, Q) &\;=\;
+  \mathtt{matof}(m, k,\; \lambda i\, k.\; \mu(i,k)),
   \quad\text{where} \\
  &\qquad \mu(i,k) \;=\;
-     \textstyle\mathtt{FINSUM}_{j \in \mathtt{INTERVAL}(1,n)}\;
-     \mathtt{MUL}(A)(P_{ij},\, Q_{jk}) \\
-\mathtt{ZEROMAT}(A, m, n) &\;=\;
-  \mathtt{MATOF}(m, n,\; \lambda i\, j.\; \mathtt{ZERO}(A)) \\
-\mathtt{IDENTMAT}(A, n) &\;=\;
-  \mathtt{MATOF}(n, n,\; \lambda i\, j.\; \delta(i,j)),
+     \textstyle\mathtt{finsum}_{j \in \mathtt{interval}(1,n)}\;
+     \mathtt{mul}(A)(P_{ij},\, Q_{jk}) \\
+\mathtt{zeromat}(A, m, n) &\;=\;
+  \mathtt{matof}(m, n,\; \lambda i\, j.\; \mathtt{zero}(A)) \\
+\mathtt{identmat}(A, n) &\;=\;
+  \mathtt{matof}(n, n,\; \lambda i\, j.\; \delta(i,j)),
   \quad\text{where} \\
  &\qquad \delta(i,j) \;=\;
-     \mathbf{if}\; i = j \;\mathbf{then}\; \mathtt{ONE}(A)
-     \;\mathbf{else}\; \mathtt{ZERO}(A)
+     \mathbf{if}\; i = j \;\mathbf{then}\; \mathtt{one}(A)
+     \;\mathbf{else}\; \mathtt{zero}(A)
 \end{align*}
 
 \noindent
-with $\mathtt{MATNEG}(A,P)$ and $\mathtt{MATSCALE}(A,r,P)$ the same
-shape.  The dimensions are read off $\mathtt{SIZE}(P)$ and
-$\mathtt{SIZE}(Q)$ rather than passed: multiplication is
+with $\mathtt{matneg}(A,P)$ and $\mathtt{matscale}(A,r,P)$ the same
+shape.  The dimensions are read off $\mathtt{size}(P)$ and
+$\mathtt{size}(Q)$ rather than passed: multiplication is
 \emph{total}, garbage-in/garbage-out off its typed domain, and all the
 content lives in \texttt{matmul-type} and \texttt{matmul-entry}, both
 theorems.
 
 Reading the dimensions off the factors has one consequence that the
-statements must carry.  The column count of $\mathtt{MATMUL}(A,P,Q)$ is
-read off $\mathtt{SIZE}(Q)$; when the middle dimension $n$ is $0$, $Q$
-is $[\,]$, $\mathtt{SIZE}([\,]) = [0,0]$, and the product of an
+statements must carry.  The column count of $\mathtt{matmul}(A,P,Q)$ is
+read off $\mathtt{size}(Q)$; when the middle dimension $n$ is $0$, $Q$
+is $[\,]$, $\mathtt{size}([\,]) = [0,0]$, and the product of an
 $m \times 0$ matrix with it is $m \times 0$, not $m \times k$.  So every
 law about a product whose middle dimension may be $0$ while both outer
 dimensions are at least $1$ is false there, and each carries a guard
@@ -2059,20 +2059,20 @@ The live status of each is what \texttt{reference/PROOF-DEBT.md} and the
 browser reference report; this list is a snapshot and the generated
 pages are the authority.
 
-\subsection{The matrix ring: \texttt{MAT-RING}}
+\subsection{The matrix ring: \texttt{mat-ring}}
 
-$\mathit{MAT\text{-}RING}(A, n)$ packages the $n \times n$ matrices as a
+$\mathit{mat\text{-}ring}(A, n)$ packages the $n \times n$ matrices as a
 \textsc{Ring} 6-tuple, currying each operation into a map on the carrier
 so it fits the ring shape:
 \begin{align*}
-  [\;&\mathtt{MAT}(n,n,\mathtt{CARR}(A)),\;
-     \lambda P\,Q.\,\mathtt{MATADD}(A,P,Q),\;
-     \lambda P\,Q.\,\mathtt{MATMUL}(A,P,Q),\\
-    &\lambda P.\,\mathtt{MATNEG}(A,P),\;
-     \mathtt{ZEROMAT}(A,n,n),\;
-     \mathtt{IDENTMAT}(A,n)\;]
+  [\;&\mathtt{mat}(n,n,\mathtt{carr}(A)),\;
+     \lambda P\,Q.\,\mathtt{matadd}(A,P,Q),\;
+     \lambda P\,Q.\,\mathtt{matmul}(A,P,Q),\\
+    &\lambda P.\,\mathtt{matneg}(A,P),\;
+     \mathtt{zeromat}(A,n,n),\;
+     \mathtt{identmat}(A,n)\;]
 \end{align*}
-\texttt{mat-ring-is-ring} proves it satisfies $\mathit{IS\text{-}RING}$,
+\texttt{mat-ring-is-ring} proves it satisfies $\mathit{is\text{-}ring}$,
 and the read-offs \texttt{mat-ring-carr}, \texttt{-add}, \texttt{-mul},
 \texttt{-zero}, \texttt{-one}, \texttt{-neg} let a proof move between
 the packaged ring and the bare operations.
@@ -2080,32 +2080,32 @@ the packaged ring and the bare operations.
 \subsection{Cutting and extending}
 
 \begin{align*}
-\mathtt{SUBMAT}(S, p, q) &\;=\;
-  \mathtt{MATOF}(p, q,\; \lambda i\, j.\;
-    \mathtt{ENTRY}(S, \mathtt{succ}(i), \mathtt{succ}(j)))
+\mathtt{submat}(S, p, q) &\;=\;
+  \mathtt{matof}(p, q,\; \lambda i\, j.\;
+    \mathtt{entry}(S, \mathtt{succ}(i), \mathtt{succ}(j)))
 \end{align*}
 
 \noindent
 deletes the first row and the first column (the shape the Smith-normal-form
-recursion wants), while $\mathtt{BLOCK}$, $\mathit{SNOC\text{-}COL}$ and
-$\mathit{SNOC\text{-}ROW}$ extend a matrix by a column or a row.  Each has a
+recursion wants), while $\mathtt{block}$, $\mathit{snoc\text{-}col}$ and
+$\mathit{snoc\text{-}row}$ extend a matrix by a column or a row.  Each has a
 typing lemma and an entry lemma (\texttt{submat-type},
 \texttt{entry-of-submat}, \texttt{snoc-col-type}, \texttt{snoc-col-last},
 \dots).  Deleting an \emph{arbitrary} row and column is a different
-operation, $\mathtt{MINOR}$, defined with the determinant in
+operation, $\mathtt{minor}$, defined with the determinant in
 Section~\ref{sec:determinant}.
 
 \subsection{Elementary matrices}
 
-$\mathtt{MATUNIT}(A, n, k, l)$ is the matrix unit---$\mathtt{ONE}$ at
-$(k,l)$, $\mathtt{ZERO}$ elsewhere---and its column-shift lemma
+$\mathtt{matunit}(A, n, k, l)$ is the matrix unit---$\mathtt{one}$ at
+$(k,l)$, $\mathtt{zero}$ elsewhere---and its column-shift lemma
 \texttt{matunit-col-shift} is the engine of the elementary-operation
 arc.  On top of it sit the three elementary matrices
-$\mathit{ELEM\text{-}F}(A,n,k,l)$ (exchange), $\mathit{ELEM\text{-}G}(A,n,r,k,l)$
-(add a multiple), and $\mathit{ELEM\text{-}H}(A,n,r,k)$ (scale), each with
+$\mathit{elem\text{-}f}(A,n,k,l)$ (exchange), $\mathit{elem\text{-}g}(A,n,r,k,l)$
+(add a multiple), and $\mathit{elem\text{-}h}(A,n,r,k)$ (scale), each with
 its column action (\texttt{elem-*-action}, Prop.~3.5 of
 \texttt{algebraic-numbers.pdf}), its row action, and its inverse
-(\texttt{elem-*-inverse}, Cor.~3.6).  $\mathit{MAT\text{-}EQUIV}$ is the
+(\texttt{elem-*-inverse}, Cor.~3.6).  $\mathit{mat\text{-}equiv}$ is the
 equivalence relation they generate; it is reflexive and transitive
 (\texttt{mat-equiv-refl}, \texttt{mat-equiv-trans}) and stable under
 multiplication on either side.
@@ -2123,16 +2123,16 @@ each entry linking to the file that proves it.
 The determinant is defined by \emph{recursive cofactor expansion along
 the first row}---deliberately the pedestrian route.  There is no
 exterior algebra here, no symmetric group and no sign of a permutation:
-the Leibniz sum would have required $\mathtt{SGN}$ and a well-definedness
+the Leibniz sum would have required $\mathtt{sgn}$ and a well-definedness
 proof that the library does not have, whereas cofactor expansion needs
-only the recursion on size, minors, and $\mathtt{FINSUM}$.
+only the recursion on size, minors, and $\mathtt{finsum}$.
 
-\subsection{\texttt{MINOR}: deleting a row and a column}
+\subsection{\texttt{minor}: deleting a row and a column}
 
 \begin{align*}
-  \mathtt{MINOR}(S, r, c, n) &\;=\;
-  \mathtt{MATOF}(n, n,\; \lambda i\, j.\;
-    \mathtt{ENTRY}(S,\, \mathit{skip}(i,r),\, \mathit{skip}(j,c)))
+  \mathtt{minor}(S, r, c, n) &\;=\;
+  \mathtt{matof}(n, n,\; \lambda i\, j.\;
+    \mathtt{entry}(S,\, \mathit{skip}(i,r),\, \mathit{skip}(j,c)))
   \quad\text{where}\\
   \mathit{skip}(i, r) &\;=\;
     \mathbf{if}\; i < r \;\mathbf{then}\; i \;\mathbf{else}\; \mathtt{succ}(i)
@@ -2140,44 +2140,44 @@ only the recursion on size, minors, and $\mathtt{FINSUM}$.
 
 \noindent
 ($\mathit{skip}$ is not an operator of the library; the source writes the
-conditional inline with \texttt{IF}.)  This is
+conditional inline with \texttt{if}.)  This is
 the $n \times n$ matrix obtained from a
 $\mathtt{succ}(n) \times \mathtt{succ}(n)$ matrix $S$ by deleting row $r$
 and column $c$.  \texttt{minor-type} states that it lands in
-$\mathtt{MAT}(n, n, \mathtt{CARR}(R))$.
+$\mathtt{mat}(n, n, \mathtt{carr}(R))$.
 
-\subsection{\texttt{DET}: the defining recursion}
+\subsection{\texttt{det}: the defining recursion}
 
 Two axioms, installed as \emph{definitional}
 (\texttt{add-definition!} under provenance \texttt{definitional}),
 so they carry no warrant and owe no proof debt:
 
 \begin{align*}
-\mathtt{det\text{-}zero}: &\quad \mathtt{DET}(R, 0, A) \simeq \mathtt{ONE}(R) \\
+\mathtt{det\text{-}zero}: &\quad \mathtt{det}(R, 0, A) \simeq \mathtt{one}(R) \\
 \mathtt{det\text{-}cofactor}: &\quad
-  \mathtt{DET}(R, \mathtt{succ}(n), A) \;\simeq\; {} \\
- &\qquad \textstyle\mathtt{FINSUM}_{j \in \mathtt{INTERVAL}(1,\,\mathtt{succ}(n))}\;
+  \mathtt{det}(R, \mathtt{succ}(n), A) \;\simeq\; {} \\
+ &\qquad \textstyle\mathtt{finsum}_{j \in \mathtt{interval}(1,\,\mathtt{succ}(n))}\;
    \sigma_j \\
  &\qquad\text{where }\;
-   \sigma_j = (-1)^{1+j}_{R} \cdot \mathtt{ENTRY}(A, 1, j) \cdot
-   \mathtt{DET}(R, n, M_j) \\
- &\qquad\text{and }\; M_j = \mathtt{MINOR}(A, 1, j, n)
+   \sigma_j = (-1)^{1+j}_{R} \cdot \mathtt{entry}(A, 1, j) \cdot
+   \mathtt{det}(R, n, M_j) \\
+ &\qquad\text{and }\; M_j = \mathtt{minor}(A, 1, j, n)
 \end{align*}
 
 \noindent
-where the sum is $\mathtt{FINSUM}$ over $\mathit{RING\text{-}ADDITIVE\text{-}AG}(R)$
+where the sum is $\mathtt{finsum}$ over $\mathit{ring\text{-}additive\text{-}ag}(R)$
 and the sign $(-1)^{1+j}$ is taken \emph{in the ring}, as
-$\mathtt{MPOW}$ of $R$'s multiplicative monoid applied to
-$\mathtt{NEG}(R)(\mathtt{ONE}(R))$.  The $0 \times 0$ case is the empty
-product, $\mathtt{ONE}(R)$, and the $1 \times 1$ case falls out of the
-recursion: $\mathtt{DET}(R,1,A) = \mathtt{ENTRY}(A,1,1)$.
+$\mathtt{mpow}$ of $R$'s multiplicative monoid applied to
+$\mathtt{neg}(R)(\mathtt{one}(R))$.  The $0 \times 0$ case is the empty
+product, $\mathtt{one}(R)$, and the $1 \times 1$ case falls out of the
+recursion: $\mathtt{det}(R,1,A) = \mathtt{entry}(A,1,1)$.
 
 The axioms are hand-stated rather than emitted by
 \texttt{def-by-nn-recursion} because the matrix \emph{shrinks} in the
 recursive call---to its own minor---so the size is not a fixed recursion
-parameter.  Their consistency rests on $\mathtt{DET}$ being well defined
+parameter.  Their consistency rests on $\mathtt{det}$ being well defined
 by this recursion, which is the projection of the legitimate
-size-indexed recursion $\mathtt{MAT}(n,n) \to \mathtt{CARR}$.
+size-indexed recursion $\mathtt{mat}(n,n) \to \mathtt{carr}$.
 
 \subsection{Properties}
 
@@ -2192,33 +2192,33 @@ them is open work.
 
 \begin{description}
 \item[\texttt{det-in-carrier}]
-  for $A \in \mathtt{MAT}(n,n,\mathtt{CARR}(r))$ over a ring $r$,
-  $\mathtt{DET}(r,n,A) \in \mathtt{CARR}(r)$.
+  for $A \in \mathtt{mat}(n,n,\mathtt{carr}(r))$ over a ring $r$,
+  $\mathtt{det}(r,n,A) \in \mathtt{carr}(r)$.
 
 \item[\texttt{det-1x1}]
-  $\mathtt{DET}(r,1,A) = \mathtt{ENTRY}(A,1,1)$.
+  $\mathtt{det}(r,1,A) = \mathtt{entry}(A,1,1)$.
 
 \item[\texttt{det-2x2}]
-  $\mathtt{DET}(r,2,A) = A_{11}A_{22} - A_{12}A_{21}$.
+  $\mathtt{det}(r,2,A) = A_{11}A_{22} - A_{12}A_{21}$.
 
 \item[\texttt{det-identity}]
-  $\mathtt{DET}(r, n, \mathtt{ONE}(\mathit{MAT\text{-}RING}(r,n)))
-   = \mathtt{ONE}(r)$.
+  $\mathtt{det}(r, n, \mathtt{one}(\mathit{mat\text{-}ring}(r,n)))
+   = \mathtt{one}(r)$.
 
 \item[\texttt{det-alternating-rows}]
-  two equal rows force $\mathtt{DET}(r,n,A) = \mathtt{ZERO}(r)$.
+  two equal rows force $\mathtt{det}(r,n,A) = \mathtt{zero}(r)$.
 
 \item[\texttt{det-multiplicative}]
   over a \emph{commutative} ring,
   \[
-    \mathtt{DET}(r,n,\mathtt{MATMUL}(r,P,Q)) \;=\;
-    \mathtt{MUL}(r)(\mathtt{DET}(r,n,P),\, \mathtt{DET}(r,n,Q)).
+    \mathtt{det}(r,n,\mathtt{matmul}(r,P,Q)) \;=\;
+    \mathtt{mul}(r)(\mathtt{det}(r,n,P),\, \mathtt{det}(r,n,Q)).
   \]
 \end{description}
 
 \begin{remark}
 Four further facts are not even stated, for want of machinery:
-$\det(A^{T}) = \det(A)$ needs a $\mathtt{TRANSPOSE}$ functoid, which the
+$\det(A^{T}) = \det(A)$ needs a $\mathtt{transpose}$ functoid, which the
 tree does not have; expansion along an arbitrary row or column---the
 fact that would justify the asymmetric row-1 definition---needs the
 permutation bookkeeping the pedestrian route was chosen to avoid; and
@@ -2228,14 +2228,14 @@ $\det(A) \ne 0 \Leftrightarrow A$ invertible follow those.
 
 \paragraph{Computing with the recursion.}
 The axiom is keyed on the pattern
-$\mathtt{DET}(R, \mathtt{succ}(n), A)$, while a concrete goal names a
-literal size, $\mathtt{DET}(r, 1, A)$.  The rewriter bridges the two in
+$\mathtt{det}(R, \mathtt{succ}(n), A)$, while a concrete goal names a
+literal size, $\mathtt{det}(r, 1, A)$.  The rewriter bridges the two in
 both directions.  Matching is handled by \texttt{match-expr}, which
 matches $\mathtt{succ}(n)$ against the numeral $1$ with $n := 0$.  The
 macete's conditions are handled by \texttt{condition-holds?}, which
 compares them to the context with numerals and $\mathtt{succ}$-towers
 collapsed to one form, and discharges a ground arithmetic side condition
-such as $0 \in \mathtt{NN}$ outright.  So the plain \texttt{mac} fires
+such as $0 \in \mathtt{nn}$ outright.  So the plain \texttt{mac} fires
 on a literal size:
 
 \begin{VNBcode}

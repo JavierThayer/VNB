@@ -113,7 +113,7 @@ Each \emph{binding} in the string syntax is one of:
 In the \emph{S-expression syntax} a binding can additionally group
 several unrestricted variables into a single spec:
 \[
-  \texttt{(FORALL ((}x_1\ x_2\ \ldots\ x_n\texttt{) ...) body)}
+  \texttt{(forall ((}x_1\ x_2\ \ldots\ x_n\texttt{) ...) body)}
 \]
 \begin{sloppypar}
 The grouped binding \texttt{($x_1$ $x_2$ \ldots\ $x_n$)} is exactly
@@ -131,11 +131,11 @@ Three forms of the same formula are therefore in circulation:
 
 \begin{enumerate}[label=(\arabic*),leftmargin=1.2cm]
 \item the \emph{grouped} binding list,\\
-      \texttt{(FORALL ((x y z)) body)};
+      \texttt{(forall ((x y z)) body)};
 \item the \emph{flat} binding list,\\
-      \texttt{(FORALL ((x) (y) (z)) body)};
+      \texttt{(forall ((x) (y) (z)) body)};
 \item the \emph{fully nested} form,\\
-      \texttt{(FORALL ((x)) (FORALL ((y)) (FORALL ((z)) body)))}.
+      \texttt{(forall ((x)) (forall ((y)) (forall ((z)) body)))}.
 \end{enumerate}
 
 \noindent
@@ -173,9 +173,9 @@ untouched and the round trip normalizes form~(1) to form~(2):
 Two further properties are worth recording.  First, neither function
 expands the binding sugar to primitive form---that is the office of
 \texttt{make-wff}---so a restricted spec survives unwinding as a spec,
-with no \texttt{IMPLIES} introduced.  Second, \texttt{vnb-wind} merges
-only runs of the same quantifier; a \texttt{FORALL} over a
-\texttt{FORSOME} is returned unchanged.
+with no \texttt{implies} introduced.  Second, \texttt{vnb-wind} merges
+only runs of the same quantifier; a \texttt{forall} over a
+\texttt{forsome} is returned unchanged.
 
 \begin{VNBsnip}
 (vnb-unwind '(FORALL ((x) (IN z NN)) body))
@@ -203,8 +203,8 @@ forall([[E, +, *] in METRIC], IS-METRIC(E, +, *))
 The printer reconstructs binding-list form from the internal nested
 representation.  Consecutive same-type quantifiers are collapsed into
 a single binding list; a change of quantifier type stops the collapsing.
-For example, \texttt{forall([x in NN], forall([y], p))} prints as
-\texttt{forall([x in NN, y], p)}.
+For example, \texttt{forall([x in nn], forall([y], p))} prints as
+\texttt{forall([x in nn, y], p)}.
 
 \paragraph{Variable shadowing.}
 Bound variable names may be reused within nested quantifiers.
@@ -260,8 +260,8 @@ Undefinedness propagates through all operations: if \texttt{george(s)}
 is undefined then \texttt{george(s) + 1} is also undefined,
 and \texttt{george(s) + 1 = 2} is false.
 
-Variables and class constants (\texttt{ORD}, \texttt{RR},
-\texttt{EMPTY-SET}, \ldots) are always defined.  The application
+Variables and class constants (\texttt{ord}, \texttt{rr},
+\texttt{empty-set}, \ldots) are always defined.  The application
 \texttt{f(x)} is defined when \texttt{f in fun(A, B)} and
 \texttt{x in A} are provable for some $A$, $B$.
 
@@ -295,7 +295,7 @@ undefined, and \texttt{=}, being strict, is then false --- whereas
 \label{sec:class-set-discipline}
 
 Proper VNB has two kinds of object: \emph{sets} (elements of
-the class $\mathtt{SET}$) and \emph{proper classes} (collections that can have
+the class $\mathtt{set}$) and \emph{proper classes} (collections that can have
 members but are not themselves members of anything).  We retain that
 distinction and add a third kind, \emph{functoids}.
 
@@ -312,15 +312,15 @@ question takes $n$ arguments $a_1 \in A_1, a_2 \in A_2, \ldots, a_n
 
 \input{sec-functoids}
 
-The \textbf{primitive class constant} \texttt{SET} has the following
-property: The formula \texttt{$a$ in SET} expresses ``$a$ is a set'';
-there is no separate predicate form \texttt{SET($a$)}.  The key axiom
+The \textbf{primitive class constant} \texttt{set} has the following
+property: The formula \texttt{$a$ in set} expresses ``$a$ is a set'';
+there is no separate predicate form \texttt{set($a$)}.  The key axiom
 distinguishing VNB from typed systems: \[
-  (a \in b) \;\Longrightarrow\; a \in \mathtt{SET}
+  (a \in b) \;\Longrightarrow\; a \in \mathtt{set}
 \]
 Only sets can be members of anything: membership forces the \emph{left}
 argument to be a set.  The right argument---the containing class---may be
-a proper class.  ($3 \in \mathtt{ORD}$ is well-formed even though the
+a proper class.  ($3 \in \mathtt{ord}$ is well-formed even though the
 class of all ordinals is a proper class.)
 
 Function application is written $f(x_1, \ldots, x_n)$ in both cases:
@@ -334,7 +334,7 @@ The subset relation
 is a primitive binary predicate written \texttt{A subset B}
 (\texttt{subset-def}).  An immediate corollary of
 \texttt{membership-implies-sethood} is that \emph{every class is a
-subclass of $\mathtt{SET}$} (axiom \texttt{subset-set}): only sets can
+subclass of $\mathtt{set}$} (axiom \texttt{subset-set}): only sets can
 appear on the left of~$\in$.
 
 The constructors below are \emph{total} functoids: each is defined for
@@ -352,18 +352,18 @@ well-defined class for \emph{any} classes $X, Y$.  Three properties
 must be kept separate:
 \begin{itemize}
 \item \emph{Definability} --- always.
-\item \emph{Non-emptiness} --- only when $X \in \mathtt{SET}$.
+\item \emph{Non-emptiness} --- only when $X \in \mathtt{set}$.
   Functions in VNB are sets of ordered pairs, so a proper-class
-  domain forces $\mathtt{FUN}(X) = \varnothing$; the existential in
-  \texttt{is-fun-def} ($\exists A \in \mathtt{SET}.\; f \in
-  \mathtt{FUN}(A)$) is load-bearing on this point.
-\item \emph{Sethood} --- only when $X, Y \in \mathtt{SET}$
+  domain forces $\mathtt{fun}(X) = \varnothing$; the existential in
+  \texttt{is-fun-def} ($\exists A \in \mathtt{set}.\; f \in
+  \mathtt{fun}(A)$) is load-bearing on this point.
+\item \emph{Sethood} --- only when $X, Y \in \mathtt{set}$
   (\texttt{fun-set-iff}).
 \end{itemize}
 Functoids exist precisely for operations that genuinely act on
-proper classes (e.g.\ $\mathtt{POWER}: \mathtt{CLASS} \to
+proper classes (e.g.\ $\mathtt{power}: \mathtt{CLASS} \to
 \mathtt{CLASS}$): they cannot be encoded as elements of any
-$\mathtt{FUN}(\cdots)$.
+$\mathtt{fun}(\cdots)$.
 \end{remark}
 
 \begin{remark}
@@ -386,11 +386,11 @@ varies between invocations but is fixed when the expression is written:
 any \emph{finite} number is allowed.
 
 This is distinct from variadic \emph{functions} of type
-$\mathtt{FUN}(\mathtt{TUPLES}(A), B)$, which take a single set-level
-tuple as their one argument (see the remark on $\mathtt{TUPLES}$ in
+$\mathtt{fun}(\mathtt{tuples}(A), B)$, which take a single set-level
+tuple as their one argument (see the remark on $\mathtt{tuples}$ in
 Section~\ref{sec:constructor-examples}), and from fixed-arity functoids
 such as ring addition
-$\mathtt{ADD}(r) \in \mathtt{FUN}(\mathtt{CARTESIAN}(CARR(r), CARR(r)), CARR(r))$,
+$\mathtt{add}(r) \in \mathtt{fun}(\mathtt{cartesian}(\mathtt{carr}(r), \mathtt{carr}(r)), \mathtt{carr}(r))$,
 which have a single argument slot of fixed Cartesian type.
 \end{remark}
 
@@ -413,7 +413,7 @@ Section~\ref{sec:nary-proof-commands}.
   The macete \texttt{union-decompose} rewrites
   $x \in \text{union}(A_1,\ldots,A_n)$ to the disjunction
   $(x \in A_1) \lor \cdots \lor (x \in A_n)$ in one step.
-  Result is a set when all $A_i \in \mathtt{SET}$
+  Result is a set when all $A_i \in \mathtt{set}$
   (\texttt{union-set-closure}; n-ary by induction).
 
 \item \texttt{intersection($A_1$,\ldots,$A_n$)}
@@ -427,105 +427,105 @@ Section~\ref{sec:nary-proof-commands}.
   The macete \texttt{intersection-decompose} rewrites
   $x \in \text{intersection}(A_1,\ldots,A_n)$ to the conjunction
   $(x \in A_1) \land \cdots \land (x \in A_n)$ in one step.
-  Result is a set when any $A_i \in \mathtt{SET}$
+  Result is a set when any $A_i \in \mathtt{set}$
   (\texttt{intersection-set-closure}).
 
 \item \texttt{complement-in($A$, $B$)}
   Relative complement $A \setminus B$: $x \in C$ iff $x \in A$ and
   $x \notin B$ (\texttt{complement-in-membership}).
-  $B$ need not be a set; result is a set when $A \in \mathtt{SET}$
+  $B$ need not be a set; result is a set when $A \in \mathtt{set}$
   (\texttt{complement-in-set-closure}).
 
 \item \texttt{cartesian($A_1$,\ldots,$A_n$)}
   $x \in C$ iff $x = [a_1,\ldots,a_n]$ with $a_i \in A_i$.
-  Result is a set iff all $A_i \in \mathtt{SET}$ (\texttt{cartesian-set-iff}).
+  Result is a set iff all $A_i \in \mathtt{set}$ (\texttt{cartesian-set-iff}).
 
 \item \texttt{tuples($A$)}
   $x \in C$ iff $x = [a_1,\ldots,a_n]$ with all $a_i \in A$,
   for some $n \ge 0$.
-  Result is a set when $A \in \mathtt{SET}$ (\texttt{tuples-sethood}).
+  Result is a set when $A \in \mathtt{set}$ (\texttt{tuples-sethood}).
 
 \item \texttt{fun($A$)}, \texttt{fun($A$, $B$)}
-  The unary $\mathtt{FUN}(A)$ is the class of all total functions with
+  The unary $\mathtt{fun}(A)$ is the class of all total functions with
   domain $A$ (no codomain restriction); proper class in general.  The
-  binary $\mathtt{FUN}(A,B)$ is the restriction
-  $\{f \in \mathtt{FUN}(A) : \forall x \in A.\;f(x) \in B\}$.
-  $\mathtt{FUN}(A,B) \in \mathtt{SET}$ iff $A, B \in \mathtt{SET}$
-  (\texttt{fun-set-iff}); $\mathtt{FUN}(A) \in \mathtt{SET}$ never holds
+  binary $\mathtt{fun}(A,B)$ is the restriction
+  $\{f \in \mathtt{fun}(A) : \forall x \in A.\;f(x) \in B\}$.
+  $\mathtt{fun}(A,B) \in \mathtt{set}$ iff $A, B \in \mathtt{set}$
+  (\texttt{fun-set-iff}); $\mathtt{fun}(A) \in \mathtt{set}$ never holds
   in general because the codomain is unconstrained.
   See Section~\ref{sec:funapp}.
 
   The strengthened \texttt{fun-domain-apply-def} now reads
-  $f \in \mathtt{FUN}(A) \Rightarrow ((f\,x) = (f\,x) \Leftrightarrow x \in A)$.
+  $f \in \mathtt{fun}(A) \Rightarrow ((f\,x) = (f\,x) \Leftrightarrow x \in A)$.
   Recall VNB equality is partial: $(t = t)$ is the definedness predicate
   for $t$, so the iff says \emph{$f(x)$ is defined exactly when $x \in A$}.
   Consequence: the witness $A$ is unique, justifying ``the'' domain of $f$.
 
 \item \texttt{is-fun($f$)}
   The predicate ``$f$ is a function'': there exists a set $A$ with
-  $f \in \mathtt{FUN}(A)$.  Axiom \texttt{is-fun-def}:
-  $\mathit{IS\text{-}FUN}(f) \Leftrightarrow \exists A \in \mathtt{SET}.\;
-   f \in \mathtt{FUN}(A)$.
+  $f \in \mathtt{fun}(A)$.  Axiom \texttt{is-fun-def}:
+  $\mathit{is\text{-}fun}(f) \Leftrightarrow \exists A \in \mathtt{set}.\;
+   f \in \mathtt{fun}(A)$.
 
 \item \texttt{dom($f$)}
   The \emph{domain} of $f$ as a class.  Characterised by membership
   (\texttt{dom-membership}):
-  $x \in \mathtt{DOM}(f) \Leftrightarrow x \in \mathtt{SET}
+  $x \in \mathtt{dom}(f) \Leftrightarrow x \in \mathtt{set}
    \land (f\,x) = (f\,x)$, i.e.\ $x$ is a set on which $f$ is defined.
-  When $f \in \mathtt{FUN}(A)$, $\mathtt{DOM}(f)$ and $A$ agree on
+  When $f \in \mathtt{fun}(A)$, $\mathtt{dom}(f)$ and $A$ agree on
   members (\texttt{dom-fun-membership}).  When additionally
-  $A \in \mathtt{SET}$, $\mathtt{DOM}(f) \in \mathtt{SET}$ and
-  $\mathtt{DOM}(f) = A$ as sets, by extensionality
+  $A \in \mathtt{set}$, $\mathtt{dom}(f) \in \mathtt{set}$ and
+  $\mathtt{dom}(f) = A$ as sets, by extensionality
   (\texttt{dom-of-fun}).
 
 \item \texttt{res($f$, $B$)}
   The \emph{restriction} of $f$ to $B$.  Semantically
-  $\mathtt{RES}(f, B) = \lambda x \in B.\;f(x)$.  Total as a constructor
+  $\mathtt{res}(f, B) = \lambda x \in B.\;f(x)$.  Total as a constructor
   (defined for all $f$ and $B$ -- bongo-style); typed by:
   \begin{itemize}
   \item \texttt{res-typing}:
-    $f \in \mathtt{FUN}(A) \land B \subseteq A
-    \Rightarrow \mathtt{RES}(f, B) \in \mathtt{FUN}(B)$.
+    $f \in \mathtt{fun}(A) \land B \subseteq A
+    \Rightarrow \mathtt{res}(f, B) \in \mathtt{fun}(B)$.
   \item \texttt{res-apply}:
-    $f \in \mathtt{FUN}(A) \land B \subseteq A \land x \in B
-    \Rightarrow (\mathtt{RES}(f, B))(x) = f(x)$.
+    $f \in \mathtt{fun}(A) \land B \subseteq A \land x \in B
+    \Rightarrow (\mathtt{res}(f, B))(x) = f(x)$.
   \item \texttt{res-codomain} (derived): codomain inherits from
-    $f \in \mathtt{FUN}(A, C)$.
+    $f \in \mathtt{fun}(A, C)$.
   \end{itemize}
   Outside the case $B \subseteq A$ the term exists but carries no
-  $\mathtt{FUN}$-typing guarantees.
+  $\mathtt{fun}$-typing guarantees.
 
 \item \texttt{partial-fun($A$)}, \texttt{partial-fun($A$, $C$)}
   Partial functions on $A$.  Members are total functions whose domain
   is some subset of $A$:
-  $\mathit{PARTIAL\text{-}FUN}(A) = \{f \mid \exists B \in \mathtt{POWER}(A).
-   \; f \in \mathtt{FUN}(B)\}$
+  $\mathit{partial\text{-}fun}(A) = \{f \mid \exists B \in \mathtt{power}(A).
+   \; f \in \mathtt{fun}(B)\}$
   (\texttt{partial-fun-membership}, generally a proper class because
   the codomain is unconstrained).  The binary form fixes a codomain:
-  $\mathit{PARTIAL\text{-}FUN}(A, C) = \{f \mid \exists B \in \mathtt{POWER}(A).
-   \; f \in \mathtt{FUN}(B, C)\}$
+  $\mathit{partial\text{-}fun}(A, C) = \{f \mid \exists B \in \mathtt{power}(A).
+   \; f \in \mathtt{fun}(B, C)\}$
   (\texttt{partial-fun-binary-membership}).  Sethood
   (\texttt{partial-fun-binary-sethood}):
-  $A, C \in \mathtt{SET} \Rightarrow \mathit{PARTIAL\text{-}FUN}(A, C)
-   \in \mathtt{SET}$ (stated as axiom; provable once a class-union
+  $A, C \in \mathtt{set} \Rightarrow \mathit{partial\text{-}fun}(A, C)
+   \in \mathtt{set}$ (stated as axiom; provable once a class-union
   principle over a set-indexed family is in place).
 
 \item \texttt{\{$x$ in $A$: $p$\}} / \texttt{\{$x$ in $A$ | $p$\}}
-  Separation $\mathtt{SEP}(x, A, p) = \{x \in A \mid p\}$: $x \in C$
+  Separation $\mathtt{sep}(x, A, p) = \{x \in A \mid p\}$: $x \in C$
   iff $x \in A$ and $p[x]$ holds.  Because $p$ is genuinely a schema
   (a formula, not a first-order term), the characterization is given
   by kernel rules rather than a single FOL axiom:
-  \texttt{pi-sep-sethood!} ($\mathtt{SEP}(x, A, p) \in \mathtt{SET}$
-  reduces to $A \in \mathtt{SET}$);
-  \texttt{pi-sep-mem-intro!} ($y \in \mathtt{SEP}(x, A, p)$ splits
+  \texttt{pi-sep-sethood!} ($\mathtt{sep}(x, A, p) \in \mathtt{set}$
+  reduces to $A \in \mathtt{set}$);
+  \texttt{pi-sep-mem-intro!} ($y \in \mathtt{sep}(x, A, p)$ splits
   into $y \in A$ and $p[x:=y]$);
-  \texttt{pi-sep-mem-elim!} (assumption $y \in \mathtt{SEP}(x, A, p)$
+  \texttt{pi-sep-mem-elim!} (assumption $y \in \mathtt{sep}(x, A, p)$
   yields both $y \in A$ and $p[x:=y]$ in context).
-  Result is a set when $A \in \mathtt{SET}$.
+  Result is a set when $A \in \mathtt{set}$.
 
 \item \texttt{\{$x$ | $p$\}}
-  Class comprehension $\mathtt{COMP}(x, p) = \{x \mid p\}$: $y \in C$
-  iff $y \in \mathtt{SET}$ and $p[x:=y]$ (members of any class are
+  Class comprehension $\mathtt{comp}(x, p) = \{x \mid p\}$: $y \in C$
+  iff $y \in \mathtt{set}$ and $p[x:=y]$ (members of any class are
   sets).  Same schema treatment as separation:
   \texttt{pi-comp-mem-intro!} and \texttt{pi-comp-mem-elim!}.
   Proper class in general unless provably bounded.
@@ -533,7 +533,7 @@ Section~\ref{sec:nary-proof-commands}.
 \item \texttt{big-union($z$, $A$, body)}
   Big-union over an index set:
   \[
-    \mathit{BIG\text{-}UNION}(z, A, \mathit{body})
+    \mathit{big\text{-}union}(z, A, \mathit{body})
     \;=\; \bigcup_{z \in A} \mathit{body}
     \;=\; \{x \mid \exists z \in A.\; x \in \mathit{body}\}
   \]
@@ -541,32 +541,32 @@ Section~\ref{sec:nary-proof-commands}.
   As with separation, $\mathit{body}$ is a class schema in $z$, so the
   characterization is by kernel rules:
   \texttt{pi-big-union-sethood!}
-  ($\mathit{BIG\text{-}UNION}(z, A, \mathit{body}) \in \mathtt{SET}$
-   reduces to $A \in \mathtt{SET}$ and
-   $\forall z \in A.\; \mathit{body} \in \mathtt{SET}$);
+  ($\mathit{big\text{-}union}(z, A, \mathit{body}) \in \mathtt{set}$
+   reduces to $A \in \mathtt{set}$ and
+   $\forall z \in A.\; \mathit{body} \in \mathtt{set}$);
   \texttt{pi-big-union-mem-intro!} (witness $w$:
-   $x \in \mathit{BIG\text{-}UNION}(z, A, \mathit{body})$ splits into
+   $x \in \mathit{big\text{-}union}(z, A, \mathit{body})$ splits into
    $w \in A$ and $x \in \mathit{body}[z := w]$);
   \texttt{pi-big-union-mem-elim!} (assumption gives a fresh
    eigenvariable $e$ with $e \in A$ and $x \in \mathit{body}[z := e]$).
 
   \begin{remark}
   In the diverse VNB+ universe a set may contain non-sets (lists,
-  numbers, functions).  The binder form $\mathit{BIG\text{-}UNION}(z, A,
+  numbers, functions).  The binder form $\mathit{big\text{-}union}(z, A,
   \mathit{body})$ makes the family structure explicit: $A$ is the
   index, $z \mapsto \mathit{body}$ is intended to be set-valued.
   The ZF-style $\bigcup S$ over a loose ``set of sets'' is the special
-  case $\mathit{BIG\text{-}UNION}(s, S, s)$ and is not taken as
+  case $\mathit{big\text{-}union}(s, S, s)$ and is not taken as
   primitive.
   \end{remark}
 
 \item \texttt{power($A$)}, \texttt{power($A$, $B$)}
   Unary \texttt{power($A$)} is the power set: $x \in C$ iff
-  $x \in \mathtt{SET}$ and $x \subseteq A$ (\texttt{power-set}).
+  $x \in \mathtt{set}$ and $x \subseteq A$ (\texttt{power-set}).
   Binary \texttt{power($A$, $B$)} is the function-space exponentiation
   $A^B$, axiomatized by \texttt{power-exp}:
   \[
-     \mathtt{POWER}(A, B) \;=\; \mathtt{FUN}(B, A)
+     \mathtt{power}(A, B) \;=\; \mathtt{fun}(B, A)
   \]
   i.e.\ functions $B \to A$.  This convention matches the arithmetic
   evaluator: $\texttt{power}(2, 3) = 2^3 = 8$ counts functions from
@@ -595,29 +595,29 @@ representation are objects in the VNB universe.
 \item \texttt{length($L$)} number of elements in tuple $L$; a natural number:
   \begin{itemize}
   \item \texttt{length-of-empty}: $\texttt{length}([\,]) = 0$
-  \item \texttt{length-in-nn}: $L \in \mathtt{TUPLES}(\mathtt{SET}) \Rightarrow
-    \texttt{length}(L) \in \mathtt{NN}$
-  \item \texttt{nth-in-range}: $L \in \mathtt{TUPLES}(A),\; i \in \mathtt{NN},\;
+  \item \texttt{length-in-nn}: $L \in \mathtt{tuples}(\mathtt{set}) \Rightarrow
+    \texttt{length}(L) \in \mathtt{nn}$
+  \item \texttt{nth-in-range}: $L \in \mathtt{tuples}(A),\; i \in \mathtt{nn},\;
     1 \le i \le \texttt{length}(L) \Rightarrow \texttt{nth}(i,L) \in A$
   \end{itemize}
   The recursive characterisation is supplied by the constructor
-  \texttt{CONS}$(x,L)$ and the equation \texttt{length-cons},
+  \texttt{cons}$(x,L)$ and the equation \texttt{length-cons},
   $\texttt{length}(\texttt{cons}(x,L)) = \texttt{succ}(\texttt{length}(L))$,
   in \texttt{structure-library/list-recursion.scm}; list induction over
-  \texttt{TUPLES} is a proven theorem, \texttt{tuples-induction}, not a schema
+  \texttt{tuples} is a proven theorem, \texttt{tuples-induction}, not a schema
   (Section~\ref{sec:list-recursion}).
-\item \texttt{EMPTY-SET} the empty set $\emptyset$; always a set; $= \texttt{make-set}([\,])$
+\item \texttt{empty-set} the empty set $\emptyset$; always a set; $= \texttt{make-set}([\,])$
 \item \texttt{\{$a$\}} singleton $\{a\}$; always a set; $= \texttt{make-set}([$a$])$
-\item \texttt{make-set($L$)} unordered finite set from tuple $L \in \mathtt{TUPLES}(A)$,
-  $A \in \mathtt{SET}$; always a set:
+\item \texttt{make-set($L$)} unordered finite set from tuple $L \in \mathtt{tuples}(A)$,
+  $A \in \mathtt{set}$; always a set:
   \begin{itemize}
   \item \texttt{make-set-membership}: $x \in \texttt{make-set}(L)
-    \Longleftrightarrow \exists\,i \in \mathtt{NN}.\;
+    \Longleftrightarrow \exists\,i \in \mathtt{nn}.\;
     1 \le i \le \texttt{length}(L) \land \texttt{nth}(i,L) = x$
     (the $1 \le i \le \texttt{length}(L)$ bounds matter:
     $\texttt{nth}$ out-of-range is unspecified)
-  \item \texttt{make-set-sethood}: $L \in \mathtt{TUPLES}(A),\; A \in \mathtt{SET}
-    \Rightarrow \texttt{make-set}(L) \in \mathtt{SET}$
+  \item \texttt{make-set-sethood}: $L \in \mathtt{tuples}(A),\; A \in \mathtt{set}
+    \Rightarrow \texttt{make-set}(L) \in \mathtt{set}$
   \item \texttt{make-set-empty}: $\texttt{make-set}([\,]) = \emptyset$
   \end{itemize}
   The notation $\{a,b,c,\ldots\}$ is sugar for $\texttt{make-set}([a,b,c,\ldots])$;
@@ -651,19 +651,19 @@ representation are objects in the VNB universe.
 \item \texttt{vnb-lambda([$x_1$ in $A_1$, \ldots, $x_n$ in $A_n$], $\mathit{body}$)}
   anonymous multi-argument \emph{set-function}; a binder.
   Each variable has its own independent domain, exactly as in quantification.
-  All domains $A_i$ must belong to \texttt{SET}; the result is an element
-  of $\mathtt{FUN}$.
+  All domains $A_i$ must belong to \texttt{set}; the result is an element
+  of $\mathtt{fun}$.
 
   \begin{quote}
   \textbf{This is not the same construct as \texttt{lambdoid}, and the
   distinction is the one most worth getting right.}  A \texttt{vnb-lambda}
   denotes a \emph{set of ordered pairs} --- an element of some
-  $\mathtt{FUN}(A,B)$ --- and is an ordinary S-expression.  A
+  $\mathtt{fun}(A,B)$ --- and is an ordinary S-expression.  A
   \texttt{lambdoid} denotes a \emph{functoid}, a tagged record that need not
-  belong to any \texttt{FUN} class.  They carry different obligations and are
+  belong to any \texttt{fun} class.  They carry different obligations and are
   reduced by different rules: \texttt{vnb-lambda} is typed by
   \texttt{pi-lambda-type!} (short form \texttt{(lam-t)}), which opens the
-  $A \in \mathtt{SET}$ subgoal a set of pairs requires, and reduced by
+  $A \in \mathtt{set}$ subgoal a set of pairs requires, and reduced by
   \texttt{pi-lambda-beta!} (\texttt{(lam-b)}); a functoid is reduced by
   \texttt{cmd-functoid-beta} (\texttt{(beta)}) and has no such typing rule.
   Essentially every proof in the shipped library uses \texttt{vnb-lambda};
@@ -674,36 +674,36 @@ representation are objects in the VNB universe.
   \end{quote}
 
   Its representation is the raw S-expression
-    \texttt{(VNB-LAMBDA $x$ $A$ $\mathit{body}$)} or
-    \texttt{(VNB-LAMBDA (LIST $x_1\,\ldots\,x_n$) $A$ $\mathit{body}$)},
+    \texttt{(vnb-lambda $x$ $A$ $\mathit{body}$)} or
+    \texttt{(vnb-lambda (list $x_1\,\ldots\,x_n$) $A$ $\mathit{body}$)},
     where $A$ is the \emph{domain} and lies outside the binder's scope
-    (as in \texttt{SEP} and \texttt{BIG-UNION}).  The domain is
+    (as in \texttt{sep} and \texttt{big-union}).  The domain is
     \emph{required}: a lambda that does not carry one does not determine
     a function, and the typing rule was free to certify one and the same
-    domainless term into $\mathrm{FUN}(A,B)$ for every $A$ at once.
+    domainless term into $\mathrm{fun}(A,B)$ for every $A$ at once.
     Used in axioms written directly as S-expressions
-    (e.g.\ \texttt{RING-PROD}, \texttt{CC-NORMED-FIELD}, \texttt{sum}).
+    (e.g.\ \texttt{ring-prod}, \texttt{cc-normed-field}, \texttt{sum}).
     At the surface, the binder list may carry its domains the way a
     quantifier's does --- \texttt{vnb-lambda([$x_1$ in $A_1$, \ldots,
     $x_n$ in $A_n$], $\mathit{body}$)} --- which is sugar for
-    \texttt{vnb-lambda([$x_1,\ldots,x_n$], CARTESIAN($A_1,\ldots,A_n$),
+    \texttt{vnb-lambda([$x_1,\ldots,x_n$], cartesian($A_1,\ldots,A_n$),
     $\mathit{body}$)} and parses to exactly that S-expression (to
-    \texttt{(VNB-LAMBDA $x_1$ $A_1$ $\mathit{body}$)} when $n = 1$).  A
+    \texttt{(vnb-lambda $x_1$ $A_1$ $\mathit{body}$)} when $n = 1$).  A
     binder list that is only partly typed is rejected rather than
     completed by guesswork.
     Typing rule \texttt{pi-lambda-type!}: the goal
-    $\mathit{VNB\text{-}LAMBDA}(x, A, \mathit{body}) \in
-    \mathtt{FUN}(A, B)$ reduces to two subgoals,
+    $\mathit{vnb\text{-}lambda}(x, A, \mathit{body}) \in
+    \mathtt{fun}(A, B)$ reduces to two subgoals,
     $\forall x.\; x \in A \Rightarrow \mathit{body} \in B$ and
-    $A \in \mathtt{SET}$.  Since 2026-08-14 the rule also accepts a
-    binder \emph{list} when the domain is a \texttt{CARTESIAN} of the
+    $A \in \mathtt{set}$.  Since 2026-08-14 the rule also accepts a
+    binder \emph{list} when the domain is a \texttt{cartesian} of the
     same length, discharging the first subgoal componentwise as
     $\forall x_1 \in A_1 \ldots \forall x_n \in A_n.\;
     \mathit{body} \in B$; on a non-Cartesian domain, or a length
     mismatch, it declines and leaves the goal untouched.
     $\beta$-reduction \texttt{pi-lambda-beta!} (short form
     \texttt{(lam-b)}) rewrites
-    $\bigl(\mathit{VNB\text{-}LAMBDA}(\overline x, \mathit{body})\bigr)
+    $\bigl(\mathit{vnb\text{-}lambda}(\overline x, \mathit{body})\bigr)
     (\overline v) = \mathit{body}[\overline x := \overline v]$
     (parallel substitution).
   Cardinal-exponent typing schema (summarized; multi-binder derives from the
@@ -712,15 +712,15 @@ representation are objects in the VNB universe.
     \bigl(\forall x_i \in A_i.\;\mathit{body}(x_1,\ldots,x_n) \in B\bigr)
     \;\Longrightarrow\; \\
     \texttt{vnb-lambda}([x_1 \in A_1,\ldots,x_n \in A_n],\,\mathit{body})
-      \in \mathtt{FUN}(A_1 \times \cdots \times A_n,\,B)
+      \in \mathtt{fun}(A_1 \times \cdots \times A_n,\,B)
   \end{multline*}
 
 \item \texttt{lambdoid([$x_1$ in $A_1$, \ldots, $x_n$ in $A_n$], $\mathit{body}$)}
   the \emph{functoid} binder --- the class-domain sibling of
   \texttt{vnb-lambda}, and the only surface form that produces a functoid.
   The domains $A_i$ may be arbitrary classes (including proper classes such as
-  \texttt{ORD}).  The result is a tagged record at the meta-level; it does not
-  necessarily belong to any \texttt{FUN} class, has no \texttt{lam-t} typing
+  \texttt{ord}).  The result is a tagged record at the meta-level; it does not
+  necessarily belong to any \texttt{fun} class, has no \texttt{lam-t} typing
   rule, and $\beta$-reduces via \texttt{(beta)} rather than \texttt{(lam-b)}.
 \end{itemize}
 
@@ -762,10 +762,10 @@ For example, $\texttt{nth}(3,\,[a,b,c,c,e])$ reduces to $c$.
 \begin{remark}[Indexing convention: lists are 1-indexed]
 Tuples / lists in VNB are \emph{1-indexed}: \texttt{nth}$(i, L)$ is valid
 for $1 \le i \le \texttt{length}(L)$, and $\texttt{nth}(1,\,[a, b, c]) = a$.
-Lists and functions on initial segments of $\mathtt{NN}$ are genuinely
+Lists and functions on initial segments of $\mathtt{nn}$ are genuinely
 different things, and we do \emph{not} reduce one to the other.  When an
 interval constructor is added, the canonical domain for an $n$-element list
-is $\mathtt{INTERVAL}(1, n)$, \emph{not} $\mathtt{INTERVAL}(0, n-1)$.
+is $\mathtt{interval}(1, n)$, \emph{not} $\mathtt{interval}(0, n-1)$.
 The 1-indexing convention matches IMPS and is built into every axiom
 that mentions \texttt{nth} or \texttt{length} (\texttt{make-set-membership},
 \texttt{nth-in-range}, \texttt{length-of-empty}).
@@ -779,7 +779,7 @@ a \emph{functoid record} --- a Scheme tagged structure separate from
 S-expressions --- so it is never accidentally mistaken for an ordinary term by
 the expression machinery.  \texttt{vnb-lambda} needs no such tag: it \emph{is}
 an ordinary term, and each of those walkers has an explicit
-\texttt{VNB-LAMBDA} case treating it as the binder it is.
+\texttt{vnb-lambda} case treating it as the binder it is.
 \end{remark}
 
 \section{Function application}
@@ -804,10 +804,10 @@ The string-syntax form $f(a_1,\,\ldots,\,a_n)$ parses verbatim into the
 comma-separated term.  No implicit tupling at the parser level.
 
 However, an operation declared via
-\texttt{(op MUL (CARTESIAN A A) A)} (Section~\ref{sec:declare-structure})
+\texttt{(op mul (cartesian A A) A)} (Section~\ref{sec:declare-structure})
 is typed (Section~\ref{sec:declare-structure}) as the \emph{unary} function
 \[
-  (\textsc{mul}\ s)\ \in\ \textsc{fun}(\textsc{cartesian}(CARR(s),\,CARR(s)),\ CARR(s))
+  (\textsc{mul}\ s)\ \in\ \textsc{fun}(\textsc{cartesian}(\mathtt{carr}(s),\,\mathtt{carr}(s)),\ \mathtt{carr}(s))
 \]
 whose single argument is an element of the Cartesian product.
 Likewise the typing axiom \texttt{fun-apply-type} is unary
@@ -843,13 +843,13 @@ resulting definedness, then substitute — making the per-structure
 primitive.
 \end{remark}
 
-\texttt{fun}($A$, $B$) (with $A, B \in \mathtt{SET}$) is a primitive set constructor: its members are
-the total functions from $A$ to $B$.  Since $A, B \in \mathtt{SET}$,
+\texttt{fun}($A$, $B$) (with $A, B \in \mathtt{set}$) is a primitive set constructor: its members are
+the total functions from $A$ to $B$.  Since $A, B \in \mathtt{set}$,
 \texttt{fun}($A$,$B$) is itself a set (\texttt{fun-set-iff}), and each
-$f \in \mathtt{FUN}(A,B)$ is a set (\texttt{membership-implies-sethood}).
+$f \in \mathtt{fun}(A,B)$ is a set (\texttt{membership-implies-sethood}).
 
 \begin{remark}
-The soundness of $\mathtt{FUN}(A,B)$ is confirmed by the standard
+The soundness of $\mathtt{fun}(A,B)$ is confirmed by the standard
 set-theoretic construction: a function $f : A \to B$ is a set of pairs
 $(a, b) \in A \times B$ that is functional (each $a$ has at most one $b$)
 and total (every $a \in A$ appears).  Since $A \times B$ is a set, so
@@ -858,16 +858,16 @@ is any subset of it, making $f$ a set.
 
 
 \begin{remark}
-Category theory motivates a natural extension of $\mathtt{FUN}$.  A
+Category theory motivates a natural extension of $\mathtt{fun}$.  A
 functor between large categories---such as the category of all groups or
 all metric spaces---maps a proper class of objects to a proper class of
-objects.  Since $\mathtt{FUN}$ requires a set-valued domain, functors
-fall outside $\mathtt{FUN}$ entirely.
+objects.  Since $\mathtt{fun}$ requires a set-valued domain, functors
+fall outside $\mathtt{fun}$ entirely.
 
 They are \emph{functoids} (Remark~\ref{rem:functoids-quantified}), the
 third kind of entity beside sets and classes, outside the range of the
 quantifiers; a \texttt{def-functor} view (Section~\ref{sec:view-as}) is
-one.  There is no class $\mathtt{OPER}(A,B)$ of them---no such collection
+one.  There is no class $\mathtt{oper}(A,B)$ of them---no such collection
 can exist without violating the set/class dichotomy---and there is no
 predicate that collects them.  A functoid applied to an argument is reduced by
 substitution (\texttt{beta}); it has no typing rule of its own, and a
@@ -881,53 +881,53 @@ the sethood of the value as a conjunct.
 
 %
 The base library installs the following axioms.  The primary form of
-\texttt{FUN} is the unary $\mathtt{FUN}(A)$ -- all total functions whose
-domain is $A$, with no codomain restriction; the binary $\mathtt{FUN}(A,B)$
-is the derived form $\{f \in \mathtt{FUN}(A) : \forall x \in A.\;f(x) \in B\}$.
+\texttt{fun} is the unary $\mathtt{fun}(A)$ -- all total functions whose
+domain is $A$, with no codomain restriction; the binary $\mathtt{fun}(A,B)$
+is the derived form $\{f \in \mathtt{fun}(A) : \forall x \in A.\;f(x) \in B\}$.
 
 \begin{itemize}
 \item \texttt{fun-domain-apply-def}
-  $f \in \mathtt{FUN}(A) \land x \in A \;\Rightarrow\; f(x) = f(x)$
+  $f \in \mathtt{fun}(A) \land x \in A \;\Rightarrow\; f(x) = f(x)$
 \item \texttt{fun-domain-extensionality}
-  $f,g \in \mathtt{FUN}(A) \land (\forall x \in A.\;f(x) = g(x)) \;\Rightarrow\; f = g$
+  $f,g \in \mathtt{fun}(A) \land (\forall x \in A.\;f(x) = g(x)) \;\Rightarrow\; f = g$
 \item \texttt{fun-codomain-iff}
-  $f \in \mathtt{FUN}(A,B) \;\Leftrightarrow\;
-   (f \in \mathtt{FUN}(A) \land \forall x \in A.\;f(x) \in B)$
+  $f \in \mathtt{fun}(A,B) \;\Leftrightarrow\;
+   (f \in \mathtt{fun}(A) \land \forall x \in A.\;f(x) \in B)$
 \item \texttt{fun-apply-type}
-  $f \in \mathtt{FUN}(A,B) \land x \in A \;\Rightarrow\; f(x) \in B$
+  $f \in \mathtt{fun}(A,B) \land x \in A \;\Rightarrow\; f(x) \in B$
   (in \texttt{axioms.scm}; derivable from \texttt{fun-codomain-iff})
 \item \texttt{fun-set-iff}
-  $\mathtt{FUN}(A,B) \in \mathtt{SET} \;\Leftrightarrow\; (CARR \in \mathtt{SET}) \land (B \in \mathtt{SET})$
+  $\mathtt{fun}(A,B) \in \mathtt{set} \;\Leftrightarrow\; (A \in \mathtt{set}) \land (B \in \mathtt{set})$
 \item \texttt{fun-elements-are-sets}
-  $f \in \mathtt{FUN}(A,B) \land A \in \mathtt{SET} \;\Rightarrow\; f \in \mathtt{SET}$
+  $f \in \mathtt{fun}(A,B) \land A \in \mathtt{set} \;\Rightarrow\; f \in \mathtt{set}$
 \item \texttt{fun-domain-elements-are-sets}
-  $f \in \mathtt{FUN}(A) \land A \in \mathtt{SET} \;\Rightarrow\; f \in \mathtt{SET}$
+  $f \in \mathtt{fun}(A) \land A \in \mathtt{set} \;\Rightarrow\; f \in \mathtt{set}$
 \item \texttt{cartesian-set-iff}
-  $A \times B \in \mathtt{SET} \;\Leftrightarrow\; (CARR \in \mathtt{SET}) \land (B \in \mathtt{SET})$
+  $A \times B \in \mathtt{set} \;\Leftrightarrow\; (A \in \mathtt{set}) \land (B \in \mathtt{set})$
 \item \texttt{tuples-sethood}
-  $A \in \mathtt{SET} \;\Rightarrow\; \mathtt{TUPLES}(A) \in \mathtt{SET}$
+  $A \in \mathtt{set} \;\Rightarrow\; \mathtt{tuples}(A) \in \mathtt{set}$
 \end{itemize}
 
 \begin{remark}
-The constructor $\mathtt{TUPLES}(A)$ is the class of all finite sequences
+The constructor $\mathtt{tuples}(A)$ is the class of all finite sequences
 $[a_1, \ldots, a_n]$ with each $a_i \in A$, for any $n \ge 0$ (including
-the empty sequence $[\,]$).  It fills a gap that $\mathtt{CARTESIAN}$ does
-not cover: $\mathtt{CARTESIAN}(A_1, \ldots, A_n)$ fixes the arity $n$ at
-the time the expression is written, whereas $\mathtt{TUPLES}(A)$ lets $n$
+the empty sequence $[\,]$).  It fills a gap that $\mathtt{cartesian}$ does
+not cover: $\mathtt{cartesian}(A_1, \ldots, A_n)$ fixes the arity $n$ at
+the time the expression is written, whereas $\mathtt{tuples}(A)$ lets $n$
 range over all natural numbers.
 
 This supports \emph{variadic} functions whose single argument is a tuple
-of any length: an element of $\mathtt{FUN}(\mathtt{TUPLES}(A), B)$ takes
+of any length: an element of $\mathtt{fun}(\mathtt{tuples}(A), B)$ takes
 one tuple and returns a value in $B$.  This is \emph{not} the same as a
 fixed-arity $n$-ary function, which has type
-$\mathtt{FUN}(\mathtt{CARTESIAN}(A_1, \ldots, A_n), B)$ and is bound to
+$\mathtt{fun}(\mathtt{cartesian}(A_1, \ldots, A_n), B)$ and is bound to
 exactly $n$ argument slots by its type.  The variadic flavour is the
 right one when an operator must handle inputs of any length (e.g.\ a sum
 over an indexed sequence); the fixed-arity flavour is the right one when
 the arity is intrinsic to the operator (e.g.\ ring addition, which is
-honestly binary).  Since $\mathtt{TUPLES}(A) \in \mathtt{SET}$ when
-$A \in \mathtt{SET}$, the variadic case is an ordinary instance of
-$\mathtt{FUN}(A', B)$ with $A' = \mathtt{TUPLES}(A)$.
+honestly binary).  Since $\mathtt{tuples}(A) \in \mathtt{set}$ when
+$A \in \mathtt{set}$, the variadic case is an ordinary instance of
+$\mathtt{fun}(A', B)$ with $A' = \mathtt{tuples}(A)$.
 \end{remark}
 
 \subsection{The constant-head registry}
@@ -947,7 +947,7 @@ Every constant head is registered with a kind tag; any head absent from
 the registry is treated as a variable.  The kinds are:
 \begin{itemize}
 \item \texttt{operator} -- a kernel term- or formula-forming head
-  (\texttt{+}, \texttt{IN}, \texttt{FORALL}, \ldots), seeded at load
+  (\texttt{+}, \texttt{in}, \texttt{forall}, \ldots), seeded at load
   time by \texttt{wff.scm};
 \item \texttt{accessor} -- a structure field selector, registered by
   \texttt{declare-structure};
@@ -967,8 +967,8 @@ to a registered constant cannot be applied as a function --- the head
 \texttt{($v$ \ldots)} reads as the constant, not the variable, scope-blind,
 silently changing a formula's meaning.  Two safeguards keep the installed
 library clean.  First, structure accessors are given \emph{distinctive}
-names (\texttt{CARR}, \texttt{PTS}, \texttt{DIST}, \texttt{IDEN}, \texttt{MUL},
-\texttt{VEC}, \ldots) precisely so they never collide with the natural
+names (\texttt{carr}, \texttt{pts}, \texttt{dist}, \texttt{iden}, \texttt{mul},
+\texttt{vec}, \ldots) precisely so they never collide with the natural
 element variables (\texttt{a}, \texttt{x}, \texttt{d}, \texttt{e}, \ldots).
 Second, \texttt{constant-binder-audit} walks every installed formula and
 \emph{hard-fails the load}, with a deliberately loud banner, if any binder
@@ -1004,17 +1004,17 @@ sethood-closure condition on the arguments (when there is one).
 \footnotesize
 \begin{tabular}{@{}p{4.5cm}p{4.8cm}p{3.0cm}@{}}
 \toprule
-Expression & $x \in C$ iff \ldots & $C \in \mathtt{SET}$ when \\
+Expression & $x \in C$ iff \ldots & $C \in \mathtt{set}$ when \\
 \midrule
-\texttt{union($A_1$,\ldots,$A_n$)} & $x \in A_i$ for some $i$ & all $A_i \in \mathtt{SET}$ \\[2pt]
-\texttt{intersection($A_1$,\ldots,$A_n$)} & $x \in A_i$ for all $i$ & any $A_i \in \mathtt{SET}$ \\[2pt]
-\texttt{complement-in($A$,$B$)} & $x \in A$ and $x \notin B$ & $A \in \mathtt{SET}$ \\[2pt]
-\texttt{cartesian($A_1$,\ldots,$A_n$)} & $x = [a_1,\ldots,a_n]$, $a_i \in A_i$ & all $A_i \in \mathtt{SET}$ \\[2pt]
-\texttt{tuples($A$)} & $x = [a_1,\ldots,a_n]$, $a_i \in A$, $n \ge 0$ & $A \in \mathtt{SET}$ \\[2pt]
-\texttt{fun($A$,$B$)} & $x$ is a total function from $A$ to $B$ & $A, B \in \mathtt{SET}$ \\[2pt]
-\texttt{\{$x$ in $A$: $p$\}} & $x \in A$ and $p(x)$ holds & $A \in \mathtt{SET}$ \\[2pt]
+\texttt{union($A_1$,\ldots,$A_n$)} & $x \in A_i$ for some $i$ & all $A_i \in \mathtt{set}$ \\[2pt]
+\texttt{intersection($A_1$,\ldots,$A_n$)} & $x \in A_i$ for all $i$ & any $A_i \in \mathtt{set}$ \\[2pt]
+\texttt{complement-in($A$,$B$)} & $x \in A$ and $x \notin B$ & $A \in \mathtt{set}$ \\[2pt]
+\texttt{cartesian($A_1$,\ldots,$A_n$)} & $x = [a_1,\ldots,a_n]$, $a_i \in A_i$ & all $A_i \in \mathtt{set}$ \\[2pt]
+\texttt{tuples($A$)} & $x = [a_1,\ldots,a_n]$, $a_i \in A$, $n \ge 0$ & $A \in \mathtt{set}$ \\[2pt]
+\texttt{fun($A$,$B$)} & $x$ is a total function from $A$ to $B$ & $A, B \in \mathtt{set}$ \\[2pt]
+\texttt{\{$x$ in $A$: $p$\}} & $x \in A$ and $p(x)$ holds & $A \in \mathtt{set}$ \\[2pt]
 \texttt{\{$x$ | $p$\}} & $p(x)$ holds & rarely \\[2pt]
-\texttt{power($A$)} & $x \in \mathtt{SET}$ and $x \subseteq A$ & $A \in \mathtt{SET}$ \\
+\texttt{power($A$)} & $x \in \mathtt{set}$ and $x \subseteq A$ & $A \in \mathtt{set}$ \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -1027,14 +1027,14 @@ Expression & $x \in C$ iff \ldots & $C \in \mathtt{SET}$ when \\
 \toprule
 Expression & Key property \\
 \midrule
-\texttt{EMPTY-SET} & empty set $\emptyset$; always a set; no members \\[2pt]
+\texttt{empty-set} & empty set $\emptyset$; always a set; no members \\[2pt]
 \texttt{\{$a$\}} & singleton $\{a\}$; always a set \\[2pt]
 \texttt{\{$a$, $b$, \ldots\}} & finite set via \texttt{make-set}; repetitions harmless \\[2pt]
 \texttt{[$e_1$, \ldots, $e_n$]} & ordered $n$-tuple; always a set \\[2pt]
 \texttt{nth($k$, $e$)} & $k$-th component (1-indexed); reduces via \texttt{cmd-nth-reduce} \\[2pt]
 \texttt{choice($A$)} & $(\exists x.\;x\in A) \Rightarrow \texttt{choice}(A) \in A$ \\[2pt]
 \texttt{iota($x$, $p$)} & unique object satisfying $p$; requires $\exists!\,x.\;p(x)$ \\[2pt]
-\texttt{vnb-lambda([$x_1$ in $A_1$,\ldots], $b$)} & multi-arg set-function, an element of \texttt{FUN}; domains in \texttt{SET}; typed by \texttt{(lam-t)}, $\beta$-reduces via \texttt{(lam-b)} \\[2pt]
+\texttt{vnb-lambda([$x_1$ in $A_1$,\ldots], $b$)} & multi-arg set-function, an element of \texttt{fun}; domains in \texttt{set}; typed by \texttt{(lam-t)}, $\beta$-reduces via \texttt{(lam-b)} \\[2pt]
 \texttt{lambdoid([$x_1$ in $A_1$,\ldots], $b$)} & functoid; domains may be proper classes; no \texttt{(lam-t)}, $\beta$-reduces via \texttt{(beta)} \\
 \bottomrule
 \end{tabular}
@@ -1081,7 +1081,7 @@ forall([[x, y] in cartesian(RR, RR)], x + y = y + x)
 \end{VNBsnip}
 
 Ranging over a declared structure.  The components are written with the
-accessors of \texttt{METRIC-SPACE}, \texttt{pts} and \texttt{dist}:
+accessors of \texttt{metric-space}, \texttt{pts} and \texttt{dist}:
 \begin{VNBsnip}
 forall([[pp, dd] in metric-space], forall([u in pp], dd(u, u) = 0))
 
@@ -1186,7 +1186,7 @@ from ordinary function calls.
   \texttt{(x + y + z)}.  Binary \texttt{-} prints as \texttt{(x - y)};
   unary as \texttt{-x}.  Exponentiation as \texttt{(x \textasciicircum{} y)}.
 \item \textbf{Lists} \texttt{[a, b, c]} in both input and output: the
-  list syntax is the same in string form (internally stored as \texttt{LIST}).
+  list syntax is the same in string form (internally stored as \texttt{list}).
 \item \textbf{All other compound terms} use functional notation
   \texttt{f(x, y, z)}: \texttt{nth}, \texttt{cartesian}, \texttt{fun},
   \texttt{power} (unary set power), \texttt{not}, and user-defined heads.
@@ -1271,7 +1271,7 @@ The complete set of tags follows.
 \item \texttt{set-construction} (\texttt{union}, \texttt{intersection},
   \texttt{cartesian}).
 \item \texttt{op-application} --- a structure operator such as
-  \texttt{(MUL R)} applied to arguments.
+  \texttt{(mul R)} applied to arguments.
 \item \texttt{application} --- a named predicate or function applied.
 \item \texttt{unknown} --- anything that matches none of the above.
 \end{itemize}
@@ -1340,8 +1340,8 @@ internal S-expression that stores it.  \texttt{conjuncts} flattens the
 associative spine, so \texttt{p and q and r} yields three conjuncts however
 the binary \texttt{and} happens to be nested.  \texttt{operands} de-tuples the apply-tupling convention
 (Section~\ref{sec:curried-tupled-apply}), so the single internal
-\texttt{(LIST a b)} argument comes back as the operand list
-\texttt{(a~b)}.  And the binary structure-op application \texttt{(MUL
+\texttt{(list a b)} argument comes back as the operand list
+\texttt{(a~b)}.  And the binary structure-op application \texttt{(mul
 R)(a, b)} is first-class: \texttt{operator} gives \texttt{(mul r)},
 \texttt{operands} gives \texttt{(a b)}.
 \end{remark}
