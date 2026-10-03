@@ -261,22 +261,34 @@
   (map (lambda (b) (if (eq? (car b) v) (cons v dom) b)) bs))
 
 ;;; Consecutive binders with the same domain print as one group: "x, y \in S";
-;;; an unguarded binder prints bare.
-(define (tex--binder-groups bs)
-  (let loop ((bs bs) (acc '()))
-    (if (null? bs)
-        (reverse acc)
-        (let* ((dom (cdr (car bs)))
-               (take (let grab ((rest bs) (vars '()))
-                       (if (and (pair? rest) (equal? (cdr (car rest)) dom))
-                           (grab (cdr rest) (cons (car (car rest)) vars))
-                           (cons (reverse vars) rest))))
-               (vars (car take))
-               (rest (cdr take))
-               (names (tex--string-join (map expr->tex vars) ", ")))
-          (loop rest
-                (cons (if dom (string-append names " \\in " (expr->tex dom)) names)
-                      acc))))))
+;;; an unguarded binder prints bare.  A BARE group followed by a TYPED one is
+;;; closed and the quantifier reopened -- "u, f, x.\; \forall a, b, c \in u" --
+;;; since "u, f, x, a, b, c \in u" reads as six variables in u (2026-10-03, met
+;;; when the major-theorems page began hoisting typed universals over
+;;; antecedents).  HEAD is the quantifier to reopen with.
+(define (tex--binder-groups bs #!optional head)
+  (let ((head (if (default-object? head) "\\forall " head)))
+    (let loop ((bs bs) (acc '()))
+      (if (null? bs)
+          (let merge ((gs (reverse acc)) (out '()))
+            (cond ((null? gs) (reverse out))
+                  ((and (not (cdr (car gs))) (pair? (cdr gs)) (cdr (cadr gs)))
+                   ;; bare group, typed group next: one string, the quantifier reopened
+                   (merge (cddr gs)
+                          (cons (string-append (car (car gs)) ".\; " head (car (cadr gs))) out)))
+                  (#t (merge (cdr gs) (cons (car (car gs)) out)))))
+          (let* ((dom (cdr (car bs)))
+                 (take (let grab ((rest bs) (vars '()))
+                         (if (and (pair? rest) (equal? (cdr (car rest)) dom))
+                             (grab (cdr rest) (cons (car (car rest)) vars))
+                             (cons (reverse vars) rest))))
+                 (vars (car take))
+                 (rest (cdr take))
+                 (names (tex--string-join (map expr->tex vars) ", ")))
+            (loop rest
+                  (cons (cons (if dom (string-append names " \\in " (expr->tex dom)) names)
+                              (and dom #t))
+                        acc)))))))
 
 ;;; Returns (list HEAD-TEX GROUP-TEXS BODY), or #f when E has no quantifier.
 (define (tex--quant-run e)
@@ -293,9 +305,8 @@
                      (let ((g (tex--guard-of body conn)))
                        (if (and g (tex--absorbable? bs g))
                            (absorb (tex--set-dom bs (car g) (cadr g)) (caddr g))
-                           (list (if (eq? conn 'forall) "\\forall " "\\exists ")
-                                 (tex--binder-groups bs)
-                                 body)))))))))))
+                           (let ((head (if (eq? conn 'forall) "\\forall " "\\exists ")))
+                             (list head (tex--binder-groups bs head) body))))))))))))
 
 ;;; --- main render -----------------------------------------------------
 

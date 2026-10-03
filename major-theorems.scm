@@ -328,26 +328,119 @@
                   (new (or lim str)))
              (and (not (string=? new str0)) (string->symbol new)))))))
 
+;;; The BOUND variables of a formula, in order of first appearance (the only
+;;; symbols the page renames: a head or a constant keeps its name).
+(define (mt--bound-vars e)
+  (let walk ((e e) (acc '()))
+    (cond ((not (pair? e)) acc)
+          ((and (memq (car e) '(FORALL FORSOME IOTA COMP VNB-LAMBDA SEP BIG-UNION))
+                (pair? (cdr e)) (symbol? (cadr e)))
+           (walk (cddr e) (if (memq (cadr e) acc) acc (append acc (list (cadr e))))))
+          (#t (walk (cdr e) (walk (car e) acc))))))
+
+;;; SINGLE-LETTER NAMES (the user, 2026-10-03: "instead of goua, goub, gouc, why
+;;; not a, b, c").  The candidates for a bound variable, best first: the ell
+;;; reading of lm / lm1 (2026-09-22); the LAST LETTER of its stem with the
+;;; trailing digits kept (goua -> a, cekt_ -> t, lpx_ -> x, x1_ -> x1); the
+;;; name with its trailing underscore dropped; the Greek letter of the a_ .. f_
+;;; table.  A candidate is taken only when no symbol of the formula already
+;;; spells it and it is not a registered constant or a TeX atom; after the
+;;; candidates, the first free letter of the alphabet (e and i excluded: the
+;;; constants).
+(define (mt--letter-candidates s)
+  (let* ((str0  (symbol->string s))
+         (n0    (string-length str0))
+         (und?  (and (> n0 1) (char=? (string-ref str0 (- n0 1)) #\_)))
+         (str   (if und? (string-head str0 (- n0 1)) str0))
+         (k     (let loop ((i (string-length str)))
+                  (if (and (> i 0) (char-numeric? (string-ref str (- i 1)))) (loop (- i 1)) i)))
+         (stem  (string-head str k))
+         (digits (string-tail str k))
+         (lim   (mt--limit-name str))
+         (single (and (> (string-length stem) 1)
+                      (string-append (string (string-ref stem (- (string-length stem) 1))) digits)))
+         (greek (let ((g (assq s *mt-greek-names*))) (and g (symbol->string (cdr g))))))
+    (let loop ((cs (list lim single (and und? str) greek)) (out '()))
+      (cond ((null? cs) (reverse out))
+            ((and (car cs) (not (string=? (car cs) str0)) (not (member (car cs) out)))
+             (loop (cdr cs) (cons (car cs) out)))
+            (#t (loop (cdr cs) out))))))
+
+(define *mt-letter-pool*
+  (map string '(#\a #\b #\c #\d #\f #\g #\h #\k #\m #\n #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z)))
+
 (define (mt--pretty-vars formula)
-  (let* ((syms (mt--symbols-of formula '()))
+  (let* ((syms  (mt--symbols-of formula '()))
+         (bound (mt--bound-vars formula))
+         (ok?   (lambda (new taken)
+                  (and (not (memq new taken))
+                       (not (hash-table-ref/default *constant-registry* new #f))
+                       (not (assq new *tex-atom-table*)))))
          (pairs
-          (let loop ((ss syms) (taken syms) (out '()))
+          (let loop ((ss bound) (taken syms) (out '()))
             (if (null? ss)
                 out
-                (let ((new (mt--reading-name (car ss))))
-                  (if (and new
-                           (not (memq new taken))
-                           (not (hash-table-ref/default *constant-registry* new #f))
-                           (not (assq new *tex-atom-table*)))
-                      (loop (cdr ss) (cons new taken) (cons (cons (car ss) new) out))
+                (let* ((s    (car ss))
+                       (cands (map string->symbol
+                                   (append (mt--letter-candidates s)
+                                           ;; the alphabet, only for a name that is not a single letter already
+                                           (if (> (string-length (symbol->string s)) 1) *mt-letter-pool* '()))))
+                       (new  (find (lambda (c) (and (not (eq? c s)) (ok? c taken))) cands)))
+                  (if new
+                      (loop (cdr ss) (cons new taken) (cons (cons s new) out))
                       (loop (cdr ss) taken out)))))))
     (let walk ((e formula))
       (cond ((symbol? e) (let ((p (assq e pairs))) (if p (cdr p) e)))
             ((pair? e) (cons (walk (car e)) (walk (cdr e))))
             (#t e)))))
 
+;;; FLATTENING (the user, 2026-10-03: "A implies (B implies C) would be more
+;;; cleanly stated as A and B implies C; there are other flattenings possible").
+;;; Display only; three rewrites before the TeX printer sees the statement:
+;;;   (1) a binder's conjunctive guard splits,
+;;;         forall v. (v in S and P) => R   ~>   forall v. v in S => (P => R),
+;;;       so the typed-quantifier sugar of tex-output.scm fires;
+;;;   (2) a universal under an antecedent hoists, when its variable is not free
+;;;       in the antecedent,
+;;;         A => forall y. y in T => B   ~>   forall y. y in T => (A => B),
+;;;       so consecutive typed binders merge into one  forall x in S, y in T.;
+;;;   (3) curried antecedents merge,  A => (B => C)  ~>  (A and B) => C,
+;;;       except the typing guard right under its own binder (the sugar's).
+(define (mt--imp? e) (and (pair? e) (eq? (car e) 'IMPLIES) (= (length e) 3)))
+(define (mt--and? e) (and (pair? e) (eq? (car e) 'AND) (= (length e) 3)))
+(define (mt--forall? e) (and (pair? e) (eq? (car e) 'FORALL) (= (length e) 3)))
+(define (mt--guard-of? c v)
+  (and (pair? c) (eq? (car c) 'IN) (= (length c) 3) (eq? (cadr c) v)))
+
+(define (mt--flatten e)
+  (cond
+    ((not (pair? e)) e)
+    ((and (memq (car e) '(FORALL FORSOME)) (= (length e) 3) (symbol? (cadr e)))
+     (list (car e) (cadr e) (mt--flatten-under (cadr e) (caddr e))))
+    ((mt--imp? e) (mt--merge-imp (mt--flatten (cadr e)) (mt--flatten (caddr e))))
+    (#t (map mt--flatten e))))
+
+(define (mt--flatten-under v body)
+  (cond
+    ((and (mt--imp? body) (mt--and? (cadr body)) (mt--guard-of? (cadr (cadr body)) v))
+     (mt--flatten-under v (list 'IMPLIES (cadr (cadr body))
+                                (list 'IMPLIES (caddr (cadr body)) (caddr body)))))
+    ((and (mt--imp? body) (mt--guard-of? (cadr body) v))
+     (list 'IMPLIES (cadr body) (mt--flatten (caddr body))))
+    (#t (mt--flatten body))))
+
+(define (mt--merge-imp a c)
+  (cond
+    ((and (mt--forall? c) (not (memq (cadr c) (free-vars a))))
+     (let ((y (cadr c)) (body (caddr c)))
+       (if (and (mt--imp? body) (mt--guard-of? (cadr body) y))
+           (list 'FORALL y (list 'IMPLIES (cadr body) (mt--merge-imp a (caddr body))))
+           (list 'FORALL y (mt--merge-imp a body)))))
+    ((mt--imp? c) (mt--merge-imp (list 'AND a (cadr c)) (caddr c)))
+    (#t (list 'IMPLIES a c))))
+
 (define (mt--statement-tex formula)
-  (string-append "\\vnbstmt{" (expr->tex-display (mt--pretty-vars formula)) "}"))
+  (string-append "\\vnbstmt{" (expr->tex-display (mt--pretty-vars (mt--flatten formula))) "}"))
 
 (define (mt--statement-block names notes-statement)
   (cond
@@ -403,6 +496,27 @@
   (string-append (mt--tt c)
                  (if (eq? (provenance-of c) 'asserted) " (asserted)" "")))
 
+;;; The file that states and proves NAME, relative to the tree (*theorem-source*,
+;;; the load pathname at install; a compiled file's .com is shown as its .scm).
+(define (mt--source-rel name)
+  (let ((p (hash-table-ref/default *theorem-source* name #f)))
+    (and p
+         (let* ((s   (->namestring (pathname-new-type (->pathname p) "scm")))
+                (dir *prover-dir*)
+                (n   (string-length dir)))
+           (if (and (>= (string-length s) n) (string=? (string-head s n) dir))
+               (string-tail s n)
+               s)))))
+
+;;; "Proof. theorem-library/foo.scm" -- the file, in place of the tactic list
+;;; (the user, 2026-10-03: no need to list the tactics; list the proof file).
+(define (mt--proof-file-line name note)
+  (let ((f (mt--source-rel name)))
+    (string-append "\\textbf{Proof.} "
+                   (if f (mt--tt-breakable f) "(file not recorded)")
+                   (if note (string-append " --- " note) "")
+                   ".")))
+
 (define (mt--proof-paragraphs name)
   (let ((script (mt--script name))
         (prov   (provenance-of name)))
@@ -425,10 +539,7 @@
        (let ((lemmas  (proof-citations-of name))
              (oracles (oracles-of name)))
          (list
-          (string-append
-           "\\textbf{Tactics.} Certified: the proof ran in an exam (the last one is"
-           " recorded in mailbox/metrics/last-exam.json) and is not in this image;"
-           " the exam's image holds the script.")
+          (mt--proof-file-line name "certified: the proof ran in the last exam (mailbox/metrics/last-exam.json)")
           (string-append
            "\\textbf{Lemmas.} "
            (if (null? lemmas)
@@ -444,19 +555,12 @@
        (list (string-append "Provenance " (mt--tt prov)
                             ", but no proof script is stored under this name.")))
       (#t
-       (let* ((tactics (mt--script-tactics script))
-              (lemmas  (proof-citations-of name))
+       (let* ((lemmas  (proof-citations-of name))
               (oracles (oracles-of name)))
          (list
-          (string-append
-           "\\textbf{Tactics, in the order used} ("
-           (number->string (length script))
-           (if (= (length script) 1) " step" " steps")
-           "; "
-           (number->string (length tactics)) " distinct). "
-           (if (null? script)
-               "none recorded."
-               (string-append "{\\small " (mt--join (mt--script-steps script) " ") "}")))
+          (mt--proof-file-line name
+            (string-append (number->string (length script))
+                           (if (= (length script) 1) " recorded step" " recorded steps")))
           (string-append
            "\\textbf{Lemmas.} "
            (if (null? lemmas)
@@ -559,7 +663,7 @@
     (display "%\n")
     (display "\\begin{proof}\n")
     (display "%\n")
-    (display "The proof uses the following tactics and lemmas.\n")
+    (display "The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.\n")
     (display "%\n")
     (for-each (lambda (p)
                 (display "\\vnbprf{") (display p) (display "}\n")
