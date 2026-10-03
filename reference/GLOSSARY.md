@@ -35,13 +35,13 @@ glossary reader's question.  At the REPL: `(glossary 'NAME)`, or
 
 a term-forming head
 
-[mentioned by 1016 result(s)](BY-OPERATOR.md#*)
+[mentioned by 1019 result(s)](BY-OPERATOR.md#*)
 
 ### `+`  *(operator)*
 
 a term-forming head
 
-[mentioned by 741 result(s)](BY-OPERATOR.md#+)
+[mentioned by 745 result(s)](BY-OPERATOR.md#+)
 
 ### `-`  *(operator)*
 
@@ -53,15 +53,15 @@ characterized by `cc-ms-def`  *(definitional)*:
 cc-ms = [cc, vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))]
 ```
 
-also: `is-convex` `rr-ms-def` `cc-ms@dist` `is-diff-at` `nary-neg-1` `rr-abs-def` `rr-ms@dist` `rr-nvs-def` ... (493 in all)
+also: `is-convex` `rr-ms-def` `cc-ms@dist` `is-diff-at` `nary-neg-1` `rr-abs-def` `rr-ms@dist` `rr-nvs-def` ... (494 in all)
 
-[mentioned by 692 result(s)](BY-OPERATOR.md#-)
+[mentioned by 693 result(s)](BY-OPERATOR.md#-)
 
 ### `/`  *(operator)*
 
 a term-forming head
 
-[mentioned by 32 result(s)](BY-OPERATOR.md#/)
+[mentioned by 33 result(s)](BY-OPERATOR.md#/)
 
 ### `<(x, y)`  *(predicate)*
 
@@ -75,7 +75,7 @@ characterized by `<`  *(definitional)*:
 forall([x, y], x < y iff x <= y and not(x = y))
 ```
 
-[mentioned by 633 result(s)](BY-OPERATOR.md#<)
+[mentioned by 637 result(s)](BY-OPERATOR.md#<)
 
 ### `<=`  *(primitive)*
 
@@ -83,7 +83,7 @@ reads: $1 is at most $2
 
 a kernel relation
 
-[mentioned by 951 result(s)](BY-OPERATOR.md#<=)
+[mentioned by 956 result(s)](BY-OPERATOR.md#<=)
 
 ### `=`  *(primitive)*
 
@@ -3570,9 +3570,9 @@ characterized by `is-ring`  *(definitional)*:
 forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 ```
 
-also: `is-chain` `is-ringoid` `ring-class` `rr-min-def` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` ... (1324 in all)
+also: `is-chain` `is-ringoid` `ring-class` `rr-min-def` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` ... (1326 in all)
 
-[mentioned by 5113 result(s)](BY-OPERATOR.md#in)
+[mentioned by 5118 result(s)](BY-OPERATOR.md#in)
 
 ### `indicator(omega, a)`  *(functoid)*
 
@@ -6543,9 +6543,9 @@ characterized by `log-mul`  *(certified)*:
 forall([x_, y_], x_ in rr implies y_ in rr implies 0 < x_ implies 0 < y_ implies log(x_ * y_) = log(x_) + log(y_))
 ```
 
-also: `log-one` `log-diff` `log-deriv` `log-in-rr` `log-r-exp` `log-recip` `r-exp-log` `log-unfold` ... (26 in all)
+also: `log-one` `log-diff` `log-deriv` `log-in-rr` `log-r-exp` `log-recip` `r-exp-log` `log-unfold` ... (28 in all)
 
-[mentioned by 47 result(s)](BY-OPERATOR.md#log)
+[mentioned by 49 result(s)](BY-OPERATOR.md#log)
 
 
 ## M
@@ -8273,9 +8273,9 @@ characterized by `log-r-exp`  *(certified)*:
 forall([y_ in rr], log(r-exp(y_)) = y_)
 ```
 
-also: `r-exp-add` `r-exp-log` `r-exp-neg` `r-exp-pos` `r-exp-char` `r-exp-mono` `r-exp-prop` `r-exp-zero` ... (16 in all)
+also: `r-exp-add` `r-exp-log` `r-exp-neg` `r-exp-pos` `r-exp-char` `r-exp-mono` `r-exp-prop` `r-exp-zero` ... (17 in all)
 
-[mentioned by 28 result(s)](BY-OPERATOR.md#r-exp)
+[mentioned by 29 result(s)](BY-OPERATOR.md#r-exp)
 
 ### `ran(f)`  *(functoid)*
 
@@ -8677,15 +8677,15 @@ also: `road-length-in-rr` `road-length-juxta` `road-length-nonneg` `road-length-
 
 a term-forming head
 
-characterized by `rpow-add`  *(asserted)*:
+characterized by `rpow-def`  *(definitional)*:
 
 ```
-forall([a], a in rr and 0 < a implies forall([b in qq, d in qq], rpow(a, b + d) = rpow(a, b) * rpow(a, d)))
+forall([a_, b_], rpow(a_, b_) == rpow-star(a_, b_))
 ```
 
-also: `rpow-nat` `rpow-neg` `rpow-one` `rpow-pos` `rpow-pow` `rpow-zero` `sqrt-rpow` `rpow-mul-base` ... (14 in all)
+also: `rpow-add` `rpow-nat` `rpow-neg` `rpow-one` `rpow-pos` `rpow-pow` `rpow-zero` `sqrt-rpow` ... (15 in all)
 
-[mentioned by 27 result(s)](BY-OPERATOR.md#rpow)
+[mentioned by 29 result(s)](BY-OPERATOR.md#rpow)
 
 ### `rpow-star(x_, s_)`  *(functoid)*
 
@@ -8703,9 +8703,9 @@ characterized by `log-rpow-star`  *(certified)*:
 forall([x_, s_ in rr], 0 < x_ implies log(rpow-star(x_, s_)) = s_ * log(x_))
 ```
 
-also: `rpow-star-add` `rpow-star-nat` `rpow-star-neg` `rpow-star-one` `rpow-star-pos` `rpow-star-pow` `rpow-star-zero` `rpow-star-in-rr` ... (18 in all)
+also: `rpow-star-add` `rpow-star-nat` `rpow-star-neg` `rpow-star-one` `rpow-star-pos` `rpow-star-pow` `rpow-star-zero` `rpow-star-in-rr` ... (19 in all)
 
-[mentioned by 44 result(s)](BY-OPERATOR.md#rpow-star)
+[mentioned by 48 result(s)](BY-OPERATOR.md#rpow-star)
 
 ### `rr-bounded-above(s)`  *(predicate)*
 

@@ -3274,6 +3274,7 @@
     ;; recip-star, rr-order-basics (rr-lt-scale-pos, rr-mul-comm, rr-lt-irrefl)
     ;; and driver-kit.
     "theorem-library/rpow-star"
+    "theorem-library/rpow-star-convexity"   ; 1 + z <= exp z, log <= w - 1, two-point Jensen, Young and Bernoulli for RPOW-STAR (2026-10-03)
     ;; The constructions a functor is INVISIBLE to.  A functoid that reads its
     ;; structure argument only through slots the functor carries ON THE NOSE
     ;; (PREIMAGE reads only PTS; METRIC-TOP carries PTS) satisfies
@@ -3377,6 +3378,7 @@
     ;; THE ROOT TEST (2.5) and THE RATIO TEST (2.15) for non-negative real series -- the divergence half with lim INF > 1,
     ;; the notes' lim sup form being false as printed.
     "theorem-library/limsup-tests"
+    "theorem-library/rpow-defined"       ; RPOW == RPOW-STAR, the fifteen former supports proven (2026-10-03)
     ;; ps-series-bridges -- the three PS/series bridges, PROVEN, plus the
     ;; CONVERGES twin of rr-limit-ptwise-eq that the third needs.  They are what
     ;; lets a theorem about bare series be USED about a power series.  Two are
