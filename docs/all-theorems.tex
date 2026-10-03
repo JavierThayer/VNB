@@ -1,0 +1,80 @@
+%% major-theorems.tex -- a standalone wrapper around the generated list of
+%% MAJOR THEOREMS (reference/major-theorems.tex).
+%%
+%% A MAJOR THEOREM is a result that appears in the user's notes as a Theorem,
+%% Proposition, Lemma or Corollary.  The body of this document is GENERATED at
+%% every library load by
+%%
+%%     (write-major-theorems-tex! "reference/major-theorems.sexp"
+%%                                "reference/major-theorems.tex")
+%%
+%% from the hand-written table reference/major-theorems.sexp; edit the table,
+%% not the generated file, and not this wrapper's body.
+%%
+%% Build:  pdflatex major-theorems.tex     (twice, for the labels)
+%%
+%% The preamble below is the manual's, cut down to what the generated fragment
+%% needs.  It is COPIED rather than \input from manual.tex on purpose: the
+%% manual is an amsbook whose preamble carries the index, hyperref, microtype,
+%% the verbatim environments and two Kindle builds, none of which this document
+%% has any use for.
+
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=1in]{geometry}
+%% graphicx: \resizebox, which the generated \vnbstmt uses to keep a wide
+%% statement inside the text width.
+\usepackage{graphicx}
+%% longtable: the Deviations table, which runs over a page boundary.
+\usepackage{array}
+\usepackage{longtable}
+\usepackage[hidelinks]{hyperref}
+
+%% The manual's theorem environments (docs/manual.tex), with the counter
+%% attached to `section' rather than to `chapter' -- this is an article, and
+%% one section per document of the notes is the structure the generator emits.
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{defn}[thm]{Definition}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2pt}
+
+%% The Tactics / Lemmas paragraphs are lists of \texttt names, and a typewriter
+%% token neither hyphenates nor breaks at its hyphens.  \sloppy lets TeX stretch
+%% the interword glue instead of running into the margin; \emergencystretch
+%% gives it a last pass for the few lines \sloppy alone cannot set.  Without
+%% both, every long lemma list overfills by 20--150 pt.
+\setlength{\emergencystretch}{3em}
+\sloppy
+
+\title{VNB: the proven theorems}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent
+Every result that the user's notes state as a Theorem, Proposition, Lemma or
+Corollary, in the order of the notes, with the statement the VNB library makes
+about it and the tactics, lemmas, oracles and bill of its proof.  Where the
+library's statement does not say what the notes say, the difference is recorded
+under \textbf{Deviation from the notes}; the final section tabulates those and
+the results that are not proven.
+
+\medskip
+\noindent
+This document is generated: the statements and proof data are read from the
+library at load time, and the mapping of the notes onto it is the table
+\texttt{reference/major-theorems.sexp}.
+
+\tableofcontents
+
+\input{../reference/all-theorems.tex}
+
+\end{document}

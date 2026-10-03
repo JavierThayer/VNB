@@ -36,7 +36,7 @@ MAKEINDEX := makeindex -q
 
 .PHONY: all gen kindle both clean check-fresh
 
-all: gen major-theorems
+all: gen major-theorems all-theorems
 	$(LATEX) manual.tex
 	$(MAKEINDEX) manual
 	$(LATEX) manual.tex
@@ -101,3 +101,8 @@ clean:
 .PHONY: major-theorems
 major-theorems:
 	$(LATEX) major-theorems.tex && $(LATEX) major-theorems.tex && $(LATEX) major-theorems.tex
+
+# The book of all proven theorems (reference/all-theorems.tex is written at load).
+.PHONY: all-theorems
+all-theorems:
+	$(LATEX) all-theorems.tex && $(LATEX) all-theorems.tex

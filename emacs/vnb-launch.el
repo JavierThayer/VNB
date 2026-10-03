@@ -5247,6 +5247,7 @@ comes back on the report channel; longer than a few lines it opens in the
     (define-key m "g" #'vnb-graph-goto)
     (define-key m "r" #'vnb-graph-browse)
     (define-key m "l" #'vnb-pf-show-graph)
+    (define-key m "t" #'vnb-graph-browse-theorem)
     m)
   "Keys of `vnb-graph-mode'.")
 
@@ -5271,16 +5272,24 @@ comes back on the report channel; longer than a few lines it opens in the
   (setq-local tool-bar-map (vnb-graph--toolbar))
   (setq truncate-lines nil))
 
-(defun vnb-graph--fetch ()
-  "Round-trip the prover for the graph; return its alist (root focus done count nodes)."
+(defun vnb-graph--fetch (&optional theorem)
+  "Round-trip the prover for the graph; return its alist (root focus done count nodes).
+With THEOREM (a name), the graph of that STORED proof, replayed from its page
+by (graph-of NAME PATH); the current proof is untouched."
   (unless (vnb-pf--prover-live-p)
     (user-error "The VNB prover is not running"))
   (vnb-tex--ensure-cache-dir)
   (let ((path (expand-file-name "graph.el" vnb-tex-cache-dir)))
     (ignore-errors (delete-file path))
-    (ignore-errors (vnb-eval-string (format "(write-graph-el %S)" path)))
+    (ignore-errors
+      (vnb-eval-string (if theorem
+                           (format "(graph-of '%s %S)" theorem path)
+                         (format "(write-graph-el %S)" path))
+                       (if theorem 120 30)))
     (unless (file-exists-p path)
-      (user-error "No proof in progress: the prover wrote no graph"))
+      (if theorem
+          (user-error "No proof script in this image for %s (a certified theorem's proof lives in the exam's image)" theorem)
+        (user-error "No proof in progress: the prover wrote no graph")))
     (let ((data (with-temp-buffer
                   (insert-file-contents path)
                   (goto-char (point-min))
@@ -5365,19 +5374,20 @@ comes back on the report channel; longer than a few lines it opens in the
         (insert "\n")))
      (open (insert (if focus "Open leaf: the focus.\n" "Open leaf.\n")))
      (t (insert (propertize "No inference into this node yet.\n" 'face 'vnb-dim))))
-    (insert (propertize "\nC-c n next   C-c p previous   C-c g NUMBER   r re-read   l the list   q quit\n"
+    (insert (propertize "\nC-c n next   C-c p previous   C-c g NUMBER   r re-read   l the list   t a theorem's graph   q quit\n"
                         'face 'vnb-dim))
     (setq-local mode-line-format
                 (list " " (format "[%d] " n) (vnb-graph--status-string node) "   %b"))
     (force-mode-line-update)
     (goto-char (point-min))))
 
-(defun vnb-graph-browse ()
+(defun vnb-graph-browse (&optional theorem)
   "Show the current proof's deduction graph one sequent node at a time.
 Starts on the focus when the proof is open, else on the root.  Wraps
-(write-graph-el PATH) and reads the file back; see `vnb-graph-mode'."
+(write-graph-el PATH) and reads the file back; see `vnb-graph-mode'.
+With THEOREM, the graph of that stored proof instead (see `vnb-graph-browse-theorem')."
   (interactive)
-  (let* ((meta  (vnb-graph--fetch))
+  (let* ((meta  (vnb-graph--fetch theorem))
          (nodes (vconcat (cdr (assq 'nodes meta)))))
     (when (= (length nodes) 0)
       (user-error "The graph has no node"))
@@ -5391,6 +5401,15 @@ Starts on the focus when the proof is open, else on the root.  Wraps
                 0))
       (vnb-graph--paint)
       (pop-to-buffer (current-buffer)))))
+
+(defun vnb-graph-browse-theorem (name)
+  "Open the deduction graph of the STORED proof of theorem NAME, replayed from its
+page; the current proof is untouched.  The book of all theorems
+(docs/all-theorems.pdf) names the theorems; this is the way from an entry to its
+proof.  A certified theorem (its proof ran in the exam, not in this image) is
+reported as such."
+  (interactive (list (read-string "Theorem: ")))
+  (vnb-graph-browse (string-trim name)))
 
 (defun vnb-graph--move (delta)
   (unless (and vnb-graph--nodes (> (length vnb-graph--nodes) 0))

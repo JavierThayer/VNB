@@ -117,6 +117,18 @@
              (> (vpc--count "Proof complete.") 0)))
 
 
+;; ----- a stored proof's graph (the book of all theorems, 2026-10-03) -----
+;; qed the harness proof, then browse it by NAME: graph-of replays the page.
+(vnb-launch--send "(qed 'vpc-harness-theorem)") (vpc--pump 20)
+(vnb-graph-browse-theorem "vpc-harness-theorem")
+(vpc--pump 5)
+(with-current-buffer vnb-graph-buffer-name
+  (vpc-check "graph of a stored theorem: replayed from its page, every node grounded"
+             (and (derived-mode-p 'vnb-graph-mode)
+                  (> (length vnb-graph--nodes) 1)
+                  (cl-every (lambda (nd) (car (vnb-graph--field nd 'grounded))) vnb-graph--nodes))
+             (format "%d node(s)" (length vnb-graph--nodes))))
+
 ;; ----- the deduction-graph display mode (the user, 2026-10-03) -----
 ;; After di + ass the proof is complete: every node is GROUNDED, the root is [0].
 (vnb-graph-browse)

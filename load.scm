@@ -3578,6 +3578,7 @@
     ;; (reads docs/major-theorems-table.sexp, writes reference/major-theorems.tex).  After every proof file:
     ;; it reads the stored scripts, the citation graph and the bills.
     "major-theorems"
+    "all-theorems"             ; the book of all proven theorems (2026-10-03)
     ;; LAST: every view is a functor, and this proves it.  It needs every view
     ;; declared (views.scm, normed-vector-space.scm) and the tactic layer, so it
     ;; goes at the end.  It asserts nothing -- each functoriality theorem is
@@ -4171,6 +4172,8 @@
   ;; The major theorems of the notes against the library, in LaTeX (docs/major-theorems.tex is the wrapper;
   ;; `make major-theorems' in docs/).  A missing table is not an error.
   (write-major-theorems-tex! "docs/major-theorems-table.sexp" "reference/major-theorems.tex")
+  ;; The book of all proven theorems (statements only, so a certified load writes it too).
+  (write-all-theorems-tex! "reference/all-theorems.tex")
 
   ;; Regenerate emacs/vnb-commands.lisp (the command-completion catalog) from the
   ;; same registry, so the M-x/button surface can never drift from (tactics).

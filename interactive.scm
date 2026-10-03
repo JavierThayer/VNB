@@ -440,6 +440,24 @@
             (newline)))
         path))))
 
+;;; (graph-of NAME PATH) -- the deduction graph of a STORED proof: its page is
+;;; replayed on a scratch state (page--type-in, which restores the user's proof
+;;; afterwards) and the graph written to PATH by write-graph-el while the replayed
+;;; state is live.  Returns the replay's status (grounded / incomplete / error), or
+;;; #f when this image holds no script for NAME (a certified theorem: the exam's
+;;; image has it; proof-tex says the same).  The book of all theorems and the
+;;; Emacs command vnb-graph-browse-theorem use it (2026-10-03).
+(define (graph-of name path)
+  (let ((text (page-of name)))
+    (cond
+      ((not text)
+       (display ";; graph-of: no proof script in this image for ") (display name)
+       (if (certified-theorem? name)
+           (display " (certified: the proof ran in the exam, whose image holds the script)"))
+       (newline)
+       #f)
+      (#t (page--type-in text (lambda () (write-graph-el path)))))))
+
 (define (pp w)
   (display (wff->string w))
   (newline))

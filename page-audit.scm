@@ -64,7 +64,10 @@
 ;;; whoever gets the REPL next.  `*replaying?*' is deliberately NOT bound --
 ;;; binding it would suppress the recording and the undo marks that a real typed
 ;;; session performs, and the number above was measured without it.
-(define (page--type-in text)
+;;; AFTER (optional): a thunk run INSIDE the replay, once the page is typed in and
+;;; before *ps* is restored -- what `graph-of' (interactive.scm) uses to write the
+;;; replayed proof's graph for the Emacs browser (2026-10-03).
+(define (page--type-in text #!optional after)
   (let ((status 'error))
     ;; STDOUT IS SWALLOWED, and `quietly' is not enough to do it: `focus' reports
     ;; an out-of-range index with a bare `display', outside the quiet channel, and
@@ -92,9 +95,11 @@
                       (let loop ()
                         (let ((form (read port)))
                           (if (eof-object? form)
-                              (set! status
-                                    (if (and *ps* (proof-done? *ps*))
-                                        'grounded 'incomplete))
+                              (begin
+                                (set! status
+                                      (if (and *ps* (proof-done? *ps*))
+                                          'grounded 'incomplete))
+                                (if (not (default-object? after)) (after)))
                               (begin (eval form user-initial-environment)
                                      (loop)))))))))))))))
     status))
