@@ -125,8 +125,8 @@
   (vpc-check "graph mode: the buffer is in vnb-graph-mode and holds nodes"
              (and (derived-mode-p 'vnb-graph-mode) (> (length vnb-graph--nodes) 1))
              (format "%d node(s)" (length vnb-graph--nodes)))
-  (vpc-check "graph mode: the node is painted Focus-style (Assumptions / rule / Turnstile)"
-             (and (= 1 (vpc--count "Assumptions:")) (= 1 (vpc--count "Turnstile: "))))
+  (vpc-check "graph mode: the node is painted Focus-style (Assumptions / rule / the turnstile symbol)"
+             (and (= 1 (vpc--count "Assumptions:")) (= 1 (vpc--count "\u22a2 "))))
   (vnb-graph-goto 0)
   (vpc-check "graph mode: C-c g 0 shows the root"
              (= 0 (car (aref vnb-graph--nodes vnb-graph--index))))

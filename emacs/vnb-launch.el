@@ -5216,7 +5216,7 @@ comes back on the report channel; longer than a few lines it opens in the
 ;;;       a1
 ;;;       a2
 ;;;     ------------------------------------------------------------
-;;;     Turnstile: goal
+;;;     \u22a2 goal
 ;;;
 ;;; -- with the node's number and status in the mode line, e.g.
 ;;;
@@ -5352,7 +5352,8 @@ comes back on the report channel; longer than a few lines it opens in the
         (dolist (a asms) (insert "  " a "\n"))
       (insert (propertize "  (none)\n" 'face 'vnb-dim)))
     (insert (make-string 60 ?-) "\n")
-    (insert "Turnstile: " goal "\n\n")
+    ;; the turnstile SYMBOL, not the word (the user, 2026-10-03)
+    (insert "\u22a2 " goal "\n\n")
     (cond
      (by
       (dolist (inf by)
