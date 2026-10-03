@@ -1554,13 +1554,16 @@
         (lambda ()
           (let ((g (dk-goal)))
             (if (dk-head-is? g 'FORALL)
-                (let* ((ld (dk-peel!)) (t (cek-land-var ld 'RR)))
-                  (cek-rr-typ! (list '- t))
-                  (dk-have! (list '< (list '- t) 0) (lambda () (dk-ineq! (list '< 0 t))))
-                  (cek-neg-period! t)
-                  (cek-in-N! (list '- t))
-                  (dk-apply! ub (list '- t))
-                  (dk-ineq! (list '<= (list '- t) b)))
+                ;; `tv', not `t': the enclosing form binds the period as T, and MIT
+                ;; reads T and t as one name (the case-fold lint; benign here, the
+                ;; outer T is not used in this scope; renamed 2026-10-03)
+                (let* ((ld (dk-peel!)) (tv (cek-land-var ld 'RR)))
+                  (cek-rr-typ! (list '- tv))
+                  (dk-have! (list '< (list '- tv) 0) (lambda () (dk-ineq! (list '< 0 tv))))
+                  (cek-neg-period! tv)
+                  (cek-in-N! (list '- tv))
+                  (dk-apply! ub (list '- tv))
+                  (dk-ineq! (list '<= (list '- tv) b)))
                 (ass))))))))
 (qed 'cc-exp-least-period)
 

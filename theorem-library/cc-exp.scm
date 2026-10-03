@@ -2654,8 +2654,11 @@
   (let* ((zw (list '+ z w))
          (C (list 'CC-COS zw)) (S (list 'CC-SIN zw))
          (c1 (list 'CC-COS z)) (s1 (list 'CC-SIN z)) (c2 (list 'CC-COS w)) (s2 (list 'CC-SIN w))
-         (ip (lambda (c s) (list '+ c (list '* +i s))))
-         (im (lambda (c s) (list '- c (list '* +i s))))
+         ;; parameters spelled apart from the outer C / S: MIT folds case, and the
+         ;; case-fold lint read c / C as one name (benign here, the lambda bodies
+         ;; shadow on purpose; renamed 2026-10-03 to keep the lint quiet)
+         (ip (lambda (cpart spart) (list '+ cpart (list '* +i spart))))
+         (im (lambda (cpart spart) (list '- cpart (list '* +i spart))))
          (iz (list '* +i z)) (iw (list '* +i w)) (izw (list '* +i zw))
          (ea (list '= (ip C S) (list '* (ip c1 s1) (ip c2 s2))))
          (eb (list '= (im C S) (list '* (im c1 s1) (im c2 s2)))))
