@@ -4034,7 +4034,7 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (define-key m "n" 'vnb-what-now)                ; the [What now?] button
     (define-key m "I" 'vnb-what-is)                 ; the [What is...?] button
     (define-key m "P" 'vnb-pf-preamble)             ; the [Preamble] button (batch 41)
-    (define-key m "G" 'vnb-pf-show-graph)           ; the [Graph] button (notes-49)
+    (define-key m "G" 'vnb-graph-browse)            ; the [Graph] button: one node at a time (2026-10-03); the list is `l' there
     m)
   "Keymap for the Focus Workspace buffer.")
 
@@ -4105,8 +4105,8 @@ no such guard -- it talks to nothing."
     ;; where the branch a composite closed is found.  Shown only with a proof open.
     (when (vnb-pf--proof-live-p)
       (insert "  ")
-      (vnb-launch--insert-button "Graph" 'vnb-pf-show-graph
-                                 "Every node of the proof, closed ones included, with what grounds each (G)"))
+      (vnb-launch--insert-button "Graph" 'vnb-graph-browse
+                                 "Walk the deduction graph one sequent node at a time, closed branches included (G)"))
     ;; Undo sits with the other two questions rather than only on the toolbar:
     ;; it is a thing you ask of the proof, not a tool.  Shown only while a proof
     ;; is open -- "previous node" with no proof is nonsense.  (User's call.)
@@ -5204,6 +5204,218 @@ comes back on the report channel; longer than a few lines it opens in the
 *VNB Report* buffer (vnb.el)."
   (interactive)
   (vnb-launch--send-tactic "(show-graph)"))
+
+;;; ---------------------------------------------------------------------------
+;;; THE DEDUCTION GRAPH, ONE SEQUENT AT A TIME (the user, 2026-10-03).
+;;;
+;;; `show-graph' lists every node as text.  This is the display MODE he asked
+;;; for on top of it: a buffer showing one sequent node, painted the way the
+;;; Focus panel paints a sequent --
+;;;
+;;;     Assumptions:
+;;;       a1
+;;;       a2
+;;;     ------------------------------------------------------------
+;;;     Turnstile: goal
+;;;
+;;; -- with the node's number and status in the mode line, e.g.
+;;;
+;;;     [GROUNDED] by forall-elim from [34]
+;;;
+;;; and C-c n / C-c p / C-c g NUMBER (also bare n / p / g) to walk the nodes,
+;;; plus toolbar arrows.  The hypothesis numbers under the sequent are buttons.
+;;; The data comes from (write-graph-el PATH) -- the file round trip
+;;; `vnb-pf--fetch-tex' uses -- so nothing here parses printed text.
+
+(defvar vnb-graph-buffer-name "*VNB Graph*"
+  "The buffer `vnb-graph-mode' paints one sequent node in.")
+
+(defvar-local vnb-graph--nodes nil
+  "Vector of the graph's node records, in creation order: (N (asms ...) (goal ...) ...).")
+(defvar-local vnb-graph--meta nil
+  "The graph's header alist: root, focus, done, count.")
+(defvar-local vnb-graph--index 0
+  "Index into `vnb-graph--nodes' of the node on display.")
+
+(defvar vnb-graph-mode-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "C-c n") #'vnb-graph-next)
+    (define-key m (kbd "C-c p") #'vnb-graph-prev)
+    (define-key m (kbd "C-c g") #'vnb-graph-goto)
+    (define-key m "n" #'vnb-graph-next)
+    (define-key m "p" #'vnb-graph-prev)
+    (define-key m "g" #'vnb-graph-goto)
+    (define-key m "r" #'vnb-graph-browse)
+    (define-key m "l" #'vnb-pf-show-graph)
+    m)
+  "Keys of `vnb-graph-mode'.")
+
+(defun vnb-graph--toolbar ()
+  "The graph buffer's own toolbar: previous, next, go to, re-read, the list."
+  (let ((m (make-sparse-keymap)))
+    (tool-bar-local-item "left-arrow"  #'vnb-graph-prev   'vnb-gtb-prev    m
+                         :help "Previous sequent node (C-c p)")
+    (tool-bar-local-item "right-arrow" #'vnb-graph-next   'vnb-gtb-next    m
+                         :help "Next sequent node (C-c n)")
+    (tool-bar-local-item "jump-to"     #'vnb-graph-goto   'vnb-gtb-goto    m
+                         :help "Go to a sequent node by its number (C-c g)")
+    (tool-bar-local-item "refresh"     #'vnb-graph-browse 'vnb-gtb-refresh m
+                         :help "Re-read the graph from the prover (r)")
+    (tool-bar-local-item "index"       #'vnb-pf-show-graph 'vnb-gtb-list   m
+                         :help "The whole graph as a list, in *VNB Report* (l)")
+    m))
+
+(define-derived-mode vnb-graph-mode special-mode "VNB-Graph"
+  "One sequent node of the current proof's deduction graph at a time.
+\\{vnb-graph-mode-map}"
+  (setq-local tool-bar-map (vnb-graph--toolbar))
+  (setq truncate-lines nil))
+
+(defun vnb-graph--fetch ()
+  "Round-trip the prover for the graph; return its alist (root focus done count nodes)."
+  (unless (vnb-pf--prover-live-p)
+    (user-error "The VNB prover is not running"))
+  (vnb-tex--ensure-cache-dir)
+  (let ((path (expand-file-name "graph.el" vnb-tex-cache-dir)))
+    (ignore-errors (delete-file path))
+    (ignore-errors (vnb-eval-string (format "(write-graph-el %S)" path)))
+    (unless (file-exists-p path)
+      (user-error "No proof in progress: the prover wrote no graph"))
+    (let ((data (with-temp-buffer
+                  (insert-file-contents path)
+                  (goto-char (point-min))
+                  (read (current-buffer)))))
+      (unless (and (consp data) (eq (car data) 'graph))
+        (error "write-graph-el returned something unexpected: %S" data))
+      (cdr data))))
+
+(defun vnb-graph--index-of (n)
+  "The index of node number N in `vnb-graph--nodes', or nil."
+  (and (numberp n)
+       (let ((i 0) (found nil))
+         (while (and (not found) (< i (length vnb-graph--nodes)))
+           (when (= (car (aref vnb-graph--nodes i)) n) (setq found i))
+           (setq i (1+ i)))
+         found)))
+
+(defun vnb-graph--field (node key)
+  "The value list stored under KEY in NODE's alist."
+  (cdr (assq key (cdr node))))
+
+(defun vnb-graph--status-string (node)
+  "The mode-line text for NODE: [GROUNDED] by RULE from [H] ..., [OPEN], [OPEN, FOCUS], [PENDING]."
+  (let* ((grounded (car (vnb-graph--field node 'grounded)))
+         (open     (car (vnb-graph--field node 'open)))
+         (focus    (car (vnb-graph--field node 'focus)))
+         (by       (vnb-graph--field node 'by))
+         (tag      (cond (grounded "[GROUNDED]")
+                         ((and open focus) "[OPEN, FOCUS]")
+                         (open "[OPEN]")
+                         (t "[PENDING]")))
+         (inf      (car by)))
+    (concat tag
+            (when inf
+              (concat " by " (format "%s" (car inf))
+                      (if (cdr inf)
+                          (concat " from" (mapconcat (lambda (h) (format " [%d]" h)) (cdr inf) ""))
+                        " (no hypotheses)")))
+            (when (> (length by) 1)
+              (format "  (+%d more inference%s)" (1- (length by)) (if (> (length by) 2) "s" ""))))))
+
+(defun vnb-graph--node-button-action (button)
+  (vnb-graph-goto (button-get button 'vnb-node)))
+
+(defun vnb-graph--insert-node-button (n)
+  (insert-text-button (format "[%d]" n)
+                      'action #'vnb-graph--node-button-action
+                      'vnb-node n
+                      'follow-link t
+                      'help-echo (format "Go to sequent node %d" n)))
+
+(defun vnb-graph--paint ()
+  "Paint the node at `vnb-graph--index' into the current (graph) buffer."
+  (let* ((inhibit-read-only t)
+         (node   (aref vnb-graph--nodes vnb-graph--index))
+         (n      (car node))
+         (asms   (vnb-graph--field node 'asms))
+         (goal   (car (vnb-graph--field node 'goal)))
+         (open   (car (vnb-graph--field node 'open)))
+         (focus  (car (vnb-graph--field node 'focus)))
+         (by     (vnb-graph--field node 'by))
+         (total  (length vnb-graph--nodes)))
+    (erase-buffer)
+    (insert (propertize (format "Sequent node [%d]   (%d of %d, in creation order)\n\n"
+                                n (1+ vnb-graph--index) total)
+                        'face 'vnb-dim))
+    (insert "Assumptions:\n")
+    (if asms
+        (dolist (a asms) (insert "  " a "\n"))
+      (insert (propertize "  (none)\n" 'face 'vnb-dim)))
+    (insert (make-string 60 ?-) "\n")
+    (insert "Turnstile: " goal "\n\n")
+    (cond
+     (by
+      (dolist (inf by)
+        (insert "Justified by " (format "%s" (car inf)))
+        (if (cdr inf)
+            (progn (insert " from")
+                   (dolist (h (cdr inf)) (insert " ") (vnb-graph--insert-node-button h)))
+          (insert " (no hypotheses)"))
+        (insert "\n")))
+     (open (insert (if focus "Open leaf: the focus.\n" "Open leaf.\n")))
+     (t (insert (propertize "No inference into this node yet.\n" 'face 'vnb-dim))))
+    (insert (propertize "\nC-c n next   C-c p previous   C-c g NUMBER   r re-read   l the list   q quit\n"
+                        'face 'vnb-dim))
+    (setq-local mode-line-format
+                (list " " (format "[%d] " n) (vnb-graph--status-string node) "   %b"))
+    (force-mode-line-update)
+    (goto-char (point-min))))
+
+(defun vnb-graph-browse ()
+  "Show the current proof's deduction graph one sequent node at a time.
+Starts on the focus when the proof is open, else on the root.  Wraps
+(write-graph-el PATH) and reads the file back; see `vnb-graph-mode'."
+  (interactive)
+  (let* ((meta  (vnb-graph--fetch))
+         (nodes (vconcat (cdr (assq 'nodes meta)))))
+    (when (= (length nodes) 0)
+      (user-error "The graph has no node"))
+    (with-current-buffer (get-buffer-create vnb-graph-buffer-name)
+      (unless (derived-mode-p 'vnb-graph-mode) (vnb-graph-mode))
+      (setq vnb-graph--nodes nodes
+            vnb-graph--meta  meta)
+      (setq vnb-graph--index
+            (or (vnb-graph--index-of (car (cdr (assq 'focus meta))))
+                (vnb-graph--index-of (car (cdr (assq 'root meta))))
+                0))
+      (vnb-graph--paint)
+      (pop-to-buffer (current-buffer)))))
+
+(defun vnb-graph--move (delta)
+  (unless (and vnb-graph--nodes (> (length vnb-graph--nodes) 0))
+    (user-error "No graph here: r re-reads it"))
+  (let ((i (+ vnb-graph--index delta)))
+    (cond ((< i 0) (user-error "This is the first node (the root)"))
+          ((>= i (length vnb-graph--nodes)) (user-error "This is the last node"))
+          (t (setq vnb-graph--index i) (vnb-graph--paint)))))
+
+(defun vnb-graph-next ()
+  "Show the next sequent node (creation order)."
+  (interactive)
+  (vnb-graph--move 1))
+
+(defun vnb-graph-prev ()
+  "Show the previous sequent node (creation order)."
+  (interactive)
+  (vnb-graph--move -1))
+
+(defun vnb-graph-goto (n)
+  "Show sequent node number N (the bracketed number the Focus panel prints)."
+  (interactive "nSequent node number: ")
+  (let ((i (vnb-graph--index-of n)))
+    (unless i (user-error "No sequent node numbered %d" n))
+    (setq vnb-graph--index i)
+    (vnb-graph--paint)))
 
 (defun vnb-pf-preamble ()
   "Run the PREAMBLE -- the editable rule file -- on the focused goal.  Wraps (preamble).

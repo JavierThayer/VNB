@@ -389,6 +389,57 @@
           nodes)
         (display ";;VNB-REPORT-END\n")))))
 
+;;; (write-graph-el PATH) -- the deduction graph of the current proof as ONE
+;;; Emacs-readable S-expression, written to PATH (the user, 2026-10-03: a display
+;;; mode that shows one sequent at a time, painted as the Focus panel paints it,
+;;; with the node's status in the mode line and keys to walk the nodes).  The
+;;; same file round trip as write-sequent-tex (tex-output.scm): Emacs reads the
+;;; file with `read', so nothing on that side parses printed text.  Booleans are
+;;; the symbols t / nil, the only spelling both readers agree on.
+;;;
+;;;   (graph (root N) (focus N|nil) (done t|nil) (count N)
+;;;          (nodes (N (asms "..." ...) (goal "...") (grounded t|nil)
+;;;                    (open t|nil) (focus t|nil)
+;;;                    (by (RULE-HEAD H1 H2 ...) ...))
+;;;                 ...))
+;;;
+;;; Records nothing, like show-graph.  Returns PATH.
+(define (write-graph-el path)
+  (vnb-guard
+    (lambda ()
+      (vnb--require-proof!)
+      (let* ((dg      (proof-state-dg *ps*))
+             (nodes   (dg-sequent-nodes dg))
+             (open    (proof-open-leaves *ps*))
+             (done    (proof-done? *ps*))
+             (focus   (proof-state-focus *ps*))
+             (num     (lambda (sqn) (or (sequent-node-number sqn) -1)))
+             (el-bool (lambda (x) (if x 't 'nil)))
+             (rule-head (lambda (r) (if (pair? r) (car r) r)))
+             (node->el
+              (lambda (sqn)
+                (list (num sqn)
+                      (cons 'asms (map (lambda (w) (expression->string (wff-formula w)))
+                                       (sequent-node-assumptions sqn)))
+                      (list 'goal (expression->string (wff-formula (sequent-node-assertion sqn))))
+                      (list 'grounded (el-bool (sequent-node-grounded? sqn)))
+                      (list 'open (el-bool (memq sqn open)))
+                      (list 'focus (el-bool (and (not done) (eq? sqn focus))))
+                      (cons 'by (map (lambda (inf)
+                                       (cons (rule-head (inference-node-rule inf))
+                                             (map num (inference-node-hypotheses inf))))
+                                     (reverse (sequent-node-in-arrows sqn))))))))
+        (with-output-to-file path
+          (lambda ()
+            (write (list 'graph
+                         (list 'root (num (proof-state-root *ps*)))
+                         (list 'focus (if done 'nil (num focus)))
+                         (list 'done (el-bool done))
+                         (list 'count (length nodes))
+                         (cons 'nodes (map node->el nodes))))
+            (newline)))
+        path))))
+
 (define (pp w)
   (display (wff->string w))
   (newline))

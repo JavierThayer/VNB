@@ -117,6 +117,41 @@
              (> (vpc--count "Proof complete.") 0)))
 
 
+;; ----- the deduction-graph display mode (the user, 2026-10-03) -----
+;; After di + ass the proof is complete: every node is GROUNDED, the root is [0].
+(vnb-graph-browse)
+(vpc--pump 5)
+(with-current-buffer vnb-graph-buffer-name
+  (vpc-check "graph mode: the buffer is in vnb-graph-mode and holds nodes"
+             (and (derived-mode-p 'vnb-graph-mode) (> (length vnb-graph--nodes) 1))
+             (format "%d node(s)" (length vnb-graph--nodes)))
+  (vpc-check "graph mode: the node is painted Focus-style (Assumptions / rule / Turnstile)"
+             (and (= 1 (vpc--count "Assumptions:")) (= 1 (vpc--count "Turnstile: "))))
+  (vnb-graph-goto 0)
+  (vpc-check "graph mode: C-c g 0 shows the root"
+             (= 0 (car (aref vnb-graph--nodes vnb-graph--index))))
+  ;; `format-mode-line' is empty under --batch (no window), so the status text
+  ;; the mode line carries is tested at its source.
+  (vpc-check "graph mode: the status reads [GROUNDED] by RULE from [N]"
+             (let ((st (vnb-graph--status-string (aref vnb-graph--nodes vnb-graph--index))))
+               (and (string-match-p "\\[GROUNDED\\] by [a-z-]+ from \\[[0-9]+\\]" st) t))
+             (vnb-graph--status-string (aref vnb-graph--nodes vnb-graph--index)))
+  (vpc-check "graph mode: the hypothesis number under the sequent is a button"
+             (save-excursion (goto-char (point-min))
+                             (and (search-forward "Justified by" nil t)
+                                  (next-button (point)) t)))
+  (vnb-graph-next)
+  (vpc-check "graph mode: C-c n moves to the next node" (= vnb-graph--index 1))
+  (vnb-graph-prev)
+  (vpc-check "graph mode: C-c p moves back" (= vnb-graph--index 0))
+  (vpc-check "graph mode: the advertised keys are bound"
+             (cl-every (lambda (k) (commandp (lookup-key vnb-graph-mode-map (kbd k))))
+                       '("C-c n" "C-c p" "C-c g" "n" "p" "g" "r" "l")))
+  (vpc-check "graph mode: the toolbar has the arrows and go-to"
+             (and (assq 'vnb-gtb-prev (cdr tool-bar-map))
+                  (assq 'vnb-gtb-next (cdr tool-bar-map))
+                  (assq 'vnb-gtb-goto (cdr tool-bar-map)))))
+
 ;; ----- the toolbar's Save Script button -----
 ;; It was gated on `vnb-pf--proof-live-p', which goes nil at `qed' -- so the
 ;; button greyed itself out at the exact moment a user reaches for Save, while
