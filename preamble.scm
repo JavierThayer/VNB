@@ -1065,6 +1065,16 @@
 ;;; The loop
 
 ;;; One step on the focus: the first matching rule whose probe holds.  -> #t if committed.
+;;; " (sequent node [N])" for the focus, so the stop line names the node the graph
+;;; browser (vnb-graph-mode, C-c g N) and show-graph print (the user, 2026-10-03: a
+;;; postamble left him "somewhere in the middle, not sure exactly where").
+(define (pa--node-tag)
+  (if (and (proof-state? *ps*) (not (proof-done? *ps*)))
+      (string-append " (sequent node ["
+                     (number->string (or (sequent-node-number (proof-state-focus *ps*)) -1))
+                     "])")
+      ""))
+
 (define (pa--step! st)
   (let* ((goal (dk-goal)) (asms (dk-asms)) (matched 0))
     (let loop ((rs (pa-state-rules st)))
@@ -1072,8 +1082,10 @@
         ((null? rs)
          (set-pa-state-stop! st
            (if (= matched 0)
-               (string-append "no rule matches the goal " (expression->string goal))
-               (string-append "every rule that matched was rejected on " (expression->string goal))))
+               (string-append "no rule matches the goal " (expression->string goal)
+                              (pa--node-tag))
+               (string-append "every rule that matched was rejected on " (expression->string goal)
+                              (pa--node-tag))))
          #f)
         (#t
          (let* ((ru (car rs))
