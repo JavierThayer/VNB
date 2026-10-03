@@ -710,11 +710,27 @@
 ;;; Entries keep the table's order; they are grouped by document in the order
 ;;; the documents first appear, so one \section is emitted per document.
 ;;; Returns the output path, or #f when there is no table to read.
+;;; A CERTIFIED load (VNB_CERTIFIED=on) holds no script for a certified theorem,
+;;; so the fragment it would write says "the exam's image holds the script" for
+;;; every proof; written over the exam's fragment and pulled back to the
+;;; primary, that cost docs/major-theorems.pdf its proofs (410 pages to 178,
+;;; found 2026-10-03).  So: when a theorem of the table is certified with no
+;;; script in this image AND the fragment already exists, leave the file as
+;;; the last exam wrote it and say so; the exam (every proof run) rewrites it.
+(define (mt--scriptless? name)
+  (and (certified-theorem? name) (not (mt--script name))))
+
 (define (write-major-theorems-tex! table-path out-path)
   (let ((entries (mt--read-table table-path)))
-    (if entries
-        (mt--write-all entries out-path)
-        #f)))
+    (cond
+      ((not entries) #f)
+      ((and (file-exists? (mt--abs-path out-path))
+            (any (lambda (e) (any mt--scriptless? (mt--list e 'names))) entries))
+       (display ";; major-theorems: KEPT the exam's ")
+       (display out-path)
+       (display " -- this image holds no script for a certified theorem of the table\n")
+       #f)
+      (#t (mt--write-all entries out-path)))))
 
 (define (mt--write-all entries out-path)
   (let* ((labels  (mt--labels entries))

@@ -36,7 +36,7 @@ MAKEINDEX := makeindex -q
 
 .PHONY: all gen kindle both clean check-fresh
 
-all: gen
+all: gen major-theorems
 	$(LATEX) manual.tex
 	$(MAKEINDEX) manual
 	$(LATEX) manual.tex
@@ -97,6 +97,7 @@ clean:
 	rm -f manual-kindle.idx manual-kindle.ind manual-kindle.ilg
 
 # The major theorems of the notes as the library states them (reference/major-theorems.tex is written at load).
+# Part of `all' since 2026-10-03: the PDF had sat four days behind its source, unnoticed (it is not in git).
 .PHONY: major-theorems
 major-theorems:
 	$(LATEX) major-theorems.tex && $(LATEX) major-theorems.tex && $(LATEX) major-theorems.tex
