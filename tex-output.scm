@@ -528,6 +528,15 @@
 ;;; row of quantifiers plus body is wider than a bare conjunct.
 (define tex--short-row 80)
 
+;; THE WIDTH OF A FORMULA, for the row-breaking decisions below (2026-10-04, the
+;; user's notes-58: "flatten formulas as much as possible", one line for
+;; one(r) = add(r)(sum(r, comb-kk(r, x, y, 0), 0), comb-kk(r, x, y, 0)(0))).
+;; The TeX SOURCE is the wrong ruler: \operatorname{comb\text{-}kk} is 29
+;; characters for seven glyphs, so a one-line equation was broken at `='.  The
+;; plain printed form (what the REPL shows) is about the typeset width in
+;; characters, and that is what the thresholds were written for.
+(define (tex--width e) (string-length (expression->string e)))
+
 ;;; Flatten a right- or left-nested run of the same operator OP.
 (define (tex--flatten-op op e)
   (if (and (pair? e) (eq? (car e) op))
@@ -634,7 +643,7 @@
       ;; curried implication used to be set one antecedent per row,
       ;;   0 < a =>  /  0 < b =>  /  0 < a b,
       ;; whatever its length.
-      ((<= (string-length (expr->tex e)) tex--short-row)
+      ((<= (tex--width e) tex--short-row)
        (list (string-append (tex--ind ind) (expr->tex e))))
       ;; a maximal run of quantifiers collapses onto one row
       (qs
@@ -658,7 +667,7 @@
               (conseq (caddr e))
               (chain? (and (pair? conseq) (eq? (car conseq) 'implies) (= (length conseq) 3)))
               (cind (if chain? ind (+ ind 1))))
-         (if (<= (string-length ante) tex--inline-threshold)
+         (if (<= (tex--width (cadr e)) tex--inline-threshold)
              (cons (string-append (tex--ind ind) ante " \\Rightarrow ")
                    (tex--lines conseq cind))
              (append (tex--suffix-last (tex--lines (cadr e) ind) " \\Rightarrow")
@@ -667,7 +676,7 @@
       ;; block per (flattened) conjunct, connective trailing all but the last
       ((and (pair? e) (memq (car e) '(and or)) (>= (length e) 2))
        (let ((inline (expr->tex e)))
-         (if (<= (string-length inline) tex--inline-threshold)
+         (if (<= (tex--width e) tex--inline-threshold)
              (list (string-append (tex--ind ind) inline))
              (let ((conn (if (eq? (car e) 'and) " \\wedge" " \\vee")))
                (let loop ((ps (tex--flatten-op (car e) e)) (out '()))
@@ -681,20 +690,20 @@
       ;; top-level relation: LHS block, then a row per RHS starting with the
       ;; relation symbol.  Short ones stay inline.
       ((and (pair? e) (memq (car e) *tex-relation-ops*) (= (length e) 3)
-            (> (string-length (expr->tex e)) tex--inline-threshold))
+            (> (tex--width e) tex--inline-threshold))
        (append (tex--lines (cadr e) ind)
                (tex--rel-rows (string-trim (cdr (assq (car e) *tex-binop-table*)))
                               (caddr e) ind)))
       ;; long lambda: "(\lambda v.\;" on this row, body indented, ')' trailing.
       ((and (pair? e) (eq? (car e) 'vnb-lambda) (= (length e) 4)
-            (> (string-length (expr->tex e)) tex--inline-threshold))
+            (> (tex--width e) tex--inline-threshold))
        (cons (string-append (tex--ind ind) "(\\lambda " (expr->tex (cadr e))
                             " \\in " (expr->tex (caddr e)) ".\\;")
              (tex--suffix-last (tex--lines (cadddr e) (+ ind 1)) ")")))
       ;; long application: "head(" merged onto the first argument row (so a short
       ;; leading arg like sum(r, ... stays with the head), remaining args packed.
       ((and (tex--breakable-app? e)
-            (> (string-length (expr->tex e)) tex--inline-threshold))
+            (> (tex--width e) tex--inline-threshold))
        (let ((rows (tex--arg-rows (cdr e) (+ ind 1)))
              (head (string-append (tex--ind ind) (tex--head->tex (car e)) "(")))
          (if (null? rows)

@@ -91,6 +91,25 @@
          ((FORALL FORSOME) (proof-reader--typing-wff? (caddr w)))
          ((IMPLIES) (proof-reader--typing-wff? (caddr w)))
          (else #f))))
+;; a wff is TRIVIAL (the user, 2026-10-04: "Clearly 0 in NN, is-ring(r), one(r) in
+;; carr(r)"; "trivial structure specializations can be omitted") when it is a
+;; typing, or a STRUCTURE PREDICATE applied to terms -- is-ring(r) from
+;; commutative-ring-is-ring -- with no connective in it.  A run of steps that
+;; establish only trivial facts collapses to one "Clearly ..." line.
+(define (proof-reader--structure-atom? w)
+  (and (pair? w) (symbol? (car w))
+       (let ((n (symbol->string (car w))))
+         (and (> (string-length n) 3) (string-ci=? (substring n 0 3) "is-")))
+       (not (find-first (lambda (x) (and (pair? x) (memq (car x) '(AND OR NOT IMPLIES IFF FORALL FORSOME))))
+                      (cdr w)))))
+(define (proof-reader--trivial-wff? w)
+  (and (pair? w)
+       (case (car w)
+         ((IN) #t)
+         ((FORALL FORSOME) (proof-reader--trivial-wff? (caddr w)))
+         ((IMPLIES) (proof-reader--trivial-wff? (caddr w)))
+         ((< <=) #t)                      ; an ordering fact between terms: (0 - 1) < 0, n < n + 1
+         (else (proof-reader--structure-atom? w)))))
 
 ;;; --- grouping ----------------------------------------------------------
 ;; Attach a 0-based step index to each record: (idx entry goal asms new-ids).
@@ -168,7 +187,7 @@
     (cond ((proof-reader--closer? r) 'closer)
           ((and (memq tac *proof-reader-fact-tacs*)
                 (let ((na (hash-table-ref/default ht (ir-idx main-ir) '())))
-                  (and (pair? na) (proof-reader--all? proof-reader--typing-wff? na))))
+                  (and (pair? na) (proof-reader--all? proof-reader--trivial-wff? na))))
            'typing)
           (else 'content))))
 
@@ -310,6 +329,75 @@
 ;; printing the literal string "w": a witness named after a variable that occurs
 ;; nowhere in the proof.  (The line 301 comment always claimed this contract; the
 ;; call site did not honour it.)
+;; The assumptions the group's STRUCTURAL prefix (di / ai) landed before the primary:
+;; the eigenvariables and hypotheses a `di' introduced, which the sketch used to
+;; drop silently (the user's notes-58: a direct inference on forall([a in X, b in Y],
+;; FUBA(a, b)) reads "Suppose a in X, b in Y").  Rendered as a leading "Suppose ...".
+(define (proof-reader--asms-before g primary pre-asms)
+  (let loop ((rs g) (prev #f))
+    (cond ((null? rs) pre-asms)
+          ((eq? (car rs) primary) (if prev (caddr (ir-rec prev)) pre-asms))
+          (else (loop (cdr rs) (car rs))))))
+;; an atom's TeX without the outer parentheses expr->tex puts around a relation
+(define (proof-reader--atom-tex a)
+  (let* ((t (if (equal? a '(IS-THE-INDUCTION-HYPOTHESIS)) "\\text{the induction hypothesis}" (expr->tex a)))
+         (n (string-length t)))
+    (if (and (> n 2) (char=? (string-ref t 0) #\() (char=? (string-ref t (- n 1)) #\))
+             ;; balanced as a whole: the first paren closes at the end
+             (let loop ((i 1) (d 1))
+               (cond ((= i (- n 1)) (= d 1))
+                     ((char=? (string-ref t i) #\() (loop (+ i 1) (+ d 1)))
+                     ((char=? (string-ref t i) #\)) (if (= d 1) #f (loop (+ i 1) (- d 1))))
+                     (else (loop (+ i 1) d)))))
+        (substring t 1 (- n 1))
+        t)))
+;; the guards of the claim's own prefix (what the proposition's "Suppose" fixed):
+;; a branch of an induction re-peels them, and they are not to be supposed again
+(define (proof-reader--claim-guards claim)
+  (let loop ((e claim) (acc '()))
+    (cond ((and (pair? e) (eq? (car e) 'FORALL) (= (length e) 3)) (loop (caddr e) acc))
+          ((and (pair? e) (eq? (car e) 'IMPLIES) (= (length e) 3)) (loop (caddr e) (cons (cadr e) acc)))
+          (else acc))))
+(define *proof-reader-claim-guards* '())
+;; a list of items as prose when they are short, as a displayed block when not
+(define (proof-reader--items-text items)
+  (let ((width (apply + (map (lambda (a) (string-length (expression->string a))) items))))
+    (if (and (<= width 150) (not (find-first (lambda (a) (> (string-length (expression->string a)) 90)) items)))
+        (string-append (proof-reader--join-and (map proof-reader--atom-tex items)) ". ")
+        (string-append "\n\\begin{equation*}\n\\begin{array}{@{}l@{}}\n"
+                       (proof-tex--join (map expr->tex-display items) " \\\\\n")
+                       "\n\\end{array}\n\\end{equation*}\n"))))
+;; "Suppose ..." for what the group's `di' steps introduced (eigenvariables, hypotheses),
+;; "Hence ..." for what its `ai' steps unpacked -- a consequence, not a supposition
+(define (proof-reader--suppose-prefix g primary pre-asms setup-asms indvar)
+  (if (not primary) ""
+      (let loop ((rs g) (prev pre-asms) (sup '()) (hence '()))
+        (cond
+          ((or (null? rs) (eq? (car rs) primary))
+           (let* ((drop (lambda (l) (filter (lambda (a) (and (not (member a setup-asms))
+                                                             (not (member a *proof-reader-claim-guards*))))
+                                            l)))
+                  ;; an unpacked conjunction whose conjuncts are listed too is noise
+                  (no-and (lambda (l) (filter (lambda (a) (not (and (pair? a) (eq? (car a) 'AND)
+                                                                     (member (cadr a) l) (member (caddr a) l))))
+                                              l)))
+                  (sup (no-and (drop (reverse sup)))) (hence (no-and (drop (reverse hence))))
+                  (ih (lambda (a) (if (and indvar (> (string-length (expression->string a)) 120))
+                                      '(IS-THE-INDUCTION-HYPOTHESIS) a))))
+             (string-append
+              (if (pair? sup)
+                  (string-append "Suppose "
+                                 (proof-reader--items-text (map ih sup)))
+                  "")
+              (if (pair? hence)
+                  (string-append "Hence " (proof-reader--items-text hence))
+                  ""))))
+          (else
+           (let* ((r (ir-rec (car rs))) (tac (proof-reader--tac r)) (asms (caddr r))
+                  (news (proof-reader--new-asms prev asms)))
+             (loop (cdr rs) asms
+                   (if (eq? tac 'di) (append (reverse news) sup) sup)
+                   (if (memq tac '(ai mac-h lam-b-h slot-h)) (append (reverse news) hence) hence))))))))
 (define (proof-reader--goal-before g primary pre-goal)
   (let loop ((rs g) (prev #f))
     (cond ((null? rs) pre-goal)
@@ -364,7 +452,24 @@
        (if (pair? args)
            (string-append "Introduce the auxiliary claim" (proof-reader--display (car args)))
            "By a cut on the auxiliary claim."))
-      ((subst) "Substitute the established equation.")
+      ((slot)
+       (string-append "Read off the component " (proof-reader--cite (and (pair? args) (car args)))
+                      (if goal (string-append " of the structure, reduce to" (proof-reader--display goal)) ".")))
+      ((mac-h)
+       (string-append "Unfolding " (proof-reader--cite (and (pair? args) (car args))) " in the hypothesis"
+                      (if (pair? news) (string-append ":" (proof-reader--display (car news))) ".")))
+      ((lam-b-h)
+       (string-append "$\\beta$-reducing the hypothesis"
+                      (if (pair? news) (string-append ":" (proof-reader--display (car news))) ".")))
+      ((subst)
+       ;; the recorded argument IS the equation, in the direction it was used
+       ;; (the user, 2026-10-04: "substitute what where?")
+       (let ((eqn (and (pair? args) (car args))))
+         (string-append
+          (if (and (pair? eqn) (= (length eqn) 3))
+              (string-append "Substituting $" (expr->tex (cadr eqn)) " = " (expr->tex (caddr eqn)) "$")
+              "Substituting the established equation")
+          (if goal (string-append ", reduce to" (proof-reader--display goal)) "."))))
       ((lam-b) "$\\beta$-reduce the applied $\\lambda$.")
       ((ass) "\\emph{Holds by assumption.}")
       ((rfl qrfl) "\\emph{Holds by reflexivity.}")
@@ -388,17 +493,22 @@
          (let ((na (hash-table-ref/default ht (ir-idx ir) '())))
            (when (pair? na) (set! atoms (cons (car na) atoms))))))
      g)
-    (string-append
-     "\\emph{Establish in-carrier / typing side-conditions:}"
-     (let ((atoms (reverse atoms)))
-       (if (pair? atoms)
-           ;; displayed, one atom per row -- never overflows and can't break
-           ;; mid-atom the way an inline list does.
-           (string-append
-            "\n\\begin{equation*}\n\\begin{array}{@{}l@{}}\n"
-            (proof-tex--join (map expr->tex-display atoms) " \\\\\n")
-            "\n\\end{array}\n\\end{equation*}\n")
-           "")))))
+    ;; "Clearly a, b and c." on one line when the atoms fit (the user, 2026-10-04);
+    ;; the displayed one-atom-per-row block only when they do not.
+    (let* ((atoms (reverse atoms))
+           (width (apply + (map (lambda (a) (string-length (expression->string a))) atoms))))
+      (cond
+        ((null? atoms) "\\emph{Clearly.}")
+        ((<= width 150)
+         (string-append "Clearly "
+                        (proof-reader--join-and (map proof-reader--atom-tex atoms))
+                        "."))
+        (else
+         (string-append
+          "Clearly"
+          "\n\\begin{equation*}\n\\begin{array}{@{}l@{}}\n"
+          (proof-tex--join (map expr->tex-display atoms) " \\\\\n")
+          "\n\\end{array}\n\\end{equation*}\n"))))))
 
 ;; a collapsed line for a RUN of inst/inst+ steps that peel nested quantifiers off
 ;; one hypothesis (the classic induction-hypothesis specialization: instantiate at
@@ -436,6 +546,8 @@
 ;; internal op -> its "usual" name; drives the "we use the internal representation"
 ;; note appended when a statement mentions such an op.
 (define *proof-reader-internal-notes* '((comb-kk . "the binomial coefficient term")))
+;; the placeholder the Suppose prefix uses for a long hypothesis inside an induction
+(define (proof-reader--ih-text? a) (equal? a '(IS-THE-INDUCTION-HYPOTHESIS)))
 
 ;; one peel of a leading guarded universal: (kind item-tex body) or #f.
 ;;   'mem  v in S   (groups into a run)   'pred v s.t. P (own clause)   'bare v
@@ -744,6 +856,7 @@
 (define (proof-reader--body name)
   (let* ((records (proof-reader--derename (proof-reader--records name)))
          (claim   (cadr (car records)))            ; sp record's goal
+         (guards  (begin (set! *proof-reader-claim-guards* (proof-reader--claim-guards claim)) #t))
          (indexed (proof-reader--collapse-em (proof-reader--index records)))
          (ht      (proof-reader--annotate indexed))
          (grp     (proof-reader--group indexed))
@@ -823,6 +936,7 @@
                          (car hdr+phase)
                          (car ch+cs)
                          "  \\item[\\textbf{" (proof-reader--range g) "}] "
+                         (proof-reader--suppose-prefix g primary pre-asms setup-asms indvar)
                          gloss close-txt "\n"))
                    ;; thread the state AFTER the whole group (its last record),
                    ;; not the first content record -- so a merged run (inst/typing)

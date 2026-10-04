@@ -1,0 +1,384 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\begin{proposition}[binomial-theorem]
+Suppose $n \in \mathbb{N}$. Let $r \text{ be s.t. } \operatorname{is\text{-}commutative\text{-}ring}(r)$. Suppose $x \in \operatorname{carr}(r)$ and $y \in \operatorname{carr}(r)$. Then
+\begin{equation*}
+(\operatorname{ring\text{-}power}(r, \operatorname{add}(r)(x, y), n) = \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), \operatorname{succ}(n)))
+\end{equation*}
+
+
+\noindent\emph{(Here $\operatorname{comb\text{-}kk}(r, x, y, n)$ is the internal representation of the binomial coefficient term; it is used throughout the proof.)}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{1}] By induction on $n$.
+  \item[]\textbf{Base case} ($n = 0$):
+  \item[\textbf{2--7}] Clearly $0 \in \mathbb{N}$, $\operatorname{is\text{-}ring}(r)$ and $\operatorname{one}(r) \in \operatorname{carr}(r)$.
+  \item[\textbf{8}] By $\operatorname{ring\text{-}power\text{-}zero}$, reduce to
+\begin{equation*}
+(\operatorname{one}(r) = \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, 0), (0 + 1)))
+\end{equation*}
+
+  \item[\textbf{9}] By $\operatorname{sum\text{-}succ}$, reduce to
+\begin{equation*}
+(\operatorname{one}(r) = \operatorname{add}(r)(\operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, 0), 0), \operatorname{comb\text{-}kk}(r, x, y, 0)(0)))
+\end{equation*}
+
+  \item[\textbf{10}] By $\operatorname{sum\text{-}zero}$, reduce to
+\begin{equation*}
+(\operatorname{one}(r) = \operatorname{add}(r)(\operatorname{zero}(r), \operatorname{comb\text{-}kk}(r, x, y, 0)(0)))
+\end{equation*}
+
+  \item[\textbf{11}] By $\operatorname{comb\text{-}kk\text{-}0\text{-}0}$:
+\begin{equation*}
+(\operatorname{comb\text{-}kk}(r, x, y, 0)(0) = \operatorname{one}(r))
+\end{equation*}
+
+  \item[\textbf{12}] Substituting $\operatorname{comb\text{-}kk}(r, x, y, 0)(0) = \operatorname{one}(r)$, reduce to
+\begin{equation*}
+(\operatorname{one}(r) = \operatorname{add}(r)(\operatorname{zero}(r), \operatorname{one}(r)))
+\end{equation*}
+
+  \item[\textbf{13--14}] By $\operatorname{ring\text{-}add\text{-}left\text{-}id}$, reduce to
+\begin{equation*}
+(\operatorname{one}(r) = \operatorname{one}(r))
+\end{equation*}
+  \emph{(closes)}
+  \item[]\textbf{Inductive step} ($n \to n + 1$):
+  \item[\textbf{15--29}] Suppose $\text{the induction hypothesis}$. Clearly
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{comb\text{-}kk}(r, x, y, n) \in (\mathbb{Z} \to \operatorname{carr}(r))) \\
+((n + 1) \in \mathbb{N}) \\
+((0 - 1) \in \mathbb{Z}) \\
+(n \in \mathbb{Z}) \\
+((n + 1) \in \mathbb{Z}) \\
+\operatorname{is\text{-}ring}(r) \\
+(\operatorname{add}(r)(x, y) \in \operatorname{carr}(r)) \\
+(\operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1)) \in \operatorname{carr}(r)) \\
+((0 - 1) < 0) \\
+(n < (n + 1))
+\end{array}
+\end{equation*}
+
+  \item[\textbf{30}] By $\operatorname{ring\text{-}power\text{-}succ}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{mul}(r)(\operatorname{ring\text{-}power}(r, \operatorname{add}(r)(x, y), n), \operatorname{add}(r)(x, y)) \\ =\; \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, (n + 1)), ((n + 1) + 1)) \end{array}
+\end{equation*}
+
+  \item[\textbf{31--33}] Instantiate the hypothesis:
+\begin{equation*}
+(\operatorname{ring\text{-}power}(r, \operatorname{add}(r)(x, y), n) = \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1)))
+\end{equation*}
+
+  \item[\textbf{34}] Substituting $\operatorname{ring\text{-}power}(r, \operatorname{add}(r)(x, y), n) = \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1))$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{mul}(r)(\operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1)), \operatorname{add}(r)(x, y)) \\ =\; \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, (n + 1)), ((n + 1) + 1)) \end{array}
+\end{equation*}
+
+  \item[\textbf{35}] By $\operatorname{comb\text{-}kk\text{-}succ}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{mul}(r)(\operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1)), \operatorname{add}(r)(x, y)) \\ =\; \operatorname{sum}(r, \\ \quad (\lambda k \in \mathbb{Z}.\; \\ \quad \quad \operatorname{add}(r)(\operatorname{mul}(r)(x, \operatorname{comb\text{-}kk}(r, x, y, n)((k - 1))), \operatorname{mul}(r)(y, \operatorname{comb\text{-}kk}(r, x, y, n)(k)))), \\ \quad ((n + 1) + 1)) \end{array}
+\end{equation*}
+
+  \item[\textbf{36}] By $\operatorname{sum\text{-}expansion}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{sum}(r, \\ \quad (\lambda k \in \mathbb{Z}.\; \\ \quad \quad \operatorname{add}(r)(\operatorname{mul}(r)(x, \operatorname{comb\text{-}kk}(r, x, y, n)((k - 1))), \operatorname{mul}(r)(y, \operatorname{comb\text{-}kk}(r, x, y, n)(k)))), \\ \quad ((n + 1) + 1)) \\ =\; \operatorname{add}(r)(\operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{add}(r)(x, y), \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1))), \\ \quad \quad \operatorname{mul}(r)(x, \operatorname{comb\text{-}kk}(r, x, y, n)((0 - 1)))), \\ \quad \operatorname{mul}(r)(y, \operatorname{comb\text{-}kk}(r, x, y, n)((n + 1)))) \end{array}
+\end{equation*}
+
+  \item[\textbf{37}] Substituting $\operatorname{sum}(r, (\lambda k \in \mathbb{Z}.\; \operatorname{add}(r)(\operatorname{mul}(r)(x, \operatorname{comb\text{-}kk}(r, x, y, n)((k - 1))), \operatorname{mul}(r)(y, \operatorname{comb\text{-}kk}(r, x, y, n)(k)))), ((n + 1) + 1)) = \operatorname{add}(r)(\operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{add}(r)(x, y), \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1))), \operatorname{mul}(r)(x, \operatorname{comb\text{-}kk}(r, x, y, n)((0 - 1)))), \operatorname{mul}(r)(y, \operatorname{comb\text{-}kk}(r, x, y, n)((n + 1))))$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{mul}(r)(\operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1)), \operatorname{add}(r)(x, y)) \\ =\; \operatorname{add}(r)(\operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{add}(r)(x, y), \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1))), \\ \quad \quad \operatorname{mul}(r)(x, \operatorname{comb\text{-}kk}(r, x, y, n)((0 - 1)))), \\ \quad \operatorname{mul}(r)(y, \operatorname{comb\text{-}kk}(r, x, y, n)((n + 1)))) \end{array}
+\end{equation*}
+
+  \item[\textbf{38}] By $\operatorname{comb\text{-}kk\text{-}null}$:
+\begin{equation*}
+(\operatorname{comb\text{-}kk}(r, x, y, n)((0 - 1)) = \operatorname{zero}(r))
+\end{equation*}
+
+  \item[\textbf{39}] Substituting $\operatorname{comb\text{-}kk}(r, x, y, n)((0 - 1)) = \operatorname{zero}(r)$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{mul}(r)(\operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1)), \operatorname{add}(r)(x, y)) \\ =\; \operatorname{add}(r)(\operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{add}(r)(x, y), \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1))), \operatorname{mul}(r)(x, \operatorname{zero}(r))), \\ \quad \operatorname{mul}(r)(y, \operatorname{comb\text{-}kk}(r, x, y, n)((n + 1)))) \end{array}
+\end{equation*}
+
+  \item[\textbf{40}] By $\operatorname{comb\text{-}kk\text{-}above}$:
+\begin{equation*}
+(\operatorname{comb\text{-}kk}(r, x, y, n)((n + 1)) = \operatorname{zero}(r))
+\end{equation*}
+
+  \item[\textbf{41--42}] Substituting $\operatorname{comb\text{-}kk}(r, x, y, n)((n + 1)) = \operatorname{zero}(r)$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{mul}(r)(\operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1)), \operatorname{add}(r)(x, y)) \\ =\; \operatorname{add}(r)(\operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{add}(r)(x, y), \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1))), \operatorname{mul}(r)(x, \operatorname{zero}(r))), \\ \quad \operatorname{mul}(r)(y, \operatorname{zero}(r))) \end{array}
+\end{equation*}
+  \emph{(closes)}
+\end{itemize}
+\end{proof}
+
+\bigskip
+
+\begin{proposition}[rr-ms-dist]
+Suppose $\operatorname{u\_} \in \mathbb{R}$ and $\operatorname{v\_} \in \mathbb{R}$. Then
+\begin{equation*}
+(\operatorname{dist}(\operatorname{rr\text{-}ms})(\operatorname{u\_}, \operatorname{v\_}) \simeq \lvert -(\operatorname{u\_}, \operatorname{v\_}) \rvert)
+\end{equation*}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{4}] Read off the component $\operatorname{dist}$ of the structure, reduce to
+\begin{equation*}
+((\lambda \langle x, y \rangle \in (\mathbb{R} \times \mathbb{R}).\; \lvert (x - y) \rvert)(\operatorname{u\_}, \operatorname{v\_}) \simeq \lvert (\operatorname{u\_} - \operatorname{v\_}) \rvert)
+\end{equation*}
+
+  \item[\textbf{5--6}] $\beta$-reduce the applied $\lambda$.  \emph{(closes)}
+\end{itemize}
+\end{proof}
+
+\bigskip
+
+\begin{proposition}[recip-succ-small]
+Suppose $d \text{ s.t. } \operatorname{pos\text{-}rr}(d)$. There is $\operatorname{n\_} \in \mathbb{N}$ such that for every $\operatorname{m\_} \in \mathbb{N}$, if $(\operatorname{n\_} \leq \operatorname{m\_})$ then 
+\begin{equation*}
+(\operatorname{recip}(+(\operatorname{m\_}, 1)) \leq d)
+\end{equation*}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{3}] By $\operatorname{rr\text{-}recip\text{-}succ\text{-}converges\text{-}to\text{-}zero}$:
+\begin{equation*}
+\operatorname{converges\text{-}to}(\operatorname{rr\text{-}ms}, (\lambda k \in \mathbb{N}.\; \operatorname{recip}((k + 1))), 0)
+\end{equation*}
+
+  \item[\textbf{4}] Unfolding $\operatorname{converges\text{-}to}$ in the hypothesis:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{is\text{-}metric\text{-}space}(\operatorname{rr\text{-}ms}) \wedge \\ ((\lambda k \in \mathbb{N}.\; \operatorname{recip}((k + 1))) \in (\mathbb{N} \to \operatorname{pts}(\operatorname{rr\text{-}ms}))) \wedge \\ (0 \in \operatorname{pts}(\operatorname{rr\text{-}ms})) \wedge \\ \forall \mathit{eps}. \\ \quad \operatorname{pos\text{-}rr}(\mathit{eps}) \Rightarrow  \\ \quad \quad \exists n \in \mathbb{N}. \forall \operatorname{n\_} \in \mathbb{N}. \\ \quad \quad \quad ((n \leq \operatorname{n\_}) \Rightarrow (\operatorname{dist}(\operatorname{rr\text{-}ms})((\lambda k \in \mathbb{N}.\; \operatorname{recip}((k + 1)))(\operatorname{n\_}), 0) \leq \mathit{eps})) \end{array}
+\end{equation*}
+
+  \item[\textbf{5--8}] Hence 
+\begin{equation*}
+\begin{array}{@{}l@{}}
+\operatorname{is\text{-}metric\text{-}space}(\operatorname{rr\text{-}ms}) \\
+((\lambda k \in \mathbb{N}.\; \operatorname{recip}((k + 1))) \in (\mathbb{N} \to \operatorname{pts}(\operatorname{rr\text{-}ms}))) \\
+\begin{array}{@{}l@{}} \forall \mathit{eps}. \\ \quad \operatorname{pos\text{-}rr}(\mathit{eps}) \Rightarrow  \\ \quad \quad \exists n \in \mathbb{N}. \forall \operatorname{n\_} \in \mathbb{N}. \\ \quad \quad \quad ((n \leq \operatorname{n\_}) \Rightarrow (\operatorname{dist}(\operatorname{rr\text{-}ms})((\lambda k \in \mathbb{N}.\; \operatorname{recip}((k + 1)))(\operatorname{n\_}), 0) \leq \mathit{eps})) \end{array} \\
+(0 \in \operatorname{pts}(\operatorname{rr\text{-}ms}))
+\end{array}
+\end{equation*}
+Instantiate the hypothesis:
+\begin{equation*}
+\begin{array}{@{}l@{}} \exists n \in \mathbb{N}. \forall \operatorname{n\_} \in \mathbb{N}. \\ \quad ((n \leq \operatorname{n\_}) \Rightarrow (\operatorname{dist}(\operatorname{rr\text{-}ms})((\lambda k \in \mathbb{N}.\; \operatorname{recip}((k + 1)))(\operatorname{n\_}), 0) \leq d)) \end{array}
+\end{equation*}
+
+  \item[\textbf{9--11}] Hence 
+\begin{equation*}
+\begin{array}{@{}l@{}}
+\begin{array}{@{}l@{}} \forall \operatorname{n\_} \in \mathbb{N}. \\ \quad ((n \leq \operatorname{n\_}) \Rightarrow (\operatorname{dist}(\operatorname{rr\text{-}ms})((\lambda k \in \mathbb{N}.\; \operatorname{recip}((k + 1)))(\operatorname{n\_}), 0) \leq d)) \end{array} \\
+(n \in \mathbb{N})
+\end{array}
+\end{equation*}
+Take $\operatorname{n\_} :=$ $n$.
+  \item[\textbf{12--15}] Suppose $\operatorname{m\_} \in \mathbb{N}$ and $n \leq \operatorname{m\_}$. Clearly $\operatorname{dist}(\operatorname{rr\text{-}ms})((\lambda k \in \mathbb{N}.\; \operatorname{recip}((k + 1)))(\operatorname{m\_}), 0) \leq d$.
+  \item[\textbf{16}] $\beta$-reducing the hypothesis:
+\begin{equation*}
+(\operatorname{dist}(\operatorname{rr\text{-}ms})(\operatorname{recip}((\operatorname{m\_} + 1)), 0) \leq d)
+\end{equation*}
+
+  \item[\textbf{17--20}] Clearly $1 \in \mathbb{R}$, $0 \in \mathbb{R}$, $\operatorname{m\_} \in \mathbb{R}$ and $0 \leq \operatorname{m\_}$.
+  \item[\textbf{21}] Introduce the auxiliary claim
+\begin{equation*}
+((\operatorname{m\_} + 1) \in \mathbb{R})
+\end{equation*}
+
+  \item[\textbf{22--25}] Introduce the auxiliary claim
+\begin{equation*}
+((\operatorname{m\_} \in \mathbb{R}) \wedge (1 \in \mathbb{R}))
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{26--27}] By $\operatorname{rr\text{-}add\text{-}closed}$:
+\begin{equation*}
+(((\operatorname{m\_} \in \mathbb{R}) \wedge (1 \in \mathbb{R})) \Rightarrow ((\operatorname{m\_} + 1) \in \mathbb{R}))
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{28--29}] Introduce the auxiliary claim
+\begin{equation*}
+(0 < (\operatorname{m\_} + 1))
+\end{equation*}
+  \emph{(side goal discharged)}
+  \item[\textbf{30}] By $\operatorname{rr\text{-}pos\text{-}ne\text{-}zero}$:
+\begin{equation*}
+\neg ((\operatorname{m\_} + 1) = 0)
+\end{equation*}
+
+  \item[\textbf{31}] Introduce the auxiliary claim
+\begin{equation*}
+(((\operatorname{m\_} + 1) \in \mathbb{R}) \wedge \neg ((\operatorname{m\_} + 1) = 0))
+\end{equation*}
+
+  \item[\textbf{32--33}] By $\operatorname{rr\text{-}recip\text{-}closed}$:
+\begin{equation*}
+(\operatorname{recip}((\operatorname{m\_} + 1)) \in \mathbb{R})
+\end{equation*}
+
+  \item[\textbf{34}] Clearly $0 < \operatorname{recip}((\operatorname{m\_} + 1))$.
+  \item[\textbf{35}] Unfolding $\operatorname{rr\text{-}ms\text{-}dist}$ in the hypothesis:
+\begin{equation*}
+(\lvert (\operatorname{recip}((\operatorname{m\_} + 1)) - 0) \rvert \leq d)
+\end{equation*}
+
+  \item[\textbf{36}] Unfolding $\operatorname{pos\text{-}rr}$ in the hypothesis:
+\begin{equation*}
+((d \in \mathbb{R}) \wedge ((0 \leq d) \wedge \neg (0 = d)))
+\end{equation*}
+
+  \item[\textbf{37--39}] Hence $d \in \mathbb{R}$, $\neg (0 = d)$ and $0 \leq d$. Introduce the auxiliary claim
+\begin{equation*}
+((\operatorname{recip}((\operatorname{m\_} + 1)) - 0) \in \mathbb{R})
+\end{equation*}
+
+  \item[\textbf{40--43}] Introduce the auxiliary claim
+\begin{equation*}
+((\operatorname{recip}((\operatorname{m\_} + 1)) \in \mathbb{R}) \wedge (0 \in \mathbb{R}))
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{44--45}] By $\operatorname{rr\text{-}sub\text{-}in\text{-}rr}$:
+\begin{equation*}
+((0 \in \mathbb{R}) \Rightarrow ((\operatorname{recip}((\operatorname{m\_} + 1)) - 0) \in \mathbb{R}))
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{46--48}] Unfolding $\operatorname{rr\text{-}abs\text{-}bound}$ in the hypothesis:
+\begin{equation*}
+((-d \leq (\operatorname{recip}((\operatorname{m\_} + 1)) - 0)) \wedge ((\operatorname{recip}((\operatorname{m\_} + 1)) - 0) \leq d))
+\end{equation*}
+  \emph{(closes)}
+\end{itemize}
+\end{proof}
+
+\bigskip
+
+\begin{proposition}[interval-widen]
+Suppose $b \in \mathbb{N}$, $c \in \mathbb{N}$, $a$ and $i \in \operatorname{interval}(a, b)$. If $(b \leq c)$, then 
+\begin{equation*}
+(i \in \operatorname{interval}(a, c))
+\end{equation*}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{3--8}] Clearly $i \in \mathbb{N}$, $a \leq i$, $i \leq b$, $i \leq c$ and $i \in \operatorname{interval}(a, c)$.  \emph{(side goal holds by assumption)}
+\end{itemize}
+\end{proof}
+
+\bigskip
+
+\begin{proposition}[card-singleton]
+Suppose $x \in \mathbf{Set}$. Then
+\begin{equation*}
+(|\{x\}| = \operatorname{succ}(0))
+\end{equation*}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{2}] Introduce the auxiliary claim
+\begin{equation*}
+((\emptyset \cup \{x\}) = \{x\})
+\end{equation*}
+
+  \item[\textbf{3}] Backchain through $\operatorname{class\text{-}extensionality}$; it remains to show
+\begin{equation*}
+(|\{x\}| = (0 + 1))
+\end{equation*}
+
+  \item[\textbf{4--5}] Suppose 
+\begin{equation*}
+\begin{array}{@{}l@{}}
+\begin{array}{@{}l@{}} \forall x.\; ((x \in (\emptyset \cup \{x\})) \Leftrightarrow (x \in \{x\})) \Rightarrow  \\ \quad ((\emptyset \cup \{x\}) = \{x\}) \end{array} \\
+\begin{array}{@{}l@{}} \forall b. \\ \quad \forall x.\; ((x \in (\emptyset \cup \{x\})) \Leftrightarrow (x \in b)) \Rightarrow  \\ \quad \quad ((\emptyset \cup \{x\}) = b) \end{array} \\
+\forall a, b.\; (\forall x.\; ((x \in a) \Leftrightarrow (x \in b)) \Rightarrow (a = b))
+\end{array}
+\end{equation*}
+By $\operatorname{union\text{-}membership}$:
+\begin{equation*}
+((x \in (\emptyset \cup \{x\})) \Leftrightarrow ((x \in \emptyset) \vee (x \in \{x\})))
+\end{equation*}
+
+  \item[\textbf{6}] By $\operatorname{empty\text{-}set\text{-}has\text{-}no\text{-}members}$:
+\begin{equation*}
+\neg (x \in \emptyset)
+\end{equation*}
+
+  \item[\textbf{7--15}] By $\operatorname{prop}$.
+  \item[\textbf{16}] Clearly $\emptyset \in \mathbf{Set}$.
+  \item[\textbf{17}] By $\operatorname{empty\text{-}set\text{-}has\text{-}no\text{-}members}$:
+\begin{equation*}
+\neg (x \in \emptyset)
+\end{equation*}
+
+  \item[\textbf{18}] By $\operatorname{card\text{-}empty}$:
+\begin{equation*}
+(|\emptyset| = 0)
+\end{equation*}
+
+  \item[\textbf{19}] Clearly $0 \in \mathbb{N}$.
+  \item[\textbf{20}] Introduce the auxiliary claim
+\begin{equation*}
+(|\emptyset| \in \mathbb{N})
+\end{equation*}
+
+  \item[\textbf{21--22}] Substituting $|\emptyset| = 0$, reduce to
+\begin{equation*}
+(0 \in \mathbb{N})
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{23--26}] Introduce the auxiliary claim
+\begin{equation*}
+((x \in \mathbf{Set}) \wedge \neg (x \in \emptyset))
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{27}] By $\operatorname{card\text{-}insert}$:
+\begin{equation*}
+(|(\emptyset \cup \{x\})| = (|\emptyset| + 1))
+\end{equation*}
+
+  \item[\textbf{28}] By $\operatorname{ord\text{-}succ\text{-}nn}$:
+\begin{equation*}
+((0 + 1) = (0 + 1))
+\end{equation*}
+
+  \item[\textbf{29}] Substituting $\{x\} = (\emptyset \cup \{x\})$, reduce to
+\begin{equation*}
+(|(\emptyset \cup \{x\})| = (0 + 1))
+\end{equation*}
+
+  \item[\textbf{30}] Substituting $|(\emptyset \cup \{x\})| = (|\emptyset| + 1)$, reduce to
+\begin{equation*}
+((|\emptyset| + 1) = (0 + 1))
+\end{equation*}
+
+  \item[\textbf{31--32}] Substituting $|\emptyset| = 0$, reduce to
+\begin{equation*}
+((0 + 1) = (0 + 1))
+\end{equation*}
+  \emph{(holds by assumption)}
+\end{itemize}
+\end{proof}
+
+\bigskip
+
+\end{document}
