@@ -1,7 +1,7 @@
 #!/bin/bash
 # vnb-probe -- run a proof script against the band on a capataz WORKER, from the primary.
 #
-#   vnb-probe WORKER file.scm [--timeout SECONDS] [--tail N]
+#   vnb-probe WORKER file.scm [--timeout SECONDS] [--tail N] [--quiet]
 #
 # The primary holds one prover heap and is where Claude and the agents live, so
 # probes run elsewhere.  This ships ONE file to the worker (base64 through an SSM
@@ -17,7 +17,10 @@
 # step -- a 30-step driver overflowed it and lost its `qed' line (found by the first
 # proving agent, 2026-09-14).  The digest is: every `;VNB warning`, `;; qed`, error
 # and abort line (numbered), then the last N lines (default 60), each cut at 300
-# characters.  --tail N changes N; --tail 0 prints only the flagged lines.  For the
+# characters.  --tail N changes N; --tail 0 prints only the flagged lines.  --quiet
+# (2026-10-04, CA-4's request: a file took 1800 s loud and 377 s quiet) runs the file
+# with *vnb-loading* set, as the library load does, so no state is dumped after each
+# step; the qed, warning and error lines are unaffected.  For the
 # whole log:  capataz run WORKER --user ubuntu 'sed -n 100,200p /home/ubuntu/probes/<base>.log'
 # Do NOT set *vnb-quiet* to shrink the output: it silences the warnings too.
 #
@@ -28,13 +31,14 @@
 # worker's command to run on the old default heap (the A/B control); the default
 # band heap is chosen in `prover' (BAND_HEAP).
 set -u
-[ $# -ge 2 ] || { echo "usage: vnb-probe WORKER file.scm [--timeout SECONDS]" >&2; exit 2; }
+[ $# -ge 2 ] || { echo "usage: vnb-probe WORKER file.scm [--timeout SECONDS] [--tail N] [--quiet]" >&2; exit 2; }
 WORKER=$1; FILE=$2; shift 2
-TIMEOUT=600; TAIL=60
+TIMEOUT=600; TAIL=60; QUIET=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --timeout) TIMEOUT=$2; shift 2;;
     --tail) TAIL=$2; shift 2;;
+    --quiet) QUIET=1; shift;;
     *) echo "vnb-probe: unknown option $1" >&2; exit 2;;
   esac
 done
@@ -43,7 +47,7 @@ done
 # was 120 KB of plain base64 and capataz refused it -- "The total size of your
 # parameter(s) and document exceeds the 97KB limit"; gzipped it is 28 KB).  The
 # cap below is on the wire size; a proof file compresses about 4:1.
-B64=$(gzip -9 < "$FILE" | base64 -w0)
+B64=$( { [ "$QUIET" = 1 ] && echo '(set! *vnb-loading* #t)   ; vnb-probe --quiet'; cat "$FILE"; } | gzip -9 | base64 -w0)
 if [ ${#B64} -gt 90000 ]; then
   echo "vnb-probe: $FILE is $(( ${#B64} / 1024 )) KB gzipped+base64, over the ~90 KB SSM limit." >&2
   echo "           Push the tree instead (capataz push $WORKER --rsync --src ~/prover --dest /home/ubuntu/prover ...)" >&2

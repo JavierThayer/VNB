@@ -1,6 +1,7 @@
 ;;; integral.scm -- MEASURABLE FUNCTIONS, SIMPLE FUNCTIONS and the INTEGRAL of
 ;;; a [0,+inf]-valued measurable function, with the three convergence theorems.
-;;; Vocabulary plus statements; nothing here is proved.
+;;; Vocabulary plus statements; nothing here is proved (the proofs of six of the
+;;; statements are theorem-library/integral-laws.scm).
 ;;;
 ;;; SOURCES.  Thayer, Construction of Measures, Chapter 2: Def. 2.1 (measurable
 ;;; function, p. 8), Prop. 2.3 (pointwise limits, p. 8), Def. 2.4 (step
@@ -15,7 +16,15 @@
 ;;; convergence, p. 21), Thm. 1.28 (Fatou, p. 23), Thm. 1.34 (dominated
 ;;; convergence, p. 26).
 ;;;
-;;; THE INTEGRAL IS CHARACTERISED, NOT CONSTRUCTED, and the source does it that
+;;; SINCE 2026-10-04 THE INTEGRAL IS DEFINED (decision 4 of the October
+;;; roadmap): INTEGRAL is the def-functoid of structure-library/simple-integral.scm
+;;; (Rudin Def. 1.23, the supremum of the simple integrals below f), loaded right
+;;; after this file, and the supports integral-in, -indicator,
+;;; -infinite-on-null, -homogeneous, -monotone and -sup-of-simple below are
+;;; THEOREMS of theorem-library/integral-laws.scm, to be retired.  The paragraph
+;;; that follows describes the characterisation as it stood until then.
+;;;
+;;; THE INTEGRAL WAS CHARACTERISED, NOT CONSTRUCTED, and the source does it that
 ;;; way too.  Thayer Thm. 2.7 (p. 9) reads: "there is a UNIQUE function
 ;;; f |-> integral f dmu defined on the set of all A measurable functions
 ;;; X -> [0,inf] satisfying the following properties", and lists seven.  VNB
@@ -250,6 +259,9 @@
 ;;; THE INTEGRAL.  Thayer Thm. 2.7 (pp. 9-10): the unique function on the
 ;;; measurable f : X -> [0,inf] with properties (1)-(7).  One support apiece.
 
+;;; (2026-10-04: INTEGRAL is now DEFINED in structure-library/simple-integral.scm,
+;;; whose def-functoid re-registers the head as a functoid with the same
+;;; parameters; the registration below only covers the statements of this file.)
 ;;; Notation for the head.  INTEGRAL is seeded from *wff-term-form-heads*
 ;;; (wff.scm), which registers it as a constant but gives the operator table no
 ;;; parameter names; declaring them here is what lets the English template read
@@ -259,49 +271,11 @@
 (notation! 'INTEGRAL
            'english "the integral of $4 over $1 with respect to the measure $3")
 
-(support 'integral-in
-  (forall-guarded '(omega cA mu f)
-                  '((IS-MEASURE omega cA mu) (IS-MEASURABLE-FN omega cA f))
-    '(IN (INTEGRAL omega cA mu f) RR-POS-STAR)))
 
-(warrant! 'integral-in 'reference '(thayer-measures "Thm. 2.7(1)" 15))
-(topic!   'integral-in 'plumbing)
-(gloss!   'integral-in
-  "The integral of a measurable [0,+inf]-valued function is an element of
-   [0,+inf]: it is always defined, and may be +inf.  Thayer Thm. 2.7,
-   property (1), p. 9.  This is also the totality half of the characterisation
-   -- INTEGRAL is a total operation on measurable functions, so no definedness
-   side condition is owed anywhere below.")
 
-(support 'integral-indicator
-  (forall-guarded '(omega cA mu a_)
-                  '((IS-MEASURE omega cA mu) (IN a_ cA))
-    '(= (INTEGRAL omega cA mu (INDICATOR omega a_)) (mu a_))))
 
-(warrant! 'integral-indicator 'reference '(thayer-measures "Thm. 2.7(2)" 16))
-(topic!   'integral-indicator 'analysis)
-(gloss!   'integral-indicator
-  "The integral of the indicator function of a measurable set is the measure
-   of that set.  Thayer Thm. 2.7, property (2), p. 10; Rudin's Def. 1.23
-   (p. 19) makes the same equation the base case of his construction.  This is
-   the only clause of the characterisation that mentions mu at all, and so the
-   only one that ties the integral to the measure.")
 
-(support 'integral-infinite-on-null
-  (forall-guarded '(omega cA mu a_)
-                  '((IS-MEASURE omega cA mu) (IN a_ cA) (= (mu a_) 0))
-    '(= (INTEGRAL omega cA mu
-          (PTWISE-SCALE omega POS-INF (INDICATOR omega a_)))
-        0)))
 
-(warrant! 'integral-infinite-on-null 'reference '(thayer-measures "Thm. 2.7(3)" 16))
-(topic!   'integral-infinite-on-null 'analysis)
-(gloss!   'integral-infinite-on-null
-  "The function that is +inf on a null set and 0 off it integrates to 0.
-   Thayer Thm. 2.7, property (3), p. 10.  This is the clause that fixes the
-   0 * inf = 0 convention at the level of the integral rather than of the
-   arithmetic, and it is why extended-arith.scm defines etimes(0, POS-INF) as
-   0 rather than leaving the product undefined.")
 
 (support 'integral-additive
   (forall-guarded '(omega cA mu f g)
@@ -321,62 +295,11 @@
    about complex L^1 functions, which VNB cannot state because it has no
    signed or complex integral.")
 
-(support 'integral-homogeneous
-  (forall-guarded '(omega cA mu f c)
-                  '((IS-MEASURE omega cA mu)
-                    (IS-MEASURABLE-FN omega cA f)
-                    (IN c RR)
-                    (<= 0 c))
-    '(= (INTEGRAL omega cA mu (PTWISE-SCALE omega c f))
-        (etimes c (INTEGRAL omega cA mu f)))))
 
-(warrant! 'integral-homogeneous 'reference '(thayer-measures "Thm. 2.7(5)" 16))
-(topic!   'integral-homogeneous 'analysis)
-(gloss!   'integral-homogeneous
-  "Positive homogeneity: a nonnegative REAL scalar comes out of the integral.
-   Thayer Thm. 2.7, property (5), p. 10, whose alpha ranges over [0,inf), i.e.
-   is finite -- VNB carries that restriction as the two hypotheses c in RR and
-   0 <= c.  Rudin Prop. 1.24(c) (p. 20) is the same statement.  Together with
-   integral-additive and integral-indicator this fixes the integral on every
-   simple function.")
 
-(support 'integral-monotone
-  (forall-guarded '(omega cA mu f g)
-                  '((IS-MEASURE omega cA mu)
-                    (IS-MEASURABLE-FN omega cA f)
-                    (IS-MEASURABLE-FN omega cA g)
-                    (PTWISE-LE omega f g))
-    '(<= (INTEGRAL omega cA mu f) (INTEGRAL omega cA mu g))))
 
-(warrant! 'integral-monotone 'reference '(thayer-measures "Thm. 2.7(6)" 16))
-(topic!   'integral-monotone 'inequalities)
-(gloss!   'integral-monotone
-  "The integral is monotone: f <= g pointwise gives integral f <= integral g.
-   Thayer Thm. 2.7, property (6), p. 10; Rudin Prop. 1.24(a) (p. 19).  Both
-   sources leave the pointwise ordering implicit in the notation f <= g; VNB
-   spells it as PTWISE-LE over the ambient omega.")
 
-(support 'integral-sup-of-simple
-  (forall-guarded '(omega cA mu f)
-                  '((IS-MEASURE omega cA mu) (IS-MEASURABLE-FN omega cA f))
-    '(= (INTEGRAL omega cA mu f)
-        (ESUP (SEP y_ RR-POS-STAR
-                (FORSOME s_
-                  (AND (IS-SIMPLE-FN omega cA s_)
-                       (AND (PTWISE-LE omega s_ f)
-                            (= y_ (INTEGRAL omega cA mu s_))))))))))
 
-(warrant! 'integral-sup-of-simple 'reference '(rudin-rca "Def. 1.23" 34))
-(topic!   'integral-sup-of-simple 'analysis)
-(gloss!   'integral-sup-of-simple
-  "The integral of f is the supremum of the integrals of the simple measurable
-   functions below f.  In Rudin (Def. 1.23, p. 19) this IS the definition; in
-   VNB it is a THEOREM, because the integral is characterised by Thayer's
-   Thm. 2.7 instead of constructed.  So this statement is the bridge between
-   the two treatments -- it says VNB's characterised operator is Rudin's
-   constructed one -- and it is the reason IS-SIMPLE-FN follows Rudin's
-   finite-range definition rather than Thayer's countable-range step
-   functions.")
 
 ;;; =====================================================================
 ;;; THE CONVERGENCE THEOREMS.

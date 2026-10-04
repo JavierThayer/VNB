@@ -1228,7 +1228,13 @@
     (let walk ()
       (let ((g (dk-goal)))
         (if (and (pair? g) (eq? (car g) 'AND))
-            (for-each (lambda (k) (dk-focus! k) (walk))
+            ;; a child that hash-consing has GROUNDED by the time we reach it (the
+            ;; same sequent as a sibling just closed) is skipped: `dk-focus!' on a
+            ;; grounded node is a no-op and the closer would fire on whatever leaf has
+            ;; the focus (M-2, 2026-10-04)
+            (for-each (lambda (k)
+                        (if (not (sequent-node-grounded? k))
+                            (begin (dk-focus! k) (walk))))
                       (dk-opened (lambda () (di))))
             (closer))))))
 
@@ -1322,7 +1328,11 @@
 ;;;
 ;;; Closes the (IN A SET) leaf, leaves focus on the TYPING leaf, and returns it
 ;;; -- so `(dk-lam-t!)' is a drop-in for `(lam-t)' in an existing driver.
-(define (dk-set-close! A)
+;; land the sethood fact for A (recursively for a CARTESIAN), without closing
+;; anything: the old dk-set-close! recursed INTO ITSELF on a CARTESIAN and so fired
+;; a bare `ass' on the CARTESIAN goal at every level (M-2, 2026-10-04: one
+;; "assumption: goal not in context" per component).
+(define (dk--set-fact! A)
   (cond ((symbol? A)
          (case A
            ((NN) (fact 'nn-is-set)) ((RR) (fact 'rr-is-set))
@@ -1334,11 +1344,19 @@
         ((and (pair? A) (eq? (car A) 'INTERVAL))
          (fact 'interval-in-set (cadr A) (caddr A)))
         ((and (pair? A) (eq? (car A) 'CARTESIAN))
-         (dk-set-close! (cadr A))
-         (dk-set-close! (caddr A))
+         (dk--set-fact! (cadr A))
+         (dk--set-fact! (caddr A))
          (fact 'cartesian-set-iff (cadr A) (caddr A)))
-        (else #f))
-  (ass))
+        (else #f)))
+;; A CARTESIAN is closed the way cc-metric-space-proof.scm and c-metric-is-metric.scm
+;; do it: `mac' of the iff rewrites the goal into the conjunction of the component
+;; sethoods, and each conjunct leaf is closed in turn (recursively, for a nested
+;; CARTESIAN).  `fact' of the iff plus `ass' never closed it (suite check, 2026-10-04).
+(define (dk-set-close! A)
+  (cond ((and (pair? A) (eq? (car A) 'CARTESIAN))
+         (mac 'cartesian-set-iff)
+         (dk-conj-close! (lambda () (dk-set-close! (cadr (dk-goal))))))
+        (#t (dk--set-fact! A) (ass))))
 
 (define (dk-lam-t!)
   (let* ((before (proof-leaves)))

@@ -14357,6 +14357,21 @@
       (quietly (lambda () (dk-holomorphic! 'CC '(VNB-LAMBDA w CC (CC-EXP (* w w))))))
       (proof-done? *ps*))))
 
+;;; dk-set-close! / dk-conj-close! (2026-10-04, M-2's two findings)
+(display "\n=== dk-set-close! on a CARTESIAN, dk-conj-close! on a duplicated conjunct (2026-10-04) ===\n")
+(check-true "dk-set-close!: (IN (CARTESIAN NN RR) SET) closes (no stray ass per component)"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(IN (CARTESIAN NN RR) SET)))
+      (quietly (lambda () (dk-set-close! '(CARTESIAN NN RR))))
+      (proof-done? *ps*))))
+(check-true "dk-conj-close!: a conjunction whose two conjuncts are the SAME sequent closes once, the grounded twin skipped"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(IMPLIES (IN 3 NN) (AND (IN 3 NN) (IN 3 NN)))))
+      (quietly (lambda () (di) (dk-conj-close! (lambda () (ass)))))
+      (proof-done? *ps*))))
+
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")
 (display *fail-count*) (display " failed ===\n")

@@ -549,6 +549,7 @@
     ;; dominated convergence.  Needs measure + extended-arith + cardinality
     ;; (CARD) + injection (IMAGE).
     "structure-library/integral"
+    "structure-library/simple-integral"  ; SIMPLE-INTEGRAL (a FINSUM over the finite range), INTEGRAL DEFINED as the ESUP over the simple functions below f (M-2, 2026-10-04; decision 4)
     ;; Unconditional summability of a normed-AG-valued function (SUMS-TO,
     ;; IS-SUMMABLE, sums-to-unique).  Needs FINSUM + the NORMED-AG view.
     ;; MOVED to structure-library/ 2026-09-20 (batch 12-A): vocabulary only -- no proof in it.
@@ -3380,6 +3381,7 @@
     "theorem-library/limsup-tests"
     "theorem-library/rpow-defined"       ; RPOW == RPOW-STAR, the fifteen former supports proven (2026-10-03)
     "theorem-library/measure-laws"       ; measure chapter 1: additivity, monotonicity, subadditivity, continuity, push-forward (M-1, 2026-10-03)
+    "theorem-library/integral-laws"      ; etimes algebra, finite sums in a commutative monoid, the simple integral and its laws, the six integral laws proven (M-2, 2026-10-04)
     ;; ps-series-bridges -- the three PS/series bridges, PROVEN, plus the
     ;; CONVERGES twin of rr-limit-ptwise-eq that the third needs.  They are what
     ;; lets a theorem about bare series be USED about a power series.  Two are
@@ -3537,6 +3539,10 @@
     "structure-library/winding-number"       ; WINDING, CIRCLE-PATH, CIRCLE-DERIV (CA-1, 2026-10-03)
     "theorem-library/winding-number-laws"    ; Cauchy on a disc / a convex set inside U, the winding number's laws, the circle (CA-1)
     "theorem-library/analytic-from-integral"  ; the geometric expansion, line integrals of uniform limits, analyticity from the integral formula, the Cauchy estimate (CA-2, 2026-10-03)
+    "theorem-library/cauchy-integral-formula" ; cauchy-disc-except, winding-circle-inside, the Cauchy integral formula on a disc, Theorem 3.35, holomorphic-deriv-holomorphic (CA-3, 2026-10-04)
+    "theorem-library/cauchy-estimates"        ; the derivative formula, Cauchy's estimates, Liouville, the Fundamental Theorem of Algebra (CA-3, 2026-10-04)
+    "theorem-library/cauchy-centre-mean-value" ; the integral formula at the centre, the mean value property, the maximum modulus principle on a disc (CA-4, 2026-10-04)
+    "theorem-library/morera"                 ; Morera and uniform limits of holomorphic functions, conditional and, by holomorphic-deriv-holomorphic, unconditional (CA-4, 2026-10-04)
     ;; preamble -- a STRATEGY, executed: (preamble '(induct) '(unfold ...)
     ;; '(instantiate) '(close)) runs the clause list against every open leaf,
     ;; commits ordinary tactics that each record themselves, and RETURNS the

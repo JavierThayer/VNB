@@ -279,6 +279,8 @@ cost a 7-minute load on 2026-09-18). `push --rsync` overwrites the worker's gene
 * Every run through those is metered into `~/mailbox/metrics/runs.jsonl`.
 * `scratchpad/surgery/mkprobe-slim.py` wraps a chain in `*vnb-loading*` (no `show` dumps):
   use it from the FIRST probe; the dumps are ~95% of a multi-lemma probe's wall time.
+  **`vnb-probe WORKER file.scm --quiet` does the same for one file** (2026-10-04, CA-4's request:
+  one file took 1800 s loud, 377 s quiet); the qed, warning and error lines are unaffected.
 
 **How a proving wave runs.** The briefs are `scratchpad/triage/` (`PROOF-AGENT.md`, the
 `RAKE-BATCH*.md` files). An agent gets a leaf or a bundle, writes ONE new theorem-library
