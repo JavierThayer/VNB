@@ -4243,3 +4243,877 @@
                       (else (loop (cdr ps)))))))
       (if (not ex) (error "dk-image-hyp!: no existential among the conjuncts of" (expression->string conj)))
       ex)))
+
+;;; =======================================================================
+;;; dk-diff! -- IS-DIFF-ON of an EXPLICIT complex expression, with its
+;;; derivative (2026-10-04; the kit candidate both week-1 agents named).
+;;;
+;;;   (dk-diff! U LAM A [L])   land IS-DIFF-ON(CC-NORMED-FIELD, U, LAM, A, L*) in
+;;;                            the focus context and return that formula; L* is
+;;;                            L when given, else the textbook derivative of
+;;;                            LAM's body at A.  LAM is (VNB-LAMBDA x U e).
+;;;   (dk-diff!)               the same, read off a focus goal IS-DIFF-ON(...),
+;;;                            which it then closes.
+;;;   (dk-holomorphic! U LAM)  close the focus goal HOLOMORPHIC-ON(U, LAM).
+;;;
+;;; THE GRAMMAR of e over the bound variable x: x; a term without x (a
+;;; constant); + and * (binary); - (binary and unary); recip; power with a
+;;; numeral exponent; CC-EXP, CC-SIN, CC-COS, CC-LOG; and (g s) for a SYMBOL g
+;;; with IS-DIFF-ON(CC-NORMED-FIELD, V, g, _, _) or HOLOMORPHIC-ON(V, g) in
+;;; context.  Anything else is an error naming the subterm.
+;;;
+;;; THE PLAN FIRST (as type-term).  A pure pass over e collects the side
+;;; conditions the laws will need and the context does not hold -- the
+;;; denominators that must not vanish (forall y in U. s(y) /= 0), the
+;;; arguments of a log that must lie in the slit plane, the arguments of an
+;;; opaque g that must lie in its domain -- and posts each as a `cut' on the
+;;; MAIN branch, left OPEN and announced (";; dk-diff!: OWED ..."), so that the
+;;; lanes below find them in context.  Nothing is asserted: an owed leaf is
+;;; the user's to close, and the proof is not done until it is.
+;;;
+;;; THE ENGINE drives the library's laws bottom-up over e -- diff-on-identity,
+;;; -const, -sum, -product, -chain (with cc-exp-deriv / cc-sin-deriv /
+;;; cc-cos-deriv / cc-log-deriv or the opaque g's own fact), diff-on-recip-cc
+;;; -- reading the FUNCTION TERM and the DERIVATIVE of every instance off the
+;;; formula `dk-cite!' landed, never rebuilding them.  The laws produce a
+;;; canonical lambda h over K's own operations ((ADD K), (MUL K)) with the
+;;; sub-lambdas applied; the result is carried to the user's LAM by
+;;; diff-on-transfer-ptwise-eq, whose pointwise equation is proved by beta to a
+;;; fixpoint, the slot read-offs cc-nf-add-apply / cc-nf-mul-apply and the
+;;; three de-normalising identities (p + (-1) q = p - q, (-1) p = -p, the
+;;; power products), then qrfl -- or, when the two sides still differ, by crs
+;;; with the reciprocals named (dk-name!).  The derivative L* is reached from
+;;; the laws' K-form value L_K the same way, through the universal
+;;;     forall v. v = L_K  =>  IS-DIFF-ON(K, U, LAM, A, v)
+;;; instantiated at L* (a `subst' of L* in the goal would also rewrite its
+;;; occurrences inside LAM, e.g. the c of c * x).  Every step is a surface
+;;; tactic; the page replays without new machinery; no kernel rule is touched.
+;;;
+;;; K is CC-NORMED-FIELD.  The general-K laws are cited at it; the read-offs,
+;;; the exp / log / recip laws and the typing table are CC's.
+;;; =======================================================================
+
+(define dkd-K    'CC-NORMED-FIELD)
+(define dkd-nfm  '(NF-METRIC-SPACE CC-NORMED-FIELD))
+(define dkd-carr '(CARR CC-NORMED-FIELD))
+(define dkd-exp-lam '(VNB-LAMBDA dkdev_ CC (CC-EXP dkdev_)))
+(define dkd-sin-lam '(VNB-LAMBDA dkdev_ CC (CC-SIN dkdev_)))
+(define dkd-cos-lam '(VNB-LAMBDA dkdev_ CC (CC-COS dkdev_)))
+(define dkd-slit    '(SEP cxsu_ CC (NOT (AND (= (imag-part cxsu_) 0) (<= (real-part cxsu_) 0)))))
+(define dkd-log-lam (list 'VNB-LAMBDA 'dkdlv_ dkd-slit '(CC-LOG dkdlv_)))
+(define (dkd-slit-guard t)
+  (list 'NOT (list 'AND (list '= (list 'imag-part t) 0) (list '<= (list 'real-part t) 0))))
+
+(define dkd-owed '())                    ; the obligations posted by this run
+(define dkd-debug #f)                    ; #t: the derivative equation runs unprotected (errors show)
+
+(define (dkd-str x) (if (string? x) x (expression->string x)))
+(define (dkd-warn . xs)
+  (vnb--print-warning (apply string-append "dk-diff!: " (map dkd-str xs))))
+(define (dkd-error . xs)
+  (error (apply string-append "dk-diff!: " (map dkd-str xs))))
+
+;;; ---------------------------------------------------------------- terms
+(define (dkd-free-in? x e)
+  (cond ((eq? e x) #t)
+        ((pair? e)
+         (if (and (eq? (car e) 'VNB-LAMBDA) (eq? (cadr e) x))
+             #f
+             (any (lambda (s) (dkd-free-in? x s)) (cdr e))))
+        (#t #f)))
+(define (dkd-sub e x t) (subst-free x t e))       ; e[x := t], capture-avoiding
+(define (dkd-numeral? t) (and (number? t) (exact? t)))
+(define (dkd-nat? t) (and (dkd-numeral? t) (integer? t) (>= t 0)))
+(define (dkd-redex? e)
+  (and (pair? e) (pair? (car e)) (eq? (caar e) 'VNB-LAMBDA)))
+(define (dkd-find e pred)                         ; first subterm satisfying PRED, outermost
+  (cond ((pred e) e)
+        ((pair? e) (let loop ((xs e)) (cond ((null? xs) #f) ((dkd-find (car xs) pred)) (#t (loop (cdr xs))))))
+        (#t #f)))
+(define (dkd-has-redex? e) (and (dkd-find e dkd-redex?) #t))
+(define (dkd-kop? e)
+  (and (pair? e) (= (length e) 3)
+       (or (equal? (car e) '(ADD CC-NORMED-FIELD)) (equal? (car e) '(MUL CC-NORMED-FIELD)))))
+(define (dkd-kop-find e)                          ; an innermost K-operation
+  (cond ((not (pair? e)) #f)
+        ((and (dkd-kop? e) (not (dkd-kop-find (cadr e))) (not (dkd-kop-find (caddr e)))) e)
+        (#t (let loop ((xs e)) (cond ((null? xs) #f) ((dkd-kop-find (car xs))) (#t (loop (cdr xs))))))))
+;; pat[v := w] = term for some w?  Return w, or #f.
+(define (dkd-match pat v term)
+  (let ((b #f) (ok #t))
+    (let walk ((p pat) (t term))
+      (cond ((not ok) #f)
+            ((eq? p v) (cond ((not b) (set! b t)) ((not (equal? b t)) (set! ok #f))))
+            ((and (pair? p) (pair? t) (= (length p) (length t))) (for-each walk p t))
+            ((equal? p t) #t)
+            (#t (set! ok #f))))
+    (and ok b)))
+
+;;; ---------------------------------------------------------- the context
+(define (dkd-asms) (dk-asms))
+;; the class D with (IN t D) in context, preferring CC
+(define (dkd-ctx-class t)
+  (let ((hits (filter (lambda (a) (and (pair? a) (eq? (car a) 'IN) (= (length a) 3) (equal? (cadr a) t)))
+                      (dkd-asms))))
+    (cond ((null? hits) #f)
+          ((find-first (lambda (a) (eq? (caddr a) 'CC)) hits) => caddr)
+          (#t (caddr (car hits))))))
+;; (IN g (FUN D CC)) in context, or derived from IS-DIFF-ON / HOLOMORPHIC-ON of g: D
+(define (dkd-fun-dom! g)
+  (or (dkd-fun-dom g)
+      (let ((d (find-first (lambda (a) (and (pair? a) (eq? (car a) 'IS-DIFF-ON) (= (length a) 6)
+                                            (equal? (cadr a) dkd-K) (eq? (cadddr a) g)))
+                           (dkd-asms))))
+        (and d (begin (dk-cite! 'diff-on-in-fun dkd-K (caddr d) g (list-ref d 4) (list-ref d 5))
+                      (dkd-fun-carr->cc! g (caddr d))
+                      (caddr d))))
+      (let ((h (find-first (lambda (a) (and (pair? a) (eq? (car a) 'HOLOMORPHIC-ON) (= (length a) 3) (eq? (caddr a) g)))
+                           (dkd-asms))))
+        (and h (begin (dk-have! (list 'IN g (list 'FUN (cadr h) 'CC))
+                        (lambda () (mac-h 'HOLOMORPHIC-ON h) (dk-split-all!) (ass)))
+                      (cadr h))))))
+(define (dkd-fun-dom g)
+  (let ((a (find-first (lambda (a) (and (pair? a) (eq? (car a) 'IN) (= (length a) 3) (equal? (cadr a) g)
+                                         (pair? (caddr a)) (eq? (car (caddr a)) 'FUN)
+                                         (member (caddr (caddr a)) (list 'CC dkd-carr))))
+                       (dkd-asms))))
+    (and a (cadr (caddr a)))))
+;; a universal (FORALL v (IMPLIES (IN v D) BODY)) in context whose BODY matches TARGET
+;; at some w with (IN w D) in context: instantiate it and return what landed.
+(define (dkd-from-universal! target)
+  (let loop ((as (dkd-asms)))
+    (cond ((null? as) #f)
+          (#t (let ((a (car as)))
+                (if (and (pair? a) (eq? (car a) 'FORALL) (= (length a) 3)
+                         (pair? (caddr a)) (eq? (car (caddr a)) 'IMPLIES)
+                         (pair? (cadr (caddr a))) (eq? (car (cadr (caddr a))) 'IN)
+                         (eq? (cadr (cadr (caddr a))) (cadr a)))
+                    (let* ((v (cadr a)) (D (caddr (cadr (caddr a)))) (body (caddr (caddr a)))
+                           (w (dkd-match body v target)))
+                      (if (and w (dk-asm? (list 'IN w D)))
+                          (let ((r (dk-apply! a w)))
+                            (if (dk-asm? target) target (loop (cdr as))))
+                          (loop (cdr as))))
+                    (loop (cdr as))))))))
+
+;;; ------------------------------------------------------------- setting up
+;; CARR(K) and CC are quasi-equal (cc-nf-carr), but a `subst' of CC -> CARR(K) in a
+;; goal rewrites EVERY CC, the lambda domains included; so the two conversions go
+;; through universals proved once per proof on a lane and instantiated.
+(define dkd-carr->cc-law '(FORALL dkdcv_ (IMPLIES (IN dkdcv_ (CARR CC-NORMED-FIELD)) (IN dkdcv_ CC))))
+(define dkd-cc->carr-law '(FORALL dkdcv_ (IMPLIES (IN dkdcv_ CC) (IN dkdcv_ (CARR CC-NORMED-FIELD)))))
+(define (dkd-lemma! law thunk)
+  (if (not (dk-asm? law)) (dk-have! law thunk))
+  (dk-ctx-form law))
+(define (dkd-carr->cc! t)                 ; (IN t CC) from (IN t (CARR K)) in context
+  (let ((want (list 'IN t 'CC)))
+    (if (not (dk-asm? want))
+        (dk-apply! (dkd-lemma! dkd-carr->cc-law
+                     (lambda () (dk-peel!) (subst (list '== 'CC dkd-carr)) (ass)))
+                   t))
+    (if (not (dk-asm? want)) (dkd-error "carr->cc did not land " want))
+    want))
+(define (dkd-cc->carr! t)                 ; (IN t (CARR K)) from (IN t CC) in context
+  (let ((want (list 'IN t dkd-carr)))
+    (if (not (dk-asm? want))
+        (dk-apply! (dkd-lemma! dkd-cc->carr-law
+                     (lambda () (dk-peel!) (subst (list '== dkd-carr 'CC)) (ass)))
+                   t))
+    (if (not (dk-asm? want)) (dkd-error "cc->carr did not land " want))
+    want))
+
+(define dkd-fun-carr->cc-law
+  '(FORALL dkdfu_ (FORALL dkdfv_ (IMPLIES (IN dkdfv_ (FUN dkdfu_ (CARR CC-NORMED-FIELD)))
+                                           (IN dkdfv_ (FUN dkdfu_ CC))))))
+(define (dkd-fun-carr->cc! g U)           ; (IN g (FUN U CC)) from (IN g (FUN U (CARR K)))
+  (let ((want (list 'IN g (list 'FUN U 'CC))))
+    (if (not (dk-asm? want))
+        (dk-apply! (dkd-lemma! dkd-fun-carr->cc-law
+                     (lambda () (dk-peel!) (subst (list '== 'CC dkd-carr)) (ass)))
+                   U g))
+    (if (not (dk-asm? want)) (dkd-error "fun carr->cc did not land " want))
+    want))
+
+(define (dkd-setup!)
+  (if (not (dk-asm? (list 'IS-NORMED-FIELD dkd-K))) (fact 'cc-is-normed-field))
+  (if (not (dk-asm? (list '== dkd-carr 'CC))) (fact 'cc-nf-carr)))
+
+;; (IS-OPEN (NF-METRIC-SPACE K) U) in context, or error
+(define (dkd-open! U)
+  (let ((want (list 'IS-OPEN dkd-nfm U)))
+    (cond
+      ((dk-asm? want) want)
+      ((eq? U 'CC)
+       (if (not (dk-asm? (list 'IS-METRIC-SPACE dkd-nfm))) (fact 'nf-cc-is-metric-space))
+       (fact 'nf-metric-carrier dkd-K)
+       (if (not (dk-asm? (list '== (list 'PTS dkd-nfm) 'CC)))
+           (dk-have! (list '== (list 'PTS dkd-nfm) 'CC)
+             (lambda () (subst (list '== (list 'PTS dkd-nfm) dkd-carr)) (ass))))
+       (fact 'carrier-is-open dkd-nfm)
+       (dk-have! want (lambda () (subst (list '== 'CC (list 'PTS dkd-nfm))) (ass)))
+       want)
+      (#t
+       (let ((ms (list 'IS-OPEN 'CC-MS U)))
+         (if (not (dk-asm? ms))
+             (let ((h (find-first (lambda (a) (and (pair? a) (eq? (car a) 'HOLOMORPHIC-ON) (equal? (cadr a) U)))
+                                  (dkd-asms))))
+               (if h (fact 'holomorphic-on-open-cc-ms U (caddr h)))))
+         (if (not (dk-asm? ms))
+             (dkd-error "U is not known to be open: neither " want " nor " ms " is in context"))
+         (let ((iff (dk-cite! 'cc-ms-open-iff U)))
+           (dk-have! want (lambda () (keep iff ms) (prop))))
+         want)))))
+
+;; (IN U SET) as the focus goal
+(define (dkd-set-leaf! U)
+  (cond ((eq? U 'CC) (fact 'cc-is-set))
+        (#t (fact 'nf-open-is-set dkd-K U)))
+  (ass))
+
+;;; ------------------------------------------------------------- typing in CC
+;; forall y in U. NOT (= s 0): derive or post.  Returns the formula.
+(define (dkd-nonzero! s)
+  (let ((want (list 'NOT (list '= s 0))))
+    (cond ((dk-asm? want) want)
+          ((dkd-from-universal! want) want)
+          ((and (pair? s) (eq? (car s) '*) (= (length s) 3))
+           (dkd-cc! (cadr s)) (dkd-cc! (caddr s))
+           (dkd-nonzero! (cadr s)) (dkd-nonzero! (caddr s))
+           (dk-cite! 'cc-mul-nonzero (cadr s) (caddr s))
+           (if (not (dk-asm? want)) (dkd-error "cc-mul-nonzero did not land " want))
+           want)
+          (#t (dkd-error "not known: " want " (an owed obligation the plan should have posted)")))))
+
+(define (dkd-slit! t)                      ; the slit-plane guard at t
+  (let ((want (dkd-slit-guard t)))
+    (cond ((dk-asm? want) want)
+          ((dkd-from-universal! want) want)
+          (#t (dkd-error "not known: " want)))))
+
+;; land (IN t CC); return it
+(define (dkd-cc! t)
+  (let ((typ (list 'IN t 'CC)))
+    (cond
+      ((dk-asm? typ) typ)
+      ((eqv? t +i) (fact 'cc-i-in) typ)
+      ((number? t) (dk-type! t 'CC) typ)
+      ((symbol? t)
+       (let ((D (dkd-ctx-class t)))
+         (cond ((not D) (dk-type! t 'CC))
+               ((eq? D 'CC) #t)
+               ((dk-asm? (list 'SUBSET D 'CC)) (fact 'subset-mem-fwd D 'CC t))
+               ((dk-asm? (list 'IS-OPEN dkd-nfm D))
+                (fact 'cc-open-subset-cc D) (fact 'subset-mem-fwd D 'CC t))
+               (#t (dk-type! t 'CC)))
+         (if (not (dk-asm? typ)) (dkd-error "could not type " typ))
+         typ))
+      ((pair? t)
+       (let ((h (car t)))
+         (cond
+           ((and (memq h '(CC-EXP CC-SIN CC-COS)) (= (length t) 2))
+            (dkd-cc! (cadr t))
+            (let ((c (dk-cite! (cond ((eq? h 'CC-EXP) 'cc-exp-converges)
+                                     ((eq? h 'CC-SIN) 'cc-sin-converges)
+                                     (#t 'cc-cos-converges))
+                               (cadr t))))
+              (if (not (dk-asm? typ)) (dk-split! c)))
+            typ)
+           ((and (eq? h 'CC-LOG) (= (length t) 2))
+            (dkd-cc! (cadr t))
+            (dkd-slit! (cadr t))
+            (let ((c (dk-cite! 'cc-log-in-slit (cadr t))))
+              (if (not (dk-asm? typ)) (dk-split! c)))
+            typ)
+           ((and (eq? h 'recip) (= (length t) 2))
+            (dkd-cc! (cadr t))
+            (dkd-nonzero! (cadr t))
+            (dk-have! (list 'AND (list 'IN (cadr t) 'CC) (list 'NOT (list '= (cadr t) 0)))
+              (lambda () (dk-conj-close! (lambda () (dk-ass!)))))
+            (dk-cite! 'cc-recip-closed (cadr t))
+            typ)
+           ((memq h '(+ * -))
+            (for-each dkd-cc! (cdr t)) (dk-type! t 'CC) typ)
+           ((eq? h 'power)
+            (dkd-cc! (cadr t)) (dk-type! t 'CC) typ)
+           ((and (symbol? h) (= (length t) 2))
+            (let ((D (dkd-fun-dom! h)))
+              (if (not D) (dkd-error "no (IN " h " (FUN D CC)), IS-DIFF-ON or HOLOMORPHIC-ON of " h " in context, for " t))
+              (dkd-in! (cadr t) D)
+              (fact 'fun-apply-type-c h D 'CC (cadr t))
+              typ))
+           (#t (dk-type! t 'CC) typ))))
+      (#t (dkd-error "cannot type " t)))))
+
+;; land (IN t D)
+(define (dkd-in! t D)
+  (let ((want (list 'IN t D)))
+    (cond ((dk-asm? want) want)
+          ((eq? D 'CC) (dkd-cc! t))
+          ((dkd-from-universal! want) want)
+          (#t (dk-type! t D) want))))
+
+;; (IN t (CARR K)) from (IN t CC)
+(define (dkd-carr! t)
+  (let ((want (list 'IN t dkd-carr)))
+    (if (not (dk-asm? want))
+        (begin (dkd-cc! t) (dkd-cc->carr! t)))
+    want))
+
+;;; ------------------------------------------- the goal, back to user form
+;; the three de-normalising identities, proved once per proof on a lane
+(define dkd-sub-law
+  '(FORALL dkdp_ (IMPLIES (IN dkdp_ CC) (FORALL dkdq_ (IMPLIES (IN dkdq_ CC)
+     (= (+ dkdp_ (* -1 dkdq_)) (- dkdp_ dkdq_)))))))
+(define dkd-neg-law
+  '(FORALL dkdp_ (IMPLIES (IN dkdp_ CC) (= (* -1 dkdp_) (- dkdp_)))))
+(define dkd-sub2-law                      ; p + (-q) = p - q (the inner (-1) q may have been rewritten first)
+  '(FORALL dkdp_ (IMPLIES (IN dkdp_ CC) (FORALL dkdq_ (IMPLIES (IN dkdq_ CC)
+     (= (+ dkdp_ (- dkdq_)) (- dkdp_ dkdq_)))))))
+(define (dkd-power-law n)
+  (let ((prod (let loop ((k n)) (cond ((= k 1) 'dkdp_) (#t (list '* 'dkdp_ (loop (- k 1))))))))
+    (list 'FORALL 'dkdp_ (list 'IMPLIES '(IN dkdp_ CC) (list '= prod (list 'power 'dkdp_ n))))))
+(define (dkd-law! law)
+  (if (not (dk-asm? law)) (dk-have! law (lambda () (dk-peel!) (crs))))
+  (dk-ctx-form law))
+
+(define (dkd-product-of t)               ; t = (* p (* p ... p)) with k factors: (p . k), else #f
+  (let loop ((e t) (k 1))
+    (cond ((and (pair? e) (eq? (car e) '*) (= (length e) 3) (equal? (cadr e) (cadr t)))
+           (loop (caddr e) (+ k 1)))
+          ((equal? e (cadr t)) (cons e k))
+          (#t #f))))
+
+;; Rewrite the FOCUS GOAL: K's zero / one / operations to the surface ones,
+;; p + (-1) q to p - q, (-1) p to -p, repeated products to powers (for the
+;; exponents in POWERS).  Loops to a fixpoint.
+(define (dkd-user-form! powers)
+  (let loop ()
+    (let* ((g (dk-goal))
+           (zero (dkd-find g (lambda (e) (equal? e '(ZERO CC-NORMED-FIELD)))))
+           (one  (and (not zero) (dkd-find g (lambda (e) (equal? e '(ONE CC-NORMED-FIELD))))))
+           ;; the surface rewrites come BEFORE the read-off of a K-operation, whose
+           ;; arguments must be typed: a denominator still spelled p + (-1) q matches
+           ;; no non-vanishing hypothesis
+           (sub  (and (not zero) (not one)
+                      (dkd-find g (lambda (e) (and (pair? e) (eq? (car e) '+) (= (length e) 3)
+                                                   (pair? (caddr e)) (eq? (car (caddr e)) '*)
+                                                   (= (length (caddr e)) 3) (eqv? (cadr (caddr e)) -1))))))
+           (sub2 (and (not zero) (not one) (not sub)
+                      (dkd-find g (lambda (e) (and (pair? e) (eq? (car e) '+) (= (length e) 3)
+                                                   (pair? (caddr e)) (eq? (car (caddr e)) '-)
+                                                   (= (length (caddr e)) 2))))))
+           (neg  (and (not zero) (not one) (not sub) (not sub2)
+                      (dkd-find g (lambda (e) (and (pair? e) (eq? (car e) '*) (= (length e) 3)
+                                                   (eqv? (cadr e) -1))))))
+           (pw   (and (not zero) (not one) (not sub) (not sub2) (not neg) (pair? powers)
+                      (dkd-find g (lambda (e) (let ((pk (and (pair? e) (eq? (car e) '*) (dkd-product-of e))))
+                                                (and pk (memv (cdr pk) powers)))))))
+           (kop  (and (not zero) (not one) (not sub) (not sub2) (not neg) (not pw) (dkd-kop-find g))))
+      (cond
+        (zero (slot 'ZERO) (loop))
+        (one  (slot 'ONE) (loop))
+        (kop
+         (let ((s (cadr kop)) (t (caddr kop)) (add? (equal? (car kop) '(ADD CC-NORMED-FIELD))))
+           (dkd-cc! s) (dkd-cc! t)
+           (fact (if add? 'cc-nf-add-apply 'cc-nf-mul-apply) s t)
+           (subst (list '== kop (list (if add? '+ '*) s t)))
+           (loop)))
+        (sub
+         (let ((p (cadr sub)) (q (caddr (caddr sub))))
+           (dkd-cc! p) (dkd-cc! q)
+           (dk-apply! (dkd-law! dkd-sub-law) p q)
+           (subst (list '= sub (list '- p q)))
+           (loop)))
+        (sub2
+         (let ((p (cadr sub2)) (q (cadr (caddr sub2))))
+           (dkd-cc! p) (dkd-cc! q)
+           (dk-apply! (dkd-law! dkd-sub2-law) p q)
+           (subst (list '= sub2 (list '- p q)))
+           (loop)))
+        (neg
+         (let ((p (caddr neg)))
+           (dkd-cc! p)
+           (dk-apply! (dkd-law! dkd-neg-law) p)
+           (subst (list '= neg (list '- p)))
+           (loop)))
+        (pw
+         (let* ((pk (dkd-product-of pw)) (p (car pk)) (k (cdr pk)))
+           (dkd-cc! p)
+           (dk-apply! (dkd-law! (dkd-power-law k)) p)
+           (subst (list '= pw (list 'power p k)))
+           (loop)))
+        (#t g)))))
+
+;; one bottom-up pass of contraction over the redexes PRESENT in e (the kernel's
+;; `lam-b' pass; a redex a contraction creates is left standing)
+;; A redex sitting under a binder whose argument mentions that binder is left
+;; standing (its owed typing would name a bound variable); every other present
+;; redex is contracted, licensed or owed.
+(define (dkd-reduce1 e . opt)
+  (let ((bound (if (pair? opt) (car opt) '())))        ; alist (var . domain) of the enclosing binders
+    (cond ((not (pair? e)) e)
+          ((and (pair? (car e)) (eq? (caar e) 'VNB-LAMBDA) (= (length e) 2) (= (length (car e)) 4)
+                (symbol? (cadr (car e))))
+           (let* ((lam (car e)) (v (cadr lam)) (D (dkd-reduce1 (caddr lam) bound))
+                  (a (dkd-reduce1 (cadr e) bound))
+                  (body (dkd-reduce1 (cadddr lam) (cons (cons v D) bound)))
+                  (lam2 (list 'VNB-LAMBDA v D body))
+                  (mentions-bound? (any (lambda (b) (dkd-free-in? (car b) a)) bound))
+                  (licensed-by-binder? (and (symbol? a) (assq a bound) (alpha-equiv? (cdr (assq a bound)) D))))
+             (if (and mentions-bound? (not licensed-by-binder?))
+                 (list lam2 a)
+                 (subst-free v a body))))
+          ((and (eq? (car e) 'VNB-LAMBDA) (= (length e) 4) (symbol? (cadr e)))
+           (let ((D (dkd-reduce1 (caddr e) bound)))
+             (list 'VNB-LAMBDA (cadr e) D (dkd-reduce1 (cadddr e) (cons (cons (cadr e) D) bound)))))
+          ((and (memq (car e) '(FORALL FORSOME SEP BIG-UNION IOTA)) (pair? (cdr e)) (symbol? (cadr e)))
+           (cons (car e) (cons (cadr e) (map (lambda (x) (dkd-reduce1 x (cons (cons (cadr e) #f) bound))) (cddr e)))))
+          (#t (map (lambda (x) (dkd-reduce1 x bound)) e)))))
+
+;; Beta-reduce the focus goal to a fixpoint.  An unlicensed redex (its argument a
+;; K-form term the context does not type) is contracted anyway and its typing
+;; posted as a leaf: that leaf is taken, read off to the surface operations, typed
+;; and closed, and the loop goes on from the reduced goal.
+(define (dkd-close-typ! typer)             ; TYPER lands or closes; `ass' unless the leaf closed
+  (let ((home (proof-state-focus *ps*)))
+    (typer)
+    (if (not (sequent-node-grounded? home)) (ass))))
+
+(define (dkd-beta!)
+  (let loop ((n 0))
+    (let ((g0 (dk-goal)) (home (proof-state-focus *ps*)))
+      (if (and (< n 12) (dkd-has-redex? g0))
+          (let* ((predicted (dkd-reduce1 g0))
+                 (opened (dk-opened (lambda () (lam-b)))))
+            (cond
+              ((sequent-node-grounded? home) #t)          ; the reduct was in context: branch closed
+              ((null? opened) (dkd-error "lam-b changed nothing on " g0))
+              (#t
+               (let ((main (find-first (lambda (l) (alpha-equiv? (dk-goal-of l) predicted)) opened)))
+                 (if (not main)
+                     (dkd-error "beta: no opened leaf matches the predicted reduct " predicted
+                                " among " (map dk-goal-of opened)))
+                 (for-each
+                  (lambda (l)
+                    (if (and (not (eq? l main)) (not (sequent-node-grounded? l)))
+                        (let ((og (dk-goal-of l)))
+                          (if (not (and (pair? og) (eq? (car og) 'IN) (= (length og) 3)))
+                              (dkd-error "beta opened a leaf that is not a typing: " og))
+                          (dk-focus! l)
+                          (dkd-user-form! dkd-powers)
+                          (let ((g (dk-goal)))
+                            (dkd-close-typ! (lambda () (if (eq? (caddr g) 'CC) (dkd-cc! (cadr g)) (dkd-in! (cadr g) (caddr g))))))
+                          (if (not (sequent-node-grounded? l))
+                              (dkd-error "beta: the owed typing did not close: " og)))))
+                  opened)
+                 (dk-focus! main)
+                 (loop (+ n 1))))))
+          (not (sequent-node-grounded? home))))))
+
+;; Close the focus goal (= s t) or (== s t): qrfl when the sides agree, else
+;; crs with the reciprocals named.  Errors when neither closes it.
+(define (dkd-crs-here!)                   ; the focus goal is (= s t): type, name recips, crs
+  (let loop ((e (dk-goal)) (seen '()))
+    (cond ((or (number? e) (member e seen)) seen)
+          ((symbol? e) (dkd-cc! e) (cons e seen))
+          ((and (pair? e) (memq (car e) '(= + * -))) (fold-left (lambda (acc s) (loop s acc)) seen (cdr e)))
+          ((pair? e) (dkd-cc! e) (cons e seen))
+          (#t seen)))
+  (let name ()
+    (let ((r (dkd-find (dk-goal) (lambda (e) (and (pair? e) (eq? (car e) 'recip))))))
+      (if r (let ((v (dk-name! r 'CC))) (subst (list '= r v)) (name)))))
+  (crs))
+(define (dkd-ring-close!)
+  (let* ((leaf (proof-state-focus *ps*)) (g (dk-goal)))
+    (cond
+      ((not (and (pair? g) (memq (car g) '(= ==)) (= (length g) 3)))
+       (dkd-error "not an equation: " g))
+      ((alpha-equiv? (cadr g) (caddr g))
+       (if (eq? (car g) '==) (qrfl) (begin (dkd-cc! (cadr g)) (rfl))))
+      ((eq? (car g) '=) (dkd-crs-here!))
+      (#t
+       (let ((eqn (list '= (cadr g) (caddr g))))
+         (dk-have! eqn (lambda () (dkd-crs-here!)))
+         (if (not (dk-asm? eqn)) (dkd-error "could not prove " eqn))
+         (subst eqn)
+         (qrfl))))
+    (if (not (sequent-node-grounded? leaf))
+        (dkd-error "the equation did not close: " g))))
+
+;;; ---------------------------------------------------------------- the plan
+;; A node: (KIND TERM KIDS INFO).  KIND in var const sum product chain recip
+;; opaque; INFO: for chain the law name and the outer lambda; for opaque the
+;; symbol g and its domain V.  OBLIGATIONS are accumulated in user form.
+(define dkd-oblig '())
+(define dkd-powers '())
+(define (dkd-oblige! f) (if (not (member f dkd-oblig)) (set! dkd-oblig (cons f dkd-oblig))))
+
+(define (dkd-plan e x U)
+  (let ((univ (lambda (body-of)           ; forall y in U. body-of(y)
+                (list 'FORALL 'dkdoy_ (list 'IMPLIES (list 'IN 'dkdoy_ U) (body-of (dkd-sub e x 'dkdoy_)))))))
+    (cond
+      ((eq? e x) (list 'var e '()))
+      ((not (dkd-free-in? x e)) (list 'const e '()))
+      ((not (pair? e)) (dkd-error "a bound variable other than " x " in " e))
+      (#t
+       (let ((h (car e)) (n (length (cdr e))))
+         (cond
+           ((and (eq? h '+) (= n 2)) (list 'sum e (list (dkd-plan (cadr e) x U) (dkd-plan (caddr e) x U))))
+           ((and (eq? h '*) (= n 2)) (list 'product e (list (dkd-plan (cadr e) x U) (dkd-plan (caddr e) x U))))
+           ((and (eq? h '-) (= n 2))
+            (list 'sum e (list (dkd-plan (cadr e) x U)
+                               (list 'product (list '* -1 (caddr e)) (list (list 'const -1 '()) (dkd-plan (caddr e) x U))))))
+           ((and (eq? h '-) (= n 1))
+            (list 'product (list '* -1 (cadr e)) (list (list 'const -1 '()) (dkd-plan (cadr e) x U))))
+           ((and (eq? h 'power) (= n 2) (dkd-nat? (caddr e)) (>= (caddr e) 1))
+            (let ((k (caddr e)) (b (cadr e)))
+              (if (not (memv k dkd-powers)) (set! dkd-powers (cons k dkd-powers)))
+              (let loop ((j k))
+                (if (= j 1) (dkd-plan b x U)
+                    (list 'product (list '* b (let p ((i (- j 1))) (if (= i 1) b (list '* b (p (- i 1))))))
+                          (list (dkd-plan b x U) (loop (- j 1))))))))
+           ((and (eq? h 'recip) (= n 1))
+            (let ((s (cadr e)))
+              (dkd-oblige! ((lambda (body) (list 'FORALL 'dkdoy_ (list 'IMPLIES (list 'IN 'dkdoy_ U) body)))
+                            (list 'NOT (list '= (dkd-sub s x 'dkdoy_) 0))))
+              (list 'recip e (list (dkd-plan s x U)))))
+           ((and (memq h '(CC-EXP CC-SIN CC-COS)) (= n 1))
+            (list 'chain e (list (dkd-plan (cadr e) x U))
+                  (cond ((eq? h 'CC-EXP) (list 'cc-exp-deriv dkd-exp-lam 'CC))
+                        ((eq? h 'CC-SIN) (list 'cc-sin-deriv dkd-sin-lam 'CC))
+                        (#t (list 'cc-cos-deriv dkd-cos-lam 'CC)))))
+           ((and (eq? h 'CC-LOG) (= n 1))
+            (let ((s (cadr e)))
+              (dkd-oblige! (list 'FORALL 'dkdoy_ (list 'IMPLIES (list 'IN 'dkdoy_ U) (list 'IN (dkd-sub s x 'dkdoy_) dkd-slit))))
+              (dkd-oblige! (list 'FORALL 'dkdoy_ (list 'IMPLIES (list 'IN 'dkdoy_ U) (dkd-slit-guard (dkd-sub s x 'dkdoy_)))))
+              (dkd-oblige! (list 'FORALL 'dkdoy_ (list 'IMPLIES (list 'IN 'dkdoy_ U) (list 'NOT (list '= (dkd-sub s x 'dkdoy_) 0)))))
+              (list 'chain e (list (dkd-plan s x U)) (list 'cc-log-deriv dkd-log-lam dkd-slit))))
+           ((and (symbol? h) (= n 1))
+            (let* ((s (cadr e))
+                   (V (dkd-opaque-domain h)))
+              (if (not V) (dkd-error "no IS-DIFF-ON or HOLOMORPHIC-ON of " h " in context, for " e))
+              (if (not (and (eq? s x) (equal? V U)))
+                  (dkd-oblige! (list 'FORALL 'dkdoy_ (list 'IMPLIES (list 'IN 'dkdoy_ U) (list 'IN (dkd-sub s x 'dkdoy_) V)))))
+              (list 'opaque e (list (dkd-plan s x U)) (list h V))))
+           (#t (dkd-error "outside the grammar: " e))))))))
+
+(define (dkd-opaque-domain g)
+  (let ((a (find-first (lambda (a) (and (pair? a)
+                                        (or (and (eq? (car a) 'IS-DIFF-ON) (= (length a) 6) (equal? (cadr a) dkd-K) (eq? (cadddr a) g))
+                                            (and (eq? (car a) 'HOLOMORPHIC-ON) (= (length a) 3) (eq? (caddr a) g)))))
+                       (dkd-asms))))
+    (and a (if (eq? (car a) 'IS-DIFF-ON) (caddr a) (cadr a)))))
+
+;; post P as an open side leaf on the main branch (unless the context has it)
+(define (dkd-owe! P)
+  (if (not (dk-asm? P))
+      (let ((g0 (dk-goal)) (home (proof-state-focus *ps*)))
+        (cut P)
+        (let ((main (find-first (lambda (l) (and (not (eq? l home))
+                                                 (alpha-equiv? (dk-goal-of l) g0)
+                                                 (any (lambda (a) (alpha-equiv? a P)) (dk-asms-of l))))
+                                (dk-open-leaves))))
+          (if (not main) (dkd-error "cut left no main branch for " P))
+          (dk-focus! main)
+          (set! dkd-owed (cons P dkd-owed))
+          (dkd-warn "OWED, left open for you: " P)))))
+
+;;; -------------------------------------------------------------- the engine
+;; the function term and the derivative of a landed IS-DIFF-ON
+(define (dkd-fn r) (list-ref r 3))
+(define (dkd-L r)  (list-ref r 5))
+;; (IN L CC) for the derivative L of a landed IS-DIFF-ON(K, V, g, p, L): the
+;; definition types L in CARR(K); without it an instantiation at L owes `L = L'
+(define (dkd-deriv-cc! r)
+  (let ((want (list 'IN (dkd-L r) 'CC)) (L (dkd-L r)))
+    (if (not (dk-asm? want))
+        (if (symbol? L)                    ; a skolem symbol: certified as a variable, read off
+            (begin
+              (dk-cite! 'diff-on-deriv-in-carr dkd-K (list-ref r 2) (list-ref r 3) (list-ref r 4) L)
+              (dkd-carr->cc! L))
+            (dkd-cc! L)))                  ; an application: type it (the read-off would owe L = L)
+    want))
+
+;; (IN (f A) CC) from IS-DIFF-ON(K, U, f, A, L); the carr universal lands too
+(define (dkd-value-cc! U f A L)
+  (let ((want (list 'IN (list f A) 'CC)))
+    (if (not (dk-asm? want))
+        (begin
+          (dk-cite! 'diff-on-value-in-carr dkd-K U f A L)
+          (let ((u (dk-ctx-form (list 'FORALL 'dfx_ (list 'IMPLIES (list 'IN 'dfx_ U) (list 'IN (list f 'dfx_) dkd-carr))))))
+            (if (not u) (dkd-error "diff-on-value-in-carr did not land its universal"))
+            (dk-apply! u A))
+          (dkd-carr->cc! (list f A))))
+    want))
+
+;; forall y in U. (f y) in D, on a lane; D is CC, or a set the plan's owed
+;; universal covers, or U itself when f is the identity
+(define (dkd-values-in! U f D s x)
+  (let ((want (list 'FORALL 'dkdvy_ (list 'IMPLIES (list 'IN 'dkdvy_ U) (list 'IN (list f 'dkdvy_) D)))))
+    (if (not (dk-asm? want))
+        (dk-have! want
+          (lambda ()
+            (let ((y (dk-di-var!)))
+              (cond
+                ((eq? D 'CC)
+                 (let ((u (dk-ctx-form (list 'FORALL 'dfx_ (list 'IMPLIES (list 'IN 'dfx_ U) (list 'IN (list f 'dfx_) dkd-carr))))))
+                   (if (not u) (dkd-error "no carr universal for " f))
+                   (dk-apply! u y)
+                   (dkd-carr->cc! (list f y))
+                   (ass)))
+                (#t
+                 (dkd-beta!)
+                 (dkd-user-form! dkd-powers)
+                 (let ((g (dk-goal)))
+                   (cond ((dk-asm? g) (ass))
+                         ((dkd-from-universal! g) (ass))
+                         (#t (dkd-in! (cadr g) D) (ass))))))))))
+    want))
+
+;; the law's REDEX-form antecedent from the user-form fact: forall y in U. NOT (= (f y) 0)
+(define (dkd-nonzero-univ! U f)
+  (let ((want (list 'FORALL 'cry_ (list 'IMPLIES (list 'IN 'cry_ U) (list 'NOT (list '= (list f 'cry_) 0))))))
+    (if (not (dk-asm? want))
+        (dk-have! want
+          (lambda ()
+            (let ((y (dk-di-var!)))
+              (dkd-beta!)
+              (dkd-user-form! dkd-powers)
+              (let ((g (dk-goal)))
+                (cond ((dk-asm? g) (ass))
+                      ((dkd-from-universal! g) (ass))
+                      (#t (dkd-nonzero! (cadr (cadr g))) (ass))))))))
+    want))
+
+;; the same bridge for ONE formula about (f A): prove WANT whose user form is in context
+(define (dkd-at-point! want)
+  (if (not (dk-asm? want))
+      (dk-have! want
+        (lambda ()
+          (dkd-beta!)
+          (dkd-user-form! dkd-powers)
+          (let ((g (dk-goal)))
+            (cond ((dk-asm? g) (ass))
+                  ((dkd-from-universal! g) (ass))
+                  (#t (dkd-error "the point obligation is not in context: " g)))))))
+  want)
+
+;; the symbolic derivative, simplified a little
+(define (dkd-simp e)
+  (cond ((not (pair? e)) e)
+        ((and (eq? (car e) '*) (= (length e) 3))
+         (let ((a (cadr e)) (b (caddr e)))
+           (cond ((or (eqv? a 0) (eqv? b 0)) 0)
+                 ((eqv? a 1) b) ((eqv? b 1) a)
+                 ((and (dkd-numeral? a) (dkd-numeral? b)) (* a b))
+                 (#t e))))
+        ((and (eq? (car e) '+) (= (length e) 3))
+         (let ((a (cadr e)) (b (caddr e)))
+           (cond ((eqv? a 0) b) ((eqv? b 0) a)
+                 ((and (dkd-numeral? a) (dkd-numeral? b)) (+ a b))
+                 (#t e))))
+        ((and (eq? (car e) '-) (= (length e) 3))
+         (let ((a (cadr e)) (b (caddr e)))
+           (cond ((eqv? b 0) a) ((eqv? a 0) (dkd-simp (list '- b)))
+                 ((and (dkd-numeral? a) (dkd-numeral? b)) (- a b))
+                 (#t e))))
+        ((and (eq? (car e) '-) (= (length e) 2))
+         (let ((a (cadr e)))
+           (cond ((eqv? a 0) 0) ((dkd-numeral? a) (- a)) (#t e))))
+        (#t e)))
+(define (dkd-mul a b) (dkd-simp (list '* a b)))
+(define (dkd-add a b) (dkd-simp (list '+ a b)))
+
+;; Run PLAN at the point A: return (FORMULA . L*), FORMULA the landed IS-DIFF-ON
+;; of the canonical lambda, L* the user-form derivative at A.  X is the bound
+;; variable of the user's lambda (for the symbolic derivative).
+(define (dkd-exec! plan U A x)
+  (let ((kind (car plan)) (e (cadr plan)) (kids (caddr plan)))
+    (cond
+      ((eq? kind 'var)
+       (cons (dk-cite! 'diff-on-identity dkd-K U A) 1))
+      ((eq? kind 'const)
+       (dkd-carr! e)
+       (cons (dk-cite! 'diff-on-const dkd-K U e A) 0))
+      ((eq? kind 'sum)
+       (let* ((r1 (dkd-exec! (car kids) U A x)) (r2 (dkd-exec! (cadr kids) U A x))
+              (f1 (car r1)) (f2 (car r2)))
+         (cons (dk-cite! 'diff-on-sum dkd-K U (dkd-fn f1) (dkd-fn f2) A (dkd-L f1) (dkd-L f2))
+               (dkd-add (cdr r1) (cdr r2)))))
+      ((eq? kind 'product)
+       (let* ((r1 (dkd-exec! (car kids) U A x)) (r2 (dkd-exec! (cadr kids) U A x))
+              (f1 (car r1)) (f2 (car r2))
+              (e1 (cadr (car kids))) (e2 (cadr (cadr kids))))
+         (cons (dk-cite! 'diff-on-product dkd-K U (dkd-fn f1) (dkd-fn f2) A (dkd-L f1) (dkd-L f2))
+               (dkd-add (dkd-mul (cdr r1) (dkd-sub e2 x A)) (dkd-mul (dkd-sub e1 x A) (cdr r2))))))
+      ((eq? kind 'chain)
+       (let* ((r1 (dkd-exec! (car kids) U A x)) (f1 (car r1))
+              (info (cadddr plan)) (law (car info)) (lam (cadr info)) (V (caddr info))
+              (s (cadr (car kids))) (sA (dkd-sub s x A))
+              (fn1 (dkd-fn f1)) (pt (list fn1 A)))
+         (dkd-value-cc! U fn1 A (dkd-L f1))
+         (if (eq? law 'cc-log-deriv)
+             (begin (dkd-at-point! (dkd-slit-guard pt))         ; the law's guard, at the redex
+                    (dkd-at-point! (list 'NOT (list '= pt 0))))) ; for the typing of recip(pt)
+         (let ((m (dk-cite! law pt)))
+           (dkd-deriv-cc! m)
+           (dkd-values-in! U fn1 V s x)
+           (let ((r (dk-cite! 'diff-on-chain dkd-K U V fn1 lam A (dkd-L f1) (dkd-L m))))
+             (cons r
+                   (dkd-mul (cond ((eq? law 'cc-exp-deriv) (list 'CC-EXP sA))
+                                  ((eq? law 'cc-sin-deriv) (list 'CC-COS sA))
+                                  ((eq? law 'cc-cos-deriv) (list '- (list 'CC-SIN sA)))
+                                  (#t (list 'recip sA)))
+                            (cdr r1)))))))
+      ((eq? kind 'opaque)
+       (let* ((r1 (dkd-exec! (car kids) U A x)) (f1 (car r1))
+              (info (cadddr plan)) (g (car info)) (V (cadr info))
+              (s (cadr (car kids))) (sA (dkd-sub s x A))
+              (fn1 (dkd-fn f1)) (pt (list fn1 A)))
+         (dkd-value-cc! U fn1 A (dkd-L f1))
+         (dkd-in! sA V)
+         ;; IS-DIFF-ON(K, V, g, sA, M) in user form
+         (let ((have (find-first (lambda (a) (and (pair? a) (eq? (car a) 'IS-DIFF-ON) (= (length a) 6)
+                                                  (equal? (cadr a) dkd-K) (equal? (caddr a) V)
+                                                  (eq? (cadddr a) g) (alpha-equiv? (list-ref a 4) sA)))
+                                 (dkd-asms))))
+           (if (not have)
+               (let ((h (find-first (lambda (a) (and (pair? a) (eq? (car a) 'HOLOMORPHIC-ON) (equal? (cadr a) V) (eq? (caddr a) g)))
+                                    (dkd-asms))))
+                 (if (not h) (dkd-error "no IS-DIFF-ON of " g " at " sA " and no HOLOMORPHIC-ON(" V ", " g ")"))
+                 (let ((ex (dk-apply! (dk-cite! 'holomorphic-on-diff V g) sA)))
+                   (dk-skolem! ex)
+                   (set! have (find-first (lambda (a) (and (pair? a) (eq? (car a) 'IS-DIFF-ON) (= (length a) 6)
+                                                            (eq? (cadddr a) g) (alpha-equiv? (list-ref a 4) sA)))
+                                          (dkd-asms)))
+                   (if (not have) (dkd-error "holomorphic-on-diff did not land IS-DIFF-ON of " g)))))
+           (let* ((M (dkd-L have))
+                  (redex-form (list 'IS-DIFF-ON dkd-K V g pt M)))
+             (if (not (dk-asm? redex-form))
+                 (begin
+                   (dkd-cc! sA)
+                   (dk-have! (list '= pt sA) (lambda () (dkd-beta!) (dkd-user-form! dkd-powers) (dkd-ring-close!)))
+                   (dk-have! redex-form (lambda () (subst (list '= pt sA)) (ass)))))
+             (dkd-values-in! U fn1 V s x)
+             (dkd-deriv-cc! have)
+             (cons (dk-cite! 'diff-on-chain dkd-K U V fn1 g A (dkd-L f1) M)
+                   (dkd-mul M (cdr r1)))))))
+      ((eq? kind 'recip)
+       (let* ((r1 (dkd-exec! (car kids) U A x)) (f1 (car r1)) (fn1 (dkd-fn f1))
+              (s (cadr (car kids))) (sA (dkd-sub s x A))
+              (q (list 'VNB-LAMBDA 'dkdqv_ U (list 'recip (list fn1 'dkdqv_)))))
+         (dkd-nonzero-univ! U fn1)
+         (dk-have! (list 'IN q (list 'FUN U 'CC))
+           (lambda ()
+             (dk-lam-type!
+              (lambda ()
+                (let ((y (dk-di-var!)))
+                  (dkd-beta!)
+                  (dkd-user-form! dkd-powers)
+                  (dkd-close-typ! (lambda () (dkd-cc! (cadr (dk-goal)))))))
+              (lambda () (dkd-set-leaf! U)))))
+         (dk-have! (list 'FORALL 'cry_ (list 'IMPLIES (list 'IN 'cry_ U) (list '== (list q 'cry_) (list 'recip (list fn1 'cry_)))))
+           (lambda () (let ((y (dk-di-var!))) (dkd-beta!) (qrfl))))
+         (cons (dk-cite! 'diff-on-recip-cc U fn1 A (dkd-L f1) q)
+               (dkd-simp (list '- (dkd-mul (cdr r1) (list 'recip (list '* sA sA))))))))
+      (#t (dkd-error "unknown plan node " kind)))))
+
+;;; ------------------------------------------------------------ the surface
+(define (dk-diff! . args)
+  (let* ((goal (and (null? args) (dk-goal)))
+         (U   (if goal (caddr goal) (car args)))
+         (LAM (->raw-formula (if goal (cadddr goal) (cadr args))))
+         (A   (->raw-formula (if goal (list-ref goal 4) (caddr args))))
+         (Lu  (cond (goal (list-ref goal 5))
+                    ((> (length args) 3) (->raw-formula (cadddr args)))
+                    (#t #f))))
+    (if goal
+        (if (not (and (pair? goal) (eq? (car goal) 'IS-DIFF-ON) (= (length goal) 6) (equal? (cadr goal) dkd-K)))
+            (dkd-error "the focus goal is not IS-DIFF-ON(CC-NORMED-FIELD, ...): " goal)))
+    (if (not (and (pair? LAM) (eq? (car LAM) 'VNB-LAMBDA) (= (length LAM) 4) (equal? (caddr LAM) U)))
+        (dkd-error "the function must be (VNB-LAMBDA x U e) over the given U: " LAM))
+    (let* ((x (cadr LAM)) (e (cadddr LAM))
+           (home (proof-state-focus *ps*)))
+      (set! dkd-owed '()) (set! dkd-oblig '()) (set! dkd-powers '())
+      ;; the plan, then the obligations on the main branch
+      (let ((plan (dkd-plan e x U)))
+        (dkd-setup!)
+        (dkd-open! U)
+        (if (not (dk-asm? (list 'IN A U))) (dkd-error "the point is not typed in U: " (list 'IN A U)))
+        (for-each dkd-owe! (reverse dkd-oblig))
+        ;; the laws
+        (let* ((r (dkd-exec! plan U A x))
+               (T (car r)) (Lstar (or Lu (cdr r)))
+               (h (dkd-fn T)) (LK (dkd-L T)))
+          ;; LAM in FUN(U, CARR K)
+          (dk-have! (list 'IN LAM (list 'FUN U dkd-carr))
+            (lambda ()
+              (subst (list '== dkd-carr 'CC))
+              (dk-lam-type!
+               (lambda () (let ((y (dk-di-var!))) (dkd-close-typ! (lambda () (dkd-cc! (cadr (dk-goal)))))))
+               (lambda () (dkd-set-leaf! U)))))
+          ;; the pointwise equation
+          (dk-have! (list 'FORALL 'hbx_ (list 'IMPLIES (list 'IN 'hbx_ U) (list '== (list LAM 'hbx_) (list h 'hbx_))))
+            (lambda ()
+              (let ((y (dk-di-var!)))
+                (dkd-beta!)
+                (dkd-user-form! dkd-powers)
+                (dkd-ring-close!))))
+          (let ((TL (dk-cite! 'diff-on-transfer-ptwise-eq dkd-K U LAM h A LK)))
+            ;; the derivative in user form
+            (let ((final
+                   (if (alpha-equiv? LK Lstar)
+                       TL
+                       (let ((G (list 'FORALL 'dkdlv_ (list 'IMPLIES (list '= 'dkdlv_ LK)
+                                                             (list 'IS-DIFF-ON dkd-K U LAM A 'dkdlv_))))
+                             (eqn (list '= Lstar LK)))
+                         (dkd-cc! Lstar)
+                         (dk-have! G
+                           (lambda ()
+                             (dk-di-var! (lambda (g) (cadr (cadr g))))
+                             (di)
+                             (let ((hyp (find-first (lambda (a) (and (pair? a) (eq? (car a) '=) (equal? (caddr a) LK)
+                                                                      (symbol? (cadr a))))
+                                                    (dkd-asms))))
+                               (subst hyp)
+                               (ass))))
+                         (let ((ok (let ((work (lambda ()
+                                                 (dk-have! eqn
+                                                   (lambda () (dkd-beta!) (dkd-user-form! dkd-powers) (dkd-ring-close!)))
+                                                 (dk-asm? eqn))))
+                                     (if dkd-debug (work) (dk--transaction work)))))
+                           (if ok
+                               (dk-apply! (dk-ctx-form G) Lstar)
+                               (begin
+                                 (dkd-warn "the derivative could not be brought to " Lstar
+                                           "; landed with the laws' value " LK)
+                                 TL)))))))
+              (if (pair? dkd-owed)
+                  (dkd-warn (number->string (length dkd-owed)) " obligation(s) left open: "
+                            (apply string-append (map (lambda (p) (string-append " | " (dkd-str p))) (reverse dkd-owed)))))
+              (if goal (dk-ass!))
+              final)))))))
+
+;;; (dk-holomorphic! U LAM) -- close the focus goal HOLOMORPHIC-ON(U, LAM)
+(define (dk-holomorphic! U LAM0)
+  (let ((LAM (->raw-formula LAM0)) (leaf (proof-state-focus *ps*)))
+    (if (not (alpha-equiv? (dk-goal) (list 'HOLOMORPHIC-ON U LAM)))
+        (dkd-error "the focus goal is not " (list 'HOLOMORPHIC-ON U LAM)))
+    (dkd-setup!)
+    (dkd-open! U)
+    (mac 'HOLOMORPHIC-ON)
+    (dk-conj-close!
+     (lambda ()
+       (let ((g (dk-goal)))
+         (cond ((dk-asm? g) (ass))
+               ((and (pair? g) (eq? (car g) 'IN))
+                (dk-lam-type!
+                 (lambda () (let ((y (dk-di-var!))) (dkd-close-typ! (lambda () (dkd-cc! (cadr (dk-goal)))))))
+                 (lambda () (dkd-set-leaf! U))))
+               ((and (pair? g) (eq? (car g) 'FORALL))
+                (let ((a (dk-di-var!)))
+                  (let ((r (dk-diff! U LAM a)))
+                    (ew (dkd-L r))
+                    (ass))))
+               (#t (dkd-error "unexpected conjunct of HOLOMORPHIC-ON: " g))))))
+    (sequent-node-grounded? leaf)))

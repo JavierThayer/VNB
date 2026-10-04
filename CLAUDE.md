@@ -673,6 +673,17 @@ within one form differing only by case, warn-only, ~20 s per load; backlog 2 on 
 added (`dd-diff-typ!` in directional-derivative.scm, a latent bug -- the lambda's `x` IS the
 parameter `X`, so its "already in context" test never matches; `r5u-ff-step!` in
 rake-combinatorics2.scm, harmless).
+**Added 2026-10-04 (the user's order, after both week-1 agents named the grind; `docs/dk-diff-2026-10-04.md`):**
+`dk-diff!` / `dk-holomorphic!` -- IS-DIFF-ON of an EXPLICIT CC expression (var, constant, + * -, recip,
+numeral power, CC-EXP / SIN / COS / LOG, an opaque `g` with IS-DIFF-ON or HOLOMORPHIC-ON in context) with
+its derivative, driven from the library's laws bottom-up, transferred to the user's lambda by
+`diff-on-transfer-ptwise-eq`, the derivative brought to textbook form by `crs`; a side condition it cannot
+derive (a denominator's non-vanishing on U, a log's slit guard, an opaque argument's domain) is looked for
+as a `forall y in U. ...` in context, else posted by `cut` as an OPEN leaf and announced (`OWED`). Five suite
+checks, one the control (the owed leaf). Three kernel facts it had to learn are in the page: `lam-b` leaves
+standing a redex under a binder whose argument mentions the binder; a `subst` of `CC == CARR(K)` rewrites the
+lambda domains too (convert through a quantified universal); an instantiation at an untyped application
+owes `t = t`.
 STILL OWED: a helper closing a structure predicate's TYPING conjunct from a property already proven
 (batch 40, finding 3); the view slot read-off (`slot-close!` / `readoff!` / `dk-read-off!`), `dk-finite!`,
 `dk-least-ordinal!`, a hypothesis-side rewrite, the quotient-of-a-structure driver (`rep!` /

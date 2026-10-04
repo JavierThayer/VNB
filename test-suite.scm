@@ -14298,6 +14298,65 @@
       (quietly (lambda () (dk-peel!) (dk-lam-b!) (rfl)))
       (proof-done? *ps*))))
 
+;;; ---------------------------------------------------------------------------
+;;; dk-diff! / dk-holomorphic! (2026-10-04): IS-DIFF-ON of an explicit CC expression
+;;; with its derivative, driven from the library's laws; the kit candidate both
+;;; week-1 agents named.  Every step is a surface tactic.
+(display "\n=== dk-diff! (2026-10-04): the derivative tactic ===\n")
+(check-true "dk-diff!: w * w + 3 at z, derivative 2 z, closes the focus goal"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL z (IMPLIES (IN z CC)
+            (IS-DIFF-ON CC-NORMED-FIELD CC (VNB-LAMBDA w CC (+ (* w w) 3)) z (* 2 z))))))
+      (quietly (lambda () (dk-peel!) (dk-diff!)))
+      (proof-done? *ps*))))
+(check-true "dk-diff!: the circle c + r exp(i t) at t0 (CA-1's grind), derivative r (exp(i t0) i)"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL c (IMPLIES (IN c CC) (FORALL r (IMPLIES (IN r CC) (FORALL t0 (IMPLIES (IN t0 CC)
+            (IS-DIFF-ON CC-NORMED-FIELD CC (VNB-LAMBDA t CC (+ c (* r (CC-EXP (* +i t))))) t0
+                        (* r (* (CC-EXP (* +i t0)) +i)))))))))))
+      (quietly (lambda () (dk-peel!) (dk-diff!)))
+      (proof-done? *ps*))))
+(check-true "dk-diff!: the difference quotient of a holomorphic f lands the quotient rule, f'(a) a skolem symbol"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL u (FORALL f (FORALL z (FORALL a
+            (IMPLIES (IS-OPEN (NF-METRIC-SPACE CC-NORMED-FIELD) u)
+            (IMPLIES (HOLOMORPHIC-ON u f)
+            (IMPLIES (IN z u)
+            (IMPLIES (IN a u)
+            (IMPLIES (FORALL y (IMPLIES (IN y u) (NOT (= (- y z) 0))))
+              (FORSOME L (IS-DIFF-ON CC-NORMED-FIELD u
+                           (VNB-LAMBDA w u (* (- (f w) (f z)) (recip (- w z)))) a L)))))))))))))
+      (quietly (lambda ()
+        (dk-peel!)
+        (let ((r (dk-diff! 'u '(VNB-LAMBDA w u (* (- (f w) (f z)) (recip (- w z)))) 'a)))
+          (and (pair? r) (eq? (car r) 'IS-DIFF-ON)
+               (begin (ew (list-ref r 5)) (ass) (proof-done? *ps*)))))))))
+(check-true "dk-diff! CONTROL: a side condition the context lacks is left as ONE open leaf, and the proof is NOT done"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL u (FORALL a
+            (IMPLIES (IS-OPEN (NF-METRIC-SPACE CC-NORMED-FIELD) u)
+            (IMPLIES (IN a u)
+              (FORSOME L (IS-DIFF-ON CC-NORMED-FIELD u (VNB-LAMBDA w u (recip w)) a L))))))))
+      (quietly (lambda ()
+        (dk-peel!)
+        (let ((r (dk-diff! 'u '(VNB-LAMBDA w u (recip w)) 'a)))
+          (ew (list-ref r 5)) (ass)
+          (and (not (proof-done? *ps*))
+               (= (length (dk-open-leaves)) 1)
+               (alpha-equiv? (dk-goal-of (car (dk-open-leaves)))
+                             '(FORALL y (IMPLIES (IN y u) (NOT (= y 0)))))
+               #t)))))))
+(check-true "dk-holomorphic!: exp(w * w) is holomorphic on CC"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(HOLOMORPHIC-ON CC (VNB-LAMBDA w CC (CC-EXP (* w w))))))
+      (quietly (lambda () (dk-holomorphic! 'CC '(VNB-LAMBDA w CC (CC-EXP (* w w))))))
+      (proof-done? *ps*))))
+
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")
 (display *fail-count*) (display " failed ===\n")
