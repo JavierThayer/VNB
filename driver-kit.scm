@@ -322,7 +322,11 @@
          (fact 'nn-mul-closed x y) (ass)))
       ((and (pair? g) (eq? (car g) 'IN) (number? (cadr g)))
        (if (dk-asm? g) (ass) (arith)))
-      (else (ass)))))
+      ;; `ass' only when it can close: on a goal not in context it warned
+      ;; "assumption: goal not in context" and left the leaf open, which is what
+      ;; it still does -- silently; the CALLER (have!, dk-have!) is what reports an
+      ;; unproven side goal, loudly (2026-10-04: 68 such lines in one load log).
+      (else (dk-ass!)))))
 
 ;; (have! CLAIM)         -- cut CLAIM, prove its side goal with from-context!
 ;; (have! CLAIM THUNK)   -- ... prove it with THUNK instead
@@ -2014,6 +2018,16 @@
   (let any ((as (dk-asms)))
     (and (pair? as) (or (alpha-equiv? (car as) f) (any (cdr as))))))
 
+;;; (dk-ass!) -- `ass' only when the goal IS an assumption (up to alpha); returns
+;;; whether it closed.  The closer to hand dk-conj-close!, in-sep!, detach-with!
+;;; and the like in place of (lambda () (ass)), which warns "assumption: goal not
+;;; in context" on every conjunct it cannot close: the load log of 2026-10-04
+;;; carried 68 such lines from three new files whose proofs were all fine.
+(define (dk-ass!)
+  (if (and *ps* (not (proof-done? *ps*)) (dk-asm? (dk-goal)))
+      (begin (ass) #t)
+      #f))
+
 ;;; cut F, prove the side goal from context, leave focus on the main branch.
 ;;;
 ;;; WHY NOT `have!'.  have! requires BOTH branches of the cut to be NEW leaves
@@ -2722,9 +2736,12 @@
 (define (dk--lane-close!)
   (let ((lane (proof-state-focus *ps*)))
     (define (still-open?) (not (sequent-node-grounded? lane)))
-    (if (still-open?) (vnb-guard (lambda () (ass))))
+    ;; dk-ass!, not ass: `ass' on a claim not yet in context warned "goal not in
+    ;; context" on EVERY lane whose claim needed the split first -- 68 lines in
+    ;; the load log of 2026-10-04, all from here (dk-project!'s lanes).
+    (if (still-open?) (vnb-guard (lambda () (dk-ass!))))
     (if (still-open?) (vnb-guard (lambda () (dk-split-all!))))
-    (if (still-open?) (vnb-guard (lambda () (ass))))
+    (if (still-open?) (vnb-guard (lambda () (dk-ass!))))
     (if (still-open?) (vnb-guard (lambda () (prop))))
     (not (still-open?))))
 

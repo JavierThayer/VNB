@@ -237,7 +237,7 @@
 \subsubsection*{\texttt{taylor-poly-at-center}}
 \emph{for every f, x, n, if x is in rr, then if n is in nn, then if for every k, if k is in nn and k is at most n, then (nth-deriv(f, k))(x) is in rr, then taylor-poly(f, x, n, x) equals f(x)}
 {\small\[
-\forall f, x \in \mathbb{R}, n \in \mathbb{N}.\; (\forall k.\; (((k \in \mathbb{N}) \wedge (k \leq n)) \Rightarrow (\operatorname{nth\text{-}deriv}(f, k)(x) \in \mathbb{R})) \Rightarrow (\operatorname{taylor\text{-}poly}(f, x, n, x) = f(x)))
+\forall f.; \forall x \in \mathbb{R}, n \in \mathbb{N}.\; (\forall k.\; (((k \in \mathbb{N}) \wedge (k \leq n)) \Rightarrow (\operatorname{nth\text{-}deriv}(f, k)(x) \in \mathbb{R})) \Rightarrow (\operatorname{taylor\text{-}poly}(f, x, n, x) = f(x)))
 \]}
 \noindent\textbf{Asserted}
 
@@ -551,14 +551,14 @@
 \subsubsection*{\texttt{matrix-entry-extensionality}}
 \emph{for every m, n, x, p, q, if p is in mat(m, n, x), then if q is in mat(m, n, x), then if for every i in interval(1, m), j in interval(1, n), entry(p, i, j) equals entry(q, i, j), then p equals q}
 {\small\[
-\forall m, n, x, p, q \in \operatorname{mat}(m, n, x).\; (\forall i \in \operatorname{interval}(1, m), j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(p, i, j) = \operatorname{entry}(q, i, j)) \Rightarrow (p = q))
+\forall m, n, x.; \forall p, q \in \operatorname{mat}(m, n, x).\; (\forall i \in \operatorname{interval}(1, m), j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(p, i, j) = \operatorname{entry}(q, i, j)) \Rightarrow (p = q))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-in-carrier}}
 \emph{for every m, n, x, p, i, j, if p is in mat(m, n, x), then if i is in interval(1, m), then if j is in interval(1, n), then entry(p, i, j) is in x}
 {\small\[
-\forall m, n, x, p \in \operatorname{mat}(m, n, x), i \in \operatorname{interval}(1, m), j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(p, i, j) \in x)
+\forall m, n, x.; \forall p \in \operatorname{mat}(m, n, x), i \in \operatorname{interval}(1, m), j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(p, i, j) \in x)
 \]}
 \noindent\textbf{Asserted}
 
@@ -602,7 +602,7 @@
 \subsubsection*{\texttt{matadd-type}}
 \emph{for every ring a, for every m, n, p, q, if p is in mat(m, n, carr(a)), then if q is in mat(m, n, carr(a)), then matadd(a, p, q) is in mat(m, n, carr(a))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p, q \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, q) \in \operatorname{mat}(m, n, \operatorname{carr}(a))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p, q \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, q) \in \operatorname{mat}(m, n, \operatorname{carr}(a))))
 \]}
 \noindent\textbf{Asserted}
 
@@ -616,56 +616,56 @@
 \subsubsection*{\texttt{matadd-assoc}}
 \emph{for every ring a, for every m, n, p, q, r, if p is in mat(m, n, carr(a)), then if q is in mat(m, n, carr(a)), then if r is in mat(m, n, carr(a)), then matadd(a, matadd(a, p, q), r) equals matadd(a, p, matadd(a, q, r))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p, q, r \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, \operatorname{matadd}(a, p, q), r) = \operatorname{matadd}(a, p, \operatorname{matadd}(a, q, r))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p, q, r \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, \operatorname{matadd}(a, p, q), r) = \operatorname{matadd}(a, p, \operatorname{matadd}(a, q, r))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matadd-comm}}
 \emph{for every ring a, for every m, n, p, q, if p is in mat(m, n, carr(a)), then if q is in mat(m, n, carr(a)), then matadd(a, p, q) equals matadd(a, q, p)}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p, q \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, q) = \operatorname{matadd}(a, q, p)))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p, q \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, q) = \operatorname{matadd}(a, q, p)))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matadd-zero-left}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matadd(a, zeromat(a, m, n), p) equals p}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, \operatorname{zeromat}(a, m, n), p) = p))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, \operatorname{zeromat}(a, m, n), p) = p))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matadd-zero-right}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matadd(a, p, zeromat(a, m, n)) equals p}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, \operatorname{zeromat}(a, m, n)) = p))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, \operatorname{zeromat}(a, m, n)) = p))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matadd-neg-left}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matadd(a, matneg(a, p), p) equals zeromat(a, m, n)}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, \operatorname{matneg}(a, p), p) = \operatorname{zeromat}(a, m, n)))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, \operatorname{matneg}(a, p), p) = \operatorname{zeromat}(a, m, n)))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matadd-neg-right}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matadd(a, p, matneg(a, p)) equals zeromat(a, m, n)}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, \operatorname{matneg}(a, p)) = \operatorname{zeromat}(a, m, n)))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, \operatorname{matneg}(a, p)) = \operatorname{zeromat}(a, m, n)))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matneg-type}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matneg(a, p) is in mat(m, n, carr(a))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matneg}(a, p) \in \operatorname{mat}(m, n, \operatorname{carr}(a))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matneg}(a, p) \in \operatorname{mat}(m, n, \operatorname{carr}(a))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matscale-type}}
 \emph{for every ring a, for every m, n, r, p, if r is in carr(a), then if p is in mat(m, n, carr(a)), then matscale(a, r, p) is in mat(m, n, carr(a))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, r \in \operatorname{carr}(a), p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matscale}(a, r, p) \in \operatorname{mat}(m, n, \operatorname{carr}(a))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall r \in \operatorname{carr}(a), p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matscale}(a, r, p) \in \operatorname{mat}(m, n, \operatorname{carr}(a))))
 \]}
 \noindent\textbf{Asserted}
 
@@ -681,49 +681,49 @@
 \subsubsection*{\texttt{matmul-type}}
 \emph{for every ring a, for every m, n, k, p, q, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if if n equals 0, then m equals 0 or k equals 0, then matmul(a, p, q) is in mat(m, k, carr(a))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, k, \operatorname{carr}(a)).\; (((n = 0) \Rightarrow ((m = 0) \vee (k = 0))) \Rightarrow (\operatorname{matmul}(a, p, q) \in \operatorname{mat}(m, k, \operatorname{carr}(a)))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, k, \operatorname{carr}(a)).\; (((n = 0) \Rightarrow ((m = 0) \vee (k = 0))) \Rightarrow (\operatorname{matmul}(a, p, q) \in \operatorname{mat}(m, k, \operatorname{carr}(a)))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matmul-entry}}
 \emph{for every ring a, for every m, n, k, p, q, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if 1 is at most n, then for every i in interval(1, m), c in interval(1, k), entry(matmul(a, p, q), i, c) equals finsum(ring-additive-ag(a), vnb-lambda(j, interval(1, n), (mul(a))(entry(p, i, j), entry(q, j, c))), interval(1, n))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, k, \operatorname{carr}(a)).\; ((1 \leq n) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, k).\; (\operatorname{entry}(\operatorname{matmul}(a, p, q), i, c) = \operatorname{finsum}(\operatorname{ring\text{-}additive\text{-}ag}(a), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, j, c))), \operatorname{interval}(1, n)))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, k, \operatorname{carr}(a)).\; ((1 \leq n) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, k).\; (\operatorname{entry}(\operatorname{matmul}(a, p, q), i, c) = \operatorname{finsum}(\operatorname{ring\text{-}additive\text{-}ag}(a), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, j, c))), \operatorname{interval}(1, n)))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matmul-assoc}}
 \emph{for every ring a, for every m, n, k, l, p, q, r, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if r is in mat(k, l, carr(a)), then if if n equals 0, then m equals 0 or k equals 0 and l equals 0, then if if k equals 0, then l equals 0 or n equals 0 and m equals 0, then matmul(a, matmul(a, p, q), r) equals matmul(a, p, matmul(a, q, r))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, l, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, k, \operatorname{carr}(a)), r \in \operatorname{mat}(k, l, \operatorname{carr}(a)).\; (((n = 0) \Rightarrow ((m = 0) \vee ((k = 0) \wedge (l = 0)))) \Rightarrow (((k = 0) \Rightarrow ((l = 0) \vee ((n = 0) \wedge (m = 0)))) \Rightarrow (\operatorname{matmul}(a, \operatorname{matmul}(a, p, q), r) = \operatorname{matmul}(a, p, \operatorname{matmul}(a, q, r))))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, l.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, k, \operatorname{carr}(a)), r \in \operatorname{mat}(k, l, \operatorname{carr}(a)).\; (((n = 0) \Rightarrow ((m = 0) \vee ((k = 0) \wedge (l = 0)))) \Rightarrow (((k = 0) \Rightarrow ((l = 0) \vee ((n = 0) \wedge (m = 0)))) \Rightarrow (\operatorname{matmul}(a, \operatorname{matmul}(a, p, q), r) = \operatorname{matmul}(a, p, \operatorname{matmul}(a, q, r))))))
 \]}
 \noindent\textbf{Asserted}. Both (PQ)R and P(QR) expand, via matmul-entry twice, to the same canonical double sum; finsum-fubini interchanges the two summation orders.
 
 \subsubsection*{\texttt{matmul-left-dist-guarded}}
 \emph{for every ring a, for every m, n, k, p, q, r, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if r is in mat(n, k, carr(a)), then if if n equals 0, then m equals 0 or k equals 0, then matmul(a, p, matadd(a, q, r)) equals matadd(a, matmul(a, p, q), matmul(a, p, r))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q, r \in \operatorname{mat}(n, k, \operatorname{carr}(a)).\; (((n = 0) \Rightarrow ((m = 0) \vee (k = 0))) \Rightarrow (\operatorname{matmul}(a, p, \operatorname{matadd}(a, q, r)) = \operatorname{matadd}(a, \operatorname{matmul}(a, p, q), \operatorname{matmul}(a, p, r)))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q, r \in \operatorname{mat}(n, k, \operatorname{carr}(a)).\; (((n = 0) \Rightarrow ((m = 0) \vee (k = 0))) \Rightarrow (\operatorname{matmul}(a, p, \operatorname{matadd}(a, q, r)) = \operatorname{matadd}(a, \operatorname{matmul}(a, p, q), \operatorname{matmul}(a, p, r)))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matmul-right-dist-guarded}}
 \emph{for every ring a, for every m, n, k, p, q, r, if p is in mat(m, n, carr(a)), then if q is in mat(m, n, carr(a)), then if r is in mat(n, k, carr(a)), then if if n equals 0, then m equals 0 or k equals 0, then matmul(a, matadd(a, p, q), r) equals matadd(a, matmul(a, p, r), matmul(a, q, r))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, p, q \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{mat}(n, k, \operatorname{carr}(a)).\; (((n = 0) \Rightarrow ((m = 0) \vee (k = 0))) \Rightarrow (\operatorname{matmul}(a, \operatorname{matadd}(a, p, q), r) = \operatorname{matadd}(a, \operatorname{matmul}(a, p, r), \operatorname{matmul}(a, q, r)))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k.; \forall p, q \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{mat}(n, k, \operatorname{carr}(a)).\; (((n = 0) \Rightarrow ((m = 0) \vee (k = 0))) \Rightarrow (\operatorname{matmul}(a, \operatorname{matadd}(a, p, q), r) = \operatorname{matadd}(a, \operatorname{matmul}(a, p, r), \operatorname{matmul}(a, q, r)))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matprod-summand-type}}
 \emph{for every ring a, for every m, n, kc, p, q, i, c, if p is in mat(m, n, carr(a)), then if q is in mat(n, kc, carr(a)), then if i is in interval(1, m), then if c is in interval(1, kc), then vnb-lambda(j, interval(1, n), (mul(a))(entry(p, i, j), entry(q, j, c))) is in fun(interval(1, n), carr(ring-additive-ag(a)))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, \mathit{kc}, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, \mathit{kc}, \operatorname{carr}(a)), i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, \mathit{kc}).\; ((\lambda j \in \operatorname{interval}(1, n).\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, j, c))) \in (\operatorname{interval}(1, n) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a)))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, \mathit{kc}.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, \mathit{kc}, \operatorname{carr}(a)), i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, \mathit{kc}).\; ((\lambda j \in \operatorname{interval}(1, n).\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, j, c))) \in (\operatorname{interval}(1, n) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a)))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matmul-assoc-summand-type}}
 \emph{for every ring a, for every m, n, k, l, p, q, r, row, col, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if r is in mat(k, l, carr(a)), then if row is in interval(1, m), then if col is in interval(1, l), then vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (mul(a))((mul(a))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(r, nth(1, z), col))) is in fun(cartesian(interval(1, k), interval(1, n)), carr(ring-additive-ag(a)))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, l, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, k, \operatorname{carr}(a)), r \in \operatorname{mat}(k, l, \operatorname{carr}(a)), \mathit{row} \in \operatorname{interval}(1, m), \mathit{col} \in \operatorname{interval}(1, l).\; ((\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{mul}(a)(\operatorname{mul}(a)(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(r, \operatorname{nth}(1, z), \mathit{col}))) \in ((\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a)))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, k, l.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), q \in \operatorname{mat}(n, k, \operatorname{carr}(a)), r \in \operatorname{mat}(k, l, \operatorname{carr}(a)), \mathit{row} \in \operatorname{interval}(1, m), \mathit{col} \in \operatorname{interval}(1, l).\; ((\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{mul}(a)(\operatorname{mul}(a)(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(r, \operatorname{nth}(1, z), \mathit{col}))) \in ((\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a)))))
 \]}
 \noindent\textbf{Asserted}
 
@@ -767,14 +767,14 @@
 \subsubsection*{\texttt{identmat-left-identity}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matmul(a, identmat(a, m), p) equals p}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matmul}(a, \operatorname{identmat}(a, m), p) = p))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matmul}(a, \operatorname{identmat}(a, m), p) = p))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{identmat-right-identity}}
 \emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matmul(a, p, identmat(a, n)) equals p}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matmul}(a, p, \operatorname{identmat}(a, n)) = p))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matmul}(a, p, \operatorname{identmat}(a, n)) = p))
 \]}
 \noindent\textbf{Asserted}
 
@@ -855,63 +855,63 @@
 \subsubsection*{\texttt{submat-type}}
 \emph{for every a, p, q, s, if p is in nn, then if q is in nn, then if s is in mat(succ(p), succ(q), carr(a)), then submat(s, p, q) is in mat(p, q, carr(a))}
 {\small\[
-\forall a, p, q \in \mathbb{N}, s \in \operatorname{mat}((p + 1), (q + 1), \operatorname{carr}(a)).\; (\operatorname{submat}(s, p, q) \in \operatorname{mat}(p, q, \operatorname{carr}(a)))
+\forall a.; \forall p, q \in \mathbb{N}, s \in \operatorname{mat}((p + 1), (q + 1), \operatorname{carr}(a)).\; (\operatorname{submat}(s, p, q) \in \operatorname{mat}(p, q, \operatorname{carr}(a)))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-submat}}
 \emph{for every s, p, q, i, j, x, if p is in nn, then if q is in nn, then if s is in mat(succ(p), succ(q), x), then if i is in interval(1, p), then if j is in interval(1, q), then entry(submat(s, p, q), i, j) equals entry(s, succ(i), succ(j))}
 {\small\[
-\forall s, p, q \in \mathbb{N}, i, j, x.\; ((s \in \operatorname{mat}((p + 1), (q + 1), x)) \Rightarrow ((i \in \operatorname{interval}(1, p)) \Rightarrow ((j \in \operatorname{interval}(1, q)) \Rightarrow (\operatorname{entry}(\operatorname{submat}(s, p, q), i, j) = \operatorname{entry}(s, (i + 1), (j + 1))))))
+\forall s.; \forall p, q \in \mathbb{N}, i, j, x.\; ((s \in \operatorname{mat}((p + 1), (q + 1), x)) \Rightarrow ((i \in \operatorname{interval}(1, p)) \Rightarrow ((j \in \operatorname{interval}(1, q)) \Rightarrow (\operatorname{entry}(\operatorname{submat}(s, p, q), i, j) = \operatorname{entry}(s, (i + 1), (j + 1))))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-block}}
 \emph{for every p, k, l, i, j, m, n, x, if k is in nn, then if l is in nn, then if p is in mat(m, n, x), then if k is at most m, then if l is at most n, then if i is in interval(1, k), then if j is in interval(1, l), then entry(block(p, k, l), i, j) equals entry(p, i, j)}
 {\small\[
-\forall p, k, l \in \mathbb{N}, i, j, m, n, x.\; ((p \in \operatorname{mat}(m, n, x)) \Rightarrow ((k \leq m) \Rightarrow ((l \leq n) \Rightarrow ((i \in \operatorname{interval}(1, k)) \Rightarrow ((j \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{block}(p, k, l), i, j) = \operatorname{entry}(p, i, j)))))))
+\forall p.; \forall k, l \in \mathbb{N}, i, j, m, n, x.\; ((p \in \operatorname{mat}(m, n, x)) \Rightarrow ((k \leq m) \Rightarrow ((l \leq n) \Rightarrow ((i \in \operatorname{interval}(1, k)) \Rightarrow ((j \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{block}(p, k, l), i, j) = \operatorname{entry}(p, i, j)))))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{snoc-col-type}}
 \emph{for every x, n, w, v, if n is in nn, then if w is in mat(n, 1, x), then if v is in x, then snoc-col(w, n, v) is in mat(succ(n), 1, x)}
 {\small\[
-\forall x, n \in \mathbb{N}, w \in \operatorname{mat}(n, 1, x), v \in x.\; (\operatorname{snoc\text{-}col}(w, n, v) \in \operatorname{mat}((n + 1), 1, x))
+\forall x.; \forall n \in \mathbb{N}, w \in \operatorname{mat}(n, 1, x), v \in x.\; (\operatorname{snoc\text{-}col}(w, n, v) \in \operatorname{mat}((n + 1), 1, x))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{snoc-col-last}}
 \emph{for every w, n, v, x, if n is in nn, then if w is in mat(n, 1, x), then if v is in x, then entry(snoc-col(w, n, v), succ(n), 1) equals v}
 {\small\[
-\forall w, n \in \mathbb{N}, v, x.\; ((w \in \operatorname{mat}(n, 1, x)) \Rightarrow ((v \in x) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}col}(w, n, v), (n + 1), 1) = v)))
+\forall w.; \forall n \in \mathbb{N}, v, x.\; ((w \in \operatorname{mat}(n, 1, x)) \Rightarrow ((v \in x) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}col}(w, n, v), (n + 1), 1) = v)))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-snoc-col}}
 \emph{for every w, n, v, i, x, if n is in nn, then if w is in mat(n, 1, x), then if v is in x, then if i is in interval(1, n), then entry(snoc-col(w, n, v), i, 1) equals entry(w, i, 1)}
 {\small\[
-\forall w, n \in \mathbb{N}, v, i, x.\; ((w \in \operatorname{mat}(n, 1, x)) \Rightarrow ((v \in x) \Rightarrow ((i \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}col}(w, n, v), i, 1) = \operatorname{entry}(w, i, 1)))))
+\forall w.; \forall n \in \mathbb{N}, v, i, x.\; ((w \in \operatorname{mat}(n, 1, x)) \Rightarrow ((v \in x) \Rightarrow ((i \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}col}(w, n, v), i, 1) = \operatorname{entry}(w, i, 1)))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{snoc-row-type}}
 \emph{for every x, n, c, r, if n is in nn, then if c is in mat(1, n, x), then if r is in x, then snoc-row(c, n, r) is in mat(1, succ(n), x)}
 {\small\[
-\forall x, n \in \mathbb{N}, c \in \operatorname{mat}(1, n, x), r \in x.\; (\operatorname{snoc\text{-}row}(c, n, r) \in \operatorname{mat}(1, (n + 1), x))
+\forall x.; \forall n \in \mathbb{N}, c \in \operatorname{mat}(1, n, x), r \in x.\; (\operatorname{snoc\text{-}row}(c, n, r) \in \operatorname{mat}(1, (n + 1), x))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{snoc-row-last}}
 \emph{for every c, n, r, x, if n is in nn, then if c is in mat(1, n, x), then if r is in x, then entry(snoc-row(c, n, r), 1, succ(n)) equals r}
 {\small\[
-\forall c, n \in \mathbb{N}, r, x.\; ((c \in \operatorname{mat}(1, n, x)) \Rightarrow ((r \in x) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}row}(c, n, r), 1, (n + 1)) = r)))
+\forall c.; \forall n \in \mathbb{N}, r, x.\; ((c \in \operatorname{mat}(1, n, x)) \Rightarrow ((r \in x) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}row}(c, n, r), 1, (n + 1)) = r)))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{entry-of-snoc-row}}
 \emph{for every c, n, r, j, x, if n is in nn, then if c is in mat(1, n, x), then if r is in x, then if j is in interval(1, n), then entry(snoc-row(c, n, r), 1, j) equals entry(c, 1, j)}
 {\small\[
-\forall c, n \in \mathbb{N}, r, j, x.\; ((c \in \operatorname{mat}(1, n, x)) \Rightarrow ((r \in x) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}row}(c, n, r), 1, j) = \operatorname{entry}(c, 1, j)))))
+\forall c.; \forall n \in \mathbb{N}, r, j, x.\; ((c \in \operatorname{mat}(1, n, x)) \Rightarrow ((r \in x) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}row}(c, n, r), 1, j) = \operatorname{entry}(c, 1, j)))))
 \]}
 \noindent\textbf{Asserted}
 
@@ -948,14 +948,14 @@
 \subsubsection*{\texttt{matunit-summand-type}}
 \emph{for every ring a, for every m, n, p, k, l, i, c, if p is in mat(m, n, carr(a)), then if i is in interval(1, m), then if c is in interval(1, n), then vnb-lambda(j, interval(1, n), (mul(a))(entry(p, i, j), entry(matunit(a, n, k, l), j, c))) is in fun(interval(1, n), carr(ring-additive-ag(a)))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), k, l, i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; ((\lambda j \in \operatorname{interval}(1, n).\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(\operatorname{matunit}(a, n, k, l), j, c))) \in (\operatorname{interval}(1, n) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a)))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), k, l.; \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; ((\lambda j \in \operatorname{interval}(1, n).\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(\operatorname{matunit}(a, n, k, l), j, c))) \in (\operatorname{interval}(1, n) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a)))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matunit-col-shift}}
 \emph{for every ring a, for every m, n, p, k, l, if p is in mat(m, n, carr(a)), then if k is in interval(1, n), then if l is in interval(1, n), then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, p, matunit(a, n, k, l)), i, c) equals if(c = l, entry(p, i, k), zero(a))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), k, l \in \operatorname{interval}(1, n).\; \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{matunit}(a, n, k, l)), i, c) = \left(\text{if }(c = l)\text{ then }\operatorname{entry}(p, i, k)\text{ else }\operatorname{zero}(a)\right)))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), k, l \in \operatorname{interval}(1, n).\; \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{matunit}(a, n, k, l)), i, c) = \left(\text{if }(c = l)\text{ then }\operatorname{entry}(p, i, k)\text{ else }\operatorname{zero}(a)\right)))
 \]}
 \noindent\textbf{Asserted}. matmul-entry expands (P.E[k,l])\_\{ic\} to FINSUM\_j P\_\{ij\}.E[k,l]\_\{jc\}; off the index k the summand vanishes, so finsum-single-support collapses the sum, and an excluded-middle split on c=l finishes.
 
@@ -985,21 +985,21 @@
 \subsubsection*{\texttt{elem-f-action}}
 \emph{for every ring a, for every m, n, p, k, l, if p is in mat(m, n, carr(a)), then if k is in interval(1, n), then if l is in interval(1, n), then if k is not equal to l, then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, p, elem-f(a, n, k, l)), i, c) equals if(c = k, entry(p, i, l), if(c = l, entry(p, i, k), entry(p, i, c)))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), k, l \in \operatorname{interval}(1, n).\; (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{elem\text{-}f}(a, n, k, l)), i, c) = \left(\text{if }(c = k)\text{ then }\operatorname{entry}(p, i, l)\text{ else }\left(\text{if }(c = l)\text{ then }\operatorname{entry}(p, i, k)\text{ else }\operatorname{entry}(p, i, c)\right)\right))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), k, l \in \operatorname{interval}(1, n).\; (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{elem\text{-}f}(a, n, k, l)), i, c) = \left(\text{if }(c = k)\text{ then }\operatorname{entry}(p, i, l)\text{ else }\left(\text{if }(c = l)\text{ then }\operatorname{entry}(p, i, k)\text{ else }\operatorname{entry}(p, i, c)\right)\right))))
 \]}
 \noindent\textbf{Asserted}. Right-multiplication by F[k,l] permutes columns k and l: a three-way column split, each branch a single-support finsum collapse of the transposition matrix.
 
 \subsubsection*{\texttt{elem-g-action}}
 \emph{for every ring a, for every m, n, p, r, k, l, if p is in mat(m, n, carr(a)), then if r is in carr(a), then if k is in interval(1, n), then if l is in interval(1, n), then if k is not equal to l, then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, p, elem-g(a, n, r, k, l)), i, c) equals if(c = l, (add(a))(entry(p, i, l), (mul(a))(entry(p, i, k), r)), entry(p, i, c))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{carr}(a), k, l \in \operatorname{interval}(1, n).\; (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{elem\text{-}g}(a, n, r, k, l)), i, c) = \left(\text{if }(c = l)\text{ then }\operatorname{add}(a)(\operatorname{entry}(p, i, l), \operatorname{mul}(a)(\operatorname{entry}(p, i, k), r))\text{ else }\operatorname{entry}(p, i, c)\right))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{carr}(a), k, l \in \operatorname{interval}(1, n).\; (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{elem\text{-}g}(a, n, r, k, l)), i, c) = \left(\text{if }(c = l)\text{ then }\operatorname{add}(a)(\operatorname{entry}(p, i, l), \operatorname{mul}(a)(\operatorname{entry}(p, i, k), r))\text{ else }\operatorname{entry}(p, i, c)\right))))
 \]}
 \noindent\textbf{Asserted}. The l-column of G = I + r.E[k,l] has TWO supports (the diagonal l and the r-slot k), so a two-point finsum split gives P\_\{il\} + P\_\{ik\}.r; every other column is a single-support identity column.
 
 \subsubsection*{\texttt{elem-h-action}}
 \emph{for every ring a, for every m, n, p, r, k, if p is in mat(m, n, carr(a)), then if r is in carr(a), then if k is in interval(1, n), then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, p, elem-h(a, n, r, k)), i, c) equals if(c = k, (mul(a))(entry(p, i, k), r), entry(p, i, c))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{carr}(a), k \in \operatorname{interval}(1, n).\; \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{elem\text{-}h}(a, n, r, k)), i, c) = \left(\text{if }(c = k)\text{ then }\operatorname{mul}(a)(\operatorname{entry}(p, i, k), r)\text{ else }\operatorname{entry}(p, i, c)\right)))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{carr}(a), k \in \operatorname{interval}(1, n).\; \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{elem\text{-}h}(a, n, r, k)), i, c) = \left(\text{if }(c = k)\text{ then }\operatorname{mul}(a)(\operatorname{entry}(p, i, k), r)\text{ else }\operatorname{entry}(p, i, c)\right)))
 \]}
 \noindent\textbf{Asserted}. H[r,k] scales column k by r: a single-support finsum collapse at the diagonal, then a case split on c=k.
 
@@ -1029,21 +1029,21 @@
 \subsubsection*{\texttt{elem-f-row-action}}
 \emph{for every ring a, for every m, n, p, k, l, if p is in mat(m, n, carr(a)), then if k is in interval(1, m), then if l is in interval(1, m), then if k is not equal to l, then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, elem-f(a, m, k, l), p), i, c) equals if(i = k, entry(p, l, c), if(i = l, entry(p, k, c), entry(p, i, c)))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), k, l \in \operatorname{interval}(1, m).\; (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, \operatorname{elem\text{-}f}(a, m, k, l), p), i, c) = \left(\text{if }(i = k)\text{ then }\operatorname{entry}(p, l, c)\text{ else }\left(\text{if }(i = l)\text{ then }\operatorname{entry}(p, k, c)\text{ else }\operatorname{entry}(p, i, c)\right)\right))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), k, l \in \operatorname{interval}(1, m).\; (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, \operatorname{elem\text{-}f}(a, m, k, l), p), i, c) = \left(\text{if }(i = k)\text{ then }\operatorname{entry}(p, l, c)\text{ else }\left(\text{if }(i = l)\text{ then }\operatorname{entry}(p, k, c)\text{ else }\operatorname{entry}(p, i, c)\right)\right))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{elem-g-row-action}}
 \emph{for every ring a, for every m, n, p, r, k, l, if p is in mat(m, n, carr(a)), then if r is in carr(a), then if k is in interval(1, m), then if l is in interval(1, m), then if k is not equal to l, then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, elem-g(a, m, r, k, l), p), i, c) equals if(i = k, (add(a))(entry(p, k, c), (mul(a))(r, entry(p, l, c))), entry(p, i, c))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{carr}(a), k, l \in \operatorname{interval}(1, m).\; (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, \operatorname{elem\text{-}g}(a, m, r, k, l), p), i, c) = \left(\text{if }(i = k)\text{ then }\operatorname{add}(a)(\operatorname{entry}(p, k, c), \operatorname{mul}(a)(r, \operatorname{entry}(p, l, c)))\text{ else }\operatorname{entry}(p, i, c)\right))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{carr}(a), k, l \in \operatorname{interval}(1, m).\; (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, \operatorname{elem\text{-}g}(a, m, r, k, l), p), i, c) = \left(\text{if }(i = k)\text{ then }\operatorname{add}(a)(\operatorname{entry}(p, k, c), \operatorname{mul}(a)(r, \operatorname{entry}(p, l, c)))\text{ else }\operatorname{entry}(p, i, c)\right))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{elem-h-row-action}}
 \emph{for every ring a, for every m, n, p, r, k, if p is in mat(m, n, carr(a)), then if r is in carr(a), then if k is in interval(1, m), then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, elem-h(a, m, r, k), p), i, c) equals if(i = k, (mul(a))(r, entry(p, k, c)), entry(p, i, c))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{carr}(a), k \in \operatorname{interval}(1, m).\; \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, \operatorname{elem\text{-}h}(a, m, r, k), p), i, c) = \left(\text{if }(i = k)\text{ then }\operatorname{mul}(a)(r, \operatorname{entry}(p, k, c))\text{ else }\operatorname{entry}(p, i, c)\right)))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)), r \in \operatorname{carr}(a), k \in \operatorname{interval}(1, m).\; \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, \operatorname{elem\text{-}h}(a, m, r, k), p), i, c) = \left(\text{if }(i = k)\text{ then }\operatorname{mul}(a)(r, \operatorname{entry}(p, k, c))\text{ else }\operatorname{entry}(p, i, c)\right)))
 \]}
 \noindent\textbf{Asserted}
 
@@ -1096,35 +1096,35 @@
 \subsubsection*{\texttt{mat-equiv-refl}}
 \emph{for every ring a, for every m, n, c in mat(m, n, carr(a)), c and c are equivalent m-by-n matrices over a}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, c \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; \operatorname{mat\text{-}equiv}(a, m, n, c, c))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall c \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; \operatorname{mat\text{-}equiv}(a, m, n, c, c))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-equiv-trans}}
 \emph{for every ring a, for every m, n, c, d, e, if c is in mat(m, n, carr(a)), then if c and d are equivalent m-by-n matrices over a, then if d and e are equivalent m-by-n matrices over a, then c and e are equivalent m-by-n matrices over a}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, c \in \operatorname{mat}(m, n, \operatorname{carr}(a)), d, e.\; (\operatorname{mat\text{-}equiv}(a, m, n, c, d) \Rightarrow (\operatorname{mat\text{-}equiv}(a, m, n, d, e) \Rightarrow \operatorname{mat\text{-}equiv}(a, m, n, c, e))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall c \in \operatorname{mat}(m, n, \operatorname{carr}(a)), d, e.\; (\operatorname{mat\text{-}equiv}(a, m, n, c, d) \Rightarrow (\operatorname{mat\text{-}equiv}(a, m, n, d, e) \Rightarrow \operatorname{mat\text{-}equiv}(a, m, n, c, e))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-equiv-left-mult}}
 \emph{for every ring a, for every m, n, c, u, if c is in mat(m, n, carr(a)), then if u is an invertible m-by-m matrix over a, then c and matmul(a, u, c) are equivalent m-by-n matrices over a}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, c \in \operatorname{mat}(m, n, \operatorname{carr}(a)), u.\; (\operatorname{is\text{-}invertible\text{-}mat}(a, m, u) \Rightarrow \operatorname{mat\text{-}equiv}(a, m, n, c, \operatorname{matmul}(a, u, c))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall c \in \operatorname{mat}(m, n, \operatorname{carr}(a)), u.\; (\operatorname{is\text{-}invertible\text{-}mat}(a, m, u) \Rightarrow \operatorname{mat\text{-}equiv}(a, m, n, c, \operatorname{matmul}(a, u, c))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-equiv-right-mult}}
 \emph{for every ring a, for every m, n, c, v, if c is in mat(m, n, carr(a)), then if v is an invertible n-by-n matrix over a, then c and matmul(a, c, v) are equivalent m-by-n matrices over a}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, c \in \operatorname{mat}(m, n, \operatorname{carr}(a)), v.\; (\operatorname{is\text{-}invertible\text{-}mat}(a, n, v) \Rightarrow \operatorname{mat\text{-}equiv}(a, m, n, c, \operatorname{matmul}(a, c, v))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall c \in \operatorname{mat}(m, n, \operatorname{carr}(a)), v.\; (\operatorname{is\text{-}invertible\text{-}mat}(a, n, v) \Rightarrow \operatorname{mat\text{-}equiv}(a, m, n, c, \operatorname{matmul}(a, c, v))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{mat-equiv-target-is-mat}}
 \emph{for every ring a, for every m, n, c, d, if c is in mat(m, n, carr(a)), then if c and d are equivalent m-by-n matrices over a, then d is in mat(m, n, carr(a))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n, c \in \operatorname{mat}(m, n, \operatorname{carr}(a)), d.\; (\operatorname{mat\text{-}equiv}(a, m, n, c, d) \Rightarrow (d \in \operatorname{mat}(m, n, \operatorname{carr}(a)))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m, n.; \forall c \in \operatorname{mat}(m, n, \operatorname{carr}(a)), d.\; (\operatorname{mat\text{-}equiv}(a, m, n, c, d) \Rightarrow (d \in \operatorname{mat}(m, n, \operatorname{carr}(a)))))
 \]}
 \noindent\textbf{Asserted}
 
@@ -1133,42 +1133,42 @@
 \subsubsection*{\texttt{matact-type}}
 \emph{for every module md, for every m, n, q, p, u, if p is in mat(m, n, carr(scal(md))), then if u is in mat(n, q, vec(md)), then if if n equals 0, then m equals 0 or q equals 0, then matact(md, p, u) is in mat(m, q, vec(md))}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, q, p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md})).\; (((n = 0) \Rightarrow ((m = 0) \vee (q = 0))) \Rightarrow (\operatorname{matact}(\mathit{md}, p, u) \in \operatorname{mat}(m, q, \operatorname{vec}(\mathit{md})))))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, q.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md})).\; (((n = 0) \Rightarrow ((m = 0) \vee (q = 0))) \Rightarrow (\operatorname{matact}(\mathit{md}, p, u) \in \operatorname{mat}(m, q, \operatorname{vec}(\mathit{md})))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matact-entry}}
 \emph{for every module md, for every m, n, q, p, u, if p is in mat(m, n, carr(scal(md))), then if u is in mat(n, q, vec(md)), then if 1 is at most n, then for every i in interval(1, m), c in interval(1, q), entry(matact(md, p, u), i, c) equals finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, n))}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, q, p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md})).\; ((1 \leq n) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, q).\; (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, u), i, c) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{act}(\mathit{md})(\operatorname{entry}(p, i, j), \operatorname{entry}(u, j, c))), \operatorname{interval}(1, n)))))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, q.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md})).\; ((1 \leq n) \Rightarrow \forall i \in \operatorname{interval}(1, m), c \in \operatorname{interval}(1, q).\; (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, u), i, c) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{act}(\mathit{md})(\operatorname{entry}(p, i, j), \operatorname{entry}(u, j, c))), \operatorname{interval}(1, n)))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matact-identmat}}
 \emph{for every module md, for every n, q, u in mat(n, q, vec(md)), matact(md, identmat(scal(md), n), u) equals u}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, q, u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md})).\; (\operatorname{matact}(\mathit{md}, \operatorname{identmat}(\operatorname{scal}(\mathit{md}), n), u) = u))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, q.; \forall u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md})).\; (\operatorname{matact}(\mathit{md}, \operatorname{identmat}(\operatorname{scal}(\mathit{md}), n), u) = u))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matact-assoc}}
 \emph{for every module md, for every m, n, k, l, p, q, u, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if if n equals 0, then m equals 0 or k equals 0 and l equals 0, then if if k equals 0, then l equals 0 or n equals 0 and m equals 0, then matact(md, matmul(scal(md), p, q), u) equals matact(md, p, matact(md, q, u))}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, k, l, p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md})).\; (((n = 0) \Rightarrow ((m = 0) \vee ((k = 0) \wedge (l = 0)))) \Rightarrow (((k = 0) \Rightarrow ((l = 0) \vee ((n = 0) \wedge (m = 0)))) \Rightarrow (\operatorname{matact}(\mathit{md}, \operatorname{matmul}(\operatorname{scal}(\mathit{md}), p, q), u) = \operatorname{matact}(\mathit{md}, p, \operatorname{matact}(\mathit{md}, q, u))))))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, k, l.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md})).\; (((n = 0) \Rightarrow ((m = 0) \vee ((k = 0) \wedge (l = 0)))) \Rightarrow (((k = 0) \Rightarrow ((l = 0) \vee ((n = 0) \wedge (m = 0)))) \Rightarrow (\operatorname{matact}(\mathit{md}, \operatorname{matmul}(\operatorname{scal}(\mathit{md}), p, q), u) = \operatorname{matact}(\mathit{md}, p, \operatorname{matact}(\mathit{md}, q, u))))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{lincomb-row-add}}
 \emph{for every module md, for every n, c1, c2, u, if c1 is in mat(1, n, carr(scal(md))), then if c2 is in mat(1, n, carr(scal(md))), then if u is in mat(n, 1, vec(md)), then lincomb(md, n, matadd(scal(md), c1, c2), u) equals (vadd(md))(lincomb(md, n, c1, u), lincomb(md, n, c2, u))}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, c_{1}, c_{2} \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, \operatorname{matadd}(\operatorname{scal}(\mathit{md}), c_{1}, c_{2}), u) = \operatorname{vadd}(\mathit{md})(\operatorname{lincomb}(\mathit{md}, n, c_{1}, u), \operatorname{lincomb}(\mathit{md}, n, c_{2}, u))))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n.; \forall c_{1}, c_{2} \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, \operatorname{matadd}(\operatorname{scal}(\mathit{md}), c_{1}, c_{2}), u) = \operatorname{vadd}(\mathit{md})(\operatorname{lincomb}(\mathit{md}, n, c_{1}, u), \operatorname{lincomb}(\mathit{md}, n, c_{2}, u))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{lincomb-row-scale}}
 \emph{for every module md, for every n, r, c, u, if r is in carr(scal(md)), then if c is in mat(1, n, carr(scal(md))), then if u is in mat(n, 1, vec(md)), then lincomb(md, n, matscale(scal(md), r, c), u) equals (act(md))(r, lincomb(md, n, c, u))}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, r \in \operatorname{carr}(\operatorname{scal}(\mathit{md})), c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, \operatorname{matscale}(\operatorname{scal}(\mathit{md}), r, c), u) = \operatorname{act}(\mathit{md})(r, \operatorname{lincomb}(\mathit{md}, n, c, u))))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n.; \forall r \in \operatorname{carr}(\operatorname{scal}(\mathit{md})), c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, \operatorname{matscale}(\operatorname{scal}(\mathit{md}), r, c), u) = \operatorname{act}(\mathit{md})(r, \operatorname{lincomb}(\mathit{md}, n, c, u))))
 \]}
 \noindent\textbf{Asserted}
 
@@ -1189,14 +1189,14 @@
 \subsubsection*{\texttt{lincomb-unitrow}}
 \emph{for every module md, for every n, i, u in mat(n, 1, vec(md)), if i is in interval(1, n), then lincomb(md, n, unitrow(scal(md), n, i), u) equals entry(u, i, 1)}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, i \in \operatorname{interval}(1, n), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, \operatorname{unitrow}(\operatorname{scal}(\mathit{md}), n, i), u) = \operatorname{entry}(u, i, 1)))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n.; \forall i \in \operatorname{interval}(1, n), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, \operatorname{unitrow}(\operatorname{scal}(\mathit{md}), n, i), u) = \operatorname{entry}(u, i, 1)))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{lincomb-zerorow}}
 \emph{for every module md, for every n, u in mat(n, 1, vec(md)), lincomb(md, n, zeromat(scal(md), 1, n), u) equals vzero(md)}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, \operatorname{zeromat}(\operatorname{scal}(\mathit{md}), 1, n), u) = \operatorname{vzero}(\mathit{md})))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n.; \forall u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, \operatorname{zeromat}(\operatorname{scal}(\mathit{md}), 1, n), u) = \operatorname{vzero}(\mathit{md})))
 \]}
 \noindent\textbf{Asserted}
 
@@ -1217,28 +1217,28 @@
 \subsubsection*{\texttt{lincomb-type}}
 \emph{for every module md, for every n, c, u, if c is in mat(1, n, carr(scal(md))), then if u is in mat(n, 1, vec(md)), then lincomb(md, n, c, u) is in vec(md)}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, c, u) \in \operatorname{vec}(\mathit{md})))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n.; \forall c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{lincomb}(\mathit{md}, n, c, u) \in \operatorname{vec}(\mathit{md})))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matact-lincomb}}
 \emph{for every module md, for every n, c, u, if c is in mat(1, n, carr(scal(md))), then if u is in mat(n, 1, vec(md)), then if 1 is at most n, then entry(matact(md, c, u), 1, 1) equals lincomb(md, n, c, u)}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n, c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; ((1 \leq n) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, c, u), 1, 1) = \operatorname{lincomb}(\mathit{md}, n, c, u))))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n.; \forall c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; ((1 \leq n) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, c, u), 1, 1) = \operatorname{lincomb}(\mathit{md}, n, c, u))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matact-triple-left}}
 \emph{for every module md, for every m, n, k, l, p, q, u, row, col, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if 1 is at most n, then if 1 is at most k, then if row is in interval(1, m), then if col is in interval(1, l), then entry(matact(md, matmul(scal(md), p, q), u), row, col) equals finsum(module-vector-ag(md), vnb-lambda(c, interval(1, k), finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, n))), interval(1, k))}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, k, l, p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md})), \mathit{row}, \mathit{col}.\; ((1 \leq n) \Rightarrow ((1 \leq k) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{matmul}(\operatorname{scal}(\mathit{md}), p, q), u), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c \in \operatorname{interval}(1, k).\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; (\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))(\langle c, j \rangle)), \operatorname{interval}(1, n))), \operatorname{interval}(1, k))))))))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, k, l.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md})), \mathit{row}, \mathit{col}.\; ((1 \leq n) \Rightarrow ((1 \leq k) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{matmul}(\operatorname{scal}(\mathit{md}), p, q), u), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c \in \operatorname{interval}(1, k).\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; (\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))(\langle c, j \rangle)), \operatorname{interval}(1, n))), \operatorname{interval}(1, k))))))))
 \]}
 \noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{matact-triple-right}}
 \emph{for every module md, for every m, n, k, l, p, q, u, row, col, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if 1 is at most n, then if 1 is at most k, then if row is in interval(1, m), then if col is in interval(1, l), then entry(matact(md, p, matact(md, q, u)), row, col) equals finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), finsum(module-vector-ag(md), vnb-lambda(c, interval(1, k), (vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, k))), interval(1, n))}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, k, l, p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md})), \mathit{row}, \mathit{col}.\; ((1 \leq n) \Rightarrow ((1 \leq k) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, \operatorname{matact}(\mathit{md}, q, u)), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c \in \operatorname{interval}(1, k).\; (\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))(\langle c, j \rangle)), \operatorname{interval}(1, k))), \operatorname{interval}(1, n))))))))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, k, l.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md})), \mathit{row}, \mathit{col}.\; ((1 \leq n) \Rightarrow ((1 \leq k) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, \operatorname{matact}(\mathit{md}, q, u)), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c \in \operatorname{interval}(1, k).\; (\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))(\langle c, j \rangle)), \operatorname{interval}(1, k))), \operatorname{interval}(1, n))))))))
 \]}
 \noindent\textbf{Asserted}
 

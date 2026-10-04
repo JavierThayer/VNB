@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-594 operators: 3 functions, 11 syntax, 347 functoids, 230 predicates, 3 undeclared.
+597 operators: 3 functions, 11 syntax, 350 functoids, 230 predicates, 3 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (347)
+## Functoids  (350)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -269,6 +269,18 @@ Declared by: `cc-of-pair-def`
 ### `choose-set`  — def-functoid · set-valued
 
     choose-set(n, m) := {a in power(ord-segment(n)): card(a) = m}
+
+### `circle-deriv`  — def-functoid · function-valued
+
+> _Reads as:_  the derivative of the circle of centre wnc_ and radius wnr_
+
+    circle-deriv(wnc_, wnr_) := vnb-lambda(wnt_, ccint(0, 2 * pi), 1i * (wnr_ * cc-exp(1i * wnt_)))
+
+### `circle-path`  — def-functoid · function-valued
+
+> _Reads as:_  the circle of centre wnc_ and radius wnr_
+
+    circle-path(wnc_, wnr_) := vnb-lambda(wnt_, ccint(0, 2 * pi), wnc_ + wnr_ * cc-exp(1i * wnt_))
 
 ### `clamp`  — def-functoid · element/number-valued
 
@@ -1613,6 +1625,12 @@ Declared by: `taylor-poly-v-zero` `taylor-poly-v-succ`
 ### `vzero`  — structure accessor · element (slot value)
 
 > _Reads as:_  the zero vector of s
+
+### `winding`  — def-functoid · element/number-valued
+
+> _Reads as:_  the winding number about wnz_ of the road wnp_ with derivative wnd_ on [wna_, wnb_]
+
+    winding(wnp_, wnd_, wna_, wnb_, wnz_) := recip((2 * pi) * 1i) * line-int(vnb-lambda(wnw_, difference(cc, singleton(wnz_)), recip(wnw_ - wnz_)), wnp_, wnd_, wna_, wnb_)
 
 ### `zen`  — recursively defined (def-by-nn-recursion)
 

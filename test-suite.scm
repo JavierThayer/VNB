@@ -13793,6 +13793,29 @@
                               '(<= (* xq_ (* xq_ xq_)) 1))
                     (proof-done? *ps*))))))))
 
+;; dk-ass! (2026-10-04): `ass' only when the goal is an assumption; no warning when it
+;; is not.  The closer that replaces (lambda () (ass)) in dk-conj-close! and friends
+;; (68 "assumption: goal not in context" lines in one load log).
+(check-true "dk-ass!: closes a goal that is an assumption (up to alpha) and returns #t"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(IMPLIES (FORALL q (IN q NN)) (FORALL w (IN w NN)))))
+      (di)))
+    (and (eq? (dk-ass!) #t) (proof-done? *ps*))))
+
+(check-true "dk-ass! CONTROL: on a goal not in context it returns #f, leaves the goal open and prints NO warning (bare ass warns)"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(IMPLIES (IN 0 NN) (IN 1 NN))))
+      (di)))
+    (let* ((out1 (with-output-to-string (lambda () (fluid-let ((*vnb-quiet* #f)) (dk-ass!)))))
+           (still-open (not (proof-done? *ps*)))
+           (out2 (with-output-to-string (lambda () (fluid-let ((*vnb-quiet* #f)) (ass))))))
+      (and still-open
+           (not (string-search-forward "goal not in context" out1 0))
+           (string-search-forward "goal not in context" out2 0)
+           #t))))
+
 (check-error "dk-name! errors on a term not typed in context"
   (lambda ()
     (quietly (lambda ()

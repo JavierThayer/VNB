@@ -6,6 +6,11 @@ interface in GNU Emacs and reference documentation in a web view.  The logical
 framework is von Neumann-Bernays set theory, with a large stock of ready-made
 constructors.
 
+**Where things are:** `MAP.md` lists every source file by role (kernel, surface,
+tactics, vocabulary, output, ledger, build; the structure library by theory), as
+links; it is the grouped view `~/vnb` of the tarball, rendered for the flat
+directory a repository shows.
+
 ## Requirements
 
 * **MIT/GNU Scheme 12.1** -- required.
