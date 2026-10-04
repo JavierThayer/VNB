@@ -86,7 +86,6 @@ changed the proof, to close the definedness sequents an instantiation left owed.
 | `oi-r` | `or-intro-right` |
 | `orelse` | none |
 | `pbc` | `proof-by-contradiction` |
-| `preamble` | `cut` [r] |
 | `prep` | none |
 | `prop` | `and-elim` `and-intro` `arith-forsome` `arith-ground` `arith-simplify` `assumption` `cartesian-decompose` `cut` `detach` `eq-subst` `forall-elim` `forall-intro` `forsome-elim` `iff-elim` `iff-intro` `implies-intro` `macete` `not-elim` `not-intro` `or-elim` `or-intro-left` `or-intro-right` `proof-by-contradiction` `theorem-assumption` `tuple-equality-decompose` |
 | `push-not-h` | `and-elim` `and-intro` `arith-forsome` `arith-ground` `arith-simplify` `assumption` `cartesian-decompose` `cut` `detach` `eq-subst` `forall-elim` `forall-intro` `forsome-elim` `forsome-intro` `iff-elim` `iff-intro` `implies-intro` `macete` `not-elim` `not-intro` `or-elim` `or-intro-left` `or-intro-right` `proof-by-contradiction` `theorem-assumption` `tuple-equality-decompose` |
@@ -126,5 +125,4 @@ changed the proof, to close the definedness sequents an instantiation left owed.
 | `vlet` | `and-elim` `cut` `forsome-elim` `iff-elim` `not-elim` `or-elim` |
 | `wbc` | `and-elim` `arith-forsome` `arith-ground` `arith-simplify` `cut` `detach` `forall-elim` `forsome-elim` `iff-elim` `not-elim` `or-elim` `theorem-assumption` |
 | `wk` | `weakening` |
-| `zero-it` | `comm-ring-simplify` `cut` `eq-subst` [r] |
 

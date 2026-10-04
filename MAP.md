@@ -6,6 +6,10 @@ repository.  `structure-library/` (definitions, structures, vocabulary) and
 `theorem-library/` (proofs) keep their own directories; the groups below sort
 the files at the root and the structure library by theory.
 
+## structure-library: _unfiled
+
+- [simple-integral.scm](structure-library/simple-integral.scm)
+
 ## structure-library: algebra
 
 - [abelian-group.scm](structure-library/abelian-group.scm)
