@@ -215,7 +215,7 @@ definition:
 {y in pts(s): (dist(s))(c, y) <= r and not((dist(s))(c, y) = r)}
 ```
 
-characterized by `ball-is-set`  *(certified)*:
+characterized by `ball-is-set`  *(proven)*:
 
 ```
 forall([s], is-metric-space(s) implies forall([x, r], ball(s, x, r) in set))
@@ -233,7 +233,7 @@ definition:
 image(vnb-lambda(c, pts(s), ball(s, c, r)), pts(s))
 ```
 
-characterized by `ball-cover-unfold`  *(certified)*:
+characterized by `ball-cover-unfold`  *(proven)*:
 
 ```
 forall([s, r], ball-cover(s, r) == image(vnb-lambda(c, pts(s), ball(s, c, r)), pts(s)))
@@ -263,7 +263,7 @@ definition:
 [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), (/)((dist(s))(u, v), 1 + (dist(s))(u, v)))]
 ```
 
-characterized by `bdd-metric-bounded`  *(certified)*:
+characterized by `bdd-metric-bounded`  *(proven)*:
 
 ```
 forall([s], is-metric-space(s) implies forall([x in pts(s), y in pts(s)], (dist(bdd-metric(s)))(x, y) < 1))
@@ -283,7 +283,7 @@ definition:
 comb-kk(normed-field-as-commutative-ring(rr-normed-field), x, 1 - x, n)
 ```
 
-characterized by `bernstein-basis-null`  *(certified)*:
+characterized by `bernstein-basis-null`  *(proven)*:
 
 ```
 forall([n_, x_, k_], n_ in nn implies x_ in rr implies k_ in zz implies k_ < 0 implies (bernstein-basis(n_, x_))(k_) = 0)
@@ -303,7 +303,7 @@ definition:
 series-partial-sum(vnb-lambda(l_, nn, f((/)(l_, n)) * (bernstein-basis(n, x))(l_)), succ(n))
 ```
 
-characterized by `bernstein-poly-antiderivable`  *(certified)*:
+characterized by `bernstein-poly-antiderivable`  *(proven)*:
 
 ```
 forall([f, n_, a, b], f in fun(rr, rr) implies n_ in nn implies not(n_ = 0) implies a in rr and b in rr and a < b implies is-antiderivable(vnb-lambda(x, rr, bernstein-poly(f, n_, x)), a, b))
@@ -323,7 +323,7 @@ declared in `tactics-help.scm`
 
 a term-forming head
 
-characterized by `big-union-mono`  *(certified)*:
+characterized by `big-union-mono`  *(proven)*:
 
 ```
 forall([a_, b_], a_ subset b_ implies big-union(u_, a_, u_) subset big-union(u_, b_, u_))
@@ -391,7 +391,7 @@ definition:
 matof(k, l, vnb-lambda([i, j], cartesian(interval(1, k), interval(1, l)), entry(p, i, j)))
 ```
 
-characterized by `block-type`  *(certified)*:
+characterized by `block-type`  *(proven)*:
 
 ```
 forall([m, n, x, p, k, l], k in nn implies l in nn implies p in mat(m, n, x) implies k <= m implies l <= n implies block(p, k, l) in mat(k, l, x))
@@ -409,7 +409,7 @@ definition:
 matof(succ(p), succ(q), vnb-lambda([i, j], cartesian(interval(1, succ(p)), interval(1, succ(q))), if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))
 ```
 
-characterized by `bordering`  *(certified)*:
+characterized by `bordering`  *(proven)*:
 
 ```
 forall([a], is-ring(a) implies forall([p, q, b, w, g, e], p in nn implies q in nn implies b in carr(a) implies w in mat(p, q, carr(a)) implies g in mat(succ(p), succ(q), carr(a)) implies g = border(a, b, w, p, q) implies mat-equiv(a, p, q, w, e) implies mat-equiv(a, succ(p), succ(q), g, border(a, b, e, p, q))))
@@ -450,7 +450,7 @@ definition:
 iota(v_, v_ in rr and forsome([f_], is-antiderivative(f_, phi, a, b) and v_ = f_(b) - f_(a)))
 ```
 
-characterized by `c-int-add`  *(certified)*:
+characterized by `c-int-add`  *(proven)*:
 
 ```
 forall([phi, psi, a, b], is-antiderivable(phi, a, b) implies is-antiderivable(psi, a, b) implies c-int(vnb-lambda(x, rr, phi(x) + psi(x)), a, b) = c-int(phi, a, b) + c-int(psi, a, b))
@@ -470,7 +470,7 @@ definition:
 if(is-antiderivable(phi, a, b), c-int(phi, a, b), if(is-antiderivable(phi, b, a), -c-int(phi, b, a), 0))
 ```
 
-characterized by `c-int-or-anti`  *(certified)*:
+characterized by `c-int-or-anti`  *(proven)*:
 
 ```
 forall([phi, a, b], is-antiderivable(phi, a, b) implies c-int-or(phi, a, b) = c-int(phi, a, b))
@@ -490,7 +490,7 @@ definition:
 c-metric-w(s, vnb-lambda(n, nn, (/)(1, 2 ^ (n + 1))))
 ```
 
-characterized by `c-metric-is-metric-space`  *(certified)*:
+characterized by `c-metric-is-metric-space`  *(proven)*:
 
 ```
 forall([s], is-c-metric-space(s) implies is-metric-space(c-metric(s)))
@@ -514,7 +514,7 @@ definition:
 [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), iota(l, series-converges-to(vnb-lambda(k, nn, w(k) * min(1, ((dists(s))(k))(u, v))), l)))]
 ```
 
-characterized by `c-metric-w-is-metric-space`  *(certified)*:
+characterized by `c-metric-w-is-metric-space`  *(proven)*:
 
 ```
 forall([s], is-c-metric-space(s) implies forall([w], summable-weight(w) implies is-metric-space(c-metric-w(s, w))))
@@ -566,7 +566,7 @@ definition:
 iota(alpha, alpha in ord and forsome([phi], phi in bijection(a_, ord-segment(alpha))) and forall([beta], ord-lt(beta, alpha) implies not(forsome([psi], psi in bijection(a_, ord-segment(beta))))))
 ```
 
-characterized by `card-bij`  *(certified)*:
+characterized by `card-bij`  *(proven)*:
 
 ```
 forall([n_ in nn, a_, ph, et], ph in bijection(a_, ord-segment(n_)) and et in bijection(ord-segment(n_), a_) implies card(a_) = n_)
@@ -614,7 +614,7 @@ definition:
 [cseq(m), crel(m)]
 ```
 
-characterized by `rkt-cauchy-setoid-pts`  *(certified)*:
+characterized by `rkt-cauchy-setoid-pts`  *(proven)*:
 
 ```
 forall([m], pts(cauchy-setoid(m)) == cseq(m))
@@ -628,7 +628,7 @@ also: `rko2-cauchy-setoid-rel` `cauchy-setoid-is-setoid` `rko2-cauchy-setoid-len
 
 defined by `cc-coords-def` 
 
-characterized by `cc-coords-add`  *(certified)*:
+characterized by `cc-coords-add`  *(proven)*:
 
 ```
 forall([z in cc, w in cc], cc-coords(z + w) = [real-part(z) + real-part(w), imag-part(z) + imag-part(w)])
@@ -648,7 +648,7 @@ definition:
 cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))
 ```
 
-characterized by `cc-cos-pi`  *(certified)*:
+characterized by `cc-cos-pi`  *(proven)*:
 
 ```
 cc-cos(pi) = -1
@@ -668,7 +668,7 @@ definition:
 cc-series-limit(vnb-lambda(cek_, nn, recip(factorial(cek_)) * z ^ cek_))
 ```
 
-characterized by `cc-exp-i`  *(certified)*:
+characterized by `cc-exp-i`  *(proven)*:
 
 ```
 forall([cexz_ in cc], cc-exp(1i * cexz_) = cc-cos(cexz_) + 1i * cc-sin(cexz_))
@@ -688,7 +688,7 @@ definition:
 pw-int(vnb-lambda(pat_, ccint(a, b), real-part(pphi_(pat_))), a, b) + pw-int(vnb-lambda(pat_, ccint(a, b), imag-part(pphi_(pat_))), a, b) * 1i
 ```
 
-characterized by `cc-int-sum`  *(certified)*:
+characterized by `cc-int-sum`  *(proven)*:
 
 ```
 forall([a, b], a in rr implies b in rr implies forall([pphi_, ppsi_, pchi_], pphi_ in fun(ccint(a, b), cc) implies ppsi_ in fun(ccint(a, b), cc) implies pchi_ in fun(ccint(a, b), cc) implies forall([pay_ in ccint(a, b)], pchi_(pay_) == pphi_(pay_) + ppsi_(pay_)) implies forall([pwf_, paw_, pauh_, pbw_], is-primitive(pwf_, vnb-lambda(pat_, ccint(a, b), real-part(pphi_(pat_))), a, b) implies is-primitive(paw_, vnb-lambda(pat_, ccint(a, b), imag-part(pphi_(pat_))), a, b) implies is-primitive(pauh_, vnb-lambda(pat_, ccint(a, b), real-part(ppsi_(pat_))), a, b) implies is-primitive(pbw_, vnb-lambda(pat_, ccint(a, b), imag-part(ppsi_(pat_))), a, b) implies cc-int(pchi_, a, b) = cc-int(pphi_, a, b) + cc-int(ppsi_, a, b))))
@@ -708,7 +708,7 @@ definition:
 iota(clgz_, clgz_ in cc and -pi < imag-part(clgz_) and imag-part(clgz_) < pi and cc-exp(clgz_) = clgw_)
 ```
 
-characterized by `cc-log-exp`  *(certified)*:
+characterized by `cc-log-exp`  *(proven)*:
 
 ```
 forall([clgz_ in cc], -pi < imag-part(clgz_) implies imag-part(clgz_) < pi implies cc-log(cc-exp(clgz_)) = clgz_)
@@ -728,7 +728,7 @@ definition:
 (cmx_ + cmy_) * recip(2)
 ```
 
-characterized by `cc-mid-affine`  *(certified)*:
+characterized by `cc-mid-affine`  *(proven)*:
 
 ```
 forall([goux_ in cc, gouy_ in cc], cc-mid(goux_, gouy_) = goux_ + 1/2 * (gouy_ - goux_) and cc-mid(goux_, gouy_) = gouy_ + 1/2 * (goux_ - gouy_))
@@ -750,7 +750,7 @@ an instance of normed-field; predicate `is-cc-normed-field`; same shape as norme
 
 defined by `cc-of-pair-def` 
 
-characterized by `cc-of-pair-add`  *(certified)*:
+characterized by `cc-of-pair-add`  *(proven)*:
 
 ```
 forall([a1_ in rr, b1_ in rr, a2_ in rr, b2_ in rr], cc-of-pair([a1_ + a2_, b1_ + b2_]) = cc-of-pair([a1_, b1_]) + cc-of-pair([a2_, b2_]))
@@ -798,7 +798,7 @@ definition:
 iota(cpsl_, cc-series-converges-to(f, cpsl_))
 ```
 
-characterized by `cc-series-limit-in-cc`  *(certified)*:
+characterized by `cc-series-limit-in-cc`  *(proven)*:
 
 ```
 forall([f in fun(nn, cc)], cc-series-converges(f) implies cc-series-limit(f) in cc)
@@ -818,7 +818,7 @@ definition:
 sum-ag(normed-field-additive-ag(cc-normed-field), f, k)
 ```
 
-characterized by `cc-series-partial-sum-succ`  *(certified)*:
+characterized by `cc-series-partial-sum-succ`  *(proven)*:
 
 ```
 forall([f, k in nn], cc-series-partial-sum(f, k) in cc implies f(k) in cc implies cc-series-partial-sum(f, succ(k)) == cc-series-partial-sum(f, k) + f(k))
@@ -838,7 +838,7 @@ definition:
 cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(succ(2 * cek_)))) * z ^ succ(2 * cek_)))
 ```
 
-characterized by `cc-sin-pi`  *(certified)*:
+characterized by `cc-sin-pi`  *(proven)*:
 
 ```
 cc-sin(pi) = 0
@@ -858,7 +858,7 @@ definition:
 esup(image(vnb-lambda(cpsx_, cpsxs_, magnitude(u(cpsx_))), cpsxs_))
 ```
 
-characterized by `cc-sup-norm-bound`  *(certified)*:
+characterized by `cc-sup-norm-bound`  *(proven)*:
 
 ```
 forall([u, cpsxs_, cpsm_ in rr], 0 <= cpsm_ implies forall([cpsx_ in cpsxs_], u(cpsx_) in cc) implies forall([cpsx_ in cpsxs_], magnitude(u(cpsx_)) <= cpsm_) implies cc-sup-norm(u, cpsxs_) in rr and 0 <= cc-sup-norm(u, cpsxs_) and cc-sup-norm(u, cpsxs_) <= cpsm_)
@@ -876,7 +876,7 @@ definition:
 {x in rr: a <= x and x <= b}
 ```
 
-characterized by `ccint-creep`  *(certified)*:
+characterized by `ccint-creep`  *(proven)*:
 
 ```
 forall([a, b, g_], a in rr implies b in rr implies a <= b implies g_ subset rr implies a in g_ implies rr-upper-bound(g_, b) implies forall([t_ in ccint(a, b)], forsome([d_ in rr], 0 < d_ and (forsome([w_ in g_], t_ - d_ < w_) implies forall([y_], y_ in ccint(a, b) and y_ <= t_ + d_ implies y_ in g_)))) implies b in g_)
@@ -900,7 +900,7 @@ definition:
 image(vnb-lambda(b, f, choice(centres(s, b, r))), f)
 ```
 
-characterized by `centre-set-unfold`  *(certified)*:
+characterized by `centre-set-unfold`  *(proven)*:
 
 ```
 forall([s, r, f], centre-set(s, r, f) == image(vnb-lambda(b, f, choice(centres(s, b, r))), f))
@@ -918,7 +918,7 @@ definition:
 {c in pts(s): ball(s, c, r) = b}
 ```
 
-characterized by `centres-unfold`  *(certified)*:
+characterized by `centres-unfold`  *(proven)*:
 
 ```
 forall([s, b, r], centres(s, b, r) == {c in pts(s): ball(s, c, r) = b})
@@ -950,7 +950,7 @@ definition:
 card(choose-set(n, m))
 ```
 
-characterized by `choose-n-0`  *(certified)*:
+characterized by `choose-n-0`  *(proven)*:
 
 ```
 forall([n in nn], choose(n, 0) = succ(0))
@@ -968,7 +968,7 @@ definition:
 {a in power(ord-segment(n)): card(a) = m}
 ```
 
-characterized by `choose-set-split`  *(certified)*:
+characterized by `choose-set-split`  *(proven)*:
 
 ```
 forall([n_ in nn, k_ in nn], choose-set(succ(n_), succ(k_)) = union(choose-set(n_, succ(k_)), image(vnb-lambda(s_, choose-set(n_, k_), union(s_, pair(n_, n_))), choose-set(n_, k_))))
@@ -1018,7 +1018,7 @@ definition:
 min(max(x, a), b)
 ```
 
-characterized by `clamp-fixes`  *(certified)*:
+characterized by `clamp-fixes`  *(proven)*:
 
 ```
 forall([a in rr, b in rr, x in rr], a <= x implies x <= b implies clamp(a, b, x) = x)
@@ -1036,7 +1036,7 @@ definition:
 {b in pts(s): related(s, a, b)}
 ```
 
-characterized by `class-self`  *(certified)*:
+characterized by `class-self`  *(proven)*:
 
 ```
 forall([s], is-setoid(s) implies forall([a in pts(s)], a in class(s, a)))
@@ -1054,7 +1054,7 @@ definition:
 {y in pts(s): (dist(s))(c, y) <= r}
 ```
 
-characterized by `closed-ball-is-set`  *(certified)*:
+characterized by `closed-ball-is-set`  *(proven)*:
 
 ```
 forall([s], is-metric-space(s) implies forall([c, r], closed-ball(s, c, r) in set))
@@ -1072,7 +1072,7 @@ definition:
 {x in pts(s): forall([u], is-open(s, u) and x in u implies forsome([y in u], y in a))}
 ```
 
-characterized by `closure-is-set`  *(certified)*:
+characterized by `closure-is-set`  *(proven)*:
 
 ```
 forall([s], is-metric-space(s) implies forall([a], closure(s, a) in set))
@@ -1108,7 +1108,7 @@ definition:
 {osq_ in rr: a <= osq_ and osq_ < b}
 ```
 
-characterized by `coint-shrink`  *(certified)*:
+characterized by `coint-shrink`  *(proven)*:
 
 ```
 forall([osx_, osr_, osv_], osx_ in rr implies pos-rr(osr_) implies pos-rr(osv_) implies osv_ <= osr_ implies coint(osx_, osx_ + osv_) subset coint(osx_, osx_ + osr_))
@@ -1128,7 +1128,7 @@ definition:
 vnb-lambda(z_, nn, if(k_ < z_, pred(z_), z_))
 ```
 
-characterized by `collapse-at-hi`  *(certified)*:
+characterized by `collapse-at-hi`  *(proven)*:
 
 ```
 forall([k_ in nn, j_ in nn], k_ < j_ implies (collapse-at(k_))(j_) = pred(j_))
@@ -1226,7 +1226,7 @@ definition:
 [quotient(cauchy-setoid(m)), completion-dist(m)]
 ```
 
-characterized by `rkt-completion-pts`  *(certified)*:
+characterized by `rkt-completion-pts`  *(proven)*:
 
 ```
 forall([m], pts(completion(m)) == quotient(cauchy-setoid(m)))
@@ -1244,7 +1244,7 @@ definition:
 vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))
 ```
 
-characterized by `rko2-completion-dist`  *(certified)*:
+characterized by `rko2-completion-dist`  *(proven)*:
 
 ```
 forall([m], dist(completion(m)) == completion-dist(m))
@@ -1278,7 +1278,7 @@ definition:
 vnb-lambda(z_, dom(g), f(g(z_)))
 ```
 
-characterized by `pre-compose`  *(certified)*:
+characterized by `pre-compose`  *(proven)*:
 
 ```
 forall([a, b, c, u, s, s2, f, h, k], a in set implies b in set implies k in fun(a, b) implies h in fun(b, c) implies f in fun(c, u) implies f in s implies compose(f, h) in s2 implies (vnb-lambda(hmpf_, s, compose(hmpf_, compose(h, k))))(f) = (vnb-lambda(hmpf_, s2, compose(hmpf_, k)))((vnb-lambda(hmpf_, s, compose(hmpf_, h)))(f)))
@@ -1326,7 +1326,7 @@ definition:
 {cvz_ in cc: forsome([cvl_ in ccint(0, 1), cvm_ in ccint(0, 1), cvn_ in ccint(0, 1)], (cvl_ + cvm_) + cvn_ = 1 and cvz_ = (cvl_ * cva_ + cvm_ * cvb_) + cvn_ * cvc_)}
 ```
 
-characterized by `conv3-intro`  *(certified)*:
+characterized by `conv3-intro`  *(proven)*:
 
 ```
 forall([goua_ in cc, goub_ in cc, gouc_ in cc, goul_ in ccint(0, 1), goum_ in ccint(0, 1), goun_ in ccint(0, 1), gouz_], (goul_ + goum_) + goun_ = 1 implies gouz_ = (goul_ * goua_ + goum_ * goub_) + goun_ * gouc_ implies gouz_ in conv3(goua_, goub_, gouc_))
@@ -1424,7 +1424,7 @@ definition:
 esup({cpsr_ in rr: 0 <= cpsr_ and series-converges(vnb-lambda(cpsk_, nn, magnitude(cf(cpsk_)) * cpsr_ ^ cpsk_))})
 ```
 
-characterized by `cps-radius-in`  *(certified)*:
+characterized by `cps-radius-in`  *(proven)*:
 
 ```
 forall([cf], cps-radius(cf) in rr-pos-star)
@@ -1442,7 +1442,7 @@ definition:
 {p in cartesian(cseq(m), cseq(m)): cseq-equiv(m, nth(1, p), nth(2, p))}
 ```
 
-characterized by `rko2-crel-elim`  *(certified)*:
+characterized by `rko2-crel-elim`  *(proven)*:
 
 ```
 forall([m, p_, q_], [p_, q_] in crel(m) implies cseq-equiv(m, p_, q_))
@@ -1466,7 +1466,7 @@ definition:
 {f in fun(nn, pts(m)): is-cauchy-seq(m, f)}
 ```
 
-characterized by `r7q-cseq-cauchy`  *(certified)*:
+characterized by `r7q-cseq-cauchy`  *(proven)*:
 
 ```
 forall([m, f_ in cseq(m)], is-cauchy-seq(m, f_))
@@ -1523,7 +1523,7 @@ definition:
 iota(n_, n_ in nn and deg-bound(a, p, n_) and forall([j_ in nn], deg-bound(a, p, j_) implies n_ <= j_))
 ```
 
-characterized by `deg-is`  *(certified)*:
+characterized by `deg-is`  *(proven)*:
 
 ```
 forall([a_, p_, m_], p_ in carr(poly(a_)) implies m_ in nn implies deg-bound(a_, p_, m_) implies forall([j_ in nn], deg-bound(a_, p_, j_) implies m_ <= j_) implies deg(a_, p_) = m_)
@@ -1625,7 +1625,7 @@ definition:
 vnb-lambda(c, quotient(s), iota(z, forsome([a in c], z = f(a))))
 ```
 
-characterized by `descend-in-fun`  *(certified)*:
+characterized by `descend-in-fun`  *(proven)*:
 
 ```
 forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies descend(s, f) in fun(quotient(s), z)))
@@ -1643,7 +1643,7 @@ definition:
 vnb-lambda([c, d], cartesian(quotient(s), quotient(s)), iota(z, forsome([a in c, b in d], z = f(a, b))))
 ```
 
-characterized by `descend2-in-fun`  *(certified)*:
+characterized by `descend2-in-fun`  *(proven)*:
 
 ```
 forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies descend2(s, f) in fun(cartesian(quotient(s), quotient(s)), z)))
@@ -1703,7 +1703,7 @@ definition:
 complement-in(u_, b_)
 ```
 
-characterized by `difference-set`  *(certified)*:
+characterized by `difference-set`  *(proven)*:
 
 ```
 forall([x in set, b], difference(x, b) in set)
@@ -1721,7 +1721,7 @@ definition:
 deriv(seg-curve(m, f, a, eta), 0)
 ```
 
-characterized by `dir-deriv-value`  *(certified)*:
+characterized by `dir-deriv-value`  *(proven)*:
 
 ```
 forall([m, f, a, eta, dl], is-dir-diff-at(m, f, a, eta, dl) implies dir-deriv(m, f, a, eta) = dl)
@@ -1741,7 +1741,7 @@ definition:
 [a_, power(a_)]
 ```
 
-characterized by `discrete-space-is-top-space`  *(certified)*:
+characterized by `discrete-space-is-top-space`  *(proven)*:
 
 ```
 forall([a_ in set], is-top-space(discrete-space(a_)))
@@ -1775,7 +1775,7 @@ definition:
 vnb-lambda(n, nn, (dist(m))(f(n), g(n)))
 ```
 
-characterized by `r7q-dist-seq-sym`  *(certified)*:
+characterized by `r7q-dist-seq-sym`  *(proven)*:
 
 ```
 forall([m], is-metric-space(m) implies forall([f_ in fun(nn, pts(m)), g_ in fun(nn, pts(m)), lv], converges-to(rr-ms, dist-seq(m, f_, g_), lv) implies converges-to(rr-ms, dist-seq(m, g_, f_), lv)))
@@ -1851,7 +1851,7 @@ definition:
 iota(c_, c_ in rr and 0 <= c_ and forall([x_ in s], abs(f(x_)) <= c_ * (vnrm(m))(x_)) and forall([d_], d_ in rr and 0 <= d_ and forall([x_ in s], abs(f(x_)) <= d_ * (vnrm(m))(x_)) implies c_ <= d_))
 ```
 
-characterized by `dual-norm-on-spec`  *(certified)*:
+characterized by `dual-norm-on-spec`  *(proven)*:
 
 ```
 forall([m, s, f], is-normed-vector-space(m) implies s subset vec(m) implies is-bounded-linear-functional-on(m, s, f) implies dual-norm-on(m, s, f) in rr and 0 <= dual-norm-on(m, s, f) and forall([x_ in s], abs(f(x_)) <= dual-norm-on(m, s, f) * (vnrm(m))(x_)) and forall([d_], d_ in rr and 0 <= d_ and forall([x_ in s], abs(f(x_)) <= d_ * (vnrm(m))(x_)) implies dual-norm-on(m, s, f) <= d_))
@@ -1906,7 +1906,7 @@ definition:
 esup(elower-bounds(s))
 ```
 
-characterized by `einf-in`  *(certified)*:
+characterized by `einf-in`  *(proven)*:
 
 ```
 forall([cpss_], cpss_ subset rr-pos-star implies einf(cpss_) in rr-pos-star)
@@ -1924,7 +1924,7 @@ definition:
 matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l or i = l and j = k or i = j and not(i = k) and not(i = l), one(a), zero(a))))
 ```
 
-characterized by `daf-elem-f`  *(certified)*:
+characterized by `daf-elem-f`  *(proven)*:
 
 ```
 forall([r, n, d, k, l], is-commutative-ring(r) implies n in nn implies d in fun(mat(n, n, carr(r)), carr(r)) implies forall([dfa_, dfb_, dfc_, dfp_, dfs_], dfa_ in mat(n, n, carr(r)) implies dfb_ in mat(n, n, carr(r)) implies dfc_ in mat(n, n, carr(r)) implies dfp_ in interval(1, n) implies dfs_ in carr(r) implies forall([dri_ in interval(1, n)], not(dri_ = dfp_) implies forall([drk_ in interval(1, n)], entry(dfb_, dri_, drk_) = entry(dfa_, dri_, drk_))) implies forall([dri_ in interval(1, n)], not(dri_ = dfp_) implies forall([drk_ in interval(1, n)], entry(dfc_, dri_, drk_) = entry(dfa_, dri_, drk_))) implies forall([drk_ in interval(1, n)], entry(dfc_, dfp_, drk_) = (add(r))((mul(r))(dfs_, entry(dfa_, dfp_, drk_)), entry(dfb_, dfp_, drk_))) implies d(dfc_) = (add(r))((mul(r))(dfs_, d(dfa_)), d(dfb_))) implies forall([dfa_, dfp_, dfq_], dfa_ in mat(n, n, carr(r)) implies dfp_ in interval(1, n) implies dfq_ in interval(1, n) implies not(dfp_ = dfq_) implies forall([drk_ in interval(1, n)], entry(dfa_, dfp_, drk_) = entry(dfa_, dfq_, drk_)) implies d(dfa_) = zero(r)) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies d(elem-f(r, n, k, l)) = (neg(r))(d(identmat(r, n))))
@@ -1942,7 +1942,7 @@ definition:
 matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), if(i = k and j = l, r, zero(a)))))
 ```
 
-characterized by `det-elem-g`  *(certified)*:
+characterized by `det-elem-g`  *(proven)*:
 
 ```
 forall([r, n, sc, k, l], is-commutative-ring(r) implies n in nn implies sc in carr(r) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies det(r, n, elem-g(r, n, sc, k, l)) = one(r))
@@ -1960,7 +1960,7 @@ definition:
 matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, if(i = k, r, one(a)), zero(a))))
 ```
 
-characterized by `det-elem-h`  *(certified)*:
+characterized by `det-elem-h`  *(proven)*:
 
 ```
 forall([r, n, sc, k], is-commutative-ring(r) implies n in nn implies sc in carr(r) implies k in interval(1, n) implies det(r, n, elem-h(r, n, sc, k)) = sc)
@@ -1980,7 +1980,7 @@ definition:
 esup(image(vnb-lambda(n_, nn, einf(etail(f, n_))), nn))
 ```
 
-characterized by `eliminf-in-rr-pos-star`  *(certified)*:
+characterized by `eliminf-in-rr-pos-star`  *(proven)*:
 
 ```
 forall([f], forall([cpsk_ in nn], f(cpsk_) in rr) implies forall([cpsk_ in nn], 0 <= f(cpsk_)) implies eliminf(f) in rr-pos-star)
@@ -2000,7 +2000,7 @@ definition:
 einf(image(vnb-lambda(n_, nn, esup(etail(f, n_))), nn))
 ```
 
-characterized by `elimsup-eventually-le`  *(certified)*:
+characterized by `elimsup-eventually-le`  *(proven)*:
 
 ```
 forall([f], forall([cpsk_ in nn], f(cpsk_) in rr) implies forall([cpsk_ in nn], 0 <= f(cpsk_)) implies forall([rtpr_ in rr, rtpn_ in nn], forall([k_ in nn], rtpn_ <= k_ implies f(k_) <= rtpr_) implies elimsup(f) <= rtpr_))
@@ -2040,7 +2040,7 @@ definition:
 vnb-lambda(u, pts(m), class(cauchy-setoid(m), embed-seq(m, u)))
 ```
 
-characterized by `embed-in-fun`  *(certified)*:
+characterized by `embed-in-fun`  *(proven)*:
 
 ```
 forall([m], is-metric-space(m) implies embed(m) in fun(pts(m), pts(completion(m))))
@@ -2058,7 +2058,7 @@ definition:
 vnb-lambda(n, nn, u)
 ```
 
-characterized by `rkt-embed-seq-cauchy`  *(certified)*:
+characterized by `rkt-embed-seq-cauchy`  *(proven)*:
 
 ```
 forall([m, u], is-metric-space(m) implies u in pts(m) implies is-cauchy-seq(m, embed-seq(m, u)))
@@ -2078,7 +2078,7 @@ definition:
 nth(j, nth(i, m))
 ```
 
-characterized by `minor-entry`  *(certified)*:
+characterized by `minor-entry`  *(proven)*:
 
 ```
 forall([r, s, p, q, n, u_, v_], is-ring(r) implies n in nn implies s in mat(succ(n), succ(n), carr(r)) implies u_ in interval(1, n) implies v_ in interval(1, n) implies entry(minor(s, p, q, n), u_, v_) = entry(s, if(u_ < p, u_, succ(u_)), if(v_ < q, v_, succ(v_))))
@@ -2096,7 +2096,7 @@ definition:
 vnb-lambda(i, nn, if(i in ord-segment(n), f(phi(i)), iden(ag)))
 ```
 
-characterized by `enum-fam-value`  *(certified)*:
+characterized by `enum-fam-value`  *(proven)*:
 
 ```
 forall([n in nn, ag, u, phi, i in ord-segment(n)], (enum-fam(ag, u, phi, n))(i) == u(phi(i)))
@@ -2110,7 +2110,7 @@ also: `enum-fam-in-fun` `enum-fam-comm-monoid-in-fun`
 
 a term-forming head
 
-characterized by `eplus-comm`  *(certified)*:
+characterized by `eplus-comm`  *(proven)*:
 
 ```
 forall([x, y], x in rr-pos-star and y in rr-pos-star implies eplus(x, y) = eplus(y, x))
@@ -2130,7 +2130,7 @@ definition:
 esup({v_ in rr-pos-star: forsome([t_], (t_ in set and card(t_) in nn and t_ subset dom(f_)) and v_ = finsum(rr-pos-star-add-monoid, f_, t_))})
 ```
 
-characterized by `esum-in`  *(certified)*:
+characterized by `esum-in`  *(proven)*:
 
 ```
 forall([f in fun(dom(f), rr-pos-star)], esum(f) in rr-pos-star)
@@ -2150,7 +2150,7 @@ definition:
 iota(bb_, bb_ in rr-pos-star and forall([x in s_], x <= bb_) and forall([b], b in rr-pos-star and forall([x in s_], x <= b) implies bb_ <= b))
 ```
 
-characterized by `esup-in`  *(certified)*:
+characterized by `esup-in`  *(proven)*:
 
 ```
 forall([s], s subset rr-pos-star implies esup(s) in rr-pos-star)
@@ -2170,7 +2170,7 @@ definition:
 image(f, {p_ in nn: n <= p_})
 ```
 
-characterized by `etail-subset-rr-pos-star`  *(certified)*:
+characterized by `etail-subset-rr-pos-star`  *(proven)*:
 
 ```
 forall([f], forall([cpsk_ in nn], f(cpsk_) in rr) implies forall([cpsk_ in nn], 0 <= f(cpsk_)) implies forall([cpsn_], etail(f, cpsn_) subset rr-pos-star))
@@ -2184,7 +2184,7 @@ reads: $1 times $2 in the extended reals
 
 a term-forming head
 
-characterized by `etimes-pos-inf-left`  *(certified)*:
+characterized by `etimes-pos-inf-left`  *(proven)*:
 
 ```
 forall([y in rr-pos-star], not(y = 0) implies etimes(pos-inf, y) = pos-inf)
@@ -2202,7 +2202,7 @@ definition:
 {dg in fun(carr(s), nn): has-div-remainder(s, dg)}
 ```
 
-characterized by `euclidean-gauges-unfold`  *(certified)*:
+characterized by `euclidean-gauges-unfold`  *(proven)*:
 
 ```
 forall([s], euclidean-gauges(s) == {dg in fun(carr(s), nn): has-div-remainder(s, dg)})
@@ -2262,7 +2262,7 @@ definition:
 vnb-lambda(ecx_, rr, f(clamp(a, b, ecx_)))
 ```
 
-characterized by `extend-const-fixes`  *(certified)*:
+characterized by `extend-const-fixes`  *(proven)*:
 
 ```
 forall([a in rr, b in rr, icz_ in rr], a <= icz_ implies icz_ <= b implies forall([f], (extend-const(f, a, b))(icz_) == f(icz_)))
@@ -2407,7 +2407,7 @@ definition:
 choice(bijection(ord-segment(card(s)), s))
 ```
 
-characterized by `fin-enum-is-bijection`  *(certified)*:
+characterized by `fin-enum-is-bijection`  *(proven)*:
 
 ```
 forall([s in set], card(s) in nn implies fin-enum(s) in bijection(ord-segment(card(s)), s))
@@ -2425,7 +2425,7 @@ definition:
 [fin-subsets(a_), vnb-lambda([x_, y_], cartesian(fin-subsets(a_), fin-subsets(a_)), union(x_, y_)), empty-set]
 ```
 
-characterized by `fin-subset-monoid-is-comm-monoid`  *(certified)*:
+characterized by `fin-subset-monoid-is-comm-monoid`  *(proven)*:
 
 ```
 forall([a_ in set], is-comm-monoid(fin-subset-monoid(a_)))
@@ -2443,7 +2443,7 @@ definition:
 {t_ in power(a_): card(t_) in nn}
 ```
 
-characterized by `fin-subsets-is-set`  *(certified)*:
+characterized by `fin-subsets-is-set`  *(proven)*:
 
 ```
 forall([a_ in set], fin-subsets(a_) in set)
@@ -2491,7 +2491,7 @@ definition:
 {f in fun(carr(m), carr(a)): card(supp(a, m, f)) in nn}
 ```
 
-characterized by `finsupp-in-set`  *(certified)*:
+characterized by `finsupp-in-set`  *(proven)*:
 
 ```
 forall([a_, m_], is-ring(a_) implies is-monoid(m_) implies finsupp(a_, m_) in set)
@@ -2592,7 +2592,7 @@ definition:
 choice(euclidean-gauges(s))
 ```
 
-characterized by `gauge-is-degree`  *(certified)*:
+characterized by `gauge-is-degree`  *(proven)*:
 
 ```
 forall([s], is-euclidean-ring(s) implies gauge(s) in fun(carr(s), nn) and has-div-remainder(s, gauge(s)))
@@ -2646,7 +2646,7 @@ definition:
 zkept(phi, grd, porel, card(grd))
 ```
 
-characterized by `greedy-chain-is-chain`  *(certified)*:
+characterized by `greedy-chain-is-chain`  *(proven)*:
 
 ```
 forall([phi, grd, porel], is-partial-order(grd, porel) implies is-chain(grd, porel, greedy-chain(phi, grd, porel)))
@@ -2823,7 +2823,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-abelian-group(a, b, homf_)}
 ```
 
-characterized by `hom-abelian-group-in-set`  *(certified)*:
+characterized by `hom-abelian-group-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-abelian-group(a) implies is-abelian-group(b) implies hom-abelian-group(a, b) in set)
@@ -2843,7 +2843,7 @@ definition:
 {homf_ in fun(vec(a), vec(b)): is-bounded-linear-arrow(a, b, homf_)}
 ```
 
-characterized by `hom-bounded-linear-in-set`  *(certified)*:
+characterized by `hom-bounded-linear-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-normed-vector-space(a) implies is-normed-vector-space(b) implies hom-bounded-linear(a, b) in set)
@@ -2863,7 +2863,7 @@ definition:
 {homf_ in fun(pts(a), pts(b)): is-c-continuous-arrow(a, b, homf_)}
 ```
 
-characterized by `hom-c-continuous-in-set`  *(certified)*:
+characterized by `hom-c-continuous-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-c-metric-space(a) implies is-c-metric-space(b) implies hom-c-continuous(a, b) in set)
@@ -2883,7 +2883,7 @@ definition:
 {homf_ in fun(pts(a), pts(b)): is-hom-c-metric-space(a, b, homf_)}
 ```
 
-characterized by `hom-c-metric-space-in-set`  *(certified)*:
+characterized by `hom-c-metric-space-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-c-metric-space(a) implies is-c-metric-space(b) implies hom-c-metric-space(a, b) in set)
@@ -2903,7 +2903,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-comm-monoid(a, b, homf_)}
 ```
 
-characterized by `hom-comm-monoid-in-set`  *(certified)*:
+characterized by `hom-comm-monoid-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-comm-monoid(a) implies is-comm-monoid(b) implies hom-comm-monoid(a, b) in set)
@@ -2923,7 +2923,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-commutative-ring(a, b, homf_)}
 ```
 
-characterized by `hom-commutative-ring-in-set`  *(certified)*:
+characterized by `hom-commutative-ring-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-commutative-ring(a) implies is-commutative-ring(b) implies hom-commutative-ring(a, b) in set)
@@ -2943,7 +2943,7 @@ definition:
 {homf_ in fun(vec(a), vec(b)): is-hom-complex-inner-product-space(a, b, homf_)}
 ```
 
-characterized by `hom-complex-inner-product-space-in-set`  *(certified)*:
+characterized by `hom-complex-inner-product-space-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-complex-inner-product-space(a) implies is-complex-inner-product-space(b) implies hom-complex-inner-product-space(a, b) in set)
@@ -2963,7 +2963,7 @@ definition:
 {homf_ in fun(pts(a), pts(b)): is-continuous-arrow(a, b, homf_)}
 ```
 
-characterized by `hom-continuous-in-set`  *(certified)*:
+characterized by `hom-continuous-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-metric-space(a) implies is-metric-space(b) implies hom-continuous(a, b) in set)
@@ -2983,7 +2983,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-euclidean-ring(a, b, homf_)}
 ```
 
-characterized by `hom-euclidean-ring-in-set`  *(certified)*:
+characterized by `hom-euclidean-ring-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-euclidean-ring(a) implies is-euclidean-ring(b) implies hom-euclidean-ring(a, b) in set)
@@ -3003,7 +3003,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-field(a, b, homf_)}
 ```
 
-characterized by `hom-field-in-set`  *(certified)*:
+characterized by `hom-field-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-field(a) implies is-field(b) implies hom-field(a, b) in set)
@@ -3023,7 +3023,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-field-ring(a, b, homf_)}
 ```
 
-characterized by `hom-field-ring-in-set`  *(certified)*:
+characterized by `hom-field-ring-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-field-ring(a) implies is-field-ring(b) implies hom-field-ring(a, b) in set)
@@ -3043,7 +3043,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-group(a, b, homf_)}
 ```
 
-characterized by `hom-group-in-set`  *(certified)*:
+characterized by `hom-group-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-group(a) implies is-group(b) implies hom-group(a, b) in set)
@@ -3063,7 +3063,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-integral-domain(a, b, homf_)}
 ```
 
-characterized by `hom-integral-domain-in-set`  *(certified)*:
+characterized by `hom-integral-domain-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-integral-domain(a) implies is-integral-domain(b) implies hom-integral-domain(a, b) in set)
@@ -3083,7 +3083,7 @@ definition:
 {homf_ in fun(pts(a), pts(b)): is-lipschitz-arrow(a, b, homf_)}
 ```
 
-characterized by `hom-lipschitz-in-set`  *(certified)*:
+characterized by `hom-lipschitz-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-metric-space(a) implies is-metric-space(b) implies hom-lipschitz(a, b) in set)
@@ -3103,7 +3103,7 @@ definition:
 {homf_ in fun(pts(a), pts(b)): is-hom-measurable-space(a, b, homf_)}
 ```
 
-characterized by `hom-measurable-space-in-set`  *(certified)*:
+characterized by `hom-measurable-space-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-measurable-space(a) implies is-measurable-space(b) implies hom-measurable-space(a, b) in set)
@@ -3123,7 +3123,7 @@ definition:
 {homf_ in fun(pts(a), pts(b)): is-hom-measure-space(a, b, homf_)}
 ```
 
-characterized by `hom-measure-space-in-set`  *(certified)*:
+characterized by `hom-measure-space-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-measure-space(a) implies is-measure-space(b) implies hom-measure-space(a, b) in set)
@@ -3143,7 +3143,7 @@ definition:
 {homf_ in fun(pts(a), pts(b)): is-hom-metric-space(a, b, homf_)}
 ```
 
-characterized by `hom-metric-space-in-set`  *(certified)*:
+characterized by `hom-metric-space-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-metric-space(a) implies is-metric-space(b) implies hom-metric-space(a, b) in set)
@@ -3163,7 +3163,7 @@ definition:
 {homf_ in fun(pts(a), pts(b)): is-hom-metrizable-top-space(a, b, homf_)}
 ```
 
-characterized by `hom-metrizable-top-space-in-set`  *(certified)*:
+characterized by `hom-metrizable-top-space-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-metrizable-top-space(a) implies is-metrizable-top-space(b) implies hom-metrizable-top-space(a, b) in set)
@@ -3183,7 +3183,7 @@ definition:
 {homf_ in fun(vec(a), vec(b)): is-hom-module(a, b, homf_)}
 ```
 
-characterized by `hom-module-in-set`  *(certified)*:
+characterized by `hom-module-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-module(a) implies is-module(b) implies hom-module(a, b) in set)
@@ -3203,7 +3203,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-monoid(a, b, homf_)}
 ```
 
-characterized by `hom-monoid-in-set`  *(certified)*:
+characterized by `hom-monoid-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-monoid(a) implies is-monoid(b) implies hom-monoid(a, b) in set)
@@ -3223,7 +3223,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-normed-ag(a, b, homf_)}
 ```
 
-characterized by `hom-normed-ag-in-set`  *(certified)*:
+characterized by `hom-normed-ag-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-normed-ag(a) implies is-normed-ag(b) implies hom-normed-ag(a, b) in set)
@@ -3243,7 +3243,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-normed-field(a, b, homf_)}
 ```
 
-characterized by `hom-normed-field-in-set`  *(certified)*:
+characterized by `hom-normed-field-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-normed-field(a) implies is-normed-field(b) implies hom-normed-field(a, b) in set)
@@ -3263,7 +3263,7 @@ definition:
 {homf_ in fun(vec(a), vec(b)): is-hom-normed-vector-space(a, b, homf_)}
 ```
 
-characterized by `hom-normed-vector-space-in-set`  *(certified)*:
+characterized by `hom-normed-vector-space-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-normed-vector-space(a) implies is-normed-vector-space(b) implies hom-normed-vector-space(a, b) in set)
@@ -3283,7 +3283,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-pid(a, b, homf_)}
 ```
 
-characterized by `hom-pid-in-set`  *(certified)*:
+characterized by `hom-pid-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-pid(a) implies is-pid(b) implies hom-pid(a, b) in set)
@@ -3303,7 +3303,7 @@ definition:
 {homf_ in fun(pts(a), pts(b)): is-hom-pseudometric-space(a, b, homf_)}
 ```
 
-characterized by `hom-pseudometric-space-in-set`  *(certified)*:
+characterized by `hom-pseudometric-space-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-pseudometric-space(a) implies is-pseudometric-space(b) implies hom-pseudometric-space(a, b) in set)
@@ -3323,7 +3323,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-ring(a, b, homf_)}
 ```
 
-characterized by `hom-ring-in-set`  *(certified)*:
+characterized by `hom-ring-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-ring(a) implies is-ring(b) implies hom-ring(a, b) in set)
@@ -3343,7 +3343,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-ringoid(a, b, homf_)}
 ```
 
-characterized by `hom-ringoid-in-set`  *(certified)*:
+characterized by `hom-ringoid-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-ringoid(a) implies is-ringoid(b) implies hom-ringoid(a, b) in set)
@@ -3363,7 +3363,7 @@ definition:
 {homf_ in fun(carr(a), carr(b)): is-hom-semigroup(a, b, homf_)}
 ```
 
-characterized by `hom-semigroup-in-set`  *(certified)*:
+characterized by `hom-semigroup-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-semigroup(a) implies is-semigroup(b) implies hom-semigroup(a, b) in set)
@@ -3383,7 +3383,7 @@ definition:
 {homf_ in fun(pts(a), pts(b)): is-hom-setoid(a, b, homf_)}
 ```
 
-characterized by `hom-setoid-in-set`  *(certified)*:
+characterized by `hom-setoid-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-setoid(a) implies is-setoid(b) implies hom-setoid(a, b) in set)
@@ -3403,7 +3403,7 @@ definition:
 {homf_ in fun(pts(a), pts(b)): is-hom-top-space(a, b, homf_)}
 ```
 
-characterized by `hom-top-space-in-set`  *(certified)*:
+characterized by `hom-top-space-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-top-space(a) implies is-top-space(b) implies hom-top-space(a, b) in set)
@@ -3423,7 +3423,7 @@ definition:
 {homf_ in fun(pts(a), pts(b)): is-uniformly-continuous-arrow(a, b, homf_)}
 ```
 
-characterized by `hom-uniformly-continuous-in-set`  *(certified)*:
+characterized by `hom-uniformly-continuous-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-metric-space(a) implies is-metric-space(b) implies hom-uniformly-continuous(a, b) in set)
@@ -3443,7 +3443,7 @@ definition:
 {homf_ in fun(vec(a), vec(b)): is-hom-vector-space(a, b, homf_)}
 ```
 
-characterized by `hom-vector-space-in-set`  *(certified)*:
+characterized by `hom-vector-space-in-set`  *(proven)*:
 
 ```
 forall([a, b], is-vector-space(a) implies is-vector-space(b) implies hom-vector-space(a, b) in set)
@@ -3466,7 +3466,7 @@ definition:
 vnb-lambda(idfx_, a_, idfx_)
 ```
 
-characterized by `id-fun-type`  *(certified)*:
+characterized by `id-fun-type`  *(proven)*:
 
 ```
 forall([a in set], id-fun(a) in fun(a, a))
@@ -3500,7 +3500,7 @@ definition:
 matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), zero(a))))
 ```
 
-characterized by `identmat-type`  *(certified)*:
+characterized by `identmat-type`  *(proven)*:
 
 ```
 forall([a], is-ring(a) implies forall([n in nn], identmat(a, n) in mat(n, n, carr(a))))
@@ -3528,7 +3528,7 @@ declared in `tactics-help.scm`
 
 a term-forming head
 
-characterized by `matunit-col-shift`  *(certified)*:
+characterized by `matunit-col-shift`  *(proven)*:
 
 ```
 forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, n) implies l in interval(1, n) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, matunit(a, n, k, l)), i, c) = if(c = l, entry(p, i, k), zero(a)))))
@@ -3720,7 +3720,7 @@ definition:
 {x in pts(s): forsome([u], is-open(s, u) and x in u and u subset a)}
 ```
 
-characterized by `interior-in-set`  *(certified)*:
+characterized by `interior-in-set`  *(proven)*:
 
 ```
 forall([s, a], interior(s, a) subset a)
@@ -3754,7 +3754,7 @@ definition:
 {iov_ in big-union(iow_, c, iow_): forall([iou_ in c], iov_ in iou_)}
 ```
 
-characterized by `intersection-of-is-set`  *(certified)*:
+characterized by `intersection-of-is-set`  *(proven)*:
 
 ```
 forall([c_], intersection-of(c_) in set)
@@ -3774,7 +3774,7 @@ definition:
 {i in nn: a <= i and i <= b}
 ```
 
-characterized by `interval-hi`  *(certified)*:
+characterized by `interval-hi`  *(proven)*:
 
 ```
 forall([a, b, i in interval(a, b)], i <= b)
@@ -3790,7 +3790,7 @@ reads: the inverse operation of $1
 
 a structure slot
 
-characterized by `ras-inv`  *(certified)*:
+characterized by `ras-inv`  *(proven)*:
 
 ```
 forall([a], is-ring(a) implies inv(ring-additive-ag(a)) = neg(a))
@@ -3808,7 +3808,7 @@ definition:
 vnb-lambda(y_, y, choice({x_ in x: phi(x_) = y_}))
 ```
 
-characterized by `inverse-bij-left`  *(certified)*:
+characterized by `inverse-bij-left`  *(proven)*:
 
 ```
 forall([dm, cod, phi in bijection(dm, cod), x in dm], (inverse-bij(phi, dm, cod))(phi(x)) = x)
@@ -3822,7 +3822,7 @@ also: `inverse-bij-right` `inverse-bij-in-fun` `inverse-bij-is-bijection`
 
 a term-forming head
 
-characterized by `r7q-dhat-iota`  *(certified)*:
+characterized by `r7q-dhat-iota`  *(proven)*:
 
 ```
 forall([m, x_, y_], x_ in quotient(cauchy-setoid(m)) implies y_ in quotient(cauchy-setoid(m)) implies (dist(completion(m)))(x_, y_) == iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and x_ = class(cauchy-setoid(m), f) and y_ = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))
@@ -6339,7 +6339,7 @@ definition:
 vnb-lambda(jxt_, ccint(jxa_, jxc_), if(jxt_ <= jxb_, jxp_(jxt_), jxq_(jxt_)))
 ```
 
-characterized by `juxta-trace`  *(certified)*:
+characterized by `juxta-trace`  *(proven)*:
 
 ```
 forall([p, q, a in rr, b in rr, c in rr], a <= b implies b <= c implies p in fun(ccint(a, b), cc) implies q in fun(ccint(b, c), cc) implies p(b) = q(b) implies trace(juxta(p, q, a, b, c), a, c) = union(trace(p, a, b), trace(q, b, c)))
@@ -6423,7 +6423,7 @@ definition:
 p(deg(a, p))
 ```
 
-characterized by `leadcoef-unfold`  *(certified)*:
+characterized by `leadcoef-unfold`  *(proven)*:
 
 ```
 forall([a_, p_], leadcoef(a_, p_) == p_(deg(a_, p_)))
@@ -6475,7 +6475,7 @@ definition:
 finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (act(md))(entry(c, 1, j), entry(u, j, 1))), interval(1, n))
 ```
 
-characterized by `lincomb-snoc`  *(certified)*:
+characterized by `lincomb-snoc`  *(proven)*:
 
 ```
 forall([md], is-module(md) implies forall([n in nn, c in mat(1, n, carr(scal(md))), u in mat(n, 1, vec(md)), r in carr(scal(md)), x in vec(md)], lincomb(md, succ(n), snoc-row(c, n, r), snoc-col(u, n, x)) = (vadd(md))(lincomb(md, n, c, u), (act(md))(r, x))))
@@ -6493,7 +6493,7 @@ definition:
 {y_ in vec(m): forsome([r_ in rr], y_ = (act(m))(r_, v))}
 ```
 
-characterized by `line-has-v`  *(certified)*:
+characterized by `line-has-v`  *(proven)*:
 
 ```
 forall([m, v], is-normed-vector-space(m) implies v in vec(m) implies v in line(m, v))
@@ -6513,7 +6513,7 @@ definition:
 cc-int(vnb-lambda(pat_, ccint(a, b), pf(pgam(pat_)) * dgam(pat_)), a, b)
 ```
 
-characterized by `line-int-sum`  *(certified)*:
+characterized by `line-int-sum`  *(proven)*:
 
 ```
 forall([u, f, g, pgam, dgam, a, b], u subset cc implies f in fun(u, cc) implies forall([rgy_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), f, rgy_)) implies g in fun(u, cc) implies forall([rgy_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), g, rgy_)) implies is-road(pgam, dgam, a, b) implies trace(pgam, a, b) subset u implies forall([lih_ in fun(u, cc)], forall([liz_ in u], lih_(liz_) == f(liz_) + g(liz_)) implies line-int(lih_, pgam, dgam, a, b) = line-int(f, pgam, dgam, a, b) + line-int(g, pgam, dgam, a, b)))
@@ -6561,7 +6561,7 @@ definition:
 c-int-or(vnb-lambda(z_, rr, recip-star(z_)), 1, x_)
 ```
 
-characterized by `log-mul`  *(certified)*:
+characterized by `log-mul`  *(proven)*:
 
 ```
 forall([x_, y_], x_ in rr implies y_ in rr implies 0 < x_ implies 0 < y_ implies log(x_ * y_) = log(x_) + log(y_))
@@ -6670,7 +6670,7 @@ definition:
 [mat(n, n, carr(a)), vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)), vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q)), vnb-lambda(p, mat(n, n, carr(a)), matneg(a, p)), zeromat(a, n, n), identmat(a, n)]
 ```
 
-characterized by `mat-ring-add`  *(certified)*:
+characterized by `mat-ring-add`  *(proven)*:
 
 ```
 forall([a, n], is-ring(a) implies n in nn implies add(mat-ring(a, n)) = vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)))
@@ -6688,7 +6688,7 @@ definition:
 matof(nth(1, size(p)), nth(2, size(u)), vnb-lambda([i, c], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(u)))), finsum(module-vector-ag(md), vnb-lambda(j, interval(1, nth(2, size(p))), (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, nth(2, size(p))))))
 ```
 
-characterized by `matact-type`  *(certified)*:
+characterized by `matact-type`  *(proven)*:
 
 ```
 forall([md], is-module(md) implies forall([m, n, q, p, u], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies (n = 0 implies m = 0 or q = 0) implies matact(md, p, u) in mat(m, q, vec(md))))
@@ -6706,7 +6706,7 @@ definition:
 matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (add(a))(entry(p, i, j), entry(q, i, j))))
 ```
 
-characterized by `matadd-comm`  *(certified)*:
+characterized by `matadd-comm`  *(proven)*:
 
 ```
 forall([a], is-ring(a) implies forall([m, n, p, q], p in mat(m, n, carr(a)) implies q in mat(m, n, carr(a)) implies matadd(a, p, q) = matadd(a, q, p)))
@@ -6724,7 +6724,7 @@ definition:
 matof(nth(1, size(p)), nth(2, size(q)), vnb-lambda([i, k], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(q)))), finsum(ring-additive-ag(a), vnb-lambda(j, interval(1, nth(2, size(p))), (mul(a))(entry(p, i, j), entry(q, j, k))), interval(1, nth(2, size(p))))))
 ```
 
-characterized by `matmul-type`  *(certified)*:
+characterized by `matmul-type`  *(proven)*:
 
 ```
 forall([a], is-ring(a) implies forall([m, n, k, p, q], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies (n = 0 implies m = 0 or k = 0) implies matmul(a, p, q) in mat(m, k, carr(a))))
@@ -6742,7 +6742,7 @@ definition:
 matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (neg(a))(entry(p, i, j))))
 ```
 
-characterized by `matneg-type`  *(certified)*:
+characterized by `matneg-type`  *(proven)*:
 
 ```
 forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matneg(a, p) in mat(m, n, carr(a))))
@@ -6760,7 +6760,7 @@ definition:
 iota(p, p in mat(m, n, image(g, cartesian(interval(1, m), interval(1, n)))) and forall([i in interval(1, m), j in interval(1, n)], entry(p, i, j) = g(i, j)))
 ```
 
-characterized by `matof-in-mat`  *(certified)*:
+characterized by `matof-in-mat`  *(proven)*:
 
 ```
 forall([m, n, x, g], m in nn implies n in nn implies forall([i in interval(1, m), j in interval(1, n)], g(i, j) in x) implies matof(m, n, g) in mat(m, n, x))
@@ -6792,7 +6792,7 @@ definition:
 matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (mul(a))(r, entry(p, i, j))))
 ```
 
-characterized by `matscale-type`  *(certified)*:
+characterized by `matscale-type`  *(proven)*:
 
 ```
 forall([a], is-ring(a) implies forall([m, n, r, p], r in carr(a) implies p in mat(m, n, carr(a)) implies matscale(a, r, p) in mat(m, n, carr(a))))
@@ -6810,7 +6810,7 @@ definition:
 matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l, one(a), zero(a))))
 ```
 
-characterized by `matunit-type`  *(certified)*:
+characterized by `matunit-type`  *(proven)*:
 
 ```
 forall([a], is-ring(a) implies forall([n, k, l], n in nn implies matunit(a, n, k, l) in mat(n, n, carr(a))))
@@ -6886,7 +6886,7 @@ definition:
 [pts(md), {u in power(pts(md)): is-open(md, u)}]
 ```
 
-characterized by `metric-top-hom`  *(certified)*:
+characterized by `metric-top-hom`  *(proven)*:
 
 ```
 forall([s, t, f], is-metric-space(s) implies is-metric-space(t) implies is-hom-top-space(metric-top(s), metric-top(t), f) iff is-continuous(s, t, f))
@@ -6928,7 +6928,7 @@ definition:
 matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), entry(s, if(i < r, i, succ(i)), if(j < c, j, succ(j)))))
 ```
 
-characterized by `minor-type`  *(certified)*:
+characterized by `minor-type`  *(proven)*:
 
 ```
 forall([r, s, p, q, n], is-ring(r) implies p in nn implies q in nn implies n in nn implies s in mat(succ(n), succ(n), carr(r)) implies minor(s, p, q, n) in mat(n, n, carr(r)))
@@ -6966,7 +6966,7 @@ definition:
 [finsupp(a, m), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-add(a, m, f, g)), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-mul(a, m, f, g)), vnb-lambda(f, finsupp(a, m), monalg-neg(a, m, f)), monalg-zero(a, m), monalg-one(a, m)]
 ```
 
-characterized by `monalg-carr`  *(certified)*:
+characterized by `monalg-carr`  *(proven)*:
 
 ```
 forall([a_, m_], carr(monalg(a_, m_)) == finsupp(a_, m_))
@@ -6984,7 +6984,7 @@ definition:
 vnb-lambda(x_, carr(m), (add(a))(f(x_), g(x_)))
 ```
 
-characterized by `monalg-add-op`  *(certified)*:
+characterized by `monalg-add-op`  *(proven)*:
 
 ```
 forall([a_, m_], add(monalg(a_, m_)) == vnb-lambda([f, g], cartesian(finsupp(a_, m_), finsupp(a_, m_)), monalg-add(a_, m_, f, g)))
@@ -7002,7 +7002,7 @@ definition:
 vnb-lambda(x_, carr(m), finsum(ring-additive-ag(a), vnb-lambda(p, {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}, (mul(a))(f(nth(1, p)), g(nth(2, p)))), {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}))
 ```
 
-characterized by `monalg-mul-op`  *(certified)*:
+characterized by `monalg-mul-op`  *(proven)*:
 
 ```
 forall([a_, m_], mul(monalg(a_, m_)) == vnb-lambda([f, g], cartesian(finsupp(a_, m_), finsupp(a_, m_)), monalg-mul(a_, m_, f, g)))
@@ -7020,7 +7020,7 @@ definition:
 vnb-lambda(x_, carr(m), (neg(a))(f(x_)))
 ```
 
-characterized by `monalg-neg-op`  *(certified)*:
+characterized by `monalg-neg-op`  *(proven)*:
 
 ```
 forall([a_, m_], neg(monalg(a_, m_)) == vnb-lambda(f, finsupp(a_, m_), monalg-neg(a_, m_, f)))
@@ -7038,7 +7038,7 @@ definition:
 vnb-lambda(x_, carr(m), if(x_ = iden(m), one(a), zero(a)))
 ```
 
-characterized by `monalg-one-in`  *(certified)*:
+characterized by `monalg-one-in`  *(proven)*:
 
 ```
 forall([a_, m_], is-ring(a_) implies is-monoid(m_) implies monalg-one(a_, m_) in finsupp(a_, m_))
@@ -7056,7 +7056,7 @@ definition:
 vnb-lambda(x_, carr(m), zero(a))
 ```
 
-characterized by `monalg-zero-in`  *(certified)*:
+characterized by `monalg-zero-in`  *(proven)*:
 
 ```
 forall([a_, m_], is-ring(a_) implies is-monoid(m_) implies monalg-zero(a_, m_) in finsupp(a_, m_))
@@ -7080,7 +7080,7 @@ definition:
 vnb-lambda(x_, nn, if(x_ = n, c, zero(a)))
 ```
 
-characterized by `monomial-at`  *(certified)*:
+characterized by `monomial-at`  *(proven)*:
 
 ```
 forall([a_, c_, n_], c_ in carr(a_) implies n_ in nn implies (monomial(a_, c_, n_))(n_) = c_)
@@ -7151,7 +7151,7 @@ definition:
 [carr(nag), vnb-lambda([u, v], cartesian(carr(nag), carr(nag)), (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]
 ```
 
-characterized by `nag-metric-space-is-metric-space`  *(certified)*:
+characterized by `nag-metric-space-is-metric-space`  *(proven)*:
 
 ```
 forall([nag], is-normed-ag(nag) implies is-metric-space(nag-metric-space(nag)))
@@ -7189,7 +7189,7 @@ definition:
 [carr(nf), vnb-lambda([x, y], cartesian(carr(nf), carr(nf)), (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]
 ```
 
-characterized by `nf-metric-space-is-metric-space`  *(certified)*:
+characterized by `nf-metric-space-is-metric-space`  *(proven)*:
 
 ```
 forall([nf], is-normed-field(nf) implies is-metric-space(nf-metric-space(nf)))
@@ -7215,7 +7215,7 @@ definition:
 choice({f in fun(nn, s): forall([m in nn, n in nn], m < n implies f(m) < f(n))})
 ```
 
-characterized by `nn-enum-spec`  *(certified)*:
+characterized by `nn-enum-spec`  *(proven)*:
 
 ```
 forall([s in inf-subsets(nn)], nn-enum(s) in fun(nn, s) and forall([m in nn, n in nn], m < n implies (nn-enum(s))(m) < (nn-enum(s))(n)))
@@ -7247,7 +7247,7 @@ definition:
 iota(a_, a_ in nn and forsome([b_ in nn], nnpair(a_, b_) = n_))
 ```
 
-characterized by `nnfst-type`  *(certified)*:
+characterized by `nnfst-type`  *(proven)*:
 
 ```
 forall([n_ in nn], nnfst(n_) in nn)
@@ -7267,7 +7267,7 @@ definition:
 trinum(i_ + j_) + j_
 ```
 
-characterized by `nnpair-inj`  *(certified)*:
+characterized by `nnpair-inj`  *(proven)*:
 
 ```
 forall([i_, j_, ii_, jj_], i_ in nn implies j_ in nn implies ii_ in nn implies jj_ in nn implies nnpair(i_, j_) = nnpair(ii_, jj_) implies i_ = ii_ and j_ = jj_)
@@ -7287,7 +7287,7 @@ definition:
 iota(b_, b_ in nn and forsome([a_ in nn], nnpair(a_, b_) = n_))
 ```
 
-characterized by `nnsnd-type`  *(certified)*:
+characterized by `nnsnd-type`  *(proven)*:
 
 ```
 forall([n_ in nn], nnsnd(n_) in nn)
@@ -7554,7 +7554,7 @@ definition:
 {osq_ in rr: a < osq_ and osq_ <= b}
 ```
 
-characterized by `ocint-shrink`  *(certified)*:
+characterized by `ocint-shrink`  *(proven)*:
 
 ```
 forall([osx_, osr_, osv_], osx_ in rr implies pos-rr(osr_) implies pos-rr(osv_) implies osv_ <= osr_ implies ocint(osx_ - osv_, osx_) subset ocint(osx_ - osr_, osx_))
@@ -7618,7 +7618,7 @@ definition:
 {icx_ in rr: a < icx_ and icx_ < b}
 ```
 
-characterized by `ooint-open`  *(certified)*:
+characterized by `ooint-open`  *(proven)*:
 
 ```
 forall([a, b], a in rr implies b in rr implies is-open(rr-ms, ooint(a, b)))
@@ -7634,7 +7634,7 @@ reads: the topology of $1
 
 a structure slot
 
-characterized by `ds-opens`  *(certified)*:
+characterized by `ds-opens`  *(proven)*:
 
 ```
 forall([a_], opens(discrete-space(a_)) == power(a_))
@@ -7753,7 +7753,7 @@ definition:
 injection(ord-segment(n), ord-segment(n))
 ```
 
-characterized by `permutations-zero`  *(certified)*:
+characterized by `permutations-zero`  *(proven)*:
 
 ```
 card(permutations(0)) = succ(0)
@@ -7793,7 +7793,7 @@ definition:
 monalg(a, nn-add-monoid)
 ```
 
-characterized by `poly-carrier`  *(certified)*:
+characterized by `poly-carrier`  *(proven)*:
 
 ```
 forall([a_], carr(poly(a_)) == finsupp(a_, nn-add-monoid))
@@ -7849,7 +7849,7 @@ definition:
 iota(m_, m_ in nn and succ(m_) = n_)
 ```
 
-characterized by `pred-succ`  *(certified)*:
+characterized by `pred-succ`  *(proven)*:
 
 ```
 forall([n_ in nn], not(n_ = 0) implies succ(pred(n_)) = n_)
@@ -7923,7 +7923,7 @@ definition:
 finprod(commutative-ring-multiplicative-cm(r), f, s)
 ```
 
-characterized by `prod-ring-type`  *(certified)*:
+characterized by `prod-ring-type`  *(proven)*:
 
 ```
 forall([r], is-commutative-ring(r) implies forall([x], x in set and card(x) in nn implies forall([f in fun(x, carr(r))], prod-ring(r, f, x) in carr(r))))
@@ -7941,7 +7941,7 @@ definition:
 finsum(cm, f, s)
 ```
 
-characterized by `prod-set-empty`  *(certified)*:
+characterized by `prod-set-empty`  *(proven)*:
 
 ```
 forall([cm, f], prod-set(cm, empty-set, f) == iden(cm))
@@ -7959,7 +7959,7 @@ definition:
 {x in fun(nn, big-union(n, nn, pts(ms(n)))): forall([n in nn], x(n) in pts(ms(n)))}
 ```
 
-characterized by `product-carrier-coord`  *(certified)*:
+characterized by `product-carrier-coord`  *(proven)*:
 
 ```
 forall([ms, x_ in product-carrier(ms), n_ in nn], x_(n_) in pts(ms(n_)))
@@ -7997,7 +7997,7 @@ definition:
 vnb-lambda(x, product-carrier(ms), x(n))
 ```
 
-characterized by `product-projection-continuous`  *(certified)*:
+characterized by `product-projection-continuous`  *(proven)*:
 
 ```
 forall([ms], is-ms-sequence(ms) implies forall([w], summable-weight(w) implies forall([n in nn], is-continuous(product-metric-w(ms, w), ms(n), product-proj(ms, n)))))
@@ -8013,7 +8013,7 @@ definition:
 vnb-lambda(a, pts(s), class(s, a))
 ```
 
-characterized by `proj-in-fun`  *(certified)*:
+characterized by `proj-in-fun`  *(proven)*:
 
 ```
 forall([s], is-setoid(s) implies proj(s) in fun(pts(s), quotient(s)))
@@ -8079,7 +8079,7 @@ definition:
 sum-ag(normed-field-additive-ag(rr-normed-field), vnb-lambda(n, nn, coef(n) * x ^ n), k)
 ```
 
-characterized by `ps-partial-sum-as-series`  *(certified)*:
+characterized by `ps-partial-sum-as-series`  *(proven)*:
 
 ```
 forall([coef in fun(nn, rr), x in rr, k in nn], ps-partial-sum(coef, x, k) = series-partial-sum(vnb-lambda(n, nn, coef(n) * x ^ n), k))
@@ -8217,7 +8217,7 @@ definition:
 iota(pav_, pav_ in rr and forsome([paw_], is-primitive(paw_, pphi_, a, b) and pav_ = paw_(b) - paw_(a)))
 ```
 
-characterized by `pw-int-const`  *(certified)*:
+characterized by `pw-int-const`  *(proven)*:
 
 ```
 forall([a in rr, b in rr], a < b implies forall([pac_ in rr, pphi_ in fun(ccint(a, b), rr)], forall([pay_ in ccint(a, b)], pphi_(pay_) == pac_) implies pw-int(pphi_, a, b) = pac_ * (b - a)))
@@ -8268,7 +8268,7 @@ definition:
 image(proj(s), pts(s))
 ```
 
-characterized by `quotient-rep`  *(certified)*:
+characterized by `quotient-rep`  *(proven)*:
 
 ```
 forall([s], is-setoid(s) implies forall([x in quotient(s)], forsome([a in pts(s)], x = class(s, a))))
@@ -8291,7 +8291,7 @@ definition:
 iota(x_, x_ in rr and 0 < x_ and log(x_) = y_)
 ```
 
-characterized by `log-r-exp`  *(certified)*:
+characterized by `log-r-exp`  *(proven)*:
 
 ```
 forall([y_ in rr], log(r-exp(y_)) = y_)
@@ -8309,7 +8309,7 @@ definition:
 image(f, dom(f))
 ```
 
-characterized by `range-membership`  *(certified)*:
+characterized by `range-membership`  *(proven)*:
 
 ```
 forall([f, a in dom(f)], f(a) in ran(f))
@@ -8357,7 +8357,7 @@ definition:
 if(u_ = 0, 0, recip(u_))
 ```
 
-characterized by `recip-star-zero`  *(certified)*:
+characterized by `recip-star-zero`  *(proven)*:
 
 ```
 recip-star(0) = 0
@@ -8387,7 +8387,7 @@ reads: the equivalence relation of $1
 
 a structure slot
 
-characterized by `r6b-setoid-rel`  *(certified)*:
+characterized by `r6b-setoid-rel`  *(proven)*:
 
 ```
 forall([r], rel(ringoid-setoid(r)) == ringoid-rel(r))
@@ -8419,7 +8419,7 @@ definition:
 [a, b] in rel(s)
 ```
 
-characterized by `r6b-related-in`  *(certified)*:
+characterized by `r6b-related-in`  *(proven)*:
 
 ```
 forall([r], is-ringoid(r) implies forall([a, b], a in carr(r) implies b in carr(r) implies (add(r))(a, (neg(r))(b)) in idl(r) implies related(ringoid-setoid(r), a, b)))
@@ -8463,7 +8463,7 @@ definition:
 forall([a in pts(s), b in pts(s)], related(s, a, b) implies f(a) = f(b))
 ```
 
-characterized by `respects-unfold`  *(certified)*:
+characterized by `respects-unfold`  *(proven)*:
 
 ```
 forall([s, f], respects(s, f) iff forall([a_ in pts(s), b_ in pts(s)], related(s, a_, b_) implies f(a_) = f(b_)))
@@ -8481,7 +8481,7 @@ definition:
 forall([a, b, a_, b_], a in pts(s) implies b in pts(s) implies a_ in pts(s) implies b_ in pts(s) implies related(s, a, a_) and related(s, b, b_) implies f(a, b) = f(a_, b_))
 ```
 
-characterized by `respects2-unfold`  *(certified)*:
+characterized by `respects2-unfold`  *(proven)*:
 
 ```
 forall([s, f], respects2(s, f) iff forall([a_, b_, c_, d_], a_ in pts(s) implies b_ in pts(s) implies c_ in pts(s) implies d_ in pts(s) implies related(s, a_, c_) and related(s, b_, d_) implies f(a_, b_) = f(c_, d_)))
@@ -8501,7 +8501,7 @@ definition:
 vnb-lambda(rsx_, a, f(rsx_))
 ```
 
-characterized by `road-restrict`  *(certified)*:
+characterized by `road-restrict`  *(proven)*:
 
 ```
 forall([pgam, dgam, a, b, licv_ in rr, lidv_ in rr], is-road(pgam, dgam, a, b) implies a <= licv_ implies licv_ < lidv_ implies lidv_ <= b implies is-road(restrict(pgam, ccint(licv_, lidv_)), restrict(dgam, ccint(licv_, lidv_)), licv_, lidv_))
@@ -8563,7 +8563,7 @@ definition:
 mpow(commutative-ring-multiplicative-cm(r), x, n)
 ```
 
-characterized by `ring-power-add`  *(certified)*:
+characterized by `ring-power-add`  *(proven)*:
 
 ```
 forall([r], is-commutative-ring(r) implies forall([x in carr(r), j in nn, k in nn], ring-power(r, x, j + k) = (mul(r))(ring-power(r, x, j), ring-power(r, x, k))))
@@ -8687,7 +8687,7 @@ definition:
 pw-int(vnb-lambda(rlt_, ccint(rla_, rlb_), magnitude(rld_(rlt_))), rla_, rlb_)
 ```
 
-characterized by `road-length-tri`  *(certified)*:
+characterized by `road-length-tri`  *(proven)*:
 
 ```
 forall([a in cc, b in cc, c in cc], road-length(tri-road-deriv(a, b, c), 0, 3) = (magnitude(b - a) + magnitude(c - b)) + magnitude(a - c))
@@ -8721,7 +8721,7 @@ definition:
 if(0 < x_, r-exp(s_ * log(x_)), if(0 < s_, 0, 1))
 ```
 
-characterized by `log-rpow-star`  *(certified)*:
+characterized by `log-rpow-star`  *(proven)*:
 
 ```
 forall([x_, s_ in rr], 0 < x_ implies log(rpow-star(x_, s_)) = s_ * log(x_))
@@ -8836,7 +8836,7 @@ definition:
 vnb-lambda(u_, rr, f((vadd(m))(a, (act(m))(u_, eta))))
 ```
 
-characterized by `seg-curve-apply`  *(certified)*:
+characterized by `seg-curve-apply`  *(proven)*:
 
 ```
 forall([m, f, a, eta, t_ in rr], (seg-curve(m, f, a, eta))(t_) == f((vadd(m))(a, (act(m))(t_, eta))))
@@ -8856,7 +8856,7 @@ definition:
 vnb-lambda(sgs_, ccint(0, 1), sgq_ - sgp_)
 ```
 
-characterized by `seg-deriv-bridge`  *(certified)*:
+characterized by `seg-deriv-bridge`  *(proven)*:
 
 ```
 forall([goua_, goub_, gouw_], goub_ - goua_ = gouw_ implies seg-deriv(goua_, goub_) == vnb-lambda(psx_, ccint(0, 1), gouw_))
@@ -8874,7 +8874,7 @@ definition:
 line-int(sgf_, seg-path(sgp_, sgq_), seg-deriv(sgp_, sgq_), 0, 1)
 ```
 
-characterized by `seg-int-sum`  *(certified)*:
+characterized by `seg-int-sum`  *(proven)*:
 
 ```
 forall([u, f, g], u subset cc implies f in fun(u, cc) implies forall([rgy_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), f, rgy_)) implies g in fun(u, cc) implies forall([rgy_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), g, rgy_)) implies forall([gouh_ in fun(u, cc)], forall([gouz_ in u], gouh_(gouz_) == f(gouz_) + g(gouz_)) implies forall([goua_ in cc, goub_ in cc], trace(seg-path(goua_, goub_), 0, 1) subset u implies seg-int(gouh_, goua_, goub_) = seg-int(f, goua_, goub_) + seg-int(g, goua_, goub_))))
@@ -8894,7 +8894,7 @@ definition:
 vnb-lambda(sgs_, ccint(0, 1), sgp_ + sgs_ * (sgq_ - sgp_))
 ```
 
-characterized by `seg-path-apply`  *(certified)*:
+characterized by `seg-path-apply`  *(proven)*:
 
 ```
 forall([goua_ in cc, goub_ in cc, gout_ in ccint(0, 1)], (seg-path(goua_, goub_))(gout_) = goua_ + gout_ * (goub_ - goua_))
@@ -8912,7 +8912,7 @@ predicate `is-semigroup`; slots: carr opr
 
 a term-forming head
 
-characterized by `ball-sep-unfold`  *(certified)*:
+characterized by `ball-sep-unfold`  *(proven)*:
 
 ```
 forall([s, c, r], ball(s, c, r) == {y in pts(s): (dist(s))(c, y) <= r and not((dist(s))(c, y) = r)})
@@ -8966,7 +8966,7 @@ definition:
 if(converges(rr-ms, f), iota(lm_, converges-to(rr-ms, f, lm_)), 0)
 ```
 
-characterized by `seq-limit-in-rr`  *(certified)*:
+characterized by `seq-limit-in-rr`  *(proven)*:
 
 ```
 forall([f], seq-limit(f) in rr)
@@ -9018,7 +9018,7 @@ definition:
 iota(lm_, series-converges-to(f, lm_))
 ```
 
-characterized by `series-limit-add`  *(certified)*:
+characterized by `series-limit-add`  *(proven)*:
 
 ```
 forall([f in fun(nn, rr), g in fun(nn, rr), h in fun(nn, rr)], forall([i_ in nn], h(i_) = f(i_) + g(i_)) implies series-converges(f) implies series-converges(g) implies series-limit(h) = series-limit(f) + series-limit(g))
@@ -9038,7 +9038,7 @@ definition:
 sum-ag(normed-field-additive-ag(rr-normed-field), f, k)
 ```
 
-characterized by `series-partial-sum-add`  *(certified)*:
+characterized by `series-partial-sum-add`  *(proven)*:
 
 ```
 forall([k in nn, f in fun(nn, rr), g in fun(nn, rr), h in fun(nn, rr)], forall([i_ in nn], h(i_) = f(i_) + g(i_)) implies series-partial-sum(h, k) = series-partial-sum(f, k) + series-partial-sum(g, k))
@@ -9070,7 +9070,7 @@ reads: the sigma-algebra of $1
 
 a structure slot
 
-characterized by `ds-sigma`  *(certified)*:
+characterized by `ds-sigma`  *(proven)*:
 
 ```
 forall([a_], sigma(discrete-space(a_)) == power(a_))
@@ -9116,7 +9116,7 @@ definition:
 {y_}
 ```
 
-characterized by `singleton-unfold`  *(certified)*:
+characterized by `singleton-unfold`  *(proven)*:
 
 ```
 forall([y_], singleton(y_) == {y_})
@@ -9134,7 +9134,7 @@ definition:
 [length(m), if(length(m) = 0, 0, length(nth(1, m)))]
 ```
 
-characterized by `mat-size`  *(certified)*:
+characterized by `mat-size`  *(proven)*:
 
 ```
 forall([m, n, x, q in mat(m, n, x)], 1 <= m implies size(q) = [m, n])
@@ -9178,7 +9178,7 @@ definition:
 matof(succ(n), 1, vnb-lambda([i_, j_], cartesian(interval(1, succ(n)), interval(1, 1)), if(i_ = succ(n), x, entry(w, i_, 1))))
 ```
 
-characterized by `snoc-col-last`  *(certified)*:
+characterized by `snoc-col-last`  *(proven)*:
 
 ```
 forall([w, n, v, x], n in nn implies w in mat(n, 1, x) implies v in x implies entry(snoc-col(w, n, v), succ(n), 1) = v)
@@ -9196,7 +9196,7 @@ definition:
 matof(1, succ(n), vnb-lambda([i_, j_], cartesian(interval(1, 1), interval(1, succ(n))), if(j_ = succ(n), r, entry(c, 1, j_))))
 ```
 
-characterized by `snoc-row-last`  *(certified)*:
+characterized by `snoc-row-last`  *(proven)*:
 
 ```
 forall([c, n, r, x], n in nn implies c in mat(1, n, x) implies r in x implies entry(snoc-row(c, n, r), 1, succ(n)) = r)
@@ -9244,7 +9244,7 @@ definition:
 {y_ in vec(m): forsome([x_ in s, r_ in rr], y_ = (vadd(m))(x_, (act(m))(r_, v)))}
 ```
 
-characterized by `span-add-one-unfold`  *(certified)*:
+characterized by `span-add-one-unfold`  *(proven)*:
 
 ```
 forall([m, s, v], span-add-one(m, s, v) == {y_ in vec(m): forsome([x_ in s, r_ in rr], y_ = (vadd(m))(x_, (act(m))(r_, v)))})
@@ -9306,7 +9306,7 @@ definition:
 iota(x_, x_ in rr and 0 <= x_ and x_ * x_ = a_)
 ```
 
-characterized by `sqrt-sq`  *(certified)*:
+characterized by `sqrt-sq`  *(proven)*:
 
 ```
 forall([a], a in rr and 0 <= a implies sqrt(a) * sqrt(a) = a)
@@ -9338,7 +9338,7 @@ definition:
 matof(p, q, vnb-lambda([i, j], cartesian(interval(1, p), interval(1, q)), entry(s, succ(i), succ(j))))
 ```
 
-characterized by `submat-type`  *(certified)*:
+characterized by `submat-type`  *(proven)*:
 
 ```
 forall([a, p, q, s], p in nn implies q in nn implies s in mat(succ(p), succ(q), carr(a)) implies submat(s, p, q) in mat(p, q, carr(a)))
@@ -9404,7 +9404,7 @@ definition:
 [a, {stw_ in power(a): forsome([stu_ in opens(t)], stw_ = intersection(stu_, a))}]
 ```
 
-characterized by `subspace-top-pts`  *(certified)*:
+characterized by `subspace-top-pts`  *(proven)*:
 
 ```
 forall([t, a], pts(subspace-top(t, a)) == a)
@@ -9492,7 +9492,7 @@ definition:
 finsum(ring-additive-ag(r), f, s)
 ```
 
-characterized by `sum-set-empty`  *(certified)*:
+characterized by `sum-set-empty`  *(proven)*:
 
 ```
 forall([r, f], sum-set(r, empty-set, f) == zero(r))
@@ -9570,7 +9570,7 @@ definition:
 {x_ in carr(m): not(f(x_) = zero(a))}
 ```
 
-characterized by `supp-in-set`  *(certified)*:
+characterized by `supp-in-set`  *(proven)*:
 
 ```
 forall([a_, m_, f_], carr(m_) in set implies supp(a_, m_, f_) in set)
@@ -9605,7 +9605,7 @@ definition:
 vnb-lambda(tu_, ccint(a, b), taylor-sum(d, n, b, tu_))
 ```
 
-characterized by `taylor-aux-step`  *(certified)*:
+characterized by `taylor-aux-step`  *(proven)*:
 
 ```
 forall([itd_, itn_, a, b], is-taylor-family(itd_, itn_, a, b) implies forall([itj_ in nn], succ(itj_) <= itn_ implies forall([itz_ in ccint(a, b)], (taylor-aux(itd_, succ(itj_), a, b))(itz_) = (taylor-aux(itd_, itj_, a, b))(itz_) + ((itd_(itj_))(itz_) * (b - itz_) ^ itj_) * recip(factorial(itj_)))))
@@ -9651,7 +9651,7 @@ definition:
 series-partial-sum(vnb-lambda(k, nn, ((nth-deriv(f, k))(a) * (x - a) ^ k) * recip(factorial(k))), succ(n))
 ```
 
-characterized by `taylor-poly-in-rr`  *(certified)*:
+characterized by `taylor-poly-in-rr`  *(proven)*:
 
 ```
 forall([f in fun(rr, rr), a in rr, n in nn, x in rr], forall([k], k in nn and k <= n implies nth-deriv(f, k) in fun(rr, rr)) implies taylor-poly(f, a, n, x) in rr)
@@ -9685,7 +9685,7 @@ definition:
 (d(0))(b) - taylor-sum(d, n, b, a)
 ```
 
-characterized by `taylor-remainder-factor`  *(certified)*:
+characterized by `taylor-remainder-factor`  *(proven)*:
 
 ```
 forall([a in rr, b in rr, tcf_, tcm_ in nn], a < b implies forall([tck_ in nn], tck_ <= succ(tcm_) implies tcf_(tck_) in fun(ccint(a, b), rr)) implies forall([tck_ in nn], tck_ < succ(tcm_) implies is-continuous-on(tcf_(tck_), ccint(a, b))) implies forall([tck_ in nn], tck_ < succ(tcm_) implies forall([tcx_ in ooint(a, b)], has-deriv-at(tcf_(tck_), tcx_, (tcf_(succ(tck_)))(tcx_)))) implies is-continuous-on(tcf_(succ(tcm_)), ccint(a, b)) implies forsome([tcs_ in fun(ccint(a, b), rr)], is-continuous-on(tcs_, ccint(a, b)) and tcs_(a) = (tcf_(succ(tcm_)))(a) and forall([tct_ in ccint(a, b)], taylor-rem(tcf_, succ(tcm_), a, tct_) = (tcs_(tct_) * (tct_ - a) ^ succ(tcm_)) * recip(factorial(succ(tcm_)))) and forall([tct_ in ccint(a, b)], abs(tcs_(tct_)) <= sup(image(vnb-lambda(tcv_, ccint(a, b), abs((tcf_(succ(tcm_)))(tcv_))), ccint(a, b))))))
@@ -9705,7 +9705,7 @@ definition:
 series-partial-sum(taylor-term(d, b, tv_), n)
 ```
 
-characterized by `taylor-sum-one`  *(certified)*:
+characterized by `taylor-sum-one`  *(proven)*:
 
 ```
 forall([itd_, b in rr, itv_ in rr], (itd_(0))(itv_) in rr implies taylor-sum(itd_, succ(0), b, itv_) = (itd_(0))(itv_))
@@ -9725,7 +9725,7 @@ definition:
 vnb-lambda(tk_, nn, ((d(tk_))(tv_) * (b - tv_) ^ tk_) * recip(factorial(tk_)))
 ```
 
-characterized by `taylor-term-value`  *(certified)*:
+characterized by `taylor-term-value`  *(proven)*:
 
 ```
 forall([itd_, b, itv_, itk_ in nn], (taylor-term(itd_, b, itv_))(itk_) == ((itd_(itk_))(itv_) * (b - itv_) ^ itk_) * recip(factorial(itk_)))
@@ -9775,7 +9775,7 @@ definition:
 image(pgam, ccint(a, b))
 ```
 
-characterized by `juxta-trace`  *(certified)*:
+characterized by `juxta-trace`  *(proven)*:
 
 ```
 forall([p, q, a in rr, b in rr, c in rr], a <= b implies b <= c implies p in fun(ccint(a, b), cc) implies q in fun(ccint(b, c), cc) implies p(b) = q(b) implies trace(juxta(p, q, a, b, c), a, c) = union(trace(p, a, b), trace(q, b, c)))
@@ -9795,7 +9795,7 @@ definition:
 matof(n, m, vnb-lambda([tri_, trj_], cartesian(interval(1, n), interval(1, m)), entry(a, trj_, tri_)))
 ```
 
-characterized by `det-transpose`  *(certified)*:
+characterized by `det-transpose`  *(proven)*:
 
 ```
 forall([r, n, a], is-commutative-ring(r) implies n in nn implies a in mat(n, n, carr(r)) implies det(r, n, transpose(a, n, n)) = det(r, n, a))
@@ -9815,7 +9815,7 @@ definition:
 (seg-int(sgf_, sga_, sgb_) + seg-int(sgf_, sgb_, sgc_)) + seg-int(sgf_, sgc_, sga_)
 ```
 
-characterized by `tri-int-fan`  *(certified)*:
+characterized by `tri-int-fan`  *(proven)*:
 
 ```
 forall([u, f], u subset cc implies f in fun(u, cc) implies forall([rgy_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), f, rgy_)) implies forall([goxa_ in cc, goxb_ in cc, goxc_ in cc], conv3(goxa_, goxb_, goxc_) subset u implies forall([goxx_ in conv3(goxa_, goxb_, goxc_)], tri-int(f, goxa_, goxb_, goxc_) = (tri-int(f, goxa_, goxb_, goxx_) + tri-int(f, goxb_, goxc_, goxx_)) + tri-int(f, goxc_, goxa_, goxx_))))
@@ -9835,7 +9835,7 @@ definition:
 juxta(juxta(seg-path(tra_, trb_), vnb-lambda(trs_, ccint(1, 2), (seg-path(trb_, trc_))(trs_ - 1)), 0, 1, 2), vnb-lambda(trs_, ccint(2, 3), (seg-path(trc_, tra_))(trs_ - 2)), 0, 2, 3)
 ```
 
-characterized by `tri-road-trace`  *(certified)*:
+characterized by `tri-road-trace`  *(proven)*:
 
 ```
 forall([a in cc, b in cc, c in cc], trace(tri-road(a, b, c), 0, 3) = union(union(trace(seg-path(a, b), 0, 1), trace(seg-path(b, c), 0, 1)), trace(seg-path(c, a), 0, 1)))
@@ -9855,7 +9855,7 @@ definition:
 juxta(juxta(seg-deriv(tra_, trb_), vnb-lambda(trs_, ccint(1, 2), (seg-deriv(trb_, trc_))(trs_ - 1)), 0, 1, 2), vnb-lambda(trs_, ccint(2, 3), (seg-deriv(trc_, tra_))(trs_ - 2)), 0, 2, 3)
 ```
 
-characterized by `tri-road-deriv-unfold`  *(certified)*:
+characterized by `tri-road-deriv-unfold`  *(proven)*:
 
 ```
 forall([tra_, trb_, trc_], tri-road-deriv(tra_, trb_, trc_) == juxta(juxta(seg-deriv(tra_, trb_), vnb-lambda(trs_, ccint(1, 2), (seg-deriv(trb_, trc_))(trs_ - 1)), 0, 1, 2), vnb-lambda(trs_, ccint(2, 3), (seg-deriv(trc_, tra_))(trs_ - 2)), 0, 2, 3))
@@ -9889,7 +9889,7 @@ definition:
 [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), min(1, (dist(s))(u, v)))]
 ```
 
-characterized by `trunc-metric-dist`  *(certified)*:
+characterized by `trunc-metric-dist`  *(proven)*:
 
 ```
 forall([s, u_, v_], u_ in pts(s) implies v_ in pts(s) implies (dist(trunc-metric(s)))(u_, v_) == min(1, (dist(s))(u_, v_)))
@@ -9962,7 +9962,7 @@ definition:
 matof(1, n, vnb-lambda([rw, cl], cartesian(interval(1, 1), interval(1, n)), if(cl = i, one(a), zero(a))))
 ```
 
-characterized by `unitrow-type`  *(certified)*:
+characterized by `unitrow-type`  *(proven)*:
 
 ```
 forall([a], is-ring(a) implies forall([n, i], n in nn implies unitrow(a, n, i) in mat(1, n, carr(a))))
@@ -10090,7 +10090,7 @@ definition:
 recip((2 * pi) * 1i) * line-int(vnb-lambda(wnw_, difference(cc, singleton(wnz_)), recip(wnw_ - wnz_)), wnp_, wnd_, wna_, wnb_)
 ```
 
-characterized by `winding-in-cc`  *(certified)*:
+characterized by `winding-in-cc`  *(proven)*:
 
 ```
 forall([pgam, dgam, a, b], is-road(pgam, dgam, a, b) implies forall([wnz_ in cc], not(wnz_ in trace(pgam, a, b)) implies winding(pgam, dgam, a, b, wnz_) in cc))
@@ -10157,7 +10157,7 @@ definition:
 matof(m, n, vnb-lambda([i, j], cartesian(interval(1, m), interval(1, n)), zero(a)))
 ```
 
-characterized by `zeromat-type`  *(certified)*:
+characterized by `zeromat-type`  *(proven)*:
 
 ```
 forall([a], is-ring(a) implies forall([m, n], m in nn implies n in nn implies zeromat(a, m, n) in mat(m, n, carr(a))))

@@ -329,107 +329,20 @@
 ;;; Elementary properties of a measure.  Rudin Thm. 1.19 (p. 17) is the list;
 ;;; Thayer proves the two continuity statements as Prop. 1.17 and 1.18.
 
-(support 'measure-monotone
-  (forall-guarded '(omega cA mu a_ b_)
-                  '((IS-MEASURE omega cA mu)
-                    (IN a_ cA)
-                    (IN b_ cA)
-                    (SUBSET a_ b_))
-    '(<= (mu a_) (mu b_))))
 
-(warrant! 'measure-monotone 'reference '(rudin-rca "Thm. 1.19(c)" 32))
-(topic!   'measure-monotone 'inequalities)
-(gloss!   'measure-monotone
-  "A measure is monotone: a subset of a measurable set has no larger measure.
-   Rudin Thm. 1.19(c), p. 17.  Thayer states the same fact without a number,
-   using it from Chapter 1 onward.")
 
-(support 'measure-finitely-additive
-  (forall-guarded '(omega cA mu a_ b_)
-                  '((IS-MEASURE omega cA mu)
-                    (IN a_ cA)
-                    (IN b_ cA)
-                    (= (INTERSECTION a_ b_) EMPTY-SET))
-    '(= (mu (UNION a_ b_)) (eplus (mu a_) (mu b_)))))
 
-(warrant! 'measure-finitely-additive 'reference '(rudin-rca "Thm. 1.19(b)" 32))
-(topic!   'measure-finitely-additive 'plumbing)
-(gloss!   'measure-finitely-additive
-  "A measure is additive on two disjoint measurable sets.  Rudin
-   Thm. 1.19(b), p. 17, which states the n-term form; VNB states the BINARY
-   case, since the n-term form needs a finite family and follows from this one
-   by induction.  Both sources derive it from countable additivity by padding
-   the sequence with empty sets.")
 
-(support 'measure-countably-subadditive
-  (forall-guarded '(omega cA mu f_)
-                  '((IS-MEASURE omega cA mu)
-                    (IN f_ (FUN NN cA)))
-    '(<= (mu (BIG-UNION n_ NN (f_ n_)))
-         (ESUM (VNB-LAMBDA n_ NN (mu (f_ n_)))))))
 
-(warrant! 'measure-countably-subadditive 'well-known
-  "Countable subadditivity of a measure -- countable additivity applied to the
-   disjointified sequence B_1 = A_1, B_k = A_k \\ (A_1 union ... union A_{k-1}),
-   which has the same union and termwise smaller measure by monotonicity.
-   Neither source gives it a number: Thayer uses it unnumbered in the proof of
-   Prop. 2.9 (p. 10) and Rudin's Thm. 1.19 list stops at continuity from
-   above.  `well-known' rather than `reference' precisely because there is no
-   numbered result to point at.")
-(topic!   'measure-countably-subadditive 'inequalities)
-(gloss!   'measure-countably-subadditive
-  "The measure of a countable union is at most the sum of the measures, the
-   terms not being assumed disjoint.")
 
-(support 'measure-continuity-from-below
-  (forall-guarded '(omega cA mu f_)
-                  (list '(IS-MEASURE omega cA mu)
-                        '(IN f_ (FUN NN cA))
-                        (forall-guarded '(n_) '((IN n_ NN))
-                          '(SUBSET (f_ n_) (f_ (succ n_)))))
-    '(= (mu (BIG-UNION n_ NN (f_ n_)))
-        (ESUP (IMAGE (VNB-LAMBDA n_ NN (mu (f_ n_))) NN)))))
 
-(warrant! 'measure-continuity-from-below 'reference
-          '(thayer-measures "Prop. 1.17" 10))
-(topic!   'measure-continuity-from-below 'analysis)
-(gloss!   'measure-continuity-from-below
-  "For a non-decreasing sequence of measurable sets, the measure of the union
-   is the supremum of the measures.  Thayer Prop. 1.17 (p. 4), Eq. (7), which
-   writes exactly sup_k mu(A_k); Rudin Thm. 1.19(d) (p. 17) writes the same
-   fact as mu(A_n) -> mu(A), a LIMIT.  VNB follows Thayer, because the
-   supremum is available directly in RR-POS-STAR (ESUP over the image of the sequence)
-   whereas a limit in [0,+inf] would first have to be defined.")
 
 ;;; Continuity from above.  The kernel has BIG-UNION and no dual binder, so the
 ;;; countable INTERSECTION is written the way Thayer writes it in the remark
 ;;; after Def. 1.7 (p. 2) and again in the proof of Prop. 1.18:
 ;;; intersection_i A_i = X \ union_i (X \ A_i).
 
-(support 'measure-continuity-from-above
-  (forall-guarded '(omega cA mu f_)
-                  (list '(IS-MEASURE omega cA mu)
-                        '(IN f_ (FUN NN cA))
-                        (forall-guarded '(n_) '((IN n_ NN))
-                          '(SUBSET (f_ (succ n_)) (f_ n_)))
-                        '(IN (mu (f_ 0)) RR))
-    '(= (mu (COMPLEMENT-IN omega (BIG-UNION n_ NN (COMPLEMENT-IN omega (f_ n_)))))
-        (EINF (IMAGE (VNB-LAMBDA n_ NN (mu (f_ n_))) NN)))))
 
-(warrant! 'measure-continuity-from-above 'reference
-          '(thayer-measures "Prop. 1.18" 11))
-(topic!   'measure-continuity-from-above 'analysis)
-(gloss!   'measure-continuity-from-above
-  "For a non-increasing sequence of measurable sets whose FIRST term has
-   finite measure, the measure of the intersection is the infimum of the
-   measures.  Thayer Prop. 1.18 (p. 5), Eq. (9), which writes inf_k mu(A_k);
-   Rudin Thm. 1.19(e) (p. 17) writes it as a limit.  Two divergences, both
-   forced by the kernel and neither mathematical: the countable intersection
-   is spelled omega \\ union_n (omega \\ A_n), there being no countable
-   intersection binder; and the finiteness hypothesis is placed on the term of
-   index 0, the sources indexing their sequences from 1.  The hypothesis is
-   not decorative -- Thayer's paragraph before Prop. 1.18 says in as many
-   words that the statement fails without it.")
 
 ;;; -----------------------------------------------------------------------
 ;;; Measurable maps compose.
