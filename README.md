@@ -98,3 +98,11 @@ does not by itself mean the suite ran.
 `CLAUDE.md` is the file to read second.  It is written for a working
 contributor rather than a new reader, and it records the failures that produced
 each rule, which is usually the fastest way to understand one.
+
+## Licence
+
+VNB is released under the Apache License, Version 2.0: see `LICENSE` for the
+terms and `NOTICE` for the copyright statement and the attribution of
+third-party software (none is bundled; MIT/GNU Scheme and GNU Emacs are
+installed separately).  Contributions are accepted under the same licence, as
+section 5 of the License provides.

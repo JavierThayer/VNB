@@ -1,0 +1,30 @@
+VNB -- a proof checker and mathematical assistant
+Copyright 2026 Javier Thayer
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use the files of this repository except in compliance with the License.  A
+copy of the License is in the file LICENSE at the root of the repository and
+at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+License for the specific language governing permissions and limitations under
+the License.
+
+The Work comprises the Scheme sources of the checker, the structure and
+theorem libraries (definitions, supports and proofs), the Emacs interface, the
+build and test scripts, the manual sources and the design notes under docs/,
+and the generated reference pages under reference/.
+
+Third-party software.  VNB runs on MIT/GNU Scheme and GNU Emacs.  Neither is
+distributed with this repository; each is licensed separately by its authors
+under the GNU General Public License.  No third-party source code is included
+in the Work.
+
+Mathematical sources.  The proofs and definitions cite published textbooks and
+the author's own lecture notes by theorem number (the citations are in the file
+headers and in the warrant ledger).  Those works are not part of the Work and
+are not distributed with it.
