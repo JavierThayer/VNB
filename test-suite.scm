@@ -4288,11 +4288,11 @@
 (check-true "a cut's closer says SIDE goal; the closer of the main goal does not"
   (lambda ()
     (let ((s (proof-reader 'nn-lt-double)))
-      (and (string-search-forward "Introduce the auxiliary claim" s 0)
-           (string-search-forward "(side goal discharged)" s 0)
+      (and (string-search-forward "Claim:" s 0)
+           (string-search-forward "(the claim is established)" s 0)
            ;; the final row closes the THEOREM: it must not claim to be a side goal
            (string-search-forward "(holds by assumption)" s 0)
-           (not (string-search-forward "(side goal holds by assumption)" s 0))
+           (not (string-search-forward "(the claim holds by assumption)" s 0))
            (not (string-search-forward "(closes)" s 0))
            #t)))))
 

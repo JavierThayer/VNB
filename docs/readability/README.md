@@ -30,3 +30,9 @@ Produced on worker-01 from the band of 2026-10-04 19:19Z by re-running the five 
   long hypothesis in an induction is "the induction hypothesis";
 * `slot`, `mac-h` and `lam-b-h` have prose ("Read off the component dist of the structure",
   "Unfolding converges-to in the hypothesis", "beta-reducing the hypothesis").
+
+## Round 3 (the same evening)
+
+`examples-2026-10-04-reader-v3.pdf`: numerals folded for display (`succ(0)` and `0 + 1` read `1`,
+`n + 0` reads `n`; exact numerals only, nothing with a variable computed), and an auxiliary claim
+reads "Claim: ..." with "(the claim is established)" on the step that closes it.

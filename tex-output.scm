@@ -310,7 +310,37 @@
 
 ;;; --- main render -----------------------------------------------------
 
-(define (expr->tex e)
+;; DISPLAY-TIME FOLDING of numeral arithmetic (2026-10-04, the readability arc): the
+;; kernel writes succ(0) as 0 + 1 and a sum's upper bound as n + 0; the page shows
+;; 1 and n.  Only exact numerals are combined and only the identities 0 + x, x + 0,
+;; 1 * x, x * 1, x - 0 are dropped: the meaning is untouched, the term is not
+;; re-associated, and nothing with a variable is computed.
+(define (tex--fold e)
+  (if (not (pair? e)) e
+      (let ((f (map tex--fold e)))
+        (define (num? x) (and (number? x) (exact? x)))
+        (cond
+          ((and (eq? (car f) '+) (= (length f) 3))
+           (let ((a (cadr f)) (b (caddr f)))
+             (cond ((and (num? a) (num? b)) (+ a b))
+                   ((eqv? a 0) b) ((eqv? b 0) a)
+                   (else f))))
+          ((and (eq? (car f) '*) (= (length f) 3))
+           (let ((a (cadr f)) (b (caddr f)))
+             (cond ((and (num? a) (num? b)) (* a b))
+                   ((eqv? a 1) b) ((eqv? b 1) a)
+                   (else f))))
+          ((and (eq? (car f) '-) (= (length f) 3))
+           (let ((a (cadr f)) (b (caddr f)))
+             (cond ((and (num? a) (num? b)) (- a b))
+                   ((eqv? b 0) a)
+                   (else f))))
+          ((and (eq? (car f) 'succ) (= (length f) 2) (num? (cadr f)))   ; succ(0) reads 1
+           (+ 1 (cadr f)))
+          (else f)))))
+
+(define (expr->tex e0)
+  (define e (tex--fold e0))
   (cond
     ((number? e) (number->string e))
     ((symbol? e) (tex--symbol->string e))

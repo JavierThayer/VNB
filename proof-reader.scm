@@ -450,8 +450,8 @@
                       (proof-reader--display (car args))))
       ((cut)
        (if (pair? args)
-           (string-append "Introduce the auxiliary claim" (proof-reader--display (car args)))
-           "By a cut on the auxiliary claim."))
+           (string-append "Claim:" (proof-reader--display (car args)))
+           "By a cut on an auxiliary claim."))
       ((slot)
        (string-append "Read off the component " (proof-reader--cite (and (pair? args) (car args)))
                       (if goal (string-append " of the structure, reduce to" (proof-reader--display goal)) ".")))
@@ -911,8 +911,8 @@
                    (by-ass? (and closer (eq? (proof-reader--tac closer) 'ass)))
                    (close-txt (cond ((not closer) "")
                                     (side? (if by-ass?
-                                               "  \\emph{(side goal holds by assumption)}"
-                                               "  \\emph{(side goal discharged)}"))
+                                               "  \\emph{(the claim holds by assumption)}"
+                                               "  \\emph{(the claim is established)}"))
                                     (by-ass? "  \\emph{(holds by assumption)}")
                                     (else "  \\emph{(closes)}")))
                    (is-ni   (and main (eq? (car (car main)) 'ni)))
