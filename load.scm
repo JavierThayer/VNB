@@ -3379,6 +3379,7 @@
     ;; the notes' lim sup form being false as printed.
     "theorem-library/limsup-tests"
     "theorem-library/rpow-defined"       ; RPOW == RPOW-STAR, the fifteen former supports proven (2026-10-03)
+    "theorem-library/measure-laws"       ; measure chapter 1: additivity, monotonicity, subadditivity, continuity, push-forward (M-1, 2026-10-03)
     ;; ps-series-bridges -- the three PS/series bridges, PROVEN, plus the
     ;; CONVERGES twin of rr-limit-ptwise-eq that the third needs.  They are what
     ;; lets a theorem about bare series be USED about a power series.  Two are
@@ -3533,6 +3534,9 @@
     "theorem-library/cc-exp-surjective"
     "theorem-library/analytic-log-laws"
     "theorem-library/cc-log-holomorphic"
+    "structure-library/winding-number"       ; WINDING, CIRCLE-PATH, CIRCLE-DERIV (CA-1, 2026-10-03)
+    "theorem-library/winding-number-laws"    ; Cauchy on a disc / a convex set inside U, the winding number's laws, the circle (CA-1)
+    "theorem-library/analytic-from-integral"  ; the geometric expansion, line integrals of uniform limits, analyticity from the integral formula, the Cauchy estimate (CA-2, 2026-10-03)
     ;; preamble -- a STRATEGY, executed: (preamble '(induct) '(unfold ...)
     ;; '(instantiate) '(close)) runs the clause list against every open leaf,
     ;; commits ordinary tactics that each record themselves, and RETURNS the
