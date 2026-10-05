@@ -725,7 +725,13 @@ History (every batch report, measurement and incident behind these rules):
 (`*theorem-source*`, re-rooted at `*prover-dir*`; else a scan of theorem-library for the `(qed 'NAME)` form),
 runs that FILE when the image holds no trace (a certified theorem's proof never ran here; the whole file runs,
 quietly, in a fresh environment, at the file's proving cost), writes the READER-MODE printout beside the PDF
-and typesets it; without pdflatex it returns the `.tex` and says so. `proof-reader.scm`. The reader's rules
+and typesets it; without pdflatex it returns the `.tex` and says so. `proof-reader.scm`. **`'with-defs`** (the user's
+request the same day) prefixes a Definitions block: the statement's DEFINED heads (`def-predicate` / `def-constant`
+axioms from `library-definitions`, `def-functoid` bodies from `*functoid-registry*`; primitives, structure
+predicates and accessors have no entry and are passed over), once each, in order of first occurrence;
+`'with-defs 2` adds the defined heads of those definitions. The block needs only the statement, so it prints for a
+certified theorem too (`*proof-reader-with-defs*` is the fluid the reader consults). A long `iff` now splits like
+a relation in `tex--lines`, and IOTA renders with its body. The reader's rules
 of 2026-10-04 (notes-58): trivial runs as one "Clearly ..." line, substitutions named, one-line equations,
 Suppose / Hence for the di / ai inside a proof, "Claim:" for a cut; examples in `docs/readability/`.
 

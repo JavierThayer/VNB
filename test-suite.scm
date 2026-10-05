@@ -4323,6 +4323,27 @@
       (if (not ok) (begin (display "\n  display-proof output: ") (display out)))
       ok)))
 
+;; with-defs (the user, 2026-10-05): the definitions behind the statement, before the
+;; proposition.  block-family's defined heads are totally-bounded, null-rr-seq,
+;; inf-subsets and ball (depth 1); depth 2 adds card, is-r-net and pos-rr, each ONCE.
+;; The block needs only the statement, so it prints for a certified theorem too.
+(check-true "with-defs: the statement's defined heads, once each, before the proposition"
+  (lambda ()
+    (let* ((plain (proof-reader 'block-family))
+           (d1 (fluid-let ((*proof-reader-with-defs* 1)) (proof-reader 'block-family)))
+           (d2 (fluid-let ((*proof-reader-with-defs* 2)) (proof-reader 'block-family)))
+           (has (lambda (s h) (string-search-forward (string-append "(\\texttt{" h "})") s 0)))
+           ;; string-search-all, not a string-search-forward loop: MIT 12.1 refuses
+           ;; a nonzero start index on these strings
+           (count (lambda (s h) (length (string-search-all (string-append "(\\texttt{" h "})") s)))))
+      (and (not (string-search-forward "Definitions" plain 0))
+           (has d1 "totally-bounded") (has d1 "null-rr-seq") (has d1 "inf-subsets") (has d1 "ball")
+           (not (has d1 "card"))
+           (= 1 (count d2 "card")) (has d2 "is-r-net") (has d2 "pos-rr")
+           (string-search-forward "\\subsection*{Definitions}" d1 0)
+           (< (string-search-forward "Definitions" d1 0) (string-search-forward "block-family" d1 0))
+           #t))))
+
 ;; A universal in a NESTED position is part of the CLAIM, so it must read as a
 ;; quantifier.  "Suppose"/"Let" is imperative -- it instructs the reader to fix
 ;; something before the claim is made -- and only the LEADING run of a

@@ -974,6 +974,81 @@
                     (cdr ch+cs) (cons row rows)))))
       (list "\\end{itemize}\n\\end{proof}\n")))))
 
+;;; --- with-defs: the definitions behind the statement ----------------------
+;;; (the user, 2026-10-05: "an option `with-defs' that prefixes the statement with
+;;; the relevant definitions, e.g. what is Inf(NN)").  A head of the statement is
+;;; DEFINED when `def-predicate' / `def-constant' registered it (its defining
+;;; axioms are in `library-definitions') or `def-functoid' did (`*functoid-registry*',
+;;; a parameter list and a body; view functors excluded as DEFINITIONS.md excludes
+;;; them).  Primitive heads (IN, SUBSET, FUN, succ, ...) and structure predicates
+;;; and accessors have no entry here and are passed over.  Depth 1 = the heads of
+;;; the statement, in order of first occurrence; depth 2 adds the defined heads of
+;;; those definitions, and so on.  The block is independent of the proof: it is
+;;; printed for a certified theorem too.
+(define *proof-reader-with-defs* #f)        ; #f, or the depth (1 = the statement's heads)
+
+(define (proof-reader--heads e)
+  ;; the applied heads of E, each once, in order of first occurrence
+  (let ((acc '()))
+    (let walk ((e e))
+      (when (pair? e)
+        (when (and (symbol? (car e)) (not (memq (car e) acc)))
+          (set! acc (cons (car e) acc)))
+        (for-each walk (cdr e))))
+    (reverse acc)))
+
+(define (proof-reader--definition-of h)
+  ;; -> (axioms (NAME . FORMULA) ...) | (functoid PARAMS BODY) | #f
+  (let ((e (assq h (library-definitions *library*))))
+    (cond (e (cons 'axioms (cdr e)))
+          ((and (not (lookup-view-as h)) (hash-table-ref/default *functoid-registry* h #f))
+           => (lambda (reg) (list 'functoid (car reg) (cadr reg))))
+          (else #f))))
+
+(define (proof-reader--defined-heads claim depth)
+  ;; the defined heads of CLAIM to the given depth, with their definitions
+  (let loop ((frontier (proof-reader--heads claim)) (depth depth) (seen '()) (out '()))
+    (if (or (null? frontier) (< depth 1))
+        (reverse out)
+        (let* ((new (let loop ((hs frontier) (acc '()))      ; unseen, each once
+                      (cond ((null? hs) (reverse acc))
+                            ((or (memq (car hs) seen) (memq (car hs) acc)) (loop (cdr hs) acc))
+                            (else (loop (cdr hs) (cons (car hs) acc))))))
+               (defs (filter cdr (map (lambda (h) (cons h (proof-reader--definition-of h))) new)))
+               (next (apply append
+                            (map (lambda (d)
+                                   (let ((def (cdr d)))
+                                     (if (eq? (car def) 'functoid)
+                                         (proof-reader--heads (caddr def))
+                                         (apply append (map (lambda (ax) (proof-reader--heads (cdr ax))) (cdr def))))))
+                                 defs))))
+          (loop next (- depth 1) (append new seen) (append (reverse defs) out))))))
+
+(define (proof-reader--definition-tex d)
+  (let ((h (car d)) (def (cdr d)))
+    (string-append
+     "\\noindent\\textbf{Definition} (\\texttt{" (proof-tex--escape-tt (symbol->string h)) "}).\\;"
+     (if (eq? (car def) 'functoid)
+         ;; name(params) := body, as DEFINITIONS.md writes a functoid
+         ;; the body on its own display, row-broken like any statement (a
+         ;; one-line \fit of CARD's IOTA body still ran off the page)
+         (string-append "$" (expr->tex (cons h (cadr def))) " :=$"
+                        (proof-reader--display (caddr def)))
+         ;; the defining axiom(s), read as a statement is
+         (apply string-append
+                (map (lambda (ax) (string-append (proof-reader--statement (cdr ax)) "\n"))
+                     (cdr def))))
+     "\n")))
+
+(define (proof-reader--definitions-block name)
+  (let ((defs (and *proof-reader-with-defs*
+                   (proof-reader--defined-heads (lookup-theorem name) *proof-reader-with-defs*))))
+    (if (and defs (pair? defs))
+        (string-append "\\subsection*{Definitions}\n"
+                       (apply string-append (map proof-reader--definition-tex defs))
+                       "\\bigskip\n\n")
+        "")))
+
 ;; render one proof, or a LIST of proofs into a single document (each its own
 ;; numbered proposition + proof), sharing one preamble.  A single symbol renders
 ;; exactly as before.
@@ -992,6 +1067,8 @@
 ;; "no proof named this in *session-log*" (2026-09-30: the suite from a certified band
 ;; died there).
 (define (proof-reader--body* name)
+  (string-append (proof-reader--definitions-block name) (proof-reader--body** name)))
+(define (proof-reader--body** name)
   (if (and (certified-theorem? name)
            (not (hash-table-ref/default *proof-live-trace* name #f)))
       (string-append
@@ -1109,7 +1186,18 @@
         (error "display-proof: the file ran but left no trace for" name src))
     src))
 
-(define (display-proof name pdf-path)
+;;; (display-proof 'NAME "path.pdf")            the proof
+;;; (display-proof 'NAME "path.pdf" 'with-defs)  prefixed by the definitions of the
+;;;                                              statement's defined heads
+;;; (display-proof 'NAME "path.pdf" 'with-defs 2) ... and of those definitions' heads
+(define (display-proof name pdf-path . opts)
+  (let ((depth (cond ((null? opts) #f)
+                     ((eq? (car opts) 'with-defs)
+                      (if (and (pair? (cdr opts)) (number? (cadr opts))) (cadr opts) 1))
+                     (else (error "display-proof: unknown option" (car opts))))))
+    (fluid-let ((*proof-reader-with-defs* depth))
+      (display-proof--to-pdf name pdf-path))))
+(define (display-proof--to-pdf name pdf-path)
   (load-option 'synchronous-subprocess)
   (if (not (hash-table-ref/default *proof-live-trace* name #f))
       (display-proof--run-source! name))

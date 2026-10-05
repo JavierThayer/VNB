@@ -535,8 +535,12 @@
     (string-append "\\varepsilon(" (expr->tex (car args)) ")")))
 
 (tex--register-special! 'iota
+  ;; (IOTA v P): the unique v such that P -- the body was dropped until 2026-10-05
+  ;; (CARD's definition read "|a| := iota(alpha)" in a with-defs printout).
   (lambda (args)
-    (string-append "\\iota(" (expr->tex (car args)) ")")))
+    (if (and (pair? args) (pair? (cdr args)))
+        (string-append "(\\iota\\, " (expr->tex (car args)) ".\\;" (expr->tex (cadr args)) ")")
+        (string-append "\\iota(" (expr->tex (car args)) ")"))))
 
 (tex--register-special! 'inf-subsets
   (lambda (args)
@@ -715,6 +719,13 @@
                    (tex--lines conseq cind))
              (append (tex--suffix-last (tex--lines (cadr e) ind) " \\Rightarrow")
                      (tex--lines conseq cind)))))
+      ;; iff: LHS row(s), then a row beginning with <=> and the RHS rows (2026-10-05:
+      ;; a long `iff' was set on ONE row whatever its length, and a definition's
+      ;; iff ran off the page in a with-defs printout).
+      ((and (pair? e) (eq? (car e) 'iff) (= (length e) 3)
+            (> (tex--width e) tex--inline-threshold))
+       (append (tex--lines (cadr e) ind)
+               (tex--rel-rows "\\Leftrightarrow" (caddr e) ind)))
       ;; and/or: keep short ones inline; break long ones into one operand
       ;; block per (flattened) conjunct, connective trailing all but the last
       ((and (pair? e) (memq (car e) '(and or)) (>= (length e) 2))
