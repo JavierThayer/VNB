@@ -1005,3 +1005,71 @@
     (let ((pdf (string-append cache base ".pdf")))
       (if (file-exists? pdf) pdf
           (error "view-proof-reader-pdf: pdflatex produced no PDF -- see" (string-append cache base ".log"))))))
+
+;;; =======================================================================
+;;; (display-proof NAME PDF-PATH) -- the user's request, 2026-10-05: locate the
+;;; proof script of theorem NAME, run it when this image holds no trace of it (a
+;;; certified theorem was installed from its certificate and its proof never ran
+;;; here), and typeset the READER-MODE printout to PDF-PATH.  Returns the PDF path.
+;;;
+;;; The script is the theorem's SOURCE FILE: `*theorem-source*' records the path a
+;;; file was loaded from (the band carries that machine's path; it is re-rooted at
+;;; *prover-dir* when it does not exist here), and when the table has nothing the
+;;; theorem-library is searched for the `(qed 'NAME)' form.  Running the file runs
+;;; EVERY proof in it (its helpers and the earlier theorems are what the one proof
+;;; needs), re-installing the same statements, quietly, into a fresh environment
+;;; as the load does; the cost is the file's proving time.  Without pdflatex the
+;;; .tex is left beside the requested path and the message says so.
+;;; =======================================================================
+(define (display-proof--source name)
+  (let* ((rec (hash-table-ref/default *theorem-source* name #f))
+         (rec (and rec (if (string? rec) rec (->namestring rec))))
+         (rerooted (and rec (let ((i (string-search-forward "prover/" rec 0)))
+                              (and i (string-append *prover-dir* (substring rec (+ i 7) (string-length rec)))))))
+         (found (cond ((and rec (file-exists? rec)) rec)
+                      ((and rerooted (file-exists? rerooted)) rerooted)
+                      (else #f))))
+    (or found
+        ;; the fallback: scan the proof files for the qed form
+        (let ((needle (string-append "(qed '" (symbol->string name) ")")))
+          (let loop ((files (directory-read (string-append *prover-dir* "theorem-library/") #f)))
+            (cond ((null? files) #f)
+                  ((let ((f (->namestring (car files))))
+                     (and (string-suffix? ".scm" f)
+                          (call-with-input-file f
+                            (lambda (port)
+                              (let scan ()
+                                (let ((line (read-line port)))
+                                  (cond ((eof-object? line) #f)
+                                        ((string-search-forward needle line 0) #t)
+                                        (else (scan)))))))
+                          f)))
+                  (else (loop (cdr files)))))))))
+
+(define (display-proof--run-source! name)
+  (let ((src (display-proof--source name)))
+    (if (not src) (error "display-proof: no proof script found for" name))
+    (display ";; display-proof: no trace of ") (display name)
+    (display " in this image; running the proofs of ") (display src) (newline)
+    (fluid-let ((*vnb-loading* #t))
+      (load src (extend-top-level-environment *driver-kit-env*)))
+    (if (not (hash-table-ref/default *proof-live-trace* name #f))
+        (error "display-proof: the file ran but left no trace for" name src))
+    src))
+
+(define (display-proof name pdf-path)
+  (load-option 'synchronous-subprocess)
+  (if (not (hash-table-ref/default *proof-live-trace* name #f))
+      (display-proof--run-source! name))
+  (let* ((pdf  (->namestring (merge-pathnames pdf-path)))
+         (base (let ((n (string-length pdf)))
+                 (if (and (> n 4) (string-ci=? (substring pdf (- n 4) n) ".pdf")) (substring pdf 0 (- n 4)) pdf)))
+         (tex  (string-append base ".tex"))
+         (dir  (directory-namestring pdf)))
+    (write-proof-reader name tex)
+    (run-shell-command
+     (string-append "pdflatex -interaction=nonstopmode -output-directory=" dir " " tex " > /dev/null 2>&1"))
+    (cond ((file-exists? (string-append base ".pdf")) (string-append base ".pdf"))
+          (else (display ";; display-proof: pdflatex produced no PDF (is it installed?); the TeX is ")
+                (display tex) (newline)
+                tex))))

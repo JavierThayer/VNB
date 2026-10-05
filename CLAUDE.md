@@ -717,6 +717,14 @@ sequence by repeated choices". IOTA has `iota-d` and `iota-e`;
 History (every batch report, measurement and incident behind these rules):
 `docs/history/claude-md-2026-09-18--writing-proof-drivers.md`.
 
+**`(display-proof 'NAME "path.pdf")`** (2026-10-05, the user's request): locates the theorem's proof script
+(`*theorem-source*`, re-rooted at `*prover-dir*`; else a scan of theorem-library for the `(qed 'NAME)` form),
+runs that FILE when the image holds no trace (a certified theorem's proof never ran here; the whole file runs,
+quietly, in a fresh environment, at the file's proving cost), writes the READER-MODE printout beside the PDF
+and typesets it; without pdflatex it returns the `.tex` and says so. `proof-reader.scm`. The reader's rules
+of 2026-10-04 (notes-58): trivial runs as one "Clearly ..." line, substitutions named, one-line equations,
+Suppose / Hence for the di / ai inside a proof, "Claim:" for a cut; examples in `docs/readability/`.
+
 ## Script replay and the page
 
 **The proof is the GRAPH.** `qed` refuses to install unless every node is grounded. The
