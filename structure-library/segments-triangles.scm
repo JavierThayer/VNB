@@ -85,14 +85,21 @@
 (notation! 'CONV3 'kind 'functoid 'arity 3
            'english "the convex hull of $1, $2, $3")
 
-(def-predicate 'IS-CONVEX '(cvu_)
-  '(FORALL cvx_ (IMPLIES (IN cvx_ cvu_)
-     (FORALL cvy_ (IMPLIES (IN cvy_ cvu_)
-       (FORALL cvt_ (IMPLIES (IN cvt_ (CCINT 0 1))
-         (IN (+ cvx_ (* cvt_ (- cvy_ cvx_))) cvu_))))))))
+;;; A convex subset OF CC (the user's decision, 2026-10-05: "I want it honest in the
+;;; definition", and the name says the ambient plane).  Without the first conjunct
+;;; the predicate said nothing about a set with a non-complex member -- the
+;;; combination x + t (y - x) is then an uninterpreted term and its membership is
+;;; neither provable nor refutable -- and every theorem that needed u subset CC
+;;; took it from holomorphic-on or is-open beside it.  The empty set is convex.
+(def-predicate 'IS-CONVEX-CC '(cvu_)
+  '(AND (SUBSET cvu_ CC)
+     (FORALL cvx_ (IMPLIES (IN cvx_ cvu_)
+       (FORALL cvy_ (IMPLIES (IN cvy_ cvu_)
+         (FORALL cvt_ (IMPLIES (IN cvt_ (CCINT 0 1))
+           (IN (+ cvx_ (* cvt_ (- cvy_ cvx_))) cvu_)))))))))
 
-(notation! 'IS-CONVEX 'kind 'predicate 'arity 1
-           'english "$1 is convex")
+(notation! 'IS-CONVEX-CC 'kind 'predicate 'arity 1
+           'english "$1 is a convex subset of CC")
 
 (def-functoid 'CC-MID '(cmx_ cmy_)
   '(* (+ cmx_ cmy_) (recip 2)))

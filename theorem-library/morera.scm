@@ -244,7 +244,7 @@
 (define mrr-tz-hyp
   '(FORALL mrta_ (IMPLIES (IN mrta_ u) (FORALL mrtb_ (IMPLIES (IN mrtb_ u) (FORALL mrtc_ (IMPLIES (IN mrtc_ u)
      (IMPLIES (SUBSET (CONV3 mrta_ mrtb_ mrtc_) u) (= (TRI-INT f mrta_ mrtb_ mrtc_) 0)))))))))
-(define mrr-M (list '(IS-CONVEX u) (list 'IS-OPEN mrr-nfm 'u) '(IN f (FUN u CC)) (mrr-cont 'u 'f) mrr-tz-hyp))
+(define mrr-M (list '(IS-CONVEX-CC u) (list 'IS-OPEN mrr-nfm 'u) '(IN f (FUN u CC)) (mrr-cont 'u 'f) mrr-tz-hyp))
 (define (mrr-under-M body) (list 'FORALL 'u (list 'FORALL 'f (mrr-imps mrr-M body))))
 (define (mrr-M-setup!)
   (fact 'nf-cc-is-metric-space)

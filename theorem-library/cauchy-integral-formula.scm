@@ -330,7 +330,7 @@
         (list 'HOLOMORPHIC-ON cif-ux (list 'RESTRICT 'f cif-ux))))
 (define cif-road-h '((IS-ROAD pgam dgam a b)))
 (sp (make-wff (cif-all '(u f cifx_) (cif-imps cif-E
-  (list 'FORALL 'cifv_ (cif-imps (list (list 'IS-OPEN cif-nfm 'cifv_) '(IS-CONVEX cifv_) '(SUBSET cifv_ u))
+  (list 'FORALL 'cifv_ (cif-imps (list (list 'IS-OPEN cif-nfm 'cifv_) '(IS-CONVEX-CC cifv_) '(SUBSET cifv_ u))
     (cif-all '(pgam dgam a b)
       (cif-imps (list '(IS-ROAD pgam dgam a b) '(SUBSET (TRACE pgam a b) cifv_) '(= (pgam b) (pgam a)))
         '(= (LINE-INT f pgam dgam a b) 0)))))))))

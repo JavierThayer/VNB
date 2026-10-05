@@ -321,12 +321,13 @@
           (#t (subst '(= gouz_ (+ (+ (* goul_ goua_) (* goum_ goub_)) (* goun_ gouc_)))) (ass)))))
 (qed 'conv3-intro)
 
-(sp (make-wff '(FORALL u (IMPLIES (IS-CONVEX u)
+(sp (make-wff '(FORALL u (IMPLIES (IS-CONVEX-CC u)
   (FORALL goux_ (IMPLIES (IN goux_ u) (FORALL gouy_ (IMPLIES (IN gouy_ u)
     (FORALL gout_ (IMPLIES (IN gout_ (CCINT 0 1))
       (IN (+ goux_ (* gout_ (- gouy_ goux_))) u)))))))))))
 (dk-peel!)
-(mac-h 'is-convex '(IS-CONVEX u))
+(mac-h 'IS-CONVEX-CC '(IS-CONVEX-CC u))
+(dk-split! (dk-pick (dk-head? 'AND) "the unfolded convexity"))   ; subset CC, then the universal
 (dk-apply! (dk-pick (dk-head? 'FORALL) "the convexity universal") 'goux_ 'gouy_ 'gout_)
 (ass)
 (qed 'is-convex-unfold)
@@ -380,9 +381,19 @@
 
 ;;; the hull is convex
 (define gou-C3 '(CONV3 goua_ goub_ gouc_))
-(sp (make-wff (gou-all-in '(goua_ goub_ gouc_) 'CC (list 'IS-CONVEX gou-C3))))
+(sp (make-wff (gou-all-in '(goua_ goub_ gouc_) 'CC (list 'IS-CONVEX-CC gou-C3))))
 (dk-peel!)
-(mac 'IS-CONVEX)
+;; the first conjunct of IS-CONVEX-CC: the hull is a subset of CC (it is a SEP over CC)
+(dk-have! (list 'SUBSET gou-C3 'CC)
+  (lambda ()
+    (mac 'subset-def)
+    (dk-peel!)
+    (let ((z (cadr (dk-goal))))
+      (dk-cite! 'conv3-member-iff 'goua_ 'goub_ 'gouc_ z)
+      (prop))))
+(mac 'IS-CONVEX-CC)
+(di)                                   ; the conjunction: the subset leaf first
+(ass)
 (dk-peel!)
 (let* ((pt (cadr (dk-goal)))
        (x  (cadr pt))
@@ -435,7 +446,7 @@
 (qed 'conv3-is-convex)
 
 ;;; a segment between two points of a convex set lies in it
-(sp (make-wff (list 'FORALL 'u (list 'IMPLIES '(IS-CONVEX u) (gou-all-in '(goua_ goub_) 'CC
+(sp (make-wff (list 'FORALL 'u (list 'IMPLIES '(IS-CONVEX-CC u) (gou-all-in '(goua_ goub_) 'CC
   '(IMPLIES (IN goua_ u) (IMPLIES (IN goub_ u) (SUBSET (TRACE (SEG-PATH goua_ goub_) 0 1) u))))))))
 (dk-peel!)
 (let* ((cv (dk-cite! 'is-convex-unfold 'u))
@@ -447,7 +458,7 @@
 (qed 'seg-trace-in-convex)
 
 ;;; a convex set holding the three vertices holds their hull
-(sp (make-wff (list 'FORALL 'u (list 'IMPLIES '(IS-CONVEX u) (gou-all-in '(goua_ goub_ gouc_) 'CC
+(sp (make-wff (list 'FORALL 'u (list 'IMPLIES '(IS-CONVEX-CC u) (gou-all-in '(goua_ goub_ gouc_) 'CC
   '(IMPLIES (IN goua_ u) (IMPLIES (IN goub_ u) (IMPLIES (IN gouc_ u)
      (SUBSET (CONV3 goua_ goub_ gouc_) u)))))))))
 (dk-peel!)
@@ -2878,7 +2889,7 @@
   (dk-cite! 'cc-open-subset-cc 'u)
   (dk-cite! 'holomorphic-on-in-fun 'u 'f)
   (dk-cite! 'holomorphic-on-continuous 'u 'f))
-(sp (make-wff '(FORALL u (FORALL f (IMPLIES (IS-CONVEX u) (IMPLIES (HOLOMORPHIC-ON u f)
+(sp (make-wff '(FORALL u (FORALL f (IMPLIES (IS-CONVEX-CC u) (IMPLIES (HOLOMORPHIC-ON u f)
    (FORALL goua_ (IMPLIES (IN goua_ u) (FORALL goub_ (IMPLIES (IN goub_ u) (FORALL gouc_ (IMPLIES (IN gouc_ u)
      (= (SEG-INT f goua_ gouc_) (+ (SEG-INT f goua_ goub_) (SEG-INT f goub_ gouc_)))))))))))))))
 (dk-peel!)
@@ -3060,7 +3071,7 @@
                     (list '= (list '* K1 dx) (list '+ (list '* mlz dx) dx)))))))
 
 ;;; PROPOSITION 3.8 (holomorphic case), for a given base point a0 in u
-(sp (make-wff '(FORALL u (FORALL f (IMPLIES (IS-CONVEX u) (IMPLIES (HOLOMORPHIC-ON u f)
+(sp (make-wff '(FORALL u (FORALL f (IMPLIES (IS-CONVEX-CC u) (IMPLIES (HOLOMORPHIC-ON u f)
    (FORALL gouo_ (IMPLIES (IN gouo_ u)
      (FORSOME goug_ (AND (IN goug_ (FUN u CC)) (AND (HOLOMORPHIC-ON u goug_)
        (FORALL gouz_ (IMPLIES (IN gouz_ u) (IS-DIFF-ON CC-NORMED-FIELD u goug_ gouz_ (f gouz_)))))))))))))))
@@ -3218,7 +3229,7 @@
 ;;; ======================================================================
 ;;; (8) COROLLARY 3.9: ON A CONVEX OPEN SET THE INTEGRAL OVER A CLOSED ROAD IS 0
 ;;; ======================================================================
-(sp (make-wff '(FORALL u (FORALL f (IMPLIES (IS-CONVEX u) (IMPLIES (HOLOMORPHIC-ON u f)
+(sp (make-wff '(FORALL u (FORALL f (IMPLIES (IS-CONVEX-CC u) (IMPLIES (HOLOMORPHIC-ON u f)
   (FORALL pgam (FORALL dgam (FORALL a (FORALL b
     (IMPLIES (IS-ROAD pgam dgam a b) (IMPLIES (SUBSET (TRACE pgam a b) u)
       (IMPLIES (= (pgam b) (pgam a)) (= (LINE-INT f pgam dgam a b) 0))))))))))))))

@@ -134,9 +134,23 @@
 ;;; (1) AN OPEN DISC IS CONVEX
 ;;; ======================================================================
 (sp (make-wff '(FORALL c (IMPLIES (IN c CC) (FORALL r (IMPLIES (IN r RR)
-  (IS-CONVEX (BALL CC-MS c r))))))))
+  (IS-CONVEX-CC (BALL CC-MS c r))))))))
 (dk-peel!)
-(mac 'IS-CONVEX)
+;; the first conjunct of IS-CONVEX-CC: the ball is a subset of CC = PTS(CC-MS)
+(fact 'cc-is-metric-space)
+(dk-have! '(== (PTS CC-MS) CC) (lambda () (slot 'PTS) (qrfl)))
+(dk-have! '(SUBSET (BALL CC-MS c r) CC)
+  (lambda ()
+    (mac 'subset-def)
+    (dk-peel!)
+    (let ((y (cadr (dk-goal))))
+      (dk-have! (list 'IN y '(PTS CC-MS))
+        (lambda () (dk-cite! 'ball-membership 'CC-MS 'c 'r y) (prop)))
+      (subst '(= CC (PTS CC-MS)))
+      (ass))))
+(mac 'IS-CONVEX-CC)
+(di)                                   ; the conjunction: the subset leaf first
+(ass)
 (dk-peel!)
 (let* ((pt (cadr (dk-goal)))
        (x  (cadr pt))
@@ -314,7 +328,7 @@
 ;;; ======================================================================
 (sp (make-wff '(FORALL u (FORALL f (IMPLIES (HOLOMORPHIC-ON u f)
   (FORALL wnv_ (IMPLIES (IS-OPEN (NF-METRIC-SPACE CC-NORMED-FIELD) wnv_)
-    (IMPLIES (IS-CONVEX wnv_) (IMPLIES (SUBSET wnv_ u)
+    (IMPLIES (IS-CONVEX-CC wnv_) (IMPLIES (SUBSET wnv_ u)
       (FORALL pgam (FORALL dgam (FORALL a (FORALL b
         (IMPLIES (IS-ROAD pgam dgam a b) (IMPLIES (SUBSET (TRACE pgam a b) wnv_)
           (IMPLIES (= (pgam b) (pgam a)) (= (LINE-INT f pgam dgam a b) 0)))))))))))))))))

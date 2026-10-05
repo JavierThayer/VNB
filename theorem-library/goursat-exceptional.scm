@@ -1520,7 +1520,7 @@
 ;;; (G) COROLLARY 3.7, PROPOSITION 3.8, COROLLARY 3.9 on a convex open set
 ;;; ======================================================================
 (define (gox-under-CE body)
-  (list 'FORALL 'u (list 'FORALL 'f (list 'FORALL 'goxx_ (list 'IMPLIES '(IS-CONVEX u) (gox-imps gox-E body))))))
+  (list 'FORALL 'u (list 'FORALL 'f (list 'FORALL 'goxx_ (list 'IMPLIES '(IS-CONVEX-CC u) (gox-imps gox-E body))))))
 
 ;;; COROLLARY 3.7
 (sp (make-wff (gox-under-CE (gox-all-in '(goxa_ goxb_ goxc_) 'u
