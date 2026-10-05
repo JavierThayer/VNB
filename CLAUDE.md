@@ -740,8 +740,10 @@ names X only when `is-X` occurs in the statement or in the definitions gathered 
 `fluid-let`, so an escape restores too): the user's workspace run of `cauchy-convex-closed` was STOPPED by the
 90 s command budget mid-file and left the FILE's half-done proof where his had been. vnb.el now gives
 `display-proof`, `view-proof-reader-pdf`, `proof-tex` and `proof-reader` the `vnb-long-command-budget` (1800 s;
-`vnb-long-commands`); the REPL has no budget. KNOWN: `emacs --batch -l emacs/vnb-panel-check.el` dies on HEAD
-(before and after this edit) in `vnb-graph-browse-theorem` of its harness theorem, certified in this image. The reader's rules
+`vnb-long-commands`); the REPL has no budget. The panel check's graph step used to swallow a late or failed prover answer and report it as "No proof
+script in this image" (2026-10-05, while the primary was swapping under a compile): the fetch now reports the
+real failure, and "no proof script" is said only when the file is missing after an answer. The panel check
+runs a prover on the primary: run it with nothing else running here. The reader's rules
 of 2026-10-04 (notes-58): trivial runs as one "Clearly ..." line, substitutions named, one-line equations,
 Suppose / Hence for the di / ai inside a proof, "Claim:" for a cut; examples in `docs/readability/`.
 

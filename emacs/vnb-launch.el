@@ -5281,15 +5281,22 @@ by (graph-of NAME PATH); the current proof is untouched."
   (vnb-tex--ensure-cache-dir)
   (let ((path (expand-file-name "graph.el" vnb-tex-cache-dir)))
     (ignore-errors (delete-file path))
-    (ignore-errors
-      (vnb-eval-string (if theorem
-                           (format "(graph-of '%s %S)" theorem path)
-                         (format "(write-graph-el %S)" path))
-                       (if theorem 120 30)))
-    (unless (file-exists-p path)
-      (if theorem
-          (user-error "No proof script in this image for %s (a certified theorem's proof lives in the exam's image)" theorem)
-        (user-error "No proof in progress: the prover wrote no graph")))
+    ;; The eval's failure is REPORTED, not swallowed (2026-10-05: an answer that
+    ;; came late -- the box was swapping -- read as "no proof script in this
+    ;; image", which is a different thing and sent us looking at certificates).
+    (let ((res (condition-case e
+                   (vnb-eval-string (if theorem
+                                        (format "(graph-of '%s %S)" theorem path)
+                                      (format "(write-graph-el %S)" path))
+                                    (if theorem 120 30))
+                 (error (user-error "The graph of %s did not arrive: %s"
+                                    (or theorem "the current proof")
+                                    (error-message-string e))))))
+      (unless (file-exists-p path)
+        (if theorem
+            (user-error "No proof script in this image for %s (graph-of said %s; a certified theorem's proof lives in the exam's image)"
+                        theorem res)
+          (user-error "No proof in progress: the prover wrote no graph"))))
     (let ((data (with-temp-buffer
                   (insert-file-contents path)
                   (goto-char (point-min))
