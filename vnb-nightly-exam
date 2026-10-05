@@ -91,7 +91,10 @@ for i in $(seq 1 40); do
   [ "$st" = Online ] && break; sleep 15
 done
 [ "$st" = Online ] || { say "FAIL: $WORKER never came online"; record failed "ssm"; exit 2; }
-capataz run "$WORKER" --json 'command -v mit-scheme >/dev/null || apt-get install -y -q mit-scheme >/dev/null; swapon --show | grep -q swapfile || { fallocate -l 2G /swapfile; chmod 600 /swapfile; mkswap /swapfile; swapon /swapfile; }; bash /home/ubuntu/prover/vnb-idle-stop-install 30 >/dev/null 2>&1; echo ready' > /dev/null 2>&1
+# --user root: capataz run is unprivileged by default (0.2.6), and apt-get, the swapfile and
+# the idle-stop installer all need root.  Found 2026-10-05: the arming had been failing
+# silently since the default changed, leaving worker-02 at its 240-minute setting.
+capataz run "$WORKER" --json --user root 'command -v mit-scheme >/dev/null || apt-get install -y -q mit-scheme >/dev/null; swapon --show | grep -q swapfile || { fallocate -l 2G /swapfile; chmod 600 /swapfile; mkswap /swapfile; swapon /swapfile; }; bash /home/ubuntu/prover/vnb-idle-stop-install 30 >/dev/null 2>&1; echo ready' > /dev/null 2>&1
 capataz push "$WORKER" --yes --rsync --src "$PROVER" --dest "$PROVER" --exclude .git --exclude scratchpad/ --exclude scratch/ --exclude vnb.band --exclude reference/ > /dev/null 2>&1 \
   || { say "FAIL: push to $WORKER"; record failed "push"; exit 2; }
 want=$(md5sum load.scm certificates.scm | awk '{print $1}' | paste -sd' ')

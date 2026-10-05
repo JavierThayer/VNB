@@ -253,11 +253,15 @@ and about $20/day; idle workers stop themselves after 30 minutes once
 Bringing up a worker (no compile: `.com` files and the band are portable, MIT Scheme 12.1):
 
     capataz launch worker --yes --json --type t3.medium
-    capataz run worker-NN --json 'apt-get install -y -q mit-scheme'
-    capataz run worker-NN --json 'fallocate -l 2G /swapfile; chmod 600 /swapfile; mkswap /swapfile; swapon /swapfile'
+    capataz run worker-NN --json --user root 'apt-get install -y -q mit-scheme'
+    capataz run worker-NN --json --user root 'fallocate -l 2G /swapfile; chmod 600 /swapfile; mkswap /swapfile; swapon /swapfile'
     capataz push worker-NN --yes --rsync --src ~/prover --dest /home/ubuntu/prover \
         --exclude .git --exclude scratchpad/ --exclude scratch/
-    capataz run worker-NN 'bash /home/ubuntu/prover/vnb-idle-stop-install 30'
+    capataz run worker-NN --user root 'bash /home/ubuntu/prover/vnb-idle-stop-install 30'
+
+`capataz run` is UNPRIVILEGED by default (0.2.6): `--user root` for apt-get, the swapfile and the
+idle-stop installer (which refuses without it since 2026-10-05; before that it printed `armed` after
+every write had failed, and the nightly left worker-02 at 240 idle minutes).
 
 The dest path must equal the source path (the band carries absolute paths). **Never silence
 a push: verify `md5sum` of a changed file on the worker before starting a load** (a lost push

@@ -339,8 +339,21 @@
            (+ 1 (cadr f)))
           (else f)))))
 
+;; An equation whose two sides the fold would make IDENTICAL is rendered with the
+;; fold OFF, sides included: the cut `k = k + 0' of nn-lt-double read "Claim: k = k"
+;; (2026-10-05).  The sides are rendered by separate calls, hence the fluid.
+(define *tex-fold?* #t)
+(define (tex--fold-collapses? e)
+  (and (pair? e) (memq (car e) '(= ==)) (= (length e) 3)
+       (not (equal? (cadr e) (caddr e)))
+       (equal? (tex--fold (cadr e)) (tex--fold (caddr e)))))
+
 (define (expr->tex e0)
-  (define e (tex--fold e0))
+  (if (and *tex-fold?* (tex--fold-collapses? e0))
+      (fluid-let ((*tex-fold?* #f)) (tex--expr->tex-1 e0))
+      (tex--expr->tex-1 e0)))
+(define (tex--expr->tex-1 e0)
+  (define e (if *tex-fold?* (tex--fold e0) e0))
   (cond
     ((number? e) (number->string e))
     ((symbol? e) (tex--symbol->string e))
@@ -721,9 +734,10 @@
       ;; relation symbol.  Short ones stay inline.
       ((and (pair? e) (memq (car e) *tex-relation-ops*) (= (length e) 3)
             (> (tex--width e) tex--inline-threshold))
-       (append (tex--lines (cadr e) ind)
-               (tex--rel-rows (string-trim (cdr (assq (car e) *tex-binop-table*)))
-                              (caddr e) ind)))
+       (fluid-let ((*tex-fold?* (and *tex-fold?* (not (tex--fold-collapses? e)))))
+         (append (tex--lines (cadr e) ind)
+                 (tex--rel-rows (string-trim (cdr (assq (car e) *tex-binop-table*)))
+                                (caddr e) ind))))
       ;; long lambda: "(\lambda v.\;" on this row, body indented, ')' trailing.
       ((and (pair? e) (eq? (car e) 'vnb-lambda) (= (length e) 4)
             (> (tex--width e) tex--inline-threshold))

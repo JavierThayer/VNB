@@ -277,6 +277,34 @@
                 (proof-reader--closer? (ir-rec (car rs)))) (ir-rec (car rs)))
           (else (loop (cdr rs) seen-primary)))))
 
+;; Did a group's CLOSER close a SIDE goal?  A record's goal is the focus goal
+;; AFTER its step, so the goal the closer closed is the one the step before it
+;; recorded.  That goal is a side goal when a `cut' opened it (the cut's own
+;; record carries it: focus moves to the side goal) or when it is a typing or
+;; definedness obligation posted by a tactic (`t in C', `t = t'); the
+;; proposition's own goal (the setup goal) is never one.  Until 2026-10-05 the
+;; test was "the primary is a cut, or the group is a typing run"; once the
+;; collapse of trivial runs counted ordering facts as trivial, the LAST group of
+;; nn-lt-double (two order-transitivity citations, then `ass') became a typing
+;; run and the theorem's closer read "(the claim holds by assumption)".
+(define (proof-reader--side-closer? g closer irecs setup-goal)
+  (let ((closed (let loop ((rs g) (prev #f))
+                  (cond ((null? rs) prev)
+                        ((eq? (ir-rec (car rs)) closer) prev)
+                        (else (loop (cdr rs) (cadr (ir-rec (car rs)))))))))
+    (and closed
+         (not (equal? closed setup-goal))
+         (or (find-first (lambda (ir)
+                           (let ((r (ir-rec ir)))
+                             (and (eq? (proof-reader--tac r) 'cut)
+                                  (equal? (cadr r) closed))))
+                         irecs)
+             (and (pair? closed)
+                  (or (eq? (car closed) 'IN)
+                      (and (eq? (car closed) '=)
+                           (equal? (cadr closed) (caddr closed))))))
+         #t)))
+
 (define (proof-reader--range g)
   ;; a CASE-SPLIT synthetic carries its collapsed block's hi index in (caddr entry)
   (let* ((idxs (map ir-idx g))
@@ -905,9 +933,7 @@
                    ;; and a typing row is a side condition; anything else and the
                    ;; closer closed the branch's own goal.  Saying "(closes)" for
                    ;; both read as though the auxiliary claim closed the theorem.
-                   (side?   (and primary
-                                 (or (eq? kind 'typing)
-                                     (eq? (proof-reader--tac (ir-rec primary)) 'cut))))
+                   (side?   (and closer (proof-reader--side-closer? g closer indexed setup-goal)))
                    (by-ass? (and closer (eq? (proof-reader--tac closer) 'ass)))
                    (close-txt (cond ((not closer) "")
                                     (side? (if by-ass?

@@ -4296,6 +4296,16 @@
            (not (string-search-forward "(closes)" s 0))
            #t)))))
 
+;; The display-time fold (n + 0 reads n) must not make an EQUATION vacuous: the cut
+;; `k = k + 0' of nn-lt-double read "Claim: k = k" (2026-10-05).  The fold still
+;; applies where the sides stay distinct, and to a bare term.
+(check-true "display fold: an equation the fold would make reflexive stays unfolded"
+  (lambda ()
+    (and (string-search-forward "k + 0" (expr->tex '(= k (+ k 0))) 0)
+         (not (string-search-forward "+ 0" (expr->tex '(= (+ k 0) (* 2 k))) 0))
+         (string=? (expr->tex '(+ k 0)) "k")
+         #t)))
+
 ;; A universal in a NESTED position is part of the CLAIM, so it must read as a
 ;; quantifier.  "Suppose"/"Let" is imperative -- it instructs the reader to fix
 ;; something before the claim is made -- and only the LEADING run of a

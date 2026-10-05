@@ -17,6 +17,10 @@
 # Neither can be got round by accident; both can be got round on purpose by
 # someone editing this file, which is the right bar for a deliberate decision.
 set -u
+# Every write below is to /etc, /usr/local/sbin and /run: refuse, loudly, when not root.
+# Until 2026-10-05 an unprivileged run printed "armed" after every write had failed
+# (capataz run is unprivileged by default since 0.2.6: use --user root).
+[ "$(id -u)" = 0 ] || { echo "vnb-idle-stop-install: must run as root (capataz run WORKER --user root '...')" >&2; exit 2; }
 
 PRIMARY_IDS="i-024bfa2a113d2d4f3"      # capataz `primary', 2026-09-15
 IDLE_MINUTES="${1:-30}"
