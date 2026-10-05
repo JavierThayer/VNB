@@ -1281,11 +1281,31 @@
         (substring b 0 (- n 4))
         b)))
 
+;; the load-list key certificates.scm files a proof file under: its path below
+;; *prover-dir*, without the extension (theorem-library/goursat)
+(define (display-proof--file-key src)
+  (let* ((pd *prover-dir*) (n (string-length pd))
+         (rel (if (and (> (string-length src) n) (string=? (substring src 0 n) pd))
+                  (substring src n (string-length src))
+                  (string-append "theorem-library/" (display-proof--basename src)))))
+    (if (string-suffix? ".scm" rel) (substring rel 0 (- (string-length rel) 4)) rel)))
+
 (define (display-proof--run-source! name)
-  (let ((src (display-proof--source name)))
+  (let* ((src (display-proof--source name))
+         (f (and src (display-proof--file-key src)))
+         (store (and f (cert-read-file f)))
+         ;; the file's certificate records MINUS the requested theorem's: the
+         ;; certified loader then installs every other proof from its record and
+         ;; runs only this one (goursat.scm has 60 proofs; the user waited on all
+         ;; of them for one printout, 2026-10-05)
+         (records (and store (filter (lambda (r) (not (eq? (cert-rec-name r) name))) (cdr store)))))
     (if (not src) (error "display-proof: no proof script found for" name))
     (display ";; display-proof: no trace of ") (display name)
-    (display " in this image; running the proofs of ") (display src) (newline)
+    (display " in this image; running its proof from ") (display src)
+    (if store
+        (begin (display " (the file's other ") (display (length records))
+               (display " proofs installed from their certificates)")))
+    (newline)
     ;; The file re-installs theorems this image already holds (certified): the
     ;; re-installs are INTENTIONAL here, so install-theorem!'s "already installed;
     ;; re-installing the same statement" warning is off for the names this file
@@ -1315,8 +1335,12 @@
                   (*sp-counter-snapshot* *sp-counter-snapshot*)
                   (*live-trace* *live-trace*)
                   (*vnb-undo-stack* *vnb-undo-stack*)
-                  (*dg-journal* *dg-journal*))
-        (load src (extend-top-level-environment *driver-kit-env*))))
+                  (*dg-journal* *dg-journal*)
+                  (*vnb-write-certs* #f))            ; a printout rewrites no store
+        (if store
+            (cert--load-certified! f src (lambda () (extend-top-level-environment *driver-kit-env*))
+                                   'on records)
+            (load src (extend-top-level-environment *driver-kit-env*)))))
     (if (not (hash-table-ref/default *proof-live-trace* name #f))
         (error "display-proof: the file ran but left no trace for" name src))
     src))

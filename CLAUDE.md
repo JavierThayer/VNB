@@ -723,8 +723,10 @@ History (every batch report, measurement and incident behind these rules):
 
 **`(display-proof 'NAME "path.pdf")`** (2026-10-05, the user's request): locates the theorem's proof script
 (`*theorem-source*`, re-rooted at `*prover-dir*`; else a scan of theorem-library for the `(qed 'NAME)` form),
-runs that FILE when the image holds no trace (a certified theorem's proof never ran here; the whole file runs,
-quietly, in a fresh environment, at the file's proving cost), writes the READER-MODE printout beside the PDF
+runs that FILE when the image holds no trace (a certified theorem's proof never ran here) -- since 2026-10-05
+evening through the CERTIFIED loader with the requested theorem's record withheld, so every other proof of the file
+is installed from its certificate and only this one runs (goursat.scm, 64 proofs: 10 s instead of the file's
+proving time; the user had waited on all of them); a file with no store runs whole, as before, writes the READER-MODE printout beside the PDF
 and typesets it; without pdflatex it returns the `.tex` and says so. `proof-reader.scm`. **`'with-defs`** (the user's
 request the same day) prefixes a Definitions block: the statement's DEFINED heads (`def-predicate` / `def-constant`
 axioms from `library-definitions`, `def-functoid` bodies from `*functoid-registry*`; primitives, structure
