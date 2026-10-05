@@ -1072,13 +1072,39 @@
                           f)))
                   (else (loop (cdr files)))))))))
 
+(define (display-proof--basename path)
+  ;; the file name without directory or extension: `*theorem-source*' holds the
+  ;; LOAD pathname (no extension; the loader picks .com or .scm), the source
+  ;; found by display-proof--source ends in .scm.
+  (let* ((i (let loop ((k (- (string-length path) 1)))
+              (cond ((< k 0) 0) ((char=? (string-ref path k) #\/) (+ k 1)) (else (loop (- k 1))))))
+         (b (substring path i (string-length path)))
+         (n (string-length b)))
+    (if (and (> n 4) (member (substring b (- n 4) n) '(".scm" ".com" ".bin")))
+        (substring b 0 (- n 4))
+        b)))
+
 (define (display-proof--run-source! name)
   (let ((src (display-proof--source name)))
     (if (not src) (error "display-proof: no proof script found for" name))
     (display ";; display-proof: no trace of ") (display name)
     (display " in this image; running the proofs of ") (display src) (newline)
-    (fluid-let ((*vnb-loading* #t))
-      (load src (extend-top-level-environment *driver-kit-env*)))
+    ;; The file re-installs theorems this image already holds (certified): the
+    ;; re-installs are INTENTIONAL here, so install-theorem!'s "already installed;
+    ;; re-installing the same statement" warning is off for the names this file
+    ;; sourced, and the duplicate list the load-end audit reads is restored
+    ;; (the user, 2026-10-05: the warning read as if the stored proofs changed;
+    ;; nothing on disk does -- certificates are written only by the tree loader).
+    (let ((own (let ((base (display-proof--basename src)))
+                 (hash-table-fold *theorem-source*
+                                  (lambda (n path acc)
+                                    (let ((p (if (string? path) path (->namestring path))))
+                                      (if (string=? (display-proof--basename p) base) (cons n acc) acc)))
+                                  '()))))
+      (fluid-let ((*vnb-loading* #t)
+                  (*install-intentional-redefinitions* (append own *install-intentional-redefinitions*))
+                  (*install-duplicates* *install-duplicates*))
+        (load src (extend-top-level-environment *driver-kit-env*))))
     (if (not (hash-table-ref/default *proof-live-trace* name #f))
         (error "display-proof: the file ran but left no trace for" name src))
     src))

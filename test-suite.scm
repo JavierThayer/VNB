@@ -4306,6 +4306,23 @@
          (string=? (expr->tex '(+ k 0)) "k")
          #t)))
 
+;; display-proof on a theorem this image holds without a trace (certified) runs its
+;; source file, which re-installs theorems already installed: those re-installs are
+;; intentional and must not print install-theorem!'s "already installed" warning
+;; (the user, 2026-10-05: it read as if the stored proofs had changed), and the
+;; duplicate list the load-end audit reads must come back as it was.  In the exam's
+;; image the theorem has a trace and the file does not run: the check is then inert.
+(check-true "display-proof: a certified theorem's file runs with no re-install warning"
+  (lambda ()
+    (let* ((dups *install-duplicates*)
+           (out (with-output-to-string
+                  (lambda ()
+                    (display-proof 'interval-widen "/tmp/vnb-suite-interval-widen.pdf"))))
+           (ok (and (not (string-search-forward "already installed" out 0))
+                    (eq? dups *install-duplicates*))))
+      (if (not ok) (begin (display "\n  display-proof output: ") (display out)))
+      ok)))
+
 ;; A universal in a NESTED position is part of the CLAIM, so it must read as a
 ;; quantifier.  "Suppose"/"Let" is imperative -- it instructs the reader to fix
 ;; something before the claim is made -- and only the LEADING run of a
