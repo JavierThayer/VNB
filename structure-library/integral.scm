@@ -1,3 +1,11 @@
+;;; SINCE 2026-10-04 NOTHING IN THIS FILE IS ASSERTED: the fifteen supports that
+;;; characterised the integral are THEOREMS -- six in theorem-library/integral-laws.scm
+;;; (M-2), nine in theorem-library/integral-convergence.scm (M-3) -- and INTEGRAL is
+;;; DEFINED in structure-library/simple-integral.scm (the supremum of the simple
+;;; integrals below f).  The header below is the design record from the time the
+;;; integral was characterised: where it says `support' read `theorem', and
+;;; RR-POS-STAR now has a sethood fact (`rr-pos-star-is-set').
+;;;
 ;;; integral.scm -- MEASURABLE FUNCTIONS, SIMPLE FUNCTIONS and the INTEGRAL of
 ;;; a [0,+inf]-valued measurable function, with the three convergence theorems.
 ;;; Vocabulary plus statements; nothing here is proved (the proofs of six of the
@@ -166,94 +174,15 @@
 ;;; measurable-fn-indicator RETIRED 2026-09-18 (rake batch 5b): proven in theorem-library/rake-measure2.scm
 
 
-(support 'measurable-fn-eplus
-  (forall-guarded '(omega cA f g)
-                  '((IS-MEASURABLE-FN omega cA f) (IS-MEASURABLE-FN omega cA g))
-    '(IS-MEASURABLE-FN omega cA (PTWISE-EPLUS omega f g))))
 
-(warrant! 'measurable-fn-eplus 'reference '(thayer-measures "Prop. 2.6" 15))
-(topic!   'measurable-fn-eplus 'plumbing)
-(gloss!   'measurable-fn-eplus
-  "The pointwise sum of two measurable [0,+inf]-valued functions is
-   measurable.  NOT literally either source's statement.  Thayer Prop. 2.6
-   (p. 9) proves it for functions into a METRIC space composed with a
-   continuous phi, and remarks 'in particular, sums and products of measurable
-   functions are measurable'; Rudin Prop. 1.9(c) (p. 11) states it for COMPLEX
-   measurable functions.  Neither covers [0,+inf], where the addition is
-   `eplus' and +inf is a value; that case is the routine limit of the
-   truncations, and is what VNB asserts.")
 
-(support 'measurable-fn-etimes
-  (forall-guarded '(omega cA f g)
-                  '((IS-MEASURABLE-FN omega cA f) (IS-MEASURABLE-FN omega cA g))
-    '(IS-MEASURABLE-FN omega cA (PTWISE-ETIMES omega f g))))
 
-(warrant! 'measurable-fn-etimes 'reference '(thayer-measures "Prop. 2.6" 15))
-(topic!   'measurable-fn-etimes 'plumbing)
-(gloss!   'measurable-fn-etimes
-  "The pointwise product of two measurable [0,+inf]-valued functions is
-   measurable, the product being `etimes' and hence carrying the 0 * inf = 0
-   convention.  Same divergence from the sources as measurable-fn-eplus: both
-   state the finite-valued case (Thayer Prop. 2.6, p. 9; Rudin Prop. 1.9(c),
-   p. 11) and neither states the extended one.")
 
-(support 'measurable-fn-sup
-  (forall-guarded '(omega cA cF)
-                  (list '(IS-SIGMA-ALGEBRA omega cA)
-                        '(IN cF (FUN NN (FUN omega RR-POS-STAR)))
-                        (forall-guarded '(n_) '((IN n_ NN))
-                          '(IS-MEASURABLE-FN omega cA (cF n_))))
-    '(IS-MEASURABLE-FN omega cA (PTWISE-SUP omega cF))))
 
-(warrant! 'measurable-fn-sup 'reference '(rudin-rca "Thm. 1.14" 29))
-(topic!   'measurable-fn-sup 'analysis)
-(gloss!   'measurable-fn-sup
-  "The pointwise supremum of a sequence of measurable functions is measurable.
-   Rudin Thm. 1.14 (p. 14), stated there for [-inf,+inf]-valued functions and
-   for sup and lim sup together; VNB states the [0,+inf] case and splits sup
-   from lim inf (see measurable-fn-liminf), lim sup not being needed.  No
-   monotonicity is assumed -- that is what distinguishes this from the first
-   conjunct of monotone-convergence.")
 
-(support 'measurable-fn-liminf
-  (forall-guarded '(omega cA cF)
-                  (list '(IS-SIGMA-ALGEBRA omega cA)
-                        '(IN cF (FUN NN (FUN omega RR-POS-STAR)))
-                        (forall-guarded '(n_) '((IN n_ NN))
-                          '(IS-MEASURABLE-FN omega cA (cF n_))))
-    '(IS-MEASURABLE-FN omega cA (PTWISE-LIMINF omega cF))))
 
-(warrant! 'measurable-fn-liminf 'reference '(rudin-rca "Thm. 1.14" 29))
-(topic!   'measurable-fn-liminf 'analysis)
-(gloss!   'measurable-fn-liminf
-  "The pointwise lower limit of a sequence of measurable functions is
-   measurable.  Rudin Thm. 1.14 (p. 14) proves it for lim sup and notes the
-   same holds with inf for sup; Thayer Prop. 2.3 (p. 8) is the special case of
-   a sequence that converges.  It is the measurability half of Fatou's lemma
-   and is stated separately so a proof of Fatou may cite it.")
 
-(support 'integral-simple-approx
-  (forall-guarded '(omega cA f)
-                  '((IS-SIGMA-ALGEBRA omega cA) (IS-MEASURABLE-FN omega cA f))
-    (forsome-guarded '(cF)
-                     (list '(IN cF (FUN NN (FUN omega RR-POS-STAR)))
-                           (forall-guarded '(n_) '((IN n_ NN))
-                             '(IS-SIMPLE-FN omega cA (cF n_)))
-                           (forall-guarded '(n_) '((IN n_ NN))
-                             '(PTWISE-LE omega (cF n_) (cF (succ n_)))))
-      (forall-guarded '(x_) '((IN x_ omega))
-        '(= ((PTWISE-SUP omega cF) x_) (f x_))))))
 
-(warrant! 'integral-simple-approx 'reference '(rudin-rca "Thm. 1.17" 30))
-(topic!   'integral-simple-approx 'analysis)
-(gloss!   'integral-simple-approx
-  "Every measurable f : omega -> [0,+inf] is the pointwise supremum of a
-   non-decreasing sequence of SIMPLE measurable functions.  Rudin Thm. 1.17
-   (p. 15) states exactly this (0 <= s_1 <= s_2 <= ... <= f and s_n(x) -> f(x)
-   for every x); Thayer Prop. 2.13 (p. 12) states it with STEP functions
-   instead, which is a different class -- see the header.  VNB writes the
-   limit as the pointwise supremum, legitimate because the sequence is
-   non-decreasing, rather than as a limit, which [0,+inf] does not carry.")
 
 ;;; =====================================================================
 ;;; THE INTEGRAL.  Thayer Thm. 2.7 (pp. 9-10): the unique function on the
@@ -277,23 +206,7 @@
 
 
 
-(support 'integral-additive
-  (forall-guarded '(omega cA mu f g)
-                  '((IS-MEASURE omega cA mu)
-                    (IS-MEASURABLE-FN omega cA f)
-                    (IS-MEASURABLE-FN omega cA g))
-    '(= (INTEGRAL omega cA mu (PTWISE-EPLUS omega f g))
-        (eplus (INTEGRAL omega cA mu f) (INTEGRAL omega cA mu g)))))
 
-(warrant! 'integral-additive 'reference '(thayer-measures "Thm. 2.7(4)" 16))
-(topic!   'integral-additive 'analysis)
-(gloss!   'integral-additive
-  "The integral of a sum of two measurable [0,+inf]-valued functions is the
-   sum of the integrals.  Thayer Thm. 2.7, property (4), p. 10.  Rudin's
-   Thm. 1.27 (p. 22) is the countable version, of which this is the two-term
-   case; Rudin's linearity theorem 1.32 (p. 25) is a different statement,
-   about complex L^1 functions, which VNB cannot state because it has no
-   signed or complex integral.")
 
 
 
@@ -304,89 +217,11 @@
 ;;; =====================================================================
 ;;; THE CONVERGENCE THEOREMS.
 
-(support 'monotone-convergence
-  (forall-guarded '(omega cA mu cF)
-                  (list '(IS-MEASURE omega cA mu)
-                        '(IN cF (FUN NN (FUN omega RR-POS-STAR)))
-                        (forall-guarded '(n_) '((IN n_ NN))
-                          '(IS-MEASURABLE-FN omega cA (cF n_)))
-                        (forall-guarded '(n_) '((IN n_ NN))
-                          '(PTWISE-LE omega (cF n_) (cF (succ n_)))))
-    '(AND (IS-MEASURABLE-FN omega cA (PTWISE-SUP omega cF))
-          (= (INTEGRAL omega cA mu (PTWISE-SUP omega cF))
-             (ESUP (IMAGE (VNB-LAMBDA n_ NN (INTEGRAL omega cA mu (cF n_)))
-                          NN))))))
 
-(warrant! 'monotone-convergence 'reference '(thayer-measures "Prop. 2.16" 20))
-(topic!   'monotone-convergence 'analysis)
-(gloss!   'monotone-convergence
-  "Lebesgue's monotone convergence theorem: for a non-decreasing sequence of
-   measurable [0,+inf]-valued functions, the pointwise supremum is measurable
-   and its integral is the supremum of the integrals.  Thayer Prop. 2.16
-   (p. 14), and property (7) of Thm. 2.7 (p. 10), which states it with sup on
-   both sides exactly as here; Rudin Thm. 1.26 (p. 21) states it with limits.
-   VNB follows Thayer's sup form -- the sequences are monotone, so the two
-   agree, and [0,+inf] has ESUP but no limit.")
 
-(support 'fatou
-  (forall-guarded '(omega cA mu cF)
-                  (list '(IS-MEASURE omega cA mu)
-                        '(IN cF (FUN NN (FUN omega RR-POS-STAR)))
-                        (forall-guarded '(n_) '((IN n_ NN))
-                          '(IS-MEASURABLE-FN omega cA (cF n_))))
-    '(AND (IS-MEASURABLE-FN omega cA (PTWISE-LIMINF omega cF))
-          (<= (INTEGRAL omega cA mu (PTWISE-LIMINF omega cF))
-              (ELIMINF (VNB-LAMBDA n_ NN
-                         (INTEGRAL omega cA mu (cF n_))))))))
 
-(warrant! 'fatou 'reference '(thayer-measures "Thm. 2.26" 23))
-(topic!   'fatou 'analysis)
-(gloss!   'fatou
-  "Fatou's lemma: the integral of the pointwise lower limit is at most the
-   lower limit of the integrals, for any sequence of measurable
-   [0,+inf]-valued functions.  Thayer Thm. 2.26 (p. 17); Rudin Thm. 1.28
-   (p. 23).  Two differences from Thayer, both simplifications: he states the
-   hypothesis 'lim inf f_n(x) = g(x) for ALMOST all x' and concludes about
-   that g, where VNB names the lower limit outright as PTWISE-LIMINF and
-   asserts its measurability as the first conjunct -- there being no
-   almost-everywhere vocabulary in the tree yet.  Thayer's Remark 2.27 (p. 18)
-   notes that no sigma-finiteness or integrability is needed, and none is
-   assumed here.")
 
-(support 'dominated-convergence
-  (forall-guarded '(omega cA mu cF f g)
-                  (list '(IS-MEASURE omega cA mu)
-                        '(IN cF (FUN NN (FUN omega RR-POS-STAR)))
-                        (forall-guarded '(n_) '((IN n_ NN))
-                          '(IS-MEASURABLE-FN omega cA (cF n_)))
-                        '(IS-MEASURABLE-FN omega cA f)
-                        '(IS-MEASURABLE-FN omega cA g)
-                        (forall-guarded '(n_) '((IN n_ NN))
-                          '(PTWISE-LE omega (cF n_) g))
-                        '(IN (INTEGRAL omega cA mu g) RR)
-                        (forall-guarded '(x_) '((IN x_ omega))
-                          '(ECONVERGES-TO (VNB-LAMBDA n_ NN ((cF n_) x_))
-                                          (f x_))))
-    '(ECONVERGES-TO (VNB-LAMBDA n_ NN (INTEGRAL omega cA mu (cF n_)))
-                    (INTEGRAL omega cA mu f))))
 
-(warrant! 'dominated-convergence 'reference '(thayer-measures "Prop. 2.28" 24))
-(topic!   'dominated-convergence 'analysis)
-(gloss!   'dominated-convergence
-  "Lebesgue's dominated convergence theorem: if measurable f_k converge
-   pointwise to f and are all dominated by a measurable g of FINITE integral,
-   then the integrals of the f_k converge to the integral of f.  Thayer
-   Prop. 2.28 (p. 18); Rudin Thm. 1.34 (p. 26).  VNB's statement is the
-   [0,+inf]-valued one and differs from both sources in three recorded ways.
-   (i) Both state it for real- or complex-valued integrable functions, with
-   |f_k| <= g; with values in [0,+inf] the absolute value is the function
-   itself, so domination is PTWISE-LE.  (ii) Both conclude the stronger
-   'integral of |f - f_k| tends to 0', which needs a signed integral VNB does
-   not have; VNB concludes only the convergence of the integrals.  (iii) Both
-   allow the hypotheses to hold almost everywhere, VNB requires them
-   everywhere, there being no almost-everywhere vocabulary yet.  Finiteness of
-   the dominating integral is written 'INTEGRAL(...) in RR', RR being exactly
-   the finite part of [0,+inf].")
 
 ;;; -----------------------------------------------------------------------
 ;;; NOT STATED, and why.

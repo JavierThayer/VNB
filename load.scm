@@ -256,6 +256,7 @@
     ;; metric-topology (BALL) and metric-continuity (IS-CONTINUOUS); stays
     ;; with the metric cluster.
     "structure-library/metric-open-sets"
+    "structure-library/metric-connected"     ; IS-CONNECTED(s, A), the open-set form (CA-5, 2026-10-04; the user to confirm)
     ;; TOP-SPACE [PTS, OPENS] + the functor Met -> Top (METRIC-TOP).  The two
     ;; things an accessor correspondence cannot do: TOP-SPACE's morphisms are a
     ;; PREIMAGE condition (declare-hom!, not preservation-of-slots) and the
@@ -1445,6 +1446,7 @@
     ;; 2026-09-17 (rake batch B).  Window [255, 261): metric-laws above,
     ;; cauchy-subseq-proof (cites cauchy-block-estimate) below.
     "theorem-library/rake-balls"
+    "theorem-library/metric-connected-laws"  ; a locally constant function on a connected set is constant (CA-5, 2026-10-04)
     ;; 2026-09-20 (batch 12-B): the metric subspace, RESTRICT, closed subset of a compact space.
     "theorem-library/metric-subspace-laws"
     "theorem-library/compact-subspace"
@@ -3382,6 +3384,8 @@
     "theorem-library/rpow-defined"       ; RPOW == RPOW-STAR, the fifteen former supports proven (2026-10-03)
     "theorem-library/measure-laws"       ; measure chapter 1: additivity, monotonicity, subadditivity, continuity, push-forward (M-1, 2026-10-03)
     "theorem-library/integral-laws"      ; etimes algebra, finite sums in a commutative monoid, the simple integral and its laws, the six integral laws proven (M-2, 2026-10-04)
+    "structure-library/strand-messages"      ; the message algebra of strand spaces: ATOM / CAT / ENC as tagged lists, the stages, MSG-SET, MSG-RANK, the subterm relation as an intersection closure, MESSAGE-ALGEBRA (S-1, 2026-10-04; decisions confirmed)
+    "theorem-library/strand-messages-laws"   ; freeness, structural induction, the subterm partial order, Proposition 2.12, the rank laws (S-1, 2026-10-04)
     ;; ps-series-bridges -- the three PS/series bridges, PROVEN, plus the
     ;; CONVERGES twin of rr-limit-ptwise-eq that the third needs.  They are what
     ;; lets a theorem about bare series be USED about a power series.  Two are
@@ -3460,6 +3464,7 @@
     ;; countable-union-nn (an NN-indexed union of countable sets, by nn-flatten) and the Cauchy estimate
     ;; primitive-pair-lipschitz from the mean value inequality.
     "theorem-library/primitive-uniform-limit"
+    "theorem-library/integral-convergence"   ; the four measurable-fn closure laws, the dyadic approximation, monotone convergence, Fatou, general additivity, dominated convergence, all nine supports of integral.scm proven (M-3, 2026-10-04)
     ;; 2026-09-24 (batch 25-A): POWER SERIES IN CC -- the definitions (CPS-RADIUS as the sup of the r with sum |a_k| r^k
     ;; convergent, CC-SUP-NORM (29), IS-NORMALLY-CONVERGENT, CC-SERIES-LIMIT; structure-library/cc-power-series.scm, after
     ;; theorem-library/cc-series) and the laws: the radius formula 2.7, normal convergence inside the radius 2.8,
@@ -3541,8 +3546,12 @@
     "theorem-library/analytic-from-integral"  ; the geometric expansion, line integrals of uniform limits, analyticity from the integral formula, the Cauchy estimate (CA-2, 2026-10-03)
     "theorem-library/cauchy-integral-formula" ; cauchy-disc-except, winding-circle-inside, the Cauchy integral formula on a disc, Theorem 3.35, holomorphic-deriv-holomorphic (CA-3, 2026-10-04)
     "theorem-library/cauchy-estimates"        ; the derivative formula, Cauchy's estimates, Liouville, the Fundamental Theorem of Algebra (CA-3, 2026-10-04)
+    "theorem-library/winding-number-integer" ; the winding number of a closed road is an integer: the integral as a function of its upper limit, exp(H)/(gamma - z) constant (CA-5, 2026-10-04)
+    "theorem-library/winding-number-components" ; the winding number is locally constant, constant on connected sets off the trace, zero on an unbounded one; juxtaposition and the opposite road (CA-5, 2026-10-04)
     "theorem-library/cauchy-centre-mean-value" ; the integral formula at the centre, the mean value property, the maximum modulus principle on a disc (CA-4, 2026-10-04)
     "theorem-library/morera"                 ; Morera and uniform limits of holomorphic functions, conditional and, by holomorphic-deriv-holomorphic, unconditional (CA-4, 2026-10-04)
+    "structure-library/gamma-function"       ; IMPROPER-INT-CONVERGES-TO, IMPROPER-INT, GAMMA-INTEGRAND, GAMMA-FUNCTION (CA-6, 2026-10-04; the user to confirm)
+    "theorem-library/gamma-function"         ; the improper integral, convergence of Gamma on the right half-plane, the truncations holomorphic, GAMMA holomorphic (3.9), Gamma(z+1) = z Gamma(z), Gamma(n+1) = n! (CA-6, 2026-10-04)
     ;; preamble -- a STRATEGY, executed: (preamble '(induct) '(unfold ...)
     ;; '(instantiate) '(close)) runs the clause list against every open leaf,
     ;; commits ordinary tactics that each record themselves, and RETURNS the

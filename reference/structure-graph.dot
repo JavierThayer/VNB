@@ -18,6 +18,7 @@ digraph VNB {
   "integral-domain" [tooltip="integral-domain -- slots (carr add mul neg zero one)", URL="structure-graph.html#integral-domain"];
   "measurable-space" [tooltip="measurable-space -- slots (pts sigma)", URL="structure-graph.html#measurable-space"];
   "measure-space" [tooltip="measure-space -- slots (pts sigma meas)", URL="structure-graph.html#measure-space"];
+  "message-algebra" [tooltip="message-algebra -- slots (texts keys kinv msgs)", URL="structure-graph.html#message-algebra"];
   "metric-space" [tooltip="metric-space -- slots (pts dist)", URL="structure-graph.html#metric-space"];
   "metrizable-top-space" [tooltip="metrizable-top-space -- slots (pts opens)", URL="structure-graph.html#metrizable-top-space"];
   "module" [tooltip="module -- slots (scal vec vadd vzero vneg act)", URL="structure-graph.html#module"];
@@ -45,8 +46,8 @@ digraph VNB {
 
   // refines (specialisation): child -> parent
   "cc-ms" -> "metric-space" [color="#2a4a6a", penwidth=1.4, tooltip="cc-ms refines metric-space"];
-  "zz-ring" -> "euclidean-ring" [color="#2a4a6a", penwidth=1.4, tooltip="zz-ring refines euclidean-ring"];
   "cc-normed-field" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="cc-normed-field refines normed-field"];
+  "zz-ring" -> "euclidean-ring" [color="#2a4a6a", penwidth=1.4, tooltip="zz-ring refines euclidean-ring"];
   "rr-nvs" -> "normed-vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="rr-nvs refines normed-vector-space"];
   "rr-pos-star-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="rr-pos-star-add-monoid refines comm-monoid"];
   "qq-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="qq-ring refines integral-domain"];
@@ -54,10 +55,10 @@ digraph VNB {
   "nn-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="nn-add-monoid refines comm-monoid"];
   "commutative-ring" -> "ring" [color="#2a4a6a", penwidth=1.4, tooltip="commutative-ring refines ring"];
   "pid" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="pid refines integral-domain"];
-  "integral-domain" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="integral-domain refines commutative-ring"];
   "field-ring" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="field-ring refines commutative-ring"];
-  "qq-line" -> "vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="qq-line refines vector-space"];
+  "integral-domain" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="integral-domain refines commutative-ring"];
   "rr-normed-field" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="rr-normed-field refines normed-field"];
+  "qq-line" -> "vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="qq-line refines vector-space"];
   "qq-field" -> "field" [color="#2a4a6a", penwidth=1.4, tooltip="qq-field refines field"];
   "euclidean-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="euclidean-ring refines integral-domain"];
   "metrizable-top-space" -> "top-space" [color="#2a4a6a", penwidth=1.4, tooltip="metrizable-top-space refines top-space"];

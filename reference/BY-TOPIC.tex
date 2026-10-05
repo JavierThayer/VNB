@@ -1353,7 +1353,7 @@
 \subsubsection*{\texttt{sum-expansion}}
 \emph{for every n in nn, r, if r is a commutative ring, then for every x in carr(r), y in carr(r), g in fun(zz, carr(r)), sum(r, vnb-lambda(k, zz, (add(r))((mul(r))(x, g(k - 1)), (mul(r))(y, g(k)))), succ(n)) equals (add(r))((add(r))((mul(r))((add(r))(x, y), sum(r, g, n)), (mul(r))(x, g(0 - 1))), (mul(r))(y, g(n)))}
 {\small\[
-\forall n \in \mathbb{N}, r.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow \forall x, y \in \operatorname{carr}(r), g \in (\mathbb{Z} \to \operatorname{carr}(r)).\; (\operatorname{sum}(r, (\lambda k \in \mathbb{Z}.\; \operatorname{add}(r)(\operatorname{mul}(r)(x, g((k - 1))), \operatorname{mul}(r)(y, g(k)))), (n + 1)) = \operatorname{add}(r)(\operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{add}(r)(x, y), \operatorname{sum}(r, g, n)), \operatorname{mul}(r)(x, g((0 - 1)))), \operatorname{mul}(r)(y, g(n)))))
+\forall n \in \mathbb{N}, r.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow \forall x, y \in \operatorname{carr}(r), g \in (\mathbb{Z} \to \operatorname{carr}(r)).\; (\operatorname{sum}(r, (\lambda k \in \mathbb{Z}.\; \operatorname{add}(r)(\operatorname{mul}(r)(x, g((k - 1))), \operatorname{mul}(r)(y, g(k)))), (n + 1)) = \operatorname{add}(r)(\operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{add}(r)(x, y), \operatorname{sum}(r, g, n)), \operatorname{mul}(r)(x, g(-1))), \operatorname{mul}(r)(y, g(n)))))
 \]}
 \noindent\textbf{Asserted}
 

@@ -8,7 +8,10 @@ the files at the root and the structure library by theory.
 
 ## structure-library: _unfiled
 
+- [gamma-function.scm](structure-library/gamma-function.scm)
+- [metric-connected.scm](structure-library/metric-connected.scm)
 - [simple-integral.scm](structure-library/simple-integral.scm)
+- [strand-messages.scm](structure-library/strand-messages.scm)
 
 ## structure-library: algebra
 
