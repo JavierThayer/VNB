@@ -142,11 +142,19 @@
                  ((char-alphabetic? (string-ref name i)) (check (+ i 1)))
                  (else #f))))))
 
+;;; DISPLAY NAMES FOR VARIABLES (notes-59, 2026-10-05): an alist symbol -> TeX
+;;; string bound by the proof reader around one proposition and its proof.  The
+;;; renaming lives here, at the TeX level, because `u' and `U' are ONE folded
+;;; symbol in VNB: a set variable can be printed as U only by the printer.
+(define *tex-variable-names* '())
+
 (define (tex--symbol->string s)
   (let* ((name (symbol->string s))
+         (named (assq s *tex-variable-names*))
          (atom (assq s *tex-atom-table*))
          (greek (assq s *tex-greek-table*)))
     (cond
+      (named (cdr named))
       (atom  (cdr atom))
       (greek (cdr greek))
       ;; Hyphenated identifier -> operator (\operatorname).
@@ -175,6 +183,7 @@
 (define (tex--head->tex op)
   (if (and (symbol? op)
            (> (string-length (symbol->string op)) 1)
+           (not (assq op *tex-variable-names*))      ; a renamed function variable
            (not (assq op *tex-atom-table*))
            (not (assq op *tex-greek-table*)))
       (tex--operatorname (symbol->string op))
@@ -691,7 +700,7 @@
       ;;   0 < a =>  /  0 < b =>  /  0 < a b,
       ;; whatever its length.
       ((<= (tex--width e) tex--short-row)
-       (list (string-append (tex--ind ind) (expr->tex e))))
+       (list (string-append (tex--ind ind) (expr->tex-top e))))
       ;; a maximal run of quantifiers collapses onto one row
       (qs
        (let loop ((step qs) (parts '()))
@@ -765,10 +774,28 @@
              (list (string-append head ")"))
              (cons (string-append head (tex--drop-ind (car rows) (+ ind 1)))
                    (cdr rows)))))
-      (else (list (string-append (tex--ind ind) (expr->tex e)))))))
+      (else (list (string-append (tex--ind ind) (expr->tex-top e)))))))
 
 ;;; Public: render E, breaking long formulas across rows.  A single-row
 ;;; result is returned bare (no array) so short formulas are unaffected.
+;;; A formula standing on its own (a whole display, or one row of it) does not
+;;; need the parentheses the binop renderer puts around every relation and
+;;; connective: (u \subseteq C) reads u \subseteq C (notes-59, 2026-10-05).  Only
+;;; the OUTERMOST pair goes, and only when it encloses the whole string.
+(define (tex--strip-outer-parens str)
+  (let ((n (string-length str)))
+    (if (and (> n 1) (char=? (string-ref str 0) #\() (char=? (string-ref str (- n 1)) #\)))
+        (let loop ((i 1) (depth 1))      ; does the first paren close only at the end?
+          (cond ((>= i (- n 1)) (substring str 1 (- n 1)))
+                ((char=? (string-ref str i) #\() (loop (+ i 1) (+ depth 1)))
+                ((char=? (string-ref str i) #\))
+                 (if (= depth 1) str (loop (+ i 1) (- depth 1))))
+                (else (loop (+ i 1) depth))))
+        str)))
+(define (expr->tex-top e)
+  (let ((str (expr->tex e)))
+    (if (and (pair? e) (assq (car e) *tex-binop-table*)) (tex--strip-outer-parens str) str)))
+
 (define (expr->tex-display e)
   (let ((lines (tex--lines e 0)))
     (if (null? (cdr lines))

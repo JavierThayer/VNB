@@ -1,0 +1,44 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\setlength{\mathindent}{1em}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\begin{proposition}[cauchy-convex-closed]
+Suppose $U \text{ s.t. } \operatorname{is\text{-}convex}(U)$. Let $f \text{ be s.t. } \operatorname{holomorphic\text{-}on}(U, f)$. Let $\gamma$, $\gamma'$ and $a$ be arbitrary. Let $b \text{ be s.t. } \operatorname{is\text{-}road}(\gamma, \gamma', a, b)$. If $(\operatorname{trace}(\gamma, a, b) \subseteq U)$, then if $(\gamma(b) = \gamma(a))$ then  $\operatorname{line\text{-}int}(f, \gamma, \gamma', a, b) = 0$
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{8}] Clearly $\operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), U)$.
+  \item[\textbf{9}] By the proposition \emph{cc-open-subset-cc}: $U \subseteq \mathbb{C}$
+  \item[\textbf{10--13}] Clearly
+\begin{equation*}
+\begin{array}{@{}l@{}}
+f \in (U \to \mathbb{C}) \\
+\begin{array}{@{}l@{}} \forall y \in U. \\ \quad \operatorname{is\text{-}continuous\text{-}at}(\operatorname{subspace\text{-}ms}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), U), \\ \quad \quad \operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), f, y) \end{array} \\
+\operatorname{is\text{-}path}(\gamma, a, b) \\
+\gamma \in (\operatorname{ccint}(a, b) \to \mathbb{C})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{14}] By the proposition \emph{is-path-endpoints}: $(a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a < b))$
+  \item[\textbf{15--17}] Hence $a \in \mathbb{R}$, $a < b$ and $b \in \mathbb{R}$. Claim: $a \in \operatorname{ccint}(a, b)$
+  \item[\textbf{18--23}] By the proposition \emph{ccint-membership}, reduce to $(a \in \mathbb{R}) \wedge ((a \leq a) \wedge (a \leq b))$  \emph{(the claim holds by assumption)}
+  \item[\textbf{24--25}] Clearly $\gamma(a) \in \operatorname{trace}(\gamma, a, b)$ and $\gamma(a) \in U$.
+  \item[\textbf{26}] By the proposition \emph{cauchy-convex-primitive}:
+\begin{equation*}
+\begin{array}{@{}l@{}} \exists g \in (U \to \mathbb{C}). \\ \quad \operatorname{holomorphic\text{-}on}(U, g) \wedge \\ \quad \forall z \in U.\; \operatorname{is\text{-}diff\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, U, g, z, f(z)) \end{array}
+\end{equation*}
+
+  \item[\textbf{27--31}] Hence $g \in (U \to \mathbb{C})$, $\forall z \in U.\; \operatorname{is\text{-}diff\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, U, g, z, f(z))$ and $\operatorname{holomorphic\text{-}on}(U, g)$. By the proposition \emph{line-int-closed-road-of-derivative}: $\operatorname{line\text{-}int}(f, \gamma, \gamma', a, b) = 0$  \emph{(holds by assumption)}
+\end{itemize}
+\end{proof}
+\end{document}

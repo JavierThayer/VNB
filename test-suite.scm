@@ -4362,6 +4362,38 @@
            (string-search-forward "Let $s$ be arbitrary" mixed 0)
            #t))))
 
+;; notes-59 (2026-10-05): (1) a short formula stays in the running text, (5) a
+;; relation standing alone sheds its outer parentheses, (3) a citation names its
+;; kind, (2) the variables of a proof print as letters -- sets capitalised, a Greek
+;; root kept, an agent-tagged binder by its last letter, a word by its first.
+(check-true "reader: a short formula is inline and a relation sheds its outer parens"
+  (lambda ()
+    (and (string=? (proof-reader--display '(subset u cc)) " $u \\subseteq \\mathbb{C}$")
+         (string-prefix? "\n\\begin{equation*}"
+                         (proof-reader--display '(forall k (implies (in k nn) (forall j (implies (in j nn) (implies (<= k j) (<= (* 2 k) (+ j (* 2 k))))))))))
+         (string=? (expr->tex-top '(not (= a b))) "\\neg (a = b)")
+         #t)))
+(check-true "reader: a citation says the proposition / the definition / the axiom"
+  (lambda ()
+    (and (string=? (proof-reader--cite 'nn-lt-double) "the proposition \\emph{nn-lt-double}")
+         (string=? (proof-reader--cite 'image-set) "the axiom \\emph{image-set}")
+         (string=? (proof-reader--cite 'binary-minus-def) "the definition \\emph{binary-minus-def}")
+         #t)))
+(check-true "reader: display names -- U for a set, gamma for pgam, z for gouz_, r for rad"
+  (lambda ()
+    (let ((m (proof-reader--variable-names
+              '(forall u (implies (subset u cc) (forall pgam (forall gouz_ (in (pgam gouz_) u)))))
+              '((x (in gouz_ u) ((in rad (fun nn rr)) (in n nn) (in goug_ (fun u cc))))))))
+      (and (equal? (cdr (assq 'u m)) "U")
+           (equal? (cdr (assq 'pgam m)) "\\gamma")
+           (equal? (cdr (assq 'gouz_ m)) "z")
+           (equal? (cdr (assq 'rad m)) "r")
+           (equal? (cdr (assq 'n m)) "n")
+           (equal? (cdr (assq 'goug_ m)) "g")
+           ;; distinct variables get distinct names
+           (= (length m) (length (delete-duplicates (map cdr m))))
+           #t))))
+
 ;; A universal in a NESTED position is part of the CLAIM, so it must read as a
 ;; quantifier.  "Suppose"/"Let" is imperative -- it instructs the reader to fix
 ;; something before the claim is made -- and only the LEADING run of a

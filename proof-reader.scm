@@ -324,15 +324,28 @@
         (else (proof-tex--escape-tt (call-with-output-string (lambda (p)(write a p)))))))
 ;; a lemma CITATION: a symbol -> its name as an \operatorname; a raw wff
 ;; (instantiating an unnamed hypothesis) -> the phrase "the hypothesis".
+;; "By the proposition \emph{is-path-endpoints}" (notes-59, 2026-10-05), the noun
+;; by provenance: proven or certified -> proposition, definitional -> definition,
+;; asserted or primitive -> axiom.
 (define (proof-reader--cite a)
   (if (symbol? a)
-      (string-append "$" (tex--operatorname (symbol->string a)) "$")
+      (let ((noun (case (provenance-of a)
+                    ((definitional) "definition")
+                    ((asserted primitive) "axiom")
+                    (else "proposition"))))
+        (string-append "the " noun " \\emph{" (proof-tex--escape-tt (symbol->string a)) "}"))
       "the hypothesis"))
 
 ;; a formula shown as its own displayed equation (breaks/wraps via
 ;; expr->tex-display so wide prefix terms fit the page instead of overflowing).
+;; A formula that fits in the running text stays there (notes-59, 2026-10-05: "a
+;; line break to display an equation which could be better displayed in-line");
+;; only a wide one gets its own display.  The ruler is the plain printed width.
+(define *proof-reader-inline-width* 60)
 (define (proof-reader--display e)
-  (string-append "\n\\begin{equation*}\n" (expr->tex-display e) "\n\\end{equation*}\n"))
+  (if (<= (tex--width e) *proof-reader-inline-width*)
+      (string-append " $" (expr->tex-top e) "$")
+      (string-append "\n\\begin{equation*}\n" (expr->tex-display e) "\n\\end{equation*}\n")))
 ;; assumptions in R2 not (alpha-)in R1  -- the hypotheses a step introduced.
 (define (proof-reader--new-asms before after)
   (filter (lambda (a) (not (member a before))) after))
@@ -756,7 +769,7 @@
     (string-append head
       (cond
         ((and (pair? body) (eq? (car body) 'implies) (= (length body) 3))
-         (string-append "if $" (expr->tex (cadr body)) "$ then "
+         (string-append "if $" (expr->tex-top (cadr body)) "$ then "
                         (proof-reader--stmt-tail (caddr body))))
         (else (proof-reader--display body))))))
 
@@ -773,7 +786,7 @@
           (string-append "There is $" (car step) "$ such that "
                          (proof-reader--stmt-tail (cadr step)))))
     ((and (pair? body) (eq? (car body) 'implies) (= (length body) 3))
-     (string-append "If $" (expr->tex (cadr body)) "$, then "
+     (string-append "If $" (expr->tex-top (cadr body)) "$, then "
                     (proof-reader--stmt-tail (caddr body))))
     (else (string-append (if preceded? "Then" "")
                          (proof-reader--display body)))))
@@ -907,6 +920,143 @@
                        (list-ref r 3)))
                records)))))
 
+;;; --- display names for the variables (notes-59, 2026-10-05) ----------------
+;;; "As the last step prior to LaTeX all variables in the statement and the proof
+;;; should be renamed: single letters if at all possible; variables which can be
+;;; easily ascertained to denote sets capitalized; function names f, g, h or
+;;; phi, psi."  Computed once per proof from the statement and every recorded
+;;; sequent, applied through `*tex-variable-names*' (tex-output.scm) around the
+;;; proposition and its proof.  A VARIABLE is a symbol that occurs somewhere
+;;; other than in head position and is not a registered constant, a class name
+;;; or a printer atom; its KIND is read off its typings; its NAME is, in order of
+;;; preference, its own letter, the Greek letter its name contains (pgam ->
+;;; gamma), the last letter of an agent-tagged binder (gouz_ -> z) or the first
+;;; letter of a word (rad -> r), then the kind's pool -- the first not yet taken.
+(define *proof-reader-rename?* #t)
+
+(define (proof-reader--symbol-occurrences x)
+  ;; (non-head-symbols . head-symbols), each once, in order of first occurrence
+  (let ((plain '()) (heads '()))
+    (let walk ((x x) (head? #f))
+      (cond ((symbol? x)
+             (if head?
+                 (if (not (memq x heads)) (set! heads (cons x heads)))
+                 (if (not (memq x plain)) (set! plain (cons x plain)))))
+            ((pair? x)
+             (walk (car x) #t)
+             (for-each (lambda (y) (walk y #f)) (cdr x)))))
+    (cons (reverse plain) (reverse heads))))
+
+(define (proof-reader--variable? s)
+  (and (symbol? s)
+       (not (memq s '(TRUTH FALSITY)))
+       (not (number? s))
+       (not (hash-table-ref/default *constant-registry* s #f))
+       (not (memq s *class-name-constants*))
+       (not (assq s *tex-atom-table*))
+       (not (assq s *tex-binop-table*))
+       (not (assq s *tex-special-table*))))
+
+(define (proof-reader--kind-rank k)
+  (case k ((function) 6) ((set) 5) ((structure) 4) ((nat) 3) ((number) 2) (else 1)))
+
+(define (proof-reader--kinds vars formulas)
+  ;; hash variable -> kind, from the typings in FORMULAS
+  (let ((kinds (make-equal-hash-table)))
+    (define (bump! v k)
+      (when (memq v vars)
+        (let ((old (hash-table-ref/default kinds v 'point)))
+          (if (> (proof-reader--kind-rank k) (proof-reader--kind-rank old))
+              (hash-table-set! kinds v k)))))
+    (define (class-kind c)
+      (cond ((pair? c) (case (car c) ((fun) 'function) ((power) 'set) (else #f)))
+            ((eq? c 'nn) 'nat)
+            ((memq c '(rr zz qq cc ord rr-star rr-pos-star)) 'number)
+            ((eq? c 'set) 'set)
+            (else #f)))
+    ;; a typing counts only where the variable occurs FREE: a cited subset lemma
+    ;; landed in the context binds its own a, b, x, and `(subset a b)' under that
+    ;; binder said nothing about the proof's endpoint a (it printed as A)
+    (let walk ((e formulas) (bound '()))
+      (when (pair? e)
+        (let ((h (car e)))
+          (define (free? v) (and (symbol? v) (not (memq v bound))))
+          (cond ((and (eq? h 'in) (= (length e) 3))
+                 (let ((k (class-kind (caddr e))))
+                   (if (and k (free? (cadr e))) (bump! (cadr e) k))
+                   (if (free? (caddr e)) (bump! (caddr e) 'set))))
+                ((and (eq? h 'subset) (= (length e) 3))
+                 (if (free? (cadr e)) (bump! (cadr e) 'set))
+                 (if (free? (caddr e)) (bump! (caddr e) 'set)))
+                ((and (symbol? h) (memq h vars) (free? h)) (bump! h 'function))
+                ((and (proof-reader--structure-atom? e) (pair? (cdr e)) (free? (cadr e)))
+                 (bump! (cadr e) 'structure)))
+          (let ((inner (if (and (memq h '(forall forsome iota comp sep vnb-lambda)) (pair? (cdr e)))
+                           (let ((v (cadr e)))
+                             (append (if (pair? v) (filter symbol? (cdr v)) (list v)) bound))
+                           bound)))
+            (for-each (lambda (y) (walk y inner)) e)))))
+    kinds))
+
+(define proof-reader--greek-roots
+  '(("alp" . "\\alpha") ("bet" . "\\beta") ("gam" . "\\gamma") ("del" . "\\delta")
+    ("eps" . "\\varepsilon") ("zet" . "\\zeta") ("thet" . "\\theta") ("lam" . "\\lambda")
+    ("rho" . "\\rho") ("sig" . "\\sigma") ("tau" . "\\tau") ("phi" . "\\varphi")
+    ("psi" . "\\psi") ("omeg" . "\\omega") ("eta" . "\\eta")))
+(define (proof-reader--greek-root name)
+  (let loop ((rs proof-reader--greek-roots))
+    (cond ((null? rs) #f)
+          ((string-search-forward (caar rs) name 0) (cdar rs))
+          (else (loop (cdr rs))))))
+(define (proof-reader--name-pool kind)
+  (case kind
+    ((function) '("f" "g" "h" "\\varphi" "\\psi" "\\chi" "F" "G" "H"))
+    ((set) '("U" "V" "W" "A" "B" "S" "X" "Y" "Z" "C" "D" "E"))
+    ((nat) '("n" "m" "k" "i" "j" "l" "p" "q"))
+    ((structure) '("s" "t" "m" "r" "q"))
+    (else '("x" "y" "z" "a" "b" "c" "t" "s" "r" "u" "v" "w"))))
+
+(define (proof-reader--variable-names claim records)
+  ;; -> alist symbol -> TeX string, for the variables of CLAIM and RECORDS
+  (if (not *proof-reader-rename?*) '()
+      (let* ((formulas (cons claim
+                             (apply append (map (lambda (r) (cons (cadr r) (caddr r))) records))))
+             (occ (proof-reader--symbol-occurrences formulas))
+             (vars (filter proof-reader--variable? (car occ)))
+             (kinds (proof-reader--kinds vars formulas))
+             ;; what the non-variables print as: no variable may take one of these
+             (reserved (map tex--symbol->string
+                            (filter (lambda (s) (and (symbol? s) (not (memq s vars))))
+                                    (append (car occ) (cdr occ)))))
+             (used reserved)
+             (out '()))
+        (define (free? str) (not (member str used)))
+        (define (letter? c) (char-alphabetic? c))
+        (for-each
+         (lambda (v)
+           (let* ((kind (hash-table-ref/default kinds v 'point))
+                  (name (symbol->string v))
+                  (tagged? (and (> (string-length name) 1)
+                                (char=? (string-ref name (- (string-length name) 1)) #\_)))
+                  (base (if tagged? (substring name 0 (- (string-length name) 1)) name))
+                  (cased (lambda (c) (string (if (eq? kind 'set) (char-upcase c) (char-downcase c)))))
+                  (own (and (= (string-length base) 1) (letter? (string-ref base 0))
+                            (cased (string-ref base 0))))
+                  (greek (and (not own) (> (string-length base) 2) (proof-reader--greek-root base)))
+                  (derived (and (not own) (> (string-length base) 0)
+                                (let ((c (string-ref base (if tagged? (- (string-length base) 1) 0))))
+                                  (and (letter? c) (cased c)))))
+                  (candidates (append (if own (list own) '())
+                                      (if greek (list greek (string-append greek "'") (string-append greek "''")) '())
+                                      (if derived (list derived) '())
+                                      (proof-reader--name-pool kind)))
+                  (pick (find-first free? candidates)))
+             (when pick
+               (set! used (cons pick used))
+               (set! out (cons (cons v pick) out)))))
+         vars)
+        (reverse out))))
+
 (define (proof-reader--body name)
   (let* ((records (proof-reader--derename (proof-reader--records name)))
          (claim   (cadr (car records)))            ; sp record's goal
@@ -922,6 +1072,7 @@
          (setup-asms (caddr setup-last))
          (setup-goal (cadr setup-last))
          (setup-range (if (pair? setup) (proof-reader--range setup) "0")))
+   (fluid-let ((*tex-variable-names* (proof-reader--variable-names claim records)))
     (apply string-append
      "\\begin{proposition}[" (proof-tex--escape-tt (symbol->string name)) "]\n"
      (proof-reader--statement claim)
@@ -998,7 +1149,7 @@
                    (new-asms (caddr last-state)))
               (loop (cdr gs) new-goal new-asms new-indvar (cdr hdr+phase)
                     (cdr ch+cs) (cons row rows)))))
-      (list "\\end{itemize}\n\\end{proof}\n")))))
+      (list "\\end{itemize}\n\\end{proof}\n"))))))
 
 ;;; --- with-defs: the definitions behind the statement ----------------------
 ;;; (the user, 2026-10-05: "an option `with-defs' that prefixes the statement with

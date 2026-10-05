@@ -411,6 +411,7 @@
   (string-append
    "\\documentclass[11pt]{article}\n"
    "\\usepackage[fleqn]{amsmath}\n"       ; left-align displayed equations
+   "\\setlength{\\mathindent}{1em}\n"    ; one em in from the text, not amsmath's 25pt (notes-59)
    "\\usepackage{amssymb, amsthm}\n"
    "\\usepackage[utf8]{inputenc}\n"
    "\\usepackage[margin=1in]{geometry}\n"

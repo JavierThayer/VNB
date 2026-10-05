@@ -747,7 +747,20 @@ script in this image" (2026-10-05, while the primary was swapping under a compil
 real failure, and "no proof script" is said only when the file is missing after an answer. The panel check
 runs a prover on the primary: run it with nothing else running here. The reader's rules
 of 2026-10-04 (notes-58): trivial runs as one "Clearly ..." line, substitutions named, one-line equations,
-Suppose / Hence for the di / ai inside a proof, "Claim:" for a cut; examples in `docs/readability/`.
+Suppose / Hence for the di / ai inside a proof, "Claim:" for a cut; examples in `docs/readability/`. **notes-59
+(2026-10-05 evening):** a formula of plain width <= 60 stays INLINE after its citation (`proof-reader--display`,
+`*proof-reader-inline-width*`); a relation or connective standing alone sheds its outer parentheses
+(`expr->tex-top`, also on every row of a broken formula and on statement antecedents); a citation reads "By the
+proposition / definition / axiom \\emph{name}" by provenance; `\\mathindent` is 1em; and THE VARIABLES ARE RENAMED
+FOR DISPLAY (`proof-reader--variable-names`, applied through the fluid `*tex-variable-names*` in tex-output.scm,
+bound around one proposition and its proof, not the definitions block): a variable is a symbol occurring outside
+head position that is not a registered constant, class name or printer atom; its kind (function > set > structure
+> nat > number > point) is read off its typings where it occurs FREE (a cited lemma's bound `a`, `b` typed the
+proof's endpoint `a` as a set until binders were respected); its name is its own letter, else the Greek letter its
+name contains (`pgam` -> gamma, a clash gets a prime), else the last letter of an agent-tagged binder (`gouz_` -> z)
+or the first letter of a word (`rad` -> r), else the kind's pool; sets are capitalised. The renaming is at the TeX
+level because `u` and `U` are ONE folded symbol. `*proof-reader-rename?*` #f turns it off. Example:
+`docs/readability/cauchy-convex-closed-2026-10-05.{tex,pdf}`.
 
 ## Script replay and the page
 
