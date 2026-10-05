@@ -639,18 +639,34 @@
 
 ;; peel a maximal universal run into (clauses . body); a 'mem run accumulates,
 ;; a 'pred is flushed on its own (an implication boundary in the formal wff).
+;; a pending run is either a list of `mem' items or ('bare v ...): one clause either way
+(define (proof-reader--flush-run cur)
+  (cond ((null? cur) '())
+        ((eq? (car cur) 'bare) (list cur))
+        (else (list (cons 'mem cur)))))
 (define (proof-reader--peel-univs e)
   (let loop ((e e) (clauses '()) (cur '()))
     (let ((step (proof-reader--univ-step e)))
       (cond
         ((not step)
-         (cons (append clauses (if (pair? cur) (list (cons 'mem cur)) '())) e))
+         (cons (append clauses (proof-reader--flush-run cur)) e))
         ((eq? (car step) 'pred)
          (loop (caddr step)
-               (append clauses (if (pair? cur) (list (cons 'mem cur)) '())
+               (append clauses (proof-reader--flush-run cur)
                        (list (cons 'pred (list (cadr step)))))
                '()))
-        (else (loop (caddr step) clauses (append cur (list (cadr step)))))))))
+        ;; a BARE universal (no guard) is its own clause kind, so the renderer can
+        ;; say "For every s" / "Let s be arbitrary" instead of "Suppose s" (the
+        ;; user, 2026-10-05); a run of bare variables stays one clause
+        ((eq? (car step) 'bare)
+         (if (and (pair? cur) (eq? (car cur) 'bare))
+             (loop (caddr step) clauses (append cur (list (cadr step))))
+             (loop (caddr step)
+                   (append clauses (if (pair? cur) (list (cons 'mem cur)) '()))
+                   (list 'bare (cadr step)))))
+        (else (if (and (pair? cur) (eq? (car cur) 'bare))
+                  (loop (caddr step) (append clauses (list cur)) (list (cadr step)))
+                  (loop (caddr step) clauses (append cur (list (cadr step))))))))))
 
 (define (proof-reader--exists-step e)
   (cond
@@ -697,7 +713,8 @@
 (define (proof-reader--render-clauses clauses depth)
   (let loop ((cs clauses) (i depth) (out '()))
     (if (null? cs) (proof-tex--join (reverse out) ". ")
-        (let* ((kw    (if (even? i) "Suppose" "Let"))
+        (let* ((bare? (eq? (car (car cs)) 'bare))
+               (kw    (cond (bare? "Let") ((even? i) "Suppose") (else "Let")))
                (pred? (eq? (car (car cs)) 'pred))
                (items (if (and pred? (string=? kw "Let"))
                           (map (lambda (it)
@@ -708,7 +725,9 @@
                                (cdr (car cs)))
                           (cdr (car cs)))))
           (loop (cdr cs) (+ i 1)
-                (cons (string-append kw " " (proof-reader--join-and items)) out))))))
+                (cons (string-append kw " " (proof-reader--join-and items)
+                                     (if bare? " be arbitrary" ""))
+                      out))))))
 
 ;; render clauses in a NESTED position.  "Suppose"/"Let" are imperative: they
 ;; instruct the reader to fix something before the claim is made, and only the
@@ -761,10 +780,17 @@
 
 (define (proof-reader--stmt e depth)
   (let* ((cb (proof-reader--peel-univs e)) (clauses (car cb)) (body (cdr cb)))
-    (if (pair? clauses)
-        (string-append (proof-reader--render-clauses clauses depth) ". "
-                       (proof-reader--stmt-body body #t))
-        (proof-reader--stmt-body body #f))))
+    (cond
+      ;; the whole prefix is unguarded variables: "For every s, ..." (the user,
+      ;; 2026-10-05: "Suppose s." read oddly for a variable nothing is supposed about)
+      ((and (pair? clauses) (null? (cdr clauses)) (eq? (car (car clauses)) 'bare))
+       (string-append (if (null? (cddr (car clauses))) "For every " "For all ")
+                      (proof-reader--join-and (cdr (car clauses))) ", "
+                      (proof-reader--stmt-body body #f)))
+      ((pair? clauses)
+       (string-append (proof-reader--render-clauses clauses depth) ". "
+                      (proof-reader--stmt-body body #t)))
+      (else (proof-reader--stmt-body body #f)))))
 
 ;; first subterm whose head is OP (for the internal-representation note).
 (define (proof-reader--first-app e op)
@@ -997,13 +1023,53 @@
         (for-each walk (cdr e))))
     (reverse acc)))
 
-(define (proof-reader--definition-of h)
-  ;; -> (axioms (NAME . FORMULA) ...) | (functoid PARAMS BODY) | #f
-  (let ((e (assq h (library-definitions *library*))))
+(define (proof-reader--structure-of-head h ctx)
+  ;; -> (NAME . shape|definitional) when H is IS-NAME, or an accessor of the
+  ;; declared structure NAME; else #f.  An accessor (pts, dist) is a slot of
+  ;; SEVERAL structures: it names NAME only when IS-NAME is among the heads in
+  ;; CTX (the statement's and its definitions'), or when it has one owner.
+  (let* ((str (symbol->string h))
+         (base (and (> (string-length str) 3) (string-ci=? (substring str 0 3) "is-")
+                    (string->symbol (substring str 3 (string-length str))))))
+    (cond ((and base (lookup-structure base)) (cons base 'shape))
+          ((and base (lookup-definitional-structure base)) (cons base 'definitional))
+          (else (let* ((owners (filter
+                                (lambda (n)
+                                  (let ((sd (hash-table-ref/default *structure-table* n #f)))
+                                    (and sd (assq h (structure-def-slots sd)))))
+                                (hash-table-keys *structure-table*)))
+                       (named (filter (lambda (n) (memq (symbol-append 'IS- n) ctx)) owners)))
+                  (cond ((= (length named) 1) (cons (car named) 'shape))
+                        ((and (null? named) (= (length owners) 1)) (cons (car owners) 'shape))
+                        (else #f)))))))
+
+(define (proof-reader--structure-law name kind)
+  ;; the characteristic law, as describe-structure finds it; #f when none is stored
+  (hash-table-ref/default *theorem-table*
+                          (if (eq? kind 'shape)
+                              (symbol-append 'IS- name)
+                              (string->symbol (string-append "is-" (string-downcase (symbol->string name)) "-def")))
+                          #f))
+
+(define (proof-reader--definition-of h #!optional ctx)
+  ;; -> (axioms (NAME . FORMULA) ...) | (functoid PARAMS BODY) | (structure NAME KIND) | #f
+  (let ((e (assq h (library-definitions *library*)))
+        (ctx (if (default-object? ctx) '() ctx)))
     (cond (e (cons 'axioms (cdr e)))
           ((and (not (lookup-view-as h)) (hash-table-ref/default *functoid-registry* h #f))
            => (lambda (reg) (list 'functoid (car reg) (cadr reg))))
+          ((proof-reader--structure-of-head h ctx)
+           => (lambda (st) (list 'structure (car st) (cdr st))))
           (else #f))))
+
+;; the applied heads inside a definition (what depth + 1 looks at)
+(define (proof-reader--def-heads def)
+  (case (car def)
+    ((functoid) (proof-reader--heads (caddr def)))
+    ((structure)
+     (let ((law (proof-reader--structure-law (cadr def) (caddr def))))
+       (if law (proof-reader--heads law) '())))
+    (else (apply append (map (lambda (ax) (proof-reader--heads (cdr ax))) (cdr def))))))
 
 (define (proof-reader--defined-heads claim depth)
   ;; the defined heads of CLAIM to the given depth, with their definitions
@@ -1014,18 +1080,72 @@
                       (cond ((null? hs) (reverse acc))
                             ((or (memq (car hs) seen) (memq (car hs) acc)) (loop (cdr hs) acc))
                             (else (loop (cdr hs) (cons (car hs) acc))))))
-               (defs (filter cdr (map (lambda (h) (cons h (proof-reader--definition-of h))) new)))
-               (next (apply append
-                            (map (lambda (d)
-                                   (let ((def (cdr d)))
-                                     (if (eq? (car def) 'functoid)
-                                         (proof-reader--heads (caddr def))
-                                         (apply append (map (lambda (ax) (proof-reader--heads (cdr ax))) (cdr def))))))
-                                 defs))))
+               ;; the heads an accessor's owner is looked for among: this round's
+               ;; heads plus those of this round's (non-structure) definitions
+               (ctx (append new
+                            (apply append
+                                   (map (lambda (h)
+                                          (let ((d (proof-reader--definition-of h)))
+                                            (if (and d (not (eq? (car d) 'structure)))
+                                                (proof-reader--def-heads d) '())))
+                                        new))))
+               (defs (let loop ((hs new) (structs (map cadr (filter (lambda (d) (eq? (car (cdr d)) 'structure)) out))) (acc '()))
+                       (if (null? hs) (reverse acc)
+                           (let ((def (proof-reader--definition-of (car hs) ctx)))
+                             (cond ((not def) (loop (cdr hs) structs acc))
+                                   ((eq? (car def) 'structure)
+                                    (if (memq (cadr def) structs)
+                                        (loop (cdr hs) structs acc)
+                                        (loop (cdr hs) (cons (cadr def) structs) (cons (cons (cadr def) def) acc))))
+                                   (else (loop (cdr hs) structs (cons (cons (car hs) def) acc))))))))
+               (next (apply append (map (lambda (d) (proof-reader--def-heads (cdr d))) defs))))
           (loop next (- depth 1) (append new seen) (append (reverse defs) out))))))
+
+(define (proof-reader--slot-tex slot)
+  ;; one component of a declared structure, as describe-structure--slot-line says it
+  (let* ((nm (car slot)) (kind (cadr slot)) (extra (cddr slot))
+         (app (lambda () (string-append "$" (expr->tex (list nm 's)) "$"))))
+    (case kind
+      ((carrier)  (string-append (app) ", the underlying set"))
+      ((op)       (string-append (app) "$ : " (expr->tex (car extra)) " \\to " (expr->tex (cadr extra)) "$"))
+      ((constant) (string-append (app) "$ \\in " (expr->tex (car extra)) "$, a distinguished element"))
+      ((substructure) (string-append (app) ", a " (string-downcase (symbol->string (car extra))) " of the same kind"))
+      ((family)   (string-append (app) ", a family of subsets of $" (expr->tex (list (car extra) 's)) "$"))
+      ((family-fun) (string-append (app) ", a function on the family $" (expr->tex (list (car extra) 's))
+                                   "$ into $" (expr->tex (cadr extra)) "$"))
+      ((relation) (string-append (app) ", a relation on $" (expr->tex (list (car extra) 's)) "$"))
+      (else (app)))))
+
+(define (proof-reader--structure-tex name kind)
+  (let* ((sd (if (eq? kind 'shape) (lookup-structure name)
+                 (let ((dsd (lookup-definitional-structure name)))
+                   (and dsd (find-shape-structure (definitional-structure-parent dsd))))))
+         (law (proof-reader--structure-law name kind))
+         (noun-of (lambda (sym)                 ; METRIC-SPACE -> "metric space"
+                    (list->string (map (lambda (c) (if (char=? c #\-) #\space c))
+                                       (string->list (string-downcase (symbol->string sym)))))))
+         (noun (noun-of name))
+         (article (if (memv (string-ref noun 0) '(#\a #\e #\i #\o #\u)) "An " "A ")))
+    (string-append
+     (if (eq? kind 'shape)
+         (string-append article noun " $s$ is a structure with components ")
+         (string-append article noun " is a "
+                        (noun-of (definitional-structure-parent (lookup-definitional-structure name)))
+                        " (a refinement; the components are those of the parent): "))
+     (if sd (proof-tex--join (map proof-reader--slot-tex (structure-def-slots sd)) "; ") "")
+     (if law
+         (string-append ".\\par The characteristic law: " (proof-reader--statement law))
+         ".\n"))))
 
 (define (proof-reader--definition-tex d)
   (let ((h (car d)) (def (cdr d)))
+    (if (eq? (car def) 'structure)
+        (string-append
+         "\\noindent\\textbf{Definition} (\\texttt{" (proof-tex--escape-tt (symbol->string (cadr def))) "}).\\;"
+         (proof-reader--structure-tex (cadr def) (caddr def)) "\n")
+        (proof-reader--definition-tex-1 h def))))
+(define (proof-reader--definition-tex-1 h def)
+  (let ((h h) (def def))                         ; (the let the original body closed with)
     (string-append
      "\\noindent\\textbf{Definition} (\\texttt{" (proof-tex--escape-tt (symbol->string h)) "}).\\;"
      (if (eq? (car def) 'functoid)
@@ -1178,9 +1298,24 @@
                                     (let ((p (if (string? path) path (->namestring path))))
                                       (if (string=? (display-proof--basename p) base) (cons n acc) acc)))
                                   '()))))
+      ;; The file's `sp' / `qed' write the SAME proof-state globals the user's own
+      ;; proof lives in: hold them for the run and give them back, also when the
+      ;; run is escaped (the workspace budget stopped a 90 s run of
+      ;; cauchy-convex-closed's file, 2026-10-05, and left ITS proof -- 3 open
+      ;; goals -- where the user's had been).  fluid-let restores on a non-local exit.
       (fluid-let ((*vnb-loading* #t)
                   (*install-intentional-redefinitions* (append own *install-intentional-redefinitions*))
-                  (*install-duplicates* *install-duplicates*))
+                  (*install-duplicates* *install-duplicates*)
+                  (*ps* *ps*) (*proof-script* *proof-script*)
+                  (*proof-hidden-citations* *proof-hidden-citations*)
+                  (*proof-mints* *proof-mints*)
+                  (*fresh-mark-at-last-record* *fresh-mark-at-last-record*)
+                  (*witness-aliases* *witness-aliases*)
+                  (*current-goal* *current-goal*)
+                  (*sp-counter-snapshot* *sp-counter-snapshot*)
+                  (*live-trace* *live-trace*)
+                  (*vnb-undo-stack* *vnb-undo-stack*)
+                  (*dg-journal* *dg-journal*))
         (load src (extend-top-level-environment *driver-kit-env*))))
     (if (not (hash-table-ref/default *proof-live-trace* name #f))
         (error "display-proof: the file ran but left no trace for" name src))

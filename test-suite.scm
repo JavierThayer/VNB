@@ -4340,8 +4340,26 @@
            (has d1 "totally-bounded") (has d1 "null-rr-seq") (has d1 "inf-subsets") (has d1 "ball")
            (not (has d1 "card"))
            (= 1 (count d2 "card")) (has d2 "is-r-net") (has d2 "pos-rr")
+           ;; pts(s) and ball's dist(s) are accessors of METRIC-SPACE: ONE structure
+           ;; entry, components then the characteristic law (the user, 2026-10-05)
+           (= 1 (count d1 "metric-space"))
+           (string-search-forward "is a structure with components" d1 0)
            (string-search-forward "\\subsection*{Definitions}" d1 0)
            (< (string-search-forward "Definitions" d1 0) (string-search-forward "block-family" d1 0))
+           #t))))
+
+;; An UNGUARDED universal in a statement's prefix is not a supposition: alone it
+;; reads "For every s, ..." (a definition's `forall s. P(s) iff ...'), among guarded
+;; clauses "Let s be arbitrary" (the user, 2026-10-05: "Suppose s." read oddly).
+(check-true "statement: a bare universal reads 'For every s,' not 'Suppose s.'"
+  (lambda ()
+    (let ((one (proof-reader--statement '(forall s (iff (p s) (q s)))))
+          (two (proof-reader--statement '(forall s (forall t (iff (p s t) (q s t))))))
+          (mixed (proof-reader--statement '(forall n (implies (in n nn) (forall s (iff (p n s) (q n s))))))))
+      (and (string-prefix? "For every $s$, " one)
+           (not (string-search-forward "Suppose" one 0))
+           (string-prefix? "For all $s$ and $t$, " two)
+           (string-search-forward "Let $s$ be arbitrary" mixed 0)
            #t))))
 
 ;; A universal in a NESTED position is part of the CLAIM, so it must read as a

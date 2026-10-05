@@ -497,11 +497,27 @@ ready for the next one.  Forms whose head is define, set!, load or begin are
 sent as they are."
   :type 'integer :group 'vnb)
 
+(defcustom vnb-long-command-budget 1800
+  "Seconds a LONG command may run: one of `vnb-long-commands'.
+display-proof of a certified theorem runs the theorem's whole proof file (the
+user's run of cauchy-convex-closed was stopped at 90 s, 2026-10-05)."
+  :type 'integer :group 'vnb)
+
+(defcustom vnb-long-commands '("display-proof" "view-proof-reader-pdf" "proof-tex" "proof-reader")
+  "Heads of the forms that get `vnb-long-command-budget' instead of `vnb-command-budget'."
+  :type '(repeat string) :group 'vnb)
+
+(defun vnb--budget-for (expr)
+  "The budget, in seconds, for the form EXPR."
+  (if (string-match-p (concat "\\`\\s-*(\\s-*\\(" (regexp-opt vnb-long-commands) "\\)\\_>") expr)
+      vnb-long-command-budget
+    vnb-command-budget))
+
 (defun vnb--budgeted (expr)
   "EXPR wrapped in the prover's time budget, or EXPR itself when it should not be."
   (if (string-match-p "\\`\\s-*(\\s-*\\(define\\|set!\\|load\\|begin\\|cf\\|compile-file\\)\\_>" expr)
       expr
-    (format "(vnb-with-budget %d %S (lambda () %s))" vnb-command-budget
+    (format "(vnb-with-budget %d %S (lambda () %s))" (vnb--budget-for expr)
             (replace-regexp-in-string "[\n\t ]+" " " (string-trim expr)) expr)))
 
 (defun vnb--extract-error (raw)
@@ -926,7 +942,7 @@ Point is left after the inserted text."
     (let* ((vbuf   (get-buffer vnb-buffer-name))
            (vstart (and vbuf (with-current-buffer vbuf (point-max))))
            (result (condition-case err
-                       (vnb-eval-string (vnb--budgeted expr) (+ vnb-command-budget 20))
+                       (vnb-eval-string (vnb--budgeted expr) (+ (vnb--budget-for expr) 20))
                      (error
                       ;; The prover did not answer even past its budget (stuck where
                       ;; no interrupt check runs).  Offer the interrupt HERE, before the
@@ -934,7 +950,7 @@ Point is left after the inserted text."
                       (if (and (string-match-p "did not answer" (error-message-string err))
                                (not noninteractive)
                                (y-or-n-p (format "The prover has not answered in %d s.  Interrupt it? "
-                                                 (+ vnb-command-budget 20))))
+                                                 (+ (vnb--budget-for expr) 20))))
                           (progn (vnb-interrupt) "(interrupted)")
                         (format "(error: %s)" (error-message-string err))))))
            (warn   (vnb--reserved-warning-since vbuf vstart))

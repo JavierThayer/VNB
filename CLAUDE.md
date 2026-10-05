@@ -729,9 +729,19 @@ and typesets it; without pdflatex it returns the `.tex` and says so. `proof-read
 request the same day) prefixes a Definitions block: the statement's DEFINED heads (`def-predicate` / `def-constant`
 axioms from `library-definitions`, `def-functoid` bodies from `*functoid-registry*`; primitives, structure
 predicates and accessors have no entry and are passed over), once each, in order of first occurrence;
-`'with-defs 2` adds the defined heads of those definitions. The block needs only the statement, so it prints for a
-certified theorem too (`*proof-reader-with-defs*` is the fluid the reader consults). A long `iff` now splits like
-a relation in `tex--lines`, and IOTA renders with its body. The reader's rules
+`'with-defs 2` adds the defined heads of those definitions. A head `is-X` or an ACCESSOR of a declared structure X
+yields ONE entry for X (components, then the characteristic law); an accessor shared by several structures (`pts`)
+names X only when `is-X` occurs in the statement or in the definitions gathered beside it, else it is skipped
+(`proof-reader--structure-of-head`). The block needs only the statement, so it prints for a certified theorem too
+(`*proof-reader-with-defs*` is the fluid the reader consults). A long `iff` now splits like a relation in
+`tex--lines`, and IOTA renders with its body. An UNGUARDED universal in a statement's prefix reads "For every $s$,"
+(alone) or "Let $s$ be arbitrary" (among guarded clauses), never "Suppose $s$." (clause kind `bare`, 2026-10-05).
+**The file run holds and restores the proof-state globals** (`*ps*`, the script, the trace, the undo stack: a
+`fluid-let`, so an escape restores too): the user's workspace run of `cauchy-convex-closed` was STOPPED by the
+90 s command budget mid-file and left the FILE's half-done proof where his had been. vnb.el now gives
+`display-proof`, `view-proof-reader-pdf`, `proof-tex` and `proof-reader` the `vnb-long-command-budget` (1800 s;
+`vnb-long-commands`); the REPL has no budget. KNOWN: `emacs --batch -l emacs/vnb-panel-check.el` dies on HEAD
+(before and after this edit) in `vnb-graph-browse-theorem` of its harness theorem, certified in this image. The reader's rules
 of 2026-10-04 (notes-58): trivial runs as one "Clearly ..." line, substitutions named, one-line equations,
 Suppose / Hence for the di / ai inside a proof, "Claim:" for a cut; examples in `docs/readability/`.
 
