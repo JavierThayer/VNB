@@ -7,7 +7,7 @@
 Every other listing in this manual and in the browser reference is grouped by
 something: operators by class, structures by structure, tactics by task.  This
 one has the ordering nobody has to learn.  It carries the whole
-\emph{vocabulary} -- 734 names: 20 structure, 7 refinement, 11 instance, 19 view, 228 predicate, 235 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 95 tactic -- and no results: the theorems, axioms and
+\emph{vocabulary} -- 760 names: 21 structure, 7 refinement, 11 instance, 19 view, 234 predicate, 252 functoid, 32 accessor, 23 defined-fn, 57 operator, 8 primitive, 94 tactic -- and no results: the theorems, axioms and
 supports are catalogued in \texttt{THEOREMS.md}, \texttt{BY-OPERATOR.md} and
 \texttt{PROOF-DEBT.md}, and each entry here says how many of them mention it.
 
@@ -23,13 +23,13 @@ At the REPL, \texttt{(glossary 'NAME)} prints one entry and
 
 \noindent\textbf{\texttt{*}}\quad\textit{operator}\index{*@\texttt{*}}\\
 a term-forming head \\
-mentioned by 1016 result(s)
+mentioned by 1123 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{+}}\quad\textit{operator}\index{+@\texttt{+}}\\
 a term-forming head \\
-mentioned by 741 result(s)
+mentioned by 779 result(s)
 
 \smallskip
 
@@ -39,14 +39,14 @@ characterized by \texttt{cc-ms-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 cc-ms = [cc, vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))]
 \end{quote}
-also: \texttt{is-convex} \texttt{rr-ms-def} \texttt{cc-ms@dist} \texttt{is-diff-at} \texttt{nary-neg-1} \texttt{rr-abs-def} \texttt{rr-ms@dist} \texttt{rr-nvs-def} ... (493 in all) \\
-mentioned by 692 result(s)
+also: \texttt{is-convex} \texttt{rr-ms-def} \texttt{cc-ms@dist} \texttt{is-diff-at} \texttt{nary-neg-1} \texttt{rr-abs-def} \texttt{rr-ms@dist} \texttt{rr-nvs-def} ... (557 in all) \\
+mentioned by 775 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{/}}\quad\textit{operator}\index{/@\texttt{/}}\\
 a term-forming head \\
-mentioned by 32 result(s)
+mentioned by 33 result(s)
 
 \smallskip
 
@@ -57,14 +57,14 @@ characterized by \texttt{<}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x, y], x < y iff x <= y and not(x = y))
 \end{quote}
-mentioned by 633 result(s)
+mentioned by 760 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{<=}}\quad\textit{primitive}\index{<=@\texttt{<=}}\\
 reads: \$1 is at most \$2 \\
 a kernel relation \\
-mentioned by 951 result(s)
+mentioned by 1078 result(s)
 
 \smallskip
 
@@ -118,8 +118,8 @@ characterized by \texttt{rr-abs-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x in rr], (0 <= x implies abs(x) = x) and (not(0 <= x) implies abs(x) = -x))
 \end{quote}
-also: \texttt{ps-absolutely-converges-at} \texttt{rr-le-abs} \texttt{rr-abs-neg} \texttt{ps-abs-term} \texttt{rr-abs-mult} \texttt{rr-abs-zero} \texttt{rr-abs-bound} \texttt{rr-abs-cases} ... (51 in all) \\
-mentioned by 206 result(s)
+also: \texttt{ps-absolutely-converges-at} \texttt{rr-le-abs} \texttt{rr-abs-neg} \texttt{ps-abs-term} \texttt{rr-abs-mult} \texttt{rr-abs-zero} \texttt{rr-abs-bound} \texttt{rr-abs-cases} ... (52 in all) \\
+mentioned by 210 result(s)
 
 \smallskip
 
@@ -170,6 +170,21 @@ declared in \texttt{tactics-help.scm}
 
 \smallskip
 
+\noindent\textbf{\texttt{atom(sma\_)}}\quad\textit{functoid}\index{atom(sma_)@\texttt{atom(sma\_)}}\\
+reads: the atomic message \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+[0, sma\_]
+\end{quote}
+characterized by \texttt{atom-ne-cat}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, g, h], not(atom(a) = cat(g, h)))
+\end{quote}
+also: \texttt{atom-ne-enc} \texttt{atom-unfold} \texttt{atom-in-msgs} \texttt{msg-rank-atom} \texttt{atom-injective} \texttt{msg-stage-atom} \texttt{subterm-of-atom} \\
+mentioned by 15 result(s)
+
+\smallskip
+
 
 \section*{B}
 \addcontentsline{toc}{section}{B}
@@ -189,8 +204,8 @@ characterized by \texttt{ball-is-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-metric-space(s) implies forall([x, r], ball(s, x, r) in set))
 \end{quote}
-also: \texttt{ball-is-open} \texttt{ball-point-le} \texttt{ball-point-ne} \texttt{ms-agree-ball} \texttt{subspace-ball} \texttt{ball-center-in} \texttt{ball-membership} \texttt{ball-sep-unfold} ... (27 in all) \\
-mentioned by 78 result(s)
+also: \texttt{ball-is-open} \texttt{ball-point-le} \texttt{ball-point-ne} \texttt{ms-agree-ball} \texttt{subspace-ball} \texttt{ball-center-in} \texttt{ball-membership} \texttt{ball-sep-unfold} ... (29 in all) \\
+mentioned by 117 result(s)
 
 \smallskip
 
@@ -277,7 +292,7 @@ characterized by \texttt{big-union-mono}  \textit{(certified)}:
 forall([a\_, b\_], a\_ subset b\_ implies big-union(u\_, a\_, u\_) subset big-union(u\_, b\_, u\_))
 \end{quote}
 also: \texttt{power-big-union-closed} \texttt{complement-in-big-union} \\
-mentioned by 38 result(s)
+mentioned by 52 result(s)
 
 \smallskip
 
@@ -408,7 +423,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 c-metric-w(s, vnb-lambda(n, nn, (/)(1, 2 \textasciicircum{} (n + 1))))
 \end{quote}
-characterized by \texttt{c-metric-is-metric-space}  \textit{(proven)}:
+characterized by \texttt{c-metric-is-metric-space}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-c-metric-space(s) implies is-metric-space(c-metric(s)))
 \end{quote}
@@ -428,7 +443,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), iota(l, series-converges-to(vnb-lambda(k, nn, w(k) * min(1, ((dists(s))(k))(u, v))), l)))]
 \end{quote}
-characterized by \texttt{c-metric-w-is-metric-space}  \textit{(proven)}:
+characterized by \texttt{c-metric-w-is-metric-space}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-c-metric-space(s) implies forall([w], summable-weight(w) implies is-metric-space(c-metric-w(s, w))))
 \end{quote}
@@ -476,7 +491,7 @@ characterized by \texttt{card-bij}  \textit{(certified)}:
 forall([n\_ in nn, a\_, ph, et], ph in bijection(a\_, ord-segment(n\_)) and et in bijection(ord-segment(n\_), a\_) implies card(a\_) = n\_)
 \end{quote}
 also: \texttt{card-pair} \texttt{card-empty} \texttt{card-in-ord} \texttt{card-insert} \texttt{card-segment} \texttt{card-zermelo} \texttt{card-empty-le} \texttt{card-power-nn} ... (35 in all) \\
-mentioned by 240 result(s)
+mentioned by 262 result(s)
 
 \smallskip
 
@@ -488,7 +503,7 @@ characterized by \texttt{rq-carr}  \textit{(definitional)}:
 forall([r], carr(ringoid-quotient-ring(r)) == quotient(ringoid-setoid(r)))
 \end{quote}
 also: \texttt{qq-ring@carr} \texttt{zz-ring@carr} \texttt{qq-field@carr} \texttt{cips-scal-carrier} \texttt{nf-metric-carrier} \texttt{nn-add-monoid@carr} \texttt{ringoid-carr-in-set} \texttt{cc-normed-field@carr} ... (55 in all) \\
-mentioned by 1274 result(s)
+mentioned by 1282 result(s)
 
 \smallskip
 
@@ -498,8 +513,23 @@ characterized by \texttt{cartesian-set-iff}  \textit{(primitive)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], cartesian(a, b) in set iff a in set and b in set)
 \end{quote}
-also: \texttt{cartesian-nth} \texttt{card-cartesian-nn} \texttt{cartesian-pair-eq} \texttt{pair-in-cartesian} \\
-mentioned by 224 result(s)
+also: \texttt{cartesian-nth} \texttt{cartesian3-set} \texttt{card-cartesian-nn} \texttt{cartesian-pair-eq} \texttt{pair-in-cartesian} \texttt{pair-in-cartesian-parts} \\
+mentioned by 233 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{cat(smg\_, smh\_)}}\quad\textit{functoid}\index{cat(smg_, smh_)@\texttt{cat(smg\_, smh\_)}}\\
+reads: the concatenation of \$1 and \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+[1, smg\_, smh\_]
+\end{quote}
+characterized by \texttt{cat-ne-enc}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([g, h, u, k], not(cat(g, h) = enc(u, k)))
+\end{quote}
+also: \texttt{cat-unfold} \texttt{atom-ne-cat} \texttt{cat-in-msgs} \texttt{msg-rank-cat} \texttt{cat-injective} \texttt{msg-stage-cat} \texttt{subterm-of-cat} \texttt{subterm-cat-left} ... (10 in all) \\
+mentioned by 18 result(s)
 
 \smallskip
 
@@ -553,8 +583,8 @@ characterized by \texttt{cc-exp-i}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([cexz\_ in cc], cc-exp(1i * cexz\_) = cc-cos(cexz\_) + 1i * cc-sin(cexz\_))
 \end{quote}
-also: \texttt{cc-exp-add} \texttt{cc-exp-log} \texttt{cc-exp-neg} \texttt{cc-exp-conj} \texttt{cc-exp-i-pi} \texttt{cc-exp-real} \texttt{cc-exp-tail} \texttt{cc-exp-zero} ... (47 in all) \\
-mentioned by 108 result(s)
+also: \texttt{cc-exp-add} \texttt{cc-exp-log} \texttt{cc-exp-neg} \texttt{cc-exp-conj} \texttt{cc-exp-i-pi} \texttt{cc-exp-real} \texttt{cc-exp-tail} \texttt{cc-exp-zero} ... (51 in all) \\
+mentioned by 139 result(s)
 
 \smallskip
 
@@ -568,8 +598,8 @@ characterized by \texttt{cc-int-sum}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], a in rr implies b in rr implies forall([pphi\_, ppsi\_, pchi\_], pphi\_ in fun(ccint(a, b), cc) implies ppsi\_ in fun(ccint(a, b), cc) implies pchi\_ in fun(ccint(a, b), cc) implies forall([pay\_ in ccint(a, b)], pchi\_(pay\_) == pphi\_(pay\_) + ppsi\_(pay\_)) implies forall([pwf\_, paw\_, pauh\_, pbw\_], is-primitive(pwf\_, vnb-lambda(pat\_, ccint(a, b), real-part(pphi\_(pat\_))), a, b) implies is-primitive(paw\_, vnb-lambda(pat\_, ccint(a, b), imag-part(pphi\_(pat\_))), a, b) implies is-primitive(pauh\_, vnb-lambda(pat\_, ccint(a, b), real-part(ppsi\_(pat\_))), a, b) implies is-primitive(pbw\_, vnb-lambda(pat\_, ccint(a, b), imag-part(ppsi\_(pat\_))), a, b) implies cc-int(pchi\_, a, b) = cc-int(pphi\_, a, b) + cc-int(ppsi\_, a, b))))
 \end{quote}
-also: \texttt{cc-int-in-cc} \texttt{cc-int-value} \texttt{cc-int-unfold} \texttt{cc-int-reflect} \texttt{cc-int-adjacent} \texttt{cc-int-real-mul} \texttt{cc-int-abs-bound} \texttt{cc-int-congruence} ... (10 in all) \\
-mentioned by 22 result(s)
+also: \texttt{cc-int-in-cc} \texttt{cc-int-split} \texttt{cc-int-value} \texttt{cc-int-unfold} \texttt{cc-int-reflect} \texttt{cc-int-adjacent} \texttt{cc-int-real-mul} \texttt{cc-int-abs-bound} ... (16 in all) \\
+mentioned by 49 result(s)
 
 \smallskip
 
@@ -584,7 +614,7 @@ characterized by \texttt{cc-log-exp}  \textit{(certified)}:
 forall([clgz\_ in cc], -pi < imag-part(clgz\_) implies imag-part(clgz\_) < pi implies cc-log(cc-exp(clgz\_)) = clgz\_)
 \end{quote}
 also: \texttt{cc-log-mul} \texttt{cc-log-one} \texttt{cc-log-char} \texttt{cc-log-real} \texttt{cc-log-spec} \texttt{cc-log-deriv} \texttt{cc-log-polar} \texttt{cc-log-scale} ... (19 in all) \\
-mentioned by 35 result(s)
+mentioned by 37 result(s)
 
 \smallskip
 
@@ -642,7 +672,7 @@ characterized by \texttt{cc-series-converges-to}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f, l], cc-series-converges-to(f, l) iff converges-to(cc-ms, vnb-lambda(k, nn, cc-series-partial-sum(f, k)), l))
 \end{quote}
-mentioned by 3 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -657,7 +687,7 @@ characterized by \texttt{cc-series-limit-in-cc}  \textit{(certified)}:
 forall([f in fun(nn, cc)], cc-series-converges(f) implies cc-series-limit(f) in cc)
 \end{quote}
 also: \texttt{cc-series-limit-linear} \texttt{cc-series-limit-conjugate} \texttt{cc-series-limit-converges-to} \\
-mentioned by 58 result(s)
+mentioned by 60 result(s)
 
 \smallskip
 
@@ -672,7 +702,7 @@ characterized by \texttt{cc-series-partial-sum-succ}  \textit{(certified)}:
 forall([f, k in nn], cc-series-partial-sum(f, k) in cc implies f(k) in cc implies cc-series-partial-sum(f, succ(k)) == cc-series-partial-sum(f, k) + f(k))
 \end{quote}
 also: \texttt{cc-series-partial-sum-zero} \texttt{cc-series-partial-sum-in-cc} \texttt{cc-series-partial-sum-unfold} \texttt{cc-series-partial-sum-lincomb} \texttt{cc-series-partial-sum-magnitude-le} \\
-mentioned by 20 result(s)
+mentioned by 28 result(s)
 
 \smallskip
 
@@ -715,8 +745,8 @@ characterized by \texttt{ccint-creep}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, g\_], a in rr implies b in rr implies a <= b implies g\_ subset rr implies a in g\_ implies rr-upper-bound(g\_, b) implies forall([t\_ in ccint(a, b)], forsome([d\_ in rr], 0 < d\_ and (forsome([w\_ in g\_], t\_ - d\_ < w\_) implies forall([y\_], y\_ in ccint(a, b) and y\_ <= t\_ + d\_ implies y\_ in g\_)))) implies b in g\_)
 \end{quote}
-also: \texttt{ccint-parts} \texttt{clamp-in-ccint} \texttt{ccint-affine-in} \texttt{ccint-elt-in-rr} \texttt{ccint-subset-rr} \texttt{ccint-membership} \texttt{ccint-reflect-in} \texttt{ccint-coaffine-in} ... (28 in all) \\
-mentioned by 352 result(s)
+also: \texttt{ccint-parts} \texttt{clamp-in-ccint} \texttt{ccint-affine-in} \texttt{ccint-elt-in-rr} \texttt{ccint-subset-rr} \texttt{ccint-membership} \texttt{ccint-reflect-in} \texttt{ccint-coaffine-in} ... (29 in all) \\
+mentioned by 376 result(s)
 
 \smallskip
 
@@ -765,15 +795,17 @@ mentioned by 21 result(s)
 
 \smallskip
 
-\noindent\textbf{\texttt{choose}}\quad\textit{tactic}\index{choose@\texttt{choose}}\\
-\texttt{(choose ex witness [prover])} -- Choose eps such that FUBA(eps): cut the existential ex = `forsome([eps], FUBA(eps))', discharge it by exhibiting WITNESS (proving FUBA(WITNESS) by PROVER, or from the context), eliminate it, and RETURN the fresh eigenvariable with FUBA of it landed. \\
+\noindent\textbf{\texttt{choose(n, m)}}\quad\textit{functoid}\index{choose(n, m)@\texttt{choose(n, m)}}\\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+card(choose-set(n, m))
+\end{quote}
 characterized by \texttt{choose-n-0}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([n in nn], choose(n, 0) = succ(0))
 \end{quote}
 also: \texttt{choose-succ} \texttt{choose-in-nn} \texttt{choose-0-succ} \texttt{choose-card-unfold} \texttt{choose-times-factorial} \\
-mentioned by 11 result(s) \\
-declared in \texttt{tactics-help.scm}
+mentioned by 11 result(s)
 
 \smallskip
 
@@ -794,6 +826,30 @@ mentioned by 17 result(s)
 \noindent\textbf{\texttt{ci}}\quad\textit{tactic}\index{ci@\texttt{ci}}\\
 \texttt{(ci)} -- Cartesian intro: prove a CARTESIAN-product membership component-wise. \\
 declared in \texttt{tactics-help.scm}
+
+\smallskip
+
+\noindent\textbf{\texttt{circle-deriv(wnc\_, wnr\_)}}\quad\textit{functoid}\index{circle-deriv(wnc_, wnr_)@\texttt{circle-deriv(wnc\_, wnr\_)}}\\
+reads: the derivative of the circle of centre \$1 and radius \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+vnb-lambda(wnt\_, ccint(0, 2 * pi), 1i * (wnr\_ * cc-exp(1i * wnt\_)))
+\end{quote}
+mentioned by 20 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{circle-path(wnc\_, wnr\_)}}\quad\textit{functoid}\index{circle-path(wnc_, wnr_)@\texttt{circle-path(wnc\_, wnr\_)}}\\
+reads: the circle of centre \$1 and radius \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+vnb-lambda(wnt\_, ccint(0, 2 * pi), wnc\_ + wnr\_ * cc-exp(1i * wnt\_))
+\end{quote}
+characterized by \texttt{circle-path-closed}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([c in cc, r in rr], (circle-path(c, r))(2 * pi) = (circle-path(c, r))(0))
+\end{quote}
+mentioned by 28 result(s)
 
 \smallskip
 
@@ -963,7 +1019,7 @@ characterized by \texttt{complement-in-membership}  \textit{(primitive)}:
 forall([a, b, x], x in complement-in(a, b) iff x in a and not(x in b))
 \end{quote}
 also: \texttt{complement-in-set-closure} \texttt{union-complement-in} \texttt{complement-in-double} \texttt{complement-in-subset} \texttt{complement-in-big-union} \texttt{complement-in-intersection-of} \texttt{intersection-complement-in-empty} \\
-mentioned by 29 result(s)
+mentioned by 40 result(s)
 
 \smallskip
 
@@ -1057,7 +1113,7 @@ characterized by \texttt{conv3-intro}  \textit{(certified)}:
 forall([goua\_ in cc, goub\_ in cc, gouc\_ in cc, goul\_ in ccint(0, 1), goum\_ in ccint(0, 1), goun\_ in ccint(0, 1), gouz\_], (goul\_ + goum\_) + goun\_ = 1 implies gouz\_ = (goul\_ * goua\_ + goum\_ * goub\_) + goun\_ * gouc\_ implies gouz\_ in conv3(goua\_, goub\_, gouc\_))
 \end{quote}
 also: \texttt{conv3-mid-in} \texttt{bary-in-conv3} \texttt{conv3-sub-hull} \texttt{conv3-in-convex} \texttt{conv3-is-convex} \texttt{conv3-seg-trace} \texttt{conv3-member-iff} \texttt{conv3-near-vertex} ... (14 in all) \\
-mentioned by 40 result(s)
+mentioned by 46 result(s)
 
 \smallskip
 
@@ -1103,7 +1159,7 @@ characterized by \texttt{converges-to}  \textit{(definitional)}:
 forall([s, f, l], converges-to(s, f, l) iff is-metric-space(s) and f in fun(nn, pts(s)) and l in pts(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([n\_ in nn], n <= n\_ implies (dist(s))(f(n\_), l) <= eps))))
 \end{quote}
 also: \texttt{ps-converges-to-at} \texttt{series-converges-to} \texttt{cc-series-converges-to} \texttt{rr-converges-to-abs} \texttt{converges-to-transfer} \texttt{rr-const-converges-to} \texttt{subspace-converges-to} \texttt{seq-limit-converges-to} ... (9 in all) \\
-mentioned by 116 result(s)
+mentioned by 117 result(s)
 
 \smallskip
 
@@ -1134,7 +1190,7 @@ characterized by \texttt{cps-radius-in}  \textit{(certified)}:
 forall([cf], cps-radius(cf) in rr-pos-star)
 \end{quote}
 also: \texttt{cps-radius-mono} \texttt{cps-radius-root} \texttt{cps-radius-zero} \texttt{cps-radius-recip} \texttt{cps-radius-approx} \texttt{cps-radius-factor} \texttt{cps-radius-unfold} \texttt{cps-radius-derived} ... (10 in all) \\
-mentioned by 56 result(s)
+mentioned by 57 result(s)
 
 \smallskip
 
@@ -1267,7 +1323,7 @@ characterized by \texttt{nth-deriv-on-succ}  \textit{(definitional)}:
 forall([ndvk\_, ndvu\_, ndvf\_, ndvn\_ in nn], nth-deriv-on(ndvk\_, ndvu\_, ndvf\_, succ(ndvn\_)) == vnb-lambda(ndvz\_, ndvu\_, deriv-on(ndvk\_, ndvu\_, nth-deriv-on(ndvk\_, ndvu\_, ndvf\_, ndvn\_), ndvz\_)))
 \end{quote}
 also: \texttt{deriv-on-unfold} \texttt{deriv-on-of-is-diff-on} \texttt{nth-deriv-on-succ-apply} \texttt{cc-deriv-on-of-is-diff-on} \\
-mentioned by 11 result(s)
+mentioned by 15 result(s)
 
 \smallskip
 
@@ -1358,8 +1414,8 @@ characterized by \texttt{difference-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x in set, b], difference(x, b) in set)
 \end{quote}
-also: \texttt{difference-in-power} \texttt{difference-empty-left} \texttt{difference-membership} \texttt{insert-difference-cancel} \texttt{insert-difference-outside} \\
-mentioned by 57 result(s)
+also: \texttt{difference-in-power} \texttt{difference-empty-left} \texttt{difference-membership} \texttt{insert-difference-cancel} \texttt{insert-difference-outside} \texttt{holomorphic-difference-quotient} \\
+mentioned by 75 result(s)
 
 \smallskip
 
@@ -1517,8 +1573,8 @@ characterized by \texttt{einf-in}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([cpss\_], cpss\_ subset rr-pos-star implies einf(cpss\_) in rr-pos-star)
 \end{quote}
-also: \texttt{einf-lower} \texttt{einf-greatest} \\
-mentioned by 5 result(s)
+also: \texttt{einf-lower} \texttt{einf-greatest} \texttt{einf-reflection-tail} \\
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -1570,12 +1626,12 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 esup(image(vnb-lambda(n\_, nn, einf(etail(f, n\_))), nn))
 \end{quote}
-characterized by \texttt{eliminf-in-rr-pos-star}  \textit{(certified)}:
+characterized by \texttt{eliminf-le-elimsup}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([f], forall([cpsk\_ in nn], f(cpsk\_) in rr) implies forall([cpsk\_ in nn], 0 <= f(cpsk\_)) implies eliminf(f) in rr-pos-star)
+forall([a in fun(nn, rr-pos-star)], eliminf(a) <= elimsup(a))
 \end{quote}
-also: \texttt{eliminf-eventually-above} \\
-mentioned by 7 result(s)
+also: \texttt{eliminf-reflection} \texttt{eliminf-in-rr-pos-star} \texttt{eliminf-eventually-above} \\
+mentioned by 9 result(s)
 
 \smallskip
 
@@ -1585,12 +1641,12 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 einf(image(vnb-lambda(n\_, nn, esup(etail(f, n\_))), nn))
 \end{quote}
-characterized by \texttt{elimsup-eventually-le}  \textit{(certified)}:
+characterized by \texttt{elimsup-le-bound}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([f], forall([cpsk\_ in nn], f(cpsk\_) in rr) implies forall([cpsk\_ in nn], 0 <= f(cpsk\_)) implies forall([rtpr\_ in rr, rtpn\_ in nn], forall([k\_ in nn], rtpn\_ <= k\_ implies f(k\_) <= rtpr\_) implies elimsup(f) <= rtpr\_))
+forall([a in fun(nn, rr-pos-star), b in rr-pos-star], forall([n in nn], a(n) <= b) implies elimsup(a) <= b)
 \end{quote}
-also: \texttt{elimsup-in-rr-pos-star} \texttt{elimsup-eventually-below} \texttt{elimsup-frequently-above} \\
-mentioned by 20 result(s)
+also: \texttt{eliminf-le-elimsup} \texttt{elimsup-eventually-le} \texttt{elimsup-in-rr-pos-star} \texttt{elimsup-eventually-below} \texttt{elimsup-frequently-above} \\
+mentioned by 23 result(s)
 
 \smallskip
 
@@ -1643,6 +1699,21 @@ mentioned by 5 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{enc(smg\_, smk\_)}}\quad\textit{functoid}\index{enc(smg_, smk_)@\texttt{enc(smg\_, smk\_)}}\\
+reads: the encryption of \$1 under the key \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+[2, smg\_, smk\_]
+\end{quote}
+characterized by \texttt{cat-ne-enc}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([g, h, u, k], not(cat(g, h) = enc(u, k)))
+\end{quote}
+also: \texttt{enc-unfold} \texttt{atom-ne-enc} \texttt{enc-in-msgs} \texttt{subterm-enc} \texttt{msg-rank-enc} \texttt{enc-injective} \texttt{msg-stage-enc} \texttt{subterm-of-enc} ... (10 in all) \\
+mentioned by 18 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{entry(m, i, j)}}\quad\textit{functoid}\index{entry(m, i, j)@\texttt{entry(m, i, j)}}\\
 reads: the entry of \$1 at row \$2, column \$3 \\
 definition:
@@ -1678,8 +1749,8 @@ characterized by \texttt{eplus-comm}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x, y], x in rr-pos-star and y in rr-pos-star implies eplus(x, y) = eplus(y, x))
 \end{quote}
-also: \texttt{eplus-mono} \texttt{eplus-assoc} \texttt{eplus-closed} \texttt{eplus-le-left} \texttt{eplus-zero-left} \texttt{eplus-zero-right} \texttt{eplus-pos-inf-left} \texttt{eplus-real-defined} ... (9 in all) \\
-mentioned by 25 result(s)
+also: \texttt{eplus-mono} \texttt{eplus-assoc} \texttt{eplus-closed} \texttt{eplus-le-left} \texttt{esup-eplus-eq} \texttt{esup-eplus-le} \texttt{eplus-zero-left} \texttt{eplus-zero-right} ... (12 in all) \\
+mentioned by 41 result(s)
 
 \smallskip
 
@@ -1693,8 +1764,8 @@ characterized by \texttt{esum-in}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f in fun(dom(f), rr-pos-star)], esum(f) in rr-pos-star)
 \end{quote}
-also: \texttt{esum-least} \texttt{esum-upper} \texttt{esum-finite-iff-bounded} \texttt{esum-bounded-implies-finite} \texttt{esum-finite-implies-bounded} \\
-mentioned by 14 result(s)
+also: \texttt{esum-least} \texttt{esum-upper} \texttt{esum-nn-prefix-le} \texttt{esum-nn-le-termwise} \texttt{esum-nn-two-support} \texttt{esum-nn-le-of-prefixes} \texttt{esum-finite-iff-bounded} \texttt{esum-bounded-implies-finite} ... (9 in all) \\
+mentioned by 19 result(s)
 
 \smallskip
 
@@ -1708,8 +1779,8 @@ characterized by \texttt{esup-in}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], s subset rr-pos-star implies esup(s) in rr-pos-star)
 \end{quote}
-also: \texttt{esup-prop} \texttt{esup-empty} \texttt{esup-least} \texttt{esup-upper} \\
-mentioned by 13 result(s)
+also: \texttt{esup-prop} \texttt{esup-empty} \texttt{esup-least} \texttt{esup-upper} \texttt{esup-eplus-eq} \texttt{esup-eplus-le} \texttt{esup-grid-max} \texttt{esup-etimes-ge} ... (11 in all) \\
+mentioned by 29 result(s)
 
 \smallskip
 
@@ -1723,19 +1794,19 @@ characterized by \texttt{etail-subset-rr-pos-star}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f], forall([cpsk\_ in nn], f(cpsk\_) in rr) implies forall([cpsk\_ in nn], 0 <= f(cpsk\_)) implies forall([cpsn\_], etail(f, cpsn\_) subset rr-pos-star))
 \end{quote}
-mentioned by 1 result(s)
+mentioned by 2 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{etimes(x, y)}}\quad\textit{operator}\index{etimes(x, y)@\texttt{etimes(x, y)}}\\
 reads: \$1 times \$2 in the extended reals \\
 a term-forming head \\
-characterized by \texttt{etimes-pos-inf-left}  \textit{(certified)}:
+characterized by \texttt{etimes-comm}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([y in rr-pos-star], not(y = 0) implies etimes(pos-inf, y) = pos-inf)
+forall([x, y], x in rr-pos-star and y in rr-pos-star implies etimes(x, y) = etimes(y, x))
 \end{quote}
-also: \texttt{etimes-pos-inf-zero} \texttt{etimes-real-defined} \texttt{etimes-zero-pos-inf} \texttt{etimes-pos-inf-right} \\
-mentioned by 12 result(s)
+also: \texttt{etimes-closed} \texttt{esup-etimes-ge} \texttt{etimes-one-left} \texttt{etimes-mono-left} \texttt{etimes-zero-left} \texttt{etimes-assoc-real} \texttt{etimes-zero-right} \texttt{etimes-distrib-left} ... (16 in all) \\
+mentioned by 41 result(s)
 
 \smallskip
 
@@ -1835,8 +1906,8 @@ characterized by \texttt{factorial-succ}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([k in nn], factorial(succ(k)) = succ(k) * factorial(k))
 \end{quote}
-also: \texttt{factorial-zero} \texttt{factorial-mono} \texttt{factorial-in-nn} \texttt{factorial-real-pos} \texttt{rr-recip-factorial} \texttt{recip-factorial-in-rr} \texttt{choose-times-factorial} \texttt{tgd-recip-factorial-succ} \\
-mentioned by 109 result(s)
+also: \texttt{factorial-zero} \texttt{factorial-mono} \texttt{factorial-in-nn} \texttt{gamma-factorial} \texttt{factorial-real-pos} \texttt{rr-recip-factorial} \texttt{recip-factorial-in-rr} \texttt{choose-times-factorial} ... (9 in all) \\
+mentioned by 114 result(s)
 
 \smallskip
 
@@ -1974,8 +2045,8 @@ characterized by \texttt{finsum-type-ring-additive-ag}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r], is-ring(r) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(r))], finsum(ring-additive-ag(r), f, s) in carr(r))))
 \end{quote}
-also: \texttt{finsum-all-id-ring-additive-ag} \texttt{finsum-single-support-ring-additive-ag} \texttt{finsum-add} \texttt{finsum-type} \texttt{finsum-embed} \texttt{finsum-empty} \texttt{finsum-fiber} \texttt{finsum-add-ag} ... (57 in all) \\
-mentioned by 167 result(s)
+also: \texttt{finsum-all-id-ring-additive-ag} \texttt{finsum-single-support-ring-additive-ag} \texttt{finsum-add} \texttt{finsum-type} \texttt{finsum-embed} \texttt{finsum-empty} \texttt{finsum-fiber} \texttt{finsum-add-ag} ... (66 in all) \\
+mentioned by 199 result(s)
 
 \smallskip
 
@@ -2055,14 +2126,39 @@ characterized by \texttt{is-linear-functional}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x\_ in vec(m), y\_ in vec(m)], f((vadd(m))(x\_, y\_)) = f(x\_) + f(y\_)) and forall([r\_ in rr, x\_ in vec(m)], f((act(m))(r\_, x\_)) = r\_ * f(x\_)))
 \end{quote}
-also: \texttt{is-linear-functional-on} \texttt{dom-of-fun} \texttt{is-fun-def} \texttt{fun-no-junk} \texttt{fun-set-iff} \texttt{fun-apply-type} \texttt{fun-codomain-iff} \texttt{dom-fun-membership} ... (140 in all) \\
-mentioned by 1505 result(s)
+also: \texttt{is-linear-functional-on} \texttt{dom-of-fun} \texttt{is-fun-def} \texttt{fun-no-junk} \texttt{fun-set-iff} \texttt{fun-apply-type} \texttt{fun-codomain-iff} \texttt{dom-fun-membership} ... (142 in all) \\
+mentioned by 1606 result(s)
 
 \smallskip
 
 
 \section*{G}
 \addcontentsline{toc}{section}{G}
+
+\noindent\textbf{\texttt{gamma-function(gmz\_)}}\quad\textit{functoid}\index{gamma-function(gmz_)@\texttt{gamma-function(gmz\_)}}\\
+reads: Gamma(\$1) \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+improper-int(gamma-integrand(gmz\_))
+\end{quote}
+mentioned by 9 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{gamma-integrand(gmz\_)}}\quad\textit{functoid}\index{gamma-integrand(gmz_)@\texttt{gamma-integrand(gmz\_)}}\\
+reads: the Gamma integrand t |-> t\textasciicircum{}(\$1 - 1) e\textasciicircum{}(-t) \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+vnb-lambda(gmw\_, \{gmu\_ in cc: 0 < real-part(gmu\_)\}, cc-exp((gmz\_ - 1) * cc-log(gmw\_)) * cc-exp(-gmw\_))
+\end{quote}
+characterized by \texttt{gamma-integrand-locint}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([z in cc, ipr\_ in rr, ipq\_ in rr], 0 < ipr\_ implies ipr\_ < ipq\_ implies cc-int(gamma-integrand(z), ipr\_, ipq\_) in cc)
+\end{quote}
+also: \texttt{gamma-integrand-expansion} \texttt{gamma-integrand-magnitude} \texttt{gamma-integrand-quadratic} \texttt{gamma-integrand-bound-large} \texttt{gamma-integrand-bound-small} \texttt{gamma-integrand-holomorphic} \texttt{gamma-integrand-bound-interval} \\
+mentioned by 19 result(s)
+
+\smallskip
 
 \noindent\textbf{\texttt{gauge(s)}}\quad\textit{functoid}\index{gauge(s)@\texttt{gauge(s)}}\\
 definition:
@@ -2245,8 +2341,8 @@ characterized by \texttt{holomorphic-on}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([u, f], holomorphic-on(u, f) iff is-open(nf-metric-space(cc-normed-field), u) and f in fun(u, cc) and forall([a in u], forsome([l], is-diff-on(cc-normed-field, u, f, a, l))))
 \end{quote}
-also: \texttt{holomorphic-on-diff} \texttt{holomorphic-on-open} \texttt{holomorphic-on-in-fun} \texttt{holomorphic-on-iff-cc-ms} \texttt{holomorphic-on-continuous} \texttt{holomorphic-on-open-cc-ms} \\
-mentioned by 55 result(s)
+also: \texttt{holomorphic-on-diff} \texttt{holomorphic-on-open} \texttt{holomorphic-on-in-fun} \texttt{holomorphic-on-restrict} \texttt{holomorphic-on-iff-cc-ms} \texttt{holomorphic-on-continuous} \texttt{holomorphic-on-open-cc-ms} \\
+mentioned by 110 result(s)
 
 \smallskip
 
@@ -2286,7 +2382,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{homf\_ in fun(pts(a), pts(b)): is-c-continuous-arrow(a, b, homf\_)\}
 \end{quote}
-characterized by \texttt{hom-c-continuous-in-set}  \textit{(proven)}:
+characterized by \texttt{hom-c-continuous-in-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-c-metric-space(a) implies is-c-metric-space(b) implies hom-c-continuous(a, b) in set)
 \end{quote}
@@ -2487,6 +2583,15 @@ forall([a, b], is-measure-space(a) implies is-measure-space(b) implies hom-measu
 \end{quote}
 also: \texttt{hom-measure-space-pre-type} \texttt{hom-measure-space-post-type} \texttt{hom-measure-space-member-iff} \\
 mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-message-algebra(a, b)}}\quad\textit{functoid}\index{hom-message-algebra(a, b)@\texttt{hom-message-algebra(a, b)}}\\
+reads: the message algebra morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homp\_ in cartesian(fun(texts(a), texts(b)), fun(keys(a), keys(b))): is-hom-message-algebra(a, b, nth(1, homp\_), nth(2, homp\_))\}
+\end{quote}
 
 \smallskip
 
@@ -2756,8 +2861,8 @@ characterized by \texttt{nn-add-monoid@iden}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 iden(nn-add-monoid) == 0
 \end{quote}
-also: \texttt{rr-pos-star-add-monoid@iden} \texttt{fsm-iden} \texttt{rmm-iden} \texttt{raag-iden} \texttt{crmcm-iden} \texttt{cra-ag-rr-iden} \texttt{ag-as-monoid-iden} \texttt{group-identity-in} ... (13 in all) \\
-mentioned by 111 result(s)
+also: \texttt{rr-pos-star-add-monoid@iden} \texttt{fsm-iden} \texttt{rmm-iden} \texttt{raag-iden} \texttt{crmcm-iden} \texttt{cra-ag-rr-iden} \texttt{ag-as-monoid-iden} \texttt{group-identity-in} ... (14 in all) \\
+mentioned by 115 result(s)
 
 \smallskip
 
@@ -2790,11 +2895,12 @@ declared in \texttt{tactics-help.scm}
 
 \noindent\textbf{\texttt{if}}\quad\textit{operator}\index{if@\texttt{if}}\\
 a term-forming head \\
-characterized by \texttt{matunit-col-shift}  \textit{(certified)}:
+characterized by \texttt{difference-value}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, n) implies l in interval(1, n) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, matunit(a, n, k, l)), i, c) = if(c = l, entry(p, i, k), zero(a)))))
+forall([omega, u, v, x in omega], (vnb-lambda(dx\_, omega, if(u(dx\_) in rr, u(dx\_) - v(dx\_), 0)))(x) == if(u(x) in rr, u(x) - v(x), 0))
 \end{quote}
-mentioned by 94 result(s)
+also: \texttt{matunit-col-shift} \\
+mentioned by 100 result(s)
 
 \smallskip
 
@@ -2823,7 +2929,7 @@ characterized by \texttt{imag-part-def}  \textit{(definitional)}:
 forall([z], imag-part(z) == (z - conjugate(z)) * recip(2 * 1i))
 \end{quote}
 also: \texttt{imag-part-in-rr} \\
-mentioned by 128 result(s)
+mentioned by 129 result(s)
 
 \smallskip
 
@@ -2834,7 +2940,32 @@ characterized by \texttt{image-membership-iff}  \textit{(definitional)}:
 forall([phi, s, w], w in image(phi, s) iff w in set and forsome([x in s], phi(x) = w))
 \end{quote}
 also: \texttt{image-set} \texttt{compact-image} \texttt{fun-image-set} \texttt{card-seg-image} \texttt{image-restrict} \texttt{countable-image} \texttt{seg-image-insert} \texttt{seg-image-subset} ... (26 in all) \\
-mentioned by 67 result(s)
+mentioned by 83 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{improper-int(ipf\_)}}\quad\textit{functoid}\index{improper-int(ipf_)@\texttt{improper-int(ipf\_)}}\\
+reads: the improper integral of \$1 over (0, +inf) \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+iota(ipv\_, improper-int-converges-to(ipf\_, ipv\_))
+\end{quote}
+characterized by \texttt{improper-int-value}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([f], forall([ipr\_ in rr, ipq\_ in rr], 0 < ipr\_ implies ipr\_ < ipq\_ implies cc-int(f, ipr\_, ipq\_) in cc) implies forall([gml\_], improper-int-converges-to(f, gml\_) implies improper-int(f) = gml\_))
+\end{quote}
+mentioned by 2 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{improper-int-converges-to(ipf\_, ipl\_)}}\quad\textit{predicate}\index{improper-int-converges-to(ipf_, ipl_)@\texttt{improper-int-converges-to(ipf\_, ipl\_)}}\\
+reads: the improper integral of \$1 over (0, +inf) converges to \$2 \\
+defined by \texttt{improper-int-converges-to} \\
+characterized by \texttt{improper-int-converges-to}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([ipf\_, ipl\_], improper-int-converges-to(ipf\_, ipl\_) iff ipl\_ in cc and forall([ipe\_], pos-rr(ipe\_) implies forsome([ipd\_], pos-rr(ipd\_) and forsome([ipm\_ in rr], forall([ipr\_ in rr, ipq\_ in rr], 0 < ipr\_ implies ipr\_ < ipd\_ implies ipm\_ < ipq\_ implies ipr\_ < ipq\_ implies magnitude(cc-int(ipf\_, ipr\_, ipq\_) - ipl\_) <= ipe\_)))))
+\end{quote}
+mentioned by 9 result(s)
 
 \smallskip
 
@@ -2845,8 +2976,8 @@ characterized by \texttt{is-ring}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 \end{quote}
-also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1324 in all) \\
-mentioned by 5113 result(s)
+also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1430 in all) \\
+mentioned by 5500 result(s)
 
 \smallskip
 
@@ -2856,12 +2987,12 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(x\_, omega, if(x\_ in a, 1, 0))
 \end{quote}
-characterized by \texttt{integral-indicator}  \textit{(asserted)}:
+characterized by \texttt{indicator-simple}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([omega, ca, mu, a\_], is-measure(omega, ca, mu) implies a\_ in ca implies integral(omega, ca, mu, indicator(omega, a\_)) = mu(a\_))
+forall([omega, ca, a\_], is-sigma-algebra(omega, ca) implies a\_ in ca implies is-simple-fn(omega, ca, indicator(omega, a\_)))
 \end{quote}
-also: \texttt{measurable-fn-indicator} \\
-mentioned by 5 result(s)
+also: \texttt{indicator-value-in} \texttt{integral-indicator} \texttt{indicator-value-out} \texttt{measurable-fn-indicator} \texttt{simple-integral-indicator} \\
+mentioned by 12 result(s)
 
 \smallskip
 
@@ -2928,15 +3059,18 @@ declared in \texttt{tactics-help.scm}
 
 \smallskip
 
-\noindent\textbf{\texttt{integral(omega, ca, mu, f)}}\quad\textit{operator}\index{integral(omega, ca, mu, f)@\texttt{integral(omega, ca, mu, f)}}\\
+\noindent\textbf{\texttt{integral(omega, ca, mu, f)}}\quad\textit{functoid}\index{integral(omega, ca, mu, f)@\texttt{integral(omega, ca, mu, f)}}\\
 reads: the integral of \$4 over \$1 with respect to the measure \$3 \\
-a term-forming head \\
-characterized by \texttt{integral-in}  \textit{(asserted)}:
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+esup(\{iny\_ in rr-pos-star: forsome([ins\_], is-simple-fn(omega, ca, ins\_) and ptwise-le(omega, ins\_, f) and iny\_ = simple-integral(omega, mu, ins\_))\})
+\end{quote}
+characterized by \texttt{integral-in}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([omega, ca, mu, f], is-measure(omega, ca, mu) implies is-measurable-fn(omega, ca, f) implies integral(omega, ca, mu, f) in rr-pos-star)
 \end{quote}
-also: \texttt{integral-additive} \texttt{integral-monotone} \texttt{integral-indicator} \texttt{integral-homogeneous} \texttt{integral-sup-of-simple} \texttt{integral-infinite-on-null} \\
-mentioned by 15 result(s)
+also: \texttt{integral-sub} \texttt{integral-simple} \texttt{integral-unfold} \texttt{integral-additive} \texttt{integral-monotone} \texttt{integral-indicator} \texttt{integral-finite-null} \texttt{integral-homogeneous} ... (11 in all) \\
+mentioned by 25 result(s)
 
 \smallskip
 
@@ -2966,7 +3100,7 @@ characterized by \texttt{intersection-decompose}  \textit{(primitive)}:
 forall([x, as], x in intersection(restvar(as)) iff splice(and, e, as, x in e))
 \end{quote}
 also: \texttt{intersection-membership} \texttt{intersection-set-closure} \texttt{submodule-intersection} \texttt{intersection-empty-transfer} \texttt{intersection-complement-in-empty} \\
-mentioned by 49 result(s)
+mentioned by 52 result(s)
 
 \smallskip
 
@@ -3126,7 +3260,7 @@ characterized by \texttt{is-analytic-at}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([anlf\_, anlu\_, anla\_], is-analytic-at(anlf\_, anlu\_, anla\_) iff is-open(cc-ms, anlu\_) and anlf\_ in fun(anlu\_, cc) and anla\_ in anlu\_ and forsome([anlcf\_ in fun(nn, cc), anlr\_ in rr], 0 < anlr\_ and anlr\_ < cps-radius(anlcf\_) and ball(cc-ms, anla\_, anlr\_) subset anlu\_ and forall([anlz\_ in ball(cc-ms, anla\_, anlr\_)], anlf\_(anlz\_) = cc-series-limit(vnb-lambda(anlk\_, nn, anlcf\_(anlk\_) * (anlz\_ - anla\_) \textasciicircum{} anlk\_)))))
 \end{quote}
-mentioned by 4 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -3298,7 +3432,7 @@ characterized by \texttt{is-comm-monoid}  \textit{(definitional)}:
 forall([s], is-comm-monoid(s) iff length(s) = 3 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)) and is-commutative(opr(s), carr(s)))
 \end{quote}
 also: \texttt{commutative-ring-multiplicative-cm-is-comm-monoid} \texttt{commutative-ring-multiplicative-cm-is-comm-monoid-normed-field-as-commutative-ring} \texttt{rr-pos-star-is-comm-monoid} \texttt{nn-add-monoid-is-comm-monoid} \texttt{fin-subset-monoid-is-comm-monoid} \\
-mentioned by 68 result(s)
+mentioned by 78 result(s)
 
 \smallskip
 
@@ -3371,6 +3505,17 @@ mentioned by 77 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{is-connected(cns\_, cna\_)}}\quad\textit{predicate}\index{is-connected(cns_, cna_)@\texttt{is-connected(cns\_, cna\_)}}\\
+reads: \$2 is a connected subset of the metric space \$1 \\
+defined by \texttt{is-connected} \\
+characterized by \texttt{is-connected}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([cns\_, cna\_], is-connected(cns\_, cna\_) iff is-metric-space(cns\_) and cna\_ subset pts(cns\_) and forall([cnu\_], is-open(cns\_, cnu\_) implies forall([cnv\_], is-open(cns\_, cnv\_) implies cna\_ subset union(cnu\_, cnv\_) implies forall([cnx\_ in cna\_], not(cnx\_ in cnu\_ and cnx\_ in cnv\_)) implies forsome([cnx\_ in cna\_], cnx\_ in cnu\_) implies not(forsome([cnx\_ in cna\_], cnx\_ in cnv\_)))))
+\end{quote}
+mentioned by 8 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{is-cont-lin(m1, fam1, m2, fam2, tt)}}\quad\textit{predicate}\index{is-cont-lin(m1, fam1, m2, fam2, tt)@\texttt{is-cont-lin(m1, fam1, m2, fam2, tt)}}\\
 reads: \$5 is a continuous linear map from (\$1, \$2) to (\$3, \$4) \\
 defined by \texttt{is-cont-lin} \\
@@ -3414,7 +3559,7 @@ characterized by \texttt{is-continuous-at}  \textit{(definitional)}:
 forall([s, t, f, a], is-continuous-at(s, t, f, a) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and a in pts(s) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([b in pts(s)], (dist(s))(a, b) <= delta implies (dist(t))(f(a), f(b)) <= eps))))
 \end{quote}
 also: \texttt{continuous-is-continuous-at} \\
-mentioned by 243 result(s)
+mentioned by 287 result(s)
 
 \smallskip
 
@@ -3425,7 +3570,7 @@ characterized by \texttt{is-continuous-on}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f, d], is-continuous-on(f, d) iff f in fun(d, rr) and forall([icp\_ in d], is-continuous-at(subspace-ms(rr-ms, d), rr-ms, f, icp\_)))
 \end{quote}
-mentioned by 45 result(s)
+mentioned by 47 result(s)
 
 \smallskip
 
@@ -3436,8 +3581,8 @@ characterized by \texttt{is-convex}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([cvu\_], is-convex(cvu\_) iff forall([cvx\_ in cvu\_, cvy\_ in cvu\_, cvt\_ in ccint(0, 1)], cvx\_ + cvt\_ * (cvy\_ - cvx\_) in cvu\_))
 \end{quote}
-also: \texttt{conv3-is-convex} \texttt{is-convex-unfold} \\
-mentioned by 16 result(s)
+also: \texttt{conv3-is-convex} \texttt{is-convex-unfold} \texttt{cc-ball-is-convex} \\
+mentioned by 24 result(s)
 
 \smallskip
 
@@ -3517,7 +3662,7 @@ characterized by \texttt{is-diff-on}  \textit{(definitional)}:
 forall([k, u, f, a, l], is-diff-on(k, u, f, a, l) iff is-normed-field(k) and is-open(nf-metric-space(k), u) and f in fun(u, carr(k)) and a in u and l in carr(k) and forsome([phi in fun(u, carr(k))], is-continuous-at(subspace-ms(nf-metric-space(k), u), nf-metric-space(k), phi, a) and phi(a) = l and forall([x in u], (add(k))(f(x), (neg(k))(f(a))) = (mul(k))(phi(x), (add(k))(x, (neg(k))(a))))))
 \end{quote}
 also: \texttt{deriv-on-of-is-diff-on} \texttt{cc-deriv-on-of-is-diff-on} \texttt{nth-deriv-on-of-is-diff-on} \\
-mentioned by 81 result(s)
+mentioned by 94 result(s)
 
 \smallskip
 
@@ -3830,6 +3975,17 @@ characterized by \texttt{is-hom-measure-space-def}  \textit{(definitional)}:
 forall([s, t, f], is-hom-measure-space(s, t, f) iff is-measure-space(s) and is-measure-space(t) and f in fun(pts(s), pts(t)) and forall([u in sigma(t)], preimage(s, f, u) in sigma(s)) and forall([u in sigma(t)], (meas(t))(u) = (meas(s))(preimage(s, f, u))))
 \end{quote}
 mentioned by 7 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-hom-message-algebra(a, b, f1, f2)}}\quad\textit{predicate}\index{is-hom-message-algebra(a, b, f1, f2)@\texttt{is-hom-message-algebra(a, b, f1, f2)}}\\
+reads: \$3 is a homomorphism of message algebras from \$1 to \$2 \\
+a predicate \\
+characterized by \texttt{is-hom-message-algebra-def}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b, f1, f2], is-hom-message-algebra(a, b, f1, f2) iff is-message-algebra(a) and is-message-algebra(b) and f1 in fun(texts(a), texts(b)) and f2 in fun(keys(a), keys(b)) and forall([x1\_ in keys(a)], f2((kinv(a))(x1\_)) = (kinv(b))(f2(x1\_))))
+\end{quote}
+mentioned by 2 result(s)
 
 \smallskip
 
@@ -4207,7 +4363,7 @@ characterized by \texttt{is-measurable-fn}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([omega, ca, f], is-measurable-fn(omega, ca, f) iff is-sigma-algebra(omega, ca) and f in fun(omega, rr-pos-star) and forall([alpha\_ in rr], \{x\_ in omega: alpha\_ < f(x\_)\} in ca))
 \end{quote}
-mentioned by 21 result(s)
+mentioned by 47 result(s)
 
 \smallskip
 
@@ -4218,7 +4374,7 @@ characterized by \texttt{is-measurable-map}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([omega, ca, omega2, cb, f], is-measurable-map(omega, ca, omega2, cb, f) iff is-sigma-algebra(omega, ca) and is-sigma-algebra(omega2, cb) and f in fun(omega, omega2) and forall([b\_ in cb], \{x\_ in omega: f(x\_) in b\_\} in ca))
 \end{quote}
-mentioned by 8 result(s)
+mentioned by 9 result(s)
 
 \smallskip
 
@@ -4242,7 +4398,7 @@ characterized by \texttt{is-measure}  \textit{(definitional)}:
 forall([omega, ca, mu], is-measure(omega, ca, mu) iff is-sigma-algebra(omega, ca) and mu in fun(ca, rr-pos-star) and mu(empty-set) = 0 and forall([f\_ in fun(nn, ca)], forall([i\_, j\_], i\_ in nn implies j\_ in nn implies not(i\_ = j\_) implies intersection(f\_(i\_), f\_(j\_)) = empty-set) implies mu(big-union(n\_, nn, f\_(n\_))) = esum(vnb-lambda(n\_, nn, mu(f\_(n\_))))))
 \end{quote}
 also: \texttt{is-measure-space} \\
-mentioned by 28 result(s)
+mentioned by 55 result(s)
 
 \smallskip
 
@@ -4254,6 +4410,17 @@ characterized by \texttt{is-measure-space}  \textit{(definitional)}:
 forall([s], is-measure-space(s) iff length(s) = 3 and pts(s) in set and sigma(s) in power(power(pts(s))) and meas(s) in fun(sigma(s), rr-pos-star) and is-measure(pts(s), sigma(s), meas(s)))
 \end{quote}
 mentioned by 11 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-message-algebra(s)}}\quad\textit{predicate}\index{is-message-algebra(s)@\texttt{is-message-algebra(s)}}\\
+reads: a message algebra \\
+a predicate \\
+characterized by \texttt{is-message-algebra}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([s], is-message-algebra(s) iff length(s) = 4 and texts(s) in set and keys(s) in set and kinv(s) in fun(keys(s), keys(s)) and msgs(s) in set and msgs(s) = msg-set(texts(s), keys(s)) and forall([smx\_ in texts(s)], not(smx\_ in keys(s))) and forall([smy\_ in keys(s)], (kinv(s))((kinv(s))(smy\_)) = smy\_))
+\end{quote}
+mentioned by 13 result(s)
 
 \smallskip
 
@@ -4277,7 +4444,7 @@ characterized by \texttt{is-metric-space}  \textit{(definitional)}:
 forall([s], is-metric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) in fun(cartesian(pts(s), pts(s)), rr) and is-metric(dist(s), pts(s)))
 \end{quote}
 also: \texttt{cc-is-metric-space} \texttt{rr-is-metric-space} \texttt{nf-cc-is-metric-space} \texttt{nf-rr-is-metric-space} \texttt{sub-rr-is-metric-space} \texttt{product-is-metric-space} \texttt{c-metric-is-metric-space} \texttt{subspace-is-metric-space} ... (17 in all) \\
-mentioned by 287 result(s)
+mentioned by 289 result(s)
 
 \smallskip
 
@@ -4428,7 +4595,7 @@ characterized by \texttt{is-open}  \textit{(definitional)}:
 forall([s, u], is-open(s, u) iff is-metric-space(s) and u subset pts(s) and forall([y in u], forsome([r], pos-rr(r) and ball(s, y, r) subset u)))
 \end{quote}
 also: \texttt{is-open-cover} \texttt{ball-is-open} \texttt{empty-is-open} \texttt{carrier-is-open} \texttt{interior-is-open} \\
-mentioned by 85 result(s)
+mentioned by 109 result(s)
 
 \smallskip
 
@@ -4518,7 +4685,7 @@ characterized by \texttt{is-path}  \textit{(definitional)}:
 forall([pgam, a, b], is-path(pgam, a, b) iff a in rr and b in rr and a < b and pgam in fun(ccint(a, b), cc) and forall([pax\_ in ccint(a, b)], is-continuous-at(subspace-ms(rr-ms, ccint(a, b)), cc-ms, pgam, pax\_)))
 \end{quote}
 also: \texttt{is-path-in-fun} \texttt{is-road-is-path} \texttt{is-path-endpoints} \texttt{is-path-of-coords} \texttt{is-path-continuous} \\
-mentioned by 12 result(s)
+mentioned by 13 result(s)
 
 \smallskip
 
@@ -4551,7 +4718,7 @@ characterized by \texttt{is-primitive}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([rpg\_, rpf\_, rpa\_, rpb\_], is-primitive(rpg\_, rpf\_, rpa\_, rpb\_) iff rpa\_ in rr and rpb\_ in rr and rpa\_ < rpb\_ and rpg\_ in fun(ccint(rpa\_, rpb\_), rr) and rpf\_ in fun(ccint(rpa\_, rpb\_), rr) and is-continuous-on(rpg\_, ccint(rpa\_, rpb\_)) and forsome([rps\_], is-countable(rps\_) and rps\_ subset ccint(rpa\_, rpb\_) and forall([rpt\_ in ooint(rpa\_, rpb\_)], not(rpt\_ in rps\_) implies has-deriv-at(rpg\_, rpt\_, rpf\_(rpt\_)))))
 \end{quote}
-mentioned by 78 result(s)
+mentioned by 80 result(s)
 
 \smallskip
 
@@ -4697,8 +4864,8 @@ characterized by \texttt{is-road}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([pgam, dgam, a, b], is-road(pgam, dgam, a, b) iff is-path(pgam, a, b) and dgam in fun(ccint(a, b), cc) and is-regulated-on(vnb-lambda(pat\_, ccint(a, b), real-part(dgam(pat\_))), a, b) and is-regulated-on(vnb-lambda(pat\_, ccint(a, b), imag-part(dgam(pat\_))), a, b) and is-primitive(vnb-lambda(pat\_, ccint(a, b), real-part(pgam(pat\_))), vnb-lambda(pat\_, ccint(a, b), real-part(dgam(pat\_))), a, b) and is-primitive(vnb-lambda(pat\_, ccint(a, b), imag-part(pgam(pat\_))), vnb-lambda(pat\_, ccint(a, b), imag-part(dgam(pat\_))), a, b))
 \end{quote}
-also: \texttt{juxta-is-road} \texttt{is-road-is-path} \texttt{segment-is-road} \texttt{opposite-is-road} \texttt{seg-path-is-road} \texttt{tri-road-is-road} \texttt{seg-shift-is-road} \texttt{is-road-dgam-in-fun} ... (12 in all) \\
-mentioned by 59 result(s)
+also: \texttt{juxta-is-road} \texttt{circle-is-road} \texttt{is-road-is-path} \texttt{segment-is-road} \texttt{opposite-is-road} \texttt{seg-path-is-road} \texttt{tri-road-is-road} \texttt{seg-shift-is-road} ... (14 in all) \\
+mentioned by 100 result(s)
 
 \smallskip
 
@@ -4779,7 +4946,7 @@ characterized by \texttt{is-sigma-algebra}  \textit{(definitional)}:
 forall([omega, ca], is-sigma-algebra(omega, ca) iff omega in set and ca subset power(omega) and omega in ca and forall([a\_ in ca], complement-in(omega, a\_) in ca) and forall([f\_ in fun(nn, ca)], big-union(n\_, nn, f\_(n\_)) in ca))
 \end{quote}
 also: \texttt{sigma-generated-is-sigma-algebra} \\
-mentioned by 31 result(s)
+mentioned by 43 result(s)
 
 \smallskip
 
@@ -4790,7 +4957,7 @@ characterized by \texttt{is-simple-fn}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([omega, ca, f], is-simple-fn(omega, ca, f) iff is-measurable-fn(omega, ca, f) and card(image(f, omega)) in nn and forall([x\_ in omega], f(x\_) in rr))
 \end{quote}
-mentioned by 5 result(s)
+mentioned by 22 result(s)
 
 \smallskip
 
@@ -4859,6 +5026,28 @@ characterized by \texttt{is-subspace}  \textit{(definitional)}:
 forall([m, s], is-subspace(m, s) iff is-submodule(m, s))
 \end{quote}
 mentioned by 2 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-subterm(smt\_, smk\_, sma\_, smb\_)}}\quad\textit{predicate}\index{is-subterm(smt_, smk_, sma_, smb_)@\texttt{is-subterm(smt\_, smk\_, sma\_, smb\_)}}\\
+reads: \$3 is a subterm of \$4 over the texts \$1 and the keys \$2 \\
+defined by \texttt{is-subterm} \\
+characterized by \texttt{is-subterm}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([smt\_, smk\_, sma\_, smb\_], is-subterm(smt\_, smk\_, sma\_, smb\_) iff [sma\_, smb\_] in subterm-rel(smt\_, smk\_))
+\end{quote}
+mentioned by 18 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-subterm-closed(smt\_, smk\_, smr\_)}}\quad\textit{predicate}\index{is-subterm-closed(smt_, smk_, smr_)@\texttt{is-subterm-closed(smt\_, smk\_, smr\_)}}\\
+reads: \$3 is closed under the subterm clauses over the texts \$1 and the keys \$2 \\
+defined by \texttt{is-subterm-closed} \\
+characterized by \texttt{is-subterm-closed}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([smt\_, smk\_, smr\_], is-subterm-closed(smt\_, smk\_, smr\_) iff forall([sma\_ in msg-set(smt\_, smk\_)], [sma\_, sma\_] in smr\_) and forall([sma\_, smg\_, smy\_], [sma\_, smg\_] in smr\_ implies smy\_ in smk\_ implies [sma\_, enc(smg\_, smy\_)] in smr\_) and forall([sma\_, smg\_, smh\_], [sma\_, smg\_] in smr\_ implies smh\_ in msg-set(smt\_, smk\_) implies [sma\_, cat(smg\_, smh\_)] in smr\_) and forall([sma\_, smg\_, smh\_], [sma\_, smh\_] in smr\_ implies smg\_ in msg-set(smt\_, smk\_) implies [sma\_, cat(smg\_, smh\_)] in smr\_))
+\end{quote}
+mentioned by 5 result(s)
 
 \smallskip
 
@@ -4979,8 +5168,8 @@ characterized by \texttt{juxta-trace}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([p, q, a in rr, b in rr, c in rr], a <= b implies b <= c implies p in fun(ccint(a, b), cc) implies q in fun(ccint(b, c), cc) implies p(b) = q(b) implies trace(juxta(p, q, a, b, c), a, c) = union(trace(p, a, b), trace(q, b, c)))
 \end{quote}
-also: \texttt{juxta-in-fun} \texttt{juxta-unfold} \texttt{juxta-is-road} \texttt{line-int-juxta} \texttt{juxta-apply-left} \texttt{juxta-apply-right} \texttt{road-length-juxta} \texttt{juxta-trace-subset} ... (9 in all) \\
-mentioned by 23 result(s)
+also: \texttt{juxta-in-fun} \texttt{juxta-unfold} \texttt{juxta-is-road} \texttt{winding-juxta} \texttt{line-int-juxta} \texttt{juxta-apply-left} \texttt{juxta-apply-right} \texttt{road-length-juxta} ... (10 in all) \\
+mentioned by 25 result(s)
 
 \smallskip
 
@@ -5004,6 +5193,29 @@ characterized by \texttt{keep-set-membership}  \textit{(definitional)}:
 forall([phi, grd, porel, kset, alpha, y\_], y\_ in keep-set(phi, grd, porel, kset, alpha) iff y\_ in grd and y\_ = phi(alpha) and forall([z in kset], [z, y\_] in porel))
 \end{quote}
 mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{keys(s)}}\quad\textit{accessor}\index{keys(s)@\texttt{keys(s)}}\\
+reads: the keys slot of \$1 \\
+a structure slot \\
+characterized by \texttt{texts-keys-disjoint}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([alg], is-message-algebra(alg) implies forall([x in texts(alg)], not(x in keys(alg))))
+\end{quote}
+mentioned by 11 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{kinv(s)}}\quad\textit{accessor}\index{kinv(s)@\texttt{kinv(s)}}\\
+reads: the kinv slot of \$1 \\
+a structure slot \\
+characterized by \texttt{kinv-in-fun}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([alg], is-message-algebra(alg) implies kinv(alg) in fun(keys(alg), keys(alg)))
+\end{quote}
+also: \texttt{kinv-injective} \texttt{kinv-involution} \\
+mentioned by 9 result(s)
 
 \smallskip
 
@@ -5071,7 +5283,7 @@ characterized by \texttt{length-cons}  \textit{(definitional)}:
 forall([x, l], length(cons(x, l)) = succ(length(l)))
 \end{quote}
 also: \texttt{length-in-nn} \texttt{length-of-empty} \texttt{tuple-length-zero} \texttt{mat-length} \texttt{rko2-cauchy-setoid-length} \\
-mentioned by 81 result(s)
+mentioned by 83 result(s)
 
 \smallskip
 
@@ -5124,8 +5336,8 @@ characterized by \texttt{line-int-sum}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([u, f, g, pgam, dgam, a, b], u subset cc implies f in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), f, rgy\_)) implies g in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), g, rgy\_)) implies is-road(pgam, dgam, a, b) implies trace(pgam, a, b) subset u implies forall([lih\_ in fun(u, cc)], forall([liz\_ in u], lih\_(liz\_) == f(liz\_) + g(liz\_)) implies line-int(lih\_, pgam, dgam, a, b) = line-int(f, pgam, dgam, a, b) + line-int(g, pgam, dgam, a, b)))
 \end{quote}
-also: \texttt{line-int-in-cc} \texttt{line-int-juxta} \texttt{line-int-value} \texttt{line-int-concat} \texttt{line-int-of-one} \texttt{line-int-scalar} \texttt{line-int-unfold} \texttt{line-int-adjacent} ... (19 in all) \\
-mentioned by 52 result(s)
+also: \texttt{line-int-in-cc} \texttt{line-int-juxta} \texttt{line-int-value} \texttt{line-int-concat} \texttt{line-int-of-one} \texttt{line-int-scalar} \texttt{line-int-unfold} \texttt{line-int-adjacent} ... (23 in all) \\
+mentioned by 88 result(s)
 
 \smallskip
 
@@ -5136,7 +5348,7 @@ characterized by \texttt{nary-plus-2-list}  \textit{(asserted)}:
 forall([x, y], x + y == reduce(binplus, fam-of-list([x, y]), 2))
 \end{quote}
 also: \texttt{nary-plus-3-list} \texttt{nary-plus-4-list} \texttt{nary-plus-5-list} \texttt{nary-times-2-list} \texttt{nary-times-3-list} \texttt{nary-times-4-list} \texttt{nary-times-5-list} \\
-mentioned by 252 result(s)
+mentioned by 264 result(s)
 
 \smallskip
 
@@ -5161,8 +5373,8 @@ characterized by \texttt{log-mul}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x\_, y\_], x\_ in rr implies y\_ in rr implies 0 < x\_ implies 0 < y\_ implies log(x\_ * y\_) = log(x\_) + log(y\_))
 \end{quote}
-also: \texttt{log-one} \texttt{log-diff} \texttt{log-deriv} \texttt{log-in-rr} \texttt{log-r-exp} \texttt{log-recip} \texttt{r-exp-log} \texttt{log-unfold} ... (26 in all) \\
-mentioned by 47 result(s)
+also: \texttt{log-one} \texttt{log-diff} \texttt{log-deriv} \texttt{log-in-rr} \texttt{log-r-exp} \texttt{log-recip} \texttt{r-exp-log} \texttt{log-unfold} ... (33 in all) \\
+mentioned by 73 result(s)
 
 \smallskip
 
@@ -5200,8 +5412,8 @@ characterized by \texttt{magnitude-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([z], magnitude(z) == sqrt(real-part(z) * real-part(z) + imag-part(z) * imag-part(z)))
 \end{quote}
-also: \texttt{half-magnitude} \texttt{cc-magnitude-sq} \texttt{cc-magnitude-mul} \texttt{cc-magnitude-neg} \texttt{cc-magnitude-zero} \texttt{cc-magnitude-power} \texttt{cex-sign-magnitude} \texttt{cc-magnitude-closed} ... (28 in all) \\
-mentioned by 144 result(s)
+also: \texttt{cc-magnitude-i} \texttt{half-magnitude} \texttt{cc-magnitude-sq} \texttt{cc-exp-magnitude} \texttt{cc-magnitude-mul} \texttt{cc-magnitude-neg} \texttt{cc-magnitude-zero} \texttt{cc-magnitude-power} ... (34 in all) \\
+mentioned by 209 result(s)
 
 \smallskip
 
@@ -5410,6 +5622,11 @@ mentioned by 2 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{message-algebra}}\quad\textit{structure}\index{message-algebra@\texttt{message-algebra}}\\
+predicate \texttt{is-message-algebra}; slots: texts keys kinv msgs
+
+\smallskip
+
 \noindent\textbf{\texttt{metric-space}}\quad\textit{structure}\index{metric-space@\texttt{metric-space}}\\
 predicate \texttt{is-metric-space}; slots: pts dist
 
@@ -5604,6 +5821,59 @@ mentioned by 40 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{msg-rank(smt\_, smk\_, smm\_)}}\quad\textit{functoid}\index{msg-rank(smt_, smk_, smm_)@\texttt{msg-rank(smt\_, smk\_, smm\_)}}\\
+reads: the rank of the message \$3 over the texts \$1 and the keys \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+iota(smr\_, smr\_ in nn and smm\_ in msg-stage(smt\_, smk\_, smr\_) and forall([smj\_ in nn], smm\_ in msg-stage(smt\_, smk\_, smj\_) implies smr\_ <= smj\_))
+\end{quote}
+characterized by \texttt{msg-rank-cat}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([t, k, g, h], g in msg-set(t, k) implies h in msg-set(t, k) implies succ(msg-rank(t, k, g)) <= msg-rank(t, k, cat(g, h)) and succ(msg-rank(t, k, h)) <= msg-rank(t, k, cat(g, h)))
+\end{quote}
+also: \texttt{msg-rank-enc} \texttt{msg-rank-atom} \texttt{msg-rank-prop} \\
+mentioned by 6 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{msg-set(smt\_, smk\_)}}\quad\textit{functoid}\index{msg-set(smt_, smk_)@\texttt{msg-set(smt\_, smk\_)}}\\
+reads: the messages over the texts \$1 and the keys \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+big-union(smn\_, nn, msg-stage(smt\_, smk\_, smn\_))
+\end{quote}
+characterized by \texttt{msg-set-elim}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([t, k, m in msg-set(t, k)], forsome([n in nn], m in msg-stage(t, k, n)))
+\end{quote}
+also: \texttt{msg-set-intro} \texttt{msg-set-is-set} \texttt{msg-set-unfold} \\
+mentioned by 28 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{msg-stage}}\quad\textit{functoid}\index{msg-stage@\texttt{msg-stage}}\\
+reads: the stage \$3 of the messages over the texts \$1 and the keys \$2 \\
+defined by \texttt{msg-stage-zero} \texttt{msg-stage-succ} \\
+characterized by \texttt{msg-stage-succ}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([smt\_, smk\_, smn\_ in nn], msg-stage(smt\_, smk\_, succ(smn\_)) == union(msg-stage(smt\_, smk\_, smn\_), union(cartesian(pair(1, 1), msg-stage(smt\_, smk\_, smn\_), msg-stage(smt\_, smk\_, smn\_)), cartesian(pair(2, 2), msg-stage(smt\_, smk\_, smn\_), smk\_))))
+\end{quote}
+also: \texttt{msg-stage-zero} \texttt{msg-stage-add} \texttt{msg-stage-cat} \texttt{msg-stage-enc} \texttt{msg-stage-set} \texttt{msg-stage-atom} \texttt{msg-stage-keep} \texttt{msg-stage-cat-inv} ... (11 in all) \\
+mentioned by 19 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{msgs(s)}}\quad\textit{accessor}\index{msgs(s)@\texttt{msgs(s)}}\\
+reads: the msgs slot of \$1 \\
+a structure slot \\
+characterized by \texttt{message-algebra-msgs}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([alg], is-message-algebra(alg) implies texts(alg) in set and keys(alg) in set and msgs(alg) = msg-set(texts(alg), keys(alg)))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{mul(s)}}\quad\textit{accessor}\index{mul(s)@\texttt{mul(s)}}\\
 reads: the multiplication of \$1 \\
 a structure slot \\
@@ -5671,7 +5941,7 @@ characterized by \texttt{nf-metric-space-is-metric-space}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([nf], is-normed-field(nf) implies is-metric-space(nf-metric-space(nf)))
 \end{quote}
-mentioned by 137 result(s)
+mentioned by 190 result(s)
 
 \smallskip
 
@@ -5907,7 +6177,7 @@ characterized by \texttt{nth-deriv-on-succ}  \textit{(definitional)}:
 forall([ndvk\_, ndvu\_, ndvf\_, ndvn\_ in nn], nth-deriv-on(ndvk\_, ndvu\_, ndvf\_, succ(ndvn\_)) == vnb-lambda(ndvz\_, ndvu\_, deriv-on(ndvk\_, ndvu\_, nth-deriv-on(ndvk\_, ndvu\_, ndvf\_, ndvn\_), ndvz\_)))
 \end{quote}
 also: \texttt{nth-deriv-on-zero} \texttt{nth-deriv-on-in-fun} \texttt{nth-deriv-on-succ-eq} \texttt{nth-deriv-on-succ-apply} \texttt{nth-deriv-on-of-is-diff-on} \texttt{nth-deriv-on-holomorphic-ball} \\
-mentioned by 22 result(s)
+mentioned by 25 result(s)
 
 \smallskip
 
@@ -6045,7 +6315,7 @@ characterized by \texttt{nn-add-monoid@opr}  \textit{(definitional)}:
 opr(nn-add-monoid) == vnb-lambda([x\_, y\_], cartesian(nn, nn), x\_ + y\_)
 \end{quote}
 also: \texttt{rr-pos-star-add-monoid@opr} \texttt{fsm-opr} \texttt{raag-opr} \texttt{cra-ag-rr-opr} \texttt{ag-as-monoid-opr} \texttt{cc-additive-ag-opr} \texttt{opr-rearrange-laws} \texttt{rr-additive-ag-opr} ... (18 in all) \\
-mentioned by 193 result(s)
+mentioned by 197 result(s)
 
 \smallskip
 
@@ -6078,7 +6348,7 @@ characterized by \texttt{ord-segment-succ}  \textit{(primitive)}:
 forall([alpha in ord, x], x in ord-segment(succ\_ord(alpha)) iff x in ord-segment(alpha) or x = alpha)
 \end{quote}
 also: \texttt{ord-segment-zero} \texttt{ord-segment-is-set} \texttt{ord-segment-membership} \texttt{ord-segment-self} \texttt{ord-segment-trans} \texttt{ord-segment-insert} \texttt{ord-segment-nn-succ} \texttt{ord-segment-nn-subset} ... (10 in all) \\
-mentioned by 119 result(s)
+mentioned by 140 result(s)
 
 \smallskip
 
@@ -6098,8 +6368,8 @@ characterized by \texttt{pairing}  \textit{(primitive)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], a in set and b in set implies pair(a, b) in set)
 \end{quote}
-also: \texttt{pairing-membership} \\
-mentioned by 88 result(s)
+also: \texttt{pairing-membership} \texttt{pair-self-eq} \texttt{pair-self-member} \\
+mentioned by 101 result(s)
 
 \smallskip
 
@@ -6177,7 +6447,7 @@ characterized by \texttt{pos-rr}  \textit{(definitional)}:
 forall([r], pos-rr(r) iff r in rr and 0 <= r and not(0 = r))
 \end{quote}
 also: \texttt{rr-lt-of-pos-rr} \texttt{rr-pos-rr-in-rr} \texttt{rr-pos-rr-of-lt} \\
-mentioned by 188 result(s)
+mentioned by 201 result(s)
 
 \smallskip
 
@@ -6187,8 +6457,8 @@ characterized by \texttt{power-neg}  \textit{(primitive)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x, n], x in cc and n in nn and not(x = 0) implies x \textasciicircum{} (-n) = recip(x \textasciicircum{} n))
 \end{quote}
-also: \texttt{power-set} \texttt{power-succ} \texttt{power-zero} \texttt{power-typing-nonneg} \texttt{power-set-membership} \texttt{deriv-power} \texttt{cc-power-add} \texttt{cc-power-mul} ... (60 in all) \\
-mentioned by 346 result(s)
+also: \texttt{power-set} \texttt{power-succ} \texttt{power-zero} \texttt{power-typing-nonneg} \texttt{power-set-membership} \texttt{deriv-power} \texttt{cc-power-add} \texttt{cc-power-mul} ... (64 in all) \\
+mentioned by 376 result(s)
 
 \smallskip
 
@@ -6431,7 +6701,7 @@ characterized by \texttt{cc-ms@pts}  \textit{(definitional)}:
 pts(cc-ms) == cc
 \end{quote}
 also: \texttt{rr-ms@pts} \texttt{ringoid-setoid-pts} \texttt{ds-pts} \texttt{nvs-ms-pts} \texttt{r7q-rr-pts} \texttt{subspace-pts} \texttt{ms-pts-is-set} \texttt{nf-cc-agree-pts} ... (15 in all) \\
-mentioned by 455 result(s)
+mentioned by 457 result(s)
 
 \smallskip
 
@@ -6441,7 +6711,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(x\_, omega, eplus(f(x\_), g(x\_)))
 \end{quote}
-mentioned by 3 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -6462,7 +6732,7 @@ characterized by \texttt{ptwise-le}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([omega, f, g], ptwise-le(omega, f, g) iff forall([x\_ in omega], f(x\_) <= g(x\_)))
 \end{quote}
-mentioned by 8 result(s)
+mentioned by 12 result(s)
 
 \smallskip
 
@@ -6482,7 +6752,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(x\_, omega, etimes(c, f(x\_)))
 \end{quote}
-mentioned by 4 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -6492,7 +6762,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(x\_, omega, esup(image(vnb-lambda(n\_, nn, (cf(n\_))(x\_)), nn)))
 \end{quote}
-mentioned by 3 result(s)
+mentioned by 4 result(s)
 
 \smallskip
 
@@ -6506,8 +6776,8 @@ characterized by \texttt{pw-int-const}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a in rr, b in rr], a < b implies forall([pac\_ in rr, pphi\_ in fun(ccint(a, b), rr)], forall([pay\_ in ccint(a, b)], pphi\_(pay\_) == pac\_) implies pw-int(pphi\_, a, b) = pac\_ * (b - a)))
 \end{quote}
-also: \texttt{pw-int-in-rr} \texttt{pw-int-value} \texttt{pw-int-nonneg} \texttt{pw-int-reflect} \texttt{pw-int-adjacent} \texttt{pw-int-monotone} \texttt{pw-int-abs-bound} \texttt{pw-int-congruence} ... (10 in all) \\
-mentioned by 25 result(s)
+also: \texttt{pw-int-in-rr} \texttt{pw-int-value} \texttt{pw-int-nonneg} \texttt{pw-int-reflect} \texttt{pw-int-adjacent} \texttt{pw-int-monotone} \texttt{pw-int-abs-bound} \texttt{pw-int-congruence} ... (11 in all) \\
+mentioned by 27 result(s)
 
 \smallskip
 
@@ -6576,8 +6846,8 @@ characterized by \texttt{log-r-exp}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([y\_ in rr], log(r-exp(y\_)) = y\_)
 \end{quote}
-also: \texttt{r-exp-add} \texttt{r-exp-log} \texttt{r-exp-neg} \texttt{r-exp-pos} \texttt{r-exp-char} \texttt{r-exp-mono} \texttt{r-exp-prop} \texttt{r-exp-zero} ... (16 in all) \\
-mentioned by 28 result(s)
+also: \texttt{r-exp-add} \texttt{r-exp-log} \texttt{r-exp-neg} \texttt{r-exp-pos} \texttt{r-exp-char} \texttt{r-exp-mono} \texttt{r-exp-prop} \texttt{r-exp-zero} ... (17 in all) \\
+mentioned by 29 result(s)
 
 \smallskip
 
@@ -6602,7 +6872,7 @@ characterized by \texttt{real-part-def}  \textit{(definitional)}:
 forall([z], real-part(z) == (z + conjugate(z)) * recip(2))
 \end{quote}
 also: \texttt{real-part-in-rr} \texttt{cc-cos-real-part} \\
-mentioned by 118 result(s)
+mentioned by 143 result(s)
 
 \smallskip
 
@@ -6612,8 +6882,8 @@ characterized by \texttt{cc-recip-closed}  \textit{(primitive)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], a in cc and not(a = 0) implies recip(a) in cc)
 \end{quote}
-also: \texttt{qq-recip-closed} \texttt{rr-recip-closed} \texttt{cc-recip-inverse} \texttt{qq-recip-inverse} \texttt{rr-recip-inverse} \texttt{cc-recip-mul} \texttt{rr-recip-one} \texttt{rr-recip-pos} ... (36 in all) \\
-mentioned by 226 result(s)
+also: \texttt{qq-recip-closed} \texttt{rr-recip-closed} \texttt{cc-recip-inverse} \texttt{qq-recip-inverse} \texttt{rr-recip-inverse} \texttt{cc-recip-mul} \texttt{rr-recip-one} \texttt{rr-recip-pos} ... (42 in all) \\
+mentioned by 277 result(s)
 
 \smallskip
 
@@ -6741,8 +7011,8 @@ characterized by \texttt{road-restrict}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([pgam, dgam, a, b, licv\_ in rr, lidv\_ in rr], is-road(pgam, dgam, a, b) implies a <= licv\_ implies licv\_ < lidv\_ implies lidv\_ <= b implies is-road(restrict(pgam, ccint(licv\_, lidv\_)), restrict(dgam, ccint(licv\_, lidv\_)), licv\_, lidv\_))
 \end{quote}
-also: \texttt{image-restrict} \texttt{restrict-apply} \texttt{restrict-in-fun} \texttt{tri-int-restrict} \texttt{trace-restrict-subset} \texttt{restrict-continuous-at} \texttt{diff-on-shrink-restrict} \texttt{pw-antiderivative-restrict} ... (12 in all) \\
-mentioned by 63 result(s)
+also: \texttt{image-restrict} \texttt{restrict-apply} \texttt{restrict-in-fun} \texttt{tri-int-restrict} \texttt{trace-restrict-subset} \texttt{restrict-continuous-at} \texttt{diff-on-shrink-restrict} \texttt{holomorphic-on-restrict} ... (14 in all) \\
+mentioned by 81 result(s)
 
 \smallskip
 
@@ -6895,19 +7165,19 @@ characterized by \texttt{road-length-tri}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a in cc, b in cc, c in cc], road-length(tri-road-deriv(a, b, c), 0, 3) = (magnitude(b - a) + magnitude(c - b)) + magnitude(a - c))
 \end{quote}
-also: \texttt{road-length-in-rr} \texttt{road-length-juxta} \texttt{road-length-nonneg} \texttt{road-length-unfold} \texttt{road-length-segment} \texttt{road-length-affine-reparam} \\
-mentioned by 15 result(s)
+also: \texttt{road-length-in-rr} \texttt{road-length-juxta} \texttt{circle-road-length} \texttt{road-length-nonneg} \texttt{road-length-unfold} \texttt{road-length-segment} \texttt{road-length-affine-reparam} \\
+mentioned by 19 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{rpow}}\quad\textit{operator}\index{rpow@\texttt{rpow}}\\
 a term-forming head \\
-characterized by \texttt{rpow-add}  \textit{(asserted)}:
+characterized by \texttt{rpow-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([a], a in rr and 0 < a implies forall([b in qq, d in qq], rpow(a, b + d) = rpow(a, b) * rpow(a, d)))
+forall([a\_, b\_], rpow(a\_, b\_) == rpow-star(a\_, b\_))
 \end{quote}
-also: \texttt{rpow-nat} \texttt{rpow-neg} \texttt{rpow-one} \texttt{rpow-pos} \texttt{rpow-pow} \texttt{rpow-zero} \texttt{sqrt-rpow} \texttt{rpow-mul-base} ... (14 in all) \\
-mentioned by 27 result(s)
+also: \texttt{rpow-add} \texttt{rpow-nat} \texttt{rpow-neg} \texttt{rpow-one} \texttt{rpow-pos} \texttt{rpow-pow} \texttt{rpow-zero} \texttt{sqrt-rpow} ... (15 in all) \\
+mentioned by 29 result(s)
 
 \smallskip
 
@@ -6921,8 +7191,8 @@ characterized by \texttt{log-rpow-star}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x\_, s\_ in rr], 0 < x\_ implies log(rpow-star(x\_, s\_)) = s\_ * log(x\_))
 \end{quote}
-also: \texttt{rpow-star-add} \texttt{rpow-star-nat} \texttt{rpow-star-neg} \texttt{rpow-star-one} \texttt{rpow-star-pos} \texttt{rpow-star-pow} \texttt{rpow-star-zero} \texttt{rpow-star-in-rr} ... (18 in all) \\
-mentioned by 44 result(s)
+also: \texttt{rpow-star-add} \texttt{rpow-star-nat} \texttt{rpow-star-neg} \texttt{rpow-star-one} \texttt{rpow-star-pos} \texttt{rpow-star-pow} \texttt{rpow-star-zero} \texttt{rpow-star-in-rr} ... (19 in all) \\
+mentioned by 48 result(s)
 
 \smallskip
 
@@ -7058,7 +7328,7 @@ characterized by \texttt{seg-int-sum}  \textit{(certified)}:
 forall([u, f, g], u subset cc implies f in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), f, rgy\_)) implies g in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), g, rgy\_)) implies forall([gouh\_ in fun(u, cc)], forall([gouz\_ in u], gouh\_(gouz\_) == f(gouz\_) + g(gouz\_)) implies forall([goua\_ in cc, goub\_ in cc], trace(seg-path(goua\_, goub\_), 0, 1) subset u implies seg-int(gouh\_, goua\_, goub\_) = seg-int(f, goua\_, goub\_) + seg-int(g, goua\_, goub\_))))
 \end{quote}
 also: \texttt{seg-int-const} \texttt{seg-int-in-cc} \texttt{seg-int-bridge} \texttt{seg-int-unfold} \texttt{seg-int-split-at} \texttt{seg-int-abs-bound} \texttt{seg-int-congruence} \texttt{seg-int-degenerate} \\
-mentioned by 24 result(s)
+mentioned by 26 result(s)
 
 \smallskip
 
@@ -7088,8 +7358,8 @@ characterized by \texttt{ball-sep-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, c, r], ball(s, c, r) == \{y in pts(s): (dist(s))(c, y) <= r and not((dist(s))(c, y) = r)\})
 \end{quote}
-also: \texttt{closure-sep-unfold} \texttt{interior-sep-unfold} \texttt{closed-ball-sep-unfold} \\
-mentioned by 109 result(s)
+also: \texttt{closure-sep-unfold} \texttt{interior-sep-unfold} \texttt{sep-fiber-insert-same} \texttt{closed-ball-sep-unfold} \texttt{sep-fiber-insert-other} \\
+mentioned by 154 result(s)
 
 \smallskip
 
@@ -7146,7 +7416,7 @@ characterized by \texttt{series-converges}  \textit{(definitional)}:
 forall([f], series-converges(f) iff converges(rr-ms, vnb-lambda(k, nn, series-partial-sum(f, k))))
 \end{quote}
 also: \texttt{series-converges-sum} \texttt{zero-series-converges} \texttt{geometric-series-converges} \texttt{series-converges-to-converges} \\
-mentioned by 63 result(s)
+mentioned by 64 result(s)
 
 \smallskip
 
@@ -7241,6 +7511,21 @@ declared in \texttt{tactics-help.scm}
 
 \smallskip
 
+\noindent\textbf{\texttt{simple-integral(omega, mu, s)}}\quad\textit{functoid}\index{simple-integral(omega, mu, s)@\texttt{simple-integral(omega, mu, s)}}\\
+reads: the integral of the simple function \$3 over \$1 with respect to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+finsum(rr-pos-star-add-monoid, vnb-lambda(siy\_, image(s, omega), etimes(siy\_, mu(\{six\_ in omega: s(six\_) = siy\_\}))), image(s, omega))
+\end{quote}
+characterized by \texttt{simple-integral-in}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([omega, ca, mu, s], is-measure(omega, ca, mu) implies is-simple-fn(omega, ca, s) implies simple-integral(omega, mu, s) in rr-pos-star)
+\end{quote}
+also: \texttt{simple-integral-mono} \texttt{simple-integral-unfold} \texttt{simple-integral-additive} \texttt{simple-integral-indicator} \texttt{simple-integral-partition} \texttt{simple-integral-homogeneous} \\
+mentioned by 18 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{sin}}\quad\textit{operator}\index{sin@\texttt{sin}}\\
 a term-forming head
 
@@ -7256,7 +7541,7 @@ characterized by \texttt{singleton-unfold}  \textit{(certified)}:
 forall([y\_], singleton(y\_) == \{y\_\})
 \end{quote}
 also: \texttt{singleton-membership} \\
-mentioned by 36 result(s)
+mentioned by 52 result(s)
 
 \smallskip
 
@@ -7459,8 +7744,8 @@ characterized by \texttt{submodule-subset}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, s], is-submodule(m, s) implies s subset vec(m))
 \end{quote}
-also: \texttt{ringoid-ideal-subset} \texttt{inf-subsets-membership} \texttt{subset-def} \texttt{subset-set} \texttt{subset-refl} \texttt{subset-trans} \texttt{subset-mem-fwd} \texttt{ccint-subset-rr} ... (48 in all) \\
-mentioned by 370 result(s)
+also: \texttt{ringoid-ideal-subset} \texttt{inf-subsets-membership} \texttt{subset-def} \texttt{subset-set} \texttt{subset-refl} \texttt{subset-trans} \texttt{subset-mem-fwd} \texttt{ccint-subset-rr} ... (50 in all) \\
+mentioned by 466 result(s)
 
 \smallskip
 
@@ -7470,7 +7755,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [a, vnb-lambda([sbu\_, sbv\_], cartesian(a, a), (dist(s))(sbu\_, sbv\_))]
 \end{quote}
-mentioned by 131 result(s)
+mentioned by 175 result(s)
 
 \smallskip
 
@@ -7507,14 +7792,28 @@ declared in \texttt{tactics-help.scm}
 
 \smallskip
 
+\noindent\textbf{\texttt{subterm-rel(smt\_, smk\_)}}\quad\textit{functoid}\index{subterm-rel(smt_, smk_)@\texttt{subterm-rel(smt\_, smk\_)}}\\
+reads: the subterm relation over the texts \$1 and the keys \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{smp\_ in cartesian(msg-set(smt\_, smk\_), msg-set(smt\_, smk\_)): forall([smq\_ in power(cartesian(msg-set(smt\_, smk\_), msg-set(smt\_, smk\_)))], is-subterm-closed(smt\_, smk\_, smq\_) implies smp\_ in smq\_)\}
+\end{quote}
+characterized by \texttt{subterm-rel-unfold}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([t, k], subterm-rel(t, k) == \{p\_ in cartesian(msg-set(t, k), msg-set(t, k)): forall([q\_ in power(cartesian(msg-set(t, k), msg-set(t, k)))], is-subterm-closed(t, k, q\_) implies p\_ in q\_)\})
+\end{quote}
+mentioned by 4 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{succ}}\quad\textit{operator}\index{succ@\texttt{succ}}\\
 a term-forming head \\
 characterized by \texttt{sum-succ}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, f, n in nn], sum(r, f, succ(n)) == (add(r))(sum(r, f, n), f(n)))
 \end{quote}
-also: \texttt{mpow-succ} \texttt{nn-add-succ} \texttt{reduce-succ} \texttt{sum-ag-succ} \texttt{trinum-succ} \texttt{comb-kk-succ} \texttt{dc-iter-succ} \texttt{falling-succ} ... (74 in all) \\
-mentioned by 525 result(s)
+also: \texttt{mpow-succ} \texttt{nn-add-succ} \texttt{reduce-succ} \texttt{sum-ag-succ} \texttt{trinum-succ} \texttt{comb-kk-succ} \texttt{dc-iter-succ} \texttt{falling-succ} ... (78 in all) \\
+mentioned by 570 result(s)
 
 \smallskip
 
@@ -7748,6 +8047,17 @@ declared in \texttt{tactics-help.scm}
 
 \smallskip
 
+\noindent\textbf{\texttt{texts(s)}}\quad\textit{accessor}\index{texts(s)@\texttt{texts(s)}}\\
+reads: the texts slot of \$1 \\
+a structure slot \\
+characterized by \texttt{texts-keys-disjoint}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([alg], is-message-algebra(alg) implies forall([x in texts(alg)], not(x in keys(alg))))
+\end{quote}
+mentioned by 6 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{ti}}\quad\textit{tactic}\index{ti@\texttt{ti}}\\
 \texttt{(ti)} -- Tuple intro: prove a tuple/LIST membership component-wise. \\
 declared in \texttt{tactics-help.scm}
@@ -7781,8 +8091,8 @@ characterized by \texttt{juxta-trace}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([p, q, a in rr, b in rr, c in rr], a <= b implies b <= c implies p in fun(ccint(a, b), cc) implies q in fun(ccint(b, c), cc) implies p(b) = q(b) implies trace(juxta(p, q, a, b, c), a, c) = union(trace(p, a, b), trace(q, b, c)))
 \end{quote}
-also: \texttt{trace-is-set} \texttt{trace-unfold} \texttt{seg-trace-elim} \texttt{trace-opposite} \texttt{trace-value-in} \texttt{tri-road-trace} \texttt{conv3-seg-trace} \texttt{seg-shift-trace} ... (19 in all) \\
-mentioned by 87 result(s)
+also: \texttt{trace-is-set} \texttt{trace-unfold} \texttt{seg-trace-elim} \texttt{trace-opposite} \texttt{trace-value-in} \texttt{tri-road-trace} \texttt{conv3-seg-trace} \texttt{seg-shift-trace} ... (23 in all) \\
+mentioned by 145 result(s)
 
 \smallskip
 
@@ -7812,7 +8122,7 @@ characterized by \texttt{tri-int-fan}  \textit{(certified)}:
 forall([u, f], u subset cc implies f in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), f, rgy\_)) implies forall([goxa\_ in cc, goxb\_ in cc, goxc\_ in cc], conv3(goxa\_, goxb\_, goxc\_) subset u implies forall([goxx\_ in conv3(goxa\_, goxb\_, goxc\_)], tri-int(f, goxa\_, goxb\_, goxc\_) = (tri-int(f, goxa\_, goxb\_, goxx\_) + tri-int(f, goxb\_, goxc\_, goxx\_)) + tri-int(f, goxc\_, goxa\_, goxx\_))))
 \end{quote}
 also: \texttt{tri-int-sum} \texttt{tri-int-in-cc} \texttt{tri-int-unfold} \texttt{tri-int-restrict} \texttt{tri-int-abs-bound} \texttt{tri-int-collinear} \texttt{tri-int-affine-zero} \texttt{tri-int-is-line-int} ... (12 in all) \\
-mentioned by 30 result(s)
+mentioned by 36 result(s)
 
 \smallskip
 
@@ -7918,7 +8228,7 @@ characterized by \texttt{union-decompose}  \textit{(primitive)}:
 forall([x, as], x in union(restvar(as)) iff splice(or, e, as, x in e))
 \end{quote}
 also: \texttt{union-membership} \texttt{union-set-closure} \texttt{union-comm} \texttt{union-assoc} \texttt{card-union-nn} \texttt{card-union-bound} \texttt{union-empty-left} \texttt{countable-union-2} ... (27 in all) \\
-mentioned by 119 result(s)
+mentioned by 140 result(s)
 
 \smallskip
 
@@ -7977,7 +8287,7 @@ declared in \texttt{tactics-help.scm}
 
 \noindent\textbf{\texttt{vnb-lambda}}\quad\textit{operator}\index{vnb-lambda@\texttt{vnb-lambda}}\\
 a term-forming head \\
-mentioned by 1005 result(s)
+mentioned by 1082 result(s)
 
 \smallskip
 
@@ -8024,6 +8334,21 @@ mentioned by 76 result(s)
 \noindent\textbf{\texttt{wbc}}\quad\textit{tactic}\index{wbc@\texttt{wbc}}\\
 \texttt{(wbc ['name])} -- Witness-shape backchain: on an `exists v. ...' goal, cite a PSS lemma that MANUFACTURES a witness of that shape, so you can finish with inst+/grind/ew. \\
 declared in \texttt{tactics-help.scm}
+
+\smallskip
+
+\noindent\textbf{\texttt{winding(wnp\_, wnd\_, wna\_, wnb\_, wnz\_)}}\quad\textit{functoid}\index{winding(wnp_, wnd_, wna_, wnb_, wnz_)@\texttt{winding(wnp\_, wnd\_, wna\_, wnb\_, wnz\_)}}\\
+reads: the winding number about \$5 of the road \$1 with derivative \$2 on [\$3, \$4] \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+recip((2 * pi) * 1i) * line-int(vnb-lambda(wnw\_, difference(cc, singleton(wnz\_)), recip(wnw\_ - wnz\_)), wnp\_, wnd\_, wna\_, wnb\_)
+\end{quote}
+characterized by \texttt{winding-in-cc}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([pgam, dgam, a, b], is-road(pgam, dgam, a, b) implies forall([wnz\_ in cc], not(wnz\_ in trace(pgam, a, b)) implies winding(pgam, dgam, a, b, wnz\_) in cc))
+\end{quote}
+also: \texttt{winding-juxta} \texttt{winding-opposite} \texttt{winding-circle-center} \texttt{winding-circle-inside} \texttt{winding-disc-constant} \texttt{winding-number-integer} \texttt{winding-zero-unbounded} \texttt{winding-locally-constant} ... (10 in all) \\
+mentioned by 19 result(s)
 
 \smallskip
 

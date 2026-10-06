@@ -35,6 +35,31 @@ The `(arith)` tactic closes any ground numeric goal.
   for ring identities; symbols not numerically reducible are treated as
   generators.  `structure-library/ring-simplify.scm`.
 
+**What `+` is, and what the axioms say about it.** `+`, `*`, `-`, `recip`,
+`abs`, `conjugate`, `succ` are *primitive operator symbols* (the operator census
+files them under "syntax: the head denotes nothing"): `(+ a b)` is a term, `+` alone is not, and `+` is
+neither a function (an element of some `FUN(A, B)`) nor a functoid.  The theory
+states *closure* -- `a in CC and b in CC => a + b in CC` (`cc-add-closed`, and
+one such axiom per class) -- and the algebraic identities, each guarded by the
+membership of its arguments.  It states no domain, no converse of closure, and
+nothing about `a + b` when an argument lies outside every number system: for
+two such objects the term is *underdetermined* (the theory does not say whether
+it denotes).  This is invisible inside a proof, because every mechanism that
+concludes anything from a sum types the summands first: the definedness
+certificate behind `forall-elim` and `rfl` certifies `a + b` only when both
+arguments are typed in a number class or are numerals; `crs` refuses an identity
+whose source generators are not typed; `ineq` reads an atom only from a
+standalone `t in RR`; the identities are guarded.  It is visible in a
+*statement* that applies `+` to members of a class not placed inside a number
+system -- state `u subset CC`, or type the parameters.  The function typing was
+tried: fourteen axioms `binplus in FUN(CARTESIAN(ZZ, ZZ), ZZ)`, ... stood until
+2026-08-29 and proved `NN = ZZ = QQ = RR = CC`, hence FALSITY, because membership
+in `FUN(A, B)` pins the domain exactly and one symbol cannot have five domains
+(`structure-library/numeric-instances.scm`, header).  Where addition must be an
+object it is `binplus` (`binplus(x, y) == x + y`) or a structure's `ADD` slot,
+a `VNB-LAMBDA` over that instance's carrier.  Manual: *The arithmetic symbols:
+what they are, and what the axioms say* (chapter *Mathematical content*).
+
 ## 2. Sets, classes, finiteness
 
 - `SET` — class of sets (no proper classes). Kernel.

@@ -213,6 +213,7 @@ The inner binding shadows the outer; \texttt{fresh-var} in
 Such formulas are valid but confusing; users should avoid them.
 
 \subsection{Equality and quasi-equality}
+\label{sec:equality}
 
 Terms may be \emph{undefined} (e.g.\ an application \texttt{f(x)} when
 \texttt{f} is not a function applicable to \texttt{x}).  The system
@@ -259,6 +260,18 @@ both are undefined.  Key properties:
 Undefinedness propagates through all operations: if \texttt{george(s)}
 is undefined then \texttt{george(s) + 1} is also undefined,
 and \texttt{george(s) + 1 = 2} is false.
+
+The converse direction does not hold for the arithmetic symbols.
+\texttt{+}, \texttt{*}, \texttt{-}, \texttt{recip}, \texttt{abs},
+\texttt{conjugate}, \texttt{succ} are primitive operator symbols with
+\emph{closure} axioms only ($a, b \in \mathtt{cc} \Rightarrow a + b \in
+\mathtt{cc}$) and no domain: from the definedness of $a + b$ nothing follows
+about $a$ or $b$, and for two objects outside every number system the term
+$a + b$ is simply underdetermined --- not undefined, not defined, unspecified.
+Every proof mechanism types the arguments before it concludes anything about
+the sum, so this is invisible inside a proof; it is visible in a statement
+that applies \texttt{+} to members of an unconstrained class.  The full
+account is Section~\ref{sec:arith-symbols}.
 
 Variables and class constants (\texttt{ord}, \texttt{rr},
 \texttt{empty-set}, \ldots) are always defined.  The application

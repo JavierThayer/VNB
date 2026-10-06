@@ -117,6 +117,185 @@ cannot begin a token), so no formula mentioning them could be retyped
 from its own printed form.  \texttt{succ\_ord} keeps its subscript: it
 begins with a letter and reads back.
 
+\subsection{The arithmetic symbols: what they are, and what the axioms say}
+\label{sec:arith-symbols}
+
+This subsection states, in full, the logical status of \texttt{+},
+\texttt{*}, unary \texttt{-}, \texttt{recip}, \texttt{abs},
+\texttt{conjugate} and \texttt{succ}.  The point is small but it is easy to
+misread, and a reader who assumes that \texttt{+} is ``the function
+$\mathbb{C} \times \mathbb{C} \to \mathbb{C}$'' will be surprised by one
+consequence below.
+
+\paragraph{What kind of thing \texttt{+} is.}
+\texttt{+} is a \emph{primitive operator symbol} of the signature.  The
+operator census (\texttt{reference/OPERATORS.md}) files such a head under
+``syntax: the head denotes nothing'': it forms terms and denotes nothing itself.  It is
+registered in the constant-head registry
+(Section~\ref{sec:constant-registry}) with kind \texttt{operator} by
+\texttt{wff.scm}; it is applied syntactically, \texttt{(+ a b)}; it is never
+substituted for; and it is not an object of the theory.  In particular it is
+\emph{not} a function in the sense of Section~\ref{sec:equality} --- not an
+element of any \texttt{fun($A$, $B$)}, not a set of ordered pairs, not built
+by \texttt{vnb-lambda}, not typed by \texttt{lam-t}, not reduced by
+\texttt{lam-b} --- and it is \emph{not} a functoid (Section~\ref{sec:def-functoid}):
+no \texttt{def-functoid} or \texttt{lambdoid} introduces it and \texttt{beta} does
+nothing to it.  \texttt{+} standing alone is not a term; \texttt{+ in set} is
+not a formula anyone can establish or refute.  The same holds of every symbol
+in the list above.
+
+\paragraph{Arity.}
+The parser reads a chain \texttt{a + b + c} as the \emph{flat} node
+\texttt{(+ a b c)} (\texttt{parser.scm}, \texttt{p-parse-add}), while a
+parenthesised right operand \texttt{a + (b + c)} keeps its nesting; the same
+for \texttt{*}.  The supports \texttt{nary-plus-3}, \texttt{nary-plus-4},
+\texttt{nary-plus-5} and their \texttt{nary-times} siblings
+(\texttt{structure-library/numeric-instances.scm}) read the flat node as the
+left-nested binary sum.  They are deliberately asserted: they fix a
+\emph{reading} of the parser's node and carry no mathematical content.  So
+\texttt{+} is $n$-ary in the syntax and binary in the axioms, and nothing is
+lost in saying ``binary'' from here on.
+
+\paragraph{What the axioms say about it --- and what they do not.}
+For each number class $C$ among \texttt{nn}, \texttt{zz}, \texttt{qq},
+\texttt{rr}, \texttt{cc} the base (\texttt{number-systems.scm}) installs the
+\emph{closure} axiom
+\[
+  \forall a\,\forall b.\; (a \in C \land b \in C) \Rightarrow a + b \in C
+  \qquad (\texttt{nn-add-closed}, \ldots, \texttt{cc-add-closed})
+\]
+and the algebraic identities of $C$ (commutativity, associativity, units,
+inverses where they exist, distributivity), \emph{each guarded} by the
+membership of its arguments in $C$.  That is the whole of what the theory
+says about \texttt{+}.  It does \emph{not} say any of the following:
+\begin{enumerate}
+\item a domain: there is no axiom
+  \texttt{+ in fun(cartesian(cc, cc), cc)} or anything of that shape;
+\item the converse of closure: neither
+  $a + b \in \mathtt{cc} \Rightarrow a \in \mathtt{cc} \land b \in \mathtt{cc}$
+  nor $(a + b = a + b) \Rightarrow a \in \mathtt{cc}$;
+\item that $a + b$ is undefined when an argument lies outside \texttt{cc}.
+\end{enumerate}
+
+\paragraph{The consequence, stated plainly.}
+For two objects $a$ and $b$ about which the context knows nothing --- two
+sets, two ordinals, a metric space and a matrix --- the term $a + b$ is
+\emph{underdetermined}: the theory does not say whether it denotes, and if it
+denotes it does not say what.  Underdetermined is not the same as undefined.
+Undefinedness propagates (Section~\ref{sec:equality}): if \texttt{george(s)}
+is undefined then \texttt{george(s) + 1} is undefined.  But definedness does
+not propagate \emph{backwards} to a typing: from $a + b = a + b$ nothing
+follows about $a$.  This is the ordinary situation of a function symbol in a
+logic of partial terms.  The symbol carries no domain; its domain is whatever
+the axioms let one derive; and here they let one derive membership of the
+sum \emph{only} from membership of the summands.
+
+\paragraph{The intended reading, and the others.}
+The intended model takes \texttt{+} to be addition on $\mathbb{C}$, with its
+restrictions to $\mathbb{R}, \mathbb{Q}, \mathbb{Z}, \mathbb{N}$.  Every
+theorem of the system holds in that model, because (Chapter~\ref{ch:intro})
+a theorem holds under \emph{every} reading of the primitives that satisfies
+their axioms.  A reading in which \texttt{+} is total on all objects, and a
+reading in which it is defined on exactly $\mathbb{C} \times \mathbb{C}$,
+both satisfy the axioms; nothing provable distinguishes them, exactly as
+nothing provable distinguishes Dedekind cuts from Cauchy classes.
+
+\paragraph{Why it is harmless in a proof.}
+Every mechanism that draws a conclusion from a term headed by \texttt{+}
+demands the arguments typed first.
+\begin{itemize}
+\item The \emph{definedness certificate} consulted by \texttt{forall-elim}
+  and \texttt{rfl} (\texttt{primitive-inferences.scm}, the heads in
+  \texttt{*pi-arith-total-heads*}: \texttt{+ - * min max abs succ \^{}})
+  certifies $a + b$ only when \emph{every} argument is a ground numeral or is
+  typed in \texttt{nn}, \texttt{zz}, \texttt{qq}, \texttt{rr} or \texttt{cc}
+  (or under \texttt{pos-rr}) by an assumption in the context
+  (\texttt{pi--number-typed?}).  Instantiating a universal at $a + b$ with
+  $a$, $b$ untyped therefore posts $a + b = a + b$ as an open obligation, and
+  \texttt{rfl} refuses to close it (``not certified DEFINED'').
+\item \texttt{crs} (\texttt{structure-library/comm-ring-simplify.scm},
+  \texttt{ring-vars-ok?} / \texttt{cring-vars-ok?}) declines an identity
+  unless every \emph{source} generator --- including those that cancel in the
+  normal form --- is a variable of the typed universal prefix or is typed in
+  the number domain, respectively in \texttt{carr($R$)}, by the context.
+\item \texttt{ineq} certifies an atom only from a standalone assumption
+  \texttt{$t$ in rr}; \texttt{arith} evaluates ground numerals only.
+\item The algebraic laws are guarded, so a \texttt{fact} or macete use of one
+  carries the typings as antecedents or side conditions.
+\end{itemize}
+Hence no derivation in the library has drawn a conclusion about $a + b$
+without first establishing $a \in C$ and $b \in C$.  The underdetermination
+is unobservable from inside a proof; it is visible only in a
+\emph{statement}, see the last paragraph.
+
+\paragraph{Why this design, and not a function.}
+\begin{enumerate}
+\item One symbol serves five systems under the inclusion chain, so no
+  compatibility axioms between adjacent systems are needed (above).  As a
+  function on $\mathbb{C} \times \mathbb{C}$ the five closure facts would
+  still be required --- that $n + m \in \mathtt{nn}$ for $n, m \in \mathtt{nn}$
+  does not follow from a codomain of $\mathbb{C}$ --- and the lower systems
+  would have to be its restrictions.
+\item Numerals are literals of the signature, and ground arithmetic is
+  evaluated by Scheme on exact rationals (\texttt{arith-eval-term}):
+  \texttt{2 + 3 = 5} needs no proof that an application is defined.
+\item The oracles \texttt{crs}, \texttt{rs}, \texttt{ineq}, \texttt{sos},
+  \texttt{arith} and the macetes \texttt{binary-minus-def},
+  \texttt{binary-divide-def} all operate on the syntactic tree
+  \texttt{(+ a b)}.  An application form would have to be unfolded before
+  any of them could see it.
+\item \emph{The function typing was tried and was unsound.}  Until
+  2026-08-29 \texttt{numeric-instances.scm} carried fourteen axioms of the
+  form \texttt{binplus in fun(cartesian(zz, zz), zz)}, one per operation and
+  domain, described in their comment as closure facts.  They were not.
+  Membership in \texttt{fun($A$, $B$)} pins the domain \emph{exactly}
+  (\texttt{dom-of-fun} draws the equation out), so one object asserted into
+  function classes over \texttt{zz} and over \texttt{rr} proved
+  $\mathtt{zz} = \mathtt{rr}$; with all fourteen, $\mathtt{nn} = \mathtt{zz} =
+  \mathtt{qq} = \mathtt{rr} = \mathtt{cc}$, and with \texttt{cc-i-squared},
+  $0 \le i \cdot i = -1$: FALSITY with zero open leaves.  No proof ever took
+  the route, but the axiom set had no model.  The fourteen were deleted and
+  nothing replaced them, because the typing conjunct they existed to
+  discharge is proved by \texttt{lam-t} from the closure axiom and sethood.
+  A single symbol shared by five domains \emph{cannot} be a member of a
+  \texttt{fun} class; a symbol with closure axioms can.
+\end{enumerate}
+The cost of changing the design would be the whole tree --- every statement
+containing a sum, the parser and printer, the oracles, the certificate
+clause, the macete surface --- and the one fact gained, ``$a + b$ defined
+implies $a, b \in \mathtt{cc}$'', has never been needed by a proof.
+
+\paragraph{Where the function form lives.}
+When addition must be \emph{named as an object} --- as the \texttt{add} slot
+of a ring instance, as something to quantify over, as a function to apply
+through \texttt{app-graph} --- the object is \texttt{binplus}
+(\texttt{structure-library/numeric-instances.scm}), tied to the syntax by the
+unconditional \texttt{binplus(x, y) == x + y} (\texttt{binplus-apply}); and
+inside a structure the slot holds a tupled \texttt{vnb-lambda} over the
+instance's own carrier, so \texttt{add(cc-normed-field)} \emph{is} an element
+of \texttt{fun(cartesian(cc, cc), cc)}, by the structure typing, with a
+domain of exactly $\mathbb{C} \times \mathbb{C}$.  The two surfaces meet in
+theorems such as \texttt{cc-additive-ag-opr} (\texttt{theorem-library/cc-series.scm}),
+and \texttt{crs} reaches \texttt{add($R$)}, \texttt{mul($R$)}, \texttt{neg($R$)}
+once \texttt{is-commutative-ring($R$)} is in the context.
+
+\paragraph{The rule for authors of statements.}
+The one place the underdetermination shows is a \emph{statement} that applies
+\texttt{+} to the members of a class it has not placed inside a number system.
+\texttt{forall([x in u, y in u], x + y in u)} with \texttt{u} unconstrained
+says what the author means only for a \texttt{u} that lies in \texttt{cc}; for
+any other \texttt{u} its truth value is underdetermined, and a definition
+built on it is then a definition of something nobody intends.  The library
+met exactly this case: the convexity predicate of the plane was first written
+with the combination clause alone, and no theorem could read \texttt{u subset
+cc} out of it (every theorem that needed the inclusion carried it beside the
+predicate, from \texttt{holomorphic-on} or \texttt{is-open}).  Since
+2026-10-05 it is \texttt{is-convex-cc(u)}, with the conjunct \texttt{u subset
+cc} first and the name saying the ambient plane.  State the class inside the
+number system --- a conjunct or antecedent \texttt{u subset cc} --- or type
+the parameters in the statement itself, and the problem does not arise.  The
+same applies to every symbol of the list at the head of this subsection.
+
 \subsection{Axioms installed}
 
 Each number system comes with: a sethood axiom, inclusion from the

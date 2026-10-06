@@ -178,6 +178,17 @@ directory, which does not make them any less trusted.
 | `ineq` | `ineq` | `structure-library/ineq-oracle.scm` — the `RR` order calculus |
 | `sos` | `sos` | `structure-library/sos-oracle.scm` — sum-of-squares nonnegativity |
 
+Each oracle that reasons about `+`, `*` and `-` reads them as the operations of a number system
+or of a ring, and each therefore *gates on typing* before it records anything: `comm-ring-simplify`
+and `ring-simplify` refuse an identity unless every source generator (including those that cancel)
+is a variable of the typed universal prefix or is typed in the domain by the context
+(`ring-vars-ok?`, `cring-vars-ok?`); `ineq` certifies an atom only from a standalone `t in RR`;
+`arith` evaluates ground numerals only. The gates are not decoration. `+` is a primitive operator
+symbol with closure axioms and no domain, so for arguments outside every number system the theory
+says nothing about `a + b`, and an oracle that closed `a + b = b + a` for untyped `a`, `b` would
+be asserting something the axioms do not contain. The manual's section *The arithmetic symbols:
+what they are, and what the axioms say* has the full account.
+
 So the statement of the trusted base, refined:
 
 > **trusted base = the `primitive` axioms in THEOREMS.md + every rule recorded

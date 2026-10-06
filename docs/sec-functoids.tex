@@ -41,6 +41,21 @@ object or is undefined.  A functoid \emph{name standing alone} is not a
 term of the object language.  The sentence ``for every functoid $F$'' is
 metalanguage.
 
+The arithmetic symbols \texttt{+}, \texttt{*}, \texttt{-}, \texttt{recip},
+\texttt{abs}, \texttt{conjugate}, \texttt{succ} are none of the three.  They
+are \emph{primitive operator symbols} (filed by the operator census under
+``syntax: the head denotes nothing''): \texttt{(+ a b)} is a term, \texttt{+} alone is not, and the theory
+characterises the \emph{applications} of the symbol by closure axioms and
+guarded identities while saying nothing about the symbol --- in particular
+nothing about its domain, so a sum of two objects outside every number system
+is an underdetermined term.  A functoid has a signature and a rule; a
+function is a set; \texttt{+} has neither.  When addition has to be named as
+an object it is \texttt{binplus}, with \texttt{binplus(x, y) == x + y}, or the
+\texttt{add} slot of a structure instance, which is a \texttt{vnb-lambda} over
+that instance's carrier and hence a function with a domain.
+Section~\ref{sec:arith-symbols} has the full account, including why the
+function typing of \texttt{binplus} was once installed and proved FALSITY.
+
 \subsubsection{What an unguarded quantifier reaches}
 
 An unrestricted binding \texttt{forall([x], \ldots)} ranges over all
