@@ -35,7 +35,7 @@ Every declared structure `X` is a category: its objects are the models of `IS-X`
 | `ringoid` | f is a ringoid homomorphism from a to b | declared by `declare-hom!` | `hom-ringoid(a, b)` | `hom-ringoid-id` -- proven | `hom-ringoid-compose` -- proven | `hom-ringoid-in-set` -- proven |
 | `semigroup` | f is a homomorphism from a to b | generated from the slot list | `hom-semigroup(a, b)` | `hom-semigroup-id` -- proven | `hom-semigroup-compose` -- proven | `hom-semigroup-in-set` -- proven |
 | `setoid` | f is a setoid morphism from a to b | generated from the slot list | `hom-setoid(a, b)` | `hom-setoid-id` -- proven | `hom-setoid-compose` -- proven | `hom-setoid-in-set` -- proven |
-| `strand-space` | f1 is a morphism of strand spaces from a to b | generated from the slot list | `hom-strand-space(a, b)` | `hom-strand-space-id` -- not installed | `hom-strand-space-compose` -- not installed | `hom-strand-space-in-set` -- not installed |
+| `strand-space` | f1 is a morphism of strand spaces from a to b | generated from the slot list | none (more than one carrier) | `hom-strand-space-id` -- not installed | `hom-strand-space-compose` -- not installed | `hom-strand-space-in-set` -- not installed |
 | `top-space` | f is continuous from a to b | generated from the slot list | `hom-top-space(a, b)` | `hom-top-space-id` -- proven | `hom-top-space-compose` -- proven | `hom-top-space-in-set` -- proven |
 | `vector-space` | f is a homomorphism from a to b | refinement of `module`: its parent's arrows | `hom-vector-space(a, b)` | `hom-vector-space-id` -- proven | `hom-vector-space-compose` -- proven | `hom-vector-space-in-set` -- proven |
 

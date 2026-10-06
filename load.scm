@@ -3384,12 +3384,12 @@
     "theorem-library/rpow-defined"       ; RPOW == RPOW-STAR, the fifteen former supports proven (2026-10-03)
     "theorem-library/measure-laws"       ; measure chapter 1: additivity, monotonicity, subadditivity, continuity, push-forward (M-1, 2026-10-03)
     "theorem-library/integral-laws"      ; etimes algebra, finite sums in a commutative monoid, the simple integral and its laws, the six integral laws proven (M-2, 2026-10-04)
-    "structure-library/strand-messages"      ; the messages of strand spaces ON THE USER'S MODEL (notes-60): a token set T (IS-TOKEN-SET: no token is a list), messages = tokens and n-ary LISTS of messages, the stages, MSG-SET, MSG-RANK, the subterm relation as an intersection closure (S-1 2026-10-04; revised S-2 2026-10-06)
-    "theorem-library/strand-messages-laws"   ; freeness (token XOR list, tuple extensionality), structural induction, the subterm partial order, the rank laws; 39 theorems (S-1, revised S-2 2026-10-06)
-    "structure-library/strand-spaces"        ; directed messages [dir t], strands, STRAND-SPACE (TOKENS, IDS, STRAND-MAP), NODES as a SEP with TOTAL content, ==> strict and -->, entry points, origination, PREC-STRICT, BUNDLE (S-2, 2026-10-06)
-    "theorem-library/strand-space-laws"      ; node laws, the relations, PRECEDES-STRICT closure/inversion, Lemma 2.7 (partial order, minimal elements), Lemmas 2.8-2.9, origination; 70 theorems (S-2, 2026-10-06)
-    "structure-library/strand-adversary"     ; the key-free adversary: ADV-TOKENS, the M F T C S traces (C, S n-ary), IS-ADVERSARY-TRACE, INFILTRATED-SPACE, adversary / regular nodes (S-2, 2026-10-06)
-    "theorem-library/strand-adversary-bound" ; the five per-trace lemmas, the adversary bound (Proposition 3.3, key-free) and its corollary; 13 theorems (S-2, 2026-10-06)
+    "structure-library/strand-messages"   ; the messages of strand spaces ON THE USER'S MODEL (notes-60 + encryption, 2026-10-06): a token set T (IS-TOKEN-SET: no token is a list), keys K a subset of T, messages = tokens, LST lists and ENCR encryptions under a key, the two tagged; the stages, MSG-SET(T, K), MSG-RANK, the subterm relation as an intersection closure (THE KEY IS NOT A SUBTERM) (S-1 2026-10-04; S-2 / S-2b 2026-10-06)
+    "theorem-library/strand-messages-laws" ; freeness (token XOR list XOR encryption; injectivity), structural induction, the subterm partial order, Proposition 2.12, the rank laws; 57 theorems (S-1, S-2, S-2b)
+    "structure-library/strand-spaces"     ; directed messages [dir t], strands, STRAND-SPACE (TOKENS, KEYS, IDS, STRAND-MAP, KINV involutive), NODES as a SEP with TOTAL content, ==> strict and -->, entry points, origination, PREC-STRICT, BUNDLE (S-2, S-2b 2026-10-06)
+    "theorem-library/strand-space-laws"   ; node laws, the relations, PRECEDES-STRICT closure / inversion, Lemma 2.7 (partial order, minimal elements), Lemmas 2.8-2.9, origination; 74 theorems (S-2, S-2b)
+    "structure-library/strand-adversary"  ; the adversary: ADV-TOKENS, the M F T C S E D traces over a strand space (C, S n-ary; D under KINV), IS-ADVERSARY-TRACE, INFILTRATED-SPACE, adversary / regular nodes (S-2, S-2b)
+    "theorem-library/strand-adversary-bound" ; the seven per-trace lemmas, the adversary bound (Proposition 3.3 for any token; the key case is the instance) and its corollary; 17 theorems (S-2, S-2b)
     ;; ps-series-bridges -- the three PS/series bridges, PROVEN, plus the
     ;; CONVERGES twin of rr-limit-ptwise-eq that the third needs.  They are what
     ;; lets a theorem about bare series be USED about a power series.  Two are

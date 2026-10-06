@@ -336,9 +336,9 @@
   (carriers adv-ids adv-tokens)
   (law (forall sap_ (implies (in sap_ (adv-ids s)) (in sap_ (ids (ispace s))))))
   (law (forall sat_ (implies (in sat_ (adv-tokens s)) (in sat_ (tokens (ispace s))))))
-  (law (forall sap_ (implies (in sap_ (adv-ids s)) (is-adversary-trace (tokens (ispace s)) (adv-tokens s) ((strand-map (ispace s)) sap_))))))</pre>
+  (law (forall sap_ (implies (in sap_ (adv-ids s)) (is-adversary-trace (ispace s) (adv-tokens s) ((strand-map (ispace s)) sap_))))))</pre>
 <p><em>Defining predicate</em> (as stored):</p>
-<ul><li><code>is-infiltrated-space</code> — forall([s], is-infiltrated-space(s) iff length(s) = 3 and is-strand-space(ispace(s)) and adv-ids(s) in set and adv-tokens(s) in set and forall([sap_ in adv-ids(s)], sap_ in ids(ispace(s))) and forall([sat_ in adv-tokens(s)], sat_ in tokens(ispace(s))) and forall([sap_ in adv-ids(s)], is-adversary-trace(tokens(ispace(s)), adv-tokens(s), (strand-map(ispace(s)))(sap_))))</li></ul>
+<ul><li><code>is-infiltrated-space</code> — forall([s], is-infiltrated-space(s) iff length(s) = 3 and is-strand-space(ispace(s)) and adv-ids(s) in set and adv-tokens(s) in set and forall([sap_ in adv-ids(s)], sap_ in ids(ispace(s))) and forall([sat_ in adv-tokens(s)], sat_ in tokens(ispace(s))) and forall([sap_ in adv-ids(s)], is-adversary-trace(ispace(s), adv-tokens(s), (strand-map(ispace(s)))(sap_))))</li></ul>
 <h4 id="integral-domain">integral-domain</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/integral-domain.scm"><code>structure-library/integral-domain.scm</code></a>.</p>
 <p><em>Kind.</em> Refinement — <code>declare-structure</code> with <code>(same-shape-as commutative-ring)</code>; its <code>IS-X &lt;=&gt; IS-PARENT and &lt;laws&gt;</code> axiom is generated, not hand-written.  Subtype of <a class="x" href="#commutative-ring"><code>commutative-ring</code></a>.  Shape inherited from <a class="x" href="#commutative-ring"><code>commutative-ring</code></a> — slots (carr add mul neg zero one).</p>
@@ -730,18 +730,21 @@
 <h4 id="strand-space">strand-space</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/strand-spaces.scm"><code>structure-library/strand-spaces.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>
-<p><em>Slots</em> (3): <code>tokens</code> carrier; <code>ids</code> carrier; <code>strand-map</code> operation ids -&gt; strands(tokens).</p>
-<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-strand-space-def"><code>is-hom-strand-space-def</code></a>): forall([a, b, f1, f2], is-hom-strand-space(a, b, f1, f2) iff is-strand-space(a) and is-strand-space(b) and f1 in fun(tokens(a), tokens(b)) and f2 in fun(ids(a), ids(b)) and forall([x1_ in ids(a)], (strand-map(a))(x1_) = (strand-map(b))(f2(x1_))))</p>
+<p><em>Slots</em> (5): <code>tokens</code> carrier; <code>ids</code> carrier; <code>keys</code> carrier; <code>strand-map</code> operation ids -&gt; strands(tokens, keys); <code>kinv</code> operation keys -&gt; keys.</p>
+<p><em>Default arrows</em> (<a class="x" href="THEOREMS.html#t-is-hom-strand-space-def"><code>is-hom-strand-space-def</code></a>): forall([a, b, f1, f2, f3], is-hom-strand-space(a, b, f1, f2, f3) iff is-strand-space(a) and is-strand-space(b) and f1 in fun(tokens(a), tokens(b)) and f2 in fun(ids(a), ids(b)) and f3 in fun(keys(a), keys(b)) and forall([x1_ in ids(a)], (strand-map(a))(x1_) = (strand-map(b))(f2(x1_))) and forall([x1_ in keys(a)], f3((kinv(a))(x1_)) = (kinv(b))(f3(x1_))))</p>
 <p><em>Declaration.</em></p>
 <pre>(declare-structure strand-space
   (instance-var s)
-  (carriers tokens ids)
-  (op strand-map ids (strands tokens))
-  (law (is-token-set (tokens s))))</pre>
+  (carriers tokens ids keys)
+  (op strand-map ids (strands tokens keys))
+  (op kinv keys keys)
+  (law (is-token-set (tokens s)))
+  (law (forall ssx_ (implies (in ssx_ (keys s)) (in ssx_ (tokens s)))))
+  (law (forall ssx_ (implies (in ssx_ (keys s)) (= ((kinv s) ((kinv s) ssx_)) ssx_)))))</pre>
 <p><em>Defining predicate</em> (as stored):</p>
-<ul><li><code>is-strand-space</code> — forall([s], is-strand-space(s) iff length(s) = 3 and tokens(s) in set and ids(s) in set and strand-map(s) in fun(ids(s), strands(tokens(s))) and is-token-set(tokens(s)))</li></ul>
+<ul><li><code>is-strand-space</code> — forall([s], is-strand-space(s) iff length(s) = 5 and tokens(s) in set and ids(s) in set and keys(s) in set and strand-map(s) in fun(ids(s), strands(tokens(s), keys(s))) and kinv(s) in fun(keys(s), keys(s)) and is-token-set(tokens(s)) and forall([ssx_ in keys(s)], ssx_ in tokens(s)) and forall([ssx_ in keys(s)], (kinv(s))((kinv(s))(ssx_)) = ssx_))</li></ul>
 <p><em>Theorems quantifying over <a class="x" href="THEOREMS.html#t-is-strand-space"><code>is-strand-space</code></a>.</em></p>
-<ul><li><code>strand-space-parts</code> — forall([spa], is-strand-space(spa) implies is-token-set(tokens(spa)) and tokens(spa) in set and ids(spa) in set and strand-map(spa) in fun(ids(spa), strands(tokens(spa))))</li></ul>
+<ul><li><code>keys-in-tokens</code> — forall([spa], is-strand-space(spa) implies forall([x in keys(spa)], x in tokens(spa)))</li><li><code>kinv-in-fun</code> — forall([spa], is-strand-space(spa) implies kinv(spa) in fun(keys(spa), keys(spa)))</li><li><code>kinv-injective</code> — forall([spa], is-strand-space(spa) implies forall([y, z], y in keys(spa) implies z in keys(spa) implies (kinv(spa))(y) = (kinv(spa))(z) implies y = z))</li><li><code>kinv-injective-rev</code> — forall([spa], is-strand-space(spa) implies forall([y, z], y in keys(spa) implies z in keys(spa) implies (kinv(spa))(y) = (kinv(spa))(z) implies z = y))</li><li><code>kinv-involution</code> — forall([spa], is-strand-space(spa) implies forall([y in keys(spa)], (kinv(spa))((kinv(spa))(y)) = y))</li><li><code>kinv-involution-rev</code> — forall([spa], is-strand-space(spa) implies forall([y in keys(spa)], y = (kinv(spa))((kinv(spa))(y))))</li><li><code>strand-space-parts</code> — forall([spa], is-strand-space(spa) implies is-token-set(tokens(spa)) and tokens(spa) in set and ids(spa) in set and keys(spa) in set and strand-map(spa) in fun(ids(spa), strands(tokens(spa), keys(spa))))</li></ul>
 <h4 id="top-space">top-space</h4>
 <p><em>Declared in</em> <a class="x" href="../structure-library/top-space.scm"><code>structure-library/top-space.scm</code></a>.</p>
 <p><em>Kind.</em> Shape structure — <code>declare-structure</code> with slot clauses.</p>

@@ -3,23 +3,35 @@
 ;;;  scratchpad/triage/WEEK3.md, section S-2; the paper's sections 2.1-2.4 supply the THEOREMS,
 ;;;  not the definitions: Thayer, Herzog, Guttman, ~/docs/jcs_strand_spaces.pdf.)
 ;;; DEFINITIONS ONLY; the laws are PROVEN in theorem-library/strand-space-laws.scm.
-;;; Agent S-2 of the October roadmap, week 3, 2026-10-06.  Messages, MSG-SET(T), IS-SUBTERM:
-;;; structure-library/strand-messages.scm.  Binders carry the prefix ss-.
+;;; Agent S-2 of the October roadmap, week 3, 2026-10-06; KEYS, KINV and the key parameter of the
+;;; messages added by agent S-2b the same day (the user's decision of 16:40Z: encryption {m}_k as
+;;; a third message case; S-2's version is archive/2026-10-06/s2b/strand-spaces.scm).  Messages,
+;;; MSG-SET(T, K), IS-SUBTERM: structure-library/strand-messages.scm.  Binders carry the prefix ss-.
 ;;;
 ;;; DIRECTED MESSAGES (notes (c)).  A directed message is a list [dir, t], dir one of the two
 ;;; constants SENT and RECEIVED, t a message; its CONTENT is t.  SENT and RECEIVED are
 ;;; def-constants with the values 0 and 1 (a def-constant installs the defining equation as a
 ;;; theorem, `sent-def' / `received-def', so the two values are a citation away and the names
-;;; print as words).  DIRECTED(T) = {SENT, RECEIVED} x MSG-SET(T), a CARTESIAN; DIR-OF and
+;;; print as words).  DIRECTED(T, K) = {SENT, RECEIVED} x MSG-SET(T, K), a CARTESIAN; DIR-OF and
 ;;; CONTENT-OF read the two components by NTH.
 ;;;
-;;; STRANDS (notes (d)).  A strand is a list of directed messages: STRANDS(T) = TUPLES(DIRECTED(T)).
+;;; STRANDS (notes (d)).  A strand is a list of directed messages:
+;;; STRANDS(T, K) = TUPLES(DIRECTED(T, K)).
 ;;;
 ;;; THE STRAND SPACE (notes (d), "a mapping Sigma from agents to strands"; the user, 2026-10-06:
 ;;; the domain is a set of STRAND IDENTIFIERS, not agents).  A `declare-structure' with
-;;;     carriers  TOKENS, IDS
-;;;     op        STRAND-MAP in FUN(IDS, STRANDS(TOKENS))       (the user's Sigma)
+;;;     carriers  TOKENS, IDS, KEYS
+;;;     op        STRAND-MAP in FUN(IDS, STRANDS(TOKENS, KEYS))  (the user's Sigma)
+;;;     op        KINV in FUN(KEYS, KEYS)                        (the paper's K^-1)
 ;;;     law       IS-TOKEN-SET(TOKENS)                           (tokens are not lists)
+;;;     law       KEYS is a subset of TOKENS                     (a key is a token)
+;;;     law       KINV(KINV(k)) = k for k in KEYS                (an involution)
+;;; KEYS and KINV (S-2b): the paper's Definition 2.1 has the set K of keys with an injective inv
+;;; mapping a member of an asymmetric pair to the other and a symmetric key to itself.  The law
+;;; written is the involution (injectivity follows: kinv-injective); the symmetric keys are its
+;;; fixpoints.  The accessor is KINV, not INV: INV is GROUP's slot and an accessor name denotes
+;;; one slot everywhere (S-1 met the same clash).  KEYS inside TOKENS makes a key a message (a
+;;; token), so the adversary can receive and send keys; ENCR(m, k) is a message for k in KEYS.
 ;;; The map is an `op' slot: a function from one carrier into a class built from the other is
 ;;; exactly what an op slot types, and the generated arrows (maps of tokens and identifiers
 ;;; commuting with the strand maps) are the natural ones.  The accessor is STRAND-MAP, not SIGMA:
@@ -56,7 +68,7 @@
 ;;;                                  for every n' ==> n (strict).  I is a set of UNDIRECTED
 ;;;                                  messages and CONTENT is undirected: the paper's clause 6
 ;;;                                  compared a SIGNED term with I (finding (a) of S-2).
-;;;   ORIGINATES(sp, u, n)           n is an entry point into {m in MSG-SET(TOKENS) : u @ m}.
+;;;   ORIGINATES(sp, u, n)           n is an entry point into {m in MSG-SET(TOKENS, KEYS) : u @ m}.
 ;;;   UNIQUELY-ORIGINATES(sp, u)     u originates on exactly one node.
 ;;;
 ;;; BUNDLES (the paper's Definition 2.4 on the user's relations).  A `declare-structure' with
@@ -110,9 +122,9 @@
 (def-constant 'SENT '(sent-def (= SENT 0)))
 (def-constant 'RECEIVED '(received-def (= RECEIVED 1)))
 
-(def-functoid 'DIRECTED '(sst_) '(CARTESIAN (PAIR SENT RECEIVED) (MSG-SET sst_)))
-(notation! 'DIRECTED 'kind 'functoid 'arity 1
-           'english "the directed messages over the tokens $1")
+(def-functoid 'DIRECTED '(sst_ ssk_) '(CARTESIAN (PAIR SENT RECEIVED) (MSG-SET sst_ ssk_)))
+(notation! 'DIRECTED 'kind 'functoid 'arity 2
+           'english "the directed messages over the tokens $1 and the keys $2")
 
 (def-functoid 'DIR-OF '(ssd_) '(NTH 1 ssd_))
 (notation! 'DIR-OF 'kind 'functoid 'arity 1 'english "the direction of the directed message $1")
@@ -120,17 +132,20 @@
 (def-functoid 'CONTENT-OF '(ssd_) '(NTH 2 ssd_))
 (notation! 'CONTENT-OF 'kind 'functoid 'arity 1 'english "the content of the directed message $1")
 
-(def-functoid 'STRANDS '(sst_) '(TUPLES (DIRECTED sst_)))
-(notation! 'STRANDS 'kind 'functoid 'arity 1 'english "the strands over the tokens $1")
+(def-functoid 'STRANDS '(sst_ ssk_) '(TUPLES (DIRECTED sst_ ssk_)))
+(notation! 'STRANDS 'kind 'functoid 'arity 2 'english "the strands over the tokens $1 and the keys $2")
 
 ;;; -----------------------------------------------------------------------
 ;;; The strand space.
 
 (declare-structure STRAND-SPACE
   (instance-var s)
-  (carriers TOKENS IDS)
-  (op STRAND-MAP IDS (STRANDS TOKENS))
-  (law (IS-TOKEN-SET (TOKENS s))))
+  (carriers TOKENS IDS KEYS)
+  (op STRAND-MAP IDS (STRANDS TOKENS KEYS))
+  (op KINV KEYS KEYS)
+  (law (IS-TOKEN-SET (TOKENS s)))
+  (law (FORALL ssx_ (IMPLIES (IN ssx_ (KEYS s)) (IN ssx_ (TOKENS s)))))
+  (law (FORALL ssx_ (IMPLIES (IN ssx_ (KEYS s)) (= ((KINV s) ((KINV s) ssx_)) ssx_)))))
 
 (notation! 'IS-STRAND-SPACE 'noun "strand space" 'article "a")
 (notation! 'IS-HOM-STRAND-SPACE 'kind 'predicate 'arity 3
@@ -207,7 +222,7 @@
 
 (def-predicate 'OCCURS-IN-SPACE '(ssp_ ssu_)
   '(FORSOME ssn_ (AND (IN ssn_ (NODES ssp_))
-                      (IS-SUBTERM (TOKENS ssp_) ssu_ (NODE-CONTENT ssp_ ssn_)))))
+                      (IS-SUBTERM (TOKENS ssp_) (KEYS ssp_) ssu_ (NODE-CONTENT ssp_ ssn_)))))
 (notation! 'OCCURS-IN-SPACE 'kind 'predicate 'arity 2 'english "$2 occurs in the strand space $1")
 
 (def-predicate 'IS-ENTRY-POINT '(ssp_ ssn_ ssi_)
@@ -221,7 +236,7 @@
 
 (def-predicate 'ORIGINATES '(ssp_ ssu_ ssn_)
   '(IS-ENTRY-POINT ssp_ ssn_
-     (SEP ssw_ (MSG-SET (TOKENS ssp_)) (IS-SUBTERM (TOKENS ssp_) ssu_ ssw_))))
+     (SEP ssw_ (MSG-SET (TOKENS ssp_) (KEYS ssp_)) (IS-SUBTERM (TOKENS ssp_) (KEYS ssp_) ssu_ ssw_))))
 (notation! 'ORIGINATES 'kind 'predicate 'arity 3 'english "$2 originates on the node $3 of $1")
 
 (def-predicate 'UNIQUELY-ORIGINATES '(ssp_ ssu_)

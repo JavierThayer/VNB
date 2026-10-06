@@ -922,12 +922,12 @@ Adjacency-list view of the view-as directed graph: each target structure with th
   (carriers adv-ids adv-tokens)
   (law (forall sap_ (implies (in sap_ (adv-ids s)) (in sap_ (ids (ispace s))))))
   (law (forall sat_ (implies (in sat_ (adv-tokens s)) (in sat_ (tokens (ispace s))))))
-  (law (forall sap_ (implies (in sap_ (adv-ids s)) (is-adversary-trace (tokens (ispace s)) (adv-tokens s) ((strand-map (ispace s)) sap_))))))
+  (law (forall sap_ (implies (in sap_ (adv-ids s)) (is-adversary-trace (ispace s) (adv-tokens s) ((strand-map (ispace s)) sap_))))))
 ```
 
 *Defining predicate* (as stored):
 
-- `is-infiltrated-space` — forall([s], is-infiltrated-space(s) iff length(s) = 3 and is-strand-space(ispace(s)) and adv-ids(s) in set and adv-tokens(s) in set and forall([sap_ in adv-ids(s)], sap_ in ids(ispace(s))) and forall([sat_ in adv-tokens(s)], sat_ in tokens(ispace(s))) and forall([sap_ in adv-ids(s)], is-adversary-trace(tokens(ispace(s)), adv-tokens(s), (strand-map(ispace(s)))(sap_))))
+- `is-infiltrated-space` — forall([s], is-infiltrated-space(s) iff length(s) = 3 and is-strand-space(ispace(s)) and adv-ids(s) in set and adv-tokens(s) in set and forall([sap_ in adv-ids(s)], sap_ in ids(ispace(s))) and forall([sat_ in adv-tokens(s)], sat_ in tokens(ispace(s))) and forall([sap_ in adv-ids(s)], is-adversary-trace(ispace(s), adv-tokens(s), (strand-map(ispace(s)))(sap_))))
 
 ### integral-domain
 <a id="integral-domain"></a>
@@ -2504,27 +2504,36 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (3): `tokens` carrier; `ids` carrier; `strand-map` operation ids -> strands(tokens).
+*Slots* (5): `tokens` carrier; `ids` carrier; `keys` carrier; `strand-map` operation ids -> strands(tokens, keys); `kinv` operation keys -> keys.
 
-*Default arrows* (`is-hom-strand-space-def`): forall([a, b, f1, f2], is-hom-strand-space(a, b, f1, f2) iff is-strand-space(a) and is-strand-space(b) and f1 in fun(tokens(a), tokens(b)) and f2 in fun(ids(a), ids(b)) and forall([x1_ in ids(a)], (strand-map(a))(x1_) = (strand-map(b))(f2(x1_))))
+*Default arrows* (`is-hom-strand-space-def`): forall([a, b, f1, f2, f3], is-hom-strand-space(a, b, f1, f2, f3) iff is-strand-space(a) and is-strand-space(b) and f1 in fun(tokens(a), tokens(b)) and f2 in fun(ids(a), ids(b)) and f3 in fun(keys(a), keys(b)) and forall([x1_ in ids(a)], (strand-map(a))(x1_) = (strand-map(b))(f2(x1_))) and forall([x1_ in keys(a)], f3((kinv(a))(x1_)) = (kinv(b))(f3(x1_))))
 
 *Declaration.*
 
 ```scheme
 (declare-structure strand-space
   (instance-var s)
-  (carriers tokens ids)
-  (op strand-map ids (strands tokens))
-  (law (is-token-set (tokens s))))
+  (carriers tokens ids keys)
+  (op strand-map ids (strands tokens keys))
+  (op kinv keys keys)
+  (law (is-token-set (tokens s)))
+  (law (forall ssx_ (implies (in ssx_ (keys s)) (in ssx_ (tokens s)))))
+  (law (forall ssx_ (implies (in ssx_ (keys s)) (= ((kinv s) ((kinv s) ssx_)) ssx_)))))
 ```
 
 *Defining predicate* (as stored):
 
-- `is-strand-space` — forall([s], is-strand-space(s) iff length(s) = 3 and tokens(s) in set and ids(s) in set and strand-map(s) in fun(ids(s), strands(tokens(s))) and is-token-set(tokens(s)))
+- `is-strand-space` — forall([s], is-strand-space(s) iff length(s) = 5 and tokens(s) in set and ids(s) in set and keys(s) in set and strand-map(s) in fun(ids(s), strands(tokens(s), keys(s))) and kinv(s) in fun(keys(s), keys(s)) and is-token-set(tokens(s)) and forall([ssx_ in keys(s)], ssx_ in tokens(s)) and forall([ssx_ in keys(s)], (kinv(s))((kinv(s))(ssx_)) = ssx_))
 
 *Theorems quantifying over `is-strand-space`.*
 
-- `strand-space-parts` — forall([spa], is-strand-space(spa) implies is-token-set(tokens(spa)) and tokens(spa) in set and ids(spa) in set and strand-map(spa) in fun(ids(spa), strands(tokens(spa))))
+- `keys-in-tokens` — forall([spa], is-strand-space(spa) implies forall([x in keys(spa)], x in tokens(spa)))
+- `kinv-in-fun` — forall([spa], is-strand-space(spa) implies kinv(spa) in fun(keys(spa), keys(spa)))
+- `kinv-injective` — forall([spa], is-strand-space(spa) implies forall([y, z], y in keys(spa) implies z in keys(spa) implies (kinv(spa))(y) = (kinv(spa))(z) implies y = z))
+- `kinv-injective-rev` — forall([spa], is-strand-space(spa) implies forall([y, z], y in keys(spa) implies z in keys(spa) implies (kinv(spa))(y) = (kinv(spa))(z) implies z = y))
+- `kinv-involution` — forall([spa], is-strand-space(spa) implies forall([y in keys(spa)], (kinv(spa))((kinv(spa))(y)) = y))
+- `kinv-involution-rev` — forall([spa], is-strand-space(spa) implies forall([y in keys(spa)], y = (kinv(spa))((kinv(spa))(y))))
+- `strand-space-parts` — forall([spa], is-strand-space(spa) implies is-token-set(tokens(spa)) and tokens(spa) in set and ids(spa) in set and keys(spa) in set and strand-map(spa) in fun(ids(spa), strands(tokens(spa), keys(spa))))
 
 ### top-space
 <a id="top-space"></a>

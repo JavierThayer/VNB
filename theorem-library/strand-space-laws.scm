@@ -2,14 +2,18 @@
 ;;; paper's Lemmas 2.7, 2.8, 2.9 on the user's model.
 ;;; (~/notes/notes-60.txt; the definitions are structure-library/strand-spaces.scm; the paper is
 ;;;  Thayer, Herzog, Guttman, ~/docs/jcs_strand_spaces.pdf, sections 2.2-2.4.)
-;;; Agent S-2 of the October roadmap, week 3, 2026-10-06.  Helper prefix: ssl-.
+;;; Agent S-2 of the October roadmap, week 3, 2026-10-06.  Helper prefix: ssl-.  S-2b (the same day)
+;;; added the key parameter of the messages (MSG-SET(T, K), DIRECTED(T, K), STRANDS(T, K),
+;;; IS-SUBTERM(T, K, a, b)) and the four key laws; nothing else changed (S-2's version:
+;;; archive/2026-10-06/s2b/strand-space-laws.scm).
 ;;;
 ;;; Every theorem bills `modulo 0'; the oracles are `arith' (ground numerals) and `ineq' (NN linear
 ;;; arithmetic through dk-nn!).  Nothing is asserted, stamped or warranted.
 ;;;
 ;;; WHAT IS PROVEN (in this order)
 ;;;  0. The unfold equations of the functoids (mac-h cannot unfold a functoid in a hypothesis).
-;;;  1. NODES.  strand-space-parts, strand-at-id, node-parts, node-intro, node-pair-injective,
+;;;  1. NODES.  strand-space-parts, keys-in-tokens, kinv-in-fun, kinv-involution, kinv-injective
+;;;     (the keys, S-2b), strand-at-id, node-parts, node-intro, node-pair-injective,
 ;;;     node-ext, directed-parts, node-step-in-directed, node-content-in-msgs,
 ;;;     node-dir-cases, sent-ne-received, node-sent-or-received, node-not-sent-and-received,
 ;;;     node-content-eq (a node's content and direction read off its strand entry).
@@ -110,11 +114,11 @@
 (di) (mac 'NODE-DIR) (qrfl)
 (qed 'node-dir-unfold)
 
-(sp (make-wff '(FORALL T (== (DIRECTED T) (CARTESIAN (PAIR SENT RECEIVED) (MSG-SET T))))))
+(sp (make-wff '(FORALL T (FORALL K (== (DIRECTED T K) (CARTESIAN (PAIR SENT RECEIVED) (MSG-SET T K)))))))
 (di) (mac 'DIRECTED) (qrfl)
 (qed 'directed-unfold)
 
-(sp (make-wff '(FORALL T (== (STRANDS T) (TUPLES (DIRECTED T))))))
+(sp (make-wff '(FORALL T (FORALL K (== (STRANDS T K) (TUPLES (DIRECTED T K)))))))
 (di) (mac 'STRANDS) (qrfl)
 (qed 'strands-unfold)
 
@@ -146,10 +150,48 @@
    (AND (IS-TOKEN-SET (TOKENS spa))
         (AND (IN (TOKENS spa) SET)
              (AND (IN (IDS spa) SET)
-                  (IN (STRAND-MAP spa) (FUN (IDS spa) (STRANDS (TOKENS spa)))))))))))
+                  (AND (IN (KEYS spa) SET)
+                       (IN (STRAND-MAP spa) (FUN (IDS spa) (STRANDS (TOKENS spa) (KEYS spa))))))))))))
 (di) (di)
 (ssl-proj! 'is-strand-space '(IS-STRAND-SPACE spa))
 (qed 'strand-space-parts)
+
+;;; The keys (S-2b): a key is a token; KINV is an involution of KEYS, hence injective.
+(sp (make-wff '(FORALL spa (IMPLIES (IS-STRAND-SPACE spa)
+   (FORALL x (IMPLIES (IN x (KEYS spa)) (IN x (TOKENS spa))))))))
+(dk-peel!)
+(mac-h 'is-strand-space '(IS-STRAND-SPACE spa))
+(dk-split-all!)
+(dk-apply! (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'TOKENS) (not (dk-contains? f 'KINV))))
+                    "the key law")
+           'x)
+(ass)
+(qed 'keys-in-tokens)
+
+(sp (make-wff '(FORALL spa (IMPLIES (IS-STRAND-SPACE spa) (IN (KINV spa) (FUN (KEYS spa) (KEYS spa)))))))
+(di) (di)
+(ssl-proj! 'is-strand-space '(IS-STRAND-SPACE spa))
+(qed 'kinv-in-fun)
+
+(sp (make-wff '(FORALL spa (IMPLIES (IS-STRAND-SPACE spa)
+   (FORALL y (IMPLIES (IN y (KEYS spa)) (= ((KINV spa) ((KINV spa) y)) y)))))))
+(dk-peel!)
+(mac-h 'is-strand-space '(IS-STRAND-SPACE spa))
+(dk-split-all!)
+(dk-apply! (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'KINV))) "the involution law") 'y)
+(ass)
+(qed 'kinv-involution)
+
+(sp (make-wff '(FORALL spa (IMPLIES (IS-STRAND-SPACE spa)
+   (FORALL y (FORALL z (IMPLIES (IN y (KEYS spa)) (IMPLIES (IN z (KEYS spa))
+     (IMPLIES (= ((KINV spa) y) ((KINV spa) z)) (= y z))))))))))
+(dk-peel!)
+(fact 'kinv-involution 'spa 'y)
+(fact 'kinv-involution 'spa 'z)
+(subst '(= y ((KINV spa) ((KINV spa) y))))
+(subst '(= ((KINV spa) y) ((KINV spa) z)))
+(ass)
+(qed 'kinv-injective)
 
 ;; The parts of a strand space SPA in context, landed (on a lane: the hypothesis survives).
 (define (ssl-space! spa)
@@ -158,13 +200,13 @@
     f))
 
 (sp (make-wff '(FORALL spa (FORALL a (IMPLIES (IS-STRAND-SPACE spa) (IMPLIES (IN a (IDS spa))
-   (IN ((STRAND-MAP spa) a) (TUPLES (DIRECTED (TOKENS spa))))))))))
+   (IN ((STRAND-MAP spa) a) (TUPLES (DIRECTED (TOKENS spa) (KEYS spa))))))))))
 (dk-peel!)
 (ssl-space! 'spa)
-(ssl-have-and! '(IN (STRAND-MAP spa) (FUN (IDS spa) (STRANDS (TOKENS spa)))) '(IN a (IDS spa)))
-(fact 'fun-apply-type '(STRAND-MAP spa) '(IDS spa) '(STRANDS (TOKENS spa)) 'a)
-(fact 'strands-unfold '(TOKENS spa))
-(subst '(= (TUPLES (DIRECTED (TOKENS spa))) (STRANDS (TOKENS spa))))
+(ssl-have-and! '(IN (STRAND-MAP spa) (FUN (IDS spa) (STRANDS (TOKENS spa) (KEYS spa)))) '(IN a (IDS spa)))
+(fact 'fun-apply-type '(STRAND-MAP spa) '(IDS spa) '(STRANDS (TOKENS spa) (KEYS spa)) 'a)
+(fact 'strands-unfold '(TOKENS spa) '(KEYS spa))
+(subst '(= (TUPLES (DIRECTED (TOKENS spa) (KEYS spa))) (STRANDS (TOKENS spa) (KEYS spa))))
 (ass)
 (qed 'strand-at-id)
 
@@ -245,11 +287,11 @@
         (fact 'membership-implies-sethood (caddr eqn) 'NN)
         (ass)))))
 
-(sp (make-wff '(FORALL T (FORALL d (IMPLIES (IN d (DIRECTED T))
+(sp (make-wff '(FORALL T (FORALL K (FORALL d (IMPLIES (IN d (DIRECTED T K))
    (AND (OR (= (NTH 1 d) SENT) (= (NTH 1 d) RECEIVED))
-        (AND (IN (NTH 2 d) (MSG-SET T)) (= d (LIST (NTH 1 d) (NTH 2 d))))))))))
+        (AND (IN (NTH 2 d) (MSG-SET T K)) (= d (LIST (NTH 1 d) (NTH 2 d)))))))))))
 (dk-peel!)
-(let* ((cm (ssl-open-in! '(IN d (DIRECTED T)) (dk-cite! 'directed-unfold 'T)))
+(let* ((cm (ssl-open-in! '(IN d (DIRECTED T K)) (dk-cite! 'directed-unfold 'T 'K)))
        (vs (ssl-unpack! (ssl-cart-open! cm)))
        (x (car vs)) (y (cadr vs)))
   (ssl-const-set! 'SENT 'sent-def)
@@ -270,13 +312,13 @@
 (qed 'directed-parts)
 
 (sp (make-wff '(FORALL spa (FORALL n (IMPLIES (IS-STRAND-SPACE spa) (IMPLIES (IN n (NODES spa))
-   (IN (NTH (NTH 1 n) ((STRAND-MAP spa) (NTH 2 n))) (DIRECTED (TOKENS spa)))))))))
+   (IN (NTH (NTH 1 n) ((STRAND-MAP spa) (NTH 2 n))) (DIRECTED (TOKENS spa) (KEYS spa)))))))))
 (dk-peel!)
 (ssl-node! 'spa 'n)
 (fact 'strand-at-id 'spa '(NTH 2 n))
-(ssl-have-and! '(IN (NTH 1 n) NN) '(IN ((STRAND-MAP spa) (NTH 2 n)) (TUPLES (DIRECTED (TOKENS spa))))
+(ssl-have-and! '(IN (NTH 1 n) NN) '(IN ((STRAND-MAP spa) (NTH 2 n)) (TUPLES (DIRECTED (TOKENS spa) (KEYS spa))))
                '(<= 1 (NTH 1 n)) '(<= (NTH 1 n) (LENGTH ((STRAND-MAP spa) (NTH 2 n)))))
-(fact 'nth-in-range '(DIRECTED (TOKENS spa)) '(NTH 1 n) '((STRAND-MAP spa) (NTH 2 n)))
+(fact 'nth-in-range '(DIRECTED (TOKENS spa) (KEYS spa)) '(NTH 1 n) '((STRAND-MAP spa) (NTH 2 n)))
 (ass)
 (qed 'node-step-in-directed)
 
@@ -284,12 +326,12 @@
 (define (ssl-step! spa n)
   (let ((d `(NTH (NTH 1 ,n) ((STRAND-MAP ,spa) (NTH 2 ,n)))))
     (fact 'node-step-in-directed spa n)
-    (fact 'directed-parts `(TOKENS ,spa) d)
+    (fact 'directed-parts `(TOKENS ,spa) `(KEYS ,spa) d)
     (dk-split-all!)
     d))
 
 (sp (make-wff '(FORALL spa (FORALL n (IMPLIES (IS-STRAND-SPACE spa) (IMPLIES (IN n (NODES spa))
-   (IN (NODE-CONTENT spa n) (MSG-SET (TOKENS spa)))))))))
+   (IN (NODE-CONTENT spa n) (MSG-SET (TOKENS spa) (KEYS spa)))))))))
 (dk-peel!)
 (ssl-step! 'spa 'n)
 (mac 'NODE-CONTENT)
@@ -1186,14 +1228,14 @@
 (qed 'bundle-minimal-sent)
 
 ;;; Origination, unfolded.
-(define (ssl-orig-set spa u) `(SEP ssw_ (MSG-SET (TOKENS ,spa)) (IS-SUBTERM (TOKENS ,spa) ,u ssw_)))
+(define (ssl-orig-set spa u) `(SEP ssw_ (MSG-SET (TOKENS ,spa) (KEYS ,spa)) (IS-SUBTERM (TOKENS ,spa) (KEYS ,spa) ,u ssw_)))
 
 (sp (make-wff '(FORALL spa (FORALL u (FORALL n (IMPLIES (IS-STRAND-SPACE spa) (IMPLIES (ORIGINATES spa u n)
   (AND (IN n (NODES spa))
        (AND (IS-SENT spa n)
-            (AND (IS-SUBTERM (TOKENS spa) u (NODE-CONTENT spa n))
+            (AND (IS-SUBTERM (TOKENS spa) (KEYS spa) u (NODE-CONTENT spa n))
                  (FORALL m (IMPLIES (SAME-STRAND-BEFORE spa m n)
-                                    (NOT (IS-SUBTERM (TOKENS spa) u (NODE-CONTENT spa m)))))))))))))))
+                                    (NOT (IS-SUBTERM (TOKENS spa) (KEYS spa) u (NODE-CONTENT spa m)))))))))))))))
 (dk-peel!)
 (mac-h 'originates '(ORIGINATES spa u n))
 (let* ((ii (ssl-orig-set 'spa 'u))
@@ -1220,8 +1262,8 @@
 (qed 'originates-elim)
 
 (sp (make-wff '(FORALL spa (FORALL u (FORALL n (IMPLIES (IS-STRAND-SPACE spa)
-  (IMPLIES (IN n (NODES spa)) (IMPLIES (IS-SENT spa n) (IMPLIES (IS-SUBTERM (TOKENS spa) u (NODE-CONTENT spa n))
-  (IMPLIES (FORALL m (IMPLIES (SAME-STRAND-BEFORE spa m n) (NOT (IS-SUBTERM (TOKENS spa) u (NODE-CONTENT spa m)))))
+  (IMPLIES (IN n (NODES spa)) (IMPLIES (IS-SENT spa n) (IMPLIES (IS-SUBTERM (TOKENS spa) (KEYS spa) u (NODE-CONTENT spa n))
+  (IMPLIES (FORALL m (IMPLIES (SAME-STRAND-BEFORE spa m n) (NOT (IS-SUBTERM (TOKENS spa) (KEYS spa) u (NODE-CONTENT spa m)))))
     (ORIGINATES spa u n)))))))))))
 (let* ((landed (dk-peel!))
        (none (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'SAME-STRAND-BEFORE))) landed))
@@ -1242,7 +1284,7 @@
 (qed 'originates-intro)
 
 (sp (make-wff '(FORALL spa (FORALL u (FORALL n (IMPLIES (IS-STRAND-SPACE spa) (IMPLIES (ORIGINATES spa u n)
-  (AND (IS-SENT spa n) (IS-SUBTERM (TOKENS spa) u (NODE-CONTENT spa n))))))))))
+  (AND (IS-SENT spa n) (IS-SUBTERM (TOKENS spa) (KEYS spa) u (NODE-CONTENT spa n))))))))))
 (dk-peel!)
 (fact 'originates-elim 'spa 'u 'n)
 (dk-split-all!)
@@ -1250,7 +1292,7 @@
 (qed 'originates-sent)
 
 (sp (make-wff '(FORALL spa (FORALL u (FORALL n (FORALL m (IMPLIES (IS-STRAND-SPACE spa) (IMPLIES (ORIGINATES spa u n)
-  (IMPLIES (SAME-STRAND-BEFORE spa m n) (NOT (IS-SUBTERM (TOKENS spa) u (NODE-CONTENT spa m))))))))))))
+  (IMPLIES (SAME-STRAND-BEFORE spa m n) (NOT (IS-SUBTERM (TOKENS spa) (KEYS spa) u (NODE-CONTENT spa m))))))))))))
 (dk-peel!)
 (fact 'originates-elim 'spa 'u 'n)
 (dk-split-all!)
@@ -1276,14 +1318,14 @@
 ;;; The paper's proof applies its clause 3 "as many times as necessary" to put the earlier nodes
 ;;; of the strand in the bundle; here that is the one closure law bundle-ssb-closed.
 (sp (make-wff '(FORALL c (FORALL u (FORALL n (IMPLIES (IS-BUNDLE c) (IMPLIES (IN n (BNODES c))
-  (IMPLIES (IS-SUBTERM (TOKENS (BSPACE c)) u (NODE-CONTENT (BSPACE c) n))
-  (IMPLIES (FORALL z (IMPLIES (IN z (BNODES c)) (IMPLIES (IS-SUBTERM (TOKENS (BSPACE c)) u (NODE-CONTENT (BSPACE c) z))
+  (IMPLIES (IS-SUBTERM (TOKENS (BSPACE c)) (KEYS (BSPACE c)) u (NODE-CONTENT (BSPACE c) n))
+  (IMPLIES (FORALL z (IMPLIES (IN z (BNODES c)) (IMPLIES (IS-SUBTERM (TOKENS (BSPACE c)) (KEYS (BSPACE c)) u (NODE-CONTENT (BSPACE c) z))
                                                         (NOT (IN (LIST z n) (PRECEDES-STRICT c))))))
     (ORIGINATES (BSPACE c) u n))))))))))
 (let* ((landed (dk-peel!))
        (mn (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'PRECEDES-STRICT))) landed))
        (spa '(BSPACE c))
-       (ss `(SEP slw_ (BNODES c) (IS-SUBTERM (TOKENS ,spa) u (NODE-CONTENT ,spa slw_)))))
+       (ss `(SEP slw_ (BNODES c) (IS-SUBTERM (TOKENS ,spa) (KEYS ,spa) u (NODE-CONTENT ,spa slw_)))))
   (fact 'bundle-space 'c)
   (dk-apply! (dk-cite! 'bundle-nodes-in-space 'c) 'n)
   ;; Lemma 2.8 at S = the nodes whose content contains u
@@ -1308,7 +1350,7 @@
         (ass))))
   (fact 'bundle-minimal-sent 'c ss 'n)
   ;; the entry-point conditions
-  (dk-have! `(FORALL m (IMPLIES (SAME-STRAND-BEFORE ,spa m n) (NOT (IS-SUBTERM (TOKENS ,spa) u (NODE-CONTENT ,spa m)))))
+  (dk-have! `(FORALL m (IMPLIES (SAME-STRAND-BEFORE ,spa m n) (NOT (IS-SUBTERM (TOKENS ,spa) (KEYS ,spa) u (NODE-CONTENT ,spa m)))))
     (lambda ()
       (dk-peel!)
       (let ((m (caddr (find-first (lambda (f) (dk-head-is? f 'SAME-STRAND-BEFORE)) (dk-asms)))))
@@ -1327,7 +1369,7 @@
           '(nodes-unfold node-content-unfold node-dir-unfold directed-unfold strands-unfold index-id-unfold
             prec-strict-unfold precedes-strict-unfold precedes-unfold pair-in-power-box))
 (for-each (lambda (n) (topic! n 'constructions))
-          '(strand-space-parts strand-at-id node-parts node-intro node-pair-injective node-ext directed-parts
+          '(strand-space-parts keys-in-tokens kinv-in-fun kinv-involution kinv-injective strand-at-id node-parts node-intro node-pair-injective node-ext directed-parts
             node-step-in-directed node-content-in-msgs node-dir-cases sent-ne-received node-sent-or-received
             node-not-sent-and-received node-content-eq ssb-irreflexive ssb-transitive ssu-of-ssb ssu-refl
             ssu-cases sends-to-dirs bundle-space bundle-nodes-set bundle-send-typing bundle-next-typing

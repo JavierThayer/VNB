@@ -11,7 +11,9 @@ the files at the root and the structure library by theory.
 - [gamma-function.scm](structure-library/gamma-function.scm)
 - [metric-connected.scm](structure-library/metric-connected.scm)
 - [simple-integral.scm](structure-library/simple-integral.scm)
+- [strand-adversary.scm](structure-library/strand-adversary.scm)
 - [strand-messages.scm](structure-library/strand-messages.scm)
+- [strand-spaces.scm](structure-library/strand-spaces.scm)
 
 ## structure-library: algebra
 

@@ -509,7 +509,8 @@ Proof scripts navigate a deduction graph by moving focus between open leaves.
   inert steps -- loop on a redex test.
 * `backup-one` (`undo`) rolls back the deduction GRAPH (journalled writes); it does not
   restore `*fresh-counter*`.
-* `else` is shadowed in the per-file environment: write `(#t ...)`.
+* `else` is shadowed in the per-file environment: in a `cond` write `(#t ...)`; in a `case` the
+  clause head is syntax, `else` works there and `(#t ...)` is an error (S-2b, 2026-10-06).
 * **`keep F ...` (2026-09-23) keeps only the named assumptions and drops the rest as ONE recorded
   step** (a page of Prop 3.2 had 676 `wk` lines from ten `dk-only!` calls in a 100-formula context;
   now 3 `keep` lines). Arguments are resolved to FORMULAS at call time (never recorded as indices);

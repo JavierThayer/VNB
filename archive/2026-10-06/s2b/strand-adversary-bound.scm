@@ -1,0 +1,631 @@
+;;; strand-adversary-bound.scm -- THE ADVERSARY BOUND (the paper's Proposition 3.3, key-free, on
+;;; the user's model): a token the adversary does not know, and which originates on no regular node
+;;; of a bundle, is a subterm of the content of NO node of the bundle.
+;;; (Thayer, Herzog, Guttman, ~/docs/jcs_strand_spaces.pdf, section 3.2; the definitions are
+;;;  structure-library/strand-adversary.scm.)  Agent S-2, week 3, 2026-10-06.  Helper prefix: sab-.
+;;;
+;;; Every theorem bills `modulo 0'; the oracles are `arith' and `ineq' (NN arithmetic, dk-nn!).
+;;;
+;;; THE PAPER'S METHOD, which is the point: S = {n in C : t @ CONTENT(n)}; if S is nonempty it has a
+;;; minimal member m (Lemma 2.7, `bundle-minimal'); m originates t (Lemma 2.9,
+;;; `bundle-minimal-originates'), so it is SENT (Lemma 2.8); by hypothesis m is an ADVERSARY node,
+;;; and the five trace kinds are taken in turn -- one theorem each, which is what the NSL work
+;;; and the paper's general bound (section 6.3) will cite:
+;;;   text-trace-origin        an M node originates only tokens the adversary knows
+;;;   flush-trace-no-sent      an F strand has no SENT node
+;;;   tee-trace-no-origin      nothing originates on a T node
+;;;   concat-trace-no-origin   no TOKEN originates on a C node (a token subterm of the sent list is
+;;;                            a subterm of a component, received earlier: the token law)
+;;;   separate-trace-no-origin nothing originates on an S node (each sent component is a subterm
+;;;                            of the list received first)
+;;;   adversary-node-origin    the five assembled: a token originating on an adversary node is known
+;;;   adversary-bound          THE BOUND
+;;;   adversary-bound-adversary-nodes   the paper's "in particular": no adversary node of C either.
+;;; Plus nn-le-ne-succ (a <= k, k /= a give succ a <= k), the case-split brick of the index
+;;; arithmetic on literal strands; and, for finding (g), sent-received-in-pair, directed-intro
+;;; (a directed message is built from a message), separate-trace-exists and concat-trace-exists
+;;; (every list of messages has an S and a C trace: `tuple-tabulation', CONS, an IF on the index).
+;;;
+;;; TWO DEFINEDNESS TRAPS MET (both leave the proof silently incomplete at `qed', no error at the
+;;; step): an instantiation at DIRECTED(T) or at a def-by-nn-recursion term such as MSG-STAGE(T, 0)
+;;; owes `t = t' unless the term already occurs in a true (IN _ _) hypothesis -- type it first; and
+;;; `rfl' on a literal list [SENT, g] wants the list typed (directed-intro) before it is closed.
+;;;
+;;; THE INDEX ARITHMETIC IS THE COST.  A node is [k, p]; on a literal strand the entry at k is read
+;;; by first deciding WHICH numeral k is (1 <= k <= 3 for a tee trace: two uses of nn-le-ne-succ),
+;;; then `node-content-eq' and `nth-r'.  On the n-ary C and S traces the entry is read off the
+;;; trace's universal at k, and k is split by `nn-le-succ-cases' (C) or `nn-pos-is-succ' (S).
+;;;
+;;; THE HYPOTHESIS-SIDE REWRITE.  The tree has no `subst' on a hypothesis; `sab-rewrite!' proves
+;;; F => F[from := to] by rewriting its GOAL and detaches it -- every content computation here goes
+;;; through it (the kit's owed "hypothesis-side rewrite", CLAUDE.md, is exactly this).
+;;;
+;;; LOAD WINDOW: after theorem-library/strand-space-laws and structure-library/strand-adversary;
+;;; nn-le-succ-cases (nn-order-ord), nn-lt-succ-le (finite-surgery), nn-pos-is-succ, nn-one-in.
+
+;;; -----------------------------------------------------------------------
+;;; helpers (prefix sab-)
+
+(define (sab-and fs) (if (null? (cdr fs)) (car fs) `(AND ,(car fs) ,(sab-and (cdr fs)))))
+(define (sab-have-and! . fs)
+  (let ((c (sab-and fs)))
+    (dk-have! c (lambda () (dk-conj-close! (lambda () (ass)))))
+    c))
+
+;; F in context, (== FROM TO) or (= FROM TO) in context: land F[FROM := TO].
+(define (sab-rewrite! f from to)
+  (let* ((f2 (dk--replace f from to))
+         (imp `(IMPLIES ,f ,f2)))
+    (dk-have! imp (lambda () (subst `(= ,from ,to)) (di) (ass)))
+    (detach! imp)
+    f2))
+
+;; F in context: land F with every NTH of a literal list reduced.
+(define (sab-nth! f)
+  (let* ((f2 (reduce-nth-in-expr f))
+         (imp `(IMPLIES ,f ,f2)))
+    (if (equal? f2 f)
+        f
+        (begin
+          (dk-have! imp (lambda () (nth-r) (di) (ass)))
+          (detach! imp)
+          f2))))
+
+(define (sab-sigma spa n) `((STRAND-MAP ,spa) (NTH 2 ,n)))
+
+;; The node N's content and direction equations at index K with entry D (both (= (NTH 1 N) K)
+;; -- proved by rfl when K is (NTH 1 N) itself -- and (= (NTH K SIGMA) D) in context), reduced;
+;; returns (content-eq dir-eq).
+(define (sab-entry! spa n k d)
+  (if (not (dk-asm? `(= (NTH 1 ,n) ,k))) (dk-have! `(= (NTH 1 ,n) ,k) (lambda () (rfl))))
+  (fact 'node-content-eq spa n k d)
+  (let* ((ce `(== (NODE-CONTENT ,spa ,n) (NTH 2 ,d)))
+         (de `(== (NODE-DIR ,spa ,n) (NTH 1 ,d))))
+    (dk-split-all!)
+    (list (sab-nth! ce) (sab-nth! de))))
+
+;; (IS-SENT spa n) in context and (== (NODE-DIR spa n) RECEIVED): close the focus goal.
+(define (sab-received-absurd! spa n)
+  (dk-have! `(= (NODE-DIR ,spa ,n) SENT) (lambda () (mac-h 'is-sent `(IS-SENT ,spa ,n)) (ass)))
+  (dk-have! '(= SENT RECEIVED)
+    (lambda () (subst `(= SENT (NODE-DIR ,spa ,n))) (subst `(= (NODE-DIR ,spa ,n) RECEIVED)) (rfl)))
+  (fact 'sent-ne-received)
+  (ai '(NOT (= SENT RECEIVED))))
+
+;; (= (LENGTH sigma) K) from (= sigma LIT) in context.
+(define (sab-len-eq! sg lit k)
+  (dk-have! `(= (LENGTH ,sg) ,k) (lambda () (subst `(= ,sg ,lit)) (len-r) (rfl))))
+
+;; The common close: the node N2 = [J, NTH(2, N)] comes before N on its strand, its entry is DJ
+;; (proved by ENTRY-THUNK on the goal (= (NTH J sigma) DJ), sigma the strand of N), its content
+;; GJ has u as a subterm (in context), and NOEARLY says no earlier node's content does.  The
+;; typings J in NN, 1 <= J, J <= LENGTH(sigma) must be in context; LT-PREMS prove J < NTH(1, N).
+(define (sab-earlier! spa n j dj gj noearly entry-thunk lt-prems)
+  (let ((n2 `(LIST ,j (NTH 2 ,n)))
+        (sg (sab-sigma spa n)))
+    (fact 'node-intro spa j `(NTH 2 ,n))
+    (dk-have! `(SAME-STRAND-BEFORE ,spa ,n2 ,n)
+      (lambda ()
+        (mac 'same-strand-before)
+        (nth-r)
+        (dk-conj-close!
+          (lambda ()
+            (cond ((dk-asm? (dk-goal)) (ass))
+                  ((dk-head-is? (dk-goal) '=) (rfl))
+                  (#t (apply dk-nn! lt-prems)))))))
+    (dk-have! `(= (NTH 1 ,n2) ,j) (lambda () (nth-r) (rfl)))
+    (dk-have! `(= (NTH ,j ((STRAND-MAP ,spa) (NTH 2 ,n2))) ,dj) (lambda () (nth-r) (entry-thunk)))
+    (let ((ce (car (sab-entry! spa n2 j dj))))
+      (dk-have! `(IS-SUBTERM (TOKENS ,spa) u (NODE-CONTENT ,spa ,n2))
+        (lambda () (subst `(= (NODE-CONTENT ,spa ,n2) ,gj)) (ass)))
+      (ai (dk-apply! noearly n2)))))
+
+;; The parts of the strand space, the node N and the origination of u at N, landed; returns the
+;; no-earlier universal.
+(define (sab-setup! spa n)
+  (fact 'strand-space-parts spa)
+  (dk-split-all!)
+  (fact 'node-parts spa n)
+  (dk-split-all!)
+  (fact 'strand-at-id spa `(NTH 2 ,n))
+  (fact 'length-in-nn `(DIRECTED (TOKENS ,spa)) (sab-sigma spa n))
+  (if (dk-asm? `(ORIGINATES ,spa u ,n))
+      (begin
+        (fact 'originates-elim spa 'u n)
+        (dk-split-all!)
+        (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'SAME-STRAND-BEFORE)))
+                 "no earlier node"))
+      #f))
+
+;;; -----------------------------------------------------------------------
+;;; The case-split brick.
+
+(sp (make-wff '(FORALL a (IMPLIES (IN a NN) (FORALL k (IMPLIES (IN k NN)
+   (IMPLIES (<= a k) (IMPLIES (NOT (= k a)) (<= (succ a) k)))))))))
+(dk-peel!)
+(dk-have! '(< a k)
+  (lambda ()
+    (mac '<)
+    (dk-conj-close!
+      (lambda ()
+        (if (dk-asm? (dk-goal))
+            (ass)
+            (begin
+              (di)
+              (dk-have! '(= k a) (lambda () (subst '(= k a)) (rfl)))
+              (ai '(NOT (= k a)))))))))
+(fact 'nn-lt-succ-le 'a 'k)
+(ass)
+(qed 'nn-le-ne-succ)
+
+;;; -----------------------------------------------------------------------
+;;; The five trace kinds.
+
+(sp (make-wff '(FORALL spa (FORALL P (FORALL u (FORALL n (IMPLIES (IS-STRAND-SPACE spa)
+  (IMPLIES (FORALL x (IMPLIES (IN x P) (IN x (TOKENS spa))))
+  (IMPLIES (IN n (NODES spa))
+  (IMPLIES (IS-TEXT-TRACE (TOKENS spa) P ((STRAND-MAP spa) (NTH 2 n)))
+  (IMPLIES (ORIGINATES spa u n) (IN u P))))))))))))
+(let* ((landed (dk-peel!))
+       (incl (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'TOKENS))) landed))
+       (sg (sab-sigma 'spa 'n)))
+  (sab-setup! 'spa 'n)
+  (mac-h 'is-text-trace `(IS-TEXT-TRACE (TOKENS spa) P ,sg))
+  (let* ((a (dk-skolem! (dk-pick (lambda (f) (dk-head-is? f 'FORSOME)) "the text")))
+         (lit `(LIST (LIST SENT ,a))))
+    (sab-len-eq! sg lit 1)
+    (dk-have! '(= (NTH 1 n) 1) (lambda () (dk-nn! '(<= 1 (NTH 1 n)) `(<= (NTH 1 n) (LENGTH ,sg)) `(= (LENGTH ,sg) 1))))
+    (dk-have! `(= (NTH 1 ,sg) (LIST SENT ,a)) (lambda () (subst `(= ,sg ,lit)) (nth-r) (rfl)))
+    (sab-entry! 'spa 'n 1 `(LIST SENT ,a))
+    (sab-rewrite! '(IS-SUBTERM (TOKENS spa) u (NODE-CONTENT spa n)) '(NODE-CONTENT spa n) a)
+    (dk-apply! incl a)
+    (fact 'subterm-of-token '(TOKENS spa) 'u a)
+    (subst `(= u ,a))
+    (ass)))
+(qed 'text-trace-origin)
+
+(sp (make-wff '(FORALL spa (FORALL n (IMPLIES (IS-STRAND-SPACE spa) (IMPLIES (IN n (NODES spa))
+  (IMPLIES (IS-FLUSH-TRACE (TOKENS spa) ((STRAND-MAP spa) (NTH 2 n))) (NOT (IS-SENT spa n)))))))))
+(dk-peel!)
+(di)
+(let ((sg (sab-sigma 'spa 'n)))
+  (sab-setup! 'spa 'n)
+  (mac-h 'is-flush-trace `(IS-FLUSH-TRACE (TOKENS spa) ,sg))
+  (let* ((g (dk-skolem! (dk-pick (lambda (f) (dk-head-is? f 'FORSOME)) "the message")))
+         (lit `(LIST (LIST RECEIVED ,g))))
+    (sab-len-eq! sg lit 1)
+    (dk-have! '(= (NTH 1 n) 1) (lambda () (dk-nn! '(<= 1 (NTH 1 n)) `(<= (NTH 1 n) (LENGTH ,sg)) `(= (LENGTH ,sg) 1))))
+    (dk-have! `(= (NTH 1 ,sg) (LIST RECEIVED ,g)) (lambda () (subst `(= ,sg ,lit)) (nth-r) (rfl)))
+    (sab-entry! 'spa 'n 1 `(LIST RECEIVED ,g))
+    (sab-received-absurd! 'spa 'n)))
+(qed 'flush-trace-no-sent)
+
+(sp (make-wff '(FORALL spa (FORALL u (FORALL n (IMPLIES (IS-STRAND-SPACE spa) (IMPLIES (IN n (NODES spa))
+  (IMPLIES (IS-TEE-TRACE (TOKENS spa) ((STRAND-MAP spa) (NTH 2 n))) (NOT (ORIGINATES spa u n))))))))))
+(dk-peel!)
+(di)
+(let* ((sg (sab-sigma 'spa 'n))
+       (noearly (sab-setup! 'spa 'n)))
+  (mac-h 'is-tee-trace `(IS-TEE-TRACE (TOKENS spa) ,sg))
+  (let* ((g (dk-skolem! (dk-pick (lambda (f) (dk-head-is? f 'FORSOME)) "the message")))
+         (lit `(LIST (LIST RECEIVED ,g) (LIST SENT ,g) (LIST SENT ,g)))
+         (entry (lambda (j d) (dk-have! `(= (NTH ,j ,sg) ,d) (lambda () (subst `(= ,sg ,lit)) (nth-r) (rfl)))))
+         ;; the node at index J >= 2 carries g, received at index 1
+         (sent-case
+           (lambda (j)
+             (entry j `(LIST SENT ,g))
+             (let ((ce (car (sab-entry! 'spa 'n j `(LIST SENT ,g)))))
+               (sab-rewrite! '(IS-SUBTERM (TOKENS spa) u (NODE-CONTENT spa n)) '(NODE-CONTENT spa n) g)
+               (fact 'nn-one-in)
+               (dk-have! '(<= 1 1) (lambda () (dk-nn!)))
+               (dk-have! `(<= 1 (LENGTH ,sg)) (lambda () (dk-nn! `(= (LENGTH ,sg) 3))))
+               (sab-earlier! 'spa 'n 1 `(LIST RECEIVED ,g) g noearly
+                 (lambda () (subst `(= ,sg ,lit)) (nth-r) (rfl))
+                 (list '(<= (succ 1) (NTH 1 n))))))))
+    (sab-len-eq! sg lit 3)
+    (use-em '(= (NTH 1 n) 1)
+      (lambda ()
+        (entry 1 `(LIST RECEIVED ,g))
+        (sab-entry! 'spa 'n 1 `(LIST RECEIVED ,g))
+        (sab-received-absurd! 'spa 'n))
+      (lambda ()
+        (fact 'nn-one-in)
+        (fact 'nn-le-ne-succ 1 '(NTH 1 n))
+        (use-em '(= (NTH 1 n) 2)
+          (lambda () (sent-case 2))
+          (lambda ()
+            (dk-have! '(IN 2 NN) (lambda () (arith)))
+            (dk-have! '(<= 2 (NTH 1 n)) (lambda () (dk-nn! '(<= (succ 1) (NTH 1 n)))))
+            (fact 'nn-le-ne-succ 2 '(NTH 1 n))
+            (dk-have! '(= (NTH 1 n) 3)
+              (lambda () (dk-nn! '(<= (succ 2) (NTH 1 n)) `(<= (NTH 1 n) (LENGTH ,sg)) `(= (LENGTH ,sg) 3))))
+            (sent-case 3)))))))
+(qed 'tee-trace-no-origin)
+
+(sp (make-wff '(FORALL spa (FORALL u (FORALL n (IMPLIES (IS-STRAND-SPACE spa) (IMPLIES (IN u (TOKENS spa))
+  (IMPLIES (IN n (NODES spa))
+  (IMPLIES (IS-CONCAT-TRACE (TOKENS spa) ((STRAND-MAP spa) (NTH 2 n))) (NOT (ORIGINATES spa u n)))))))))))
+(dk-peel!)
+(di)
+(let* ((sg (sab-sigma 'spa 'n))
+       (noearly (sab-setup! 'spa 'n)))
+  (mac-h 'is-concat-trace `(IS-CONCAT-TRACE (TOKENS spa) ,sg))
+  (let* ((l (dk-skolem! (dk-pick (lambda (f) (dk-head-is? f 'FORSOME)) "the list")))
+         (len `(LENGTH ,l))
+         (univ (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'RECEIVED))) "the received entries")))
+    (fact 'length-in-nn '(MSG-SET (TOKENS spa)) l)
+    (dk-have! `(<= (NTH 1 n) (succ ,len))
+      (lambda () (dk-nn! `(<= (NTH 1 n) (LENGTH ,sg)) `(= (LENGTH ,sg) (succ ,len)))))
+    (let ((o (dk-cite! 'nn-le-succ-cases len '(NTH 1 n))))
+      (dk-each-leaf! (lambda () (ai o))
+        (lambda ()
+          (if (dk-asm? `(<= (NTH 1 n) ,len))
+              ;; a received node
+              (let ((d `(LIST RECEIVED (NTH (NTH 1 n) ,l))))
+                (dk-apply! univ '(NTH 1 n))
+                (sab-entry! 'spa 'n '(NTH 1 n) d)
+                (sab-received-absurd! 'spa 'n))
+              ;; the sent node: the list l, whose token subterm sits in a component received earlier
+              (let ((d `(LIST SENT ,l)))
+                (dk-have! `(= (NTH (succ ,len) ,sg) ,d) (lambda () (ass)))
+                (sab-entry! 'spa 'n `(succ ,len) d)
+                (sab-rewrite! '(IS-SUBTERM (TOKENS spa) u (NODE-CONTENT spa n)) '(NODE-CONTENT spa n) l)
+                (let* ((ex (dk-cite! 'token-subterm-of-list '(TOKENS spa) 'u l))
+                       (i (dk-skolem! ex)))
+                  (dk-apply! univ i)
+                  (dk-have! `(<= ,i (LENGTH ,sg)) (lambda () (dk-nn! `(<= ,i ,len) `(= (LENGTH ,sg) (succ ,len)))))
+                  (sab-earlier! 'spa 'n i `(LIST RECEIVED (NTH ,i ,l)) `(NTH ,i ,l) noearly
+                    (lambda () (ass))
+                    (list `(<= ,i ,len) `(= (NTH 1 n) (succ ,len))))))))))))
+(qed 'concat-trace-no-origin)
+
+(sp (make-wff '(FORALL spa (FORALL u (FORALL n (IMPLIES (IS-STRAND-SPACE spa) (IMPLIES (IN n (NODES spa))
+  (IMPLIES (IS-SEPARATE-TRACE (TOKENS spa) ((STRAND-MAP spa) (NTH 2 n))) (NOT (ORIGINATES spa u n))))))))))
+(dk-peel!)
+(di)
+(let* ((sg (sab-sigma 'spa 'n))
+       (noearly (sab-setup! 'spa 'n)))
+  (mac-h 'is-separate-trace `(IS-SEPARATE-TRACE (TOKENS spa) ,sg))
+  (let* ((l (dk-skolem! (dk-pick (lambda (f) (dk-head-is? f 'FORSOME)) "the list")))
+         (len `(LENGTH ,l))
+         (univ (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'SENT) (dk-contains? f l))) "the sent entries")))
+    (fact 'length-in-nn '(MSG-SET (TOKENS spa)) l)
+    (use-em '(= (NTH 1 n) 1)
+      ;; the received node
+      (lambda ()
+        (sab-entry! 'spa 'n 1 `(LIST RECEIVED ,l))
+        (sab-received-absurd! 'spa 'n))
+      ;; a sent node: index succ q, carrying the q-th component of the list received at index 1
+      (lambda ()
+        (let* ((q (dk-skolem! (dk-cite! 'nn-pos-is-succ '(NTH 1 n)))))
+          (dk-have! `(NOT (= ,q 0))
+            (lambda ()
+              (di)
+              (dk-have! '(= (NTH 1 n) 1)
+                (lambda () (subst `(= (NTH 1 n) (succ ,q))) (subst `(= ,q 0)) (arith)))
+              (ai '(NOT (= (NTH 1 n) 1)))))
+          (fact 'nn-zero-in)
+          (fact 'nn-zero-le q)
+          (fact 'nn-le-ne-succ 0 q)
+          (dk-have! `(<= 1 ,q) (lambda () (dk-nn! `(<= (succ 0) ,q))))
+          (dk-have! `(<= ,q ,len)
+            (lambda () (dk-nn! `(<= (NTH 1 n) (LENGTH ,sg)) `(= (LENGTH ,sg) (succ ,len)) `(= (NTH 1 n) (succ ,q)))))
+          (dk-apply! univ q)
+          (sab-entry! 'spa 'n `(succ ,q) `(LIST SENT (NTH ,q ,l)))
+          (sab-rewrite! '(IS-SUBTERM (TOKENS spa) u (NODE-CONTENT spa n)) '(NODE-CONTENT spa n) `(NTH ,q ,l))
+          (fact 'subterm-component '(TOKENS spa) 'u l q)
+          (fact 'nn-one-in)
+          (dk-have! '(<= 1 1) (lambda () (dk-nn!)))
+          (dk-have! `(<= 1 (LENGTH ,sg)) (lambda () (dk-nn! `(= (LENGTH ,sg) (succ ,len)))))
+          (sab-earlier! 'spa 'n 1 `(LIST RECEIVED ,l) l noearly
+            (lambda () (ass))
+            (list `(= (NTH 1 n) (succ ,q)) `(<= 1 ,q)))))))
+  )
+(qed 'separate-trace-no-origin)
+
+;;; -----------------------------------------------------------------------
+;;; The five assembled, and the bound.
+
+;; Land the projection CLAIM of the predicate hypothesis HYP on a lane.
+(define (sab-project! pred hyp claim)
+  (dk-have! claim (lambda () (mac-h pred hyp) (dk-split-all!) (ass)))
+  claim)
+
+(define (sab-isp-laws! isp)
+  (let ((h `(IS-INFILTRATED-SPACE ,isp)))
+    (sab-project! 'is-infiltrated-space h `(IS-STRAND-SPACE (ISPACE ,isp)))
+    (sab-project! 'is-infiltrated-space h
+      `(FORALL sat_ (IMPLIES (IN sat_ (ADV-TOKENS ,isp)) (IN sat_ (TOKENS (ISPACE ,isp))))))
+    (sab-project! 'is-infiltrated-space h
+      `(FORALL sap_ (IMPLIES (IN sap_ (ADV-IDS ,isp))
+         (IS-ADVERSARY-TRACE (TOKENS (ISPACE ,isp)) (ADV-TOKENS ,isp) ((STRAND-MAP (ISPACE ,isp)) sap_)))))))
+
+(sp (make-wff '(FORALL isp (FORALL u (FORALL n (IMPLIES (IS-INFILTRATED-SPACE isp)
+  (IMPLIES (IN u (TOKENS (ISPACE isp))) (IMPLIES (IN n (NODES (ISPACE isp))) (IMPLIES (IS-ADVERSARY-NODE isp n)
+  (IMPLIES (ORIGINATES (ISPACE isp) u n) (IN u (ADV-TOKENS isp))))))))))))
+(dk-peel!)
+(sab-isp-laws! 'isp)
+(let* ((spa '(ISPACE isp))
+       (pp '(ADV-TOKENS isp))
+       (sg (sab-sigma spa 'n))
+       (adv (sab-project! 'is-adversary-node '(IS-ADVERSARY-NODE isp n) '(IN (NTH 2 n) (ADV-IDS isp))))
+       (tr (dk-apply! (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'IS-ADVERSARY-TRACE))) "the trace law")
+                      '(NTH 2 n))))
+  (mac-h 'is-adversary-trace tr)
+  (let loop ((o (dk-pick (lambda (f) (and (dk-head-is? f 'OR) (dk-contains? f 'IS-TEXT-TRACE))) "the five kinds")))
+    (dk-each-leaf! (lambda () (ai o))
+      (lambda ()
+        (cond
+          ((dk-asm? `(IS-TEXT-TRACE (TOKENS ,spa) ,pp ,sg))
+           (fact 'text-trace-origin spa pp 'u 'n)
+           (ass))
+          ((dk-asm? `(IS-FLUSH-TRACE (TOKENS ,spa) ,sg))
+           (fact 'originates-sent spa 'u 'n)
+           (dk-split-all!)
+           (ai (dk-cite! 'flush-trace-no-sent spa 'n)))
+          ((dk-asm? `(IS-TEE-TRACE (TOKENS ,spa) ,sg))
+           (ai (dk-cite! 'tee-trace-no-origin spa 'u 'n)))
+          ((dk-asm? `(IS-CONCAT-TRACE (TOKENS ,spa) ,sg))
+           (ai (dk-cite! 'concat-trace-no-origin spa 'u 'n)))
+          ((dk-asm? `(IS-SEPARATE-TRACE (TOKENS ,spa) ,sg))
+           (ai (dk-cite! 'separate-trace-no-origin spa 'u 'n)))
+          (#t
+           (loop (dk-pick (lambda (f) (and (dk-head-is? f 'OR) (or (dk-contains? f 'IS-FLUSH-TRACE)
+                                                                   (dk-contains? f 'IS-TEE-TRACE)
+                                                                   (dk-contains? f 'IS-CONCAT-TRACE))))
+                          "the remaining kinds"))))))))
+(qed 'adversary-node-origin)
+
+;;; THE BOUND (Proposition 3.3, key-free).  C is a bundle of the infiltrated space isp (its space
+;;; is ISPACE(isp)); u is a token the adversary does not know; u originates on no regular node of
+;;; C.  Then u is a subterm of the content of no node of C.
+(sp (make-wff '(FORALL isp (FORALL c (FORALL u (IMPLIES (IS-INFILTRATED-SPACE isp) (IMPLIES (IS-BUNDLE c)
+  (IMPLIES (= (BSPACE c) (ISPACE isp))
+  (IMPLIES (IN u (TOKENS (ISPACE isp))) (IMPLIES (NOT (IN u (ADV-TOKENS isp)))
+  (IMPLIES (FORALL n (IMPLIES (IN n (BNODES c)) (IMPLIES (IS-REGULAR-NODE isp n) (NOT (ORIGINATES (ISPACE isp) u n)))))
+    (FORALL n (IMPLIES (IN n (BNODES c))
+      (NOT (IS-SUBTERM (TOKENS (ISPACE isp)) u (NODE-CONTENT (ISPACE isp) n))))))))))))))))
+(let* ((landed (dk-peel!))
+       (reg (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'IS-REGULAR-NODE))) landed))
+       (spa '(ISPACE isp))
+       (n0 (cadr (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (caddr f) '(BNODES c)))) landed)))
+       (ss `(SEP sbz_ (BNODES c) (IS-SUBTERM (TOKENS ,spa) u (NODE-CONTENT ,spa sbz_))))
+       (eqn '(= (BSPACE c) (ISPACE isp))))
+  (di)                                        ; u @ CONTENT(n0); goal FALSITY
+  (dk-have! `(FORALL z (IMPLIES (IN z ,ss) (IN z (BNODES c))))
+    (lambda () (dk-peel!) (sep-me (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (caddr f) ss))) (dk-asms))) (ass)))
+  (dk-have! `(FORSOME w (IN w ,ss)) (lambda () (ew n0) (in-sep! (lambda () (ass)) (lambda () (ass)))))
+  ;; the minimal member m of S (Lemma 2.7)
+  (let* ((m (dk-skolem! (dk-cite! 'bundle-minimal 'c ss)))
+         (minS (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f m) (dk-contains? f 'PRECEDES-STRICT)))
+                        "m minimal")))
+    (dk-have! `(IN ,m (BNODES c)) (lambda () (sep-me `(IN ,m ,ss)) (ass)))
+    (dk-have! `(IS-SUBTERM (TOKENS (BSPACE c)) u (NODE-CONTENT (BSPACE c) ,m))
+      (lambda () (subst eqn) (sep-me `(IN ,m ,ss)) (ass)))
+    (dk-have! `(FORALL z (IMPLIES (IN z (BNODES c)) (IMPLIES (IS-SUBTERM (TOKENS (BSPACE c)) u (NODE-CONTENT (BSPACE c) z))
+                 (NOT (IN (LIST z ,m) (PRECEDES-STRICT c))))))
+      (lambda ()
+        (subst eqn)
+        (dk-peel!)
+        (let ((z (cadr (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (caddr f) '(BNODES c))
+                                                    (not (equal? (cadr f) m)) (not (equal? (cadr f) n0))))
+                                   (dk-asms)))))
+          (dk-have! `(IN ,z ,ss) (lambda () (in-sep! (lambda () (ass)) (lambda () (ass)))))
+          (dk-apply! minS z)
+          (ass))))
+    ;; m originates u (Lemmas 2.8, 2.9), on the space of isp
+    (fact 'bundle-minimal-originates 'c 'u m)
+    (let ((orig (sab-rewrite! `(ORIGINATES (BSPACE c) u ,m) '(BSPACE c) spa)))
+      (fact 'bundle-space 'c)
+      (dk-apply! (dk-cite! 'bundle-nodes-in-space 'c) m)
+      (sab-rewrite! `(IN ,m (NODES (BSPACE c))) '(BSPACE c) spa)
+      (use-em `(IS-ADVERSARY-NODE isp ,m)
+        ;; an adversary node: u is known, against the hypothesis
+        (lambda ()
+          (fact 'adversary-node-origin 'isp 'u m)
+          (ai '(NOT (IN u (ADV-TOKENS isp)))))
+        ;; a regular node: u does not originate there, against Lemma 2.9
+        (lambda ()
+          (dk-have! `(IS-REGULAR-NODE isp ,m)
+            (lambda ()
+              (mac 'is-regular-node)
+              (di)
+              (dk-have! `(IS-ADVERSARY-NODE isp ,m) (lambda () (mac 'is-adversary-node) (ass)))
+              (ai `(NOT (IS-ADVERSARY-NODE isp ,m)))))
+          (ai (dk-apply! reg m)))))))
+(qed 'adversary-bound)
+
+;;; The paper's "in particular": for an adversary node p of C, u is not a subterm of CONTENT(p).
+(sp (make-wff '(FORALL isp (FORALL c (FORALL u (IMPLIES (IS-INFILTRATED-SPACE isp) (IMPLIES (IS-BUNDLE c)
+  (IMPLIES (= (BSPACE c) (ISPACE isp))
+  (IMPLIES (IN u (TOKENS (ISPACE isp))) (IMPLIES (NOT (IN u (ADV-TOKENS isp)))
+  (IMPLIES (FORALL n (IMPLIES (IN n (BNODES c)) (IMPLIES (IS-REGULAR-NODE isp n) (NOT (ORIGINATES (ISPACE isp) u n)))))
+    (FORALL n (IMPLIES (IN n (BNODES c)) (IMPLIES (IS-ADVERSARY-NODE isp n)
+      (NOT (IS-SUBTERM (TOKENS (ISPACE isp)) u (NODE-CONTENT (ISPACE isp) n)))))))))))))))))
+(let* ((landed (dk-peel!))
+       (n (cadr (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (caddr f) '(BNODES c)))) landed))))
+  (dk-apply! (dk-cite! 'adversary-bound 'isp 'c 'u) n)
+  (dk-ass!))
+(qed 'adversary-bound-adversary-nodes)
+
+
+;; (IN (NTH i l) (MSG-SET T)) from i in NN, 1 <= i, i <= LENGTH(l), l in TUPLES(MSG-SET T) in context.
+(define (sml-nth-in-sab! i)
+  (let ((goal `(IN (NTH ,i l) (MSG-SET T))))
+    (if (not (dk-asm? goal))
+        (begin
+          (sab-have-and! `(IN ,i NN) '(IN l (TUPLES (MSG-SET T))) `(<= 1 ,i) `(<= ,i (LENGTH l)))
+          (fact 'nth-in-range '(MSG-SET T) i 'l)))
+    goal))
+
+;;; -----------------------------------------------------------------------
+;;; EXISTENCE of the n-ary traces (finding (g)): for every list l of messages there IS a
+;;; separation trace and a concatenation trace, built by `tuple-tabulation' (the S trace as
+;;; CONS of the received list onto the tabulated sent components; the C trace tabulated over
+;;; succ(LENGTH l) by an IF on the index).  No list law was missing.
+
+(sp (make-wff '(AND (IN SENT (PAIR SENT RECEIVED)) (IN RECEIVED (PAIR SENT RECEIVED)))))
+(dk-have! '(IN SENT SET)
+  (lambda () (subst (dk-cite! 'sent-def)) (fact 'nn-zero-in) (fact 'membership-implies-sethood 0 'NN) (ass)))
+(dk-have! '(IN RECEIVED SET)
+  (lambda () (subst (dk-cite! 'received-def)) (fact 'nn-one-in) (fact 'membership-implies-sethood 1 'NN) (ass)))
+(sab-have-and! '(IN SENT SET) '(IN RECEIVED SET))
+(fact 'pairing-membership 'SENT 'RECEIVED)
+(let ((univ (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-head-is? (caddr f) 'IFF) (dk-contains? f 'RECEIVED)))
+                     "the pairing universal")))
+  (dk-conj-close!
+    (lambda ()
+      (let* ((v (cadr (dk-goal))) (iff (dk-apply! univ v)))
+        (dk-have! `(OR (= ,v SENT) (= ,v RECEIVED))
+          (lambda () (if (eq? v 'SENT) (oi-l) (oi-r)) (rfl)))
+        (dk-only! iff `(OR (= ,v SENT) (= ,v RECEIVED)))
+        (prop)))))
+(qed 'sent-received-in-pair)
+
+(sp (make-wff '(FORALL T (FORALL g (IMPLIES (IN g (MSG-SET T))
+   (AND (IN (LIST SENT g) (DIRECTED T)) (IN (LIST RECEIVED g) (DIRECTED T))))))))
+(dk-peel!)
+(fact 'sent-received-in-pair)
+(dk-split-all!)
+(dk-conj-close!
+  (lambda ()
+    (mac 'DIRECTED)
+    (let ((d (cadr (cadr (dk-goal)))))
+      (fact 'pair-in-cartesian '(PAIR SENT RECEIVED) '(MSG-SET T) d 'g)
+      (ass))))
+(qed 'directed-intro)
+
+;; (IN (LIST dir g) (DIRECTED T)) from (IN g (MSG-SET T)) in context.
+(define (sab-directed! tt dir g)
+  (fact 'directed-intro tt g)
+  (dk-split-all!)
+  `(IN (LIST ,dir ,g) (DIRECTED ,tt)))
+
+(sp (make-wff '(FORALL T (FORALL l (IMPLIES (IN l (TUPLES (MSG-SET T)))
+   (FORSOME s (AND (IN s (STRANDS T)) (IS-SEPARATE-TRACE T s))))))))
+(dk-peel!)
+(let* ((aa '(DIRECTED T))
+       (len '(LENGTH l))
+       (f '(VNB-LAMBDA sev_ NN (LIST SENT (NTH sev_ l))))
+       (hyp `(FORALL sei_ (IMPLIES (AND (IN sei_ NN) (AND (<= 1 sei_) (<= sei_ ,len))) (IN (,f sei_) ,aa)))))
+  (fact 'length-in-nn '(MSG-SET T) 'l)
+  (fact 'list-in-msgs 'T 'l)
+  (dk-have! hyp
+    (lambda ()
+      (dk-peel!)
+      (dk-split-all!)
+      (let ((i (cadr (cadr (dk-goal)))))
+        (sml-nth-in-sab! i)
+        (dk-lam-b!)
+        (sab-directed! 'T 'SENT `(NTH ,i l))
+        (ass))))
+  (sab-directed! 'T 'RECEIVED 'l)                ; certifies DIRECTED(T) for the instantiation
+  (let* ((ex (dk-cite! 'tuple-tabulation len aa f))
+         (mm (dk-skolem! ex))
+         (tab (dk-pick (lambda (f2) (and (dk-head-is? f2 'FORALL) (dk-contains? f2 mm) (dk-contains? f2 'VNB-LAMBDA)))
+                       "the tabulated entries"))
+         (x '(LIST RECEIVED l))
+         (s `(CONS ,x ,mm)))
+    (sab-directed! 'T 'RECEIVED 'l)
+    (sab-have-and! `(IN ,x ,aa) `(IN ,mm (TUPLES ,aa)))
+    (fact 'cons-in-tuples aa x mm)
+    (ew s)
+    (dk-conj-close!
+      (lambda ()
+        (if (dk-head-is? (dk-goal) 'IN)
+            (begin (mac 'STRANDS) (ass))
+            (begin
+              (mac 'is-separate-trace)
+              (ew 'l)
+              (dk-conj-close!
+                (lambda ()
+                  (let ((g (dk-goal)))
+                    (cond
+                      ((dk-asm? g) (ass))
+                      ((and (dk-head-is? g '=) (dk-head-is? (cadr g) 'LENGTH))
+                       (subst (dk-cite! 'length-cons x mm))
+                       (subst `(= (LENGTH ,mm) ,len))
+                       (rfl))
+                      ((dk-head-is? g '=)
+                       (fact 'nth-cons-1 x mm)
+                       (ass))
+                      (#t
+                       (dk-peel!)
+                       (let* ((g2 (dk-goal))                    ; (= (NTH (succ i) s) (LIST SENT (NTH i l)))
+                              (i (cadr (cadr (cadr g2)))))
+                         (sml-nth-in-sab! i)
+                         (dk-have! `(<= ,i (LENGTH ,mm)) (lambda () (subst `(= (LENGTH ,mm) ,len)) (ass)))
+                         (sab-have-and! `(IN ,i NN) `(<= 1 ,i) `(<= ,i (LENGTH ,mm)))
+                         (fact 'nth-cons-succ i x mm)
+                         (sab-have-and! `(IN ,i NN) `(<= 1 ,i) `(<= ,i ,len))
+                         (dk-apply! tab i)
+                         (subst `(= (NTH (succ ,i) ,s) (NTH ,i ,mm)))
+                         (subst `(= (NTH ,i ,mm) (,f ,i)))
+                         (sab-directed! 'T 'SENT `(NTH ,i l))     ; certifies the list term for rfl
+                         (if (not (dk-lam-b!)) (rfl))))))))))))))
+(qed 'separate-trace-exists)
+
+(sp (make-wff '(FORALL T (FORALL l (IMPLIES (IN l (TUPLES (MSG-SET T)))
+   (FORSOME s (AND (IN s (STRANDS T)) (IS-CONCAT-TRACE T s))))))))
+(dk-peel!)
+(let* ((aa '(DIRECTED T))
+       (len '(LENGTH l))
+       (f `(VNB-LAMBDA cev_ NN (IF (<= cev_ ,len) (LIST RECEIVED (NTH cev_ l)) (LIST SENT l))))
+       (hyp `(FORALL cei_ (IMPLIES (AND (IN cei_ NN) (AND (<= 1 cei_) (<= cei_ (succ ,len)))) (IN (,f cei_) ,aa)))))
+  (fact 'length-in-nn '(MSG-SET T) 'l)
+  (fact 'list-in-msgs 'T 'l)
+  (fact 'nn-succ-closed len)
+  (dk-have! hyp
+    (lambda ()
+      (dk-peel!)
+      (dk-split-all!)
+      (let ((i (cadr (cadr (dk-goal)))))
+        (dk-lam-b!)
+        (dk-case-if! (cadr (dk-goal))
+          (lambda (true? v)
+            (if true?
+                (begin (sml-nth-in-sab! i) (sab-directed! 'T 'RECEIVED `(NTH ,i l)) (ass))
+                (begin (sab-directed! 'T 'SENT 'l) (ass))))))))
+  (sab-directed! 'T 'SENT 'l)                    ; certifies DIRECTED(T) for the instantiation
+  (let* ((ex (dk-cite! 'tuple-tabulation `(succ ,len) aa f))
+         (mm (dk-skolem! ex))
+         (tab (dk-pick (lambda (f2) (and (dk-head-is? f2 'FORALL) (dk-contains? f2 mm) (dk-contains? f2 'VNB-LAMBDA)))
+                       "the tabulated entries")))
+    (ew mm)
+    (dk-conj-close!
+      (lambda ()
+        (if (dk-head-is? (dk-goal) 'IN)
+            (begin (mac 'STRANDS) (ass))
+            (begin
+              (mac 'is-concat-trace)
+              (ew 'l)
+              (dk-conj-close!
+                (lambda ()
+                  (let ((g (dk-goal)))
+                    (cond
+                      ((dk-asm? g) (ass))
+                      ((dk-head-is? g 'FORALL)                 ; the received entries
+                       (dk-peel!)
+                       (let ((i (cadr (cadr (dk-goal)))))
+                         (dk-have! `(<= ,i (succ ,len)) (lambda () (dk-nn! `(<= ,i ,len))))
+                         (sab-have-and! `(IN ,i NN) `(<= 1 ,i) `(<= ,i (succ ,len)))
+                         (dk-apply! tab i)
+                         (subst `(= (NTH ,i ,mm) (,f ,i)))
+                         (dk-lam-b!)
+                         (dk-if-branch! #t (cadr (dk-goal)) #f
+                           (lambda () (sml-nth-in-sab! i) (sab-directed! 'T 'RECEIVED `(NTH ,i l)) (rfl)))))
+                      (#t                                      ; the sent entry, at succ(LENGTH l)
+                       (dk-have! `(<= 1 (succ ,len)) (lambda () (dk-nn!)))
+                       (dk-have! `(<= (succ ,len) (succ ,len)) (lambda () (dk-nn!)))
+                       (sab-have-and! `(IN (succ ,len) NN) `(<= 1 (succ ,len)) `(<= (succ ,len) (succ ,len)))
+                       (dk-apply! tab `(succ ,len))
+                       (subst `(= (NTH (succ ,len) ,mm) (,f (succ ,len))))
+                       (dk-lam-b!)
+                       (dk-if-branch! #f (cadr (dk-goal))
+                         (lambda () (fact 'nn-succ-not-le len) (ass))
+                         (lambda () (sab-directed! 'T 'SENT 'l) (rfl))))))))))))))
+(qed 'concat-trace-exists)
+
+(for-each (lambda (n) (topic! n 'constructions))
+          '(sent-received-in-pair directed-intro separate-trace-exists concat-trace-exists nn-le-ne-succ text-trace-origin flush-trace-no-sent tee-trace-no-origin concat-trace-no-origin
+            separate-trace-no-origin adversary-node-origin adversary-bound adversary-bound-adversary-nodes))
