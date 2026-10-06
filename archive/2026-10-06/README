@@ -1,0 +1,2 @@
+strand-messages.scm       -- S-1's paper-model message algebra (ATOM/CAT/ENC, keys, MESSAGE-ALGEBRA), replaced in place by S-2 on the user's model (notes-60): tokens and n-ary lists, 2026-10-06.
+strand-messages-laws.scm  -- S-1's 56 theorems on that algebra, replaced in place by S-2's re-proof on the new shapes, 2026-10-06.

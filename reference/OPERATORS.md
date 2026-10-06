@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-619 operators: 3 functions, 11 syntax, 366 functoids, 236 predicates, 3 undeclared.
+662 operators: 3 functions, 11 syntax, 385 functoids, 260 predicates, 3 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (366)
+## Functoids  (385)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -74,13 +74,15 @@ Declared by: `amgm-2-sqrt` `bdd-fn-le-arg` `bdd-fn-lt-one` `bdd-fn-mono` `bdd-fn
 
 > _Reads as:_  the addition of s
 
+### `adv-ids`  — structure accessor · element (slot value)
+
+> _Reads as:_  the adv-ids slot of s
+
+### `adv-tokens`  — structure accessor · element (slot value)
+
+> _Reads as:_  the adv-tokens slot of s
+
 ### `apply-functoid`  — implicit application operator (the invisible head of `f(args)`)
-
-### `atom`  — def-functoid · tuple/structure-valued
-
-> _Reads as:_  the atomic message sma_
-
-    atom(sma_) := [0, sma_]
 
 ### `ball`  — def-functoid · set-valued
 
@@ -126,9 +128,25 @@ Declared by: `bintimes-apply` `etimes-def` `etimes-real-defined` `nary-times-2` 
 
     block(p, k, l) := matof(k, l, vnb-lambda([i, j], cartesian(interval(1, k), interval(1, l)), entry(p, i, j)))
 
+### `bnext`  — structure accessor · element (slot value)
+
+> _Reads as:_  the bnext slot of s
+
+### `bnodes`  — structure accessor · element (slot value)
+
+> _Reads as:_  the bnodes slot of s
+
 ### `border`  — def-functoid · element/number-valued
 
     border(a, b, m, p, q) := matof(succ(p), succ(q), vnb-lambda([i, j], cartesian(interval(1, succ(p)), interval(1, succ(q))), if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))
+
+### `bsend`  — structure accessor · element (slot value)
+
+> _Reads as:_  the bsend slot of s
+
+### `bspace`  — structure accessor · element (slot value)
+
+> _Reads as:_  the bspace slot of s
 
 ### `c-int`  — def-functoid · element/number-valued
 
@@ -177,12 +195,6 @@ Declared by: `bintimes-apply` `etimes-def` `etimes-real-defined` `nary-times-2` 
 > _Reads as:_  the carrier of s
 
 ### `cartesian`  — kernel term-former
-
-### `cat`  — def-functoid · tuple/structure-valued
-
-> _Reads as:_  the concatenation of smg_ and smh_
-
-    cat(smg_, smh_) := [1, smg_, smh_]
 
 ### `cauchy-setoid`  — def-functoid · tuple/structure-valued
 
@@ -348,6 +360,12 @@ Declared by: `comb-kk-zero` `comb-kk-succ`
 
 Declared by: `cons-in-tuples` `length-cons` `makeset-cons` `nth-cons-1` `nth-cons-succ` `tuple-cons-decompose` 
 
+### `content-of`  — def-functoid · element/number-valued
+
+> _Reads as:_  the content of the directed message ssd_
+
+    content-of(ssd_) := nth(2, ssd_)
+
 ### `conv3`  — def-functoid · set-valued
 
 > _Reads as:_  the convex hull of cva_, cvb_, cvc_
@@ -419,6 +437,18 @@ Declared by: `det-zero` `det-cofactor`
 ### `dir-deriv`  — def-functoid · element/number-valued
 
     dir-deriv(m, f, a, eta) := deriv(seg-curve(m, f, a, eta), 0)
+
+### `dir-of`  — def-functoid · element/number-valued
+
+> _Reads as:_  the direction of the directed message ssd_
+
+    dir-of(ssd_) := nth(1, ssd_)
+
+### `directed`  — def-functoid · set-valued
+
+> _Reads as:_  the directed messages over the tokens sst_
+
+    directed(sst_) := cartesian(pair(sent, received), msg-set(sst_))
 
 ### `discrete-space`  — def-functoid · tuple/structure-valued
 
@@ -511,12 +541,6 @@ Declared by: `det-zero` `det-cofactor`
 ### `embed-seq`  — def-functoid · function-valued
 
     embed-seq(m, u) := vnb-lambda(n, nn, u)
-
-### `enc`  — def-functoid · tuple/structure-valued
-
-> _Reads as:_  the encryption of smg_ under the key smk_
-
-    enc(smg_, smk_) := [2, smg_, smk_]
 
 ### `entry`  — def-functoid · element/number-valued
 
@@ -642,6 +666,12 @@ Declared by: `fam-of-list-apply`
 
     hom-bounded-linear(a, b) := {homf_ in fun(vec(a), vec(b)): is-bounded-linear-arrow(a, b, homf_)}
 
+### `hom-bundle`  — def-functoid · set-valued
+
+> _Reads as:_  the bundle morphisms from a to b
+
+    hom-bundle(a, b) := {homf_ in fun(bnodes(a), bnodes(b)): is-hom-bundle(a, b, homf_)}
+
 ### `hom-c-continuous`  — def-functoid · set-valued
 
 > _Reads as:_  the continuous maps of countably-metrised spaces from a to b
@@ -702,6 +732,12 @@ Declared by: `fam-of-list-apply`
 
     hom-group(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-group(a, b, homf_)}
 
+### `hom-infiltrated-space`  — def-functoid · set-valued
+
+> _Reads as:_  the infiltrated space morphisms from a to b
+
+    hom-infiltrated-space(a, b) := {homp_ in cartesian(fun(adv-ids(a), adv-ids(b)), fun(adv-tokens(a), adv-tokens(b))): is-hom-infiltrated-space(a, b, nth(1, homp_), nth(2, homp_))}
+
 ### `hom-integral-domain`  — def-functoid · set-valued
 
 > _Reads as:_  the integral domain morphisms from a to b
@@ -725,12 +761,6 @@ Declared by: `fam-of-list-apply`
 > _Reads as:_  the measure space morphisms from a to b
 
     hom-measure-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-measure-space(a, b, homf_)}
-
-### `hom-message-algebra`  — def-functoid · set-valued
-
-> _Reads as:_  the message algebra morphisms from a to b
-
-    hom-message-algebra(a, b) := {homp_ in cartesian(fun(texts(a), texts(b)), fun(keys(a), keys(b))): is-hom-message-algebra(a, b, nth(1, homp_), nth(2, homp_))}
 
 ### `hom-metric-space`  — def-functoid · set-valued
 
@@ -810,6 +840,12 @@ Declared by: `fam-of-list-apply`
 
     hom-setoid(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-setoid(a, b, homf_)}
 
+### `hom-strand-space`  — def-functoid · set-valued
+
+> _Reads as:_  the strand space morphisms from a to b
+
+    hom-strand-space(a, b) := {homp_ in cartesian(fun(tokens(a), tokens(b)), fun(ids(a), ids(b))): is-hom-strand-space(a, b, nth(1, homp_), nth(2, homp_))}
+
 ### `hom-top-space`  — def-functoid · set-valued
 
 > _Reads as:_  the top space morphisms from a to b
@@ -834,6 +870,12 @@ Declared by: `fam-of-list-apply`
 
     id-fun(a_) := vnb-lambda(idfx_, a_, idfx_)
 
+### `id-of`  — def-functoid · element/number-valued
+
+> _Reads as:_  the strand identifier of the node ssn_
+
+    id-of(ssn_) := nth(2, ssn_)
+
 ### `iden`  — structure accessor · element (slot value)
 
 > _Reads as:_  the identity element of s
@@ -846,6 +888,10 @@ Declared by: `fam-of-list-apply`
 
 > _Reads as:_  the distinguished ideal of s
 
+### `ids`  — structure accessor · element (slot value)
+
+> _Reads as:_  the ids slot of s
+
 ### `if`  — kernel term-former
 
 ### `image`  — kernel term-former
@@ -855,6 +901,12 @@ Declared by: `fam-of-list-apply`
 > _Reads as:_  the improper integral of ipf_ over (0, +inf)
 
     improper-int(ipf_) := iota(ipv_, improper-int-converges-to(ipf_, ipv_))
+
+### `index-of`  — def-functoid · element/number-valued
+
+> _Reads as:_  the index of the node ssn_
+
+    index-of(ssn_) := nth(1, ssn_)
 
 ### `indicator`  — def-functoid · function-valued
 
@@ -924,6 +976,10 @@ Declared by: `fam-of-list-apply`
 
 ### `is-fun`  — unknown registry kind
 
+### `ispace`  — structure accessor · element (slot value)
+
+> _Reads as:_  the ispace slot of s
+
 ### `juxta`  — def-functoid · function-valued
 
 > _Reads as:_  the juxtaposition of jxp_ on [jxa_, jxb_] and jxq_ on [jxb_, jxc_]
@@ -933,14 +989,6 @@ Declared by: `fam-of-list-apply`
 ### `keep-set`  — def-functoid · set-valued
 
     keep-set(phi, grd, porel, kset, alpha) := {y in grd: y = phi(alpha) and forall([z in kset], [z, y] in porel)}
-
-### `keys`  — structure accessor · element (slot value)
-
-> _Reads as:_  the keys slot of s
-
-### `kinv`  — structure accessor · element (slot value)
-
-> _Reads as:_  the kinv slot of s
 
 ### `lastcoeff-set`  — def-functoid · set-valued
 
@@ -1084,23 +1132,19 @@ Declared by: `mpow-zero` `mpow-succ`
 
 ### `msg-rank`  — def-functoid · element/number-valued
 
-> _Reads as:_  the rank of the message smm_ over the texts smt_ and the keys smk_
+> _Reads as:_  the rank of the message smm_ over the tokens smt_
 
-    msg-rank(smt_, smk_, smm_) := iota(smr_, smr_ in nn and smm_ in msg-stage(smt_, smk_, smr_) and forall([smj_ in nn], smm_ in msg-stage(smt_, smk_, smj_) implies smr_ <= smj_))
+    msg-rank(smt_, smm_) := iota(smr_, smr_ in nn and smm_ in msg-stage(smt_, smr_) and forall([smj_ in nn], smm_ in msg-stage(smt_, smj_) implies smr_ <= smj_))
 
 ### `msg-set`  — def-functoid · set-valued
 
-> _Reads as:_  the messages over the texts smt_ and the keys smk_
+> _Reads as:_  the messages over the tokens smt_
 
-    msg-set(smt_, smk_) := big-union(smn_, nn, msg-stage(smt_, smk_, smn_))
+    msg-set(smt_) := big-union(smn_, nn, msg-stage(smt_, smn_))
 
 ### `msg-stage`  — kernel primitive (notation-declared, no def-*)
 
 > _Reads as:_  msg-stage()
-
-### `msgs`  — structure accessor · element (slot value)
-
-> _Reads as:_  the msgs slot of s
 
 ### `mul`  — structure accessor · element (slot value)
 
@@ -1151,6 +1195,24 @@ Declared by: `nn-minus-def`
 > _Reads as:_  the second component of n_
 
     nnsnd(n_) := iota(b_, b_ in nn and forsome([a_ in nn], nnpair(a_, b_) = n_))
+
+### `node-content`  — def-functoid · element/number-valued
+
+> _Reads as:_  the content of the node ssn_ of ssp_
+
+    node-content(ssp_, ssn_) := nth(2, nth(nth(1, ssn_), (strand-map(ssp_))(nth(2, ssn_))))
+
+### `node-dir`  — def-functoid · element/number-valued
+
+> _Reads as:_  the direction of the node ssn_ of ssp_
+
+    node-dir(ssp_, ssn_) := nth(1, nth(nth(1, ssn_), (strand-map(ssp_))(nth(2, ssn_))))
+
+### `nodes`  — def-functoid · set-valued
+
+> _Reads as:_  the nodes of the strand space ssp_
+
+    nodes(ssp_) := {ssn_ in cartesian(nn, ids(ssp_)): 1 <= nth(1, ssn_) and nth(1, ssn_) <= length((strand-map(ssp_))(nth(2, ssn_)))}
 
 ### `non-zero`  — structure accessor · element (slot value)
 
@@ -1229,6 +1291,24 @@ Declared by: `pi-def`
     poly(a) := monalg(a, nn-add-monoid)
 
 ### `power`  — kernel term-former
+
+### `prec-strict`  — def-functoid · set-valued
+
+> _Reads as:_  the strict causal precedence on the nodes snd_ of spc_ generated by the edges ssd_
+
+    prec-strict(spc_, snd_, ssd_) := {ssp_ in cartesian(snd_, snd_): forall([ssq_ in power(cartesian(snd_, snd_))], is-prec-closed(spc_, snd_, ssd_, ssq_) implies ssp_ in ssq_)}
+
+### `precedes`  — def-functoid · set-valued
+
+> _Reads as:_  the causal precedence of the bundle ssc_
+
+    precedes(ssc_) := union(precedes-strict(ssc_), {ssp_ in cartesian(bnodes(ssc_), bnodes(ssc_)): nth(1, ssp_) = nth(2, ssp_)})
+
+### `precedes-strict`  — def-functoid · element/number-valued
+
+> _Reads as:_  the strict causal precedence of the bundle ssc_
+
+    precedes-strict(ssc_) := prec-strict(bspace(ssc_), bnodes(ssc_), bsend(ssc_))
 
 ### `pred`  — def-functoid · element/number-valued
 
@@ -1351,6 +1431,10 @@ Declared by: `qq-ring-def`
 ### `ran`  — def-functoid · set-valued
 
     ran(f) := image(f, dom(f))
+
+### `received`  — characterized by axioms (def-constant)
+
+Declared by: `received-def` 
 
 ### `recip-star`  — def-functoid · element/number-valued
 
@@ -1476,6 +1560,10 @@ Declared by: `rr-pos-star-add-monoid-def`
 
     seg-path(sgp_, sgq_) := vnb-lambda(sgs_, ccint(0, 1), sgp_ + sgs_ * (sgq_ - sgp_))
 
+### `sent`  — characterized by axioms (def-constant)
+
+Declared by: `sent-def` 
+
 ### `sep`  — kernel term-former
 
 ### `seq-limit`  — def-functoid · element/number-valued
@@ -1552,6 +1640,16 @@ Declared by: `intersection-decompose` `union-decompose`
 
     sqrt(a_) := iota(x_, x_ in rr and 0 <= x_ and x_ * x_ = a_)
 
+### `strand-map`  — structure accessor · element (slot value)
+
+> _Reads as:_  the strand-map slot of s
+
+### `strands`  — def-functoid · element/number-valued
+
+> _Reads as:_  the strands over the tokens sst_
+
+    strands(sst_) := tuples(directed(sst_))
+
 ### `submat`  — def-functoid · element/number-valued
 
     submat(s, p, q) := matof(p, q, vnb-lambda([i, j], cartesian(interval(1, p), interval(1, q)), entry(s, succ(i), succ(j))))
@@ -1574,9 +1672,9 @@ Declared by: `intersection-decompose` `union-decompose`
 
 ### `subterm-rel`  — def-functoid · set-valued
 
-> _Reads as:_  the subterm relation over the texts smt_ and the keys smk_
+> _Reads as:_  the subterm relation over the tokens smt_
 
-    subterm-rel(smt_, smk_) := {smp_ in cartesian(msg-set(smt_, smk_), msg-set(smt_, smk_)): forall([smq_ in power(cartesian(msg-set(smt_, smk_), msg-set(smt_, smk_)))], is-subterm-closed(smt_, smk_, smq_) implies smp_ in smq_)}
+    subterm-rel(smt_) := {smp_ in cartesian(msg-set(smt_), msg-set(smt_)): forall([smq_ in power(cartesian(msg-set(smt_), msg-set(smt_)))], is-subterm-closed(smt_, smq_) implies smp_ in smq_)}
 
 ### `succ_ord`  — characterized by axiom(s)
 
@@ -1640,9 +1738,9 @@ Declared by: `taylor-poly-v-zero` `taylor-poly-v-succ`
 
     taylor-term(d, b, tv_) := vnb-lambda(tk_, nn, ((d(tk_))(tv_) * (b - tv_) ^ tk_) * recip(factorial(tk_)))
 
-### `texts`  — structure accessor · element (slot value)
+### `tokens`  — structure accessor · element (slot value)
 
-> _Reads as:_  the texts slot of s
+> _Reads as:_  the tokens slot of s
 
 ### `trace`  — def-functoid · set-valued
 
@@ -1754,7 +1852,7 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (236)
+## Predicates  (260)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -1898,6 +1996,14 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  f is absolutely summable in grp
 
+### `is-adversary-node`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  san_ is an adversary node of sai_
+
+### `is-adversary-trace`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  sas_ is an adversary trace for the adversary knowing sap_ over the tokens sat_
+
 ### `is-algebra-of-sets`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  ca is an algebra of subsets of omega
@@ -1933,6 +2039,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-bounded-metric-space`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is a bounded metric space
+
+### `is-bundle`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is a bundle
 
 ### `is-c-continuous-arrow`  — def-predicate · proposition (arity 3)
 
@@ -1989,6 +2099,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-complex-inner-product-space`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is a complex inner product space
+
+### `is-concat-trace`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  sas_ is a concatenation trace over the tokens sat_
 
 ### `is-connected`  — def-predicate · proposition (arity 2)
 
@@ -2054,6 +2168,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  mulop distributes over addop on crr
 
+### `is-entry-point`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the node ssn_ of ssp_ is an entry point into ssi_
+
 ### `is-eps-cauchy-seq`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  y is eps-Cauchy in s
@@ -2086,6 +2204,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  m is finite dimensional
 
+### `is-flush-trace`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  sas_ is a flushing trace over the tokens sat_
+
 ### `is-frechet-structure`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  (m, fam) is a Frechet space
@@ -2107,6 +2229,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 > _Reads as:_  s is Hausdorff
 
 ### `is-hom-abelian-group`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a homomorphism from a to b
+
+### `is-hom-bundle`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is a homomorphism from a to b
 
@@ -2142,6 +2268,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  f is a homomorphism from a to b
 
+### `is-hom-infiltrated-space`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  is-hom-infiltrated-space(a, b, f1, f2)
+
 ### `is-hom-integral-domain`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is a homomorphism from a to b
@@ -2153,10 +2283,6 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-hom-measure-space`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is a measure-preserving measurable map from s to t
-
-### `is-hom-message-algebra`  — def-predicate · proposition (arity 3)
-
-> _Reads as:_  is-hom-message-algebra(a, b, f1, f2)
 
 ### `is-hom-metric-space`  — def-predicate · proposition (arity 3)
 
@@ -2210,6 +2336,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  f is a setoid morphism from a to b
 
+### `is-hom-strand-space`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  is-hom-strand-space(a, b, f1, f2)
+
 ### `is-hom-top-space`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is continuous from s to t
@@ -2229,6 +2359,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-identity`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  unit is an identity for op on crr
+
+### `is-infiltrated-space`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is an infiltrated strand space
 
 ### `is-integral-domain`  — def-predicate · proposition (arity 1)
 
@@ -2309,10 +2443,6 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-measure-space`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is a measure space
-
-### `is-message-algebra`  — def-predicate · proposition (arity 1)
-
-> _Reads as:_  s is a message algebra
 
 ### `is-metric`  — def-predicate · proposition (arity 2)
 
@@ -2414,6 +2544,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  f is piecewise continuous on [a, b]
 
+### `is-prec-closed`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  srl_ contains ssd_ and the strand order of spc_ on snd_, and is transitive
+
 ### `is-primitive`  — def-predicate · proposition (arity 4)
 
 > _Reads as:_  rpg_ is a primitive of rpf_ on the interval [rpa_, rpb_]
@@ -2441,6 +2575,14 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-r-net`  — def-predicate · proposition (arity 4)
 
 > _Reads as:_  f is an r-net for a in s
+
+### `is-received`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  the node ssn_ of ssp_ is received
+
+### `is-regular-node`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  san_ is a regular node of sai_
 
 ### `is-regulated`  — def-predicate · proposition (arity 3)
 
@@ -2482,9 +2624,17 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  fam is a separating countable family of seminorms on m
 
+### `is-sent`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  the node ssn_ of ssp_ is sent
+
 ### `is-separable`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is separable
+
+### `is-separate-trace`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  sas_ is a separation trace over the tokens sat_
 
 ### `is-set`  — def-predicate · proposition (arity 1)
 
@@ -2506,6 +2656,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  f is a step function on [a, b]
 
+### `is-strand-space`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is a strand space
+
 ### `is-strictly-below`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  x is strictly below y under porel
@@ -2526,13 +2680,13 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  s is a subspace of m
 
-### `is-subterm`  — def-predicate · proposition (arity 4)
+### `is-subterm`  — def-predicate · proposition (arity 3)
 
-> _Reads as:_  sma_ is a subterm of smb_ over the texts smt_ and the keys smk_
+> _Reads as:_  sma_ is a subterm of smb_ over the tokens smt_
 
-### `is-subterm-closed`  — def-predicate · proposition (arity 3)
+### `is-subterm-closed`  — def-predicate · proposition (arity 2)
 
-> _Reads as:_  smr_ is closed under the subterm clauses over the texts smt_ and the keys smk_
+> _Reads as:_  smr_ is closed under the subterm clauses over the tokens smt_
 
 ### `is-summable`  — def-predicate · proposition (arity 2)
 
@@ -2541,6 +2695,18 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-taylor-family`  — def-predicate · proposition (arity 4)
 
 > _Reads as:_  d is a Taylor family of order n on a to b
+
+### `is-tee-trace`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  sas_ is a tee trace over the tokens sat_
+
+### `is-text-trace`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  sas_ is a text trace of the adversary knowing sap_ over the tokens sat_
+
+### `is-token-set`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  smt_ is a set of tokens, none of which is a list
 
 ### `is-top-space`  — def-predicate · proposition (arity 1)
 
@@ -2594,9 +2760,17 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  rad is a sequence of positive reals tending to zero
 
+### `occurs-in-space`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  ssu_ occurs in the strand space ssp_
+
 ### `odd`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  x is odd
+
+### `originates`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  ssu_ originates on the node ssn_ of ssp_
 
 ### `pointwise-bounded`  — def-predicate · proposition (arity 2)
 
@@ -2638,6 +2812,18 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  b is an upper bound of s
 
+### `same-strand-before`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  ssn_ comes strictly before ssm_ on one strand of ssp_
+
+### `same-strand-upto`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  ssn_ comes at or before ssm_ on one strand of ssp_
+
+### `sends-to`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the node ssn_ of ssp_ sends to the node ssm_
+
 ### `seq-compact`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is sequentially compact
@@ -2657,6 +2843,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `spans`  — def-predicate · proposition (arity 4)
 
 > _Reads as:_  the n vectors u span sm in md
+
+### `strand-next`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  ssm_ immediately follows ssn_ on one strand of ssp_
 
 ### `strictly-mono-nn`  — def-predicate · proposition (arity 1)
 
@@ -2689,6 +2879,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `totally-bounded`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is totally bounded
+
+### `uniquely-originates`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  ssu_ originates uniquely in the strand space ssp_
 
 ### `zz-coprime`  — def-predicate · proposition (arity 2)
 

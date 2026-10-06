@@ -1,99 +1,81 @@
-;;; strand-messages-laws.scm -- THE MESSAGE ALGEBRA OF STRAND SPACES: its laws.
-;;; (Thayer, Herzog, Guttman, "Strand Spaces: Proving Security Protocols Correct",
-;;;  ~/docs/jcs_strand_spaces.pdf, sections 2.3-2.4: Axioms 1 and 2, Definition 2.11,
-;;;  Proposition 2.12.)  Agent S-1 of the October roadmap, week 3, 2026-10-04.
-;;; The definitions are structure-library/strand-messages.scm; the design is
-;;; docs/strand-spaces-design-2026-10-03.md.  Helper prefix: sml-.
+;;; strand-messages-laws.scm -- THE MESSAGES OF STRAND SPACES (the user's model): their laws.
+;;; (~/notes/notes-60.txt item (a); the definitions are structure-library/strand-messages.scm.)
+;;; Agent S-2 of the October roadmap, week 3, 2026-10-06.  This file REPLACES, in place, S-1's
+;;; laws of the paper's algebra (archive/2026-10-06/strand-messages-laws.scm, 56 theorems on
+;;; ATOM / CAT / ENC); the method is S-1's, the shapes are the user's: a token, or an n-ary list
+;;; of messages.  Helper prefix: sml-.
 ;;;
-;;; Every theorem below bills `modulo 0'.  The oracles that appear on some of
-;;; them are `arith' (ground numeral facts: 0 /= 1, 2 in NN, for the tags) and
-;;; `ineq' (NN linear arithmetic, through dk-nn!, for the rank).  Nothing is
-;;; asserted, stamped or warranted.  T and K are the texts and the keys; A is
-;;; MSG-SET(T, K); "message" means a member of A.
+;;; Every theorem below bills `modulo 0'.  The oracles that appear on some of them are `arith'
+;;; (ground numeral facts) and `ineq' (NN linear arithmetic through dk-nn!, for the rank).
+;;; Nothing is asserted, stamped or warranted.  T is the token set; A is MSG-SET(T); "message"
+;;; means a member of A, "list of messages" a member of TUPLES(A).
 ;;;
-;;; WHAT IS PROVEN (56 theorems, in this order)
-;;;  1. atom-unfold, cat-unfold, enc-unfold          the constructors as citable == equations
-;;;  2. FREENESS (the paper's Axioms 1 and 2 are theorems of the encoding):
-;;;     atom-ne-cat, atom-ne-enc, cat-ne-enc         pairwise disjoint ranges (the tag)
-;;;     atom-injective, cat-injective, enc-injective (list components, NTH)
-;;;  3. pair-self-member, pair-self-eq               a set is the one member of PAIR(a, a)
-;;;  4. msg-stage-atom, -keep, -cat, -enc            the stage clauses, introduction
-;;;  5. msg-stage-zero-cases, msg-stage-succ-cases   ... and elimination
-;;;  6. msg-stage-add                                S_j is included in S_(j + d)
-;;;  7. msg-set-unfold, msg-set-intro, msg-set-elim  A is the union of the stages
-;;;  8. atom-in-msgs, cat-in-msgs, enc-in-msgs       the constructors build messages
-;;;  9. msg-induction                                STRUCTURAL INDUCTION, class form
-;;; 10. msg-cases                                    every message is an atom, a CAT or an ENC
-;;; 11. cartesian3-set, msg-stage-set, msg-set-is-set   sethood (replacement for the triples)
-;;; 12. message-algebra-msgs, texts-keys-disjoint, kinv-in-fun, kinv-involution,
-;;;     kinv-injective                               the structure's projections
-;;; 13. pair-in-cartesian-parts, subterm-rel-unfold, subterm-in-msgs, subterm-least,
-;;;     subterm-refl, subterm-enc, subterm-cat-left, subterm-cat-right
-;;;                                                  Definition 2.11: the clauses, minimality
-;;; 14. subterm-cases (INVERSION), subterm-trans, subterm-of-atom, subterm-of-enc,
-;;;     subterm-of-cat, subterm-enc-other-key (PROPOSITION 2.12)
-;;; 15. msg-rank-prop (the IOTA denotes), msg-stage-enc-inv, msg-stage-cat-inv,
-;;;     msg-rank-atom, msg-rank-enc, msg-rank-cat     the rank and its laws
-;;; 16. subterm-rank, subterm-antisym                a proper subterm has smaller rank;
-;;;                                                  the subterm relation is a partial order
+;;; WHAT IS PROVEN (in this order)
+;;;  1. pair-self-member, pair-self-eq            a set is the one member of PAIR(a, a)  [kept]
+;;;  2. msg-stage-token, -keep, -list             the stage clauses, introduction
+;;;     msg-stage-zero-elim, msg-stage-succ-cases ... and elimination
+;;;     msg-stage-add                             S_j is included in S_(j + d)            [kept]
+;;;  3. msg-set-unfold, msg-set-intro, msg-set-elim   A is the union of the stages         [kept]
+;;;     token-in-msgs                             a token is a message
+;;;     msg-stage-set, msg-set-is-set             sethood                                 [kept]
+;;;     msg-lists-are-lists                       a list of messages is a list (TUPLES(SET))
+;;;     list-in-some-stage                        a list of messages sits in TUPLES of ONE stage
+;;;                                               (list induction: the finitely many component
+;;;                                               stages have a common bound)
+;;;     list-in-msgs                              a list of messages is a message
+;;;  4. token-set-is-set, token-not-list          THE TOKEN LAW, read off IS-TOKEN-SET
+;;;     msg-induction                             STRUCTURAL INDUCTION, class form          [kept]
+;;;     msg-cases                                 a message is a token or a list            [kept]
+;;;     msg-cases-disjoint                        ... and not both (the token law)
+;;;  5. pair-in-cartesian-parts, subterm-rel-unfold, subterm-in-msgs, subterm-least,
+;;;     subterm-refl, subterm-component           the clauses, minimality
+;;;     subterm-cases (INVERSION), subterm-trans, subterm-of-token, subterm-of-list,
+;;;     token-subterm-of-list
+;;;  6. msg-rank-prop, msg-stage-list-inv, msg-rank-token, msg-rank-component,
+;;;     subterm-rank, subterm-antisym             the rank; the subterm relation is a partial order
 ;;;
-;;; THE TECHNIQUE.  (a) Stage hypotheses are opened on a LANE (there is no
-;;; hypothesis-side subst): the claim (IN m BODY) is proved by rewriting BODY back to
-;;; the stage term.  (b) Cartesian membership is opened by proving the implication
-;;; mem => chain with the primitive cartesian-decompose macete fired on its antecedent;
-;;; the chain is written with fixed binders cdv1_, cdv2_, ... so that the printed page
-;;; carries no counter-minted name.  (c) Every property of the subterm relation that
-;;; is not one of its four clauses is ONE device: subterm-least at the separation
-;;;     RR = { p in SUBTERM-REL(T, K) : exists u, v. p = [u, v] and COND(u, v) },
-;;; shown to be in POWER(A x A) (a set, as T and K are) and closed under the four
-;;; clauses; then every subterm pair satisfies COND.  COND is the inversion
-;;; disjunction for subterm-cases, "every subterm of u is one of v" for
-;;; subterm-trans, and "u = v or rank u < rank v" for subterm-rank.  `sml-closed-pairs!'
-;;; reduces each closure obligation to the one fact the new pair needs.
-;;; (d) The rank is an IOTA: `iota-d' with existence from nn-least-element over the
-;;; stage indices holding m, uniqueness from nn-le-antisym.
+;;; THE TECHNIQUE (S-1's, kept).  (a) A stage hypothesis is opened on a LANE: the claim
+;;; (IN m BODY) is proved by rewriting BODY back to the stage term (there is no hypothesis-side
+;;; subst).  (b) Every property of the subterm relation that is not one of its two clauses is
+;;; ONE device: `subterm-least' at the separation
+;;;     RR = { p in SUBTERM-REL(T) : exists u, v. p = [u, v] and COND(u, v) },
+;;; shown to be in POWER(A x A) (a set, as T is) and closed under the two clauses; then every
+;;; subterm pair satisfies COND.  COND is the inversion disjunction for subterm-cases, "every
+;;; subterm of u is one of v" for subterm-trans, "u = v or rank u < rank v" for subterm-rank.
+;;; `sml-closed-pairs!' reduces each closure obligation to the one fact the new pair needs.
+;;; (c) The rank is an IOTA: `iota-d' with existence from nn-least-element over the stage indices
+;;; holding m, uniqueness from nn-le-antisym.
 ;;;
-;;; TYPE BEFORE YOU INSTANTIATE: a predicate hypothesis IS-SUBTERM(T, K, a, ENC(g, y))
-;;; does not certify ENC(g, y) as defined, so every compound right-hand side is typed
-;;; (enc-in-msgs / cat-in-msgs) before anything is instantiated at it; that is why
-;;; subterm-of-enc, subterm-of-cat and Proposition 2.12 carry the typings of the
-;;; components (the paper's terms and keys range over A and K anyway).
+;;; TYPE BEFORE YOU INSTANTIATE: a predicate hypothesis IS-SUBTERM(T, a, NTH(i, l)) does not
+;;; certify NTH(i, l) as defined, so every component is typed by `nth-in-range' before anything
+;;; is instantiated at it.
 ;;;
-;;; LOAD WINDOW [lo, hi): lo = theorem-library/nn-least-element (load.scm line 1732),
-;;; the latest citation; the others: nn-order-proof (1172: nn-le-antisym),
-;;; nn-parity-proof (953: nn-succ-plus-one, through dk-nn!), subset-lemmas (940:
-;;; subclass-of-set-is-set), rr-order-basics (826: rr-lt-irrefl), nn-order-basics
-;;; (798: nn-in-rr), nn-order-ord (791: nn-zero-le), pair-tuple-sethood (776:
-;;; pair-in-cartesian), structure-library/injection (411: image-set), the base theory
-;;; and number-systems (primitive).  No late tactic (dk-nn!, dk-ineq! and ineq load
-;;; early).  hi = none yet (no citer).  structure-library/strand-messages must load
-;;; before this file and after structure-library/ordinals (def-by-nn-recursion).
+;;; WHAT CHANGED FROM S-1 (the table is in scratchpad/triage/WEEK3-REPORTS.md, S-2): the three
+;;; constructors and their freeness (9 theorems) are gone -- a token is itself, a list is a
+;;; TUPLES member, and "two lists with equal components are equal" is `tuple-extensionality'
+;;; (theorem-library/tuple-extensionality.scm), cited as it stands; the keys, KINV and
+;;; MESSAGE-ALGEBRA (6) are gone; Proposition 2.12 (keys) is gone; the binary rank laws became
+;;; one n-ary law, `msg-rank-component', which needs the TOKEN LAW (a list of rank 0 would be a
+;;; token); `list-in-some-stage' is new: an n-ary list's components sit in finitely many stages
+;;; and need a common bound, which S-1's binary CAT got from one addition.
+;;;
+;;; LOAD WINDOW: after theorem-library/tuples-induction, theorem-library/matof-in-mat
+;;; (tuples-mono), theorem-library/nn-least-element (the latest citation), pair-tuple-sethood,
+;;; nn-order-proof, nn-order-ord, rr-order-basics; structure-library/strand-messages before it.
+;;; The present slot (load.scm, after integral-laws) satisfies all of them.
 
 ;;; -----------------------------------------------------------------------
 ;;; helpers (prefix sml-)
 
 ;; `keep' the named formulas and close by `prop' -- unless `keep' found the kept
-;; sequent already proven, which GROUNDS the focus leaf (a bare `prop' after it
-;; would run on whatever leaf has the focus next).
+;; sequent already proven, which GROUNDS the focus leaf.
 (define (sml-keep-prop! . fs)
   (let ((node (proof-state-focus *ps*)))
     (apply dk-only! fs)
     (if (not (sequent-node-grounded? node)) (prop))))
 
-;; (= L1 L2) in context, L1 and L2 literal lists whose first entries are two
-;; DIFFERENT numerals: close the FALSITY goal.  The tag is read off both sides
-;; by NTH 1 (nth-r), the equation is used by `subst' (no congruence rule).
-(define (sml-tag-absurd! l1 l2)
-  (let ((t1 (cadr l1)) (t2 (cadr l2)))
-    (dk-have! `(= (NTH 1 ,l2) ,t2) (lambda () (nth-r) (rfl)))
-    (dk-have! `(= ,t1 (NTH 1 ,l2)) (lambda () (subst `(= ,l2 ,l1)) (nth-r) (rfl)))
-    (dk-have! `(= ,t1 ,t2) (lambda () (subst `(= ,t2 (NTH 1 ,l2))) (ass)))
-    (dk-have! `(NOT (= ,t1 ,t2)) (lambda () (arith)))
-    (ai `(NOT (= ,t1 ,t2)))))
-
-;; (= L1 L2) in context, literal lists of one length; the goal (= x y) with x the
-;; I-th entry of L1 and y the I-th entry of L2: rewrite y to NTH I L2, L2 to L1,
-;; reduce.
+;; (= L1 L2) in context, L1 and L2 literal lists of one length; the goal (= x y) with x
+;; the I-th entry of L1 and y the I-th entry of L2.
 (define (sml-component! l1 l2 i)
   (let* ((x (list-ref l1 i)) (y (list-ref l2 i)))
     (dk-have! `(= (NTH ,i ,l2) ,y) (lambda () (nth-r) (rfl)))
@@ -102,73 +84,77 @@
     (nth-r)
     (rfl)))
 
-;; The goal an AND of component equations (= x_i y_i) between the entries of
-;; the literal lists L1, L2, (= L1 L2) in context: split, and close each leaf
-;; by `sml-component!' at the index its left-hand side sits at in L1.
-(define (sml-components! l1 l2)
-  (dk-each-leaf! (lambda () (di))
-    (lambda ()
-      (let* ((g (dk-goal))
-             (i (let loop ((k 1))
-                  (cond ((> k (- (length l1) 1)) (error "sml-components!: no index for" g))
-                        ((and (equal? (list-ref l1 k) (cadr g))
-                              (equal? (list-ref l2 k) (caddr g))) k)
-                        (else (loop (+ k 1)))))))
-        (sml-component! l1 l2 i)))))
+;; Skolemise the FORSOME EX in context and every FORSOME that lands from it, outermost
+;; first; returns the eigenvariables in order.
+(define (sml-unpack! ex)
+  (let loop ((ex ex) (acc '()))
+    (let* ((before (dk-asms))
+           (v (dk-skolem! ex))
+           (new (filter (lambda (f) (not (member f before))) (dk-asms)))
+           (next (find-first (lambda (f) (dk-head-is? f 'FORSOME)) new)))
+      (if next (loop next (cons v acc)) (reverse (cons v acc))))))
+
+;; (IN x (CARTESIAN C1 ... Cn)) in context: land and return the existential chain the
+;; primitive `cartesian-decompose' schema reads it as, with FIXED binders cdv1_ ...
+(define (sml-cart-chain x classes)
+  (let nest ((i 1) (cs classes) (vars '()))
+    (if (null? cs)
+        `(= ,x (LIST ,@(reverse vars)))
+        (let ((v (string->symbol (string-append "cdv" (number->string i) "_"))))
+          `(FORSOME ,v (AND (IN ,v ,(car cs)) ,(nest (+ i 1) (cdr cs) (cons v vars))))))))
+
+(define (sml-cart-open! mem)
+  (let* ((ex  (sml-cart-chain (cadr mem) (cdr (caddr mem))))
+         (imp `(IMPLIES ,mem ,ex)))
+    (dk-have! imp (lambda () (mac 'cartesian-decompose) (di) (ass)))
+    (detach! imp)
+    (or (dk-ctx-form ex) (error "sml-cart-open!: the chain did not land" (expression->string ex)))))
+
+;; (IN x (UNION A B)) in context: land and return (OR (IN x A) (IN x B)).
+(define (sml-union-open! mem)
+  (let* ((x (cadr mem)) (a (cadr (caddr mem))) (b (caddr (caddr mem)))
+         (o `(OR (IN ,x ,a) (IN ,x ,b))))
+    (dk-have! o (lambda () (fact 'union-membership a b x) (sml-keep-prop! (iff-for mem) mem)))
+    o))
+
+;; The goal (IN x (UNION A B)) with (IN x A) (LEFT? true) or (IN x B) in context.
+(define (sml-union-in! left?)
+  (let* ((g (dk-goal)) (x (cadr g)) (a (cadr (caddr g))) (b (caddr (caddr g))))
+    (fact 'union-membership a b x)
+    (sml-keep-prop! (iff-for g) `(IN ,x ,(if left? a b)))))
+
+;; The stage equation at n (n = 0, or (succ j) with j in NN in context), landed and returned.
+(define (sml-stage-eq tt n)
+  (if (equal? n 0)
+      (dk-cite! 'msg-stage-zero tt)
+      (dk-cite! 'msg-stage-succ tt (cadr n))))
+
+;; (IN m (MSG-STAGE tt n)) in context: land and return (IN m BODY), BODY the right-hand
+;; side of the stage equation.
+(define (sml-stage-open! m tt n)
+  (let* ((eqn (sml-stage-eq tt n))
+         (body (caddr eqn))
+         (claim `(IN ,m ,body)))
+    (dk-have! claim (lambda () (subst `(= ,body (MSG-STAGE ,tt ,n))) (ass)))
+    claim))
+
+;; Is G the step case of an `ni' on a guarded NN universal?
+(define (sml-step-case? g)
+  (and (dk-head-is? g 'FORALL) (dk-head-is? (caddr g) 'IMPLIES)
+       (dk-head-is? (cadr (caddr g)) 'IN) (eq? (caddr (cadr (caddr g))) 'NN)))
+
+;; (IN (NTH i l) C) from i in NN, l in TUPLES(C), 1 <= i, i <= LENGTH(l) in context.
+(define (sml-nth-in! cc i l)
+  (let ((goal `(IN (NTH ,i ,l) ,cc)))
+    (if (not (dk-asm? goal))
+        (begin
+          (dk-have! `(AND (IN ,i NN) (AND (IN ,l (TUPLES ,cc)) (AND (<= 1 ,i) (<= ,i (LENGTH ,l)))))
+            (lambda () (dk-conj-close! dk-ass!)))
+          (fact 'nth-in-range cc i l)))
+    goal))
 
 ;;; -----------------------------------------------------------------------
-;;; 1. The constructors as citable equations (mac-h cannot unfold a functoid in an
-;;;    assumption by the functoid's own name; these are what it can name).
-
-(sp (make-wff '(FORALL a (== (ATOM a) (LIST 0 a)))))
-(di) (mac 'ATOM) (qrfl)
-(qed 'atom-unfold)
-
-(sp (make-wff '(FORALL g (FORALL h (== (CAT g h) (LIST 1 g h))))))
-(di) (mac 'CAT) (qrfl)
-(qed 'cat-unfold)
-
-(sp (make-wff '(FORALL g (FORALL k (== (ENC g k) (LIST 2 g k))))))
-(di) (mac 'ENC) (qrfl)
-(qed 'enc-unfold)
-
-;;; -----------------------------------------------------------------------
-;;; 2. FREENESS (the paper's Axioms 1 and 2, here theorems of the encoding).
-
-(sp (make-wff '(FORALL a (FORALL g (FORALL h (NOT (= (ATOM a) (CAT g h))))))))
-(di) (mac 'ATOM) (mac 'CAT) (di)
-(sml-tag-absurd! '(LIST 0 a) '(LIST 1 g h))
-(qed 'atom-ne-cat)
-
-(sp (make-wff '(FORALL a (FORALL g (FORALL k (NOT (= (ATOM a) (ENC g k))))))))
-(di) (mac 'ATOM) (mac 'ENC) (di)
-(sml-tag-absurd! '(LIST 0 a) '(LIST 2 g k))
-(qed 'atom-ne-enc)
-
-(sp (make-wff '(FORALL g (FORALL h (FORALL u (FORALL k (NOT (= (CAT g h) (ENC u k)))))))))
-(di) (mac 'CAT) (mac 'ENC) (di)
-(sml-tag-absurd! '(LIST 1 g h) '(LIST 2 u k))
-(qed 'cat-ne-enc)
-
-(sp (make-wff '(FORALL a (FORALL b (IMPLIES (= (ATOM a) (ATOM b)) (= a b))))))
-(di) (mac 'ATOM) (di)
-(sml-component! '(LIST 0 a) '(LIST 0 b) 2)
-(qed 'atom-injective)
-
-(sp (make-wff '(FORALL g (FORALL h (FORALL u (FORALL v
-   (IMPLIES (= (CAT g h) (CAT u v)) (AND (= g u) (= h v)))))))))
-(di) (mac 'CAT) (di)
-(sml-components! '(LIST 1 g h) '(LIST 1 u v))
-(qed 'cat-injective)
-
-(sp (make-wff '(FORALL g (FORALL k (FORALL u (FORALL y
-   (IMPLIES (= (ENC g k) (ENC u y)) (AND (= g u) (= k y)))))))))
-(di) (mac 'ENC) (di)
-(sml-components! '(LIST 2 g k) '(LIST 2 u y))
-(qed 'enc-injective)
-
-;;; -----------------------------------------------------------------------
-;;; 3. The tags: a set is the only member of its own singleton PAIR(a, a).
+;;; 1. A set is the only member of its own singleton PAIR(a, a).
 
 (sp (make-wff '(FORALL a (IMPLIES (IN a SET) (IN a (PAIR a a))))))
 (di)
@@ -192,242 +178,45 @@
 (qed 'pair-self-eq)
 
 ;;; -----------------------------------------------------------------------
-;;; helpers for the stages
+;;; 2. The stages.
 
-;; (IN n SET) for a numeral tag n (0, 1, 2), through n in NN.
-(define (sml-num-set! n)
-  (dk-have! `(IN ,n SET)
-    (lambda ()
-      (dk-have! `(IN ,n NN) (lambda () (arith)))
-      (fact 'membership-implies-sethood n 'NN)
-      (ass))))
-
-;; Close the focus goal (IN x C) where x is a term and C is built from UNION,
-;; CARTESIAN and PAIR(n, n) around classes x's pieces are typed in, in context.
-;; At a UNION, the side is chosen by a pure test (sml-fits?) before any step.
-(define (sml-fits? x c)
-  (cond ((dk-asm? `(IN ,x ,c)) #t)
-        ((and (pair? c) (eq? (car c) 'PAIR)) (equal? x (cadr c)))
-        ((and (pair? c) (eq? (car c) 'UNION)) (or (sml-fits? x (cadr c)) (sml-fits? x (caddr c))))
-        ((and (pair? c) (eq? (car c) 'CARTESIAN) (pair? x) (eq? (car x) 'LIST)
-              (= (length x) (length c)))
-         (let loop ((xs (cdr x)) (cs (cdr c)))
-           (or (null? xs) (and (sml-fits? (car xs) (car cs)) (loop (cdr xs) (cdr cs))))))
-        (else #f)))
-
-(define (sml-close-in!)
-  (let* ((g (dk-goal)) (x (cadr g)) (c (caddr g)))
-    (cond
-      ((dk-asm? g) (ass))
-      ((and (pair? c) (eq? (car c) 'PAIR))
-       (sml-num-set! x)
-       (fact 'pair-self-member x)
-       (ass))
-      ((and (pair? c) (eq? (car c) 'UNION))
-       (let ((left? (sml-fits? x (cadr c))))
-         (if (not (or left? (sml-fits? x (caddr c))))
-             (error "sml-close-in!: neither side of the union fits" (expression->string g)))
-         (dk-have! `(IN ,x ,(if left? (cadr c) (caddr c))) (lambda () (sml-close-in!)))
-         (fact 'union-membership (cadr c) (caddr c) x)
-         (sml-keep-prop! (iff-for g) `(IN ,x ,(if left? (cadr c) (caddr c))))))
-      ((and (pair? c) (eq? (car c) 'CARTESIAN))
-       (mac 'cartesian-decompose)
-       (let loop ((xs (cdr x)))
-         (if (null? xs)
-             (rfl)
-             (begin
-               (ew (car xs))
-               (dk-each-leaf! (lambda () (di))
-                 (lambda ()
-                   (if (dk-head-is? (dk-goal) 'FORSOME) (loop (cdr xs))
-                       (if (dk-head-is? (dk-goal) '=) (rfl) (sml-close-in!)))))))))
-      (else (error "sml-close-in!: no route" (expression->string g))))))
-
-;; The stage equation at n (n = 0 or (succ j) with j in NN in context), landed
-;; and returned.
-(define (sml-stage-eq tt kk n)
-  (if (equal? n 0)
-      (dk-cite! 'msg-stage-zero tt kk)
-      (dk-cite! 'msg-stage-succ tt kk (cadr n))))
-
-;;; -----------------------------------------------------------------------
-;;; 4. The stages: introduction.
-
-(sp (make-wff '(FORALL T (FORALL K (FORALL a
-   (IMPLIES (IN a (UNION T K)) (IN (ATOM a) (MSG-STAGE T K 0))))))))
-(di)
-(subst (sml-stage-eq 'T 'K 0))
-(mac 'ATOM)
-(sml-close-in!)
-(qed 'msg-stage-atom)
-
-(sp (make-wff '(FORALL T (FORALL K (FORALL n (FORALL m
-   (IMPLIES (IN n NN) (IMPLIES (IN m (MSG-STAGE T K n)) (IN m (MSG-STAGE T K (succ n)))))))))))
+(sp (make-wff '(FORALL T (FORALL tk (IMPLIES (IN tk T) (IN tk (MSG-STAGE T 0)))))))
 (dk-peel!)
-(subst (sml-stage-eq 'T 'K '(succ n)))
-(sml-close-in!)
+(subst (sml-stage-eq 'T 0))
+(ass)
+(qed 'msg-stage-token)
+
+(sp (make-wff '(FORALL T (FORALL n (FORALL m
+   (IMPLIES (IN n NN) (IMPLIES (IN m (MSG-STAGE T n)) (IN m (MSG-STAGE T (succ n))))))))))
+(dk-peel!)
+(subst (sml-stage-eq 'T '(succ n)))
+(sml-union-in! #t)
 (qed 'msg-stage-keep)
 
-(sp (make-wff '(FORALL T (FORALL K (FORALL n (FORALL g (FORALL h
-   (IMPLIES (IN n NN) (IMPLIES (IN g (MSG-STAGE T K n)) (IMPLIES (IN h (MSG-STAGE T K n))
-      (IN (CAT g h) (MSG-STAGE T K (succ n)))))))))))))
+(sp (make-wff '(FORALL T (FORALL n (FORALL l
+   (IMPLIES (IN n NN) (IMPLIES (IN l (TUPLES (MSG-STAGE T n))) (IN l (MSG-STAGE T (succ n))))))))))
 (dk-peel!)
-(subst (sml-stage-eq 'T 'K '(succ n)))
-(mac 'CAT)
-(sml-close-in!)
-(qed 'msg-stage-cat)
+(subst (sml-stage-eq 'T '(succ n)))
+(sml-union-in! #f)
+(qed 'msg-stage-list)
 
-(sp (make-wff '(FORALL T (FORALL K (FORALL n (FORALL g (FORALL y
-   (IMPLIES (IN n NN) (IMPLIES (IN g (MSG-STAGE T K n)) (IMPLIES (IN y K)
-      (IN (ENC g y) (MSG-STAGE T K (succ n)))))))))))))
+(sp (make-wff '(FORALL T (FORALL m (IMPLIES (IN m (MSG-STAGE T 0)) (IN m T))))))
 (dk-peel!)
-(subst (sml-stage-eq 'T 'K '(succ n)))
-(mac 'ENC)
-(sml-close-in!)
-(qed 'msg-stage-enc)
+(sml-stage-open! 'm 'T 0)
+(qed 'msg-stage-zero-elim)
 
-;;; -----------------------------------------------------------------------
-;;; helpers for the eliminations
-
-;; Skolemise the FORSOME EX in context and every FORSOME that lands from it,
-;; outermost first; returns the eigenvariables in order.  A tag membership
-;; (IN v (PAIR n n)) that lands is turned into (= v n) at once.
-(define (sml-unpack! ex)
-  (let loop ((ex ex) (acc '()))
-    (let* ((before (dk-asms))
-           (v (dk-skolem! ex))
-           (new (filter (lambda (f) (not (member f before))) (dk-asms)))
-           (tag (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (cadr f) v)
-                                             (dk-head-is? (caddr f) 'PAIR)))
-                            new))
-           (next (find-first (lambda (f) (dk-head-is? f 'FORSOME)) new)))
-      (if tag
-          (let ((n (cadr (caddr tag))))
-            (sml-num-set! n)
-            (fact 'pair-self-eq n v)))
-      (if next (loop next (cons v acc)) (reverse (cons v acc))))))
-
-;; The goal (= m X), X built by the constructors: unfold them, replace m by the
-;; literal list the context equates it with, the tag variables by their numerals.
-(define (sml-eq-close!)
-  (for-each (lambda (f) (if (dk-contains? (dk-goal) f) (mac f))) '(ATOM CAT ENC))
-  (if (equal? (cadr (dk-goal)) (caddr (dk-goal)))
-      (rfl)
-      (sml-eq-close--subst!)))
-
-(define (sml-eq-close--subst!)
-  (let* ((g (dk-goal)) (m (cadr g))
-         (meq (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) m)
-                                           (dk-head-is? (caddr f) 'LIST)))
-                          (dk-asms))))
-    (if (not meq) (error "sml-eq-close!: no list equation for" m))
-    (subst meq)
-    (let ((tagv (cadr (caddr meq))))
-      (if (symbol? tagv)
-          (subst (or (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) tagv)
-                                                  (number? (caddr f))))
-                                 (dk-asms))
-                     (error "sml-eq-close!: no tag equation for" tagv)))))
-    (rfl)))
-
-;; Close an existential goal FORSOME x1 (AND (IN x1 C1) (FORSOME x2 ... (= m X)))
-;; with the witnesses WS: memberships by sml-close-in!, the equation by sml-eq-close!.
-(define (sml-ex-close! ws)
-  (if (null? ws)
-      (sml-eq-close!)
-      (begin
-        (ew (car ws))
-        (dk-each-leaf! (lambda () (di))
-          (lambda ()
-            (cond ((dk-head-is? (dk-goal) 'FORSOME) (sml-ex-close! (cdr ws)))
-                  ((dk-head-is? (dk-goal) '=) (sml-eq-close!))
-                  (else (sml-close-in!))))))))
-
-;; (IN m (MSG-STAGE tt kk n)) in context: land and return (IN m BODY), BODY the
-;; right-hand side of the stage equation (there is no hypothesis-side subst: the
-;; claim is proved on a lane by rewriting BODY back to the stage).
-(define (sml-stage-open! m tt kk n)
-  (let* ((eqn (sml-stage-eq tt kk n))
-         (body (caddr eqn))
-         (claim `(IN ,m ,body)))
-    (dk-have! claim (lambda () (subst `(= ,body (MSG-STAGE ,tt ,kk ,n))) (ass)))
-    claim))
-
-;; (IN x (CARTESIAN C1 ... Cn)) in context: land and return the existential
-;; chain the primitive `cartesian-decompose' schema reads it as.  The chain is
-;; written here with FIXED binders cdv1_, cdv2_, ... (the macete's own builder
-;; mints counter names, which a printed page cannot reproduce), and the
-;; implication is proved by firing the macete on its antecedent (`ass' is alpha-aware).
-(define (sml-cart-chain x classes)
-  (let nest ((i 1) (cs classes) (vars '()))
-    (if (null? cs)
-        `(= ,x (LIST ,@(reverse vars)))
-        (let ((v (string->symbol (string-append "cdv" (number->string i) "_"))))
-          `(FORSOME ,v (AND (IN ,v ,(car cs)) ,(nest (+ i 1) (cdr cs) (cons v vars))))))))
-
-(define (sml-cart-open! mem)
-  (let* ((ex  (sml-cart-chain (cadr mem) (cdr (caddr mem))))
-         (imp `(IMPLIES ,mem ,ex)))
-    (dk-have! imp (lambda () (mac 'cartesian-decompose) (di) (ass)))
-    (detach! imp)
-    (or (dk-ctx-form ex) (error "sml-cart-open!: the chain did not land" (expression->string ex)))))
-
-;; (IN x (UNION A B)) in context: land and return (OR (IN x A) (IN x B)).
-(define (sml-union-open! mem)
-  (let* ((x (cadr mem)) (a (cadr (caddr mem))) (b (caddr (caddr mem)))
-         (o `(OR (IN ,x ,a) (IN ,x ,b))))
-    (dk-have! o (lambda () (fact 'union-membership a b x) (sml-keep-prop! (iff-for mem) mem)))
-    o))
-
-;;; -----------------------------------------------------------------------
-;;; 5. The stages: elimination (every member of a stage was built by one clause).
-
-(sp (make-wff '(FORALL T (FORALL K (FORALL m
-   (IMPLIES (IN m (MSG-STAGE T K 0))
-            (FORSOME a (AND (IN a (UNION T K)) (= m (ATOM a))))))))))
-(di)
-(sml-stage-open! 'm 'T 'K 0)
-(let ((vs (sml-unpack! (sml-cart-open! '(IN m (CARTESIAN (PAIR 0 0) (UNION T K)))))))
-  (sml-ex-close! (list (cadr vs))))
-(qed 'msg-stage-zero-cases)
-
-(define sml-sn '(MSG-STAGE T K n))
-(define sml-c1 '(CARTESIAN (PAIR 1 1) (MSG-STAGE T K n) (MSG-STAGE T K n)))
-(define sml-c2 '(CARTESIAN (PAIR 2 2) (MSG-STAGE T K n) K))
-
-(sp (make-wff '(FORALL T (FORALL K (FORALL n (FORALL m
-   (IMPLIES (IN n NN) (IMPLIES (IN m (MSG-STAGE T K (succ n)))
-     (OR (IN m (MSG-STAGE T K n))
-         (OR (FORSOME g (AND (IN g (MSG-STAGE T K n))
-                             (FORSOME h (AND (IN h (MSG-STAGE T K n)) (= m (CAT g h))))))
-             (FORSOME g (AND (IN g (MSG-STAGE T K n))
-                             (FORSOME y (AND (IN y K) (= m (ENC g y))))))))))))))))
+(sp (make-wff '(FORALL T (FORALL n (FORALL m
+   (IMPLIES (IN n NN) (IMPLIES (IN m (MSG-STAGE T (succ n)))
+     (OR (IN m (MSG-STAGE T n)) (IN m (TUPLES (MSG-STAGE T n)))))))))))
 (dk-peel!)
-(let ((o1 (sml-union-open! (sml-stage-open! 'm 'T 'K '(succ n)))))
-  (dk-each-leaf! (lambda () (ai o1))
-    (lambda ()
-      (if (dk-asm? `(IN m ,sml-sn))
-          (begin (oi-l) (ass))
-          (let ((o2 (sml-union-open! `(IN m (UNION ,sml-c1 ,sml-c2)))))
-            (dk-each-leaf! (lambda () (ai o2))
-              (lambda ()
-                (oi-r)
-                (let ((c (if (dk-asm? `(IN m ,sml-c1)) sml-c1 sml-c2)))
-                  (if (eq? c sml-c1) (oi-l) (oi-r))
-                  (sml-ex-close! (cdr (sml-unpack! (sml-cart-open! `(IN m ,c)))))))))))))
+(sml-union-open! (sml-stage-open! 'm 'T '(succ n)))
 (qed 'msg-stage-succ-cases)
 
-;;; -----------------------------------------------------------------------
-;;; 6. The stages grow: S_j is included in S_(j + d).  The induction variable d
-;;;    is OUTERMOST, as `ni' needs it.
-
+;;; S_j is included in S_(j + d).  The induction variable d is OUTERMOST, as `ni' needs it.
 (sp (make-wff '(FORALL d (IMPLIES (IN d NN)
-   (FORALL T (FORALL K (FORALL j (FORALL m
-     (IMPLIES (IN j NN) (IMPLIES (IN m (MSG-STAGE T K j)) (IN m (MSG-STAGE T K (+ j d)))))))))))))
+   (FORALL T (FORALL j (FORALL m
+     (IMPLIES (IN j NN) (IMPLIES (IN m (MSG-STAGE T j)) (IN m (MSG-STAGE T (+ j d))))))))))))
 (define sml-cases (dk-opened (lambda () (ni))))
-(define (sml-step-case? g)
-  (and (dk-head-is? g 'FORALL) (dk-head-is? (caddr g) 'IMPLIES)
-       (dk-head-is? (cadr (caddr g)) 'IN) (eq? (caddr (cadr (caddr g))) 'NN)))
 (define (sml-case! pred)
   (dk-focus! (or (find-first (lambda (l) (pred (dk-goal-of l))) sml-cases)
                  (error "sml-case!: no such case"))))
@@ -441,38 +230,38 @@
 (let* ((landed (dk-peel!))
        (ih (or (find-first (lambda (f) (dk-head-is? f 'FORALL)) landed)
                (error "msg-stage-add: no induction hypothesis")))
-       (g (dk-goal))                          ; (IN m (MSG-STAGE T K (+ j (succ n))))
+       (g (dk-goal))                          ; (IN m (MSG-STAGE T (+ j (succ n))))
        (m (cadr g)) (stage (caddr g))
-       (tt (cadr stage)) (kk (caddr stage)) (sum (cadddr stage))
+       (tt (cadr stage)) (sum (caddr stage))
        (j (cadr sum)) (n (cadr (caddr sum))))
   (subst (dk-cite! 'nn-add-succ j n))
   (dk-have! `(AND (IN ,j NN) (IN ,n NN)) (lambda () (dk-conj-close! (lambda () (ass)))))
   (fact 'nn-add-closed j n)
-  (dk-apply! ih tt kk j m)
-  (fact 'msg-stage-keep tt kk `(+ ,j ,n) m)
+  (dk-apply! ih tt j m)
+  (fact 'msg-stage-keep tt `(+ ,j ,n) m)
   (ass))
 (qed 'msg-stage-add)
 
 ;;; -----------------------------------------------------------------------
-;;; 7. The message set.
+;;; 3. The message set.
 
-(sp (make-wff '(FORALL T (FORALL K (== (MSG-SET T K) (BIG-UNION n NN (MSG-STAGE T K n)))))))
+(sp (make-wff '(FORALL T (== (MSG-SET T) (BIG-UNION n NN (MSG-STAGE T n))))))
 (di) (mac 'MSG-SET) (qrfl)
 (qed 'msg-set-unfold)
 
-(sp (make-wff '(FORALL T (FORALL K (FORALL n (FORALL m
-   (IMPLIES (IN n NN) (IMPLIES (IN m (MSG-STAGE T K n)) (IN m (MSG-SET T K))))))))))
+(sp (make-wff '(FORALL T (FORALL n (FORALL m
+   (IMPLIES (IN n NN) (IMPLIES (IN m (MSG-STAGE T n)) (IN m (MSG-SET T)))))))))
 (dk-peel!)
 (mac 'MSG-SET)
 (dk-each-leaf! (lambda () (bu-mi 'n)) (lambda () (ass)))
 (qed 'msg-set-intro)
 
-(sp (make-wff '(FORALL T (FORALL K (FORALL m
-   (IMPLIES (IN m (MSG-SET T K)) (FORSOME n (AND (IN n NN) (IN m (MSG-STAGE T K n))))))))))
+(sp (make-wff '(FORALL T (FORALL m
+   (IMPLIES (IN m (MSG-SET T)) (FORSOME n (AND (IN n NN) (IN m (MSG-STAGE T n)))))))))
 (dk-peel!)
-(let* ((eqn (dk-cite! 'msg-set-unfold 'T 'K))
+(let* ((eqn (dk-cite! 'msg-set-unfold 'T))
        (bu `(IN m ,(caddr eqn))))
-  (dk-have! bu (lambda () (subst `(= ,(caddr eqn) (MSG-SET T K))) (ass)))
+  (dk-have! bu (lambda () (subst `(= ,(caddr eqn) (MSG-SET T))) (ass)))
   (let ((before (dk-asms)))
     (bu-me bu)
     (let ((typ (find-first (lambda (f) (and (not (member f before)) (dk-head-is? f 'IN)
@@ -482,192 +271,31 @@
       (dk-conj-close! (lambda () (ass))))))
 (qed 'msg-set-elim)
 
-;; (IN x (MSG-SET tt kk)) in context: land a stage index and the stage
-;; membership; return the index.
-(define (sml-set-open! x tt kk)
-  (let* ((ex (dk-cite! 'msg-set-elim tt kk x)))
-    (dk-skolem! ex)))
+;; (IN x (MSG-SET tt)) in context: land a stage index and the stage membership; return the index.
+(define (sml-set-open! x tt)
+  (dk-skolem! (dk-cite! 'msg-set-elim tt x)))
 
-;; Land (IN x (MSG-STAGE tt kk (+ i j))) from (IN x (MSG-STAGE tt kk i)), i, j in NN.
-(define (sml-lift! x tt kk i j)
-  (fact 'msg-stage-add j tt kk i x)
-  (dk-ctx-form `(IN ,x (MSG-STAGE ,tt ,kk (+ ,i ,j)))))
-
-;;; -----------------------------------------------------------------------
-;;; 8. The constructors build messages.
-
-(sp (make-wff '(FORALL T (FORALL K (FORALL a
-   (IMPLIES (IN a (UNION T K)) (IN (ATOM a) (MSG-SET T K))))))))
+(sp (make-wff '(FORALL T (FORALL tk (IMPLIES (IN tk T) (IN tk (MSG-SET T)))))))
 (dk-peel!)
-(fact 'msg-stage-atom 'T 'K 'a)
+(fact 'msg-stage-token 'T 'tk)
 (fact 'nn-zero-in)
-(fact 'msg-set-intro 'T 'K 0 '(ATOM a))
+(fact 'msg-set-intro 'T 0 'tk)
 (ass)
-(qed 'atom-in-msgs)
+(qed 'token-in-msgs)
 
-(sp (make-wff '(FORALL T (FORALL K (FORALL g (FORALL h
-   (IMPLIES (IN g (MSG-SET T K)) (IMPLIES (IN h (MSG-SET T K)) (IN (CAT g h) (MSG-SET T K))))))))))
-(dk-peel!)
-(let* ((i (sml-set-open! 'g 'T 'K))
-       (j (sml-set-open! 'h 'T 'K)))
-  (sml-lift! 'g 'T 'K i j)
-  (sml-lift! 'h 'T 'K j i)
-  (dk-have! `(AND (IN ,i NN) (IN ,j NN)) (lambda () (dk-conj-close! (lambda () (ass)))))
-  (fact 'nn-add-closed i j)
-  (fact 'nn-add-comm i j)
-  (dk-have! `(IN h (MSG-STAGE T K (+ ,i ,j))) (lambda () (subst `(= (+ ,i ,j) (+ ,j ,i))) (ass)))
-  (fact 'msg-stage-cat 'T 'K `(+ ,i ,j) 'g 'h)
-  (fact 'nn-succ-closed `(+ ,i ,j))
-  (fact 'msg-set-intro 'T 'K `(succ (+ ,i ,j)) '(CAT g h))
-  (ass))
-(qed 'cat-in-msgs)
-
-(sp (make-wff '(FORALL T (FORALL K (FORALL g (FORALL y
-   (IMPLIES (IN g (MSG-SET T K)) (IMPLIES (IN y K) (IN (ENC g y) (MSG-SET T K))))))))))
-(dk-peel!)
-(let ((i (sml-set-open! 'g 'T 'K)))
-  (fact 'msg-stage-enc 'T 'K i 'g 'y)
-  (fact 'nn-succ-closed i)
-  (fact 'msg-set-intro 'T 'K `(succ ,i) '(ENC g y))
-  (ass))
-(qed 'enc-in-msgs)
-
-;;; -----------------------------------------------------------------------
-;;; 9. STRUCTURAL INDUCTION (the paper's "inductive definition" made usable):
-;;;    a class C holding the atoms and closed under CAT and ENC on messages
-;;;    holds every message.  By `ni' on the stage index, on a lane.
-
-(sp (make-wff '(FORALL T (FORALL K (FORALL C
-   (IMPLIES (FORALL a (IMPLIES (IN a (UNION T K)) (IN (ATOM a) C)))
-   (IMPLIES (FORALL g (FORALL h (IMPLIES (IN g (MSG-SET T K)) (IMPLIES (IN h (MSG-SET T K))
-              (IMPLIES (IN g C) (IMPLIES (IN h C) (IN (CAT g h) C)))))))
-   (IMPLIES (FORALL g (FORALL y (IMPLIES (IN g (MSG-SET T K)) (IMPLIES (IN y K)
-              (IMPLIES (IN g C) (IN (ENC g y) C))))))
-     (FORALL m (IMPLIES (IN m (MSG-SET T K)) (IN m C)))))))))))
-(let* ((landed (dk-peel!))
-       (g0 (dk-goal)) (m0 (cadr g0))
-       (tt 'T) (kk 'K) (cc (caddr g0))
-       ;; the three hypotheses, told apart by the constructor in their consequent
-       (hyp-with (lambda (ctor)
-                   (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f ctor)
-                                                    (dk-contains? f cc)))
-                                   landed)
-                       (error "msg-induction: no hypothesis for" ctor))))
-       (h-atom (hyp-with 'ATOM)) (h-cat (hyp-with 'CAT)) (h-enc (hyp-with 'ENC))
-       (claim `(FORALL smn_ (IMPLIES (IN smn_ NN)
-                 (FORALL smm_ (IMPLIES (IN smm_ (MSG-STAGE ,tt ,kk smn_)) (IN smm_ ,cc)))))))
-  (dk-have! claim
-    (lambda ()
-      (let ((cases (dk-opened (lambda () (ni)))))
-        ;; base: a member of stage 0 is an atom
-        (dk-focus! (find-first (lambda (l) (not (sml-step-case? (dk-goal-of l)))) cases))
-        (dk-peel!)
-        (let* ((m (cadr (dk-goal)))
-               (ex (dk-cite! 'msg-stage-zero-cases tt kk m))
-               (a (dk-skolem! ex)))
-          (subst `(= ,m (ATOM ,a)))
-          (dk-apply! h-atom a)
-          (ass))
-        ;; step: a member of stage succ n is kept, or a CAT, or an ENC of stage-n messages
-        (dk-focus! (find-first (lambda (l) (sml-step-case? (dk-goal-of l))) cases))
-        (let* ((landed (dk-peel!))
-               (ih (find-first (lambda (f) (dk-head-is? f 'FORALL)) landed))
-               (m (cadr (dk-goal)))
-               (n (cadr (cadddr (caddr (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (cadr f) m)))
-                                                   landed)))))
-               (o (dk-cite! 'msg-stage-succ-cases tt kk n m)))
-          (dk-each-leaf! (lambda () (ai o))
-            (lambda ()
-              (cond
-                ((dk-asm? `(IN ,m (MSG-STAGE ,tt ,kk ,n)))
-                 (dk-apply! ih m) (ass))
-                (else
-                 (let ((o2 (or (find-first (lambda (f) (dk-head-is? f 'OR)) (dk-asms))
-                               (error "msg-induction: no second disjunction"))))
-                   (dk-each-leaf! (lambda () (ai o2))
-                     (lambda ()
-                       (let* ((ex (find-first (lambda (f) (and (dk-head-is? f 'FORSOME)
-                                                               (dk-contains? f m)))
-                                              (dk-asms)))
-                              (catp (dk-contains? ex 'CAT))
-                              (vs (sml-unpack! ex))
-                              (g (car vs)) (h (cadr vs)))
-                         (subst (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) m)))
-                                            (dk-asms)))
-                         (dk-apply! ih g)
-                         (fact 'msg-set-intro tt kk n g)
-                         (if catp
-                             (begin (dk-apply! ih h)
-                                    (fact 'msg-set-intro tt kk n h)
-                                    (dk-apply! h-cat g h))
-                             (dk-apply! h-enc g h))
-                         (ass)))))))))))))
-  ;; the message is in some stage, and the claim holds there
-  (let ((n (sml-set-open! m0 tt kk)))
-    (dk-apply! claim n m0)
-    (ass)))
-(qed 'msg-induction)
-
-;;; -----------------------------------------------------------------------
-;;; 10. Every message is an atom, a concatenation of messages or an encryption
-;;;     of a message under a key: msg-induction at the class of messages that are.
-
-(define (sml-cases-of z)
-  `(OR (FORSOME a (AND (IN a (UNION T K)) (= ,z (ATOM a))))
-       (OR (FORSOME g (AND (IN g (MSG-SET T K)) (FORSOME h (AND (IN h (MSG-SET T K)) (= ,z (CAT g h))))))
-           (FORSOME g (AND (IN g (MSG-SET T K)) (FORSOME y (AND (IN y K) (= ,z (ENC g y)))))))))
-
-(sp (make-wff `(FORALL T (FORALL K (FORALL m (IMPLIES (IN m (MSG-SET T K)) ,(sml-cases-of 'm)))))))
-(dk-peel!)
-(let* ((cc `(SEP smz_ (MSG-SET T K) ,(sml-cases-of 'smz_)))
-       (h1 `(FORALL a (IMPLIES (IN a (UNION T K)) (IN (ATOM a) ,cc))))
-       (h2 `(FORALL g (FORALL h (IMPLIES (IN g (MSG-SET T K)) (IMPLIES (IN h (MSG-SET T K))
-              (IMPLIES (IN g ,cc) (IMPLIES (IN h ,cc) (IN (CAT g h) ,cc))))))))
-       (h3 `(FORALL g (FORALL y (IMPLIES (IN g (MSG-SET T K)) (IMPLIES (IN y K)
-              (IMPLIES (IN g ,cc) (IN (ENC g y) ,cc))))))))
-  (dk-have! h1
-    (lambda ()
-      (dk-peel!)
-      (in-sep! (lambda () (fact 'atom-in-msgs 'T 'K 'a) (ass))
-               (lambda () (oi-l) (sml-ex-close! '(a))))))
-  (dk-have! h2
-    (lambda ()
-      (dk-peel!)
-      (in-sep! (lambda () (fact 'cat-in-msgs 'T 'K 'g 'h) (ass))
-               (lambda () (oi-r) (oi-l) (sml-ex-close! '(g h))))))
-  (dk-have! h3
-    (lambda ()
-      (dk-peel!)
-      (in-sep! (lambda () (fact 'enc-in-msgs 'T 'K 'g 'y) (ass))
-               (lambda () (oi-r) (oi-r) (sml-ex-close! '(g y))))))
-  (fact 'msg-induction 'T 'K cc)
-  (dk-apply! (or (dk-ctx-form `(FORALL m (IMPLIES (IN m (MSG-SET T K)) (IN m ,cc))))
-                 (error "msg-cases: the induction did not detach"))
-             'm)
-  (sep-me `(IN m ,cc))
-  (ass))
-(qed 'msg-cases)
-
-;;; -----------------------------------------------------------------------
-;;; 11. SETHOOD: a stage, and the message set, are sets when T and K are.
-;;;     The ternary product is a set by REPLACEMENT over the binary product
-;;;     U x (V x W): it is included in the image of [a, [b, c]] |-> [a, b, c].
-
-;; (IN t SET) for t built from symbols / stages with a sethood in context,
-;; numeral singletons PAIR(n, n), UNION and CARTESIAN (binary or ternary).
+;; The focus goal (IN X SET) for X a UNION / TUPLES / CARTESIAN of sets in context.
 (define (sml-set! t)
   (let ((goal `(IN ,t SET)))
     (cond
       ((dk-asm? goal) goal)
-      ((and (pair? t) (eq? (car t) 'PAIR))
-       (sml-num-set! (cadr t))
-       (dk-have! `(AND (IN ,(cadr t) SET) (IN ,(caddr t) SET)) (lambda () (dk-conj-close! (lambda () (ass)))))
-       (fact 'pairing (cadr t) (caddr t))
-       goal)
       ((and (pair? t) (eq? (car t) 'UNION))
        (sml-set! (cadr t)) (sml-set! (caddr t))
        (dk-have! `(AND (IN ,(cadr t) SET) (IN ,(caddr t) SET)) (lambda () (dk-conj-close! (lambda () (ass)))))
        (fact 'union-set-closure (cadr t) (caddr t))
+       goal)
+      ((and (pair? t) (eq? (car t) 'TUPLES))
+       (sml-set! (cadr t))
+       (fact 'tuples-sethood (cadr t))
        goal)
       ((and (pair? t) (eq? (car t) 'CARTESIAN) (= (length t) 3))
        (sml-set! (cadr t)) (sml-set! (caddr t))
@@ -676,74 +304,31 @@
          (fact 'cartesian-set-iff (cadr t) (caddr t))
          (dk-have! goal (lambda () (sml-keep-prop! (iff-for goal) both)))
          goal))
-      ((and (pair? t) (eq? (car t) 'CARTESIAN) (= (length t) 4))
-       (for-each sml-set! (cdr t))
-       (fact 'cartesian3-set (cadr t) (caddr t) (cadddr t))
-       goal)
       (else (error "sml-set!: no route to the sethood of" (expression->string t))))))
 
-;; The focus goal (IN t SET): land it by sml-set! and close it, unless the landing
-;; already closed it in place (dk-have! of a claim equal to the focus goal does).
 (define (sml-set-close!)
   (let ((g (dk-goal)))
     (sml-set! (cadr g))
     (if (and (alpha-equiv? (dk-goal) g) (dk-asm? g)) (ass))))
 
-(define sml-phi
-  '(VNB-LAMBDA cqp_ (CARTESIAN U (CARTESIAN V W))
-     (LIST (NTH 1 cqp_) (NTH 1 (NTH 2 cqp_)) (NTH 2 (NTH 2 cqp_)))))
-
-(sp (make-wff '(FORALL U (FORALL V (FORALL W
-   (IMPLIES (IN U SET) (IMPLIES (IN V SET) (IMPLIES (IN W SET) (IN (CARTESIAN U V W) SET)))))))))
-(dk-peel!)
-(let* ((ww '(CARTESIAN U (CARTESIAN V W)))
-       (img `(IMAGE ,sml-phi ,ww))
-       (sub `(SUBSET (CARTESIAN U V W) ,img)))
-  (sml-set! ww)
-  (fact 'image-set sml-phi ww)
-  (dk-have! sub
-    (lambda ()
-      (mac 'subset-def)
-      (di)
-      (let* ((x (cadr (dk-goal)))
-             (vs (sml-unpack! (sml-cart-open! `(IN ,x (CARTESIAN U V W)))))
-             (a1 (car vs)) (a2 (cadr vs)) (a3 (caddr vs))
-             (pr `(LIST ,a1 (LIST ,a2 ,a3))))
-        (dk-image-goal!)
-        (ew pr)
-        (fact 'pair-in-cartesian 'V 'W a2 a3)
-        (fact 'pair-in-cartesian 'U '(CARTESIAN V W) a1 `(LIST ,a2 ,a3))
-        (dk-each-leaf! (lambda () (di))
-          (lambda ()
-            (if (dk-head-is? (dk-goal) 'IN)
-                (ass)
-                (begin
-                  (dk-lam-b!)
-                  (let loop () (if (dk-contains? (dk-goal) 'NTH) (begin (nth-r) (loop))))
-                  (subst (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) x))) (dk-asms)))
-                  (rfl))))))))
-  (fact 'subclass-of-set-is-set '(CARTESIAN U V W) img)
-  (ass))
-(qed 'cartesian3-set)
-
 (sp (make-wff '(FORALL n (IMPLIES (IN n NN)
-   (FORALL T (FORALL K (IMPLIES (IN T SET) (IMPLIES (IN K SET) (IN (MSG-STAGE T K n) SET)))))))))
+   (FORALL T (IMPLIES (IN T SET) (IN (MSG-STAGE T n) SET)))))))
 (define sml-cases2 (dk-opened (lambda () (ni))))
 (dk-focus! (find-first (lambda (l) (not (sml-step-case? (dk-goal-of l)))) sml-cases2))
 (dk-peel!)
-(subst (sml-stage-eq 'T 'K 0))
-(sml-set-close!)
+(subst (sml-stage-eq 'T 0))
+(ass)
 (dk-focus! (find-first (lambda (l) (sml-step-case? (dk-goal-of l))) sml-cases2))
 (let* ((landed (dk-peel!))
        (ih (find-first (lambda (f) (dk-head-is? f 'FORALL)) landed))
        (stage (cadr (dk-goal)))
-       (tt (cadr stage)) (kk (caddr stage)) (n (cadr (cadddr stage))))
-  (dk-apply! ih tt kk)
-  (subst (sml-stage-eq tt kk `(succ ,n)))
+       (tt (cadr stage)) (n (cadr (caddr stage))))
+  (dk-apply! ih tt)
+  (subst (sml-stage-eq tt `(succ ,n)))
   (sml-set-close!))
 (qed 'msg-stage-set)
 
-(sp (make-wff '(FORALL T (FORALL K (IMPLIES (IN T SET) (IMPLIES (IN K SET) (IN (MSG-SET T K) SET)))))))
+(sp (make-wff '(FORALL T (IMPLIES (IN T SET) (IN (MSG-SET T) SET)))))
 (dk-peel!)
 (mac 'MSG-SET)
 (dk-each-leaf! (lambda () (bu-set))
@@ -751,59 +336,236 @@
     (if (dk-head-is? (dk-goal) 'IN)
         (begin (fact 'nn-is-set) (ass))
         (begin (dk-peel!)
-               (fact 'msg-stage-set (cadddr (cadr (dk-goal))) 'T 'K)
+               (fact 'msg-stage-set (caddr (cadr (dk-goal))) 'T)
                (ass)))))
 (qed 'msg-set-is-set)
 
+;; "C1 inside C2" as the universal tuples-mono wants, proved by THUNK on the peeled leaf
+;; (the eigenvariable is read off the goal and handed to THUNK).
+(define (sml-incl! c1 c2 thunk)
+  (let ((incl `(FORALL smw_ (IMPLIES (IN smw_ ,c1) (IN smw_ ,c2)))))
+    (dk-have! incl (lambda () (dk-peel!) (thunk (cadr (dk-goal)))))
+    incl))
+
+;; (IN l (TUPLES c2)) from (IN l (TUPLES c1)) in context, by tuples-mono with the inclusion
+;; proved by THUNK.
+(define (sml-tuples-lift! l c1 c2 thunk)
+  (sml-incl! c1 c2 thunk)
+  (dk-apply! (dk-cite! 'tuples-mono c1 c2) l))
+
+(sp (make-wff '(FORALL T (FORALL l
+   (IMPLIES (IN l (TUPLES (MSG-SET T))) (IN l (TUPLES SET)))))))
+(dk-peel!)
+(sml-tuples-lift! 'l '(MSG-SET T) 'SET
+  (lambda (w) (fact 'membership-implies-sethood w '(MSG-SET T)) (ass)))
+(ass)
+(qed 'msg-lists-are-lists)
+
+;;; A list of messages has all its components in ONE stage: list induction (tuples-induction)
+;;; at the class of the lists that do; the CONS step lifts the head's stage and the tail's to
+;;; their sum (msg-stage-add, tuples-mono).
+(define sml-lis-class
+  '(SEP smy_ (TUPLES (MSG-SET T))
+        (FORSOME smk_ (AND (IN smk_ NN) (IN smy_ (TUPLES (MSG-STAGE T smk_)))))))
+
+(sp (make-wff '(FORALL T (FORALL l (IMPLIES (IN l (TUPLES (MSG-SET T)))
+   (FORSOME n (AND (IN n NN) (IN l (TUPLES (MSG-STAGE T n))))))))))
+(dk-peel!)
+(let* ((ind0 (lookup-theorem 'tuples-induction))
+       (ind (subst-free (quantifier-var (quantifier-body ind0)) sml-lis-class
+              (quantifier-body (subst-free (quantifier-var ind0) '(MSG-SET T) (quantifier-body ind0)))))
+       (prem (cadr ind))
+       (h-base (cadr prem))
+       (h-step (caddr prem)))
+  (dk-have! h-base
+    (lambda ()
+      (in-sep! (lambda () (fact 'empty-in-tuples '(MSG-SET T)) (ass))
+               (lambda ()
+                 (ew 0)
+                 (dk-conj-close!
+                   (lambda ()
+                     (if (equal? (cadr (dk-goal)) 0)
+                         (begin (fact 'nn-zero-in) (ass))
+                         (begin (subst (sml-stage-eq 'T 0))   ; MSG-STAGE(T, 0) is not
+                                (fact 'empty-in-tuples 'T)        ; certified defined; T is
+                                (ass)))))))))
+  (dk-have! h-step
+    (lambda ()
+      (dk-peel!)
+      (dk-split-all!)
+      (let* ((g (dk-goal))                          ; (IN (CONS x M) C)
+             (x (cadr (cadr g))) (mm (caddr (cadr g)))
+             (j (begin (sep-me `(IN ,mm ,sml-lis-class))
+                       (dk-skolem! (find-first (lambda (f) (and (dk-head-is? f 'FORSOME)
+                                                                (dk-contains? f mm)))
+                                               (dk-asms)))))
+             (i (sml-set-open! x 'T))
+             (sij `(MSG-STAGE T (+ ,i ,j))))
+        (dk-have! `(AND (IN ,i NN) (IN ,j NN)) (lambda () (dk-conj-close! (lambda () (ass)))))
+        (fact 'nn-add-closed i j)
+        (fact 'msg-stage-add j 'T i x)                   ; x in S_(i + j)
+        (sml-tuples-lift! mm `(MSG-STAGE T ,j) sij
+          (lambda (w)
+            (fact 'msg-stage-add i 'T j w)                ; w in S_(j + i)
+            (fact 'nn-add-comm i j)
+            (subst `(= (+ ,i ,j) (+ ,j ,i)))
+            (ass)))
+        (dk-have! `(AND (IN ,x ,sij) (IN ,mm (TUPLES ,sij))) (lambda () (dk-conj-close! (lambda () (ass)))))
+        (fact 'cons-in-tuples sij x mm)
+        (in-sep! (lambda ()
+                   (dk-have! `(AND (IN ,x (MSG-SET T)) (IN ,mm (TUPLES (MSG-SET T))))
+                     (lambda () (dk-conj-close! (lambda () (ass)))))
+                   (fact 'cons-in-tuples '(MSG-SET T) x mm)
+                   (ass))
+                 (lambda ()
+                   (ew `(+ ,i ,j))
+                   (dk-conj-close! (lambda () (ass))))))))
+  (dk-have! prem (lambda () (dk-conj-close! (lambda () (ass)))))
+  (let ((all (dk-cite! 'tuples-induction '(MSG-SET T) sml-lis-class)))
+    (dk-apply! all 'l)
+    (sep-me `(IN l ,sml-lis-class))
+    (ass)))
+(qed 'list-in-some-stage)
+
+(sp (make-wff '(FORALL T (FORALL l (IMPLIES (IN l (TUPLES (MSG-SET T))) (IN l (MSG-SET T)))))))
+(dk-peel!)
+(let ((n (dk-skolem! (dk-cite! 'list-in-some-stage 'T 'l))))
+  (fact 'msg-stage-list 'T n 'l)
+  (fact 'nn-succ-closed n)
+  (fact 'msg-set-intro 'T `(succ ,n) 'l)
+  (ass))
+(qed 'list-in-msgs)
+
 ;;; -----------------------------------------------------------------------
-;;; 12. The structure: the projections a later statement needs.
+;;; 4. The token law, structural induction, the two cases.
 
-(sp (make-wff '(FORALL alg (IMPLIES (IS-MESSAGE-ALGEBRA alg)
-   (AND (IN (TEXTS alg) SET) (AND (IN (KEYS alg) SET) (= (MSGS alg) (MSG-SET (TEXTS alg) (KEYS alg)))))))))
+(sp (make-wff '(FORALL T (IMPLIES (IS-TOKEN-SET T) (IN T SET)))))
 (dk-peel!)
-(mac-h 'is-message-algebra '(IS-MESSAGE-ALGEBRA alg))
-(dk-split-all!)
-(dk-conj-close! (lambda () (ass)))
-(qed 'message-algebra-msgs)
-
-(sp (make-wff '(FORALL alg (IMPLIES (IS-MESSAGE-ALGEBRA alg)
-   (FORALL x (IMPLIES (IN x (TEXTS alg)) (NOT (IN x (KEYS alg)))))))))
-(dk-peel!)
-(mac-h 'is-message-algebra '(IS-MESSAGE-ALGEBRA alg))
-(dk-split-all!)
-(dk-apply! (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'TEXTS))) (dk-asms)) 'x)
-(ass)
-(qed 'texts-keys-disjoint)
-
-(sp (make-wff '(FORALL alg (IMPLIES (IS-MESSAGE-ALGEBRA alg) (IN (KINV alg) (FUN (KEYS alg) (KEYS alg)))))))
-(dk-peel!)
-(mac-h 'is-message-algebra '(IS-MESSAGE-ALGEBRA alg))
+(mac-h 'is-token-set '(IS-TOKEN-SET T))
 (dk-split-all!)
 (ass)
-(qed 'kinv-in-fun)
+(qed 'token-set-is-set)
 
-(sp (make-wff '(FORALL alg (IMPLIES (IS-MESSAGE-ALGEBRA alg)
-   (FORALL y (IMPLIES (IN y (KEYS alg)) (= ((KINV alg) ((KINV alg) y)) y)))))))
+;; (NOT (IN x (TUPLES SET))) from (IS-TOKEN-SET tt) and (IN x tt) in context, on a lane.
+(define (sml-token-law! tt x)
+  (let ((claim `(NOT (IN ,x (TUPLES SET)))))
+    (dk-have! claim
+      (lambda ()
+        (mac-h 'is-token-set `(IS-TOKEN-SET ,tt))
+        (dk-split-all!)
+        (dk-apply! (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'TUPLES)))
+                            "the token law")
+                   x)
+        (ass)))
+    claim))
+
+(sp (make-wff '(FORALL T (IMPLIES (IS-TOKEN-SET T)
+   (FORALL tk (IMPLIES (IN tk T) (NOT (IN tk (TUPLES (MSG-SET T))))))))))
 (dk-peel!)
-(mac-h 'is-message-algebra '(IS-MESSAGE-ALGEBRA alg))
+(let ((nl (sml-token-law! 'T 'tk)))
+  (di)
+  (fact 'msg-lists-are-lists 'T 'tk)
+  (ai nl))
+(qed 'token-not-list)
+
+;; The two hypotheses of msg-induction at the class CC (read off the theorem, so that
+;; the driver's spelling cannot drift from the statement's).
+(define (sml-ind-hyps tt cc)
+  (let* ((th (lookup-theorem 'msg-induction))
+         (b1 (subst-free (quantifier-var th) tt (quantifier-body th)))
+         (b2 (subst-free (quantifier-var b1) cc (quantifier-body b1))))
+    (list (cadr b2) (cadr (caddr b2)))))
+
+(sp (make-wff '(FORALL T (FORALL C
+   (IMPLIES (FORALL tk (IMPLIES (IN tk T) (IN tk C)))
+   (IMPLIES (FORALL l (IMPLIES (IN l (TUPLES (MSG-SET T)))
+              (IMPLIES (FORALL i (IMPLIES (IN i NN) (IMPLIES (<= 1 i) (IMPLIES (<= i (LENGTH l))
+                                    (IN (NTH i l) C)))))
+                       (IN l C))))
+     (FORALL m (IMPLIES (IN m (MSG-SET T)) (IN m C)))))))))
+(let* ((landed (dk-peel!))
+       (g0 (dk-goal)) (m0 (cadr g0)) (cc (caddr g0)) (tt 'T)
+       (h-tok (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (not (dk-contains? f 'TUPLES)))) landed)
+                  (error "msg-induction: no token hypothesis")))
+       (h-list (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'TUPLES))) landed)
+                   (error "msg-induction: no list hypothesis")))
+       (claim `(FORALL smn_ (IMPLIES (IN smn_ NN)
+                 (FORALL smm_ (IMPLIES (IN smm_ (MSG-STAGE ,tt smn_)) (IN smm_ ,cc)))))))
+  (dk-have! claim
+    (lambda ()
+      (let ((cases (dk-opened (lambda () (ni)))))
+        ;; base: a member of stage 0 is a token
+        (dk-focus! (find-first (lambda (l) (not (sml-step-case? (dk-goal-of l)))) cases))
+        (dk-peel!)
+        (let ((m (cadr (dk-goal))))
+          (fact 'msg-stage-zero-elim tt m)
+          (dk-apply! h-tok m)
+          (ass))
+        ;; step: a member of stage succ n is kept, or a list of stage-n messages
+        (dk-focus! (find-first (lambda (l) (sml-step-case? (dk-goal-of l))) cases))
+        (let* ((landed (dk-peel!))
+               (ih (find-first (lambda (f) (dk-head-is? f 'FORALL)) landed))
+               (m (cadr (dk-goal)))
+               (n (cadr (caddr (caddr (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (cadr f) m)))
+                                                  landed)))))
+               (sn `(MSG-STAGE ,tt ,n))
+               (o (dk-cite! 'msg-stage-succ-cases tt n m)))
+          (dk-each-leaf! (lambda () (ai o))
+            (lambda ()
+              (if (dk-asm? `(IN ,m ,sn))
+                  (begin (dk-apply! ih m) (ass))
+                  (let ((comps `(FORALL smi_ (IMPLIES (IN smi_ NN) (IMPLIES (<= 1 smi_)
+                                   (IMPLIES (<= smi_ (LENGTH ,m)) (IN (NTH smi_ ,m) ,cc)))))))
+                    (sml-tuples-lift! m sn `(MSG-SET ,tt)
+                      (lambda (w) (fact 'msg-set-intro tt n w) (ass)))
+                    (dk-have! comps
+                      (lambda ()
+                        (dk-peel!)
+                        (let ((i (cadr (cadr (dk-goal)))))
+                          (sml-nth-in! sn i m)
+                          (dk-apply! ih `(NTH ,i ,m))
+                          (ass))))
+                    (dk-apply! h-list m)
+                    (ass)))))))))
+  ;; the message is in some stage, and the claim holds there
+  (let ((n (sml-set-open! m0 tt)))
+    (dk-apply! claim n m0)
+    (ass)))
+(qed 'msg-induction)
+
+(sp (make-wff '(FORALL T (FORALL m (IMPLIES (IN m (MSG-SET T))
+   (OR (IN m T) (IN m (TUPLES (MSG-SET T)))))))))
+(dk-peel!)
+(let* ((cc '(SEP smz_ (MSG-SET T) (OR (IN smz_ T) (IN smz_ (TUPLES (MSG-SET T))))))
+       (hs (sml-ind-hyps 'T cc)))
+  (dk-have! (car hs)
+    (lambda ()
+      (dk-peel!)
+      (let ((x (cadr (dk-goal))))
+        (in-sep! (lambda () (fact 'token-in-msgs 'T x) (ass))
+                 (lambda () (oi-l) (ass))))))
+  (dk-have! (cadr hs)
+    (lambda ()
+      (dk-peel!)
+      (let ((x (cadr (dk-goal))))
+        (in-sep! (lambda () (fact 'list-in-msgs 'T x) (ass))
+                 (lambda () (oi-r) (ass))))))
+  (dk-apply! (dk-cite! 'msg-induction 'T cc) 'm)
+  (sep-me `(IN m ,cc))
+  (ass))
+(qed 'msg-cases)
+
+(sp (make-wff '(FORALL T (IMPLIES (IS-TOKEN-SET T) (FORALL m
+   (NOT (AND (IN m T) (IN m (TUPLES (MSG-SET T))))))))))
+(dk-peel!)
+(di)
 (dk-split-all!)
-(dk-apply! (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'KINV))) (dk-asms)) 'y)
-(ass)
-(qed 'kinv-involution)
-
-(sp (make-wff '(FORALL alg (IMPLIES (IS-MESSAGE-ALGEBRA alg)
-   (FORALL y (FORALL z (IMPLIES (IN y (KEYS alg)) (IMPLIES (IN z (KEYS alg))
-     (IMPLIES (= ((KINV alg) y) ((KINV alg) z)) (= y z))))))))))
-(dk-peel!)
-(fact 'kinv-involution 'alg 'y)
-(fact 'kinv-involution 'alg 'z)
-(subst '(= y ((KINV alg) ((KINV alg) y))))
-(subst '(= ((KINV alg) y) ((KINV alg) z)))
-(ass)
-(qed 'kinv-injective)
+(fact 'token-not-list 'T 'm)
+(ai '(NOT (IN m (TUPLES (MSG-SET T)))))
+(qed 'msg-cases-disjoint)
 
 ;;; -----------------------------------------------------------------------
-;;; 13. The subterm relation (Definition 2.11): its four clauses, minimality.
+;;; 5. The subterm relation: its two clauses, minimality, inversion.
 
 (sp (make-wff '(FORALL X (FORALL Y (FORALL u (FORALL v
    (IMPLIES (IN (LIST u v) (CARTESIAN X Y)) (AND (IN u X) (IN v Y)))))))))
@@ -819,151 +581,122 @@
       (ass))))
 (qed 'pair-in-cartesian-parts)
 
-(sp (make-wff '(FORALL T (FORALL K (== (SUBTERM-REL T K)
-   (SEP p_ (CARTESIAN (MSG-SET T K) (MSG-SET T K))
-        (FORALL q_ (IMPLIES (IN q_ (POWER (CARTESIAN (MSG-SET T K) (MSG-SET T K))))
-                            (IMPLIES (IS-SUBTERM-CLOSED T K q_) (IN p_ q_))))))))))
+(sp (make-wff '(FORALL T (== (SUBTERM-REL T)
+   (SEP p_ (CARTESIAN (MSG-SET T) (MSG-SET T))
+        (FORALL q_ (IMPLIES (IN q_ (POWER (CARTESIAN (MSG-SET T) (MSG-SET T))))
+                            (IMPLIES (IS-SUBTERM-CLOSED T q_) (IN p_ q_)))))))))
 (di) (mac 'SUBTERM-REL) (qrfl)
 (qed 'subterm-rel-unfold)
 
-(define (sml-msgs tt kk) `(MSG-SET ,tt ,kk))
-(define (sml-box tt kk) `(CARTESIAN (MSG-SET ,tt ,kk) (MSG-SET ,tt ,kk)))
+(define (sml-msgs tt) `(MSG-SET ,tt))
+(define (sml-box tt) `(CARTESIAN (MSG-SET ,tt) (MSG-SET ,tt)))
 
-;; (IS-SUBTERM tt kk a b) in context: land (IN a A), (IN b A) and the universal
-;; "every closed q in POWER(A x A) holds [a, b]", which is returned.
-(define (sml-st-open! tt kk a b)
-  (let* ((hyp `(IS-SUBTERM ,tt ,kk ,a ,b))
-         (mem `(IN (LIST ,a ,b) (SUBTERM-REL ,tt ,kk)))
-         (eqn (dk-cite! 'subterm-rel-unfold tt kk))
+;; (IS-SUBTERM tt a b) in context, b TYPED or a variable: land (IN a A), (IN b A) and the
+;; universal "every closed q in POWER(A x A) holds [a, b]", which is returned.
+(define (sml-st-open! tt a b)
+  (let* ((hyp `(IS-SUBTERM ,tt ,a ,b))
+         (mem `(IN (LIST ,a ,b) (SUBTERM-REL ,tt)))
+         (eqn (dk-cite! 'subterm-rel-unfold tt))
          (sepm `(IN (LIST ,a ,b) ,(caddr eqn))))
-    (dk-have! mem (lambda () (fact 'is-subterm tt kk a b) (sml-keep-prop! (iff-for hyp) hyp)))
-    (dk-have! sepm (lambda () (subst `(= ,(caddr eqn) (SUBTERM-REL ,tt ,kk))) (ass)))
+    (dk-have! mem (lambda () (fact 'is-subterm tt a b) (sml-keep-prop! (iff-for hyp) hyp)))
+    (dk-have! sepm (lambda () (subst `(= ,(caddr eqn) (SUBTERM-REL ,tt))) (ass)))
     (let* ((landed (dk-landed (lambda () (sep-me sepm))))
            (univ (or (find-first (lambda (f) (dk-head-is? f 'FORALL)) landed)
                      (error "sml-st-open!: no universal landed"))))
-      (fact 'pair-in-cartesian-parts (sml-msgs tt kk) (sml-msgs tt kk) a b)
+      (fact 'pair-in-cartesian-parts (sml-msgs tt) (sml-msgs tt) a b)
       (dk-split-all!)
       univ)))
 
-;; The kind of a clause of IS-SUBTERM-CLOSED, read off the pair in its final
-;; conclusion (IN (LIST a X) r): X a variable is reflexivity, an ENC the
-;; encryption clause, a CAT(g, h) the left or right clause according as the
-;; first antecedent's pair ends in g or in h.
+;; The kind of a clause of IS-SUBTERM-CLOSED, by its binders: reflexivity binds one
+;; variable, the list clause three (a test on the body would read the relation, which
+;; may itself mention NTH).
 (define (sml-clause-kind f)
-  (let loop ((f f) (vars '()))
-    (if (dk-head-is? f 'FORALL)
-        (loop (caddr f) (append vars (list (cadr f))))
-        (let* ((ante (cadr f))
-               (concl (let c ((x f)) (if (dk-head-is? x 'IMPLIES) (c (caddr x)) x)))
-               (x (caddr (cadr concl))))
-          (cond ((not (pair? x)) 'refl)
-                ((eq? (car x) 'ENC) 'enc)
-                ((equal? (caddr (cadr ante)) (cadr x)) 'cat-left)
-                (else 'cat-right))))))
+  (let loop ((f f) (k 0))
+    (if (dk-head-is? f 'FORALL) (loop (caddr f) (+ k 1)) (if (>= k 3) 'list 'refl))))
 
-;; The goal (IS-SUBTERM tt kk a b) with (IN a A), (IN b A) in context.  STEP is
-;; called on the lane where q is a closed relation in POWER(A x A), with the
-;; four clauses of q's closedness split into the context, as (STEP q CLAUSE-OF);
-;; it must close (IN [a, b] q).  PRE is run first with q (before the closedness
-;; is opened: a universal that must be cited at q is cited there).
-(define (sml-st-intro! tt kk a b pre step)
+;; The goal (IS-SUBTERM tt a b) with (IN a A), (IN b A) in context.  STEP is called on the
+;; lane where q is a closed relation in POWER(A x A), with the two clauses of q's
+;; closedness split into the context, as (STEP q CLAUSE-OF); it must close (IN [a, b] q).
+;; PRE is run first with q (a universal that must be cited at q is cited there).
+(define (sml-st-intro! tt a b pre step)
   (mac 'is-subterm)
   (mac 'SUBTERM-REL)
-  (in-sep! (lambda () (fact 'pair-in-cartesian (sml-msgs tt kk) (sml-msgs tt kk) a b) (ass))
+  (in-sep! (lambda () (fact 'pair-in-cartesian (sml-msgs tt) (sml-msgs tt) a b) (ass))
            (lambda ()
              (dk-peel!)
              (let* ((q (caddr (dk-goal)))
-                    (closed `(IS-SUBTERM-CLOSED ,tt ,kk ,q)))
+                    (closed `(IS-SUBTERM-CLOSED ,tt ,q)))
                (pre q)
-               (let* ((landed (dk-landed (lambda () (mac-h 'is-subterm-closed closed))))
-                      (clauses (dk-split-all!))
-                      (clause-of (lambda (kind)
-                                   (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL)
-                                                                    (eq? (sml-clause-kind f) kind)))
-                                                   (dk-asms))
-                                       (error "sml-st-intro!: no clause" kind)))))
+               (mac-h 'is-subterm-closed closed)
+               (dk-split-all!)
+               (let ((clause-of (lambda (kind)
+                                  (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL)
+                                                                   (dk-contains? f q)
+                                                                   (eq? (sml-clause-kind f) kind)))
+                                                  (dk-asms))
+                                      (error "sml-st-intro!: no clause" kind)))))
                  (step q clause-of))))))
 
-(sp (make-wff '(FORALL T (FORALL K (FORALL a (FORALL b
-   (IMPLIES (IS-SUBTERM T K a b) (AND (IN a (MSG-SET T K)) (IN b (MSG-SET T K))))))))))
+(sp (make-wff '(FORALL T (FORALL a (FORALL b
+   (IMPLIES (IS-SUBTERM T a b) (AND (IN a (MSG-SET T)) (IN b (MSG-SET T)))))))))
 (dk-peel!)
-(sml-st-open! 'T 'K 'a 'b)
+(sml-st-open! 'T 'a 'b)
 (dk-conj-close! (lambda () (ass)))
 (qed 'subterm-in-msgs)
 
-(sp (make-wff '(FORALL T (FORALL K (FORALL r
-   (IMPLIES (IN r (POWER (CARTESIAN (MSG-SET T K) (MSG-SET T K))))
-   (IMPLIES (IS-SUBTERM-CLOSED T K r)
-     (FORALL a (FORALL b (IMPLIES (IS-SUBTERM T K a b) (IN (LIST a b) r)))))))))))
+(sp (make-wff '(FORALL T (FORALL r
+   (IMPLIES (IN r (POWER (CARTESIAN (MSG-SET T) (MSG-SET T))))
+   (IMPLIES (IS-SUBTERM-CLOSED T r)
+     (FORALL a (FORALL b (IMPLIES (IS-SUBTERM T a b) (IN (LIST a b) r))))))))))
 (dk-peel!)
-(dk-apply! (sml-st-open! 'T 'K 'a 'b) 'r)
+(dk-apply! (sml-st-open! 'T 'a 'b) 'r)
 (ass)
 (qed 'subterm-least)
 
-(sp (make-wff '(FORALL T (FORALL K (FORALL a (IMPLIES (IN a (MSG-SET T K)) (IS-SUBTERM T K a a)))))))
+(sp (make-wff '(FORALL T (FORALL a (IMPLIES (IN a (MSG-SET T)) (IS-SUBTERM T a a))))))
 (dk-peel!)
-(sml-st-intro! 'T 'K 'a 'a (lambda (q) #t)
+(sml-st-intro! 'T 'a 'a (lambda (q) #t)
   (lambda (q clause-of) (dk-apply! (clause-of 'refl) 'a) (ass)))
 (qed 'subterm-refl)
 
-(sp (make-wff '(FORALL T (FORALL K (FORALL a (FORALL g (FORALL y
-   (IMPLIES (IS-SUBTERM T K a g) (IMPLIES (IN y K) (IS-SUBTERM T K a (ENC g y)))))))))))
+;;; A subterm of a component is a subterm of the list.
+(sp (make-wff '(FORALL T (FORALL a (FORALL l (FORALL i
+   (IMPLIES (IN l (TUPLES (MSG-SET T))) (IMPLIES (IN i NN) (IMPLIES (<= 1 i) (IMPLIES (<= i (LENGTH l))
+     (IMPLIES (IS-SUBTERM T a (NTH i l)) (IS-SUBTERM T a l))))))))))))
 (dk-peel!)
-(let ((u (sml-st-open! 'T 'K 'a 'g)))
-  (fact 'enc-in-msgs 'T 'K 'g 'y)
-  (sml-st-intro! 'T 'K 'a '(ENC g y)
+(sml-nth-in! '(MSG-SET T) 'i 'l)
+(fact 'list-in-msgs 'T 'l)
+(let ((u (sml-st-open! 'T 'a '(NTH i l))))
+  (sml-st-intro! 'T 'a 'l
     (lambda (q) (dk-apply! u q))
-    (lambda (q clause-of) (dk-apply! (clause-of 'enc) 'a 'g 'y) (ass))))
-(qed 'subterm-enc)
-
-(sp (make-wff '(FORALL T (FORALL K (FORALL a (FORALL g (FORALL h
-   (IMPLIES (IS-SUBTERM T K a g) (IMPLIES (IN h (MSG-SET T K)) (IS-SUBTERM T K a (CAT g h)))))))))))
-(dk-peel!)
-(let ((u (sml-st-open! 'T 'K 'a 'g)))
-  (fact 'cat-in-msgs 'T 'K 'g 'h)
-  (sml-st-intro! 'T 'K 'a '(CAT g h)
-    (lambda (q) (dk-apply! u q))
-    (lambda (q clause-of) (dk-apply! (clause-of 'cat-left) 'a 'g 'h) (ass))))
-(qed 'subterm-cat-left)
-
-(sp (make-wff '(FORALL T (FORALL K (FORALL a (FORALL g (FORALL h
-   (IMPLIES (IS-SUBTERM T K a h) (IMPLIES (IN g (MSG-SET T K)) (IS-SUBTERM T K a (CAT g h)))))))))))
-(dk-peel!)
-(let ((u (sml-st-open! 'T 'K 'a 'h)))
-  (fact 'cat-in-msgs 'T 'K 'g 'h)
-  (sml-st-intro! 'T 'K 'a '(CAT g h)
-    (lambda (q) (dk-apply! u q))
-    (lambda (q clause-of) (dk-apply! (clause-of 'cat-right) 'a 'g 'h) (ass))))
-(qed 'subterm-cat-right)
+    (lambda (q clause-of) (dk-apply! (clause-of 'list) 'a 'l 'i) (ass))))
+(qed 'subterm-component)
 
 ;;; -----------------------------------------------------------------------
-;;; 14. Inversion of the subterm relation (what "the smallest relation" buys),
-;;;     Proposition 2.12, transitivity.  Each is `subterm-least' at a SEP of
-;;;     SUBTERM-REL by a condition on the pair, which must then be shown closed.
+;;; The one device: subterm-least at a SEP of SUBTERM-REL by a condition on the pair.
 
-;; IS-SUBTERM <-> membership of the pair in SUBTERM-REL, each way, landed.
-(define (sml-st-mem! tt kk a b)          ; from (IS-SUBTERM tt kk a b)
-  (let ((hyp `(IS-SUBTERM ,tt ,kk ,a ,b)) (mem `(IN (LIST ,a ,b) (SUBTERM-REL ,tt ,kk))))
-    (dk-have! mem (lambda () (fact 'is-subterm tt kk a b) (sml-keep-prop! (iff-for hyp) hyp)))
+(define (sml-st-mem! tt a b)          ; from (IS-SUBTERM tt a b)
+  (let ((hyp `(IS-SUBTERM ,tt ,a ,b)) (mem `(IN (LIST ,a ,b) (SUBTERM-REL ,tt))))
+    (dk-have! mem (lambda () (fact 'is-subterm tt a b) (sml-keep-prop! (iff-for hyp) hyp)))
     mem))
-(define (sml-st-pred! tt kk a b)         ; from (IN (LIST a b) (SUBTERM-REL tt kk))
-  (let ((hyp `(IS-SUBTERM ,tt ,kk ,a ,b)) (mem `(IN (LIST ,a ,b) (SUBTERM-REL ,tt ,kk))))
-    (dk-have! hyp (lambda () (fact 'is-subterm tt kk a b) (sml-keep-prop! (iff-for hyp) mem)))
+(define (sml-st-pred! tt a b)         ; from (IN (LIST a b) (SUBTERM-REL tt))
+  (let ((hyp `(IS-SUBTERM ,tt ,a ,b)) (mem `(IN (LIST ,a ,b) (SUBTERM-REL ,tt))))
+    (dk-have! hyp (lambda () (fact 'is-subterm tt a b) (sml-keep-prop! (iff-for hyp) mem)))
     hyp))
 
-;; (IN (SUBTERM-REL tt kk) SET), from the sethood of T and K in context.
-(define (sml-st-set! tt kk)
-  (let* ((eqn (dk-cite! 'subterm-rel-unfold tt kk))
+;; (IN (SUBTERM-REL tt) SET), from the sethood of T in context.
+(define (sml-st-set! tt)
+  (let* ((eqn (dk-cite! 'subterm-rel-unfold tt))
          (sepf (caddr eqn))
-         (goal `(IN (SUBTERM-REL ,tt ,kk) SET)))
-    (fact 'msg-set-is-set tt kk)
+         (goal `(IN (SUBTERM-REL ,tt) SET)))
+    (fact 'msg-set-is-set tt)
     (dk-have! `(IN ,sepf SET) (lambda () (dk-each-leaf! (lambda () (sep-set)) (lambda () (sml-set-close!)))))
     (dk-have! goal (lambda () (subst eqn) (ass)))
     goal))
 
-;; The goal (IN RR (POWER (A x A))) for RR a SEP over SUBTERM-REL(tt, kk).
-(define (sml-subrel-power! tt kk rr)
-  (sml-st-set! tt kk)
+;; The goal (IN RR (POWER (A x A))) for RR a SEP over SUBTERM-REL(tt).
+(define (sml-subrel-power! tt rr)
+  (sml-st-set! tt)
   (mac 'power-set-membership)
   (dk-each-leaf! (lambda () (di))
     (lambda ()
@@ -971,40 +704,21 @@
           (dk-each-leaf! (lambda () (sep-set)) (lambda () (ass)))
           (let* ((landed (dk-peel!))
                  (z (cadr (dk-goal)))
-                 (eqn (dk-cite! 'subterm-rel-unfold tt kk))
+                 (eqn (dk-cite! 'subterm-rel-unfold tt))
                  (sepf (caddr eqn)))
             (sep-me `(IN ,z ,rr))
-            (dk-have! `(IN ,z ,sepf) (lambda () (subst `(= ,sepf (SUBTERM-REL ,tt ,kk))) (ass)))
+            (dk-have! `(IN ,z ,sepf) (lambda () (subst `(= ,sepf (SUBTERM-REL ,tt))) (ass)))
             (sep-me `(IN ,z ,sepf))
             (ass))))))
 
-;; The goal (IS-SUBTERM-CLOSED tt kk RR), RR = (SEP v (SUBTERM-REL tt kk) COND):
-;; unfold, and hand each clause's lane to (BODY KIND), after peeling it.
-(define (sml-closed! body)
-  (mac 'is-subterm-closed)
-  (dk-conj-close!
-    (lambda ()
-      (let ((kind (sml-clause-kind (dk-goal))))
-        (dk-peel!)
-        (body kind)))))
-
-;; The inversion condition on a pair (u, v), binders sig_ siy_ sih_.
-(define (sml-inv tt kk u v)
-  `(OR (= ,u ,v)
-       (OR (FORSOME sig_ (FORSOME siy_ (AND (IN siy_ ,kk) (AND (= ,v (ENC sig_ siy_)) (IS-SUBTERM ,tt ,kk ,u sig_)))))
-           (FORSOME sig_ (FORSOME sih_ (AND (= ,v (CAT sig_ sih_))
-                                            (OR (IS-SUBTERM ,tt ,kk ,u sig_) (IS-SUBTERM ,tt ,kk ,u sih_))))))))
 (define (sml-pair-cond p cond2)          ; exists u, v. p = [u, v] and COND2(u, v)
   `(FORSOME siu_ (FORSOME siv_ (AND (= ,p (LIST siu_ siv_)) ,(cond2 'siu_ 'siv_)))))
 
-;; (IN [a, b] RR) in context, RR = (SEP v ST (pair-cond v COND2)): land COND2(a, b)
-;; (alpha-equal to the caller's spelling) and return it.
+;; (IN [a, b] RR) in context, RR = (SEP v ST (pair-cond v COND2)): land COND2(a, b).
 (define (sml-pair-cond-open! rr a b cond2)
   (sep-me `(IN (LIST ,a ,b) ,rr))
   (sml-pair-cond-unpack! a b cond2))
 
-;; The same, once the SEP membership has been opened (the pair condition, an
-;; existential over [a, b], is in context).
 (define (sml-pair-cond-unpack! a b cond2)
   (let* ((ex (or (find-first (lambda (f) (and (dk-head-is? f 'FORSOME) (dk-contains? f `(LIST ,a ,b))))
                              (dk-asms))
@@ -1017,10 +731,10 @@
     (dk-have! claim (lambda () (subst `(= ,a ,u)) (subst `(= ,b ,v)) (ass)))
     claim))
 
-;; The goal (IN [a, b] RR): the domain by IS-SUBTERM (in context, or proven by
-;; THUNK-ST), the condition by witnesses a, b and COND-THUNK on COND2(a, b).
-(define (sml-pair-cond-intro! tt kk a b cond-thunk)
-  (sml-st-mem! tt kk a b)
+;; The goal (IN [a, b] RR): the domain by IS-SUBTERM (in context), the condition by
+;; witnesses a, b and COND-THUNK on COND2(a, b).
+(define (sml-pair-cond-intro! tt a b cond-thunk)
+  (sml-st-mem! tt a b)
   (in-sep! (lambda () (ass))
            (lambda ()
              (ew a)
@@ -1028,213 +742,162 @@
              (dk-each-leaf! (lambda () (di))
                (lambda () (if (dk-head-is? (dk-goal) '=) (rfl) (cond-thunk)))))))
 
-;; The four clause lanes for a SEP RR of SUBTERM-REL by a pair condition, each
-;; reduced to the one fact its pair needs: (CLOSE KIND x c PREV) runs on the
-;; condition leaf of the new pair [x, c], with PREV the pair [x, prev] it was
-;; built from (#f for reflexivity), IS-SUBTERM of both pairs in context.
-(define (sml-closed-pairs! tt kk rr close)
-  (sml-closed!
-    (lambda (kind)
-      (let* ((pr (cadr (dk-goal))) (x (cadr pr)) (c (caddr pr)))
-        (case kind
-          ((refl)
-           (fact 'subterm-refl tt kk x)
-           (sml-pair-cond-intro! tt kk x x (lambda () (close kind x c #f))))
-          (else
-           (let* ((prev (case kind ((enc cat-left) (cadr c)) (else (caddr c)))))
-             (sep-me `(IN (LIST ,x ,prev) ,rr))
-             (sml-st-pred! tt kk x prev)
-             (fact 'subterm-in-msgs tt kk x prev)
-             (dk-split-all!)
-             ;; type the new right-hand side BEFORE anything is instantiated at it
-             (if (eq? kind 'enc)
-                 (fact 'enc-in-msgs tt kk (cadr c) (caddr c))
-                 (fact 'cat-in-msgs tt kk (cadr c) (caddr c)))
-             (case kind
-               ((enc) (fact 'subterm-enc tt kk x (cadr c) (caddr c)))
-               ((cat-left) (fact 'subterm-cat-left tt kk x (cadr c) (caddr c)))
-               (else (fact 'subterm-cat-right tt kk x (cadr c) (caddr c))))
-             (sml-pair-cond-intro! tt kk x c (lambda () (close kind x c prev))))))))))
-
-(define (sml-conj-eq-ass!)
-  (dk-conj-close! (lambda () (if (dk-head-is? (dk-goal) '=) (rfl) (ass)))))
-
-(sp (make-wff '(FORALL T (FORALL K (IMPLIES (IN T SET) (IMPLIES (IN K SET)
-  (FORALL a (FORALL b (IMPLIES (IS-SUBTERM T K a b)
-    (OR (= a b)
-     (OR (FORSOME g (FORSOME y (AND (IN y K) (AND (= b (ENC g y)) (IS-SUBTERM T K a g)))))
-         (FORSOME g (FORSOME h (AND (= b (CAT g h)) (OR (IS-SUBTERM T K a g) (IS-SUBTERM T K a h))))))))))))))))
-(dk-peel!)
-(let* ((cond2 (lambda (u v) (sml-inv 'T 'K u v)))
-       (rr `(SEP sip_ (SUBTERM-REL T K) ,(sml-pair-cond 'sip_ cond2))))
-  (dk-have! `(IN ,rr (POWER ,(sml-box 'T 'K))) (lambda () (sml-subrel-power! 'T 'K rr)))
-  (dk-have! `(IS-SUBTERM-CLOSED T K ,rr)
+;; The goal (IS-SUBTERM-CLOSED tt RR): unfold, and run (CLOSE KIND x c PREV I) on the
+;; condition leaf of each clause's new pair [x, c]: PREV is the pair's predecessor
+;; NTH(I, c) for the list clause (#f for reflexivity).  On that leaf IS-SUBTERM of both
+;; pairs, the typings of x, c, PREV and the list hypotheses are in context.
+(define (sml-closed-pairs! tt rr close)
+  (mac 'is-subterm-closed)
+  (dk-conj-close!
     (lambda ()
-      (sml-closed-pairs! 'T 'K rr
-        (lambda (kind x c prev)
+      (let ((kind (sml-clause-kind (dk-goal))))
+        (dk-peel!)
+        (let* ((pr (cadr (dk-goal))) (x (cadr pr)) (c (caddr pr)))
           (case kind
-            ((refl) (oi-l) (rfl))
-            ((enc) (oi-r) (oi-l) (ew (cadr c)) (ew (caddr c)) (sml-conj-eq-ass!))
-            (else (oi-r) (oi-r) (ew (cadr c)) (ew (caddr c))
-                  (dk-each-leaf! (lambda () (di))
-                    (lambda ()
-                      (cond ((dk-head-is? (dk-goal) '=) (rfl))
-                            ((eq? kind 'cat-left) (oi-l) (ass))
-                            (else (oi-r) (ass)))))))))))
-  (fact 'subterm-least 'T 'K rr)
-  (dk-apply! (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f rr)
-                                              (not (dk-contains? f 'IS-SUBTERM-CLOSED))))
-                             (dk-asms))
-                 (error "subterm-cases: subterm-least did not detach"))
-             'a 'b)
-  (sml-pair-cond-open! rr 'a 'b cond2)
-  (ass))
+            ((refl)
+             (fact 'subterm-refl tt x)
+             (sml-pair-cond-intro! tt x x (lambda () (close kind x c #f #f))))
+            (else
+             (let* ((prevmem (or (find-first (lambda (f) (and (dk-head-is? f 'IN) (alpha-equiv? (caddr f) rr)
+                                                               (dk-head-is? (cadr f) 'LIST)
+                                                               (equal? (cadr (cadr f)) x)
+                                                               (dk-head-is? (caddr (cadr f)) 'NTH)
+                                                               (equal? (caddr (caddr (cadr f))) c)))
+                                             (dk-asms))
+                                 (error "sml-closed-pairs!: no predecessor pair" (expression->string (dk-goal)) (map expression->string (dk-asms)))))
+                    (prev (caddr (cadr prevmem)))
+                    (i (cadr prev)))
+               (sep-me prevmem)
+               (sml-nth-in! (sml-msgs tt) i c)
+               (sml-st-pred! tt x prev)
+               (fact 'list-in-msgs tt c)
+               (fact 'subterm-component tt x c i)
+               (fact 'subterm-in-msgs tt x prev)
+               (dk-split-all!)
+               (sml-pair-cond-intro! tt x c (lambda () (close kind x c prev i)))))))))))
+
+;; Run the device: RR from COND2, prove it a member of the power set and closed (CLOSE as in
+;; sml-closed-pairs!), cite subterm-least, and land COND2(a, b) from (IS-SUBTERM tt a b).
+(define (sml-device! tt a b cond2 close)
+  (let ((rr `(SEP sip_ (SUBTERM-REL ,tt) ,(sml-pair-cond 'sip_ cond2))))
+    (dk-have! `(IN ,rr (POWER ,(sml-box tt))) (lambda () (sml-subrel-power! tt rr)))
+    (dk-have! `(IS-SUBTERM-CLOSED ,tt ,rr) (lambda () (sml-closed-pairs! tt rr close)))
+    (fact 'subterm-least tt rr)
+    (dk-apply! (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f rr)
+                                                (not (dk-contains? f 'IS-SUBTERM-CLOSED))))
+                               (dk-asms))
+                   (error "sml-device!: subterm-least did not detach"))
+               a b)
+    (sml-pair-cond-open! rr a b cond2)))
+
+;;; INVERSION: a subterm of b is b itself, or b is a list and it is a subterm of a component.
+(define (sml-inv tt u v)
+  `(OR (= ,u ,v)
+       (AND (IN ,v (TUPLES (MSG-SET ,tt)))
+            (FORSOME sii_ (AND (IN sii_ NN) (AND (<= 1 sii_) (AND (<= sii_ (LENGTH ,v))
+                                                                (IS-SUBTERM ,tt ,u (NTH sii_ ,v)))))))))
+
+(sp (make-wff '(FORALL T (IMPLIES (IN T SET)
+  (FORALL a (FORALL b (IMPLIES (IS-SUBTERM T a b)
+    (OR (= a b)
+        (AND (IN b (TUPLES (MSG-SET T)))
+             (FORSOME i (AND (IN i NN) (AND (<= 1 i) (AND (<= i (LENGTH b)) (IS-SUBTERM T a (NTH i b)))))))))))))))
+(dk-peel!)
+(sml-device! 'T 'a 'b (lambda (u v) (sml-inv 'T u v))
+  (lambda (kind x c prev i)
+    (case kind
+      ((refl) (oi-l) (rfl))
+      (else (oi-r)
+            (dk-conj-close!
+              (lambda ()
+                (if (dk-head-is? (dk-goal) 'FORSOME)
+                    (begin (ew i) (dk-conj-close! (lambda () (ass))))
+                    (ass))))))))
+(dk-ass!)
 (qed 'subterm-cases)
 
-(sp (make-wff '(FORALL T (FORALL K (IMPLIES (IN T SET) (IMPLIES (IN K SET)
+(sp (make-wff '(FORALL T (IMPLIES (IN T SET)
   (FORALL a (FORALL b (FORALL c
-    (IMPLIES (IS-SUBTERM T K a b) (IMPLIES (IS-SUBTERM T K b c) (IS-SUBTERM T K a c))))))))))))
+    (IMPLIES (IS-SUBTERM T a b) (IMPLIES (IS-SUBTERM T b c) (IS-SUBTERM T a c))))))))))
 (dk-peel!)
-(let* ((cond2 (lambda (u v) `(FORALL sia_ (IMPLIES (IS-SUBTERM T K sia_ ,u) (IS-SUBTERM T K sia_ ,v)))))
-       (rr `(SEP sip_ (SUBTERM-REL T K) ,(sml-pair-cond 'sip_ cond2))))
-  (dk-have! `(IN ,rr (POWER ,(sml-box 'T 'K))) (lambda () (sml-subrel-power! 'T 'K rr)))
-  (dk-have! `(IS-SUBTERM-CLOSED T K ,rr)
-    (lambda ()
-      (sml-closed-pairs! 'T 'K rr
-        (lambda (kind x c prev)
-          (if (eq? kind 'refl)
-              (begin (dk-peel!) (ass))
-              (let ((ih (sml-pair-cond-unpack! x prev cond2)))
-                (dk-peel!)
-                (let ((a1 (list-ref (dk-goal) 3)))       ; (IS-SUBTERM T K a1 c)
-                  (dk-apply! ih a1)
-                  (case kind
-                    ((enc) (fact 'subterm-enc 'T 'K a1 (cadr c) (caddr c)))
-                    ((cat-left) (fact 'subterm-cat-left 'T 'K a1 (cadr c) (caddr c)))
-                    (else (fact 'subterm-cat-right 'T 'K a1 (cadr c) (caddr c))))
-                  (ass))))))))
-  (fact 'subterm-least 'T 'K rr)
-  (dk-apply! (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f rr)
-                                              (not (dk-contains? f 'IS-SUBTERM-CLOSED))))
-                             (dk-asms))
-                 (error "subterm-trans: subterm-least did not detach"))
-             'b 'c)
-  (dk-apply! (sml-pair-cond-open! rr 'b 'c cond2) 'a)
+(let ((cond2 (lambda (u v) `(FORALL sia_ (IMPLIES (IS-SUBTERM T sia_ ,u) (IS-SUBTERM T sia_ ,v))))))
+  (dk-apply!
+    (sml-device! 'T 'b 'c cond2
+      (lambda (kind x c prev i)
+        (if (eq? kind 'refl)
+            (begin (dk-peel!) (ass))
+            (let ((ih (sml-pair-cond-unpack! x prev cond2)))
+              (dk-peel!)
+              (let ((a1 (caddr (dk-goal))))           ; (IS-SUBTERM T a1 c)
+                (dk-apply! ih a1)
+                (fact 'subterm-in-msgs 'T a1 prev)
+                (dk-split-all!)
+                (fact 'subterm-component 'T a1 c i)
+                (ass))))))
+    'a)
   (ass))
 (qed 'subterm-trans)
 
-;; The disjunction subterm-cases lands for the pair (a, b), split three ways:
-;; (ON-EQ) with (= a b) in context, (ON-ENC g y) and (ON-CAT g h) with the
-;; witnesses skolemised and their conjuncts split into the context.
-(define (sml-subterm-cases! tt kk a b on-eq on-enc on-cat)
-  (let ((o (dk-cite! 'subterm-cases tt kk a b)))
+;; The disjunction subterm-cases lands for (a, b), split: (ON-EQ) with (= a b) in context,
+;; (ON-LIST i) with b's list typing, i's typings and IS-SUBTERM(a, NTH(i, b)) in context.
+(define (sml-subterm-cases! tt a b on-eq on-list)
+  (let ((o (dk-cite! 'subterm-cases tt a b)))
     (dk-each-leaf! (lambda () (ai o))
       (lambda ()
         (if (dk-asm? `(= ,a ,b))
             (on-eq)
-            (let ((o2 (or (find-first (lambda (f) (and (dk-head-is? f 'OR) (dk-head-is? (cadr f) 'FORSOME)
-                                                       (dk-contains? f b)))
-                                      (dk-asms))
-                          (error "sml-subterm-cases!: no second disjunction"))))
-              (dk-each-leaf! (lambda () (ai o2))
-                (lambda ()
-                  (let* ((ex (find-first (lambda (f) (and (dk-head-is? f 'FORSOME) (dk-contains? f b)
-                                                          (not (dk-head-is? (caddr f) 'OR))))
-                                         (dk-asms)))
-                         (vs (sml-unpack! ex))
-                         (encp (begin (dk-split-all!)
-                                      (dk-asm? `(= ,b (ENC ,(car vs) ,(cadr vs)))))))
-                    (if encp (on-enc (car vs) (cadr vs)) (on-cat (car vs) (cadr vs))))))))))))
+            (let* ((conj (or (find-first (lambda (f) (and (dk-head-is? f 'AND) (dk-contains? f 'sii_)))
+                                         (dk-asms))
+                             (dk-pick (lambda (f) (and (dk-head-is? f 'AND) (dk-head-is? (cadr f) 'IN)
+                                                       (equal? (cadr (cadr f)) b)))
+                                      "the list case")))
+                   (parts (dk-split! conj))
+                   (ex (find-first (lambda (f) (dk-head-is? f 'FORSOME)) parts))
+                   (i (dk-skolem! ex)))
+              (on-list i)))))))
 
-;; (= y x) in context and x TYPED: land (= x y) (rewrite x to y, close by rfl).
-(define (sml-flip! x y)
-  (dk-have! `(= ,x ,y) (lambda () (subst `(= ,x ,y)) (rfl))))
-
-(sp (make-wff '(FORALL T (FORALL K (IMPLIES (IN T SET) (IMPLIES (IN K SET)
-  (FORALL a (FORALL c (IMPLIES (IN c (UNION T K))
-    (IMPLIES (IS-SUBTERM T K a (ATOM c)) (= a (ATOM c))))))))))))
+(sp (make-wff '(FORALL T (IMPLIES (IS-TOKEN-SET T)
+  (FORALL a (FORALL tk (IMPLIES (IN tk T) (IMPLIES (IS-SUBTERM T a tk) (= a tk)))))))))
 (dk-peel!)
-(fact 'atom-in-msgs 'T 'K 'c)
-(sml-subterm-cases! 'T 'K 'a '(ATOM c)
+(fact 'token-set-is-set 'T)
+(fact 'token-not-list 'T 'tk)
+(sml-subterm-cases! 'T 'a 'tk
   (lambda () (ass))
-  (lambda (g y) (fact 'atom-ne-enc 'c g y) (ai `(NOT (= (ATOM c) (ENC ,g ,y)))))
-  (lambda (g h) (fact 'atom-ne-cat 'c g h) (ai `(NOT (= (ATOM c) (CAT ,g ,h))))))
-(qed 'subterm-of-atom)
+  (lambda (i) (ai '(NOT (IN tk (TUPLES (MSG-SET T)))))))
+(qed 'subterm-of-token)
 
-(sp (make-wff '(FORALL T (FORALL K (IMPLIES (IN T SET) (IMPLIES (IN K SET)
-  (FORALL a (FORALL g (FORALL y (IMPLIES (IN g (MSG-SET T K)) (IMPLIES (IN y K)
-    (IMPLIES (IS-SUBTERM T K a (ENC g y)) (OR (= a (ENC g y)) (IS-SUBTERM T K a g))))))))))))))
+(sp (make-wff '(FORALL T (IMPLIES (IN T SET)
+  (FORALL a (FORALL l (IMPLIES (IN l (TUPLES (MSG-SET T))) (IMPLIES (IS-SUBTERM T a l)
+    (OR (= a l)
+        (FORSOME i (AND (IN i NN) (AND (<= 1 i) (AND (<= i (LENGTH l)) (IS-SUBTERM T a (NTH i l)))))))))))))))
 (dk-peel!)
-(fact 'enc-in-msgs 'T 'K 'g 'y)
-(sml-subterm-cases! 'T 'K 'a '(ENC g y)
+(sml-subterm-cases! 'T 'a 'l
   (lambda () (oi-l) (ass))
-  (lambda (g1 y1)
-    (fact 'enc-injective 'g 'y g1 y1)
-    (dk-split-all!)
-    (oi-r)
-    (subst `(= g ,g1))
-    (ass))
-  (lambda (g1 h1)
-    (sml-flip! `(CAT ,g1 ,h1) '(ENC g y))
-    (fact 'cat-ne-enc g1 h1 'g 'y)
-    (ai `(NOT (= (CAT ,g1 ,h1) (ENC g y))))))
-(qed 'subterm-of-enc)
+  (lambda (i) (oi-r) (ew i) (dk-conj-close! (lambda () (ass)))))
+(qed 'subterm-of-list)
 
-(sp (make-wff '(FORALL T (FORALL K (IMPLIES (IN T SET) (IMPLIES (IN K SET)
-  (FORALL a (FORALL g (FORALL h (IMPLIES (IN g (MSG-SET T K)) (IMPLIES (IN h (MSG-SET T K))
-    (IMPLIES (IS-SUBTERM T K a (CAT g h))
-      (OR (= a (CAT g h)) (OR (IS-SUBTERM T K a g) (IS-SUBTERM T K a h)))))))))))))))
+;;; A TOKEN that is a subterm of a list is a subterm of one of its components (the token
+;;; law rules out the token being the list itself).  The adversary's C case cites this.
+(sp (make-wff '(FORALL T (IMPLIES (IS-TOKEN-SET T)
+  (FORALL tk (FORALL l (IMPLIES (IN tk T) (IMPLIES (IN l (TUPLES (MSG-SET T))) (IMPLIES (IS-SUBTERM T tk l)
+    (FORSOME i (AND (IN i NN) (AND (<= 1 i) (AND (<= i (LENGTH l)) (IS-SUBTERM T tk (NTH i l)))))))))))))))
 (dk-peel!)
-(fact 'cat-in-msgs 'T 'K 'g 'h)
-(sml-subterm-cases! 'T 'K 'a '(CAT g h)
-  (lambda () (oi-l) (ass))
-  (lambda (g1 y1) (fact 'cat-ne-enc 'g 'h g1 y1) (ai `(NOT (= (CAT g h) (ENC ,g1 ,y1)))))
-  (lambda (g1 h1)
-    (fact 'cat-injective 'g 'h g1 h1)
-    (dk-split-all!)
-    (oi-r)
-    (subst `(= g ,g1))
-    (subst `(= h ,h1))
-    (ass)))
-(qed 'subterm-of-cat)
-
-;;; PROPOSITION 2.12: K /= K' and {h'}_K' @ {h}_K imply {h'}_K' @ h.  The paper's
-;;; K, K', h, h' are written y, y2, h, h2; the typings h, h2 in A and y, y2 in K are
-;;; the paper's implicit ones (its terms range over A, its keys over K).
-(sp (make-wff '(FORALL T (FORALL K (IMPLIES (IN T SET) (IMPLIES (IN K SET)
-  (FORALL h (FORALL h2 (FORALL y (FORALL y2
-    (IMPLIES (IN h (MSG-SET T K)) (IMPLIES (IN h2 (MSG-SET T K)) (IMPLIES (IN y K) (IMPLIES (IN y2 K)
-      (IMPLIES (NOT (= y y2))
-        (IMPLIES (IS-SUBTERM T K (ENC h2 y2) (ENC h y)) (IS-SUBTERM T K (ENC h2 y2) h)))))))))))))))))
-(dk-peel!)
-(fact 'enc-in-msgs 'T 'K 'h 'y)
-(fact 'enc-in-msgs 'T 'K 'h2 'y2)
-(sml-subterm-cases! 'T 'K '(ENC h2 y2) '(ENC h y)
+(fact 'token-set-is-set 'T)
+(fact 'token-not-list 'T 'tk)
+(sml-subterm-cases! 'T 'tk 'l
   (lambda ()
-    (fact 'enc-injective 'h2 'y2 'h 'y)
-    (dk-split-all!)
-    (dk-have! '(= y y2) (lambda () (subst '(= y2 y)) (rfl)))
-    (ai '(NOT (= y y2))))
-  (lambda (g1 y1)
-    (fact 'enc-injective 'h 'y g1 y1)
-    (dk-split-all!)
-    (subst `(= h ,g1))
-    (ass))
-  (lambda (g1 h1)
-    (sml-flip! `(CAT ,g1 ,h1) '(ENC h y))
-    (fact 'cat-ne-enc g1 h1 'h 'y)
-    (ai `(NOT (= (CAT ,g1 ,h1) (ENC h y))))))
-(qed 'subterm-enc-other-key)
+    (dk-have! '(IN tk (TUPLES (MSG-SET T))) (lambda () (subst '(= tk l)) (ass)))
+    (ai '(NOT (IN tk (TUPLES (MSG-SET T))))))
+  (lambda (i) (ew i) (dk-conj-close! (lambda () (ass)))))
+(qed 'token-subterm-of-list)
 
 ;;; -----------------------------------------------------------------------
-;;; 15. THE RANK: the least stage holding a message.  `iota-d' grants the
-;;;     description's property once existence (nn-least-element on the set of
-;;;     stage indices holding m) and uniqueness (nn-le-antisym) are shown.
+;;; 6. THE RANK: the least stage holding a message.
 
-(sp (make-wff '(FORALL T (FORALL K (FORALL m (IMPLIES (IN m (MSG-SET T K))
-   (AND (IN (MSG-RANK T K m) NN)
-        (AND (IN m (MSG-STAGE T K (MSG-RANK T K m)))
-             (FORALL j (IMPLIES (IN j NN) (IMPLIES (IN m (MSG-STAGE T K j)) (<= (MSG-RANK T K m) j))))))))))))
+(sp (make-wff '(FORALL T (FORALL m (IMPLIES (IN m (MSG-SET T))
+   (AND (IN (MSG-RANK T m) NN)
+        (AND (IN m (MSG-STAGE T (MSG-RANK T m)))
+             (FORALL j (IMPLIES (IN j NN) (IMPLIES (IN m (MSG-STAGE T j)) (<= (MSG-RANK T m) j)))))))))))
 (dk-peel!)
 (mac 'MSG-RANK)
 (define sml-io
@@ -1247,14 +910,14 @@
   (and (pair? f)
        (or (and (eq? (car f) '<=) (pair? (cdr f)) (equal? (cadr f) x))
            (any-pred (lambda (g) (sml-has-le? g x)) f))))
-(define sml-ss '(SEP smw_ NN (IN m (MSG-STAGE T K smw_))))
-(define (sml-in-ss! j)                   ; (IN j NN), (IN m (MSG-STAGE T K j)) in context
+(define sml-ss '(SEP smw_ NN (IN m (MSG-STAGE T smw_))))
+(define (sml-in-ss! j)                   ; (IN j NN), (IN m (MSG-STAGE T j)) in context
   (dk-have! `(IN ,j ,sml-ss) (lambda () (in-sep! (lambda () (ass)) (lambda () (ass))))))
 (dk-each-leaf! (lambda () (iota-d sml-io))
   (lambda ()
     (if (not (dk-head-is? (dk-goal) 'FORSOME))
         (ass)
-        (let* ((n0 (sml-set-open! 'm 'T 'K)))
+        (let* ((n0 (sml-set-open! 'm 'T)))
           (dk-have! `(AND (SUBSET ,sml-ss NN) (FORSOME n (IN n ,sml-ss)))
             (lambda ()
               (dk-conj-close!
@@ -1295,223 +958,102 @@
                       (ass))))))))))
 (qed 'msg-rank-prop)
 
-;; msg-stage-succ-cases for m at stage succ(n), split: (ON-KEEP) with m in stage n;
-;; (ON-CAT g h) / (ON-ENC g y) with the witnesses skolemised, their stage
-;; typings and the equation m = CAT(g, h) / m = ENC(g, y) in context.
-(define (sml-succ-cases! tt kk n m on-keep on-cat on-enc)
-  (let ((o (dk-cite! 'msg-stage-succ-cases tt kk n m)))
-    (dk-each-leaf! (lambda () (ai o))
-      (lambda ()
-        (if (dk-asm? `(IN ,m (MSG-STAGE ,tt ,kk ,n)))
-            (on-keep)
-            (let ((o2 (or (find-first (lambda (f) (and (dk-head-is? f 'OR) (dk-head-is? (cadr f) 'FORSOME)
-                                                       (dk-contains? f m)))
-                                      (dk-asms))
-                          (error "sml-succ-cases!: no second disjunction"))))
-              (dk-each-leaf! (lambda () (ai o2))
-                (lambda ()
-                  (let* ((ex (find-first (lambda (f) (and (dk-head-is? f 'FORSOME) (dk-contains? f m)
-                                                          (not (dk-head-is? (caddr f) 'OR))))
-                                         (dk-asms)))
-                         (vs (sml-unpack! ex)))
-                    (dk-split-all!)
-                    (if (dk-asm? `(= ,m (CAT ,(car vs) ,(cadr vs))))
-                        (on-cat (car vs) (cadr vs))
-                        (on-enc (car vs) (cadr vs))))))))))))
-
-;; The stage index of a member, read off (IN x (MSG-STAGE tt kk n)) in context.
-(define (sml-stage-of x)
-  (let ((f (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (cadr f) x)
-                                        (dk-head-is? (caddr f) 'MSG-STAGE)))
-                       (dk-asms))))
-    (and f (cadddr (caddr f)))))
-
-;;; The component of an encryption or a concatenation sits at a strictly earlier
-;;; stage.  Induction on the stage index, outermost.
-
-(sp (make-wff '(FORALL n (IMPLIES (IN n NN) (FORALL T (FORALL K (FORALL g (FORALL y
-   (IMPLIES (IN (ENC g y) (MSG-STAGE T K n))
-     (FORSOME j (AND (IN j NN) (AND (<= (succ j) n) (IN g (MSG-STAGE T K j))))))))))))))
+;;; A list in stage n sits in TUPLES of a strictly earlier stage (the token law: stage 0
+;;; holds no list).  Induction on the stage index, outermost.
+(sp (make-wff '(FORALL n (IMPLIES (IN n NN) (FORALL T (IMPLIES (IS-TOKEN-SET T) (FORALL l
+   (IMPLIES (IN l (TUPLES SET)) (IMPLIES (IN l (MSG-STAGE T n))
+     (FORSOME j (AND (IN j NN) (AND (<= (succ j) n) (IN l (TUPLES (MSG-STAGE T j)))))))))))))))
 (define sml-cases3 (dk-opened (lambda () (ni))))
 (dk-focus! (find-first (lambda (l) (not (sml-step-case? (dk-goal-of l)))) sml-cases3))
 (dk-peel!)
-(let* ((a (dk-skolem! (dk-cite! 'msg-stage-zero-cases 'T 'K '(ENC g y)))))
-  (sml-flip! `(ATOM ,a) '(ENC g y))
-  (fact 'atom-ne-enc a 'g 'y)
-  (ai `(NOT (= (ATOM ,a) (ENC g y)))))
+(fact 'msg-stage-zero-elim 'T 'l)
+(ai (sml-token-law! 'T 'l))
 (dk-focus! (find-first (lambda (l) (sml-step-case? (dk-goal-of l))) sml-cases3))
 (let* ((landed (dk-peel!))
        (ih (find-first (lambda (f) (dk-head-is? f 'FORALL)) landed))
-       (m (cadr (find-first (lambda (f) (and (dk-head-is? f 'IN) (dk-head-is? (cadr f) 'ENC))) landed)))
-       (gg (cadr m)) (yy (caddr m))
-       (stg (caddr (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (cadr f) m))) landed)))
-       (tt (cadr stg)) (kk (caddr stg)) (n (cadr (cadddr stg))))
-  (sml-succ-cases! tt kk n m
+       (g (dk-goal))                                       ; the FORSOME
+       (mem (find-first (lambda (f) (and (dk-head-is? f 'IN) (dk-head-is? (caddr f) 'MSG-STAGE))) landed))
+       (l (cadr mem)) (tt (cadr (caddr mem))) (n (cadr (caddr (caddr mem))))
+       (o (dk-cite! 'msg-stage-succ-cases tt n l)))
+  (dk-each-leaf! (lambda () (ai o))
     (lambda ()
-      (let ((j (dk-skolem! (dk-apply! ih tt kk gg yy))))
-        (dk-split-all!)
-        (ew j)
-        (dk-conj-close!
-          (lambda () (if (dk-head-is? (dk-goal) '<=) (dk-nn! `(<= (succ ,j) ,n)) (ass))))))
-    (lambda (g1 h1)
-      (sml-flip! `(CAT ,g1 ,h1) m)
-      (fact 'cat-ne-enc g1 h1 gg yy)
-      (ai `(NOT (= (CAT ,g1 ,h1) ,m))))
-    (lambda (g1 y1)
-      (fact 'enc-injective gg yy g1 y1)
-      (dk-split-all!)
-      (ew n)
-      (dk-conj-close!
-        (lambda ()
-          (cond ((dk-head-is? (dk-goal) '<=) (dk-nn!))
-                ((equal? (cadr (dk-goal)) gg) (subst `(= ,gg ,g1)) (ass))
-                (else (ass))))))))
-(qed 'msg-stage-enc-inv)
-
-(sp (make-wff '(FORALL n (IMPLIES (IN n NN) (FORALL T (FORALL K (FORALL g (FORALL h
-   (IMPLIES (IN (CAT g h) (MSG-STAGE T K n))
-     (FORSOME j (AND (IN j NN) (AND (<= (succ j) n)
-                                    (AND (IN g (MSG-STAGE T K j)) (IN h (MSG-STAGE T K j)))))))))))))))
-(define sml-cases4 (dk-opened (lambda () (ni))))
-(dk-focus! (find-first (lambda (l) (not (sml-step-case? (dk-goal-of l)))) sml-cases4))
-(dk-peel!)
-(let* ((a (dk-skolem! (dk-cite! 'msg-stage-zero-cases 'T 'K '(CAT g h)))))
-  (sml-flip! `(ATOM ,a) '(CAT g h))
-  (fact 'atom-ne-cat a 'g 'h)
-  (ai `(NOT (= (ATOM ,a) (CAT g h)))))
-(dk-focus! (find-first (lambda (l) (sml-step-case? (dk-goal-of l))) sml-cases4))
-(let* ((landed (dk-peel!))
-       (ih (find-first (lambda (f) (dk-head-is? f 'FORALL)) landed))
-       (m (cadr (find-first (lambda (f) (and (dk-head-is? f 'IN) (dk-head-is? (cadr f) 'CAT))) landed)))
-       (gg (cadr m)) (hh (caddr m))
-       (stg (caddr (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (cadr f) m))) landed)))
-       (tt (cadr stg)) (kk (caddr stg)) (n (cadr (cadddr stg))))
-  (sml-succ-cases! tt kk n m
-    (lambda ()
-      (let ((j (dk-skolem! (dk-apply! ih tt kk gg hh))))
-        (dk-split-all!)
-        (ew j)
-        (dk-conj-close!
-          (lambda () (if (dk-head-is? (dk-goal) '<=) (dk-nn! `(<= (succ ,j) ,n)) (ass))))))
-    (lambda (g1 h1)
-      (fact 'cat-injective gg hh g1 h1)
-      (dk-split-all!)
-      (ew n)
-      (dk-conj-close!
-        (lambda ()
-          (cond ((dk-head-is? (dk-goal) '<=) (dk-nn!))
-                ((equal? (cadr (dk-goal)) gg) (subst `(= ,gg ,g1)) (ass))
-                ((equal? (cadr (dk-goal)) hh) (subst `(= ,hh ,h1)) (ass))
-                (else (ass))))))
-    (lambda (g1 y1)
-      (fact 'cat-ne-enc gg hh g1 y1)
-      (ai `(NOT (= ,m (ENC ,g1 ,y1)))))))
-(qed 'msg-stage-cat-inv)
+      (if (dk-asm? `(IN ,l (MSG-STAGE ,tt ,n)))
+          (let ((j (dk-skolem! (dk-apply! ih tt l))))
+            (ew j)
+            (dk-conj-close!
+              (lambda () (if (dk-head-is? (dk-goal) '<=) (dk-nn! `(<= (succ ,j) ,n)) (ass)))))
+          (begin
+            (ew n)
+            (dk-conj-close!
+              (lambda () (if (dk-head-is? (dk-goal) '<=) (dk-nn!) (ass)))))))))
+(qed 'msg-stage-list-inv)
 
 ;; rank-prop at the TYPED message x: land (IN rank NN), (IN x stage(rank)) and the
 ;; minimality universal; return the rank term.
-(define (sml-rank! tt kk x)
-  (fact 'msg-rank-prop tt kk x)
+(define (sml-rank! tt x)
+  (fact 'msg-rank-prop tt x)
   (dk-split-all!)
-  `(MSG-RANK ,tt ,kk ,x))
+  `(MSG-RANK ,tt ,x))
 (define (sml-rank-min x)
-  (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (sml-has-le? f `(MSG-RANK T K ,x)))) (dk-asms))
+  (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (sml-has-le? f `(MSG-RANK T ,x)))) (dk-asms))
       (error "sml-rank-min: no minimality for" x)))
 
-(sp (make-wff '(FORALL T (FORALL K (FORALL a
-   (IMPLIES (IN a (UNION T K)) (= (MSG-RANK T K (ATOM a)) 0)))))))
+(sp (make-wff '(FORALL T (FORALL tk (IMPLIES (IN tk T) (= (MSG-RANK T tk) 0))))))
 (dk-peel!)
-(fact 'atom-in-msgs 'T 'K 'a)
-(fact 'msg-stage-atom 'T 'K 'a)
+(fact 'token-in-msgs 'T 'tk)
+(fact 'msg-stage-token 'T 'tk)
 (fact 'nn-zero-in)
-(let ((r (sml-rank! 'T 'K '(ATOM a))))
-  (dk-apply! (sml-rank-min '(ATOM a)) 0)
+(let ((r (sml-rank! 'T 'tk)))
+  (dk-apply! (sml-rank-min 'tk) 0)
   (dk-nn! `(<= ,r 0)))
-(qed 'msg-rank-atom)
+(qed 'msg-rank-token)
 
-(sp (make-wff '(FORALL T (FORALL K (FORALL g (FORALL y
-   (IMPLIES (IN g (MSG-SET T K)) (IMPLIES (IN y K)
-     (<= (succ (MSG-RANK T K g)) (MSG-RANK T K (ENC g y)))))))))))
+(sp (make-wff '(FORALL T (IMPLIES (IS-TOKEN-SET T) (FORALL l (FORALL i
+   (IMPLIES (IN l (TUPLES (MSG-SET T))) (IMPLIES (IN i NN) (IMPLIES (<= 1 i) (IMPLIES (<= i (LENGTH l))
+     (<= (succ (MSG-RANK T (NTH i l))) (MSG-RANK T l))))))))))))
 (dk-peel!)
-(fact 'enc-in-msgs 'T 'K 'g 'y)
-(let* ((re (sml-rank! 'T 'K '(ENC g y)))
-       (rg (sml-rank! 'T 'K 'g))
-       (j (dk-skolem! (dk-cite! 'msg-stage-enc-inv re 'T 'K 'g 'y))))
-  (dk-split-all!)
-  (dk-apply! (sml-rank-min 'g) j)
-  (dk-nn! `(<= ,rg ,j) `(<= (succ ,j) ,re)))
-(qed 'msg-rank-enc)
+(fact 'list-in-msgs 'T 'l)
+(fact 'msg-lists-are-lists 'T 'l)
+(sml-nth-in! '(MSG-SET T) 'i 'l)
+(let* ((rl (sml-rank! 'T 'l))
+       (rc (sml-rank! 'T '(NTH i l)))
+       (j (dk-skolem! (dk-cite! 'msg-stage-list-inv rl 'T 'l))))
+  (sml-nth-in! `(MSG-STAGE T ,j) 'i 'l)
+  (dk-apply! (sml-rank-min '(NTH i l)) j)
+  (dk-nn! `(<= ,rc ,j) `(<= (succ ,j) ,rl)))
+(qed 'msg-rank-component)
 
-(sp (make-wff '(FORALL T (FORALL K (FORALL g (FORALL h
-   (IMPLIES (IN g (MSG-SET T K)) (IMPLIES (IN h (MSG-SET T K))
-     (AND (<= (succ (MSG-RANK T K g)) (MSG-RANK T K (CAT g h)))
-          (<= (succ (MSG-RANK T K h)) (MSG-RANK T K (CAT g h))))))))))))
+;;; A proper subterm has a strictly smaller rank; so the subterm relation is ANTISYMMETRIC,
+;;; a partial order (reflexive: subterm-refl; transitive: subterm-trans).
+(sp (make-wff '(FORALL T (IMPLIES (IS-TOKEN-SET T)
+  (FORALL a (FORALL b (IMPLIES (IS-SUBTERM T a b)
+    (OR (= a b) (<= (succ (MSG-RANK T a)) (MSG-RANK T b))))))))))
 (dk-peel!)
-(fact 'cat-in-msgs 'T 'K 'g 'h)
-(let* ((rc (sml-rank! 'T 'K '(CAT g h)))
-       (rg (sml-rank! 'T 'K 'g))
-       (rh (sml-rank! 'T 'K 'h))
-       (j (dk-skolem! (dk-cite! 'msg-stage-cat-inv rc 'T 'K 'g 'h))))
-  (dk-split-all!)
-  (dk-apply! (sml-rank-min 'g) j)
-  (dk-apply! (sml-rank-min 'h) j)
-  (dk-conj-close!
-    (lambda ()
-      (if (dk-contains? (dk-goal) rg)
-          (dk-nn! `(<= ,rg ,j) `(<= (succ ,j) ,rc))
-          (dk-nn! `(<= ,rh ,j) `(<= (succ ,j) ,rc))))))
-(qed 'msg-rank-cat)
-
-;;; -----------------------------------------------------------------------
-;;; 16. A proper subterm has a strictly smaller rank; so the subterm relation
-;;;     is ANTISYMMETRIC, a partial order (reflexive: subterm-refl; transitive:
-;;;     subterm-trans).  The paper uses this without stating it.
-
-(sp (make-wff '(FORALL T (FORALL K (IMPLIES (IN T SET) (IMPLIES (IN K SET)
-  (FORALL a (FORALL b (IMPLIES (IS-SUBTERM T K a b)
-    (OR (= a b) (<= (succ (MSG-RANK T K a)) (MSG-RANK T K b))))))))))))
-(dk-peel!)
-(let* ((cond2 (lambda (u v) `(OR (= ,u ,v) (<= (succ (MSG-RANK T K ,u)) (MSG-RANK T K ,v)))))
-       (rr `(SEP sip_ (SUBTERM-REL T K) ,(sml-pair-cond 'sip_ cond2))))
-  (dk-have! `(IN ,rr (POWER ,(sml-box 'T 'K))) (lambda () (sml-subrel-power! 'T 'K rr)))
-  (dk-have! `(IS-SUBTERM-CLOSED T K ,rr)
-    (lambda ()
-      (sml-closed-pairs! 'T 'K rr
-        (lambda (kind x c prev)
-          (if (eq? kind 'refl)
-              (begin (oi-l) (rfl))
-              (let* ((ih (sml-pair-cond-unpack! x prev cond2))
-                     ;; the step's own rank fact: rank(prev) < rank(c)
-                     (step (lambda ()
-                             (case kind
-                               ((enc) (fact 'msg-rank-enc 'T 'K prev (caddr c)))
-                               (else (fact 'msg-rank-cat 'T 'K (cadr c) (caddr c))))
-                             (dk-split-all!))))
-                (dk-each-leaf! (lambda () (ai ih))
-                  (lambda ()
-                    (oi-r)
-                    (step)
-                    (if (dk-asm? `(= ,x ,prev))
-                        (begin (subst `(= ,x ,prev)) (ass))
-                        (let ((rx (sml-rank! 'T 'K x)) (rp (sml-rank! 'T 'K prev)) (rc (sml-rank! 'T 'K c)))
-                          (dk-nn! `(<= (succ ,rx) ,rp) `(<= (succ ,rp) ,rc))))))))))))
-  (fact 'subterm-least 'T 'K rr)
-  (dk-apply! (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f rr)
-                                              (not (dk-contains? f 'IS-SUBTERM-CLOSED))))
-                             (dk-asms))
-                 (error "subterm-rank: subterm-least did not detach"))
-             'a 'b)
-  (sml-pair-cond-open! rr 'a 'b cond2)
-  (ass))
+(fact 'token-set-is-set 'T)
+(let ((cond2 (lambda (u v) `(OR (= ,u ,v) (<= (succ (MSG-RANK T ,u)) (MSG-RANK T ,v))))))
+  (sml-device! 'T 'a 'b cond2
+    (lambda (kind x c prev i)
+      (if (eq? kind 'refl)
+          (begin (oi-l) (rfl))
+          (let ((ih (sml-pair-cond-unpack! x prev cond2)))
+            (fact 'msg-rank-component 'T c i)
+            (dk-each-leaf! (lambda () (ai ih))
+              (lambda ()
+                (oi-r)
+                (if (dk-asm? `(= ,x ,prev))
+                    (begin (subst `(= ,x ,prev)) (ass))
+                    (let* ((rx (sml-rank! 'T x)) (rp (sml-rank! 'T prev)) (rc (sml-rank! 'T c)))
+                      (dk-nn! `(<= (succ ,rx) ,rp) `(<= (succ ,rp) ,rc))))))))))
+  (dk-ass!))
 (qed 'subterm-rank)
 
-(sp (make-wff '(FORALL T (FORALL K (IMPLIES (IN T SET) (IMPLIES (IN K SET)
-  (FORALL a (FORALL b (IMPLIES (IS-SUBTERM T K a b) (IMPLIES (IS-SUBTERM T K b a) (= a b)))))))))))
+(sp (make-wff '(FORALL T (IMPLIES (IS-TOKEN-SET T)
+  (FORALL a (FORALL b (IMPLIES (IS-SUBTERM T a b) (IMPLIES (IS-SUBTERM T b a) (= a b)))))))))
 (dk-peel!)
-(fact 'subterm-in-msgs 'T 'K 'a 'b)
+(fact 'subterm-in-msgs 'T 'a 'b)
 (dk-split-all!)
-(let ((o1 (dk-cite! 'subterm-rank 'T 'K 'a 'b))
-      (o2 (dk-cite! 'subterm-rank 'T 'K 'b 'a)))
+(let* ((o1 (dk-cite! 'subterm-rank 'T 'a 'b))
+      (o2 (dk-cite! 'subterm-rank 'T 'b 'a)))
   (dk-each-leaf! (lambda () (ai o1))
     (lambda ()
       (if (dk-asm? '(= a b))
@@ -1519,8 +1061,8 @@
           (dk-each-leaf! (lambda () (ai o2))
             (lambda ()
               (if (dk-asm? '(= b a))
-                  (sml-flip! 'a 'b)
-                  (let ((ra (sml-rank! 'T 'K 'a)) (rb (sml-rank! 'T 'K 'b)))
+                  (dk-have! '(= a b) (lambda () (subst '(= a b)) (rfl)))
+                  (let* ((ra (sml-rank! 'T 'a)) (rb (sml-rank! 'T 'b)))
                     (dk-have! '(< 0 0)
                       (lambda () (dk-nn! `(<= (succ ,ra) ,rb) `(<= (succ ,rb) ,ra))))
                     (fact 'rr-zero-in)
@@ -1531,15 +1073,12 @@
 ;;; Topics.
 
 (for-each (lambda (n) (topic! n 'plumbing))
-          '(atom-unfold cat-unfold enc-unfold pair-self-member pair-self-eq msg-set-unfold
-            subterm-rel-unfold pair-in-cartesian-parts cartesian3-set))
+          '(pair-self-member pair-self-eq msg-set-unfold subterm-rel-unfold pair-in-cartesian-parts))
 (for-each (lambda (n) (topic! n 'constructions))
-          '(atom-ne-cat atom-ne-enc cat-ne-enc atom-injective cat-injective enc-injective
-            msg-stage-atom msg-stage-keep msg-stage-cat msg-stage-enc msg-stage-zero-cases
-            msg-stage-succ-cases msg-stage-add msg-set-intro msg-set-elim atom-in-msgs cat-in-msgs
-            enc-in-msgs msg-induction msg-cases msg-stage-set msg-set-is-set message-algebra-msgs
-            texts-keys-disjoint kinv-in-fun kinv-involution kinv-injective subterm-in-msgs
-            subterm-least subterm-refl subterm-enc subterm-cat-left subterm-cat-right subterm-cases
-            subterm-trans subterm-of-atom subterm-of-enc subterm-of-cat subterm-enc-other-key
-            msg-rank-prop msg-stage-enc-inv msg-stage-cat-inv msg-rank-atom msg-rank-enc msg-rank-cat
+          '(msg-stage-token msg-stage-keep msg-stage-list msg-stage-zero-elim msg-stage-succ-cases
+            msg-stage-add msg-set-intro msg-set-elim token-in-msgs msg-stage-set msg-set-is-set
+            msg-lists-are-lists list-in-some-stage list-in-msgs token-set-is-set token-not-list
+            msg-induction msg-cases msg-cases-disjoint subterm-in-msgs subterm-least subterm-refl
+            subterm-component subterm-cases subterm-trans subterm-of-token subterm-of-list
+            token-subterm-of-list msg-rank-prop msg-stage-list-inv msg-rank-token msg-rank-component
             subterm-rank subterm-antisym))
