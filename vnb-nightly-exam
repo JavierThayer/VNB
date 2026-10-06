@@ -51,6 +51,7 @@
 # type it was launched with.  A worker this script LAUNCHES is provisioned here in full:
 # mit-scheme, the swapfile, the idle stop, and the primary's pull key
 # (~/.ssh/vnb-secondary.pub) in its authorized_keys, which vnb-band-pull needs.
+# A worker with no reference/ directory (a fresh one) gets the primary's copy once.
 # Every step's timing lands in the ledger rows the underlying commands already write.
 set -u
 PROVER=/home/ubuntu/prover
@@ -126,6 +127,17 @@ capataz push "$WORKER" --yes --rsync --src "$PROVER" --dest "$PROVER" --exclude 
 want=$(md5sum load.scm certificates.scm | awk '{print $1}' | paste -sd' ')
 have=$(capataz run "$WORKER" --json --user ubuntu "cd $PROVER && md5sum load.scm certificates.scm" 2>/dev/null | python3 -c 'import json,sys; print(" ".join(l.split()[0] for l in json.load(sys.stdin)["stdout"].splitlines()))' 2>/dev/null)
 [ "$want" = "$have" ] || { say "FAIL: push not verified (load.scm/certificates.scm md5 differ)"; record failed "md5"; exit 2; }
+# reference/ is excluded from the push above (an exam's pages must not be clobbered by the
+# primary's), so a FRESH worker has no reference/ at all, and the load's reference generator
+# dies opening reference/BY-TOPIC.md in a directory that does not exist (worker-05's first
+# smoke, 2026-10-06: 3848 of 3865 qed in, then `Unable to open file ... No such file or
+# directory', rc 14).  The hand-made workers had the directory from an earlier full push.
+# A worker without it gets the primary's copy, once; the build regenerates every page.
+if ! capataz run "$WORKER" --json --user ubuntu "test -d $PROVER/reference && echo have-ref" 2>/dev/null | grep -q have-ref; then
+  capataz push "$WORKER" --yes --rsync --src "$PROVER/reference" --dest "$PROVER/reference" > /dev/null 2>&1 \
+    || { say "FAIL: push of reference/ to the fresh $WORKER"; record failed "push-ref"; exit 2; }
+  say "fresh worker: reference/ pushed once"
+fi
 say "pushed and verified; exam starting"
 
 EXAM_OPT=--exam; [ "$SMOKE" = 1 ] && EXAM_OPT=""
