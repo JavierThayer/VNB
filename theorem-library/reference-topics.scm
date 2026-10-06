@@ -214,13 +214,54 @@
     ("The binomial theorem"
      sum-expansion binomial-theorem)))
 
+;;; ---- Strand spaces (the user's model, notes-60 + encryption, 2026-10-06; S-1, S-2, S-2b) ----
+;;; Thayer-Herzog-Guttman, "Strand Spaces: Proving Security Protocols Correct", sections 2-3,
+;;; on the user's definitions: tokens, tagged lists and encryptions under a key token, a strand
+;;; space as a mapping from strand identifiers to strands, ==> strict, the key not a subterm,
+;;; the adversary (the paper's penetrator).  The page is docs/strand-spaces-2026-10-06.md.
+(define *strand-spaces-sections*
+  '(("Vocabulary: messages"
+     IS-TOKEN-SET LST ENCR MSG-STAGE MSG-SET MSG-RANK IS-SUBTERM-CLOSED SUBTERM-REL IS-SUBTERM)
+    ("Vocabulary: spaces, nodes, bundles"
+     SENT RECEIVED DIRECTED DIR-OF CONTENT-OF STRANDS IS-STRAND-SPACE NODES INDEX-OF ID-OF
+     NODE-CONTENT NODE-DIR IS-SENT IS-RECEIVED SAME-STRAND-BEFORE SAME-STRAND-UPTO SENDS-TO
+     STRAND-NEXT OCCURS-IN-SPACE IS-ENTRY-POINT ORIGINATES UNIQUELY-ORIGINATES
+     IS-PREC-CLOSED PREC-STRICT IS-BUNDLE PRECEDES-STRICT PRECEDES)
+    ("Vocabulary: the adversary"
+     IS-TEXT-TRACE IS-FLUSH-TRACE IS-TEE-TRACE IS-CONCAT-TRACE IS-SEPARATE-TRACE
+     IS-ENCRYPT-TRACE IS-DECRYPT-TRACE IS-ADVERSARY-TRACE IS-INFILTRATED-SPACE
+     IS-ADVERSARY-NODE IS-REGULAR-NODE)
+    ("Messages: freeness and induction"
+     token-not-list token-ne-list encr-ne-token encr-ne-list lst-ne-encr lst-injective encr-injective
+     msg-induction msg-cases token-in-msgs list-in-msgs encr-in-msgs msg-set-is-set)
+    ("The subterm relation"
+     subterm-least subterm-refl subterm-component subterm-encr subterm-cases subterm-trans
+     subterm-of-token subterm-of-list subterm-of-encr token-subterm-of-list token-subterm-of-encr
+     subterm-rank subterm-antisym subterm-encr-other-key)
+    ("Nodes and the two relations"
+     node-intro node-parts node-content-in-msgs node-sent-or-received node-not-sent-and-received
+     ssb-irreflexive ssb-transitive sends-to-dirs directed-intro node-content-eq)
+    ("Causal precedence (Lemma 2.7)"
+     ps-last-step precedes-elim bundle-send-precedes bundle-ssb-precedes bundle-ssb-closed
+     bundle-received-sender precedes-partial-order finite-strict-minimal bundle-minimal
+     bundle-minimal-precedes)
+    ("Origination (Lemmas 2.8, 2.9)"
+     bundle-minimal-sent bundle-minimal-originates originates-intro originates-elim
+     originates-sent originates-no-earlier originates-unique)
+    ("The adversary bound (Proposition 3.3)"
+     text-trace-origin flush-trace-no-sent tee-trace-no-origin concat-trace-no-origin
+     separate-trace-no-origin encrypt-trace-no-origin decrypt-trace-no-origin
+     concat-trace-exists separate-trace-exists encrypt-trace-strand decrypt-trace-strand
+     adversary-node-origin adversary-bound adversary-bound-adversary-nodes)))
+
 ;;; ---- the topic table: ONE page, a big section heading per subject ----
 (define *library-topics*
   (list (list "Calculus basics"  *elementary-calculus-sections*)
         (list "Vector calculus"  *vector-calculus-sections*)
         (list "Linear algebra"   *linear-algebra-sections*)
         (list "Combinatorial"    *combinatorial-sections*)
-        (list "Metric spaces"    *metric-spaces-sections*)))
+        (list "Metric spaces"    *metric-spaces-sections*)
+        (list "Strand spaces"    *strand-spaces-sections*)))
 
 ;;; Emit a single reference page divided into big subject sections (## per
 ;;; subject), each with a few sub-sections (###), each result line carrying its

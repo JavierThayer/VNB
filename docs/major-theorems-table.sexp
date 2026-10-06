@@ -1351,3 +1351,56 @@
        (status proven)
        (deviation "PROVEN 2026-09-26 (batch 35) with the exceptional point; a closed path is a road on [a, b] with pgam(b) = pgam(a). the exceptional-point hypothesis is the notes' (f continuous on the open set u, x in u, f holomorphic on u minus {x}), spelled with restrict(f, difference(u, singleton(x))) because HOLOMORPHIC-ON types its function on exactly its set. Earlier: PROVEN 2026-09-25 (batch 30) for f holomorphic on the whole convex open set U: for a road on [a, b] with trace in U and gamma(b) = gamma(a), the integral of f along it is 0 (from 3.8 and Cor 3.3 for a closed road). 'Closed path' is the hypothesis gamma(b) = gamma(a); there is no closed-road predicate. The exceptional point x as for 3.6.")
        (notes-statement "If f is continuous on an open convex set U and holomorphic on U minus a point x, then for any closed path gamma in U the integral of f along gamma is 0."))
+
+;;; ===== strand-spaces =====
+;;; Document: /home/ubuntu/docs/jcs_strand_spaces.pdf, "Strand Spaces: Proving Security Protocols
+;;; Correct", F. Javier Thayer, J. C. Herzog, J. D. Guttman (JCS 1999), sections 2-3, FORMALISED ON
+;;; THE USER'S MODEL of ~/notes/notes-60.txt (2026-10-06): tokens, n-ary lists and encryptions under a
+;;; key token; a strand space as a mapping from strand identifiers to strands; ==> strict; the key is
+;;; not a subterm of the encryption; the adversary (the paper's penetrator) without the K trace.
+;;; Added 2026-10-06 after batches S-2 and S-2b (docs/strand-spaces-2026-10-06.md).
+
+(entry (doc "strand-spaces")
+       (ref "2.7")
+       (kind lemma)
+       (title "Causal precedence in a bundle is a partial order with minimal elements")
+       (names precedes-partial-order finite-strict-minimal bundle-minimal)
+       (status proven)
+       (deviation "Stated on the user's model: PRECEDES(c) is the reflexive closure of PRECEDES-STRICT(c), the least transitive relation on BNODES(c) containing the send edges BSEND and the strict same-strand order ==>. precedes-partial-order states it as IS-PARTIAL-ORDER(BNODES, PRECEDES); bundle-minimal gives, for every nonempty subset S of BNODES, a member m with no s in S strictly preceding it, the witness explicit. The paper states 2.7 without proof; the proof uses only CARD(BNODES) in NN (finite-strict-minimal: a transitive irreflexive relation on a finite nonempty set has a minimal element), never the finiteness of the edge sets. Proven 2026-10-06 (S-2), unchanged by S-2b.")
+       (notes-statement "Let C be a bundle. Then <=_C is a partial order, and every nonempty subset of the nodes of C has <=_C-minimal members."))
+
+(entry (doc "strand-spaces")
+       (ref "2.8")
+       (kind lemma)
+       (title "A minimal node of a content-closed node set is a sent node")
+       (names bundle-minimal-sent)
+       (status proven)
+       (deviation "The paper's hypothesis is an iff over all node pairs ('term(m) = term(m') implies m in S iff m' in S'); the proof needs ONE direction only -- toward the sender: equal content and the receiver in S put the sender in S -- and the theorem is stated in that weaker form. 'Positive' reads IS-SENT. Uses the EXISTENCE of a sender for every received node of the bundle (bundle-received-sender), never its uniqueness. Proven 2026-10-06 (S-2).")
+       (notes-statement "Suppose C is a bundle and S is a set of nodes such that, whenever term(m) = term(m'), m in S iff m' in S. Then every <=_C-minimal member of S is positive."))
+
+(entry (doc "strand-spaces")
+       (ref "2.9")
+       (kind lemma)
+       (title "A minimal node among those whose content contains t originates t")
+       (names bundle-minimal-originates)
+       (status proven)
+       (deviation "The paper's proof iterates bundle clause 3 'as many times as necessary' along =>+, which it never defines; on the user's model ==> IS the whole strict same-strand order and the bundle's closure under it is one law (bundle-ssb-closed), so the iteration dissolves and no proof steps along NEXT. The set is {m in BNODES : IS-SUBTERM(t, NODE-CONTENT(m))}, content being undirected by definition (the paper's 'abuse of language' on signed terms disappears). Proven 2026-10-06 (S-2).")
+       (notes-statement "Suppose C is a bundle, t is a term, and S = {m in C : t @ term(m)}. Then every <=_C-minimal member of S is an originating occurrence of t."))
+
+(entry (doc "strand-spaces")
+       (ref "2.12")
+       (kind proposition)
+       (title "A subterm of an encryption under one key that is an encryption under another lies inside the plaintext")
+       (names subterm-encr-other-key)
+       (status proven)
+       (deviation "Encryption is ENCR(m, k) = [2, m, k] with k in KEYS; the subterm relation is the intersection closure with the convention THE KEY IS NOT A SUBTERM OF THE ENCRYPTION (the paper's Definition 2.1). Dropped by S-2 (no encryption in notes-60), back with S-2b on the user's decision of 2026-10-06 16:40Z ('{m}_k = encr{m,k} is also a message'). Proven 2026-10-06 (S-2b).")
+       (notes-statement "If {g}_K' @ {h}_K and K' /= K then {g}_K' @ h."))
+
+(entry (doc "strand-spaces")
+       (ref "3.3")
+       (kind proposition)
+       (title "The adversary bound: a secret that never originates on a regular node occurs nowhere")
+       (names adversary-bound adversary-bound-adversary-nodes adversary-node-origin)
+       (status proven)
+       (deviation "Stated for ANY token u of the space with u notin ADV-TOKENS (the paper: a key K in K minus K_P; the key case is the instance, since KEYS is a subset of TOKENS); for a bundle c with BSPACE(c) = ISPACE(isp) of an infiltrated space isp. The adversary has the traces M F T C S E D over the space (C and S n-ary over lists; D decrypts under KINV; the paper's K trace is subsumed by M since keys are tokens). The proof is the paper's method -- a minimal member of {n in C : u @ content(n)} by Lemma 2.7, originating by 2.9, sent by 2.8, hence an adversary node, then seven cases -- with two findings: the M and C cases rest on the TOKEN LAW (no token is a list), not on the freeness of a free algebra; and the E case holds under either subterm convention, the convention deciding only whether the hypothesis 'never originates regularly' can be met for a key a participant encrypts with. Proven 2026-10-06 (S-2, seven cases S-2b).")
+       (notes-statement "Let C be a bundle, and let K in K \\ K_P. If K never originates on a regular node, then K is not a subterm of term(n) for any node n in C; in particular, for any penetrator node p in C, K is not a subterm of term(p)."))

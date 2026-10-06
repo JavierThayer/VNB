@@ -1819,7 +1819,7 @@ definition:
 cartesian(pair(sent, received), msg-set(sst_, ssk_))
 ```
 
-characterized by `directed-intro`  *(proven)*:
+characterized by `directed-intro`  *(certified)*:
 
 ```
 forall([t, k, g in msg-set(t, k)], [sent, g] in directed(t, k) and [received, g] in directed(t, k))
@@ -6966,7 +6966,7 @@ reads: the keys slot of $1
 
 a structure slot
 
-characterized by `keys-in-tokens`  *(proven)*:
+characterized by `keys-in-tokens`  *(certified)*:
 
 ```
 forall([spa], is-strand-space(spa) implies forall([x in keys(spa)], x in tokens(spa)))
@@ -6980,7 +6980,7 @@ reads: the kinv slot of $1
 
 a structure slot
 
-characterized by `kinv-in-fun`  *(proven)*:
+characterized by `kinv-in-fun`  *(certified)*:
 
 ```
 forall([spa], is-strand-space(spa) implies kinv(spa) in fun(keys(spa), keys(spa)))
@@ -7197,7 +7197,7 @@ definition:
 [1, sml_]
 ```
 
-characterized by `lst-unfold`  *(proven)*:
+characterized by `lst-unfold`  *(certified)*:
 
 ```
 forall([l], lst(l) == [1, l])
@@ -7756,7 +7756,7 @@ definition:
 iota(smr_, smr_ in nn and smm_ in msg-stage(smt_, smk_, smr_) and forall([smj_ in nn], smm_ in msg-stage(smt_, smk_, smj_) implies smr_ <= smj_))
 ```
 
-characterized by `msg-rank-encr`  *(proven)*:
+characterized by `msg-rank-encr`  *(certified)*:
 
 ```
 forall([t, k], is-token-set(t) implies forall([g, y], g in msg-set(t, k) implies y in k implies succ(msg-rank(t, k, g)) <= msg-rank(t, k, encr(g, y))))
@@ -7776,7 +7776,7 @@ definition:
 big-union(smn_, nn, msg-stage(smt_, smk_, smn_))
 ```
 
-characterized by `msg-set-elim`  *(proven)*:
+characterized by `msg-set-elim`  *(certified)*:
 
 ```
 forall([t, k, m in msg-set(t, k)], forsome([n in nn], m in msg-stage(t, k, n)))
@@ -8019,7 +8019,7 @@ definition:
 nth(1, nth(nth(1, ssn_), (strand-map(ssp_))(nth(2, ssn_))))
 ```
 
-characterized by `node-dir-cases`  *(proven)*:
+characterized by `node-dir-cases`  *(certified)*:
 
 ```
 forall([spa, n], is-strand-space(spa) implies n in nodes(spa) implies node-dir(spa, n) = sent or node-dir(spa, n) = received)
@@ -10264,7 +10264,7 @@ definition:
 tuples(directed(sst_, ssk_))
 ```
 
-characterized by `strands-unfold`  *(proven)*:
+characterized by `strands-unfold`  *(certified)*:
 
 ```
 forall([t, k], strands(t, k) == tuples(directed(t, k)))
@@ -10402,7 +10402,7 @@ definition:
 {smp_ in cartesian(msg-set(smt_, smk_), msg-set(smt_, smk_)): forall([smq_ in power(cartesian(msg-set(smt_, smk_), msg-set(smt_, smk_)))], is-subterm-closed(smt_, smk_, smq_) implies smp_ in smq_)}
 ```
 
-characterized by `subterm-rel-unfold`  *(proven)*:
+characterized by `subterm-rel-unfold`  *(certified)*:
 
 ```
 forall([t, k], subterm-rel(t, k) == {p_ in cartesian(msg-set(t, k), msg-set(t, k)): forall([q_ in power(cartesian(msg-set(t, k), msg-set(t, k)))], is-subterm-closed(t, k, q_) implies p_ in q_)})
@@ -10725,7 +10725,7 @@ reads: the tokens slot of $1
 
 a structure slot
 
-characterized by `keys-in-tokens`  *(proven)*:
+characterized by `keys-in-tokens`  *(certified)*:
 
 ```
 forall([spa], is-strand-space(spa) implies forall([x in keys(spa)], x in tokens(spa)))

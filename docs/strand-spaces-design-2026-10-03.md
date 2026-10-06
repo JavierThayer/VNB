@@ -1,5 +1,7 @@
 # Strand spaces in VNB: a design note (2026-10-03)
 
+**SUPERSEDED 2026-10-06.** This note formalises the PAPER's objects (signed terms, tr, the ATOM / CAT / ENC algebra with keys). The user's own model, `~/notes/notes-60.txt` plus his decision of 2026-10-06 on encryption, replaced it: see `docs/strand-spaces-2026-10-06.md` for what is built. The note is kept for its reading of the paper and its findings list.
+
 The user's roadmap (notes-57, line (c)) asks for applications to network protocols after his paper
 with Herzog and Guttman, *Strand Spaces: Proving Security Protocols Correct* (`~/docs/jcs_strand_spaces.pdf`),
 and later Guttman's *Shapes* (`~/docs/shapes_surveying.pdf`). This note says how the paper's objects

@@ -829,7 +829,7 @@
 <p>reads: the directed messages over the tokens $1 and the keys $2</p>
 <p>definition:</p>
 <pre>cartesian(pair(sent, received), msg-set(sst_, ssk_))</pre>
-<p>characterized by <a class="x" href="THEOREMS.html#t-directed-intro"><code>directed-intro</code></a>  <em>(proven)</em>:</p>
+<p>characterized by <a class="x" href="THEOREMS.html#t-directed-intro"><code>directed-intro</code></a>  <em>(certified)</em>:</p>
 <pre>forall([t, k, g in msg-set(t, k)], [sent, g] in directed(t, k) and [received, g] in directed(t, k))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-directed-parts"><code>directed-parts</code></a> <a class="x" href="THEOREMS.html#t-directed-unfold"><code>directed-unfold</code></a> <a class="x" href="THEOREMS.html#t-node-step-in-directed"><code>node-step-in-directed</code></a></p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__directed-8">mentioned by 8 result(s)</a></p>
@@ -3006,13 +3006,13 @@
 <h4 id="GLOSSARY__keys-s-*-accessor-*"><code>keys(s)</code>  <em>(accessor)</em></h4>
 <p>reads: the keys slot of $1</p>
 <p>a structure slot</p>
-<p>characterized by <a class="x" href="THEOREMS.html#t-keys-in-tokens"><code>keys-in-tokens</code></a>  <em>(proven)</em>:</p>
+<p>characterized by <a class="x" href="THEOREMS.html#t-keys-in-tokens"><code>keys-in-tokens</code></a>  <em>(certified)</em>:</p>
 <pre>forall([spa], is-strand-space(spa) implies forall([x in keys(spa)], x in tokens(spa)))</pre>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__keys-41">mentioned by 41 result(s)</a></p>
 <h4 id="GLOSSARY__kinv-s-*-accessor-*"><code>kinv(s)</code>  <em>(accessor)</em></h4>
 <p>reads: the kinv slot of $1</p>
 <p>a structure slot</p>
-<p>characterized by <a class="x" href="THEOREMS.html#t-kinv-in-fun"><code>kinv-in-fun</code></a>  <em>(proven)</em>:</p>
+<p>characterized by <a class="x" href="THEOREMS.html#t-kinv-in-fun"><code>kinv-in-fun</code></a>  <em>(certified)</em>:</p>
 <pre>forall([spa], is-strand-space(spa) implies kinv(spa) in fun(keys(spa), keys(spa)))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-kinv-injective"><code>kinv-injective</code></a> <a class="x" href="THEOREMS.html#t-kinv-involution"><code>kinv-involution</code></a></p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__kinv-12">mentioned by 12 result(s)</a></p>
@@ -3102,7 +3102,7 @@
 <p>reads: the list message of $1</p>
 <p>definition:</p>
 <pre>[1, sml_]</pre>
-<p>characterized by <a class="x" href="THEOREMS.html#t-lst-unfold"><code>lst-unfold</code></a>  <em>(proven)</em>:</p>
+<p>characterized by <a class="x" href="THEOREMS.html#t-lst-unfold"><code>lst-unfold</code></a>  <em>(certified)</em>:</p>
 <pre>forall([l], lst(l) == [1, l])</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-lst-ne-encr"><code>lst-ne-encr</code></a> <a class="x" href="THEOREMS.html#t-lst-injective"><code>lst-injective</code></a> <a class="x" href="THEOREMS.html#t-lst-in-tuples-set"><code>lst-in-tuples-set</code></a></p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__lst-25">mentioned by 25 result(s)</a></p>
@@ -3333,7 +3333,7 @@
 <p>reads: the rank of the message $3 over the tokens $1 and the keys $2</p>
 <p>definition:</p>
 <pre>iota(smr_, smr_ in nn and smm_ in msg-stage(smt_, smk_, smr_) and forall([smj_ in nn], smm_ in msg-stage(smt_, smk_, smj_) implies smr_ &lt;= smj_))</pre>
-<p>characterized by <a class="x" href="THEOREMS.html#t-msg-rank-encr"><code>msg-rank-encr</code></a>  <em>(proven)</em>:</p>
+<p>characterized by <a class="x" href="THEOREMS.html#t-msg-rank-encr"><code>msg-rank-encr</code></a>  <em>(certified)</em>:</p>
 <pre>forall([t, k], is-token-set(t) implies forall([g, y], g in msg-set(t, k) implies y in k implies succ(msg-rank(t, k, g)) &lt;= msg-rank(t, k, encr(g, y))))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-msg-rank-prop"><code>msg-rank-prop</code></a> <a class="x" href="THEOREMS.html#t-msg-rank-token"><code>msg-rank-token</code></a> <a class="x" href="THEOREMS.html#t-msg-rank-component"><code>msg-rank-component</code></a></p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__msg-rank-6">mentioned by 6 result(s)</a></p>
@@ -3341,7 +3341,7 @@
 <p>reads: the messages over the tokens $1 and the keys $2</p>
 <p>definition:</p>
 <pre>big-union(smn_, nn, msg-stage(smt_, smk_, smn_))</pre>
-<p>characterized by <a class="x" href="THEOREMS.html#t-msg-set-elim"><code>msg-set-elim</code></a>  <em>(proven)</em>:</p>
+<p>characterized by <a class="x" href="THEOREMS.html#t-msg-set-elim"><code>msg-set-elim</code></a>  <em>(certified)</em>:</p>
 <pre>forall([t, k, m in msg-set(t, k)], forsome([n in nn], m in msg-stage(t, k, n)))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-msg-set-intro"><code>msg-set-intro</code></a> <a class="x" href="THEOREMS.html#t-msg-set-is-set"><code>msg-set-is-set</code></a> <a class="x" href="THEOREMS.html#t-msg-set-unfold"><code>msg-set-unfold</code></a></p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__msg-set-54">mentioned by 54 result(s)</a></p>
@@ -3441,7 +3441,7 @@
 <p>reads: the direction of the node $2 of $1</p>
 <p>definition:</p>
 <pre>nth(1, nth(nth(1, ssn_), (strand-map(ssp_))(nth(2, ssn_))))</pre>
-<p>characterized by <a class="x" href="THEOREMS.html#t-node-dir-cases"><code>node-dir-cases</code></a>  <em>(proven)</em>:</p>
+<p>characterized by <a class="x" href="THEOREMS.html#t-node-dir-cases"><code>node-dir-cases</code></a>  <em>(certified)</em>:</p>
 <pre>forall([spa, n], is-strand-space(spa) implies n in nodes(spa) implies node-dir(spa, n) = sent or node-dir(spa, n) = received)</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-node-dir-unfold"><code>node-dir-unfold</code></a></p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__node-dir-8">mentioned by 8 result(s)</a></p>
@@ -4390,7 +4390,7 @@
 <p>reads: the strands over the tokens $1 and the keys $2</p>
 <p>definition:</p>
 <pre>tuples(directed(sst_, ssk_))</pre>
-<p>characterized by <a class="x" href="THEOREMS.html#t-strands-unfold"><code>strands-unfold</code></a>  <em>(proven)</em>:</p>
+<p>characterized by <a class="x" href="THEOREMS.html#t-strands-unfold"><code>strands-unfold</code></a>  <em>(certified)</em>:</p>
 <pre>forall([t, k], strands(t, k) == tuples(directed(t, k)))</pre>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__strands-9">mentioned by 9 result(s)</a></p>
 <h4 id="GLOSSARY__strictly-mono-nn-phi-*-predicate-*"><code>strictly-mono-nn(phi)</code>  <em>(predicate)</em></h4>
@@ -4447,7 +4447,7 @@
 <p>reads: the subterm relation over the tokens $1 and the keys $2</p>
 <p>definition:</p>
 <pre>{smp_ in cartesian(msg-set(smt_, smk_), msg-set(smt_, smk_)): forall([smq_ in power(cartesian(msg-set(smt_, smk_), msg-set(smt_, smk_)))], is-subterm-closed(smt_, smk_, smq_) implies smp_ in smq_)}</pre>
-<p>characterized by <a class="x" href="THEOREMS.html#t-subterm-rel-unfold"><code>subterm-rel-unfold</code></a>  <em>(proven)</em>:</p>
+<p>characterized by <a class="x" href="THEOREMS.html#t-subterm-rel-unfold"><code>subterm-rel-unfold</code></a>  <em>(certified)</em>:</p>
 <pre>forall([t, k], subterm-rel(t, k) == {p_ in cartesian(msg-set(t, k), msg-set(t, k)): forall([q_ in power(cartesian(msg-set(t, k), msg-set(t, k)))], is-subterm-closed(t, k, q_) implies p_ in q_)})</pre>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__subterm-rel-4">mentioned by 4 result(s)</a></p>
 <h4 id="GLOSSARY__succ-*-operator-*"><code>succ</code>  <em>(operator)</em></h4>
@@ -4583,7 +4583,7 @@
 <h4 id="GLOSSARY__tokens-s-*-accessor-*"><code>tokens(s)</code>  <em>(accessor)</em></h4>
 <p>reads: the tokens slot of $1</p>
 <p>a structure slot</p>
-<p>characterized by <a class="x" href="THEOREMS.html#t-keys-in-tokens"><code>keys-in-tokens</code></a>  <em>(proven)</em>:</p>
+<p>characterized by <a class="x" href="THEOREMS.html#t-keys-in-tokens"><code>keys-in-tokens</code></a>  <em>(certified)</em>:</p>
 <pre>forall([spa], is-strand-space(spa) implies forall([x in keys(spa)], x in tokens(spa)))</pre>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__tokens-42">mentioned by 42 result(s)</a></p>
 <h4 id="GLOSSARY__top-space-*-structure-*"><a class="x" href="STRUCTURE-INDEX.html#top-space"><code>top-space</code></a>  <em>(structure)</em></h4>

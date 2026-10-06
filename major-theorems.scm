@@ -152,7 +152,8 @@
 (define *mt-doc-titles*
   '(("calculus"         . "Calculus")
     ("linear-algebra"   . "Linear algebra")
-    ("complex-analysis" . "Complex analysis")))
+    ("complex-analysis" . "Complex analysis")
+    ("strand-spaces"    . "Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60)")))
 
 (define (mt--doc-title doc)
   (let ((hit (assoc doc *mt-doc-titles*)))

@@ -1728,4 +1728,749 @@
 \]}
 \noindent\textbf{Asserted}
 
+\section{Strand spaces}
+
+\subsection{Vocabulary: messages}
+
+\subsubsection*{\texttt{is-token-set}}
+\emph{for every smt\_, smt\_ is a set of tokens, none of which is a list if and only if smt\_ is in set and for every smx\_ in smt\_, smx\_ is not in tuples(set)}
+{\small\[
+\forall \operatorname{smt\_}.\; (\operatorname{is\text{-}token\text{-}set}(\operatorname{smt\_}) \Leftrightarrow ((\operatorname{smt\_} \in \mathbf{Set}) \wedge \forall \operatorname{smx\_} \in \operatorname{smt\_}.\; \neg (\operatorname{smx\_} \in \operatorname{tuples}(\mathbf{Set}))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{lst}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{encr}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{msg-stage}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{msg-set}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{msg-rank}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{is-subterm-closed}}
+\emph{for every smt\_, smk\_, smr\_, smr\_ is closed under the subterm clauses over the tokens smt\_ and the keys smk\_ if and only if for every sma\_ in msg-set(smt\_, smk\_), [sma\_, sma\_] is in smr\_ and for every sma\_, sml\_, smi\_, if sml\_ is in tuples(msg-set(smt\_, smk\_)), then if smi\_ is in nn, then if 1 is at most smi\_, then if smi\_ is at most length(sml\_), then if [sma\_, nth(smi\_, sml\_)] is in smr\_, then [sma\_, lst(sml\_)] is in smr\_ and for every sma\_, smg\_, smy\_, if smg\_ is in msg-set(smt\_, smk\_), then if smy\_ is in smk\_, then if [sma\_, smg\_] is in smr\_, then [sma\_, encr(smg\_, smy\_)] is in smr\_}
+{\small\[
+\forall \operatorname{smt\_}, \operatorname{smk\_}, \operatorname{smr\_}.\; (\operatorname{is\text{-}subterm\text{-}closed}(\operatorname{smt\_}, \operatorname{smk\_}, \operatorname{smr\_}) \Leftrightarrow (\forall \operatorname{sma\_} \in \operatorname{msg\text{-}set}(\operatorname{smt\_}, \operatorname{smk\_}).\; (\langle \operatorname{sma\_}, \operatorname{sma\_} \rangle \in \operatorname{smr\_}) \wedge (\forall \operatorname{sma\_}.; \forall \operatorname{sml\_} \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{smt\_}, \operatorname{smk\_})), \operatorname{smi\_} \in \mathbb{N}.\; ((1 \leq \operatorname{smi\_}) \Rightarrow ((\operatorname{smi\_} \leq \operatorname{length}(\operatorname{sml\_})) \Rightarrow ((\langle \operatorname{sma\_}, \operatorname{nth}(\operatorname{smi\_}, \operatorname{sml\_}) \rangle \in \operatorname{smr\_}) \Rightarrow (\langle \operatorname{sma\_}, \operatorname{lst}(\operatorname{sml\_}) \rangle \in \operatorname{smr\_})))) \wedge \forall \operatorname{sma\_}.; \forall \operatorname{smg\_} \in \operatorname{msg\text{-}set}(\operatorname{smt\_}, \operatorname{smk\_}), \operatorname{smy\_} \in \operatorname{smk\_}.\; ((\langle \operatorname{sma\_}, \operatorname{smg\_} \rangle \in \operatorname{smr\_}) \Rightarrow (\langle \operatorname{sma\_}, \operatorname{encr}(\operatorname{smg\_}, \operatorname{smy\_}) \rangle \in \operatorname{smr\_})))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{subterm-rel}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{is-subterm}}
+\emph{for every smt\_, smk\_, sma\_, smb\_, sma\_ is a subterm of smb\_ over the tokens smt\_ and the keys smk\_ if and only if [sma\_, smb\_] is in subterm-rel(smt\_, smk\_)}
+{\small\[
+\forall \operatorname{smt\_}, \operatorname{smk\_}, \operatorname{sma\_}, \operatorname{smb\_}.\; (\operatorname{is\text{-}subterm}(\operatorname{smt\_}, \operatorname{smk\_}, \operatorname{sma\_}, \operatorname{smb\_}) \Leftrightarrow (\langle \operatorname{sma\_}, \operatorname{smb\_} \rangle \in \operatorname{subterm\text{-}rel}(\operatorname{smt\_}, \operatorname{smk\_})))
+\]}
+\noindent\textbf{Definition.}
+
+\subsection{Vocabulary: spaces, nodes, bundles}
+
+\subsubsection*{\texttt{sent}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{received}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{directed}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{dir-of}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{content-of}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{strands}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{is-strand-space}}
+\emph{for every s, s is a strand space if and only if length(s) equals 5 and tokens(s) is in set and ids(s) is in set and keys(s) is in set and strand-map(s) is in fun(ids(s), strands(tokens(s), keys(s))) and kinv(s) is in fun(keys(s), keys(s)) and tokens(s) is a set of tokens, none of which is a list and for every ssx\_ in keys(s), ssx\_ is in tokens(s) and for every ssx\_ in keys(s), (kinv(s))((kinv(s))(ssx\_)) equals ssx\_}
+{\small\[
+\forall s.\; (\operatorname{is\text{-}strand\text{-}space}(s) \Leftrightarrow ((\operatorname{length}(s) = 5) \wedge ((\operatorname{tokens}(s) \in \mathbf{Set}) \wedge ((\operatorname{ids}(s) \in \mathbf{Set}) \wedge ((\operatorname{keys}(s) \in \mathbf{Set}) \wedge ((\operatorname{strand\text{-}map}(s) \in (\operatorname{ids}(s) \to \operatorname{strands}(\operatorname{tokens}(s), \operatorname{keys}(s)))) \wedge ((\operatorname{kinv}(s) \in (\operatorname{keys}(s) \to \operatorname{keys}(s))) \wedge (\operatorname{is\text{-}token\text{-}set}(\operatorname{tokens}(s)) \wedge (\forall \operatorname{ssx\_} \in \operatorname{keys}(s).\; (\operatorname{ssx\_} \in \operatorname{tokens}(s)) \wedge \forall \operatorname{ssx\_} \in \operatorname{keys}(s).\; (\operatorname{kinv}(s)(\operatorname{kinv}(s)(\operatorname{ssx\_})) = \operatorname{ssx\_}))))))))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{nodes}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{index-of}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{id-of}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{node-content}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{node-dir}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{is-sent}}
+\emph{for every ssp\_, ssn\_, the node ssn\_ of ssp\_ is sent if and only if node-dir(ssp\_, ssn\_) equals sent}
+{\small\[
+\forall \operatorname{ssp\_}, \operatorname{ssn\_}.\; (\operatorname{is\text{-}sent}(\operatorname{ssp\_}, \operatorname{ssn\_}) \Leftrightarrow (\operatorname{node\text{-}dir}(\operatorname{ssp\_}, \operatorname{ssn\_}) = \mathit{sent}))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{is-received}}
+\emph{for every ssp\_, ssn\_, the node ssn\_ of ssp\_ is received if and only if node-dir(ssp\_, ssn\_) equals received}
+{\small\[
+\forall \operatorname{ssp\_}, \operatorname{ssn\_}.\; (\operatorname{is\text{-}received}(\operatorname{ssp\_}, \operatorname{ssn\_}) \Leftrightarrow (\operatorname{node\text{-}dir}(\operatorname{ssp\_}, \operatorname{ssn\_}) = \mathit{received}))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{same-strand-before}}
+\emph{for every ssp\_, ssn\_, ssm\_, ssn\_ comes strictly before ssm\_ on one strand of ssp\_ if and only if ssn\_ is in nodes(ssp\_) and ssm\_ is in nodes(ssp\_) and nth(2, ssn\_) equals nth(2, ssm\_) and nth(1, ssn\_) is less than nth(1, ssm\_)}
+{\small\[
+\forall \operatorname{ssp\_}, \operatorname{ssn\_}, \operatorname{ssm\_}.\; (\operatorname{same\text{-}strand\text{-}before}(\operatorname{ssp\_}, \operatorname{ssn\_}, \operatorname{ssm\_}) \Leftrightarrow ((\operatorname{ssn\_} \in \operatorname{nodes}(\operatorname{ssp\_})) \wedge ((\operatorname{ssm\_} \in \operatorname{nodes}(\operatorname{ssp\_})) \wedge ((\operatorname{nth}(2, \operatorname{ssn\_}) = \operatorname{nth}(2, \operatorname{ssm\_})) \wedge (\operatorname{nth}(1, \operatorname{ssn\_}) < \operatorname{nth}(1, \operatorname{ssm\_}))))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{same-strand-upto}}
+\emph{for every ssp\_, ssn\_, ssm\_, ssn\_ comes at or before ssm\_ on one strand of ssp\_ if and only if ssn\_ is in nodes(ssp\_) and ssm\_ is in nodes(ssp\_) and nth(2, ssn\_) equals nth(2, ssm\_) and nth(1, ssn\_) is at most nth(1, ssm\_)}
+{\small\[
+\forall \operatorname{ssp\_}, \operatorname{ssn\_}, \operatorname{ssm\_}.\; (\operatorname{same\text{-}strand\text{-}upto}(\operatorname{ssp\_}, \operatorname{ssn\_}, \operatorname{ssm\_}) \Leftrightarrow ((\operatorname{ssn\_} \in \operatorname{nodes}(\operatorname{ssp\_})) \wedge ((\operatorname{ssm\_} \in \operatorname{nodes}(\operatorname{ssp\_})) \wedge ((\operatorname{nth}(2, \operatorname{ssn\_}) = \operatorname{nth}(2, \operatorname{ssm\_})) \wedge (\operatorname{nth}(1, \operatorname{ssn\_}) \leq \operatorname{nth}(1, \operatorname{ssm\_}))))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{sends-to}}
+\emph{for every ssp\_, ssn\_, ssm\_, the node ssn\_ of ssp\_ sends to the node ssm\_ if and only if ssn\_ is in nodes(ssp\_) and ssm\_ is in nodes(ssp\_) and the node ssn\_ of ssp\_ is sent and the node ssm\_ of ssp\_ is received and node-content(ssp\_, ssn\_) equals node-content(ssp\_, ssm\_)}
+{\small\[
+\forall \operatorname{ssp\_}, \operatorname{ssn\_}, \operatorname{ssm\_}.\; (\operatorname{sends\text{-}to}(\operatorname{ssp\_}, \operatorname{ssn\_}, \operatorname{ssm\_}) \Leftrightarrow ((\operatorname{ssn\_} \in \operatorname{nodes}(\operatorname{ssp\_})) \wedge ((\operatorname{ssm\_} \in \operatorname{nodes}(\operatorname{ssp\_})) \wedge (\operatorname{is\text{-}sent}(\operatorname{ssp\_}, \operatorname{ssn\_}) \wedge (\operatorname{is\text{-}received}(\operatorname{ssp\_}, \operatorname{ssm\_}) \wedge (\operatorname{node\text{-}content}(\operatorname{ssp\_}, \operatorname{ssn\_}) = \operatorname{node\text{-}content}(\operatorname{ssp\_}, \operatorname{ssm\_})))))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{strand-next}}
+\emph{for every ssp\_, ssn\_, ssm\_, ssm\_ immediately follows ssn\_ on one strand of ssp\_ if and only if ssn\_ is in nodes(ssp\_) and ssm\_ is in nodes(ssp\_) and nth(2, ssn\_) equals nth(2, ssm\_) and nth(1, ssm\_) equals succ(nth(1, ssn\_))}
+{\small\[
+\forall \operatorname{ssp\_}, \operatorname{ssn\_}, \operatorname{ssm\_}.\; (\operatorname{strand\text{-}next}(\operatorname{ssp\_}, \operatorname{ssn\_}, \operatorname{ssm\_}) \Leftrightarrow ((\operatorname{ssn\_} \in \operatorname{nodes}(\operatorname{ssp\_})) \wedge ((\operatorname{ssm\_} \in \operatorname{nodes}(\operatorname{ssp\_})) \wedge ((\operatorname{nth}(2, \operatorname{ssn\_}) = \operatorname{nth}(2, \operatorname{ssm\_})) \wedge (\operatorname{nth}(1, \operatorname{ssm\_}) = (\operatorname{nth}(1, \operatorname{ssn\_}) + 1))))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{occurs-in-space}}
+\emph{for every ssp\_, ssu\_, ssu\_ occurs in the strand space ssp\_ if and only if there is some ssn\_ in nodes(ssp\_) such that ssu\_ is a subterm of node-content(ssp\_, ssn\_) over the tokens tokens(ssp\_) and the keys keys(ssp\_)}
+{\small\[
+\forall \operatorname{ssp\_}, \operatorname{ssu\_}.\; (\operatorname{occurs\text{-}in\text{-}space}(\operatorname{ssp\_}, \operatorname{ssu\_}) \Leftrightarrow \exists \operatorname{ssn\_} \in \operatorname{nodes}(\operatorname{ssp\_}).\; \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ssp\_}), \operatorname{keys}(\operatorname{ssp\_}), \operatorname{ssu\_}, \operatorname{node\text{-}content}(\operatorname{ssp\_}, \operatorname{ssn\_})))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{is-entry-point}}
+\emph{for every ssp\_, ssn\_, ssi\_, the node ssn\_ of ssp\_ is an entry point into ssi\_ if and only if ssn\_ is in nodes(ssp\_) and the node ssn\_ of ssp\_ is sent and node-content(ssp\_, ssn\_) is in ssi\_ and for every ssm\_, if ssm\_ comes strictly before ssn\_ on one strand of ssp\_, then node-content(ssp\_, ssm\_) is not in ssi\_}
+{\small\[
+\forall \operatorname{ssp\_}, \operatorname{ssn\_}, \operatorname{ssi\_}.\; (\operatorname{is\text{-}entry\text{-}point}(\operatorname{ssp\_}, \operatorname{ssn\_}, \operatorname{ssi\_}) \Leftrightarrow ((\operatorname{ssn\_} \in \operatorname{nodes}(\operatorname{ssp\_})) \wedge (\operatorname{is\text{-}sent}(\operatorname{ssp\_}, \operatorname{ssn\_}) \wedge ((\operatorname{node\text{-}content}(\operatorname{ssp\_}, \operatorname{ssn\_}) \in \operatorname{ssi\_}) \wedge \forall \operatorname{ssm\_}.\; (\operatorname{same\text{-}strand\text{-}before}(\operatorname{ssp\_}, \operatorname{ssm\_}, \operatorname{ssn\_}) \Rightarrow \neg (\operatorname{node\text{-}content}(\operatorname{ssp\_}, \operatorname{ssm\_}) \in \operatorname{ssi\_}))))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{originates}}
+\emph{for every ssp\_, ssu\_, ssn\_, ssu\_ originates on the node ssn\_ of ssp\_ if and only if the node ssn\_ of ssp\_ is an entry point into \{ssw\_ in msg-set(tokens(ssp\_), keys(ssp\_)): is-subterm(tokens(ssp\_), keys(ssp\_), ssu\_, ssw\_)\}}
+{\small\[
+\forall \operatorname{ssp\_}, \operatorname{ssu\_}, \operatorname{ssn\_}.\; (\operatorname{originates}(\operatorname{ssp\_}, \operatorname{ssu\_}, \operatorname{ssn\_}) \Leftrightarrow \operatorname{is\text{-}entry\text{-}point}(\operatorname{ssp\_}, \operatorname{ssn\_}, \{\operatorname{ssw\_} \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{ssp\_}), \operatorname{keys}(\operatorname{ssp\_})) : \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ssp\_}), \operatorname{keys}(\operatorname{ssp\_}), \operatorname{ssu\_}, \operatorname{ssw\_})\}))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{uniquely-originates}}
+\emph{for every ssp\_, ssu\_, ssu\_ originates uniquely in the strand space ssp\_ if and only if there is some ssn\_ such that ssu\_ originates on the node ssn\_ of ssp\_ and for every ssm\_, if ssu\_ originates on the node ssm\_ of ssp\_, then ssm\_ equals ssn\_}
+{\small\[
+\forall \operatorname{ssp\_}, \operatorname{ssu\_}.\; (\operatorname{uniquely\text{-}originates}(\operatorname{ssp\_}, \operatorname{ssu\_}) \Leftrightarrow \exists \operatorname{ssn\_}.\; (\operatorname{originates}(\operatorname{ssp\_}, \operatorname{ssu\_}, \operatorname{ssn\_}) \wedge \forall \operatorname{ssm\_}.\; (\operatorname{originates}(\operatorname{ssp\_}, \operatorname{ssu\_}, \operatorname{ssm\_}) \Rightarrow (\operatorname{ssm\_} = \operatorname{ssn\_}))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{is-prec-closed}}
+\emph{for every spc\_, snd\_, ssd\_, srl\_, srl\_ contains ssd\_ and the strand order of spc\_ on snd\_, and is transitive if and only if for every ssx\_, ssy\_, if [ssx\_, ssy\_] is in ssd\_, then [ssx\_, ssy\_] is in srl\_ and for every ssx\_ in snd\_, ssy\_ in snd\_, if ssx\_ comes strictly before ssy\_ on one strand of spc\_, then [ssx\_, ssy\_] is in srl\_ and for every ssx\_, ssy\_, ssz\_, if [ssx\_, ssy\_] is in srl\_, then if [ssy\_, ssz\_] is in srl\_, then [ssx\_, ssz\_] is in srl\_}
+{\small\[
+\forall \operatorname{spc\_}, \operatorname{snd\_}, \operatorname{ssd\_}, \operatorname{srl\_}.\; (\operatorname{is\text{-}prec\text{-}closed}(\operatorname{spc\_}, \operatorname{snd\_}, \operatorname{ssd\_}, \operatorname{srl\_}) \Leftrightarrow (\forall \operatorname{ssx\_}, \operatorname{ssy\_}.\; ((\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{ssd\_}) \Rightarrow (\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{srl\_})) \wedge (\forall \operatorname{ssx\_}, \operatorname{ssy\_} \in \operatorname{snd\_}.\; (\operatorname{same\text{-}strand\text{-}before}(\operatorname{spc\_}, \operatorname{ssx\_}, \operatorname{ssy\_}) \Rightarrow (\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{srl\_})) \wedge \forall \operatorname{ssx\_}, \operatorname{ssy\_}, \operatorname{ssz\_}.\; ((\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{srl\_}) \Rightarrow ((\langle \operatorname{ssy\_}, \operatorname{ssz\_} \rangle \in \operatorname{srl\_}) \Rightarrow (\langle \operatorname{ssx\_}, \operatorname{ssz\_} \rangle \in \operatorname{srl\_}))))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{prec-strict}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{is-bundle}}
+\emph{for every s, s is a bundle if and only if length(s) equals 4 and bspace(s) is a strand space and bnodes(s) is in set and bsend(s) is in power(cartesian(bnodes(s), bnodes(s))) and bnext(s) is in power(cartesian(bnodes(s), bnodes(s))) and for every ssx\_ in bnodes(s), ssx\_ is in nodes(bspace(s)) and card(bnodes(s)) is in nn and for every ssx\_, ssy\_, if [ssx\_, ssy\_] is in bsend(s), then the node ssx\_ of bspace(s) sends to the node ssy\_ and for every ssx\_, ssy\_, if [ssx\_, ssy\_] is in bnext(s), then ssy\_ immediately follows ssx\_ on one strand of bspace(s) and for every ssy\_ in bnodes(s), if the node ssy\_ of bspace(s) is received, then there is some ssx\_ such that [ssx\_, ssy\_] is in bsend(s) and for every ssz\_, if [ssz\_, ssy\_] is in bsend(s), then ssz\_ equals ssx\_ and for every ssy\_ in bnodes(s), ssx\_, if ssx\_ comes strictly before ssy\_ on one strand of bspace(s), then ssx\_ is in bnodes(s) and for every ssy\_ in bnodes(s), ssx\_, if ssy\_ immediately follows ssx\_ on one strand of bspace(s), then [ssx\_, ssy\_] is in bnext(s) and for every ssx\_, [ssx\_, ssx\_] is not in prec-strict(bspace(s), bnodes(s), bsend(s))}
+{\small\[
+\forall s.\; (\operatorname{is\text{-}bundle}(s) \Leftrightarrow ((\operatorname{length}(s) = 4) \wedge (\operatorname{is\text{-}strand\text{-}space}(\operatorname{bspace}(s)) \wedge ((\operatorname{bnodes}(s) \in \mathbf{Set}) \wedge ((\operatorname{bsend}(s) \in \operatorname{power}((\operatorname{bnodes}(s) \times \operatorname{bnodes}(s)))) \wedge ((\operatorname{bnext}(s) \in \operatorname{power}((\operatorname{bnodes}(s) \times \operatorname{bnodes}(s)))) \wedge (\forall \operatorname{ssx\_} \in \operatorname{bnodes}(s).\; (\operatorname{ssx\_} \in \operatorname{nodes}(\operatorname{bspace}(s))) \wedge ((|\operatorname{bnodes}(s)| \in \mathbb{N}) \wedge (\forall \operatorname{ssx\_}, \operatorname{ssy\_}.\; ((\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{bsend}(s)) \Rightarrow \operatorname{sends\text{-}to}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_})) \wedge (\forall \operatorname{ssx\_}, \operatorname{ssy\_}.\; ((\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{bnext}(s)) \Rightarrow \operatorname{strand\text{-}next}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_})) \wedge (\forall \operatorname{ssy\_} \in \operatorname{bnodes}(s).\; (\operatorname{is\text{-}received}(\operatorname{bspace}(s), \operatorname{ssy\_}) \Rightarrow \exists \operatorname{ssx\_}.\; ((\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{bsend}(s)) \wedge \forall \operatorname{ssz\_}.\; ((\langle \operatorname{ssz\_}, \operatorname{ssy\_} \rangle \in \operatorname{bsend}(s)) \Rightarrow (\operatorname{ssz\_} = \operatorname{ssx\_})))) \wedge (\forall \operatorname{ssy\_} \in \operatorname{bnodes}(s), \operatorname{ssx\_}.\; (\operatorname{same\text{-}strand\text{-}before}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_}) \Rightarrow (\operatorname{ssx\_} \in \operatorname{bnodes}(s))) \wedge (\forall \operatorname{ssy\_} \in \operatorname{bnodes}(s), \operatorname{ssx\_}.\; (\operatorname{strand\text{-}next}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_}) \Rightarrow (\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{bnext}(s))) \wedge \forall \operatorname{ssx\_}.\; \neg (\langle \operatorname{ssx\_}, \operatorname{ssx\_} \rangle \in \operatorname{prec\text{-}strict}(\operatorname{bspace}(s), \operatorname{bnodes}(s), \operatorname{bsend}(s))))))))))))))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{precedes-strict}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{precedes}}
+\emph{Definition / vocabulary.}
+
+\subsection{Vocabulary: the adversary}
+
+\subsubsection*{\texttt{is-text-trace}}
+\emph{for every sasp\_, sap\_, sas\_, sas\_ is a text trace of the adversary knowing sap\_ in the strand space sasp\_ if and only if there is some saa\_ in sap\_ such that sas\_ equals [[sent, saa\_]]}
+{\small\[
+\forall \operatorname{sasp\_}, \operatorname{sap\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}text\text{-}trace}(\operatorname{sasp\_}, \operatorname{sap\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{saa\_} \in \operatorname{sap\_}.\; (\operatorname{sas\_} = \langle \langle \mathit{sent}, \operatorname{saa\_} \rangle \rangle))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{is-flush-trace}}
+\emph{for every sasp\_, sas\_, sas\_ is a flushing trace in the strand space sasp\_ if and only if there is some sag\_ in msg-set(tokens(sasp\_), keys(sasp\_)) such that sas\_ equals [[received, sag\_]]}
+{\small\[
+\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}flush\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sag\_} \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_})).\; (\operatorname{sas\_} = \langle \langle \mathit{received}, \operatorname{sag\_} \rangle \rangle))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{is-tee-trace}}
+\emph{for every sasp\_, sas\_, sas\_ is a tee trace in the strand space sasp\_ if and only if there is some sag\_ in msg-set(tokens(sasp\_), keys(sasp\_)) such that sas\_ equals [[received, sag\_], [sent, sag\_], [sent, sag\_]]}
+{\small\[
+\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}tee\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sag\_} \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_})).\; (\operatorname{sas\_} = \langle \langle \mathit{received}, \operatorname{sag\_} \rangle, \langle \mathit{sent}, \operatorname{sag\_} \rangle, \langle \mathit{sent}, \operatorname{sag\_} \rangle \rangle))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{is-concat-trace}}
+\emph{for every sasp\_, sas\_, sas\_ is a concatenation trace in the strand space sasp\_ if and only if there is some sal\_ in tuples(msg-set(tokens(sasp\_), keys(sasp\_))) such that length(sas\_) equals succ(length(sal\_)) and for every sai\_ in nn, if 1 is at most sai\_, then if sai\_ is at most length(sal\_), then nth(sai\_, sas\_) equals [received, nth(sai\_, sal\_)] and nth(succ(length(sal\_)), sas\_) equals [sent, lst(sal\_)]}
+{\small\[
+\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}concat\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sal\_} \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_}))).\; ((\operatorname{length}(\operatorname{sas\_}) = (\operatorname{length}(\operatorname{sal\_}) + 1)) \wedge (\forall \operatorname{sai\_} \in \mathbb{N}.\; ((1 \leq \operatorname{sai\_}) \Rightarrow ((\operatorname{sai\_} \leq \operatorname{length}(\operatorname{sal\_})) \Rightarrow (\operatorname{nth}(\operatorname{sai\_}, \operatorname{sas\_}) = \langle \mathit{received}, \operatorname{nth}(\operatorname{sai\_}, \operatorname{sal\_}) \rangle))) \wedge (\operatorname{nth}((\operatorname{length}(\operatorname{sal\_}) + 1), \operatorname{sas\_}) = \langle \mathit{sent}, \operatorname{lst}(\operatorname{sal\_}) \rangle))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{is-separate-trace}}
+\emph{for every sasp\_, sas\_, sas\_ is a separation trace in the strand space sasp\_ if and only if there is some sal\_ in tuples(msg-set(tokens(sasp\_), keys(sasp\_))) such that length(sas\_) equals succ(length(sal\_)) and nth(1, sas\_) equals [received, lst(sal\_)] and for every sai\_ in nn, if 1 is at most sai\_, then if sai\_ is at most length(sal\_), then nth(succ(sai\_), sas\_) equals [sent, nth(sai\_, sal\_)]}
+{\small\[
+\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}separate\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sal\_} \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_}))).\; ((\operatorname{length}(\operatorname{sas\_}) = (\operatorname{length}(\operatorname{sal\_}) + 1)) \wedge ((\operatorname{nth}(1, \operatorname{sas\_}) = \langle \mathit{received}, \operatorname{lst}(\operatorname{sal\_}) \rangle) \wedge \forall \operatorname{sai\_} \in \mathbb{N}.\; ((1 \leq \operatorname{sai\_}) \Rightarrow ((\operatorname{sai\_} \leq \operatorname{length}(\operatorname{sal\_})) \Rightarrow (\operatorname{nth}((\operatorname{sai\_} + 1), \operatorname{sas\_}) = \langle \mathit{sent}, \operatorname{nth}(\operatorname{sai\_}, \operatorname{sal\_}) \rangle))))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{is-encrypt-trace}}
+\emph{for every sasp\_, sas\_, sas\_ is an encryption trace in the strand space sasp\_ if and only if there is some sak\_ in keys(sasp\_), sag\_ in msg-set(tokens(sasp\_), keys(sasp\_)) such that sas\_ equals [[received, sak\_], [received, sag\_], [sent, encr(sag\_, sak\_)]]}
+{\small\[
+\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}encrypt\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sak\_} \in \operatorname{keys}(\operatorname{sasp\_}), \operatorname{sag\_} \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_})).\; (\operatorname{sas\_} = \langle \langle \mathit{received}, \operatorname{sak\_} \rangle, \langle \mathit{received}, \operatorname{sag\_} \rangle, \langle \mathit{sent}, \operatorname{encr}(\operatorname{sag\_}, \operatorname{sak\_}) \rangle \rangle))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{is-decrypt-trace}}
+\emph{for every sasp\_, sas\_, sas\_ is a decryption trace in the strand space sasp\_ if and only if there is some sak\_ in keys(sasp\_), sag\_ in msg-set(tokens(sasp\_), keys(sasp\_)) such that sas\_ equals [[received, (kinv(sasp\_))(sak\_)], [received, encr(sag\_, sak\_)], [sent, sag\_]]}
+{\small\[
+\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}decrypt\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sak\_} \in \operatorname{keys}(\operatorname{sasp\_}), \operatorname{sag\_} \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_})).\; (\operatorname{sas\_} = \langle \langle \mathit{received}, \operatorname{kinv}(\operatorname{sasp\_})(\operatorname{sak\_}) \rangle, \langle \mathit{received}, \operatorname{encr}(\operatorname{sag\_}, \operatorname{sak\_}) \rangle, \langle \mathit{sent}, \operatorname{sag\_} \rangle \rangle))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{is-adversary-trace}}
+\emph{for every sasp\_, sap\_, sas\_, sas\_ is an adversary trace for the adversary knowing sap\_ in the strand space sasp\_ if and only if sas\_ is a text trace of the adversary knowing sap\_ in the strand space sasp\_ or sas\_ is a flushing trace in the strand space sasp\_ or sas\_ is a tee trace in the strand space sasp\_ or sas\_ is a concatenation trace in the strand space sasp\_ or sas\_ is a separation trace in the strand space sasp\_ or sas\_ is an encryption trace in the strand space sasp\_ or sas\_ is a decryption trace in the strand space sasp\_}
+{\small\[
+\forall \operatorname{sasp\_}, \operatorname{sap\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}adversary\text{-}trace}(\operatorname{sasp\_}, \operatorname{sap\_}, \operatorname{sas\_}) \Leftrightarrow (\operatorname{is\text{-}text\text{-}trace}(\operatorname{sasp\_}, \operatorname{sap\_}, \operatorname{sas\_}) \vee (\operatorname{is\text{-}flush\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \vee (\operatorname{is\text{-}tee\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \vee (\operatorname{is\text{-}concat\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \vee (\operatorname{is\text{-}separate\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \vee (\operatorname{is\text{-}encrypt\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \vee \operatorname{is\text{-}decrypt\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}))))))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{is-infiltrated-space}}
+\emph{for every s, s is an infiltrated strand space if and only if length(s) equals 3 and ispace(s) is a strand space and adv-ids(s) is in set and adv-tokens(s) is in set and for every sap\_ in adv-ids(s), sap\_ is in ids(ispace(s)) and for every sat\_ in adv-tokens(s), sat\_ is in tokens(ispace(s)) and for every sap\_ in adv-ids(s), (strand-map(ispace(s)))(sap\_) is an adversary trace for the adversary knowing adv-tokens(s) in the strand space ispace(s)}
+{\small\[
+\forall s.\; (\operatorname{is\text{-}infiltrated\text{-}space}(s) \Leftrightarrow ((\operatorname{length}(s) = 3) \wedge (\operatorname{is\text{-}strand\text{-}space}(\operatorname{ispace}(s)) \wedge ((\operatorname{adv\text{-}ids}(s) \in \mathbf{Set}) \wedge ((\operatorname{adv\text{-}tokens}(s) \in \mathbf{Set}) \wedge (\forall \operatorname{sap\_} \in \operatorname{adv\text{-}ids}(s).\; (\operatorname{sap\_} \in \operatorname{ids}(\operatorname{ispace}(s))) \wedge (\forall \operatorname{sat\_} \in \operatorname{adv\text{-}tokens}(s).\; (\operatorname{sat\_} \in \operatorname{tokens}(\operatorname{ispace}(s))) \wedge \forall \operatorname{sap\_} \in \operatorname{adv\text{-}ids}(s).\; \operatorname{is\text{-}adversary\text{-}trace}(\operatorname{ispace}(s), \operatorname{adv\text{-}tokens}(s), \operatorname{strand\text{-}map}(\operatorname{ispace}(s))(\operatorname{sap\_})))))))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{is-adversary-node}}
+\emph{for every sai\_, san\_, san\_ is an adversary node of sai\_ if and only if nth(2, san\_) is in adv-ids(sai\_)}
+{\small\[
+\forall \operatorname{sai\_}, \operatorname{san\_}.\; (\operatorname{is\text{-}adversary\text{-}node}(\operatorname{sai\_}, \operatorname{san\_}) \Leftrightarrow (\operatorname{nth}(2, \operatorname{san\_}) \in \operatorname{adv\text{-}ids}(\operatorname{sai\_})))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{is-regular-node}}
+\emph{for every sai\_, san\_, san\_ is a regular node of sai\_ if and only if nth(2, san\_) is not in adv-ids(sai\_)}
+{\small\[
+\forall \operatorname{sai\_}, \operatorname{san\_}.\; (\operatorname{is\text{-}regular\text{-}node}(\operatorname{sai\_}, \operatorname{san\_}) \Leftrightarrow \neg (\operatorname{nth}(2, \operatorname{san\_}) \in \operatorname{adv\text{-}ids}(\operatorname{sai\_})))
+\]}
+\noindent\textbf{Definition.}
+
+\subsection{Messages: freeness and induction}
+
+\subsubsection*{\texttt{token-not-list}}
+\emph{for every t, k, if t is a set of tokens, none of which is a list, then for every tk in t, tk is not in tuples(msg-set(t, k))}
+{\small\[
+\forall t, k.\; (\operatorname{is\text{-}token\text{-}set}(t) \Rightarrow \forall \mathit{tk} \in t.\; \neg (\mathit{tk} \in \operatorname{tuples}(\operatorname{msg\text{-}set}(t, k))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{token-ne-list}}
+\emph{for every t, if t is a set of tokens, none of which is a list, then for every tk, l, if tk is in t, then if l is in set, then tk is not equal to lst(l)}
+{\small\[
+\forall t.\; (\operatorname{is\text{-}token\text{-}set}(t) \Rightarrow \forall \mathit{tk} \in t, l \in \mathbf{Set}.\; \neg (\mathit{tk} = \operatorname{lst}(l)))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{encr-ne-token}}
+\emph{for every t, if t is a set of tokens, none of which is a list, then for every tk, g, y, if tk is in t, then if g is in set, then if y is in set, then tk is not equal to encr(g, y)}
+{\small\[
+\forall t.\; (\operatorname{is\text{-}token\text{-}set}(t) \Rightarrow \forall \mathit{tk} \in t, g, y \in \mathbf{Set}.\; \neg (\mathit{tk} = \operatorname{encr}(g, y)))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{encr-ne-list}}
+\emph{for every g, y, l, encr(g, y) is not equal to lst(l)}
+{\small\[
+\forall g, y, l.\; \neg (\operatorname{encr}(g, y) = \operatorname{lst}(l))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{lst-ne-encr}}
+\emph{for every l, g, y, lst(l) is not equal to encr(g, y)}
+{\small\[
+\forall l, g, y.\; \neg (\operatorname{lst}(l) = \operatorname{encr}(g, y))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{lst-injective}}
+\emph{for every l, l2, if lst(l) equals lst(l2), then l equals l2}
+{\small\[
+\forall l, l_{2}.\; ((\operatorname{lst}(l) = \operatorname{lst}(l_{2})) \Rightarrow (l = l_{2}))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{encr-injective}}
+\emph{for every g, y, u, z, if encr(g, y) equals encr(u, z), then g equals u and y equals z}
+{\small\[
+\forall g, y, u, z.\; ((\operatorname{encr}(g, y) = \operatorname{encr}(u, z)) \Rightarrow ((g = u) \wedge (y = z)))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{msg-induction}}
+\emph{for every t, k, c, if for every tk in t, tk is in c, then if for every l in tuples(msg-set(t, k)), if for every i in nn, if 1 is at most i, then if i is at most length(l), then nth(i, l) is in c, then lst(l) is in c, then if for every g, y, if g is in msg-set(t, k), then if y is in k, then if g is in c, then encr(g, y) is in c, then for every m in msg-set(t, k), m is in c}
+{\small\[
+\forall t, k, c.\; (\forall \mathit{tk} \in t.\; (\mathit{tk} \in c) \Rightarrow (\forall l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(t, k)).\; (\forall i \in \mathbb{N}.\; ((1 \leq i) \Rightarrow ((i \leq \operatorname{length}(l)) \Rightarrow (\operatorname{nth}(i, l) \in c))) \Rightarrow (\operatorname{lst}(l) \in c)) \Rightarrow (\forall g \in \operatorname{msg\text{-}set}(t, k), y \in k.\; ((g \in c) \Rightarrow (\operatorname{encr}(g, y) \in c)) \Rightarrow \forall m \in \operatorname{msg\text{-}set}(t, k).\; (m \in c))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{msg-cases}}
+\emph{for every t, k, m in msg-set(t, k), m is in t or there is some l in tuples(msg-set(t, k)) such that m equals lst(l) or there is some g in msg-set(t, k), y in k such that m equals encr(g, y)}
+{\small\[
+\forall t, k.; \forall m \in \operatorname{msg\text{-}set}(t, k).\; ((m \in t) \vee (\exists l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(t, k)).\; (m = \operatorname{lst}(l)) \vee \exists g \in \operatorname{msg\text{-}set}(t, k), y \in k.\; (m = \operatorname{encr}(g, y))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{token-in-msgs}}
+\emph{for every t, k, tk in t, tk is in msg-set(t, k)}
+{\small\[
+\forall t, k.; \forall \mathit{tk} \in t.\; (\mathit{tk} \in \operatorname{msg\text{-}set}(t, k))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{list-in-msgs}}
+\emph{for every t, k, l in tuples(msg-set(t, k)), lst(l) is in msg-set(t, k)}
+{\small\[
+\forall t, k.; \forall l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(t, k)).\; (\operatorname{lst}(l) \in \operatorname{msg\text{-}set}(t, k))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{encr-in-msgs}}
+\emph{for every t, k, g, y, if g is in msg-set(t, k), then if y is in k, then encr(g, y) is in msg-set(t, k)}
+{\small\[
+\forall t, k.; \forall g \in \operatorname{msg\text{-}set}(t, k), y \in k.\; (\operatorname{encr}(g, y) \in \operatorname{msg\text{-}set}(t, k))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{msg-set-is-set}}
+\emph{for every t, k, if t is in set, then if k is in set, then msg-set(t, k) is in set}
+{\small\[
+\forall t, k \in \mathbf{Set}.\; (\operatorname{msg\text{-}set}(t, k) \in \mathbf{Set})
+\]}
+\noindent\textbf{Asserted}
+
+\subsection{The subterm relation}
+
+\subsubsection*{\texttt{subterm-least}}
+\emph{for every t, k, r in power(cartesian(msg-set(t, k), msg-set(t, k))), if r is closed under the subterm clauses over the tokens t and the keys k, then for every a, b, if a is a subterm of b over the tokens t and the keys k, then [a, b] is in r}
+{\small\[
+\forall t, k.; \forall r \in \operatorname{power}((\operatorname{msg\text{-}set}(t, k) \times \operatorname{msg\text{-}set}(t, k))).\; (\operatorname{is\text{-}subterm\text{-}closed}(t, k, r) \Rightarrow \forall a, b.\; (\operatorname{is\text{-}subterm}(t, k, a, b) \Rightarrow (\langle a, b \rangle \in r)))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{subterm-refl}}
+\emph{for every t, k, a in msg-set(t, k), a is a subterm of a over the tokens t and the keys k}
+{\small\[
+\forall t, k.; \forall a \in \operatorname{msg\text{-}set}(t, k).\; \operatorname{is\text{-}subterm}(t, k, a, a)
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{subterm-component}}
+\emph{for every t, k, a, l, i, if l is in tuples(msg-set(t, k)), then if i is in nn, then if 1 is at most i, then if i is at most length(l), then if a is a subterm of nth(i, l) over the tokens t and the keys k, then a is a subterm of lst(l) over the tokens t and the keys k}
+{\small\[
+\forall t, k, a.; \forall l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(t, k)), i \in \mathbb{N}.\; ((1 \leq i) \Rightarrow ((i \leq \operatorname{length}(l)) \Rightarrow (\operatorname{is\text{-}subterm}(t, k, a, \operatorname{nth}(i, l)) \Rightarrow \operatorname{is\text{-}subterm}(t, k, a, \operatorname{lst}(l)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{subterm-encr}}
+\emph{for every t, k, a, g, y, if g is in msg-set(t, k), then if y is in k, then if a is a subterm of g over the tokens t and the keys k, then a is a subterm of encr(g, y) over the tokens t and the keys k}
+{\small\[
+\forall t, k, a.; \forall g \in \operatorname{msg\text{-}set}(t, k), y \in k.\; (\operatorname{is\text{-}subterm}(t, k, a, g) \Rightarrow \operatorname{is\text{-}subterm}(t, k, a, \operatorname{encr}(g, y)))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{subterm-cases}}
+\emph{for every t, k, if t is in set, then if k is in set, then for every a, b, if a is a subterm of b over the tokens t and the keys k, then a equals b or there is some l in tuples(msg-set(t, k)) such that b equals lst(l) and there is some i in nn such that 1 is at most i and i is at most length(l) and a is a subterm of nth(i, l) over the tokens t and the keys k or there is some g in msg-set(t, k), y in k such that b equals encr(g, y) and a is a subterm of g over the tokens t and the keys k}
+{\small\[
+\forall t, k \in \mathbf{Set}.\; \forall a, b.\; (\operatorname{is\text{-}subterm}(t, k, a, b) \Rightarrow ((a = b) \vee (\exists l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(t, k)).\; ((b = \operatorname{lst}(l)) \wedge \exists i \in \mathbb{N}.\; ((1 \leq i) \wedge ((i \leq \operatorname{length}(l)) \wedge \operatorname{is\text{-}subterm}(t, k, a, \operatorname{nth}(i, l))))) \vee \exists g \in \operatorname{msg\text{-}set}(t, k), y \in k.\; ((b = \operatorname{encr}(g, y)) \wedge \operatorname{is\text{-}subterm}(t, k, a, g)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{subterm-trans}}
+\emph{for every t, k, if t is in set, then if k is in set, then for every a, b, c, if a is a subterm of b over the tokens t and the keys k, then if b is a subterm of c over the tokens t and the keys k, then a is a subterm of c over the tokens t and the keys k}
+{\small\[
+\forall t, k \in \mathbf{Set}.\; \forall a, b, c.\; (\operatorname{is\text{-}subterm}(t, k, a, b) \Rightarrow (\operatorname{is\text{-}subterm}(t, k, b, c) \Rightarrow \operatorname{is\text{-}subterm}(t, k, a, c)))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{subterm-of-token}}
+\emph{for every t, k, if t is a set of tokens, none of which is a list, then if k is in set, then for every a, tk in t, if a is a subterm of tk over the tokens t and the keys k, then a equals tk}
+{\small\[
+\forall t, k.\; (\operatorname{is\text{-}token\text{-}set}(t) \Rightarrow ((k \in \mathbf{Set}) \Rightarrow \forall a.; \forall \mathit{tk} \in t.\; (\operatorname{is\text{-}subterm}(t, k, a, \mathit{tk}) \Rightarrow (a = \mathit{tk}))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{subterm-of-list}}
+\emph{for every t, k, if t is in set, then if k is in set, then for every a, l in tuples(msg-set(t, k)), if a is a subterm of lst(l) over the tokens t and the keys k, then a equals lst(l) or there is some i in nn such that 1 is at most i and i is at most length(l) and a is a subterm of nth(i, l) over the tokens t and the keys k}
+{\small\[
+\forall t, k \in \mathbf{Set}.\; \forall a.; \forall l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(t, k)).\; (\operatorname{is\text{-}subterm}(t, k, a, \operatorname{lst}(l)) \Rightarrow ((a = \operatorname{lst}(l)) \vee \exists i \in \mathbb{N}.\; ((1 \leq i) \wedge ((i \leq \operatorname{length}(l)) \wedge \operatorname{is\text{-}subterm}(t, k, a, \operatorname{nth}(i, l))))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{subterm-of-encr}}
+\emph{for every t, k, if t is in set, then if k is in set, then for every a, g, y, if g is in msg-set(t, k), then if y is in k, then if a is a subterm of encr(g, y) over the tokens t and the keys k, then a equals encr(g, y) or a is a subterm of g over the tokens t and the keys k}
+{\small\[
+\forall t, k \in \mathbf{Set}.\; \forall a.; \forall g \in \operatorname{msg\text{-}set}(t, k), y \in k.\; (\operatorname{is\text{-}subterm}(t, k, a, \operatorname{encr}(g, y)) \Rightarrow ((a = \operatorname{encr}(g, y)) \vee \operatorname{is\text{-}subterm}(t, k, a, g)))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{token-subterm-of-list}}
+\emph{for every t, k, if t is a set of tokens, none of which is a list, then if k is in set, then for every tk, l, if tk is in t, then if l is in tuples(msg-set(t, k)), then if tk is a subterm of lst(l) over the tokens t and the keys k, then there is some i in nn such that 1 is at most i and i is at most length(l) and tk is a subterm of nth(i, l) over the tokens t and the keys k}
+{\small\[
+\forall t, k.\; (\operatorname{is\text{-}token\text{-}set}(t) \Rightarrow ((k \in \mathbf{Set}) \Rightarrow \forall \mathit{tk} \in t, l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(t, k)).\; (\operatorname{is\text{-}subterm}(t, k, \mathit{tk}, \operatorname{lst}(l)) \Rightarrow \exists i \in \mathbb{N}.\; ((1 \leq i) \wedge ((i \leq \operatorname{length}(l)) \wedge \operatorname{is\text{-}subterm}(t, k, \mathit{tk}, \operatorname{nth}(i, l)))))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{token-subterm-of-encr}}
+\emph{for every t, k, if t is a set of tokens, none of which is a list, then if k is in set, then for every tk, g, y, if tk is in t, then if g is in msg-set(t, k), then if y is in k, then if tk is a subterm of encr(g, y) over the tokens t and the keys k, then tk is a subterm of g over the tokens t and the keys k}
+{\small\[
+\forall t, k.\; (\operatorname{is\text{-}token\text{-}set}(t) \Rightarrow ((k \in \mathbf{Set}) \Rightarrow \forall \mathit{tk} \in t, g \in \operatorname{msg\text{-}set}(t, k), y \in k.\; (\operatorname{is\text{-}subterm}(t, k, \mathit{tk}, \operatorname{encr}(g, y)) \Rightarrow \operatorname{is\text{-}subterm}(t, k, \mathit{tk}, g))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{subterm-rank}}
+\emph{for every t, k, if t is a set of tokens, none of which is a list, then if k is in set, then for every a, b, if a is a subterm of b over the tokens t and the keys k, then a equals b or succ(msg-rank(t, k, a)) is at most msg-rank(t, k, b)}
+{\small\[
+\forall t, k.\; (\operatorname{is\text{-}token\text{-}set}(t) \Rightarrow ((k \in \mathbf{Set}) \Rightarrow \forall a, b.\; (\operatorname{is\text{-}subterm}(t, k, a, b) \Rightarrow ((a = b) \vee ((\operatorname{msg\text{-}rank}(t, k, a) + 1) \leq \operatorname{msg\text{-}rank}(t, k, b))))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{subterm-antisym}}
+\emph{for every t, k, if t is a set of tokens, none of which is a list, then if k is in set, then for every a, b, if a is a subterm of b over the tokens t and the keys k, then if b is a subterm of a over the tokens t and the keys k, then a equals b}
+{\small\[
+\forall t, k.\; (\operatorname{is\text{-}token\text{-}set}(t) \Rightarrow ((k \in \mathbf{Set}) \Rightarrow \forall a, b.\; (\operatorname{is\text{-}subterm}(t, k, a, b) \Rightarrow (\operatorname{is\text{-}subterm}(t, k, b, a) \Rightarrow (a = b)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{subterm-encr-other-key}}
+\emph{for every t, k, if t is in set, then if k is in set, then for every h, h2, y, y2, if h is in msg-set(t, k), then if h2 is in msg-set(t, k), then if y is in k, then if y2 is in k, then if y is not equal to y2, then if encr(h2, y2) is a subterm of encr(h, y) over the tokens t and the keys k, then encr(h2, y2) is a subterm of h over the tokens t and the keys k}
+{\small\[
+\forall t, k \in \mathbf{Set}.\; \forall h, h_{2} \in \operatorname{msg\text{-}set}(t, k), y, y_{2} \in k.\; (\neg (y = y_{2}) \Rightarrow (\operatorname{is\text{-}subterm}(t, k, \operatorname{encr}(h_{2}, y_{2}), \operatorname{encr}(h, y)) \Rightarrow \operatorname{is\text{-}subterm}(t, k, \operatorname{encr}(h_{2}, y_{2}), h)))
+\]}
+\noindent\textbf{Asserted}
+
+\subsection{Nodes and the two relations}
+
+\subsubsection*{\texttt{node-intro}}
+\emph{for every spa, k, a, if k is in nn, then if a is in ids(spa), then if 1 is at most k, then if k is at most length((strand-map(spa))(a)), then [k, a] is in nodes(spa)}
+{\small\[
+\forall \mathit{spa}.; \forall k \in \mathbb{N}, a \in \operatorname{ids}(\mathit{spa}).\; ((1 \leq k) \Rightarrow ((k \leq \operatorname{length}(\operatorname{strand\text{-}map}(\mathit{spa})(a))) \Rightarrow (\langle k, a \rangle \in \operatorname{nodes}(\mathit{spa}))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{node-parts}}
+\emph{for every spa, n in nodes(spa), nth(1, n) is in nn and nth(2, n) is in ids(spa) and 1 is at most nth(1, n) and nth(1, n) is at most length((strand-map(spa))(nth(2, n))) and n equals [nth(1, n), nth(2, n)]}
+{\small\[
+\forall \mathit{spa}.; \forall n \in \operatorname{nodes}(\mathit{spa}).\; ((\operatorname{nth}(1, n) \in \mathbb{N}) \wedge ((\operatorname{nth}(2, n) \in \operatorname{ids}(\mathit{spa})) \wedge ((1 \leq \operatorname{nth}(1, n)) \wedge ((\operatorname{nth}(1, n) \leq \operatorname{length}(\operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n)))) \wedge (n = \langle \operatorname{nth}(1, n), \operatorname{nth}(2, n) \rangle)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{node-content-in-msgs}}
+\emph{for every spa, n, if spa is a strand space, then if n is in nodes(spa), then node-content(spa, n) is in msg-set(tokens(spa), keys(spa))}
+{\small\[
+\forall \mathit{spa}, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{node\text{-}content}(\mathit{spa}, n) \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa})))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{node-sent-or-received}}
+\emph{for every spa, n, if spa is a strand space, then if n is in nodes(spa), then the node n of spa is sent or the node n of spa is received}
+{\small\[
+\forall \mathit{spa}, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}sent}(\mathit{spa}, n) \vee \operatorname{is\text{-}received}(\mathit{spa}, n))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{node-not-sent-and-received}}
+\emph{for every spa, n, if the node n of spa is sent, then it is not the case that the node n of spa is received}
+{\small\[
+\forall \mathit{spa}, n.\; (\operatorname{is\text{-}sent}(\mathit{spa}, n) \Rightarrow \neg \operatorname{is\text{-}received}(\mathit{spa}, n))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{ssb-irreflexive}}
+\emph{for every spa, n, it is not the case that n comes strictly before n on one strand of spa}
+{\small\[
+\forall \mathit{spa}, n.\; \neg \operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, n, n)
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{ssb-transitive}}
+\emph{for every spa, x, y, z, if x comes strictly before y on one strand of spa, then if y comes strictly before z on one strand of spa, then x comes strictly before z on one strand of spa}
+{\small\[
+\forall \mathit{spa}, x, y, z.\; (\operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, x, y) \Rightarrow (\operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, y, z) \Rightarrow \operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, x, z)))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{sends-to-dirs}}
+\emph{for every spa, x, y, if the node x of spa sends to the node y, then the node x of spa is sent and the node y of spa is received and node-content(spa, x) equals node-content(spa, y)}
+{\small\[
+\forall \mathit{spa}, x, y.\; (\operatorname{sends\text{-}to}(\mathit{spa}, x, y) \Rightarrow (\operatorname{is\text{-}sent}(\mathit{spa}, x) \wedge (\operatorname{is\text{-}received}(\mathit{spa}, y) \wedge (\operatorname{node\text{-}content}(\mathit{spa}, x) = \operatorname{node\text{-}content}(\mathit{spa}, y)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{directed-intro}}
+\emph{for every t, k, g in msg-set(t, k), [sent, g] is in directed(t, k) and [received, g] is in directed(t, k)}
+{\small\[
+\forall t, k.; \forall g \in \operatorname{msg\text{-}set}(t, k).\; ((\langle \mathit{sent}, g \rangle \in \operatorname{directed}(t, k)) \wedge (\langle \mathit{received}, g \rangle \in \operatorname{directed}(t, k)))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{node-content-eq}}
+\emph{for every spa, n, k, d, if nth(1, n) equals k, then if nth(k, (strand-map(spa))(nth(2, n))) equals d, then node-content(spa, n) is identical to nth(2, d) and node-dir(spa, n) is identical to nth(1, d)}
+{\small\[
+\forall \mathit{spa}, n, k, d.\; ((\operatorname{nth}(1, n) = k) \Rightarrow ((\operatorname{nth}(k, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) = d) \Rightarrow ((\operatorname{node\text{-}content}(\mathit{spa}, n) \simeq \operatorname{nth}(2, d)) \wedge (\operatorname{node\text{-}dir}(\mathit{spa}, n) \simeq \operatorname{nth}(1, d)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsection{Causal precedence (Lemma 2.7)}
+
+\subsubsection*{\texttt{ps-last-step}}
+\emph{for every spa, nd, ed, if nd is in set, then if ed is in power(cartesian(nd, nd)), then for every x, y, if [x, y] is in prec-strict(spa, nd, ed), then there is some z such that [z, y] is in ed or z is in nd and z comes strictly before y on one strand of spa and z equals x or [x, z] is in prec-strict(spa, nd, ed)}
+{\small\[
+\forall \mathit{spa}.; \forall \mathit{nd} \in \mathbf{Set}, \mathit{ed} \in \operatorname{power}((\mathit{nd} \times \mathit{nd})).\; \forall x, y.\; ((\langle x, y \rangle \in \operatorname{prec\text{-}strict}(\mathit{spa}, \mathit{nd}, \mathit{ed})) \Rightarrow \exists z.\; (((\langle z, y \rangle \in \mathit{ed}) \vee ((z \in \mathit{nd}) \wedge \operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, z, y))) \wedge ((z = x) \vee (\langle x, z \rangle \in \operatorname{prec\text{-}strict}(\mathit{spa}, \mathit{nd}, \mathit{ed})))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{precedes-elim}}
+\emph{for every c, x, y, if [x, y] is in precedes(c), then [x, y] is in precedes-strict(c) or x equals y and x is in bnodes(c)}
+{\small\[
+\forall c, x, y.\; ((\langle x, y \rangle \in \operatorname{precedes}(c)) \Rightarrow ((\langle x, y \rangle \in \operatorname{precedes\text{-}strict}(c)) \vee ((x = y) \wedge (x \in \operatorname{bnodes}(c)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{bundle-send-precedes}}
+\emph{for every c, x, y, if c is a bundle, then if [x, y] is in bsend(c), then [x, y] is in precedes-strict(c)}
+{\small\[
+\forall c, x, y.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow ((\langle x, y \rangle \in \operatorname{bsend}(c)) \Rightarrow (\langle x, y \rangle \in \operatorname{precedes\text{-}strict}(c))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{bundle-ssb-precedes}}
+\emph{for every c, x, y, if c is a bundle, then if y is in bnodes(c), then if x comes strictly before y on one strand of bspace(c), then [x, y] is in precedes-strict(c)}
+{\small\[
+\forall c, x, y.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow ((y \in \operatorname{bnodes}(c)) \Rightarrow (\operatorname{same\text{-}strand\text{-}before}(\operatorname{bspace}(c), x, y) \Rightarrow (\langle x, y \rangle \in \operatorname{precedes\text{-}strict}(c)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{bundle-ssb-closed}}
+\emph{for every bundle c, for every ssy\_ in bnodes(c), ssx\_, if ssx\_ comes strictly before ssy\_ on one strand of bspace(c), then ssx\_ is in bnodes(c)}
+{\small\[
+\forall c.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow \forall \operatorname{ssy\_} \in \operatorname{bnodes}(c), \operatorname{ssx\_}.\; (\operatorname{same\text{-}strand\text{-}before}(\operatorname{bspace}(c), \operatorname{ssx\_}, \operatorname{ssy\_}) \Rightarrow (\operatorname{ssx\_} \in \operatorname{bnodes}(c))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{bundle-received-sender}}
+\emph{for every bundle c, for every ssy\_ in bnodes(c), if the node ssy\_ of bspace(c) is received, then there is some ssx\_ such that [ssx\_, ssy\_] is in bsend(c) and for every ssz\_, if [ssz\_, ssy\_] is in bsend(c), then ssz\_ equals ssx\_}
+{\small\[
+\forall c.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow \forall \operatorname{ssy\_} \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}received}(\operatorname{bspace}(c), \operatorname{ssy\_}) \Rightarrow \exists \operatorname{ssx\_}.\; ((\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{bsend}(c)) \wedge \forall \operatorname{ssz\_}.\; ((\langle \operatorname{ssz\_}, \operatorname{ssy\_} \rangle \in \operatorname{bsend}(c)) \Rightarrow (\operatorname{ssz\_} = \operatorname{ssx\_})))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{precedes-partial-order}}
+\emph{for every bundle c, precedes(c) partially orders bnodes(c)}
+{\small\[
+\forall c.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow \operatorname{is\text{-}partial\text{-}order}(\operatorname{bnodes}(c), \operatorname{precedes}(c)))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{finite-strict-minimal}}
+\emph{for every r, if for every x, y, z, if [x, y] is in r, then if [y, z] is in r, then [x, z] is in r, then if for every x, [x, x] is not in r, then for every s in set, if card(s) is in nn, then if there is some w such that w is in s, then there is some m in s such that for every z in s, [z, m] is not in r}
+{\small\[
+\forall r.\; (\forall x, y, z.\; ((\langle x, y \rangle \in r) \Rightarrow ((\langle y, z \rangle \in r) \Rightarrow (\langle x, z \rangle \in r))) \Rightarrow (\forall x.\; \neg (\langle x, x \rangle \in r) \Rightarrow \forall s \in \mathbf{Set}.\; ((|s| \in \mathbb{N}) \Rightarrow (\exists w.\; (w \in s) \Rightarrow \exists m \in s.\; \forall z \in s.\; \neg (\langle z, m \rangle \in r)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{bundle-minimal}}
+\emph{for every c, s, if c is a bundle, then if for every z in s, z is in bnodes(c), then if there is some w such that w is in s, then there is some m in s such that for every z in s, [z, m] is not in precedes-strict(c)}
+{\small\[
+\forall c, s.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \Rightarrow (\exists w.\; (w \in s) \Rightarrow \exists m \in s.\; \forall z \in s.\; \neg (\langle z, m \rangle \in \operatorname{precedes\text{-}strict}(c)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{bundle-minimal-precedes}}
+\emph{for every c, s, if c is a bundle, then if for every z in s, z is in bnodes(c), then if there is some w such that w is in s, then there is some m in s such that for every z in s, if z is not equal to m, then [z, m] is not in precedes(c)}
+{\small\[
+\forall c, s.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \Rightarrow (\exists w.\; (w \in s) \Rightarrow \exists m \in s.\; \forall z \in s.\; (\neg (z = m) \Rightarrow \neg (\langle z, m \rangle \in \operatorname{precedes}(c))))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsection{Origination (Lemmas 2.8, 2.9)}
+
+\subsubsection*{\texttt{bundle-minimal-sent}}
+\emph{for every c, s, n, if c is a bundle, then if for every z in s, z is in bnodes(c), then if for every x, y, if x is in bnodes(c), then if y is in bnodes(c), then if node-content(bspace(c), x) equals node-content(bspace(c), y), then if y is in s, then x is in s, then if n is in s, then if for every z in s, [z, n] is not in precedes-strict(c), then the node n of bspace(c) is sent}
+{\small\[
+\forall c, s, n.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \Rightarrow (\forall x, y \in \operatorname{bnodes}(c).\; ((\operatorname{node\text{-}content}(\operatorname{bspace}(c), x) = \operatorname{node\text{-}content}(\operatorname{bspace}(c), y)) \Rightarrow ((y \in s) \Rightarrow (x \in s))) \Rightarrow ((n \in s) \Rightarrow (\forall z \in s.\; \neg (\langle z, n \rangle \in \operatorname{precedes\text{-}strict}(c)) \Rightarrow \operatorname{is\text{-}sent}(\operatorname{bspace}(c), n))))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{bundle-minimal-originates}}
+\emph{for every c, u, n, if c is a bundle, then if n is in bnodes(c), then if u is a subterm of node-content(bspace(c), n) over the tokens tokens(bspace(c)) and the keys keys(bspace(c)), then if for every z in bnodes(c), if u is a subterm of node-content(bspace(c), z) over the tokens tokens(bspace(c)) and the keys keys(bspace(c)), then [z, n] is not in precedes-strict(c), then u originates on the node n of bspace(c)}
+{\small\[
+\forall c, u, n.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow ((n \in \operatorname{bnodes}(c)) \Rightarrow (\operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{bspace}(c)), \operatorname{keys}(\operatorname{bspace}(c)), u, \operatorname{node\text{-}content}(\operatorname{bspace}(c), n)) \Rightarrow (\forall z \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{bspace}(c)), \operatorname{keys}(\operatorname{bspace}(c)), u, \operatorname{node\text{-}content}(\operatorname{bspace}(c), z)) \Rightarrow \neg (\langle z, n \rangle \in \operatorname{precedes\text{-}strict}(c))) \Rightarrow \operatorname{originates}(\operatorname{bspace}(c), u, n)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{originates-intro}}
+\emph{for every spa, u, n, if spa is a strand space, then if n is in nodes(spa), then if the node n of spa is sent, then if u is a subterm of node-content(spa, n) over the tokens tokens(spa) and the keys keys(spa), then if for every m, if m comes strictly before n on one strand of spa, then it is not the case that u is a subterm of node-content(spa, m) over the tokens tokens(spa) and the keys keys(spa), then u originates on the node n of spa}
+{\small\[
+\forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}sent}(\mathit{spa}, n) \Rightarrow (\operatorname{is\text{-}subterm}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}), u, \operatorname{node\text{-}content}(\mathit{spa}, n)) \Rightarrow (\forall m.\; (\operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, m, n) \Rightarrow \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}), u, \operatorname{node\text{-}content}(\mathit{spa}, m))) \Rightarrow \operatorname{originates}(\mathit{spa}, u, n))))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{originates-elim}}
+\emph{for every spa, u, n, if spa is a strand space, then if u originates on the node n of spa, then n is in nodes(spa) and the node n of spa is sent and u is a subterm of node-content(spa, n) over the tokens tokens(spa) and the keys keys(spa) and for every m, if m comes strictly before n on one strand of spa, then it is not the case that u is a subterm of node-content(spa, m) over the tokens tokens(spa) and the keys keys(spa)}
+{\small\[
+\forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow (\operatorname{originates}(\mathit{spa}, u, n) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \wedge (\operatorname{is\text{-}sent}(\mathit{spa}, n) \wedge (\operatorname{is\text{-}subterm}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}), u, \operatorname{node\text{-}content}(\mathit{spa}, n)) \wedge \forall m.\; (\operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, m, n) \Rightarrow \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}), u, \operatorname{node\text{-}content}(\mathit{spa}, m))))))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{originates-sent}}
+\emph{for every spa, u, n, if spa is a strand space, then if u originates on the node n of spa, then the node n of spa is sent and u is a subterm of node-content(spa, n) over the tokens tokens(spa) and the keys keys(spa)}
+{\small\[
+\forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow (\operatorname{originates}(\mathit{spa}, u, n) \Rightarrow (\operatorname{is\text{-}sent}(\mathit{spa}, n) \wedge \operatorname{is\text{-}subterm}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}), u, \operatorname{node\text{-}content}(\mathit{spa}, n)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{originates-no-earlier}}
+\emph{for every spa, u, n, m, if spa is a strand space, then if u originates on the node n of spa, then if m comes strictly before n on one strand of spa, then it is not the case that u is a subterm of node-content(spa, m) over the tokens tokens(spa) and the keys keys(spa)}
+{\small\[
+\forall \mathit{spa}, u, n, m.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow (\operatorname{originates}(\mathit{spa}, u, n) \Rightarrow (\operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, m, n) \Rightarrow \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}), u, \operatorname{node\text{-}content}(\mathit{spa}, m)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{originates-unique}}
+\emph{for every spa, u, n, m, if u originates uniquely in the strand space spa, then if u originates on the node n of spa, then if u originates on the node m of spa, then m equals n}
+{\small\[
+\forall \mathit{spa}, u, n, m.\; (\operatorname{uniquely\text{-}originates}(\mathit{spa}, u) \Rightarrow (\operatorname{originates}(\mathit{spa}, u, n) \Rightarrow (\operatorname{originates}(\mathit{spa}, u, m) \Rightarrow (m = n))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsection{The adversary bound (Proposition 3.3)}
+
+\subsubsection*{\texttt{text-trace-origin}}
+\emph{for every spa, p, u, n, if spa is a strand space, then if for every x in p, x is in tokens(spa), then if n is in nodes(spa), then if (strand-map(spa))(nth(2, n)) is a text trace of the adversary knowing p in the strand space spa, then if u originates on the node n of spa, then u is in p}
+{\small\[
+\forall \mathit{spa}, p, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow (\forall x \in p.\; (x \in \operatorname{tokens}(\mathit{spa})) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}text\text{-}trace}(\mathit{spa}, p, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow (\operatorname{originates}(\mathit{spa}, u, n) \Rightarrow (u \in p))))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{flush-trace-no-sent}}
+\emph{for every spa, n, if spa is a strand space, then if n is in nodes(spa), then if (strand-map(spa))(nth(2, n)) is a flushing trace in the strand space spa, then it is not the case that the node n of spa is sent}
+{\small\[
+\forall \mathit{spa}, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}flush\text{-}trace}(\mathit{spa}, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow \neg \operatorname{is\text{-}sent}(\mathit{spa}, n))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{tee-trace-no-origin}}
+\emph{for every spa, u, n, if spa is a strand space, then if n is in nodes(spa), then if (strand-map(spa))(nth(2, n)) is a tee trace in the strand space spa, then it is not the case that u originates on the node n of spa}
+{\small\[
+\forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}tee\text{-}trace}(\mathit{spa}, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow \neg \operatorname{originates}(\mathit{spa}, u, n))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{concat-trace-no-origin}}
+\emph{for every spa, u, n, if spa is a strand space, then if u is in tokens(spa), then if n is in nodes(spa), then if (strand-map(spa))(nth(2, n)) is a concatenation trace in the strand space spa, then it is not the case that u originates on the node n of spa}
+{\small\[
+\forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((u \in \operatorname{tokens}(\mathit{spa})) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}concat\text{-}trace}(\mathit{spa}, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow \neg \operatorname{originates}(\mathit{spa}, u, n)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{separate-trace-no-origin}}
+\emph{for every spa, u, n, if spa is a strand space, then if n is in nodes(spa), then if (strand-map(spa))(nth(2, n)) is a separation trace in the strand space spa, then it is not the case that u originates on the node n of spa}
+{\small\[
+\forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}separate\text{-}trace}(\mathit{spa}, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow \neg \operatorname{originates}(\mathit{spa}, u, n))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{encrypt-trace-no-origin}}
+\emph{for every spa, u, n, if spa is a strand space, then if u is in tokens(spa), then if n is in nodes(spa), then if (strand-map(spa))(nth(2, n)) is an encryption trace in the strand space spa, then it is not the case that u originates on the node n of spa}
+{\small\[
+\forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((u \in \operatorname{tokens}(\mathit{spa})) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}encrypt\text{-}trace}(\mathit{spa}, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow \neg \operatorname{originates}(\mathit{spa}, u, n)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{decrypt-trace-no-origin}}
+\emph{for every spa, u, n, if spa is a strand space, then if n is in nodes(spa), then if (strand-map(spa))(nth(2, n)) is a decryption trace in the strand space spa, then it is not the case that u originates on the node n of spa}
+{\small\[
+\forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}decrypt\text{-}trace}(\mathit{spa}, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow \neg \operatorname{originates}(\mathit{spa}, u, n))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{concat-trace-exists}}
+\emph{for every spa, l in tuples(msg-set(tokens(spa), keys(spa))), there is some s in strands(tokens(spa), keys(spa)) such that s is a concatenation trace in the strand space spa}
+{\small\[
+\forall \mathit{spa}.; \forall l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))).\; \exists s \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa})).\; \operatorname{is\text{-}concat\text{-}trace}(\mathit{spa}, s)
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{separate-trace-exists}}
+\emph{for every spa, l in tuples(msg-set(tokens(spa), keys(spa))), there is some s in strands(tokens(spa), keys(spa)) such that s is a separation trace in the strand space spa}
+{\small\[
+\forall \mathit{spa}.; \forall l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))).\; \exists s \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa})).\; \operatorname{is\text{-}separate\text{-}trace}(\mathit{spa}, s)
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{encrypt-trace-strand}}
+\emph{for every spa, k, m, if spa is a strand space, then if k is in keys(spa), then if m is in msg-set(tokens(spa), keys(spa)), then [[received, k], [received, m], [sent, encr(m, k)]] is in strands(tokens(spa), keys(spa)) and [[received, k], [received, m], [sent, encr(m, k)]] is an encryption trace in the strand space spa}
+{\small\[
+\forall \mathit{spa}, k, m.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((k \in \operatorname{keys}(\mathit{spa})) \Rightarrow ((m \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \Rightarrow ((\langle \langle \mathit{received}, k \rangle, \langle \mathit{received}, m \rangle, \langle \mathit{sent}, \operatorname{encr}(m, k) \rangle \rangle \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \wedge \operatorname{is\text{-}encrypt\text{-}trace}(\mathit{spa}, \langle \langle \mathit{received}, k \rangle, \langle \mathit{received}, m \rangle, \langle \mathit{sent}, \operatorname{encr}(m, k) \rangle \rangle)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{decrypt-trace-strand}}
+\emph{for every spa, k, m, if spa is a strand space, then if k is in keys(spa), then if m is in msg-set(tokens(spa), keys(spa)), then [[received, (kinv(spa))(k)], [received, encr(m, k)], [sent, m]] is in strands(tokens(spa), keys(spa)) and [[received, (kinv(spa))(k)], [received, encr(m, k)], [sent, m]] is a decryption trace in the strand space spa}
+{\small\[
+\forall \mathit{spa}, k, m.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((k \in \operatorname{keys}(\mathit{spa})) \Rightarrow ((m \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \Rightarrow ((\langle \langle \mathit{received}, \operatorname{kinv}(\mathit{spa})(k) \rangle, \langle \mathit{received}, \operatorname{encr}(m, k) \rangle, \langle \mathit{sent}, m \rangle \rangle \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \wedge \operatorname{is\text{-}decrypt\text{-}trace}(\mathit{spa}, \langle \langle \mathit{received}, \operatorname{kinv}(\mathit{spa})(k) \rangle, \langle \mathit{received}, \operatorname{encr}(m, k) \rangle, \langle \mathit{sent}, m \rangle \rangle)))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{adversary-node-origin}}
+\emph{for every isp, u, n, if isp is an infiltrated strand space, then if u is in tokens(ispace(isp)), then if n is in nodes(ispace(isp)), then if n is an adversary node of isp, then if u originates on the node n of ispace(isp), then u is in adv-tokens(isp)}
+{\small\[
+\forall \mathit{isp}, u, n.\; (\operatorname{is\text{-}infiltrated\text{-}space}(\mathit{isp}) \Rightarrow ((u \in \operatorname{tokens}(\operatorname{ispace}(\mathit{isp}))) \Rightarrow ((n \in \operatorname{nodes}(\operatorname{ispace}(\mathit{isp}))) \Rightarrow (\operatorname{is\text{-}adversary\text{-}node}(\mathit{isp}, n) \Rightarrow (\operatorname{originates}(\operatorname{ispace}(\mathit{isp}), u, n) \Rightarrow (u \in \operatorname{adv\text{-}tokens}(\mathit{isp})))))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{adversary-bound}}
+\emph{for every isp, c, u, if isp is an infiltrated strand space, then if c is a bundle, then if bspace(c) equals ispace(isp), then if u is in tokens(ispace(isp)), then if u is not in adv-tokens(isp), then if for every n in bnodes(c), if n is a regular node of isp, then it is not the case that u originates on the node n of ispace(isp), then for every n in bnodes(c), it is not the case that u is a subterm of node-content(ispace(isp), n) over the tokens tokens(ispace(isp)) and the keys keys(ispace(isp))}
+{\small\[
+\forall \mathit{isp}, c, u.\; (\operatorname{is\text{-}infiltrated\text{-}space}(\mathit{isp}) \Rightarrow (\operatorname{is\text{-}bundle}(c) \Rightarrow ((\operatorname{bspace}(c) = \operatorname{ispace}(\mathit{isp})) \Rightarrow ((u \in \operatorname{tokens}(\operatorname{ispace}(\mathit{isp}))) \Rightarrow (\neg (u \in \operatorname{adv\text{-}tokens}(\mathit{isp})) \Rightarrow (\forall n \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}regular\text{-}node}(\mathit{isp}, n) \Rightarrow \neg \operatorname{originates}(\operatorname{ispace}(\mathit{isp}), u, n)) \Rightarrow \forall n \in \operatorname{bnodes}(c).\; \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\mathit{isp})), \operatorname{keys}(\operatorname{ispace}(\mathit{isp})), u, \operatorname{node\text{-}content}(\operatorname{ispace}(\mathit{isp}), n))))))))
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{adversary-bound-adversary-nodes}}
+\emph{for every isp, c, u, if isp is an infiltrated strand space, then if c is a bundle, then if bspace(c) equals ispace(isp), then if u is in tokens(ispace(isp)), then if u is not in adv-tokens(isp), then if for every n in bnodes(c), if n is a regular node of isp, then it is not the case that u originates on the node n of ispace(isp), then for every n in bnodes(c), if n is an adversary node of isp, then it is not the case that u is a subterm of node-content(ispace(isp), n) over the tokens tokens(ispace(isp)) and the keys keys(ispace(isp))}
+{\small\[
+\forall \mathit{isp}, c, u.\; (\operatorname{is\text{-}infiltrated\text{-}space}(\mathit{isp}) \Rightarrow (\operatorname{is\text{-}bundle}(c) \Rightarrow ((\operatorname{bspace}(c) = \operatorname{ispace}(\mathit{isp})) \Rightarrow ((u \in \operatorname{tokens}(\operatorname{ispace}(\mathit{isp}))) \Rightarrow (\neg (u \in \operatorname{adv\text{-}tokens}(\mathit{isp})) \Rightarrow (\forall n \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}regular\text{-}node}(\mathit{isp}, n) \Rightarrow \neg \operatorname{originates}(\operatorname{ispace}(\mathit{isp}), u, n)) \Rightarrow \forall n \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}adversary\text{-}node}(\mathit{isp}, n) \Rightarrow \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\mathit{isp})), \operatorname{keys}(\operatorname{ispace}(\mathit{isp})), u, \operatorname{node\text{-}content}(\operatorname{ispace}(\mathit{isp}), n)))))))))
+\]}
+\noindent\textbf{Asserted}
+
 \end{document}
