@@ -207,6 +207,13 @@ The Emacs surface has its own check; run it after ANY edit to `emacs/vnb-launch.
 
     emacs --batch -l emacs/vnb-panel-check.el      # === PANEL CHECK: N passed, M failed ===
 
+**The Focus painter never pulls (2026-10-06).** A state block repaints the panel; `vnb-pf-refresh` SENDS
+`(show)`, whose answer is a state block. A repaint that goes through `vnb-pf-refresh` from inside a state
+update is a loop: the TeX fetch did (40 cycles a second, each erasing the buffer under the reader, so "the
+pdf view does not scroll down"). A same-state repaint keeps the reader's place
+(`vnb-launch--paint-proof-keeping-place`); a fetch repaints from its cache directly; `on-state-update` schedules
+a fetch only when the cache misses. Two panel checks with controls.
+
 **Keep-going load: `VNB_KEEP_GOING=1 ./prover ...`.** An error in a theorem-library/ or
 calculus/ file is recorded and the load continues; failures and unproven HOLES are listed at
 the end, in load order (a cascade: read the first entries first). A band built this way is

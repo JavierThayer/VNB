@@ -1853,7 +1853,19 @@ unless the Focus Workspace is live, the toggle is on, and the prover is up."
                         (read (current-buffer))))))
           (when data
             (setq vnb-pf--tex-cache (list :for state :data data))
-            (vnb-pf-refresh)))))))
+            ;; Repaint from the cache, DIRECTLY.  Until 2026-10-06 this went
+            ;; through `vnb-pf-refresh', which since 37e3a74 also sends `(show)'
+            ;; to the prover; the answer is a state block, the block repaints
+            ;; the panel from the top and schedules this fetch again, and the
+            ;; cycle never ended: in TeX mode the Focus buffer was erased and
+            ;; repainted several times a second, so a reader who scrolled down
+            ;; was pulled back to the top at once ("the pdf view does not
+            ;; scroll down to the bottom"; the text view, which schedules no
+            ;; fetch, was fine).  The painter keeps the scroll position on a
+            ;; same-state repaint as well, so this paint moves nothing.
+            (let ((fb (get-buffer vnb-proof-buffer-name)))
+              (when fb
+                (with-current-buffer fb (vnb-launch--paint-proof))))))))))
 
 (defun vnb-pf-toggle-tex ()
   "Toggle LaTeX-image rendering of the sequent in the Focus Workspace."
@@ -4072,10 +4084,37 @@ no such guard -- it talks to nothing."
       (setq vnb-launch--repaint-pending t)
     (let ((vnb-launch--repaint-pending nil))
       (let ((vnb-launch--painting t))
-        (vnb-launch--paint-proof-1))
+        (vnb-launch--paint-proof-keeping-place))
       (when vnb-launch--repaint-pending
         (let ((vnb-launch--painting t))
-          (vnb-launch--paint-proof-1))))))
+          (vnb-launch--paint-proof-keeping-place))))))
+
+(defvar-local vnb-launch--painted-state nil
+  "The proof-state text the Focus buffer was last painted from.")
+
+(defun vnb-launch--paint-proof-keeping-place ()
+  "Paint the Focus Workspace once; keep the reader's place on a same-state repaint.
+`vnb-launch--paint-proof-1\=' erases the buffer and leaves point at the top,
+which is right when the sequent CHANGED.  A repaint of the SAME state -- the
+TeX images arriving a beat after the text, a `(show)\=' answer, the `g\=' key --
+must not move a reader who has scrolled down the sequent (2026-10-06): the
+buffer point and every window\='s start and point are saved as positions and
+put back, clamped to the new end."
+  (let* ((same (and vnb-launch--painted-state
+                    (equal vnb-launch--painted-state vnb-proof--last-state)))
+         (pt   (point))
+         (wins (and same
+                    (mapcar (lambda (w) (list w (window-start w) (window-point w)))
+                            (get-buffer-window-list (current-buffer) nil t)))))
+    (vnb-launch--paint-proof-1)
+    (setq vnb-launch--painted-state vnb-proof--last-state)
+    (when same
+      (goto-char (min pt (point-max)))
+      (dolist (ws wins)
+        (let ((w (nth 0 ws)))
+          (when (window-live-p w)
+            (set-window-start w (min (nth 1 ws) (point-max)) t)
+            (set-window-point w (min (nth 2 ws) (point-max)))))))))
 
 (defun vnb-launch--paint-proof-1 ()
   "Paint the Focus Workspace once.  Call `vnb-launch--paint-proof\=' instead."
@@ -4365,7 +4404,11 @@ error from a prior failed attempt is also cleared here."
     ;; is on, fetch the new sequent's TeX OUTSIDE this comint filter and
     ;; repaint with images.  run-at-time defers past the filter so the
     ;; send-and-wait round-trip can't re-enter it.
-    (when (and fb vnb-focus-render-tex)
+    ;; Only when the cache does not already hold THIS state's TeX: a state
+    ;; block for an unchanged state (a `(show)', the `g' key) must not start
+    ;; a round trip, or the round trip's own state block starts the next.
+    (when (and fb vnb-focus-render-tex
+               (not (vnb-pf--tex-data-for-current-state)))
       (run-at-time 0 nil #'vnb-pf--fetch-tex))))
 
 (defun vnb-launch--on-vnb-error (_msg)

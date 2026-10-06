@@ -109,6 +109,42 @@
                  (when (get-text-property pos 'help-echo) (setq hits (1+ hits))))
                (> hits 0))))
 
+;; ----- TeX mode must not repaint itself in a loop (the user, 2026-10-06) -----
+;; "The pdf view of the Focus sequent (key T) does not scroll down to the
+;; bottom; the string view is fine."  The TeX fetch repainted through
+;; `vnb-pf-refresh', which sends `(show)'; the answer is a state block, which
+;; repaints from the top and schedules the fetch again -- a cycle several times
+;; a second, each one erasing the buffer under the reader.  Count the state
+;; updates while nothing happens: CONTROL -- on the old code the count grows
+;; during the second pump.
+(defvar vpc--state-updates 0)
+(defun vpc--count-state-update (&rest _) (setq vpc--state-updates (1+ vpc--state-updates)))
+(advice-add 'vnb-launch--on-state-update :before #'vpc--count-state-update)
+(setq vnb-focus-render-tex t)
+(let ((n0 vpc--state-updates))
+  (vnb-pf--fetch-tex)                   ; what `T' does after flipping the flag
+  (vpc--pump 15)
+  ;; One fetch is one paint from the cache: no `(show)', so no state block.
+  ;; The old code produced ~40 a second here (traced 2026-10-06).
+  (vpc-check "TeX mode: one fetch sends no (show) and starts no repaint loop"
+             (= n0 vpc--state-updates)
+             (format "%d state update(s) in ~5 s after one fetch"
+                     (- vpc--state-updates n0))))
+(with-current-buffer vnb-proof-buffer-name
+  (vpc-check "TeX mode: the sequent is painted from the TeX cache"
+             (and (vnb-pf--tex-data-for-current-state) t))
+  ;; A repaint of the SAME state keeps the reader's place.  CONTROL: the old
+  ;; painter ended every paint at `point-min'.
+  (let ((target (max 1 (- (point-max) 5))))
+    (goto-char target)
+    (vnb-launch--paint-proof)
+    (vpc-check "a same-state repaint keeps point where the reader left it"
+               (= (point) target)
+               (format "point %d, was %d" (point) target))))
+(setq vnb-focus-render-tex nil)
+(advice-remove 'vnb-launch--on-state-update #'vpc--count-state-update)
+(vnb-pf-refresh) (vpc--pump 10)
+
 ;; And the proof still runs: di, then ass.
 (vnb-launch--send "(di)")  (vpc--pump 20)
 (vnb-launch--send "(ass)") (vpc--pump 20)
