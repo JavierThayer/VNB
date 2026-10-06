@@ -2014,9 +2014,9 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  f is continuous on d
 
-### `is-convex`  — def-predicate · proposition (arity 1)
+### `is-convex-cc`  — def-predicate · proposition (arity 1)
 
-> _Reads as:_  cvu_ is convex
+> _Reads as:_  cvu_ is a convex subset of CC
 
 ### `is-countable`  — def-predicate · proposition (arity 1)
 

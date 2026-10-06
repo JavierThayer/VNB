@@ -180,8 +180,8 @@
 <pre>forall([s, t, f, a], is-continuous-at(s, t, f, a) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and a in pts(s) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([b in pts(s)], (dist(s))(a, b) &lt;= delta implies (dist(t))(f(a), f(b)) &lt;= eps))))</pre>
 <h4 id="d-is-continuous-on">is-continuous-on</h4>
 <pre>forall([f, d], is-continuous-on(f, d) iff f in fun(d, rr) and forall([icp_ in d], is-continuous-at(subspace-ms(rr-ms, d), rr-ms, f, icp_)))</pre>
-<h4 id="d-is-convex">is-convex</h4>
-<pre>forall([cvu_], is-convex(cvu_) iff forall([cvx_ in cvu_, cvy_ in cvu_, cvt_ in ccint(0, 1)], cvx_ + cvt_ * (cvy_ - cvx_) in cvu_))</pre>
+<h4 id="d-is-convex-cc">is-convex-cc</h4>
+<pre>forall([cvu_], is-convex-cc(cvu_) iff cvu_ subset cc and forall([cvx_ in cvu_, cvy_ in cvu_, cvt_ in ccint(0, 1)], cvx_ + cvt_ * (cvy_ - cvx_) in cvu_))</pre>
 <h4 id="d-is-countable">is-countable</h4>
 <pre>forall([rpc_], is-countable(rpc_) iff rpc_ in set and (rpc_ = empty-set or forsome([rpen_ in fun(nn, rpc_)], forall([rpy_ in rpc_], forsome([rpn_ in nn], rpy_ = rpen_(rpn_))))))</pre>
 <h4 id="d-is-countable-pseudometric-family">is-countable-pseudometric-family</h4>

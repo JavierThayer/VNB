@@ -26,15 +26,31 @@
 #      arm the idle stop, add swap when missing.
 #   2. push the tree (rsync; scratchpad/, scratch/, .git, vnb.band, reference/
 #      excluded), verify load.scm and certificates.scm by md5.
-#   3. vnb-band WORKER --build --exam [--heap H]; poll --wait until it ends (cap 4 h).
+#   3. vnb-band WORKER --build --exam [--heap H]; poll --wait until it ends (cap 8 h:
+#      the exam of 2026-10-05 ran 14037 s against a 4 h cap, 363 s inside it, and
+#      six exams of one unchanged tree had spread +-5%; Ignacio's note of 2026-10-05).
 #   4. vnb-suite WORKER --band --detach; poll --wait (cap 40 min).
 #   5. a CERTIFIED build on the worker (vnb-band --build, ~3.5 min), then
 #      vnb-band-pull WORKER: that 40 MB band, reference/, certificates/ back to the
 #      primary, ONLY when the exam built its band and the suite passed; a failed
 #      exam leaves the primary's copies alone and says so.  The exam's 595 MB band
 #      stays on the worker.
-#   6. capataz stop WORKER.
+#   6. capataz stop WORKER -- on EVERY exit once the worker is up, the failure exits
+#      included (an EXIT trap; before 2026-10-06 a failed suite left worker-02 idling
+#      four hours, since the stop was the last line of the success path).
 # Exit 0 = passed or skipped; 1 = the exam or the suite failed; 2 = infrastructure.
+#
+# THE MACHINE (2026-10-06, the user's decision on Ignacio's note): the exam outgrew the
+# t3.medium -- 13288 s on 2026-10-06, a third of it GC, peak RSS 3.2 GiB of 3.8 -- so the
+# cron line names a dedicated worker launched as an m7i.large (8 GiB, 3.2 GHz, no CPU
+# credits) and heap 500000:
+#
+#     vnb-nightly-exam --worker worker-05 --type m7i.large --heap 500000
+#
+# --type applies only when the named worker does not exist; a stopped worker keeps the
+# type it was launched with.  A worker this script LAUNCHES is provisioned here in full:
+# mit-scheme, the swapfile, the idle stop, and the primary's pull key
+# (~/.ssh/vnb-secondary.pub) in its authorized_keys, which vnb-band-pull needs.
 # Every step's timing lands in the ledger rows the underlying commands already write.
 set -u
 PROVER=/home/ubuntu/prover
@@ -63,6 +79,9 @@ json.dump({"ts": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d
            "detail": detail, "tree": tree, "worker": worker}, open(p, "w"))
 PY
 }
+STARTED=0; STOPPED=0
+stop_worker() { [ "$STARTED" = 1 ] && [ "$STOPPED" = 0 ] && { capataz stop "$WORKER" --yes --json > /dev/null 2>&1 && say "stopped $WORKER"; STOPPED=1; }; return 0; }
+trap stop_worker EXIT
 cd "$PROVER" || exit 2
 # The tree identity: HEAD plus a hash of the uncommitted diff (an exam checks the
 # tree as it stands, committed or not).
@@ -75,7 +94,7 @@ if [ "$FORCE" = 0 ] && [ -f "$LAST" ]; then
   fi
 fi
 say "start: tree $TREE on $WORKER ($TYPE${HEAP:+, heap $HEAP}$([ "$SMOKE" = 1 ] && echo ", SMOKE: certified build in place of the exam"))"
-[ "$DRY" = 1 ] && { say "dry run: would start $WORKER, push, exam, suite, pull, stop"; exit 0; }
+[ "$DRY" = 1 ] && { say "dry run: would start $WORKER ($TYPE if absent), push, exam, suite, pull, stop; exam cap 8 h"; exit 0; }
 
 state=$(capataz list --json 2>/dev/null | python3 -c 'import json,sys; w=sys.argv[1]; print(next((r["state"] for r in json.load(sys.stdin) if r["name"]==w), "absent"))' "$WORKER")
 case "$state" in
@@ -94,7 +113,14 @@ done
 # --user root: capataz run is unprivileged by default (0.2.6), and apt-get, the swapfile and
 # the idle-stop installer all need root.  Found 2026-10-05: the arming had been failing
 # silently since the default changed, leaving worker-02 at its 240-minute setting.
+STARTED=1
 capataz run "$WORKER" --json --user root 'command -v mit-scheme >/dev/null || apt-get install -y -q mit-scheme >/dev/null; swapon --show | grep -q swapfile || { fallocate -l 2G /swapfile; chmod 600 /swapfile; mkswap /swapfile; swapon /swapfile; }; bash /home/ubuntu/prover/vnb-idle-stop-install 30 >/dev/null 2>&1; echo ready' > /dev/null 2>&1
+# The pull key: vnb-band-pull rsyncs over a tunnel with ~/.ssh/vnb-secondary, which must be
+# in the worker's authorized_keys.  The four workers of 2026-09 had it put there by hand;
+# a worker this script launches gets it here (idempotent).
+PUB=$(cat ~/.ssh/vnb-secondary.pub)
+capataz run "$WORKER" --json --user ubuntu "mkdir -p /home/ubuntu/.ssh && chmod 700 /home/ubuntu/.ssh && touch /home/ubuntu/.ssh/authorized_keys && chmod 600 /home/ubuntu/.ssh/authorized_keys && (grep -qF '$PUB' /home/ubuntu/.ssh/authorized_keys || echo '$PUB' >> /home/ubuntu/.ssh/authorized_keys) && echo key-ok" 2>/dev/null | grep -q key-ok \
+  || { say "FAIL: could not install the pull key on $WORKER"; record failed "pull-key"; exit 2; }
 capataz push "$WORKER" --yes --rsync --src "$PROVER" --dest "$PROVER" --exclude .git --exclude scratchpad/ --exclude scratch/ --exclude vnb.band --exclude reference/ > /dev/null 2>&1 \
   || { say "FAIL: push to $WORKER"; record failed "push"; exit 2; }
 want=$(md5sum load.scm certificates.scm | awk '{print $1}' | paste -sd' ')
@@ -106,7 +132,7 @@ EXAM_OPT=--exam; [ "$SMOKE" = 1 ] && EXAM_OPT=""
 JOB=$("$PROVER/vnb-band" "$WORKER" --build $EXAM_OPT ${HEAP:+--heap $HEAP} 2>&1 | sed -n 's/.*started \(job-[^ ]*\).*/\1/p')
 [ -n "$JOB" ] || { say "FAIL: vnb-band --build --exam returned no job"; record failed "exam-start"; exit 2; }
 say "exam $JOB"
-deadline=$(( $(date +%s) + 4*3600 )); rc=124
+deadline=$(( $(date +%s) + 8*3600 )); rc=124
 while [ $rc = 124 ] && [ "$(date +%s)" -lt $deadline ]; do
   out=$("$PROVER/vnb-band" "$WORKER" --wait "$JOB" --timeout 900 2>&1); rc=$?
 done
@@ -157,7 +183,7 @@ if "$PROVER/vnb-band-pull" "$WORKER" --band-only >> "$LOG" 2>&1; then
 else
   say "FAIL: vnb-band-pull (the exam and suite passed; rerun: vnb-band-pull $WORKER)"; record failed "pull"; exit 2
 fi
-capataz stop "$WORKER" --yes --json > /dev/null 2>&1 && say "stopped $WORKER"
+stop_worker
 record "$([ "$SMOKE" = 1 ] && echo smoke-passed || echo passed)" "$summary; $sline"
 say "done"
 exit 0

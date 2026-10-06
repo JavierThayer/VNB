@@ -86,15 +86,6 @@ its declared domain, or `f(a)` with `f ∈ FUN(D, ·)` and `a ∈ D` in `Γ`. A 
 or `IOTA`, and an application of an untyped function, are never certified. The policy is
 `docs/definedness-instantiation-2026-09-18.md`.
 
-The arithmetic clause deserves one more sentence. `+`, `-`, `*`, `min`, `max`, `abs`, `succ`
-and `^` are primitive operator symbols with closure axioms and no domain, so the certificate
-cannot read the definedness of `a + b` off the symbol: it certifies `a + b` exactly when every
-argument is a numeral or is typed in `NN`, `ZZ`, `QQ`, `RR` or `CC` (or under `POS-RR`) by an
-assumption of `Γ`. For arguments the context does not type, `a + b` is left uncertified -- the
-instantiation owes `a + b = a + b` and `rfl` declines -- which is the correct outcome, since for
-objects outside every number system the axioms say nothing about the sum at all (the manual's
-section *The arithmetic symbols: what they are, and what the axioms say*).
-
 ---
 
 ## (a) Primitive procedures

@@ -218,9 +218,9 @@ Proposition-valued: `name(args) <=> body`.
 
     forall([f, d], is-continuous-on(f, d) iff f in fun(d, rr) and forall([icp_ in d], is-continuous-at(subspace-ms(rr-ms, d), rr-ms, f, icp_)))
 
-### is-convex
+### is-convex-cc
 
-    forall([cvu_], is-convex(cvu_) iff forall([cvx_ in cvu_, cvy_ in cvu_, cvt_ in ccint(0, 1)], cvx_ + cvt_ * (cvy_ - cvx_) in cvu_))
+    forall([cvu_], is-convex-cc(cvu_) iff cvu_ subset cc and forall([cvx_ in cvu_, cvy_ in cvu_, cvt_ in ccint(0, 1)], cvx_ + cvt_ * (cvy_ - cvx_) in cvu_))
 
 ### is-countable
 
