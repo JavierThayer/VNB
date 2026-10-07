@@ -2953,7 +2953,17 @@
 
 (define (dk-cite! thm . args)
   (let* ((terms (map ->raw-formula args))
-         (new   (dk-landed* (lambda () (apply fact thm terms)))))
+         (owed0 (vnb--owed-leaves))
+         (new   (dk-landed* (lambda () (apply fact thm terms))))
+         (owed  (filter (lambda (l) (not (memq l owed0))) (vnb--owed-leaves))))
+    ;; 2026-10-07 (WEEK3 kit finding 2): an instantiation at a term the context does not
+    ;; certify DEFINED posts a `t = t' leaf; when the owed-leaf hook cannot close it the
+    ;; step used to report nothing and the proof died at `qed' ("not complete"), three
+    ;; debugging rounds later.  Say so here, naming the term.
+    (if (pair? owed)
+        (error (string-append "dk-cite!: instantiating " (symbol->string thm)
+                              " owes a definedness leaf the context cannot close -- TYPE THE TERM FIRST:")
+               (expression->string (dk-goal-of (car owed)))))
     (if (pair? new)
         (dk--deepest-of new)
         (let ((want (dk--fact-instance thm terms)))
@@ -2961,6 +2971,162 @@
               (error (string-append "dk-cite!: " (symbol->string thm)
                                     " landed nothing, and its instance is not in context")
                      (expression->string want)))))))
+
+;;; -----------------------------------------------------------------------
+;;; THE HYPOTHESIS-SIDE REWRITE (owed since 2026-09-14; built 2026-10-07 from the S-2
+;;; agent's `sab-rewrite!' / `ssl-transport!' / `sab-nth!', WEEK3-REPORTS kit finding 1).
+;;;
+;;;   (dk-rewrite-h! F FROM TO) -- F in context, FROM = TO (or ==, either orientation) in
+;;;                                context: land F[FROM := TO] and return it.  F survives.
+;;;   (dk-nth-h! F)             -- F in context: land F with every NTH of a literal list
+;;;                                reduced and return it (F itself when nothing reduces).
+;;;
+;;; Both prove F => F\' on a lane -- `subst\' / `nth-r\' act on the GOAL, which is the
+;;; implication, so the rewrite reaches both sides and `di\' + `ass\' close it -- and
+;;; detach it.  The kernel has no hypothesis-side rewrite; this is the one door.  A
+;;; hypothesis not in context, or a FROM that does not occur, is an ERROR (the silent
+;;; no-op is the trap CLAUDE.md names).
+(define (dk-rewrite-h! f from to)
+  (let* ((f  (->raw-formula f))
+         (f2 (dk--replace f from to)))
+    (cond ((not (dk-asm? f))
+           (error "dk-rewrite-h!: the hypothesis is not in context:" (expression->string f)))
+          ((equal? f2 f)
+           (error "dk-rewrite-h!: FROM does not occur in the hypothesis:" (expression->string from)))
+          ((dk-asm? f2) f2)
+          (#t (let ((imp (list 'IMPLIES f f2)))
+                (dk-have! imp (lambda () (subst (list '= from to)) (di) (ass)))
+                (detach! imp)
+                f2)))))
+
+(define (dk-nth-h! f)
+  (let* ((f  (->raw-formula f))
+         (f2 (reduce-nth-in-expr f)))
+    (cond ((not (dk-asm? f))
+           (error "dk-nth-h!: the hypothesis is not in context:" (expression->string f)))
+          ((equal? f2 f) f)
+          ((dk-asm? f2) f2)
+          (#t (let ((imp (list 'IMPLIES f f2)))
+                (dk-have! imp (lambda () (nth-r) (di) (ass)))
+                (detach! imp)
+                f2)))))
+
+;;; -----------------------------------------------------------------------
+;;; THE LITERAL-SUBTERM INVERTER (S-2b's request for S-3, 2026-10-06; built 2026-10-07).
+;;;
+;;;   (dk-subterm-literal! T K TK M)
+;;;
+;;; With (IS-SUBTERM T K TK M), (IN TK T), (IS-TOKEN-SET T) and (IN K SET) in context, and
+;;; M a LITERAL message -- a token term, (LST (LIST m1 ... mn)) with literal mi, or
+;;; (ENCR g y) with literal g -- land the disjunction TK = a1 OR ... OR TK = ak over the
+;;; token leaves of M (the one equation when M has one leaf) and return it.  Every token
+;;; leaf must be typed (IN a T) in context and every key (IN y K); anything else is an
+;;; ERROR naming the missing typing.  The claim is proved on a lane from the laws of
+;;; strand-messages-laws.scm: `subterm-of-token\' at a leaf; `token-subterm-of-encr\'
+;;; through an encryption (the key is not a subterm, the paper\'s Definition 2.11);
+;;; `token-subterm-of-list\' through a list, whose index is enumerated by excluded middle,
+;;; one case per position (nn-le-ne-succ, dk-nn!), the hypothesis rewritten at the
+;;; position (dk-rewrite-h!) and its NTH reduced (dk-nth-h!).  The memberships the laws
+;;; need (a literal in MSG-SET, a literal list in TUPLES(MSG-SET), by `ti\') are landed
+;;; on the way.  NSL asks this question at every step of S-3.
+(define (dk-stl--lst? m)
+  (and (pair? m) (eq? (car m) 'LST) (= (length m) 2) (pair? (cadr m)) (eq? (car (cadr m)) 'LIST)))
+(define (dk-stl--encr? m) (and (pair? m) (eq? (car m) 'ENCR) (= (length m) 3)))
+(define (dk-stl--leaves m)
+  (cond ((dk-stl--lst? m) (apply append (map dk-stl--leaves (cdr (cadr m)))))
+        ((dk-stl--encr? m) (dk-stl--leaves (cadr m)))
+        (#t (list m))))
+(define (dk-stl--or eqs)
+  (if (null? (cdr eqs)) (car eqs) (list 'OR (car eqs) (dk-stl--or (cdr eqs)))))
+(define (dk-stl--need! f what)
+  (if (not (dk-asm? f))
+      (error (string-append "dk-subterm-literal!: " what " is not typed in context:") (expression->string f))))
+
+;; land (IN M (MSG-SET T K)) for a literal M
+(define (dk-stl--msg! T K m)
+  (let ((goal (list 'IN m (list 'MSG-SET T K))))
+    (cond ((dk-asm? goal) goal)
+          ((dk-stl--lst? m)
+           (dk-stl--tuples! T K (cadr m))
+           (dk-cite! 'list-in-msgs T K (cadr m))
+           goal)
+          ((dk-stl--encr? m)
+           (dk-stl--msg! T K (cadr m))
+           (dk-stl--need! (list 'IN (caddr m) K) "a key")
+           (dk-cite! 'encr-in-msgs T K (cadr m) (caddr m))
+           goal)
+          (#t (dk-stl--need! (list 'IN m T) "a token leaf")
+              (dk-cite! 'token-in-msgs T K m)
+              goal))))
+
+;; land (IN (LIST m1 ... mn) (TUPLES (MSG-SET T K))) for literal mi
+(define (dk-stl--tuples! T K l)
+  (let ((goal (list 'IN l (list 'TUPLES (list 'MSG-SET T K)))))
+    (if (not (dk-asm? goal))
+        (begin
+          (for-each (lambda (mi) (dk-stl--msg! T K mi)) (cdr l))
+          (dk-have! goal (lambda () (dk-each-leaf! (lambda () (ti)) (lambda () (ass)))))))
+    goal))
+
+;; the OR goal built by dk-stl--or over LVS: select the disjunct (= TK A) and close it
+(define (dk-stl--select! tk a lvs)
+  (let loop ((ls lvs))
+    (cond ((null? ls) (error "dk-subterm-literal!: a leaf not among the leaves:" (expression->string a)))
+          ((equal? (car ls) a) (if (pair? (cdr ls)) (oi-l)) (ass))
+          (#t (oi-r) (loop (cdr ls))))))
+
+;; hypothesis (IS-SUBTERM T K TK M) in context, goal the OR claim: drive it closed
+(define (dk-stl--drive! T K tk m lvs)
+  (cond
+    ((dk-stl--encr? m)
+     (let ((g (cadr m)) (y (caddr m)))
+       (dk-stl--msg! T K g)
+       (dk-stl--need! (list 'IN y K) "a key")
+       (dk-cite! 'token-subterm-of-encr T K tk g y)
+       (dk-stl--drive! T K tk g lvs)))
+    ((dk-stl--lst? m)
+     (let* ((l (cadr m)) (ms (cdr l)) (n (length ms)))
+       (dk-stl--tuples! T K l)
+       (let* ((ex (dk-cite! 'token-subterm-of-list T K tk l))
+              (i  (dk-skolem! ex #t))       ; i in NN, 1 <= i, i <= LENGTH l, IS-SUBTERM .. (NTH i l)
+              (len (list 'LENGTH l)))
+         (dk-have! (list '= len n) (lambda () (len-r) (rfl)))
+         ;; i <= LENGTH l  ->  i <= n: a LENGTH term is no atom `ineq' certifies (the first run)
+         (dk-rewrite-h! (list '<= i len) len n)
+         (let ((at (lambda (j)                ; (= i j) in context
+                     (dk-rewrite-h! (list 'IS-SUBTERM T K tk (list 'NTH i l)) i j)
+                     (dk-nth-h! (list 'IS-SUBTERM T K tk (list 'NTH j l)))
+                     (dk-stl--drive! T K tk (list-ref ms (- j 1)) lvs))))
+           (let loop ((j 1))
+             (if (= j n)
+                 (begin
+                   (dk-have! (list '= i n)
+                     (lambda () (dk-nn! (list '<= n i) (list '<= i n))))
+                   (at n))
+                 (use-em (list '= i j)
+                   (lambda () (at j))
+                   (lambda ()
+                     (dk-have! (list 'IN j 'NN) (lambda () (arith)))
+                     (dk-cite! 'nn-le-ne-succ j i)          ; j <= i, i /= j  =>  succ j <= i
+                     (dk-have! (list '<= (+ j 1) i) (lambda () (dk-nn! (list '<= (list 'succ j) i))))
+                     (loop (+ j 1))))))))))
+    (#t
+     (dk-stl--need! (list 'IN m T) "a token leaf")
+     (dk-cite! 'subterm-of-token T K tk m)
+     (dk-stl--select! tk m lvs))))
+
+(define (dk-subterm-literal! T K tk m)
+  (let* ((hyp   (list 'IS-SUBTERM T K tk m))
+         (lvs   (dk-stl--leaves m))
+         (claim (dk-stl--or (map (lambda (a) (list '= tk a)) lvs))))
+    (if (not (dk-asm? hyp))
+        (error "dk-subterm-literal!: the subterm hypothesis is not in context:" (expression->string hyp)))
+    (dk-stl--need! (list 'IN tk T) "the token")
+    (dk-stl--need! (list 'IS-TOKEN-SET T) "the token set (IS-TOKEN-SET)")
+    (dk-stl--need! (list 'IN K 'SET) "the key set")
+    (if (not (dk-asm? claim))
+        (dk-have! claim (lambda () (dk-stl--drive! T K tk m lvs))))
+    claim))
 
 ;;; -----------------------------------------------------------------------
 ;;; THE LANE AND ITS LEAF (item 5).  A tactic that closes its branch -- a beta

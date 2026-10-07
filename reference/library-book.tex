@@ -226,8 +226,8 @@
 \vnbaxiom{qq-zero-in}{\vnbstmt{0 \in \mathbb{Q}}}
 \vnbaxiom{qq-mul-closed}{\vnbstmt{\forall a, b.\; (((a \in \mathbb{Q}) \wedge (b \in \mathbb{Q})) \Rightarrow ((a \cdot b) \in \mathbb{Q}))}}
 \vnbaxiom{rr-add-comm}{\vnbstmt{\forall a, b.\; (((a \in \mathbb{R}) \wedge (b \in \mathbb{R})) \Rightarrow ((a + b) = (b + a)))}}
-\vnbaxiom{qq-add-closed}{\vnbstmt{\forall a, b.\; (((a \in \mathbb{Q}) \wedge (b \in \mathbb{Q})) \Rightarrow ((a + b) \in \mathbb{Q}))}}
 \vnbaxiom{cc-recip-inverse}{\vnbstmt{\forall a \in \mathbb{C}.\; (\neg (a = 0) \Rightarrow ((a \cdot \operatorname{recip}(a)) = 1))}}
+\vnbaxiom{qq-add-closed}{\vnbstmt{\forall a, b.\; (((a \in \mathbb{Q}) \wedge (b \in \mathbb{Q})) \Rightarrow ((a + b) \in \mathbb{Q}))}}
 \vnbaxiom{qq-subset-rr}{\vnbstmt{\forall n \in \mathbb{Q}.\; (n \in \mathbb{R})}}
 \vnbaxiom{rr-zero-in}{\vnbstmt{0 \in \mathbb{R}}}
 \vnbaxiom{cc-distributive}{\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, c. \\ \quad ((a \in \mathbb{C}) \wedge ((b \in \mathbb{C}) \wedge (c \in \mathbb{C}))) \Rightarrow ((a \cdot (b + c)) = ((a \cdot b) + (a \cdot c))) \end{array}}}
@@ -791,6 +791,7 @@ Let $s$, $a$ and $\mathit{nxt}$ be arbitrary. Let $n \in \mathbb{N}$. Then
 \vnbprop{collapse-at-lt}{\vnbstmt{\begin{array}{@{}l@{}} \forall n, k, j. \\ \quad ((n \in \mathbb{N}) \wedge ((k \in \mathbb{N}) \wedge ((j \in \mathbb{N}) \wedge ((k \leq n) \wedge ((j \leq n) \wedge \neg (j = k)))))) \Rightarrow  \\ \quad \quad \operatorname{collapse\text{-}at}(k)(j) < n \end{array}}}
 \vnbprop{collapse-at-inj}{\vnbstmt{\begin{array}{@{}l@{}} \forall k, a, b. \\ \quad k \in \mathbb{N} \wedge \\ \quad a \in \mathbb{N} \wedge \\ \quad b \in \mathbb{N} \wedge \\ \quad \neg (a = k) \wedge \\ \quad \neg (b = k) \wedge \\ \quad \operatorname{collapse\text{-}at}(k)(a) = \operatorname{collapse\text{-}at}(k)(b) \Rightarrow \\ \quad \quad a = b \end{array}}}
 \vnbprop{collapse-at-in-seg}{\vnbstmt{\begin{array}{@{}l@{}} \forall n, k, j. \\ \quad n \in \mathbb{N} \wedge \\ \quad k \in \mathbb{N} \wedge \\ \quad j \in \mathbb{N} \wedge \\ \quad k \in \mathrm{OS}((n + 1)) \wedge \\ \quad j \in \mathrm{OS}((n + 1)) \wedge \\ \quad \neg (j = k) \Rightarrow \\ \quad \quad \operatorname{collapse\text{-}at}(k)(j) \in \mathrm{OS}(n) \end{array}}}
+\vnbprop{nn-le-ne-succ}{\vnbstmt{\forall a, k \in \mathbb{N}.\; (((a \leq k) \wedge \neg (k = a)) \Rightarrow ((a + 1) \leq k))}}
 
 \vnbbookfile{theorem-library/pigeonhole-segments}{theorem-library/pigeonhole-segments}
 \noindent{\small pigeonhole-segments.scm -- Track A of the CARD plan: finite pigeonhole for ordinal segments, the one piece of real mathematics the plan needs.}\par
@@ -8512,7 +8513,6 @@ Let $\operatorname{smt\_}$ and $\operatorname{smk\_}$ be arbitrary. Let $\operat
 
 \vnbbookfile{theorem-library/strand-adversary-bound}{theorem-library/strand-adversary-bound}
 \noindent{\small strand-adversary-bound.scm -- THE ADVERSARY BOUND (the paper's Proposition 3.3 on the user's model with encryption): a token the adversary does not know, and which originates on no regular node of a bundle, is a subterm of the content of NO node of the bundle. (Thayer, Herzog, Guttman, \textasciitilde{}/docs/jcs\_strand\_spaces.pdf, ...}\par
-\vnbprop{nn-le-ne-succ}{\vnbstmt{\forall a, k \in \mathbb{N}.\; (((a \leq k) \wedge \neg (k = a)) \Rightarrow ((a + 1) \leq k))}}
 \vnbprop{text-trace-origin}{\vnbstmt{\begin{array}{@{}l@{}} \forall a, p, u, n. \\ \quad \operatorname{is\text{-}strand\text{-}space}(a) \wedge \\ \quad \forall x \in p.\; (x \in \operatorname{tokens}(a)) \wedge \\ \quad n \in \operatorname{nodes}(a) \wedge \\ \quad \operatorname{is\text{-}text\text{-}trace}(a, p, \operatorname{strand\text{-}map}(a)(\operatorname{nth}(2, n))) \wedge \\ \quad \operatorname{originates}(a, u, n) \Rightarrow \\ \quad \quad u \in p \end{array}}}
 \vnbprop{flush-trace-no-sent}{\vnbstmt{\begin{array}{@{}l@{}} \forall a, n. \\ \quad (\operatorname{is\text{-}strand\text{-}space}(a) \wedge ((n \in \operatorname{nodes}(a)) \wedge \operatorname{is\text{-}flush\text{-}trace}(a, \operatorname{strand\text{-}map}(a)(\operatorname{nth}(2, n))))) \Rightarrow  \\ \quad \quad \neg \operatorname{is\text{-}sent}(a, n) \end{array}}}
 \vnbprop{tee-trace-no-origin}{\vnbstmt{\begin{array}{@{}l@{}} \forall a, u, n. \\ \quad (\operatorname{is\text{-}strand\text{-}space}(a) \wedge ((n \in \operatorname{nodes}(a)) \wedge \operatorname{is\text{-}tee\text{-}trace}(a, \operatorname{strand\text{-}map}(a)(\operatorname{nth}(2, n))))) \Rightarrow  \\ \quad \quad \neg \operatorname{originates}(a, u, n) \end{array}}}

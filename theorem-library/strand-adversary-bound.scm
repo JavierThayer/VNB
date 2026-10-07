@@ -148,23 +148,8 @@
 ;;; -----------------------------------------------------------------------
 ;;; The case-split brick.
 
-(sp (make-wff '(FORALL a (IMPLIES (IN a NN) (FORALL k (IMPLIES (IN k NN)
-   (IMPLIES (<= a k) (IMPLIES (NOT (= k a)) (<= (succ a) k)))))))))
-(dk-peel!)
-(dk-have! '(< a k)
-  (lambda ()
-    (mac '<)
-    (dk-conj-close!
-      (lambda ()
-        (if (dk-asm? (dk-goal))
-            (ass)
-            (begin
-              (di)
-              (dk-have! '(= k a) (lambda () (subst '(= k a)) (rfl)))
-              (ai '(NOT (= k a)))))))))
-(fact 'nn-lt-succ-le 'a 'k)
-(ass)
-(qed 'nn-le-ne-succ)
+;;; nn-le-ne-succ (a <= k, k /= a  =>  succ a <= k) MOVED to theorem-library/finite-surgery.scm
+;;; (2026-10-07: an NN order lemma in the strand file, now cited by the kit's dk-subterm-literal!).
 
 ;;; -----------------------------------------------------------------------
 ;;; The five key-free trace kinds (S-2).

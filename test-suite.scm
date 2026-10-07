@@ -14531,6 +14531,60 @@
                   (string-search-forward "(the claim is established by linear arithmetic)" s 0)
                   #t))))))
 
+;; ----- the kit, 2026-10-07 (WEEK3 findings 1 and 2, and S-2b's request) -----
+(check-true "kit: dk-rewrite-h! rewrites a hypothesis by an equation in context and leaves it in place"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL x (FORALL y (IMPLIES (IN x NN) (IMPLIES (= x y) (IN y NN)))))))
+      (dk-peel!)
+      (let ((f2 (dk-rewrite-h! '(IN x NN) 'x 'y)))
+        (and (equal? f2 '(IN y NN)) (dk-asm? '(IN x NN)) (begin (ass) (proof-done? *ps*)))))))))
+(check-error "kit CONTROL: dk-rewrite-h! errors on a hypothesis that is not in context"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL x (FORALL y (IMPLIES (IN x NN) (IMPLIES (= x y) (IN y NN)))))))
+      (dk-peel!)
+      (vnb-guard (lambda () (dk-rewrite-h! '(IN x RR) 'x 'y))))))))
+(check-true "kit: dk-nth-h! reduces the NTH of a literal list inside a hypothesis"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL a (IMPLIES (IN (NTH 1 (LIST a)) NN) (IN a NN)))))
+      (dk-peel!)
+      (let ((f2 (dk-nth-h! '(IN (NTH 1 (LIST a)) NN))))
+        (and (equal? f2 '(IN a NN)) (begin (ass) (proof-done? *ps*)))))))))
+(check-error "kit CONTROL: dk-cite! at a term the context does not certify defined ERRORS (the owed t = t leaf)"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL f (FORALL a (IMPLIES (IN (f a) NN) (IN (f a) RR))))))
+      (di)
+      (vnb-guard (lambda () (dk-cite! 'nn-in-rr '(f a)))))))))
+(check-true "kit: dk-cite! at a term typed in context lands its instance as before"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL f (FORALL a (IMPLIES (IN (f a) NN) (IN (f a) RR))))))
+      (di) (di)
+      (and (equal? (dk-cite! 'nn-in-rr '(f a)) '(IN (f a) RR))
+           (begin (ass) (proof-done? *ps*))))))))
+(check-true "kit: dk-subterm-literal! inverts a token's subterm relation to a literal message into the disjunction over its token leaves"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL T (FORALL K (IMPLIES (IS-TOKEN-SET T) (IMPLIES (IN K SET)
+            (FORALL a (FORALL b (FORALL ky (FORALL tk
+              (IMPLIES (IN a T) (IMPLIES (IN b T) (IMPLIES (IN ky K) (IMPLIES (IN tk T)
+                (IMPLIES (IS-SUBTERM T K tk (ENCR (LST (LIST a b)) ky))
+                         (OR (= tk a) (= tk b)))))))))))))))))
+      ;; peel to the OR: the predicate guard IS-TOKEN-SET and the subterm antecedent are
+      ;; no typings, so dk-peel! stops at each and `di' takes it
+      (let loop () (dk-peel!) (when (dk-head-is? (dk-goal) 'IMPLIES) (di) (loop)))
+      (let ((o (dk-subterm-literal! 'T 'K 'tk '(ENCR (LST (LIST a b)) ky))))
+        (and (equal? o '(OR (= tk a) (= tk b))) (begin (ass) (proof-done? *ps*)))))))))
+(check-error "kit CONTROL: dk-subterm-literal! errors when a token leaf of the literal is not typed"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL T (FORALL K (IMPLIES (IS-TOKEN-SET T) (IMPLIES (IN K SET) (FORALL a (FORALL b (FORALL tk (IMPLIES (IN a T) (IMPLIES (IN tk T) (IMPLIES (IS-SUBTERM T K tk (LST (LIST a b))) (OR (= tk a) (= tk b))))))))))))))
+      (let loop () (dk-peel!) (when (dk-head-is? (dk-goal) 'IMPLIES) (di) (loop)))
+      (vnb-guard (lambda () (dk-subterm-literal! 'T 'K 'tk '(LST (LIST a b))))))))))
+
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")
 (display *fail-count*) (display " failed ===\n")

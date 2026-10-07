@@ -278,3 +278,26 @@
 (ass)
 (qed 'collapse-at-in-seg)
 (topic! 'collapse-at-in-seg 'combinatorial)
+
+;;; -----------------------------------------------------------------------
+;;; nn-le-ne-succ -- a <= k and k /= a give succ a <= k.  Stated in
+;;; strand-adversary-bound.scm until 2026-10-07, MOVED here (beside nn-lt-succ-le,
+;;; which it cites) when the kit's dk-subterm-literal! came to cite it.
+;;; -----------------------------------------------------------------------
+(sp (make-wff '(FORALL a (IMPLIES (IN a NN) (FORALL k (IMPLIES (IN k NN)
+   (IMPLIES (<= a k) (IMPLIES (NOT (= k a)) (<= (succ a) k)))))))))
+(dk-peel!)
+(dk-have! '(< a k)
+  (lambda ()
+    (mac '<)
+    (dk-conj-close!
+      (lambda ()
+        (if (dk-asm? (dk-goal))
+            (ass)
+            (begin
+              (di)
+              (dk-have! '(= k a) (lambda () (subst '(= k a)) (rfl)))
+              (ai '(NOT (= k a)))))))))
+(fact 'nn-lt-succ-le 'a 'k)
+(ass)
+(qed 'nn-le-ne-succ)

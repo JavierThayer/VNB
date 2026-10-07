@@ -698,9 +698,17 @@ checks, one the control (the owed leaf). Three kernel facts it had to learn are 
 standing a redex under a binder whose argument mentions the binder; a `subst` of `CC == CARR(K)` rewrites the
 lambda domains too (convert through a quantified universal); an instantiation at an untyped application
 owes `t = t`.
+**Added 2026-10-07 (the S-2 agent's two kit findings and S-2b's request; seven suite checks, three controls):**
+`dk-rewrite-h!` (THE HYPOTHESIS-SIDE REWRITE: F in context, FROM = TO in context either way, lands F[FROM := TO]
+and leaves F; proves F => F' on a lane by `subst` on the goal and detaches it) and `dk-nth-h!` (the NTHs of a
+literal list reduced inside a hypothesis, same device); `dk-cite!` now ERRORS, naming the term, when the
+instantiation opened an owed `t = t` leaf the owed-leaf hook could not close ("TYPE THE TERM FIRST" -- the leaf
+used to show only at `qed`); `dk-subterm-literal!` (with `IS-SUBTERM(T, K, tk, m)` for a literal message `m` in
+context, lands `tk = a1 OR ... OR tk = ak` over the token leaves of `m`: the law at a leaf, through an
+encryption, through a list with its index enumerated by excluded middle -- what NSL asks at every step).
 STILL OWED: a helper closing a structure predicate's TYPING conjunct from a property already proven
 (batch 40, finding 3); the view slot read-off (`slot-close!` / `readoff!` / `dk-read-off!`), `dk-finite!`,
-`dk-least-ordinal!`, a hypothesis-side rewrite, the quotient-of-a-structure driver (`rep!` /
+`dk-least-ordinal!`, the quotient-of-a-structure driver (`rep!` /
 `compute-down!` / `close!`), and the retirement of the local copies the 27-B report lists. KNOWN
 DEFECTS not yet fixed: `arith` raising on the ground goal `2 = 2` (did not reproduce on the band,
 2026-09-24; interactive.scm); `dk-lam-t!` (global leaf diff: superseded by `dk-lam-type!`, kept
