@@ -138,86 +138,16 @@
 
 
 ;;; m <= k  =>  k = m + d for some d in NN.  Induction on k.
+;;; nn-le-gap (m <= k  =>  k = m + d for some d in NN) MOVED to theorem-library/nn-order-proof.scm
+;;; (2026-10-07, the library gate: an NN order lemma in a series file, cited from the core book).
+
+;;; peel until the goal's head is HEAD (kept here for series-abs-triangle-le below)
 (define (ng-peel-to! head)
   (let loop ((n 0))
     (let ((g (dk-goal)))
       (cond ((and (pair? g) (eq? (car g) head)) g)
             ((> n 8) (error "ng-peel-to!: never reached" head))
             (else (di) (loop (+ n 1)))))))
-
-(sp (make-wff '(FORALL k (IMPLIES (IN k NN)
-   (FORALL m (IMPLIES (IN m NN) (IMPLIES (<= m k)
-     (FORSOME d (AND (IN d NN) (= k (+ m d)))))))))))
-(define ng-br (use-induction))
-
-;;; BASE k = 0:  m <= 0 forces m = 0, and 0 = 0 + 0.
-(dk-focus! (cdr (assq 'base ng-br)))
-(ng-peel-to! 'FORSOME)
-(fact 'nn-le-zero-is-zero 'm)
-(fact 'nn-zero-in)
-(ew 0)
-(mac 'nn-add-zero)            ; m + 0 = m, so the claim is 0 = m
-(for-each (lambda (l)
-            (dk-focus! l)
-            (if (eq? (car (dk-goal)) 'IN)
-                (ass)
-                (begin (fact 'eq-sym 'm 0) (ass))))
-          (dk-opened (lambda () (di))))
-
-;;; STEP
-(dk-focus! (cdr (assq 'step ng-br)))
-(define ng-k  (cdr (assq 'var ng-br)))
-(define ng-ih (cdr (assq 'ih  ng-br)))
-(ng-peel-to! 'FORSOME)
-(fact 'nn-le-succ-cases ng-k 'm)          ; m <= k  or  m = succ k
-(use-cases
- (list (list '<= 'm ng-k) (list '= 'm (list 'succ ng-k)))
- ;; CASE 1: the induction hypothesis supplies the gap, and one more succ does it.
- (lambda ()
-   (let* ((ex (dk-deepest (lambda () (inst+ ng-ih 'm))))
-          (dd (let* ((fv0 (apply append (map free-vars (dk-asms))))
-                     (landed (dk-landed (lambda () (ai ex)))))
-                (for-each (lambda (f) (if (and (pair? f) (eq? (car f) 'AND)) (dk-split! f)))
-                          landed)
-                (let ((fresh (filter (lambda (v) (not (memq v fv0)))
-                                     (apply append (map free-vars (dk-asms))))))
-                  (if (null? fresh) (error "gap: no witness appeared") (car fresh))))))
-     (fact 'nn-succ-closed dd)
-     (ew (list 'succ dd))
-     (for-each (lambda (l)
-                 (dk-focus! l)
-                 (if (eq? (car (dk-goal)) 'IN)
-                     (ass)
-                     (begin
-                       (have! (list 'AND '(IN m NN) (list 'IN dd 'NN)))
-                       (mac 'nn-add-succ)
-                       ;; goal is succ(k) = succ(m + d); the IH witness says
-                       ;; k = m + d, so rewrite and reflect.
-                       ;; `rfl' carries a DEFINEDNESS guard (pi-reflexivity!,
-                       ;; primitive-inferences.scm:647): t = t needs t defined,
-                       ;; syntactically or by a context (IN t _).  succ(m+d) is
-                       ;; neither until this typing lands -- and the warning it
-                       ;; gives without it says "goal is not (= a a)", which
-                       ;; names the wrong reason entirely.
-                       (fact 'nn-add-closed 'm dd)
-                       (fact 'nn-succ-closed (list '+ 'm dd))
-                       (subst (list '= ng-k (list '+ 'm dd)))
-                       ;; `qrfl', not `rfl': succ(m + d) is not MANIFESTLY
-                       ;; defined, and rfl demands that.
-                       (rfl))))
-               (dk-opened (lambda () (di))))))
- ;; CASE 2: m IS succ k, so the gap is 0.
- (lambda ()
-   (fact 'nn-zero-in)
-   (ew 0)
-   (mac 'nn-add-zero)
-   (for-each (lambda (l)
-               (dk-focus! l)
-               (if (eq? (car (dk-goal)) 'IN)
-                   (ass)
-                   (begin (fact 'eq-sym 'm (list 'succ ng-k)) (ass))))
-             (dk-opened (lambda () (di))))))
-(qed 'nn-le-gap)
 
 
 ;;; ... and the block inequality in the form a Cauchy argument can use.

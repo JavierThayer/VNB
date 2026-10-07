@@ -4289,7 +4289,8 @@
   (lambda ()
     (let ((s (proof-reader 'nn-lt-double)))
       (and (string-search-forward "Claim:" s 0)
-           (string-search-forward "(the claim is established)" s 0)
+           ;; notes-62 (2026-10-07): the parenthetical names the oracle or rule that closed it
+           (string-search-forward "(the claim is established by " s 0)
            ;; the final row closes the THEOREM: it must not claim to be a side goal
            (string-search-forward "(holds by assumption)" s 0)
            (not (string-search-forward "(the claim holds by assumption)" s 0))
@@ -14469,6 +14470,66 @@
       (sp (make-wff '(IMPLIES (IN 3 NN) (AND (IN 3 NN) (IN 3 NN)))))
       (quietly (lambda () (di) (dk-conj-close! (lambda () (ass)))))
       (proof-done? *ps*))))
+
+;; ----- the libraries (notes-61, 2026-10-06; libraries.scm, libraries.sexp) -----
+;; The table covers the load list; the import closure is what the gate checks against; a
+;; citation that leaves the closure is a violation (CONTROL: a probe theorem sourced in a
+;; strand file citing a linear-algebra theorem), one that stays inside is not.
+(read-libraries-table!)
+(check-true "libraries: every theorem-library/ and structure-library/ file of the load list is assigned (or exempt)"
+  (lambda () (null? (library-unassigned-files))))
+(check-true "libraries: no table entry names a file the load list does not have"
+  (lambda () (null? (library-stale-files))))
+(check-true "libraries: the import closure of analysis has core and algebra and not strand"
+  (lambda () (let ((c (library-imports* 'analysis)))
+               (and (memq 'core c) (memq 'algebra c) (memq 'linear-algebra c) (not (memq 'strand c)) #t))))
+(define (lib-probe-with! src-rel cites thunk)
+  ;; install a probe theorem sourced in SRC-REL citing CITES, run THUNK, remove every trace
+  (hash-table-set! *theorem-table* 'lib-gate-probe '(IN 0 NN))
+  (register-provenance! 'lib-gate-probe 'proven)
+  (hash-table-set! *theorem-source* 'lib-gate-probe (string-append *prover-dir* src-rel ".scm"))
+  (hash-table-set! *proof-citation-graph* 'lib-gate-probe cites)
+  (let ((r (thunk)))
+    (hash-table-delete! *theorem-table* 'lib-gate-probe)
+    (hash-table-delete! *theorem-source* 'lib-gate-probe)
+    (hash-table-delete! *proof-citation-graph* 'lib-gate-probe)
+    r))
+(check-true "libraries: a strand theorem citing a linear-algebra lemma is a violation (control)"
+  (lambda () (lib-probe-with! "theorem-library/strand-space-laws" '(spans-submodule-fg)
+               (lambda () (let ((v (library-violations-of 'lib-gate-probe)))
+                            (and (= (length v) 1) (eq? (cadddr (car v)) 'linear-algebra)))))))
+(check-true "libraries: a complex-analysis theorem citing the same lemma is inside its closure"
+  (lambda () (lib-probe-with! "theorem-library/goursat" '(spans-submodule-fg)
+               (lambda () (null? (library-violations-of 'lib-gate-probe))))))
+(check-true "libraries: a statement using a strand functoid from a core file is a vocabulary violation (control)"
+  (lambda () (hash-table-set! *theorem-table* 'lib-gate-probe '(FORALL spa (IN (NODES spa) SET)))
+             (register-provenance! 'lib-gate-probe 'proven)
+             (hash-table-set! *theorem-source* 'lib-gate-probe (string-append *prover-dir* "theorem-library/interval-basics.scm"))
+             (let ((v (library-head-violations-of 'lib-gate-probe)))
+               (hash-table-delete! *theorem-table* 'lib-gate-probe)
+               (hash-table-delete! *theorem-source* 'lib-gate-probe)
+               (and (= (length v) 1) (eq? (cadddr (car v)) 'strand)))))
+
+;; notes-62 (2026-10-07): a claim closed by an oracle says WHICH oracle -- "(the claim is
+;; established by linear arithmetic)" -- not merely that it is established.  A cut whose
+;; side goal `ineq' closes, in a proof the suite runs itself, so every image has the trace.
+(check-true "reader: a claim closed by ineq reads '(the claim is established by linear arithmetic)'"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (IMPLIES (< 0 x) (< 0 (+ x 1)))))))
+      (quietly (lambda ()
+        (di) (di)
+        (cut '(<= 0 x))
+        (ineq 1 2)
+        (ineq 1 3)))
+      (and (proof-done? *ps*)
+           (begin (qed 'rdr-claim-oracle-probe) #t)
+           (let ((s (proof-reader 'rdr-claim-oracle-probe)))
+             ;; (the theorem's own closing `ineq' is folded into the claim's group by the
+             ;; reader's grouping, so only the claim's parenthetical is checked)
+             (and (string-search-forward "Claim:" s 0)
+                  (string-search-forward "(the claim is established by linear arithmetic)" s 0)
+                  #t))))))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

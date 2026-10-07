@@ -419,6 +419,8 @@
    "\\usepackage{enumitem}\n"
    "\\theoremstyle{plain}\n"
    "\\newtheorem{proposition}{Proposition}\n"
+   ;; the reader's statement is unnumbered: just the name (the user, 2026-10-06)
+   "\\newtheorem*{proposition*}{Proposition}\n"
    ;; \fit remains for the full-trace step LABELS (proof-tex--row); reader
    ;; formulas now use displayed equations that wrap via expr->tex-display.
    "\\newcommand{\\fit}[1]{\\resizebox{\\ifdim\\width>\\linewidth\\linewidth\\else\\width\\fi}{!}{#1}}\n"

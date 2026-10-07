@@ -601,3 +601,32 @@
            (ai (list 'NOT (list '= (list '* 2 es-m) (list 'succ (list '* 2 j))))))))))
   (dk-opened (lambda () (ai es-por))))
 (np-qed! 'nn-even-square)
+
+;;; =======================================================================
+;;; bt-succ-minus-1  --  (succ n) - 1 = n.  Stated in comb-kk-laws.scm until 2026-10-07,
+;;; MOVED here by the library gate (an NN lemma cited from the core book).
+;;;
+;;; RESTATED, and this is the one statement below that is NOT binomial.scm's.
+;;; The support reads `forall n in ZZ. (succ n) - 1 = n'.  Over ZZ that is not a
+;;; theorem of this tree: `succ' is the NN successor (arith-eval.scm:87) and the
+;;; only fact relating it to `+' is nn-succ-plus-one, guarded on (IN n NN).
+;;; Nothing constrains (succ n) for a negative n, so the ZZ form asserts
+;;; something about succ off its characterised domain.  Measured, with the goal
+;;; peeled and n typed all the way into RR: nn-succ-plus-one does not detach,
+;;; and crs / arith / ineq / prop each decline, prop with the countermodel
+;;; "succ(n) - 1 = n FALSE, everything else TRUE".
+;;;
+;;; The guard is therefore (IN n NN).  All three citers already supply it --
+;;; binomial-proof (the SUM index, an NN induction variable), series-linearity
+;;; (`(fact 'bt-succ-minus-1 n)' with n the NN induction variable) and
+;;; bernstein-density (which lands `(fact 'nn-subset-zz q)' on the line above,
+;;; so q is NN-typed) -- and all three were re-run against this statement.
+;;; =======================================================================
+(sp (make-wff '(FORALL n (IMPLIES (IN n NN) (= (- (succ n) 1) n)))))
+(dk-peel!)
+(fact 'nn-succ-plus-one 'n)
+(subst '(= (succ n) (+ n 1)))
+(fact 'nn-in-rr 'n)
+(crs)
+(qed 'bt-succ-minus-1)
+(topic! 'bt-succ-minus-1 'plumbing)

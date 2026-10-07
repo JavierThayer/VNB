@@ -105,3 +105,17 @@
 (ass)
 (qed 'subclass-of-set-is-set)
 (topic! 'subclass-of-set-is-set 'plumbing)
+
+;;; -----------------------------------------------------------------------
+;;; subset-refl -- every class is a subset of itself.  Proved inline in three
+;;; files, named once in discrete-space.scm, MOVED here 2026-10-06 (the library
+;;; gate: cited from five libraries, it is a set lemma and belongs with them).
+;;; -----------------------------------------------------------------------
+
+(sp (make-wff '(FORALL a_ (SUBSET a_ a_))))
+(di)
+(mac 'subset-def)
+(di)
+(ass)
+(qed 'subset-refl)
+(topic! 'subset-refl 'plumbing)

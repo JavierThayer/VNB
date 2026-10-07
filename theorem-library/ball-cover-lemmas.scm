@@ -164,3 +164,43 @@
 ;;; choice-axiom lands CHOICE(...) in it -- the same script closes modulo 0
 ;;; (scratchpad/bcl/csc-probe.scm).  Restating the support is not this file's
 ;;; call; it stays asserted.
+
+;;; the map p of a goal (IN (CARD (IMAGE p U)) NN), for centre-set-finite-guarded
+(define (bcl-goal-map g)
+  (if (and (pair? g) (eq? (car g) 'in)
+           (pair? (cadr g)) (eq? (car (cadr g)) 'card)
+           (pair? (cadr (cadr g))) (eq? (car (cadr (cadr g))) 'image))
+      (cadr (cadr (cadr g)))
+      (error "bcl-goal-map: goal is not (IN (CARD (IMAGE p U)) NN):" (expression->string g))))
+
+;;; -----------------------------------------------------------------------
+;;; centre-set-finite, GUARDED.  Stated in card-image-finite.scm until 2026-10-06, MOVED
+;;; here by the library gate (a metric-space statement in a cardinality file).
+;;;
+;;; The support at structure-library/compactness.scm:177 reads
+;;;
+;;;     forall s, r, F.  CARD(F) in NN  =>  CARD(CENTRE-SET(s, r, F)) in NN
+;;;
+;;; with NO `F in SET'.  That statement is not provable: CARD is an
+;;; uninterpreted head (cardinality.scm axiomatises it on SETS only), so for a
+;;; proper class F nothing in the tree constrains CARD(F), and nothing derives
+;;; `F in SET' from `CARD(F) in NN' (checked: no installed formula concludes
+;;; (IN _ SET) from (IN (CARD _) NN)).  With the guard it is one step from
+;;; card-image-finite -- CENTRE-SET(s,r,F) unfolds to
+;;; IMAGE((VNB-LAMBDA B F (CHOICE (CENTRES s B r))), F) -- and that step is
+;;; taken here under the name centre-set-finite-guarded, so that re-guarding the
+;;; support costs its citer (calculus/finite-ball-subcover-proof.scm:88, which
+;;; has F subset BALL-COVER(s,r)) one sethood leaf and nothing else.
+
+(quietly (lambda ()
+  (sp (make-wff '(FORALL s (FORALL r (FORALL F
+        (IMPLIES (IN F SET)
+          (IMPLIES (IN (CARD F) NN)
+                   (IN (CARD (CENTRE-SET s r F)) NN))))))))
+  (dk-peel!)
+  (mac 'CENTRE-SET)
+  (let ((g (dk-goal)))                            ; (in (card (image LAM F)) nn)
+    (fact 'card-image-finite (bcl-goal-map g) (caddr (cadr (cadr g))))
+    (ass))))
+(qed 'centre-set-finite-guarded)
+(topic! 'centre-set-finite-guarded 'combinatorial)

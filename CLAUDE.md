@@ -834,6 +834,19 @@ History: `docs/history/claude-md-2026-09-18--where-a-driver-helper-lives.md`.
     archive/             retired and spliced originals, by date
     scratchpad/          throwaway drivers and the triage briefs (untracked); also scratch/
 
+**THE LIBRARIES (the user, notes-61, 2026-10-06; `docs/libraries-2026-10-06.md`).** Every
+theorem-library/ and structure-library/ file is assigned to ONE of seven libraries in `libraries.sexp`
+(core; algebra < core; linear-algebra < algebra; analysis < linear-algebra; complex-analysis < analysis;
+measure < analysis; strand < core), or marked `cross-cutting` (the generated hom laws, the views, the
+rake grab-bags: each theorem placed by the JOIN of its heads' libraries) or `exempt`. `library-gate!`
+(libraries.scm, at load end) reports every theorem citing, or stating with the vocabulary of, a library
+outside its import closure, and every unassigned file; warn-only until the backlog is zero. A violation
+is a misplaced LEMMA (move it to a file of the right library that loads between its citations and its
+citers) or a misassigned FILE; the per-file aggregation (`scratchpad/libraries/gate-detail.scm` on the
+band) tells which. A new proof file needs its line in `libraries.sexp` beside its line in load.scm. The
+book of theorems and definitions by library, no proofs: `reference/library-book.tex` at every load,
+`make library-book` in docs/.
+
 **A file with no proof in it belongs in `structure-library/`** (2026-09-20): seventeen
 vocabulary files (CCINT, SUBSEQ, the series and Ascoli predicates, CLOSURE / INTERIOR, ...) sat in
 `theorem-library/` and pinned a load floor under every theorem stated with them; they were moved,

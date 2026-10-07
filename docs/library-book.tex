@@ -1,0 +1,46 @@
+%% library-book.tex -- a standalone wrapper around the GENERATED book of theorems
+%% and definitions by library (reference/library-book.tex, written at every load by
+%% (write-library-book-tex! "reference/library-book.tex"), library-book.scm).
+%%
+%% One part per library of libraries.sexp, in an order in which every theorem
+%% follows the theorems and definitions it depends on.  No proofs: a proposition's
+%% proof is (display-proof 'NAME "file.pdf") in the prover.
+%%
+%% Build:  make library-book     (pdflatex twice, for the table of contents)
+
+\documentclass[11pt]{report}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[fleqn]{amsmath}
+\setlength{\mathindent}{1em}
+\usepackage{amssymb,amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\setcounter{tocdepth}{1}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2pt}
+\setlength{\emergencystretch}{3em}
+\sloppy
+
+\title{VNB: the theorems and definitions, by library}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent
+Every definition, axiom, assumption and theorem the VNB library installs, as a
+statement, without proofs, in seven books that are the libraries of
+\texttt{libraries.sexp}.  The books are in import order and the entries within a
+book in load order, so a theorem always follows the theorems and definitions it
+depends on.  A section is a source file (its path is a link).  An
+\textbf{Assumption} is a fact accepted without a machine proof, with the tier of
+its warrant; a \textbf{Proposition} is proven, and its proof is
+\texttt{(display-proof 'NAME "file.pdf")} in the prover.
+
+\input{../reference/library-book.tex}
+
+\end{document}

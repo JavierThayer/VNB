@@ -128,17 +128,8 @@
 (define (ds-landed-head thunk h)
   (dk-landed-find thunk (dk-head? h)))
 
-;;; -----------------------------------------------------------------------
-;;; subset-refl -- proved inline in three files; named here once.
-;;; -----------------------------------------------------------------------
-
-(ds-sp! '(FORALL a_ (SUBSET a_ a_)))
-(di)
-(mac 'subset-def)
-(di)
-(ass)
-(qed 'subset-refl)
-(topic! 'subset-refl 'plumbing)
+;;; subset-refl MOVED to theorem-library/subset-lemmas.scm (2026-10-06, the library gate: a
+;;; set lemma stated in an analysis file was cited from five libraries).
 
 ;;; -----------------------------------------------------------------------
 ;;; The power-set lemma family.

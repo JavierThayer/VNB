@@ -523,6 +523,21 @@
          (if p (cdr p)
              (string-append "By " (proof-reader--cite tac) ".")))))))
 
+;; " by linear arithmetic", " by reflexivity", ...: the closer named for the
+;; parenthetical after a claim or a branch (notes-62).  `ass' is worded by its callers.
+(define (proof-reader--closer-how closer)
+  (case (proof-reader--tac closer)
+    ((ineq)         " by linear arithmetic")
+    ((arith)        " by ground arithmetic")
+    ((crs rs simp)  " by commutative-ring simplification")
+    ((sos)          " by sum of squares")
+    ((prop)         " propositionally")
+    ((rfl qrfl)     " by reflexivity")
+    ((contra)       " by contradiction")
+    ((ass)          " by assumption")
+    (else (let ((p (assq (proof-reader--tac closer) *proof-reader-tac-prose*)))
+            (if p "" (string-append " by \\texttt{" (proof-tex--escape-tt (symbol->string (proof-reader--tac closer))) "}"))))))
+
 ;;; --- assembly ----------------------------------------------------------
 ;; a collapsed line for a RUN of typing/bookkeeping steps: just the atoms they
 ;; established (each fact's detached conclusion), no per-step bullets.
@@ -1074,9 +1089,9 @@
          (setup-range (if (pair? setup) (proof-reader--range setup) "0")))
    (fluid-let ((*tex-variable-names* (proof-reader--variable-names claim records)))
     (apply string-append
-     "\\begin{proposition}[" (proof-tex--escape-tt (symbol->string name)) "]\n"
+     "\\begin{proposition*}[" (proof-tex--escape-tt (symbol->string name)) "]\n"
      (proof-reader--statement claim)
-     "\n\\end{proposition}\n\n"
+     "\n\\end{proposition*}\n\n"
      "\\begin{proof}\n"
      "\\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]\n"
      (append
@@ -1112,12 +1127,16 @@
                    ;; both read as though the auxiliary claim closed the theorem.
                    (side?   (and closer (proof-reader--side-closer? g closer indexed setup-goal)))
                    (by-ass? (and closer (eq? (proof-reader--tac closer) 'ass)))
+                   ;; WHAT closed it: the oracle or rule, by name (notes-62, 2026-10-07:
+                   ;; "(the claim is established)" said nothing about how; the user asked
+                   ;; for the oracle, not the hypotheses it used).
+                   (how     (and closer (proof-reader--closer-how closer)))
                    (close-txt (cond ((not closer) "")
                                     (side? (if by-ass?
                                                "  \\emph{(the claim holds by assumption)}"
-                                               "  \\emph{(the claim is established)}"))
+                                               (string-append "  \\emph{(the claim is established" how ")}")))
                                     (by-ass? "  \\emph{(holds by assumption)}")
-                                    (else "  \\emph{(closes)}")))
+                                    (else (string-append "  \\emph{(closes" how ")}"))))
                    (is-ni   (and main (eq? (car (car main)) 'ni)))
                    (new-indvar (if is-ni
                                    (and (pair? pre-goal) (eq? (car pre-goal) 'FORALL) (cadr pre-goal))

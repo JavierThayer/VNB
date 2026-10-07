@@ -3602,6 +3602,11 @@
     ;; it reads the stored scripts, the citation graph and the bills.
     "major-theorems"
     "all-theorems"             ; the book of all proven theorems (2026-10-03)
+    ;; THE LIBRARIES (notes-61, 2026-10-06): libraries.sexp read, the gate, and the book of
+    ;; theorems and definitions by library (reference/library-book.tex).  After proof-reader
+    ;; (the head walker and the definition renderers) and all-theorems (the abstracts).
+    "libraries"
+    "library-book"
     ;; LAST: every view is a functor, and this proves it.  It needs every view
     ;; declared (views.scm, normed-vector-space.scm) and the tactic layer, so it
     ;; goes at the end.  It asserts nothing -- each functoriality theorem is
@@ -4197,6 +4202,9 @@
   (write-major-theorems-tex! "docs/major-theorems-table.sexp" "reference/major-theorems.tex")
   ;; The book of all proven theorems (statements only, so a certified load writes it too).
   (write-all-theorems-tex! "reference/all-theorems.tex")
+  ;; The book of theorems and definitions by LIBRARY (notes-61; docs/library-book.tex is the
+  ;; wrapper, `make library-book' in docs/).
+  (write-library-book-tex! "reference/library-book.tex")
 
   ;; Regenerate emacs/vnb-commands.lisp (the command-completion catalog) from the
   ;; same registry, so the M-x/button surface can never drift from (tactics).
@@ -4242,6 +4250,11 @@
           (display ";;   file-named (auditable -- load the file and see if it still qeds): ")
           (write named) (newline)
           (display ";;   (proof-warrants-unproven) for the rest\n"))))
+
+  ;; THE LIBRARY GATE (notes-61, 2026-10-06; libraries.scm): a theorem cites, and its
+  ;; statement uses the vocabulary of, only its own library and its imports
+  ;; (libraries.sexp).  Warn-only until the backlog is zero; then fatal in a strict load.
+  (library-gate!)
 
   ;; Soundness gate: a proven theorem must not depend -- transitively, through the
   ;; proof citation graph -- on ITSELF.  That is a circular proof with no real

@@ -340,30 +340,8 @@
   "LEADCOEF(A,p) = p(DEG(A,p)), as a citable equation.")
 (topic! 'leadcoef-unfold 'plumbing)
 
-;;; =====================================================================
-;;; nn-succ-not-le -- succ n is never <= n
-;;; =====================================================================
-;;;
-;;; The discreteness brick every "n is not minimal, take one less" argument
-;;; below ends on, and the tree did not have it: order-lemmas has nn-le-succ
-;;; (n <= succ n) and nn-le-imp-neq-succ (j <= k => j /= succ k) but nothing
-;;; that puts them together.  Four citations, and it turns each of the three
-;;; sites that need it from five lines into one.
-
-(sp (make-wff '(FORALL n_ (IMPLIES (IN n_ NN) (NOT (<= (succ n_) n_))))))
-(pd-peel!)
-(di)                                    ; assume succ n_ <= n_; goal FALSITY
-(fact 'nn-succ-closed 'n_)
-(fact 'nn-le-succ 'n_)
-(fact 'nn-le-antisym 'n_ '(succ n_))    ; n_ = succ n_
-(fact 'nn-le-refl 'n_)
-(fact 'nn-le-imp-neq-succ 'n_ 'n_)      ; n_ /= succ n_
-(ai '(NOT (= n_ (succ n_))))
-(qed 'nn-succ-not-le)
-(gloss! 'nn-succ-not-le
-  "succ n is never <= n, for n in NN.  Antisymmetry against nn-le-succ gives
-   n = succ n, which nn-le-imp-neq-succ forbids.")
-(topic! 'nn-succ-not-le 'inequalities)
+;;; nn-succ-not-le MOVED to theorem-library/nn-order-proof.scm (2026-10-06, the library
+;;; gate: an NN order lemma stated in a polynomial file was cited from the strand book).
 
 ;;; =====================================================================
 ;;; leadcoef-nonzero -- a polynomial with a nonzero coefficient has a
