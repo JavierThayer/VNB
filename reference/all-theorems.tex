@@ -388,6 +388,7 @@
 \vnbentry{\texttt{subset-\allowbreak{}mem-\allowbreak{}fwd}}{\vnbstmt{\forall a, b, x.\; (((a \subseteq b) \wedge (x \in a)) \Rightarrow (x \in b))}}
 \vnbentry{\texttt{subset-\allowbreak{}trans}}{\vnbstmt{\forall a, b, c.\; (((a \subseteq b) \wedge (b \subseteq c)) \Rightarrow (a \subseteq c))}}
 \vnbentry{\texttt{subclass-\allowbreak{}of-\allowbreak{}set-\allowbreak{}is-\allowbreak{}set}}{\vnbstmt{\forall a.; \forall b \in \mathbf{Set}.\; ((a \subseteq b) \Rightarrow (a \in \mathbf{Set}))}}
+\vnbentry{\texttt{subset-\allowbreak{}refl}}{\vnbstmt{\forall a.\; (a \subseteq a)}}
 
 \vnbfile{theorem-library/fun-image-set.scm}{theorem-library/fun-image-set.scm}
 \noindent{\small fun-image-set.scm -- the image of ANY class under a function into a SET is a set, proven with no citation of `image-set' (replacement).}\par
@@ -425,6 +426,7 @@
 \vnbentry{\texttt{nn-\allowbreak{}zero-\allowbreak{}or-\allowbreak{}succ}}{\vnbstmt{\forall y \in \mathbb{N}.\; ((y = 0) \vee \exists q \in \mathbb{N}.\; (y = (q + 1)))}}
 \vnbentry{\texttt{nn-\allowbreak{}parity-\allowbreak{}exclusive}}{\vnbstmt{\forall x, y \in \mathbb{N}.\; \neg ((2 \cdot x) = ((2 \cdot y) + 1))}}
 \vnbentry{\texttt{nn-\allowbreak{}even-\allowbreak{}square}}{\vnbstmt{\begin{array}{@{}l@{}} \forall p \in \mathbb{N}. \\ \quad \exists m \in \mathbb{N}.\; ((p \cdot p) = (2 \cdot m)) \Rightarrow \exists k \in \mathbb{N}.\; (p = (2 \cdot k)) \end{array}}}
+\vnbentry{\texttt{bt-\allowbreak{}succ-\allowbreak{}minus-\allowbreak{}1}}{\vnbstmt{\forall n \in \mathbb{N}.\; (((n + 1) - 1) = n)}}
 
 \vnbfile{theorem-library/nn-pred.scm}{theorem-library/nn-pred.scm}
 \noindent{\small nn-pred.scm -- the predecessor on NN, DEFINED by definite description.}\par
@@ -625,7 +627,6 @@
 
 \vnbfile{theorem-library/discrete-space.scm}{theorem-library/discrete-space.scm}
 \noindent{\small discrete-space.scm -- THE FIRST WITNESS OF A MEASURABLE SPACE, and the first outright inhabitant of TOP-SPACE.}\par
-\vnbentry{\texttt{subset-\allowbreak{}refl}}{\vnbstmt{\forall a.\; (a \subseteq a)}}
 \vnbentry{\texttt{power-\allowbreak{}mem-\allowbreak{}sethood}}{\vnbstmt{\forall a.; \forall b \in \operatorname{power}(a).\; (b \in \mathbf{Set})}}
 \vnbentry{\texttt{power-\allowbreak{}mem-\allowbreak{}in}}{\vnbstmt{\forall a, b, z.\; (((b \in \operatorname{power}(a)) \wedge (z \in b)) \Rightarrow (z \in a))}}
 \vnbentry{\texttt{power-\allowbreak{}mem-\allowbreak{}intro}}{\vnbstmt{\forall a.; \forall b \in \mathbf{Set}.\; (\forall z \in b.\; (z \in a) \Rightarrow (b \in \operatorname{power}(a)))}}
@@ -766,7 +767,6 @@
 
 \vnbfile{theorem-library/comb-kk-laws.scm}{theorem-library/comb-kk-laws.scm}
 \noindent{\small comb-kk-laws.scm -- the six COMB-KK / Bernstein plumbing supports of theorem-library/binomial.scm, PROVEN.}\par
-\vnbentry{\texttt{bt-\allowbreak{}succ-\allowbreak{}minus-\allowbreak{}1}}{\vnbstmt{\forall n \in \mathbb{N}.\; (((n + 1) - 1) = n)}}
 \vnbentry{\texttt{sum-\allowbreak{}in-\allowbreak{}carr-\allowbreak{}zz-\allowbreak{}ind}}{\vnbstmt{\begin{array}{@{}l@{}} \forall n \in \mathbb{N}, r.; \forall g \in (\mathbb{Z} \to \operatorname{carr}(r)). \\ \quad \operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow (\operatorname{sum}(r, g, n) \in \operatorname{carr}(r)) \end{array}}}
 \vnbentry{\texttt{bt-\allowbreak{}sum-\allowbreak{}in-\allowbreak{}carr-\allowbreak{}zz}}{\vnbstmt{\begin{array}{@{}l@{}} \forall r.; \forall g \in (\mathbb{Z} \to \operatorname{carr}(r)), n \in \mathbb{N}. \\ \quad \operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow (\operatorname{sum}(r, g, n) \in \operatorname{carr}(r)) \end{array}}}
 \vnbentry{\texttt{comb-\allowbreak{}kk-\allowbreak{}0-\allowbreak{}0}}{\vnbstmt{\begin{array}{@{}l@{}} \forall r.; \forall x, y \in \operatorname{carr}(r). \\ \quad \operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow (\operatorname{comb\text{-}kk}(r, x, y, 0)(0) = \operatorname{one}(r)) \end{array}}}
@@ -840,6 +840,8 @@
 \vnbentry{\texttt{nn-\allowbreak{}add-\allowbreak{}le-\allowbreak{}mono}}{\vnbstmt{\forall c, a, b \in \mathbb{N}.\; ((b \leq c) \Rightarrow ((a + b) \leq (a + c)))}}
 \vnbentry{\texttt{nn-\allowbreak{}le-\allowbreak{}add-\allowbreak{}left}}{\vnbstmt{\forall a, b.\; (((a \in \mathbb{N}) \wedge (b \in \mathbb{N})) \Rightarrow (b \leq (a + b)))}}
 \vnbentry{\texttt{nn-\allowbreak{}le-\allowbreak{}antisym}}{\vnbstmt{\forall a, b \in \mathbb{N}.\; (((a \leq b) \wedge (b \leq a)) \Rightarrow (a = b))}}
+\vnbentry{\texttt{nn-\allowbreak{}succ-\allowbreak{}not-\allowbreak{}le}}{\vnbstmt{\forall n \in \mathbb{N}.\; \neg ((n + 1) \leq n)}}
+\vnbentry{\texttt{nn-\allowbreak{}le-\allowbreak{}gap}}{\vnbstmt{\forall k, m \in \mathbb{N}.\; ((m \leq k) \Rightarrow \exists d \in \mathbb{N}.\; (k = (m + d)))}}
 
 \vnbfile{theorem-library/rake-algebra.scm}{theorem-library/rake-algebra.scm}
 \noindent{\small rake-algebra.scm -- BATCH D of the 2026-09-17 rake: seven asserted leaves of the PSS, PROVEN.  Every statement here is its support's statement UNCHANGED.}\par
@@ -1251,7 +1253,6 @@
 \vnbfile{theorem-library/card-image-finite.scm}{theorem-library/card-image-finite.scm}
 \noindent{\small card-image-finite.scm -- the image of a finite set is finite.}\par
 \vnbentry{\texttt{card-\allowbreak{}image-\allowbreak{}finite}}{\vnbstmt{\forall i.; \forall x \in \mathbf{Set}.\; ((|x| \in \mathbb{N}) \Rightarrow (|\operatorname{image}(i, x)| \in \mathbb{N}))}}
-\vnbentry{\texttt{centre-\allowbreak{}set-\allowbreak{}finite-\allowbreak{}guarded}}{\vnbstmt{\forall s, r.; \forall f \in \mathbf{Set}.\; ((|f| \in \mathbb{N}) \Rightarrow (|\operatorname{centre\text{-}set}(s, r, f)| \in \mathbb{N}))}}
 
 \vnbfile{theorem-library/interval-card-in-nn.scm}{theorem-library/interval-card-in-nn.scm}
 \noindent{\small interval-card-in-nn.scm -- an interval with a natural upper bound is finite.}\par
@@ -1540,6 +1541,7 @@
 \vnbentry{\texttt{open-\allowbreak{}cover-\allowbreak{}covers-\allowbreak{}point}}{\vnbstmt{\begin{array}{@{}l@{}} \forall s, f.; \forall p \in \operatorname{pts}(s). \\ \quad \operatorname{is\text{-}open\text{-}cover}(s, f) \Rightarrow \exists u \in f.\; (p \in u) \end{array}}}
 \vnbentry{\texttt{ball-\allowbreak{}point-\allowbreak{}le}}{\vnbstmt{\forall s, c, r, w.; \forall p \in w.\; ((\operatorname{ball}(s, c, r) = w) \Rightarrow (\operatorname{dist}(s)(c, p) \leq r))}}
 \vnbentry{\texttt{ball-\allowbreak{}point-\allowbreak{}ne}}{\vnbstmt{\forall s, c, r, w.; \forall p \in w.\; ((\operatorname{ball}(s, c, r) = w) \Rightarrow \neg (\operatorname{dist}(s)(c, p) = r))}}
+\vnbentry{\texttt{centre-\allowbreak{}set-\allowbreak{}finite-\allowbreak{}guarded}}{\vnbstmt{\forall s, r.; \forall f \in \mathbf{Set}.\; ((|f| \in \mathbb{N}) \Rightarrow (|\operatorname{centre\text{-}set}(s, r, f)| \in \mathbb{N}))}}
 
 \vnbfile{calculus/finite-ball-subcover-proof.scm}{calculus/finite-ball-subcover-proof.scm}
 \noindent{\small finite-ball-subcover-proof.scm -- machine proof of the centre-extraction lemma  finite-ball-subcover-r-net  (calculus.pdf Prop 3.12, the step that closes compact =$>$ totally bounded), with the choice of centres made EXPLICIT via the global Hilbert epsilon.  Run:}\par
@@ -2035,7 +2037,6 @@
 \vnbentry{\texttt{deg-\allowbreak{}bound-\allowbreak{}apply}}{\vnbstmt{\begin{array}{@{}l@{}} \forall a, p, n, k. \\ \quad (\operatorname{deg\text{-}bound}(a, p, n) \wedge ((k \in \mathbb{N}) \wedge (n < k))) \Rightarrow (p(k) = \operatorname{zero}(a)) \end{array}}}
 \vnbentry{\texttt{deg-\allowbreak{}unfold}}{\vnbstmt{\begin{array}{@{}l@{}} \forall a, p. \\ \quad (\operatorname{deg}(a, p) \simeq (\iota\, n.\;((n \in \mathbb{N}) \wedge (\operatorname{deg\text{-}bound}(a, p, n) \wedge \forall j \in \mathbb{N}.\; (\operatorname{deg\text{-}bound}(a, p, j) \Rightarrow (n \leq j)))))) \end{array}}}
 \vnbentry{\texttt{leadcoef-\allowbreak{}unfold}}{\vnbstmt{\forall a, p.\; (\operatorname{leadcoef}(a, p) \simeq p(\operatorname{deg}(a, p)))}}
-\vnbentry{\texttt{nn-\allowbreak{}succ-\allowbreak{}not-\allowbreak{}le}}{\vnbstmt{\forall n \in \mathbb{N}.\; \neg ((n + 1) \leq n)}}
 \vnbentry{\texttt{leadcoef-\allowbreak{}nonzero-\allowbreak{}ptwise}}{\vnbstmt{\begin{array}{@{}l@{}} \forall a.; \forall p \in \operatorname{carr}(\operatorname{poly}(a)). \\ \quad \exists k \in \mathbb{N}.\; \neg (p(k) = \operatorname{zero}(a)) \Rightarrow \neg (\operatorname{leadcoef}(a, p) = \operatorname{zero}(a)) \end{array}}}
 \vnbentry{\texttt{leadcoef-\allowbreak{}nonzero}}{\vnbstmt{\begin{array}{@{}l@{}} \forall a, p. \\ \quad (\operatorname{is\text{-}ring}(a) \wedge ((p \in \operatorname{carr}(\operatorname{poly}(a))) \wedge \neg (p = \operatorname{zero}(\operatorname{poly}(a))))) \Rightarrow  \\ \quad \quad \neg (\operatorname{leadcoef}(a, p) = \operatorname{zero}(a)) \end{array}}}
 \vnbentry{\texttt{monomial-\allowbreak{}at}}{\vnbstmt{\forall a, c, n.\; (((c \in \operatorname{carr}(a)) \wedge (n \in \mathbb{N})) \Rightarrow (\operatorname{monomial}(a, c, n)(n) = c))}}
@@ -2663,7 +2664,6 @@
 \vnbfile{theorem-library/series-block-abs.scm}{theorem-library/series-block-abs.scm}
 \noindent{\small series-block-abs.scm -- THE BLOCK TRIANGLE INEQUALITY, in the form a Cauchy argument can use, and the NN gap lemma under it.}\par
 \vnbentry{\texttt{series-\allowbreak{}abs-\allowbreak{}triangle-\allowbreak{}block}}{\vnbstmt{\begin{array}{@{}l@{}} \forall d, m \in \mathbb{N}, f, g \in (\mathbb{N} \to \mathbb{R}). \\ \quad \forall j \in \mathbb{N}.\; (g(j) = \lvert f(j) \rvert) \Rightarrow  \\ \quad \quad \lvert (\operatorname{series\text{-}partial\text{-}sum}(f, (m + d)) - \operatorname{series\text{-}partial\text{-}sum}(f, m)) \rvert \\ \quad \quad \leq\; (\operatorname{series\text{-}partial\text{-}sum}(g, (m + d)) - \operatorname{series\text{-}partial\text{-}sum}(g, m)) \end{array}}}
-\vnbentry{\texttt{nn-\allowbreak{}le-\allowbreak{}gap}}{\vnbstmt{\forall k, m \in \mathbb{N}.\; ((m \leq k) \Rightarrow \exists d \in \mathbb{N}.\; (k = (m + d)))}}
 \vnbentry{\texttt{series-\allowbreak{}abs-\allowbreak{}triangle-\allowbreak{}le}}{\vnbstmt{\begin{array}{@{}l@{}} \forall k, m \in \mathbb{N}, f, g \in (\mathbb{N} \to \mathbb{R}). \\ \quad (\forall j \in \mathbb{N}.\; (g(j) = \lvert f(j) \rvert) \wedge (m \leq k)) \Rightarrow  \\ \quad \quad \lvert (\operatorname{series\text{-}partial\text{-}sum}(f, k) - \operatorname{series\text{-}partial\text{-}sum}(f, m)) \rvert \\ \quad \quad \leq\; (\operatorname{series\text{-}partial\text{-}sum}(g, k) - \operatorname{series\text{-}partial\text{-}sum}(g, m)) \end{array}}}
 
 \vnbfile{theorem-library/rake-finsum-typing-nn.scm}{theorem-library/rake-finsum-typing-nn.scm}
