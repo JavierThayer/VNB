@@ -5265,6 +5265,161 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \noindent\textbf{Deviation from the notes.} PROVEN 2026-09-26 (batch 35) with the exceptional point; a closed path is a road on [a, b] with pgam(b) = pgam(a). the exceptional-point hypothesis is the notes' (f continuous on the open set u, x in u, f holomorphic on u minus \{x\}), spelled with restrict(f, difference(u, singleton(x))) because HOLOMORPHIC-ON types its function on exactly its set. Earlier: PROVEN 2026-09-25 (batch 30) for f holomorphic on the whole convex open set U: for a road on [a, b] with trace in U and gamma(b) = gamma(a), the integral of f along it is 0 (from 3.8 and Cor 3.3 for a closed road). 'Closed path' is the hypothesis gamma(b) = gamma(a); there is no closed-road predicate. The exceptional point x as for 3.6.
 %
+\section{Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60)}
+%
+\renewcommand{\thethm}{2.7}
+\begin{lem}[{Causal precedence in a bundle is a partial order with minimal elements}]\label{thm:precedes-partial-order}
+%
+\leavevmode
+\vnbpart{\texttt{precedes-partial-order}}
+\vnbstmt{\forall c.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow \operatorname{is\text{-}partial\text{-}order}(\operatorname{bnodes}(c), \operatorname{precedes}(c)))}
+\vnbpart{\texttt{finite-strict-minimal}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall r.; \forall s \in \mathbf{Set}. \\ \quad \forall x, y, z.\; (((\langle x, y \rangle \in r) \wedge (\langle y, z \rangle \in r)) \Rightarrow (\langle x, z \rangle \in r)) \wedge \\ \quad \forall x.\; \neg (\langle x, x \rangle \in r) \wedge \\ \quad |s| \in \mathbb{N} \wedge \\ \quad \exists w.\; (w \in s) \Rightarrow \\ \quad \quad \exists m \in s.\; \forall z \in s.\; \neg (\langle z, m \rangle \in r) \end{array}}
+\vnbpart{\texttt{bundle-minimal}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall c, s. \\ \quad (\operatorname{is\text{-}bundle}(c) \wedge (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \wedge \exists w.\; (w \in s))) \Rightarrow  \\ \quad \quad \exists m \in s.\; \forall z \in s.\; \neg (\langle z, m \rangle \in \operatorname{precedes\text{-}strict}(c)) \end{array}}
+%
+\end{lem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{precedes-partial-order}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}space-\allowbreak{}laws.scm} --- 32 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{bundle-nodes-set}, \texttt{precedes-set}, \texttt{precedes-refl}, \texttt{precedes-antisym}, \texttt{precedes-trans}.}
+%
+\vnbprf{\textbf{Oracles.} none.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{finite-strict-minimal}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}space-\allowbreak{}laws.scm} --- 213 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{empty-set-is-set}, \texttt{empty-set-has-no-members}, \texttt{pairing}, \texttt{union-set-closure}, \texttt{union-membership}, \texttt{pair-self-member}, \texttt{pair-self-eq}, \texttt{finite-set-induction}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{bundle-minimal}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}space-\allowbreak{}laws.scm} --- 45 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{bundle-nodes-set}, \texttt{bundle-finite}, \texttt{subset-def}, \texttt{subclass-of-set-is-set}, \texttt{card-subset-nn}, \texttt{precedes-strict-trans}, \texttt{precedes-strict-irreflexive}, \texttt{finite-strict-minimal}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Stated on the user's model: PRECEDES(c) is the reflexive closure of PRECEDES-STRICT(c), the least transitive relation on BNODES(c) containing the send edges BSEND and the strict same-strand order ==$>$. precedes-partial-order states it as IS-PARTIAL-ORDER(BNODES, PRECEDES); bundle-minimal gives, for every nonempty subset S of BNODES, a member m with no s in S strictly preceding it, the witness explicit. The paper states 2.7 without proof; the proof uses only CARD(BNODES) in NN (finite-strict-minimal: a transitive irreflexive relation on a finite nonempty set has a minimal element), never the finiteness of the edge sets. Proven 2026-10-06 (S-2), unchanged by S-2b.
+%
+\renewcommand{\thethm}{2.8}
+\begin{lem}[{A minimal node of a content-closed node set is a sent node}]\label{thm:bundle-minimal-sent}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall c, s, n. \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \forall z \in s.\; (z \in \operatorname{bnodes}(c)) \wedge \\ \quad \forall x, y. \\ \quad \quad x \in \operatorname{bnodes}(c) \wedge \\ \quad \quad y \in \operatorname{bnodes}(c) \wedge \\ \quad \quad \operatorname{node\text{-}content}(\operatorname{bspace}(c), x) = \operatorname{node\text{-}content}(\operatorname{bspace}(c), y) \wedge \\ \quad \quad y \in s \Rightarrow \\ \quad \quad \quad x \in s \wedge \\ \quad n \in s \wedge \\ \quad \forall z \in s.\; \neg (\langle z, n \rangle \in \operatorname{precedes\text{-}strict}(c)) \Rightarrow \\ \quad \quad \operatorname{is\text{-}sent}(\operatorname{bspace}(c), n) \end{array}}
+%
+\end{lem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}space-\allowbreak{}laws.scm} --- 32 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{bundle-space}, \texttt{bundle-nodes-in-space}, \texttt{node-sent-or-received}, \texttt{bundle-received-sender}, \texttt{bundle-send-nodes}, \texttt{bundle-send-sends}, \texttt{sends-to-dirs}, \texttt{bundle-send-precedes}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The paper's hypothesis is an iff over all node pairs ('term(m) = term(m') implies m in S iff m' in S'); the proof needs ONE direction only -- toward the sender: equal content and the receiver in S put the sender in S -- and the theorem is stated in that weaker form. 'Positive' reads IS-SENT. Uses the EXISTENCE of a sender for every received node of the bundle (bundle-received-sender), never its uniqueness. Proven 2026-10-06 (S-2).
+%
+\renewcommand{\thethm}{2.9}
+\begin{lem}[{A minimal node among those whose content contains t originates t}]\label{thm:bundle-minimal-originates}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall c, u, n. \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad n \in \operatorname{bnodes}(c) \wedge \\ \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{bspace}(c)), \operatorname{keys}(\operatorname{bspace}(c)), u, \operatorname{node\text{-}content}(\operatorname{bspace}(c), n)) \wedge \\ \quad \forall z \in \operatorname{bnodes}(c). \\ \quad \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{bspace}(c)), \operatorname{keys}(\operatorname{bspace}(c)), u, \operatorname{node\text{-}content}(\operatorname{bspace}(c), z)) \Rightarrow  \\ \quad \quad \quad \neg (\langle z, n \rangle \in \operatorname{precedes\text{-}strict}(c)) \Rightarrow \\ \quad \quad \operatorname{originates}(\operatorname{bspace}(c), u, n) \end{array}}
+%
+\end{lem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}space-\allowbreak{}laws.scm} --- 58 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{bundle-space}, \texttt{bundle-nodes-in-space}, \texttt{bundle-minimal-sent}, \texttt{bundle-ssb-closed}, \texttt{bundle-ssb-precedes}, \texttt{originates-intro}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The paper's proof iterates bundle clause 3 'as many times as necessary' along =$>$+, which it never defines; on the user's model ==$>$ IS the whole strict same-strand order and the bundle's closure under it is one law (bundle-ssb-closed), so the iteration dissolves and no proof steps along NEXT. The set is \{m in BNODES : IS-SUBTERM(t, NODE-CONTENT(m))\}, content being undirected by definition (the paper's 'abuse of language' on signed terms disappears). Proven 2026-10-06 (S-2).
+%
+\renewcommand{\thethm}{2.12}
+\begin{prop}[{A subterm of an encryption under one key that is an encryption under another lies inside the plaintext}]\label{thm:subterm-encr-other-key}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall t, k, h, a, y, b. \\ \quad t \in \mathbf{Set} \wedge \\ \quad k \in \mathbf{Set} \wedge \\ \quad h \in \operatorname{msg\text{-}set}(t, k) \wedge \\ \quad a \in \operatorname{msg\text{-}set}(t, k) \wedge \\ \quad y \in k \wedge \\ \quad b \in k \wedge \\ \quad \neg (y = b) \wedge \\ \quad \operatorname{is\text{-}subterm}(t, k, \operatorname{encr}(a, b), \operatorname{encr}(h, y)) \Rightarrow \\ \quad \quad \operatorname{is\text{-}subterm}(t, k, \operatorname{encr}(a, b), h) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}messages-\allowbreak{}laws.scm} --- 24 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{encr-in-msgs}, \texttt{subterm-of-encr}, \texttt{encr-injective}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Encryption is ENCR(m, k) = [2, m, k] with k in KEYS; the subterm relation is the intersection closure with the convention THE KEY IS NOT A SUBTERM OF THE ENCRYPTION (the paper's Definition 2.1). Dropped by S-2 (no encryption in notes-60), back with S-2b on the user's decision of 2026-10-06 16:40Z ('\{m\}\_k = encr\{m,k\} is also a message'). Proven 2026-10-06 (S-2b).
+%
+\renewcommand{\thethm}{3.3}
+\begin{prop}[{The adversary bound: a secret that never originates on a regular node occurs nowhere}]\label{thm:adversary-bound}
+%
+\leavevmode
+\vnbpart{\texttt{adversary-bound}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, u.; \forall n \in \operatorname{bnodes}(c). \\ \quad \operatorname{is\text{-}infiltrated\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(p) \wedge \\ \quad u \in \operatorname{tokens}(\operatorname{ispace}(p)) \wedge \\ \quad \neg (u \in \operatorname{adv\text{-}tokens}(p)) \wedge \\ \quad \forall n \in \operatorname{bnodes}(c). \\ \quad \quad \operatorname{is\text{-}regular\text{-}node}(p, n) \Rightarrow \neg \operatorname{originates}(\operatorname{ispace}(p), u, n) \Rightarrow \\ \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(p)), \operatorname{keys}(\operatorname{ispace}(p)), u, \operatorname{node\text{-}content}(\operatorname{ispace}(p), n)) \end{array}}
+\vnbpart{\texttt{adversary-bound-adversary-nodes}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, u.; \forall n \in \operatorname{bnodes}(c). \\ \quad \operatorname{is\text{-}infiltrated\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(p) \wedge \\ \quad u \in \operatorname{tokens}(\operatorname{ispace}(p)) \wedge \\ \quad \neg (u \in \operatorname{adv\text{-}tokens}(p)) \wedge \\ \quad \forall n \in \operatorname{bnodes}(c). \\ \quad \quad \operatorname{is\text{-}regular\text{-}node}(p, n) \Rightarrow \neg \operatorname{originates}(\operatorname{ispace}(p), u, n) \wedge \\ \quad \operatorname{is\text{-}adversary\text{-}node}(p, n) \Rightarrow \\ \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(p)), \operatorname{keys}(\operatorname{ispace}(p)), u, \operatorname{node\text{-}content}(\operatorname{ispace}(p), n)) \end{array}}
+\vnbpart{\texttt{adversary-node-origin}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, u, n. \\ \quad \operatorname{is\text{-}infiltrated\text{-}space}(p) \wedge \\ \quad u \in \operatorname{tokens}(\operatorname{ispace}(p)) \wedge \\ \quad n \in \operatorname{nodes}(\operatorname{ispace}(p)) \wedge \\ \quad \operatorname{is\text{-}adversary\text{-}node}(p, n) \wedge \\ \quad \operatorname{originates}(\operatorname{ispace}(p), u, n) \Rightarrow \\ \quad \quad u \in \operatorname{adv\text{-}tokens}(p) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{adversary-bound}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}adversary-\allowbreak{}bound.scm} --- 110 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{bundle-minimal}, \texttt{bundle-minimal-originates}, \texttt{bundle-space}, \texttt{bundle-nodes-in-space}, \texttt{adversary-node-origin}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{adversary-bound-adversary-nodes}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}adversary-\allowbreak{}bound.scm} --- 12 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{adversary-bound}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{adversary-node-origin}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}adversary-\allowbreak{}bound.scm} --- 80 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{text-trace-origin}, \texttt{originates-sent}, \texttt{flush-trace-no-sent}, \texttt{tee-trace-no-origin}, \texttt{concat-trace-no-origin}, \texttt{separate-trace-no-origin}, \texttt{encrypt-trace-no-origin}, \texttt{decrypt-trace-no-origin}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Stated for ANY token u of the space with u notin ADV-TOKENS (the paper: a key K in K minus K\_P; the key case is the instance, since KEYS is a subset of TOKENS); for a bundle c with BSPACE(c) = ISPACE(isp) of an infiltrated space isp. The adversary has the traces M F T C S E D over the space (C and S n-ary over lists; D decrypts under KINV; the paper's K trace is subsumed by M since keys are tokens). The proof is the paper's method -- a minimal member of \{n in C : u @ content(n)\} by Lemma 2.7, originating by 2.9, sent by 2.8, hence an adversary node, then seven cases -- with two findings: the M and C cases rest on the TOKEN LAW (no token is a list), not on the freeness of a free algebra; and the E case holds under either subterm convention, the convention deciding only whether the hypothesis 'never originates regularly' can be met for a key a participant encrypts with. Proven 2026-10-06 (S-2, seven cases S-2b).
+%
 \section{Deviations}
 %
 Every entry whose library statement deviates from the notes, or whose
@@ -5421,6 +5576,11 @@ Complex analysis & 3.6 & Cauchy's theorem for triangles (Goursat) & \texttt{gour
 Complex analysis & 3.7 & Segment integrals in a convex set & \texttt{cauchy-\allowbreak{}convex-\allowbreak{}segments-\allowbreak{}except}, \texttt{cauchy-\allowbreak{}convex-\allowbreak{}segments} & proven \\
 Complex analysis & 3.8 & A primitive on a convex set & \texttt{cauchy-\allowbreak{}convex-\allowbreak{}primitive-\allowbreak{}except}, \texttt{cc-\allowbreak{}diff-\allowbreak{}on-\allowbreak{}of-\allowbreak{}eps-\allowbreak{}bound}, \texttt{cc-\allowbreak{}continuous-\allowbreak{}at-\allowbreak{}add-\allowbreak{}const}, \texttt{cauchy-\allowbreak{}convex-\allowbreak{}primitive} & proven \\
 Complex analysis & 3.9 & Cauchy's theorem on a convex set & \texttt{cauchy-\allowbreak{}convex-\allowbreak{}closed-\allowbreak{}except}, \texttt{cauchy-\allowbreak{}convex-\allowbreak{}closed}, \texttt{line-\allowbreak{}int-\allowbreak{}closed-\allowbreak{}road-\allowbreak{}of-\allowbreak{}derivative} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 2.7 & Causal precedence in a bundle is a partial order with minimal elements & \texttt{precedes-\allowbreak{}partial-\allowbreak{}order}, \texttt{finite-\allowbreak{}strict-\allowbreak{}minimal}, \texttt{bundle-\allowbreak{}minimal} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 2.8 & A minimal node of a content-closed node set is a sent node & \texttt{bundle-\allowbreak{}minimal-\allowbreak{}sent} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 2.9 & A minimal node among those whose content contains t originates t & \texttt{bundle-\allowbreak{}minimal-\allowbreak{}originates} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 2.12 & A subterm of an encryption under one key that is an encryption under another lies inside the plaintext & \texttt{subterm-\allowbreak{}encr-\allowbreak{}other-\allowbreak{}key} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 3.3 & The adversary bound: a secret that never originates on a regular node occurs nowhere & \texttt{adversary-\allowbreak{}bound}, \texttt{adversary-\allowbreak{}bound-\allowbreak{}adversary-\allowbreak{}nodes}, \texttt{adversary-\allowbreak{}node-\allowbreak{}origin} & proven \\
 \hline
 \end{longtable}
 %
@@ -5433,6 +5593,7 @@ document & entries & proven & asserted & partial & absent \\
 Calculus & 66 & 42 & 0 & 13 & 11 \\
 Linear algebra & 33 & 10 & 1 & 6 & 16 \\
 Complex analysis & 44 & 27 & 0 & 6 & 11 \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 5 & 5 & 0 & 0 & 0 \\
 \hline
 \end{tabular}
 %
