@@ -1819,7 +1819,7 @@ definition:
 cartesian(pair(sent, received), msg-set(sst_, ssk_))
 ```
 
-characterized by `directed-intro`  *(proven)*:
+characterized by `directed-intro`  *(certified)*:
 
 ```
 forall([t, k, g in msg-set(t, k)], [sent, g] in directed(t, k) and [received, g] in directed(t, k))

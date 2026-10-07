@@ -2241,7 +2241,7 @@
 {\small\[
 \forall t, k.; \forall g \in \operatorname{msg\text{-}set}(t, k).\; ((\langle \mathit{sent}, g \rangle \in \operatorname{directed}(t, k)) \wedge (\langle \mathit{received}, g \rangle \in \operatorname{directed}(t, k)))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{node-content-eq}}
 \emph{for every spa, n, k, d, if nth(1, n) equals k, then if nth(k, (strand-map(spa))(nth(2, n))) equals d, then node-content(spa, n) is identical to nth(2, d) and node-dir(spa, n) is identical to nth(1, d)}
@@ -2380,97 +2380,97 @@
 {\small\[
 \forall \mathit{spa}, p, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow (\forall x \in p.\; (x \in \operatorname{tokens}(\mathit{spa})) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}text\text{-}trace}(\mathit{spa}, p, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow (\operatorname{originates}(\mathit{spa}, u, n) \Rightarrow (u \in p))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{flush-trace-no-sent}}
 \emph{for every spa, n, if spa is a strand space, then if n is in nodes(spa), then if (strand-map(spa))(nth(2, n)) is a flushing trace in the strand space spa, then it is not the case that the node n of spa is sent}
 {\small\[
 \forall \mathit{spa}, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}flush\text{-}trace}(\mathit{spa}, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow \neg \operatorname{is\text{-}sent}(\mathit{spa}, n))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{tee-trace-no-origin}}
 \emph{for every spa, u, n, if spa is a strand space, then if n is in nodes(spa), then if (strand-map(spa))(nth(2, n)) is a tee trace in the strand space spa, then it is not the case that u originates on the node n of spa}
 {\small\[
 \forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}tee\text{-}trace}(\mathit{spa}, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow \neg \operatorname{originates}(\mathit{spa}, u, n))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{concat-trace-no-origin}}
 \emph{for every spa, u, n, if spa is a strand space, then if u is in tokens(spa), then if n is in nodes(spa), then if (strand-map(spa))(nth(2, n)) is a concatenation trace in the strand space spa, then it is not the case that u originates on the node n of spa}
 {\small\[
 \forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((u \in \operatorname{tokens}(\mathit{spa})) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}concat\text{-}trace}(\mathit{spa}, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow \neg \operatorname{originates}(\mathit{spa}, u, n)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{separate-trace-no-origin}}
 \emph{for every spa, u, n, if spa is a strand space, then if n is in nodes(spa), then if (strand-map(spa))(nth(2, n)) is a separation trace in the strand space spa, then it is not the case that u originates on the node n of spa}
 {\small\[
 \forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}separate\text{-}trace}(\mathit{spa}, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow \neg \operatorname{originates}(\mathit{spa}, u, n))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{encrypt-trace-no-origin}}
 \emph{for every spa, u, n, if spa is a strand space, then if u is in tokens(spa), then if n is in nodes(spa), then if (strand-map(spa))(nth(2, n)) is an encryption trace in the strand space spa, then it is not the case that u originates on the node n of spa}
 {\small\[
 \forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((u \in \operatorname{tokens}(\mathit{spa})) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}encrypt\text{-}trace}(\mathit{spa}, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow \neg \operatorname{originates}(\mathit{spa}, u, n)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{decrypt-trace-no-origin}}
 \emph{for every spa, u, n, if spa is a strand space, then if n is in nodes(spa), then if (strand-map(spa))(nth(2, n)) is a decryption trace in the strand space spa, then it is not the case that u originates on the node n of spa}
 {\small\[
 \forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}decrypt\text{-}trace}(\mathit{spa}, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) \Rightarrow \neg \operatorname{originates}(\mathit{spa}, u, n))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{concat-trace-exists}}
 \emph{for every spa, l in tuples(msg-set(tokens(spa), keys(spa))), there is some s in strands(tokens(spa), keys(spa)) such that s is a concatenation trace in the strand space spa}
 {\small\[
 \forall \mathit{spa}.; \forall l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))).\; \exists s \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa})).\; \operatorname{is\text{-}concat\text{-}trace}(\mathit{spa}, s)
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{separate-trace-exists}}
 \emph{for every spa, l in tuples(msg-set(tokens(spa), keys(spa))), there is some s in strands(tokens(spa), keys(spa)) such that s is a separation trace in the strand space spa}
 {\small\[
 \forall \mathit{spa}.; \forall l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))).\; \exists s \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa})).\; \operatorname{is\text{-}separate\text{-}trace}(\mathit{spa}, s)
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{encrypt-trace-strand}}
 \emph{for every spa, k, m, if spa is a strand space, then if k is in keys(spa), then if m is in msg-set(tokens(spa), keys(spa)), then [[received, k], [received, m], [sent, encr(m, k)]] is in strands(tokens(spa), keys(spa)) and [[received, k], [received, m], [sent, encr(m, k)]] is an encryption trace in the strand space spa}
 {\small\[
 \forall \mathit{spa}, k, m.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((k \in \operatorname{keys}(\mathit{spa})) \Rightarrow ((m \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \Rightarrow ((\langle \langle \mathit{received}, k \rangle, \langle \mathit{received}, m \rangle, \langle \mathit{sent}, \operatorname{encr}(m, k) \rangle \rangle \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \wedge \operatorname{is\text{-}encrypt\text{-}trace}(\mathit{spa}, \langle \langle \mathit{received}, k \rangle, \langle \mathit{received}, m \rangle, \langle \mathit{sent}, \operatorname{encr}(m, k) \rangle \rangle)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{decrypt-trace-strand}}
 \emph{for every spa, k, m, if spa is a strand space, then if k is in keys(spa), then if m is in msg-set(tokens(spa), keys(spa)), then [[received, (kinv(spa))(k)], [received, encr(m, k)], [sent, m]] is in strands(tokens(spa), keys(spa)) and [[received, (kinv(spa))(k)], [received, encr(m, k)], [sent, m]] is a decryption trace in the strand space spa}
 {\small\[
 \forall \mathit{spa}, k, m.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((k \in \operatorname{keys}(\mathit{spa})) \Rightarrow ((m \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \Rightarrow ((\langle \langle \mathit{received}, \operatorname{kinv}(\mathit{spa})(k) \rangle, \langle \mathit{received}, \operatorname{encr}(m, k) \rangle, \langle \mathit{sent}, m \rangle \rangle \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \wedge \operatorname{is\text{-}decrypt\text{-}trace}(\mathit{spa}, \langle \langle \mathit{received}, \operatorname{kinv}(\mathit{spa})(k) \rangle, \langle \mathit{received}, \operatorname{encr}(m, k) \rangle, \langle \mathit{sent}, m \rangle \rangle)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{adversary-node-origin}}
 \emph{for every isp, u, n, if isp is an infiltrated strand space, then if u is in tokens(ispace(isp)), then if n is in nodes(ispace(isp)), then if n is an adversary node of isp, then if u originates on the node n of ispace(isp), then u is in adv-tokens(isp)}
 {\small\[
 \forall \mathit{isp}, u, n.\; (\operatorname{is\text{-}infiltrated\text{-}space}(\mathit{isp}) \Rightarrow ((u \in \operatorname{tokens}(\operatorname{ispace}(\mathit{isp}))) \Rightarrow ((n \in \operatorname{nodes}(\operatorname{ispace}(\mathit{isp}))) \Rightarrow (\operatorname{is\text{-}adversary\text{-}node}(\mathit{isp}, n) \Rightarrow (\operatorname{originates}(\operatorname{ispace}(\mathit{isp}), u, n) \Rightarrow (u \in \operatorname{adv\text{-}tokens}(\mathit{isp})))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{adversary-bound}}
 \emph{for every isp, c, u, if isp is an infiltrated strand space, then if c is a bundle, then if bspace(c) equals ispace(isp), then if u is in tokens(ispace(isp)), then if u is not in adv-tokens(isp), then if for every n in bnodes(c), if n is a regular node of isp, then it is not the case that u originates on the node n of ispace(isp), then for every n in bnodes(c), it is not the case that u is a subterm of node-content(ispace(isp), n) over the tokens tokens(ispace(isp)) and the keys keys(ispace(isp))}
 {\small\[
 \forall \mathit{isp}, c, u.\; (\operatorname{is\text{-}infiltrated\text{-}space}(\mathit{isp}) \Rightarrow (\operatorname{is\text{-}bundle}(c) \Rightarrow ((\operatorname{bspace}(c) = \operatorname{ispace}(\mathit{isp})) \Rightarrow ((u \in \operatorname{tokens}(\operatorname{ispace}(\mathit{isp}))) \Rightarrow (\neg (u \in \operatorname{adv\text{-}tokens}(\mathit{isp})) \Rightarrow (\forall n \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}regular\text{-}node}(\mathit{isp}, n) \Rightarrow \neg \operatorname{originates}(\operatorname{ispace}(\mathit{isp}), u, n)) \Rightarrow \forall n \in \operatorname{bnodes}(c).\; \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\mathit{isp})), \operatorname{keys}(\operatorname{ispace}(\mathit{isp})), u, \operatorname{node\text{-}content}(\operatorname{ispace}(\mathit{isp}), n))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \subsubsection*{\texttt{adversary-bound-adversary-nodes}}
 \emph{for every isp, c, u, if isp is an infiltrated strand space, then if c is a bundle, then if bspace(c) equals ispace(isp), then if u is in tokens(ispace(isp)), then if u is not in adv-tokens(isp), then if for every n in bnodes(c), if n is a regular node of isp, then it is not the case that u originates on the node n of ispace(isp), then for every n in bnodes(c), if n is an adversary node of isp, then it is not the case that u is a subterm of node-content(ispace(isp), n) over the tokens tokens(ispace(isp)) and the keys keys(ispace(isp))}
 {\small\[
 \forall \mathit{isp}, c, u.\; (\operatorname{is\text{-}infiltrated\text{-}space}(\mathit{isp}) \Rightarrow (\operatorname{is\text{-}bundle}(c) \Rightarrow ((\operatorname{bspace}(c) = \operatorname{ispace}(\mathit{isp})) \Rightarrow ((u \in \operatorname{tokens}(\operatorname{ispace}(\mathit{isp}))) \Rightarrow (\neg (u \in \operatorname{adv\text{-}tokens}(\mathit{isp})) \Rightarrow (\forall n \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}regular\text{-}node}(\mathit{isp}, n) \Rightarrow \neg \operatorname{originates}(\operatorname{ispace}(\mathit{isp}), u, n)) \Rightarrow \forall n \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}adversary\text{-}node}(\mathit{isp}, n) \Rightarrow \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\mathit{isp})), \operatorname{keys}(\operatorname{ispace}(\mathit{isp})), u, \operatorname{node\text{-}content}(\operatorname{ispace}(\mathit{isp}), n)))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: proof).
+\noindent\textbf{Asserted}
 
 \end{document}

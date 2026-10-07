@@ -16,6 +16,7 @@
   (about "Logic and sets; the number systems NN, ZZ, QQ, RR and CC with their arithmetic and order; tuples and lists; functions, bijections and intervals; finite sums; cardinality and ordinals; choice (Zermelo, Zorn); the combinatorial lemmas. Every other book stands on this one.")
   (imports)
   (files
+    "theorem-library/nn-cancel"
     "number-systems"           ; the arithmetic base (root file): the primitive shelf of NN, ZZ, QQ, RR, CC
     "structure-library/references"
     "structure-library/operation-properties"
@@ -176,6 +177,7 @@
   (about "Semigroups, monoids, groups, rings, integral domains and fields; ideals, Euclidean rings and Bezout; polynomials and monoid algebras; setoids, quotients and ringoids; homomorphisms, categories and views.")
   (imports core)
   (files
+    "theorem-library/nn-integral"
     "structure-library/semigroup"
     "structure-library/monoid"
     "structure-library/group"
@@ -215,7 +217,6 @@
     "theorem-library/nn-add-monoid"
     "theorem-library/cancellation"
     "theorem-library/ring-zero-one-power"
-    "theorem-library/nn-integral"
     "theorem-library/comb-kk-laws"
     "theorem-library/zz-division"
     "theorem-library/rake-algebra"
@@ -716,6 +717,7 @@
     "theorem-library/measure-laws"
     "theorem-library/integral-laws"
     "theorem-library/integral-convergence"
+    "theorem-library/caratheodory"
   ))
 
 (library strand

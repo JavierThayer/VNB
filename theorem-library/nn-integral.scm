@@ -71,37 +71,9 @@
 (ai '(NOT (= a 0)))                      ; contradicts a /= 0
 (ni-qed! 'nn-mul-nonzero)
 
-;;; =======================================================================
-;;; nn-mul-cancel : a,b,c in NN, c /= 0, a*c = b*c => a = b.
-;;; In ZZ: (a-b)*c = a*c - b*c = 0, and c /= 0, so a-b = 0, so a = b.
-(sp (make-wff '(FORALL a (IMPLIES (IN a NN)
-                 (FORALL b (IMPLIES (IN b NN)
-                   (FORALL c (IMPLIES (IN c NN)
-                     (IMPLIES (NOT (= c 0))
-                       (IMPLIES (= (* a c) (* b c)) (= a b)))))))))))
-(di)(di)(di)(di)(di)(di)(di)             ; a INa b INb c INc c/=0 ; assume ac=bc
-(fact 'nn-subset-zz 'a)
-(fact 'nn-subset-zz 'b)
-(fact 'nn-subset-zz 'c)
-;; a-b in ZZ
-(fact 'zz-neg-closed 'b)                 ; -b in ZZ
-(ni-cut! '(AND (IN a ZZ) (IN (- b) ZZ)))
-(fact 'zz-add-closed 'a '(- b))          ; a + (-b) = a - b in ZZ
-;; (a-b)*c = 0 : distribute, then use a*c = b*c.
-(ni-cut! '(= (* (+ a (- b)) c) 0)
-         (lambda ()
-           (ni-cut! '(= (* (+ a (- b)) c) (+ (* a c) (- (* b c)))) (lambda () (crs)))  ; distribute
-           (subst '(= (* (+ a (- b)) c) (+ (* a c) (- (* b c)))))   ; (a-b)c -> ac - bc
-           (subst '(= (* a c) (* b c)))  ; ac -> bc
-           (crs)))                       ; bc - bc = 0
-;; a-b = 0  (zz-mul-cancel-zero at x := a-b, y := c)
-(fact 'zz-mul-cancel-zero '(+ a (- b)) 'c)   ; (a-b)*c=0, c/=0 => a-b=0
-;; a = b  from  a + -b = 0 :  a = b + (a-b) = b + 0 = b.
-(ni-cut! '(= a (+ b (+ a (- b)))) (lambda () (crs)))   ; a = b + (a-b), identity
-(subst '(= a (+ b (+ a (- b)))))         ; goal a=b -> (b + (a-b)) = b
-(subst '(= (+ a (- b)) 0))               ; (a-b) -> 0
-(crs)                                     ; (b + 0) = b
-(ni-qed! 'nn-mul-cancel)
+;;; nn-mul-cancel MOVED to theorem-library/nn-cancel.scm (2026-10-07), proven there over RR
+;;; by rr-cancel-mul-right: the route through ZZ's integral domain made a core fact rest on
+;;; the algebra book.  nn-2-cancel below still cites it (nn-cancel loads before this file).
 
 ;;; =======================================================================
 ;;; nn-2-cancel : 2x = 2y => x = y.  Instance of nn-mul-cancel (commute to x*2).

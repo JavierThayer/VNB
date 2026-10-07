@@ -848,7 +848,7 @@ theorem-library/ and structure-library/ file is assigned to ONE of seven librari
 measure < analysis; strand < core), or marked `cross-cutting` (the generated hom laws, the views, the
 rake grab-bags: each theorem placed by the JOIN of its heads' libraries) or `exempt`. `library-gate!`
 (libraries.scm, at load end) reports every theorem citing, or stating with the vocabulary of, a library
-outside its import closure, and every unassigned file; warn-only until the backlog is zero. A violation
+outside its import closure, and every unassigned file; FATAL in a strict load since 2026-10-07 (backlog zero). A violation
 is a misplaced LEMMA (move it to a file of the right library that loads between its citations and its
 citers) or a misassigned FILE; the per-file aggregation (`scratchpad/libraries/gate-detail.scm` on the
 band) tells which. A new proof file needs its line in `libraries.sexp` beside its line in load.scm. The

@@ -28,7 +28,7 @@
 \providecommand{\vnbproofpart}[1]{\par\medskip\noindent\textbf{Proof of} #1\textbf{.}\par\nopagebreak}
 \providecommand{\vnbentry}[2]{\par\medskip\noindent\textbf{#1}\par\nopagebreak#2\par}
 \providecommand{\vnbfile}[2]{\section*{\href{file:../#2}{\texttt{#1}}}\addcontentsline{toc}{section}{\texttt{#1}}}
-\noindent 3956 theorems in 510 files, in load order.  Each entry is the statement as the library holds it, with the bill when it is not \texttt{modulo 0}; the section is the file that proves it (its path is a link).  Open the proof's graph from Emacs with \texttt{M-x vnb-graph-browse-theorem}.
+\noindent 3956 theorems in 511 files, in load order.  Each entry is the statement as the library holds it, with the bill when it is not \texttt{modulo 0}; the section is the file that proves it (its path is a link).  Open the proof's graph from Emacs with \texttt{M-x vnb-graph-browse-theorem}.
 
 \tableofcontents
 
@@ -749,7 +749,6 @@
 \vnbentry{\texttt{abelian-\allowbreak{}group-\allowbreak{}idempotent-\allowbreak{}is-\allowbreak{}id}}{\vnbstmt{\begin{array}{@{}l@{}} \forall s.; \forall a \in \operatorname{carr}(s). \\ \quad (\operatorname{is\text{-}abelian\text{-}group}(s) \wedge (\operatorname{opr}(s)(a, a) = a)) \Rightarrow (a = \operatorname{iden}(s)) \end{array}}}
 \vnbentry{\texttt{zz-\allowbreak{}add-\allowbreak{}cancel}}{\vnbstmt{\forall a, b, c \in \mathbb{Z}.\; (((a + c) = (b + c)) \Rightarrow (a = b))}}
 \vnbentry{\texttt{qq-\allowbreak{}add-\allowbreak{}cancel}}{\vnbstmt{\forall a, b, c \in \mathbb{Q}.\; (((a + c) = (b + c)) \Rightarrow (a = b))}}
-\vnbentry{\texttt{nn-\allowbreak{}add-\allowbreak{}cancel}}{\vnbstmt{\forall a, b, c \in \mathbb{N}.\; (((a + c) = (b + c)) \Rightarrow (a = b))}}
 
 \vnbfile{theorem-library/ring-zero-one-power.scm}{theorem-library/ring-zero-one-power.scm}
 \noindent{\small ring-zero-one-power.scm -- four ring facts that were asserted, PROVEN.}\par
@@ -758,11 +757,15 @@
 \vnbentry{\texttt{ring-\allowbreak{}mul-\allowbreak{}zero-\allowbreak{}right}}{\vnbstmt{\forall s.; \forall a \in \operatorname{carr}(s).\; (\operatorname{is\text{-}ring}(s) \Rightarrow (\operatorname{mul}(s)(a, \operatorname{zero}(s)) = \operatorname{zero}(s)))}}
 \vnbentry{\texttt{ring-\allowbreak{}power-\allowbreak{}zero}}{\vnbstmt{\forall r, x.\; (\operatorname{ring\text{-}power}(r, x, 0) \simeq \operatorname{one}(r))}}
 
+\vnbfile{theorem-library/nn-cancel.scm}{theorem-library/nn-cancel.scm}
+\noindent{\small nn-cancel.scm -- CANCELLATION ON NN, proven in the core (2026-10-07).}\par
+\vnbentry{\texttt{nn-\allowbreak{}add-\allowbreak{}cancel}}{\vnbstmt{\forall a, b, c \in \mathbb{N}.\; (((a + c) = (b + c)) \Rightarrow (a = b))}}
+\vnbentry{\texttt{nn-\allowbreak{}mul-\allowbreak{}cancel}}{\vnbstmt{\forall a, b, c \in \mathbb{N}.\; ((\neg (c = 0) \wedge ((a \cdot c) = (b \cdot c))) \Rightarrow (a = b))}}
+
 \vnbfile{theorem-library/nn-integral.scm}{theorem-library/nn-integral.scm}
 \noindent{\small nn-integral.scm -- the NN arithmetic support layer.}\par
 \vnbentry{\texttt{zz-\allowbreak{}mul-\allowbreak{}cancel-\allowbreak{}zero}}{\vnbstmt{\forall a, b \in \mathbb{Z}.\; ((((a \cdot b) = 0) \wedge \neg (b = 0)) \Rightarrow (a = 0))}}
 \vnbentry{\texttt{nn-\allowbreak{}mul-\allowbreak{}nonzero}}{\vnbstmt{\forall a, b \in \mathbb{N}.\; ((\neg (a = 0) \wedge \neg (b = 0)) \Rightarrow \neg ((a \cdot b) = 0))}}
-\vnbentry{\texttt{nn-\allowbreak{}mul-\allowbreak{}cancel}}{\vnbstmt{\forall a, b, c \in \mathbb{N}.\; ((\neg (c = 0) \wedge ((a \cdot c) = (b \cdot c))) \Rightarrow (a = b))}}
 \vnbentry{\texttt{nn-\allowbreak{}2-\allowbreak{}cancel}}{\vnbstmt{\forall x, y \in \mathbb{N}.\; (((2 \cdot x) = (2 \cdot y)) \Rightarrow (x = y))}}
 \vnbentry{\texttt{nn-\allowbreak{}lt-\allowbreak{}double}}{\vnbstmt{\forall k \in \mathbb{N}.\; (\neg (k = 0) \Rightarrow (k < (2 \cdot k)))}}
 

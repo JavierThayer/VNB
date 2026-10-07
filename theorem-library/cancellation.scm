@@ -190,17 +190,5 @@
 (transport! 'ag-cancel-right-ring-additive-ag 'ZZ-RING 'zz-is-ring 'zz-add-cancel)
 (transport! 'ag-cancel-right-ring-additive-ag 'QQ-RING 'qq-is-ring 'qq-add-cancel)
 
-;;; =======================================================================
-;;; nn-add-cancel : the naturals, by restriction.  NN <= ZZ, and NN's + IS ZZ's.
-;;; No induction, no Peano recursion -- the fact was never NN's to begin with.
-(sp (make-wff '(FORALL a (IMPLIES (IN a NN)
-                 (FORALL b (IMPLIES (IN b NN)
-                   (FORALL c (IMPLIES (IN c NN)
-                     (IMPLIES (= (+ a c) (+ b c)) (= a b))))))))))
-(di)(di)(di)(di)(di)(di)(di)
-(fact 'nn-subset-zz 'a)
-(fact 'nn-subset-zz 'b)
-(fact 'nn-subset-zz 'c)
-(fact 'zz-add-cancel 'a 'b 'c)
-(ass)
-(cn-qed! 'nn-add-cancel)
+;;; nn-add-cancel MOVED to theorem-library/nn-cancel.scm (2026-10-07), proven there over RR
+;;; by linear arithmetic: the restriction from ZZ made a core fact rest on the algebra book.

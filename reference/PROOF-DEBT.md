@@ -4979,7 +4979,7 @@ proven **modulo 0** -- unconditional.
 
 ### countable-of-two-enum  *(trust: proof)*
 
-*trusted code: `ineq`, `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `ineq`, `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
@@ -4993,13 +4993,13 @@ proven **modulo 0** -- unconditional.
 
 ### countable-union-2  *(trust: proof)*
 
-*trusted code: `ineq`, `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `ineq`, `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
 ### countable-union-nn  *(trust: proof)*
 
-*trusted code: `arith`, `ineq`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `arith`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
@@ -7699,7 +7699,7 @@ proven **modulo 0** -- unconditional.
 
 ### finite-implies-countable  *(trust: proof)*
 
-*trusted code: `ineq`, `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `ineq`, `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
@@ -12917,7 +12917,7 @@ proven **modulo 0** -- unconditional.
 
 ### nn-2-cancel  *(trust: proof)*
 
-*trusted code: `crs`, `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `crs`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
@@ -12935,7 +12935,7 @@ proven **modulo 0** -- unconditional.
 
 ### nn-3-cancel  *(trust: proof)*
 
-*trusted code: `crs`, `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `crs`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
@@ -12953,7 +12953,7 @@ proven **modulo 0** -- unconditional.
 
 ### nn-add-cancel  *(trust: proof)*
 
-*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
@@ -13001,7 +13001,7 @@ proven **modulo 0** -- unconditional.
 
 ### nn-flatten  *(trust: proof)*
 
-*trusted code: `arith`, `ineq`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `arith`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
@@ -13117,7 +13117,7 @@ proven **modulo 0** -- unconditional.
 
 ### nn-mul-cancel  *(trust: proof)*
 
-*trusted code: `crs`, `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `crs`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
@@ -13351,13 +13351,13 @@ proven **modulo 0** -- unconditional.
 
 ### nnfst-nnpair  *(trust: proof)*
 
-*trusted code: `arith`, `ineq`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `arith`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
 ### nnfst-type  *(trust: proof)*
 
-*trusted code: `arith`, `ineq`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `arith`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
@@ -13375,7 +13375,7 @@ proven **modulo 0** -- unconditional.
 
 ### nnpair-inj  *(trust: proof)*
 
-*trusted code: `arith`, `ineq`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `arith`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
@@ -13391,13 +13391,13 @@ proven **modulo 0** -- unconditional.
 
 ### nnsnd-nnpair  *(trust: proof)*
 
-*trusted code: `arith`, `ineq`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `arith`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
 ### nnsnd-type  *(trust: proof)*
 
-*trusted code: `arith`, `ineq`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+*trusted code: `arith`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 

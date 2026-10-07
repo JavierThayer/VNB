@@ -86,11 +86,9 @@ The runs, each a certified build on worker-02 (about six minutes):
 | 4 | 18 | 0 | core as the floor of the join |
 | 5 | 2 | 0 | the join takes the citations' libraries too |
 
-Known and accepted for now (the two): `nn-mul-cancel` (`nn-integral`) and `nn-add-cancel`
-(`cancellation`) are NN facts PROVEN through ring and group cancellation, so they sit in algebra
-and the core files `nn-mod3-proof` and `nn-pairing` cite them across the import. A direct NN
-proof of each (one induction) closes the gate; until then the book lists them in Algebra and
-reports the two citations as out of order.
+| 6 | 0 | 0 | `nn-add-cancel` and `nn-mul-cancel` re-proven over RR in the core file `nn-cancel.scm` (they had been proven through ZZ's group and integral domain, so two NN facts cited from core rested on algebra) |
+
+The gate is FATAL in a strict load since run 6 (2026-10-07).
 
 ## The book
 
@@ -106,7 +104,7 @@ and its `IS-X` law is not repeated; a functoid reads `name(params) := body`. A p
 proof is `(display-proof 'NAME "file.pdf")`.
 
 The writer checks the dependency claim against the live citation graph and prints the
-exceptions (`;; library-book: ... N citation(s) out of order`); on 2026-10-07 the two above.
+exceptions (`;; library-book: ... N citation(s) out of order`): zero since run 6.
 4896 entries in 640 file sections, about 750 pages.
 
 ## Open

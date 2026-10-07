@@ -34,7 +34,7 @@
 
 \part{Foundations}
 \noindent Logic and sets; the number systems NN, ZZ, QQ, RR and CC with their arithmetic and order; tuples and lists; functions, bijections and intervals; finite sums; cardinality and ordinals; choice (Zermelo, Zorn); the combinatorial lemmas. Every other book stands on this one.
-\par\noindent{\small 128 files.}
+\par\noindent{\small 129 files.}
 
 \vnbbookfile{structure-library/operation-properties}{structure-library/operation-properties}
 \noindent{\small operation-properties.scm -- named properties of operations.}\par
@@ -226,8 +226,8 @@
 \vnbaxiom{qq-zero-in}{\vnbstmt{0 \in \mathbb{Q}}}
 \vnbaxiom{qq-mul-closed}{\vnbstmt{\forall a, b.\; (((a \in \mathbb{Q}) \wedge (b \in \mathbb{Q})) \Rightarrow ((a \cdot b) \in \mathbb{Q}))}}
 \vnbaxiom{rr-add-comm}{\vnbstmt{\forall a, b.\; (((a \in \mathbb{R}) \wedge (b \in \mathbb{R})) \Rightarrow ((a + b) = (b + a)))}}
-\vnbaxiom{cc-recip-inverse}{\vnbstmt{\forall a \in \mathbb{C}.\; (\neg (a = 0) \Rightarrow ((a \cdot \operatorname{recip}(a)) = 1))}}
 \vnbaxiom{qq-add-closed}{\vnbstmt{\forall a, b.\; (((a \in \mathbb{Q}) \wedge (b \in \mathbb{Q})) \Rightarrow ((a + b) \in \mathbb{Q}))}}
+\vnbaxiom{cc-recip-inverse}{\vnbstmt{\forall a \in \mathbb{C}.\; (\neg (a = 0) \Rightarrow ((a \cdot \operatorname{recip}(a)) = 1))}}
 \vnbaxiom{qq-subset-rr}{\vnbstmt{\forall n \in \mathbb{Q}.\; (n \in \mathbb{R})}}
 \vnbaxiom{rr-zero-in}{\vnbstmt{0 \in \mathbb{R}}}
 \vnbaxiom{cc-distributive}{\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, c. \\ \quad ((a \in \mathbb{C}) \wedge ((b \in \mathbb{C}) \wedge (c \in \mathbb{C}))) \Rightarrow ((a \cdot (b + c)) = ((a \cdot b) + (a \cdot c))) \end{array}}}
@@ -968,6 +968,11 @@ Let $x$ be arbitrary. Let $\mathit{lam} \text{ be s.t. } \operatorname{limit\tex
 \vnbprop{lam-slot-add-apply}{\vnbstmt{\begin{array}{@{}l@{}} \forall m, a, b. \\ \quad ((a \in m) \wedge (b \in m)) \Rightarrow  \\ \quad \quad ((\lambda \langle \operatorname{x\_}, \operatorname{y\_} \rangle \in (m \times m).\; (\operatorname{x\_} + \operatorname{y\_}))(a, b) \simeq (a + b)) \end{array}}}
 \vnbprop{lam-slot-mul-apply}{\vnbstmt{\begin{array}{@{}l@{}} \forall m, a, b. \\ \quad ((a \in m) \wedge (b \in m)) \Rightarrow  \\ \quad \quad ((\lambda \langle \operatorname{x\_}, \operatorname{y\_} \rangle \in (m \times m).\; (\operatorname{x\_} \cdot \operatorname{y\_}))(a, b) \simeq (a \cdot b)) \end{array}}}
 \vnbprop{lam-slot-neg-apply}{\vnbstmt{\forall m.; \forall a \in m.\; ((\lambda x \in m.\; -x)(a) \simeq -a)}}
+
+\vnbbookfile{theorem-library/nn-cancel}{theorem-library/nn-cancel}
+\noindent{\small nn-cancel.scm -- CANCELLATION ON NN, proven in the core (2026-10-07).}\par
+\vnbprop{nn-add-cancel}{\vnbstmt{\forall a, b, c \in \mathbb{N}.\; (((a + c) = (b + c)) \Rightarrow (a = b))}}
+\vnbprop{nn-mul-cancel}{\vnbstmt{\forall a, b, c \in \mathbb{N}.\; ((\neg (c = 0) \wedge ((a \cdot c) = (b \cdot c))) \Rightarrow (a = b))}}
 
 \vnbbookfile{theorem-library/nn-mod3-proof}{theorem-library/nn-mod3-proof}
 \noindent{\small nn-mod3-proof.scm -- mod-3 arithmetic on NN, the mirror of nn-parity-proof.scm.}\par
@@ -1993,7 +1998,6 @@ Let $r$, $x$ and $y$ be arbitrary. Let $m \in \mathbb{N}$. Then
 \vnbprop{abelian-group-idempotent-is-id}{\vnbstmt{\begin{array}{@{}l@{}} \forall s.; \forall a \in \operatorname{carr}(s). \\ \quad (\operatorname{is\text{-}abelian\text{-}group}(s) \wedge (\operatorname{opr}(s)(a, a) = a)) \Rightarrow (a = \operatorname{iden}(s)) \end{array}}}
 \vnbprop{zz-add-cancel}{\vnbstmt{\forall a, b, c \in \mathbb{Z}.\; (((a + c) = (b + c)) \Rightarrow (a = b))}}
 \vnbprop{qq-add-cancel}{\vnbstmt{\forall a, b, c \in \mathbb{Q}.\; (((a + c) = (b + c)) \Rightarrow (a = b))}}
-\vnbprop{nn-add-cancel}{\vnbstmt{\forall a, b, c \in \mathbb{N}.\; (((a + c) = (b + c)) \Rightarrow (a = b))}}
 
 \vnbbookfile{theorem-library/ring-zero-one-power}{theorem-library/ring-zero-one-power}
 \noindent{\small ring-zero-one-power.scm -- four ring facts that were asserted, PROVEN.}\par
@@ -2006,7 +2010,6 @@ Let $r$, $x$ and $y$ be arbitrary. Let $m \in \mathbb{N}$. Then
 \noindent{\small nn-integral.scm -- the NN arithmetic support layer.}\par
 \vnbprop{zz-mul-cancel-zero}{\vnbstmt{\forall a, b \in \mathbb{Z}.\; ((((a \cdot b) = 0) \wedge \neg (b = 0)) \Rightarrow (a = 0))}}
 \vnbprop{nn-mul-nonzero}{\vnbstmt{\forall a, b \in \mathbb{N}.\; ((\neg (a = 0) \wedge \neg (b = 0)) \Rightarrow \neg ((a \cdot b) = 0))}}
-\vnbprop{nn-mul-cancel}{\vnbstmt{\forall a, b, c \in \mathbb{N}.\; ((\neg (c = 0) \wedge ((a \cdot c) = (b \cdot c))) \Rightarrow (a = b))}}
 \vnbprop{nn-2-cancel}{\vnbstmt{\forall x, y \in \mathbb{N}.\; (((2 \cdot x) = (2 \cdot y)) \Rightarrow (x = y))}}
 \vnbprop{nn-lt-double}{\vnbstmt{\forall k \in \mathbb{N}.\; (\neg (k = 0) \Rightarrow (k < (2 \cdot k)))}}
 

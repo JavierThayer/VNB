@@ -1121,6 +1121,7 @@
     ;; the surface (zz-mul-cancel-zero), then restricted.  Retires the reference
     ;; assertions number-theory proofs kept re-making.  Needs transport,
     ;; zz-is-integral-domain, nn-subset-zz, order-lemmas.
+    "theorem-library/nn-cancel"          ; NN cancellation over RR, the core route (2026-10-07; was in cancellation / nn-integral through ZZ)
     "theorem-library/nn-integral"
     ;; The six COMB-KK / binomial-transform laws -- PROVEN modulo 0 (wave 7),
     ;; reachable at last because COMB-KK is now ZZ-indexed (binomial.scm), which
@@ -3469,6 +3470,7 @@
     ;; primitive-pair-lipschitz from the mean value inequality.
     "theorem-library/primitive-uniform-limit"
     "theorem-library/integral-convergence"   ; the four measurable-fn closure laws, the dyadic approximation, monotone convergence, Fatou, general additivity, dominated convergence, all nine supports of integral.scm proven (M-3, 2026-10-04)
+    "theorem-library/caratheodory"           ; the Caratheodory construction PROVEN (MEASURE-1, 2026-10-07): the five supports of measure.scm, statements unchanged; cites esup-eplus-le above
     ;; 2026-09-24 (batch 25-A): POWER SERIES IN CC -- the definitions (CPS-RADIUS as the sup of the r with sum |a_k| r^k
     ;; convergent, CC-SUP-NORM (29), IS-NORMALLY-CONVERGENT, CC-SERIES-LIMIT; structure-library/cc-power-series.scm, after
     ;; theorem-library/cc-series) and the laws: the radius formula 2.7, normal convergence inside the radius 2.8,
@@ -4254,7 +4256,12 @@
   ;; THE LIBRARY GATE (notes-61, 2026-10-06; libraries.scm): a theorem cites, and its
   ;; statement uses the vocabulary of, only its own library and its imports
   ;; (libraries.sexp).  Warn-only until the backlog is zero; then fatal in a strict load.
-  (library-gate!)
+  (let ((counts (library-gate!)))
+    ;; FATAL since 2026-10-07, when the backlog reached zero (the two NN cancellation
+    ;; facts moved to nn-cancel.scm): a theorem citing or stating across the import DAG
+    ;; stops a strict load.  Under VNB_KEEP_GOING it is reported only.
+    (if (and (> (+ (car counts) (cdr counts)) 0) (not *vnb-keep-going?*))
+        (error "library-gate: a theorem cites or states outside its library's imports; see the report above")))
 
   ;; Soundness gate: a proven theorem must not depend -- transitively, through the
   ;; proof citation graph -- on ITSELF.  That is a circular proof with no real
