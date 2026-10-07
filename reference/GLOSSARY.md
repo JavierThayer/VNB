@@ -83,7 +83,7 @@ reads: $1 is at most $2
 
 a kernel relation
 
-[mentioned by 1096 result(s)](BY-OPERATOR.md#<=)
+[mentioned by 1097 result(s)](BY-OPERATOR.md#<=)
 
 ### `=`  *(primitive)*
 
@@ -347,7 +347,7 @@ forall([a_, b_], a_ subset b_ implies big-union(u_, a_, u_) subset big-union(u_,
 
 also: `power-big-union-closed` `complement-in-big-union` 
 
-[mentioned by 52 result(s)](BY-OPERATOR.md#big-union)
+[mentioned by 54 result(s)](BY-OPERATOR.md#big-union)
 
 ### `bijection`  *(operator)*
 
@@ -606,7 +606,7 @@ characterized by `caratheodory-sets-membership`  *(definitional)*:
 forall([omega, mu, es_], es_ in caratheodory-sets(omega, mu) iff es_ in power(omega) and is-caratheodory-measurable(omega, mu, es_))
 ```
 
-[mentioned by 4 result(s)](BY-OPERATOR.md#caratheodory-sets)
+[mentioned by 6 result(s)](BY-OPERATOR.md#caratheodory-sets)
 
 ### `card(a_)`  *(functoid)*
 
@@ -1272,9 +1272,9 @@ characterized by `complement-in-membership`  *(primitive)*:
 forall([a, b, x], x in complement-in(a, b) iff x in a and not(x in b))
 ```
 
-also: `complement-in-set-closure` `union-complement-in` `complement-in-double` `complement-in-subset` `complement-in-big-union` `complement-in-intersection-of` `intersection-complement-in-empty` 
+also: `complement-in-set-closure` `union-complement-in` `complement-in-double` `complement-in-subset` `complement-in-big-union` `complement-in-empty-set` `inter-complement-in-shift` `inter-complement-in-ambient` ... (14 in all)
 
-[mentioned by 40 result(s)](BY-OPERATOR.md#complement-in)
+[mentioned by 59 result(s)](BY-OPERATOR.md#complement-in)
 
 ### `completion(m)`  *(functoid)*
 
@@ -1777,9 +1777,9 @@ characterized by `difference-set`  *(certified)*:
 forall([x in set, b], difference(x, b) in set)
 ```
 
-also: `difference-in-power` `difference-empty-left` `difference-membership` `insert-difference-cancel` `insert-difference-outside` `holomorphic-difference-quotient` 
+also: `difference-unfold` `difference-in-power` `difference-empty-left` `difference-membership` `insert-difference-cancel` `insert-difference-outside` `holomorphic-difference-quotient` 
 
-[mentioned by 75 result(s)](BY-OPERATOR.md#difference)
+[mentioned by 77 result(s)](BY-OPERATOR.md#difference)
 
 ### `dir-deriv(m, f, a, eta)`  *(functoid)*
 
@@ -2236,7 +2236,7 @@ forall([x, y], x in rr-pos-star and y in rr-pos-star implies eplus(x, y) = eplus
 
 also: `eplus-mono` `eplus-assoc` `eplus-closed` `eplus-le-left` `esup-eplus-eq` `esup-eplus-le` `eplus-zero-left` `eplus-zero-right` ... (12 in all)
 
-[mentioned by 41 result(s)](BY-OPERATOR.md#eplus)
+[mentioned by 44 result(s)](BY-OPERATOR.md#eplus)
 
 ### `esum(f_)`  *(functoid)*
 
@@ -2597,7 +2597,7 @@ forall([r], is-ring(r) implies forall([s in set], card(s) in nn implies forall([
 
 also: `finsum-all-id-ring-additive-ag` `finsum-single-support-ring-additive-ag` `finsum-add` `finsum-type` `finsum-embed` `finsum-empty` `finsum-fiber` `finsum-add-ag` ... (66 in all)
 
-[mentioned by 199 result(s)](BY-OPERATOR.md#finsum)
+[mentioned by 201 result(s)](BY-OPERATOR.md#finsum)
 
 ### `finsupp(a, m)`  *(functoid)*
 
@@ -2697,7 +2697,7 @@ forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x
 
 also: `is-linear-functional-on` `dom-of-fun` `is-fun-def` `fun-no-junk` `fun-set-iff` `fun-apply-type` `fun-codomain-iff` `dom-fun-membership` ... (142 in all)
 
-[mentioned by 1611 result(s)](BY-OPERATOR.md#fun)
+[mentioned by 1613 result(s)](BY-OPERATOR.md#fun)
 
 
 ## G
@@ -3820,7 +3820,7 @@ forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(ca
 
 also: `is-chain` `is-ringoid` `ring-class` `rr-min-def` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` ... (1464 in all)
 
-[mentioned by 5622 result(s)](BY-OPERATOR.md#in)
+[mentioned by 5625 result(s)](BY-OPERATOR.md#in)
 
 ### `index-of(ssn_)`  *(functoid)*
 
@@ -3986,7 +3986,7 @@ forall([x, as], x in intersection(restvar(as)) iff splice(and, e, as, x in e))
 
 also: `intersection-membership` `intersection-set-closure` `submodule-intersection` `intersection-empty-transfer` `intersection-complement-in-empty` 
 
-[mentioned by 52 result(s)](BY-OPERATOR.md#intersection)
+[mentioned by 65 result(s)](BY-OPERATOR.md#intersection)
 
 ### `intersection-of(c)`  *(functoid)*
 
@@ -6130,7 +6130,7 @@ characterized by `is-outer-measure`  *(definitional)*:
 forall([omega, mu], is-outer-measure(omega, mu) iff omega in set and mu in fun(power(omega), rr-pos-star) and mu(empty-set) = 0 and forall([a_, b_], a_ in power(omega) implies b_ in power(omega) implies a_ subset b_ implies mu(a_) <= mu(b_)) and forall([f_ in fun(nn, power(omega))], mu(big-union(n_, nn, f_(n_))) <= esum(vnb-lambda(n_, nn, mu(f_(n_))))))
 ```
 
-[mentioned by 7 result(s)](BY-OPERATOR.md#is-outer-measure)
+[mentioned by 10 result(s)](BY-OPERATOR.md#is-outer-measure)
 
 ### `is-partial-order(grd, porel)`  *(predicate)*
 
@@ -8466,7 +8466,7 @@ forall([alpha in ord, x], x in ord-segment(succ_ord(alpha)) iff x in ord-segment
 
 also: `ord-segment-zero` `ord-segment-is-set` `ord-segment-membership` `ord-segment-self` `ord-segment-trans` `ord-segment-insert` `ord-segment-nn-succ` `ord-segment-nn-subset` ... (10 in all)
 
-[mentioned by 140 result(s)](BY-OPERATOR.md#ord-segment)
+[mentioned by 142 result(s)](BY-OPERATOR.md#ord-segment)
 
 ### `orelse`  *(tactic)*
 
@@ -8613,7 +8613,7 @@ forall([x, n], x in cc and n in nn and not(x = 0) implies x ^ (-n) = recip(x ^ n
 
 also: `power-set` `power-succ` `power-zero` `power-typing-nonneg` `power-set-membership` `deriv-power` `cc-power-add` `cc-power-mul` ... (65 in all)
 
-[mentioned by 386 result(s)](BY-OPERATOR.md#power)
+[mentioned by 389 result(s)](BY-OPERATOR.md#power)
 
 ### `preamble`  *(tactic)*
 
@@ -10334,9 +10334,9 @@ characterized by `submodule-subset`  *(definitional)*:
 forall([m, s], is-submodule(m, s) implies s subset vec(m))
 ```
 
-also: `ringoid-ideal-subset` `inf-subsets-membership` `subset-def` `subset-set` `subset-refl` `subset-trans` `subset-mem-fwd` `ccint-subset-rr` ... (50 in all)
+also: `ringoid-ideal-subset` `inf-subsets-membership` `subset-def` `subset-set` `subset-refl` `subset-trans` `subset-mem-fwd` `ccint-subset-rr` ... (52 in all)
 
-[mentioned by 468 result(s)](BY-OPERATOR.md#subset)
+[mentioned by 476 result(s)](BY-OPERATOR.md#subset)
 
 ### `subspace-ms(s, a)`  *(functoid)*
 
@@ -10938,9 +10938,9 @@ characterized by `union-decompose`  *(primitive)*:
 forall([x, as], x in union(restvar(as)) iff splice(or, e, as, x in e))
 ```
 
-also: `union-membership` `union-set-closure` `union-comm` `union-assoc` `card-union-nn` `card-union-bound` `union-empty-left` `countable-union-2` ... (27 in all)
+also: `union-membership` `union-set-closure` `union-comm` `union-assoc` `card-union-nn` `card-union-bound` `union-empty-left` `countable-union-2` ... (29 in all)
 
-[mentioned by 131 result(s)](BY-OPERATOR.md#union)
+[mentioned by 135 result(s)](BY-OPERATOR.md#union)
 
 ### `uniquely-originates(ssp_, ssu_)`  *(predicate)*
 
@@ -11023,7 +11023,7 @@ declared in `tactics-help.scm`
 
 a term-forming head
 
-[mentioned by 1082 result(s)](BY-OPERATOR.md#vnb-lambda)
+[mentioned by 1084 result(s)](BY-OPERATOR.md#vnb-lambda)
 
 ### `vneg(s)`  *(accessor)*
 

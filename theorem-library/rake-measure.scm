@@ -518,6 +518,12 @@
 (topic! 'measurable-map-compose 'plumbing)
 
 ;;; =======================================================================
+;;; HISTORY (2026-10-07).  Everything below this line is the inventory of 2026-09-17.
+;;; All of it exists now: the order and arithmetic of RR-POS-STAR (rake-extended-order,
+;;; rake-eplus-defined), the ESUM bricks and the sigma-algebra projections (measure-laws,
+;;; M-1), and the five Caratheodory statements themselves (theorem-library/caratheodory.scm,
+;;; MEASURE-1).  Kept as the record of what the wall was.
+;;;
 ;;; WHAT THE OTHER FIVE NEED -- the missing extended-real bricks.
 ;;;
 ;;; measure-monotone (measure.scm:346), measure-finitely-additive (:361),

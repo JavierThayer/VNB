@@ -1,7 +1,8 @@
 ;;; measure.scm -- OUTER MEASURES, CARATHEODORY MEASURABILITY, MEASURES.
-;;; Vocabulary plus the statements of the Caratheodory construction.  Nothing
-;;; here is proved; every asserted fact carries a warrant naming the numbered
-;;; result and page it comes from.
+;;; Vocabulary.  The Caratheodory construction's five statements were asserted
+;;; here with `reference' warrants until 2026-10-07; they are PROVEN, statements
+;;; unchanged, in theorem-library/caratheodory.scm (MEASURE-1), and this file
+;;; asserts nothing.
 ;;;
 ;;; SOURCES.  Thayer, Construction of Measures: Def. 1.15 (countably additive
 ;;; measure, p. 4), Def. 1.16 (measure space, p. 4), Prop. 1.17 / 1.18
@@ -235,95 +236,15 @@
 ;;; The Caratheodory construction.  Thayer Chapter 4, Sec. 1.  Rudin has no
 ;;; counterpart in Chapter 1 -- see the header.
 
-(support 'caratheodory-measurable-sigma-algebra
-  (forall-guarded '(omega mu) '((IS-OUTER-MEASURE omega mu))
-    '(IS-SIGMA-ALGEBRA omega (CARATHEODORY-SETS omega mu))))
 
-(warrant! 'caratheodory-measurable-sigma-algebra 'reference
-          '(thayer-measures "Prop. 4.4" 36))
-(topic!   'caratheodory-measurable-sigma-algebra 'set-quotient)
-(gloss!   'caratheodory-measurable-sigma-algebra
-  "Caratheodory's theorem, first half: the sets that split every test set
-   additively for an outer measure mu form a sigma-algebra on omega.  Thayer
-   Prop. 4.4 (p. 30) states both halves in one sentence ('the mu* measurable
-   sets form a (non-empty) sigma-algebra A and mu*|A is a countably additive
-   measure'); VNB splits it into this and caratheodory-measure, because the
-   two conclusions are about different objects and a proof will want them
-   separately.  Rudin does not carry the Caratheodory construction in
-   Chapter 1, so no Rudin number is given.")
 
-(support 'caratheodory-measure
-  (forall-guarded '(omega mu) '((IS-OUTER-MEASURE omega mu))
-    '(IS-MEASURE omega
-                 (CARATHEODORY-SETS omega mu)
-                 (RES mu (CARATHEODORY-SETS omega mu)))))
 
-(warrant! 'caratheodory-measure 'reference '(thayer-measures "Prop. 4.4" 36))
-(topic!   'caratheodory-measure 'set-quotient)
-(gloss!   'caratheodory-measure
-  "Caratheodory's theorem, second half: the restriction of the outer measure
-   mu to the sigma-algebra of its measurable sets is a countably additive
-   measure.  Thayer Prop. 4.4 (p. 30), written there as mu*|A; VNB writes the
-   restriction with the kernel's RES head.  See
-   caratheodory-measurable-sigma-algebra for why the source's one statement is
-   two here.")
 
-(support 'caratheodory-null-measurable
-  (forall-guarded '(omega mu es)
-                  '((IS-OUTER-MEASURE omega mu)
-                    (SUBSET es omega)
-                    (= (mu es) 0))
-    '(IS-CARATHEODORY-MEASURABLE omega mu es)))
 
-(warrant! 'caratheodory-null-measurable 'reference
-          '(thayer-measures "Remark 4.3" 36))
-(topic!   'caratheodory-null-measurable 'set-quotient)
-(gloss!   'caratheodory-null-measurable
-  "Every set of outer measure zero is Caratheodory measurable.  Thayer
-   Remark 4.3 (p. 30), stated there as 'every set E such that mu*(E) = 0 is
-   measurable'; VNB adds the explicit hypothesis that es is a subset of omega,
-   which the source carries implicitly by working inside P(X).")
 
-(support 'caratheodory-superadditive-suffices
-  (forall-guarded '(omega mu es)
-                  (list '(IS-OUTER-MEASURE omega mu)
-                        '(SUBSET es omega)
-                        (forall-guarded '(a_) '((IN a_ (POWER omega)))
-                          '(<= (eplus (mu (INTERSECTION a_ es))
-                                      (mu (DIFFERENCE a_ es)))
-                               (mu a_))))
-    '(IS-CARATHEODORY-MEASURABLE omega mu es)))
 
-(warrant! 'caratheodory-superadditive-suffices 'reference
-          '(thayer-measures "Eq. (75), following Def. 4.2" 36))
-(topic!   'caratheodory-superadditive-suffices 'set-quotient)
-(gloss!   'caratheodory-superadditive-suffices
-  "Only one of the two inequalities has to be checked: if the two pieces of
-   every test set together weigh AT MOST the test set, then es is Caratheodory
-   measurable, the reverse inequality being automatic from subadditivity.
-   Thayer states this as the displayed inequality (75) in the paragraph after
-   Def. 4.2 (p. 30) -- an unnumbered remark, so the citation is to the
-   equation, not to a numbered result.  This is the working form of the
-   measurability test and the reason it is stated at all.")
 
-(support 'outer-measure-binary-subadditive
-  (forall-guarded '(omega mu a_ b_)
-                  '((IS-OUTER-MEASURE omega mu)
-                    (IN a_ (POWER omega))
-                    (IN b_ (POWER omega)))
-    '(<= (mu (UNION a_ b_)) (eplus (mu a_) (mu b_)))))
 
-(warrant! 'outer-measure-binary-subadditive 'reference
-          '(thayer-measures "Def. 4.1(3)" 36))
-(topic!   'outer-measure-binary-subadditive 'inequalities)
-(gloss!   'outer-measure-binary-subadditive
-  "An outer measure is subadditive on PAIRS: mu(a union b) <= mu(a) + mu(b).
-   NOT literally the source's statement -- Def. 4.1(3) (p. 30) states COUNTABLE
-   subadditivity, over a sequence.  The binary case is the instance whose
-   sequence is a, b, empty, empty, ... , and it is stated separately because
-   the countable form cannot be used on two sets without first building that
-   sequence.  Both sources use the binary form silently (Thayer does so in the
-   very next paragraph, to get inequality (75)).")
 
 ;;; -----------------------------------------------------------------------
 ;;; Elementary properties of a measure.  Rudin Thm. 1.19 (p. 17) is the list;
