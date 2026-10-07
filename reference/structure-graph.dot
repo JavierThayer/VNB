@@ -29,6 +29,7 @@ digraph VNB {
   "normed-field" [tooltip="normed-field -- slots (carr add mul neg zero one fnrm)", URL="structure-graph.html#normed-field"];
   "normed-vector-space" [tooltip="normed-vector-space -- slots (scal vec vadd vzero vneg act vnrm)", URL="structure-graph.html#normed-vector-space"];
   "pid" [tooltip="pid -- slots (carr add mul neg zero one)", URL="structure-graph.html#pid"];
+  "pk-space" [tooltip="pk-space -- slots (pk-inf names pubkey)", URL="structure-graph.html#pk-space"];
   "pseudometric-space" [tooltip="pseudometric-space -- slots (pts dist)", URL="structure-graph.html#pseudometric-space"];
   "qq-field" [tooltip="qq-field -- slots (carr add mul neg zero one non-zero mul-inv)", URL="structure-graph.html#qq-field"];
   "qq-line" [tooltip="qq-line -- slots (scal vec vadd vzero vneg act)", URL="structure-graph.html#qq-line"];

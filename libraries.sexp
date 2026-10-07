@@ -731,6 +731,8 @@
     "theorem-library/strand-space-laws"
     "structure-library/strand-adversary"
     "theorem-library/strand-adversary-bound"
+    "structure-library/nsl"
+    "theorem-library/nsl"
   ))
 
 ;;; files whose theorems belong to several books: each proven or asserted theorem is placed by

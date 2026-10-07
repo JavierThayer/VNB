@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-665 operators: 3 functions, 11 syntax, 387 functoids, 261 predicates, 3 undeclared.
+674 operators: 3 functions, 11 syntax, 391 functoids, 266 predicates, 3 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (387)
+## Functoids  (391)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -812,6 +812,12 @@ Declared by: `fam-of-list-apply`
 
     hom-pid(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-pid(a, b, homf_)}
 
+### `hom-pk-space`  — def-functoid · set-valued
+
+> _Reads as:_  the pk space morphisms from a to b
+
+    hom-pk-space(a, b) := {homf_ in fun(names(a), names(b)): is-hom-pk-space(a, b, homf_)}
+
 ### `hom-pseudometric-space`  — def-functoid · set-valued
 
 > _Reads as:_  the pseudometric space morphisms from a to b
@@ -1168,6 +1174,10 @@ Declared by: `mpow-zero` `mpow-succ`
 
     nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], cartesian(carr(nag), carr(nag)), (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]
 
+### `names`  — structure accessor · element (slot value)
+
+> _Reads as:_  the names slot of s
+
 ### `neg`  — structure accessor · element (slot value)
 
 > _Reads as:_  the negation of s
@@ -1294,6 +1304,10 @@ Declared by: `ord-segment-insert` `ord-segment-is-set` `ord-segment-membership` 
 
 Declared by: `pi-def` 
 
+### `pk-inf`  — structure accessor · element (slot value)
+
+> _Reads as:_  the pk-inf slot of s
+
 ### `poly`  — def-functoid · element/number-valued
 
 > _Reads as:_  a[x]
@@ -1409,6 +1423,10 @@ Declared by: `prod-ord-zero` `prod-ord-succ`
 > _Reads as:_  the pointwise supremum on omega of the sequence cf
 
     ptwise-sup(omega, cf) := vnb-lambda(x_, omega, esup(image(vnb-lambda(n_, nn, (cf(n_))(x_)), nn)))
+
+### `pubkey`  — structure accessor · element (slot value)
+
+> _Reads as:_  the pubkey slot of s
 
 ### `pw-int`  — def-functoid · element/number-valued
 
@@ -1862,7 +1880,7 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (261)
+## Predicates  (266)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -2334,6 +2352,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  f is a homomorphism from a to b
 
+### `is-hom-pk-space`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a morphism of public-key strand spaces from a to b
+
 ### `is-hom-pseudometric-space`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is a homomorphism from a to b
@@ -2381,6 +2403,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-infiltrated-space`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is an infiltrated strand space
+
+### `is-init-strand`  — def-predicate · proposition (arity 6)
+
+> _Reads as:_  nls_ is an initiator's strand of nlp_ for the names nla_, nlb_ and the values nlm_, nln_
 
 ### `is-integral-domain`  — def-predicate · proposition (arity 1)
 
@@ -2518,6 +2544,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  a is nowhere dense in s
 
+### `is-nsl-space`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  nlp_ is a Needham-Schroeder-Lowe space
+
 ### `is-open`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  u is open in s
@@ -2561,6 +2591,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-piecewise-continuous`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is piecewise continuous on [a, b]
+
+### `is-pk-space`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is a public-key strand space
 
 ### `is-prec-closed`  — def-predicate · proposition (arity 4)
 
@@ -2609,6 +2643,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-regulated-on`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  rpf_ is regulated on the interval [rpa_, rpb_]
+
+### `is-resp-strand`  — def-predicate · proposition (arity 6)
+
+> _Reads as:_  nls_ is a responder's strand of nlp_ for the names nla_, nlb_ and the values nlm_, nln_
 
 ### `is-right-limit`  — def-predicate · proposition (arity 3)
 

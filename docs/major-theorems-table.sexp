@@ -1404,3 +1404,53 @@
        (status proven)
        (deviation "Stated for ANY token u of the space with u notin ADV-TOKENS (the paper: a key K in K minus K_P; the key case is the instance, since KEYS is a subset of TOKENS); for a bundle c with BSPACE(c) = ISPACE(isp) of an infiltrated space isp. The adversary has the traces M F T C S E D over the space (C and S n-ary over lists; D decrypts under KINV; the paper's K trace is subsumed by M since keys are tokens). The proof is the paper's method -- a minimal member of {n in C : u @ content(n)} by Lemma 2.7, originating by 2.9, sent by 2.8, hence an adversary node, then seven cases -- with two findings: the M and C cases rest on the TOKEN LAW (no token is a list), not on the freeness of a free algebra; and the E case holds under either subterm convention, the convention deciding only whether the hypothesis 'never originates regularly' can be met for a key a participant encrypts with. Proven 2026-10-06 (S-2, seven cases S-2b).")
        (notes-statement "Let C be a bundle, and let K in K \\ K_P. If K never originates on a regular node, then K is not a subterm of term(n) for any node n in C; in particular, for any penetrator node p in C, K is not a subterm of term(p)."))
+
+;;; ----- Section 5, Needham-Schroeder-Lowe (S-3, 2026-10-07; scratchpad/triage/S-3-REPORT.md) -----
+;;; On the user's model plus S-3's vocabulary (PK-SPACE: an infiltrated space with NAMES and an
+;;; injective PUBKEY from names to keys; IS-INIT-STRAND / IS-RESP-STRAND; IS-NSL-SPACE).  Names
+;;; and nonces are not keys (without it 5.2 is false in the model).
+
+(entry (doc "strand-spaces")
+       (ref "5.2")
+       (kind proposition)
+       (title "The responder's agreement guarantee")
+       (names nsl-responder-agreement nsl-lemma-5-4 nsl-lemma-5-6 nsl-lemma-5-7 nsl-resp-nonce-originates)
+       (status proven)
+       (deviation "On the user's model; the hypotheses 'C-height 3', 'K_A^-1 not in K_P', 'Na /= Nb', 'Nb uniquely originating' as the paper's. The paper's inner argument of Lemma 5.4 case S (the set T) is the theorem nsl-list-source; its 'no regular node contains an encrypted term as a proper subterm' is nsl-regular-encr-subterm; Lemma 2.8 does not apply to T as the paper says, the weaker bundle-minimal-sent-back does.")
+       (notes-statement "Suppose Sigma is an NSL space, C a bundle in Sigma, s a responder strand in Resp[A, B, Na, Nb] with C-height 3, K_A^-1 not in K_P, Na /= Nb and Nb uniquely originating in Sigma. Then C contains an initiator's strand t in Init[A, B, Na, Nb] with C-height 3."))
+
+(entry (doc "strand-spaces")
+       (ref "5.8")
+       (kind proposition)
+       (title "Injectivity: at most one initiator strand for a uniquely originating Na")
+       (names nsl-init-unique nsl-init-nonce-originates)
+       (status proven)
+       (deviation "Stronger than the paper's: two initiator strands with the value Na, whatever their other parameters, have the same identifier.")
+       (notes-statement "If Sigma is an NSL space and Na is uniquely originating in Sigma, then there is at most one strand t in Init[A, B, Na, Nb] for any A, B and Nb."))
+
+(entry (doc "strand-spaces")
+       (ref "5.10")
+       (kind proposition)
+       (title "Secrecy of the responder's nonce")
+       (names nsl-responder-secrecy nsl-responder-nonce-not-sent nsl-lemma-5-11 nsl-lemma-5-12)
+       (status proven)
+       (deviation "The paper's Lemma 5.11 misses the case where Nb is a name; proved with the case.")
+       (notes-statement "Suppose Sigma is an NSL space, C a bundle in Sigma, s a responder's strand in Resp[A, B, Na, Nb], K_A^-1 and K_B^-1 not in K_P, Na /= Nb and Nb uniquely originating in Sigma. Then for all nodes m in C with Nb a subterm of term(m), either {Na Nb B}_KA or {Nb}_KB is a subterm of term(m). In particular Nb /= term(m)."))
+
+(entry (doc "strand-spaces")
+       (ref "5.13")
+       (kind proposition)
+       (title "Secrecy of the initiator's nonce (corrected)")
+       (names nsl-initiator-secrecy nsl-initiator-nonce-not-sent nsl-initiator-secrecy-adversary nsl-initiator-secrecy-regular)
+       (status proven)
+       (deviation "FALSE AS THE PAPER STATES IT, in two ways: two responders may answer the same first message, and then the second one's node holds Na but neither of the paper's two terms, with no adversary involved; and with Na = Nb the initiator's own third node is a counterexample. Proved with Na /= Nb added and the second disjunct widened to {Na x B}_KA for some token x. C-height 3 is not needed.")
+       (notes-statement "Suppose Sigma is an NSL space, C a bundle in Sigma, s an initiator's strand in Init[A, B, Na, Nb] with C-height 3, K_A^-1 and K_B^-1 not in K_P, and Na uniquely originating in Sigma. Then for all nodes m in C with Na a subterm of term(m), either {Na A}_KB or {Na Nb B}_KA is a subterm of term(m). In particular Na /= term(m)."))
+
+(entry (doc "strand-spaces")
+       (ref "5.14")
+       (kind proposition)
+       (title "The initiator's agreement guarantee")
+       (names nsl-initiator-agreement)
+       (status proven)
+       (deviation "Rests on the corrected 5.13, so it carries Na /= Nb; whether it holds without that hypothesis is open.")
+       (notes-statement "Under the hypotheses of Proposition 5.13, C contains a responder's strand t in Resp[A, B, Na, Nb] with C-height at least 2."))

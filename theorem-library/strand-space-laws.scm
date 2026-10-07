@@ -504,7 +504,7 @@
    (FORALL ssx_ (FORALL ssy_ (IMPLIES (IN (LIST ssx_ ssy_) (BSEND c)) (SENDS-TO (BSPACE c) ssx_ ssy_))))))))
 (ssl-bundle-proj! #f)
 (qed 'bundle-send-sends)
-;;; (bundle-next-typing, bundle-next-next, bundle-next-closed -- the projections of the BNEXT slot and
+;;; (bundle-next-typing, bundle-next-next, -- the projections of the BNEXT slot and
 ;;; its two laws -- were here until 2026-10-07; the slot is dropped, see strand-spaces.scm.)
 
 
@@ -1362,9 +1362,9 @@
           '(strand-space-parts keys-in-tokens kinv-in-fun kinv-involution kinv-injective strand-at-id node-parts node-intro node-pair-injective node-ext directed-parts
             node-step-in-directed node-content-in-msgs node-dir-cases sent-ne-received node-sent-or-received
             node-not-sent-and-received node-content-eq ssb-irreflexive ssb-transitive ssu-of-ssb ssu-refl
-            ssu-cases sends-to-dirs bundle-space bundle-nodes-set bundle-send-typing bundle-next-typing
-            bundle-nodes-in-space bundle-finite bundle-send-sends bundle-next-next bundle-received-sender
-            bundle-ssb-closed bundle-next-closed bundle-acyclic bundle-send-nodes ps-in-box ps-least ps-send
+            ssu-cases sends-to-dirs bundle-space bundle-nodes-set bundle-send-typing
+            bundle-nodes-in-space bundle-finite bundle-send-sends bundle-received-sender
+            bundle-ssb-closed bundle-acyclic bundle-send-nodes ps-in-box ps-least ps-send
             ps-ssb ps-trans precedes-strict-trans precedes-strict-irreflexive bundle-send-precedes
             bundle-ssb-precedes precedes-intro-strict precedes-refl precedes-elim ps-last-step precedes-trans
             precedes-antisym precedes-set precedes-partial-order finite-strict-minimal bundle-minimal

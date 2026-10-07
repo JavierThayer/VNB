@@ -3391,6 +3391,11 @@
     "theorem-library/strand-space-laws"   ; node laws, the relations, PRECEDES-STRICT closure / inversion, Lemma 2.7 (partial order, minimal elements), Lemmas 2.8-2.9, origination; 74 theorems (S-2, S-2b)
     "structure-library/strand-adversary"  ; the adversary: ADV-TOKENS, the M F T C S E D traces over a strand space (C, S n-ary; D under KINV), IS-ADVERSARY-TRACE, INFILTRATED-SPACE, adversary / regular nodes (S-2, S-2b)
     "theorem-library/strand-adversary-bound" ; the seven per-trace lemmas, the adversary bound (Proposition 3.3 for any token; the key case is the instance) and its corollary; 17 theorems (S-2, S-2b)
+    ;; S-3 (2026-10-07): Needham-Schroeder-Lowe on the user's model -- the vocabulary (PK-SPACE, the two regular
+    ;; strands, IS-NSL-SPACE) then the 40 theorems: Lemmas 5.3-5.7, Props 5.2, 5.8, 5.10 (with 5.11, 5.12), 5.13
+    ;; CORRECTED (false as the paper states it), 5.14.  scratchpad/triage/S-3-REPORT.md.
+    "structure-library/nsl"
+    "theorem-library/nsl"
     ;; ps-series-bridges -- the three PS/series bridges, PROVEN, plus the
     ;; CONVERGES twin of rr-limit-ptwise-eq that the third needs.  They are what
     ;; lets a theorem about bare series be USED about a power series.  Two are
