@@ -1849,11 +1849,7 @@
 \noindent\textbf{Definition.}
 
 \subsubsection*{\texttt{strand-next}}
-\emph{for every ssp\_, ssn\_, ssm\_, ssm\_ immediately follows ssn\_ on one strand of ssp\_ if and only if ssn\_ is in nodes(ssp\_) and ssm\_ is in nodes(ssp\_) and nth(2, ssn\_) equals nth(2, ssm\_) and nth(1, ssm\_) equals succ(nth(1, ssn\_))}
-{\small\[
-\forall \operatorname{ssp\_}, \operatorname{ssn\_}, \operatorname{ssm\_}.\; (\operatorname{strand\text{-}next}(\operatorname{ssp\_}, \operatorname{ssn\_}, \operatorname{ssm\_}) \Leftrightarrow ((\operatorname{ssn\_} \in \operatorname{nodes}(\operatorname{ssp\_})) \wedge ((\operatorname{ssm\_} \in \operatorname{nodes}(\operatorname{ssp\_})) \wedge ((\operatorname{nth}(2, \operatorname{ssn\_}) = \operatorname{nth}(2, \operatorname{ssm\_})) \wedge (\operatorname{nth}(1, \operatorname{ssm\_}) = (\operatorname{nth}(1, \operatorname{ssn\_}) + 1))))))
-\]}
-\noindent\textbf{Definition.}
+\emph{Definition / vocabulary.}
 
 \subsubsection*{\texttt{occurs-in-space}}
 \emph{for every ssp\_, ssu\_, ssu\_ occurs in the strand space ssp\_ if and only if there is some ssn\_ in nodes(ssp\_) such that ssu\_ is a subterm of node-content(ssp\_, ssn\_) over the tokens tokens(ssp\_) and the keys keys(ssp\_)}
@@ -1894,9 +1890,9 @@
 \emph{Definition / vocabulary.}
 
 \subsubsection*{\texttt{is-bundle}}
-\emph{for every s, s is a bundle if and only if length(s) equals 4 and bspace(s) is a strand space and bnodes(s) is in set and bsend(s) is in power(cartesian(bnodes(s), bnodes(s))) and bnext(s) is in power(cartesian(bnodes(s), bnodes(s))) and for every ssx\_ in bnodes(s), ssx\_ is in nodes(bspace(s)) and card(bnodes(s)) is in nn and for every ssx\_, ssy\_, if [ssx\_, ssy\_] is in bsend(s), then the node ssx\_ of bspace(s) sends to the node ssy\_ and for every ssx\_, ssy\_, if [ssx\_, ssy\_] is in bnext(s), then ssy\_ immediately follows ssx\_ on one strand of bspace(s) and for every ssy\_ in bnodes(s), if the node ssy\_ of bspace(s) is received, then there is some ssx\_ such that [ssx\_, ssy\_] is in bsend(s) and for every ssz\_, if [ssz\_, ssy\_] is in bsend(s), then ssz\_ equals ssx\_ and for every ssy\_ in bnodes(s), ssx\_, if ssx\_ comes strictly before ssy\_ on one strand of bspace(s), then ssx\_ is in bnodes(s) and for every ssy\_ in bnodes(s), ssx\_, if ssy\_ immediately follows ssx\_ on one strand of bspace(s), then [ssx\_, ssy\_] is in bnext(s) and for every ssx\_, [ssx\_, ssx\_] is not in prec-strict(bspace(s), bnodes(s), bsend(s))}
+\emph{for every s, s is a bundle if and only if length(s) equals 3 and bspace(s) is a strand space and bnodes(s) is in set and bsend(s) is in power(cartesian(bnodes(s), bnodes(s))) and for every ssx\_ in bnodes(s), ssx\_ is in nodes(bspace(s)) and card(bnodes(s)) is in nn and for every ssx\_, ssy\_, if [ssx\_, ssy\_] is in bsend(s), then the node ssx\_ of bspace(s) sends to the node ssy\_ and for every ssy\_ in bnodes(s), if the node ssy\_ of bspace(s) is received, then there is some ssx\_ such that [ssx\_, ssy\_] is in bsend(s) and for every ssz\_, if [ssz\_, ssy\_] is in bsend(s), then ssz\_ equals ssx\_ and for every ssy\_ in bnodes(s), ssx\_, if ssx\_ comes strictly before ssy\_ on one strand of bspace(s), then ssx\_ is in bnodes(s) and for every ssx\_, [ssx\_, ssx\_] is not in prec-strict(bspace(s), bnodes(s), bsend(s))}
 {\small\[
-\forall s.\; (\operatorname{is\text{-}bundle}(s) \Leftrightarrow ((\operatorname{length}(s) = 4) \wedge (\operatorname{is\text{-}strand\text{-}space}(\operatorname{bspace}(s)) \wedge ((\operatorname{bnodes}(s) \in \mathbf{Set}) \wedge ((\operatorname{bsend}(s) \in \operatorname{power}((\operatorname{bnodes}(s) \times \operatorname{bnodes}(s)))) \wedge ((\operatorname{bnext}(s) \in \operatorname{power}((\operatorname{bnodes}(s) \times \operatorname{bnodes}(s)))) \wedge (\forall \operatorname{ssx\_} \in \operatorname{bnodes}(s).\; (\operatorname{ssx\_} \in \operatorname{nodes}(\operatorname{bspace}(s))) \wedge ((|\operatorname{bnodes}(s)| \in \mathbb{N}) \wedge (\forall \operatorname{ssx\_}, \operatorname{ssy\_}.\; ((\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{bsend}(s)) \Rightarrow \operatorname{sends\text{-}to}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_})) \wedge (\forall \operatorname{ssx\_}, \operatorname{ssy\_}.\; ((\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{bnext}(s)) \Rightarrow \operatorname{strand\text{-}next}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_})) \wedge (\forall \operatorname{ssy\_} \in \operatorname{bnodes}(s).\; (\operatorname{is\text{-}received}(\operatorname{bspace}(s), \operatorname{ssy\_}) \Rightarrow \exists \operatorname{ssx\_}.\; ((\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{bsend}(s)) \wedge \forall \operatorname{ssz\_}.\; ((\langle \operatorname{ssz\_}, \operatorname{ssy\_} \rangle \in \operatorname{bsend}(s)) \Rightarrow (\operatorname{ssz\_} = \operatorname{ssx\_})))) \wedge (\forall \operatorname{ssy\_} \in \operatorname{bnodes}(s), \operatorname{ssx\_}.\; (\operatorname{same\text{-}strand\text{-}before}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_}) \Rightarrow (\operatorname{ssx\_} \in \operatorname{bnodes}(s))) \wedge (\forall \operatorname{ssy\_} \in \operatorname{bnodes}(s), \operatorname{ssx\_}.\; (\operatorname{strand\text{-}next}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_}) \Rightarrow (\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{bnext}(s))) \wedge \forall \operatorname{ssx\_}.\; \neg (\langle \operatorname{ssx\_}, \operatorname{ssx\_} \rangle \in \operatorname{prec\text{-}strict}(\operatorname{bspace}(s), \operatorname{bnodes}(s), \operatorname{bsend}(s))))))))))))))))
+\forall s.\; (\operatorname{is\text{-}bundle}(s) \Leftrightarrow ((\operatorname{length}(s) = 3) \wedge (\operatorname{is\text{-}strand\text{-}space}(\operatorname{bspace}(s)) \wedge ((\operatorname{bnodes}(s) \in \mathbf{Set}) \wedge ((\operatorname{bsend}(s) \in \operatorname{power}((\operatorname{bnodes}(s) \times \operatorname{bnodes}(s)))) \wedge (\forall \operatorname{ssx\_} \in \operatorname{bnodes}(s).\; (\operatorname{ssx\_} \in \operatorname{nodes}(\operatorname{bspace}(s))) \wedge ((|\operatorname{bnodes}(s)| \in \mathbb{N}) \wedge (\forall \operatorname{ssx\_}, \operatorname{ssy\_}.\; ((\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{bsend}(s)) \Rightarrow \operatorname{sends\text{-}to}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_})) \wedge (\forall \operatorname{ssy\_} \in \operatorname{bnodes}(s).\; (\operatorname{is\text{-}received}(\operatorname{bspace}(s), \operatorname{ssy\_}) \Rightarrow \exists \operatorname{ssx\_}.\; ((\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{bsend}(s)) \wedge \forall \operatorname{ssz\_}.\; ((\langle \operatorname{ssz\_}, \operatorname{ssy\_} \rangle \in \operatorname{bsend}(s)) \Rightarrow (\operatorname{ssz\_} = \operatorname{ssx\_})))) \wedge (\forall \operatorname{ssy\_} \in \operatorname{bnodes}(s), \operatorname{ssx\_}.\; (\operatorname{same\text{-}strand\text{-}before}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_}) \Rightarrow (\operatorname{ssx\_} \in \operatorname{bnodes}(s))) \wedge \forall \operatorname{ssx\_}.\; \neg (\langle \operatorname{ssx\_}, \operatorname{ssx\_} \rangle \in \operatorname{prec\text{-}strict}(\operatorname{bspace}(s), \operatorname{bnodes}(s), \operatorname{bsend}(s)))))))))))))
 \]}
 \noindent\textbf{Definition.}
 
@@ -2185,56 +2181,56 @@
 {\small\[
 \forall \mathit{spa}.; \forall k \in \mathbb{N}, a \in \operatorname{ids}(\mathit{spa}).\; ((1 \leq k) \Rightarrow ((k \leq \operatorname{length}(\operatorname{strand\text{-}map}(\mathit{spa})(a))) \Rightarrow (\langle k, a \rangle \in \operatorname{nodes}(\mathit{spa}))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{node-parts}}
 \emph{for every spa, n in nodes(spa), nth(1, n) is in nn and nth(2, n) is in ids(spa) and 1 is at most nth(1, n) and nth(1, n) is at most length((strand-map(spa))(nth(2, n))) and n equals [nth(1, n), nth(2, n)]}
 {\small\[
 \forall \mathit{spa}.; \forall n \in \operatorname{nodes}(\mathit{spa}).\; ((\operatorname{nth}(1, n) \in \mathbb{N}) \wedge ((\operatorname{nth}(2, n) \in \operatorname{ids}(\mathit{spa})) \wedge ((1 \leq \operatorname{nth}(1, n)) \wedge ((\operatorname{nth}(1, n) \leq \operatorname{length}(\operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n)))) \wedge (n = \langle \operatorname{nth}(1, n), \operatorname{nth}(2, n) \rangle)))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{node-content-in-msgs}}
 \emph{for every spa, n, if spa is a strand space, then if n is in nodes(spa), then node-content(spa, n) is in msg-set(tokens(spa), keys(spa))}
 {\small\[
 \forall \mathit{spa}, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{node\text{-}content}(\mathit{spa}, n) \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa})))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{node-sent-or-received}}
 \emph{for every spa, n, if spa is a strand space, then if n is in nodes(spa), then the node n of spa is sent or the node n of spa is received}
 {\small\[
 \forall \mathit{spa}, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}sent}(\mathit{spa}, n) \vee \operatorname{is\text{-}received}(\mathit{spa}, n))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{node-not-sent-and-received}}
 \emph{for every spa, n, if the node n of spa is sent, then it is not the case that the node n of spa is received}
 {\small\[
 \forall \mathit{spa}, n.\; (\operatorname{is\text{-}sent}(\mathit{spa}, n) \Rightarrow \neg \operatorname{is\text{-}received}(\mathit{spa}, n))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{ssb-irreflexive}}
 \emph{for every spa, n, it is not the case that n comes strictly before n on one strand of spa}
 {\small\[
 \forall \mathit{spa}, n.\; \neg \operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, n, n)
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{ssb-transitive}}
 \emph{for every spa, x, y, z, if x comes strictly before y on one strand of spa, then if y comes strictly before z on one strand of spa, then x comes strictly before z on one strand of spa}
 {\small\[
 \forall \mathit{spa}, x, y, z.\; (\operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, x, y) \Rightarrow (\operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, y, z) \Rightarrow \operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, x, z)))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{sends-to-dirs}}
 \emph{for every spa, x, y, if the node x of spa sends to the node y, then the node x of spa is sent and the node y of spa is received and node-content(spa, x) equals node-content(spa, y)}
 {\small\[
 \forall \mathit{spa}, x, y.\; (\operatorname{sends\text{-}to}(\mathit{spa}, x, y) \Rightarrow (\operatorname{is\text{-}sent}(\mathit{spa}, x) \wedge (\operatorname{is\text{-}received}(\mathit{spa}, y) \wedge (\operatorname{node\text{-}content}(\mathit{spa}, x) = \operatorname{node\text{-}content}(\mathit{spa}, y)))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{directed-intro}}
 \emph{for every t, k, g in msg-set(t, k), [sent, g] is in directed(t, k) and [received, g] is in directed(t, k)}
@@ -2248,7 +2244,7 @@
 {\small\[
 \forall \mathit{spa}, n, k, d.\; ((\operatorname{nth}(1, n) = k) \Rightarrow ((\operatorname{nth}(k, \operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n))) = d) \Rightarrow ((\operatorname{node\text{-}content}(\mathit{spa}, n) \simeq \operatorname{nth}(2, d)) \wedge (\operatorname{node\text{-}dir}(\mathit{spa}, n) \simeq \operatorname{nth}(1, d)))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsection{Causal precedence (Lemma 2.7)}
 
@@ -2257,70 +2253,70 @@
 {\small\[
 \forall \mathit{spa}.; \forall \mathit{nd} \in \mathbf{Set}, \mathit{ed} \in \operatorname{power}((\mathit{nd} \times \mathit{nd})).\; \forall x, y.\; ((\langle x, y \rangle \in \operatorname{prec\text{-}strict}(\mathit{spa}, \mathit{nd}, \mathit{ed})) \Rightarrow \exists z.\; (((\langle z, y \rangle \in \mathit{ed}) \vee ((z \in \mathit{nd}) \wedge \operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, z, y))) \wedge ((z = x) \vee (\langle x, z \rangle \in \operatorname{prec\text{-}strict}(\mathit{spa}, \mathit{nd}, \mathit{ed})))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{precedes-elim}}
 \emph{for every c, x, y, if [x, y] is in precedes(c), then [x, y] is in precedes-strict(c) or x equals y and x is in bnodes(c)}
 {\small\[
 \forall c, x, y.\; ((\langle x, y \rangle \in \operatorname{precedes}(c)) \Rightarrow ((\langle x, y \rangle \in \operatorname{precedes\text{-}strict}(c)) \vee ((x = y) \wedge (x \in \operatorname{bnodes}(c)))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{bundle-send-precedes}}
 \emph{for every c, x, y, if c is a bundle, then if [x, y] is in bsend(c), then [x, y] is in precedes-strict(c)}
 {\small\[
 \forall c, x, y.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow ((\langle x, y \rangle \in \operatorname{bsend}(c)) \Rightarrow (\langle x, y \rangle \in \operatorname{precedes\text{-}strict}(c))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{bundle-ssb-precedes}}
 \emph{for every c, x, y, if c is a bundle, then if y is in bnodes(c), then if x comes strictly before y on one strand of bspace(c), then [x, y] is in precedes-strict(c)}
 {\small\[
 \forall c, x, y.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow ((y \in \operatorname{bnodes}(c)) \Rightarrow (\operatorname{same\text{-}strand\text{-}before}(\operatorname{bspace}(c), x, y) \Rightarrow (\langle x, y \rangle \in \operatorname{precedes\text{-}strict}(c)))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{bundle-ssb-closed}}
 \emph{for every bundle c, for every ssy\_ in bnodes(c), ssx\_, if ssx\_ comes strictly before ssy\_ on one strand of bspace(c), then ssx\_ is in bnodes(c)}
 {\small\[
 \forall c.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow \forall \operatorname{ssy\_} \in \operatorname{bnodes}(c), \operatorname{ssx\_}.\; (\operatorname{same\text{-}strand\text{-}before}(\operatorname{bspace}(c), \operatorname{ssx\_}, \operatorname{ssy\_}) \Rightarrow (\operatorname{ssx\_} \in \operatorname{bnodes}(c))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{bundle-received-sender}}
 \emph{for every bundle c, for every ssy\_ in bnodes(c), if the node ssy\_ of bspace(c) is received, then there is some ssx\_ such that [ssx\_, ssy\_] is in bsend(c) and for every ssz\_, if [ssz\_, ssy\_] is in bsend(c), then ssz\_ equals ssx\_}
 {\small\[
 \forall c.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow \forall \operatorname{ssy\_} \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}received}(\operatorname{bspace}(c), \operatorname{ssy\_}) \Rightarrow \exists \operatorname{ssx\_}.\; ((\langle \operatorname{ssx\_}, \operatorname{ssy\_} \rangle \in \operatorname{bsend}(c)) \wedge \forall \operatorname{ssz\_}.\; ((\langle \operatorname{ssz\_}, \operatorname{ssy\_} \rangle \in \operatorname{bsend}(c)) \Rightarrow (\operatorname{ssz\_} = \operatorname{ssx\_})))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{precedes-partial-order}}
 \emph{for every bundle c, precedes(c) partially orders bnodes(c)}
 {\small\[
 \forall c.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow \operatorname{is\text{-}partial\text{-}order}(\operatorname{bnodes}(c), \operatorname{precedes}(c)))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{finite-strict-minimal}}
 \emph{for every r, if for every x, y, z, if [x, y] is in r, then if [y, z] is in r, then [x, z] is in r, then if for every x, [x, x] is not in r, then for every s in set, if card(s) is in nn, then if there is some w such that w is in s, then there is some m in s such that for every z in s, [z, m] is not in r}
 {\small\[
 \forall r.\; (\forall x, y, z.\; ((\langle x, y \rangle \in r) \Rightarrow ((\langle y, z \rangle \in r) \Rightarrow (\langle x, z \rangle \in r))) \Rightarrow (\forall x.\; \neg (\langle x, x \rangle \in r) \Rightarrow \forall s \in \mathbf{Set}.\; ((|s| \in \mathbb{N}) \Rightarrow (\exists w.\; (w \in s) \Rightarrow \exists m \in s.\; \forall z \in s.\; \neg (\langle z, m \rangle \in r)))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{bundle-minimal}}
 \emph{for every c, s, if c is a bundle, then if for every z in s, z is in bnodes(c), then if there is some w such that w is in s, then there is some m in s such that for every z in s, [z, m] is not in precedes-strict(c)}
 {\small\[
 \forall c, s.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \Rightarrow (\exists w.\; (w \in s) \Rightarrow \exists m \in s.\; \forall z \in s.\; \neg (\langle z, m \rangle \in \operatorname{precedes\text{-}strict}(c)))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{bundle-minimal-precedes}}
 \emph{for every c, s, if c is a bundle, then if for every z in s, z is in bnodes(c), then if there is some w such that w is in s, then there is some m in s such that for every z in s, if z is not equal to m, then [z, m] is not in precedes(c)}
 {\small\[
 \forall c, s.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \Rightarrow (\exists w.\; (w \in s) \Rightarrow \exists m \in s.\; \forall z \in s.\; (\neg (z = m) \Rightarrow \neg (\langle z, m \rangle \in \operatorname{precedes}(c))))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsection{Origination (Lemmas 2.8, 2.9)}
 
@@ -2329,49 +2325,49 @@
 {\small\[
 \forall c, s, n.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \Rightarrow (\forall x, y \in \operatorname{bnodes}(c).\; ((\operatorname{node\text{-}content}(\operatorname{bspace}(c), x) = \operatorname{node\text{-}content}(\operatorname{bspace}(c), y)) \Rightarrow ((y \in s) \Rightarrow (x \in s))) \Rightarrow ((n \in s) \Rightarrow (\forall z \in s.\; \neg (\langle z, n \rangle \in \operatorname{precedes\text{-}strict}(c)) \Rightarrow \operatorname{is\text{-}sent}(\operatorname{bspace}(c), n))))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{bundle-minimal-originates}}
 \emph{for every c, u, n, if c is a bundle, then if n is in bnodes(c), then if u is a subterm of node-content(bspace(c), n) over the tokens tokens(bspace(c)) and the keys keys(bspace(c)), then if for every z in bnodes(c), if u is a subterm of node-content(bspace(c), z) over the tokens tokens(bspace(c)) and the keys keys(bspace(c)), then [z, n] is not in precedes-strict(c), then u originates on the node n of bspace(c)}
 {\small\[
 \forall c, u, n.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow ((n \in \operatorname{bnodes}(c)) \Rightarrow (\operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{bspace}(c)), \operatorname{keys}(\operatorname{bspace}(c)), u, \operatorname{node\text{-}content}(\operatorname{bspace}(c), n)) \Rightarrow (\forall z \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{bspace}(c)), \operatorname{keys}(\operatorname{bspace}(c)), u, \operatorname{node\text{-}content}(\operatorname{bspace}(c), z)) \Rightarrow \neg (\langle z, n \rangle \in \operatorname{precedes\text{-}strict}(c))) \Rightarrow \operatorname{originates}(\operatorname{bspace}(c), u, n)))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{originates-intro}}
 \emph{for every spa, u, n, if spa is a strand space, then if n is in nodes(spa), then if the node n of spa is sent, then if u is a subterm of node-content(spa, n) over the tokens tokens(spa) and the keys keys(spa), then if for every m, if m comes strictly before n on one strand of spa, then it is not the case that u is a subterm of node-content(spa, m) over the tokens tokens(spa) and the keys keys(spa), then u originates on the node n of spa}
 {\small\[
 \forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \Rightarrow (\operatorname{is\text{-}sent}(\mathit{spa}, n) \Rightarrow (\operatorname{is\text{-}subterm}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}), u, \operatorname{node\text{-}content}(\mathit{spa}, n)) \Rightarrow (\forall m.\; (\operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, m, n) \Rightarrow \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}), u, \operatorname{node\text{-}content}(\mathit{spa}, m))) \Rightarrow \operatorname{originates}(\mathit{spa}, u, n))))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{originates-elim}}
 \emph{for every spa, u, n, if spa is a strand space, then if u originates on the node n of spa, then n is in nodes(spa) and the node n of spa is sent and u is a subterm of node-content(spa, n) over the tokens tokens(spa) and the keys keys(spa) and for every m, if m comes strictly before n on one strand of spa, then it is not the case that u is a subterm of node-content(spa, m) over the tokens tokens(spa) and the keys keys(spa)}
 {\small\[
 \forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow (\operatorname{originates}(\mathit{spa}, u, n) \Rightarrow ((n \in \operatorname{nodes}(\mathit{spa})) \wedge (\operatorname{is\text{-}sent}(\mathit{spa}, n) \wedge (\operatorname{is\text{-}subterm}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}), u, \operatorname{node\text{-}content}(\mathit{spa}, n)) \wedge \forall m.\; (\operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, m, n) \Rightarrow \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}), u, \operatorname{node\text{-}content}(\mathit{spa}, m))))))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{originates-sent}}
 \emph{for every spa, u, n, if spa is a strand space, then if u originates on the node n of spa, then the node n of spa is sent and u is a subterm of node-content(spa, n) over the tokens tokens(spa) and the keys keys(spa)}
 {\small\[
 \forall \mathit{spa}, u, n.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow (\operatorname{originates}(\mathit{spa}, u, n) \Rightarrow (\operatorname{is\text{-}sent}(\mathit{spa}, n) \wedge \operatorname{is\text{-}subterm}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}), u, \operatorname{node\text{-}content}(\mathit{spa}, n)))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{originates-no-earlier}}
 \emph{for every spa, u, n, m, if spa is a strand space, then if u originates on the node n of spa, then if m comes strictly before n on one strand of spa, then it is not the case that u is a subterm of node-content(spa, m) over the tokens tokens(spa) and the keys keys(spa)}
 {\small\[
 \forall \mathit{spa}, u, n, m.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow (\operatorname{originates}(\mathit{spa}, u, n) \Rightarrow (\operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, m, n) \Rightarrow \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}), u, \operatorname{node\text{-}content}(\mathit{spa}, m)))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{originates-unique}}
 \emph{for every spa, u, n, m, if u originates uniquely in the strand space spa, then if u originates on the node n of spa, then if u originates on the node m of spa, then m equals n}
 {\small\[
 \forall \mathit{spa}, u, n, m.\; (\operatorname{uniquely\text{-}originates}(\mathit{spa}, u) \Rightarrow (\operatorname{originates}(\mathit{spa}, u, n) \Rightarrow (\operatorname{originates}(\mathit{spa}, u, m) \Rightarrow (m = n))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsection{The adversary bound (Proposition 3.3)}
 
@@ -2464,13 +2460,13 @@
 {\small\[
 \forall \mathit{isp}, c, u.\; (\operatorname{is\text{-}infiltrated\text{-}space}(\mathit{isp}) \Rightarrow (\operatorname{is\text{-}bundle}(c) \Rightarrow ((\operatorname{bspace}(c) = \operatorname{ispace}(\mathit{isp})) \Rightarrow ((u \in \operatorname{tokens}(\operatorname{ispace}(\mathit{isp}))) \Rightarrow (\neg (u \in \operatorname{adv\text{-}tokens}(\mathit{isp})) \Rightarrow (\forall n \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}regular\text{-}node}(\mathit{isp}, n) \Rightarrow \neg \operatorname{originates}(\operatorname{ispace}(\mathit{isp}), u, n)) \Rightarrow \forall n \in \operatorname{bnodes}(c).\; \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\mathit{isp})), \operatorname{keys}(\operatorname{ispace}(\mathit{isp})), u, \operatorname{node\text{-}content}(\operatorname{ispace}(\mathit{isp}), n))))))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{adversary-bound-adversary-nodes}}
 \emph{for every isp, c, u, if isp is an infiltrated strand space, then if c is a bundle, then if bspace(c) equals ispace(isp), then if u is in tokens(ispace(isp)), then if u is not in adv-tokens(isp), then if for every n in bnodes(c), if n is a regular node of isp, then it is not the case that u originates on the node n of ispace(isp), then for every n in bnodes(c), if n is an adversary node of isp, then it is not the case that u is a subterm of node-content(ispace(isp), n) over the tokens tokens(ispace(isp)) and the keys keys(ispace(isp))}
 {\small\[
 \forall \mathit{isp}, c, u.\; (\operatorname{is\text{-}infiltrated\text{-}space}(\mathit{isp}) \Rightarrow (\operatorname{is\text{-}bundle}(c) \Rightarrow ((\operatorname{bspace}(c) = \operatorname{ispace}(\mathit{isp})) \Rightarrow ((u \in \operatorname{tokens}(\operatorname{ispace}(\mathit{isp}))) \Rightarrow (\neg (u \in \operatorname{adv\text{-}tokens}(\mathit{isp})) \Rightarrow (\forall n \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}regular\text{-}node}(\mathit{isp}, n) \Rightarrow \neg \operatorname{originates}(\operatorname{ispace}(\mathit{isp}), u, n)) \Rightarrow \forall n \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}adversary\text{-}node}(\mathit{isp}, n) \Rightarrow \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\mathit{isp})), \operatorname{keys}(\operatorname{ispace}(\mathit{isp})), u, \operatorname{node\text{-}content}(\operatorname{ispace}(\mathit{isp}), n)))))))))
 \]}
-\noindent\textbf{Asserted}
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \end{document}

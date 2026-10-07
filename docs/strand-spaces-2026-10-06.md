@@ -147,7 +147,7 @@ the user's definitions and two stand and are answered:
 1. Confirm the vocabulary of section 1 (in particular `IS-TOKEN-SET` via `TUPLES(SET)`, `STRAND-MAP`,
    `KINV`, `BNODES` / `BSEND` / `BNEXT`, `ADV-IDS` / `ADV-TOKENS`, the trace predicates over the space).
 2. Confirm the subterm convention: the key is not a subterm of the encryption.
-3. `BNEXT`: keep (Definition 2.4 fidelity) or drop (unused). Recommendation: keep until S-3 (NSL) shows
+3. `BNEXT`: DROPPED 2026-10-07 (the user's decision): the paper's =>_C is determined by the bundle's nodes (clause 3 with =>_C subset =>) and no theorem used it; STRAND-NEXT went with it. (Was: keep until S-3 (NSL) shows
    whether a protocol proof uses it.
 
 ## 5. What S-3 (Needham-Schroeder-Lowe) writes

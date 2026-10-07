@@ -75,18 +75,22 @@
 ;;;     substructure BSPACE  a STRAND-SPACE (the space the bundle lives in)
 ;;;     carrier      BNODES  the bundle's nodes
 ;;;     relation     BSEND   on BNODES: the bundle's --> edges
-;;;     relation     BNEXT   on BNODES: the bundle's => edges
+;;; (the paper's second edge set =>_C, carried as a slot BNEXT until 2026-10-07, is DROPPED: by the
+;;; paper's clause 3 together with =>_C subset => it is exactly the same-strand edges among the
+;;; bundle's nodes, so it was data determined by BNODES, and no theorem used it -- the user's
+;;; decision, 2026-10-07)
 ;;; and the laws:
 ;;;   (1) every member of BNODES is a node of BSPACE;
 ;;;   (2) CARD(BNODES) in NN (the paper: "C is finite");
-;;;   (3) every pair in BSEND satisfies SENDS-TO; (4) every pair in BNEXT satisfies STRAND-NEXT;
+;;;   (3) every pair in BSEND satisfies SENDS-TO;
 ;;;   (5) every RECEIVED node of BNODES has EXACTLY ONE BSEND-predecessor (the paper's "unique";
 ;;;       carried as the paper has it -- see the laws file for where uniqueness is used);
 ;;;   (6) CLOSED UNDER ==>: if n in BNODES and n' ==> n then n' in BNODES -- ONE clause, since
 ;;;       ==> is the whole strict same-strand order; the paper's "apply clause 3 as many times as
 ;;;       necessary" in the proof of its Lemma 2.9 dissolves (finding (b));
-;;;   (7) [n', n] in BNEXT whenever n in BNODES and STRAND-NEXT(n', n) (the paper's clause 3);
-;;;   (8) ACYCLIC: no [n, n] in the strict causal precedence.
+;;;   (7) ACYCLIC: no [n, n] in the strict causal precedence.
+;;; (Laws (4) and (7) of the first version typed BNEXT by STRAND-NEXT and made it contain every
+;;; STRAND-NEXT edge into BNODES; gone with the slot.)
 ;;; The space is a SUBSTRUCTURE slot rather than a parameter: a bundle is an object (the user's
 ;;; standing rule: a structure is a declare-structure), every later statement quantifies over one
 ;;; c, and IS-BUNDLE(c) carries IS-STRAND-SPACE(BSPACE c).  BNODES, not NODES: NODES(sp) is the
@@ -101,10 +105,9 @@
 ;;;   PRECEDES-STRICT(c) = PREC-STRICT(BSPACE c, BNODES c, BSEND c)   (the paper's "<")
 ;;;   PRECEDES(c)        = PRECEDES-STRICT(c) u the identity on BNODES(c)  (the paper's "<=")
 ;;; PREC-STRICT is stated on loose data because the acyclicity law (8) must name it BEFORE the
-;;; structure exists.  The generator is BSEND u (==> on BNODES), NOT BSEND u BNEXT: the user's
-;;; ==> is already transitive, and the two generate the same closure (BNEXT is inside ==> by
-;;; law (4); each ==> pair is a chain of BNEXT steps by law (7) -- a chain the paper never
-;;; needs once ==> is in the generator).
+;;; structure exists.  The generator is BSEND u (==> on BNODES): the user's ==> is already
+;;; transitive, so the paper's one-step edges =>_C add nothing to the closure (which is why
+;;; BNEXT could go).
 ;;;
 ;;; STATEMENT CHECKS.  (1) Every equation here is a definition; nothing is asserted.  (2) No
 ;;; index untyped: NODES carries 1 <= k <= LENGTH, and k, a are typed by the CARTESIAN.
@@ -209,13 +212,8 @@
                        (= (NODE-CONTENT ssp_ ssn_) (NODE-CONTENT ssp_ ssm_)))))))
 (notation! 'SENDS-TO 'kind 'predicate 'arity 3 'english "the node $2 of $1 sends to the node $3")
 
-(def-predicate 'STRAND-NEXT '(ssp_ ssn_ ssm_)
-  '(AND (IN ssn_ (NODES ssp_))
-        (AND (IN ssm_ (NODES ssp_))
-             (AND (= (NTH 2 ssn_) (NTH 2 ssm_))
-                  (= (NTH 1 ssm_) (succ (NTH 1 ssn_)))))))
-(notation! 'STRAND-NEXT 'kind 'predicate 'arity 3
-           'english "$3 immediately follows $2 on one strand of $1")
+;;; STRAND-NEXT(sp, n, m) -- the paper's one-step same-strand edge n => m -- was defined here until
+;;; 2026-10-07 for the BNEXT laws alone; dropped with BNEXT.  SAME-STRAND-BEFORE is the order.
 
 ;;; -----------------------------------------------------------------------
 ;;; Occurrence and origination.
@@ -273,18 +271,14 @@
   (substructure BSPACE STRAND-SPACE)
   (carriers BNODES)
   (relation BSEND BNODES)
-  (relation BNEXT BNODES)
   (law (FORALL ssx_ (IMPLIES (IN ssx_ (BNODES s)) (IN ssx_ (NODES (BSPACE s))))))
   (law (IN (CARD (BNODES s)) NN))
   (law (FORALL ssx_ (FORALL ssy_ (IMPLIES (IN (LIST ssx_ ssy_) (BSEND s)) (SENDS-TO (BSPACE s) ssx_ ssy_)))))
-  (law (FORALL ssx_ (FORALL ssy_ (IMPLIES (IN (LIST ssx_ ssy_) (BNEXT s)) (STRAND-NEXT (BSPACE s) ssx_ ssy_)))))
   (law (FORALL ssy_ (IMPLIES (IN ssy_ (BNODES s)) (IMPLIES (IS-RECEIVED (BSPACE s) ssy_)
          (FORSOME ssx_ (AND (IN (LIST ssx_ ssy_) (BSEND s))
                             (FORALL ssz_ (IMPLIES (IN (LIST ssz_ ssy_) (BSEND s)) (= ssz_ ssx_)))))))))
   (law (FORALL ssy_ (IMPLIES (IN ssy_ (BNODES s))
          (FORALL ssx_ (IMPLIES (SAME-STRAND-BEFORE (BSPACE s) ssx_ ssy_) (IN ssx_ (BNODES s)))))))
-  (law (FORALL ssy_ (IMPLIES (IN ssy_ (BNODES s))
-         (FORALL ssx_ (IMPLIES (STRAND-NEXT (BSPACE s) ssx_ ssy_) (IN (LIST ssx_ ssy_) (BNEXT s)))))))
   (law (FORALL ssx_ (NOT (IN (LIST ssx_ ssx_) (PREC-STRICT (BSPACE s) (BNODES s) (BSEND s)))))))
 
 (notation! 'IS-BUNDLE 'noun "bundle" 'article "a")

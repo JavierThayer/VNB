@@ -5,7 +5,7 @@ digraph VNB {
   edge [fontname="Helvetica", fontsize=11];
 
   "abelian-group" [tooltip="abelian-group -- slots (carr opr iden inv)", URL="structure-graph.html#abelian-group"];
-  "bundle" [tooltip="bundle -- slots (bspace bnodes bsend bnext)", URL="structure-graph.html#bundle"];
+  "bundle" [tooltip="bundle -- slots (bspace bnodes bsend)", URL="structure-graph.html#bundle"];
   "c-metric-space" [tooltip="c-metric-space -- slots (pts dists)", URL="structure-graph.html#c-metric-space"];
   "cc-ms" [tooltip="cc-ms -- slots (pts dist)", URL="structure-graph.html#cc-ms"];
   "cc-normed-field" [tooltip="cc-normed-field -- slots (carr add mul neg zero one fnrm)", URL="structure-graph.html#cc-normed-field"];

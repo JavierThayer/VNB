@@ -490,9 +490,6 @@
 (ssl-bundle-proj! #f)
 (qed 'bundle-send-typing)
 
-(sp (make-wff '(FORALL c (IMPLIES (IS-BUNDLE c) (IN (BNEXT c) (POWER (CARTESIAN (BNODES c) (BNODES c))))))))
-(ssl-bundle-proj! #f)
-(qed 'bundle-next-typing)
 
 (sp (make-wff '(FORALL c (IMPLIES (IS-BUNDLE c)
    (FORALL ssx_ (IMPLIES (IN ssx_ (BNODES c)) (IN ssx_ (NODES (BSPACE c)))))))))
@@ -507,11 +504,9 @@
    (FORALL ssx_ (FORALL ssy_ (IMPLIES (IN (LIST ssx_ ssy_) (BSEND c)) (SENDS-TO (BSPACE c) ssx_ ssy_))))))))
 (ssl-bundle-proj! #f)
 (qed 'bundle-send-sends)
+;;; (bundle-next-typing, bundle-next-next, bundle-next-closed -- the projections of the BNEXT slot and
+;;; its two laws -- were here until 2026-10-07; the slot is dropped, see strand-spaces.scm.)
 
-(sp (make-wff '(FORALL c (IMPLIES (IS-BUNDLE c)
-   (FORALL ssx_ (FORALL ssy_ (IMPLIES (IN (LIST ssx_ ssy_) (BNEXT c)) (STRAND-NEXT (BSPACE c) ssx_ ssy_))))))))
-(ssl-bundle-proj! #f)
-(qed 'bundle-next-next)
 
 (sp (make-wff '(FORALL c (IMPLIES (IS-BUNDLE c)
    (FORALL ssy_ (IMPLIES (IN ssy_ (BNODES c)) (IMPLIES (IS-RECEIVED (BSPACE c) ssy_)
@@ -526,11 +521,6 @@
 (ssl-bundle-proj! #f)
 (qed 'bundle-ssb-closed)
 
-(sp (make-wff '(FORALL c (IMPLIES (IS-BUNDLE c)
-   (FORALL ssy_ (IMPLIES (IN ssy_ (BNODES c))
-     (FORALL ssx_ (IMPLIES (STRAND-NEXT (BSPACE c) ssx_ ssy_) (IN (LIST ssx_ ssy_) (BNEXT c))))))))))
-(ssl-bundle-proj! #f)
-(qed 'bundle-next-closed)
 
 (sp (make-wff '(FORALL c (IMPLIES (IS-BUNDLE c)
    (FORALL ssx_ (NOT (IN (LIST ssx_ ssx_) (PREC-STRICT (BSPACE c) (BNODES c) (BSEND c)))))))))

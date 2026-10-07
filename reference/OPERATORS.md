@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-667 operators: 3 functions, 11 syntax, 388 functoids, 262 predicates, 3 undeclared.
+665 operators: 3 functions, 11 syntax, 387 functoids, 261 predicates, 3 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (388)
+## Functoids  (387)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -127,10 +127,6 @@ Declared by: `bintimes-apply` `etimes-def` `etimes-real-defined` `nary-times-2` 
 ### `block`  — def-functoid · element/number-valued
 
     block(p, k, l) := matof(k, l, vnb-lambda([i, j], cartesian(interval(1, k), interval(1, l)), entry(p, i, j)))
-
-### `bnext`  — structure accessor · element (slot value)
-
-> _Reads as:_  the bnext slot of s
 
 ### `bnodes`  — structure accessor · element (slot value)
 
@@ -1866,7 +1862,7 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (262)
+## Predicates  (261)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -2865,10 +2861,6 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `spans`  — def-predicate · proposition (arity 4)
 
 > _Reads as:_  the n vectors u span sm in md
-
-### `strand-next`  — def-predicate · proposition (arity 3)
-
-> _Reads as:_  ssm_ immediately follows ssn_ on one strand of ssp_
 
 ### `strictly-mono-nn`  — def-predicate · proposition (arity 1)
 

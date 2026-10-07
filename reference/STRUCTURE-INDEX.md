@@ -243,9 +243,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (4): `bspace` substructure, a strand-space; `bnodes` carrier; `bsend` relation on bnodes; `bnext` relation on bnodes.
+*Slots* (3): `bspace` substructure, a strand-space; `bnodes` carrier; `bsend` relation on bnodes.
 
-*Default arrows* (`is-hom-bundle-def`): forall([a, b, f], is-hom-bundle(a, b, f) iff is-bundle(a) and is-bundle(b) and f in fun(bnodes(a), bnodes(b)) and bspace(a) = bspace(b) and forall([x1_ in bnodes(a), x2_ in bnodes(a)], [x1_, x2_] in bsend(a) implies [f(x1_), f(x2_)] in bsend(b)) and forall([x1_ in bnodes(a), x2_ in bnodes(a)], [x1_, x2_] in bnext(a) implies [f(x1_), f(x2_)] in bnext(b)))
+*Default arrows* (`is-hom-bundle-def`): forall([a, b, f], is-hom-bundle(a, b, f) iff is-bundle(a) and is-bundle(b) and f in fun(bnodes(a), bnodes(b)) and bspace(a) = bspace(b) and forall([x1_ in bnodes(a), x2_ in bnodes(a)], [x1_, x2_] in bsend(a) implies [f(x1_), f(x2_)] in bsend(b)))
 
 *Declaration.*
 
@@ -255,28 +255,22 @@ Adjacency-list view of the view-as directed graph: each target structure with th
   (substructure bspace strand-space)
   (carriers bnodes)
   (relation bsend bnodes)
-  (relation bnext bnodes)
   (law (forall ssx_ (implies (in ssx_ (bnodes s)) (in ssx_ (nodes (bspace s))))))
   (law (in (card (bnodes s)) nn))
   (law (forall ssx_ (forall ssy_ (implies (in (list ssx_ ssy_) (bsend s)) (sends-to (bspace s) ssx_ ssy_)))))
-  (law (forall ssx_ (forall ssy_ (implies (in (list ssx_ ssy_) (bnext s)) (strand-next (bspace s) ssx_ ssy_)))))
   (law (forall ssy_ (implies (in ssy_ (bnodes s)) (implies (is-received (bspace s) ssy_) (forsome ssx_ (and (in (list ssx_ ssy_) (bsend s)) (forall ssz_ (implies (in (list ssz_ ssy_) (bsend s)) (= ssz_ ssx_)))))))))
   (law (forall ssy_ (implies (in ssy_ (bnodes s)) (forall ssx_ (implies (same-strand-before (bspace s) ssx_ ssy_) (in ssx_ (bnodes s)))))))
-  (law (forall ssy_ (implies (in ssy_ (bnodes s)) (forall ssx_ (implies (strand-next (bspace s) ssx_ ssy_) (in (list ssx_ ssy_) (bnext s)))))))
   (law (forall ssx_ (not (in (list ssx_ ssx_) (prec-strict (bspace s) (bnodes s) (bsend s)))))))
 ```
 
 *Defining predicate* (as stored):
 
-- `is-bundle` — forall([s], is-bundle(s) iff length(s) = 4 and is-strand-space(bspace(s)) and bnodes(s) in set and bsend(s) in power(cartesian(bnodes(s), bnodes(s))) and bnext(s) in power(cartesian(bnodes(s), bnodes(s))) and forall([ssx_ in bnodes(s)], ssx_ in nodes(bspace(s))) and card(bnodes(s)) in nn and forall([ssx_, ssy_], [ssx_, ssy_] in bsend(s) implies sends-to(bspace(s), ssx_, ssy_)) and forall([ssx_, ssy_], [ssx_, ssy_] in bnext(s) implies strand-next(bspace(s), ssx_, ssy_)) and forall([ssy_ in bnodes(s)], is-received(bspace(s), ssy_) implies forsome([ssx_], [ssx_, ssy_] in bsend(s) and forall([ssz_], [ssz_, ssy_] in bsend(s) implies ssz_ = ssx_))) and forall([ssy_ in bnodes(s), ssx_], same-strand-before(bspace(s), ssx_, ssy_) implies ssx_ in bnodes(s)) and forall([ssy_ in bnodes(s), ssx_], strand-next(bspace(s), ssx_, ssy_) implies [ssx_, ssy_] in bnext(s)) and forall([ssx_], not([ssx_, ssx_] in prec-strict(bspace(s), bnodes(s), bsend(s)))))
+- `is-bundle` — forall([s], is-bundle(s) iff length(s) = 3 and is-strand-space(bspace(s)) and bnodes(s) in set and bsend(s) in power(cartesian(bnodes(s), bnodes(s))) and forall([ssx_ in bnodes(s)], ssx_ in nodes(bspace(s))) and card(bnodes(s)) in nn and forall([ssx_, ssy_], [ssx_, ssy_] in bsend(s) implies sends-to(bspace(s), ssx_, ssy_)) and forall([ssy_ in bnodes(s)], is-received(bspace(s), ssy_) implies forsome([ssx_], [ssx_, ssy_] in bsend(s) and forall([ssz_], [ssz_, ssy_] in bsend(s) implies ssz_ = ssx_))) and forall([ssy_ in bnodes(s), ssx_], same-strand-before(bspace(s), ssx_, ssy_) implies ssx_ in bnodes(s)) and forall([ssx_], not([ssx_, ssx_] in prec-strict(bspace(s), bnodes(s), bsend(s)))))
 
 *Theorems quantifying over `is-bundle`.*
 
 - `bundle-acyclic` — forall([c], is-bundle(c) implies forall([ssx_], not([ssx_, ssx_] in prec-strict(bspace(c), bnodes(c), bsend(c)))))
 - `bundle-finite` — forall([c], is-bundle(c) implies card(bnodes(c)) in nn)
-- `bundle-next-closed` — forall([c], is-bundle(c) implies forall([ssy_ in bnodes(c), ssx_], strand-next(bspace(c), ssx_, ssy_) implies [ssx_, ssy_] in bnext(c)))
-- `bundle-next-next` — forall([c], is-bundle(c) implies forall([ssx_, ssy_], [ssx_, ssy_] in bnext(c) implies strand-next(bspace(c), ssx_, ssy_)))
-- `bundle-next-typing` — forall([c], is-bundle(c) implies bnext(c) in power(cartesian(bnodes(c), bnodes(c))))
 - `bundle-nodes-in-space` — forall([c], is-bundle(c) implies forall([ssx_ in bnodes(c)], ssx_ in nodes(bspace(c))))
 - `bundle-nodes-set` — forall([c], is-bundle(c) implies bnodes(c) in set)
 - `bundle-received-sender` — forall([c], is-bundle(c) implies forall([ssy_ in bnodes(c)], is-received(bspace(c), ssy_) implies forsome([ssx_], [ssx_, ssy_] in bsend(c) and forall([ssz_], [ssz_, ssy_] in bsend(c) implies ssz_ = ssx_))))
