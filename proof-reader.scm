@@ -1303,6 +1303,22 @@
                         (noun-of (definitional-structure-parent (lookup-definitional-structure name)))
                         " (a refinement; the components are those of the parent): "))
      (if sd (proof-tex--join (map proof-reader--slot-tex (structure-def-slots sd)) "; ") "")
+     ;; the accessors ARE projections (the user's question, 2026-10-08): each slot name is a
+     ;; global constant with the definitional rewrite name(s) -> nth(k, s) for ANY s, k the
+     ;; slot's 1-based index (structures.scm, install-accessor-macete!); say so with the k.
+     (if sd
+         (let ((eqs (filter (lambda (x) x)
+                            (map (lambda (slot)
+                                   (let ((ix (hash-table-ref/default *accessor-index* (car slot) #f)))
+                                     (and ix
+                                          (string-append "$" (expr->tex (list (car slot) 's)) " = "
+                                                         (expr->tex (list 'NTH (car ix) 's)) "$"))))
+                                 (structure-def-slots sd)))))
+           (if (pair? eqs)
+               (string-append ".\\par The components are the projections of $s$, defined for any $s$ as a tuple: "
+                              (proof-tex--join eqs ", "))
+               ""))
+         "")
      (if law
          (string-append ".\\par The characteristic law: " (proof-reader--statement law))
          ".\n"))))
