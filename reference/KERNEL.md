@@ -616,7 +616,7 @@ caller. A strict inequality is not accepted, since a square may be zero.
 
 ## (c) Axioms
 
-*Outline.* The axioms are the formulas installed with provenance `primitive`: 197 of them, counted
+*Outline.* The axioms are the formulas installed with provenance `primitive`: 198 of them, counted
 from the Axioms section of the theorem catalog, where each is listed with its statement. This part
 will present them in groups. By count, from the catalog:
 

@@ -28,6 +28,7 @@ def esc(s): return html.escape(s, quote=True)
 REF_LINKS = [
     ("Library",           "reference.html",          "everything cross-linked — start here"),
     ("Structures",        "STRUCTURE-INDEX.html",    "every structure: slots, laws, views"),
+    ("Categories",        "CATEGORIES.html",         "the default category of each structure, and the ones declared beside it"),
     ("Theorems & axioms", "THEOREMS.html",           "the full installed catalog"),
     ("Definitions",       "DEFINITIONS.html",        "term & predicate definitions"),
     ("Proof Support Set", "PSS.html",                "theorems excused from the VNB test, accepted on a warrant"),

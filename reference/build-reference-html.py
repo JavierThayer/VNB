@@ -32,6 +32,7 @@ DOCS = [
     ("Library map",        "LIBRARY.md",          "the lay of the land — where everything lives"),
     ("Structures",         "STRUCTURE-INDEX.md",  "every structure: slots, laws, views"),
     ("Structure notes",    "STRUCTURES.md",       "prose notes on the structure hierarchy"),
+    ("Categories",         "CATEGORIES.md",       "every category: the default arrows of each structure, the categories declared beside one (Lipschitz, continuous, bounded linear), the status of their laws, the inclusions"),
     ("Theorems & axioms",  "THEOREMS.md",         "the full installed catalog"),
     ("Definitions",        "DEFINITIONS.md",      "term & predicate definitions"),
     ("Operators",          "OPERATORS.md",        "the operator census: every head as function / functoid / predicate / primitive"),

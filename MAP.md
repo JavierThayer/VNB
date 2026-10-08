@@ -9,6 +9,7 @@ the files at the root and the structure library by theory.
 ## structure-library: _unfiled
 
 - [gamma-function.scm](structure-library/gamma-function.scm)
+- [meta-syntax.scm](structure-library/meta-syntax.scm)
 - [metric-connected.scm](structure-library/metric-connected.scm)
 - [nsl.scm](structure-library/nsl.scm)
 - [simple-integral.scm](structure-library/simple-integral.scm)
