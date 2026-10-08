@@ -366,7 +366,14 @@ distinction is developed in the remark on shape versus properties below.
 
 Accessor indices are assigned sequentially: carriers occupy indices
 $1, \ldots, m$ in declaration order; operations and constants follow
-at indices $m+1, m+2, \ldots$.
+at indices $m+1, m+2, \ldots$.  An accessor is therefore a projection and
+nothing more: $\mathtt{dist}(s)$ is $\mathtt{nth}(2, s)$ for \emph{every}
+object $s$, a ring included, and no contradiction can come of writing it,
+since what the second component of a metric space \emph{is} lives in the
+characteristic law $\mathtt{is\text{-}metric\text{-}space}(s)$ and not in
+the accessor; the load-time \texttt{accessor-type-audit} then refuses any
+library statement that applies an accessor to a variable guarded by a
+structure without that slot.
 
 Every slot name --- carrier, operation, constant, or substructure --- is
 registered as a global \emph{accessor constant} of that name.  The
