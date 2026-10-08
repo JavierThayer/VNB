@@ -4,7 +4,7 @@
 
 \section{Kernel and subsystems (\texttt{\textasciitilde/prover/})}
 \label{sec:src-root}
-The 70 Scheme files at the root of the tree: the proof kernel, the reader, the theory record, the interactive command layer, and the documentation / proof-printing / driver subsystems.
+The 72 Scheme files at the root of the tree: the proof kernel, the reader, the theory record, the interactive command layer, and the documentation / proof-printing / driver subsystems.
 
 \begin{longtable}{@{}p{0.30\textwidth}p{0.63\textwidth}@{}}
 \toprule
@@ -34,6 +34,8 @@ The 70 Scheme files at the root of the tree: the proof kernel, the reader, the t
 \texttt{interactive.scm} & short-form commands for interactive proof sessions \\
 \texttt{kernel-map-static.scm} & INSTRUMENT, not library \\
 \texttt{kernel-map-trace.scm} & INSTRUMENT, not library \\
+\texttt{libraries.scm} & THE LIBRARIES (the user, notes-61, 2026-10-06: "start thinking of \\
+\texttt{library-book.scm} & THE BOOK OF THEOREMS AND DEFINITIONS, NO PROOFS (the user, \\
 \texttt{library.scm} & theory management \\
 \texttt{load.scm} & load the proof checker in dependency order \\
 \texttt{macetes.scm} & macete mechanism \\
@@ -86,7 +88,7 @@ The 70 Scheme files at the root of the tree: the proof kernel, the reader, the t
 
 \section{\texttt{structure-library/}}
 \label{sec:src-structure-library}
-The 142 files that install definitions, structures, vocabulary, and warranted supports.  One file per structure or cluster; the always-current per-structure listing (declaration, slots, parent, theorems) is the generated \texttt{reference/STRUCTURE-INDEX.md}.
+The 145 files that install definitions, structures, vocabulary, and warranted supports.  One file per structure or cluster; the always-current per-structure listing (declaration, slots, parent, theorems) is the generated \texttt{reference/STRUCTURE-INDEX.md}.
 
 \begin{longtable}{@{}p{0.30\textwidth}p{0.63\textwidth}@{}}
 \toprule
@@ -178,6 +180,7 @@ The 142 files that install definitions, structures, vocabulary, and warranted su
 \texttt{normed-field-metric.scm} & the metric space underlying a normed field \\
 \texttt{normed-field.scm} & NORMED-FIELD: a commutative ring with multiplicative \\
 \texttt{normed-vector-space.scm} & NORMED-VECTOR-SPACE: a real normed vector space \\
+\texttt{nsl.scm} & THE NEEDHAM-SCHROEDER-LOWE PROTOCOL ON THE USER'S STRAND MODEL: names, public keys, \\
 \texttt{nth-deriv.scm} & THE ITERATED DERIVATIVE ON AN OPEN SET, OVER A NORMED FIELD \\
 \texttt{numeric-instances.scm} & \textit{(no header)} \\
 \texttt{nvs-metric.scm} & the metric induced by the norm of a real normed vector \\
@@ -221,7 +224,9 @@ The 142 files that install definitions, structures, vocabulary, and warranted su
 \texttt{sos-arith.scm} & exact-rational LP feasibility with witness extraction \\
 \texttt{sos-oracle.scm} & the (sos) sum-of-squares oracle: close a nonstrict \\
 \texttt{sqn.scm} & SQN(a): the sequences in a, i.e. FUN(NN, a) \\
-\texttt{strand-messages.scm} & THE MESSAGE ALGEBRA OF STRAND SPACES \\
+\texttt{strand-adversary.scm} & THE ADVERSARY: its traces, the infiltrated strand space \\
+\texttt{strand-messages.scm} & THE MESSAGES OF STRAND SPACES, ON THE USER'S MODEL, WITH ENCRYPTION \\
+\texttt{strand-spaces.scm} & STRAND SPACES, NODES, BUNDLES ON THE USER'S MODEL \\
 \texttt{subsequence-capture.scm} & \textit{(no header)} \\
 \texttt{subtype-laws.scm} & the trivial subtype-subsumption laws, PROVEN \\
 \texttt{summability.scm} & unconditional summability of a normed-AG-valued function \\
@@ -240,7 +245,7 @@ The 142 files that install definitions, structures, vocabulary, and warranted su
 
 \section{\texttt{theorem-library/} and \texttt{calculus/}}
 \label{sec:src-libraries}
-\texttt{theorem-library/} holds 526 proof scripts, each reaching \texttt{(qed \ldots)} and gated into the library load; by convention \texttt{X-proof.scm} proves \texttt{X}.  \texttt{calculus/} holds 21 probes and stress tests that are \emph{not} in \texttt{load.scm}.  Rather than enumerate them here, the theorems they prove are indexed, with statements and per-file links, in the generated browser references \texttt{reference/THEOREMS.md} (flat) and \texttt{reference/BY-TOPIC.md} (grouped like a textbook table of contents).
+\texttt{theorem-library/} holds 531 proof scripts, each reaching \texttt{(qed \ldots)} and gated into the library load; by convention \texttt{X-proof.scm} proves \texttt{X}.  \texttt{calculus/} holds 21 probes and stress tests that are \emph{not} in \texttt{load.scm}.  Rather than enumerate them here, the theorems they prove are indexed, with statements and per-file links, in the generated browser references \texttt{reference/THEOREMS.md} (flat) and \texttt{reference/BY-TOPIC.md} (grouped like a textbook table of contents).
 
 \section{Emacs interface (\texttt{emacs/}) and generated docs}
 \label{sec:src-emacs}

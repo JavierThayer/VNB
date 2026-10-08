@@ -7,7 +7,7 @@
 Every other listing in this manual and in the browser reference is grouped by
 something: operators by class, structures by structure, tactics by task.  This
 one has the ordering nobody has to learn.  It carries the whole
-\emph{vocabulary} -- 760 names: 21 structure, 7 refinement, 11 instance, 19 view, 234 predicate, 252 functoid, 32 accessor, 23 defined-fn, 57 operator, 8 primitive, 94 tactic -- and no results: the theorems, axioms and
+\emph{vocabulary} -- 818 names: 24 structure, 7 refinement, 11 instance, 19 view, 264 predicate, 265 functoid, 42 accessor, 25 defined-fn, 57 operator, 8 primitive, 94 tactic -- and no results: the theorems, axioms and
 supports are catalogued in \texttt{THEOREMS.md}, \texttt{BY-OPERATOR.md} and
 \texttt{PROOF-DEBT.md}, and each entry here says how many of them mention it.
 
@@ -39,7 +39,7 @@ characterized by \texttt{cc-ms-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 cc-ms = [cc, vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))]
 \end{quote}
-also: \texttt{is-convex} \texttt{rr-ms-def} \texttt{cc-ms@dist} \texttt{is-diff-at} \texttt{nary-neg-1} \texttt{rr-abs-def} \texttt{rr-ms@dist} \texttt{rr-nvs-def} ... (557 in all) \\
+also: \texttt{rr-ms-def} \texttt{cc-ms@dist} \texttt{is-diff-at} \texttt{nary-neg-1} \texttt{rr-abs-def} \texttt{rr-ms@dist} \texttt{rr-nvs-def} \texttt{little-o-at} ... (557 in all) \\
 mentioned by 775 result(s)
 
 \smallskip
@@ -57,14 +57,14 @@ characterized by \texttt{<}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x, y], x < y iff x <= y and not(x = y))
 \end{quote}
-mentioned by 760 result(s)
+mentioned by 762 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{<=}}\quad\textit{primitive}\index{<=@\texttt{<=}}\\
 reads: \$1 is at most \$2 \\
 a kernel relation \\
-mentioned by 1078 result(s)
+mentioned by 1100 result(s)
 
 \smallskip
 
@@ -147,6 +147,20 @@ mentioned by 311 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{adv-ids(s)}}\quad\textit{accessor}\index{adv-ids(s)@\texttt{adv-ids(s)}}\\
+reads: the adv-ids slot of \$1 \\
+a structure slot \\
+mentioned by 10 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{adv-tokens(s)}}\quad\textit{accessor}\index{adv-tokens(s)@\texttt{adv-tokens(s)}}\\
+reads: the adv-tokens slot of \$1 \\
+a structure slot \\
+mentioned by 22 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{ai}}\quad\textit{tactic}\index{ai@\texttt{ai}}\\
 \texttt{(ai hyp)} -- Antecedent inference: decompose a cited assumption -- AND-split, OR-into-cases, or FORSOME-elimination to a fresh eigenvariable. \\
 declared in \texttt{tactics-help.scm}
@@ -167,21 +181,6 @@ declared in \texttt{tactics-help.scm}
 \noindent\textbf{\texttt{ass}}\quad\textit{tactic}\index{ass@\texttt{ass}}\\
 \texttt{(ass)} -- Close the goal by an assumption alpha-equivalent to it. \\
 declared in \texttt{tactics-help.scm}
-
-\smallskip
-
-\noindent\textbf{\texttt{atom(sma\_)}}\quad\textit{functoid}\index{atom(sma_)@\texttt{atom(sma\_)}}\\
-reads: the atomic message \$1 \\
-definition:
-\begin{quote}\ttfamily\footnotesize\noindent
-[0, sma\_]
-\end{quote}
-characterized by \texttt{atom-ne-cat}  \textit{(certified)}:
-\begin{quote}\ttfamily\footnotesize\noindent
-forall([a, g, h], not(atom(a) = cat(g, h)))
-\end{quote}
-also: \texttt{atom-ne-enc} \texttt{atom-unfold} \texttt{atom-in-msgs} \texttt{msg-rank-atom} \texttt{atom-injective} \texttt{msg-stage-atom} \texttt{subterm-of-atom} \\
-mentioned by 15 result(s)
 
 \smallskip
 
@@ -292,7 +291,7 @@ characterized by \texttt{big-union-mono}  \textit{(certified)}:
 forall([a\_, b\_], a\_ subset b\_ implies big-union(u\_, a\_, u\_) subset big-union(u\_, b\_, u\_))
 \end{quote}
 also: \texttt{power-big-union-closed} \texttt{complement-in-big-union} \\
-mentioned by 52 result(s)
+mentioned by 54 result(s)
 
 \smallskip
 
@@ -351,6 +350,13 @@ mentioned by 7 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{bnodes(s)}}\quad\textit{accessor}\index{bnodes(s)@\texttt{bnodes(s)}}\\
+reads: the bnodes slot of \$1 \\
+a structure slot \\
+mentioned by 44 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{border(a, b, m, p, q)}}\quad\textit{functoid}\index{border(a, b, m, p, q)@\texttt{border(a, b, m, p, q)}}\\
 definition:
 \begin{quote}\ttfamily\footnotesize\noindent
@@ -362,6 +368,20 @@ forall([a], is-ring(a) implies forall([p, q, b, w, g, e], p in nn implies q in n
 \end{quote}
 also: \texttt{border-mult} \texttt{border-type} \texttt{daf-bordered} \texttt{border-entry-11} \texttt{border-entry-1j} \texttt{border-entry-i1} \texttt{border-identity} \texttt{border-staircase} ... (13 in all) \\
 mentioned by 29 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{bsend(s)}}\quad\textit{accessor}\index{bsend(s)@\texttt{bsend(s)}}\\
+reads: the bsend slot of \$1 \\
+a structure slot \\
+mentioned by 14 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{bspace(s)}}\quad\textit{accessor}\index{bspace(s)@\texttt{bspace(s)}}\\
+reads: the bspace slot of \$1 \\
+a structure slot \\
+mentioned by 35 result(s)
 
 \smallskip
 
@@ -380,6 +400,11 @@ declared in \texttt{tactics-help.scm}
 \noindent\textbf{\texttt{bu-set}}\quad\textit{tactic}\index{bu-set@\texttt{bu-set}}\\
 \texttt{(bu-set)} -- Big-union sethood. \\
 declared in \texttt{tactics-help.scm}
+
+\smallskip
+
+\noindent\textbf{\texttt{bundle}}\quad\textit{structure}\index{bundle@\texttt{bundle}}\\
+predicate \texttt{is-bundle}; slots: bspace bnodes bsend
 
 \smallskip
 
@@ -476,7 +501,7 @@ characterized by \texttt{caratheodory-sets-membership}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([omega, mu, es\_], es\_ in caratheodory-sets(omega, mu) iff es\_ in power(omega) and is-caratheodory-measurable(omega, mu, es\_))
 \end{quote}
-mentioned by 4 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -491,7 +516,7 @@ characterized by \texttt{card-bij}  \textit{(certified)}:
 forall([n\_ in nn, a\_, ph, et], ph in bijection(a\_, ord-segment(n\_)) and et in bijection(ord-segment(n\_), a\_) implies card(a\_) = n\_)
 \end{quote}
 also: \texttt{card-pair} \texttt{card-empty} \texttt{card-in-ord} \texttt{card-insert} \texttt{card-segment} \texttt{card-zermelo} \texttt{card-empty-le} \texttt{card-power-nn} ... (35 in all) \\
-mentioned by 262 result(s)
+mentioned by 266 result(s)
 
 \smallskip
 
@@ -514,22 +539,7 @@ characterized by \texttt{cartesian-set-iff}  \textit{(primitive)}:
 forall([a, b], cartesian(a, b) in set iff a in set and b in set)
 \end{quote}
 also: \texttt{cartesian-nth} \texttt{cartesian3-set} \texttt{card-cartesian-nn} \texttt{cartesian-pair-eq} \texttt{pair-in-cartesian} \texttt{pair-in-cartesian-parts} \\
-mentioned by 233 result(s)
-
-\smallskip
-
-\noindent\textbf{\texttt{cat(smg\_, smh\_)}}\quad\textit{functoid}\index{cat(smg_, smh_)@\texttt{cat(smg\_, smh\_)}}\\
-reads: the concatenation of \$1 and \$2 \\
-definition:
-\begin{quote}\ttfamily\footnotesize\noindent
-[1, smg\_, smh\_]
-\end{quote}
-characterized by \texttt{cat-ne-enc}  \textit{(certified)}:
-\begin{quote}\ttfamily\footnotesize\noindent
-forall([g, h, u, k], not(cat(g, h) = enc(u, k)))
-\end{quote}
-also: \texttt{cat-unfold} \texttt{atom-ne-cat} \texttt{cat-in-msgs} \texttt{msg-rank-cat} \texttt{cat-injective} \texttt{msg-stage-cat} \texttt{subterm-of-cat} \texttt{subterm-cat-left} ... (10 in all) \\
-mentioned by 18 result(s)
+mentioned by 246 result(s)
 
 \smallskip
 
@@ -1018,8 +1028,8 @@ characterized by \texttt{complement-in-membership}  \textit{(primitive)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, x], x in complement-in(a, b) iff x in a and not(x in b))
 \end{quote}
-also: \texttt{complement-in-set-closure} \texttt{union-complement-in} \texttt{complement-in-double} \texttt{complement-in-subset} \texttt{complement-in-big-union} \texttt{complement-in-intersection-of} \texttt{intersection-complement-in-empty} \\
-mentioned by 40 result(s)
+also: \texttt{complement-in-set-closure} \texttt{union-complement-in} \texttt{complement-in-double} \texttt{complement-in-subset} \texttt{complement-in-big-union} \texttt{complement-in-empty-set} \texttt{inter-complement-in-shift} \texttt{inter-complement-in-ambient} ... (14 in all) \\
+mentioned by 59 result(s)
 
 \smallskip
 
@@ -1099,6 +1109,15 @@ forall([x, l], nth(1, cons(x, l)) = x)
 \end{quote}
 also: \texttt{length-cons} \texttt{makeset-cons} \texttt{nth-cons-succ} \texttt{cons-in-tuples} \texttt{tuple-cons-decompose} \\
 mentioned by 11 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{content-of(ssd\_)}}\quad\textit{functoid}\index{content-of(ssd_)@\texttt{content-of(ssd\_)}}\\
+reads: the content of the directed message \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+nth(2, ssd\_)
+\end{quote}
 
 \smallskip
 
@@ -1414,8 +1433,8 @@ characterized by \texttt{difference-set}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x in set, b], difference(x, b) in set)
 \end{quote}
-also: \texttt{difference-in-power} \texttt{difference-empty-left} \texttt{difference-membership} \texttt{insert-difference-cancel} \texttt{insert-difference-outside} \texttt{holomorphic-difference-quotient} \\
-mentioned by 75 result(s)
+also: \texttt{difference-unfold} \texttt{difference-in-power} \texttt{difference-empty-left} \texttt{difference-membership} \texttt{insert-difference-cancel} \texttt{insert-difference-outside} \texttt{holomorphic-difference-quotient} \\
+mentioned by 77 result(s)
 
 \smallskip
 
@@ -1429,6 +1448,30 @@ characterized by \texttt{dir-deriv-value}  \textit{(certified)}:
 forall([m, f, a, eta, dl], is-dir-diff-at(m, f, a, eta, dl) implies dir-deriv(m, f, a, eta) = dl)
 \end{quote}
 also: \texttt{dir-deriv-linear} \texttt{dir-deriv-additive} \texttt{dir-deriv-increment} \texttt{dir-deriv-corner-split} \texttt{dir-deriv-increment-scaled} \\
+mentioned by 8 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{dir-of(ssd\_)}}\quad\textit{functoid}\index{dir-of(ssd_)@\texttt{dir-of(ssd\_)}}\\
+reads: the direction of the directed message \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+nth(1, ssd\_)
+\end{quote}
+
+\smallskip
+
+\noindent\textbf{\texttt{directed(sst\_, ssk\_)}}\quad\textit{functoid}\index{directed(sst_, ssk_)@\texttt{directed(sst\_, ssk\_)}}\\
+reads: the directed messages over the tokens \$1 and the keys \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+cartesian(pair(sent, received), msg-set(sst\_, ssk\_))
+\end{quote}
+characterized by \texttt{directed-intro}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([t, k, g in msg-set(t, k)], [sent, g] in directed(t, k) and [received, g] in directed(t, k))
+\end{quote}
+also: \texttt{directed-parts} \texttt{directed-unfold} \texttt{node-step-in-directed} \\
 mentioned by 8 result(s)
 
 \smallskip
@@ -1699,18 +1742,18 @@ mentioned by 5 result(s)
 
 \smallskip
 
-\noindent\textbf{\texttt{enc(smg\_, smk\_)}}\quad\textit{functoid}\index{enc(smg_, smk_)@\texttt{enc(smg\_, smk\_)}}\\
+\noindent\textbf{\texttt{encr(smg\_, smk\_)}}\quad\textit{functoid}\index{encr(smg_, smk_)@\texttt{encr(smg\_, smk\_)}}\\
 reads: the encryption of \$1 under the key \$2 \\
 definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [2, smg\_, smk\_]
 \end{quote}
-characterized by \texttt{cat-ne-enc}  \textit{(certified)}:
+characterized by \texttt{is-encrypt-trace}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([g, h, u, k], not(cat(g, h) = enc(u, k)))
+forall([sasp\_, sas\_], is-encrypt-trace(sasp\_, sas\_) iff forsome([sak\_ in keys(sasp\_), sag\_ in msg-set(tokens(sasp\_), keys(sasp\_))], sas\_ = [[received, sak\_], [received, sag\_], [sent, encr(sag\_, sak\_)]]))
 \end{quote}
-also: \texttt{enc-unfold} \texttt{atom-ne-enc} \texttt{enc-in-msgs} \texttt{subterm-enc} \texttt{msg-rank-enc} \texttt{enc-injective} \texttt{msg-stage-enc} \texttt{subterm-of-enc} ... (10 in all) \\
-mentioned by 18 result(s)
+also: \texttt{encr-unfold} \texttt{lst-ne-encr} \texttt{encr-in-msgs} \texttt{encr-ne-list} \texttt{subterm-encr} \texttt{encr-ne-token} \texttt{msg-rank-encr} \texttt{encr-injective} ... (20 in all) \\
+mentioned by 51 result(s)
 
 \smallskip
 
@@ -1750,7 +1793,7 @@ characterized by \texttt{eplus-comm}  \textit{(certified)}:
 forall([x, y], x in rr-pos-star and y in rr-pos-star implies eplus(x, y) = eplus(y, x))
 \end{quote}
 also: \texttt{eplus-mono} \texttt{eplus-assoc} \texttt{eplus-closed} \texttt{eplus-le-left} \texttt{esup-eplus-eq} \texttt{esup-eplus-le} \texttt{eplus-zero-left} \texttt{eplus-zero-right} ... (12 in all) \\
-mentioned by 41 result(s)
+mentioned by 44 result(s)
 
 \smallskip
 
@@ -2046,7 +2089,7 @@ characterized by \texttt{finsum-type-ring-additive-ag}  \textit{(definitional)}:
 forall([r], is-ring(r) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(r))], finsum(ring-additive-ag(r), f, s) in carr(r))))
 \end{quote}
 also: \texttt{finsum-all-id-ring-additive-ag} \texttt{finsum-single-support-ring-additive-ag} \texttt{finsum-add} \texttt{finsum-type} \texttt{finsum-embed} \texttt{finsum-empty} \texttt{finsum-fiber} \texttt{finsum-add-ag} ... (66 in all) \\
-mentioned by 199 result(s)
+mentioned by 201 result(s)
 
 \smallskip
 
@@ -2127,7 +2170,7 @@ characterized by \texttt{is-linear-functional}  \textit{(definitional)}:
 forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x\_ in vec(m), y\_ in vec(m)], f((vadd(m))(x\_, y\_)) = f(x\_) + f(y\_)) and forall([r\_ in rr, x\_ in vec(m)], f((act(m))(r\_, x\_)) = r\_ * f(x\_)))
 \end{quote}
 also: \texttt{is-linear-functional-on} \texttt{dom-of-fun} \texttt{is-fun-def} \texttt{fun-no-junk} \texttt{fun-set-iff} \texttt{fun-apply-type} \texttt{fun-codomain-iff} \texttt{dom-fun-membership} ... (142 in all) \\
-mentioned by 1606 result(s)
+mentioned by 1618 result(s)
 
 \smallskip
 
@@ -2376,6 +2419,15 @@ mentioned by 6 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{hom-bundle(a, b)}}\quad\textit{functoid}\index{hom-bundle(a, b)@\texttt{hom-bundle(a, b)}}\\
+reads: the bundle morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(bnodes(a), bnodes(b)): is-hom-bundle(a, b, homf\_)\}
+\end{quote}
+
+\smallskip
+
 \noindent\textbf{\texttt{hom-c-continuous(a, b)}}\quad\textit{functoid}\index{hom-c-continuous(a, b)@\texttt{hom-c-continuous(a, b)}}\\
 reads: the continuous maps of countably-metrised spaces from \$1 to \$2 \\
 definition:
@@ -2526,6 +2578,15 @@ mentioned by 5 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{hom-infiltrated-space(a, b)}}\quad\textit{functoid}\index{hom-infiltrated-space(a, b)@\texttt{hom-infiltrated-space(a, b)}}\\
+reads: the infiltrated space morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homp\_ in cartesian(fun(adv-ids(a), adv-ids(b)), fun(adv-tokens(a), adv-tokens(b))): is-hom-infiltrated-space(a, b, nth(1, homp\_), nth(2, homp\_))\}
+\end{quote}
+
+\smallskip
+
 \noindent\textbf{\texttt{hom-integral-domain(a, b)}}\quad\textit{functoid}\index{hom-integral-domain(a, b)@\texttt{hom-integral-domain(a, b)}}\\
 reads: the integral domain morphisms from \$1 to \$2 \\
 definition:
@@ -2583,15 +2644,6 @@ forall([a, b], is-measure-space(a) implies is-measure-space(b) implies hom-measu
 \end{quote}
 also: \texttt{hom-measure-space-pre-type} \texttt{hom-measure-space-post-type} \texttt{hom-measure-space-member-iff} \\
 mentioned by 5 result(s)
-
-\smallskip
-
-\noindent\textbf{\texttt{hom-message-algebra(a, b)}}\quad\textit{functoid}\index{hom-message-algebra(a, b)@\texttt{hom-message-algebra(a, b)}}\\
-reads: the message algebra morphisms from \$1 to \$2 \\
-definition:
-\begin{quote}\ttfamily\footnotesize\noindent
-\{homp\_ in cartesian(fun(texts(a), texts(b)), fun(keys(a), keys(b))): is-hom-message-algebra(a, b, nth(1, homp\_), nth(2, homp\_))\}
-\end{quote}
 
 \smallskip
 
@@ -2712,6 +2764,15 @@ forall([a, b], is-pid(a) implies is-pid(b) implies hom-pid(a, b) in set)
 \end{quote}
 also: \texttt{hom-pid-pre-type} \texttt{hom-pid-post-type} \texttt{hom-pid-member-iff} \\
 mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-pk-space(a, b)}}\quad\textit{functoid}\index{hom-pk-space(a, b)@\texttt{hom-pk-space(a, b)}}\\
+reads: the pk space morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(names(a), names(b)): is-hom-pk-space(a, b, homf\_)\}
+\end{quote}
 
 \smallskip
 
@@ -2854,6 +2915,16 @@ mentioned by 44 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{id-of(ssn\_)}}\quad\textit{functoid}\index{id-of(ssn_)@\texttt{id-of(ssn\_)}}\\
+reads: the strand identifier of the node \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+nth(2, ssn\_)
+\end{quote}
+mentioned by 1 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{iden(s)}}\quad\textit{accessor}\index{iden(s)@\texttt{iden(s)}}\\
 reads: the identity element of \$1 \\
 a structure slot \\
@@ -2884,6 +2955,13 @@ mentioned by 47 result(s)
 reads: the distinguished ideal of \$1 \\
 a structure slot \\
 mentioned by 14 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{ids(s)}}\quad\textit{accessor}\index{ids(s)@\texttt{ids(s)}}\\
+reads: the ids slot of \$1 \\
+a structure slot \\
+mentioned by 33 result(s)
 
 \smallskip
 
@@ -2976,8 +3054,18 @@ characterized by \texttt{is-ring}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 \end{quote}
-also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1430 in all) \\
-mentioned by 5500 result(s)
+also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1476 in all) \\
+mentioned by 5674 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{index-of(ssn\_)}}\quad\textit{functoid}\index{index-of(ssn_)@\texttt{index-of(ssn\_)}}\\
+reads: the index of the node \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+nth(1, ssn\_)
+\end{quote}
+mentioned by 1 result(s)
 
 \smallskip
 
@@ -3013,6 +3101,11 @@ forall([a, s], s in inf-subsets(a) iff s subset a and not(card(s) in nn))
 \end{quote}
 also: \texttt{nn-in-inf-subsets} \texttt{inf-subsets-is-set} \texttt{inf-subsets-unfold} \\
 mentioned by 18 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{infiltrated-space}}\quad\textit{structure}\index{infiltrated-space@\texttt{infiltrated-space}}\\
+predicate \texttt{is-infiltrated-space}; slots: ispace adv-ids adv-tokens
 
 \smallskip
 
@@ -3100,7 +3193,7 @@ characterized by \texttt{intersection-decompose}  \textit{(primitive)}:
 forall([x, as], x in intersection(restvar(as)) iff splice(and, e, as, x in e))
 \end{quote}
 also: \texttt{intersection-membership} \texttt{intersection-set-closure} \texttt{submodule-intersection} \texttt{intersection-empty-transfer} \texttt{intersection-complement-in-empty} \\
-mentioned by 52 result(s)
+mentioned by 65 result(s)
 
 \smallskip
 
@@ -3242,6 +3335,28 @@ mentioned by 3 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{is-adversary-node(sai\_, san\_)}}\quad\textit{predicate}\index{is-adversary-node(sai_, san_)@\texttt{is-adversary-node(sai\_, san\_)}}\\
+reads: \$2 is an adversary node of \$1 \\
+defined by \texttt{is-adversary-node} \\
+characterized by \texttt{is-adversary-node}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([sai\_, san\_], is-adversary-node(sai\_, san\_) iff nth(2, san\_) in adv-ids(sai\_))
+\end{quote}
+mentioned by 9 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-adversary-trace(sasp\_, sap\_, sas\_)}}\quad\textit{predicate}\index{is-adversary-trace(sasp_, sap_, sas_)@\texttt{is-adversary-trace(sasp\_, sap\_, sas\_)}}\\
+reads: \$3 is an adversary trace for the adversary knowing \$2 in the strand space \$1 \\
+defined by \texttt{is-adversary-trace} \\
+characterized by \texttt{is-adversary-trace}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([sasp\_, sap\_, sas\_], is-adversary-trace(sasp\_, sap\_, sas\_) iff is-text-trace(sasp\_, sap\_, sas\_) or is-flush-trace(sasp\_, sas\_) or is-tee-trace(sasp\_, sas\_) or is-concat-trace(sasp\_, sas\_) or is-separate-trace(sasp\_, sas\_) or is-encrypt-trace(sasp\_, sas\_) or is-decrypt-trace(sasp\_, sas\_))
+\end{quote}
+mentioned by 4 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{is-algebra-of-sets(omega, ca)}}\quad\textit{predicate}\index{is-algebra-of-sets(omega, ca)@\texttt{is-algebra-of-sets(omega, ca)}}\\
 reads: \$2 is an algebra of subsets of \$1 \\
 defined by \texttt{is-algebra-of-sets} \\
@@ -3341,6 +3456,17 @@ forall([s], is-bounded-metric-space(s) iff is-metric-space(s) and forsome([b in 
 \end{quote}
 also: \texttt{bdd-metric-is-bounded-metric-space} \\
 mentioned by 7 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-bundle(s)}}\quad\textit{predicate}\index{is-bundle(s)@\texttt{is-bundle(s)}}\\
+reads: a bundle \\
+a predicate \\
+characterized by \texttt{is-bundle}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([s], is-bundle(s) iff length(s) = 3 and is-strand-space(bspace(s)) and bnodes(s) in set and bsend(s) in power(cartesian(bnodes(s), bnodes(s))) and forall([ssx\_ in bnodes(s)], ssx\_ in nodes(bspace(s))) and card(bnodes(s)) in nn and forall([ssx\_, ssy\_], [ssx\_, ssy\_] in bsend(s) implies sends-to(bspace(s), ssx\_, ssy\_)) and forall([ssy\_ in bnodes(s)], is-received(bspace(s), ssy\_) implies forsome([ssx\_], [ssx\_, ssy\_] in bsend(s) and forall([ssz\_], [ssz\_, ssy\_] in bsend(s) implies ssz\_ = ssx\_))) and forall([ssy\_ in bnodes(s), ssx\_], same-strand-before(bspace(s), ssx\_, ssy\_) implies ssx\_ in bnodes(s)) and forall([ssx\_], not([ssx\_, ssx\_] in prec-strict(bspace(s), bnodes(s), bsend(s)))))
+\end{quote}
+mentioned by 50 result(s)
 
 \smallskip
 
@@ -3505,6 +3631,17 @@ mentioned by 77 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{is-concat-trace(sasp\_, sas\_)}}\quad\textit{predicate}\index{is-concat-trace(sasp_, sas_)@\texttt{is-concat-trace(sasp\_, sas\_)}}\\
+reads: \$2 is a concatenation trace in the strand space \$1 \\
+defined by \texttt{is-concat-trace} \\
+characterized by \texttt{is-concat-trace}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([sasp\_, sas\_], is-concat-trace(sasp\_, sas\_) iff forsome([sal\_ in tuples(msg-set(tokens(sasp\_), keys(sasp\_)))], length(sas\_) = succ(length(sal\_)) and forall([sai\_ in nn], 1 <= sai\_ implies sai\_ <= length(sal\_) implies nth(sai\_, sas\_) = [received, nth(sai\_, sal\_)]) and nth(succ(length(sal\_)), sas\_) = [sent, lst(sal\_)]))
+\end{quote}
+mentioned by 6 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{is-connected(cns\_, cna\_)}}\quad\textit{predicate}\index{is-connected(cns_, cna_)@\texttt{is-connected(cns\_, cna\_)}}\\
 reads: \$2 is a connected subset of the metric space \$1 \\
 defined by \texttt{is-connected} \\
@@ -3574,14 +3711,13 @@ mentioned by 47 result(s)
 
 \smallskip
 
-\noindent\textbf{\texttt{is-convex(cvu\_)}}\quad\textit{predicate}\index{is-convex(cvu_)@\texttt{is-convex(cvu\_)}}\\
-reads: \$1 is convex \\
-defined by \texttt{is-convex} \\
-characterized by \texttt{is-convex}  \textit{(definitional)}:
+\noindent\textbf{\texttt{is-convex-cc(cvu\_)}}\quad\textit{predicate}\index{is-convex-cc(cvu_)@\texttt{is-convex-cc(cvu\_)}}\\
+reads: \$1 is a convex subset of CC \\
+defined by \texttt{is-convex-cc} \\
+characterized by \texttt{is-convex-cc}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([cvu\_], is-convex(cvu\_) iff forall([cvx\_ in cvu\_, cvy\_ in cvu\_, cvt\_ in ccint(0, 1)], cvx\_ + cvt\_ * (cvy\_ - cvx\_) in cvu\_))
+forall([cvu\_], is-convex-cc(cvu\_) iff cvu\_ subset cc and forall([cvx\_ in cvu\_, cvy\_ in cvu\_, cvt\_ in ccint(0, 1)], cvx\_ + cvt\_ * (cvy\_ - cvx\_) in cvu\_))
 \end{quote}
-also: \texttt{conv3-is-convex} \texttt{is-convex-unfold} \texttt{cc-ball-is-convex} \\
 mentioned by 24 result(s)
 
 \smallskip
@@ -3605,6 +3741,17 @@ characterized by \texttt{is-countable-pseudometric-family}  \textit{(definitiona
 forall([fam, ground], is-countable-pseudometric-family(fam, ground) iff forall([n\_ in nn], is-pseudometric-space(fam(n\_)) and pts(fam(n\_)) == ground))
 \end{quote}
 mentioned by 4 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-decrypt-trace(sasp\_, sas\_)}}\quad\textit{predicate}\index{is-decrypt-trace(sasp_, sas_)@\texttt{is-decrypt-trace(sasp\_, sas\_)}}\\
+reads: \$2 is a decryption trace in the strand space \$1 \\
+defined by \texttt{is-decrypt-trace} \\
+characterized by \texttt{is-decrypt-trace}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([sasp\_, sas\_], is-decrypt-trace(sasp\_, sas\_) iff forsome([sak\_ in keys(sasp\_), sag\_ in msg-set(tokens(sasp\_), keys(sasp\_))], sas\_ = [[received, (kinv(sasp\_))(sak\_)], [received, encr(sag\_, sak\_)], [sent, sag\_]]))
+\end{quote}
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -3685,6 +3832,28 @@ characterized by \texttt{is-distributive}  \textit{(definitional)}:
 forall([addop, mulop, crr], is-distributive(addop, mulop, crr) iff forall([u in crr, v in crr, w in crr], mulop(u, addop(v, w)) = addop(mulop(u, v), mulop(u, w)) and mulop(addop(u, v), w) = addop(mulop(u, w), mulop(v, w))))
 \end{quote}
 mentioned by 10 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-encrypt-trace(sasp\_, sas\_)}}\quad\textit{predicate}\index{is-encrypt-trace(sasp_, sas_)@\texttt{is-encrypt-trace(sasp\_, sas\_)}}\\
+reads: \$2 is an encryption trace in the strand space \$1 \\
+defined by \texttt{is-encrypt-trace} \\
+characterized by \texttt{is-encrypt-trace}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([sasp\_, sas\_], is-encrypt-trace(sasp\_, sas\_) iff forsome([sak\_ in keys(sasp\_), sag\_ in msg-set(tokens(sasp\_), keys(sasp\_))], sas\_ = [[received, sak\_], [received, sag\_], [sent, encr(sag\_, sak\_)]]))
+\end{quote}
+mentioned by 6 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-entry-point(ssp\_, ssn\_, ssi\_)}}\quad\textit{predicate}\index{is-entry-point(ssp_, ssn_, ssi_)@\texttt{is-entry-point(ssp\_, ssn\_, ssi\_)}}\\
+reads: the node \$2 of \$1 is an entry point into \$3 \\
+defined by \texttt{is-entry-point} \\
+characterized by \texttt{is-entry-point}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([ssp\_, ssn\_, ssi\_], is-entry-point(ssp\_, ssn\_, ssi\_) iff ssn\_ in nodes(ssp\_) and is-sent(ssp\_, ssn\_) and node-content(ssp\_, ssn\_) in ssi\_ and forall([ssm\_], same-strand-before(ssp\_, ssm\_, ssn\_) implies not(node-content(ssp\_, ssm\_) in ssi\_)))
+\end{quote}
+mentioned by 4 result(s)
 
 \smallskip
 
@@ -3780,6 +3949,17 @@ mentioned by 8 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{is-flush-trace(sasp\_, sas\_)}}\quad\textit{predicate}\index{is-flush-trace(sasp_, sas_)@\texttt{is-flush-trace(sasp\_, sas\_)}}\\
+reads: \$2 is a flushing trace in the strand space \$1 \\
+defined by \texttt{is-flush-trace} \\
+characterized by \texttt{is-flush-trace}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([sasp\_, sas\_], is-flush-trace(sasp\_, sas\_) iff forsome([sag\_ in msg-set(tokens(sasp\_), keys(sasp\_))], sas\_ = [[received, sag\_]]))
+\end{quote}
+mentioned by 5 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{is-frechet-structure(m, fam)}}\quad\textit{predicate}\index{is-frechet-structure(m, fam)@\texttt{is-frechet-structure(m, fam)}}\\
 reads: (\$1, \$2) is a Frechet space \\
 defined by \texttt{is-frechet-structure} \\
@@ -3854,6 +4034,17 @@ characterized by \texttt{is-hom-abelian-group-def}  \textit{(definitional)}:
 forall([a, b, f], is-hom-abelian-group(a, b, f) iff is-abelian-group(a) and is-abelian-group(b) and f in fun(carr(a), carr(b)) and forall([x1\_ in carr(a), x2\_ in carr(a)], f((opr(a))(x1\_, x2\_)) = (opr(b))(f(x1\_), f(x2\_))) and f(iden(a)) = iden(b) and forall([x1\_ in carr(a)], f((inv(a))(x1\_)) = (inv(b))(f(x1\_))))
 \end{quote}
 mentioned by 13 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-hom-bundle(a, b, f)}}\quad\textit{predicate}\index{is-hom-bundle(a, b, f)@\texttt{is-hom-bundle(a, b, f)}}\\
+reads: \$3 is a homomorphism from \$1 to \$2 \\
+a predicate \\
+characterized by \texttt{is-hom-bundle-def}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b, f], is-hom-bundle(a, b, f) iff is-bundle(a) and is-bundle(b) and f in fun(bnodes(a), bnodes(b)) and bspace(a) = bspace(b) and forall([x1\_ in bnodes(a), x2\_ in bnodes(a)], [x1\_, x2\_] in bsend(a) implies [f(x1\_), f(x2\_)] in bsend(b)))
+\end{quote}
+mentioned by 2 result(s)
 
 \smallskip
 
@@ -3945,6 +4136,17 @@ mentioned by 6 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{is-hom-infiltrated-space(a, b, f1, f2)}}\quad\textit{predicate}\index{is-hom-infiltrated-space(a, b, f1, f2)@\texttt{is-hom-infiltrated-space(a, b, f1, f2)}}\\
+reads: \$3 is a morphism of infiltrated strand spaces from \$1 to \$2 \\
+a predicate \\
+characterized by \texttt{is-hom-infiltrated-space-def}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b, f1, f2], is-hom-infiltrated-space(a, b, f1, f2) iff is-infiltrated-space(a) and is-infiltrated-space(b) and f1 in fun(adv-ids(a), adv-ids(b)) and f2 in fun(adv-tokens(a), adv-tokens(b)) and ispace(a) = ispace(b))
+\end{quote}
+mentioned by 2 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{is-hom-integral-domain(a, b, f)}}\quad\textit{predicate}\index{is-hom-integral-domain(a, b, f)@\texttt{is-hom-integral-domain(a, b, f)}}\\
 reads: \$3 is a homomorphism from \$1 to \$2 \\
 a predicate \\
@@ -3975,17 +4177,6 @@ characterized by \texttt{is-hom-measure-space-def}  \textit{(definitional)}:
 forall([s, t, f], is-hom-measure-space(s, t, f) iff is-measure-space(s) and is-measure-space(t) and f in fun(pts(s), pts(t)) and forall([u in sigma(t)], preimage(s, f, u) in sigma(s)) and forall([u in sigma(t)], (meas(t))(u) = (meas(s))(preimage(s, f, u))))
 \end{quote}
 mentioned by 7 result(s)
-
-\smallskip
-
-\noindent\textbf{\texttt{is-hom-message-algebra(a, b, f1, f2)}}\quad\textit{predicate}\index{is-hom-message-algebra(a, b, f1, f2)@\texttt{is-hom-message-algebra(a, b, f1, f2)}}\\
-reads: \$3 is a homomorphism of message algebras from \$1 to \$2 \\
-a predicate \\
-characterized by \texttt{is-hom-message-algebra-def}  \textit{(definitional)}:
-\begin{quote}\ttfamily\footnotesize\noindent
-forall([a, b, f1, f2], is-hom-message-algebra(a, b, f1, f2) iff is-message-algebra(a) and is-message-algebra(b) and f1 in fun(texts(a), texts(b)) and f2 in fun(keys(a), keys(b)) and forall([x1\_ in keys(a)], f2((kinv(a))(x1\_)) = (kinv(b))(f2(x1\_))))
-\end{quote}
-mentioned by 2 result(s)
 
 \smallskip
 
@@ -4077,6 +4268,17 @@ mentioned by 6 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{is-hom-pk-space(a, b, f)}}\quad\textit{predicate}\index{is-hom-pk-space(a, b, f)@\texttt{is-hom-pk-space(a, b, f)}}\\
+reads: \$3 is a morphism of public-key strand spaces from \$1 to \$2 \\
+a predicate \\
+characterized by \texttt{is-hom-pk-space-def}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b, f], is-hom-pk-space(a, b, f) iff is-pk-space(a) and is-pk-space(b) and f in fun(names(a), names(b)) and pk-inf(a) = pk-inf(b) and forall([x1\_ in names(a)], (pubkey(a))(x1\_) = (pubkey(b))(f(x1\_))))
+\end{quote}
+mentioned by 2 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{is-hom-pseudometric-space(a, b, f)}}\quad\textit{predicate}\index{is-hom-pseudometric-space(a, b, f)@\texttt{is-hom-pseudometric-space(a, b, f)}}\\
 reads: \$3 is a homomorphism from \$1 to \$2 \\
 a predicate \\
@@ -4133,6 +4335,17 @@ mentioned by 6 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{is-hom-strand-space(a, b, f1, f2, f3)}}\quad\textit{predicate}\index{is-hom-strand-space(a, b, f1, f2, f3)@\texttt{is-hom-strand-space(a, b, f1, f2, f3)}}\\
+reads: \$3 is a morphism of strand spaces from \$1 to \$2 \\
+a predicate \\
+characterized by \texttt{is-hom-strand-space-def}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b, f1, f2, f3], is-hom-strand-space(a, b, f1, f2, f3) iff is-strand-space(a) and is-strand-space(b) and f1 in fun(tokens(a), tokens(b)) and f2 in fun(ids(a), ids(b)) and f3 in fun(keys(a), keys(b)) and forall([x1\_ in ids(a)], (strand-map(a))(x1\_) = (strand-map(b))(f2(x1\_))) and forall([x1\_ in keys(a)], f3((kinv(a))(x1\_)) = (kinv(b))(f3(x1\_))))
+\end{quote}
+mentioned by 2 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{is-hom-top-space(s, t, f)}}\quad\textit{predicate}\index{is-hom-top-space(s, t, f)@\texttt{is-hom-top-space(s, t, f)}}\\
 reads: \$3 is continuous from \$1 to \$2 \\
 a predicate \\
@@ -4186,6 +4399,28 @@ characterized by \texttt{is-identity}  \textit{(definitional)}:
 forall([op, unit, crr], is-identity(op, unit, crr) iff forall([u in crr], op(unit, u) = u and op(u, unit) = u))
 \end{quote}
 mentioned by 26 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-infiltrated-space(s)}}\quad\textit{predicate}\index{is-infiltrated-space(s)@\texttt{is-infiltrated-space(s)}}\\
+reads: an infiltrated strand space \\
+a predicate \\
+characterized by \texttt{is-infiltrated-space}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([s], is-infiltrated-space(s) iff length(s) = 3 and is-strand-space(ispace(s)) and adv-ids(s) in set and adv-tokens(s) in set and forall([sap\_ in adv-ids(s)], sap\_ in ids(ispace(s))) and forall([sat\_ in adv-tokens(s)], sat\_ in tokens(ispace(s))) and forall([sap\_ in adv-ids(s)], is-adversary-trace(ispace(s), adv-tokens(s), (strand-map(ispace(s)))(sap\_))))
+\end{quote}
+mentioned by 14 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-init-strand(nlp\_, nls\_, nla\_, nlb\_, nlm\_, nln\_)}}\quad\textit{predicate}\index{is-init-strand(nlp_, nls_, nla_, nlb_, nlm_, nln_)@\texttt{is-init-strand(nlp\_, nls\_, nla\_, nlb\_, nlm\_, nln\_)}}\\
+reads: \$2 is an initiator's strand of \$1 for the names \$3, \$4 and the values \$5, \$6 \\
+defined by \texttt{is-init-strand} \\
+characterized by \texttt{is-init-strand}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([nlp\_, nls\_, nla\_, nlb\_, nlm\_, nln\_], is-init-strand(nlp\_, nls\_, nla\_, nlb\_, nlm\_, nln\_) iff nla\_ in names(nlp\_) and nlb\_ in names(nlp\_) and nlm\_ in tokens(ispace(pk-inf(nlp\_))) and nln\_ in tokens(ispace(pk-inf(nlp\_))) and not(nlm\_ in names(nlp\_)) and not(nlm\_ in keys(ispace(pk-inf(nlp\_)))) and not(nln\_ in keys(ispace(pk-inf(nlp\_)))) and nls\_ = [[sent, encr(lst([nlm\_, nla\_]), (pubkey(nlp\_))(nlb\_))], [received, encr(lst([nlm\_, nln\_, nlb\_]), (pubkey(nlp\_))(nla\_))], [sent, encr(nln\_, (pubkey(nlp\_))(nlb\_))]])
+\end{quote}
+mentioned by 16 result(s)
 
 \smallskip
 
@@ -4413,17 +4648,6 @@ mentioned by 11 result(s)
 
 \smallskip
 
-\noindent\textbf{\texttt{is-message-algebra(s)}}\quad\textit{predicate}\index{is-message-algebra(s)@\texttt{is-message-algebra(s)}}\\
-reads: a message algebra \\
-a predicate \\
-characterized by \texttt{is-message-algebra}  \textit{(definitional)}:
-\begin{quote}\ttfamily\footnotesize\noindent
-forall([s], is-message-algebra(s) iff length(s) = 4 and texts(s) in set and keys(s) in set and kinv(s) in fun(keys(s), keys(s)) and msgs(s) in set and msgs(s) = msg-set(texts(s), keys(s)) and forall([smx\_ in texts(s)], not(smx\_ in keys(s))) and forall([smy\_ in keys(s)], (kinv(s))((kinv(s))(smy\_)) = smy\_))
-\end{quote}
-mentioned by 13 result(s)
-
-\smallskip
-
 \noindent\textbf{\texttt{is-metric(dst, crr)}}\quad\textit{predicate}\index{is-metric(dst, crr)@\texttt{is-metric(dst, crr)}}\\
 reads: \$1 is a metric on \$2 \\
 defined by \texttt{is-metric} \\
@@ -4587,6 +4811,17 @@ mentioned by 6 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{is-nsl-space(nlp\_)}}\quad\textit{predicate}\index{is-nsl-space(nlp_)@\texttt{is-nsl-space(nlp\_)}}\\
+reads: \$1 is a Needham-Schroeder-Lowe space \\
+defined by \texttt{is-nsl-space} \\
+characterized by \texttt{is-nsl-space}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([nlp\_], is-nsl-space(nlp\_) iff is-pk-space(nlp\_) and forall([nli\_ in ids(ispace(pk-inf(nlp\_)))], nli\_ in adv-ids(pk-inf(nlp\_)) or forsome([nla\_, nlb\_, nlm\_, nln\_], is-init-strand(nlp\_, (strand-map(ispace(pk-inf(nlp\_))))(nli\_), nla\_, nlb\_, nlm\_, nln\_)) or forsome([nla\_, nlb\_, nlm\_, nln\_], is-resp-strand(nlp\_, (strand-map(ispace(pk-inf(nlp\_))))(nli\_), nla\_, nlb\_, nlm\_, nln\_))))
+\end{quote}
+mentioned by 23 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{is-open(s, u)}}\quad\textit{predicate}\index{is-open(s, u)@\texttt{is-open(s, u)}}\\
 reads: \$2 is open in \$1 \\
 defined by \texttt{is-open} \\
@@ -4651,7 +4886,7 @@ characterized by \texttt{is-outer-measure}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([omega, mu], is-outer-measure(omega, mu) iff omega in set and mu in fun(power(omega), rr-pos-star) and mu(empty-set) = 0 and forall([a\_, b\_], a\_ in power(omega) implies b\_ in power(omega) implies a\_ subset b\_ implies mu(a\_) <= mu(b\_)) and forall([f\_ in fun(nn, power(omega))], mu(big-union(n\_, nn, f\_(n\_))) <= esum(vnb-lambda(n\_, nn, mu(f\_(n\_))))))
 \end{quote}
-mentioned by 7 result(s)
+mentioned by 10 result(s)
 
 \smallskip
 
@@ -4662,7 +4897,7 @@ characterized by \texttt{is-partial-order}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([grd, porel], is-partial-order(grd, porel) iff grd in set and porel in set and forall([x in grd], [x, x] in porel) and forall([x in grd, y in grd], [x, y] in porel and [y, x] in porel implies x = y) and forall([x in grd, y in grd, z in grd], [x, y] in porel and [y, z] in porel implies [x, z] in porel))
 \end{quote}
-mentioned by 13 result(s)
+mentioned by 14 result(s)
 
 \smallskip
 
@@ -4708,6 +4943,28 @@ characterized by \texttt{is-piecewise-continuous}  \textit{(definitional)}:
 forall([f, a, b], is-piecewise-continuous(f, a, b) iff f in fun(rr, rr) and a in rr and b in rr and a < b and forsome([n\_, p\_], is-partition(p\_, n\_, a, b) and forall([i\_], i\_ in interval(0, n\_) and i\_ < n\_ implies forall([t\_], t\_ in rr and p\_(i\_) < t\_ and t\_ < p\_(succ(i\_)) implies is-continuous-at(rr-ms, rr-ms, f, t\_)))))
 \end{quote}
 mentioned by 2 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-pk-space(s)}}\quad\textit{predicate}\index{is-pk-space(s)@\texttt{is-pk-space(s)}}\\
+reads: a public-key strand space \\
+a predicate \\
+characterized by \texttt{is-pk-space}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([s], is-pk-space(s) iff length(s) = 3 and is-infiltrated-space(pk-inf(s)) and names(s) in set and pubkey(s) in fun(names(s), keys(ispace(pk-inf(s)))) and forall([nlx\_ in names(s)], nlx\_ in tokens(ispace(pk-inf(s)))) and forall([nlx\_ in names(s)], not(nlx\_ in keys(ispace(pk-inf(s))))) and forall([nlx\_, nly\_], nlx\_ in names(s) implies nly\_ in names(s) implies (pubkey(s))(nlx\_) = (pubkey(s))(nly\_) implies nlx\_ = nly\_))
+\end{quote}
+mentioned by 17 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-prec-closed(spc\_, snd\_, ssd\_, srl\_)}}\quad\textit{predicate}\index{is-prec-closed(spc_, snd_, ssd_, srl_)@\texttt{is-prec-closed(spc\_, snd\_, ssd\_, srl\_)}}\\
+reads: \$4 contains \$3 and the strand order of \$1 on \$2, and is transitive \\
+defined by \texttt{is-prec-closed} \\
+characterized by \texttt{is-prec-closed}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([spc\_, snd\_, ssd\_, srl\_], is-prec-closed(spc\_, snd\_, ssd\_, srl\_) iff forall([ssx\_, ssy\_], [ssx\_, ssy\_] in ssd\_ implies [ssx\_, ssy\_] in srl\_) and forall([ssx\_ in snd\_, ssy\_ in snd\_], same-strand-before(spc\_, ssx\_, ssy\_) implies [ssx\_, ssy\_] in srl\_) and forall([ssx\_, ssy\_, ssz\_], [ssx\_, ssy\_] in srl\_ implies [ssy\_, ssz\_] in srl\_ implies [ssx\_, ssz\_] in srl\_))
+\end{quote}
+mentioned by 5 result(s)
 
 \smallskip
 
@@ -4789,6 +5046,28 @@ mentioned by 5 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{is-received(ssp\_, ssn\_)}}\quad\textit{predicate}\index{is-received(ssp_, ssn_)@\texttt{is-received(ssp\_, ssn\_)}}\\
+reads: the node \$2 of \$1 is received \\
+defined by \texttt{is-received} \\
+characterized by \texttt{is-received}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([ssp\_, ssn\_], is-received(ssp\_, ssn\_) iff node-dir(ssp\_, ssn\_) = received)
+\end{quote}
+mentioned by 12 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-regular-node(sai\_, san\_)}}\quad\textit{predicate}\index{is-regular-node(sai_, san_)@\texttt{is-regular-node(sai\_, san\_)}}\\
+reads: \$2 is a regular node of \$1 \\
+defined by \texttt{is-regular-node} \\
+characterized by \texttt{is-regular-node}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([sai\_, san\_], is-regular-node(sai\_, san\_) iff not(nth(2, san\_) in adv-ids(sai\_)))
+\end{quote}
+mentioned by 14 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{is-regulated(f, a, b)}}\quad\textit{predicate}\index{is-regulated(f, a, b)@\texttt{is-regulated(f, a, b)}}\\
 reads: \$1 is regulated on the interval [\$2, \$3] -- both one-sided limits exist at every point \\
 defined by \texttt{is-regulated} \\
@@ -4809,6 +5088,17 @@ characterized by \texttt{is-regulated-on}  \textit{(definitional)}:
 forall([rpf\_, rpa\_, rpb\_], is-regulated-on(rpf\_, rpa\_, rpb\_) iff rpa\_ in rr and rpb\_ in rr and rpa\_ < rpb\_ and rpf\_ in fun(ccint(rpa\_, rpb\_), rr) and forall([rpx\_ in ccint(rpa\_, rpb\_)], rpx\_ < rpb\_ implies forsome([rpl\_], is-right-limit-within(rpf\_, ccint(rpa\_, rpb\_), rpx\_, rpl\_))) and forall([rpx\_ in ccint(rpa\_, rpb\_)], rpa\_ < rpx\_ implies forsome([rpl\_], is-left-limit-within(rpf\_, ccint(rpa\_, rpb\_), rpx\_, rpl\_))))
 \end{quote}
 mentioned by 26 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-resp-strand(nlp\_, nls\_, nla\_, nlb\_, nlm\_, nln\_)}}\quad\textit{predicate}\index{is-resp-strand(nlp_, nls_, nla_, nlb_, nlm_, nln_)@\texttt{is-resp-strand(nlp\_, nls\_, nla\_, nlb\_, nlm\_, nln\_)}}\\
+reads: \$2 is a responder's strand of \$1 for the names \$3, \$4 and the values \$5, \$6 \\
+defined by \texttt{is-resp-strand} \\
+characterized by \texttt{is-resp-strand}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([nlp\_, nls\_, nla\_, nlb\_, nlm\_, nln\_], is-resp-strand(nlp\_, nls\_, nla\_, nlb\_, nlm\_, nln\_) iff nla\_ in names(nlp\_) and nlb\_ in names(nlp\_) and nlm\_ in tokens(ispace(pk-inf(nlp\_))) and nln\_ in tokens(ispace(pk-inf(nlp\_))) and not(nln\_ in names(nlp\_)) and not(nlm\_ in keys(ispace(pk-inf(nlp\_)))) and not(nln\_ in keys(ispace(pk-inf(nlp\_)))) and nls\_ = [[received, encr(lst([nlm\_, nla\_]), (pubkey(nlp\_))(nlb\_))], [sent, encr(lst([nlm\_, nln\_, nlb\_]), (pubkey(nlp\_))(nla\_))], [received, encr(nln\_, (pubkey(nlp\_))(nlb\_))]])
+\end{quote}
+mentioned by 15 result(s)
 
 \smallskip
 
@@ -4903,6 +5193,17 @@ mentioned by 4 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{is-sent(ssp\_, ssn\_)}}\quad\textit{predicate}\index{is-sent(ssp_, ssn_)@\texttt{is-sent(ssp\_, ssn\_)}}\\
+reads: the node \$2 of \$1 is sent \\
+defined by \texttt{is-sent} \\
+characterized by \texttt{is-sent}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([ssp\_, ssn\_], is-sent(ssp\_, ssn\_) iff node-dir(ssp\_, ssn\_) = sent)
+\end{quote}
+mentioned by 24 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{is-separable(s)}}\quad\textit{predicate}\index{is-separable(s)@\texttt{is-separable(s)}}\\
 reads: \$1 is separable \\
 defined by \texttt{is-separable} \\
@@ -4912,6 +5213,17 @@ forall([s], is-separable(s) iff is-metric-space(s) and forsome([dseq in fun(nn, 
 \end{quote}
 also: \texttt{compact-metric-is-separable} \\
 mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-separate-trace(sasp\_, sas\_)}}\quad\textit{predicate}\index{is-separate-trace(sasp_, sas_)@\texttt{is-separate-trace(sasp\_, sas\_)}}\\
+reads: \$2 is a separation trace in the strand space \$1 \\
+defined by \texttt{is-separate-trace} \\
+characterized by \texttt{is-separate-trace}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([sasp\_, sas\_], is-separate-trace(sasp\_, sas\_) iff forsome([sal\_ in tuples(msg-set(tokens(sasp\_), keys(sasp\_)))], length(sas\_) = succ(length(sal\_)) and nth(1, sas\_) = [received, lst(sal\_)] and forall([sai\_ in nn], 1 <= sai\_ implies sai\_ <= length(sal\_) implies nth(succ(sai\_), sas\_) = [sent, nth(sai\_, sal\_)])))
+\end{quote}
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -4969,6 +5281,17 @@ characterized by \texttt{is-step-fn}  \textit{(definitional)}:
 forall([f, a, b], is-step-fn(f, a, b) iff f in fun(rr, rr) and a in rr and b in rr and a < b and forsome([n\_, p\_], is-partition(p\_, n\_, a, b) and forall([i\_], i\_ in interval(0, n\_) and i\_ < n\_ implies forsome([c\_ in rr], forall([t\_], t\_ in rr and p\_(i\_) < t\_ and t\_ < p\_(succ(i\_)) implies f(t\_) = c\_)))))
 \end{quote}
 mentioned by 6 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-strand-space(s)}}\quad\textit{predicate}\index{is-strand-space(s)@\texttt{is-strand-space(s)}}\\
+reads: a strand space \\
+a predicate \\
+characterized by \texttt{is-strand-space}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([s], is-strand-space(s) iff length(s) = 5 and tokens(s) in set and ids(s) in set and keys(s) in set and strand-map(s) in fun(ids(s), strands(tokens(s), keys(s))) and kinv(s) in fun(keys(s), keys(s)) and is-token-set(tokens(s)) and forall([ssx\_ in keys(s)], ssx\_ in tokens(s)) and forall([ssx\_ in keys(s)], (kinv(s))((kinv(s))(ssx\_)) = ssx\_))
+\end{quote}
+mentioned by 37 result(s)
 
 \smallskip
 
@@ -5030,22 +5353,22 @@ mentioned by 2 result(s)
 \smallskip
 
 \noindent\textbf{\texttt{is-subterm(smt\_, smk\_, sma\_, smb\_)}}\quad\textit{predicate}\index{is-subterm(smt_, smk_, sma_, smb_)@\texttt{is-subterm(smt\_, smk\_, sma\_, smb\_)}}\\
-reads: \$3 is a subterm of \$4 over the texts \$1 and the keys \$2 \\
+reads: \$3 is a subterm of \$4 over the tokens \$1 and the keys \$2 \\
 defined by \texttt{is-subterm} \\
 characterized by \texttt{is-subterm}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([smt\_, smk\_, sma\_, smb\_], is-subterm(smt\_, smk\_, sma\_, smb\_) iff [sma\_, smb\_] in subterm-rel(smt\_, smk\_))
 \end{quote}
-mentioned by 18 result(s)
+mentioned by 51 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{is-subterm-closed(smt\_, smk\_, smr\_)}}\quad\textit{predicate}\index{is-subterm-closed(smt_, smk_, smr_)@\texttt{is-subterm-closed(smt\_, smk\_, smr\_)}}\\
-reads: \$3 is closed under the subterm clauses over the texts \$1 and the keys \$2 \\
+reads: \$3 is closed under the subterm clauses over the tokens \$1 and the keys \$2 \\
 defined by \texttt{is-subterm-closed} \\
 characterized by \texttt{is-subterm-closed}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([smt\_, smk\_, smr\_], is-subterm-closed(smt\_, smk\_, smr\_) iff forall([sma\_ in msg-set(smt\_, smk\_)], [sma\_, sma\_] in smr\_) and forall([sma\_, smg\_, smy\_], [sma\_, smg\_] in smr\_ implies smy\_ in smk\_ implies [sma\_, enc(smg\_, smy\_)] in smr\_) and forall([sma\_, smg\_, smh\_], [sma\_, smg\_] in smr\_ implies smh\_ in msg-set(smt\_, smk\_) implies [sma\_, cat(smg\_, smh\_)] in smr\_) and forall([sma\_, smg\_, smh\_], [sma\_, smh\_] in smr\_ implies smg\_ in msg-set(smt\_, smk\_) implies [sma\_, cat(smg\_, smh\_)] in smr\_))
+forall([smt\_, smk\_, smr\_], is-subterm-closed(smt\_, smk\_, smr\_) iff forall([sma\_ in msg-set(smt\_, smk\_)], [sma\_, sma\_] in smr\_) and forall([sma\_, sml\_, smi\_], sml\_ in tuples(msg-set(smt\_, smk\_)) implies smi\_ in nn implies 1 <= smi\_ implies smi\_ <= length(sml\_) implies [sma\_, nth(smi\_, sml\_)] in smr\_ implies [sma\_, lst(sml\_)] in smr\_) and forall([sma\_, smg\_, smy\_], smg\_ in msg-set(smt\_, smk\_) implies smy\_ in smk\_ implies [sma\_, smg\_] in smr\_ implies [sma\_, encr(smg\_, smy\_)] in smr\_))
 \end{quote}
 mentioned by 5 result(s)
 
@@ -5070,6 +5393,39 @@ characterized by \texttt{is-taylor-family}  \textit{(definitional)}:
 forall([d, n, a, b], is-taylor-family(d, n, a, b) iff n in nn and 1 <= n and a in rr and b in rr and a < b and d(n) in fun(ooint(a, b), rr) and forall([tk\_ in nn], tk\_ < n implies d(tk\_) in fun(ccint(a, b), rr) and is-continuous-on(d(tk\_), ccint(a, b)) and forall([tx\_ in ooint(a, b)], has-deriv-at(d(tk\_), tx\_, (d(succ(tk\_)))(tx\_)))))
 \end{quote}
 mentioned by 23 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-tee-trace(sasp\_, sas\_)}}\quad\textit{predicate}\index{is-tee-trace(sasp_, sas_)@\texttt{is-tee-trace(sasp\_, sas\_)}}\\
+reads: \$2 is a tee trace in the strand space \$1 \\
+defined by \texttt{is-tee-trace} \\
+characterized by \texttt{is-tee-trace}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([sasp\_, sas\_], is-tee-trace(sasp\_, sas\_) iff forsome([sag\_ in msg-set(tokens(sasp\_), keys(sasp\_))], sas\_ = [[received, sag\_], [sent, sag\_], [sent, sag\_]]))
+\end{quote}
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-text-trace(sasp\_, sap\_, sas\_)}}\quad\textit{predicate}\index{is-text-trace(sasp_, sap_, sas_)@\texttt{is-text-trace(sasp\_, sap\_, sas\_)}}\\
+reads: \$3 is a text trace of the adversary knowing \$2 in the strand space \$1 \\
+defined by \texttt{is-text-trace} \\
+characterized by \texttt{is-text-trace}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([sasp\_, sap\_, sas\_], is-text-trace(sasp\_, sap\_, sas\_) iff forsome([saa\_ in sap\_], sas\_ = [[sent, saa\_]]))
+\end{quote}
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-token-set(smt\_)}}\quad\textit{predicate}\index{is-token-set(smt_)@\texttt{is-token-set(smt\_)}}\\
+reads: \$1 is a set of tokens, none of which is a list \\
+defined by \texttt{is-token-set} \\
+characterized by \texttt{is-token-set}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([smt\_], is-token-set(smt\_) iff smt\_ in set and forall([smx\_ in smt\_], not(smx\_ in tuples(set))))
+\end{quote}
+mentioned by 25 result(s)
 
 \smallskip
 
@@ -5154,6 +5510,13 @@ mentioned by 16 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{ispace(s)}}\quad\textit{accessor}\index{ispace(s)@\texttt{ispace(s)}}\\
+reads: the ispace slot of \$1 \\
+a structure slot \\
+mentioned by 47 result(s)
+
+\smallskip
+
 
 \section*{J}
 \addcontentsline{toc}{section}{J}
@@ -5199,11 +5562,11 @@ mentioned by 5 result(s)
 \noindent\textbf{\texttt{keys(s)}}\quad\textit{accessor}\index{keys(s)@\texttt{keys(s)}}\\
 reads: the keys slot of \$1 \\
 a structure slot \\
-characterized by \texttt{texts-keys-disjoint}  \textit{(certified)}:
+characterized by \texttt{keys-in-tokens}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([alg], is-message-algebra(alg) implies forall([x in texts(alg)], not(x in keys(alg))))
+forall([spa], is-strand-space(spa) implies forall([x in keys(spa)], x in tokens(spa)))
 \end{quote}
-mentioned by 11 result(s)
+mentioned by 69 result(s)
 
 \smallskip
 
@@ -5212,10 +5575,10 @@ reads: the kinv slot of \$1 \\
 a structure slot \\
 characterized by \texttt{kinv-in-fun}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([alg], is-message-algebra(alg) implies kinv(alg) in fun(keys(alg), keys(alg)))
+forall([spa], is-strand-space(spa) implies kinv(spa) in fun(keys(spa), keys(spa)))
 \end{quote}
 also: \texttt{kinv-injective} \texttt{kinv-involution} \\
-mentioned by 9 result(s)
+mentioned by 26 result(s)
 
 \smallskip
 
@@ -5283,7 +5646,7 @@ characterized by \texttt{length-cons}  \textit{(definitional)}:
 forall([x, l], length(cons(x, l)) = succ(length(l)))
 \end{quote}
 also: \texttt{length-in-nn} \texttt{length-of-empty} \texttt{tuple-length-zero} \texttt{mat-length} \texttt{rko2-cauchy-setoid-length} \\
-mentioned by 83 result(s)
+mentioned by 108 result(s)
 
 \smallskip
 
@@ -5343,12 +5706,12 @@ mentioned by 88 result(s)
 
 \noindent\textbf{\texttt{list}}\quad\textit{operator}\index{list@\texttt{list}}\\
 a term-forming head \\
-characterized by \texttt{nary-plus-2-list}  \textit{(asserted)}:
+characterized by \texttt{nsl-list-source}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([x, y], x + y == reduce(binplus, fam-of-list([x, y]), 2))
+forall([nsp, c, n2, l, q], is-nsl-space(nsp) implies is-bundle(c) implies bspace(c) = ispace(pk-inf(nsp)) implies n2 in bnodes(c) implies l in tuples(msg-set(tokens(ispace(pk-inf(nsp))), keys(ispace(pk-inf(nsp))))) implies q in nn implies 1 <= q implies q <= length(l) implies node-content(ispace(pk-inf(nsp)), n2) = nth(q, l) implies not(l in tuples(tokens(ispace(pk-inf(nsp))))) implies forsome([x in bnodes(c)], [x, n2] in precedes-strict(c) and is-subterm(tokens(ispace(pk-inf(nsp))), keys(ispace(pk-inf(nsp))), lst(l), node-content(ispace(pk-inf(nsp)), x))) implies forsome([z in bnodes(c)], [z, n2] in precedes-strict(c) and node-content(ispace(pk-inf(nsp)), z) = node-content(ispace(pk-inf(nsp)), n2)))
 \end{quote}
-also: \texttt{nary-plus-3-list} \texttt{nary-plus-4-list} \texttt{nary-plus-5-list} \texttt{nary-times-2-list} \texttt{nary-times-3-list} \texttt{nary-times-4-list} \texttt{nary-times-5-list} \\
-mentioned by 264 result(s)
+also: \texttt{nary-plus-2-list} \texttt{nary-plus-3-list} \texttt{nary-plus-4-list} \texttt{nary-plus-5-list} \texttt{nary-times-2-list} \texttt{nary-times-3-list} \texttt{nary-times-4-list} \texttt{nary-times-5-list} \\
+mentioned by 343 result(s)
 
 \smallskip
 
@@ -5375,6 +5738,21 @@ forall([x\_, y\_], x\_ in rr implies y\_ in rr implies 0 < x\_ implies 0 < y\_ i
 \end{quote}
 also: \texttt{log-one} \texttt{log-diff} \texttt{log-deriv} \texttt{log-in-rr} \texttt{log-r-exp} \texttt{log-recip} \texttt{r-exp-log} \texttt{log-unfold} ... (33 in all) \\
 mentioned by 73 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{lst(sml\_)}}\quad\textit{functoid}\index{lst(sml_)@\texttt{lst(sml\_)}}\\
+reads: the list message of \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+[1, sml\_]
+\end{quote}
+characterized by \texttt{lst-unfold}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([l], lst(l) == [1, l])
+\end{quote}
+also: \texttt{lst-ne-encr} \texttt{lst-injective} \texttt{token-not-lst} \texttt{lst-in-tuples-set} \\
+mentioned by 48 result(s)
 
 \smallskip
 
@@ -5622,11 +6000,6 @@ mentioned by 2 result(s)
 
 \smallskip
 
-\noindent\textbf{\texttt{message-algebra}}\quad\textit{structure}\index{message-algebra@\texttt{message-algebra}}\\
-predicate \texttt{is-message-algebra}; slots: texts keys kinv msgs
-
-\smallskip
-
 \noindent\textbf{\texttt{metric-space}}\quad\textit{structure}\index{metric-space@\texttt{metric-space}}\\
 predicate \texttt{is-metric-space}; slots: pts dist
 
@@ -5822,22 +6195,22 @@ mentioned by 40 result(s)
 \smallskip
 
 \noindent\textbf{\texttt{msg-rank(smt\_, smk\_, smm\_)}}\quad\textit{functoid}\index{msg-rank(smt_, smk_, smm_)@\texttt{msg-rank(smt\_, smk\_, smm\_)}}\\
-reads: the rank of the message \$3 over the texts \$1 and the keys \$2 \\
+reads: the rank of the message \$3 over the tokens \$1 and the keys \$2 \\
 definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 iota(smr\_, smr\_ in nn and smm\_ in msg-stage(smt\_, smk\_, smr\_) and forall([smj\_ in nn], smm\_ in msg-stage(smt\_, smk\_, smj\_) implies smr\_ <= smj\_))
 \end{quote}
-characterized by \texttt{msg-rank-cat}  \textit{(certified)}:
+characterized by \texttt{msg-rank-encr}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([t, k, g, h], g in msg-set(t, k) implies h in msg-set(t, k) implies succ(msg-rank(t, k, g)) <= msg-rank(t, k, cat(g, h)) and succ(msg-rank(t, k, h)) <= msg-rank(t, k, cat(g, h)))
+forall([t, k], is-token-set(t) implies forall([g, y], g in msg-set(t, k) implies y in k implies succ(msg-rank(t, k, g)) <= msg-rank(t, k, encr(g, y))))
 \end{quote}
-also: \texttt{msg-rank-enc} \texttt{msg-rank-atom} \texttt{msg-rank-prop} \\
+also: \texttt{msg-rank-prop} \texttt{msg-rank-token} \texttt{msg-rank-component} \\
 mentioned by 6 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{msg-set(smt\_, smk\_)}}\quad\textit{functoid}\index{msg-set(smt_, smk_)@\texttt{msg-set(smt\_, smk\_)}}\\
-reads: the messages over the texts \$1 and the keys \$2 \\
+reads: the messages over the tokens \$1 and the keys \$2 \\
 definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 big-union(smn\_, nn, msg-stage(smt\_, smk\_, smn\_))
@@ -5847,30 +6220,19 @@ characterized by \texttt{msg-set-elim}  \textit{(certified)}:
 forall([t, k, m in msg-set(t, k)], forsome([n in nn], m in msg-stage(t, k, n)))
 \end{quote}
 also: \texttt{msg-set-intro} \texttt{msg-set-is-set} \texttt{msg-set-unfold} \\
-mentioned by 28 result(s)
+mentioned by 61 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{msg-stage}}\quad\textit{functoid}\index{msg-stage@\texttt{msg-stage}}\\
-reads: the stage \$3 of the messages over the texts \$1 and the keys \$2 \\
+reads: the stage \$3 of the messages over the tokens \$1 and the keys \$2 \\
 defined by \texttt{msg-stage-zero} \texttt{msg-stage-succ} \\
 characterized by \texttt{msg-stage-succ}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([smt\_, smk\_, smn\_ in nn], msg-stage(smt\_, smk\_, succ(smn\_)) == union(msg-stage(smt\_, smk\_, smn\_), union(cartesian(pair(1, 1), msg-stage(smt\_, smk\_, smn\_), msg-stage(smt\_, smk\_, smn\_)), cartesian(pair(2, 2), msg-stage(smt\_, smk\_, smn\_), smk\_))))
+forall([smt\_, smk\_, smn\_ in nn], msg-stage(smt\_, smk\_, succ(smn\_)) == union(msg-stage(smt\_, smk\_, smn\_), union(cartesian(pair(1, 1), tuples(msg-stage(smt\_, smk\_, smn\_))), cartesian(pair(2, 2), msg-stage(smt\_, smk\_, smn\_), smk\_))))
 \end{quote}
-also: \texttt{msg-stage-zero} \texttt{msg-stage-add} \texttt{msg-stage-cat} \texttt{msg-stage-enc} \texttt{msg-stage-set} \texttt{msg-stage-atom} \texttt{msg-stage-keep} \texttt{msg-stage-cat-inv} ... (11 in all) \\
-mentioned by 19 result(s)
-
-\smallskip
-
-\noindent\textbf{\texttt{msgs(s)}}\quad\textit{accessor}\index{msgs(s)@\texttt{msgs(s)}}\\
-reads: the msgs slot of \$1 \\
-a structure slot \\
-characterized by \texttt{message-algebra-msgs}  \textit{(certified)}:
-\begin{quote}\ttfamily\footnotesize\noindent
-forall([alg], is-message-algebra(alg) implies texts(alg) in set and keys(alg) in set and msgs(alg) = msg-set(texts(alg), keys(alg)))
-\end{quote}
-mentioned by 3 result(s)
+also: \texttt{msg-stage-zero} \texttt{msg-stage-add} \texttt{msg-stage-set} \texttt{msg-stage-encr} \texttt{msg-stage-keep} \texttt{msg-stage-list} \texttt{msg-stage-token} \texttt{msg-stage-encr-inv} ... (11 in all) \\
+mentioned by 20 result(s)
 
 \smallskip
 
@@ -5911,6 +6273,13 @@ characterized by \texttt{nag-metric-space-is-metric-space}  \textit{(certified)}
 forall([nag], is-normed-ag(nag) implies is-metric-space(nag-metric-space(nag)))
 \end{quote}
 mentioned by 6 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{names(s)}}\quad\textit{accessor}\index{names(s)@\texttt{names(s)}}\\
+reads: the names slot of \$1 \\
+a structure slot \\
+mentioned by 10 result(s)
 
 \smallskip
 
@@ -6022,6 +6391,51 @@ forall([n\_ in nn], nnsnd(n\_) in nn)
 \end{quote}
 also: \texttt{nnsnd-nnpair} \\
 mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{node-content(ssp\_, ssn\_)}}\quad\textit{functoid}\index{node-content(ssp_, ssn_)@\texttt{node-content(ssp\_, ssn\_)}}\\
+reads: the content of the node \$2 of \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+nth(2, nth(nth(1, ssn\_), (strand-map(ssp\_))(nth(2, ssn\_))))
+\end{quote}
+characterized by \texttt{node-content-eq}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([spa, n, k, d], nth(1, n) = k implies nth(k, (strand-map(spa))(nth(2, n))) = d implies node-content(spa, n) == nth(2, d) and node-dir(spa, n) == nth(1, d))
+\end{quote}
+also: \texttt{node-content-unfold} \texttt{node-content-in-msgs} \\
+mentioned by 46 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{node-dir(ssp\_, ssn\_)}}\quad\textit{functoid}\index{node-dir(ssp_, ssn_)@\texttt{node-dir(ssp\_, ssn\_)}}\\
+reads: the direction of the node \$2 of \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+nth(1, nth(nth(1, ssn\_), (strand-map(ssp\_))(nth(2, ssn\_))))
+\end{quote}
+characterized by \texttt{node-dir-cases}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([spa, n], is-strand-space(spa) implies n in nodes(spa) implies node-dir(spa, n) = sent or node-dir(spa, n) = received)
+\end{quote}
+also: \texttt{node-dir-unfold} \\
+mentioned by 10 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{nodes(ssp\_)}}\quad\textit{functoid}\index{nodes(ssp_)@\texttt{nodes(ssp\_)}}\\
+reads: the nodes of the strand space \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{ssn\_ in cartesian(nn, ids(ssp\_)): 1 <= nth(1, ssn\_) and nth(1, ssn\_) <= length((strand-map(ssp\_))(nth(2, ssn\_)))\}
+\end{quote}
+characterized by \texttt{nodes-unfold}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([spa], nodes(spa) == \{ssn\_ in cartesian(nn, ids(spa)): 1 <= nth(1, ssn\_) and nth(1, ssn\_) <= length((strand-map(spa))(nth(2, ssn\_)))\})
+\end{quote}
+also: \texttt{init-strand-nodes} \texttt{resp-strand-nodes} \texttt{three-strand-nodes} \texttt{bundle-nodes-in-space} \\
+mentioned by 46 result(s)
 
 \smallskip
 
@@ -6154,7 +6568,7 @@ characterized by \texttt{nth-cons-1}  \textit{(definitional)}:
 forall([x, l], nth(1, cons(x, l)) = x)
 \end{quote}
 also: \texttt{nth-cons-succ} \texttt{nth-in-range} \texttt{ms-nth-2} \texttt{nth1-pair} \texttt{nth2-pair} \texttt{cartesian-nth} \\
-mentioned by 81 result(s)
+mentioned by 129 result(s)
 
 \smallskip
 
@@ -6226,6 +6640,17 @@ mentioned by 18 result(s)
 \noindent\textbf{\texttt{obtain}}\quad\textit{tactic}\index{obtain@\texttt{obtain}}\\
 \texttt{(obtain LANE)} -- Run LANE -- a thunk whose forward step lands a `there exists' into context -- then eliminate that existential and RETURN the fresh witness's name, read off the proof state rather than guessed. \\
 declared in \texttt{tactics-help.scm}
+
+\smallskip
+
+\noindent\textbf{\texttt{occurs-in-space(ssp\_, ssu\_)}}\quad\textit{predicate}\index{occurs-in-space(ssp_, ssu_)@\texttt{occurs-in-space(ssp\_, ssu\_)}}\\
+reads: \$2 occurs in the strand space \$1 \\
+defined by \texttt{occurs-in-space} \\
+characterized by \texttt{occurs-in-space}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([ssp\_, ssu\_], occurs-in-space(ssp\_, ssu\_) iff forsome([ssn\_ in nodes(ssp\_)], is-subterm(tokens(ssp\_), keys(ssp\_), ssu\_, node-content(ssp\_, ssn\_))))
+\end{quote}
+mentioned by 2 result(s)
 
 \smallskip
 
@@ -6348,13 +6773,25 @@ characterized by \texttt{ord-segment-succ}  \textit{(primitive)}:
 forall([alpha in ord, x], x in ord-segment(succ\_ord(alpha)) iff x in ord-segment(alpha) or x = alpha)
 \end{quote}
 also: \texttt{ord-segment-zero} \texttt{ord-segment-is-set} \texttt{ord-segment-membership} \texttt{ord-segment-self} \texttt{ord-segment-trans} \texttt{ord-segment-insert} \texttt{ord-segment-nn-succ} \texttt{ord-segment-nn-subset} ... (10 in all) \\
-mentioned by 140 result(s)
+mentioned by 142 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{orelse}}\quad\textit{tactic}\index{orelse@\texttt{orelse}}\\
 \texttt{(orelse t1 t2 ...)} -- Run thunks in order, stop at the first that makes progress (LCF ORELSE). \\
 declared in \texttt{tactics-help.scm}
+
+\smallskip
+
+\noindent\textbf{\texttt{originates(ssp\_, ssu\_, ssn\_)}}\quad\textit{predicate}\index{originates(ssp_, ssu_, ssn_)@\texttt{originates(ssp\_, ssu\_, ssn\_)}}\\
+reads: \$2 originates on the node \$3 of \$1 \\
+defined by \texttt{originates} \\
+characterized by \texttt{originates}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([ssp\_, ssu\_, ssn\_], originates(ssp\_, ssu\_, ssn\_) iff is-entry-point(ssp\_, ssn\_, \{ssw\_ in msg-set(tokens(ssp\_), keys(ssp\_)): is-subterm(tokens(ssp\_), keys(ssp\_), ssu\_, ssw\_)\}))
+\end{quote}
+also: \texttt{uniquely-originates} \texttt{originates-elim} \texttt{originates-sent} \texttt{originates-intro} \texttt{originates-unique} \texttt{originates-no-earlier} \texttt{bundle-minimal-originates} \texttt{nsl-init-nonce-originates} ... (9 in all) \\
+mentioned by 23 result(s)
 
 \smallskip
 
@@ -6368,8 +6805,8 @@ characterized by \texttt{pairing}  \textit{(primitive)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], a in set and b in set implies pair(a, b) in set)
 \end{quote}
-also: \texttt{pairing-membership} \texttt{pair-self-eq} \texttt{pair-self-member} \\
-mentioned by 101 result(s)
+also: \texttt{pairing-membership} \texttt{pair-self-eq} \texttt{pair-self-member} \texttt{sent-received-in-pair} \\
+mentioned by 102 result(s)
 
 \smallskip
 
@@ -6410,6 +6847,18 @@ defined by \texttt{pi-def}
 
 \noindent\textbf{\texttt{pid}}\quad\textit{refinement}\index{pid@\texttt{pid}}\\
 predicate \texttt{is-pid}; same shape as integral-domain
+
+\smallskip
+
+\noindent\textbf{\texttt{pk-inf(s)}}\quad\textit{accessor}\index{pk-inf(s)@\texttt{pk-inf(s)}}\\
+reads: the pk-inf slot of \$1 \\
+a structure slot \\
+mentioned by 40 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{pk-space}}\quad\textit{structure}\index{pk-space@\texttt{pk-space}}\\
+predicate \texttt{is-pk-space}; slots: pk-inf names pubkey
 
 \smallskip
 
@@ -6457,14 +6906,58 @@ characterized by \texttt{power-neg}  \textit{(primitive)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x, n], x in cc and n in nn and not(x = 0) implies x \textasciicircum{} (-n) = recip(x \textasciicircum{} n))
 \end{quote}
-also: \texttt{power-set} \texttt{power-succ} \texttt{power-zero} \texttt{power-typing-nonneg} \texttt{power-set-membership} \texttt{deriv-power} \texttt{cc-power-add} \texttt{cc-power-mul} ... (64 in all) \\
-mentioned by 376 result(s)
+also: \texttt{power-set} \texttt{power-succ} \texttt{power-zero} \texttt{power-typing-nonneg} \texttt{power-set-membership} \texttt{deriv-power} \texttt{cc-power-add} \texttt{cc-power-mul} ... (65 in all) \\
+mentioned by 388 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{preamble}}\quad\textit{tactic}\index{preamble@\texttt{preamble}}\\
 \texttt{(preamble)  |  (preamble 'NAME)  |  (preamble "file.pre")} -- Apply an editable RULE FILE to the focus goal, one step at a time: each rule reads `if the sequent looks like this, do that', and the first rule that matches AND makes progress is kept; the loop repeats on the new focus until the goal is done, no rule applies, or 40 steps.  Rules come from \textasciitilde{}/.vnb-preamble.pre when it exists, else the shipped preambles/default.pre (peel, split, close by context, reflexivity, arithmetic, type-term, zero-it, ineq, beta, unfold, and a tentative cut).  Prints one report: what each rule did, which rules matched but were rejected, and where it stopped and why. \\
 declared in \texttt{tactics-help.scm}
+
+\smallskip
+
+\noindent\textbf{\texttt{prec-strict(spc\_, snd\_, ssd\_)}}\quad\textit{functoid}\index{prec-strict(spc_, snd_, ssd_)@\texttt{prec-strict(spc\_, snd\_, ssd\_)}}\\
+reads: the strict causal precedence on the nodes \$2 of \$1 generated by the edges \$3 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{ssp\_ in cartesian(snd\_, snd\_): forall([ssq\_ in power(cartesian(snd\_, snd\_))], is-prec-closed(spc\_, snd\_, ssd\_, ssq\_) implies ssp\_ in ssq\_)\}
+\end{quote}
+characterized by \texttt{prec-strict-unfold}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([spa, nd, ed], prec-strict(spa, nd, ed) == \{ssp\_ in cartesian(nd, nd): forall([ssq\_ in power(cartesian(nd, nd))], is-prec-closed(spa, nd, ed, ssq\_) implies ssp\_ in ssq\_)\})
+\end{quote}
+mentioned by 13 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{precedes(ssc\_)}}\quad\textit{functoid}\index{precedes(ssc_)@\texttt{precedes(ssc\_)}}\\
+reads: the causal precedence of the bundle \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+union(precedes-strict(ssc\_), \{ssp\_ in cartesian(bnodes(ssc\_), bnodes(ssc\_)): nth(1, ssp\_) = nth(2, ssp\_)\})
+\end{quote}
+characterized by \texttt{precedes-set}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([c], is-bundle(c) implies precedes(c) in set)
+\end{quote}
+also: \texttt{precedes-elim} \texttt{precedes-refl} \texttt{precedes-trans} \texttt{precedes-unfold} \texttt{precedes-antisym} \texttt{precedes-intro-strict} \texttt{precedes-partial-order} \texttt{bundle-minimal-precedes} \\
+mentioned by 11 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{precedes-strict(ssc\_)}}\quad\textit{functoid}\index{precedes-strict(ssc_)@\texttt{precedes-strict(ssc\_)}}\\
+reads: the strict causal precedence of the bundle \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+prec-strict(bspace(ssc\_), bnodes(ssc\_), bsend(ssc\_))
+\end{quote}
+characterized by \texttt{precedes-strict-trans}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([c, x, y, z], is-bundle(c) implies [x, y] in precedes-strict(c) implies [y, z] in precedes-strict(c) implies [x, z] in precedes-strict(c))
+\end{quote}
+also: \texttt{precedes-strict-unfold} \texttt{precedes-strict-irreflexive} \\
+mentioned by 23 result(s)
 
 \smallskip
 
@@ -6766,6 +7259,13 @@ mentioned by 4 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{pubkey(s)}}\quad\textit{accessor}\index{pubkey(s)@\texttt{pubkey(s)}}\\
+reads: the pubkey slot of \$1 \\
+a structure slot \\
+mentioned by 24 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{pw-int(pphi\_, a, b)}}\quad\textit{functoid}\index{pw-int(pphi_, a, b)@\texttt{pw-int(pphi\_, a, b)}}\\
 reads: the piecewise integral of \$1 from \$2 to \$3 \\
 definition:
@@ -6873,6 +7373,11 @@ forall([z], real-part(z) == (z + conjugate(z)) * recip(2))
 \end{quote}
 also: \texttt{real-part-in-rr} \texttt{cc-cos-real-part} \\
 mentioned by 143 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{received}}\quad\textit{defined-fn}\index{received@\texttt{received}}\\
+defined by \texttt{received-def}
 
 \smallskip
 
@@ -7253,6 +7758,28 @@ declared in \texttt{tactics-help.scm}
 \section*{S}
 \addcontentsline{toc}{section}{S}
 
+\noindent\textbf{\texttt{same-strand-before(ssp\_, ssn\_, ssm\_)}}\quad\textit{predicate}\index{same-strand-before(ssp_, ssn_, ssm_)@\texttt{same-strand-before(ssp\_, ssn\_, ssm\_)}}\\
+reads: \$2 comes strictly before \$3 on one strand of \$1 \\
+defined by \texttt{same-strand-before} \\
+characterized by \texttt{same-strand-before}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([ssp\_, ssn\_, ssm\_], same-strand-before(ssp\_, ssn\_, ssm\_) iff ssn\_ in nodes(ssp\_) and ssm\_ in nodes(ssp\_) and nth(2, ssn\_) = nth(2, ssm\_) and nth(1, ssn\_) < nth(1, ssm\_))
+\end{quote}
+mentioned by 25 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{same-strand-upto(ssp\_, ssn\_, ssm\_)}}\quad\textit{predicate}\index{same-strand-upto(ssp_, ssn_, ssm_)@\texttt{same-strand-upto(ssp\_, ssn\_, ssm\_)}}\\
+reads: \$2 comes at or before \$3 on one strand of \$1 \\
+defined by \texttt{same-strand-upto} \\
+characterized by \texttt{same-strand-upto}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([ssp\_, ssn\_, ssm\_], same-strand-upto(ssp\_, ssn\_, ssm\_) iff ssn\_ in nodes(ssp\_) and ssm\_ in nodes(ssp\_) and nth(2, ssn\_) = nth(2, ssm\_) and nth(1, ssn\_) <= nth(1, ssm\_))
+\end{quote}
+mentioned by 5 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{save-proof}}\quad\textit{tactic}\index{save-proof@\texttt{save-proof}}\\
 \texttt{(save-proof 'name)} -- Save the current script under a name without finishing. \\
 declared in \texttt{tactics-help.scm}
@@ -7352,6 +7879,23 @@ predicate \texttt{is-semigroup}; slots: carr opr
 
 \smallskip
 
+\noindent\textbf{\texttt{sends-to(ssp\_, ssn\_, ssm\_)}}\quad\textit{predicate}\index{sends-to(ssp_, ssn_, ssm_)@\texttt{sends-to(ssp\_, ssn\_, ssm\_)}}\\
+reads: the node \$2 of \$1 sends to the node \$3 \\
+defined by \texttt{sends-to} \\
+characterized by \texttt{sends-to}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([ssp\_, ssn\_, ssm\_], sends-to(ssp\_, ssn\_, ssm\_) iff ssn\_ in nodes(ssp\_) and ssm\_ in nodes(ssp\_) and is-sent(ssp\_, ssn\_) and is-received(ssp\_, ssm\_) and node-content(ssp\_, ssn\_) = node-content(ssp\_, ssm\_))
+\end{quote}
+also: \texttt{sends-to-dirs} \\
+mentioned by 6 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{sent}}\quad\textit{defined-fn}\index{sent@\texttt{sent}}\\
+defined by \texttt{sent-def}
+
+\smallskip
+
 \noindent\textbf{\texttt{sep}}\quad\textit{operator}\index{sep@\texttt{sep}}\\
 a term-forming head \\
 characterized by \texttt{ball-sep-unfold}  \textit{(certified)}:
@@ -7359,7 +7903,7 @@ characterized by \texttt{ball-sep-unfold}  \textit{(certified)}:
 forall([s, c, r], ball(s, c, r) == \{y in pts(s): (dist(s))(c, y) <= r and not((dist(s))(c, y) = r)\})
 \end{quote}
 also: \texttt{closure-sep-unfold} \texttt{interior-sep-unfold} \texttt{sep-fiber-insert-same} \texttt{closed-ball-sep-unfold} \texttt{sep-fiber-insert-other} \\
-mentioned by 154 result(s)
+mentioned by 163 result(s)
 
 \smallskip
 
@@ -7698,6 +8242,32 @@ mentioned by 22 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{strand-map(s)}}\quad\textit{accessor}\index{strand-map(s)@\texttt{strand-map(s)}}\\
+reads: the strand-map slot of \$1 \\
+a structure slot \\
+mentioned by 48 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{strand-space}}\quad\textit{structure}\index{strand-space@\texttt{strand-space}}\\
+predicate \texttt{is-strand-space}; slots: tokens ids keys strand-map kinv
+
+\smallskip
+
+\noindent\textbf{\texttt{strands(sst\_, ssk\_)}}\quad\textit{functoid}\index{strands(sst_, ssk_)@\texttt{strands(sst\_, ssk\_)}}\\
+reads: the strands over the tokens \$1 and the keys \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+tuples(directed(sst\_, ssk\_))
+\end{quote}
+characterized by \texttt{strands-unfold}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([t, k], strands(t, k) == tuples(directed(t, k)))
+\end{quote}
+mentioned by 11 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{strictly-mono-nn(phi)}}\quad\textit{predicate}\index{strictly-mono-nn(phi)@\texttt{strictly-mono-nn(phi)}}\\
 reads: \$1 is a strictly increasing sequence of naturals \\
 defined by \texttt{strictly-mono-nn} \\
@@ -7744,8 +8314,8 @@ characterized by \texttt{submodule-subset}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, s], is-submodule(m, s) implies s subset vec(m))
 \end{quote}
-also: \texttt{ringoid-ideal-subset} \texttt{inf-subsets-membership} \texttt{subset-def} \texttt{subset-set} \texttt{subset-refl} \texttt{subset-trans} \texttt{subset-mem-fwd} \texttt{ccint-subset-rr} ... (50 in all) \\
-mentioned by 466 result(s)
+also: \texttt{ringoid-ideal-subset} \texttt{inf-subsets-membership} \texttt{subset-def} \texttt{subset-set} \texttt{subset-refl} \texttt{subset-trans} \texttt{subset-mem-fwd} \texttt{ccint-subset-rr} ... (52 in all) \\
+mentioned by 476 result(s)
 
 \smallskip
 
@@ -7793,7 +8363,7 @@ declared in \texttt{tactics-help.scm}
 \smallskip
 
 \noindent\textbf{\texttt{subterm-rel(smt\_, smk\_)}}\quad\textit{functoid}\index{subterm-rel(smt_, smk_)@\texttt{subterm-rel(smt\_, smk\_)}}\\
-reads: the subterm relation over the texts \$1 and the keys \$2 \\
+reads: the subterm relation over the tokens \$1 and the keys \$2 \\
 definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 \{smp\_ in cartesian(msg-set(smt\_, smk\_), msg-set(smt\_, smk\_)): forall([smq\_ in power(cartesian(msg-set(smt\_, smk\_), msg-set(smt\_, smk\_)))], is-subterm-closed(smt\_, smk\_, smq\_) implies smp\_ in smq\_)\}
@@ -7812,8 +8382,8 @@ characterized by \texttt{sum-succ}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, f, n in nn], sum(r, f, succ(n)) == (add(r))(sum(r, f, n), f(n)))
 \end{quote}
-also: \texttt{mpow-succ} \texttt{nn-add-succ} \texttt{reduce-succ} \texttt{sum-ag-succ} \texttt{trinum-succ} \texttt{comb-kk-succ} \texttt{dc-iter-succ} \texttt{falling-succ} ... (78 in all) \\
-mentioned by 570 result(s)
+also: \texttt{mpow-succ} \texttt{nn-add-succ} \texttt{reduce-succ} \texttt{sum-ag-succ} \texttt{trinum-succ} \texttt{comb-kk-succ} \texttt{dc-iter-succ} \texttt{falling-succ} ... (79 in all) \\
+mentioned by 575 result(s)
 
 \smallskip
 
@@ -8047,20 +8617,20 @@ declared in \texttt{tactics-help.scm}
 
 \smallskip
 
-\noindent\textbf{\texttt{texts(s)}}\quad\textit{accessor}\index{texts(s)@\texttt{texts(s)}}\\
-reads: the texts slot of \$1 \\
-a structure slot \\
-characterized by \texttt{texts-keys-disjoint}  \textit{(certified)}:
-\begin{quote}\ttfamily\footnotesize\noindent
-forall([alg], is-message-algebra(alg) implies forall([x in texts(alg)], not(x in keys(alg))))
-\end{quote}
-mentioned by 6 result(s)
-
-\smallskip
-
 \noindent\textbf{\texttt{ti}}\quad\textit{tactic}\index{ti@\texttt{ti}}\\
 \texttt{(ti)} -- Tuple intro: prove a tuple/LIST membership component-wise. \\
 declared in \texttt{tactics-help.scm}
+
+\smallskip
+
+\noindent\textbf{\texttt{tokens(s)}}\quad\textit{accessor}\index{tokens(s)@\texttt{tokens(s)}}\\
+reads: the tokens slot of \$1 \\
+a structure slot \\
+characterized by \texttt{keys-in-tokens}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([spa], is-strand-space(spa) implies forall([x in keys(spa)], x in tokens(spa)))
+\end{quote}
+mentioned by 70 result(s)
 
 \smallskip
 
@@ -8188,8 +8758,8 @@ characterized by \texttt{cons-in-tuples}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, x, l], x in a and l in tuples(a) implies cons(x, l) in tuples(a))
 \end{quote}
-also: \texttt{empty-in-tuples} \texttt{tuples-sethood} \texttt{tuples-mono} \texttt{tuples-induction} \\
-mentioned by 23 result(s)
+also: \texttt{empty-in-tuples} \texttt{tuples-sethood} \texttt{tuples-mono} \texttt{tuples-induction} \texttt{lst-in-tuples-set} \texttt{encr-in-tuples-set} \\
+mentioned by 61 result(s)
 
 \smallskip
 
@@ -8227,8 +8797,19 @@ characterized by \texttt{union-decompose}  \textit{(primitive)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x, as], x in union(restvar(as)) iff splice(or, e, as, x in e))
 \end{quote}
-also: \texttt{union-membership} \texttt{union-set-closure} \texttt{union-comm} \texttt{union-assoc} \texttt{card-union-nn} \texttt{card-union-bound} \texttt{union-empty-left} \texttt{countable-union-2} ... (27 in all) \\
-mentioned by 140 result(s)
+also: \texttt{union-membership} \texttt{union-set-closure} \texttt{union-comm} \texttt{union-assoc} \texttt{card-union-nn} \texttt{card-union-bound} \texttt{union-empty-left} \texttt{countable-union-2} ... (29 in all) \\
+mentioned by 135 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{uniquely-originates(ssp\_, ssu\_)}}\quad\textit{predicate}\index{uniquely-originates(ssp_, ssu_)@\texttt{uniquely-originates(ssp\_, ssu\_)}}\\
+reads: \$2 originates uniquely in the strand space \$1 \\
+defined by \texttt{uniquely-originates} \\
+characterized by \texttt{uniquely-originates}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([ssp\_, ssu\_], uniquely-originates(ssp\_, ssu\_) iff forsome([ssn\_], originates(ssp\_, ssu\_, ssn\_) and forall([ssm\_], originates(ssp\_, ssu\_, ssm\_) implies ssm\_ = ssn\_)))
+\end{quote}
+mentioned by 19 result(s)
 
 \smallskip
 
@@ -8287,7 +8868,7 @@ declared in \texttt{tactics-help.scm}
 
 \noindent\textbf{\texttt{vnb-lambda}}\quad\textit{operator}\index{vnb-lambda@\texttt{vnb-lambda}}\\
 a term-forming head \\
-mentioned by 1082 result(s)
+mentioned by 1084 result(s)
 
 \smallskip
 
