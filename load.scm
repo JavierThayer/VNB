@@ -4210,8 +4210,15 @@
   ;; The book of all proven theorems (statements only, so a certified load writes it too).
   (write-all-theorems-tex! "reference/all-theorems.tex")
   ;; The book of theorems and definitions by LIBRARY (notes-61; docs/library-book.tex is the
-  ;; wrapper, `make library-book' in docs/).
-  (write-library-book-tex! "reference/library-book.tex")
+  ;; wrapper, `make library-book' in docs/).  EXAM ONLY since 2026-10-08: it reads every
+  ;; source file for the order of its definitions and renders ~4900 entries, ~90 s on a
+  ;; t3.medium, which Ignacio's ledger showed as the reference_s jump of 2026-10-06 22:04Z
+  ;; (35-45% on every daytime certified build); the exam writes it nightly and pulls it back,
+  ;; and VNB_WRITE_BOOK=1 forces it in any load.
+  (if (or (eq? (cert-mode) 'off)
+          (let ((v (get-environment-variable "VNB_WRITE_BOOK"))) (and v (string=? v "1"))))
+      (write-library-book-tex! "reference/library-book.tex")
+      (display ";; library-book: not written in a certified load (the exam writes it; VNB_WRITE_BOOK=1 forces it)\n"))
 
   ;; Regenerate emacs/vnb-commands.lisp (the command-completion catalog) from the
   ;; same registry, so the M-x/button surface can never drift from (tactics).
