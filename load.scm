@@ -3476,6 +3476,13 @@
     "theorem-library/primitive-uniform-limit"
     "theorem-library/integral-convergence"   ; the four measurable-fn closure laws, the dyadic approximation, monotone convergence, Fatou, general additivity, dominated convergence, all nine supports of integral.scm proven (M-3, 2026-10-04)
     "theorem-library/caratheodory"           ; the Caratheodory construction PROVEN (MEASURE-1, 2026-10-07): the five supports of measure.scm, statements unchanged; cites esup-eplus-le above
+    ;; MEASURE-2 (2026-10-08): Method I outer measures (Prop 4.7), the outer measure extending a measure
+    ;; (Remark 4.9, Prop 4.10), completeness and the sigma-finite completion (Cor 4.11, Prop 4.12), Lebesgue
+    ;; outer measure on the line; the monotone class theorem (Prop 1.11, Thm 1.13).  Vocabulary first.
+    "structure-library/outer-measure-construction"
+    "theorem-library/outer-measure-construction"
+    "structure-library/monotone-class"
+    "theorem-library/monotone-class"
     ;; 2026-09-24 (batch 25-A): POWER SERIES IN CC -- the definitions (CPS-RADIUS as the sup of the r with sum |a_k| r^k
     ;; convergent, CC-SUP-NORM (29), IS-NORMALLY-CONVERGENT, CC-SERIES-LIMIT; structure-library/cc-power-series.scm, after
     ;; theorem-library/cc-series) and the laws: the radius formula 2.7, normal convergence inside the radius 2.8,

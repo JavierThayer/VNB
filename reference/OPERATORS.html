@@ -77,7 +77,7 @@
 <p>The VNB universe has SETS (the elements of <code>SET</code>), CLASSES, and further entities about which VNB makes no commitment.  A term-forming operator is classified by WHAT IT DENOTES:</p>
 <ul><li>A <strong>function</strong> denotes an element of a set: specifically a set-function, an element of some <code>FUN(A, B)</code> with <code>A</code>,<code>B</code> sets.  This class is DERIVED, not listed: a head appears here exactly when some installed formula states <code>head in FUN(...)</code>, and the entry names that statement.  Being <em>applicable</em> is not the criterion and never was — <a class="x" href="THEOREMS.html#t-app-graph"><code>app-graph</code></a> makes <code>f(x)</code> a well-formed term for any <code>f</code> at all, defined or not.  <code>vnb-lambda</code> is the binder that constructs a set-function.</li><li>A <strong>syntax</strong> head forms terms and denotes NOTHING itself.  <code>+</code> is not an object of the theory: there is no <code>+ in SET</code> to be had, and <code>x + y + z</code> is the flat node <code>(+ x y z)</code>, so the head is not even of fixed arity (<code>nary-plus-3/4/5</code> interpret the 3-, 4- and 5-ary forms).  When a binary addition must be NAMED as an object, that object is <code>binplus</code>, tied to the syntax by <code>x + y == binplus(x, y)</code>.  The theory characterizes the APPLICATIONS of these heads by axiom and says nothing about the heads.</li><li>A <strong>functoid</strong> denotes something that is not required to be an element of <code>SET</code>.  This is a large, somewhat amorphous category: the kernel set- and tuple-builders (<code>union</code>, <code>sep</code>, <code>power</code>, <code>fun</code>, <code>image</code>, …) whose arguments range over a proper class; every library constructor (<a class="x" href="DEFINITIONS.html#d-matmul"><code>matmul</code></a>, <a class="x" href="DEFINITIONS.html#d-mat-ring"><code>mat-ring</code></a>, the structure accessors, …); and the recursively-defined ones.  Some functoids can be regarded as functions, but a functoid is not required to be one.  <code>lambdoid</code> is the binder that constructs a functoid — the class-domain sibling of <code>vnb-lambda</code>.  Application is implicit: writing <code>f(args)</code> denotes <code>apply-functoid(f, args)</code> when <code>f</code> is a functoid and <code>apply-function(f, args)</code> when <code>f</code> is a function — these two application operators are never written by hand.  Whether an operator is a kernel primitive or a library definition is a matter of ORIGIN, recorded as metadata; it is not a VNB distinction and carries no semantic weight.  A kernel set-former is a functoid exactly as a library constructor is.</li><li>A <strong>predicate</strong> is an operator whose application to argument terms is a proposition — an entity whose value is either true or false.  The proposition and its truth value are two separate things in the mathematical universe: a predicate applied to terms always denotes a proposition, but the truth value of that proposition may not be known.</li></ul>
 <p>Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An <strong>undeclared</strong> head is a defect.</p>
-<p>674 operators: 3 functions, 11 syntax, 391 functoids, 266 predicates, 3 undeclared.</p>
+<p>684 operators: 3 functions, 11 syntax, 396 functoids, 271 predicates, 3 undeclared.</p>
 <p>&gt; <strong>⚠ Undeclared heads (mushrooms):</strong> <code>cos</code> <code>exp</code> <code>sin</code> — registered and usable but backed by no def or axiom.</p>
 <h3 id="OPERATORS__functions-3">Functions  (3)</h3>
 <p>A head is listed here exactly when the theory STATES that it is an element of a <code>FUN</code> set; the statement is named.  Nothing is claimed on a head&#x27;s behalf: this section was a hand-typed list until 2026-08-31, and every one of the fifteen heads on it (<code>+ - * recip abs exp sin cos sqrt</code> …) turned out to have no such statement anywhere in the theory.</p>
@@ -95,7 +95,7 @@
 <h4 id="OPERATORS__recip-syntax-the-head-denotes-nothing"><code>recip</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__rpow-syntax-the-head-denotes-nothing"><code>rpow</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__succ-syntax-the-head-denotes-nothing"><code>succ</code>  — syntax: the head denotes nothing</h4>
-<h3 id="OPERATORS__functoids-391">Functoids  (391)</h3>
+<h3 id="OPERATORS__functoids-396">Functoids  (396)</h3>
 <p>Term-valued operators that do NOT denote an element of <code>SET</code> — the big amorphous category.  Sub-labelled by how each is declared (<code>kernel term-former</code>; <code>def-functoid</code> body; <code>def-by-nn-recursion</code>; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  <code>def-functor</code> bridges live in <code>STRUCTURE-INDEX.md</code>; <code>lambdoid</code> (the functoid binder) is a parser-level form, not a registered head.</p>
 <h4 id="OPERATORS__/-characterized-by-axiom-s"><code>/</code>  — characterized by axiom(s)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-amgm-2-sqrt"><code>amgm-2-sqrt</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-le-arg"><code>bdd-fn-le-arg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-lt-one"><code>bdd-fn-lt-one</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-mono"><code>bdd-fn-mono</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-nonneg"><code>bdd-fn-nonneg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-subadd"><code>bdd-fn-subadd</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-zero"><code>bdd-fn-zero</code></a> <a class="x" href="THEOREMS.html#t-bdd-metric-distance"><code>bdd-metric-distance</code></a></p>
@@ -228,6 +228,8 @@
 <pre>class(s, a) := {b in pts(s): related(s, a, b)}</pre>
 <h4 id="OPERATORS__closed-ball-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-closed-ball"><code>closed-ball</code></a>  — def-functoid · set-valued</h4>
 <pre>closed-ball(s, c, r) := {y in pts(s): (dist(s))(c, y) &lt;= r}</pre>
+<h4 id="OPERATORS__closed-intervals-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-closed-intervals"><code>closed-intervals</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
+<p>&gt; _Reads as:_  the family of the empty set and the closed intervals of the real line</p>
 <h4 id="OPERATORS__closure-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-closure"><code>closure</code></a>  — def-functoid · set-valued</h4>
 <pre>closure(s, a) := {x in pts(s): forall([u], is-open(s, u) and x in u implies forsome([y in u], y in a))}</pre>
 <h4 id="OPERATORS__coint-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-coint"><code>coint</code></a>  — def-functoid · set-valued</h4>
@@ -254,6 +256,9 @@
 <h4 id="OPERATORS__conv3-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-conv3"><code>conv3</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the convex hull of cva_, cvb_, cvc_</p>
 <pre>conv3(cva_, cvb_, cvc_) := {cvz_ in cc: forsome([cvl_ in ccint(0, 1), cvm_ in ccint(0, 1), cvn_ in ccint(0, 1)], (cvl_ + cvm_) + cvn_ = 1 and cvz_ = (cvl_ * cva_ + cvm_ * cvb_) + cvn_ * cvc_)}</pre>
+<h4 id="OPERATORS__cover-sums-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-cover-sums"><code>cover-sums</code></a>  — def-functoid · set-valued</h4>
+<p>&gt; _Reads as:_  the set of sums of pm over the sequences in cls covering es</p>
+<pre>cover-sums(omega, cls, pm, es) := {cvv_ in rr-pos-star: forsome([cvs_ in fun(nn, cls)], es subset big-union(cvn_, nn, cvs_(cvn_)) and cvv_ = esum(vnb-lambda(cvk_, nn, pm(cvs_(cvk_)))))}</pre>
 <h4 id="OPERATORS__cps-radius-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-cps-radius"><code>cps-radius</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the radius of convergence of the power series with coefficients cf</p>
 <pre>cps-radius(cf) := esup({cpsr_ in rr: 0 &lt;= cpsr_ and series-converges(vnb-lambda(cpsk_, nn, magnitude(cf(cpsk_)) * cpsr_ ^ cpsk_))})</pre>
@@ -545,6 +550,9 @@
 <h4 id="OPERATORS__interval-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-interval"><code>interval</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the natural numbers from a to b inclusive</p>
 <pre>interval(a, b) := {i in nn: a &lt;= i and i &lt;= b}</pre>
+<h4 id="OPERATORS__interval-length-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-interval-length"><code>interval-length</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the length (diameter) of the set of reals s</p>
+<pre>interval-length(s) := esup({odv_ in rr-pos-star: odv_ = 0 or forsome([odx_ in s, ody_ in s], odx_ &lt;= ody_ and odv_ = ody_ - odx_)})</pre>
 <h4 id="OPERATORS__inv-structure-accessor-element-slot-value"><code>inv</code>  — structure accessor · element (slot value)</h4>
 <p>&gt; _Reads as:_  the inverse operation of s</p>
 <h4 id="OPERATORS__inverse-bij-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-inverse-bij"><code>inverse-bij</code></a>  — def-functoid · function-valued</h4>
@@ -618,6 +626,9 @@
 <p>Declared by: <a class="x" href="THEOREMS.html#t-nn-max-closed"><code>nn-max-closed</code></a> <a class="x" href="THEOREMS.html#t-rr-le-max-left"><code>rr-le-max-left</code></a> <a class="x" href="THEOREMS.html#t-rr-le-max-right"><code>rr-le-max-right</code></a> <a class="x" href="THEOREMS.html#t-rr-max-cases"><code>rr-max-cases</code></a> <a class="x" href="THEOREMS.html#t-rr-max-closed"><code>rr-max-closed</code></a> <a class="x" href="THEOREMS.html#t-rr-max-def"><code>rr-max-def</code></a> <a class="x" href="THEOREMS.html#t-rr-max-le"><code>rr-max-le</code></a> <a class="x" href="THEOREMS.html#t-rr-max-left-le"><code>rr-max-left-le</code></a></p>
 <h4 id="OPERATORS__meas-structure-accessor-element-slot-value"><code>meas</code>  — structure accessor · element (slot value)</h4>
 <p>&gt; _Reads as:_  the measure of s</p>
+<h4 id="OPERATORS__method-i-outer-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-method-i-outer"><code>method-i-outer</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  the method I outer measure on omega of the pre-measure pm on cls</p>
+<pre>method-i-outer(omega, cls, pm) := vnb-lambda(cve_, power(omega), einf(cover-sums(omega, cls, pm, cve_)))</pre>
 <h4 id="OPERATORS__metric-top-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-metric-top"><code>metric-top</code></a>  — def-functoid · tuple/structure-valued</h4>
 <p>&gt; _Reads as:_  the metric topology of md</p>
 <pre>metric-top(md) := [pts(md), {u in power(pts(md)): is-open(md, u)}]</pre>
@@ -641,6 +652,9 @@
 <h4 id="OPERATORS__monomial-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-monomial"><code>monomial</code></a>  — def-functoid · function-valued</h4>
 <p>&gt; _Reads as:_  the monomial c x^n over a</p>
 <pre>monomial(a, c, n) := vnb-lambda(x_, nn, if(x_ = n, c, zero(a)))</pre>
+<h4 id="OPERATORS__monotone-class-generated-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-monotone-class-generated"><code>monotone-class-generated</code></a>  — def-functoid · set-valued</h4>
+<p>&gt; _Reads as:_  the monotone class of subsets of omega generated by ce</p>
+<pre>monotone-class-generated(omega, ce) := {mca_ in power(omega): forall([mcb_], is-monotone-class(omega, mcb_) and ce subset mcb_ implies mca_ in mcb_)}</pre>
 <h4 id="OPERATORS__mpow-recursively-defined-def-by-nn-recursion"><a class="x" href="DEFINITIONS.html#d-mpow"><code>mpow</code></a>  — recursively defined (def-by-nn-recursion)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-mpow-zero"><code>mpow-zero</code></a> <a class="x" href="THEOREMS.html#t-mpow-succ"><code>mpow-succ</code></a></p>
 <h4 id="OPERATORS__msg-rank-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-msg-rank"><code>msg-rank</code></a>  — def-functoid · element/number-valued</h4>
@@ -1010,7 +1024,7 @@
 <pre>zz-bezout-set(a, b) := {z in zz: forsome([x_ in zz, y_ in zz], z = x_ * a + y_ * b)}</pre>
 <h4 id="OPERATORS__zz-ring-characterized-by-axioms-def-constant"><a class="x" href="STRUCTURE-INDEX.html#zz-ring"><code>zz-ring</code></a>  — characterized by axioms (def-constant)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-zz-ring-def"><code>zz-ring-def</code></a></p>
-<h3 id="OPERATORS__predicates-266">Predicates  (266)</h3>
+<h3 id="OPERATORS__predicates-271">Predicates  (271)</h3>
 <p>Proposition-valued operators.  Their defining axiom is an <code>iff</code> on the applied head.  Full definitions in <code>DEFINITIONS.md</code>.</p>
 <h4 id="OPERATORS__&lt;-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-&lt;"><code>&lt;</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  x is less than y</p>
@@ -1132,6 +1146,8 @@
 <p>&gt; _Reads as:_  the topological space s is compact</p>
 <h4 id="OPERATORS__is-complete-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-is-complete"><code>is-complete</code></a>  — def-predicate · proposition (arity 1)</h4>
 <p>&gt; _Reads as:_  s is complete</p>
+<h4 id="OPERATORS__is-complete-measure-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-complete-measure"><code>is-complete-measure</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  mu is a complete measure on the sigma-algebra ca of subsets of omega</p>
 <h4 id="OPERATORS__is-complex-inner-product-space-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-is-complex-inner-product-space"><code>is-complex-inner-product-space</code></a>  — def-predicate · proposition (arity 1)</h4>
 <p>&gt; _Reads as:_  s is a complex inner product space</p>
 <h4 id="OPERATORS__is-concat-trace-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-concat-trace"><code>is-concat-trace</code></a>  — def-predicate · proposition (arity 2)</h4>
@@ -1324,6 +1340,8 @@
 <p>&gt; _Reads as:_  s is a module</p>
 <h4 id="OPERATORS__is-monoid-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-is-monoid"><code>is-monoid</code></a>  — def-predicate · proposition (arity 1)</h4>
 <p>&gt; _Reads as:_  s is a monoid</p>
+<h4 id="OPERATORS__is-monotone-class-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-monotone-class"><code>is-monotone-class</code></a>  — def-predicate · proposition (arity 2)</h4>
+<p>&gt; _Reads as:_  mc is a monotone class of subsets of omega</p>
 <h4 id="OPERATORS__is-ms-sequence-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-is-ms-sequence"><code>is-ms-sequence</code></a>  — def-predicate · proposition (arity 1)</h4>
 <p>&gt; _Reads as:_  ms is a sequence of metric spaces</p>
 <h4 id="OPERATORS__is-noetherian-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-is-noetherian"><code>is-noetherian</code></a>  — def-predicate · proposition (arity 1)</h4>
@@ -1344,6 +1362,8 @@
 <p>&gt; _Reads as:_  a is nowhere dense in s</p>
 <h4 id="OPERATORS__is-nsl-space-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-is-nsl-space"><code>is-nsl-space</code></a>  — def-predicate · proposition (arity 1)</h4>
 <p>&gt; _Reads as:_  nlp_ is a Needham-Schroeder-Lowe space</p>
+<h4 id="OPERATORS__is-null-set-def-predicate-proposition-arity-4"><a class="x" href="THEOREMS.html#t-is-null-set"><code>is-null-set</code></a>  — def-predicate · proposition (arity 4)</h4>
+<p>&gt; _Reads as:_  ns is a null set of the measure mu on ca</p>
 <h4 id="OPERATORS__is-open-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-open"><code>is-open</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  u is open in s</p>
 <h4 id="OPERATORS__is-open-cover-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-open-cover"><code>is-open-cover</code></a>  — def-predicate · proposition (arity 2)</h4>
@@ -1370,6 +1390,8 @@
 <p>&gt; _Reads as:_  s is a public-key strand space</p>
 <h4 id="OPERATORS__is-prec-closed-def-predicate-proposition-arity-4"><a class="x" href="THEOREMS.html#t-is-prec-closed"><code>is-prec-closed</code></a>  — def-predicate · proposition (arity 4)</h4>
 <p>&gt; _Reads as:_  srl_ contains ssd_ and the strand order of spc_ on snd_, and is transitive</p>
+<h4 id="OPERATORS__is-premeasure-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-premeasure"><code>is-premeasure</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  pm is a pre-measure on the family cls of subsets of omega</p>
 <h4 id="OPERATORS__is-primitive-def-predicate-proposition-arity-4"><a class="x" href="THEOREMS.html#t-is-primitive"><code>is-primitive</code></a>  — def-predicate · proposition (arity 4)</h4>
 <p>&gt; _Reads as:_  rpg_ is a primitive of rpf_ on the interval [rpa_, rpb_]</p>
 <h4 id="OPERATORS__is-pseudometric-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-pseudometric"><code>is-pseudometric</code></a>  — def-predicate · proposition (arity 2)</h4>
@@ -1422,6 +1444,8 @@
 <p>&gt; _Reads as:_  s is a setoid</p>
 <h4 id="OPERATORS__is-sigma-algebra-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-sigma-algebra"><code>is-sigma-algebra</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  ca is a sigma-algebra of subsets of omega</p>
+<h4 id="OPERATORS__is-sigma-finite-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-sigma-finite"><code>is-sigma-finite</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  mu is sigma-finite on the sigma-algebra ca of subsets of omega</p>
 <h4 id="OPERATORS__is-simple-fn-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-simple-fn"><code>is-simple-fn</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  f is a simple measurable function on omega with ca</p>
 <h4 id="OPERATORS__is-step-fn-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-step-fn"><code>is-step-fn</code></a>  — def-predicate · proposition (arity 3)</h4>

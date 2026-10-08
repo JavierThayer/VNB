@@ -718,6 +718,10 @@
     "theorem-library/integral-laws"
     "theorem-library/integral-convergence"
     "theorem-library/caratheodory"
+    "structure-library/outer-measure-construction"
+    "theorem-library/outer-measure-construction"
+    "structure-library/monotone-class"
+    "theorem-library/monotone-class"
   ))
 
 (library strand
