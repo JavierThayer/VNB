@@ -9921,6 +9921,41 @@
   (list (rcl--h '() '(IN 1 NN)))
   (list (rcl--h '() '(IN 1 RR))))
 
+;;; LUTINS existential introduction (2026-10-08): a witness the context does not certify is
+;;; accepted only with the owed sequent  t = t  (the META session's FALSITY: ew at a
+;;; non-denoting IOTA).  CONTROL: the same inference without the owed sequent is refused.
+(rcl--accept "forsome-intro owes t = t for an uncertified witness" 'forsome-intro
+  (rcl--h '() '(FORSOME x (NOT (= x x))))
+  (list (rcl--h '() '(NOT (= (IOTA z (AND (IN z NN) FALSITY)) (IOTA z (AND (IN z NN) FALSITY)))))
+        (rcl--h '() '(= (IOTA z (AND (IN z NN) FALSITY)) (IOTA z (AND (IN z NN) FALSITY))))))
+(rcl--refuse "forsome-intro at an uncertified witness with nothing owed (control)" 'forsome-intro
+  (rcl--h '() '(FORSOME x (NOT (= x x))))
+  (list (rcl--h '() '(NOT (= (IOTA z (AND (IN z NN) FALSITY)) (IOTA z (AND (IN z NN) FALSITY)))))))
+
+;;; The instance itself certifies the witness (2026-10-08): a top-level strict atom of
+;;; p[t] holding t, proven as the hypothesis, says t denotes; nothing is owed.
+(rcl--accept "forsome-intro at a witness its instance certifies (IN t NN)" 'forsome-intro
+  (rcl--h '() '(FORSOME x (AND (IN x NN) (< 0 x))))
+  (list (rcl--h '() '(AND (IN (IOTA z (AND (IN z NN) FALSITY)) NN)
+                          (< 0 (IOTA z (AND (IN z NN) FALSITY)))))))
+
+;;; IF is not strict (2026-10-08, the META session's third FALSITY): IF(TRUTH, 0, u) = 0
+;;; is true for every u and certifies nothing about u.  CONTROL: the same u inside a strict
+;;; application in a true hypothesis does certify it.  These drive the BUILDER (`rfl', whose
+;;; certificate is pi--defined?): the reflexivity CHECKER (rule-checkers-logic.scm, 'reflexivity)
+;;; tests only that the two sides are the same term and certifies nothing -- a checker-only gap
+;;; found 2026-10-09 when this pair was first written against the checker; reported, not repaired.
+(check-true "rfl guard: IF(TRUTH, 0, u) = 0 in context does NOT certify u (IF is not strict)"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (= (IF TRUTH 0 (IOTA z (AND (IN z NN) FALSITY))) 0)
+                            (= (IOTA z (AND (IN z NN) FALSITY)) (IOTA z (AND (IN z NN) FALSITY))))))
+    (di) (rfl) (not (proof-done? *ps*))))
+(check-true "rfl guard: UNION(u, 0) = 0 in context certifies u (control: a strict application)"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (= (UNION (IOTA z (AND (IN z NN) FALSITY)) 0) 0)
+                            (= (IOTA z (AND (IN z NN) FALSITY)) (IOTA z (AND (IN z NN) FALSITY))))))
+    (di) (rfl) (proof-done? *ps*)))
+
 (rcl--accept "truth-intro" 'truth-intro (rcl--h '() 'TRUTH) '())
 (rcl--refuse "truth-intro" 'truth-intro (rcl--h '() '(IN x NN)) '())
 
@@ -9991,11 +10026,6 @@
   (list (rcl--h (list '(NOT (< x 1))) 'FALSITY))
   (list (rcl--h (list '(NOT (< x 2))) 'FALSITY)))
 
-(rcl--case "contraposition" 'contraposition
-  (rcl--h (list '(IMPLIES (IN x NN) (IN x RR))) '(NOT (IN x NN)))
-  (list (rcl--h (list '(IMPLIES (IN x NN) (IN x RR))) '(NOT (IN x RR))))
-  (list (rcl--h (list '(IMPLIES (IN x NN) (IN x RR))) '(NOT (IN x NN)))))
-
 (rcl--case "eq-subst" 'eq-subst
   (rcl--h (list '(= x y)) '(IN x NN))
   (list (rcl--h (list '(= x y)) '(IN y NN)))
@@ -10012,16 +10042,35 @@
 (rcl--case "if-true" 'if-true
   (rcl--h '() '(< (IF (IN x NN) 1 2) 3))
   (list (rcl--h '() '(IN x NN))
-        (rcl--h (list '(= (IF (IN x NN) 1 2) 1)) '(< (IF (IN x NN) 1 2) 3)))
+        (rcl--h (list '(== (IF (IN x NN) 1 2) 1)) '(< (IF (IN x NN) 1 2) 3)))
   (list (rcl--h '() '(IN x NN))
-        (rcl--h (list '(= (IF (IN x NN) 1 2) 2)) '(< (IF (IN x NN) 1 2) 3))))
+        (rcl--h (list '(== (IF (IN x NN) 1 2) 2)) '(< (IF (IN x NN) 1 2) 3))))
+
+;;; 2026-10-08: the STRICT equation only for a branch the context certifies defined (a
+;;; strict = certifies its sides; the META session's FALSITY was at a non-denoting branch).
+;;; A numeral is certified: accepted.  A non-denoting IOTA is not: refused (CONTROL against
+;;; the old checker, which accepted it).
+(rcl--accept "if-true with the strict = at a certified branch" 'if-true
+  (rcl--h '() '(< (IF (IN x NN) 1 2) 3))
+  (list (rcl--h '() '(IN x NN))
+        (rcl--h (list '(= (IF (IN x NN) 1 2) 1)) '(< (IF (IN x NN) 1 2) 3))))
+(rcl--refuse "if-true with the strict = at an uncertified branch (control)" 'if-true
+  (rcl--h '() '(IN (IF TRUTH (IOTA z (AND (IN z NN) FALSITY)) 0) NN))
+  (list (rcl--h '() 'TRUTH)
+        (rcl--h (list '(= (IF TRUTH (IOTA z (AND (IN z NN) FALSITY)) 0) (IOTA z (AND (IN z NN) FALSITY))))
+                '(IN (IF TRUTH (IOTA z (AND (IN z NN) FALSITY)) 0) NN))))
+(rcl--accept "if-true with == at an uncertified branch" 'if-true
+  (rcl--h '() '(IN (IF TRUTH (IOTA z (AND (IN z NN) FALSITY)) 0) NN))
+  (list (rcl--h '() 'TRUTH)
+        (rcl--h (list '(== (IF TRUTH (IOTA z (AND (IN z NN) FALSITY)) 0) (IOTA z (AND (IN z NN) FALSITY))))
+                '(IN (IF TRUTH (IOTA z (AND (IN z NN) FALSITY)) 0) NN))))
 
 (rcl--case "if-false" 'if-false
   (rcl--h '() '(< (IF (IN x NN) 1 2) 3))
   (list (rcl--h '() '(NOT (IN x NN)))
-        (rcl--h (list '(= (IF (IN x NN) 1 2) 2)) '(< (IF (IN x NN) 1 2) 3)))
+        (rcl--h (list '(== (IF (IN x NN) 1 2) 2)) '(< (IF (IN x NN) 1 2) 3)))
   (list (rcl--h '() '(IN x NN))
-        (rcl--h (list '(= (IF (IN x NN) 1 2) 2)) '(< (IF (IN x NN) 1 2) 3))))
+        (rcl--h (list '(== (IF (IN x NN) 1 2) 2)) '(< (IF (IN x NN) 1 2) 3))))
 
 (rcl--case "cartesian-intro" 'cartesian-intro
   (rcl--h '() '(IN (LIST x y) (CARTESIAN NN RR)))

@@ -274,13 +274,17 @@
   (fact 'rr-cauchy-converges SQ)
   (fact 'seq-limit-converges-to SQ)))
 (dump "limit in hand" 3)
+;; open the limit's typing BEFORE `ew': with (IN (SEQ-LIMIT SQ) RR) in context
+;; the witness is certified (since 2026-10-08 `ew' owes  t = t  otherwise, and
+;; the owed leaf would shift the positional `focus' calls below)
+(quietly (lambda ()
+  (mac-h 'converges-to (list 'CONVERGES-TO 'RR-MS SQ (list 'SEQ-LIMIT SQ)))
+  (dk-split! (car (dk-asms)))
+  (slot-h 'PTS (list 'IN (list 'SEQ-LIMIT SQ) '(PTS RR-MS)))))
 (quietly (lambda ()
   (ew (list 'SEQ-LIMIT SQ))
   (mac 'IS-RIGHT-LIMIT)))
 (quietly (lambda ()
-  (mac-h 'converges-to (list 'CONVERGES-TO 'RR-MS SQ (list 'SEQ-LIMIT SQ)))
-  (dk-split! (car (dk-asms)))
-  (slot-h 'PTS (list 'IN (list 'SEQ-LIMIT SQ) '(PTS RR-MS)))
   (di) (focus 2) (di) (focus 3) (di) (focus 4)
   (ass-all) (focus 1) (di) (di)))
 

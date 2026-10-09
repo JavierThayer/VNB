@@ -638,18 +638,46 @@
 
 ;;; forsome-intro: G = (FORSOME x p); one hypothesis, same context, whose goal
 ;;; is p[x := t] for SOME term t (found by matching).
+;;; The witness t is defined when the instance p[t] itself says so: a top-level
+;;; conjunct of p[t] is a strict atom IN, =, <=, < holding t outside binders.
+(define (chk-instance-certifies? inst t)
+  (let walk ((f inst))
+    (cond ((and (pair? f) (eq? (car f) 'AND) (= (length f) 3))
+           (or (walk (cadr f)) (walk (caddr f))))
+          ((and (pair? f) (memq (car f) '(IN = <= <)) (= (length f) 3))
+           (or (chk-elim-outside-binders? t (cadr f))
+               (chk-elim-outside-binders? t (caddr f))))
+          (else #f))))
 (register-rule-checker! 'forsome-intro
   (lambda (rule hyps concl)
     (let ((g (chk-goal concl)))
       (cond
         ((not (and (pair? g) (eq? (car g) 'FORSOME) (= (length g) 3)))
          "the goal is not a FORSOME")
-        ((not (chk-arity? hyps 1)) "forsome-intro takes one hypothesis")
+        ((not (or (chk-arity? hyps 1) (chk-arity? hyps 2)))
+         "forsome-intro takes one hypothesis, or two with the owed definedness sequent")
         ((not (chk-ctx=? (car hyps) concl)) "the context changed")
-        ((not (chk-match (list (quantifier-var g))
-                         (quantifier-body g) (chk-goal (car hyps))))
-         "the hypothesis goal is not an INSTANCE of the existential's body")
-        (else #t)))))
+        (else
+         ;; LUTINS (2026-10-08): the witness must be DEFINED -- certified in the context,
+         ;; or owed as the second hypothesis  Gamma => t = t  for that very witness.
+         (let ((b (chk-match (list (quantifier-var g))
+                             (quantifier-body g) (chk-goal (car hyps)))))
+           (if (not b)
+               "the hypothesis goal is not an INSTANCE of the existential's body"
+               (let ((t (chk-bound (quantifier-var g) b))
+                     (side (and (chk-arity? hyps 2) (chk-goal (cadr hyps)))))
+                 (cond
+                   ((and side
+                         (not (and (pair? side) (eq? (car side) '=) (= (length side) 3)
+                                   (chk-same? (binary-left side) (binary-right side))
+                                   (chk-ctx=? (cadr hyps) concl))))
+                    "the second hypothesis is not the owed definedness sequent  Gamma => t = t")
+                   ((not t) #t)                                    ; x not in p: vacuous
+                   (side (if (chk-same? (binary-left side) t) #t
+                             "the owed definedness sequent is not  t = t  for the witness"))
+                   ((chk-instance-certifies? (chk-goal (car hyps)) t) #t)
+                   ((chk-elim-certified? concl t) #t)
+                   (else "the witness is not certified defined in the context, and no definedness sequent  t = t  is owed"))))))))))
 
 ;;; truth-intro: G = TRUTH; no hypotheses.  (Unreachable: no tactic calls it.)
 (register-rule-checker! 'truth-intro
@@ -786,6 +814,7 @@
     ((not (pair? e)) #f)
     ((not (list? e)) #f)
     ((memq (car e) '(FORALL FORSOME IOTA COMP)) #f)
+    ((eq? (car e) 'IF) #f)                    ; IF is not strict (2026-10-08)
     ((and (memq (car e) '(SEP BIG-UNION VNB-LAMBDA)) (= (length e) 4))
      (chk-elim-outside-binders? t (caddr e)))
     (else (chk-any (lambda (x) (chk-elim-outside-binders? t x)) e))))
@@ -984,24 +1013,7 @@
            "the context must gain exactly the NEGATION of the goal")
           (else #t))))
 
-;;; contraposition: the context holds (IMPLIES p q), the goal is (NOT p), and
-;;; the hypothesis goal is (NOT q).  (Unreachable: pi-contraposit! has no caller.)
-(register-rule-checker! 'contraposition
-  (lambda (rule hyps concl)
-    (let ((g (chk-goal concl)))
-      (cond
-        ((not (chk-arity? hyps 1)) "contraposition takes one hypothesis")
-        ((not (and (pair? g) (eq? (car g) 'NOT) (= (length g) 2)))
-         "the goal is not a NOT")
-        ((not (chk-ctx=? (car hyps) concl)) "the context changed")
-        ((chk-any (lambda (f)
-                    (and (pair? f) (eq? (car f) 'IMPLIES) (= (length f) 3)
-                         (chk-same? (binary-left f) (not-body g))
-                         (chk-same? (chk-goal (car hyps))
-                                    (make-not (binary-right f)))))
-                  (chk-asms concl))
-         #t)
-        (else "no context implication has the negated goal as its antecedent")))))
+;;; contraposition: RETIRED 2026-10-08 with pi-contraposit!, which had no caller.
 
 ;;; --- equality ----------------------------------------------------------
 
@@ -1072,12 +1084,16 @@
              (let ((p (if true? cond-goal (not-body cond-goal))))
                (if (chk-any
                     (lambda (e)
-                      (and (pair? e) (eq? (car e) '=) (= (length e) 3)
+                      ;; since 2026-10-08: the QUASI-equation, or the strict one when the
+                      ;; branch is certified defined (a strict = certifies the branch itself)
+                      (and (pair? e) (memq (car e) '(= ==)) (= (length e) 3)
                            (let ((lhs (binary-left e)))
                              (and (pair? lhs) (eq? (car lhs) 'IF) (= (length lhs) 4)
                                   (chk-same? (cadr lhs) p)
                                   (chk-same? (binary-right e)
                                              (if true? (caddr lhs) (cadddr lhs)))
+                                  (or (eq? (car e) '==)
+                                      (chk-elim-certified? concl (binary-right e)))
                                   (chk-ctx+? h2 concl (list e))))))
                     (chk-added h2 concl))
                    #t

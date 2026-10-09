@@ -531,10 +531,15 @@
 (topic! 'monomial-at 'algebra)
 
 ;;; ---- the value anywhere else -----------------------------------------
+;;; GUARDED 2026-10-08: the strict equation asserts ZERO(a_) denotes, which nothing
+;;; said for an arbitrary a_; it went through only while `if-false' handed over a
+;;; strict equation at an uncertified branch (the META session's FALSITY).  Every
+;;; citer has IS-RING(a_) in context.
 (sp (make-wff '(FORALL a_ (FORALL c_ (FORALL n_ (FORALL k_
+   (IMPLIES (IS-RING a_)
    (IMPLIES (IN c_ (CARR a_))
      (IMPLIES (IN k_ NN)
-       (IMPLIES (NOT (= k_ n_)) (= ((MONOMIAL a_ c_ n_) k_) (ZERO a_)))))))))))
+       (IMPLIES (NOT (= k_ n_)) (= ((MONOMIAL a_ c_ n_) k_) (ZERO a_))))))))))))
 (pd-peel!)
 (mac 'MONOMIAL)
 (lam-b)

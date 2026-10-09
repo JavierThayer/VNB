@@ -130,6 +130,8 @@
     (subst (list '= (list 'ENTRY Bri 1 1) IFa))
     (if-true IFa) (define ca (mq-last)) (rfl) (mq-node! ca)
     (subst (list '= IFa '(ENTRY A 1 j0)))
+    ;; typed for `rfl' (the strict IF equation used to certify it; 2026-10-08)
+    (fact 'entry-in-carrier 'm 'n '(CARR R) 'A 1 'j0)
     (subst '(= i0 1)) (rfl)
 ;; ===== case NOT (= 1 i0) =====
 (mq-node! NOTi)
@@ -146,6 +148,7 @@
     (subst (list '= (list 'ENTRY Ble 1 1) IFb))
     (if-true IFb) (define cb (mq-last)) (rfl) (mq-node! cb)
     (subst (list '= IFb '(ENTRY A i0 1)))
+    (fact 'entry-in-carrier 'm 'n '(CARR R) 'A 'i0 1)    ; typed for `rfl'
     (subst '(= j0 1)) (rfl)
   (mq-node! NOTj-b)
     ;; NOT i0=1, NOT j0=1 : swap-to-corner

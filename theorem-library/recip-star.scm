@@ -225,6 +225,10 @@
 (quietly (lambda ()
   (di) (di)
   (mac 'recip-star)
+  ;; type the branch first: since 2026-10-08 `if-false' hands over a strict equation
+  ;; only at a branch certified defined, else the quasi-equation.
+  (have! '(AND (IN u_ RR) (NOT (= u_ 0))))         ; `fact' will not split it
+  (fact 'rr-recip-closed 'u_)
   (for-each (lambda (l) (dk-focus! l) (ass))
             (dk-opened (lambda () (if-false (rs-if 'u_)))))))
 (rs-check 'recip-star-value)

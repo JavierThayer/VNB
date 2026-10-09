@@ -3565,7 +3565,8 @@
 
 ;;; -----------------------------------------------------------------------
 ;;; THE IF RESOLVER (item 15).  `if-true' / `if-false' open TWO leaves -- the
-;;; CONDITION, and the MAIN goal with (= IFT branch) ASSUMED; the goal is NOT
+;;; CONDITION, and the MAIN goal with (= IFT branch) ASSUMED (== when the branch is not
+;;; certified defined, since 2026-10-08; `subst' of (= IFT branch) finds either); the goal is NOT
 ;;; rewritten -- and the copies below each discriminated them, closed the
 ;;; condition, and `subst'ed the equation by hand.
 ;;;
@@ -5301,3 +5302,1001 @@
                     (ass))))
                (#t (dkd-error "unexpected conjunct of HOLOMORPHIC-ON: " g))))))
     (sequent-node-grounded? leaf)))
+
+
+;;; =======================================================================
+;;; META: the shared helpers of the K2 meta files (agent META-KIT, 2026-10-08; the user's decision
+;;; of the same day).  docs/meta-k2-admissibility-2026-10-08.md, sections 10-11.
+;;; =======================================================================
+;;;
+;;; The meta laws files theorem-library/meta-syntax-laws.scm (phase 1, the locally nameless
+;;; expressions) and theorem-library/meta-core-laws.scm (phase 2, the core, DERIVABLE) drove their
+;;; proofs with the same staged-class helpers: phase 2 had copied 59 of phase 1's top-level definitions;
+;;; 56 are here (the other three are term constants spelled with a statement's own variables, which
+;;; stay local).  By the rule at the head of this file a helper two files need lives
+;;; here, so each is here ONCE, under the prefix dk-meta-; the copies are deleted from both files.
+;;; Binders a helper builds are spelled dkm*_ (dkmw_, dkmx_, dkmi3_), names no statement and no
+;;; predicate body uses.  A helper only one file uses stays in that file.
+;;;
+;;; A. THE SHARED HELPERS, as phase 1 wrote them (dk-meta-cond-transfer! is phase 2's version, which
+;;;    adds one clause: a conjunct both conditions share closes by `ass').  By group:
+;;;    - the openers of tags, lists, unions and products: dk-meta-keep-prop!, -tag-absurd!,
+;;;      -component(s)!, -num-set!, -unpack!, -cart-chain, -cart-open!, -union-open!, -or-each!,
+;;;      -fits?, -close-in!, -ex-fill!;
+;;;    - stages and rank: -stage-eq, -stage-open!, -step-case?, -ni-cases!, -type-stages!, -nth-in!,
+;;;      -set-of!, -and!, -set-open!, -incl!, -tuples-lift!, -lift-to-expr!, -has-le?, -rank!,
+;;;      -rank-min, -unfold-cite!, -absurd-eq!, -eq-of, -disjunct-kind, -ind-hyps;
+;;;    - THE STRUCTURAL-RECURSION DRIVER: dk-meta-struct-laws! (the STEP / COH / AT triple of a
+;;;      per-stage map with the keep clause), with -wrap, -but-last, -lit-nth?, -nth-r!, -cond-close!,
+;;;      -if-left!, -ifs!, -val-ex, -val0!, -val-succ!, -new-at!;
+;;;    - binder congruence by extensionality: -bu-eq!, -sep-eq!, -cond-transfer!;
+;;;    - lists and maps: -makeset-set!, -in-makeset!, -len-nn!, -app-type!, -app2-type!, -mapl!,
+;;;      -maplk!; and -finsub (the formula "a finite subset of NN").
+;;;
+;;; B. dk-derive! -- a derivation in the core, given as a TREE, proved as a membership in
+;;;    DERIVABLE(T); its planner for the side conditions (dk-meta--plan-*, with the tables
+;;;    dk-meta-wf-intros / -wf-elims / -wf-atoms of meta-core-laws.scm's laws); and the phase-2
+;;;    helpers it calls, moved here from meta-core-laws.scm: dk-meta-iff!, -iff-r!, -iff-l!
+;;;    (IFF projections without `prop'), -seq!, -ctx+!, -law-name.  See its own header below.
+;;;    dk-meta-trace (#f) prints each node and side condition as dk-derive! discharges it.
+;;;
+;;; The section names theorems of the meta laws files (derivable-<rule>, seq-iff, ctx-add-ctx,
+;;; ctx-mem, ctx-add-has / -keeps, ctx-sub-cons / -snoc, the clf- laws, hyps-in-0/1/2): they are
+;;; cited when a helper RUNS, so the section loads before those files, with the rest of this file.
+
+;;; -----------------------------------------------------------------------
+;;; A. The shared helpers.
+
+(define (dk-meta-keep-prop! . fs)
+  (let ((node (proof-state-focus *ps*)))
+    (apply dk-only! fs)
+    (if (not (sequent-node-grounded? node)) (prop))))
+
+;; (= L1 L2) in context, L1, L2 literal lists whose first entries are two DIFFERENT numerals:
+;; close the goal (whatever it is) by FALSITY.
+(define (dk-meta-tag-absurd! l1 l2)
+  (let ((t1 (cadr l1)) (t2 (cadr l2)))
+    (dk-have! `(= (NTH 1 ,l2) ,t2) (lambda () (nth-r) (rfl)))
+    (dk-have! `(= ,t1 (NTH 1 ,l2)) (lambda () (subst `(= ,l2 ,l1)) (nth-r) (rfl)))
+    (dk-have! `(= ,t1 ,t2) (lambda () (subst `(= ,t2 (NTH 1 ,l2))) (ass)))
+    (dk-have! `(NOT (= ,t1 ,t2)) (lambda () (arith)))
+    (ai `(NOT (= ,t1 ,t2)))))
+
+;; (= L1 L2) in context, literal lists of one length; the goal (= x y), x the I-th entry of L1
+;; and y the I-th entry of L2.
+(define (dk-meta-component! l1 l2 i)
+  (let* ((x (list-ref l1 i)) (y (list-ref l2 i)))
+    (dk-have! `(= (NTH ,i ,l2) ,y) (lambda () (nth-r) (rfl)))
+    (subst `(= ,y (NTH ,i ,l2)))
+    (subst `(= ,l2 ,l1))
+    (nth-r)
+    (rfl)))
+
+(define (dk-meta-components! l1 l2)
+  (dk-each-leaf! (lambda () (di))
+    (lambda ()
+      (if (dk-head-is? (dk-goal) 'AND)
+          (dk-meta-components! l1 l2)
+          (let* ((g (dk-goal))
+                 (i (let loop ((k 1))
+                      (cond ((> k (- (length l1) 1)) (error "dk-meta-components!: no index for" g))
+                            ((and (equal? (list-ref l1 k) (cadr g))
+                                  (equal? (list-ref l2 k) (caddr g))) k)
+                            (#t (loop (+ k 1)))))))
+            (dk-meta-component! l1 l2 i))))))
+
+;; (IN n SET) for a numeral n, through n in NN.
+(define (dk-meta-num-set! n)
+  (dk-have! `(IN ,n SET)
+    (lambda ()
+      (dk-have! `(IN ,n NN) (lambda () (arith)))
+      (fact 'membership-implies-sethood n 'NN)
+      (ass))))
+
+;; Skolemise the FORSOME EX and every FORSOME that lands from it; return the eigenvariables.  A
+;; tag membership (IN v (PAIR n n)) that lands becomes (= v n).
+(define (dk-meta-unpack! ex)
+  (let loop ((ex ex) (acc '()))
+    (let* ((before (dk-asms))
+           (v (dk-skolem! ex))
+           (new (filter (lambda (f) (not (member f before))) (dk-asms)))
+           (tag (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (cadr f) v)
+                                             (dk-head-is? (caddr f) 'PAIR)))
+                            new))
+           (next (find-first (lambda (f) (dk-head-is? f 'FORSOME)) new)))
+      (if tag
+          (let ((n (cadr (caddr tag))))
+            (dk-meta-num-set! n)
+            (fact 'pair-self-eq n v)))
+      (if next (loop next (cons v acc)) (reverse (cons v acc))))))
+
+;; (IN x (CARTESIAN C1 ... Cn)) in context: land and return the existential chain of the
+;; primitive `cartesian-decompose', with FIXED binders cdv1_ ...
+(define (dk-meta-cart-chain x classes)
+  (let nest ((i 1) (cs classes) (vars '()))
+    (if (null? cs)
+        `(= ,x (LIST ,@(reverse vars)))
+        (let ((v (string->symbol (string-append "cdv" (number->string i) "_"))))
+          `(FORSOME ,v (AND (IN ,v ,(car cs)) ,(nest (+ i 1) (cdr cs) (cons v vars))))))))
+
+(define (dk-meta-cart-open! mem)
+  (let* ((ex  (dk-meta-cart-chain (cadr mem) (cdr (caddr mem))))
+         (imp `(IMPLIES ,mem ,ex)))
+    (dk-have! imp (lambda () (mac 'cartesian-decompose) (di) (ass)))
+    (detach! imp)
+    (or (dk-ctx-form ex) (error "dk-meta-cart-open!: the chain did not land" (expression->string ex)))))
+
+;; (IN x (UNION A B)) in context: land and return (OR (IN x A) (IN x B)).
+(define (dk-meta-union-open! mem)
+  (let* ((x (cadr mem)) (a (cadr (caddr mem))) (b (caddr (caddr mem)))
+         (o `(OR (IN ,x ,a) (IN ,x ,b))))
+    (dk-have! o (lambda () (fact 'union-membership a b x) (dk-meta-keep-prop! (iff-for mem) mem)))
+    o))
+
+;; An OR in context, split to its leaves (right-nested); HANDLER gets each leaf's disjunct.
+(define (dk-meta-or-each! o handler)
+  (dk-each-leaf! (lambda () (ai o))
+    (lambda ()
+      (cond ((dk-asm? (cadr o)) (handler (cadr o)))
+            ((dk-head-is? (caddr o) 'OR) (dk-meta-or-each! (caddr o) handler))
+            (#t (handler (caddr o)))))))
+
+;; Close the goal (IN x C), C built from UNION, CARTESIAN and PAIR(n, n) around classes x's
+;; pieces are typed in, in context.
+(define (dk-meta-fits? x c)
+  (cond ((dk-asm? `(IN ,x ,c)) #t)
+        ((and (pair? c) (eq? (car c) 'PAIR)) (equal? x (cadr c)))
+        ((and (pair? c) (eq? (car c) 'UNION)) (or (dk-meta-fits? x (cadr c)) (dk-meta-fits? x (caddr c))))
+        ((and (pair? c) (eq? (car c) 'CARTESIAN) (pair? x) (eq? (car x) 'LIST)
+              (= (length x) (length c)))
+         (let loop ((xs (cdr x)) (cs (cdr c)))
+           (or (null? xs) (and (dk-meta-fits? (car xs) (car cs)) (loop (cdr xs) (cdr cs))))))
+        (#t #f)))
+
+(define (dk-meta-close-in!)
+  (let* ((g (dk-goal)) (x (cadr g)) (c (caddr g)))
+    (cond
+      ((dk-asm? g) (ass))
+      ((and (pair? c) (eq? (car c) 'PAIR))
+       (dk-meta-num-set! x)
+       (fact 'pair-self-member x)
+       (ass))
+      ((and (pair? c) (eq? (car c) 'UNION))
+       (let ((left? (dk-meta-fits? x (cadr c))))
+         (if (not (or left? (dk-meta-fits? x (caddr c))))
+             (error "dk-meta-close-in!: neither side of the union fits" (expression->string g)))
+         (dk-have! `(IN ,x ,(if left? (cadr c) (caddr c))) (lambda () (dk-meta-close-in!)))
+         (fact 'union-membership (cadr c) (caddr c) x)
+         (dk-meta-keep-prop! (iff-for g) `(IN ,x ,(if left? (cadr c) (caddr c))))))
+      ((and (pair? c) (eq? (car c) 'CARTESIAN))
+       (mac 'cartesian-decompose)
+       (let loop ((xs (cdr x)))
+         (if (null? xs)
+             (rfl)
+             (begin
+               (ew (car xs))
+               (dk-each-leaf! (lambda () (di))
+                 (lambda ()
+                   (if (dk-head-is? (dk-goal) 'FORSOME) (loop (cdr xs))
+                       (if (dk-head-is? (dk-goal) '=) (rfl) (dk-meta-close-in!)))))))))
+      (#t (error "dk-meta-close-in!: no route" (expression->string g))))))
+
+;; Close FORSOME x1 ... (AND ...) with the witnesses WS, each conjunct by rfl or the context.
+(define (dk-meta-ex-fill! ws)
+  (ew (car ws))
+  (dk-conj-close!
+    (lambda ()
+      (cond ((dk-head-is? (dk-goal) 'FORSOME) (dk-meta-ex-fill! (cdr ws)))
+            ((dk-asm? (dk-goal)) (ass))
+            ((dk-head-is? (dk-goal) '=) (rfl))
+            (#t (ass))))))
+
+;; The stage equation at n (0, or (succ j) with j in NN in context), landed and returned.
+(define (dk-meta-stage-eq n)
+  (if (equal? n 0)
+      (dk-cite! 'expr-stage-zero)
+      (dk-cite! 'expr-stage-succ (cadr n))))
+
+;; (IN m (EXPR-STAGE n)) in context: land and return (IN m BODY).
+(define (dk-meta-stage-open! m n)
+  (let* ((eqn (dk-meta-stage-eq n))
+         (body (caddr eqn))
+         (claim `(IN ,m ,body)))
+    (dk-have! claim (lambda () (subst `(= ,body (EXPR-STAGE ,n))) (ass)))
+    claim))
+
+;; Is G the step case of an `ni' on a guarded NN universal?
+(define (dk-meta-step-case? g)
+  (and (dk-head-is? g 'FORALL) (dk-head-is? (caddr g) 'IMPLIES)
+       (dk-head-is? (cadr (caddr g)) 'IN) (eq? (caddr (cadr (caddr g))) 'NN)))
+
+(define (dk-meta-ni-cases!)
+  (let ((cases (dk-opened (lambda () (ni)))))
+    (list (or (find-first (lambda (l) (not (dk-meta-step-case? (dk-goal-of l)))) cases)
+              (error "dk-meta-ni-cases!: no base case"))
+          (or (find-first (lambda (l) (dk-meta-step-case? (dk-goal-of l))) cases)
+              (error "dk-meta-ni-cases!: no step case")))))
+
+;; TYPE THE TERM BEFORE YOU INSTANTIATE AT IT: (IN (EXPR-STAGE n) SET) for every stage term in T
+;; (n typed in NN in context), so that an instantiation at T owes nothing.
+(define (dk-meta-type-stages! t)
+  (cond ((and (pair? t) (eq? (car t) 'EXPR-STAGE))
+         (if (not (dk-asm? `(IN ,t SET)))
+             (begin
+               (if (not (dk-asm? `(IN ,(cadr t) NN)))
+                   (cond ((equal? (cadr t) 0) (fact 'nn-zero-in))
+                         ((and (pair? (cadr t)) (eq? (car (cadr t)) 'succ))
+                          (fact 'nn-succ-closed (cadr (cadr t))))))
+               (fact 'expr-stage-set (cadr t)))))
+        ((pair? t) (for-each dk-meta-type-stages! (cdr t)))))
+
+;; (IN (NTH i l) C) from i in NN, l in TUPLES(C), 1 <= i, i <= LENGTH(l) in context.
+(define (dk-meta-nth-in! cc i l)
+  (let ((goal `(IN (NTH ,i ,l) ,cc)))
+    (if (not (dk-asm? goal))
+        (begin
+          (dk-meta-type-stages! cc)
+          (dk-have! `(AND (IN ,i NN) (AND (IN ,l (TUPLES ,cc)) (AND (<= 1 ,i) (<= ,i (LENGTH ,l)))))
+            (lambda () (dk-conj-close! dk-ass!)))
+          (fact 'nth-in-range cc i l)))
+    goal))
+
+;; (IN x SET) from (IN x C) in context.
+(define (dk-meta-set-of! x c)
+  (if (not (dk-asm? `(IN ,x SET))) (fact 'membership-implies-sethood x c))
+  `(IN ,x SET))
+
+(define (dk-meta-and! . fs)                        ; the conjunction of formulas in context
+  (let ((f (fold-right (lambda (a b) (if b `(AND ,a ,b) a)) #f fs)))
+    (dk-have! f (lambda () (dk-conj-close! (lambda () (ass)))))
+    f))
+
+;; (IN x EXPR-SET) in context: land a stage index and the stage membership; return the index.
+(define (dk-meta-set-open! x)
+  (dk-skolem! (dk-cite! 'expr-set-elim x)))
+
+;; "C1 inside C2" as tuples-mono wants it, proved by THUNK on the peeled leaf.
+(define (dk-meta-incl! c1 c2 thunk)
+  (let ((incl `(FORALL dkmw_ (IMPLIES (IN dkmw_ ,c1) (IN dkmw_ ,c2)))))
+    (dk-have! incl (lambda () (dk-peel!) (thunk (cadr (dk-goal)))))
+    incl))
+
+(define (dk-meta-tuples-lift! l c1 c2 thunk)
+  (if (not (dk-asm? `(IN ,l (TUPLES ,c2))))
+      (begin
+        (dk-meta-type-stages! c1)
+        (dk-meta-type-stages! c2)
+        (dk-meta-incl! c1 c2 thunk)
+        (dk-apply! (dk-cite! 'tuples-mono c1 c2) l))))
+
+;; l in TUPLES(S_n) in context: land l in TUPLES(EXPR-SET).
+(define (dk-meta-lift-to-expr! l n)
+  (dk-meta-tuples-lift! l `(EXPR-STAGE ,n) 'EXPR-SET
+    (lambda (w) (fact 'expr-set-intro n w) (ass))))
+
+;; The five hypotheses of expr-induction at the class CC (read off the theorem).
+(define (dk-meta-ind-hyps cc)
+  (let* ((th (lookup-theorem 'expr-induction))
+         (b (subst-free (quantifier-var th) cc (quantifier-body th))))
+    (let loop ((f b) (acc '()))
+      (if (and (dk-head-is? f 'IMPLIES) (dk-head-is? (caddr f) 'IMPLIES))
+          (loop (caddr f) (cons (cadr f) acc))
+          (reverse (cons (cadr f) acc))))))
+
+(define (dk-meta-has-le? f x)
+  (and (pair? f)
+       (or (and (eq? (car f) '<=) (pair? (cdr f)) (equal? (cadr f) x))
+           (any-pred (lambda (g) (dk-meta-has-le? g x)) f))))
+
+;; rank-prop at the TYPED expression x: land (IN rank NN), (IN x stage(rank)), the minimality.
+(define (dk-meta-rank! x)
+  (fact 'expr-rank-prop x)
+  (dk-split-all!)
+  `(EXPR-RANK ,x))
+
+(define (dk-meta-rank-min x)
+  (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-meta-has-le? f `(EXPR-RANK ,x)))) (dk-asms))
+      (error "dk-meta-rank-min: no minimality for" x)))
+
+;; The literal list a constructor term stands for, and its unfolding equation (landed).
+(define (dk-meta-unfold-cite! t)
+  (case (car t)
+    ((EFVAR) (dk-cite! 'efvar-unfold (cadr t)))
+    ((EBVAR) (dk-cite! 'ebvar-unfold (cadr t)))
+    ((ECONST) (dk-cite! 'econst-unfold (cadr t)))
+    ((EAPP) (apply dk-cite! 'eapp-unfold (cdr t)))
+    ((EBIND) (apply dk-cite! 'ebind-unfold (cdr t)))
+    (else (error "dk-meta-unfold-cite!: not a constructor term" t))))
+
+;; (= X Y) in context, X and Y constructor terms or literal lists with DIFFERENT tags: close the
+;; goal by FALSITY.
+(define (dk-meta-absurd-eq! eqn)
+  (let* ((x (cadr eqn)) (y (caddr eqn))
+         (lx (if (eq? (car x) 'LIST) x (caddr (dk-meta-unfold-cite! x))))
+         (ly (if (eq? (car y) 'LIST) y (caddr (dk-meta-unfold-cite! y)))))
+    (dk-have! `(= ,lx ,ly)
+      (lambda ()
+        (if (not (eq? (car x) 'LIST)) (subst `(= ,lx ,x)))
+        (if (not (eq? (car y) 'LIST)) (subst `(= ,ly ,y)))
+        (ass)))
+    (dk-meta-tag-absurd! lx ly)))
+
+;; the (= m X) equation in context with m on the left.
+(define (dk-meta-eq-of m)
+  (or (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) m))) (dk-asms))
+      (error "dk-meta-eq-of: no equation for" m)))
+
+;; The constructor heading the right-hand side of the innermost equation of an existential
+;; disjunct (FORSOME .. (AND .. (= m (CTOR ..)))).
+(define (dk-meta-disjunct-kind d)
+  (cond ((dk-head-is? d 'FORSOME) (dk-meta-disjunct-kind (caddr d)))
+        ((dk-head-is? d 'AND) (dk-meta-disjunct-kind (caddr d)))
+        ((dk-head-is? d '=) (dk-head (caddr d)))
+        (#t #f)))
+
+(define (dk-meta-wrap params f) (fold-right (lambda (p g) `(FORALL ,p ,g)) f params))
+
+(define (dk-meta-but-last l) (reverse (cdr (reverse l))))
+
+;; the literal NTH redexes (NTH i (LIST ...)) with i a numeral in range
+(define (dk-meta-lit-nth? e)
+  (and (pair? e)
+       (or (and (eq? (car e) 'NTH) (= (length e) 3) (number? (cadr e))
+                (pair? (caddr e)) (eq? (car (caddr e)) 'LIST)
+                (<= 1 (cadr e) (- (length (caddr e)) 1)))
+           (any-pred dk-meta-lit-nth? (cdr e)))))
+
+(define (dk-meta-nth-r!)
+  (let loop ((k 0))
+    (if (and (< k 12) (dk-meta-lit-nth? (dk-goal))) (begin (nth-r) (loop (+ k 1))))))
+
+;; Close the condition leaf of an IF on a tag or an equation of literal lists.
+(define (dk-meta-cond-close!)
+  (cond ((dk-asm? (dk-goal)) (ass))
+        (#t (dk-meta-nth-r!)
+            (cond ((dk-asm? (dk-goal)) (ass))
+                  ((dk-head-is? (dk-goal) 'NOT) (arith))
+                  (#t (rfl))))))
+
+;; Resolve the IF heading the LEFT side of the goal (== (IF ..) R) on the side TRUE?, the
+;; condition closed by CLOSE (default dk-meta-cond-close!), then K on the main leaf.
+(define (dk-meta-if-left! true? k . close)
+  (let ((ift (cadr (dk-goal))))
+    (dk-if-branch! true? ift (if (pair? close) (car close) dk-meta-cond-close!) k)))
+
+(define (dk-meta-struct-laws! F-of G-of params zero-name succ-name step-name coh-name at-name . extra)
+  ;; EXTRA, optional: (ARGS GUARDS) -- further arguments of the stage map after e (OPEN's
+  ;; index), quantified inside e, with their guards
+  (let* ((ghead (car (G-of 'e)))
+         (ex  (if (pair? extra) (car extra) '()))
+         (exg (if (pair? extra) (cadr extra) '()))
+         (guard (lambda (f) (fold-right (lambda (g f) `(IMPLIES ,g ,f)) f exg))))
+    ;; STEP
+    (sp (make-wff (dk-meta-wrap params
+          `(FORALL k (FORALL e ,(dk-meta-wrap ex `(IMPLIES (IN k NN) (IMPLIES (IN e (EXPR-STAGE k))
+              ,(guard `(== (,(F-of '(succ k)) e ,@ex) (,(F-of 'k) e ,@ex)))))))))))
+    (dk-peel!)
+    (let* ((lhs (cadr (dk-goal))) (ft (car lhs)) (pv (dk-meta-but-last (cdr ft))))
+      (fact 'expr-stage-keep 'k 'e)
+      (subst (apply dk-cite! succ-name (append pv '(k))))
+      (dk-lam-b!)
+      (dk-meta-if-left! #t (lambda () (qrfl))))
+    (qed step-name)
+    ;; COH
+    (sp (make-wff `(FORALL d (IMPLIES (IN d NN)
+          ,(dk-meta-wrap params `(FORALL j (FORALL e ,(dk-meta-wrap ex `(IMPLIES (IN j NN) (IMPLIES (IN e (EXPR-STAGE j))
+              ,(guard `(== (,(F-of '(+ j d)) e ,@ex) (,(F-of 'j) e ,@ex)))))))))))))
+    (let ((cs (dk-meta-ni-cases!)))
+      (dk-focus! (car cs))
+      (dk-peel!)
+      (let ((j (last (cdr (car (caddr (dk-goal)))))))
+        (subst (dk-cite! 'nn-add-zero j))
+        (qrfl))
+      (dk-focus! (cadr cs))
+      (let* ((landed (dk-peel!))
+             (ih (or (find-first (lambda (f) (dk-head-is? f 'FORALL)) landed)
+                     (error "coh: no induction hypothesis")))
+             (lhs (cadr (dk-goal))) (ft (car lhs)) (e (cadr lhs))
+             (pv (dk-meta-but-last (cdr ft)))
+             (sum (last ft)) (j (cadr sum)) (n (cadr (caddr sum))))
+        (subst (dk-cite! 'nn-add-succ j n))
+        (dk-meta-and! `(IN ,j NN) `(IN ,n NN))
+        (fact 'nn-add-closed j n)
+        (fact 'expr-stage-add n j e)
+        (let ((s1 (apply dk-cite! step-name (append pv (list `(+ ,j ,n) e) (cddr lhs))))
+              (s2 (apply dk-apply! ih (append pv (list j e) (cddr lhs)))))
+          (subst s1)
+          (subst s2)
+          (qrfl))))
+    (qed coh-name)
+    ;; AT
+    (sp (make-wff (dk-meta-wrap params
+          `(FORALL j (FORALL e ,(dk-meta-wrap ex `(IMPLIES (IN j NN) (IMPLIES (IN e (EXPR-STAGE j))
+              ,(guard `(== ,(G-of 'e) (,(F-of 'j) e ,@ex)))))))))))
+    (dk-peel!)
+    (let* ((rhs (caddr (dk-goal))) (ft (car rhs)) (pv (dk-meta-but-last (cdr ft))))
+      (fact 'expr-set-intro 'j 'e)
+      (let* ((r (dk-meta-rank! 'e)))
+        (dk-apply! (dk-meta-rank-min 'e) 'j)
+        (let* ((d (dk-skolem! (dk-cite! 'nn-le-gap 'j r))))
+          (dk-split-all!)
+          (let ((c (apply dk-cite! coh-name d (append pv (list r 'e) (cddr rhs)))))
+            (mac ghead)
+            (subst `(= j (+ ,r ,d)))
+            (subst c)
+            (qrfl)))))
+    (qed at-name)))
+
+;;; The node-value drivers.  X a constructor term; AT the read-off law of the operation; ZS the
+;;; zero / succ recursion law of its map; PV its parameter values; TRUTHS the sides of the IFs
+;;; after the beta (the keep test excluded); FINISH closes the residual (== branch rhs).
+(define (dk-meta-ifs! truths finish)
+  (if (null? truths)
+      (finish)
+      (dk-meta-if-left! (car truths) (lambda () (dk-meta-ifs! (cdr truths) finish)))))
+
+(define dk-meta-val-ex (make-parameter '()))     ; extra arguments of the stage map (OPEN's index)
+
+(define (dk-meta-val0! x stage-law at zero pv truths finish)
+  (fact stage-law (cadr x))
+  (fact 'nn-zero-in)
+  (subst (apply dk-cite! at (append pv (list 0 x) (dk-meta-val-ex))))
+  (subst (apply dk-cite! zero pv))
+  (dk-lam-b!)
+  (mac (car x))
+  (dk-meta-ifs! truths finish))
+
+;; X new at stage (succ k), (IN x (EXPR-STAGE (succ k))) and (NOT (IN x (EXPR-STAGE k))) in context.
+(define (dk-meta-val-succ! x k at succ pv truths finish)
+  (fact 'nn-succ-closed k)
+  (subst (apply dk-cite! at (append pv (list `(succ ,k) x) (dk-meta-val-ex))))
+  (subst (apply dk-cite! succ (append pv (list k))))
+  (dk-lam-b!)
+  (dk-meta-if-left! #f (lambda () (mac (car x)) (dk-meta-ifs! truths finish))))
+
+;; Unpack the "new at its rank" law for the node X: return k, with the conjuncts in context and
+;; X typed in S_(succ k).
+(define (dk-meta-new-at! x)
+  (let* ((k (case (car x)
+              ((EAPP) (dk-skolem! (apply dk-cite! 'expr-rank-app (cdr x))))
+              ((EBIND) (dk-skolem! (apply dk-cite! 'expr-rank-bind (cdr x))))
+              (else (error "dk-meta-new-at!: not an APP / BIND term" x)))))
+    (dk-split-all!)
+    (case (car x)
+      ((EAPP) (fact 'expr-stage-app k (cadr x) (caddr x)))
+      ((EBIND) (apply fact 'expr-stage-bind k (cdr x))))
+    k))
+
+;; (= A B) for A, B BIG-UNIONs over one domain D: by class-extensionality, at the element
+;; level, where (ELEM! w) lands (== FA[w] FB[w]) with (IN w D) in context.  Returns the claim.
+(define (dk-meta-bu-eq! a b elem!)
+  (let* ((claim `(= ,a ,b))
+         (dom (caddr a))
+         (fa (lambda (w) (subst-free (cadr a) w (cadddr a))))
+         (fb (lambda (w) (subst-free (cadr b) w (cadddr b))))
+         (dir! (lambda (from to fx fy)        ; (IN x from) assumed, goal (IN x to)
+                 (let* ((x (cadr (dk-goal)))
+                        (landed (dk-landed (lambda () (bu-me `(IN ,x ,from)))))
+                        (wm (or (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (caddr f) dom)))
+                                            landed)
+                                (error "dk-meta-bu-eq!: no index landed")))
+                        (w (cadr wm)))
+                   (elem! w)
+                   (dk-each-leaf! (lambda () (bu-mi w))
+                     (lambda ()
+                       (if (dk-asm? (dk-goal))
+                           (ass)
+                           (begin (subst `(= ,(fy w) ,(fx w))) (ass)))))))))
+    (dk-have! claim
+      (lambda ()
+        (let ((univ `(FORALL dkmx_ (IFF (IN dkmx_ ,a) (IN dkmx_ ,b)))))
+          (dk-have! univ
+            (lambda ()
+              (dk-peel!)
+              ;; `di' of the IFF opens two leaves, each with its antecedent assumed
+              (dk-iff! (lambda (g) (equal? (caddr g) b))
+                (lambda () (dir! a b fa fb))
+                (lambda () (dir! b a fb fa)))))
+          (fact 'class-extensionality a b)
+          (ass))))
+    claim))
+
+;; (IN (MAKE-SET l) SET) for l in TUPLES(EXPR-SET) in context.
+(define (dk-meta-makeset-set! l)
+  (if (not (dk-asm? `(IN (MAKE-SET ,l) SET)))
+      (begin
+        (if (not (dk-asm? '(IN EXPR-SET SET))) (fact 'expr-set-is-set))
+        (dk-meta-and! `(IN ,l (TUPLES EXPR-SET)) '(IN EXPR-SET SET))
+        (fact 'make-set-sethood 'EXPR-SET l))))
+
+(define (dk-meta-finsub x) `(AND (IN ,x SET) (AND (SUBSET ,x NN) (IN (CARD ,x) NN))))
+
+;; (IN (LENGTH l) NN) for l in TUPLES(C) in context (C typed first if it is a stage).
+(define (dk-meta-len-nn! l c)
+  (if (not (dk-asm? `(IN (LENGTH ,l) NN)))
+      (begin (dk-meta-type-stages! c) (fact 'length-in-nn c l))))
+
+;; (IN (,f (NTH i l)) B) from f in FUN(A, B), l in TUPLES(A), i in range, all in context.
+(define (dk-meta-app-type! f a b x)
+  (dk-meta-and! `(IN ,f (FUN ,a ,b)) `(IN ,x ,a))
+  (fact 'fun-apply-type f a b x))
+
+;; MAPL(f, l) in TUPLES(B), with its length and entries, for f in FUN(S, B) and l in TUPLES(S)
+;; in context (VALUE-TYPE! i lands (IN (f (NTH i l)) B) on the leaf; default fun-apply-type).
+(define (dk-meta-mapl! f l s b . value-type!)
+  (dk-meta-len-nn! l s)
+  (let ((hv `(FORALL dkmi3_ (IMPLIES (IN dkmi3_ NN) (IMPLIES (<= 1 dkmi3_) (IMPLIES (<= dkmi3_ (LENGTH ,l))
+               (IN (,f (NTH dkmi3_ ,l)) ,b)))))))
+    (dk-have! hv
+      (lambda ()
+        (dk-peel!)
+        (let ((i (cadr (cadr (cadr (dk-goal))))))
+          (dk-meta-nth-in! s i l)
+          (if (pair? value-type!)
+              ((car value-type!) i)
+              (let ((leaf (proof-state-focus *ps*)))
+                (dk-meta-app-type! f s b `(NTH ,i ,l))
+                (if (not (sequent-node-grounded? leaf)) (ass)))))))
+    (fact 'mapl-prop b f l)
+    (dk-split-all!)
+    `(MAPL ,f ,l)))
+
+;; the goal (IN (NTH i l) (MAKE-SET l)), i in range and l in TUPLES(C) in context.
+(define (dk-meta-in-makeset! i l c)
+  (let ((w `(NTH ,i ,l)))
+    (dk-meta-nth-in! c i l)
+    (fact 'make-set-membership w l)
+    (let* ((iff (iff-for `(IN ,w (MAKE-SET ,l)))) (rhs (caddr iff)))
+      (dk-have! rhs
+        (lambda ()
+          (dk-conj-close!
+            (lambda ()
+              (cond ((dk-head-is? (dk-goal) 'FORSOME)
+                     (ew i)
+                     (dk-conj-close! (lambda () (if (dk-asm? (dk-goal)) (ass) (rfl)))))
+                    (#t (dk-meta-set-of! w c) (ass)))))))
+      (dk-meta-keep-prop! iff rhs))))
+
+;; (IN (f x y) B) from f in FUN(S x NN, B), x in S, y in NN in context (apply-tupling-2).
+(define (dk-meta-app2-type! f s b x y)
+  (let ((goal `(IN (,f ,x ,y) ,b)))
+    (if (not (dk-asm? goal))
+        (begin
+          (dk-meta-type-stages! s)
+          (dk-have! `(IN (LIST ,x ,y) (CARTESIAN ,s NN)) (lambda () (dk-meta-close-in!)))
+          (dk-meta-app-type! f `(CARTESIAN ,s NN) b `(LIST ,x ,y))
+          (let ((eqn (dk-cite! 'apply-tupling-2 f x y)))
+            (dk-have! goal (lambda () (subst eqn) (ass))))))
+    goal))
+
+;; MAPLK(f, l, y) in TUPLES(B), with length and entries; VALUE-TYPE! as in dk-meta-mapl!.
+(define (dk-meta-maplk! f l y s b . value-type!)
+  (dk-meta-len-nn! l s)
+  (let ((hv `(FORALL dkmi3_ (IMPLIES (IN dkmi3_ NN) (IMPLIES (<= 1 dkmi3_) (IMPLIES (<= dkmi3_ (LENGTH ,l))
+               (IN (,f (NTH dkmi3_ ,l) ,y) ,b)))))))
+    (dk-have! hv
+      (lambda ()
+        (dk-peel!)
+        (let ((i (cadr (cadr (cadr (dk-goal))))))
+          (dk-meta-nth-in! s i l)
+          (if (pair? value-type!)
+              ((car value-type!) i)
+              (let ((leaf (proof-state-focus *ps*)))
+                (dk-meta-app2-type! f s b `(NTH ,i ,l) y)
+                (if (not (sequent-node-grounded? leaf)) (ass)))))))
+    (fact 'maplk-prop b f l y)
+    (dk-split-all!)
+    `(MAPLK ,f ,l ,y)))
+
+;; Transfer a SEP condition: prove the goal TO from FROM (in context), the two differing only by
+;; the applications FAPP[t] (in FROM) and GAPP[t] (in TO); shapes: a guarded universal
+;; (FORALL w (IMPLIES (IN w D) (IN x APP[w]))), a membership (IN y APP[t]), or an AND of them.
+;; (ELEM! t) lands the equation between FAPP[t] and GAPP[t].
+(define (dk-meta-cond-transfer! from gapp fapp elem!)
+  (let ((to (dk-goal)))
+    (cond
+      ((dk-asm? to) (ass))                    ; a conjunct both conditions share (META-2)
+      ((dk-head-is? to 'AND)
+       (let ((parts (dk-split! from)))
+         (dk-conj-close!
+           (lambda ()
+             (let* ((g (dk-goal))
+                    (src (find-first (lambda (f) (and (pair? f) (eq? (car f) (car g))
+                                                      (or (not (eq? (car g) 'IN)) (equal? (cadr f) (cadr g)))))
+                                     parts)))
+               (dk-meta-cond-transfer! src gapp fapp elem!))))))
+      ((dk-head-is? to 'FORALL)
+       (dk-peel!)
+       (let* ((g (dk-goal)) (w (cadr (caddr g))))
+         (dk-apply! from w)
+         (elem! w)
+         (subst `(= ,(gapp w) ,(fapp w)))
+         (ass)))
+      ((dk-head-is? to 'IN)
+       (let ((t (cadr (caddr to))))
+         (elem! t)
+         (subst `(= ,(gapp t) ,(fapp t)))
+         (ass)))
+      (#t (error "dk-meta-cond-transfer!: no route" (expression->string to))))))
+
+;; (= A B) for A, B SEPs over one domain whose conditions differ by FAPP / GAPP (A has FAPP).
+(define (dk-meta-sep-eq! a b fapp gapp elem!)
+  (let* ((claim `(= ,a ,b))
+         (dir! (lambda (from to fa ga)
+                 (let* ((x (cadr (dk-goal)))
+                        (landed (dk-landed (lambda () (sep-me `(IN ,x ,from)))))
+                        (c (find-first (lambda (f) (not (and (dk-head-is? f 'IN) (equal? (cadr f) x)
+                                                             (equal? (caddr f) (caddr from)))))
+                                       landed)))
+                   (in-sep! (lambda () (ass))
+                            (lambda () (dk-meta-cond-transfer! c ga fa elem!)))))))
+    (dk-have! claim
+      (lambda ()
+        (let ((univ `(FORALL dkmx_ (IFF (IN dkmx_ ,a) (IN dkmx_ ,b)))))
+          (dk-have! univ
+            (lambda ()
+              (dk-peel!)
+              (dk-iff! (lambda (g) (equal? (caddr g) b))
+                (lambda () (dir! a b fapp gapp))
+                (lambda () (dir! b a gapp fapp)))))
+          (fact 'class-extensionality a b)
+          (ass))))
+    claim))
+
+;;; -----------------------------------------------------------------------
+;;; B. dk-derive! -- a derivation in the core, given as a tree, proved as a membership in DERIVABLE.
+;;;
+;;;   (dk-derive! TT TREE)  lands (IN (LIST G F) (DERIVABLE TT)) for the root sequent G ==> F of
+;;;                         TREE and returns that formula.  The focus stays where it was.
+;;;
+;;; THE TREE.  A node is written as the paper writes a step of a sequent derivation, conclusion
+;;; first, premises below it, in the order of the rule's hypothesis list (structure-library/
+;;; meta-core.scm, section 4):
+;;;
+;;;     (RULE (G ==> F) [(v := TERM) ...] PREMISE ...)     a core rule
+;;;     (given (G ==> F))                                   a premise of the whole derivation:
+;;;                                                         (IN (LIST G F) (DERIVABLE TT)) is
+;;;                                                         already in context
+;;;
+;;; RULE is the core relation's name without CR- (cut, backchain, assumption, weakening, not-elim,
+;;; iff-elim, union-mem, intersection-mem, forall-intro, ...: the 42 of mc--core-names).  G is a
+;;; context TERM (a variable or CTX-ADD terms over one) and F an encoded formula.  The witnesses
+;;; of the relation are read off by MATCHING the relation's conclusion and hypothesis patterns
+;;; against the node's sequent and its premises' sequents; a witness neither pattern determines
+;;; (not-elim's a, which no premise shows) is given as (a := TERM), named as in meta-core.scm
+;;; without the mc prefix and the underscore (g f a b d p q x l k y tm ...).
+;;;
+;;; WHAT IT DISCHARGES, for each node, bottom up, before it cites the closure law
+;;; derivable-<rule> (meta-core-laws.scm, section G):
+;;;   - the node's SEQ-SET membership: G in CTX-SET (CTX-ADD by ctx-add-ctx), F in CLF;
+;;;   - the relation's side conditions, instantiated: (IN a G) for a context G (CTX-ADD by
+;;;     ctx-add-has / ctx-add-keeps down to a membership in context), (SUBSET D G) (subset-refl,
+;;;     ctx-sub-cons, ctx-sub-snoc down to a SUBSET in context), (IN t CLF) / (IN t CLT) (below),
+;;;     and any other condition (an index bound, the eigenvariable condition (NOT (IN y ...)),
+;;;     (<= 1 (LENGTH l))) only from the context, or by `arith' when ground;
+;;;   - well-formedness (IN t CLF), (IN t CLT): from the context; from a SEQ-SET membership in
+;;;     context (seq-iff); by the constructor's intro law (dk-meta-wf-intros); as a member of a
+;;;     context in CTX-SET (ctx-mem); or by elimination from a larger formula known well formed
+;;;     (dk-meta-wf-elims).  A list entry, an n-ary ENC-ORL / ENC-ANDL / ENC-ANDE or a MAKE-SET
+;;;     universal is NOT reached: the driver lands such facts before calling dk-derive!.
+;;; A side condition that does not close is an ERROR naming the node (its path from the root,
+;;; its rule and its sequent) and the unmet condition; nothing is cited for that node.
+;;;
+;;; Example (adm-detach, meta-core-laws.scm): from [g + q, f] derivable, (p => q) and p in g:
+;;;     (dk-derive! 'tt
+;;;       `(cut (,g ==> ,f)
+;;;          (backchain (,g ==> ,q) (assumption (,g ==> ,p)))
+;;;          (given ((CTX-ADD ,g ,q) ==> ,f))))
+;;;
+;;; The planner (dk-meta--plan-*) only INSPECTS the context and returns a thunk or #f; nothing is
+;;; cited until a whole plan exists, so a failed attempt leaves no step behind.
+
+;;; IFF projections without `prop' (phase 2, mc-iff! / mc-iff-r! / mc-iff-l!).
+(define (dk-meta-iff! thm . args)          ; cite THM at ARGS, detach to its IFF, return it
+  (let ((f (apply dk-cite! thm args)))
+    (if (dk-head-is? f 'IFF) f
+        (error "dk-meta-iff!: the citation did not detach to an IFF" thm (expression->string f)))))
+(define (dk-meta-iff-r! iff)               ; IFF and its left side in context: land the right side
+  (let ((l (cadr iff)) (r (caddr iff)))
+    (if (not (dk-asm? r))
+        (begin (if (dk-asm? iff) (ai iff)) (detach! `(IMPLIES ,l ,r))))
+    r))
+(define (dk-meta-iff-l! iff)               ; IFF and its right side in context: land the left side
+  (let ((l (cadr iff)) (r (caddr iff)))
+    (if (not (dk-asm? l))
+        (begin (if (dk-asm? iff) (ai iff)) (detach! `(IMPLIES ,r ,l))))
+    l))
+
+;; (IN (LIST g f) SEQ-SET) from g in CTX-SET and f in CLF in context.
+(define (dk-meta-seq! g f)
+  (let ((goal `(IN (LIST ,g ,f) SEQ-SET)))
+    (if (not (dk-asm? goal))
+        (let ((iff (dk-meta-iff! 'seq-iff g f)))
+          (dk-meta-and! `(IN ,g CTX-SET) `(IN ,f CLF))
+          (dk-meta-iff-l! iff)))
+    goal))
+;; CTX-ADD g a in CTX-SET, a in SET, from g in CTX-SET and a in CLF.
+(define (dk-meta-ctx+! g a)
+  (dk-meta-set-of! a 'CLF)
+  (dk-cite! 'ctx-add-ctx g a)
+  `(CTX-ADD ,g ,a))
+;; the closure law of a core relation: CR-CUT -> derivable-cut
+(define (dk-meta-law-name cr)
+  (string->symbol (string-append "derivable-" (string-downcase (string-tail (symbol->string cr) 3)))))
+
+;;; The well-formedness tables: constructor -> argument classes and the law.
+(define dk-meta-wf-intros
+  '((ENC-IMP (CLF CLF) clf-imp-intro) (ENC-OR (CLF CLF) clf-or-intro) (ENC-IFF (CLF CLF) clf-iff-intro)
+    (ENC-AND (CLF CLF) clf-and-intro) (ENC-NOT (CLF) clf-not-intro) (ENC-IN (CLT CLT) clf-in-intro)))
+(define dk-meta-wf-atoms '((ENC-FALSITY clf-falsity) (ENC-TRUTH clf-truth)))
+(define dk-meta-wf-elims                   ; each law: (IN (C a ..) CLF) => the AND of the arguments'
+  '((ENC-IMP (CLF CLF) clf-imp-elim) (ENC-OR (CLF CLF) clf-or-elim) (ENC-IFF (CLF CLF) clf-iff-elim)
+    (ENC-AND (CLF CLF) clf-and-elim) (ENC-NOT (CLF) clf-not-elim) (ENC-IN (CLT CLT) clf-in-elim)))
+(define dk-meta--classes '(CLF CLT CTX-SET SEQ-SET EXPR-SET SET NN))
+
+(define (dk-meta--ctx-term? g) (not (memq g dk-meta--classes)))
+(define (dk-meta--add? t) (and (pair? t) (eq? (car t) 'CTX-ADD) (= (length t) 3)))
+(define (dk-meta--same? a b) (or (equal? a b) (eq? #t (vnb-guard (lambda () (alpha-equiv? a b))))))
+(define (dk-meta--seq-of node) (cadr node))            ; (G ==> F)
+(define (dk-meta--seq-term s)
+  (if (and (list? s) (= (length s) 3) (eq? (cadr s) '==>))
+      `(LIST ,(car s) ,(caddr s))
+      (error "dk-derive!: a sequent is written (G ==> F), not" s)))
+
+;;; ---- the planner: each returns a thunk that establishes the fact, or #f.  VISIT is the stack
+;;; of (term . class) pairs being planned, so that no plan loops.
+
+(define (dk-meta--once fact thunk)          ; a plan step re-checks its fact when it runs: an
+  (and thunk (lambda () (if (not (dk-asm? fact)) (thunk)))))   ; earlier step may have landed it
+(define (dk-meta--plan-wf t cls visit)
+  (dk-meta--once `(IN ,t ,cls) (dk-meta--plan-wf0 t cls visit)))
+(define (dk-meta--plan-wf0 t cls visit)
+  (cond
+    ((dk-asm? `(IN ,t ,cls)) (lambda () #t))
+    ((member (cons t cls) visit) #f)
+    (#t
+     (let ((visit (cons (cons t cls) visit)))
+       (or (dk-meta--plan-wf-seq t cls)
+           (and (eq? cls 'CTX-SET) (dk-meta--add? t)
+                (let ((p1 (dk-meta--plan-wf (cadr t) 'CTX-SET visit))
+                      (p2 (dk-meta--plan-wf (caddr t) 'CLF visit)))
+                  (and p1 p2 (lambda () (p1) (p2) (dk-meta-ctx+! (cadr t) (caddr t))))))
+           (and (eq? cls 'CLF) (symbol? t) (assq t dk-meta-wf-atoms)
+                (let ((law (cadr (assq t dk-meta-wf-atoms)))) (lambda () (fact law))))
+           (and (memq cls '(CLF CLT)) (pair? t) (assq (car t) dk-meta-wf-intros)
+                (let ((row (assq (car t) dk-meta-wf-intros)))
+                  (and (eq? cls 'CLF) (= (length (cadr row)) (length (cdr t)))
+                       (let ((ps (map (lambda (a c) (dk-meta--plan-wf a c visit)) (cdr t) (cadr row))))
+                         (and (every (lambda (p) p) ps)
+                              (lambda () (for-each (lambda (p) (p)) ps)
+                                         (apply dk-cite! (caddr row) (cdr t))))))))
+           (and (eq? cls 'CLF) (dk-meta--plan-wf-member t visit))
+           (dk-meta--plan-wf-elim t cls visit))))))
+
+;; a SEQ-SET membership in context names t as a context or a formula
+(define (dk-meta--plan-wf-seq t cls)
+  (let ((s (find-first (lambda (f) (and (dk-head-is? f 'IN) (eq? (caddr f) 'SEQ-SET)
+                                        (dk-head-is? (cadr f) 'LIST) (= (length (cadr f)) 3)
+                                        (equal? (if (eq? cls 'CTX-SET) (cadr (cadr f)) (caddr (cadr f))) t)))
+                       (if (memq cls '(CLF CTX-SET)) (dk-asms) '()))))
+    (and s (lambda ()
+             (dk-split! (dk-meta-iff-r! (dk-meta-iff! 'seq-iff (cadr (cadr s)) (caddr (cadr s)))))))))
+
+;; t a member of a context in CTX-SET: ctx-mem
+(define (dk-meta--plan-wf-member t visit)
+  (let loop ((as (dk-asms)))
+    (and (pair? as)
+         (let ((f (car as)))
+           (or (and (dk-head-is? f 'IN) (equal? (cadr f) t) (dk-meta--ctx-term? (caddr f))
+                    (let ((p (dk-meta--plan-wf (caddr f) 'CTX-SET visit)))
+                      (and p (lambda () (p) (dk-cite! 'ctx-mem (caddr f) t)))))
+               (loop (cdr as)))))))
+
+;; the path of argument positions from U down to an occurrence of T through eliminable heads
+(define (dk-meta--elim-path u t)
+  (cond ((equal? u t) '())
+        ((and (pair? u) (assq (car u) dk-meta-wf-elims)
+              (= (length (cadr (assq (car u) dk-meta-wf-elims))) (length (cdr u))))
+         (let loop ((as (cdr u)) (i 0))
+           (and (pair? as)
+                (let ((p (dk-meta--elim-path (car as) t)))
+                  (if p (cons i p) (loop (cdr as) (+ i 1)))))))
+        (#t #f)))
+(define (dk-meta--elim-class u path cls)     ; the class the path ends in, starting from U in CLS
+  (if (null? path) cls
+      (let ((row (assq (car u) dk-meta-wf-elims)))
+        (and (eq? cls 'CLF)
+             (dk-meta--elim-class (list-ref (cdr u) (car path)) (cdr path) (list-ref (cadr row) (car path)))))))
+(define (dk-meta--plan-wf-elim t cls visit)
+  (let loop ((as (dk-asms)))
+    (and (pair? as)
+         (let* ((f (car as))
+                (u (and (dk-head-is? f 'IN) (pair? (cadr f)) (cadr f)))
+                (path (and u (not (equal? u t)) (dk-meta--elim-path u t))))
+           (or (and path (pair? path) (eq? (dk-meta--elim-class u path 'CLF) cls)
+                    (let ((p (dk-meta--plan-wf u 'CLF visit)))
+                      (and p (lambda ()
+                               (p)
+                               (let walk ((u u) (path path))
+                                 (if (pair? path)
+                                     (let ((row (assq (car u) dk-meta-wf-elims)))
+                                       (if (not (dk-asm? `(IN ,(list-ref (cdr u) (car path)) ,(list-ref (cadr row) (car path)))))
+                                           (let ((r (apply dk-cite! (caddr row) (cdr u))))
+                                             (if (dk-head-is? r 'AND) (dk-split! r))))
+                                       (walk (list-ref (cdr u) (car path)) (cdr path)))))))))
+               (loop (cdr as)))))))
+
+;; (IN a G), G a context term
+(define (dk-meta--plan-mem a g visit)
+  (dk-meta--once `(IN ,a ,g) (dk-meta--plan-mem0 a g visit)))
+(define (dk-meta--plan-mem0 a g visit)
+  (cond ((dk-asm? `(IN ,a ,g)) (lambda () #t))
+        ((dk-meta--add? g)
+         (let ((g0 (cadr g)) (b (caddr g)))
+           (if (dk-meta--same? a b)
+               (let ((p (dk-meta--plan-wf b 'CLF visit)))
+                 (and p (lambda () (p) (dk-meta-set-of! b 'CLF) (dk-cite! 'ctx-add-has g0 b))))
+               (let ((p1 (dk-meta--plan-mem a g0 visit)) (p2 (dk-meta--plan-wf b 'CLF visit)))
+                 (and p1 p2 (lambda () (p1) (p2) (dk-meta-set-of! b 'CLF) (dk-cite! 'ctx-add-keeps g0 b a)))))))
+        (#t #f)))
+;; (SUBSET D G), contexts
+(define (dk-meta--plan-sub d g visit)
+  (dk-meta--once `(SUBSET ,d ,g) (dk-meta--plan-sub0 d g visit)))
+(define (dk-meta--plan-sub0 d g visit)
+  (cond ((dk-asm? `(SUBSET ,d ,g)) (lambda () #t))
+        ((equal? d g) (lambda () (fact 'subset-refl d)))
+        ((dk-meta--add? d)
+         (let ((p1 (dk-meta--plan-sub (cadr d) g visit)) (p2 (dk-meta--plan-mem (caddr d) g visit))
+               (p3 (dk-meta--plan-wf (caddr d) 'CLF visit)))
+           (and p1 p2 p3 (lambda () (p1) (p2) (p3) (dk-meta-set-of! (caddr d) 'CLF)
+                                    (dk-cite! 'ctx-sub-cons (cadr d) g (caddr d))))))
+        ((dk-meta--add? g)
+         (let ((p1 (dk-meta--plan-sub d (cadr g) visit)) (p2 (dk-meta--plan-wf (caddr g) 'CLF visit)))
+           (and p1 p2 (lambda () (p1) (p2) (dk-meta-set-of! (caddr g) 'CLF)
+                                 (dk-cite! 'ctx-sub-snoc d (cadr g) (caddr g))))))
+        (#t #f)))
+;; a side condition of a relation
+(define (dk-meta--plan-side c)
+  (dk-meta--once c (dk-meta--plan-side0 c)))
+(define (dk-meta--plan-side0 c)
+  (cond ((dk-asm? c) (lambda () #t))
+        ((and (dk-head-is? c 'IN) (memq (caddr c) '(CLF CLT CTX-SET))) (dk-meta--plan-wf (cadr c) (caddr c) '()))
+        ((and (dk-head-is? c 'IN) (dk-meta--ctx-term? (caddr c))) (dk-meta--plan-mem (cadr c) (caddr c) '()))
+        ((dk-head-is? c 'SUBSET) (dk-meta--plan-sub (cadr c) (caddr c) '()))
+        ((and (memq (dk-head c) '(<= = IN NOT)) (eq? #t (vnb-guard (lambda () (arith-eval-formula c)))))
+         (lambda () (dk-have! c (lambda () (arith)))))
+        (#t #f)))
+
+;;; ---- the relation, read off its definition
+
+(define (dk-meta--cr-name rule)          ; cut -> cr-cut (MIT folds: every symbol is lower case)
+  (let ((nm (string->symbol (string-append "cr-" (string-downcase (symbol->string rule))))))
+    (if (not (hash-table-ref/default *theorem-table* nm #f)) (error "dk-derive!: no core rule named" rule))
+    nm))
+;; the defining IFF of CR-X, its FORSOME variables and its conjuncts, with T, hs, c substituted
+(define (dk-meta--cr-parts cr tt hs c)
+  (let* ((f (lookup-theorem cr))
+         (body (let peel ((f f) (k 3)) (if (> k 0) (peel (caddr f) (- k 1)) (caddr f))))
+         (body (dk-meta--subst-syms body `((mct_ . ,tt) (mchs_ . ,hs) (mcc_ . ,c)))))
+    (let strip ((b body) (vars '()))
+      (if (dk-head-is? b 'FORSOME)
+          (strip (caddr b) (cons (cadr b) vars))
+          (values (reverse vars)
+                  (let flat ((b b)) (if (dk-head-is? b 'AND) (append (flat (cadr b)) (flat (caddr b))) (list b))))))))
+(define (dk-meta--subst-syms e al)
+  (cond ((symbol? e) (let ((p (assq e al))) (if p (cdr p) e)))
+        ((pair? e) (map (lambda (x) (dk-meta--subst-syms x al)) e))
+        (#t e)))
+;; first-order matching of PAT (holes VARS) against TERM, extending the alist AL; #f on a clash
+(define (dk-meta--match vars pat term al)
+  (cond ((not al) #f)
+        ((and (symbol? pat) (memq pat vars))
+         (let ((p (assq pat al)))
+           (cond ((not p) (cons (cons pat term) al))
+                 ((equal? (cdr p) term) al)
+                 (#t #f))))
+        ((pair? pat)
+         (and (pair? term) (= (length pat) (length term))
+              (let loop ((ps pat) (ts term) (al al))
+                (if (null? ps) al (loop (cdr ps) (cdr ts) (dk-meta--match vars (car ps) (car ts) al))))))
+        (#t (and (equal? pat term) al))))
+(define (dk-meta--wname v)                 ; mca_ -> a
+  (let ((s (symbol->string v)))
+    (string->symbol (substring s 2 (- (string-length s) 1)))))
+
+;;; ---- the driver
+
+(define dk-meta-trace #f)                  ; #t: print each node and side condition as it is discharged
+
+(define (dk-derive! tt tree)
+  (dk-meta--derive tt tree "root"))
+
+(define (dk-meta--describe tree path)
+  (string-append "node " path " (" (symbol->string (car tree)) " "
+                 (expression->string (dk-meta--seq-term (dk-meta--seq-of tree))) ")"))
+
+(define (dk-meta--derive tt tree path)
+  (if (not (and (pair? tree) (symbol? (car tree)) (pair? (cdr tree))))
+      (error "dk-derive!: a node is (RULE (G ==> F) ...), not" tree))
+  (let* ((rule (car tree)) (c (dk-meta--seq-term (dk-meta--seq-of tree)))
+         (goal `(IN ,c (DERIVABLE ,tt))))
+    (cond
+      ((eq? rule 'given)
+        (if (dk-asm? goal) goal
+            (error (string-append "dk-derive!: " (dk-meta--describe tree path)
+                                  ": the given sequent is not derivable in context")
+                   (expression->string goal))))
+      ((dk-asm? goal) goal)
+      (#t
+        (let* ((cr (dk-meta--cr-name rule))
+               (items (cddr tree))
+               (withs (filter (lambda (i) (and (list? i) (= (length i) 3) (eq? (cadr i) ':=))) items))
+               (kids (filter (lambda (i) (not (memq i withs))) items))
+               (kid-seqs
+                 (let loop ((ks kids) (i 1) (acc '()))
+                   (if (null? ks) (reverse acc)
+                       (begin (dk-meta--derive tt (car ks) (string-append path "/" (number->string i)))
+                              (loop (cdr ks) (+ i 1) (cons (dk-meta--seq-term (dk-meta--seq-of (car ks))) acc))))))
+               (hs `(LIST ,@kid-seqs))
+               (what (lambda () (dk-meta--describe tree path))))
+          (call-with-values (lambda () (dk-meta--cr-parts cr tt hs c))
+            (lambda (vars conjs)
+              (let* ((ceq (find-first (lambda (k) (and (dk-head-is? k '=) (equal? (cadr k) c))) conjs))
+                     (heq (find-first (lambda (k) (and (dk-head-is? k '=) (equal? (cadr k) hs))) conjs))
+                     (sides (filter (lambda (k) (not (or (eq? k ceq) (eq? k heq)))) conjs))
+                     (al0 (dk-meta--match vars (caddr ceq) c '()))
+                     (chk0 (if (not al0) (error (string-append "dk-derive!: " (what) ": the sequent is not a conclusion of the rule")
+                                             (expression->string (caddr ceq)))))
+                     (hpats (cdr (caddr heq)))
+                     (chk1 (if (not (= (length hpats) (length kid-seqs)))
+                            (error (string-append "dk-derive!: " (what) ": the rule takes "
+                                                  (number->string (length hpats)) " premise(s), the node has "
+                                                  (number->string (length kid-seqs))))))
+                     (al1 (let loop ((ps hpats) (ss kid-seqs) (al al0) (i 1))
+                            (cond ((null? ps) al)
+                                  (#t (let ((al2 (dk-meta--match vars (car ps) (car ss) al)))
+                                        (if (not al2)
+                                            (error (string-append "dk-derive!: " (what) ": premise " (number->string i)
+                                                                  " does not have the rule's shape")
+                                                   (expression->string (car ps))))
+                                        (loop (cdr ps) (cdr ss) al2 (+ i 1)))))))
+                     (al (fold-left (lambda (al w)
+                                      (let ((v (symbol-append 'mc (car w) '_)))
+                                        (if (not (memq v vars))
+                                            (error (string-append "dk-derive!: " (what) ": the rule has no witness") (car w)))
+                                        (dk-meta--match vars v (caddr w) al)))
+                                    al1 withs))
+                     (chk2 (if (not al) (error (string-append "dk-derive!: " (what) ": a given witness clashes with the match"))))
+                     (ws (map (lambda (v)
+                                (let ((p (assq v al)))
+                                  (if p (cdr p)
+                                      (error (string-append "dk-derive!: " (what) ": the witness " (symbol->string (dk-meta--wname v))
+                                                            " is not determined; give (" (symbol->string (dk-meta--wname v))
+                                                            " := TERM)")))))
+                              vars))
+                     (sides (map (lambda (k) (dk-meta--subst-syms k al)) sides))
+                     (g (cadr c)) (f (caddr c))
+                     (plans (map (lambda (k)
+                                   (or (dk-meta--plan-side k)
+                                       (error (string-append "dk-derive!: " (what) ": the side condition does not close")
+                                              (expression->string k))))
+                                 (append sides (list `(IN ,g CTX-SET) `(IN ,f CLF))))))
+                (if dk-meta-trace
+                    (begin (display ";; dk-derive! ") (display (what)) (newline)))
+                (for-each (lambda (k p)
+                            (if dk-meta-trace (begin (display ";;   side ") (display (expression->string k)) (newline)))
+                            (p))
+                          (append sides (list `(IN ,g CTX-SET) `(IN ,f CLF))) plans)
+                (dk-meta-seq! g f)
+                (dk-have! `(,cr ,tt ,hs ,c) (lambda () (mac cr) (dk-meta-ex-fill! ws)))
+                (dk-have! `(HYPS-IN ,hs (DERIVABLE ,tt))
+                  (lambda ()
+                    (case (length kid-seqs)
+                      ((0) (fact 'hyps-in-0 `(DERIVABLE ,tt)))
+                      ((1) (fact 'hyps-in-1 (car kid-seqs) `(DERIVABLE ,tt)))
+                      ((2) (fact 'hyps-in-2 (car kid-seqs) (cadr kid-seqs) `(DERIVABLE ,tt))))
+                    (ass)))
+                (if (not (dk-asm? goal)) (dk-cite! (dk-meta-law-name cr) tt hs c))
+                (if (not (dk-asm? goal))
+                    (error (string-append "dk-derive!: " (what) ": the closure law did not land") (expression->string goal)))
+                goal))))))))

@@ -389,6 +389,17 @@
 ;;; -----------------------------------------------------------------------
 ;;; EXISTENTIAL INTRODUCTION
 
+;;; Does proving the formula SUB prove TERM defined?  Yes when a top-level conjunct
+;;; of SUB is a strict atom IN, =, <=, < with TERM outside every binder: an atom
+;;; with an undefined argument is false (LUTINS), and a conjunct is proven with SUB.
+(define (pi--body-certifies? sub term)
+  (any (lambda (c)
+         (and (pair? c) (memq (car c) '(IN = <= <)) (= (length c) 3)
+              (or (pi--subterm-outside-binders? term (cadr c))
+                  (pi--subterm-outside-binders? term (caddr c)))
+              #t))
+       (pi--and-conjuncts sub)))
+
 (define (pi-exists-witness! sqn term)
   (let* ((asms (sequent-node-assumptions sqn))
          (goal (sequent-node-assertion   sqn))
@@ -399,9 +410,23 @@
                 (body (quantifier-body g))
                 (sub  (subst-free x term body)))
            (validate-wff! sub)  ; reject malformed witness terms early
-           (dg-apply-rule! dg 'forsome-intro
-             (list (make-sequent asms (wff-child goal sub)))
-             sqn)))))
+           ;; LUTINS existential introduction (2026-10-08, the META session's finding, the
+           ;; user's decision): p[t] |- forsome x. p needs t DEFINED.  Without it, with u a
+           ;; non-denoting IOTA, NOT(u = u) is provable and `ew u' gave FORSOME y. NOT(y = y).
+           ;; As forall-elim: when the context does not certify t, the rule OWES (= t t), the
+           ;; main child first; the owed-leaf hook discharges what it can.
+           ;; The witness is also defined when the instance itself, once proven, says so: a
+           ;; top-level conjunct of SUB that is a strict atom (IN = <= <) holding TERM outside
+           ;; binders (`pi--body-certifies?').
+           (pi--note-owed!
+            (dg-apply-rule! dg 'forsome-intro
+              (cons (make-sequent asms (wff-child goal sub))
+                    (if (and (memq x (free-vars body))
+                             (not (pi--body-certifies? sub term))
+                             (def-audit-note! asms term))
+                        (list (make-sequent asms (wff-child goal (list '= term term))))
+                        '()))
+              sqn))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; ASSUMPTION (axiom discharge)
@@ -490,24 +515,9 @@
                          goal))
                   sqn))))))
 
-;;; -----------------------------------------------------------------------
-;;; CONTRAPOSITION
-
-(define (pi-contraposit! sqn implies-formula)
-  ;; implies-formula: raw S-expression
-  (let* ((asms (sequent-node-assumptions sqn))
-         (goal (sequent-node-assertion   sqn))
-         (g    (wff-formula goal))
-         (dg   (sqn-dg sqn))
-         (f    (asms-find asms implies-formula)))
-    (and f
-         (let ((raw-f (wff-formula f)))
-           (and (pair? raw-f) (eq? (car raw-f) 'IMPLIES)
-                (pair? g)     (eq? (car g)     'NOT)
-                (alpha-equiv? (binary-left raw-f) (not-body g))
-                (dg-apply-rule! dg 'contraposition
-                  (list (make-sequent asms (wff-child goal (make-not (binary-right raw-f)))))
-                  sqn))))))
+;;; CONTRAPOSITION -- RETIRED 2026-10-08 (the META session's recommendation, the user's
+;;; decision): pi-contraposit! had no caller, so its checker could never fire.  The rule tag
+;;; and its checker went with it.
 
 ;;; -----------------------------------------------------------------------
 ;;; EQUALITY SUBSTITUTION  (Leibniz / indiscernibility of identicals)
@@ -631,6 +641,11 @@
 ;;; Soundness: in every model, p => IF(p,a,b) = a and (NOT p) => IF(p,a,b)
 ;;; = b, so once the condition is proved the equation is a valid assumption.
 
+(define (pi--if-equation asms if-term branch)
+  (if (pi--defined? asms branch 0)
+      (make-= if-term branch)
+      (list '== if-term branch)))
+
 (define (pi-if-true! sqn if-term)
   ;; if-term: a raw (IF p a b).
   (or (and (pair? if-term) (eq? (car if-term) 'IF) (= (length if-term) 4))
@@ -640,7 +655,13 @@
          (dg   (sqn-dg sqn))
          (p    (cadr  if-term))
          (a    (caddr if-term))
-         (eqn  (make-= if-term a)))
+         ;; (2026-10-08, the META session's finding, the user's decision): the strict
+         ;; (= (IF p a b) a) certified a as DEFINED (a term in a true = hypothesis), and at a
+         ;; non-denoting a, IOTA z. (z in NN and FALSITY), iota-e then gave FALSITY.  So the
+         ;; equation is STRICT only when the context already certifies a (pi--defined?), and
+         ;; is the QUASI-equation (== (IF p a b) a), which asserts no denotation, otherwise.
+         ;; `subst' takes == as =.
+         (eqn  (pi--if-equation asms if-term a)))
     (validate-wff! p)
     (validate-wff! eqn)
     (dg-apply-rule! dg 'if-true
@@ -659,7 +680,7 @@
          (p    (cadr   if-term))
          (b    (cadddr if-term))
          (notp (make-not p))
-         (eqn  (make-= if-term b)))
+         (eqn  (pi--if-equation asms if-term b)))  ; as in pi-if-true!
     (validate-wff! notp)
     (validate-wff! eqn)
     (dg-apply-rule! dg 'if-false
@@ -970,6 +991,10 @@
     ((alpha-equiv? e t) #t)
     ((not (pair? e)) #f)
     ((memq (car e) '(FORALL FORSOME IOTA COMP)) #f)
+    ;; IF is NOT strict (2026-10-08, the META session): IF(p, a, b) denotes when the
+    ;; branch p selects does, so neither branch nor anything in p is certified by it.
+    ;; IF(TRUTH, 0, u) = 0 had certified a non-denoting IOTA u, and FALSITY followed.
+    ((eq? (car e) 'IF) #f)
     ((and (memq (car e) '(SEP BIG-UNION VNB-LAMBDA)) (= (length e) 4))
      (pi--subterm-outside-binders? t (caddr e)))      ; only the DOMAIN is outside
     ;; every position, the HEAD included: application is strict in its operator
@@ -1092,9 +1117,14 @@
           (pair? (caddr t)) (eq? (car (caddr t)) 'LIST)
           (<= 1 (cadr t) (length (cdr (caddr t)))))
      (pi--defined? asms (list-ref (cdr (caddr t)) (- (cadr t) 1)) depth))
+    ;; the two functoid clauses are TESTS, not `=>' clauses (2026-10-08): with `=>'
+    ;; an uncertified body ended the cond with #f, so the clauses below -- the
+    ;; predicate hypotheses among them -- were never tried on a functoid term
+    ;; (IS-DIFF-ON(.., CC-SERIES-LIMIT(..)) in context did not certify the limit)
     ((and (eq? (car t) 'NTH) (= (length t) 3) (exact-integer? (cadr t))
-          (pair? (caddr t)) (symbol? (car (caddr t))) (pi--functoid-instance (caddr t)))
-     => (lambda (b) (pi--defined? asms (list 'NTH (cadr t) b) (+ depth 1))))
+          (pair? (caddr t)) (symbol? (car (caddr t)))
+          (let ((b (pi--functoid-instance (caddr t))))
+            (and b (pi--defined? asms (list 'NTH (cadr t) b) (+ depth 1))))) #t)
     ((and (symbol? (car t)) (memq (car t) *pi-arith-total-heads*)
           (every (lambda (a) (pi--number-typed? asms a)) (cdr t))) #t)
     ;; LENGTH t for a t the context types in a class of TUPLES (through SEP
@@ -1122,8 +1152,9 @@
     ;; an application of a function the context types
     ((and (pair? (cdr t)) (pi--fun-typed-app? asms (car t) (cdr t))) #t)
     ;; a functoid: certified arguments and a certified instantiated body
-    ((and (symbol? (car t)) (pi--functoid-instance t))
-     => (lambda (b) (pi--defined? asms b (+ depth 1))))
+    ((and (symbol? (car t))
+          (let ((b (pi--functoid-instance t)))
+            (and b (pi--defined? asms b (+ depth 1))))) #t)
     ;; last, since it unfolds every predicate hypothesis in the context
     ((pi--via-pred-hyps? asms t) #t)
     (else #f)))

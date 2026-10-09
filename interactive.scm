@@ -1578,7 +1578,9 @@
   (proof-done? *ps*))
 ;; Conditional-term reduction: t is an (IF p a b) term.  if-true spawns p
 ;; as a subgoal; if-false spawns (NOT p).  The other branch gains the
-;; equation (= (IF p a b) a) resp. (= (IF p a b) b) as an assumption.
+;; equation (= (IF p a b) a) resp. (= (IF p a b) b) as an assumption when the branch is
+;; certified defined, else the QUASI-equation (==) -- since 2026-10-08: a strict = certified a
+;; non-denoting branch as defined.
 (define (if-true t)  (let ((raw (->raw-formula t)))
                        (vnb--run! 'if-true (list raw)
                                   (lambda () (cmd-if-true *ps* raw)))))

@@ -353,12 +353,14 @@
                (let ((l (dk-skolem! (dk-apply! (sel rf) x))))
                  (if (eq? kind 'scal)
                      (begin
-                       (ew (list '* 'rgc_ l))
+                       ;; cite BEFORE `ew': the limit hypothesis then certifies the
+                       ;; witness (its IFF types the limit in RR), so `ew' owes
+                       ;; nothing (since 2026-10-08 it owes t = t otherwise)
                        (fact (if right? 'right-limit-within-scalar 'left-limit-within-scalar)
                              'f 'rgh_ '(CCINT a b) x l 'rgc_)
+                       (ew (list '* 'rgc_ l))
                        (ass))
                      (let ((m (dk-skolem! (dk-apply! (sel rg) x))))
-                       (ew (list kind l m))
                        (fact (if right?
                                  (cond ((eq? kind '+) 'right-limit-within-sum)
                                        ((eq? kind '-) 'right-limit-within-sub)
@@ -367,6 +369,7 @@
                                        ((eq? kind '-) 'left-limit-within-sub)
                                        (#t 'left-limit-within-mul)))
                              'f 'g 'rgh_ '(CCINT a b) x l m)
+                       (ew (list kind l m))          ; after the citation, as above
                        (ass)))))
              (ass)))))))
 

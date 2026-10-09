@@ -295,6 +295,9 @@
    (IMPLIES (IS-ANTIDERIVABLE phi a b)
             (= (C-INT-OR phi a b) (C-INT phi a b))))))))
 (co-peel!)
+;; type the branch: `if-true' hands over a strict equation only at a branch
+;; certified defined (2026-10-08), else ==, which `ass' cannot use here.
+(fact 'c-int-in-rr 'phi 'a 'b)
 (mac 'c-int-or)
 (for-each (lambda (l) (dk-focus! l) (ass))
           (dk-opened (lambda () (if-true (co-if 'a 'b)))))))
@@ -311,6 +314,7 @@
             (= (C-INT-OR phi b a) (- (C-INT phi a b)))))))))
 (co-peel!)
 (fact 'antiderivable-not-reverse 'phi 'a 'b)
+(fact 'c-int-in-rr 'phi 'a 'b)              ; the inner branch, typed (2026-10-08)
 (mac 'c-int-or)
 (for-each
  (lambda (l)

@@ -166,6 +166,10 @@
 (fact 'ring-mul-left-id 'A '(ENTRY P k c))
 (subst `(= ((MUL A) (ONE A) (ENTRY P k c)) (ENTRY P k c)))
 (mac 'ras-op)
+;; type the sum's arguments for `rfl': the strict IF equation used to certify
+;; them (`if-true' hands over == at an uncertified branch since 2026-10-08)
+(fact 'entry-in-carrier 'm 'n '(CARR A) 'P 'l 'c)
+(fact 'ring-carrier-closed-mul 'A 'r '(ENTRY P l c))
 (rfl)
 ;; ---- i /= k branch (single support at column i) ----
 (ea-foc! rg-not)

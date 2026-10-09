@@ -159,7 +159,8 @@
                 (ass)
                 (begin
                   (subst (car (filter (lambda (a)
-                                        (and (pair? a) (eq? (car a) '=)
+                                        ;; = or == (an uncertified branch, 2026-10-08)
+                                        (and (pair? a) (memq (car a) '(= ==))
                                              (pair? (cadr a)) (eq? (car (cadr a)) 'IF)))
                                       (dk-asms))))
                   (mac (if true? 'rr-scalar-ring-one 'rr-scalar-ring-zero))

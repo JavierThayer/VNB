@@ -100,6 +100,15 @@
 (mac 'collapse-at)
 (lam-b)
 (di)
+;; PRED j_ is TYPED first: since 2026-10-08 if-true hands over the QUASI-equation, which
+;; no longer certifies the branch as defined, so the closing `rfl' needs the typing.
+(fact 'nn-zero-le 'k_)
+(fact 'rr-zero-in) (fact 'nn-in-rr 'k_) (fact 'nn-in-rr 'j_)
+(fact 'co-le-lt-trans 0 'k_ 'j_)
+(mac-h '< '(< 0 j_))
+(dk-split! '(AND (<= 0 j_) (NOT (= 0 j_))))
+(fact 'neq-sym 0 'j_)
+(fact 'pred-in-nn 'j_)
 (for-each (lambda (l)
             (dk-focus! l)
             (if (eq? (car (dk-goal)) '<)

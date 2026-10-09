@@ -200,7 +200,7 @@
        "From a hypothesis that an element lies in a big union, obtain an index whose set contains it (a fresh name for that index).  (Technically: big-union-membership elimination.)"))
 
     ("Conditional terms"
-     (if-true  "(if-true t)"  "Reduce an (IF p a b) term on the p branch: spawns p as a subgoal; the continuation gains (= (IF p a b) a)."
+     (if-true  "(if-true t)"  "Reduce an (IF p a b) term on the p branch: spawns p as a subgoal; the continuation gains (= (IF p a b) a) when a is certified defined, else (== (IF p a b) a) (since 2026-10-08)."
        "Evaluate a conditional term `if p then a else b' on the assumption that p holds: you take on p as a side goal, and may then use that the conditional equals a.  (Technically: if-true reduction, spawning p.)")
      (if-false "(if-false t)" "Reduce an (IF p a b) term on the not-p branch: spawns (NOT p); the continuation gains (= (IF p a b) b)."
        "Evaluate a conditional term `if p then a else b' on the assumption that p fails: you take on `not p' as a side goal, and may then use that the conditional equals b.  (Technically: if-false reduction, spawning not p.)"))
@@ -949,7 +949,6 @@
     (detach                logic  "modus ponens on a context implication (detach!)")
     (backchain             logic  "reduce the goal to an implication's antecedent (bc, bc*)")
     (proof-by-contradiction logic "assume the negation, prove FALSITY (pbc)")
-    (contraposition        logic  "UNREACHABLE: pi-contraposit! is called from nowhere")
     (eq-subst              logic  "Leibniz rewriting by a context equation (subst)")
     (reflexivity           logic  "t = t, requiring t to be DEFINED (rfl)")
     (quasi-reflexivity     logic  "t == t, unconditionally (qrfl)")

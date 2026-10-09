@@ -74,6 +74,10 @@
 (fact 'elem-h-entry-diag 'A 'n 'r 'k 'c)
 (subst `(= (ENTRY (ELEM-H A n r k) c c) (IF (= c k) r (ONE A))))
 (fact 'entry-in-carrier 'm 'n '(CARR A) 'P 'i 'c)
+;; and at k: the c = k branch's closing `rfl' needs (MUL A)(P_ik, r) certified,
+;; which the strict IF equation used to do (`if-true' hands over == at an
+;; uncertified branch since 2026-10-08)
+(fact 'entry-in-carrier 'm 'n '(CARR A) 'P 'i 'k)
 (define ea-h-not (ea-cases '(= c k)))
 ;; c=k
 (if-true '(IF (= c k) r (ONE A)))
@@ -165,6 +169,9 @@
 (fact 'ring-mul-right-id 'A '(ENTRY P i l))
 (subst `(= ((MUL A) (ENTRY P i l) (ONE A)) (ENTRY P i l)))
 (mac 'ras-op)
+;; type the sum's arguments for `rfl' (see elem-h-action)
+(fact 'entry-in-carrier 'm 'n '(CARR A) 'P 'i 'k)
+(fact 'ring-carrier-closed-mul 'A '(ENTRY P i k) 'r)
 (rfl)
 ;; ---- c /= l branch (single-support) ----
 (ea-foc! ea-g-not)

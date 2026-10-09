@@ -3780,7 +3780,7 @@
      and-intro or-intro-left or-intro-right implies-intro not-intro iff-intro
      forall-intro forsome-intro truth-intro and-elim or-elim not-elim iff-elim
      forsome-elim forall-elim assumption theorem-assumption cut weakening
-     detach backchain proof-by-contradiction contraposition eq-subst
+     detach backchain proof-by-contradiction eq-subst
      reflexivity quasi-reflexivity if-true if-false cartesian-intro
      cartesian-elim tuples-intro tuples-elim union-intro union-elim
      intersection-intro intersection-elim nth-reduce length-reduce

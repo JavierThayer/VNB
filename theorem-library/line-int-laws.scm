@@ -805,9 +805,11 @@
            (dk-peel!)
            (let* ((l (dk-skolem! (dk-apply! (sel lil-m-rf) x)))
                   (m (dk-skolem! (dk-apply! (sel lil-m-rg) x))))
-             (ew (list 'magnitude (list '+ l (list '* m '+i))))
+             ;; cite BEFORE `ew': the limit hypothesis certifies the witness
+             ;; (since 2026-10-08 `ew' owes t = t at an uncertified one)
              (fact (if right? 'right-limit-within-magnitude 'left-limit-within-magnitude)
                    'f 'g 'lih_ '(CCINT a b) x l m)
+             (ew (list 'magnitude (list '+ l (list '* m '+i))))
              (ass)))
          (ass)))))
 (qed 'regulated-on-magnitude)

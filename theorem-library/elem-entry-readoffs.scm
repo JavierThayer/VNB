@@ -1087,6 +1087,16 @@
   (fact 'interval-elt-in-nn 1 'n p)
   (fact 'interval-hi 1 'n p)
   (fact 'nn-le-imp-neq-succ 'n p)
+  ;; type the old entry first: since 2026-10-08 `if-false' hands over the strict
+  ;; equation only at a branch certified defined (else ==, which `ass' cannot use
+  ;; for the strict goal).  The branch is (ENTRY M a b), M typed in (MAT r c X).
+  (let* ((b (cadddr ift)) (m (cadr b))
+         (ty (find-first (lambda (f) (and (pair? f) (eq? (car f) 'IN) (equal? (cadr f) m)
+                                          (pair? (caddr f)) (eq? (car (caddr f)) 'MAT)))
+                         (dk-asms))))
+    (if (not ty) (error "eer-snoc-old!: no MAT typing for" m))
+    (fact 'entry-in-carrier (cadr (caddr ty)) (caddr (caddr ty)) (cadddr (caddr ty))
+          m (caddr b) (cadddr b)))
   (eer-if! #f ift)
   (ass))
 

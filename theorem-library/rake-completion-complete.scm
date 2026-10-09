@@ -949,6 +949,14 @@
                                (list (list rfv 'pv_) (list mmv 'pv_)))))
                (fact 'r12d-diag-limit 'M fv rfv radv mmv)
                (mac 'CONVERGES)
+               ;; type the witness off the limit hypothesis, kept: since 2026-10-08
+               ;; `ew' owes  t = t  at a witness the context does not certify
+               (let* ((cls (list 'CLASS '(CAUCHY-SETOID M) dg))
+                      (h (find-first (lambda (a) (and (pair? a) (eq? (car a) 'CONVERGES-TO)
+                                                      (= (length a) 4) (alpha-equiv? (cadddr a) cls)))
+                                     (dk-asms))))
+                 (if (not h) (error "completion-is-complete: no CONVERGES-TO naming" cls))
+                 (dk-project! (list 'IN (cadddr h) (list 'PTS (cadr h))) 'converges-to h))
                (ew (list 'CLASS '(CAUCHY-SETOID M) dg))
                (ass))))))))
 (qed 'completion-is-complete)
