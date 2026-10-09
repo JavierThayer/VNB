@@ -3483,6 +3483,14 @@
     "theorem-library/outer-measure-construction"
     "structure-library/monotone-class"
     "theorem-library/monotone-class"
+    ;; MEASURE-3 (2026-10-09): metric outer measures (Def 4.25, Lemmas 4.27-4.28, Prop 4.26: Borel sets are
+    ;; measurable), Lebesgue outer measure is metric, the intervals are measurable; the Lebesgue outer measure of
+    ;; an interval is its length, of a point 0, and is translation invariant; the join: the Lebesgue measure of
+    ;; an interval is its length.
+    "theorem-library/lebesgue-interval-length"
+    "structure-library/metric-outer-measure"
+    "theorem-library/metric-outer-measure"
+    "theorem-library/lebesgue-measure-line"
     ;; 2026-09-24 (batch 25-A): POWER SERIES IN CC -- the definitions (CPS-RADIUS as the sup of the r with sum |a_k| r^k
     ;; convergent, CC-SUP-NORM (29), IS-NORMALLY-CONVERGENT, CC-SERIES-LIMIT; structure-library/cc-power-series.scm, after
     ;; theorem-library/cc-series) and the laws: the radius formula 2.7, normal convergence inside the radius 2.8,

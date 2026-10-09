@@ -722,6 +722,10 @@
     "theorem-library/outer-measure-construction"
     "structure-library/monotone-class"
     "theorem-library/monotone-class"
+    "theorem-library/lebesgue-interval-length"
+    "structure-library/metric-outer-measure"
+    "theorem-library/metric-outer-measure"
+    "theorem-library/lebesgue-measure-line"
   ))
 
 (library strand
