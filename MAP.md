@@ -9,9 +9,13 @@ the files at the root and the structure library by theory.
 ## structure-library: _unfiled
 
 - [gamma-function.scm](structure-library/gamma-function.scm)
+- [meta-core.scm](structure-library/meta-core.scm)
+- [meta-cr.scm](structure-library/meta-cr.scm)
 - [meta-syntax.scm](structure-library/meta-syntax.scm)
 - [metric-connected.scm](structure-library/metric-connected.scm)
+- [monotone-class.scm](structure-library/monotone-class.scm)
 - [nsl.scm](structure-library/nsl.scm)
+- [outer-measure-construction.scm](structure-library/outer-measure-construction.scm)
 - [simple-integral.scm](structure-library/simple-integral.scm)
 - [strand-adversary.scm](structure-library/strand-adversary.scm)
 - [strand-messages.scm](structure-library/strand-messages.scm)

@@ -4342,9 +4342,13 @@
            (not (has d1 "card"))
            (= 1 (count d2 "card")) (has d2 "is-r-net") (has d2 "pos-rr")
            ;; pts(s) and ball's dist(s) are accessors of METRIC-SPACE: ONE structure
-           ;; entry, components then the characteristic law (the user, 2026-10-05)
+           ;; entry, components then the characteristic law (the user, 2026-10-05),
+           ;; ITEMIZED since 2026-10-09 (the user: "an itemized list might make the
+           ;; correspondence easier"): numbered components, each a projection
            (= 1 (count d1 "metric-space"))
-           (string-search-forward "is a structure with components" d1 0)
+           (string-search-forward "whose components are listed below" d1 0)
+           (string-search-forward "\\item $\\operatorname{pts}(s) = \\operatorname{nth}(1, s)$" d1 0)
+           (string-search-forward "The characteristic law" d1 0)
            (string-search-forward "\\subsection*{Definitions}" d1 0)
            (< (string-search-forward "Definitions" d1 0) (string-search-forward "block-family" d1 0))
            #t))))

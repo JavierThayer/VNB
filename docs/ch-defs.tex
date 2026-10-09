@@ -291,13 +291,22 @@ No quoting is needed.
   (op OPNAME DOMAIN RANGE)
   (constant CNAME SET)
   (substructure SNAME TYPE)
-  (property PRED ACC ...))
+  (derived DNAME BASE EXPR)
+  (family FNAME CARRIER)
+  (family-fun MNAME FAMILY RANGE)
+  (relation RNAME CARRIER)
+  (property PRED ACC ...)
+  (law "FORMULA"))
 \end{VNBcode}
 
-The first four clause kinds describe the structure's \emph{shape} --- its
-components and the role each plays.  The \texttt{property} clause is different in
-kind: it names a \emph{characteristic law} the components must satisfy.  The
-distinction is developed in the remark on shape versus properties below.
+The clauses other than \texttt{property} and \texttt{law} describe the
+structure's \emph{shape} --- its components and the role each plays; each
+declares one component, and contributes one typing conjunct to the
+characteristic law (two for \texttt{derived}: a typing and the equation that
+fixes the component).  The \texttt{property} and \texttt{law} clauses are
+different in kind: each names a \emph{characteristic law} the components must
+satisfy.  The distinction is developed in the remark on shape versus properties
+below.
 
 \begin{itemize}
 
@@ -346,6 +355,27 @@ distinction is developed in the remark on shape versus properties below.
   by the other slots, a derived carrier owes a homomorphism no map of its own;
   it rides the base carrier's (Section~\ref{sec:morphisms}).
 
+\item \texttt{(family NAME CARRIER)}
+  Declares a component that is a family of subsets of a carrier --- a
+  $\sigma$-algebra, a topology.  Its typing conjunct is
+  $\mathtt{NAME}(s) \in \mathtt{power}(\mathtt{power}(\mathtt{CARRIER}(s)))$.
+  What distinguishes it from a \texttt{constant} of that type is the generated
+  morphism: a homomorphism must pull members of the family back to members of the
+  family (Section~\ref{sec:morphisms}).  \texttt{top-space} declares
+  \texttt{(family opens pts)}.
+
+\item \texttt{(family-fun NAME FAMILY RANGE)}
+  Declares a function on a family component --- a measure.  Its typing conjunct
+  is $\mathtt{NAME}(s) \in \mathtt{fun}(\mathtt{FAMILY}(s), \mathtt{RANGE})$; its
+  morphism clause is transport along preimages.
+
+\item \texttt{(relation NAME CARRIER)}
+  Declares a component that is a relation on a carrier, that is, a set of pairs of
+  its points.  Its typing conjunct is
+  $\mathtt{NAME}(s) \in \mathtt{power}(\mathtt{CARRIER}(s) \times \mathtt{CARRIER}(s))$;
+  a homomorphism must send related points to related points.  \texttt{setoid}
+  declares \texttt{(relation rel pts)}.
+
 \item \texttt{(property PRED ACC ...)}
   Names a characteristic law --- \emph{not} a component.  \texttt{PRED}
   is a property predicate (Section~\ref{sec:shape-vs-property}), applied
@@ -392,9 +422,8 @@ are spelled to avoid the accessor constants they stand in for.
 \texttt{declare-structure} is general.  A \texttt{(carriers \ldots)} clause
 admits any number of carriers, and operations of arbitrary signature over them,
 so an arbitrary finitary algebraic system --- many-sorted, in the sense of
-Mal'cev's \emph{algebraic systems} --- can be declared.  A setoid, for instance,
-declares two carriers (\texttt{pts} and its relation \texttt{rel}), and a vector
-space has separate scalar and vector carriers.
+Mal'cev's \emph{algebraic systems} --- can be declared.  A module, for instance,
+has a ring of scalars (a \texttt{substructure}) beside its carrier of vectors.
 
 What the library's \emph{idiom} favours is narrower than what the form
 \emph{permits}.  Most examples --- groups, rings, fields --- have a single
@@ -446,6 +475,20 @@ is defined as a 6-tuple $(R,+,\times,-,0,1)$ satisfying certain axioms:
 the tuple is the instance (point~2) and the collection of all such tuples
 is the class (point~3), now an addressable name.
 \end{remark}
+
+\paragraph{How a declared structure is printed.}
+The book of theorems and definitions (\texttt{docs/library-book.pdf}) and the
+definitions block of \texttt{display-proof} print a declared structure from its
+characteristic law, in three parts.  First, the components, numbered by their
+\texttt{nth} index; each line gives the accessor as a projection
+($\mathtt{add}(s) = \mathtt{nth}(2, s)$), the kind of clause that declared it
+(\texttt{op}), and its typing conjunct.  Second, the laws: the conjuncts
+contributed by the \texttt{property} and \texttt{law} clauses.  Third, one
+sentence stating that \texttt{is-\textit{name}}$(s)$ holds exactly when $s$ has the
+declared length, every component has its typing, and every law holds.  Every
+conjunct of the law is printed once, in the first or the second part.  A
+refinement (\texttt{same-shape-as}) is printed as its parent together with the
+laws it adds.
 
 \subsection{What \texttt{declare-structure} installs}
 

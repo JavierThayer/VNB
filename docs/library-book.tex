@@ -41,6 +41,18 @@ depends on.  A section is a source file (its path is a link).  An
 its warrant; a \textbf{Proposition} is proven, and its proof is
 \texttt{(display-proof 'NAME "file.pdf")} in the prover.
 
+\noindent
+A \textbf{Definition} of a structure (a field, a metric space, a measure space)
+transcribes its \texttt{declare-structure} declaration (manual, section
+``Mathematical structures'').  It lists the components, numbered as in the
+declaration; each is a projection, so that, for a field, $\mathrm{add}(s)$ is
+$\mathrm{nth}(2, s)$ for every $s$; each line names the clause that declared it
+(\texttt{carriers}, \texttt{op}, \texttt{constant}, \texttt{derived},
+\texttt{substructure}, \texttt{family}, \texttt{family-fun}, \texttt{relation})
+and gives its typing.  The laws follow (the \texttt{property} and \texttt{law}
+clauses).  The structure's predicate holds of $s$ exactly when $s$ has the stated
+length, every component has its typing, and every law holds.
+
 \input{../reference/library-book.tex}
 
 \end{document}

@@ -1279,12 +1279,155 @@
       ((carrier)  (string-append (app) ", the underlying set"))
       ((op)       (string-append (app) "$ : " (expr->tex (car extra)) " \\to " (expr->tex (cadr extra)) "$"))
       ((constant) (string-append (app) "$ \\in " (expr->tex (car extra)) "$, a distinguished element"))
-      ((substructure) (string-append (app) ", a " (string-downcase (symbol->string (car extra))) " of the same kind"))
+      ((substructure) (string-append (app) ", a " (string-downcase (symbol->string (car extra)))))
       ((family)   (string-append (app) ", a family of subsets of $" (expr->tex (list (car extra) 's)) "$"))
       ((family-fun) (string-append (app) ", a function on the family $" (expr->tex (list (car extra) 's))
                                    "$ into $" (expr->tex (cadr extra)) "$"))
       ((relation) (string-append (app) ", a relation on $" (expr->tex (list (car extra) 's)) "$"))
       (else (app)))))
+
+;; The ITEMIZED entry of a declared structure (the user, 2026-10-08: the book's
+;; one-sentence entry gave no way to see which clause of the `declare-structure'
+;; form each printed component came from, nor which conjuncts of the
+;; characteristic law were the typings of the components and which the laws).
+;; Read off the stored IS-X law itself, so nothing is said that the law does not
+;; say: its conjuncts are sorted into the length condition, the conjuncts that
+;; type or fix ONE component (an IN / = / == / SUBSET with the accessor term on
+;; the left, or a one-argument predicate of it, e.g. a substructure's IS-Y), and
+;; the rest, the laws.  Every conjunct is printed exactly once.  #f when the law
+;; is not of the shape (FORALL s (IFF (IS-X s) <conjunction>)), and the caller
+;; then writes the old sentence.
+(define *proof-reader-slot-kind-words*
+  '((carrier      "carrier"           "carriers")
+    (op           "operation"         "op")
+    (constant     "constant"          "constant")
+    (derived      "derived carrier, fixed by the other components" "derived")
+    (substructure "substructure"      "substructure")
+    (family       "family of subsets" "family")
+    (family-fun   "function on a family" "family-fun")
+    (relation     "relation"          "relation")))
+
+(define (proof-reader--structure-items sd law noun article)
+  (let* ((body (and (pair? law) (eq? (car law) 'forall) (pair? (cddr law)) (caddr law)))
+         (v (and body (let ((b (cadr law))) (cond ((symbol? b) b)
+                                                  ((and (pair? b) (null? (cdr b)) (symbol? (car b))) (car b))
+                                                  (#t #f)))))
+         (iff (and v (pair? body) (eq? (car body) 'iff) body))
+         (rhs (and iff (equal? (cadr iff) (list (symbol-append 'is- (structure-def-name sd)) v))
+                   (caddr iff))))
+    (and rhs
+         (let* ((conjs (let flat ((e rhs))
+                         (if (and (pair? e) (eq? (car e) 'and)) (append-map flat (cdr e)) (list e))))
+                (length-c (find (lambda (c) (and (pair? c) (memq (car c) '(= ==)) (= (length c) 3)
+                                                 (equal? (cadr c) (list 'length v))))
+                                conjs))
+                (slots (structure-def-slots sd))
+                ;; what build-is-axiom (structures.scm) writes for a slot: its FIRST
+                ;; membership (or, for a substructure, the one-argument IS-Y of it),
+                ;; and for a derived carrier also the equation fixing it.  A later
+                ;; membership of the same accessor is a LAW (TOP-SPACE: pts(s) is open).
+                (owned (map (lambda (slot)
+                              (let* ((acc (list (car slot) v))
+                                     (typing (find (lambda (c)
+                                                     (and (pair? c)
+                                                          (or (and (eq? (car c) 'in) (= (length c) 3)
+                                                                   (equal? (cadr c) acc))
+                                                              (and (eq? (cadr slot) 'substructure)
+                                                                   (= (length c) 2) (equal? (cadr c) acc)))))
+                                                   conjs))
+                                     (fix (and (eq? (cadr slot) 'derived)
+                                               (find (lambda (c) (and (pair? c) (memq (car c) '(= ==))
+                                                                      (= (length c) 3) (equal? (cadr c) acc)))
+                                                     conjs))))
+                                (filter (lambda (c) c) (list typing fix))))
+                            slots))
+                (laws (filter (lambda (c) (and (not (eq? c length-c))
+                                               (not (proof-reader--any (lambda (l) (memq c l)) owned))))
+                              conjs))
+                (tm (lambda (e) (string-append "$" (expr->tex-top e) "$")))
+                (is-x (list (symbol-append 'is- (structure-def-name sd)) v)))
+           (string-append
+            article noun " " (tm v) " is a list"
+            (if length-c (string-append " of length " (tm (caddr length-c))) "")
+            " whose components are listed below.  Each component is a projection, "
+            "defined for any " (tm v) " as a tuple; the clause of the declaration that "
+            "introduces it is named in typewriter.\\par\n\\begin{enumerate}[nosep]\n"
+            (apply string-append
+                   (map (lambda (slot cs)
+                          (let ((ix (hash-table-ref/default *accessor-index* (car slot) #f))
+                                (kw (assq (cadr slot) *proof-reader-slot-kind-words*)))
+                            (string-append
+                             "\\item "
+                             (if ix
+                                 (tm (list '= (list (car slot) v) (list 'nth (car ix) v)))
+                                 (tm (list (car slot) v)))
+                             (let ((w (if kw (cadr kw) (symbol->string (cadr slot)))))
+                               (string-append (if (memv (string-ref w 0) '(#\a #\e #\i #\o #\u)) ", an " ", a ") w))
+                             (if kw (string-append " (\\texttt{" (caddr kw) "})") "")
+                             (if (pair? cs)
+                                 (string-append ":" (proof-tex--join (map proof-reader--display cs) " and"))
+                                 "")
+                             ".\n")))
+                        slots owned))
+            "\\end{enumerate}\n"
+            (if (pair? laws)
+                (string-append
+                 "The laws (the \\texttt{property} and \\texttt{law} clauses):\n\\begin{itemize}[nosep]\n"
+                 (apply string-append
+                        (map (lambda (c) (string-append "\\item" (proof-reader--law-item c) "\n")) laws))
+                 "\\end{itemize}\n")
+                "")
+            "The characteristic law (the axiom \\texttt{"
+            (proof-tex--escape-tt (string-downcase (symbol->string (car is-x))))
+            "}): " (tm is-x) " holds if and only if "
+            (if length-c (string-append (tm length-c) ", ") "")
+            "every component has the typing listed with it"
+            (if (pair? laws) ", and every law holds" "")
+            ".\n")))))
+
+;; one law as an itemize entry: inline up to a wider ruler than the running text's
+;; (an item has the line to itself), else displayed -- a display right after \item
+;; leaves an empty bullet line, so the ruler is generous.
+(define *proof-reader-item-width* 90)
+(define (proof-reader--law-item c)
+  (if (<= (tex--width c) *proof-reader-item-width*)
+      (string-append " $" (expr->tex-top c) "$")
+      (proof-reader--display c)))
+
+;; A REFINEMENT (`same-shape-as'): its law is (FORALL s (IFF (IS-X s) (AND (IS-PARENT s)
+;; extra ...))).  Itemized the same way: the parent named, the extra laws listed.
+;; #f when the law is not of that shape (the caller writes the old paragraph).
+(define (proof-reader--refinement-items name parent law noun article noun-of)
+  (let* ((body (and (pair? law) (eq? (car law) 'forall) (pair? (cddr law)) (caddr law)))
+         (v (and body (let ((b (cadr law))) (cond ((symbol? b) b)
+                                                  ((and (pair? b) (null? (cdr b)) (symbol? (car b))) (car b))
+                                                  (#t #f)))))
+         (rhs (and v (pair? body) (eq? (car body) 'iff)
+                   (equal? (cadr body) (list (symbol-append 'is- name) v))
+                   (caddr body)))
+         (conjs (and rhs (let flat ((e rhs))
+                           (if (and (pair? e) (eq? (car e) 'and)) (append-map flat (cdr e)) (list e)))))
+         (pc (list (symbol-append 'is- parent) v)))
+    (and conjs (member pc conjs)
+         (let ((extra (filter (lambda (c) (not (equal? c pc))) conjs))
+               (tm (lambda (e) (string-append "$" (expr->tex-top e) "$")))
+               (pnoun (noun-of parent)))
+           (string-append
+            article noun " " (tm v) " is a " pnoun " (a refinement: the same components, see the "
+            "definition of \\texttt{" (proof-tex--escape-tt (string-downcase (symbol->string parent))) "})"
+            (if (pair? extra)
+                (string-append
+                 " that satisfies in addition the laws:\n\\begin{itemize}[nosep]\n"
+                 (apply string-append
+                        (map (lambda (c) (string-append "\\item" (proof-reader--law-item c) "\n")) extra))
+                 "\\end{itemize}\n")
+                ".\\par\n")
+            "The characteristic law: " (tm (list (symbol-append 'is- name) v))
+            " holds if and only if " (tm pc)
+            (if (pair? extra) " and every law above holds" "") ".\n")))))
+
+;; `any' of sequents.scm returns #t, not the value; this one is only a test.
+(define (proof-reader--any pred l) (and (pair? l) (or (pred (car l)) (proof-reader--any pred (cdr l)))))
 
 (define (proof-reader--structure-tex name kind)
   (let* ((sd (if (eq? kind 'shape) (lookup-structure name)
@@ -1296,7 +1439,13 @@
                                        (string->list (string-downcase (symbol->string sym)))))))
          (noun (noun-of name))
          (article (if (memv (string-ref noun 0) '(#\a #\e #\i #\o #\u)) "An " "A ")))
-    (string-append
+    (or
+     (and (eq? kind 'shape) sd law (proof-reader--structure-items sd law noun article))
+     (and (not (eq? kind 'shape)) law
+          (proof-reader--refinement-items
+           name (definitional-structure-parent (lookup-definitional-structure name))
+           law noun article noun-of))
+     (string-append
      (if (eq? kind 'shape)
          (string-append article noun " $s$ is a structure with components ")
          (string-append article noun " is a "
@@ -1321,7 +1470,7 @@
          "")
      (if law
          (string-append ".\\par The characteristic law: " (proof-reader--statement law))
-         ".\n"))))
+         ".\n")))))
 
 (define (proof-reader--definition-tex d)
   (let ((h (car d)) (def (cdr d)))
