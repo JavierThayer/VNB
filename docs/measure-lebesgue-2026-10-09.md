@@ -13,7 +13,7 @@ Files, in load order after `theorem-library/monotone-class`, library measure:
 `theorem-library/lebesgue-interval-length.scm` (23 theorems), `structure-library/metric-outer-measure.scm`
 (vocabulary), `theorem-library/metric-outer-measure.scm` (58), `theorem-library/lebesgue-measure-line.scm` (5).
 
-## The vocabulary (decided by the integrator; for the user's confirmation)
+## The vocabulary (decided by the integrator; confirmed by the user 2026-10-09)
 
 For a metric space m:
 
