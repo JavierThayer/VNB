@@ -720,12 +720,20 @@
     "theorem-library/caratheodory"
     "structure-library/outer-measure-construction"
     "theorem-library/outer-measure-construction"
+    "structure-library/real-integral"
+    "theorem-library/real-integral"
     "structure-library/monotone-class"
     "theorem-library/monotone-class"
     "theorem-library/lebesgue-interval-length"
     "structure-library/metric-outer-measure"
     "theorem-library/metric-outer-measure"
     "theorem-library/lebesgue-measure-line"
+    "structure-library/lebesgue-translate"
+    "theorem-library/lebesgue-measure-unique"
+    "structure-library/lp-inequalities"
+    "theorem-library/lp-inequalities"
+    "structure-library/lp-seminorm"
+    "theorem-library/lp-seminorm"
   ))
 
 (library strand

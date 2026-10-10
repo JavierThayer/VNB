@@ -3481,6 +3481,11 @@
     ;; outer measure on the line; the monotone class theorem (Prop 1.11, Thm 1.13).  Vocabulary first.
     "structure-library/outer-measure-construction"
     "theorem-library/outer-measure-construction"
+    ;; MEASURE-4-C (2026-10-10): the integral of a real-valued function by positive and negative parts
+    ;; (RINTEGRAL, IS-INTEGRABLE), the decomposition lemma, linearity, monotonicity, Prop 2.21 for real f,
+    ;; Prop 2.24.  Here because IS-NULL-SET and esum-nn-zero load just above.
+    "structure-library/real-integral"
+    "theorem-library/real-integral"
     "structure-library/monotone-class"
     "theorem-library/monotone-class"
     ;; MEASURE-3 (2026-10-09): metric outer measures (Def 4.25, Lemmas 4.27-4.28, Prop 4.26: Borel sets are
@@ -3491,6 +3496,16 @@
     "structure-library/metric-outer-measure"
     "theorem-library/metric-outer-measure"
     "theorem-library/lebesgue-measure-line"
+    ;; MEASURE-4 (2026-10-10).  4-A: TRANSLATE; translates of Lebesgue sets are Lebesgue sets
+    ;; with the same measure; a Borel measure on the line giving [a, b] the length b - a is Lebesgue measure.
+    ;; 4-B: EPOW / EP-NORM; Young on [0, +inf], Hoelder (Prop 2.17), Minkowski (Prop 2.19), Props 2.21, 2.23.
+    ;; 4-C: LP-NORM = EP-NORM of |f|, the L^p seminorm laws.
+    "structure-library/lebesgue-translate"
+    "theorem-library/lebesgue-measure-unique"
+    "structure-library/lp-inequalities"
+    "theorem-library/lp-inequalities"
+    "structure-library/lp-seminorm"
+    "theorem-library/lp-seminorm"
     ;; 2026-09-24 (batch 25-A): POWER SERIES IN CC -- the definitions (CPS-RADIUS as the sup of the r with sum |a_k| r^k
     ;; convergent, CC-SUP-NORM (29), IS-NORMALLY-CONVERGENT, CC-SERIES-LIMIT; structure-library/cc-power-series.scm, after
     ;; theorem-library/cc-series) and the laws: the radius formula 2.7, normal convergence inside the radius 2.8,
