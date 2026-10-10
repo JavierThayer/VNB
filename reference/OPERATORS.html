@@ -77,7 +77,7 @@
 <p>The VNB universe has SETS (the elements of <code>SET</code>), CLASSES, and further entities about which VNB makes no commitment.  A term-forming operator is classified by WHAT IT DENOTES:</p>
 <ul><li>A <strong>function</strong> denotes an element of a set: specifically a set-function, an element of some <code>FUN(A, B)</code> with <code>A</code>,<code>B</code> sets.  This class is DERIVED, not listed: a head appears here exactly when some installed formula states <code>head in FUN(...)</code>, and the entry names that statement.  Being <em>applicable</em> is not the criterion and never was — <a class="x" href="THEOREMS.html#t-app-graph"><code>app-graph</code></a> makes <code>f(x)</code> a well-formed term for any <code>f</code> at all, defined or not.  <code>vnb-lambda</code> is the binder that constructs a set-function.</li><li>A <strong>syntax</strong> head forms terms and denotes NOTHING itself.  <code>+</code> is not an object of the theory: there is no <code>+ in SET</code> to be had, and <code>x + y + z</code> is the flat node <code>(+ x y z)</code>, so the head is not even of fixed arity (<code>nary-plus-3/4/5</code> interpret the 3-, 4- and 5-ary forms).  When a binary addition must be NAMED as an object, that object is <code>binplus</code>, tied to the syntax by <code>x + y == binplus(x, y)</code>.  The theory characterizes the APPLICATIONS of these heads by axiom and says nothing about the heads.</li><li>A <strong>functoid</strong> denotes something that is not required to be an element of <code>SET</code>.  This is a large, somewhat amorphous category: the kernel set- and tuple-builders (<code>union</code>, <code>sep</code>, <code>power</code>, <code>fun</code>, <code>image</code>, …) whose arguments range over a proper class; every library constructor (<a class="x" href="DEFINITIONS.html#d-matmul"><code>matmul</code></a>, <a class="x" href="DEFINITIONS.html#d-mat-ring"><code>mat-ring</code></a>, the structure accessors, …); and the recursively-defined ones.  Some functoids can be regarded as functions, but a functoid is not required to be one.  <code>lambdoid</code> is the binder that constructs a functoid — the class-domain sibling of <code>vnb-lambda</code>.  Application is implicit: writing <code>f(args)</code> denotes <code>apply-functoid(f, args)</code> when <code>f</code> is a functoid and <code>apply-function(f, args)</code> when <code>f</code> is a function — these two application operators are never written by hand.  Whether an operator is a kernel primitive or a library definition is a matter of ORIGIN, recorded as metadata; it is not a VNB distinction and carries no semantic weight.  A kernel set-former is a functoid exactly as a library constructor is.</li><li>A <strong>predicate</strong> is an operator whose application to argument terms is a proposition — an entity whose value is either true or false.  The proposition and its truth value are two separate things in the mathematical universe: a predicate applied to terms always denotes a proposition, but the truth value of that proposition may not be known.</li></ul>
 <p>Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An <strong>undeclared</strong> head is a defect.</p>
-<p>684 operators: 3 functions, 11 syntax, 396 functoids, 271 predicates, 3 undeclared.</p>
+<p>688 operators: 3 functions, 11 syntax, 399 functoids, 272 predicates, 3 undeclared.</p>
 <p>&gt; <strong>⚠ Undeclared heads (mushrooms):</strong> <code>cos</code> <code>exp</code> <code>sin</code> — registered and usable but backed by no def or axiom.</p>
 <h3 id="OPERATORS__functions-3">Functions  (3)</h3>
 <p>A head is listed here exactly when the theory STATES that it is an element of a <code>FUN</code> set; the statement is named.  Nothing is claimed on a head&#x27;s behalf: this section was a hand-typed list until 2026-08-31, and every one of the fifteen heads on it (<code>+ - * recip abs exp sin cos sqrt</code> …) turned out to have no such statement anywhere in the theory.</p>
@@ -95,7 +95,7 @@
 <h4 id="OPERATORS__recip-syntax-the-head-denotes-nothing"><code>recip</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__rpow-syntax-the-head-denotes-nothing"><code>rpow</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__succ-syntax-the-head-denotes-nothing"><code>succ</code>  — syntax: the head denotes nothing</h4>
-<h3 id="OPERATORS__functoids-396">Functoids  (396)</h3>
+<h3 id="OPERATORS__functoids-399">Functoids  (399)</h3>
 <p>Term-valued operators that do NOT denote an element of <code>SET</code> — the big amorphous category.  Sub-labelled by how each is declared (<code>kernel term-former</code>; <code>def-functoid</code> body; <code>def-by-nn-recursion</code>; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  <code>def-functor</code> bridges live in <code>STRUCTURE-INDEX.md</code>; <code>lambdoid</code> (the functoid binder) is a parser-level form, not a registered head.</p>
 <h4 id="OPERATORS__/-characterized-by-axiom-s"><code>/</code>  — characterized by axiom(s)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-amgm-2-sqrt"><code>amgm-2-sqrt</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-le-arg"><code>bdd-fn-le-arg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-lt-one"><code>bdd-fn-lt-one</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-mono"><code>bdd-fn-mono</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-nonneg"><code>bdd-fn-nonneg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-subadd"><code>bdd-fn-subadd</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-zero"><code>bdd-fn-zero</code></a> <a class="x" href="THEOREMS.html#t-bdd-metric-distance"><code>bdd-metric-distance</code></a></p>
@@ -138,6 +138,9 @@
 <p>&gt; _Reads as:_  the bnodes slot of s</p>
 <h4 id="OPERATORS__border-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-border"><code>border</code></a>  — def-functoid · element/number-valued</h4>
 <pre>border(a, b, m, p, q) := matof(succ(p), succ(q), vnb-lambda([i, j], cartesian(interval(1, succ(p)), interval(1, succ(q))), if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))</pre>
+<h4 id="OPERATORS__borel-sets-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-borel-sets"><code>borel-sets</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the Borel subsets of the metric space m</p>
+<pre>borel-sets(m) := sigma-generated(pts(m), {mou_ in power(pts(m)): is-open(m, mou_)})</pre>
 <h4 id="OPERATORS__bsend-structure-accessor-element-slot-value"><code>bsend</code>  — structure accessor · element (slot value)</h4>
 <p>&gt; _Reads as:_  the bsend slot of s</p>
 <h4 id="OPERATORS__bspace-structure-accessor-element-slot-value"><code>bspace</code>  — structure accessor · element (slot value)</h4>
@@ -779,6 +782,9 @@
 <h4 id="OPERATORS__pseudo-gauge-top-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-pseudo-gauge-top"><code>pseudo-gauge-top</code></a>  — def-functoid · tuple/structure-valued</h4>
 <p>&gt; _Reads as:_  the topology generated by the pseudometric family fam on ground</p>
 <pre>pseudo-gauge-top(fam, ground) := [ground, {u in power(ground): is-open-gauge(fam, ground, u)}]</pre>
+<h4 id="OPERATORS__pt-set-dist-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-pt-set-dist"><code>pt-set-dist</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the distance in m from the point x to the set es</p>
+<pre>pt-set-dist(m, x, es) := einf({mov_ in rr-pos-star: forsome([moz_ in es], mov_ = (dist(m))(x, moz_))})</pre>
 <h4 id="OPERATORS__pts-structure-accessor-element-slot-value"><code>pts</code>  — structure accessor · element (slot value)</h4>
 <p>&gt; _Reads as:_  the points of s</p>
 <h4 id="OPERATORS__ptwise-eplus-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-ptwise-eplus"><code>ptwise-eplus</code></a>  — def-functoid · function-valued</h4>
@@ -890,6 +896,9 @@
 <h4 id="OPERATORS__series-partial-sum-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-series-partial-sum"><code>series-partial-sum</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the sum of the first k terms of the series f</p>
 <pre>series-partial-sum(f, k) := sum-ag(normed-field-additive-ag(rr-normed-field), f, k)</pre>
+<h4 id="OPERATORS__set-dist-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-set-dist"><code>set-dist</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the distance in m between the sets aa and bb</p>
+<pre>set-dist(m, aa, bb) := einf({mow_ in rr-pos-star: forsome([mox_ in aa, moy_ in bb], mow_ = (dist(m))(mox_, moy_))})</pre>
 <h4 id="OPERATORS__sigma-structure-accessor-element-slot-value"><code>sigma</code>  — structure accessor · element (slot value)</h4>
 <p>&gt; _Reads as:_  the sigma-algebra of s</p>
 <h4 id="OPERATORS__sigma-generated-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-sigma-generated"><code>sigma-generated</code></a>  — def-functoid · set-valued</h4>
@@ -1024,7 +1033,7 @@
 <pre>zz-bezout-set(a, b) := {z in zz: forsome([x_ in zz, y_ in zz], z = x_ * a + y_ * b)}</pre>
 <h4 id="OPERATORS__zz-ring-characterized-by-axioms-def-constant"><a class="x" href="STRUCTURE-INDEX.html#zz-ring"><code>zz-ring</code></a>  — characterized by axioms (def-constant)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-zz-ring-def"><code>zz-ring-def</code></a></p>
-<h3 id="OPERATORS__predicates-271">Predicates  (271)</h3>
+<h3 id="OPERATORS__predicates-272">Predicates  (272)</h3>
 <p>Proposition-valued operators.  Their defining axiom is an <code>iff</code> on the applied head.  Full definitions in <code>DEFINITIONS.md</code>.</p>
 <h4 id="OPERATORS__&lt;-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-&lt;"><code>&lt;</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  x is less than y</p>
@@ -1332,6 +1341,8 @@
 <p>&gt; _Reads as:_  s is a measure space</p>
 <h4 id="OPERATORS__is-metric-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-metric"><code>is-metric</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  dst is a metric on crr</p>
+<h4 id="OPERATORS__is-metric-outer-measure-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-metric-outer-measure"><code>is-metric-outer-measure</code></a>  — def-predicate · proposition (arity 2)</h4>
+<p>&gt; _Reads as:_  mu is a metric outer measure on the metric space m</p>
 <h4 id="OPERATORS__is-metric-space-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-is-metric-space"><code>is-metric-space</code></a>  — def-predicate · proposition (arity 1)</h4>
 <p>&gt; _Reads as:_  s is a metric space</p>
 <h4 id="OPERATORS__is-metrizable-top-space-def-predicate-proposition-arity-1"><code>is-metrizable-top-space</code>  — def-predicate · proposition (arity 1)</h4>

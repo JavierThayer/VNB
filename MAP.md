@@ -13,6 +13,7 @@ the files at the root and the structure library by theory.
 - [meta-cr.scm](structure-library/meta-cr.scm)
 - [meta-syntax.scm](structure-library/meta-syntax.scm)
 - [metric-connected.scm](structure-library/metric-connected.scm)
+- [metric-outer-measure.scm](structure-library/metric-outer-measure.scm)
 - [monotone-class.scm](structure-library/monotone-class.scm)
 - [nsl.scm](structure-library/nsl.scm)
 - [outer-measure-construction.scm](structure-library/outer-measure-construction.scm)

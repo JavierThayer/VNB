@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-684 operators: 3 functions, 11 syntax, 396 functoids, 271 predicates, 3 undeclared.
+688 operators: 3 functions, 11 syntax, 399 functoids, 272 predicates, 3 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (396)
+## Functoids  (399)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -135,6 +135,12 @@ Declared by: `bintimes-apply` `etimes-def` `etimes-real-defined` `nary-times-2` 
 ### `border`  — def-functoid · element/number-valued
 
     border(a, b, m, p, q) := matof(succ(p), succ(q), vnb-lambda([i, j], cartesian(interval(1, succ(p)), interval(1, succ(q))), if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))
+
+### `borel-sets`  — def-functoid · element/number-valued
+
+> _Reads as:_  the Borel subsets of the metric space m
+
+    borel-sets(m) := sigma-generated(pts(m), {mou_ in power(pts(m)): is-open(m, mou_)})
 
 ### `bsend`  — structure accessor · element (slot value)
 
@@ -1418,6 +1424,12 @@ Declared by: `prod-ord-zero` `prod-ord-succ`
 
     pseudo-gauge-top(fam, ground) := [ground, {u in power(ground): is-open-gauge(fam, ground, u)}]
 
+### `pt-set-dist`  — def-functoid · element/number-valued
+
+> _Reads as:_  the distance in m from the point x to the set es
+
+    pt-set-dist(m, x, es) := einf({mov_ in rr-pos-star: forsome([moz_ in es], mov_ = (dist(m))(x, moz_))})
+
 ### `pts`  — structure accessor · element (slot value)
 
 > _Reads as:_  the points of s
@@ -1639,6 +1651,12 @@ Declared by: `sent-def`
 > _Reads as:_  the sum of the first k terms of the series f
 
     series-partial-sum(f, k) := sum-ag(normed-field-additive-ag(rr-normed-field), f, k)
+
+### `set-dist`  — def-functoid · element/number-valued
+
+> _Reads as:_  the distance in m between the sets aa and bb
+
+    set-dist(m, aa, bb) := einf({mow_ in rr-pos-star: forsome([mox_ in aa, moy_ in bb], mow_ = (dist(m))(mox_, moy_))})
 
 ### `sigma`  — structure accessor · element (slot value)
 
@@ -1908,7 +1926,7 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (271)
+## Predicates  (272)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -2523,6 +2541,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-metric`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  dst is a metric on crr
+
+### `is-metric-outer-measure`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  mu is a metric outer measure on the metric space m
 
 ### `is-metric-space`  — def-predicate · proposition (arity 1)
 

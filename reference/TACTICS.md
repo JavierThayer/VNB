@@ -1141,7 +1141,7 @@ From a hypothesis that an element lies in a big union, obtain an index whose set
 
     (if-true t)
 
-Reduce an (IF p a b) term on the p branch: spawns p as a subgoal; the continuation gains (= (IF p a b) a).
+Reduce an (IF p a b) term on the p branch: spawns p as a subgoal; the continuation gains (= (IF p a b) a) when a is certified defined, else (== (IF p a b) a) (since 2026-10-08).
 
 *Kind:* `rule` (emits `if-true`)
 

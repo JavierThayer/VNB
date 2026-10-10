@@ -644,7 +644,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <h3 id="TACTICS__conditional-terms">Conditional terms</h3>
 <h4 id="TACTICS__if-true">if-true</h4>
 <pre>(if-true t)</pre>
-<p>Reduce an (IF p a b) term on the p branch: spawns p as a subgoal; the continuation gains (= (IF p a b) a).</p>
+<p>Reduce an (IF p a b) term on the p branch: spawns p as a subgoal; the continuation gains (= (IF p a b) a) when a is certified defined, else (== (IF p a b) a) (since 2026-10-08).</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>if-true</code>)</p>
 <p><em>Uses:</em> <code>if-true</code></p>
 <p><em>When useful:</em> the goal has an (IF p a b) term to evaluate on the p branch</p>

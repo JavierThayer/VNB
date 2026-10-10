@@ -2364,15 +2364,15 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \vnbprf{\vnbproofpart{\texttt{elem-g-action}}}
 %
-\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/elem-\allowbreak{}actions-\allowbreak{}proof.scm} --- 102 recorded steps.}
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/elem-\allowbreak{}actions-\allowbreak{}proof.scm} --- 104 recorded steps.}
 %
-\vnbprf{\textbf{Lemmas.} \texttt{mat-cols-in-nn}, \texttt{interval-elt-in-nn}, \texttt{interval-lo}, \texttt{interval-hi}, \texttt{nn-one-in}, \texttt{nn-le-trans-guarded}, \texttt{elem-g-type}, \texttt{matmul-entry}, \texttt{interval-in-set}, \texttt{mat-rows-in-nn}, \texttt{interval-card-in-nn}, \texttt{matprod-summand-type}, \texttt{eq-sym}, \texttt{elem-g-entry-l-vanish}, \texttt{entry-in-carrier}, \texttt{ring-mul-zero-right}, \texttt{ras-id}, \texttt{finsum-two-support}, \texttt{elem-g-entry-l-at-l}, \texttt{elem-g-entry-l-at-k}, \texttt{ras-op}, \texttt{elem-g-entry-off-l-off-diag}, \texttt{finsum-single-support}, \texttt{elem-g-entry-off-l-diag}.}
+\vnbprf{\textbf{Lemmas.} \texttt{mat-cols-in-nn}, \texttt{interval-elt-in-nn}, \texttt{interval-lo}, \texttt{interval-hi}, \texttt{nn-one-in}, \texttt{nn-le-trans-guarded}, \texttt{elem-g-type}, \texttt{matmul-entry}, \texttt{interval-in-set}, \texttt{mat-rows-in-nn}, \texttt{interval-card-in-nn}, \texttt{matprod-summand-type}, \texttt{eq-sym}, \texttt{elem-g-entry-l-vanish}, \texttt{entry-in-carrier}, \texttt{ring-mul-zero-right}, \texttt{ras-id}, \texttt{finsum-two-support}, \texttt{elem-g-entry-l-at-l}, \texttt{elem-g-entry-l-at-k}, \texttt{ras-op}, \texttt{ring-carrier-closed-mul}, \texttt{elem-g-entry-off-l-off-diag}, \texttt{finsum-single-support}, \texttt{elem-g-entry-off-l-diag}.}
 %
 \vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \vnbprf{\vnbproofpart{\texttt{elem-h-action}}}
 %
-\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/elem-\allowbreak{}actions-\allowbreak{}proof.scm} --- 79 recorded steps.}
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/elem-\allowbreak{}actions-\allowbreak{}proof.scm} --- 80 recorded steps.}
 %
 \vnbprf{\textbf{Lemmas.} \texttt{mat-cols-in-nn}, \texttt{interval-elt-in-nn}, \texttt{interval-lo}, \texttt{interval-hi}, \texttt{nn-one-in}, \texttt{nn-le-trans-guarded}, \texttt{elem-h-type}, \texttt{matmul-entry}, \texttt{interval-in-set}, \texttt{mat-rows-in-nn}, \texttt{interval-card-in-nn}, \texttt{matprod-summand-type}, \texttt{elem-h-entry-off-diag}, \texttt{entry-in-carrier}, \texttt{ring-mul-zero-right}, \texttt{ras-id}, \texttt{finsum-single-support}, \texttt{elem-h-entry-diag}.}
 %
@@ -5265,6 +5265,974 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \noindent\textbf{Deviation from the notes.} PROVEN 2026-09-26 (batch 35) with the exceptional point; a closed path is a road on [a, b] with pgam(b) = pgam(a). the exceptional-point hypothesis is the notes' (f continuous on the open set u, x in u, f holomorphic on u minus \{x\}), spelled with restrict(f, difference(u, singleton(x))) because HOLOMORPHIC-ON types its function on exactly its set. Earlier: PROVEN 2026-09-25 (batch 30) for f holomorphic on the whole convex open set U: for a road on [a, b] with trace in U and gamma(b) = gamma(a), the integral of f along it is 0 (from 3.8 and Cor 3.3 for a closed road). 'Closed path' is the hypothesis gamma(b) = gamma(a); there is no closed-road predicate. The exceptional point x as for 3.6.
 %
+\section{Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60)}
+%
+\renewcommand{\thethm}{2.7}
+\begin{lem}[{Causal precedence in a bundle is a partial order with minimal elements}]\label{thm:precedes-partial-order}
+%
+\leavevmode
+\vnbpart{\texttt{precedes-partial-order}}
+\vnbstmt{\forall c.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow \operatorname{is\text{-}partial\text{-}order}(\operatorname{bnodes}(c), \operatorname{precedes}(c)))}
+\vnbpart{\texttt{finite-strict-minimal}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall r.; \forall s \in \mathbf{Set}. \\ \quad \forall x, y, z.\; (((\langle x, y \rangle \in r) \wedge (\langle y, z \rangle \in r)) \Rightarrow (\langle x, z \rangle \in r)) \wedge \\ \quad \forall x.\; \neg (\langle x, x \rangle \in r) \wedge \\ \quad |s| \in \mathbb{N} \wedge \\ \quad \exists w.\; (w \in s) \Rightarrow \\ \quad \quad \exists m \in s.\; \forall z \in s.\; \neg (\langle z, m \rangle \in r) \end{array}}
+\vnbpart{\texttt{bundle-minimal}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall c, s. \\ \quad (\operatorname{is\text{-}bundle}(c) \wedge (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \wedge \exists w.\; (w \in s))) \Rightarrow  \\ \quad \quad \exists m \in s.\; \forall z \in s.\; \neg (\langle z, m \rangle \in \operatorname{precedes\text{-}strict}(c)) \end{array}}
+%
+\end{lem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{precedes-partial-order}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}space-\allowbreak{}laws.scm} --- 32 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{bundle-nodes-set}, \texttt{precedes-set}, \texttt{precedes-refl}, \texttt{precedes-antisym}, \texttt{precedes-trans}.}
+%
+\vnbprf{\textbf{Oracles.} none.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{finite-strict-minimal}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}space-\allowbreak{}laws.scm} --- 213 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{empty-set-is-set}, \texttt{empty-set-has-no-members}, \texttt{pairing}, \texttt{union-set-closure}, \texttt{union-membership}, \texttt{pair-self-member}, \texttt{pair-self-eq}, \texttt{finite-set-induction}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{bundle-minimal}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}space-\allowbreak{}laws.scm} --- 45 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{bundle-nodes-set}, \texttt{bundle-finite}, \texttt{subset-def}, \texttt{subclass-of-set-is-set}, \texttt{card-subset-nn}, \texttt{precedes-strict-trans}, \texttt{precedes-strict-irreflexive}, \texttt{finite-strict-minimal}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Stated on the user's model: PRECEDES(c) is the reflexive closure of PRECEDES-STRICT(c), the least transitive relation on BNODES(c) containing the send edges BSEND and the strict same-strand order ==$>$. precedes-partial-order states it as IS-PARTIAL-ORDER(BNODES, PRECEDES); bundle-minimal gives, for every nonempty subset S of BNODES, a member m with no s in S strictly preceding it, the witness explicit. The paper states 2.7 without proof; the proof uses only CARD(BNODES) in NN (finite-strict-minimal: a transitive irreflexive relation on a finite nonempty set has a minimal element), never the finiteness of the edge sets. Proven 2026-10-06 (S-2), unchanged by S-2b.
+%
+\renewcommand{\thethm}{2.8}
+\begin{lem}[{A minimal node of a content-closed node set is a sent node}]\label{thm:bundle-minimal-sent}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall c, s, n. \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \forall z \in s.\; (z \in \operatorname{bnodes}(c)) \wedge \\ \quad \forall x, y. \\ \quad \quad x \in \operatorname{bnodes}(c) \wedge \\ \quad \quad y \in \operatorname{bnodes}(c) \wedge \\ \quad \quad \operatorname{node\text{-}content}(\operatorname{bspace}(c), x) = \operatorname{node\text{-}content}(\operatorname{bspace}(c), y) \wedge \\ \quad \quad y \in s \Rightarrow \\ \quad \quad \quad x \in s \wedge \\ \quad n \in s \wedge \\ \quad \forall z \in s.\; \neg (\langle z, n \rangle \in \operatorname{precedes\text{-}strict}(c)) \Rightarrow \\ \quad \quad \operatorname{is\text{-}sent}(\operatorname{bspace}(c), n) \end{array}}
+%
+\end{lem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}space-\allowbreak{}laws.scm} --- 32 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{bundle-space}, \texttt{bundle-nodes-in-space}, \texttt{node-sent-or-received}, \texttt{bundle-received-sender}, \texttt{bundle-send-nodes}, \texttt{bundle-send-sends}, \texttt{sends-to-dirs}, \texttt{bundle-send-precedes}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The paper's hypothesis is an iff over all node pairs ('term(m) = term(m') implies m in S iff m' in S'); the proof needs ONE direction only -- toward the sender: equal content and the receiver in S put the sender in S -- and the theorem is stated in that weaker form. 'Positive' reads IS-SENT. Uses the EXISTENCE of a sender for every received node of the bundle (bundle-received-sender), never its uniqueness. Proven 2026-10-06 (S-2).
+%
+\renewcommand{\thethm}{2.9}
+\begin{lem}[{A minimal node among those whose content contains t originates t}]\label{thm:bundle-minimal-originates}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall c, u, n. \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad n \in \operatorname{bnodes}(c) \wedge \\ \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{bspace}(c)), \operatorname{keys}(\operatorname{bspace}(c)), u, \operatorname{node\text{-}content}(\operatorname{bspace}(c), n)) \wedge \\ \quad \forall z \in \operatorname{bnodes}(c). \\ \quad \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{bspace}(c)), \operatorname{keys}(\operatorname{bspace}(c)), u, \operatorname{node\text{-}content}(\operatorname{bspace}(c), z)) \Rightarrow  \\ \quad \quad \quad \neg (\langle z, n \rangle \in \operatorname{precedes\text{-}strict}(c)) \Rightarrow \\ \quad \quad \operatorname{originates}(\operatorname{bspace}(c), u, n) \end{array}}
+%
+\end{lem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}space-\allowbreak{}laws.scm} --- 58 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{bundle-space}, \texttt{bundle-nodes-in-space}, \texttt{bundle-minimal-sent}, \texttt{bundle-ssb-closed}, \texttt{bundle-ssb-precedes}, \texttt{originates-intro}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The paper's proof iterates bundle clause 3 'as many times as necessary' along =$>$+, which it never defines; on the user's model ==$>$ IS the whole strict same-strand order and the bundle's closure under it is one law (bundle-ssb-closed), so the iteration dissolves and no proof steps along NEXT. The set is \{m in BNODES : IS-SUBTERM(t, NODE-CONTENT(m))\}, content being undirected by definition (the paper's 'abuse of language' on signed terms disappears). Proven 2026-10-06 (S-2).
+%
+\renewcommand{\thethm}{2.12}
+\begin{prop}[{A subterm of an encryption under one key that is an encryption under another lies inside the plaintext}]\label{thm:subterm-encr-other-key}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall t, k, h, a, y, b. \\ \quad t \in \mathbf{Set} \wedge \\ \quad k \in \mathbf{Set} \wedge \\ \quad h \in \operatorname{msg\text{-}set}(t, k) \wedge \\ \quad a \in \operatorname{msg\text{-}set}(t, k) \wedge \\ \quad y \in k \wedge \\ \quad b \in k \wedge \\ \quad \neg (y = b) \wedge \\ \quad \operatorname{is\text{-}subterm}(t, k, \operatorname{encr}(a, b), \operatorname{encr}(h, y)) \Rightarrow \\ \quad \quad \operatorname{is\text{-}subterm}(t, k, \operatorname{encr}(a, b), h) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}messages-\allowbreak{}laws.scm} --- 24 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{encr-in-msgs}, \texttt{subterm-of-encr}, \texttt{encr-injective}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Encryption is ENCR(m, k) = [2, m, k] with k in KEYS; the subterm relation is the intersection closure with the convention THE KEY IS NOT A SUBTERM OF THE ENCRYPTION (the paper's Definition 2.1). Dropped by S-2 (no encryption in notes-60), back with S-2b on the user's decision of 2026-10-06 16:40Z ('\{m\}\_k = encr\{m,k\} is also a message'). Proven 2026-10-06 (S-2b).
+%
+\renewcommand{\thethm}{3.3}
+\begin{prop}[{The adversary bound: a secret that never originates on a regular node occurs nowhere}]\label{thm:adversary-bound}
+%
+\leavevmode
+\vnbpart{\texttt{adversary-bound}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, u.; \forall n \in \operatorname{bnodes}(c). \\ \quad \operatorname{is\text{-}infiltrated\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(p) \wedge \\ \quad u \in \operatorname{tokens}(\operatorname{ispace}(p)) \wedge \\ \quad \neg (u \in \operatorname{adv\text{-}tokens}(p)) \wedge \\ \quad \forall n \in \operatorname{bnodes}(c). \\ \quad \quad \operatorname{is\text{-}regular\text{-}node}(p, n) \Rightarrow \neg \operatorname{originates}(\operatorname{ispace}(p), u, n) \Rightarrow \\ \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(p)), \operatorname{keys}(\operatorname{ispace}(p)), u, \operatorname{node\text{-}content}(\operatorname{ispace}(p), n)) \end{array}}
+\vnbpart{\texttt{adversary-bound-adversary-nodes}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, u.; \forall n \in \operatorname{bnodes}(c). \\ \quad \operatorname{is\text{-}infiltrated\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(p) \wedge \\ \quad u \in \operatorname{tokens}(\operatorname{ispace}(p)) \wedge \\ \quad \neg (u \in \operatorname{adv\text{-}tokens}(p)) \wedge \\ \quad \forall n \in \operatorname{bnodes}(c). \\ \quad \quad \operatorname{is\text{-}regular\text{-}node}(p, n) \Rightarrow \neg \operatorname{originates}(\operatorname{ispace}(p), u, n) \wedge \\ \quad \operatorname{is\text{-}adversary\text{-}node}(p, n) \Rightarrow \\ \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(p)), \operatorname{keys}(\operatorname{ispace}(p)), u, \operatorname{node\text{-}content}(\operatorname{ispace}(p), n)) \end{array}}
+\vnbpart{\texttt{adversary-node-origin}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, u, n. \\ \quad \operatorname{is\text{-}infiltrated\text{-}space}(p) \wedge \\ \quad u \in \operatorname{tokens}(\operatorname{ispace}(p)) \wedge \\ \quad n \in \operatorname{nodes}(\operatorname{ispace}(p)) \wedge \\ \quad \operatorname{is\text{-}adversary\text{-}node}(p, n) \wedge \\ \quad \operatorname{originates}(\operatorname{ispace}(p), u, n) \Rightarrow \\ \quad \quad u \in \operatorname{adv\text{-}tokens}(p) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{adversary-bound}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}adversary-\allowbreak{}bound.scm} --- 110 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{bundle-minimal}, \texttt{bundle-minimal-originates}, \texttt{bundle-space}, \texttt{bundle-nodes-in-space}, \texttt{adversary-node-origin}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{adversary-bound-adversary-nodes}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}adversary-\allowbreak{}bound.scm} --- 12 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{adversary-bound}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{adversary-node-origin}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/strand-\allowbreak{}adversary-\allowbreak{}bound.scm} --- 80 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{text-trace-origin}, \texttt{originates-sent}, \texttt{flush-trace-no-sent}, \texttt{tee-trace-no-origin}, \texttt{concat-trace-no-origin}, \texttt{separate-trace-no-origin}, \texttt{encrypt-trace-no-origin}, \texttt{decrypt-trace-no-origin}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Stated for ANY token u of the space with u notin ADV-TOKENS (the paper: a key K in K minus K\_P; the key case is the instance, since KEYS is a subset of TOKENS); for a bundle c with BSPACE(c) = ISPACE(isp) of an infiltrated space isp. The adversary has the traces M F T C S E D over the space (C and S n-ary over lists; D decrypts under KINV; the paper's K trace is subsumed by M since keys are tokens). The proof is the paper's method -- a minimal member of \{n in C : u @ content(n)\} by Lemma 2.7, originating by 2.9, sent by 2.8, hence an adversary node, then seven cases -- with two findings: the M and C cases rest on the TOKEN LAW (no token is a list), not on the freeness of a free algebra; and the E case holds under either subterm convention, the convention deciding only whether the hypothesis 'never originates regularly' can be met for a key a participant encrypts with. Proven 2026-10-06 (S-2, seven cases S-2b).
+%
+\renewcommand{\thethm}{5.2}
+\begin{prop}[{The responder's agreement guarantee}]\label{thm:nsl-responder-agreement}
+%
+\leavevmode
+\vnbpart{\texttt{nsl-responder-agreement}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, s, a, b, d, f. \\ \quad \operatorname{is\text{-}nsl\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(\operatorname{pk\text{-}inf}(p)) \wedge \\ \quad s \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}resp\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(s), a, b, d, f) \wedge \\ \quad \langle 3, s \rangle \in \operatorname{bnodes}(c) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(a)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (d = f) \wedge \\ \quad \operatorname{uniquely\text{-}originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), f) \Rightarrow \\ \quad \quad \exists t \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))). \\ \quad \quad \quad (\operatorname{is\text{-}init\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(t), a, b, d, f) \wedge (\langle 3, t \rangle \in \operatorname{bnodes}(c))) \end{array}}
+\vnbpart{\texttt{nsl-lemma-5-4}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, s, a, b, d, f. \\ \quad \operatorname{is\text{-}nsl\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(\operatorname{pk\text{-}inf}(p)) \wedge \\ \quad s \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}resp\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(s), a, b, d, f) \wedge \\ \quad \langle 3, s \rangle \in \operatorname{bnodes}(c) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(a)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (d = f) \wedge \\ \quad \operatorname{uniquely\text{-}originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), f) \Rightarrow \\ \quad \quad \exists g \in \operatorname{bnodes}(c). \\ \quad \quad \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), f, \\ \quad \quad \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, f, b \rangle), \operatorname{pubkey}(p)(a)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \quad \quad \forall z \in \operatorname{bnodes}(c). \\ \quad \quad \quad \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), f, \\ \quad \quad \quad \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \wedge \\ \quad \quad \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, f, b \rangle), \operatorname{pubkey}(p)(a)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \Rightarrow \\ \quad \quad \quad \quad \quad \neg (\langle z, g \rangle \in \operatorname{precedes\text{-}strict}(c)) \wedge \\ \quad \quad \quad \operatorname{is\text{-}regular\text{-}node}(\operatorname{pk\text{-}inf}(p), g) \wedge \\ \quad \quad \quad \operatorname{is\text{-}sent}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g) \end{array}}
+\vnbpart{\texttt{nsl-lemma-5-6}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, s, a, b, d, f.; \forall g \in \operatorname{bnodes}(c). \\ \quad \operatorname{is\text{-}nsl\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(\operatorname{pk\text{-}inf}(p)) \wedge \\ \quad s \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}resp\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(s), a, b, d, f) \wedge \\ \quad \langle 3, s \rangle \in \operatorname{bnodes}(c) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(a)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (d = f) \wedge \\ \quad \operatorname{uniquely\text{-}originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), f) \wedge \\ \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), f, \\ \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, f, b \rangle), \operatorname{pubkey}(p)(a)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \forall z \in \operatorname{bnodes}(c). \\ \quad \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), f, \\ \quad \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \wedge \\ \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, f, b \rangle), \operatorname{pubkey}(p)(a)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \Rightarrow \\ \quad \quad \quad \neg (\langle z, g \rangle \in \operatorname{precedes\text{-}strict}(c)) \wedge \\ \quad \operatorname{is\text{-}regular\text{-}node}(\operatorname{pk\text{-}inf}(p), g) \wedge \\ \quad \operatorname{is\text{-}sent}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g) \Rightarrow \\ \quad \quad \exists h. \\ \quad \quad \quad \operatorname{same\text{-}strand\text{-}before}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), h, g) \wedge \\ \quad \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), h) = \operatorname{encr}(\operatorname{lst}(\langle d, f, b \rangle), \operatorname{pubkey}(p)(a)) \end{array}}
+\vnbpart{\texttt{nsl-lemma-5-7}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, a, b, c, d, f, g. \\ \quad \operatorname{is\text{-}nsl\text{-}space}(p) \wedge \\ \quad c \in \operatorname{names}(p) \wedge \\ \quad b \in \operatorname{nodes}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}regular\text{-}node}(\operatorname{pk\text{-}inf}(p), b) \wedge \\ \quad \operatorname{is\text{-}sent}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), b) \wedge \\ \quad \operatorname{same\text{-}strand\text{-}before}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), a, b) \wedge \\ \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), a) = \operatorname{encr}(\operatorname{lst}(\langle f, g, d \rangle), \operatorname{pubkey}(p)(c)) \Rightarrow \\ \quad \quad (\operatorname{is\text{-}init\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{nth}(2, b)), c, d, f, g) \wedge (\operatorname{nth}(1, b) = 3)) \end{array}}
+\vnbpart{\texttt{nsl-resp-nonce-originates}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, s, a, b, c, d. \\ \quad \operatorname{is\text{-}pk\text{-}space}(p) \wedge \\ \quad s \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}resp\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(s), a, b, c, d) \wedge \\ \quad \neg (c = d) \Rightarrow \\ \quad \quad \operatorname{originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), d, \langle 2, s \rangle) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-responder-agreement}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 128 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{fun-apply-type-c}, \texttt{token-in-msgs}, \texttt{list-in-msgs}, \texttt{encr-in-msgs}, \texttt{nsl-lemma-5-4}, \texttt{nsl-lemma-5-6}, \texttt{bundle-space}, \texttt{bundle-nodes-in-space}, \texttt{nsl-lemma-5-7}, \texttt{node-parts}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-lemma-5-4}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 426 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{fun-apply-type-c}, \texttt{token-in-msgs}, \texttt{list-in-msgs}, \texttt{encr-in-msgs}, \texttt{resp-strand-nodes}, \texttt{nsl-resp-nonce-originates}, \texttt{subterm-refl}, \texttt{subterm-encr}, \texttt{subterm-of-flat-encr-token}, \texttt{encr-injective}, \texttt{membership-implies-sethood}, \texttt{token-ne-list}, \texttt{token-not-encr}, \texttt{bundle-minimal}, \texttt{bundle-space}, \texttt{bundle-minimal-sent}, \texttt{bundle-nodes-in-space}, \texttt{bundle-minimal-earlier}, \texttt{nsl-adversary-loss}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-lemma-5-6}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 227 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{fun-apply-type-c}, \texttt{token-in-msgs}, \texttt{list-in-msgs}, \texttt{encr-in-msgs}, \texttt{resp-strand-nodes}, \texttt{nsl-resp-nonce-originates}, \texttt{subterm-refl}, \texttt{bundle-minimal-earlier}, \texttt{node-parts}, \texttt{nsl-regular-encr-subterm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-lemma-5-7}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 648 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{node-parts}, \texttt{fun-apply-type-c}, \texttt{token-in-msgs}, \texttt{list-in-msgs}, \texttt{encr-in-msgs}, \texttt{three-strand-node}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}, \texttt{sent-ne-received}, \texttt{encr-injective}, \texttt{lst-injective}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-resp-nonce-originates}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 334 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{fun-apply-type-c}, \texttt{token-in-msgs}, \texttt{list-in-msgs}, \texttt{encr-in-msgs}, \texttt{resp-strand-nodes}, \texttt{subterm-refl}, \texttt{subterm-component}, \texttt{subterm-encr}, \texttt{node-parts}, \texttt{three-strand-node}, \texttt{token-subterm-of-encr}, \texttt{token-subterm-of-list}, \texttt{subterm-of-token}, \texttt{nn-le-ne-succ}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{nn-succ-closed}, \texttt{nn-succ-plus-one}, \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}, \texttt{originates-intro}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} On the user's model; the hypotheses 'C-height 3', 'K\_A\textasciicircum{}-1 not in K\_P', 'Na /= Nb', 'Nb uniquely originating' as the paper's. The paper's inner argument of Lemma 5.4 case S (the set T) is the theorem nsl-list-source; its 'no regular node contains an encrypted term as a proper subterm' is nsl-regular-encr-subterm; Lemma 2.8 does not apply to T as the paper says, the weaker bundle-minimal-sent-back does.
+%
+\renewcommand{\thethm}{5.8}
+\begin{prop}[{Injectivity: at most one initiator strand for a uniquely originating Na}]\label{thm:nsl-init-unique}
+%
+\leavevmode
+\vnbpart{\texttt{nsl-init-unique}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, a, b, c, d, f, g, a_{2}, b_{2}, h. \\ \quad \operatorname{is\text{-}pk\text{-}space}(p) \wedge \\ \quad \operatorname{uniquely\text{-}originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), f) \wedge \\ \quad a \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad b \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}init\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(a), c, d, f, g) \wedge \\ \quad \operatorname{is\text{-}init\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(b), a_{2}, b_{2}, f, h) \Rightarrow \\ \quad \quad a = b \end{array}}
+\vnbpart{\texttt{nsl-init-nonce-originates}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, t, a, b, c, d. \\ \quad \operatorname{is\text{-}pk\text{-}space}(p) \wedge \\ \quad t \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}init\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(t), a, b, c, d) \Rightarrow \\ \quad \quad \operatorname{originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), c, \langle 1, t \rangle) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-init-unique}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 14 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nsl-init-nonce-originates}, \texttt{originates-unique}, \texttt{node-pair-injective}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-init-nonce-originates}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 133 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{fun-apply-type-c}, \texttt{token-in-msgs}, \texttt{list-in-msgs}, \texttt{encr-in-msgs}, \texttt{init-strand-nodes}, \texttt{subterm-refl}, \texttt{subterm-component}, \texttt{subterm-encr}, \texttt{node-parts}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}, \texttt{originates-intro}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Stronger than the paper's: two initiator strands with the value Na, whatever their other parameters, have the same identifier.
+%
+\renewcommand{\thethm}{5.10}
+\begin{prop}[{Secrecy of the responder's nonce}]\label{thm:nsl-responder-secrecy}
+%
+\leavevmode
+\vnbpart{\texttt{nsl-responder-secrecy}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, s, a, b, d, f.; \forall m \in \operatorname{bnodes}(c). \\ \quad \operatorname{is\text{-}nsl\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(\operatorname{pk\text{-}inf}(p)) \wedge \\ \quad s \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}resp\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(s), a, b, d, f) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(a)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(b)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (d = f) \wedge \\ \quad \operatorname{uniquely\text{-}originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), f) \wedge \\ \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), f, \\ \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), m)) \Rightarrow \\ \quad \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \\ \quad \quad \quad \operatorname{encr}(\operatorname{lst}(\langle d, f, b \rangle), \operatorname{pubkey}(p)(a)), \\ \quad \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), m)) \vee \\ \quad \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \\ \quad \quad \quad \operatorname{encr}(f, \operatorname{pubkey}(p)(b)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), m)) \end{array}}
+\vnbpart{\texttt{nsl-responder-nonce-not-sent}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, s, a, b, d, f.; \forall m \in \operatorname{bnodes}(c). \\ \quad \operatorname{is\text{-}nsl\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(\operatorname{pk\text{-}inf}(p)) \wedge \\ \quad s \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}resp\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(s), a, b, d, f) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(a)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(b)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (d = f) \wedge \\ \quad \operatorname{uniquely\text{-}originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), f) \Rightarrow \\ \quad \quad \neg (\operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), m) = f) \end{array}}
+\vnbpart{\texttt{nsl-lemma-5-11}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, s, a, b, d, f.; \forall g \in \operatorname{bnodes}(c). \\ \quad \operatorname{is\text{-}nsl\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(\operatorname{pk\text{-}inf}(p)) \wedge \\ \quad s \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}resp\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(s), a, b, d, f) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(a)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(b)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (d = f) \wedge \\ \quad \operatorname{uniquely\text{-}originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), f) \wedge \\ \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), f, \\ \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, f, b \rangle), \operatorname{pubkey}(p)(a)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(f, \operatorname{pubkey}(p)(b)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \forall z \in \operatorname{bnodes}(c). \\ \quad \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), f, \\ \quad \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \wedge \\ \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, f, b \rangle), \operatorname{pubkey}(p)(a)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \wedge \\ \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(f, \operatorname{pubkey}(p)(b)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \Rightarrow \\ \quad \quad \quad \neg (\langle z, g \rangle \in \operatorname{precedes\text{-}strict}(c)) \Rightarrow \\ \quad \quad \neg \operatorname{is\text{-}regular\text{-}node}(\operatorname{pk\text{-}inf}(p), g) \end{array}}
+\vnbpart{\texttt{nsl-lemma-5-12}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, s, a, b, d, f.; \forall g \in \operatorname{bnodes}(c). \\ \quad \operatorname{is\text{-}nsl\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(\operatorname{pk\text{-}inf}(p)) \wedge \\ \quad s \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}resp\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(s), a, b, d, f) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(a)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(b)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (d = f) \wedge \\ \quad \operatorname{uniquely\text{-}originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), f) \wedge \\ \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), f, \\ \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, f, b \rangle), \operatorname{pubkey}(p)(a)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(f, \operatorname{pubkey}(p)(b)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \forall z \in \operatorname{bnodes}(c). \\ \quad \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), f, \\ \quad \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \wedge \\ \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, f, b \rangle), \operatorname{pubkey}(p)(a)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \wedge \\ \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(f, \operatorname{pubkey}(p)(b)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \Rightarrow \\ \quad \quad \quad \neg (\langle z, g \rangle \in \operatorname{precedes\text{-}strict}(c)) \Rightarrow \\ \quad \quad \neg \operatorname{is\text{-}adversary\text{-}node}(\operatorname{pk\text{-}inf}(p), g) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-responder-secrecy}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 311 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{bundle-minimal}, \texttt{bundle-space}, \texttt{bundle-minimal-sent}, \texttt{bundle-nodes-in-space}, \texttt{nsl-lemma-5-12}, \texttt{nsl-lemma-5-11}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-responder-nonce-not-sent}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 126 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{fun-apply-type-c}, \texttt{token-in-msgs}, \texttt{list-in-msgs}, \texttt{encr-in-msgs}, \texttt{subterm-refl}, \texttt{nsl-responder-secrecy}, \texttt{subterm-of-token}, \texttt{membership-implies-sethood}, \texttt{encr-ne-token}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-lemma-5-11}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 1614 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{fun-apply-type-c}, \texttt{token-in-msgs}, \texttt{list-in-msgs}, \texttt{encr-in-msgs}, \texttt{resp-strand-nodes}, \texttt{nsl-resp-nonce-originates}, \texttt{subterm-refl}, \texttt{bundle-space}, \texttt{bundle-minimal-sent}, \texttt{bundle-nodes-in-space}, \texttt{node-parts}, \texttt{three-strand-node}, \texttt{init-strand-nodes}, \texttt{token-subterm-of-encr}, \texttt{token-subterm-of-list}, \texttt{subterm-of-token}, \texttt{nn-le-ne-succ}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{nn-succ-closed}, \texttt{nn-succ-plus-one}, \texttt{nsl-init-nonce-originates}, \texttt{originates-unique}, \texttt{sent-ne-received}, \texttt{bundle-ssb-closed}, \texttt{bundle-ssb-precedes}, \texttt{subterm-component}, \texttt{subterm-encr}, \texttt{subterm-of-flat-encr-list}, \texttt{encr-injective}, \texttt{membership-implies-sethood}, \texttt{token-ne-list}, \texttt{encr-ne-list}, \texttt{token-not-encr}, \texttt{lst-injective}, \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-lemma-5-12}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 411 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{fun-apply-type-c}, \texttt{token-in-msgs}, \texttt{list-in-msgs}, \texttt{encr-in-msgs}, \texttt{resp-strand-nodes}, \texttt{nsl-resp-nonce-originates}, \texttt{subterm-refl}, \texttt{bundle-space}, \texttt{bundle-minimal-sent}, \texttt{bundle-nodes-in-space}, \texttt{bundle-minimal-earlier}, \texttt{nsl-adversary-loss}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The paper's Lemma 5.11 misses the case where Nb is a name; proved with the case.
+%
+\renewcommand{\thethm}{5.13}
+\begin{prop}[{Secrecy of the initiator's nonce (corrected)}]\label{thm:nsl-initiator-secrecy}
+%
+\leavevmode
+\vnbpart{\texttt{nsl-initiator-secrecy}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, s, a, b, d, f.; \forall m \in \operatorname{bnodes}(c). \\ \quad \operatorname{is\text{-}nsl\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(\operatorname{pk\text{-}inf}(p)) \wedge \\ \quad s \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}init\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(s), a, b, d, f) \wedge \\ \quad \langle 3, s \rangle \in \operatorname{bnodes}(c) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(a)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(b)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (d = f) \wedge \\ \quad \operatorname{uniquely\text{-}originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), d) \wedge \\ \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), d, \\ \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), m)) \Rightarrow \\ \quad \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \\ \quad \quad \quad \operatorname{encr}(\operatorname{lst}(\langle d, a \rangle), \operatorname{pubkey}(p)(b)), \\ \quad \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), m)) \vee \\ \quad \quad \exists w \in \operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))). \\ \quad \quad \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \\ \quad \quad \quad \quad \operatorname{encr}(\operatorname{lst}(\langle d, w, b \rangle), \operatorname{pubkey}(p)(a)), \\ \quad \quad \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), m)) \end{array}}
+\vnbpart{\texttt{nsl-initiator-nonce-not-sent}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, s, a, b, d, f.; \forall m \in \operatorname{bnodes}(c). \\ \quad \operatorname{is\text{-}nsl\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(\operatorname{pk\text{-}inf}(p)) \wedge \\ \quad s \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}init\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(s), a, b, d, f) \wedge \\ \quad \langle 3, s \rangle \in \operatorname{bnodes}(c) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(a)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(b)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (d = f) \wedge \\ \quad \operatorname{uniquely\text{-}originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), d) \Rightarrow \\ \quad \quad \neg (\operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), m) = d) \end{array}}
+\vnbpart{\texttt{nsl-initiator-secrecy-adversary}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, s, a, b, d, f.; \forall g \in \operatorname{bnodes}(c). \\ \quad \operatorname{is\text{-}nsl\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(\operatorname{pk\text{-}inf}(p)) \wedge \\ \quad s \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}init\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(s), a, b, d, f) \wedge \\ \quad \langle 3, s \rangle \in \operatorname{bnodes}(c) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(a)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(b)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (d = f) \wedge \\ \quad \operatorname{uniquely\text{-}originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), d) \wedge \\ \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), d, \\ \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, a \rangle), \operatorname{pubkey}(p)(b)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \forall w \in \operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))). \\ \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, w, b \rangle), \operatorname{pubkey}(p)(a)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \forall z \in \operatorname{bnodes}(c). \\ \quad \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), d, \\ \quad \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \wedge \\ \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, a \rangle), \operatorname{pubkey}(p)(b)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \wedge \\ \quad \quad \forall w \in \operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))). \\ \quad \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, w, b \rangle), \operatorname{pubkey}(p)(a)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \Rightarrow \\ \quad \quad \quad \neg (\langle z, g \rangle \in \operatorname{precedes\text{-}strict}(c)) \Rightarrow \\ \quad \quad \neg \operatorname{is\text{-}adversary\text{-}node}(\operatorname{pk\text{-}inf}(p), g) \end{array}}
+\vnbpart{\texttt{nsl-initiator-secrecy-regular}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, s, a, b, d, f.; \forall g \in \operatorname{bnodes}(c). \\ \quad \operatorname{is\text{-}nsl\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(\operatorname{pk\text{-}inf}(p)) \wedge \\ \quad s \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}init\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(s), a, b, d, f) \wedge \\ \quad \langle 3, s \rangle \in \operatorname{bnodes}(c) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(a)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(b)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (d = f) \wedge \\ \quad \operatorname{uniquely\text{-}originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), d) \wedge \\ \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), d, \\ \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, a \rangle), \operatorname{pubkey}(p)(b)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \forall w \in \operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))). \\ \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, w, b \rangle), \operatorname{pubkey}(p)(a)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), g)) \wedge \\ \quad \forall z \in \operatorname{bnodes}(c). \\ \quad \quad \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), d, \\ \quad \quad \quad \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \wedge \\ \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, a \rangle), \operatorname{pubkey}(p)(b)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \wedge \\ \quad \quad \forall w \in \operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))). \\ \quad \quad \quad \neg \operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{keys}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))), \operatorname{encr}(\operatorname{lst}(\langle d, w, b \rangle), \operatorname{pubkey}(p)(a)), \operatorname{node\text{-}content}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), z)) \Rightarrow \\ \quad \quad \quad \neg (\langle z, g \rangle \in \operatorname{precedes\text{-}strict}(c)) \Rightarrow \\ \quad \quad \neg \operatorname{is\text{-}regular\text{-}node}(\operatorname{pk\text{-}inf}(p), g) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-initiator-secrecy}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 327 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{bundle-minimal}, \texttt{bundle-space}, \texttt{bundle-minimal-sent}, \texttt{bundle-nodes-in-space}, \texttt{nsl-initiator-secrecy-adversary}, \texttt{nsl-initiator-secrecy-regular}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-initiator-nonce-not-sent}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 142 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{fun-apply-type-c}, \texttt{token-in-msgs}, \texttt{list-in-msgs}, \texttt{encr-in-msgs}, \texttt{subterm-refl}, \texttt{nsl-initiator-secrecy}, \texttt{subterm-of-token}, \texttt{membership-implies-sethood}, \texttt{encr-ne-token}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-initiator-secrecy-adversary}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 443 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{fun-apply-type-c}, \texttt{token-in-msgs}, \texttt{list-in-msgs}, \texttt{encr-in-msgs}, \texttt{init-strand-nodes}, \texttt{nsl-init-nonce-originates}, \texttt{subterm-refl}, \texttt{bundle-space}, \texttt{bundle-minimal-sent}, \texttt{bundle-nodes-in-space}, \texttt{bundle-minimal-earlier}, \texttt{nsl-adversary-loss}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nsl-initiator-secrecy-regular}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 2033 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{fun-apply-type-c}, \texttt{token-in-msgs}, \texttt{list-in-msgs}, \texttt{encr-in-msgs}, \texttt{init-strand-nodes}, \texttt{nsl-init-nonce-originates}, \texttt{subterm-refl}, \texttt{bundle-space}, \texttt{bundle-minimal-sent}, \texttt{bundle-nodes-in-space}, \texttt{node-parts}, \texttt{three-strand-node}, \texttt{token-subterm-of-encr}, \texttt{token-subterm-of-list}, \texttt{subterm-of-token}, \texttt{nn-le-ne-succ}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{nn-succ-closed}, \texttt{nn-succ-plus-one}, \texttt{originates-unique}, \texttt{sent-ne-received}, \texttt{bundle-ssb-closed}, \texttt{bundle-ssb-precedes}, \texttt{subterm-component}, \texttt{subterm-encr}, \texttt{subterm-of-flat-encr-list}, \texttt{encr-injective}, \texttt{lst-injective}, \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}, \texttt{encr-ne-list}, \texttt{membership-implies-sethood}, \texttt{token-not-encr}, \texttt{node-pair-injective}, \texttt{resp-strand-nodes}, \texttt{nsl-resp-nonce-originates}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} FALSE AS THE PAPER STATES IT, in two ways: two responders may answer the same first message, and then the second one's node holds Na but neither of the paper's two terms, with no adversary involved; and with Na = Nb the initiator's own third node is a counterexample. Proved with Na /= Nb added and the second disjunct widened to \{Na x B\}\_KA for some token x. C-height 3 is not needed.
+%
+\renewcommand{\thethm}{5.14}
+\begin{prop}[{The initiator's agreement guarantee}]\label{thm:nsl-initiator-agreement}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall p, c, s, a, b, d, f. \\ \quad \operatorname{is\text{-}nsl\text{-}space}(p) \wedge \\ \quad \operatorname{is\text{-}bundle}(c) \wedge \\ \quad \operatorname{bspace}(c) = \operatorname{ispace}(\operatorname{pk\text{-}inf}(p)) \wedge \\ \quad s \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \operatorname{is\text{-}init\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(s), a, b, d, f) \wedge \\ \quad \langle 3, s \rangle \in \operatorname{bnodes}(c) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(a)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (\operatorname{kinv}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(\operatorname{pubkey}(p)(b)) \in \operatorname{adv\text{-}tokens}(\operatorname{pk\text{-}inf}(p))) \wedge \\ \quad \neg (d = f) \wedge \\ \quad \operatorname{uniquely\text{-}originates}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)), d) \Rightarrow \\ \quad \quad \exists t \in \operatorname{ids}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p))). \\ \quad \quad \quad (\operatorname{is\text{-}resp\text{-}strand}(p, \operatorname{strand\text{-}map}(\operatorname{ispace}(\operatorname{pk\text{-}inf}(p)))(t), a, b, d, f) \wedge (\langle 2, t \rangle \in \operatorname{bnodes}(c))) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/nsl.scm} --- 883 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pk-space-parts}, \texttt{strand-space-parts}, \texttt{fun-apply-type-c}, \texttt{token-in-msgs}, \texttt{list-in-msgs}, \texttt{encr-in-msgs}, \texttt{init-strand-nodes}, \texttt{bundle-space}, \texttt{bundle-ssb-closed}, \texttt{subterm-refl}, \texttt{bundle-minimal}, \texttt{bundle-minimal-sent}, \texttt{bundle-nodes-in-space}, \texttt{node-parts}, \texttt{adversary-sent-source}, \texttt{bundle-ssb-precedes}, \texttt{membership-implies-sethood}, \texttt{token-not-encr}, \texttt{encr-ne-list}, \texttt{encr-injective}, \texttt{subterm-component}, \texttt{nsl-initiator-secrecy}, \texttt{subterm-of-flat-list}, \texttt{nsl-regular-encr-subterm}, \texttt{three-strand-node}, \texttt{lst-injective}, \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}, \texttt{sent-ne-received}, \texttt{token-ne-list}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Rests on the corrected 5.13, so it carries Na /= Nb; whether it holds without that hypothesis is open.
+%
+\section{Construction of measures}
+%
+\renewcommand{\thethm}{1.13}
+\begin{thm}[{The monotone class theorem}]\label{thm:monotone-class-theorem}
+%
+\leavevmode
+\vnbpart{\texttt{monotone-class-theorem}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, c, e. \\ \quad (\operatorname{is\text{-}monotone\text{-}class}(a, c) \wedge (\operatorname{is\text{-}algebra\text{-}of\text{-}sets}(a, e) \wedge (e \subseteq c))) \Rightarrow  \\ \quad \quad \operatorname{sigma\text{-}generated}(a, e) \subseteq c \end{array}}
+\vnbpart{\texttt{algebra-monotone-union-sigma-algebra}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b. \\ \quad \operatorname{is\text{-}algebra\text{-}of\text{-}sets}(a, b) \wedge \\ \quad \forall f \in (\mathbb{N} \to b). \\ \quad \quad \forall n \in \mathbb{N}.\; (f(n) \subseteq f((n + 1))) \Rightarrow (\operatorname{big\text{-}union}(k, \mathbb{N}, f(k)) \in b) \Rightarrow \\ \quad \quad \operatorname{is\text{-}sigma\text{-}algebra}(a, b) \end{array}}
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{monotone-class-theorem}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/monotone-\allowbreak{}class.scm} --- 383 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{monotone-class-generated-is-monotone-class}, \texttt{subset-def}, \texttt{subset-mem-fwd}, \texttt{monotone-class-generated-membership}, \texttt{monotone-class-union-section}, \texttt{algebra-union-closed}, \texttt{union-membership}, \texttt{class-extensionality}, \texttt{monotone-class-complement-section}, \texttt{algebra-complement-closed}, \texttt{intersection-membership}, \texttt{complement-in-membership}, \texttt{power-mem-in}, \texttt{algebra-monotone-union-sigma-algebra}, \texttt{sigma-generated-in-every}.}
+%
+\vnbprf{\textbf{Oracles.} none.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{algebra-monotone-union-sigma-algebra}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/monotone-\allowbreak{}class.scm} --- 161 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{algebra-whole-empty-in}, \texttt{algebra-seg-union-in}, \texttt{nn-is-set}, \texttt{nn-succ-closed}, \texttt{bu-seg-succ}, \texttt{subset-def}, \texttt{union-membership}, \texttt{membership-implies-sethood}, \texttt{ord-segment-nn-subset}, \texttt{class-extensionality}.}
+%
+\vnbprf{\textbf{Oracles.} none.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} IS-MONOTONE-CLASS carries omega in SET, as IS-SIGMA-ALGEBRA does; the binary intersection the algebra needs comes by De Morgan, which the notes skip.
+%
+\renewcommand{\thethm}{1.17}
+\begin{prop}[{Continuity of a measure from below}]\label{thm:measure-continuity-from-below}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, f. \\ \quad (\operatorname{is\text{-}measure}(a, b, u) \wedge ((f \in (\mathbb{N} \to b)) \wedge \forall n \in \mathbb{N}.\; (f(n) \subseteq f((n + 1))))) \Rightarrow  \\ \quad \quad u(\operatorname{big\text{-}union}(n, \mathbb{N}, f(n))) = \operatorname{esup}(\operatorname{image}((\lambda n \in \mathbb{N}.\; u(f(n))), \mathbb{N})) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/measure-\allowbreak{}laws.scm} --- 202 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{sigma-algebra-union-closed}, \texttt{fun-apply-type-c}, \texttt{nn-is-set}, \texttt{subset-def}, \texttt{image-subset-codomain}, \texttt{esup-in}, \texttt{esup-upper}, \texttt{disjointify-type}, \texttt{disjointify-disjoint}, \texttt{disjointify-union}, \texttt{disjointify-prefix}, \texttt{sigma-algebra-seg-union-in}, \texttt{nondecreasing-seg-subset}, \texttt{subset-mem-fwd}, \texttt{measure-monotone}, \texttt{rps-prefix-type}, \texttt{membership-implies-sethood}, \texttt{rr-pos-star-le-trans}, \texttt{esum-nn-le-of-prefixes}, \texttt{esup-least}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The supremum over k is the ESUP of the values; a nondecreasing sequence is f in FUN(NN, cA) with f(k) a subset of f(k+1).
+%
+\renewcommand{\thethm}{1.18}
+\begin{prop}[{Continuity of a measure from above}]\label{thm:measure-continuity-from-above}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, f. \\ \quad \operatorname{is\text{-}measure}(a, b, u) \wedge \\ \quad f \in (\mathbb{N} \to b) \wedge \\ \quad \forall n \in \mathbb{N}.\; (f((n + 1)) \subseteq f(n)) \wedge \\ \quad u(f(0)) \in \mathbb{R} \Rightarrow \\ \quad \quad u(\operatorname{complement\text{-}in}(a, \operatorname{big\text{-}union}(n, \mathbb{N}, \operatorname{complement\text{-}in}(a, f(n))))) \\ \quad \quad =\; \operatorname{einf}(\operatorname{image}((\lambda n \in \mathbb{N}.\; u(f(n))), \mathbb{N})) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/measure-\allowbreak{}laws.scm} --- 492 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nn-zero-in}, \texttt{fun-apply-type-c}, \texttt{nn-is-set}, \texttt{sigma-algebra-complement-closed}, \texttt{sigma-algebra-union-closed}, \texttt{membership-implies-sethood}, \texttt{class-extensionality}, \texttt{subset-def}, \texttt{complement-in-membership}, \texttt{nn-nested-subset-chain}, \texttt{measure-finite-subset}, \texttt{sigma-algebra-difference-closed}, \texttt{nn-succ-closed}, \texttt{subset-mem-fwd}, \texttt{measure-continuity-from-below}, \texttt{power-mem-in}, \texttt{image-subset-codomain}, \texttt{einf-in}, \texttt{einf-lower}, \texttt{rr-pos-star-le-real-in-rr}, \texttt{rr-pos-star-nonneg}, \texttt{rr-sub-in-rr}, \texttt{nn-zero-le}, \texttt{measure-subtractive}, \texttt{esup-least}, \texttt{complement-in-subset}, \texttt{measure-monotone}, \texttt{einf-greatest}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} As the notes state it, with mu(A\_1) finite written mu(A\_1) in RR.
+%
+\renewcommand{\thethm}{2.16}
+\begin{prop}[{The monotone convergence theorem}]\label{thm:monotone-convergence}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, f. \\ \quad \operatorname{is\text{-}measure}(a, b, u) \wedge \\ \quad f \in (\mathbb{N} \to (a \to \operatorname{rr\text{-}pos\text{-}star})) \wedge \\ \quad \forall n \in \mathbb{N}.\; \operatorname{is\text{-}measurable\text{-}fn}(a, b, f(n)) \wedge \\ \quad \forall n \in \mathbb{N}.\; \operatorname{ptwise\text{-}le}(a, f(n), f((n + 1))) \Rightarrow \\ \quad \quad \operatorname{is\text{-}measurable\text{-}fn}(a, b, \operatorname{ptwise\text{-}sup}(a, f)) \wedge \\ \quad \quad \operatorname{integral}(a, b, u, \operatorname{ptwise\text{-}sup}(a, f)) = \operatorname{esup}(\operatorname{image}((\lambda n \in \mathbb{N}.\; \operatorname{integral}(a, b, u, f(n))), \mathbb{N})) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/integral-\allowbreak{}convergence.scm} --- 205 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{measurable-fn-sup}, \texttt{integral-in}, \texttt{nn-is-set}, \texttt{subset-def}, \texttt{image-subset-codomain}, \texttt{esup-in}, \texttt{integral-unfold}, \texttt{mct-simple-below}, \texttt{esup-least}, \texttt{fun-apply-type-c}, \texttt{membership-implies-sethood}, \texttt{esup-upper}, \texttt{integral-monotone}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} For [0, +inf]-valued measurable functions, the integral defined as the supremum over simple functions below; the limit of the integrals is their ESUP (the sequence of integrals is nondecreasing).
+%
+\renewcommand{\thethm}{2.28}
+\begin{prop}[{The dominated convergence theorem}]\label{thm:dominated-convergence}
+%
+\leavevmode
+\vnbpart{\texttt{dominated-convergence}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, c, f, g. \\ \quad \operatorname{is\text{-}measure}(a, b, u) \wedge \\ \quad c \in (\mathbb{N} \to (a \to \operatorname{rr\text{-}pos\text{-}star})) \wedge \\ \quad \forall n \in \mathbb{N}.\; \operatorname{is\text{-}measurable\text{-}fn}(a, b, c(n)) \wedge \\ \quad \operatorname{is\text{-}measurable\text{-}fn}(a, b, f) \wedge \\ \quad \operatorname{is\text{-}measurable\text{-}fn}(a, b, g) \wedge \\ \quad \forall n \in \mathbb{N}.\; \operatorname{ptwise\text{-}le}(a, c(n), g) \wedge \\ \quad \operatorname{integral}(a, b, u, g) \in \mathbb{R} \wedge \\ \quad \forall x \in a.\; \operatorname{econverges\text{-}to}((\lambda n \in \mathbb{N}.\; c(n)(x)), f(x)) \Rightarrow \\ \quad \quad \operatorname{econverges\text{-}to}((\lambda n \in \mathbb{N}.\; \operatorname{integral}(a, b, u, c(n))), \operatorname{integral}(a, b, u, f)) \end{array}}
+\vnbpart{\texttt{fatou}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, f. \\ \quad \operatorname{is\text{-}measure}(a, b, u) \wedge \\ \quad f \in (\mathbb{N} \to (a \to \operatorname{rr\text{-}pos\text{-}star})) \wedge \\ \quad \forall n \in \mathbb{N}.\; \operatorname{is\text{-}measurable\text{-}fn}(a, b, f(n)) \Rightarrow \\ \quad \quad \operatorname{is\text{-}measurable\text{-}fn}(a, b, \operatorname{ptwise\text{-}liminf}(a, f)) \wedge \\ \quad \quad \operatorname{integral}(a, b, u, \operatorname{ptwise\text{-}liminf}(a, f)) \leq \operatorname{eliminf}((\lambda n \in \mathbb{N}.\; \operatorname{integral}(a, b, u, f(n)))) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{dominated-convergence}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/integral-\allowbreak{}convergence.scm} --- 1453 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{sigma-algebra-ambient-set}, \texttt{integral-in}, \texttt{rr-pos-star-nonneg}, \texttt{fun-apply-type-c}, \texttt{elimsup-le-bound}, \texttt{fatou}, \texttt{fun-codomain-iff}, \texttt{fun-domain-extensionality}, \texttt{measurable-fn-sub}, \texttt{integral-sub}, \texttt{eplus-pos-inf-right}, \texttt{pos-inf-not-in-rr}, \texttt{eplus-pos-inf-left}, \texttt{eplus-real-defined}, \texttt{rr-add-closed}, \texttt{rr-sub-in-rr}, \texttt{rr-leq-antisymmetric}, \texttt{nn-is-set}, \texttt{rr-pos-star-le-real-in-rr}, \texttt{difference-value}, \texttt{eliminf-reflection}, \texttt{rr-leq-reflexive}, \texttt{rr-zero-in}, \texttt{integral-monotone}, \texttt{eliminf-le-elimsup}, \texttt{subset-def}, \texttt{subset-mem-fwd}, \texttt{einf-in}, \texttt{image-subset-codomain}, \texttt{esup-in}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{fatou}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/integral-\allowbreak{}convergence.scm} --- 1004 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{sigma-algebra-ambient-set}, \texttt{measurable-fn-liminf}, \texttt{subset-def}, \texttt{subset-mem-fwd}, \texttt{fun-apply-type-c}, \texttt{einf-in}, \texttt{nn-is-set}, \texttt{membership-implies-sethood}, \texttt{measurable-fn-inf-of-values}, \texttt{nn-succ-closed}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{nn-succ-plus-one}, \texttt{einf-lower}, \texttt{einf-greatest}, \texttt{image-subset-codomain}, \texttt{esup-in}, \texttt{fun-codomain-iff}, \texttt{fun-domain-extensionality}, \texttt{monotone-convergence}, \texttt{integral-in}, \texttt{integral-monotone}, \texttt{esup-upper}, \texttt{rr-pos-star-le-trans}, \texttt{esup-least}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Proven in the [0, +inf]-valued form the tree's integral has (no real- or complex-valued integrable functions yet) and everywhere rather than almost everywhere; Fatou's lemma beside it.
+%
+\renewcommand{\thethm}{4.4}
+\begin{prop}[{The Caratheodory theorem}]\label{thm:caratheodory-measurable-sigma-algebra}
+%
+\leavevmode
+\vnbpart{\texttt{caratheodory-measurable-sigma-algebra}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, u. \\ \quad \operatorname{is\text{-}outer\text{-}measure}(a, u) \Rightarrow \operatorname{is\text{-}sigma\text{-}algebra}(a, \operatorname{caratheodory\text{-}sets}(a, u)) \end{array}}
+\vnbpart{\texttt{caratheodory-measure}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, u. \\ \quad \operatorname{is\text{-}outer\text{-}measure}(a, u) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}measure}(a, \operatorname{caratheodory\text{-}sets}(a, u), \operatorname{res}(u, \operatorname{caratheodory\text{-}sets}(a, u))) \end{array}}
+\vnbpart{\texttt{caratheodory-null-measurable}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, u, s. \\ \quad (\operatorname{is\text{-}outer\text{-}measure}(a, u) \wedge ((s \subseteq a) \wedge (u(s) = 0))) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}caratheodory\text{-}measurable}(a, u, s) \end{array}}
+\vnbpart{\texttt{caratheodory-superadditive-suffices}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, u, s. \\ \quad \operatorname{is\text{-}outer\text{-}measure}(a, u) \wedge \\ \quad s \subseteq a \wedge \\ \quad \forall \alpha \in \operatorname{power}(a). \\ \quad \quad \operatorname{eplus}(u((\alpha \cap s)), u(\operatorname{difference}(\alpha, s))) \leq u(\alpha) \Rightarrow \\ \quad \quad \operatorname{is\text{-}caratheodory\text{-}measurable}(a, u, s) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{caratheodory-measurable-sigma-algebra}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/caratheodory.scm} --- 767 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{subset-def}, \texttt{power-whole-in}, \texttt{subset-refl}, \texttt{power-mem-in}, \texttt{inter-of-subset}, \texttt{complement-in-of-subset-empty}, \texttt{fun-apply-type-c}, \texttt{eplus-zero-right}, \texttt{power-complement-closed}, \texttt{complement-in-subset}, \texttt{inter-complement-in-ambient}, \texttt{complement-in-complement-in-ambient}, \texttt{difference-unfold}, \texttt{power-inter-closed}, \texttt{power-mem-sethood}, \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{power-mem-intro}, \texttt{eplus-comm}, \texttt{fun-codomain-iff}, \texttt{power-fun-union-closed}, \texttt{nn-is-set}, \texttt{nn-zero-in}, \texttt{caratheodory-prefix-split}, \texttt{rps-prefix-type}, \texttt{complement-in-membership}, \texttt{ord-segment-nn-subset}, \texttt{rr-pos-star-le-refl}, \texttt{eplus-mono}, \texttt{nn-succ-closed}, \texttt{rps-prefix-succ}, \texttt{eplus-le-left}, \texttt{esup-eplus-le}, \texttt{image-subset-codomain}, \texttt{esup-in}, \texttt{esup-upper}, \texttt{membership-implies-sethood}, \texttt{esum-nn-le-of-prefixes}, \texttt{disjointify-union}, \texttt{intersection-membership}, \texttt{class-extensionality}, \texttt{esum-nn-le-termwise}, \texttt{dom-of-fun}, \texttt{esum-in}, \texttt{rr-pos-star-le-trans}, \texttt{eplus-closed}, \texttt{caratheodory-superadditive-suffices}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{caratheodory-measure}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/caratheodory.scm} --- 443 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{caratheodory-measurable-sigma-algebra}, \texttt{fun-codomain-iff}, \texttt{res-codomain}, \texttt{sigma-algebra-empty-in}, \texttt{res-apply}, \texttt{sigma-algebra-union-closed}, \texttt{fun-apply-type-c}, \texttt{nn-is-set}, \texttt{fun-domain-extensionality}, \texttt{complement-in-subset}, \texttt{power-mem-sethood}, \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{power-mem-in}, \texttt{power-mem-intro}, \texttt{power-inter-closed}, \texttt{subset-def}, \texttt{intersection-membership}, \texttt{complement-in-membership}, \texttt{ord-segment-nn-subset}, \texttt{seg-mem-lt}, \texttt{nn-in-rr}, \texttt{rr-lt-irrefl}, \texttt{empty-set-has-no-members}, \texttt{esum-nn-le-termwise}, \texttt{caratheodory-prefix-split}, \texttt{rps-prefix-type}, \texttt{eplus-le-left}, \texttt{esum-nn-le-of-prefixes}, \texttt{dom-of-fun}, \texttt{esum-in}, \texttt{rr-pos-star-le-trans}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{caratheodory-null-measurable}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/caratheodory.scm} --- 144 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{power-mem-intro}, \texttt{power-inter-closed}, \texttt{subset-def}, \texttt{intersection-membership}, \texttt{fun-apply-type-c}, \texttt{rr-pos-star-nonneg}, \texttt{zero-in-rr-pos-star}, \texttt{rr-pos-star-le-antisymm}, \texttt{complement-in-subset}, \texttt{power-mem-sethood}, \texttt{power-mem-in}, \texttt{outer-measure-split-le}, \texttt{eplus-zero-left}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{caratheodory-superadditive-suffices}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/caratheodory.scm} --- 115 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{power-mem-intro}, \texttt{difference-unfold}, \texttt{power-inter-closed}, \texttt{complement-in-subset}, \texttt{power-mem-sethood}, \texttt{power-mem-in}, \texttt{fun-apply-type-c}, \texttt{outer-measure-split-le}, \texttt{eplus-closed}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The one statement of the notes is two theorems, the sigma-algebra and the measure; proven through one lemma (caratheodory-prefix-split) in place of the notes' three steps (binary unions, finite families, the limit).
+%
+\renewcommand{\thethm}{4.7}
+\begin{prop}[{The method I outer measure of a pre-measure is an outer measure}]\label{thm:method-i-outer-is-outer-measure}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, s, m. \\ \quad \operatorname{is\text{-}premeasure}(a, s, m) \Rightarrow \operatorname{is\text{-}outer\text{-}measure}(a, \operatorname{method\text{-}i\text{-}outer}(a, s, m)) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/outer-\allowbreak{}measure-\allowbreak{}construction.scm} --- 195 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{method-i-outer-type}, \texttt{power-empty-in}, \texttt{method-i-outer-value}, \texttt{method-i-outer-empty}, \texttt{method-i-outer-mono}, \texttt{power-fun-union-closed}, \texttt{method-i-outer-subadditive}, \texttt{fun-apply-type-c}, \texttt{cover-sums-subset}, \texttt{einf-in}, \texttt{nn-is-set}, \texttt{rr-pos-star-le-refl}, \texttt{esum-nn-le-termwise}, \texttt{fun-codomain-iff}, \texttt{dom-of-fun}, \texttt{esum-in}, \texttt{rr-pos-star-le-trans}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The infimum over covering sequences is EINF of COVER-SUMS, +inf when no sequence covers; the re-indexing of the double sum (esum-nn-flatten-le), the countable choice of covers and the eps / 2\textasciicircum{}(i+1) budget, all silent in the notes, are theorems.
+%
+\renewcommand{\thethm}{4.10}
+\begin{prop}[{The outer measure extending a measure}]\label{thm:method-i-outer-extends}
+%
+\leavevmode
+\vnbpart{\texttt{method-i-outer-extends}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, o, c. \\ \quad (\operatorname{is\text{-}measure}(a, b, o) \wedge (c \in b)) \Rightarrow (\operatorname{method\text{-}i\text{-}outer}(a, b, o)(c) = o(c)) \end{array}}
+\vnbpart{\texttt{method-i-outer-measurable}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, o, c. \\ \quad (\operatorname{is\text{-}measure}(a, b, o) \wedge (c \in b)) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}caratheodory\text{-}measurable}(a, \operatorname{method\text{-}i\text{-}outer}(a, b, o), c) \end{array}}
+\vnbpart{\texttt{method-i-outer-null-iff}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, o, s. \\ \quad (\operatorname{is\text{-}measure}(a, b, o) \wedge (s \in \operatorname{power}(a))) \Rightarrow  \\ \quad \quad (\operatorname{method\text{-}i\text{-}outer}(a, b, o)(s) = 0) \Leftrightarrow \operatorname{is\text{-}null\text{-}set}(a, b, o, s) \end{array}}
+\vnbpart{\texttt{method-i-outer-finite-approx}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, o, s. \\ \quad \operatorname{is\text{-}measure}(a, b, o) \wedge \\ \quad \operatorname{is\text{-}caratheodory\text{-}measurable}(a, \operatorname{method\text{-}i\text{-}outer}(a, b, o), s) \wedge \\ \quad \operatorname{method\text{-}i\text{-}outer}(a, b, o)(s) \in \mathbb{R} \Rightarrow \\ \quad \quad \exists y \in b.\; ((s \subseteq y) \wedge \operatorname{is\text{-}null\text{-}set}(a, b, o, \operatorname{complement\text{-}in}(y, s))) \end{array}}
+\vnbpart{\texttt{method-i-outer-of-measure}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, o, s. \\ \quad (\operatorname{is\text{-}measure}(a, b, o) \wedge (s \in \operatorname{power}(a))) \Rightarrow  \\ \quad \quad \operatorname{method\text{-}i\text{-}outer}(a, b, o)(s) \\ \quad \quad =\; \operatorname{einf}(\{v \in \operatorname{rr\text{-}pos\text{-}star} : \exists \mathit{osa} \in b.\; ((s \subseteq \mathit{osa}) \wedge (v = o(\mathit{osa})))\}) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{method-i-outer-extends}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/outer-\allowbreak{}measure-\allowbreak{}construction.scm} --- 92 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{measure-is-premeasure}, \texttt{subset-mem-fwd}, \texttt{method-i-outer-value}, \texttt{subset-refl}, \texttt{method-i-outer-le-single}, \texttt{fun-apply-type-c}, \texttt{cover-sums-subset}, \texttt{einf-in}, \texttt{cover-sum-dominates}, \texttt{measure-monotone}, \texttt{rr-pos-star-le-trans}, \texttt{einf-greatest}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{method-i-outer-measurable}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/outer-\allowbreak{}measure-\allowbreak{}construction.scm} --- 211 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{measure-is-premeasure}, \texttt{method-i-outer-is-outer-measure}, \texttt{subset-mem-fwd}, \texttt{subset-def}, \texttt{power-mem-in}, \texttt{difference-unfold}, \texttt{power-inter-closed}, \texttt{power-complement-closed}, \texttt{complement-in-subset}, \texttt{power-mem-sethood}, \texttt{subclass-of-set-is-set}, \texttt{power-mem-intro}, \texttt{method-i-outer-value}, \texttt{cover-sums-subset}, \texttt{einf-in}, \texttt{eplus-closed}, \texttt{cover-sum-dominates}, \texttt{sigma-algebra-inter-closed-2}, \texttt{sigma-algebra-difference-closed}, \texttt{intersection-membership}, \texttt{complement-in-membership}, \texttt{method-i-outer-le-single}, \texttt{fun-apply-type-c}, \texttt{empty-set-has-no-members}, \texttt{class-extensionality}, \texttt{measure-finitely-additive}, \texttt{union-inter-complement-in-split}, \texttt{eplus-mono}, \texttt{rr-pos-star-le-trans}, \texttt{einf-greatest}, \texttt{caratheodory-superadditive-suffices}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{method-i-outer-null-iff}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/outer-\allowbreak{}measure-\allowbreak{}construction.scm} --- 84 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{measure-is-premeasure}, \texttt{method-i-outer-value}, \texttt{cover-sums-subset}, \texttt{einf-in}, \texttt{rr-zero-in}, \texttt{method-i-outer-attained}, \texttt{method-i-outer-le-single}, \texttt{rr-pos-star-nonneg}, \texttt{zero-in-rr-pos-star}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{method-i-outer-finite-approx}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/outer-\allowbreak{}measure-\allowbreak{}construction.scm} --- 210 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{measure-is-premeasure}, \texttt{method-i-outer-is-outer-measure}, \texttt{sigma-algebra-ambient-set}, \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{power-mem-intro}, \texttt{method-i-outer-attained}, \texttt{method-i-outer-extends}, \texttt{complement-in-subset}, \texttt{power-mem-sethood}, \texttt{power-mem-in}, \texttt{difference-unfold}, \texttt{intersection-membership}, \texttt{class-extensionality}, \texttt{method-i-outer-type}, \texttt{fun-apply-type-c}, \texttt{rr-pos-star-nonneg}, \texttt{rr-pos-star-le-real-in-rr}, \texttt{eplus-real-defined}, \texttt{zero-in-rr-pos-star}, \texttt{rr-pos-star-le-antisymm}, \texttt{method-i-outer-null-iff}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{method-i-outer-of-measure}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/outer-\allowbreak{}measure-\allowbreak{}construction.scm} --- 144 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{measure-is-premeasure}, \texttt{method-i-outer-value}, \texttt{cover-sums-subset}, \texttt{einf-in}, \texttt{subset-def}, \texttt{method-i-outer-le-single}, \texttt{einf-greatest}, \texttt{cover-sum-dominates}, \texttt{subset-mem-fwd}, \texttt{fun-apply-type-c}, \texttt{einf-lower}, \texttt{rr-pos-star-le-trans}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Four theorems for the notes' four assertions; the 'without loss of generality nonincreasing' and Prop. 1.18 of the notes' proof are not needed, monotonicity gives rho(intersection) $<$= rho(A\_n).
+%
+\renewcommand{\thethm}{4.11}
+\begin{cor}[{The Caratheodory measure of mu* is complete and extends the completion of rho}]\label{thm:method-i-outer-caratheodory-complete}
+%
+\leavevmode
+\vnbpart{\texttt{method-i-outer-caratheodory-complete}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, o. \\ \quad \operatorname{is\text{-}measure}(a, b, o) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}complete\text{-}measure}(a, \operatorname{caratheodory\text{-}sets}(a, \operatorname{method\text{-}i\text{-}outer}(a, b, o)), \\ \quad \quad \quad \operatorname{res}(\operatorname{method\text{-}i\text{-}outer}(a, b, o), \operatorname{caratheodory\text{-}sets}(a, \operatorname{method\text{-}i\text{-}outer}(a, b, o)))) \end{array}}
+\vnbpart{\texttt{method-i-outer-extends-completion}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, o, c, s. \\ \quad (\operatorname{is\text{-}measure}(a, b, o) \wedge ((c \in b) \wedge \operatorname{is\text{-}null\text{-}set}(a, b, o, s))) \Rightarrow  \\ \quad \quad (c \cup s) \in \operatorname{caratheodory\text{-}sets}(a, \operatorname{method\text{-}i\text{-}outer}(a, b, o)) \wedge \\ \quad \quad \operatorname{res}(\operatorname{method\text{-}i\text{-}outer}(a, b, o), \operatorname{caratheodory\text{-}sets}(a, \operatorname{method\text{-}i\text{-}outer}(a, b, o)))((c \cup s)) = o(c) \end{array}}
+\vnbpart{\texttt{caratheodory-measure-complete}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, u. \\ \quad \operatorname{is\text{-}outer\text{-}measure}(a, u) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}complete\text{-}measure}(a, \operatorname{caratheodory\text{-}sets}(a, u), \operatorname{res}(u, \operatorname{caratheodory\text{-}sets}(a, u))) \end{array}}
+%
+\end{cor}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{method-i-outer-caratheodory-complete}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/outer-\allowbreak{}measure-\allowbreak{}construction.scm} --- 6 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{measure-is-premeasure}, \texttt{method-i-outer-is-outer-measure}, \texttt{caratheodory-measure-complete}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{method-i-outer-extends-completion}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/outer-\allowbreak{}measure-\allowbreak{}construction.scm} --- 212 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{measure-is-premeasure}, \texttt{method-i-outer-is-outer-measure}, \texttt{method-i-outer-type}, \texttt{sigma-algebra-ambient-set}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{fun-codomain-iff}, \texttt{subset-mem-fwd}, \texttt{power-mem-sethood}, \texttt{subclass-of-set-is-set}, \texttt{power-mem-in}, \texttt{power-mem-intro}, \texttt{method-i-outer-null-iff}, \texttt{subset-def}, \texttt{caratheodory-null-measurable}, \texttt{method-i-outer-measurable}, \texttt{sigma-algebra-union-closed-2}, \texttt{res-apply}, \texttt{outer-measure-binary-subadditive}, \texttt{method-i-outer-extends}, \texttt{union-membership}, \texttt{fun-apply-type-c}, \texttt{eplus-zero-right}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{caratheodory-measure-complete}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/outer-\allowbreak{}measure-\allowbreak{}construction.scm} --- 158 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{caratheodory-measurable-sigma-algebra}, \texttt{caratheodory-measure}, \texttt{fun-codomain-iff}, \texttt{res-apply}, \texttt{power-mem-sethood}, \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{power-mem-in}, \texttt{power-mem-intro}, \texttt{subset-def}, \texttt{fun-apply-type-c}, \texttt{rr-pos-star-nonneg}, \texttt{zero-in-rr-pos-star}, \texttt{rr-pos-star-le-antisymm}, \texttt{caratheodory-null-measurable}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Completeness is proven for the Caratheodory measure of ANY outer measure; 'extends the completion' is stated as: every A u N with A in A and N rho-null is mu*-measurable with measure rho(A), the completion not being an object of the tree.
+%
+\renewcommand{\thethm}{4.12}
+\begin{prop}[{For sigma-finite rho the Caratheodory measure of mu* is the completion of rho}]\label{thm:method-i-outer-sigma-finite-completion}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, o, s. \\ \quad \operatorname{is\text{-}measure}(a, b, o) \wedge \\ \quad \operatorname{is\text{-}sigma\text{-}finite}(a, b, o) \wedge \\ \quad s \in \operatorname{caratheodory\text{-}sets}(a, \operatorname{method\text{-}i\text{-}outer}(a, b, o)) \Rightarrow \\ \quad \quad \exists \mathit{ofa} \in b, \mathit{ofb}.\; (\operatorname{is\text{-}null\text{-}set}(a, b, o, \mathit{ofb}) \wedge (s = (\mathit{ofa} \cup \mathit{ofb}))) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/outer-\allowbreak{}measure-\allowbreak{}construction.scm} --- 137 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{measure-is-premeasure}, \texttt{method-i-outer-is-outer-measure}, \texttt{sigma-algebra-ambient-set}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{sigma-algebra-complement-closed}, \texttt{subset-def}, \texttt{power-mem-in}, \texttt{method-i-outer-sigma-finite-approx}, \texttt{subset-mem-fwd}, \texttt{complement-in-membership}, \texttt{union-membership}, \texttt{class-extensionality}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Stated as: every mu*-measurable set is A u N with A in A and N rho-null; the notes show E subset F with F \textbackslash{} E null and the A u N form needs the same applied to X \textbackslash{} E; the notes print $<$ where $<$= is meant.
+%
+\renewcommand{\thethm}{4.27}
+\begin{lem}[{A metric outer measure is additive on a positively separated sequence}]\label{thm:metric-outer-measure-separated-sum}
+%
+\leavevmode
+\vnbpart{\texttt{metric-outer-measure-separated-sum}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, u, s. \\ \quad \operatorname{is\text{-}metric\text{-}outer\text{-}measure}(m, u) \wedge \\ \quad s \in (\mathbb{N} \to \operatorname{power}(\operatorname{pts}(m))) \wedge \\ \quad \forall k, l \in \mathbb{N}.\; (\neg (k = l) \Rightarrow \neg (\operatorname{set\text{-}dist}(m, s(k), s(l)) = 0)) \Rightarrow \\ \quad \quad u(\operatorname{big\text{-}union}(n, \mathbb{N}, s(n))) = \operatorname{esum}((\lambda n \in \mathbb{N}.\; u(s(n)))) \end{array}}
+\vnbpart{\texttt{metric-outer-measure-finite-separated}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, u, s.; \forall n \in \mathbb{N}. \\ \quad \operatorname{is\text{-}metric\text{-}outer\text{-}measure}(m, u) \wedge \\ \quad s \in (\mathbb{N} \to \operatorname{power}(\operatorname{pts}(m))) \wedge \\ \quad \forall k, l \in \mathbb{N}.\; (\neg (k = l) \Rightarrow \neg (\operatorname{set\text{-}dist}(m, s(k), s(l)) = 0)) \Rightarrow \\ \quad \quad u(\operatorname{big\text{-}union}(j, \mathrm{OS}(n), s(j))) \\ \quad \quad =\; \operatorname{finsum}(\operatorname{rr\text{-}pos\text{-}star\text{-}add\text{-}monoid}, (\lambda a \in \mathbb{N}.\; u(s(a))), \mathrm{OS}(n)) \end{array}}
+%
+\end{lem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{metric-outer-measure-separated-sum}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/metric-\allowbreak{}outer-\allowbreak{}measure.scm} --- 205 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{fun-apply-type-c}, \texttt{subset-def}, \texttt{power-mem-in}, \texttt{nn-is-set}, \texttt{subset-mem-fwd}, \texttt{subclass-of-set-is-set}, \texttt{power-mem-intro}, \texttt{fun-codomain-iff}, \texttt{dom-of-fun}, \texttt{esum-in}, \texttt{metric-outer-measure-finite-separated}, \texttt{ord-segment-nn-subset}, \texttt{esum-nn-le-of-prefixes}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{metric-outer-measure-finite-separated}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/metric-\allowbreak{}outer-\allowbreak{}measure.scm} --- 8 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{metric-outer-measure-prefix-separated}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The induction for (93) must also carry that the union of the first n sets stays at positive distance from the later ones; the notes leave it implicit.
+%
+\renewcommand{\thethm}{4.28}
+\begin{lem}[{The layers of the complement of a closed set}]\label{thm:metric-outer-layers-limit}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, u, l. \\ \quad (\operatorname{is\text{-}metric\text{-}outer\text{-}measure}(m, u) \wedge \operatorname{is\text{-}closed}(m, l)) \Rightarrow  \\ \quad \quad \forall n \in \mathbb{N}. \\ \quad \quad \quad \{x \in \operatorname{pts}(m) : (\operatorname{recip}((n + 1)) \leq \operatorname{pt\text{-}set\text{-}dist}(m, x, l))\} \\ \quad \quad \quad \subseteq\; \{x \in \operatorname{pts}(m) : (\operatorname{recip}(((n + 1) + 1)) \leq \operatorname{pt\text{-}set\text{-}dist}(m, x, l))\} \wedge \\ \quad \quad \forall a \in \operatorname{power}(\operatorname{pts}(m)). \\ \quad \quad \quad u((a \cap \operatorname{complement\text{-}in}(\operatorname{pts}(m), l))) \\ \quad \quad \quad =\; \operatorname{esup}(\operatorname{image}((\lambda k \in \mathbb{N}.\; u((a \cap \{x \in \operatorname{pts}(m) : (\operatorname{recip}((k + 1)) \leq \operatorname{pt\text{-}set\text{-}dist}(m, x, l))\}))), \\ \quad \quad \quad \quad \quad \mathbb{N})) \end{array}}
+%
+\end{lem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/metric-\allowbreak{}outer-\allowbreak{}measure.scm} --- 1092 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nn-succ-closed}, \texttt{nn-le-succ}, \texttt{dist-layer-mono}, \texttt{subset-def}, \texttt{power-mem-in}, \texttt{nn-is-set}, \texttt{intersection-membership}, \texttt{subset-mem-fwd}, \texttt{subclass-of-set-is-set}, \texttt{power-mem-intro}, \texttt{fun-apply-type-c}, \texttt{image-subset-codomain}, \texttt{esup-in}, \texttt{esup-upper}, \texttt{dist-layer-disjoint}, \texttt{dist-layer-mem-elim}, \texttt{complement-in-membership}, \texttt{esup-least}, \texttt{nn-mul-closed}, \texttt{esum-nn-even-odd-le}, \texttt{dist-ring-even-sum-le}, \texttt{dist-ring-odd-sum-le}, \texttt{fun-codomain-iff}, \texttt{dom-of-fun}, \texttt{esum-in}, \texttt{eplus-closed}, \texttt{eplus-mono}, \texttt{rr-pos-star-le-trans}, \texttt{eplus-real-defined}, \texttt{rr-add-closed}, \texttt{rr-pos-star-le-real-in-rr}, \texttt{esum-nn-tail-small}, \texttt{nn-add-closed}, \texttt{rr-pos-star-le-refl}, \texttt{union-membership}, \texttt{dist-layer-ring-cover}, \texttt{outer-measure-binary-subadditive}, \texttt{membership-implies-sethood}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-lt-of-pos-rr}, \texttt{rps-le-of-forall-eps}, \texttt{rr-pos-star-le-antisymm}, \texttt{rr-pos-star-below-pos-inf}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} E\_n is d(x, F) $>$= 1/(n+1) (indices from 0); that E\_n is closed is not proven (Prop. 4.26 does not use it). The case split is on whether the supremum L of mu*(A n E\_n) is finite, which removes the notes' second case; the least layer containing a point, 1/(j+1) - 1/(j+2) $>$ 0 and the vanishing tail of a finite series are separate lemmas.
+%
+\renewcommand{\thethm}{4.26}
+\begin{prop}[{For a metric outer measure every Borel set is measurable}]\label{thm:borel-sets-caratheodory-measurable}
+%
+\leavevmode
+\vnbpart{\texttt{borel-sets-caratheodory-measurable}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, u.; \forall s \in \operatorname{borel\text{-}sets}(m). \\ \quad \operatorname{is\text{-}metric\text{-}outer\text{-}measure}(m, u) \Rightarrow \operatorname{is\text{-}caratheodory\text{-}measurable}(\operatorname{pts}(m), u, s) \end{array}}
+\vnbpart{\texttt{metric-outer-closed-measurable}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, u, l. \\ \quad (\operatorname{is\text{-}metric\text{-}outer\text{-}measure}(m, u) \wedge \operatorname{is\text{-}closed}(m, l)) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}caratheodory\text{-}measurable}(\operatorname{pts}(m), u, l) \end{array}}
+\vnbpart{\texttt{metric-outer-open-measurable}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, u, a. \\ \quad (\operatorname{is\text{-}metric\text{-}outer\text{-}measure}(m, u) \wedge \operatorname{is\text{-}open}(m, a)) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}caratheodory\text{-}measurable}(\operatorname{pts}(m), u, a) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{borel-sets-caratheodory-measurable}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/metric-\allowbreak{}outer-\allowbreak{}measure.scm} --- 36 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{borel-sets-unfold}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{subset-def}, \texttt{metric-outer-open-measurable}, \texttt{sigma-generated-in-every}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{metric-outer-closed-measurable}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/metric-\allowbreak{}outer-\allowbreak{}measure.scm} --- 422 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{metric-outer-layers-limit}, \texttt{power-mem-sethood}, \texttt{subset-def}, \texttt{power-mem-in}, \texttt{difference-unfold}, \texttt{inter-complement-in-ambient}, \texttt{intersection-membership}, \texttt{subset-mem-fwd}, \texttt{subclass-of-set-is-set}, \texttt{power-mem-intro}, \texttt{fun-apply-type-c}, \texttt{nn-is-set}, \texttt{nn-succ-closed}, \texttt{rr-pos-star-le-refl}, \texttt{nn-le-succ}, \texttt{dist-layer-mono}, \texttt{nn-recip-succ-pos}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-lt-of-pos-rr}, \texttt{dist-layer-mem-elim}, \texttt{metric-sym}, \texttt{set-dist-pos-intro}, \texttt{union-membership}, \texttt{esup-eplus-le}, \texttt{nn-zero-in}, \texttt{membership-implies-sethood}, \texttt{image-subset-codomain}, \texttt{esup-in}, \texttt{esup-upper}, \texttt{eplus-mono}, \texttt{eplus-closed}, \texttt{rr-pos-star-le-trans}, \texttt{caratheodory-superadditive-suffices}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{metric-outer-open-measurable}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/metric-\allowbreak{}outer-\allowbreak{}measure.scm} --- 72 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{complement-in-double}, \texttt{complement-in-subset}, \texttt{metric-outer-closed-measurable}, \texttt{power-complement-closed}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{sigma-algebra-complement-closed}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\renewcommand{\thethm}{Lebesgue}
+\begin{thm}[{Lebesgue outer measure is a metric outer measure; the intervals are measurable}]\label{thm:lebesgue-metric-outer-measure}
+%
+\leavevmode
+\vnbpart{\texttt{lebesgue-metric-outer-measure}}
+\vnbstmt{\begin{array}{@{}l@{}} \operatorname{is\text{-}metric\text{-}outer\text{-}measure}(\operatorname{rr\text{-}ms}, \\ \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s)))) \end{array}}
+\vnbpart{\texttt{lebesgue-borel-measurable}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s \in \operatorname{borel\text{-}sets}(\operatorname{rr\text{-}ms}). \\ \quad \operatorname{is\text{-}caratheodory\text{-}measurable}(\mathbb{R}, \\ \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols}))), \\ \quad \quad s) \end{array}}
+\vnbpart{\texttt{lebesgue-intervals-measurable}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b. \\ \quad ((a \in \mathbb{R}) \wedge (b \in \mathbb{R})) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}caratheodory\text{-}measurable}(\mathbb{R}, \\ \quad \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s))), \\ \quad \quad \quad \operatorname{ccint}(a, b)) \wedge \\ \quad \quad \operatorname{is\text{-}caratheodory\text{-}measurable}(\mathbb{R}, \\ \quad \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s))), \\ \quad \quad \quad \operatorname{ooint}(a, b)) \wedge \\ \quad \quad \operatorname{is\text{-}caratheodory\text{-}measurable}(\mathbb{R}, \\ \quad \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s))), \\ \quad \quad \quad \operatorname{coint}(a, b)) \wedge \\ \quad \quad \operatorname{is\text{-}caratheodory\text{-}measurable}(\mathbb{R}, \\ \quad \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s))), \\ \quad \quad \quad \operatorname{ocint}(a, b)) \end{array}}
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{lebesgue-metric-outer-measure}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/metric-\allowbreak{}outer-\allowbreak{}measure.scm} --- 391 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{rr-is-metric-space}, \texttt{lebesgue-outer-measure}, \texttt{rr-is-set}, \texttt{subset-def}, \texttt{power-mem-in}, \texttt{set-dist-pos-elim}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-lt-of-pos-rr}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{nn-in-rr}, \texttt{rr-mul-closed}, \texttt{rr-add-closed}, \texttt{lebesgue-right-ray-measurable}, \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{power-mem-intro}, \texttt{sigma-algebra-difference-closed}, \texttt{sigma-algebra-sep-meets}, \texttt{nn-is-set}, \texttt{sigma-algebra-union-closed}, \texttt{rr-neg-closed}, \texttt{lebesgue-left-ray-measurable}, \texttt{sigma-algebra-binary-union}, \texttt{rr-zero-in}, \texttt{rr-leq-total}, \texttt{grid-cell-cover-nonneg}, \texttt{union-membership}, \texttt{grid-cell-cover-nonpos}, \texttt{grid-cell-close-nonneg}, \texttt{rr-ms-dist}, \texttt{rr-sub-in-rr}, \texttt{rr-abs-closed}, \texttt{rr-lt-irrefl}, \texttt{grid-cell-close-nonpos}, \texttt{metric-outer-of-separating-sets}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{lebesgue-borel-measurable}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/metric-\allowbreak{}outer-\allowbreak{}measure.scm} --- 16 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{lebesgue-metric-outer-measure}, \texttt{borel-sets-caratheodory-measurable}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{lebesgue-intervals-measurable}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/metric-\allowbreak{}outer-\allowbreak{}measure.scm} --- 244 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{lebesgue-outer-measure}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{lebesgue-right-ray-measurable}, \texttt{subset-def}, \texttt{rr-is-set}, \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{power-mem-intro}, \texttt{lebesgue-left-ray-measurable}, \texttt{lebesgue-open-right-ray-measurable}, \texttt{lebesgue-open-left-ray-measurable}, \texttt{sigma-algebra-binary-inter}, \texttt{ccint-membership}, \texttt{intersection-membership}, \texttt{class-extensionality}, \texttt{ooint-membership}, \texttt{coint-membership}, \texttt{ocint-membership}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Not proven in the notes. The half-lines are shown measurable directly (a cover cut at one point keeps its total length); two separated sets are then split by the measurable union of the grid cells narrower than their distance that meet the first (metric-outer-of-separating-sets).
+%
+\renewcommand{\thethm}{Lebesgue}
+\begin{thm}[{The Lebesgue measure of an interval is its length}]\label{thm:lebesgue-measure-ccint}
+%
+\leavevmode
+\vnbpart{\texttt{lebesgue-measure-ccint}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b. \\ \quad ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a \leq b))) \Rightarrow  \\ \quad \quad \operatorname{ccint}(a, b) \\ \quad \quad \in\; \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \\ \quad \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s)))) \wedge \\ \quad \quad \operatorname{res}(\operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s))), \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s)))))(\operatorname{ccint}(a, b)) \\ \quad \quad =\; (b - a) \end{array}}
+\vnbpart{\texttt{lebesgue-measure-ooint}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b. \\ \quad ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a \leq b))) \Rightarrow  \\ \quad \quad \operatorname{ooint}(a, b) \\ \quad \quad \in\; \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \\ \quad \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s)))) \wedge \\ \quad \quad \operatorname{res}(\operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s))), \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s)))))(\operatorname{ooint}(a, b)) \\ \quad \quad =\; (b - a) \end{array}}
+\vnbpart{\texttt{lebesgue-measure-coint}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b. \\ \quad ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a \leq b))) \Rightarrow  \\ \quad \quad \operatorname{coint}(a, b) \\ \quad \quad \in\; \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \\ \quad \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s)))) \wedge \\ \quad \quad \operatorname{res}(\operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s))), \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s)))))(\operatorname{coint}(a, b)) \\ \quad \quad =\; (b - a) \end{array}}
+\vnbpart{\texttt{lebesgue-measure-ocint}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b. \\ \quad ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a \leq b))) \Rightarrow  \\ \quad \quad \operatorname{ocint}(a, b) \\ \quad \quad \in\; \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \\ \quad \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s)))) \wedge \\ \quad \quad \operatorname{res}(\operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s))), \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s)))))(\operatorname{ocint}(a, b)) \\ \quad \quad =\; (b - a) \end{array}}
+\vnbpart{\texttt{lebesgue-measure-point}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall x \in \mathbb{R}. \\ \quad \operatorname{singleton}(x) \\ \quad \in\; \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \\ \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s)))) \wedge \\ \quad \operatorname{res}(\operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s))), \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s)))))(\operatorname{singleton}(x)) \\ \quad =\; 0 \end{array}}
+\vnbpart{\texttt{lebesgue-outer-ccint}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b. \\ \quad ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a \leq b))) \Rightarrow  \\ \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda s \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(s)))(\operatorname{ccint}(a, b)) \\ \quad \quad =\; (b - a) \end{array}}
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{lebesgue-measure-ccint}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lebesgue-\allowbreak{}measure-\allowbreak{}line.scm} --- 67 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{lebesgue-intervals-measurable}, \texttt{lebesgue-outer-measure}, \texttt{fun-codomain-iff}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{ccint-subset-rr}, \texttt{subset-rr-in-power-rr}, \texttt{res-apply}, \texttt{lebesgue-outer-ccint}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{lebesgue-measure-ooint}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lebesgue-\allowbreak{}measure-\allowbreak{}line.scm} --- 67 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{lebesgue-intervals-measurable}, \texttt{lebesgue-outer-measure}, \texttt{fun-codomain-iff}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{ooint-subset-rr}, \texttt{subset-rr-in-power-rr}, \texttt{res-apply}, \texttt{lebesgue-outer-ooint}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{lebesgue-measure-coint}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lebesgue-\allowbreak{}measure-\allowbreak{}line.scm} --- 67 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{lebesgue-intervals-measurable}, \texttt{lebesgue-outer-measure}, \texttt{fun-codomain-iff}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{coint-subset-rr}, \texttt{subset-rr-in-power-rr}, \texttt{res-apply}, \texttt{lebesgue-outer-coint}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{lebesgue-measure-ocint}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lebesgue-\allowbreak{}measure-\allowbreak{}line.scm} --- 67 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{lebesgue-intervals-measurable}, \texttt{lebesgue-outer-measure}, \texttt{fun-codomain-iff}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{ocint-subset-rr}, \texttt{subset-rr-in-power-rr}, \texttt{res-apply}, \texttt{lebesgue-outer-ocint}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{lebesgue-measure-point}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lebesgue-\allowbreak{}measure-\allowbreak{}line.scm} --- 71 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{lebesgue-outer-measure}, \texttt{fun-codomain-iff}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{subset-def}, \texttt{singleton-membership}, \texttt{subset-rr-in-power-rr}, \texttt{lebesgue-outer-point}, \texttt{caratheodory-null-measurable}, \texttt{res-apply}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{lebesgue-outer-ccint}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lebesgue-\allowbreak{}interval-\allowbreak{}length.scm} --- 228 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{lebesgue-premeasure}, \texttt{ccint-subset-rr}, \texttt{subset-rr-in-power-rr}, \texttt{method-i-outer-value}, \texttt{cover-sums-subset}, \texttt{einf-in}, \texttt{rr-sub-in-rr}, \texttt{subset-refl}, \texttt{method-i-outer-le-single}, \texttt{interval-length-ccint}, \texttt{cover-sums-elim}, \texttt{fun-codomain-superset}, \texttt{ccint-cover-sum-ge}, \texttt{interval-length-type}, \texttt{nn-is-set}, \texttt{fun-apply-type-c}, \texttt{rr-pos-star-le-refl}, \texttt{esum-nn-le-termwise}, \texttt{fun-codomain-iff}, \texttt{dom-of-fun}, \texttt{esum-in}, \texttt{rr-pos-star-le-trans}, \texttt{einf-greatest}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The lower bound is proven for ANY countable cover of [a, b] by sets of reals (ccint-cover-sum-ge), by one creeping argument along [a, b]; no Heine-Borel and no finite subcover. The measure is written RES(lam*, CARATHEODORY-SETS(RR, lam*)), not named.
+%
+\renewcommand{\thethm}{Lebesgue}
+\begin{thm}[{Lebesgue outer measure is translation invariant}]\label{thm:lebesgue-outer-translate}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, c. \\ \quad ((s \subseteq \mathbb{R}) \wedge (c \in \mathbb{R})) \Rightarrow  \\ \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols})))(\{z \in \mathbb{R} : ((z - c) \in s)\}) \\ \quad \quad =\; \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols})))(s) \end{array}}
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lebesgue-\allowbreak{}interval-\allowbreak{}length.scm} --- 143 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{rr-sub-in-rr}, \texttt{subset-def}, \texttt{lebesgue-outer-translate-le}, \texttt{subset-mem-fwd}, \texttt{class-extensionality}, \texttt{subset-rr-in-power-rr}, \texttt{lebesgue-outer-measure}, \texttt{fun-apply-type-c}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The translate of es by c is written \{z in RR : z - c in es\}; no translate is named.
+%
 \section{Deviations}
 %
 Every entry whose library statement deviates from the notes, or whose
@@ -5421,6 +6389,31 @@ Complex analysis & 3.6 & Cauchy's theorem for triangles (Goursat) & \texttt{gour
 Complex analysis & 3.7 & Segment integrals in a convex set & \texttt{cauchy-\allowbreak{}convex-\allowbreak{}segments-\allowbreak{}except}, \texttt{cauchy-\allowbreak{}convex-\allowbreak{}segments} & proven \\
 Complex analysis & 3.8 & A primitive on a convex set & \texttt{cauchy-\allowbreak{}convex-\allowbreak{}primitive-\allowbreak{}except}, \texttt{cc-\allowbreak{}diff-\allowbreak{}on-\allowbreak{}of-\allowbreak{}eps-\allowbreak{}bound}, \texttt{cc-\allowbreak{}continuous-\allowbreak{}at-\allowbreak{}add-\allowbreak{}const}, \texttt{cauchy-\allowbreak{}convex-\allowbreak{}primitive} & proven \\
 Complex analysis & 3.9 & Cauchy's theorem on a convex set & \texttt{cauchy-\allowbreak{}convex-\allowbreak{}closed-\allowbreak{}except}, \texttt{cauchy-\allowbreak{}convex-\allowbreak{}closed}, \texttt{line-\allowbreak{}int-\allowbreak{}closed-\allowbreak{}road-\allowbreak{}of-\allowbreak{}derivative} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 2.7 & Causal precedence in a bundle is a partial order with minimal elements & \texttt{precedes-\allowbreak{}partial-\allowbreak{}order}, \texttt{finite-\allowbreak{}strict-\allowbreak{}minimal}, \texttt{bundle-\allowbreak{}minimal} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 2.8 & A minimal node of a content-closed node set is a sent node & \texttt{bundle-\allowbreak{}minimal-\allowbreak{}sent} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 2.9 & A minimal node among those whose content contains t originates t & \texttt{bundle-\allowbreak{}minimal-\allowbreak{}originates} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 2.12 & A subterm of an encryption under one key that is an encryption under another lies inside the plaintext & \texttt{subterm-\allowbreak{}encr-\allowbreak{}other-\allowbreak{}key} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 3.3 & The adversary bound: a secret that never originates on a regular node occurs nowhere & \texttt{adversary-\allowbreak{}bound}, \texttt{adversary-\allowbreak{}bound-\allowbreak{}adversary-\allowbreak{}nodes}, \texttt{adversary-\allowbreak{}node-\allowbreak{}origin} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 5.2 & The responder's agreement guarantee & \texttt{nsl-\allowbreak{}responder-\allowbreak{}agreement}, \texttt{nsl-\allowbreak{}lemma-\allowbreak{}5-\allowbreak{}4}, \texttt{nsl-\allowbreak{}lemma-\allowbreak{}5-\allowbreak{}6}, \texttt{nsl-\allowbreak{}lemma-\allowbreak{}5-\allowbreak{}7}, \texttt{nsl-\allowbreak{}resp-\allowbreak{}nonce-\allowbreak{}originates} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 5.8 & Injectivity: at most one initiator strand for a uniquely originating Na & \texttt{nsl-\allowbreak{}init-\allowbreak{}unique}, \texttt{nsl-\allowbreak{}init-\allowbreak{}nonce-\allowbreak{}originates} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 5.10 & Secrecy of the responder's nonce & \texttt{nsl-\allowbreak{}responder-\allowbreak{}secrecy}, \texttt{nsl-\allowbreak{}responder-\allowbreak{}nonce-\allowbreak{}not-\allowbreak{}sent}, \texttt{nsl-\allowbreak{}lemma-\allowbreak{}5-\allowbreak{}11}, \texttt{nsl-\allowbreak{}lemma-\allowbreak{}5-\allowbreak{}12} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 5.13 & Secrecy of the initiator's nonce (corrected) & \texttt{nsl-\allowbreak{}initiator-\allowbreak{}secrecy}, \texttt{nsl-\allowbreak{}initiator-\allowbreak{}nonce-\allowbreak{}not-\allowbreak{}sent}, \texttt{nsl-\allowbreak{}initiator-\allowbreak{}secrecy-\allowbreak{}adversary}, \texttt{nsl-\allowbreak{}initiator-\allowbreak{}secrecy-\allowbreak{}regular} & proven \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 5.14 & The initiator's agreement guarantee & \texttt{nsl-\allowbreak{}initiator-\allowbreak{}agreement} & proven \\
+Construction of measures & 1.13 & The monotone class theorem & \texttt{monotone-\allowbreak{}class-\allowbreak{}theorem}, \texttt{algebra-\allowbreak{}monotone-\allowbreak{}union-\allowbreak{}sigma-\allowbreak{}algebra} & proven \\
+Construction of measures & 1.17 & Continuity of a measure from below & \texttt{measure-\allowbreak{}continuity-\allowbreak{}from-\allowbreak{}below} & proven \\
+Construction of measures & 1.18 & Continuity of a measure from above & \texttt{measure-\allowbreak{}continuity-\allowbreak{}from-\allowbreak{}above} & proven \\
+Construction of measures & 2.16 & The monotone convergence theorem & \texttt{monotone-\allowbreak{}convergence} & proven \\
+Construction of measures & 2.28 & The dominated convergence theorem & \texttt{dominated-\allowbreak{}convergence}, \texttt{fatou} & proven \\
+Construction of measures & 4.4 & The Caratheodory theorem & \texttt{caratheodory-\allowbreak{}measurable-\allowbreak{}sigma-\allowbreak{}algebra}, \texttt{caratheodory-\allowbreak{}measure}, \texttt{caratheodory-\allowbreak{}null-\allowbreak{}measurable}, \texttt{caratheodory-\allowbreak{}superadditive-\allowbreak{}suffices} & proven \\
+Construction of measures & 4.7 & The method I outer measure of a pre-measure is an outer measure & \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}is-\allowbreak{}outer-\allowbreak{}measure} & proven \\
+Construction of measures & 4.10 & The outer measure extending a measure & \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}extends}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}measurable}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}null-\allowbreak{}iff}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}finite-\allowbreak{}approx}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}of-\allowbreak{}measure} & proven \\
+Construction of measures & 4.11 & The Caratheodory measure of mu* is complete and extends the completion of rho & \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}caratheodory-\allowbreak{}complete}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}extends-\allowbreak{}completion}, \texttt{caratheodory-\allowbreak{}measure-\allowbreak{}complete} & proven \\
+Construction of measures & 4.12 & For sigma-finite rho the Caratheodory measure of mu* is the completion of rho & \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}sigma-\allowbreak{}finite-\allowbreak{}completion} & proven \\
+Construction of measures & 4.27 & A metric outer measure is additive on a positively separated sequence & \texttt{metric-\allowbreak{}outer-\allowbreak{}measure-\allowbreak{}separated-\allowbreak{}sum}, \texttt{metric-\allowbreak{}outer-\allowbreak{}measure-\allowbreak{}finite-\allowbreak{}separated} & proven \\
+Construction of measures & 4.28 & The layers of the complement of a closed set & \texttt{metric-\allowbreak{}outer-\allowbreak{}layers-\allowbreak{}limit} & proven \\
+Construction of measures & Lebesgue & Lebesgue outer measure is a metric outer measure; the intervals are measurable & \texttt{lebesgue-\allowbreak{}metric-\allowbreak{}outer-\allowbreak{}measure}, \texttt{lebesgue-\allowbreak{}borel-\allowbreak{}measurable}, \texttt{lebesgue-\allowbreak{}intervals-\allowbreak{}measurable} & proven \\
+Construction of measures & Lebesgue & The Lebesgue measure of an interval is its length & \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}ccint}, \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}ooint}, \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}coint}, \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}ocint}, \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}point}, \texttt{lebesgue-\allowbreak{}outer-\allowbreak{}ccint} & proven \\
+Construction of measures & Lebesgue & Lebesgue outer measure is translation invariant & \texttt{lebesgue-\allowbreak{}outer-\allowbreak{}translate} & proven \\
 \hline
 \end{longtable}
 %
@@ -5433,6 +6426,8 @@ document & entries & proven & asserted & partial & absent \\
 Calculus & 66 & 42 & 0 & 13 & 11 \\
 Linear algebra & 33 & 10 & 1 & 6 & 16 \\
 Complex analysis & 44 & 27 & 0 & 6 & 11 \\
+Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 10 & 10 & 0 & 0 & 0 \\
+Construction of measures & 16 & 16 & 0 & 0 & 0 \\
 \hline
 \end{tabular}
 %
