@@ -9701,6 +9701,66 @@
                               '((() . (IN (rkwn-g wqv) NN))
                                 (() . (IN wqv NN))))))))
 
+;;; --- the macete door, 2026-10-09 (the META session's findings 0 and 0b; the user's decision) ---
+;;; Each refusal below was an ACCEPTANCE before the repair, and the step it refuses is the one a
+;;; FALSITY reproducer took (scratchpad/meta3/*-falsity.scm).  Each has its accepted control.
+(add-axiom! *library* 'rkwn-negcond-law
+  '(FORALL zqv (IMPLIES (NOT (IN (rkwn-f zqv) NN)) (= (rkwn-f zqv) (rkwn-g zqv)))))
+(add-axiom! *library* 'rkwn-poscond-law
+  '(FORALL zqv (IMPLIES (IN (rkwn-f zqv) NN) (= (rkwn-f zqv) (rkwn-g zqv)))))
+
+;; 0. OR / AND: both children rewritten in one step, each under the other's ORIGINAL form
+(check-true "macete door: checker refuses BOTH disjuncts rewritten under each other's original negation"
+  (lambda ()
+    (rkwn--raises?
+      (lambda () (rkwn--apply '(macete rkwn-negcond-law (rkwn-f zqv) (rkwn-g zqv))
+                              '() '(OR (IN (rkwn-f wqv) NN) (IN (rkwn-f wqv) NN))
+                              '((() . (OR (IN (rkwn-g wqv) NN) (IN (rkwn-g wqv) NN)))))))))
+(check-false "macete door: checker accepts the LEFT disjunct rewritten under NOT the original right (control)"
+  (lambda ()
+    (rkwn--raises?
+      (lambda () (rkwn--apply '(macete rkwn-negcond-law (rkwn-f zqv) (rkwn-g zqv))
+                              '() '(OR (IN (rkwn-f wqv) NN) (IN (rkwn-f wqv) NN))
+                              '((() . (OR (IN (rkwn-g wqv) NN) (IN (rkwn-f wqv) NN)))))))))
+(check-true "macete door: checker refuses BOTH conjuncts rewritten under each other's original form"
+  (lambda ()
+    (rkwn--raises?
+      (lambda () (rkwn--apply '(macete rkwn-poscond-law (rkwn-f zqv) (rkwn-g zqv))
+                              '() '(AND (IN (rkwn-f wqv) NN) (IN (rkwn-f wqv) NN))
+                              '((() . (AND (IN (rkwn-g wqv) NN) (IN (rkwn-g wqv) NN)))))))))
+(check-false "macete door: checker accepts the RIGHT conjunct rewritten under the original left (control)"
+  (lambda ()
+    (rkwn--raises?
+      (lambda () (rkwn--apply '(macete rkwn-poscond-law (rkwn-f zqv) (rkwn-g zqv))
+                              '() '(AND (IN (rkwn-f wqv) NN) (IN (rkwn-f wqv) NN))
+                              '((() . (AND (IN (rkwn-f wqv) NN) (IN (rkwn-g wqv) NN)))))))))
+(check "macete door: rewriter threads the REWRITTEN left disjunct into the right's context"
+  (lambda ()
+    (car (rewrite-expr '(rkwn-f zqv) '(rkwn-g zqv) '(zqv) '((NOT (IN (rkwn-f zqv) NN)))
+                       '(OR (IN (rkwn-f wqv) NN) (IN (rkwn-f wqv) NN)) '())))
+  '(OR (IN (rkwn-g wqv) NN) (IN (rkwn-f wqv) NN)))
+
+;; 0b. a minor premise whose condition mentions a variable bound on the path
+(check-true "macete door: checker refuses a minor premise naming a variable bound on the path"
+  (lambda ()
+    (rkwn--raises?
+      (lambda () (rkwn--apply '(macete rkwn-cond-law (rkwn-f zqv) (rkwn-g zqv))
+                              '() '(FORALL wqv (IN (rkwn-f wqv) NN))
+                              '((() . (FORALL wqv (IN (rkwn-g wqv) NN)))
+                                (() . (IN wqv NN))))))))
+(check "macete door: rewriter spawns no condition under a binder of its variable (position left)"
+  (lambda ()
+    (fluid-let ((*macete-spawn-conditions?* #t))
+      (rewrite-expr '(rkwn-f zqv) '(rkwn-g zqv) '(zqv) '((IN zqv NN))
+                    '(FORALL wqv (IN (rkwn-f wqv) NN)) '())))
+  '((FORALL wqv (IN (rkwn-f wqv) NN))))
+(check "macete door: rewriter spawns the condition outside binders (control)"
+  (lambda ()
+    (fluid-let ((*macete-spawn-conditions?* #t))
+      (rewrite-expr '(rkwn-f zqv) '(rkwn-g zqv) '(zqv) '((IN zqv NN))
+                    '(IN (rkwn-f wqv) NN) '())))
+  '((IN (rkwn-g wqv) NN) (IN wqv NN)))
+
 ;;; --- macete-hyp ---
 
 (check-true "rule checkers: macete-hyp refuses a changed goal"

@@ -396,7 +396,27 @@
                 ((alpha-equiv? cc (rkw--numeral-collapse (car fs))) #t)
                 (else (loop (cdr fs))))))
       (eq? #t (arith-eval-formula (rkw--numeral-collapse c)))
-      (rkw--in-set? c minor-goals)))
+      ;; a minor premise is stated in the CONCLUSION's context: it discharges a condition only
+      ;; when the condition mentions no variable bound by a binder the walk crossed (2026-10-09,
+      ;; the META session's finding 0b: the bound variable, free in the minor premise, was closed
+      ;; by an outer variable of the same name, and FALSITY followed)
+      (and (not (rkw--mentions-path-bvar? c))
+           (rkw--in-set? c minor-goals))))
+
+;;; The bound variables the walk has crossed, innermost first.  Bound by rkw--descend around the
+;;; walk of each binder's BODY; read by the minor-premise clauses above and below.
+(define *rkw--path-bvars* '())
+
+(define (rkw--under-binder bvars thunk)
+  (fluid-let ((*rkw--path-bvars* (append bvars *rkw--path-bvars*)))
+    (thunk)))
+
+(define (rkw--mentions-path-bvar? f)
+  (and (pair? *rkw--path-bvars*)
+       (let loop ((vs (rkw--free-vars f)))
+         (and (pair? vs)
+              (or (and (memq (car vs) *rkw--path-bvars*) #t)
+                  (loop (cdr vs)))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; The local context along a path
@@ -481,7 +501,8 @@
                                    explain
                                    (map (lambda (x) ctx) (functoid-bindings a)))))
        (if (eq? doms #t)
-           (rkw--walk (functoid-body a) (functoid-body b) explain inner)
+           (rkw--under-binder bvars
+             (lambda () (rkw--walk (functoid-body a) (functoid-body b) explain inner)))
            doms)))
     ((or (functoid? a) (functoid? b)) (rkw--shape-refusal a b))
     ((not (and (pair? a) (pair? b) (list? a) (list? b)
@@ -503,22 +524,35 @@
        ((IMPLIES)
         (rkw--walk-list (cdr a) (cdr b) explain
                         (list ctx (append (rkw--flatten-and (cadr a)) ctx))))
+       ;; AND / OR: each child's increment is read off a DIFFERENT side of the step, so that one
+       ;; inference factors as two single-position rewrites (2026-10-09, the META session's
+       ;; finding 0; the user's decision).  With both increments read off the conclusion, both
+       ;; children could change under hypotheses that are false together: the OR form took
+       ;; NOT(0 = 0 or 0 = 0) to NOT(FALSITY or FALSITY).
+       ;;   AND: the right conjunct under the ORIGINAL left (what the rewriter gives it), the
+       ;;        left under the REWRITTEN right:  A and B <-> A and B' (under A) <-> A' and B' (under B').
+       ;;   OR:  the left disjunct under NOT the ORIGINAL right, the right under NOT the
+       ;;        REWRITTEN left (the rewriter's order):  A or B <-> A' or B <-> A' or B'.
        ((AND)
         (rkw--walk-list (cdr a) (cdr b) explain
-                        (list (append (rkw--flatten-and (caddr a)) ctx)
+                        (list (append (rkw--flatten-and (caddr b)) ctx)
                               (append (rkw--flatten-and (cadr a))  ctx))))
        ((OR)
         (rkw--walk-list (cdr a) (cdr b) explain
                         (list (cons `(NOT ,(caddr a)) ctx)
-                              (cons `(NOT ,(cadr a))  ctx))))
+                              (cons `(NOT ,(cadr b))  ctx))))
        ((FORALL FORSOME IOTA COMP)
         (if (not (eq? (cadr a) (cadr b)))
             (let ((z (generate-uninterned-symbol (cadr a))))
-              (rkw--walk (subst-free (cadr a) z (caddr a))
-                         (subst-free (cadr b) z (caddr b))
-                         explain (rkw--drop-shadowed (list (cadr a) (cadr b)) ctx)))
-            (rkw--walk (caddr a) (caddr b) explain
-                       (rkw--drop-shadowed (list (cadr a)) ctx))))
+              (rkw--under-binder (list z (cadr a) (cadr b))
+                (lambda ()
+                  (rkw--walk (subst-free (cadr a) z (caddr a))
+                             (subst-free (cadr b) z (caddr b))
+                             explain (rkw--drop-shadowed (list (cadr a) (cadr b)) ctx)))))
+            (rkw--under-binder (list (cadr a))
+              (lambda ()
+                (rkw--walk (caddr a) (caddr b) explain
+                           (rkw--drop-shadowed (list (cadr a)) ctx))))))
        ((SEP BIG-UNION)
         ;; (SEP x A p) / (BIG-UNION x A body): A is outside the binder, the
         ;; third argument is under it.  BIG-UNION is a binder the rewriter's own
@@ -527,16 +561,20 @@
             (rkw--shape-refusal a b)
             (let ((r (rkw--walk (caddr a) (caddr b) explain ctx)))
               (if (eq? r #t)
-                  (rkw--walk (cadddr a) (cadddr b) explain
-                             (rkw--drop-shadowed (list (cadr a)) ctx))
+                  (rkw--under-binder (list (cadr a))
+                    (lambda ()
+                      (rkw--walk (cadddr a) (cadddr b) explain
+                                 (rkw--drop-shadowed (list (cadr a)) ctx))))
                   r))))
        ((VNB-LAMBDA)
         (if (not (equal? (cadr a) (cadr b)))
             (rkw--shape-refusal a b)
             (let ((r (rkw--walk (caddr a) (caddr b) explain ctx)))
               (if (eq? r #t)
-                  (rkw--walk (cadddr a) (cadddr b) explain
-                             (rkw--drop-shadowed (vnb-lambda-bvars (cadr a)) ctx))
+                  (rkw--under-binder (vnb-lambda-bvars (cadr a))
+                    (lambda ()
+                      (rkw--walk (cadddr a) (cadddr b) explain
+                                 (rkw--drop-shadowed (vnb-lambda-bvars (cadr a)) ctx))))
                   r))))
        (else
         ;; Every other head -- connectives with no increment, predicates, terms,

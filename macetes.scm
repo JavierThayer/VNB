@@ -344,6 +344,9 @@
          ;; can assume (NOT right), descending into the RIGHT disjunct can
          ;; assume (NOT left).  Previously only the right side received its
          ;; assumption (a completeness gap, not a soundness one).
+         ;; 2026-10-09: rewrite-subexpressions no longer takes the RIGHT child's
+         ;; increment from here -- it builds it from the REWRITTEN left disjunct
+         ;; (with both taken from the original, one step was unsound).
          (cond
            ((= child-idx 0)
             (cons `(NOT ,(caddr parent-expr)) local-ctx))
@@ -453,15 +456,37 @@
 ;;; Leibniz congruence applies once the conditions are discharged.
 (define *macete-spawn-conditions?* #f)
 
+;;; THE BOUND VARIABLES CROSSED ON THE PATH (2026-10-09, the META session's finding 0b; the
+;;; user's decision "Yes to all 3").  A minor premise is posted in the CONCLUSION's context, where a
+;;; variable bound by a binder the descent crossed is free and denotes whatever the context says of
+;;; an outer variable of that name: `mac-h' of  y = 0 => (y = y iff y = 0)  under  forall a. a = a
+;;; posted  a = 0, closed it from an outer  a = 0, and proved FALSITY.  So nothing that mentions a
+;;; crossed bound variable is ever posted: the position is left unrewritten.  Each binder descent
+;;; of rewrite-subexpressions extends this list for the rewrite of the binder's BODY.
+(define *rewrite-path-bvars* '())
+
+(define (rw--under-binder bvars thunk)
+  (fluid-let ((*rewrite-path-bvars* (append bvars *rewrite-path-bvars*)))
+    (thunk)))
+
+(define (rw--mentions-path-bvar? f)
+  (and (pair? *rewrite-path-bvars*)
+       (let loop ((vs (free-vars f)))
+         (and (pair? vs)
+              (or (and (memq (car vs) *rewrite-path-bvars*) #t)
+                  (loop (cdr vs)))))))
+
 (define (rewrite-expr pattern replacement schema-vars conditions expr local-ctx)
   (let ((top-match (match-expr pattern expr schema-vars)))
     (if top-match
         (let ((unmet (filter (lambda (c) (not (condition-holds? c local-ctx)))
                              (map (lambda (c) (apply-subst top-match c)) conditions))))
-          (if (or (null? unmet) *macete-spawn-conditions?*)
+          (if (and (or (null? unmet) *macete-spawn-conditions?*)
+                   (not (any rw--mentions-path-bvar? unmet)))
               ;; Fire; unmet conditions become minor premises (empty unless spawning)
               (cons (apply-subst top-match replacement) unmet)
-              ;; Conditions unmet and not spawning: recurse into children
+              ;; Conditions unmet and not spawning, or a premise that would mention a crossed
+              ;; bound variable: recurse into children
               (rewrite-subexpressions pattern replacement schema-vars conditions
                                       expr local-ctx)))
         ;; No top-level match: recurse into children
@@ -490,9 +515,11 @@
                                  (or (member (car bvs) schema-vars)
                                      (lp (cdr bvs)))))
                           (cons (functoid-body expr) '())
-                          (rewrite-expr pattern replacement schema-vars conditions
-                                        (functoid-body expr)
-                                        (lc-drop-shadowed bvars local-ctx))))
+                          (rw--under-binder bvars
+                            (lambda ()
+                              (rewrite-expr pattern replacement schema-vars conditions
+                                            (functoid-body expr)
+                                            (lc-drop-shadowed bvars local-ctx))))))
             (new-bindings (map cons bvars (map car rdoms)))
             (minors   (append (apply append (map cdr rdoms)) (cdr rbody))))
        (cons (make-functoid (functoid-kind expr) new-bindings (car rbody))
@@ -510,10 +537,20 @@
           (let ((r (rw-child 0 (cadr expr))))
             (cons (list head (car r)) (cdr r))))
 
-         ;; Binary connectives with lc-increment on right child
+         ;; Binary connectives with lc-increment on right child.  The LEFT child is rewritten
+         ;; FIRST, and an OR's right disjunct is rewritten under NOT of the REWRITTEN left
+         ;; (2026-10-09, the META session's finding 0; the user's decision): with both disjuncts
+         ;; rewritten under the negation of the other's ORIGINAL form, one step took
+         ;; NOT(0 = 0 or 0 = 0) to NOT(FALSITY or FALSITY).  Threaded, the step factors as two
+         ;; single-position rewrites, A or B <-> A' or B (under NOT B) <-> A' or B' (under NOT A').
+         ;; IMPLIES and AND give the left child no increment, so for them the order is immaterial.
          ((IMPLIES AND OR)
-          (let ((rl (rw-child 0 (cadr expr)))
-                (rr (rw-child 1 (caddr expr))))
+          (let* ((rl (rw-child 0 (cadr expr)))
+                 (rr (if (eq? head 'OR)
+                         (rewrite-expr pattern replacement schema-vars conditions
+                                       (caddr expr)
+                                       (cons `(NOT ,(car rl)) local-ctx))
+                         (rw-child 1 (caddr expr)))))
             (cons (list head (car rl) (car rr))
                   (append (cdr rl) (cdr rr)))))
 
@@ -574,9 +611,11 @@
                                    (caddr expr) local-ctx))
                  (rp (if (member bv schema-vars)
                          (cons (cadddr expr) '())
-                         (rewrite-expr pattern replacement schema-vars conditions
-                                       (cadddr expr)
-                                       (lc-drop-shadowed (list bv) local-ctx)))))
+                         (rw--under-binder (list bv)
+                           (lambda ()
+                             (rewrite-expr pattern replacement schema-vars conditions
+                                           (cadddr expr)
+                                           (lc-drop-shadowed (list bv) local-ctx)))))))
             (cons `(,head ,bv ,(car ra) ,(car rp))
                   (append (cdr ra) (cdr rp)))))
 
@@ -586,9 +625,11 @@
                 (body (caddr expr)))
             (if (member bv schema-vars)
                 (cons expr '())
-                (let ((r (rewrite-expr pattern replacement schema-vars conditions
-                                       body
-                                       (lc-drop-shadowed (list bv) local-ctx))))
+                (let ((r (rw--under-binder (list bv)
+                           (lambda ()
+                             (rewrite-expr pattern replacement schema-vars conditions
+                                           body
+                                           (lc-drop-shadowed (list bv) local-ctx))))))
                   (cons (list head bv (car r)) (cdr r))))))
 
          ((VNB-LAMBDA)
@@ -608,9 +649,11 @@
                 ;; ambient local-ctx, like SEP's and BIG-UNION's A.
                 (let* ((rd (rewrite-expr pattern replacement schema-vars conditions
                                          dom local-ctx))
-                       (r  (rewrite-expr pattern replacement schema-vars conditions
-                                         body
-                                         (lc-drop-shadowed bvars local-ctx))))
+                       (r  (rw--under-binder bvars
+                             (lambda ()
+                               (rewrite-expr pattern replacement schema-vars conditions
+                                             body
+                                             (lc-drop-shadowed bvars local-ctx))))))
                   (cons (list 'VNB-LAMBDA bind-spec (car rd) (car r))
                         (append (cdr rd) (cdr r)))))))
 
