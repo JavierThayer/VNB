@@ -2927,6 +2927,10 @@
     ;; whole space (good-step + a maximal reachable subspace).  Modulo warranted
     ;; plumbing (noetherian-maximal, dual-norm, span/subset structure).
     "theorem-library/hahn-banach-full-proof"
+    ;; RM-3A (2026-10-10): IS-SUBLINEAR; Hahn-Banach for a sublinear functional on a real vector space (Zorn);
+    ;; hahn-banach-seminorm-rr (the asserted support at RR, proven).
+    "structure-library/hahn-banach-sublinear"
+    "theorem-library/hahn-banach-sublinear"
     ;; norm-as-sup: ||x|| is the sup of |f(x)| over norm-<=1 bounded functionals.
     ;; The "attained" half is the Hahn-Banach payoff (seed on the line RR.x, extend);
     ;; the reduction target for the vector-valued Taylor remainder bound.
@@ -3510,6 +3514,8 @@
     ;; RM-2 (2026-10-10, notes-63): CONT-FNS, IS-POSITIVE-FUNCTIONAL, CLOPEN-SETS; Riesz-Markov on the Cantor model K.
     "structure-library/positive-functional"
     "theorem-library/riesz-markov-cantor"
+    ;; RM-3A: the M. Riesz positive extension to C(s), s compact.
+    "theorem-library/positive-extension"
     "theorem-library/lebesgue-measure-line"
     ;; MEASURE-4 (2026-10-10).  4-A: TRANSLATE; translates of Lebesgue sets are Lebesgue sets
     ;; with the same measure; a Borel measure on the line giving [a, b] the length b - a is Lebesgue measure.
@@ -3531,6 +3537,8 @@
     "structure-library/push-forward"
     "theorem-library/push-forward"
     "theorem-library/riesz-markov"
+    ;; RIESZ-MARKOV on a compact metric space (2026-10-10, the user's notes-63 route): rmz-riesz-markov.
+    "theorem-library/riesz-markov-compact"
     ;; 2026-09-24 (batch 25-A): POWER SERIES IN CC -- the definitions (CPS-RADIUS as the sup of the r with sum |a_k| r^k
     ;; convergent, CC-SUP-NORM (29), IS-NORMALLY-CONVERGENT, CC-SERIES-LIMIT; structure-library/cc-power-series.scm, after
     ;; theorem-library/cc-series) and the laws: the radius formula 2.7, normal convergence inside the radius 2.8,

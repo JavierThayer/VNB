@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-740 operators: 3 functions, 11 syntax, 438 functoids, 285 predicates, 3 undeclared.
+741 operators: 3 functions, 11 syntax, 438 functoids, 286 predicates, 3 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -2154,7 +2154,7 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (285)
+## Predicates  (286)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -3061,6 +3061,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-strictly-increasing-on`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  f is strictly increasing on s
+
+### `is-sublinear`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  p is a sublinear functional on m
 
 ### `is-submodule`  — def-predicate · proposition (arity 2)
 

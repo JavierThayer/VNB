@@ -153,17 +153,16 @@
   (ass)
   (qed name))
 
-(frm-ag-lemma! 'frm-v-comm 'abelian-group-opr-comm '(x y)
-  (list '= (frm-add 'm 'x 'y) (frm-add 'm 'y 'x)))
+;;; frm-v-comm and frm-v-interchange were proven here; they are the statements of
+;;; hbs-vadd-comm and hbs-interchange (theorem-library/hahn-banach-sublinear.scm, loaded
+;;; earlier), so they were removed at integration (2026-10-10, proven-duplicate-audit) and
+;;; their citations renamed.
 (frm-ag-lemma! 'frm-v-right-inv 'abelian-group-right-inv '(x)
   (list '= (frm-sub 'm 'x 'x) '(VZERO m)))
 (frm-ag-lemma! 'frm-v-neg-add 'abelian-group-inv-opr '(x y)
   (list '= (frm-neg 'm (frm-add 'm 'x 'y)) (frm-add 'm (frm-neg 'm 'x) (frm-neg 'm 'y))))
 (frm-ag-lemma! 'frm-v-neg-neg 'abelian-group-inv-inv '(x)
   (list '= (frm-neg 'm (frm-neg 'm 'x)) 'x))
-(frm-ag-lemma! 'frm-v-interchange 'abelian-group-opr-interchange '(x y u v)
-  (list '= (frm-add 'm (frm-add 'm 'x 'y) (frm-add 'm 'u 'v))
-           (frm-add 'm (frm-add 'm 'x 'u) (frm-add 'm 'y 'v))))
 
 ;;; ---- differences x - y = x + (-y) ------------------------------------
 
@@ -175,7 +174,7 @@
 (frm-vec! 'm (frm-neg 'm 'y)) (frm-vec! 'm (frm-neg 'm 'x))
 (let* ((e1 (dk-cite! 'frm-v-neg-add 'm 'x (frm-neg 'm 'y)))
        (e2 (dk-cite! 'frm-v-neg-neg 'm 'y))
-       (e3 (dk-cite! 'frm-v-comm 'm (frm-neg 'm 'x) 'y)))
+       (e3 (dk-cite! 'hbs-vadd-comm 'm (frm-neg 'm 'x) 'y)))
   (frm-subst-all! e1 e2)
   (ass))
 (qed 'frm-v-sub-anti)
@@ -186,9 +185,9 @@
 (dk-peel!)
 (for-each (lambda (v) (frm-vec! 'm v))
           (list (frm-neg 'm 'x) (frm-neg 'm 'y) (frm-neg 'm 'z) (frm-sub 'm 'x 'z)))
-(let* ((e1 (dk-cite! 'frm-v-comm 'm 'y (frm-neg 'm 'z)))
-       (e2 (dk-cite! 'frm-v-interchange 'm 'x (frm-neg 'm 'y) (frm-neg 'm 'z) 'y))
-       (e3 (dk-cite! 'frm-v-comm 'm (frm-neg 'm 'y) 'y))
+(let* ((e1 (dk-cite! 'hbs-vadd-comm 'm 'y (frm-neg 'm 'z)))
+       (e2 (dk-cite! 'hbs-interchange 'm 'x (frm-neg 'm 'y) (frm-neg 'm 'z) 'y))
+       (e3 (dk-cite! 'hbs-vadd-comm 'm (frm-neg 'm 'y) 'y))
        (e4 (dk-cite! 'frm-v-right-inv 'm 'y))
        (e5 (dk-cite! 'abelian-group-right-id-module-vector-ag 'm (frm-sub 'm 'x 'z))))
   (frm-subst-all! e1 e2 e3 e4 e5)
@@ -215,7 +214,7 @@
 (for-each (lambda (v) (frm-vec! 'm v))
           (list (frm-neg 'm 'y) (frm-neg 'm 'r) (frm-sub 'm 'x 'y)))
 (let* ((e1 (dk-cite! 'frm-v-neg-add 'm 'y 'r))
-       (e2 (dk-cite! 'frm-v-interchange 'm 'x 'r (frm-neg 'm 'y) (frm-neg 'm 'r)))
+       (e2 (dk-cite! 'hbs-interchange 'm 'x 'r (frm-neg 'm 'y) (frm-neg 'm 'r)))
        (e3 (dk-cite! 'frm-v-right-inv 'm 'r))
        (e4 (dk-cite! 'abelian-group-right-id-module-vector-ag 'm (frm-sub 'm 'x 'y))))
   (frm-subst-all! e1 e2 e3 e4)
@@ -230,7 +229,7 @@
 (for-each (lambda (v) (frm-vec! 'm v))
           (list (frm-neg 'm 'u) (frm-neg 'm 'v) (frm-add 'm (frm-sub 'm 'x 'u) (frm-sub 'm 'y 'v))))
 (let* ((e1 (dk-cite! 'frm-v-neg-add 'm 'u 'v))
-       (e2 (dk-cite! 'frm-v-interchange 'm 'x 'y (frm-neg 'm 'u) (frm-neg 'm 'v))))
+       (e2 (dk-cite! 'hbs-interchange 'm 'x 'y (frm-neg 'm 'u) (frm-neg 'm 'v))))
   (frm-subst-all! e1 e2)
   (rfl))
 (qed 'frm-v-sub-add)

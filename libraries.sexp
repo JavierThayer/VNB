@@ -578,6 +578,8 @@
     "theorem-library/hahn-banach-proof"
     "theorem-library/noetherian-maximal-proof"
     "theorem-library/hahn-banach-full-proof"
+    "structure-library/hahn-banach-sublinear"
+    "theorem-library/hahn-banach-sublinear"
     "theorem-library/norm-as-sup-proof"
     "theorem-library/vector-taylor-proof"
     "theorem-library/rake-nf-norm"
@@ -736,6 +738,7 @@
     "structure-library/metric-outer-measure"
     "theorem-library/metric-outer-measure"
     "theorem-library/riesz-markov-cantor"
+    "theorem-library/positive-extension"
     "theorem-library/lebesgue-measure-line"
     "structure-library/lebesgue-translate"
     "theorem-library/lebesgue-measure-unique"
@@ -749,6 +752,7 @@
     "structure-library/push-forward"
     "theorem-library/push-forward"
     "theorem-library/riesz-markov"
+    "theorem-library/riesz-markov-compact"
   ))
 
 (library strand
