@@ -84,6 +84,24 @@
 ;;; named, and scal(m) holds its six-slot RING VIEW.  See THE SCALAR SLOT there
 ;;; for the full argument, scratchpad/sn-falsity-probe.scm for the derivation of
 ;;; falsity, and test-suite-negative.scm section 2f for the standing check.
+;;;
+;;; THE FIELD IS A PARAMETER since 2026-10-10 (the user's decision on the TVS-1
+;;; finding): IS-SEMINORM-FAMILY(fld, m, fam), IS-FRECHET-STRUCTURE(fld, m, fam).
+;;; With the field bound by an existential per predicate, the seminorms of one
+;;; family (and two families on one map) could be homogeneous for different
+;;; absolute values on the same ring.  The three supports below were restated with
+;;; the parameter ONLY -- one fld for both spaces, which is what IS-LINEAR-MAP's
+;;; scal(m1) = scal(m2) already meant -- and are otherwise unchanged.
+;;;
+;;; OPEN (TVS-1R report, 2026-10-10): the three supports are FALSE over a trivially
+;;; valued field (|x| = 1 for x /= 0, a normed field in this model).  Take the
+;;; sequences E = K^N with p_k(x) = 1 if one of x_0..x_k is nonzero, else 0 (the
+;;; product of discrete lines) and F = K^N with the single seminorm q(x) = 1 if
+;;; x /= 0 (discrete): both are Frechet structures here, the identity F -> E is a
+;;; continuous linear bijection, its inverse is not continuous and it is not open,
+;;; and the identity E -> F has a closed graph and is not continuous.  The book's
+;;; scalars are RR or CC; IS-NONTRIVIALLY-VALUED (seminorm-hahn-banach.scm) is the
+;;; hypothesis that would restore them.  Nothing cites the supports.
 ;;; ====================================================================
 
 ;; x (-)_m y  in module m
@@ -91,28 +109,26 @@
 
 ;;; ---- seminorm family, sequential Cauchy / convergence ------------------
 
-;;; IS-SEMINORM-FAMILY(m, fam): a countable family fam : NN -> (VEC m -> RR) of
-;;; seminorms that SEPARATES points (only the zero vector has all fam(k) zero).
-(def-predicate 'IS-SEMINORM-FAMILY '(m fam)
+;;; IS-SEMINORM-FAMILY(fld, m, fam): a countable family fam : NN -> (VEC m -> RR) of
+;;; seminorms over the normed field fld that SEPARATES points (only the zero vector
+;;; has all fam(k) zero).  The field is a PARAMETER (the user's decision 2026-10-10;
+;;; see IS-SEMINORM in seminorm-hahn-banach.scm): every seminorm of the family is
+;;; homogeneous for the ONE absolute value of fld.  Until then the family named its
+;;; field by an existential of its own and each IS-SEMINORM by another, so the
+;;; seminorms of one family could read different absolute values on one ring.
+(def-predicate 'IS-SEMINORM-FAMILY '(fld m fam)
   (conjuncts->and
     (list
+      '(IS-NORMED-FIELD fld)
       '(IS-MODULE m)
-      ;; The scalars are a normed field, NAMED -- see THE SCALAR SLOT in
-      ;; seminorm-hahn-banach.scm.  Writing (IS-NORMED-FIELD (SCAL m)) here
-      ;; pinned length(scal(m)) to 7 beside IS-MODULE's 6 and made this
-      ;; predicate, IS-FRECHET-STRUCTURE and the three supports below EMPTY.
-      ;; No FNRM is read in this file, so the existential carries only the two
-      ;; guards; the norm is reached through IS-SEMINORM's own binder.
-      (forsome-guarded '(fld)
-        (list '(IS-NORMED-FIELD fld))
-        '(= (SCAL m) (NORMED-FIELD-AS-COMMUTATIVE-RING fld)))
+      '(= (SCAL m) (NORMED-FIELD-AS-COMMUTATIVE-RING fld))
       '(IN fam (FUN NN (FUN (VEC m) RR)))
-      (forall-guarded 'k '(IN k NN) '(IS-SEMINORM m (fam k)))
+      (forall-guarded 'k '(IN k NN) '(IS-SEMINORM fld m (fam k)))
       (forall-guarded 'x '(IN x (VEC m))
         '(IMPLIES (NOT (= x (VZERO m)))
            (FORSOME k (AND (IN k NN) (NOT (= ((fam k) x) 0)))))))))
-(notation! 'IS-SEMINORM-FAMILY 'kind 'predicate 'arity 2
-           'english "$2 is a separating countable family of seminorms on $1")
+(notation! 'IS-SEMINORM-FAMILY 'kind 'predicate 'arity 3
+           'english "$3 is a separating countable family of seminorms on $2 over $1")
 
 ;;; FR-CONV(m, fam, seq, lim): seq -> lim in every seminorm of the family.
 (def-predicate 'FR-CONV '(m fam seq lim)
@@ -137,22 +153,20 @@
 
 ;;; ---- Frechet space (concrete: family + sequential completeness) --------
 
-;;; IS-FRECHET-STRUCTURE(m, fam): m with the separating seminorm family fam is a
-;;; Frechet space -- every fam-Cauchy sequence fam-converges to a point of m.
-;;; Its scalar clause is IS-SEMINORM-FAMILY's and nothing else, so the 6-against-7
-;;; clash repaired there (2026-08-24) was INHERITED here, and repairing it there
-;;; repairs this: `statement-satisfiability-audit' reported both of this
-;;; predicate's pins "through is-seminorm-family".  Nothing in this definition
-;;; changes.
-(def-predicate 'IS-FRECHET-STRUCTURE '(m fam)
+;;; IS-FRECHET-STRUCTURE(fld, m, fam): m over the normed field fld, with the
+;;; separating seminorm family fam, is a Frechet space -- every fam-Cauchy sequence
+;;; fam-converges to a point of m.  Its scalar clause is IS-SEMINORM-FAMILY's and
+;;; nothing else (the 6-against-7 clash repaired there on 2026-08-24 was inherited
+;;; here, and so is the field parameter of 2026-10-10).
+(def-predicate 'IS-FRECHET-STRUCTURE '(fld m fam)
   (conjuncts->and
     (list
-      '(IS-SEMINORM-FAMILY m fam)
+      '(IS-SEMINORM-FAMILY fld m fam)
       (forall-guarded 'seq '(IN seq (FUN NN (VEC m)))
         '(IMPLIES (FR-CAUCHY m fam seq)
            (FORSOME lim (AND (IN lim (VEC m)) (FR-CONV m fam seq lim))))))))
-(notation! 'IS-FRECHET-STRUCTURE 'kind 'predicate 'arity 2
-           'english "($1, $2) is a Frechet space")
+(notation! 'IS-FRECHET-STRUCTURE 'kind 'predicate 'arity 3
+           'english "($2, $3) is a Frechet space over $1")
 
 ;;; ---- linear and continuous-linear maps ---------------------------------
 
@@ -233,10 +247,10 @@
 ;;; CLOSED GRAPH THEOREM: a linear map between Frechet spaces with closed graph is
 ;;; continuous.
 (support 'closed-graph-theorem
-  (forall-guarded '(m1 fam1 m2 fam2 tt)
+  (forall-guarded '(fld m1 fam1 m2 fam2 tt)
     (list
-      '(IS-FRECHET-STRUCTURE m1 fam1)
-      '(IS-FRECHET-STRUCTURE m2 fam2)
+      '(IS-FRECHET-STRUCTURE fld m1 fam1)
+      '(IS-FRECHET-STRUCTURE fld m2 fam2)
       '(HAS-CLOSED-GRAPH m1 fam1 m2 fam2 tt))
     '(IS-CONT-LIN m1 fam1 m2 fam2 tt)))
 (warrant! 'closed-graph-theorem 'reference '(thayer-tvs "Theorem 4.9" 43))
@@ -253,10 +267,10 @@
 ;;; OPEN MAPPING THEOREM: a continuous linear SURJECTION between Frechet spaces
 ;;; is open -- the image of each basic neighbourhood of 0 contains one.
 (support 'open-mapping-theorem
-  (forall-guarded '(m1 fam1 m2 fam2 tt)
+  (forall-guarded '(fld m1 fam1 m2 fam2 tt)
     (list
-      '(IS-FRECHET-STRUCTURE m1 fam1)
-      '(IS-FRECHET-STRUCTURE m2 fam2)
+      '(IS-FRECHET-STRUCTURE fld m1 fam1)
+      '(IS-FRECHET-STRUCTURE fld m2 fam2)
       '(IS-CONT-LIN m1 fam1 m2 fam2 tt)
       '(FORALL y (IMPLIES (IN y (VEC m2))
            (FORSOME x (AND (IN x (VEC m1)) (= y (tt x)))))))
@@ -282,10 +296,10 @@
 ;;; between Frechet spaces has a continuous inverse.  (gg is a linear two-sided
 ;;; inverse of the continuous linear tt; conclude gg is continuous.)
 (support 'open-mapping-bounded-inverse
-  (forall-guarded '(m1 fam1 m2 fam2 tt gg)
+  (forall-guarded '(fld m1 fam1 m2 fam2 tt gg)
     (list
-      '(IS-FRECHET-STRUCTURE m1 fam1)
-      '(IS-FRECHET-STRUCTURE m2 fam2)
+      '(IS-FRECHET-STRUCTURE fld m1 fam1)
+      '(IS-FRECHET-STRUCTURE fld m2 fam2)
       '(IS-CONT-LIN m1 fam1 m2 fam2 tt)
       '(IS-LINEAR-MAP m2 m1 gg)
       '(FORALL x (IMPLIES (IN x (VEC m1)) (= (gg (tt x)) x)))

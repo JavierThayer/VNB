@@ -46,6 +46,14 @@
 ;;;
 ;;; 6 = 6, and the homogeneity law reaches the norm through `fld'.
 ;;;
+;;; SUPERSEDED 2026-10-10 (the user's decision, on the TVS-1 finding): the field is
+;;; no longer bound by an existential inside each predicate but is a PARAMETER,
+;;; IS-SEMINORM(fld, m, p), with the same two conjuncts IS-NORMED-FIELD(fld) and
+;;; scal(m) = normed-field-as-commutative-ring(fld).  The existential let two
+;;; seminorms on one module read two different absolute values on the same ring
+;;; (the view drops FNRM), which made Prop. 8.26 false in the model.  The pin
+;;; argument above is unchanged.
+;;;
 ;;; WHY NOT THE IS-FIELD-RING SHAPE, which is how finite-dimensional.scm's
 ;;; sibling defect was repaired?  Because THIS law reads FNRM -- the one slot the
 ;;; ring view DROPS.  `carr', `add', `mul', `one' survive the projection and
@@ -72,31 +80,65 @@
 
 ;;; ---- vocabulary --------------------------------------------------------
 
-;;; IS-SEMINORM(m, p): p : VEC(m) -> RR is nonnegative, subadditive and
-;;; absolutely homogeneous (p(lambda.x) = |lambda| p(x)).  Unlike a norm, p may
-;;; vanish off zero.
-(def-predicate 'IS-SEMINORM '(m p)
+;;; IS-SEMINORM(fld, m, p): p : VEC(m) -> RR is nonnegative, subadditive and
+;;; absolutely homogeneous for the absolute value of the normed field fld
+;;; (p(lambda.x) = |lambda|_fld p(x)), where the scalars of m are fld's ring view.
+;;; Unlike a norm, p may vanish off zero.
+;;;
+;;; THE FIELD IS A PARAMETER (the user's decision, 2026-10-10, on the TVS-1 finding,
+;;; scratchpad/triage/TVS-1-REPORT.md).  Until then the field was bound by an
+;;; EXISTENTIAL inside this body, tied to m only through scal(m) =
+;;; normed-field-as-commutative-ring(fld) -- and that view DROPS the absolute value.
+;;; Two seminorms on one module could therefore be homogeneous for two DIFFERENT
+;;; absolute values on the same ring (|z| and |z|^(1/2) on CC), and Prop. 8.26
+;;; (continuity => bound) and 8.25 (i) were false in the model.  With fld a
+;;; parameter, every seminorm of a statement reads ONE absolute value.  The
+;;; satisfiability argument of THE SCALAR SLOT above is unchanged: IS-NORMED-FIELD
+;;; pins length(fld) = 7, IS-MODULE pins length(scal(m)) = 6, and scal(m) is the
+;;; six-slot view of fld, so nothing clashes (test-suite-negative.scm section 2f).
+(def-predicate 'IS-SEMINORM '(fld m p)
   (conjuncts->and
     (list
+      '(IS-NORMED-FIELD fld)
       '(IS-MODULE m)
+      '(= (SCAL m) (NORMED-FIELD-AS-COMMUTATIVE-RING fld))
       '(IN p (FUN (VEC m) RR))
       (forall-guarded 'x '(IN x (VEC m)) '(<= 0 (p x)))
       (forall-guarded 'x '(IN x (VEC m))
         (forall-guarded 'y '(IN y (VEC m))
           '(<= (p ((VADD m) x y)) (+ (p x) (p y)))))
-      ;; absolute homogeneity, and with it the statement that the scalars ARE a
-      ;; normed field.  The field is NAMED (see THE SCALAR SLOT in the header):
-      ;; scal(m) holds its six-slot RING VIEW -- which is what IS-MODULE's
-      ;; (substructure SCAL RING) pins -- and the law reaches the absolute value
-      ;; through `fld', the norm being the one slot the view drops.
-      (forsome-guarded '(fld)
-        (list '(IS-NORMED-FIELD fld)
-              '(= (SCAL m) (NORMED-FIELD-AS-COMMUTATIVE-RING fld)))
-        (forall-guarded 'lam '(IN lam (CARR (SCAL m)))
-          (forall-guarded 'x '(IN x (VEC m))
-            '(= (p ((ACT m) lam x)) (* ((FNRM fld) lam) (p x)))))))))
-(notation! 'IS-SEMINORM 'kind 'predicate 'arity 2
-           'english "$2 is a seminorm on $1")
+      ;; absolute homogeneity, read through fld's absolute value -- the one slot
+      ;; the ring view in scal(m) drops.
+      (forall-guarded 'lam '(IN lam (CARR (SCAL m)))
+        (forall-guarded 'x '(IN x (VEC m))
+          '(= (p ((ACT m) lam x)) (* ((FNRM fld) lam) (p x))))))))
+(notation! 'IS-SEMINORM 'kind 'predicate 'arity 3
+           'english "$3 is a seminorm on $2 over the normed field $1")
+
+;;; IS-NONTRIVIALLY-VALUED(fld): the normed field fld has a scalar c with |c| > 1 (and
+;;; with it c^-1, |c^-1| < 1).  The hypothesis of Prop. 8.26 (continuity => bound) over a
+;;; general normed field: the book's proof rescales by real scalars (K = RR or CC); over
+;;; a normed field the powers of c and of its inverse do that work, and with the TRIVIAL
+;;; absolute value (|x| = 1 for x /= 0) there is nothing to rescale by and the bound is
+;;; false.  RR and CC satisfy it with c = 2 (RR: `frm-rr-nontrivially-valued').  Added
+;;; 2026-10-10 (TVS-1R); the name is the brief's, for the user to confirm.  It sits in
+;;; this file, and not with the theorems that use it, so that the Frechet supports of
+;;; frechet-open-mapping.scm (which load next) can take it as a hypothesis if the user so
+;;; decides: over a trivially valued field they are false (TVS-1R report).
+;;;
+;;; THE INVERSE IS STATED, NOT DERIVED.  Every normed field has inverses -- but only by
+;;; `normed-field-mul-inverses', an ASSERTED axiom of normed-field.scm (IS-NORMED-FIELD
+;;; itself carries no inverse law), and a proof that cites it bills it.  So the inverse
+;;; of the witness c is part of this predicate: with it 8.26 is proven modulo 0, and the
+;;; class of fields it describes is the same.
+(def-predicate 'IS-NONTRIVIALLY-VALUED '(fld)
+  '(AND (IS-NORMED-FIELD fld)
+        (FORSOME c (AND (IN c (CARR fld))
+                        (AND (< 1 ((FNRM fld) c))
+                             (FORSOME b (AND (IN b (CARR fld))
+                                             (= ((MUL fld) c b) (ONE fld)))))))))
+(notation! 'IS-NONTRIVIALLY-VALUED 'kind 'predicate 'arity 1
+           'english "$1 is a non-trivially valued normed field")
 
 ;;; IS-K-LINEAR-ON(m, s, f): f : s -> CARR(SCAL m) is K-linear on the submodule s.
 (def-predicate 'IS-K-LINEAR-ON '(m s f)
@@ -136,17 +178,21 @@
 ;;; dominated by p.  (Complex/real Hahn-Banach; Bohnenblust-Sobczyk for CC.)
 ;;; The scalar field is named by a UNIVERSAL binder here, not an existential:
 ;;; the domination hypothesis and the conclusion both read its norm, so `fld'
-;;; has to scope over the whole implication.  Its two guards are the same pair
-;;; IS-SEMINORM's existential carries -- IS-NORMED-FIELD(fld), and scal(m) is
-;;; fld's six-slot ring view -- so the statement pins length(scal(m)) to 6 only,
+;;; has to scope over the whole implication.  Its two guards are the pair
+;;; IS-SEMINORM(fld, m, p) carries -- IS-NORMED-FIELD(fld), and scal(m) is fld's
+;;; six-slot ring view -- so the statement pins length(scal(m)) to 6 only,
 ;;; agreeing with IS-MODULE.
+;;; RESTATED 2026-10-10 (TVS-1R) with the field parameter ONLY: (IS-SEMINORM m p)
+;;; became (IS-SEMINORM fld m p), the same fld as the domination bound reads; the
+;;; content and the warrant are unchanged.  OPEN (TVS-1R report): the statement
+;;; quantifies over EVERY normed field, the gloss says RR or CC.
 (support 'hahn-banach-seminorm
   (forall-guarded '(m p s f fld)
     (list
       '(IS-MODULE m)
       '(IS-NORMED-FIELD fld)
       '(= (SCAL m) (NORMED-FIELD-AS-COMMUTATIVE-RING fld))
-      '(IS-SEMINORM m p)
+      '(IS-SEMINORM fld m p)
       '(IS-SUBMODULE m s)
       '(IS-K-LINEAR-ON m s f)
       '(FORALL x (IMPLIES (IN x s) (<= ((FNRM fld) (f x)) (p x)))))

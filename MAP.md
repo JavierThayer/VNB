@@ -8,7 +8,12 @@ the files at the root and the structure library by theory.
 
 ## structure-library: _unfiled
 
+- [frechet-metric.scm](structure-library/frechet-metric.scm)
 - [gamma-function.scm](structure-library/gamma-function.scm)
+- [hilbert-space.scm](structure-library/hilbert-space.scm)
+- [lebesgue-translate.scm](structure-library/lebesgue-translate.scm)
+- [lp-inequalities.scm](structure-library/lp-inequalities.scm)
+- [lp-seminorm.scm](structure-library/lp-seminorm.scm)
 - [meta-core.scm](structure-library/meta-core.scm)
 - [meta-cr.scm](structure-library/meta-cr.scm)
 - [meta-syntax.scm](structure-library/meta-syntax.scm)
@@ -17,6 +22,10 @@ the files at the root and the structure library by theory.
 - [monotone-class.scm](structure-library/monotone-class.scm)
 - [nsl.scm](structure-library/nsl.scm)
 - [outer-measure-construction.scm](structure-library/outer-measure-construction.scm)
+- [positive-functional.scm](structure-library/positive-functional.scm)
+- [product-measure.scm](structure-library/product-measure.scm)
+- [real-integral.scm](structure-library/real-integral.scm)
+- [riesz-markov-model.scm](structure-library/riesz-markov-model.scm)
 - [simple-integral.scm](structure-library/simple-integral.scm)
 - [strand-adversary.scm](structure-library/strand-adversary.scm)
 - [strand-messages.scm](structure-library/strand-messages.scm)

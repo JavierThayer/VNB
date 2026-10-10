@@ -609,6 +609,17 @@
 ;;; hahn-banach-seminorm names it with a UNIVERSAL binder instead, its
 ;;; conclusion reading the same norm.
 ;;;
+;;; SINCE 2026-10-10 THE FIELD IS A PARAMETER (the user's decision on the TVS-1
+;;; finding: two seminorms could read two different absolute values on one ring,
+;;; and Prop. 8.26 was false in the model).  The three predicates are now
+;;; IS-SEMINORM(fld, m, p), IS-SEMINORM-FAMILY(fld, m, fam) and
+;;; IS-FRECHET-STRUCTURE(fld, m, fam), each with IS-NORMED-FIELD(fld) and
+;;; scal(m) = normed-field-as-commutative-ring(fld) as plain conjuncts.  The pins
+;;; are unchanged -- length(fld) = 7, length(scal(m)) = 6, and scal(m) is the
+;;; six-slot VIEW of fld -- and the refusals below are the same attack on the new
+;;; arity.  The control is untouched: it still derives falsity from the defective
+;;; pairing, so the attack is live.
+;;;
 ;;; WHY THIS SECTION EXISTS AT ALL: `statement-satisfiability-audit' flattens
 ;;; conjunctions and does NOT descend into a FORSOME, so after the repair it
 ;;; cannot see the scalar pin either way.  The audit reported all seven names
@@ -662,18 +673,18 @@
       (ai '(NOT (= (LENGTH (SCAL m)) 7)))))
   (mnp-attack-leaves!))
 
-(mnp-refuses "IS-SEMINORM(m, p) |- falsity -- the predicate must be SATISFIABLE"
-  '(IMPLIES (IS-SEMINORM m p) FALSITY)
-  (lambda () (mnp-sn-attack! '((IS-SEMINORM m p)))))
+(mnp-refuses "IS-SEMINORM(fld, m, p) |- falsity -- the predicate must be SATISFIABLE"
+  '(IMPLIES (IS-SEMINORM fld m p) FALSITY)
+  (lambda () (mnp-sn-attack! '((IS-SEMINORM fld m p)))))
 
-(mnp-refuses "IS-SEMINORM-FAMILY(m, fam) |- falsity -- the predicate must be SATISFIABLE"
-  '(IMPLIES (IS-SEMINORM-FAMILY m fam) FALSITY)
-  (lambda () (mnp-sn-attack! '((IS-SEMINORM-FAMILY m fam)))))
+(mnp-refuses "IS-SEMINORM-FAMILY(fld, m, fam) |- falsity -- the predicate must be SATISFIABLE"
+  '(IMPLIES (IS-SEMINORM-FAMILY fld m fam) FALSITY)
+  (lambda () (mnp-sn-attack! '((IS-SEMINORM-FAMILY fld m fam)))))
 
-(mnp-refuses "IS-FRECHET-STRUCTURE(m, fam) |- falsity -- the predicate must be SATISFIABLE"
-  '(IMPLIES (IS-FRECHET-STRUCTURE m fam) FALSITY)
+(mnp-refuses "IS-FRECHET-STRUCTURE(fld, m, fam) |- falsity -- the predicate must be SATISFIABLE"
+  '(IMPLIES (IS-FRECHET-STRUCTURE fld m fam) FALSITY)
   (lambda ()
-    (mnp-sn-attack! '((IS-FRECHET-STRUCTURE m fam) (IS-SEMINORM-FAMILY m fam)))))
+    (mnp-sn-attack! '((IS-FRECHET-STRUCTURE fld m fam) (IS-SEMINORM-FAMILY fld m fam)))))
 
 ;;; ANTI-VACUITY, and it is what makes the three refusals above mean anything.
 ;;; The SAME derivation, move for move, against the conjunction those three

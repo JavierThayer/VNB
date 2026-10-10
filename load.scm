@@ -1631,6 +1631,8 @@
     "theorem-library/rake-baire"
     ;; MOVED to structure-library/ 2026-09-20 (batch 12-A): vocabulary only -- no proof in it.
     "structure-library/frechet-open-mapping"
+    ;; TVS-1 (2026-10-10, Thayer Ch.8 s.4): the metric of a countable separating seminorm family (FR-METRIC-SPACE).
+    "structure-library/frechet-metric"
     ;; subseq-of-convergent: a subsequence of a convergent sequence converges to
     ;; the same limit.  A keystone brick.  Needs cauchy-subsequence + metric-
     ;; completeness supports + interactive.
@@ -2941,6 +2943,9 @@
     ;; 2026-09-20 (batch 13-A): the continuity algebra for generic metric spaces and normed fields;
     ;; then uniqueness, constants, identity, sum, product and CHAIN RULE for IS-DIFF-ON.
     "theorem-library/ms-continuity-algebra"
+    ;; RM-1 (2026-10-10, notes-63): the Cantor model K of a compact metric space and the map pi : K -> X.
+    "structure-library/riesz-markov-model"
+    "theorem-library/riesz-markov-model"
     "theorem-library/categories"
     "theorem-library/c-continuous-category"    ; C-CONTINUOUS: countably-metrised spaces and continuous maps (2026-10-02)
     "theorem-library/diff-on-laws-2"
@@ -3385,6 +3390,8 @@
     "theorem-library/rpow-defined"       ; RPOW == RPOW-STAR, the fifteen former supports proven (2026-10-03)
     "theorem-library/measure-laws"       ; measure chapter 1: additivity, monotonicity, subadditivity, continuity, push-forward (M-1, 2026-10-03)
     "theorem-library/integral-laws"      ; etimes algebra, finite sums in a commutative monoid, the simple integral and its laws, the six integral laws proven (M-2, 2026-10-04)
+    ;; MEASURE-5-A (2026-10-10): ESUM homogeneity, ESUM(c f) = c ESUM(f); a scaled measure is a measure.
+    "theorem-library/esum-scale"
     "structure-library/strand-messages"   ; the messages of strand spaces ON THE USER'S MODEL (notes-60 + encryption, 2026-10-06): a token set T (IS-TOKEN-SET: no token is a list), keys K a subset of T, messages = tokens, LST lists and ENCR encryptions under a key, the two tagged; the stages, MSG-SET(T, K), MSG-RANK, the subterm relation as an intersection closure (THE KEY IS NOT A SUBTERM) (S-1 2026-10-04; S-2 / S-2b 2026-10-06)
     "theorem-library/strand-messages-laws" ; freeness (token XOR list XOR encryption; injectivity), structural induction, the subterm partial order, Proposition 2.12, the rank laws; 57 theorems (S-1, S-2, S-2b)
     "structure-library/strand-spaces"     ; directed messages [dir t], strands, STRAND-SPACE (TOKENS, KEYS, IDS, STRAND-MAP, KINV involutive), NODES as a SEP with TOTAL content, ==> strict and -->, entry points, origination, PREC-STRICT, BUNDLE (S-2, S-2b 2026-10-06)
@@ -3462,6 +3469,8 @@
     ;; (8) misprinted), 2.16 the interpolating polynomial (uniqueness on coefficients), 2.20 the sup bound for the
     ;; remainder, 2.21 the continuous remainder factor, 2.22 Taylor exact for a polynomial (either sign of h).
     "theorem-library/taylor-cluster"
+    ;; TVS-1 / TVS-1R (2026-10-10): Props 8.24 (a)-(c), Def 8.28, 8.25, 8.26 (with IS-NONTRIVIALLY-VALUED).
+    "theorem-library/frechet-metric"
     ;; 2026-09-23 (batch 22-C): primitives GLUE over adjacent intervals (primitive-glue: the pieces given by
     ;; agreement clauses, the joint into the countable exceptional set); a step function has a primitive on
     ;; [a, b] (step-fn-has-primitive, by induction over the partition, IS-PARTITION total on NN).
@@ -3502,10 +3511,16 @@
     ;; 4-C: LP-NORM = EP-NORM of |f|, the L^p seminorm laws.
     "structure-library/lebesgue-translate"
     "theorem-library/lebesgue-measure-unique"
+    ;; MEASURE-5-A: a translation-invariant Borel measure with 0 < mu([0,1]) < inf is mu([0,1]) times lambda.
+    "theorem-library/lebesgue-translation-invariant"
     "structure-library/lp-inequalities"
     "theorem-library/lp-inequalities"
     "structure-library/lp-seminorm"
     "theorem-library/lp-seminorm"
+    ;; FUBINI-1 (2026-10-10, notes Ch.3 s.2): RECTANGLES, PRODUCT-SIGMA, sections; Dynkin pi-lambda;
+    ;; Prop 3.5; Fubini (Thm 3.7) for sigma-finite measures and f >= 0; the product measure (Def 3.8).
+    "structure-library/product-measure"
+    "theorem-library/product-measure"
     ;; 2026-09-24 (batch 25-A): POWER SERIES IN CC -- the definitions (CPS-RADIUS as the sup of the r with sum |a_k| r^k
     ;; convergent, CC-SUP-NORM (29), IS-NORMALLY-CONVERGENT, CC-SERIES-LIMIT; structure-library/cc-power-series.scm, after
     ;; theorem-library/cc-series) and the laws: the radius formula 2.7, normal convergence inside the radius 2.8,
