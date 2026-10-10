@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-731 operators: 3 functions, 11 syntax, 433 functoids, 281 predicates, 3 undeclared.
+740 operators: 3 functions, 11 syntax, 438 functoids, 285 predicates, 3 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (433)
+## Functoids  (438)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -328,6 +328,12 @@ Declared by: `cc-of-pair-def`
 
     class(s, a) := {b in pts(s): related(s, a, b)}
 
+### `clopen-sets`  — def-functoid · set-valued
+
+> _Reads as:_  the family of the subsets of s that are open and closed
+
+    clopen-sets(s) := {cou_ in power(pts(s)): is-open(s, cou_) and is-closed(s, cou_)}
+
 ### `closed-ball`  — def-functoid · set-valued
 
     closed-ball(s, c, r) := {y in pts(s): (dist(s))(c, y) <= r}
@@ -375,6 +381,12 @@ Declared by: `comb-kk-zero` `comb-kk-succ`
 ### `cons`  — characterized by axiom(s)
 
 Declared by: `cons-in-tuples` `length-cons` `makeset-cons` `nth-cons-1` `nth-cons-succ` `tuple-cons-decompose` 
+
+### `cont-fns`  — def-functoid · set-valued
+
+> _Reads as:_  the set of continuous real functions on s
+
+    cont-fns(s) := {cfh_ in fun(pts(s), rr): is-continuous(s, rr-ms, cfh_)}
 
 ### `content-of`  — def-functoid · element/number-valued
 
@@ -1044,6 +1056,12 @@ Declared by: `fam-of-list-apply`
 
 > _Reads as:_  the inner product of s
 
+### `ip-metric-space`  — def-functoid · element/number-valued
+
+> _Reads as:_  the metric space of the inner product space v
+
+    ip-metric-space(v) := nag-metric-space(ip-normed-ag(v))
+
 ### `ip-norm`  — def-functoid · element/number-valued
 
 > _Reads as:_  the induced norm of x in v
@@ -1404,6 +1422,12 @@ Declared by: `ord-segment-insert` `ord-segment-is-set` `ord-segment-membership` 
 
     permutations(n) := injection(ord-segment(n), ord-segment(n))
 
+### `perp`  — def-functoid · set-valued
+
+> _Reads as:_  the orthogonal complement of ks in v
+
+    perp(v, ks) := {prp_ in vec(v): forall([prk_ in ks], (ip(v))(prp_, prk_) = 0)}
+
 ### `pi`  — characterized by axioms (def-constant)
 
 Declared by: `pi-def` 
@@ -1561,6 +1585,12 @@ Declared by: `prod-ord-zero` `prod-ord-succ`
 ### `pubkey`  — structure accessor · element (slot value)
 
 > _Reads as:_  the pubkey slot of s
+
+### `push-forward`  — def-functoid · function-valued
+
+> _Reads as:_  the push-forward along h of the measure mu, on the sets cb
+
+    push-forward(omega, cb, mu, h) := vnb-lambda(pwb_, cb, mu({pwx_ in omega: h(pwx_) in pwb_}))
 
 ### `pw-int`  — def-functoid · element/number-valued
 
@@ -2124,7 +2154,7 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (281)
+## Predicates  (285)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -2336,6 +2366,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  g is differentiable at a as a complex-valued function of a real variable, with derivative l
 
+### `is-cc-linear-functional`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  f is a linear functional on v
+
 ### `is-chain`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  ch is a chain in grd under porel
@@ -2519,6 +2553,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-hausdorff`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is Hausdorff
+
+### `is-hilbert-space`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  v is a Hilbert space
 
 ### `is-hom-abelian-group`  — def-predicate · proposition (arity 3)
 
@@ -2844,6 +2882,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  x is an ordinal
 
+### `is-orthogonal-projection`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  pk is the orthogonal projection of v onto ks
+
 ### `is-outer-measure`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  mu is an outer measure on omega
@@ -2875,6 +2917,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-pk-space`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is a public-key strand space
+
+### `is-positive-functional`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  lam is a positive linear functional on the continuous real functions on s
 
 ### `is-prec-closed`  — def-predicate · proposition (arity 4)
 

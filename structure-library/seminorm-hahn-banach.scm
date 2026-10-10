@@ -191,6 +191,10 @@
     (list
       '(IS-MODULE m)
       '(IS-NORMED-FIELD fld)
+      ;; RR or CC only (the user's decision 2026-10-10, on TVS-1R's finding): over a
+      ;; non-archimedean field the extension can fail (van Rooij), and the gloss always said
+      ;; "RR or CC".
+      '(OR (= fld RR-NORMED-FIELD) (= fld CC-NORMED-FIELD))
       '(= (SCAL m) (NORMED-FIELD-AS-COMMUTATIVE-RING fld))
       '(IS-SEMINORM fld m p)
       '(IS-SUBMODULE m s)

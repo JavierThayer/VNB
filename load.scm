@@ -3483,6 +3483,9 @@
     ;; countable-union-nn (an NN-indexed union of countable sets, by nn-flatten) and the Cauchy estimate
     ;; primitive-pair-lipschitz from the mean value inequality.
     "theorem-library/primitive-uniform-limit"
+    ;; HILBERT-1 (2026-10-10, Thayer Ch.2 s.3-4): IS-HILBERT-SPACE, PERP; parallelogram, Prop 2.19, Cor 2.21, Riesz 2.22.
+    "structure-library/hilbert-space"
+    "theorem-library/hilbert-projection"
     "theorem-library/integral-convergence"   ; the four measurable-fn closure laws, the dyadic approximation, monotone convergence, Fatou, general additivity, dominated convergence, all nine supports of integral.scm proven (M-3, 2026-10-04)
     "theorem-library/caratheodory"           ; the Caratheodory construction PROVEN (MEASURE-1, 2026-10-07): the five supports of measure.scm, statements unchanged; cites esup-eplus-le above
     ;; MEASURE-2 (2026-10-08): Method I outer measures (Prop 4.7), the outer measure extending a measure
@@ -3504,6 +3507,9 @@
     "theorem-library/lebesgue-interval-length"
     "structure-library/metric-outer-measure"
     "theorem-library/metric-outer-measure"
+    ;; RM-2 (2026-10-10, notes-63): CONT-FNS, IS-POSITIVE-FUNCTIONAL, CLOPEN-SETS; Riesz-Markov on the Cantor model K.
+    "structure-library/positive-functional"
+    "theorem-library/riesz-markov-cantor"
     "theorem-library/lebesgue-measure-line"
     ;; MEASURE-4 (2026-10-10).  4-A: TRANSLATE; translates of Lebesgue sets are Lebesgue sets
     ;; with the same measure; a Borel measure on the line giving [a, b] the length b - a is Lebesgue measure.
@@ -3521,6 +3527,10 @@
     ;; Prop 3.5; Fubini (Thm 3.7) for sigma-finite measures and f >= 0; the product measure (Def 3.8).
     "structure-library/product-measure"
     "theorem-library/product-measure"
+    ;; RM-3B (2026-10-10): Borel preimages, PUSH-FORWARD, change of variables; Riesz-Markov on X from K.
+    "structure-library/push-forward"
+    "theorem-library/push-forward"
+    "theorem-library/riesz-markov"
     ;; 2026-09-24 (batch 25-A): POWER SERIES IN CC -- the definitions (CPS-RADIUS as the sup of the r with sum |a_k| r^k
     ;; convergent, CC-SUP-NORM (29), IS-NORMALLY-CONVERGENT, CC-SERIES-LIMIT; structure-library/cc-power-series.scm, after
     ;; theorem-library/cc-series) and the laws: the radius formula 2.7, normal convergence inside the radius 2.8,

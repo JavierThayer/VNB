@@ -10,6 +10,7 @@ the files at the root and the structure library by theory.
 
 - [frechet-metric.scm](structure-library/frechet-metric.scm)
 - [gamma-function.scm](structure-library/gamma-function.scm)
+- [hahn-banach-sublinear.scm](structure-library/hahn-banach-sublinear.scm)
 - [hilbert-space.scm](structure-library/hilbert-space.scm)
 - [lebesgue-translate.scm](structure-library/lebesgue-translate.scm)
 - [lp-inequalities.scm](structure-library/lp-inequalities.scm)
@@ -24,6 +25,7 @@ the files at the root and the structure library by theory.
 - [outer-measure-construction.scm](structure-library/outer-measure-construction.scm)
 - [positive-functional.scm](structure-library/positive-functional.scm)
 - [product-measure.scm](structure-library/product-measure.scm)
+- [push-forward.scm](structure-library/push-forward.scm)
 - [real-integral.scm](structure-library/real-integral.scm)
 - [riesz-markov-model.scm](structure-library/riesz-markov-model.scm)
 - [simple-integral.scm](structure-library/simple-integral.scm)

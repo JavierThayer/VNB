@@ -585,6 +585,7 @@
     "theorem-library/ms-continuity-algebra"
     "structure-library/riesz-markov-model"
     "theorem-library/riesz-markov-model"
+    "structure-library/positive-functional"
     "theorem-library/categories"
     "theorem-library/c-continuous-category"
     "theorem-library/diff-on-laws-2"
@@ -657,6 +658,8 @@
     "theorem-library/primitive-glue"
     "theorem-library/pw-int-laws-3"
     "theorem-library/primitive-uniform-limit"
+    "structure-library/hilbert-space"
+    "theorem-library/hilbert-projection"
     "theorem-library/series-domination"
     "theorem-library/regulated-has-primitive"
     "theorem-library/road-laws-2"
@@ -732,6 +735,7 @@
     "theorem-library/lebesgue-interval-length"
     "structure-library/metric-outer-measure"
     "theorem-library/metric-outer-measure"
+    "theorem-library/riesz-markov-cantor"
     "theorem-library/lebesgue-measure-line"
     "structure-library/lebesgue-translate"
     "theorem-library/lebesgue-measure-unique"
@@ -742,6 +746,9 @@
     "theorem-library/lp-seminorm"
     "structure-library/product-measure"
     "theorem-library/product-measure"
+    "structure-library/push-forward"
+    "theorem-library/push-forward"
+    "theorem-library/riesz-markov"
   ))
 
 (library strand

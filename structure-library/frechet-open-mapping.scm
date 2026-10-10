@@ -93,15 +93,15 @@
 ;;; the parameter ONLY -- one fld for both spaces, which is what IS-LINEAR-MAP's
 ;;; scal(m1) = scal(m2) already meant -- and are otherwise unchanged.
 ;;;
-;;; OPEN (TVS-1R report, 2026-10-10): the three supports are FALSE over a trivially
+;;; FOUND (TVS-1R report, 2026-10-10): the three supports are FALSE over a trivially
 ;;; valued field (|x| = 1 for x /= 0, a normed field in this model).  Take the
 ;;; sequences E = K^N with p_k(x) = 1 if one of x_0..x_k is nonzero, else 0 (the
 ;;; product of discrete lines) and F = K^N with the single seminorm q(x) = 1 if
 ;;; x /= 0 (discrete): both are Frechet structures here, the identity F -> E is a
 ;;; continuous linear bijection, its inverse is not continuous and it is not open,
 ;;; and the identity E -> F has a closed graph and is not continuous.  The book's
-;;; scalars are RR or CC; IS-NONTRIVIALLY-VALUED (seminorm-hahn-banach.scm) is the
-;;; hypothesis that would restore them.  Nothing cites the supports.
+;;; scalars are RR or CC; IS-NONTRIVIALLY-VALUED (seminorm-hahn-banach.scm) restores
+;;; them, and since 2026-10-10 (the user's decision) all three carry it.  Nothing cites them.
 ;;; ====================================================================
 
 ;; x (-)_m y  in module m
@@ -246,9 +246,16 @@
 
 ;;; CLOSED GRAPH THEOREM: a linear map between Frechet spaces with closed graph is
 ;;; continuous.
+
+;;; The three supports below carry IS-NONTRIVIALLY-VALUED(fld) (the user's decision 2026-10-10,
+;;; TVS-1R's finding): over a trivially valued field all three are FALSE -- K^N with
+;;; p_k(x) = 1 iff one of x_0..x_k is non-zero, against q(x) = 1 iff x /= 0: the identity one way
+;;; is a continuous linear bijection that is not open, the other way has a closed graph and is not
+;;; continuous.
 (support 'closed-graph-theorem
   (forall-guarded '(fld m1 fam1 m2 fam2 tt)
     (list
+      '(IS-NONTRIVIALLY-VALUED fld)
       '(IS-FRECHET-STRUCTURE fld m1 fam1)
       '(IS-FRECHET-STRUCTURE fld m2 fam2)
       '(HAS-CLOSED-GRAPH m1 fam1 m2 fam2 tt))
@@ -269,6 +276,7 @@
 (support 'open-mapping-theorem
   (forall-guarded '(fld m1 fam1 m2 fam2 tt)
     (list
+      '(IS-NONTRIVIALLY-VALUED fld)
       '(IS-FRECHET-STRUCTURE fld m1 fam1)
       '(IS-FRECHET-STRUCTURE fld m2 fam2)
       '(IS-CONT-LIN m1 fam1 m2 fam2 tt)
@@ -298,6 +306,7 @@
 (support 'open-mapping-bounded-inverse
   (forall-guarded '(fld m1 fam1 m2 fam2 tt gg)
     (list
+      '(IS-NONTRIVIALLY-VALUED fld)
       '(IS-FRECHET-STRUCTURE fld m1 fam1)
       '(IS-FRECHET-STRUCTURE fld m2 fam2)
       '(IS-CONT-LIN m1 fam1 m2 fam2 tt)
