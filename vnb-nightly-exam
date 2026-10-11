@@ -196,6 +196,14 @@ else
   say "FAIL: vnb-band-pull (the exam and suite passed; rerun: vnb-band-pull $WORKER)"; record failed "pull"; exit 2
 fi
 stop_worker
+# The library book (the user, 2026-10-11): the exam just rewrote reference/library-book.tex,
+# so typeset docs/library-book.pdf here, on the primary, after the worker is stopped.
+# Not fatal: a failed typeset is logged and the exam's outcome stands.
+if (cd "$PROVER/docs" && timeout 1800 nice make library-book > /dev/null 2>&1); then
+  say "typeset docs/library-book.pdf"
+else
+  say "WARN: make library-book failed (rerun by hand in docs/; the exam outcome is unaffected)"
+fi
 record "$([ "$SMOKE" = 1 ] && echo smoke-passed || echo passed)" "$summary; $sline"
 say "done"
 exit 0
