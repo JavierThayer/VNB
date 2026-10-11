@@ -5651,7 +5651,7 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \noindent\textbf{Deviation from the notes.} Rests on the corrected 5.13, so it carries Na /= Nb; whether it holds without that hypothesis is open.
 %
-\section{Construction of measures}
+\section{Construction of measures (Thayer, notes)}
 %
 \renewcommand{\thethm}{1.13}
 \begin{thm}[{The monotone class theorem}]\label{thm:monotone-class-theorem}
@@ -6231,7 +6231,618 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} The translate of es by c is written \{z in RR : z - c in es\}; no translate is named.
+\noindent\textbf{Deviation from the notes.} The translate of es by c is written \{z in RR : z - c in es\}; since MEASURE-4 (2026-10-10) it is TRANSLATE(es, c).
+%
+\renewcommand{\thethm}{Lebesgue}
+\begin{thm}[{Translates of Lebesgue measurable sets are measurable, with the same measure}]\label{thm:lebesgue-measurable-translate}
+%
+\leavevmode
+\vnbpart{\texttt{lebesgue-measurable-translate}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s \in \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols})))), c \in \mathbb{R}. \\ \quad (s + c) \\ \quad \in\; \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \\ \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols})))) \wedge \\ \quad \operatorname{res}(\operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols}))), \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols})))))((s + c)) \\ \quad =\; \operatorname{res}(\operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols}))), \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols})))))(s) \end{array}}
+\vnbpart{\texttt{lebesgue-outer-translate-invariant}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, c. \\ \quad ((s \subseteq \mathbb{R}) \wedge (c \in \mathbb{R})) \Rightarrow  \\ \quad \quad \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols})))((s + c)) \\ \quad \quad =\; \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols})))(s) \end{array}}
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{lebesgue-measurable-translate}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lebesgue-\allowbreak{}measure-\allowbreak{}unique.scm} --- 181 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{lebesgue-outer-measure}, \texttt{fun-codomain-iff}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{rr-sub-in-rr}, \texttt{translate-subset-rr}, \texttt{subset-rr-in-power-rr}, \texttt{subset-def}, \texttt{power-mem-in}, \texttt{lebesgue-outer-translate-invariant}, \texttt{translate-neg-back}, \texttt{translate-difference}, \texttt{translate-intersection}, \texttt{intersection-membership}, \texttt{subset-mem-fwd}, \texttt{difference-unfold}, \texttt{complement-in-membership}, \texttt{res-apply}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{lebesgue-outer-translate-invariant}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lebesgue-\allowbreak{}measure-\allowbreak{}unique.scm} --- 7 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{translate-unfold}, \texttt{lebesgue-outer-translate}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\renewcommand{\thethm}{Lebesgue}
+\begin{thm}[{Uniqueness of Lebesgue measure on the Borel sets}]\label{thm:lebesgue-measure-unique}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, s. \\ \quad \operatorname{is\text{-}measure}(\mathbb{R}, \operatorname{borel\text{-}sets}(\operatorname{rr\text{-}ms}), u) \wedge \\ \quad \forall a, b.\; (((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a \leq b))) \Rightarrow (u(\operatorname{ccint}(a, b)) = (b - a))) \wedge \\ \quad s \in \operatorname{borel\text{-}sets}(\operatorname{rr\text{-}ms}) \Rightarrow \\ \quad \quad u(s) \\ \quad \quad =\; \operatorname{res}(\operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols}))), \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols})))))(s) \end{array}}
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lebesgue-\allowbreak{}measure-\allowbreak{}unique.scm} --- 204 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{lebesgue-outer-measure}, \texttt{fun-codomain-iff}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{subset-mem-fwd}, \texttt{lebesgue-borel-measurable}, \texttt{fun-apply-type-c}, \texttt{res-apply}, \texttt{borel-measure-le-lebesgue-outer}, \texttt{caratheodory-measure}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{rr-sub-in-rr}, \texttt{lebesgue-measure-ccint}, \texttt{ccint-closed-rr-ms}, \texttt{rr-closed-borel}, \texttt{sigma-algebra-inter-closed-2}, \texttt{subset-def}, \texttt{intersection-membership}, \texttt{borel-measure-eq-lebesgue-outer-bounded}, \texttt{measure-monotone}, \texttt{measure-le-of-ccint-exhaust}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Not in the notes. Proven without the monotone class theorem or Dynkin's theorem: mu $<$= lambda* on Borel sets by subadditivity against covers; equality inside [p, q] by applying that to a set and its complement in [p, q]; then continuity from below.
+%
+\renewcommand{\thethm}{2.17}
+\begin{prop}[{Hoelder's inequality}]\label{thm:hoelder}
+%
+\leavevmode
+\vnbpart{\texttt{hoelder}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, f, g.; \forall p, q \in \mathbb{R}. \\ \quad \operatorname{is\text{-}measure}(a, b, u) \wedge \\ \quad \operatorname{is\text{-}measurable\text{-}fn}(a, b, f) \wedge \\ \quad \operatorname{is\text{-}measurable\text{-}fn}(a, b, g) \wedge \\ \quad 1 < p \wedge \\ \quad 1 < q \wedge \\ \quad (/(1, p) + /(1, q)) = 1 \Rightarrow \\ \quad \quad \operatorname{integral}(a, b, u, \operatorname{ptwise\text{-}etimes}(a, f, g)) \leq \operatorname{etimes}(I_{p}({f}), I_{q}({g})) \end{array}}
+\vnbpart{\texttt{young-extended}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b \in \operatorname{rr\text{-}pos\text{-}star}, p, q \in \mathbb{R}. \\ \quad ((1 < p) \wedge ((1 < q) \wedge ((/(1, p) + /(1, q)) = 1))) \Rightarrow  \\ \quad \quad \operatorname{etimes}(a, b) \leq \operatorname{eplus}(\operatorname{etimes}(\operatorname{recip}(p), {a}^{p}), \operatorname{etimes}(\operatorname{recip}(q), {b}^{q})) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{hoelder}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lp-\allowbreak{}inequalities.scm} --- 1107 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{sigma-algebra-ambient-set}, \texttt{rr-zero-in}, \texttt{rr-one-in}, \texttt{zero-in-rr-pos-star}, \texttt{rr-pos-ne-zero}, \texttt{rr-recip-closed}, \texttt{rr-recip-pos}, \texttt{rr-recip-inverse}, \texttt{measurable-fn-etimes}, \texttt{measurable-fn-epow}, \texttt{integral-in}, \texttt{ep-norm-unfold}, \texttt{epow-in}, \texttt{etimes-closed}, \texttt{ep-norm-zero-null}, \texttt{fun-apply-type-c}, \texttt{ptwise-etimes-value}, \texttt{rps-not-lt-le}, \texttt{rr-pos-star-nonneg}, \texttt{rr-pos-star-le-antisymm}, \texttt{etimes-zero-left}, \texttt{integral-le-off-null}, \texttt{epow-eq-zero}, \texttt{etimes-zero-right}, \texttt{equality-symmetry}, \texttt{rr-mul-in-rr}, \texttt{rr-mul-pos}, \texttt{rr-lt-implies-le}, \texttt{epow-pos-real}, \texttt{ptwise-scale-measurable}, \texttt{measurable-fn-eplus}, \texttt{ptwise-epow-value}, \texttt{eplus-closed}, \texttt{ptwise-scale-value}, \texttt{ptwise-eplus-value}, \texttt{young-scaled}, \texttt{integral-homogeneous}, \texttt{integral-additive}, \texttt{epow-inverse}, \texttt{etimes-assoc-real}, \texttt{epow-etimes}, \texttt{etimes-real-defined}, \texttt{rr-mul-closed}, \texttt{rr-mul-comm}, \texttt{epow-one-base}, \texttt{eplus-real-defined}, \texttt{rr-add-closed}, \texttt{rr-one-mul}, \texttt{integral-monotone}, \texttt{rr-mul-le-right}, \texttt{etimes-pos-inf-right}, \texttt{pos-inf-above-reals}, \texttt{rr-pos-star-below-pos-inf}, \texttt{etimes-pos-inf-left}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{young-extended}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lp-\allowbreak{}inequalities.scm} --- 138 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{rr-zero-in}, \texttt{rr-one-in}, \texttt{rr-zero-lt-one}, \texttt{rr-pos-ne-zero}, \texttt{rr-recip-closed}, \texttt{rr-recip-pos}, \texttt{rr-recip-inverse}, \texttt{young-scaled}, \texttt{epow-one-base}, \texttt{etimes-closed}, \texttt{etimes-one-left}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} For [0, +inf]-valued f, g with 0 * inf = 0. The infinite case, unmentioned in the notes, needs the zero case first; I\_p(f) = 0 implies f = 0 a.e. (asserted in the notes) is proven by Markov's inequality (ep-norm-zero-null).
+%
+\renewcommand{\thethm}{2.19}
+\begin{prop}[{Minkowski's inequality}]\label{thm:minkowski}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, f, g.; \forall p \in \mathbb{R}. \\ \quad (\operatorname{is\text{-}measure}(a, b, u) \wedge (\operatorname{is\text{-}measurable\text{-}fn}(a, b, f) \wedge (\operatorname{is\text{-}measurable\text{-}fn}(a, b, g) \wedge (1 \leq p)))) \Rightarrow  \\ \quad \quad I_{p}({\operatorname{ptwise\text{-}eplus}(a, f, g)}) \leq \operatorname{eplus}(I_{p}({f}), I_{p}({g})) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lp-\allowbreak{}inequalities.scm} --- 1153 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{sigma-algebra-ambient-set}, \texttt{rr-zero-in}, \texttt{rr-one-in}, \texttt{zero-in-rr-pos-star}, \texttt{measurable-fn-eplus}, \texttt{rr-le-cases}, \texttt{rr-pos-ne-zero}, \texttt{rr-recip-closed}, \texttt{rr-recip-pos}, \texttt{rr-recip-inverse}, \texttt{conjugate-exponent}, \texttt{measurable-fn-epow}, \texttt{integral-in}, \texttt{ep-norm-unfold}, \texttt{epow-in}, \texttt{eplus-closed}, \texttt{ptwise-epow-value}, \texttt{epow-inverse}, \texttt{epow-real-in}, \texttt{rr-pos-star-nonneg}, \texttt{epow-pos-real}, \texttt{rr-lt-implies-le}, \texttt{ptwise-scale-measurable}, \texttt{fun-apply-type-c}, \texttt{ptwise-eplus-value}, \texttt{etimes-closed}, \texttt{ptwise-scale-value}, \texttt{epow-eplus-le}, \texttt{integral-homogeneous}, \texttt{integral-additive}, \texttt{eplus-real-defined}, \texttt{rr-add-closed}, \texttt{etimes-real-defined}, \texttt{rr-mul-closed}, \texttt{integral-monotone}, \texttt{rr-pos-star-le-real-in-rr}, \texttt{rr-sub-in-rr}, \texttt{measurable-fn-etimes}, \texttt{ptwise-etimes-value}, \texttt{epow-split}, \texttt{etimes-distrib-left-star}, \texttt{rr-pos-star-le-refl}, \texttt{epow-epow}, \texttt{integral-ptwise-eq}, \texttt{hoelder}, \texttt{eplus-mono}, \texttt{rr-pos-star-le-trans}, \texttt{rr-mul-in-rr}, \texttt{rr-one-mul}, \texttt{epow-real}, \texttt{rpow-star-add}, \texttt{rpow-star-one}, \texttt{rr-mul-le-cancel-pos}, \texttt{epow-zero}, \texttt{eplus-pos-inf-right}, \texttt{rr-pos-star-below-pos-inf}, \texttt{eplus-pos-inf-left}, \texttt{ep-norm-one}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The notes divide by I\_p(f + g)\textasciicircum{}(p/q), which says nothing when I\_p(f + g) = inf; finiteness is proven from (u + v)\textasciicircum{}p $<$= 2\textasciicircum{}p (u\textasciicircum{}p + v\textasciicircum{}p) (epow-eplus-le).
+%
+\renewcommand{\thethm}{2.21}
+\begin{prop}[{Functions equal almost everywhere have the same integral}]\label{thm:integral-ae-eq}
+%
+\leavevmode
+\vnbpart{\texttt{integral-ae-eq}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, c, f, g. \\ \quad \operatorname{is\text{-}measure}(a, b, u) \wedge \\ \quad c \in b \wedge \\ \quad u(c) = 0 \wedge \\ \quad \operatorname{is\text{-}measurable\text{-}fn}(a, b, f) \wedge \\ \quad \operatorname{is\text{-}measurable\text{-}fn}(a, b, g) \wedge \\ \quad \forall x \in a.\; (\neg (x \in c) \Rightarrow (f(x) = g(x))) \Rightarrow \\ \quad \quad \operatorname{integral}(a, b, u, f) = \operatorname{integral}(a, b, u, g) \end{array}}
+\vnbpart{\texttt{rintegral-ae-eq}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, f, g, s. \\ \quad \operatorname{is\text{-}measure}(a, b, u) \wedge \\ \quad \operatorname{is\text{-}integrable}(a, b, u, f) \wedge \\ \quad \operatorname{is\text{-}real\text{-}measurable\text{-}fn}(a, b, g) \wedge \\ \quad \operatorname{is\text{-}null\text{-}set}(a, b, u, s) \wedge \\ \quad \forall x \in a.\; (\neg (x \in s) \Rightarrow (f(x) = g(x))) \Rightarrow \\ \quad \quad \operatorname{is\text{-}integrable}(a, b, u, g) \wedge (\operatorname{rintegral}(a, b, u, g) = \operatorname{rintegral}(a, b, u, f)) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{integral-ae-eq}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lp-\allowbreak{}inequalities.scm} --- 86 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{fun-apply-type-c}, \texttt{rr-pos-star-le-refl}, \texttt{integral-le-off-null}, \texttt{integral-in}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{rintegral-ae-eq}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/real-\allowbreak{}integral.scm} --- 731 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{fun-domain-in-set}, \texttt{pos-part-fun}, \texttt{neg-part-fun}, \texttt{integral-in}, \texttt{rr-pos-star-nonneg}, \texttt{subset-def}, \texttt{fun-apply-type-c}, \texttt{part-values-at}, \texttt{part-values-nonneg}, \texttt{rr-not-le-lt}, \texttt{part-values-neg}, \texttt{integral-le-off-null}, \texttt{rr-pos-star-le-antisymm}, \texttt{rintegral-unfold}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Functions are total on X; 'almost everywhere' is a clause 'except on a null set' (the user's decision, 2026-10-09). For a real f the hypothesis f $>$= 0 a.e. is not needed.
+%
+\renewcommand{\thethm}{2.23}
+\begin{prop}[{A function with finite integral is finite almost everywhere}]\label{thm:integral-finite-ae-finite}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, f. \\ \quad (\operatorname{is\text{-}measure}(a, b, u) \wedge (\operatorname{is\text{-}measurable\text{-}fn}(a, b, f) \wedge (\operatorname{integral}(a, b, u, f) < \operatorname{pos\text{-}inf}))) \Rightarrow  \\ \quad \quad (\{x \in a : (f(x) = \operatorname{pos\text{-}inf})\} \in b) \wedge (u(\{x \in a : (f(x) = \operatorname{pos\text{-}inf})\}) = 0) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lp-\allowbreak{}inequalities.scm} --- 130 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{sigma-algebra-ambient-set}, \texttt{integral-in}, \texttt{integral-finite-null}, \texttt{measurable-fn-finite-part}, \texttt{sigma-algebra-complement-closed}, \texttt{complement-in-membership}, \texttt{pos-inf-not-in-rr}, \texttt{fun-apply-type-c}, \texttt{class-extensionality}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\renewcommand{\thethm}{2.24}
+\begin{prop}[{A function with nonnegative integral over every measurable set is nonnegative almost everywhere}]\label{thm:rintegral-nonneg-on-sets-null}
+%
+\leavevmode
+\vnbpart{\texttt{rintegral-nonneg-on-sets-null}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, f. \\ \quad \operatorname{is\text{-}measure}(a, b, u) \wedge \\ \quad \operatorname{is\text{-}integrable}(a, b, u, f) \wedge \\ \quad \forall c \in b. \\ \quad \quad 0 \leq \operatorname{rintegral}(a, b, u, (\lambda x \in a.\; (f(x) \cdot \operatorname{indicator}(a, c)(x)))) \Rightarrow \\ \quad \quad \operatorname{is\text{-}null\text{-}set}(a, b, u, \{\mathit{nx} \in a : (f(\mathit{nx}) < 0)\}) \end{array}}
+\vnbpart{\texttt{rintegral-decomposition}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, f, c, d. \\ \quad \operatorname{is\text{-}measure}(a, b, u) \wedge \\ \quad f \in (a \to \mathbb{R}) \wedge \\ \quad \operatorname{is\text{-}measurable\text{-}fn}(a, b, c) \wedge \\ \quad \operatorname{is\text{-}measurable\text{-}fn}(a, b, d) \wedge \\ \quad \forall x \in a.\; (c(x) \in \mathbb{R}) \wedge \\ \quad \forall x \in a.\; (d(x) \in \mathbb{R}) \wedge \\ \quad \forall x \in a.\; (f(x) = (c(x) - d(x))) \wedge \\ \quad \operatorname{integral}(a, b, u, c) \in \mathbb{R} \wedge \\ \quad \operatorname{integral}(a, b, u, d) \in \mathbb{R} \Rightarrow \\ \quad \quad (\operatorname{is\text{-}integrable}(a, b, u, f) \wedge (\operatorname{rintegral}(a, b, u, f) = (\operatorname{integral}(a, b, u, c) - \operatorname{integral}(a, b, u, d)))) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{rintegral-nonneg-on-sets-null}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/real-\allowbreak{}integral.scm} --- 1306 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{fun-domain-in-set}, \texttt{pos-part-fun}, \texttt{neg-part-fun}, \texttt{integral-in}, \texttt{rr-pos-star-nonneg}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{rr-one-in}, \texttt{rr-add-closed}, \texttt{ptwise-scale-measurable}, \texttt{measurable-fn-ge}, \texttt{rintegral-restrict}, \texttt{measurable-fn-indicator}, \texttt{measurable-fn-etimes}, \texttt{rr-zero-in}, \texttt{rr-leq-reflexive}, \texttt{measurable-fn-const}, \texttt{part-values-at}, \texttt{fun-apply-type-c}, \texttt{indicator-value-in}, \texttt{etimes-real-defined}, \texttt{rr-mul-closed}, \texttt{ptwise-etimes-value-q}, \texttt{ptwise-scale-value-q}, \texttt{part-values-nonneg}, \texttt{rr-not-le-lt}, \texttt{part-values-neg}, \texttt{indicator-value-out}, \texttt{integral-monotone}, \texttt{integral-zero-fn}, \texttt{rr-pos-star-le-antisymm}, \texttt{rr-pos-star-le-real-in-rr}, \texttt{integral-indicator}, \texttt{integral-homogeneous}, \texttt{etimes-zero-right}, \texttt{nn-is-set}, \texttt{sigma-algebra-union-closed}, \texttt{measure-countably-subadditive}, \texttt{esum-nn-zero}, \texttt{subset-def}, \texttt{rr-lt-irrefl}, \texttt{rr-pos-rr-of-lt}, \texttt{rr-archimedean-multiple}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{rintegral-decomposition}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/real-\allowbreak{}integral.scm} --- 483 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{pos-part-measurable-of-diff}, \texttt{neg-part-measurable-of-diff}, \texttt{pos-part-fun}, \texttt{neg-part-fun}, \texttt{fun-apply-type-c}, \texttt{rr-pos-star-nonneg}, \texttt{part-values-at}, \texttt{part-values-nonneg}, \texttt{rr-not-le-lt}, \texttt{part-values-neg}, \texttt{integral-monotone}, \texttt{integral-in}, \texttt{rr-pos-star-le-real-in-rr}, \texttt{measurable-fn-eplus}, \texttt{fun-codomain-iff}, \texttt{eplus-real-defined}, \texttt{rr-add-closed}, \texttt{ptwise-eplus-value-q}, \texttt{fun-domain-extensionality}, \texttt{integral-additive}, \texttt{rr-pos-star-le-refl}, \texttt{rintegral-unfold}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The integral of a real function is RINTEGRAL, the integral of f+ minus that of f- (2026-10-10). The proof uses monotonicity of the real integral and the integral over a set, neither stated in the notes before it.
+%
+\renewcommand{\thethm}{2.22}
+\begin{thm}[{The L\textasciicircum{}p seminorm}]\label{thm:lp-norm-triangle}
+%
+\leavevmode
+\vnbpart{\texttt{lp-norm-triangle}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, p, f, g. \\ \quad \operatorname{is\text{-}measure}(a, b, u) \wedge \\ \quad \operatorname{is\text{-}real\text{-}measurable\text{-}fn}(a, b, f) \wedge \\ \quad \operatorname{is\text{-}real\text{-}measurable\text{-}fn}(a, b, g) \wedge \\ \quad p \in \mathbb{R} \wedge \\ \quad 1 \leq p \Rightarrow \\ \quad \quad \|{(\lambda x \in a.\; (f(x) + g(x)))}\|_{p} \\ \quad \quad \leq\; \operatorname{eplus}(\|{f}\|_{p}, \|{g}\|_{p}) \end{array}}
+\vnbpart{\texttt{lp-norm-homogeneous}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, p, f, c. \\ \quad (\operatorname{is\text{-}measure}(a, b, u) \wedge (\operatorname{is\text{-}real\text{-}measurable\text{-}fn}(a, b, f) \wedge ((c \in \mathbb{R}) \wedge ((p \in \mathbb{R}) \wedge (0 < p))))) \Rightarrow  \\ \quad \quad \|{(\lambda x \in a.\; (c \cdot f(x)))}\|_{p} = \operatorname{etimes}(\lvert c \rvert, \|{f}\|_{p}) \end{array}}
+\vnbpart{\texttt{lp-norm-zero-iff}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u, p, f, g. \\ \quad \operatorname{is\text{-}measure}(a, b, u) \wedge \\ \quad \operatorname{is\text{-}real\text{-}measurable\text{-}fn}(a, b, f) \wedge \\ \quad \operatorname{is\text{-}real\text{-}measurable\text{-}fn}(a, b, g) \wedge \\ \quad p \in \mathbb{R} \wedge \\ \quad 0 < p \Rightarrow \\ \quad \quad \|{(\lambda \mathit{sx} \in a.\; (f(\mathit{sx}) - g(\mathit{sx})))}\|_{p} = 0 \\ \quad \quad \Leftrightarrow\; \exists s. \\ \quad \quad \quad \operatorname{is\text{-}null\text{-}set}(a, b, u, s) \wedge \forall x \in a.\; (\neg (x \in s) \Rightarrow (f(x) = g(x))) \end{array}}
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{lp-norm-triangle}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lp-\allowbreak{}seminorm.scm} --- 298 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{real-measurable-add}, \texttt{integral-abs-fn}, \texttt{measurable-fn-eplus}, \texttt{rr-pos-ne-zero}, \texttt{rr-recip-closed}, \texttt{rr-recip-pos}, \texttt{fun-apply-type-c}, \texttt{rr-abs-closed}, \texttt{rr-abs-nonneg}, \texttt{abs-fn-value}, \texttt{rr-add-closed}, \texttt{rr-abs-triangle-c}, \texttt{ptwise-eplus-value}, \texttt{eplus-real-defined}, \texttt{ep-norm-mono}, \texttt{minkowski}, \texttt{ep-norm-unfold}, \texttt{measurable-fn-epow}, \texttt{integral-in}, \texttt{epow-in}, \texttt{eplus-closed}, \texttt{rr-pos-star-le-trans}, \texttt{lp-norm-unfold}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{lp-norm-homogeneous}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lp-\allowbreak{}seminorm.scm} --- 182 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{fun-domain-in-set}, \texttt{integral-abs-fn}, \texttt{rr-abs-closed}, \texttt{rr-abs-nonneg}, \texttt{ptwise-scale-measurable}, \texttt{fun-apply-type-c}, \texttt{rr-mul-closed}, \texttt{abs-fn-fun}, \texttt{fun-codomain-iff}, \texttt{abs-fn-value}, \texttt{rr-abs-mult}, \texttt{ptwise-scale-value}, \texttt{etimes-real-defined}, \texttt{fun-domain-extensionality}, \texttt{lp-norm-unfold}, \texttt{ep-norm-scale}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{lp-norm-zero-iff}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lp-\allowbreak{}seminorm.scm} --- 356 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{rr-pos-ne-zero}, \texttt{rr-recip-closed}, \texttt{rr-recip-pos}, \texttt{real-measurable-sub}, \texttt{integral-abs-fn}, \texttt{measurable-fn-epow}, \texttt{lp-norm-unfold}, \texttt{ep-norm-unfold}, \texttt{ep-norm-zero-null}, \texttt{subset-refl}, \texttt{fun-apply-type-c}, \texttt{rr-sub-in-rr}, \texttt{rr-abs-closed}, \texttt{rr-abs-nonneg}, \texttt{abs-fn-value}, \texttt{rr-abs-zero}, \texttt{rr-not-le-lt}, \texttt{rr-zero-in}, \texttt{rr-leq-reflexive}, \texttt{measurable-fn-const}, \texttt{epow-zero}, \texttt{rr-abs-zero-value}, \texttt{subset-def}, \texttt{ptwise-epow-value}, \texttt{integral-le-off-null}, \texttt{integral-zero-fn}, \texttt{integral-in}, \texttt{rr-pos-star-nonneg}, \texttt{rr-pos-star-le-antisymm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} No quotient by null functions (the user's decision): L\textasciicircum{}p is seminormed, with ||f - g||\_p = 0 iff f = g except on a null set. L\textasciicircum{}infinity and the vector-space claim are not yet stated.
+%
+\renewcommand{\thethm}{3.5}
+\begin{prop}[{Sections of a product-measurable function are measurable}]\label{thm:x-section-measurable}
+%
+\leavevmode
+\vnbpart{\texttt{x-section-measurable}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, a, b, c, d, x. \\ \quad (\operatorname{is\text{-}sigma\text{-}algebra}(s, a) \wedge (\operatorname{is\text{-}sigma\text{-}algebra}(b, c) \wedge ((d \in \operatorname{product\text{-}sigma}(s, a, b, c)) \wedge (x \in s)))) \Rightarrow  \\ \quad \quad \operatorname{x\text{-}section}(b, d, x) \in c \end{array}}
+\vnbpart{\texttt{fn-x-section-measurable}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, a, b, c, f, x. \\ \quad \operatorname{is\text{-}sigma\text{-}algebra}(s, a) \wedge \\ \quad \operatorname{is\text{-}sigma\text{-}algebra}(b, c) \wedge \\ \quad \operatorname{is\text{-}measurable\text{-}fn}((s \times b), \operatorname{product\text{-}sigma}(s, a, b, c), f) \wedge \\ \quad x \in s \Rightarrow \\ \quad \quad \operatorname{is\text{-}measurable\text{-}fn}(b, c, \operatorname{fn\text{-}x\text{-}section}(b, f, x)) \end{array}}
+\vnbpart{\texttt{fn-y-section-measurable}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, a, b, c, f, y. \\ \quad \operatorname{is\text{-}sigma\text{-}algebra}(s, a) \wedge \\ \quad \operatorname{is\text{-}sigma\text{-}algebra}(b, c) \wedge \\ \quad \operatorname{is\text{-}measurable\text{-}fn}((s \times b), \operatorname{product\text{-}sigma}(s, a, b, c), f) \wedge \\ \quad y \in b \Rightarrow \\ \quad \quad \operatorname{is\text{-}measurable\text{-}fn}(s, a, \operatorname{fn\text{-}y\text{-}section}(s, f, y)) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{x-section-measurable}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/product-\allowbreak{}measure.scm} --- 468 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{sigma-algebra-ambient-set}, \texttt{cartesian-set-iff}, \texttt{subset-def}, \texttt{power-whole-in}, \texttt{x-section-membership}, \texttt{pair-cartesian-iff}, \texttt{class-extensionality}, \texttt{sigma-algebra-whole-in}, \texttt{power-complement-closed}, \texttt{sigma-algebra-complement-closed}, \texttt{complement-in-membership}, \texttt{fun-apply-type-c}, \texttt{nn-is-set}, \texttt{membership-implies-sethood}, \texttt{fun-codomain-iff}, \texttt{power-fun-union-closed}, \texttt{sigma-algebra-union-closed}, \texttt{rectangles-membership}, \texttt{subset-mem-fwd}, \texttt{power-mem-in}, \texttt{empty-set-has-no-members}, \texttt{sigma-algebra-empty-in}, \texttt{product-sigma-unfold}, \texttt{sigma-generated-in-every}.}
+%
+\vnbprf{\textbf{Oracles.} none.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{fn-x-section-measurable}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/product-\allowbreak{}measure.scm} --- 104 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{sigma-algebra-ambient-set}, \texttt{pair-in-cartesian}, \texttt{fun-apply-type-c}, \texttt{x-section-measurable}, \texttt{fn-x-section-apply}, \texttt{x-section-membership}, \texttt{class-extensionality}.}
+%
+\vnbprf{\textbf{Oracles.} none.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{fn-y-section-measurable}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/product-\allowbreak{}measure.scm} --- 104 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{sigma-algebra-ambient-set}, \texttt{pair-in-cartesian}, \texttt{fun-apply-type-c}, \texttt{y-section-measurable}, \texttt{fn-y-section-apply}, \texttt{y-section-membership}, \texttt{class-extensionality}.}
+%
+\vnbprf{\textbf{Oracles.} none.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Proved through level sets (a level set of a section is a section of a level set), not by approximation with step functions; the product sigma-algebra is PRODUCT-SIGMA, generated by RECTANGLES.
+%
+\renewcommand{\thethm}{3.7}
+\begin{thm}[{Fubini}]\label{thm:fubini}
+%
+\leavevmode
+\vnbpart{\texttt{fubini}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, a, u, b, c, d, f. \\ \quad \operatorname{is\text{-}measure}(s, a, u) \wedge \\ \quad \operatorname{is\text{-}measure}(b, c, d) \wedge \\ \quad \operatorname{is\text{-}sigma\text{-}finite}(s, a, u) \wedge \\ \quad \operatorname{is\text{-}sigma\text{-}finite}(b, c, d) \wedge \\ \quad \operatorname{is\text{-}measurable\text{-}fn}((s \times b), \operatorname{product\text{-}sigma}(s, a, b, c), f) \Rightarrow \\ \quad \quad \operatorname{is\text{-}measurable\text{-}fn}(s, a, \operatorname{x\text{-}section\text{-}integral}(s, b, c, d, f)) \wedge \\ \quad \quad \operatorname{is\text{-}measurable\text{-}fn}(b, c, \operatorname{y\text{-}section\text{-}integral}(s, a, u, b, f)) \wedge \\ \quad \quad \operatorname{integral}(s, a, u, \operatorname{x\text{-}section\text{-}integral}(s, b, c, d, f)) \\ \quad \quad =\; \operatorname{integral}(b, c, d, \operatorname{y\text{-}section\text{-}integral}(s, a, u, b, f)) \end{array}}
+\vnbpart{\texttt{fubini-sets}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, a, u, b, c, d, f. \\ \quad \operatorname{is\text{-}measure}(s, a, u) \wedge \\ \quad \operatorname{is\text{-}measure}(b, c, d) \wedge \\ \quad \operatorname{is\text{-}sigma\text{-}finite}(s, a, u) \wedge \\ \quad \operatorname{is\text{-}sigma\text{-}finite}(b, c, d) \wedge \\ \quad f \in \operatorname{product\text{-}sigma}(s, a, b, c) \Rightarrow \\ \quad \quad \operatorname{is\text{-}fubini\text{-}set}(s, a, u, b, c, d, f) \end{array}}
+\vnbpart{\texttt{dynkin-pi-lambda}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, d, p. \\ \quad (\operatorname{is\text{-}dynkin\text{-}system}(a, d) \wedge (\operatorname{is\text{-}pi\text{-}system}(p) \wedge (p \subseteq d))) \Rightarrow  \\ \quad \quad \operatorname{sigma\text{-}generated}(a, p) \subseteq d \end{array}}
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{fubini}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/product-\allowbreak{}measure.scm} --- 303 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{sigma-algebra-ambient-set}, \texttt{cartesian-set-iff}, \texttt{product-sigma-is-sigma-algebra}, \texttt{integral-simple-approx}, \texttt{fubini-simple}, \texttt{x-section-integral-limit}, \texttt{y-section-integral-limit}, \texttt{y-section-integral-type}, \texttt{integral-in}, \texttt{nn-is-set}, \texttt{fun-codomain-iff}, \texttt{fun-domain-extensionality}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{fubini-sets}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/product-\allowbreak{}measure.scm} --- 492 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{sigma-algebra-ambient-set}, \texttt{cartesian-set-iff}, \texttt{product-sigma-is-sigma-algebra}, \texttt{sigma-finite-increasing}, \texttt{fun-apply-type-c}, \texttt{rectangle-in-product-sigma}, \texttt{sigma-algebra-inter-closed-2}, \texttt{nn-is-set}, \texttt{membership-implies-sethood}, \texttt{fubini-set-in-finite-rectangle}, \texttt{nn-succ-closed}, \texttt{cartesian-mono}, \texttt{subset-def}, \texttt{intersection-membership}, \texttt{subset-mem-fwd}, \texttt{power-mem-in}, \texttt{cartesian-membership-nth}, \texttt{nn-add-closed}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{nn-succ-plus-one}, \texttt{seg-mem-lt}, \texttt{nondecreasing-seg-subset}, \texttt{class-extensionality}, \texttt{fubini-set-union}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{dynkin-pi-lambda}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/product-\allowbreak{}measure.scm} --- 293 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{subset-trans}, \texttt{dynkin-generated-is-dynkin}, \texttt{subset-def}, \texttt{subset-mem-fwd}, \texttt{dynkin-generated-membership}, \texttt{dynkin-inter-section}, \texttt{power-mem-in}, \texttt{intersection-membership}, \texttt{class-extensionality}, \texttt{dynkin-pi-is-sigma-algebra}, \texttt{sigma-generated-in-every}.}
+%
+\vnbprf{\textbf{Oracles.} none.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The monotone class step is replaced by Dynkin's pi-lambda theorem (the rectangles are a pi-system, the Fubini sets a Dynkin system), proven in the same file; the algebra of finite disjoint unions of rectangles is never built.
+%
+\renewcommand{\thethm}{3.8}
+\begin{defn}[{The product measure}]\label{thm:product-measure-is-measure}
+%
+\leavevmode
+\vnbpart{\texttt{product-measure-is-measure}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, a, u, b, c, d. \\ \quad \operatorname{is\text{-}measure}(s, a, u) \wedge \\ \quad \operatorname{is\text{-}measure}(b, c, d) \wedge \\ \quad \operatorname{is\text{-}sigma\text{-}finite}(s, a, u) \wedge \\ \quad \operatorname{is\text{-}sigma\text{-}finite}(b, c, d) \Rightarrow \\ \quad \quad \operatorname{is\text{-}measure}((s \times b), \operatorname{product\text{-}sigma}(s, a, b, c), \operatorname{product\text{-}measure}(s, a, u, b, c, d)) \end{array}}
+\vnbpart{\texttt{product-measure-symmetric}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, a, u, b, c, d, f. \\ \quad \operatorname{is\text{-}measure}(s, a, u) \wedge \\ \quad \operatorname{is\text{-}measure}(b, c, d) \wedge \\ \quad \operatorname{is\text{-}sigma\text{-}finite}(s, a, u) \wedge \\ \quad \operatorname{is\text{-}sigma\text{-}finite}(b, c, d) \wedge \\ \quad f \in \operatorname{product\text{-}sigma}(s, a, b, c) \Rightarrow \\ \quad \quad \operatorname{product\text{-}measure}(s, a, u, b, c, d)(f) = \operatorname{integral}(b, c, d, \operatorname{y\text{-}section\text{-}measure}(s, b, u, f)) \end{array}}
+\vnbpart{\texttt{product-measure-rectangle}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, a, u, b, c, d, f, g. \\ \quad (\operatorname{is\text{-}measure}(s, a, u) \wedge (\operatorname{is\text{-}measure}(b, c, d) \wedge ((f \in a) \wedge ((g \in c) \wedge ((u(f) \in \mathbb{R}) \wedge (d(g) \in \mathbb{R})))))) \Rightarrow  \\ \quad \quad \operatorname{product\text{-}measure}(s, a, u, b, c, d)((f \times g)) = \operatorname{etimes}(u(f), d(g)) \end{array}}
+%
+\end{defn}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{product-measure-is-measure}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/product-\allowbreak{}measure.scm} --- 821 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{sigma-algebra-ambient-set}, \texttt{cartesian-set-iff}, \texttt{nn-is-set}, \texttt{product-sigma-is-sigma-algebra}, \texttt{power-set}, \texttt{subclass-of-set-is-set}, \texttt{fubini-sets}, \texttt{x-section-measure-type}, \texttt{integral-in}, \texttt{product-measure-apply}, \texttt{sigma-algebra-empty-in}, \texttt{measurable-fn-indicator}, \texttt{x-section-measure-apply}, \texttt{x-section-empty}, \texttt{empty-set-has-no-members}, \texttt{indicator-value-out}, \texttt{integral-congruence-ptwise}, \texttt{integral-indicator}, \texttt{fun-apply-type-c}, \texttt{membership-implies-sethood}, \texttt{sigma-algebra-union-closed}, \texttt{x-section-measurable}, \texttt{intersection-membership}, \texttt{x-section-membership}, \texttt{class-extensionality}, \texttt{fun-codomain-iff}, \texttt{fun-domain-extensionality}, \texttt{dom-of-fun}, \texttt{esum-in}, \texttt{integral-esum}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{product-measure-symmetric}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/product-\allowbreak{}measure.scm} --- 35 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{fubini-sets}, \texttt{product-measure-apply}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{product-measure-rectangle}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/product-\allowbreak{}measure.scm} --- 99 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{rectangle-in-product-sigma}, \texttt{x-section-measure-rectangle}, \texttt{product-measure-apply}, \texttt{fun-apply-type-c}, \texttt{etimes-comm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} rho(A x B) = mu(A) nu(B) is proven only when mu(A) and nu(B) are finite; the infinite case needs ESUP of a product of nondecreasing sequences, of which the tree has one inequality (esup-etimes-ge).
+%
+\renewcommand{\thethm}{4.2 (corollary)}
+\begin{cor}[{A translation-invariant Borel measure on the line is a multiple of Lebesgue measure}]\label{thm:lebesgue-translation-invariant}
+%
+\leavevmode
+\vnbpart{\texttt{lebesgue-translation-invariant}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, k, s. \\ \quad \operatorname{is\text{-}measure}(\mathbb{R}, \operatorname{borel\text{-}sets}(\operatorname{rr\text{-}ms}), u) \wedge \\ \quad \forall v, c. \\ \quad \quad ((v \in \operatorname{borel\text{-}sets}(\operatorname{rr\text{-}ms})) \wedge ((c \in \mathbb{R}) \wedge ((v + c) \in \operatorname{borel\text{-}sets}(\operatorname{rr\text{-}ms})))) \Rightarrow  \\ \quad \quad \quad u((v + c)) = u(v) \wedge \\ \quad k \in \mathbb{R} \wedge \\ \quad 0 < k \wedge \\ \quad u(\operatorname{ccint}(0, 1)) = k \wedge \\ \quad s \in \operatorname{borel\text{-}sets}(\operatorname{rr\text{-}ms}) \Rightarrow \\ \quad \quad u(s) \\ \quad \quad =\; \operatorname{etimes}(k, \\ \quad \quad \quad \operatorname{res}(\operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols}))), \operatorname{caratheodory\text{-}sets}(\mathbb{R}, \operatorname{method\text{-}i\text{-}outer}(\mathbb{R}, \operatorname{closed\text{-}intervals}, (\lambda \mathit{ols} \in \operatorname{closed\text{-}intervals}.\; \operatorname{interval\text{-}length}(\mathit{ols})))))(s)) \end{array}}
+\vnbpart{\texttt{esum-scale}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall c \in \mathbb{R}, d.; \forall f \in (d \to \operatorname{rr\text{-}pos\text{-}star}). \\ \quad (0 \leq c) \Rightarrow (\operatorname{esum}((\lambda z \in d.\; \operatorname{etimes}(c, f(z)))) = \operatorname{etimes}(c, \operatorname{esum}(f))) \end{array}}
+\vnbpart{\texttt{measure-scale}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, u.; \forall c \in \mathbb{R}. \\ \quad (\operatorname{is\text{-}measure}(a, b, u) \wedge (0 \leq c)) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}measure}(a, b, (\lambda x \in b.\; \operatorname{etimes}(c, u(x)))) \end{array}}
+%
+\end{cor}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{lebesgue-translation-invariant}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/lebesgue-\allowbreak{}translation-\allowbreak{}invariant.scm} --- 192 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}, \texttt{rr-recip-closed}, \texttt{rr-recip-pos}, \texttt{rr-recip-inverse}, \texttt{rr-mul-comm}, \texttt{measure-scale}, \texttt{fun-apply-type-c}, \texttt{etimes-closed}, \texttt{ccint-closed-rr-ms}, \texttt{rr-closed-borel}, \texttt{etimes-real-defined}, \texttt{translation-invariant-measure-lebesgue}, \texttt{etimes-assoc-real}, \texttt{etimes-one-left}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{esum-scale}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/esum-\allowbreak{}scale.scm} --- 49 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{fun-domain-in-set}, \texttt{fun-apply-type-c}, \texttt{etimes-closed}, \texttt{esum-scale-ptwise}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{measure-scale}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/esum-\allowbreak{}scale.scm} --- 170 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{fun-domain-in-set}, \texttt{nn-is-set}, \texttt{fun-apply-type-c}, \texttt{etimes-closed}, \texttt{sigma-algebra-empty-in}, \texttt{etimes-zero-right}, \texttt{sigma-algebra-union-closed}, \texttt{esum-scale-ptwise}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Not stated in the notes; the statement is ours (2026-10-10). Hypotheses: invariance on the Borel sets whose translates are Borel, 0 $<$ mu([0,1]) finite.
+%
+\section{Functional analysis (Thayer, Analise Funcional e Teoria Espectral; Riesz-Markov from notes-63)}
+%
+\renewcommand{\thethm}{8.24-8.26}
+\begin{prop}[{Seminormed spaces with a countable family: the metric}]\label{thm:frm-cont-lin-iff-bound}
+%
+\leavevmode
+\vnbpart{\texttt{frm-cont-lin-iff-bound}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, a, b, c, f, t. \\ \quad \operatorname{is\text{-}seminorm\text{-}family}(d, a, b) \wedge \\ \quad \operatorname{is\text{-}seminorm\text{-}family}(d, c, f) \wedge \\ \quad \operatorname{is\text{-}linear\text{-}map}(a, c, t) \wedge \\ \quad \operatorname{is\text{-}nontrivially\text{-}valued}(d) \Rightarrow \\ \quad \quad \operatorname{is\text{-}cont\text{-}lin}(a, b, c, f, t) \\ \quad \quad \Leftrightarrow\; \forall k \in \mathbb{N}. \exists g \in \mathbb{N}, h. \\ \quad \quad \quad \operatorname{pos\text{-}rr}(h) \wedge \\ \quad \quad \quad \forall x \in \operatorname{vec}(a), r \in \mathbb{R}. \\ \quad \quad \quad \quad \forall j \in \mathbb{N}.\; ((j \leq g) \Rightarrow (b(j)(x) \leq r)) \Rightarrow (f(k)(t(x)) \leq (h \cdot r)) \end{array}}
+\vnbpart{\texttt{frm-scal-continuous}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, m, a.; \forall s \in (\mathbb{N} \to \operatorname{carr}(d)), b \in (\mathbb{N} \to \operatorname{vec}(m)), l \in \operatorname{carr}(d), x \in \operatorname{vec}(m). \\ \quad \operatorname{is\text{-}seminorm\text{-}family}(d, m, a) \wedge \\ \quad \operatorname{converges\text{-}to}(\operatorname{nf\text{-}metric\text{-}space}(d), s, l) \wedge \\ \quad \operatorname{converges\text{-}to}(\operatorname{fr\text{-}metric\text{-}space}(m, a), b, x) \Rightarrow \\ \quad \quad \operatorname{converges\text{-}to}(\operatorname{fr\text{-}metric\text{-}space}(m, a), (\lambda n \in \mathbb{N}.\; \operatorname{act}(m)(s(n), b(n))), \operatorname{act}(m)(l, x)) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{frm-cont-lin-iff-bound}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/frechet-\allowbreak{}metric.scm} --- 12 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{frm-bound-of-cont-lin}, \texttt{frm-cont-lin-of-bound}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{frm-scal-continuous}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/frechet-\allowbreak{}metric.scm} --- 463 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{frm-fam-module}, \texttt{frm-fam-field}, \texttt{frm-fam-scal}, \texttt{normed-field-ring-view-carr}, \texttt{normed-field-ring-view-add}, \texttt{normed-field-ring-view-neg}, \texttt{frm-conv-of-converges}, \texttt{nf-norm-in-rr}, \texttt{nf-norm-nonneg}, \texttt{nf-neg-in-carr}, \texttt{fun-apply-type-c}, \texttt{nn-is-set}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-pos-halvable}, \texttt{rr-lt-of-pos-rr}, \texttt{frm-fam-type}, \texttt{frm-fam-seminorm}, \texttt{frm-sn-nonneg}, \texttt{rr-add-closed}, \texttt{rr-scale-eps}, \texttt{rr-one-in}, \texttt{rr-zero-lt-one}, \texttt{rr-pos-rr-of-lt}, \texttt{nn-max-closed}, \texttt{nn-in-rr}, \texttt{rr-le-max-left}, \texttt{rr-le-max-right}, \texttt{rr-max-closed}, \texttt{frm-act-diff}, \texttt{ring-neg-in-carr}, \texttt{nf-add-in-carr}, \texttt{frm-sn-subadd}, \texttt{frm-sn-homog}, \texttt{nf-norm-le-add}, \texttt{rr-mul-le-right}, \texttt{rr-mul-comm}, \texttt{rr-mul-closed}, \texttt{frm-converges-of-conv}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Sequences, not nets. The field is a parameter of the seminorm vocabulary (the user's decision 2026-10-10); 8.26 continuity =$>$ bound needs IS-NONTRIVIALLY-VALUED, which every non-discrete locally compact field satisfies.
+%
+\renewcommand{\thethm}{2.19}
+\begin{prop}[{Orthogonal projection onto a closed subspace of a Hilbert space}]\label{thm:hilbert-projection-exists}
+%
+\leavevmode
+\vnbpart{\texttt{hilbert-projection-exists}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall v, k, i. \\ \quad (\operatorname{is\text{-}hilbert\text{-}space}(v) \wedge (\operatorname{is\text{-}submodule}(v, k) \wedge (\operatorname{is\text{-}closed}(\operatorname{ip\text{-}metric\text{-}space}(v), k) \wedge (i \in \operatorname{vec}(v))))) \Rightarrow  \\ \quad \quad \exists a \in k, b \in {k}^{\perp}.\; (i = \operatorname{vadd}(v)(a, b)) \end{array}}
+\vnbpart{\texttt{hilbert-decomposition-unique}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall v, k, a_{1}, a_{2}, b_{1}, b_{2}. \\ \quad \operatorname{is\text{-}complex\text{-}inner\text{-}product\text{-}space}(v) \wedge \\ \quad \operatorname{is\text{-}submodule}(v, k) \wedge \\ \quad a_{1} \in k \wedge \\ \quad a_{2} \in k \wedge \\ \quad b_{1} \in {k}^{\perp} \wedge \\ \quad b_{2} \in {k}^{\perp} \wedge \\ \quad \operatorname{vadd}(v)(a_{1}, b_{1}) = \operatorname{vadd}(v)(a_{2}, b_{2}) \Rightarrow \\ \quad \quad (a_{1} = a_{2}) \wedge (b_{1} = b_{2}) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{hilbert-projection-exists}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/hilbert-\allowbreak{}projection.scm} --- 224 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{hilbert-space-is-cips}, \texttt{hilbert-closest-point}, \texttt{subset-mem-fwd}, \texttt{cips-vneg-type}, \texttt{cips-ip-add-right}, \texttt{cips-ip-neg-right}, \texttt{cips-ip-conj-homog-right}, \texttt{cips-ip-neg-left}, \texttt{cc-conjugate-closed}, \texttt{cips-variational}, \texttt{perp-membership}, \texttt{cips-eq-of-dist-sq-zero}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{hilbert-decomposition-unique}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/hilbert-\allowbreak{}projection.scm} --- 210 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{perp-subset}, \texttt{subset-mem-fwd}, \texttt{cips-vneg-type}, \texttt{perp-orth}, \texttt{cips-ip-add-right}, \texttt{cips-ip-neg-right}, \texttt{cips-ip-neg-left}, \texttt{cips-eq-of-dist-sq-zero}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} P\_K is the property IS-ORTHOGONAL-PROJECTION of a map, shown to exist uniquely, not an operator defined by IOTA.
+%
+\renewcommand{\thethm}{2.22}
+\begin{thm}[{Riesz representation}]\label{thm:riesz-representation}
+%
+\leavevmode
+\vnbpart{\texttt{riesz-representation}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall v, f. \\ \quad \operatorname{is\text{-}hilbert\text{-}space}(v) \wedge \\ \quad \operatorname{is\text{-}cc\text{-}linear\text{-}functional}(v, f) \wedge \\ \quad \operatorname{is\text{-}continuous}(\operatorname{ip\text{-}metric\text{-}space}(v), \operatorname{cc\text{-}ms}, f) \Rightarrow \\ \quad \quad \exists e \in \operatorname{vec}(v). \\ \quad \quad \quad \forall x \in \operatorname{vec}(v).\; (f(x) = \langle\cdot,\cdot\rangle_{v}(x, e)) \wedge \\ \quad \quad \quad \forall x \in \operatorname{vec}(v).\; (\operatorname{magnitude}(f(x)) \leq (\lVert x \rVert \cdot \lVert e \rVert)) \wedge \\ \quad \quad \quad \forall c \in \mathbb{R}. \\ \quad \quad \quad \quad ((0 \leq c) \wedge \forall x \in \operatorname{vec}(v).\; (\operatorname{magnitude}(f(x)) \leq (c \cdot \lVert x \rVert))) \Rightarrow  \\ \quad \quad \quad \quad \quad \lVert e \rVert \leq c \end{array}}
+\vnbpart{\texttt{riesz-representation-unique}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall v, f, e_{1}, e_{2}. \\ \quad \operatorname{is\text{-}complex\text{-}inner\text{-}product\text{-}space}(v) \wedge \\ \quad e_{1} \in \operatorname{vec}(v) \wedge \\ \quad e_{2} \in \operatorname{vec}(v) \wedge \\ \quad \forall x \in \operatorname{vec}(v).\; (f(x) = \langle\cdot,\cdot\rangle_{v}(x, e_{1})) \wedge \\ \quad \forall x \in \operatorname{vec}(v).\; (f(x) = \langle\cdot,\cdot\rangle_{v}(x, e_{2})) \Rightarrow \\ \quad \quad e_{1} = e_{2} \end{array}}
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{riesz-representation}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/hilbert-\allowbreak{}projection.scm} --- 44 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{hilbert-space-is-cips}, \texttt{riesz-representation-exists}, \texttt{cips-ip-magnitude-le}, \texttt{cips-ip-bound-least}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{riesz-representation-unique}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/hilbert-\allowbreak{}projection.scm} --- 16 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cips-ip-separates}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} ||f|| = ||eta|| is stated as: ||eta|| is the least bound for f; the tree has no operator norm on a complex inner product space.
+%
+\renewcommand{\thethm}{Hahn-Banach}
+\begin{thm}[{Hahn-Banach for a sublinear functional}]\label{thm:hbs-hahn-banach-sublinear}
+%
+\leavevmode
+\vnbpart{\texttt{hbs-hahn-banach-sublinear}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, p, s, f. \\ \quad \operatorname{is\text{-}module}(m) \wedge \\ \quad \operatorname{scal}(m) = \operatorname{normed\text{-}field\text{-}as\text{-}commutative\text{-}ring}(\operatorname{rr\text{-}normed\text{-}field}) \wedge \\ \quad \operatorname{is\text{-}sublinear}(m, p) \wedge \\ \quad \operatorname{is\text{-}submodule}(m, s) \wedge \\ \quad \operatorname{is\text{-}linear\text{-}functional\text{-}on}(m, s, f) \wedge \\ \quad \forall z \in s.\; (f(z) \leq p(z)) \Rightarrow \\ \quad \quad \exists a. \\ \quad \quad \quad \operatorname{is\text{-}linear\text{-}functional\text{-}on}(m, \operatorname{vec}(m), a) \wedge \\ \quad \quad \quad \operatorname{extends\text{-}on}(s, a, f) \wedge \\ \quad \quad \quad \forall x \in \operatorname{vec}(m).\; (a(x) \leq p(x)) \end{array}}
+\vnbpart{\texttt{hahn-banach-seminorm-rr}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, p, s, f. \\ \quad \operatorname{is\text{-}module}(m) \wedge \\ \quad \operatorname{scal}(m) = \operatorname{normed\text{-}field\text{-}as\text{-}commutative\text{-}ring}(\operatorname{rr\text{-}normed\text{-}field}) \wedge \\ \quad \operatorname{is\text{-}seminorm}(\operatorname{rr\text{-}normed\text{-}field}, m, p) \wedge \\ \quad \operatorname{is\text{-}submodule}(m, s) \wedge \\ \quad \operatorname{is\text{-}k\text{-}linear\text{-}on}(m, s, f) \wedge \\ \quad \forall x \in s.\; (\operatorname{fnrm}(\operatorname{rr\text{-}normed\text{-}field})(f(x)) \leq p(x)) \Rightarrow \\ \quad \quad \exists a. \\ \quad \quad \quad \operatorname{is\text{-}k\text{-}linear}(m, a) \wedge \\ \quad \quad \quad \operatorname{extends\text{-}on}(s, a, f) \wedge \\ \quad \quad \quad \forall x \in \operatorname{vec}(m).\; (\operatorname{fnrm}(\operatorname{rr\text{-}normed\text{-}field})(a(x)) \leq p(x)) \end{array}}
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{hbs-hahn-banach-sublinear}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/hahn-\allowbreak{}banach-\allowbreak{}sublinear.scm} --- 82 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{rr-one-in}, \texttt{rr-neg-closed}, \texttt{hbs-red-exists}, \texttt{hbs-red-props}, \texttt{hbs-dominated-linear}, \texttt{hbs-sl-fun}, \texttt{hbs-lf-fun}, \texttt{hbs-sub-vec}, \texttt{hbs-sub-act}, \texttt{fun-apply-type-c}, \texttt{hbs-lf-val}, \texttt{hbs-lf-hom}, \texttt{rr-leq-antisymmetric}, \texttt{hbs-sl-val}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{hahn-banach-seminorm-rr}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/hahn-\allowbreak{}banach-\allowbreak{}sublinear.scm} --- 232 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{rr-one-in}, \texttt{rr-neg-closed}, \texttt{hbs-carr}, \texttt{hbs-in-carr}, \texttt{hbs-rr-fnrm}, \texttt{rr-abs-of-nonneg}, \texttt{fun-apply-type-c}, \texttt{hbs-add-eq}, \texttt{hbs-mul-eq}, \texttt{hbs-sub-vec}, \texttt{rr-le-abs}, \texttt{rr-abs-of-nonpos}, \texttt{hbs-hahn-banach-sublinear}, \texttt{hbs-lf-fun}, \texttt{hbs-lf-val}, \texttt{hbs-lf-add}, \texttt{hbs-lf-hom}, \texttt{hbs-act-in}, \texttt{rr-abs-bound}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Real vector spaces. Proved by Zorn over the sublinear functionals below p ordered pointwise (a minimal one is linear), not over partial extensions.
+%
+\renewcommand{\thethm}{Riesz-Markov (notes-63)}
+\begin{thm}[{Riesz-Markov on a compact metric space}]\label{thm:rmz-riesz-markov}
+%
+\leavevmode
+\vnbpart{\texttt{rmz-riesz-markov}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, a. \\ \quad (\operatorname{is\text{-}compact}(s) \wedge (\exists x.\; (x \in \operatorname{pts}(s)) \wedge \operatorname{is\text{-}positive\text{-}functional}(s, a))) \Rightarrow  \\ \quad \quad \exists u. \\ \quad \quad \quad \operatorname{is\text{-}measure}(\operatorname{pts}(s), \operatorname{borel\text{-}sets}(s), u) \wedge \\ \quad \quad \quad \forall f \in \operatorname{cont\text{-}fns}(s). \\ \quad \quad \quad \quad (\operatorname{is\text{-}integrable}(\operatorname{pts}(s), \operatorname{borel\text{-}sets}(s), u, f) \wedge (\operatorname{rintegral}(\operatorname{pts}(s), \operatorname{borel\text{-}sets}(s), u, f) = a(f))) \end{array}}
+\vnbpart{\texttt{rmc-riesz-markov-k}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, q, m, g. \\ \quad (\operatorname{is\text{-}positive\text{-}functional}(\operatorname{rm\text{-}kms}(s, q), m) \wedge (g \in \operatorname{cont\text{-}fns}(\operatorname{rm\text{-}kms}(s, q)))) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}integrable}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), \\ \quad \quad \quad \operatorname{caratheodory\text{-}sets}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), \\ \quad \quad \quad \quad \operatorname{method\text{-}i\text{-}outer}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), \operatorname{clopen\text{-}sets}(\operatorname{rm\text{-}kms}(s, q)), \\ \quad \quad \quad \quad \quad (\lambda u \in \operatorname{clopen\text{-}sets}(\operatorname{rm\text{-}kms}(s, q)).\; m(\operatorname{indicator}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), u))))), \\ \quad \quad \quad \operatorname{res}(\operatorname{method\text{-}i\text{-}outer}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), \operatorname{clopen\text{-}sets}(\operatorname{rm\text{-}kms}(s, q)), \\ \quad \quad \quad \quad \quad (\lambda u \in \operatorname{clopen\text{-}sets}(\operatorname{rm\text{-}kms}(s, q)).\; m(\operatorname{indicator}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), u)))), \\ \quad \quad \quad \quad \operatorname{caratheodory\text{-}sets}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), \\ \quad \quad \quad \quad \quad \operatorname{method\text{-}i\text{-}outer}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), \operatorname{clopen\text{-}sets}(\operatorname{rm\text{-}kms}(s, q)), \\ \quad \quad \quad \quad \quad \quad (\lambda u \in \operatorname{clopen\text{-}sets}(\operatorname{rm\text{-}kms}(s, q)).\; m(\operatorname{indicator}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), u)))))), \\ \quad \quad \quad g) \wedge \\ \quad \quad \operatorname{rintegral}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), \\ \quad \quad \quad \operatorname{caratheodory\text{-}sets}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), \\ \quad \quad \quad \quad \operatorname{method\text{-}i\text{-}outer}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), \operatorname{clopen\text{-}sets}(\operatorname{rm\text{-}kms}(s, q)), \\ \quad \quad \quad \quad \quad (\lambda u \in \operatorname{clopen\text{-}sets}(\operatorname{rm\text{-}kms}(s, q)).\; m(\operatorname{indicator}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), u))))), \\ \quad \quad \quad \operatorname{res}(\operatorname{method\text{-}i\text{-}outer}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), \operatorname{clopen\text{-}sets}(\operatorname{rm\text{-}kms}(s, q)), \\ \quad \quad \quad \quad \quad (\lambda u \in \operatorname{clopen\text{-}sets}(\operatorname{rm\text{-}kms}(s, q)).\; m(\operatorname{indicator}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), u)))), \\ \quad \quad \quad \quad \operatorname{caratheodory\text{-}sets}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), \\ \quad \quad \quad \quad \quad \operatorname{method\text{-}i\text{-}outer}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), \operatorname{clopen\text{-}sets}(\operatorname{rm\text{-}kms}(s, q)), \\ \quad \quad \quad \quad \quad \quad (\lambda u \in \operatorname{clopen\text{-}sets}(\operatorname{rm\text{-}kms}(s, q)).\; m(\operatorname{indicator}(\operatorname{pts}(\operatorname{rm\text{-}kms}(s, q)), u)))))), \\ \quad \quad \quad g) \\ \quad \quad =\; m(g) \end{array}}
+\vnbpart{\texttt{pex-positive-extension}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, a.; \forall \ell \in (a \to \mathbb{R}). \\ \quad \operatorname{is\text{-}metric\text{-}space}(s) \wedge \\ \quad \operatorname{is\text{-}compact}(s) \wedge \\ \quad a \subseteq \operatorname{cont\text{-}fns}(s) \wedge \\ \quad \forall f, g \in a.\; ((\lambda x \in \operatorname{pts}(s).\; (f(x) + g(x))) \in a) \wedge \\ \quad \forall c \in \mathbb{R}, f \in a.\; ((\lambda x \in \operatorname{pts}(s).\; (c \cdot f(x))) \in a) \wedge \\ \quad (\lambda x \in \operatorname{pts}(s).\; 1) \in a \wedge \\ \quad \forall f, g \in a. \\ \quad \quad \ell((\lambda x \in \operatorname{pts}(s).\; (f(x) + g(x)))) = (\ell(f) + \ell(g)) \wedge \\ \quad \forall c \in \mathbb{R}, f \in a.\; (\ell((\lambda x \in \operatorname{pts}(s).\; (c \cdot f(x)))) = (c \cdot \ell(f))) \wedge \\ \quad \forall f \in a.\; (\forall b \in \operatorname{pts}(s).\; (0 \leq f(b)) \Rightarrow (0 \leq \ell(f))) \Rightarrow \\ \quad \quad \exists m.\; (\operatorname{is\text{-}positive\text{-}functional}(s, m) \wedge \operatorname{extends\text{-}on}(a, m, \ell)) \end{array}}
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{rmz-riesz-markov}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/riesz-\allowbreak{}markov-\allowbreak{}compact.scm} --- 8 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{rmm-dense-seq-exists}, \texttt{rmz-riesz-markov-dense}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{rmc-riesz-markov-k}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/riesz-\allowbreak{}markov-\allowbreak{}cantor.scm} --- 416 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{rmm-kms-pts}, \texttt{rmm-kms-metric}, \texttt{rmm-k-set}, \texttt{rmm-k-compact}, \texttt{rmc-measure}, \texttt{rmc-clopen-empty-whole}, \texttt{rmc-ind-nonneg}, \texttt{rmc-cont-fns-parts}, \texttt{rmc-cont-bounded}, \texttt{rmc-gt-set-open}, \texttt{rmc-k-open-measurable}, \texttt{rmc-bounded-integrable}, \texttt{rintegral-unfold}, \texttt{rr-sub-in-rr}, \texttt{fun-apply-type-c}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-lt-of-pos-rr}, \texttt{rr-mul-closed}, \texttt{r8e-eps-over}, \texttt{rmc-approx}, \texttt{rr-add-closed}, \texttt{rr-neg-closed}, \texttt{rmc-good-ind}, \texttt{rmc-good-scale}, \texttt{rmc-good-add}, \texttt{rr-abs-le-parts}, \texttt{indicator-value-in}, \texttt{rintegral-monotone}, \texttt{rmc-pf-mono}, \texttt{rmc-pf-add}, \texttt{rmc-indicator-cont}, \texttt{rmc-pf-scale}, \texttt{rr-abs-le-of-parts}, \texttt{rr-abs-closed}, \texttt{rr-le-all-pos-nonpos}, \texttt{rr-abs-nonneg}, \texttt{rr-leq-antisymmetric}, \texttt{rr-abs-zero}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{pex-positive-extension}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/positive-\allowbreak{}extension.scm} --- 20 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{rmc-cont-bounded}, \texttt{pex-extension-from-bound}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The user's route of notes-63, form (b): the Cantor model K of X (consistent 0-1 sequences over a countable family of closed balls), pi : K -$>$ X continuous onto, Riesz-Markov on K, the positive (M. Riesz) extension, push-forward. Uniqueness and regularity of the measure are not stated.
 %
 \section{Deviations}
 %
@@ -6399,21 +7010,36 @@ Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 5.8 & In
 Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 5.10 & Secrecy of the responder's nonce & \texttt{nsl-\allowbreak{}responder-\allowbreak{}secrecy}, \texttt{nsl-\allowbreak{}responder-\allowbreak{}nonce-\allowbreak{}not-\allowbreak{}sent}, \texttt{nsl-\allowbreak{}lemma-\allowbreak{}5-\allowbreak{}11}, \texttt{nsl-\allowbreak{}lemma-\allowbreak{}5-\allowbreak{}12} & proven \\
 Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 5.13 & Secrecy of the initiator's nonce (corrected) & \texttt{nsl-\allowbreak{}initiator-\allowbreak{}secrecy}, \texttt{nsl-\allowbreak{}initiator-\allowbreak{}nonce-\allowbreak{}not-\allowbreak{}sent}, \texttt{nsl-\allowbreak{}initiator-\allowbreak{}secrecy-\allowbreak{}adversary}, \texttt{nsl-\allowbreak{}initiator-\allowbreak{}secrecy-\allowbreak{}regular} & proven \\
 Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 5.14 & The initiator's agreement guarantee & \texttt{nsl-\allowbreak{}initiator-\allowbreak{}agreement} & proven \\
-Construction of measures & 1.13 & The monotone class theorem & \texttt{monotone-\allowbreak{}class-\allowbreak{}theorem}, \texttt{algebra-\allowbreak{}monotone-\allowbreak{}union-\allowbreak{}sigma-\allowbreak{}algebra} & proven \\
-Construction of measures & 1.17 & Continuity of a measure from below & \texttt{measure-\allowbreak{}continuity-\allowbreak{}from-\allowbreak{}below} & proven \\
-Construction of measures & 1.18 & Continuity of a measure from above & \texttt{measure-\allowbreak{}continuity-\allowbreak{}from-\allowbreak{}above} & proven \\
-Construction of measures & 2.16 & The monotone convergence theorem & \texttt{monotone-\allowbreak{}convergence} & proven \\
-Construction of measures & 2.28 & The dominated convergence theorem & \texttt{dominated-\allowbreak{}convergence}, \texttt{fatou} & proven \\
-Construction of measures & 4.4 & The Caratheodory theorem & \texttt{caratheodory-\allowbreak{}measurable-\allowbreak{}sigma-\allowbreak{}algebra}, \texttt{caratheodory-\allowbreak{}measure}, \texttt{caratheodory-\allowbreak{}null-\allowbreak{}measurable}, \texttt{caratheodory-\allowbreak{}superadditive-\allowbreak{}suffices} & proven \\
-Construction of measures & 4.7 & The method I outer measure of a pre-measure is an outer measure & \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}is-\allowbreak{}outer-\allowbreak{}measure} & proven \\
-Construction of measures & 4.10 & The outer measure extending a measure & \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}extends}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}measurable}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}null-\allowbreak{}iff}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}finite-\allowbreak{}approx}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}of-\allowbreak{}measure} & proven \\
-Construction of measures & 4.11 & The Caratheodory measure of mu* is complete and extends the completion of rho & \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}caratheodory-\allowbreak{}complete}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}extends-\allowbreak{}completion}, \texttt{caratheodory-\allowbreak{}measure-\allowbreak{}complete} & proven \\
-Construction of measures & 4.12 & For sigma-finite rho the Caratheodory measure of mu* is the completion of rho & \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}sigma-\allowbreak{}finite-\allowbreak{}completion} & proven \\
-Construction of measures & 4.27 & A metric outer measure is additive on a positively separated sequence & \texttt{metric-\allowbreak{}outer-\allowbreak{}measure-\allowbreak{}separated-\allowbreak{}sum}, \texttt{metric-\allowbreak{}outer-\allowbreak{}measure-\allowbreak{}finite-\allowbreak{}separated} & proven \\
-Construction of measures & 4.28 & The layers of the complement of a closed set & \texttt{metric-\allowbreak{}outer-\allowbreak{}layers-\allowbreak{}limit} & proven \\
-Construction of measures & Lebesgue & Lebesgue outer measure is a metric outer measure; the intervals are measurable & \texttt{lebesgue-\allowbreak{}metric-\allowbreak{}outer-\allowbreak{}measure}, \texttt{lebesgue-\allowbreak{}borel-\allowbreak{}measurable}, \texttt{lebesgue-\allowbreak{}intervals-\allowbreak{}measurable} & proven \\
-Construction of measures & Lebesgue & The Lebesgue measure of an interval is its length & \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}ccint}, \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}ooint}, \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}coint}, \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}ocint}, \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}point}, \texttt{lebesgue-\allowbreak{}outer-\allowbreak{}ccint} & proven \\
-Construction of measures & Lebesgue & Lebesgue outer measure is translation invariant & \texttt{lebesgue-\allowbreak{}outer-\allowbreak{}translate} & proven \\
+Construction of measures (Thayer, notes) & 1.13 & The monotone class theorem & \texttt{monotone-\allowbreak{}class-\allowbreak{}theorem}, \texttt{algebra-\allowbreak{}monotone-\allowbreak{}union-\allowbreak{}sigma-\allowbreak{}algebra} & proven \\
+Construction of measures (Thayer, notes) & 1.17 & Continuity of a measure from below & \texttt{measure-\allowbreak{}continuity-\allowbreak{}from-\allowbreak{}below} & proven \\
+Construction of measures (Thayer, notes) & 1.18 & Continuity of a measure from above & \texttt{measure-\allowbreak{}continuity-\allowbreak{}from-\allowbreak{}above} & proven \\
+Construction of measures (Thayer, notes) & 2.16 & The monotone convergence theorem & \texttt{monotone-\allowbreak{}convergence} & proven \\
+Construction of measures (Thayer, notes) & 2.28 & The dominated convergence theorem & \texttt{dominated-\allowbreak{}convergence}, \texttt{fatou} & proven \\
+Construction of measures (Thayer, notes) & 4.4 & The Caratheodory theorem & \texttt{caratheodory-\allowbreak{}measurable-\allowbreak{}sigma-\allowbreak{}algebra}, \texttt{caratheodory-\allowbreak{}measure}, \texttt{caratheodory-\allowbreak{}null-\allowbreak{}measurable}, \texttt{caratheodory-\allowbreak{}superadditive-\allowbreak{}suffices} & proven \\
+Construction of measures (Thayer, notes) & 4.7 & The method I outer measure of a pre-measure is an outer measure & \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}is-\allowbreak{}outer-\allowbreak{}measure} & proven \\
+Construction of measures (Thayer, notes) & 4.10 & The outer measure extending a measure & \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}extends}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}measurable}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}null-\allowbreak{}iff}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}finite-\allowbreak{}approx}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}of-\allowbreak{}measure} & proven \\
+Construction of measures (Thayer, notes) & 4.11 & The Caratheodory measure of mu* is complete and extends the completion of rho & \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}caratheodory-\allowbreak{}complete}, \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}extends-\allowbreak{}completion}, \texttt{caratheodory-\allowbreak{}measure-\allowbreak{}complete} & proven \\
+Construction of measures (Thayer, notes) & 4.12 & For sigma-finite rho the Caratheodory measure of mu* is the completion of rho & \texttt{method-\allowbreak{}i-\allowbreak{}outer-\allowbreak{}sigma-\allowbreak{}finite-\allowbreak{}completion} & proven \\
+Construction of measures (Thayer, notes) & 4.27 & A metric outer measure is additive on a positively separated sequence & \texttt{metric-\allowbreak{}outer-\allowbreak{}measure-\allowbreak{}separated-\allowbreak{}sum}, \texttt{metric-\allowbreak{}outer-\allowbreak{}measure-\allowbreak{}finite-\allowbreak{}separated} & proven \\
+Construction of measures (Thayer, notes) & 4.28 & The layers of the complement of a closed set & \texttt{metric-\allowbreak{}outer-\allowbreak{}layers-\allowbreak{}limit} & proven \\
+Construction of measures (Thayer, notes) & Lebesgue & Lebesgue outer measure is a metric outer measure; the intervals are measurable & \texttt{lebesgue-\allowbreak{}metric-\allowbreak{}outer-\allowbreak{}measure}, \texttt{lebesgue-\allowbreak{}borel-\allowbreak{}measurable}, \texttt{lebesgue-\allowbreak{}intervals-\allowbreak{}measurable} & proven \\
+Construction of measures (Thayer, notes) & Lebesgue & The Lebesgue measure of an interval is its length & \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}ccint}, \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}ooint}, \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}coint}, \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}ocint}, \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}point}, \texttt{lebesgue-\allowbreak{}outer-\allowbreak{}ccint} & proven \\
+Construction of measures (Thayer, notes) & Lebesgue & Lebesgue outer measure is translation invariant & \texttt{lebesgue-\allowbreak{}outer-\allowbreak{}translate} & proven \\
+Construction of measures (Thayer, notes) & Lebesgue & Uniqueness of Lebesgue measure on the Borel sets & \texttt{lebesgue-\allowbreak{}measure-\allowbreak{}unique} & proven \\
+Construction of measures (Thayer, notes) & 2.17 & Hoelder's inequality & \texttt{hoelder}, \texttt{young-\allowbreak{}extended} & proven \\
+Construction of measures (Thayer, notes) & 2.19 & Minkowski's inequality & \texttt{minkowski} & proven \\
+Construction of measures (Thayer, notes) & 2.21 & Functions equal almost everywhere have the same integral & \texttt{integral-\allowbreak{}ae-\allowbreak{}eq}, \texttt{rintegral-\allowbreak{}ae-\allowbreak{}eq} & proven \\
+Construction of measures (Thayer, notes) & 2.24 & A function with nonnegative integral over every measurable set is nonnegative almost everywhere & \texttt{rintegral-\allowbreak{}nonneg-\allowbreak{}on-\allowbreak{}sets-\allowbreak{}null}, \texttt{rintegral-\allowbreak{}decomposition} & proven \\
+Construction of measures (Thayer, notes) & 2.22 & The L\textasciicircum{}p seminorm & \texttt{lp-\allowbreak{}norm-\allowbreak{}triangle}, \texttt{lp-\allowbreak{}norm-\allowbreak{}homogeneous}, \texttt{lp-\allowbreak{}norm-\allowbreak{}zero-\allowbreak{}iff} & proven \\
+Construction of measures (Thayer, notes) & 3.5 & Sections of a product-measurable function are measurable & \texttt{x-\allowbreak{}section-\allowbreak{}measurable}, \texttt{fn-\allowbreak{}x-\allowbreak{}section-\allowbreak{}measurable}, \texttt{fn-\allowbreak{}y-\allowbreak{}section-\allowbreak{}measurable} & proven \\
+Construction of measures (Thayer, notes) & 3.7 & Fubini & \texttt{fubini}, \texttt{fubini-\allowbreak{}sets}, \texttt{dynkin-\allowbreak{}pi-\allowbreak{}lambda} & proven \\
+Construction of measures (Thayer, notes) & 3.8 & The product measure & \texttt{product-\allowbreak{}measure-\allowbreak{}is-\allowbreak{}measure}, \texttt{product-\allowbreak{}measure-\allowbreak{}symmetric}, \texttt{product-\allowbreak{}measure-\allowbreak{}rectangle} & partial \\
+Construction of measures (Thayer, notes) & 4.2 (corollary) & A translation-invariant Borel measure on the line is a multiple of Lebesgue measure & \texttt{lebesgue-\allowbreak{}translation-\allowbreak{}invariant}, \texttt{esum-\allowbreak{}scale}, \texttt{measure-\allowbreak{}scale} & proven \\
+Functional analysis (Thayer, Analise Funcional e Teoria Espectral; Riesz-Markov from notes-63) & 8.24-8.26 & Seminormed spaces with a countable family: the metric & \texttt{frm-\allowbreak{}cont-\allowbreak{}lin-\allowbreak{}iff-\allowbreak{}bound}, \texttt{frm-\allowbreak{}scal-\allowbreak{}continuous} & proven \\
+Functional analysis (Thayer, Analise Funcional e Teoria Espectral; Riesz-Markov from notes-63) & 2.19 & Orthogonal projection onto a closed subspace of a Hilbert space & \texttt{hilbert-\allowbreak{}projection-\allowbreak{}exists}, \texttt{hilbert-\allowbreak{}decomposition-\allowbreak{}unique} & proven \\
+Functional analysis (Thayer, Analise Funcional e Teoria Espectral; Riesz-Markov from notes-63) & 2.22 & Riesz representation & \texttt{riesz-\allowbreak{}representation}, \texttt{riesz-\allowbreak{}representation-\allowbreak{}unique} & proven \\
+Functional analysis (Thayer, Analise Funcional e Teoria Espectral; Riesz-Markov from notes-63) & Hahn-Banach & Hahn-Banach for a sublinear functional & \texttt{hbs-\allowbreak{}hahn-\allowbreak{}banach-\allowbreak{}sublinear}, \texttt{hahn-\allowbreak{}banach-\allowbreak{}seminorm-\allowbreak{}rr} & proven \\
+Functional analysis (Thayer, Analise Funcional e Teoria Espectral; Riesz-Markov from notes-63) & Riesz-Markov (notes-63) & Riesz-Markov on a compact metric space & \texttt{rmz-\allowbreak{}riesz-\allowbreak{}markov}, \texttt{rmc-\allowbreak{}riesz-\allowbreak{}markov-\allowbreak{}k}, \texttt{pex-\allowbreak{}positive-\allowbreak{}extension} & proven \\
 \hline
 \end{longtable}
 %
@@ -6427,7 +7053,8 @@ Calculus & 66 & 42 & 0 & 13 & 11 \\
 Linear algebra & 33 & 10 & 1 & 6 & 16 \\
 Complex analysis & 44 & 27 & 0 & 6 & 11 \\
 Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 10 & 10 & 0 & 0 & 0 \\
-Construction of measures & 16 & 16 & 0 & 0 & 0 \\
+Construction of measures (Thayer, notes) & 28 & 27 & 0 & 1 & 0 \\
+Functional analysis (Thayer, Analise Funcional e Teoria Espectral; Riesz-Markov from notes-63) & 5 & 5 & 0 & 0 & 0 \\
 \hline
 \end{tabular}
 %
