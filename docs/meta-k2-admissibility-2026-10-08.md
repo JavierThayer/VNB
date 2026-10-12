@@ -274,6 +274,24 @@ Open for the user:
 * (a) Whether the seven n-ary schemas of 4.6 should also enter the catalog as axioms, so that
   the kernel's rules and the catalog state each membership condition once. Recommendation: yes,
   and retire the binary `union-membership` and `intersection-membership` as their instances.
+  **DECIDED by the user 2026-10-12: yes.** Checked against the other session's history the same day: no
+  conflict; the constraints it named are the primitive-shelf discipline (one fact at a time, the claim recorded
+  in the file), the list doctrine of 2026-10-01 (a list is defined iff its components are sets), and the open
+  item "CARTESIAN is binary". CORRECTION to 4.6: the catalog already holds n-ary `union-decompose` and
+  `intersection-decompose` (library.scm, primitive, in the macete engine's RESTVAR / SPLICE schema forms), and
+  `cartesian-decompose` is a procedural macete. What remains of (a): the binary `union-membership` and
+  `intersection-membership` become PROVEN theorems in their present shapes (no citation changes, the CARD
+  precedent); `tuples-mem` can be one RESTVAR / SPLICE formula; `nth-eq`, `length-eq`, `tuple-eq` and
+  `cartesian-mem` cannot be written as one formula in the present schema language. Phase 4 (META-4) drafts each
+  row; nothing is installed before that.
+  CONSTRAINT reported by the other session 2026-10-12 (from rake agent RA-1, not investigated):
+  `apply-tupling-1` states `f(a) == f([a])` for every `f`; with the DOM axiom this gives `[0] = 0`, and in
+  general identifies a 1-tuple with its entry. It is harmless only while nothing in the tree distinguishes a
+  1-tuple from its entry, so an n-ary `tuples-mem`, `nth-eq`, `length-eq` or `tuple-eq` schema must be checked
+  at n = 1 against it (e.g. `LENGTH([a]) = 1` beside `[a] = a` with `a` a pair). Related kernel asymmetry:
+  `lam-t` refuses `(VNB-LAMBDA (LIST p) D body)` with a one-entry LIST binder while `lam-b` reduces it,
+  reading `(LIST p)` as `p` (it blocked `zero-ring-is-ring` and `ring-prod-is-ring`; the other session
+  proposes rewriting that binder as `p` in ring.scm rather than changing `lam-t`).
 * (b) When CR fails for a binder (4.5): add that binder's congruence to the core, or narrow the
   kernel's rewriting licence there. Recommendation: decide per binder when the proof says.
 * (c) Whether, after K2, the checkers are to be rewritten over the encoding so that the VNB

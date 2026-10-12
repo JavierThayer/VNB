@@ -122,9 +122,12 @@
 ;;; §Function application; ch-defs.tex §declare-structure; ch-proofs.tex
 ;;; §curried/tupled apply convention).
 
-(add-axiom! *library* 'apply-tupling-1
-  '(FORALL f (FORALL a
-      (== (f a) (f (LIST a))))))
+;;; `apply-tupling-1', (f a) == (f (LIST a)), was DELETED 2026-10-12 by the user's decision: it
+;;; identified a 1-tuple with its entry and the library proved FALSITY modulo 0 from it.  With the
+;;; domain axiom (fun-domain-apply-def) it puts [p] in the domain {p} of the identity on {p}, so
+;;; [p] = p (pairing-membership), and length-reduce gives LENGTH([p]) = 1 against LENGTH(p) = 2
+;;; for p = [1, 2] (META-4 report 0.1, scratchpad/meta4/probes/tupling-falsity.scm).  A one-argument
+;;; application IS the unary apply; the tupling convention is for n >= 2 only.  Nothing cited it.
 
 (add-axiom! *library* 'apply-tupling-2
   '(FORALL f (FORALL a (FORALL b
