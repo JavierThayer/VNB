@@ -45,16 +45,7 @@
 ;;; Cross law (commutativity required):  (x*y)^n = x^n * y^n.
 ;;; Holds in a COMMUTATIVE monoid only.  NN induction on n, reordering factors
 ;;; by commutativity at each step.
-(add-axiom! *library* 'mpow-mult
-  '(FORALL m
-     (IMPLIES (IS-COMM-MONOID m)
-       (FORALL x (IMPLIES (IN x (CARR m))
-         (FORALL y (IMPLIES (IN y (CARR m))
-           (FORALL n (IMPLIES (IN n NN)
-             (= (MPOW m ((OPR m) x y) n)
-                ((OPR m) (MPOW m x n) (MPOW m y n))))))))))))
-(warrant! 'mpow-mult 'well-known
-  "(xy)^n = x^n y^n in a commutative monoid; NN induction on n using commutativity to interleave factors.  Fails without commutativity.")
+;;; mpow-mult RAKE-ASM-2 2026-10-12: PROVEN in theorem-library/rake-asm-2.scm under this name; the assumption is retired.
 
 ;;; Retroactive transport.  ABELIAN-GROUP-AS-MONOID is declared in views.scm,
 ;;; which loads BEFORE this file, so its one-shot auto-specialization ran when

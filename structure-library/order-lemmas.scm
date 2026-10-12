@@ -323,17 +323,20 @@
 
 ;; recip is partial on the nonzero reals (MUL-INV : NON-ZERO -> NON-ZERO, field.scm),
 ;; so recip(0) is undefined; a DEFINED recip(q) therefore forces q /= 0.
-(support 'recip-defined-nonzero
-  '(FORALL q (IMPLIES (= (recip q) (recip q)) (NOT (= q 0)))))
-(warrant! 'recip-defined-nonzero 'informal
-  "recip is defined only off zero (MUL-INV : NON-ZERO -> NON-ZERO); a defined recip(q) forces q /= 0.")
+;; PRIMITIVE since 2026-10-12, the user's decision: recip(0) is UNDEFINED -- it denotes
+;; nothing.  The claim recorded: recip is the reciprocal on the NONZERO numbers only
+;; (MUL-INV : NON-ZERO -> NON-ZERO, field.scm); at 0 it has no value.  The kernel could
+;; not prove it (it establishes definedness, never its absence), and every other fact
+;; about recip is consistent with recip(0) = 0, so this is a foundational choice, not a
+;; lemma (RAKE-ASM-2 report).  It agrees with the kernel: `recip' is not among the total
+;; arithmetic heads of pi--defined? (primitive-inferences.scm), so `recip(0) = recip(0)'
+;; is refused.  It was an asserted support with an `informal' warrant until this date.
+(fluid-let ((*current-provenance* 'primitive))
+  (add-axiom! *library* 'recip-defined-nonzero
+    '(FORALL q (IMPLIES (= (recip q) (recip q)) (NOT (= q 0))))))
 (topic! 'recip-defined-nonzero 'inequalities)
 
 ;; Multiplication is STRICT: a defined product has both factors defined.  Only
 ;; DEFINEDNESS propagates to the factors -- membership does not (i*(-i)=1 in RR,
 ;; i not in RR) -- so the conclusion is (= a a) AND (= b b), never (IN a RR) etc.
-(support 'mul-defined-factors
-  '(FORALL a (FORALL b (IMPLIES (= (* a b) (* a b)) (AND (= a a) (= b b))))))
-(warrant! 'mul-defined-factors 'informal
-  "Multiplication is strict: a defined product a*b has both factors defined.  Definedness (= t t) propagates, NOT membership.")
-(topic! 'mul-defined-factors 'algebra)
+;;; mul-defined-factors deleted 2026-10-12 (the user's decision): as stated it is trivial (its conclusion is about variables, which always denote), and the strictness it meant is in the kernel's definedness certificate (pi--defined?).

@@ -11,7 +11,8 @@
 ;;; THE PROOF IS theorem-library/rr-is-normed-field.scm's, verbatim in shape,
 ;;; with the complex data substituted: unfold the defining IFF, `surface-goal!'
 ;;; the accessors down to the lambda slots and the numeric operators, split the
-;;; conjunction, and close each conjunct by its shape.  Seventeen leaves:
+;;; conjunction, and close each conjunct by its shape.  Nineteen leaves (seventeen
+;;; before the two law clauses of 2026-10-12):
 ;;;
 ;;;   length(cc-normed-field) = 7        cc-normed-field-def, len-r, arith
 ;;;   CC in SET                          cc-is-set
@@ -32,14 +33,20 @@
 ;;;                                      cc-magnitude-mul,
 ;;;                                      cc-magnitude-triangle
 ;;;
-;;; WHAT IS *NOT* PROVED HERE, because IS-NORMED-FIELD does not say it: that
-;;; every nonzero element has a multiplicative inverse, and that 0 /= 1.  Those
-;;; are the separate axioms `normed-field-mul-inverses' and
-;;; `normed-field-zero-not-one' (structure-library/normed-field.scm), asserted
-;;; of EVERY normed field; they are no part of this predicate and no part of
-;;; this bill.  (Inverses are true of CC and `cc-recip-inverse' says so; there
-;;; is no `cc-zero-not-one' in the tree at all.  Proving either here would
-;;; prove something other than the statement being retired.)
+;;;   not(0 = 1)                         arith               (law, 2026-10-12)
+;;;   a /= 0 => exists b /= 0, a * b = 1 witness recip(a): cc-recip-closed,
+;;;                                      cc-recip-inverse; recip(a) /= 0 by
+;;;                                      crs + arith         (law, 2026-10-12)
+;;;
+;;; THE TWO LAW CLAUSES.  Until 2026-10-12 IS-NORMED-FIELD did not say that
+;;; 0 /= 1 nor that every nonzero element has a multiplicative inverse; those
+;;; were the separate ASSERTED axioms `normed-field-zero-not-one' and
+;;; `normed-field-mul-inverses', stated of every normed field and on no part of
+;;; this bill.  By the user's decision of 2026-10-12 both are (law ...) clauses
+;;; of the NORMED-FIELD declaration (structure-library/normed-field.scm) and the
+;;; two axioms are retired (originals in archive/2026-10-12-rake-asm/
+;;; normed-field.scm).  They are therefore conjuncts of IS-NORMED-FIELD and are
+;;; PROVED here for CC, from the primitive cc-recip-closed and cc-recip-inverse.
 ;;;
 ;;; The four magnitude laws are theorems since 2026-08-17
 ;;; (theorem-library/cc-magnitude.scm), which is what made this reachable: the
@@ -201,6 +208,57 @@
        (dk-saturate-slot-ops! ccn-carrier ccn-closure)
        (ccn-close-atom!)))))
 
+;;; THE TWO (law ...) CONJUNCTS (2026-10-12).  The NORMED-FIELD declaration
+;;; gained `not(zero(s) = one(s))' and the inverse law
+;;;   forall a_ in carr(s). a_ /= zero(s) implies
+;;;     forsome b_ in carr(s). b_ /= zero(s) and mul(s)(a_, b_) = one(s).
+;;; Surfaced, the first is the ground `not(0 = 1)', which `arith' decides.  The
+;;; second is closed with the witness recip(a): cc-recip-closed and
+;;; cc-recip-inverse (number-systems.scm, primitive) give recip(a) in CC and
+;;; a * recip(a) = 1, and recip(a) /= 0 because recip(a) = 0 would give
+;;; 1 = a * 0 = 0 (`crs' decides a * 0 = 0 over CC).  The eigenvariable is read
+;;; off the guard the peel LANDED, never guessed.
+(define (ccn-close-witness-body!)
+  (dk-saturate-slot-ops! ccn-carrier ccn-closure)
+  (let ((g (ccn-goal)))
+    (cond
+      ((eq? (ccn-head g) 'AND)
+       (for-each (lambda (k) (dk-focus! k) (ccn-close-witness-body!))
+                 (dk-opened (lambda () (di)))))
+      ((dk-asm? g) (ass))
+      (#t
+       (ccn-beta!)
+       (if (dk-asm? (ccn-goal))
+           (ass)
+           (error "cc-is-normed-field: inverse-law atom not in context" (ccn-goal)))))))
+
+(define (ccn-close-inverse-law!)
+  (let* ((landed (dk-landed (lambda () (ccn-peel!))))
+         (nz (find-first (lambda (f) (and (eq? (ccn-head f) 'NOT)
+                                          (pair? (cadr f)) (eq? (car (cadr f)) '=)
+                                          (eqv? (caddr (cadr f)) 0)))
+                         landed)))
+    (if (not nz) (error "cc-is-normed-field: the inverse law landed no a /= 0" landed))
+    (if (not (eq? (ccn-head (ccn-goal)) 'FORSOME))
+        (error "cc-is-normed-field: inverse law did not peel to FORSOME" (ccn-goal)))
+    (let* ((a  (cadr (cadr nz)))
+           (ra (list 'recip a)))
+      (dk-have! (list 'AND (list 'IN a 'CC) (list 'NOT (list '= a 0))))
+      (fact 'cc-recip-closed a)                     ; recip(a) in CC
+      (fact 'cc-recip-inverse a)                    ; a * recip(a) = 1
+      (dk-have! (list 'NOT (list '= ra 0))
+                (lambda ()
+                  (di)                              ; assume recip(a) = 0; FALSITY
+                  (dk-have! (list '= (list '* a 0) 0) (lambda () (crs)))
+                  (dk-have! (list 'NOT (list '= (list '* a ra) 1))
+                            (lambda ()
+                              (subst (list '= ra 0))
+                              (subst (list '= (list '* a 0) 0))
+                              (arith)))
+                  (ai (list 'NOT (list '= (list '* a ra) 1)))))
+      (ew ra)
+      (ccn-close-witness-body!))))
+
 ;;; Discharge the FOCUSED conjunct by its shape.
 (define (ccn-close-leaf!)
   (let ((g (ccn-goal)))
@@ -231,6 +289,11 @@
                          (ccn-close-lambda-typing! gk)
                          (ccn-close-body! 20))))
                  (dk-opened (lambda () (di)))))
+      ;; the two (law ...) conjuncts, above
+      ((equal? g '(NOT (= 0 1)))
+       (arith))
+      ((eq? (ccn-head g) 'FORALL)
+       (ccn-close-inverse-law!))
       (#t (error "cc-is-normed-field: unexpected conjunct" g)))))
 
 (sp (make-wff '(IS-NORMED-FIELD CC-NORMED-FIELD)))

@@ -318,8 +318,8 @@
 ;;; (|a|, |b|) with a signed remainder).  It was the library's last `trust: none'
 ;;; bill, entering through zz-bezout.
 
-(add-axiom! *library* 'qq-is-commutative-ring '(IS-COMMUTATIVE-RING QQ-RING))
-(add-axiom! *library* 'qq-is-integral-domain  '(IS-INTEGRAL-DOMAIN QQ-RING))
+;;; qq-is-commutative-ring RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.
+;;; qq-is-integral-domain RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.
 
 ;;; cc-is-normed-field PROVEN 2026-09-20 (batch 13-B): theorem-library/cc-normed-field.scm
 

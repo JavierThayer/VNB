@@ -87,25 +87,12 @@
 ;;; -----------------------------------------------------------------------
 ;;; Projection lemmas (each derivable from injection-membership-iff).
 
-(add-axiom! *library* 'injection-in-fun
-  '(FORALL X (FORALL Y (FORALL phi
-      (IMPLIES (IN phi (INJECTION X Y))
-               (IN phi (FUN X Y)))))))
+;;; injection-in-fun RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.
 
-(add-axiom! *library* 'injection-injective
-  '(FORALL X (FORALL Y (FORALL phi
-      (IMPLIES (IN phi (INJECTION X Y))
-               (FORALL a
-                 (IMPLIES (IN a X)
-                   (FORALL b
-                     (IMPLIES (IN b X)
-                       (IMPLIES (= (phi a) (phi b)) (= a b)))))))))))
+;;; injection-injective RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.
 
 ;;; INJECTION(X, Y) is a set when X and Y are sets (subclass of FUN(X, Y)).
-(add-axiom! *library* 'injection-set-iff
-  '(FORALL X (FORALL Y
-      (IMPLIES (AND (IN X SET) (IN Y SET))
-               (IN (INJECTION X Y) SET)))))
+;;; injection-set-iff RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.
 
 ;;; Every bijection is an injection.
 ;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (unfold
@@ -324,15 +311,4 @@
 ;;;        choices) together with a bijection of ORD-SEGMENT(m) onto that image
 ;;;        (m! = CARD(PERMUTATIONS m) choices) -- so CHOOSE(n,m) * m!;
 ;;;   (ii) directly, FALLING(n,m) by injection-count-falling.
-(support 'choose-times-factorial
-  '(FORALL n (IMPLIES (IN n NN)
-     (FORALL m (IMPLIES (AND (IN m NN) (<= m n))
-       (= (* (CHOOSE n m) (FACTORIAL m)) (FALLING n m)))))))
-(warrant! 'choose-times-factorial 'well-known
-  "Both sides count the injections of an m-element set into an n-element set.
-   (i) Each injection ORD-SEGMENT(m) -> ORD-SEGMENT(n) factors uniquely as a
-   choice of m-element image A subset ORD-SEGMENT(n) (CHOOSE(n,m) of them, with
-   card-image-injection making |A| = m) followed by a bijection ORD-SEGMENT(m)
-   onto A (m! = CARD(PERMUTATIONS m) of them); so the count is CHOOSE(n,m) * m!.
-   (ii) injection-count-falling gives the same count as FALLING(n,m) =
-   n(n-1)...(n-m+1).  Equate the two counts.")
+;;; choose-times-factorial RAKE-ASM-2 2026-10-12: PROVEN in theorem-library/rake-asm-2.scm under this name; the assumption is retired.

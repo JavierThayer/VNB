@@ -161,17 +161,7 @@
 ;;; standard argument -- take n with 1/n < eps (archimedean), then the least
 ;;; integer m with m/n > x - eps.  Asserted because that argument is not
 ;;; mechanised, not because it is unavailable.
-(add-axiom! *library* 'qq-dense-in-rr
-  (forall-guarded '(eps x)
-    (list '(POS-RR eps) '(IN x RR))
-    (forsome-guarded 'a '(IN a QQ)
-      (conjuncts->and
-        (list '(< (- a eps) x)
-              '(< x (+ a eps)))))))
-(warrant! 'qq-dense-in-rr 'reference
-  "QQ is dense in RR: for every real x and every positive eps there is a
-   rational a with a - eps < x < a + eps.  Standard; derivable from order
-   completeness plus the fraction and generation axioms, not yet mechanised.")
+;;; qq-dense-in-rr RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.
 (topic! 'qq-dense-in-rr 'inequalities)
 (rests-on 'qq-dense-in-rr '(nn-unbounded-in-rr))
 

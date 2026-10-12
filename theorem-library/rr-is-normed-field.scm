@@ -8,7 +8,7 @@
 ;;; The plan is theorem-library/zz-ring-is-ring.scm's, one slot wider: unfold the
 ;;; defining IFF, `surface-goal!' the accessors down to the lambda slots and the
 ;;; surface operators, split the conjunction, and close each conjunct by its
-;;; shape.  Seventeen leaves:
+;;; shape.  Nineteen leaves (seventeen before the two law clauses of 2026-10-12):
 ;;;
 ;;;   length(rr-normed-field) = 7            rr-normed-field-def, len-r, arith
 ;;;   rr in set                              rr-is-set
@@ -20,6 +20,10 @@
 ;;;   is-norm(abs-lambda, ...)               lam-t as above for the FUN clause;
 ;;;                                          peel, lam-b, then rr-abs-nonneg,
 ;;;                                          rr-abs-zero, rr-abs-mult, rr-abs-triangle
+;;;   not(0 = 1)                             arith            (law, 2026-10-12)
+;;;   a /= 0 => exists b /= 0, a * b = 1     witness recip(a): rr-recip-closed,
+;;;                                          rr-recip-inverse; recip(a) /= 0
+;;;                                          by crs + arith   (law, 2026-10-12)
 ;;;
 ;;; The warrant's two blockers are both gone: the norm slot has held
 ;;; `(VNB-LAMBDA x_ RR (abs x_))' since 2026-08-31, so its FUN(RR,RR) typing is a
@@ -165,6 +169,57 @@
        (dk-saturate-slot-ops! rnf-carrier rnf-closure)
        (rnf-close-atom!)))))
 
+;;; THE TWO (law ...) CONJUNCTS (2026-10-12).  The NORMED-FIELD declaration
+;;; gained `not(zero(s) = one(s))' and the inverse law
+;;;   forall a_ in carr(s). a_ /= zero(s) implies
+;;;     forsome b_ in carr(s). b_ /= zero(s) and mul(s)(a_, b_) = one(s).
+;;; Surfaced, the first is the ground `not(0 = 1)', which `arith' decides.  The
+;;; second is closed with the witness recip(a): rr-recip-closed and
+;;; rr-recip-inverse (number-systems.scm, primitive) give recip(a) in RR and
+;;; a * recip(a) = 1, and recip(a) /= 0 because recip(a) = 0 would give
+;;; 1 = a * 0 = 0 (qq-field-is-field.scm's qq-recip-nonzero, the same lane).
+;;; The eigenvariable is read off the guard the peel LANDED, never guessed.
+(define (rnf-close-witness-body!)
+  (dk-saturate-slot-ops! rnf-carrier rnf-closure)
+  (let ((g (rnf-goal)))
+    (cond
+      ((eq? (rnf-head g) 'AND)
+       (for-each (lambda (k) (dk-focus! k) (rnf-close-witness-body!))
+                 (dk-opened (lambda () (di)))))
+      ((dk-asm? g) (ass))
+      (#t
+       (rnf-beta!)
+       (if (dk-asm? (rnf-goal))
+           (ass)
+           (error "rr-is-normed-field: inverse-law atom not in context" (rnf-goal)))))))
+
+(define (rnf-close-inverse-law!)
+  (let* ((landed (dk-landed (lambda () (rnf-peel!))))
+         (nz (find-first (lambda (f) (and (eq? (rnf-head f) 'NOT)
+                                          (pair? (cadr f)) (eq? (car (cadr f)) '=)
+                                          (eqv? (caddr (cadr f)) 0)))
+                         landed)))
+    (if (not nz) (error "rr-is-normed-field: the inverse law landed no a /= 0" landed))
+    (if (not (eq? (rnf-head (rnf-goal)) 'FORSOME))
+        (error "rr-is-normed-field: inverse law did not peel to FORSOME" (rnf-goal)))
+    (let* ((a  (cadr (cadr nz)))
+           (ra (list 'recip a)))
+      (dk-have! (list 'AND (list 'IN a 'RR) (list 'NOT (list '= a 0))))
+      (fact 'rr-recip-closed a)                     ; recip(a) in RR
+      (fact 'rr-recip-inverse a)                    ; a * recip(a) = 1
+      (dk-have! (list 'NOT (list '= ra 0))
+                (lambda ()
+                  (di)                              ; assume recip(a) = 0; FALSITY
+                  (dk-have! (list '= (list '* a 0) 0) (lambda () (crs)))
+                  (dk-have! (list 'NOT (list '= (list '* a ra) 1))
+                            (lambda ()
+                              (subst (list '= ra 0))
+                              (subst (list '= (list '* a 0) 0))
+                              (arith)))
+                  (ai (list 'NOT (list '= (list '* a ra) 1)))))
+      (ew ra)
+      (rnf-close-witness-body!))))
+
 ;;; Discharge the FOCUSED conjunct by its shape.
 (define (rnf-close-leaf!)
   (let ((g (rnf-goal)))
@@ -196,6 +251,11 @@
                          (rnf-close-lambda-typing! gk)
                          (rnf-close-body! 20))))
                  (dk-opened (lambda () (di)))))
+      ;; the two (law ...) conjuncts, above
+      ((equal? g '(NOT (= 0 1)))
+       (arith))
+      ((eq? (rnf-head g) 'FORALL)
+       (rnf-close-inverse-law!))
       (else (error "rr-is-normed-field: unexpected conjunct" g)))))
 
 (sp (make-wff '(IS-NORMED-FIELD RR-NORMED-FIELD)))

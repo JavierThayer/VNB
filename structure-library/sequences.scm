@@ -32,25 +32,13 @@
 ;;; DERIVED (REVIEW.md R-9): provable by NN induction from prod-ord-zero,
 ;;; prod-ord-succ, monoid-left-id, and monoid-carrier-closed-opr.  Installed
 ;;; as an axiom for direct use; eventually demote to a proven lemma.
-(add-axiom! *library* 'prod-ord-type
-  '(FORALL m
-      (IMPLIES (IS-MONOID m)
-               (FORALL f
-                 (IMPLIES (IN f (FUN NN (CARR m)))
-                          (FORALL n
-                            (IMPLIES (IN n NN)
-                                     (IN (PROD-ORD m f n) (CARR m)))))))))
+;;; prod-ord-type RAKE-ASM-2 2026-10-12: PROVEN in theorem-library/rake-asm-2.scm under this name; the assumption is retired.
 
 ;;; Singleton: PROD-ORD(m, f, 1) = f(0).
 ;;; DERIVED (REVIEW.md R-10): prod-ord-succ at n=0 gives
 ;;; (OPR m)(IDEN m)(f 0), then monoid-left-id closes to (f 0).  Installed
 ;;; as an axiom for direct use.
-(add-axiom! *library* 'prod-ord-singleton
-  '(FORALL m
-      (IMPLIES (IS-MONOID m)
-               (FORALL f
-                 (IMPLIES (IN f (FUN NN (CARR m)))
-                          (= (PROD-ORD m f 1) (f 0)))))))
+;;; prod-ord-singleton RAKE-ASM-2 2026-10-12: PROVEN in theorem-library/rake-asm-2.scm under this name; the assumption is retired.
 
 ;;; -----------------------------------------------------------------------
 ;;; SUM: ring summation over {0, ..., n-1}
@@ -72,24 +60,12 @@
 ;;; Type: result is in the carrier.
 ;;; DERIVED (REVIEW.md R-9): provable by NN induction from sum-zero, sum-succ,
 ;;; ring-zero-in, and ring-carrier-closed-add.  Installed for direct use.
-(add-axiom! *library* 'sum-type
-  '(FORALL r
-      (IMPLIES (IS-RING r)
-               (FORALL f
-                 (IMPLIES (IN f (FUN NN (CARR r)))
-                          (FORALL n
-                            (IMPLIES (IN n NN)
-                                     (IN (SUM r f n) (CARR r)))))))))
+;;; sum-type RAKE-ASM-2 2026-10-12: PROVEN in theorem-library/rake-asm-2.scm under this name; the assumption is retired.
 
 ;;; Singleton: SUM(r, f, 1) = f(0).
 ;;; DERIVED (REVIEW.md R-10): sum-succ at n=0 gives (ADD r)(ZERO r)(f 0),
 ;;; then a ring's left-zero-add identity closes to (f 0).  Installed for direct use.
-(add-axiom! *library* 'sum-singleton
-  '(FORALL r
-      (IMPLIES (IS-RING r)
-               (FORALL f
-                 (IMPLIES (IN f (FUN NN (CARR r)))
-                          (= (SUM r f 1) (f 0)))))))
+;;; sum-singleton RAKE-ASM-2 2026-10-12: PROVEN in theorem-library/rake-asm-2.scm under this name; the assumption is retired.
 
 ;;; -----------------------------------------------------------------------
 ;;; SUM-AG: abelian-group "summation" over {0, ..., n-1}
@@ -117,12 +93,7 @@
 ;;; Singleton: SUM-AG(ag, f, 1) = f(0).
 ;;; Provable from sum-ag-succ at n=0 + sum-ag-zero + group-left-id
 ;;; (imported via abelian-group-is-group).  Installed for direct use.
-(add-axiom! *library* 'sum-ag-singleton
-  '(FORALL ag
-      (IMPLIES (IS-ABELIAN-GROUP ag)
-               (FORALL f
-                 (IMPLIES (IN f (FUN NN (CARR ag)))
-                          (= (SUM-AG ag f 1) (f 0)))))))
+;;; sum-ag-singleton RAKE-ASM-2 2026-10-12: PROVEN in theorem-library/rake-asm-2.scm under this name; the assumption is retired.
 
 ;;; SUM-AG <-> REDUCE bridge (n >= 1).
 ;;;
@@ -134,15 +105,7 @@
 ;;; reduce-one; step from sum-ag-succ + reduce-succ); installed for direct
 ;;; use in the library-build phase.  This is the seam where finite-sum
 ;;; machinery meets the kiddie-routed REDUCE bridges in numeric-instances.
-(add-axiom! *library* 'sum-ag-as-reduce
-  '(FORALL ag
-      (IMPLIES (IS-ABELIAN-GROUP ag)
-               (FORALL f
-                 (IMPLIES (IN f (FUN NN (CARR ag)))
-                          (FORALL n
-                            (IMPLIES (AND (IN n NN) (<= 1 n))
-                                     (= (SUM-AG ag f n)
-                                        (REDUCE (OPR ag) f n)))))))))
+;;; sum-ag-as-reduce RAKE-ASM-2 2026-10-12: PROVEN in theorem-library/rake-asm-2.scm under this name; the assumption is retired.
 
 ;;; -----------------------------------------------------------------------
 ;;; RING-PROD-N: n-fold ring product
@@ -172,27 +135,13 @@
 ;;; Typing: all f(i) are rings → RING-PROD-N(f, n) is a ring.
 ;;; DERIVED (REVIEW.md R-9): provable by NN induction from ring-prod-is-ring
 ;;; (step) + zero-ring-is-ring (base).  Installed as an axiom for direct use.
-(add-axiom! *library* 'ring-prod-n-is-ring
-  '(FORALL f
-      (FORALL n (IMPLIES (IN n NN)
-        (IMPLIES (FORALL i (IMPLIES (IN i NN) (IS-RING (f i))))
-          (IS-RING (RING-PROD-N f n)))))))
+;;; ring-prod-n-is-ring RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.
 
 ;;; Linearity (left scalar pull-out):
 ;;; SUM(r, lambda i. a * f(i), n) = a * SUM(r, f, n)
 ;;; Stated schematically for inline use (derivable by induction + distributivity).
 ;;; The VNB-LAMBDA form below uses the built-in lambda binder.
-(add-axiom! *library* 'sum-left-scalar
-  '(FORALL r
-      (IMPLIES (IS-RING r)
-               (FORALL a
-                 (IMPLIES (IN a (CARR r))
-                          (FORALL f
-                            (IMPLIES (IN f (FUN NN (CARR r)))
-                                     (FORALL n
-                                       (IMPLIES (IN n NN)
-                                         (= (SUM r (VNB-LAMBDA i NN ((MUL r) a (f i))) n)
-                                            ((MUL r) a (SUM r f n))))))))))))
+;;; sum-left-scalar RAKE-ASM-2 2026-10-12: PROVEN in theorem-library/rake-asm-2.scm under this name; the assumption is retired.
 
 ;;; -----------------------------------------------------------------------
 ;;; SUM-SET: sum over a finite set, in a ring (notes-16 step 2)

@@ -2739,8 +2739,6 @@
   (lambda () (and (lookup-theorem 'sum-ag-singleton) #t)))
 
 ;;; Library theorems proved at load time (proven-theorems.scm).
-(check-true "delete-at-in-fun axiom installed"
-  (lambda () (and (lookup-theorem 'delete-at-in-fun) #t)))
 
 ;; ord-segment-succ-monotone, ag-mul-rearrange, and sum-ag-splice-out were
 ;; intermediate lemmas ARCHIVED (deliberately not PSS-promoted) in the
@@ -2845,17 +2843,13 @@
 (check-true "(IN (INVERSE-BIJ phi X Y) (FUN Y X)) accepted as wff"
   (lambda () (and (make-wff '(IN (INVERSE-BIJ phi PTS Y) (FUN Y PTS))) #t)))
 
-(check-true "delete-at-below-k axiom installed"
-  (lambda () (and (lookup-theorem 'delete-at-below-k) #t)))
-
-(check-true "delete-at-above-k axiom installed"
-  (lambda () (and (lookup-theorem 'delete-at-above-k) #t)))
-
-(check-true "delete-at-is-bijection axiom installed"
-  (lambda () (and (lookup-theorem 'delete-at-is-bijection) #t)))
-
-(check-true "((DELETE-AT h k) i) accepted in term position"
-  (lambda () (and (make-wff '(= ((DELETE-AT h k) i) (h i))) #t)))
+;; DELETE-AT and its four asserted axioms were deleted 2026-10-12 (the user's decision;
+;; dead since the finsum rework, and delete-at-above-k under-guarded).
+(check-true "the DELETE-AT axioms are gone"
+  (lambda () (not (or (hash-table-ref/default *theorem-table* 'delete-at-below-k #f)
+                      (hash-table-ref/default *theorem-table* 'delete-at-above-k #f)
+                      (hash-table-ref/default *theorem-table* 'delete-at-in-fun #f)
+                      (hash-table-ref/default *theorem-table* 'delete-at-is-bijection #f)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Basic rings (notes-16 steps 3+4): officialize ZZ/QQ/RR/CC as rings

@@ -207,6 +207,7 @@
     "theorem-library/normed-field-ring-view"
     "theorem-library/ag-view-read-offs"
     "theorem-library/rake-setoid"
+    "theorem-library/rake-asm-2"
     "theorem-library/bt-shims"
     "structure-library/subtype-laws"
     "theorem-library/finsum-type-proof"
@@ -660,6 +661,7 @@
     "theorem-library/frechet-metric"
     "theorem-library/frechet-open-mapping-proof"
     "theorem-library/frechet-banach-steinhaus"
+    "theorem-library/rake-asm-1"
     "theorem-library/primitive-glue"
     "theorem-library/pw-int-laws-3"
     "theorem-library/primitive-uniform-limit"
@@ -776,6 +778,8 @@
 ;;; files whose theorems belong to several books: each proven or asserted theorem is placed by
 ;;; the JOIN of the libraries of its statement's heads (libraries.scm); definitions stay with the file
 (cross-cutting
+  "theorem-library/rake-asm-1"
+  "theorem-library/rake-asm-2"
   "structure-library/views"
   "theorem-library/ag-view-read-offs"
   "theorem-library/rake-setoid"

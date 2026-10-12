@@ -2270,6 +2270,9 @@
     ;; rake-finsum-typing-nn -- nn-minus-in-nn, falling-in-nn: PROVEN 2026-09-17 (rake
     ;; batch G); both cite nn-le-gap (series-block-abs, just above).
     "theorem-library/rake-finsum-typing-nn"
+    ;; RAKE-ASM-2 (2026-10-12): twelve elementary assumptions proven under their own names (mpow-mult, the
+    ;; SUM / SUM-AG / PROD-ORD facts, zz-act-assoc / -distrib, choose-times-factorial). Before pss-topics.
+    "theorem-library/rake-asm-2"
     ;; LINEARITY OF THE REAL PARTIAL SUM, in POINTWISE / TRANSFER form: the
     ;; partial sums of a family typed only by `forall k in NN. f(k) in RR'
     ;; (which a ZZ-indexed family such as COMB-KK satisfies and FUN(NN,RR)
@@ -3481,6 +3484,10 @@
     "theorem-library/frechet-open-mapping-proof"
     ;; TVS-2B (2026-10-12): Banach-Steinhaus for Frechet spaces (Thm 8.32) and the closed graph theorem; cites the two above.
     "theorem-library/frechet-banach-steinhaus"
+    ;; RAKE-ASM-1 (2026-10-12): twelve elementary assumptions proven under their own names (semigroup-assoc,
+    ;; the normed-AG norm laws, injection / bijection facts, QQ-RING instances, qq-dense-in-rr). After
+    ;; rake-bolzano-weierstrass (rr-archimedean-multiple), before pss-topics.
+    "theorem-library/rake-asm-1"
     ;; 2026-09-23 (batch 22-C): primitives GLUE over adjacent intervals (primitive-glue: the pieces given by
     ;; agreement clauses, the joint into the countable exceptional set); a step function has a primitive on
     ;; [a, b] (step-fn-has-primitive, by induction over the partition, IS-PARTITION total on NN).

@@ -152,16 +152,15 @@
      (VNB-LAMBDA (LIST p q) (CARTESIAN (CARTESIAN (CARR X) (CARR Y)) (CARTESIAN (CARR X) (CARR Y)))
        (LIST ((MUL X) (NTH 1 p) (NTH 1 q))
              ((MUL Y) (NTH 2 p) (NTH 2 q))))
-     (VNB-LAMBDA (LIST p) (CARTESIAN (CARR X) (CARR Y))
+     ;; NEG: a plain binder `p' (2026-10-12, the user's decision; was `(LIST p)', a one-entry
+     ;; list binder lam-t does not type, which blocked ring-prod-is-ring).
+     (VNB-LAMBDA p (CARTESIAN (CARR X) (CARR Y))
        (LIST ((NEG X) (NTH 1 p))
              ((NEG Y) (NTH 2 p))))
      (LIST (ZERO X) (ZERO Y))
      (LIST (ONE X) (ONE Y))))
 
-(add-axiom! *library* 'ring-prod-is-ring
-  '(FORALL X (IMPLIES (IS-RING X)
-      (FORALL Y (IMPLIES (IS-RING Y)
-        (IS-RING (RING-PROD X Y)))))))
+;;; ring-prod-is-ring RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.
 
 ;;; -----------------------------------------------------------------------
 ;;; ZERO-RING: terminal ring (carrier = {0}; identity for RING-PROD).
@@ -172,12 +171,11 @@
             (LIST (MAKE-SET (LIST 0))
                   (VNB-LAMBDA (LIST p q) (CARTESIAN (MAKE-SET (LIST 0)) (MAKE-SET (LIST 0))) 0)
                   (VNB-LAMBDA (LIST p q) (CARTESIAN (MAKE-SET (LIST 0)) (MAKE-SET (LIST 0))) 0)
-                  (VNB-LAMBDA (LIST p) (MAKE-SET (LIST 0)) 0)
+                  (VNB-LAMBDA p (MAKE-SET (LIST 0)) 0)     ; NEG: plain binder since 2026-10-12
                   0
                   0))))
 
-(add-axiom! *library* 'zero-ring-is-ring
-  '(IS-RING ZERO-RING))
+;;; zero-ring-is-ring RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'IS-RING                 'noun "ring" 'article "a")

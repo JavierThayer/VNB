@@ -63,25 +63,7 @@
 
 ;;; ---- Module distributivity:  k . (a + b) = k.a + k.b ---------------------
 ;;; Needs the group to be ABELIAN (commutativity of OPR) to interleave factors.
-(add-axiom! *library* 'zz-act-distrib
-  '(FORALL g
-     (IMPLIES (IS-ABELIAN-GROUP g)
-       (FORALL k (IMPLIES (IN k ZZ)
-         (FORALL a (IMPLIES (IN a (CARR g))
-           (FORALL b (IMPLIES (IN b (CARR g))
-             (= (ZZ-ACT g k ((OPR g) a b))
-                ((OPR g) (ZZ-ACT g k a) (ZZ-ACT g k b))))))))))))
-(warrant! 'zz-act-distrib 'informal
-  "Nonneg case is mpow-mult on the (commutative) AG monoid; neg case applies INV to it using INV(OPR a b)=OPR(INV a)(INV b) in an abelian group.  Commutativity is essential.")
+;;; zz-act-distrib RAKE-ASM-2 2026-10-12: PROVEN in theorem-library/rake-asm-2.scm under this name; the assumption is retired.
 
 ;;; ---- Mixed associativity:  (j*k) . a = j . (k . a) -----------------------
-(add-axiom! *library* 'zz-act-assoc
-  '(FORALL g
-     (IMPLIES (IS-ABELIAN-GROUP g)
-       (FORALL j (IMPLIES (IN j ZZ)
-         (FORALL k (IMPLIES (IN k ZZ)
-           (FORALL a (IMPLIES (IN a (CARR g))
-             (= (ZZ-ACT g (* j k) a)
-                (ZZ-ACT g j (ZZ-ACT g k a))))))))))))
-(warrant! 'zz-act-assoc 'informal
-  "Sign-case on j and k; each reduces to iterating zz-act-add (k.a added j times) with sign bookkeeping handled by zz-act-neg-sign.")
+;;; zz-act-assoc RAKE-ASM-2 2026-10-12: PROVEN in theorem-library/rake-asm-2.scm under this name; the assumption is retired.

@@ -48,15 +48,7 @@
 ;;; Derivable: BIJECTION(X, Y) is a subclass of FUN(X, Y), and FUN(X, Y) is
 ;;; a set when X, Y are sets (fun-set-iff); use class-separation.  Installed
 ;;; here as an axiom for direct use; demote when proven.
-(add-axiom! *library* 'bijection-set-iff
-  '(FORALL X
-     (FORALL Y
-       (IMPLIES (AND (IN X SET) (IN Y SET))
-                (IN (BIJECTION X Y) SET)))))
-(warrant! 'bijection-set-iff 'informal
-  "BIJECTION(X,Y) is a subclass of FUN(X,Y), a set when X,Y are sets
-   (fun-set-iff); a subclass of a set is a set by separation.  Mechanization
-   needs to exhibit BIJECTION(X,Y) as a separation of FUN(X,Y); deferred.")
+;;; bijection-set-iff RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.
 
 ;;; -----------------------------------------------------------------------
 ;;; Projection lemmas (bijection-in-fun / bijection-injective /
@@ -120,54 +112,11 @@
 ;;; bijection-identity MOVED 2026-09-15 (wave 6) to theorem-library/bijection-identity-proof.scm, where it is PROVEN modulo 0.
 
 ;;; -----------------------------------------------------------------------
-;;; DELETE-AT: restriction-and-shift on NN-indexed functions.
-;;;
-;;; (DELETE-AT h k) is the function on NN defined by
-;;;     (DELETE-AT h k)(i) = h(i)        for i < k
-;;;     (DELETE-AT h k)(i) = h(succ i)   for k <= i
-;;; i.e. it deletes the entry at index k and slides later entries down.
-;;;
-;;; Used to reduce a bijection on ORD-SEGMENT(succ n) that sends k to n
-;;; to a bijection on ORD-SEGMENT(n), in the induction step of finite
-;;; permutation-invariance.
-;;;
-;;; The behaviour of (DELETE-AT h k) at indices i >= n is junk; only the
-;;; values at i in ORD-SEGMENT(n) matter, and only those are constrained
-;;; by the bijection axiom below.
-
-;;; Below-k characterising equation: i < k.
-(add-axiom! *library* 'delete-at-below-k
-  '(FORALL h (FORALL k (FORALL i
-      (IMPLIES (IN i (ORD-SEGMENT k))
-               (== ((DELETE-AT h k) i) (h i)))))))
-
-;;; At-or-above-k characterising equation: k <= i (both in NN).
-(add-axiom! *library* 'delete-at-above-k
-  '(FORALL h (FORALL k (FORALL i
-      (IMPLIES (AND (IN i NN) (AND (IN k NN) (NOT (IN i (ORD-SEGMENT k)))))
-               (= ((DELETE-AT h k) i) (h (succ i))))))))
-
-;;; (DELETE-AT h k) inherits h's function typing: every value is either
-;;; h(i) or h(succ i), so a function into B stays a function into B.
-;;; Installed as an axiom for direct use; demote when proven.
-(add-axiom! *library* 'delete-at-in-fun
-  '(FORALL B (FORALL h (FORALL k
-      (IMPLIES (IN h (FUN NN B))
-               (IN (DELETE-AT h k) (FUN NN B)))))))
-
-;;; (DELETE-AT h k) is a bijection ORD-SEGMENT(n) -> ORD-SEGMENT(n) when h
-;;; is a bijection ORD-SEGMENT(succ n) -> ORD-SEGMENT(succ n) with h(k) = n
-;;; and k <= n.
-;;;
-;;; Provable from the two characterising equations + bijection-injective +
-;;; bijection-surjective, by case-split on whether the input/output is
-;;; below or at-or-above k.  Installed as an axiom for direct use; demote
-;;; when proven.
-(add-axiom! *library* 'delete-at-is-bijection
-  '(FORALL n (FORALL k (FORALL h
-      (IMPLIES (AND (IN n NN)
-               (AND (IN k (ORD-SEGMENT (succ n)))
-               (AND (IN h (BIJECTION (ORD-SEGMENT (succ n)) (ORD-SEGMENT (succ n))))
-                    (= (h k) n))))
-               (IN (DELETE-AT h k)
-                   (BIJECTION (ORD-SEGMENT n) (ORD-SEGMENT n))))))))
+;;; DELETE-AT (deleted 2026-10-12, the user's decision).  An UNDEFINED symbol that
+;;; four asserted axioms characterised (delete-at-below-k, delete-at-above-k,
+;;; delete-at-in-fun, delete-at-is-bijection), written for an index-shifting proof
+;;; of permutation invariance that the finsum rework replaced; nothing has used it
+;;; since (rake-finsum-welldef.scm, sum-ag-permutation-invariance.scm).
+;;; delete-at-above-k was a strict `=' with h untyped, asserting h(succ i) DEFINED
+;;; for every h -- the species of the old eplus/etimes axioms.  The originals are in
+;;; archive/2026-10-12-rake-asm/bijection.scm.

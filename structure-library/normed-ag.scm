@@ -45,26 +45,13 @@
 ;;; Convenience restatement: the norm is a real-valued function on the carrier.
 ;;; (Immediate from is-group-norm; stated as a named axiom so callers need not
 ;;; peel the property's iff.)
-(add-axiom! *library* 'normed-ag-nrm-type
-  '(FORALL s (IMPLIES (IS-NORMED-AG s)
-     (IN (NRM s) (FUN (CARR s) RR)))))
+;;; normed-ag-nrm-type RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.
 
 ;;; The norm is nonnegative on the carrier.
-(add-axiom! *library* 'normed-ag-nrm-nonneg
-  '(FORALL s (IMPLIES (IS-NORMED-AG s)
-     (FORALL a (IMPLIES (IN a (CARR s))
-       (<= 0 ((NRM s) a)))))))
+;;; normed-ag-nrm-nonneg RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.
 
 ;;; Definiteness: the norm vanishes exactly at the identity.
-(add-axiom! *library* 'normed-ag-nrm-definite
-  '(FORALL s (IMPLIES (IS-NORMED-AG s)
-     (FORALL a (IMPLIES (IN a (CARR s))
-       (IFF (= ((NRM s) a) 0) (= a (IDEN s))))))))
+;;; normed-ag-nrm-definite RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.
 
 ;;; Subadditivity (the triangle inequality for the norm).
-(add-axiom! *library* 'normed-ag-nrm-subadditive
-  '(FORALL s (IMPLIES (IS-NORMED-AG s)
-     (FORALL a (IMPLIES (IN a (CARR s))
-       (FORALL b (IMPLIES (IN b (CARR s))
-         (<= ((NRM s) ((OPR s) a b))
-             (+ ((NRM s) a) ((NRM s) b))))))))))
+;;; normed-ag-nrm-subadditive RAKE-ASM-1 2026-10-12: PROVEN in theorem-library/rake-asm-1.scm under this name; the assumption is retired.

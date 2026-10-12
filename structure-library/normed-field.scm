@@ -12,10 +12,8 @@
 ;;;   const:    ZERO, ONE
 ;;;
 ;;; The defining IFF (auto-generated from the property clauses) asserts the
-;;; commutative-ring laws and is-norm for FNRM.  Multiplicative inverses are
-;;; asserted by the separate `normed-field-mul-inverses' axiom, matching
-;;; field.scm's pattern (the existence-of-inverses law is not in the basic
-;;; operation-properties vocabulary).
+;;; commutative-ring laws, is-norm for FNRM, and (two law clauses, since
+;;; 2026-10-12) zero /= one and the existence of multiplicative inverses.
 ;;;
 ;;; FIELD remains an 8-slot shape carrying NON-ZERO and INV structurally;
 ;;; NORMED-FIELD is a separate, 7-slot shape carrying FNRM.  The two are
@@ -33,6 +31,7 @@
 ;;; (for RR and the abs/magnitude axioms), operation-properties.scm (is-norm).
 
 (declare-structure NORMED-FIELD
+  (instance-var s)
   ;; Slots 1-6 mirror RING so shared accessors keep their NTH indices.
   (carriers CARR)
   (op ADD (CARTESIAN CARR CARR) CARR)
@@ -53,19 +52,22 @@
   (property is-identity   MUL ONE CARR)
   (property is-distributive ADD MUL CARR)
   ;; The norm.
-  (property is-norm FNRM ADD MUL ZERO CARR))
+  (property is-norm FNRM ADD MUL ZERO CARR)
+  ;; That a normed field has two elements and that every nonzero element is
+  ;; invertible: (law ...) clauses since 2026-10-12 (the user's decision).  They were
+  ;; two ASSERTED axioms beside the declaration (normed-field-zero-not-one,
+  ;; normed-field-mul-inverses) -- a support finishing a definition, the defect
+  ;; FIELD had until 2026-09-15.  No slot carries the inverse, so the law is the
+  ;; existential, as in FIELD-RING; the inverse is stated nonzero, as the old axiom
+  ;; did.
+  (law "not(zero(s) = one(s))")
+  (law "forall([a_ in carr(s)],
+          not(a_ = zero(s)) implies
+            forsome([b_ in carr(s)], not(b_ = zero(s)) and mul(s)(a_, b_) = one(s)))"))
 
-;;; Multiplicative inverses: every nonzero element has a multiplicative
-;;; inverse.  Asserted existentially (no structural INV slot in this shape).
-(add-axiom! *library* 'normed-field-mul-inverses
-  '(FORALL s (IMPLIES (IS-NORMED-FIELD s)
-     (FORALL a (IMPLIES (AND (IN a (CARR s)) (NOT (= a (ZERO s))))
-       (FORSOME b
-         (AND (IN b (CARR s)) (AND (NOT (= b (ZERO s))) (= ((MUL s) a b) (ONE s))))))))))
+;;; normed-field-mul-inverses is a (law ...) clause of the NORMED-FIELD declaration since 2026-10-12 (the user's decision); the asserted axiom is retired, original in archive/2026-10-12-rake-asm/normed-field.scm.
 
-;;; A normed-field has at least two elements.
-(add-axiom! *library* 'normed-field-zero-not-one
-  '(FORALL s (IMPLIES (IS-NORMED-FIELD s) (NOT (= (ZERO s) (ONE s))))))
+;;; normed-field-zero-not-one is a (law ...) clause of the NORMED-FIELD declaration since 2026-10-12 (the user's decision); the asserted axiom is retired, original in archive/2026-10-12-rake-asm/normed-field.scm.
 
 ;;; Relation to the ring hierarchy.  A NORMED-FIELD is a 7-tuple; RING /
 ;;; COMMUTATIVE-RING / INTEGRAL-DOMAIN are 6-slot predicates that pin
