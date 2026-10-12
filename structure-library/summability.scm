@@ -80,24 +80,8 @@
 ;;; norm(r1 - r2) = 0, hence r1 = r2 by definiteness of the group norm.
 ;;; Asserted as an axiom for the current library-build phase; a candidate to
 ;;; promote to a proven theorem / PSS entry later.
-(add-axiom! *library* 'sums-to-unique
-  '(FORALL grp
-     (IMPLIES (IS-NORMED-AG grp)
-       (FORALL f
-         (IMPLIES (IN f (FUN (DOM f) (CARR grp)))
-           (FORALL r1
-             (IMPLIES (IN r1 (CARR grp))
-               (FORALL r2
-                 (IMPLIES (IN r2 (CARR grp))
-                   (IMPLIES (AND (SUMS-TO grp f r1) (SUMS-TO grp f r2))
-                     (= r1 r2)))))))))))
+;;; sums-to-unique RAKE-ASM-B2 2026-10-12: PROVEN in theorem-library/rake-asm-b2.scm under this name; the assumption is retired.
 
-(warrant! 'sums-to-unique 'informal
-  "Given fin1, fin2 witnessing r1, r2 at eps/2, take ext = fin1 u fin2
-   (finite, and a superset of each).  Both NRM(ri - sum_ext f) < eps/2, so by
-   the triangle inequality NRM(r1 - r2) < eps for every eps, hence
-   NRM(r1 - r2) = 0, hence r1 = r2 by definiteness of the group norm
-   (is-group-norm).  A candidate to discharge into a formal `proof' later.")
 
 ;;; -----------------------------------------------------------------------
 ;;; The payload: absolute summability implies (unconditional) summability,
@@ -109,27 +93,8 @@
 ;;; convergent."  Unconditionality needs no separate clause: IS-SUMMABLE is
 ;;; defined through the order-blind net SUMS-TO, which never sees an
 ;;; enumeration of the index set.
-(support 'absolute-summable-implies-summable
-  '(FORALL grp
-     (IMPLIES (AND (IS-NORMED-AG grp)
-                   (IS-COMPLETE (NAG-METRIC-SPACE grp)))
-       (FORALL f
-         (IMPLIES (AND (IN f (FUN (DOM f) (CARR grp)))
-                       (IS-ABSOLUTELY-SUMMABLE grp f))
-           (IS-SUMMABLE grp f))))))
+;;; absolute-summable-implies-summable RAKE-ASM-B2 2026-10-12: PROVEN in theorem-library/rake-asm-b2.scm under this name; the assumption is retired.
 
-(warrant! 'absolute-summable-implies-summable 'informal
-  "Absolute summability makes the norm-tails vanish: ESUM(i |-> ||f(i)||) is a
-   real, so by esum-finite-iff-bounded its finite partial sums are bounded and
-   approach their sup -- for every eps there is a finite fin <= DOM f with
-   Sum_{DOM f minus fin} ||f|| < eps.  Then for any finite ext with fin <= ext
-   <= DOM f, ||Sum_ext f - Sum_fin f|| <= Sum_{ext minus fin} ||f|| < eps by
-   the triangle inequality (subadditivity of the group norm).  Hence the net
-   of finite partial sums is Cauchy in NAG-METRIC-SPACE(grp); completeness
-   (IS-COMPLETE) supplies a limit r in the carrier, and that r witnesses
-   SUMS-TO(grp, f, r), so IS-SUMMABLE(grp, f).  The sum is unconditional by
-   construction (SUMS-TO is a net over finite subsets, not a series).  A
-   candidate to discharge into a formal `proof' later.")
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

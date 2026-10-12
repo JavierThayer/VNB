@@ -76,20 +76,7 @@
 
 
 
-(warrant! 'permutation-recurrence 'informal
-  "The factorial recurrence.  A permutation of a succ(n)-element set is fixed
-   by the image of the new point (succ(n) choices) together with a permutation
-   of the remaining n (card(permutations(n)) each), and the two choices are
-   independent: card(permutations(succ n)) = succ(n) * card(permutations(n)).
-   Base case permutations-zero.")
 
-(warrant! 'injection-extension-recurrence 'informal
-  "Counting injections by extending the domain one point.  An injection from
-   a union {b} into c restricts to an injection from a into c, and then sends b
-   to any c-point not already in the image; card(a) points are used, leaving
-   card(c) - card(a) = m choices, independent of the restriction.  Hence
-   m * card(injection(a, c)).  The subtraction-free hypothesis card(c) =
-   card(a) + m supplies m directly.")
 
 
 ;;; -----------------------------------------------------------------------

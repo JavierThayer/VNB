@@ -257,21 +257,7 @@
 ;; Headline result (radius-indexed tb => Cauchy subsequence), not PSS plumbing;
 ;; the non-radius headline `totally-bounded-has-cauchy-subsequence' is already
 ;; proven and not in PSS.  Installed as a warranted ASSERTION, not a support.
-(add-axiom! *library* 'totally-bounded-has-cauchy-subseq-rad
-  '(FORALL s
-     (IMPLIES (TOTALLY-BOUNDED s)
-       (FORALL f
-         (IMPLIES (IN f (FUN NN (PTS s)))
-           (FORALL rad
-             (IMPLIES (NULL-RR-SEQ rad)
-               (FORSOME phi
-                 (AND (STRICTLY-MONO-NN phi)
-                      (IS-CAUCHY-SEQ s (SUBSEQ f phi)))))))))))
-(warrant! 'totally-bounded-has-cauchy-subseq-rad 'reference
-  "block-family (nested small-ball blocks) + diagonalization (strictly monotone phi
-   with tail past k inside S(k)) + ball-2r-triangle (two terms in one rad(k)-ball
-   are < 2 rad(k) apart) + NULL-RR-SEQ (rad(k) <= eps/2 eventually).  calculus.pdf
-   Prop 3.31; assembly posed as a proof goal for the engine in calculus/.")
+;;; totally-bounded-has-cauchy-subseq-rad RAKE-ASM-B2 2026-10-12: PROVEN in theorem-library/rake-asm-b2.scm under this name; the assumption is retired.
 
 ;;; totally-bounded-has-cauchy-subsequence: the parameter-free headline.
 ;;; PROVEN (not asserted) -- see theorem-library/cauchy-subseq-proof.scm, which

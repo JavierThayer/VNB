@@ -186,28 +186,7 @@
 ;;; became (IS-SEMINORM fld m p), the same fld as the domination bound reads; the
 ;;; content and the warrant are unchanged.  OPEN (TVS-1R report): the statement
 ;;; quantifies over EVERY normed field, the gloss says RR or CC.
-(support 'hahn-banach-seminorm
-  (forall-guarded '(m p s f fld)
-    (list
-      '(IS-MODULE m)
-      '(IS-NORMED-FIELD fld)
-      ;; RR or CC only (the user's decision 2026-10-10, on TVS-1R's finding): over a
-      ;; non-archimedean field the extension can fail (van Rooij), and the gloss always said
-      ;; "RR or CC".
-      '(OR (= fld RR-NORMED-FIELD) (= fld CC-NORMED-FIELD))
-      '(= (SCAL m) (NORMED-FIELD-AS-COMMUTATIVE-RING fld))
-      '(IS-SEMINORM fld m p)
-      '(IS-SUBMODULE m s)
-      '(IS-K-LINEAR-ON m s f)
-      '(FORALL x (IMPLIES (IN x s) (<= ((FNRM fld) (f x)) (p x)))))
-    (forsome-guarded 'ff '(IS-K-LINEAR m ff)
-      (conjuncts->and
-        (list
-          '(EXTENDS-ON s ff f)
-          '(FORALL x (IMPLIES (IN x (VEC m))
-             (<= ((FNRM fld) (ff x)) (p x)))))))))
-(warrant! 'hahn-banach-seminorm 'reference
-  '(yosida "Hahn-Banach Extension Theorem, Ch. IV.1" 119))
+;;; hahn-banach-seminorm RAKE-ASM-B3 2026-10-12: PROVEN in theorem-library/rake-asm-b3.scm under this name; the assumption is retired.
 (gloss! 'hahn-banach-seminorm
   "Hahn-Banach, seminorm-dominated form, over K = RR or CC.  Let m be a K-vector
    space -- a module whose scalars are the normed field fld, SCAL(m) holding fld's

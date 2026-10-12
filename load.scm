@@ -2129,6 +2129,8 @@
     ;; sequence spanning a SUBMODULE to another such.  Cor 3.46 needs it because
     ;; F is a submodule, not the whole module.
     "theorem-library/spans-transport-proof"
+    ;; RAKE-ASM-B4 (2026-10-12): submodule-of-free-is-free proven (Smith normal form route).
+    "theorem-library/rake-asm-b4"
     ;; Phase C, Prop 3.41: an n-generated module bounds every relation-free
     ;; sequence by n -- so rank is well defined.  The payoff of the Smith arc.
     "theorem-library/rank-bound-proof"
@@ -3397,6 +3399,8 @@
     ;; the notes' lim sup form being false as printed.
     "theorem-library/limsup-tests"
     "theorem-library/rpow-defined"       ; RPOW == RPOW-STAR, the fifteen former supports proven (2026-10-03)
+    ;; RAKE-ASM-B1 (2026-10-12): Cauchy-Schwarz (both forms), Minkowski, Hoelder over finite sums, proven.
+    "theorem-library/rake-asm-b1"
     "theorem-library/measure-laws"       ; measure chapter 1: additivity, monotonicity, subadditivity, continuity, push-forward (M-1, 2026-10-03)
     "theorem-library/integral-laws"      ; etimes algebra, finite sums in a commutative monoid, the simple integral and its laws, the six integral laws proven (M-2, 2026-10-04)
     ;; MEASURE-5-A (2026-10-10): ESUM homogeneity, ESUM(c f) = c ESUM(f); a scaled measure is a measure.
@@ -3488,6 +3492,12 @@
     ;; the normed-AG norm laws, injection / bijection facts, QQ-RING instances, qq-dense-in-rr). After
     ;; rake-bolzano-weierstrass (rr-archimedean-multiple), before pss-topics.
     "theorem-library/rake-asm-1"
+    ;; RAKE-ASM-B2 (2026-10-12): sums-to-unique, absolute-summable-implies-summable, summable-bound-converges,
+    ;; totally-bounded-has-cauchy-subseq-rad, proven.
+    "theorem-library/rake-asm-b2"
+    ;; RAKE-ASM-B5 (2026-10-12): injection-count-falling, permutation-recurrence, injection-extension-recurrence
+    ;; (guarded, the user's decision) by fibre counting; the n-ary forms on CC.  Uses bc*: loads from source.
+    "theorem-library/rake-asm-b5"
     ;; 2026-09-23 (batch 22-C): primitives GLUE over adjacent intervals (primitive-glue: the pieces given by
     ;; agreement clauses, the joint into the countable exceptional set); a step function has a primitive on
     ;; [a, b] (step-fn-has-primitive, by induction over the partition, IS-PARTITION total on NN).
@@ -3503,6 +3513,9 @@
     ;; HILBERT-1 (2026-10-10, Thayer Ch.2 s.3-4): IS-HILBERT-SPACE, PERP; parallelogram, Prop 2.19, Cor 2.21, Riesz 2.22.
     "structure-library/hilbert-space"
     "theorem-library/hilbert-projection"
+    ;; RAKE-ASM-B3 (2026-10-12): hahn-banach-seminorm (RR and CC), the gauge-countable metrizability trio, and
+    ;; rb3-dual-is-normed-vector-space-false (the asserted statement was false; deleted).
+    "theorem-library/rake-asm-b3"
     "theorem-library/integral-convergence"   ; the four measurable-fn closure laws, the dyadic approximation, monotone convergence, Fatou, general additivity, dominated convergence, all nine supports of integral.scm proven (M-3, 2026-10-04)
     "theorem-library/caratheodory"           ; the Caratheodory construction PROVEN (MEASURE-1, 2026-10-07): the five supports of measure.scm, statements unchanged; cites esup-eplus-le above
     ;; MEASURE-2 (2026-10-08): Method I outer measures (Prop 4.7), the outer measure extending a measure

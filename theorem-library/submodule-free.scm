@@ -92,27 +92,4 @@
 ;;; =======================================================================
 ;;; Cor 3.46 -- submodule of a free module is free of rank <= n.
 ;;; =======================================================================
-(support 'submodule-of-free-is-free
-  (sf-tf 'md sf-euclid
-   (sf-tf 'n '(IN n NN)
-    (sf-tf 'u '(IN u (MAT n 1 (VEC md)))
-     (list 'IMPLIES '(AND (GENERATES md n u) (REL-FREE md n u))
-      (sf-tf 'sm '(IS-SUBMODULE md sm)
-       (sf-ex 'k '(AND (IN k NN) (<= k n))
-        (sf-ex 'w '(IN w (MAT k 1 (VEC md)))
-               '(AND (SPANS md k w sm) (REL-FREE md k w))))))))))
-(warrant! 'submodule-of-free-is-free 'reference
-  "linear-algebra.tex cor:22195-45888-207248.  submodule-fg gives generators
-   v_1..v_m of sm with m <= n; generates-coeff-matrix writes v = A.u for an
-   m-by-n coefficient matrix A.  smith-staircase supplies invertible V, U with
-   B = V A U^-1 diagonal and its NONZERO diagonal entries b_1..b_k an initial
-   segment (k <= min(m,n) <= n).  free-transport: e = U.u still freely generates
-   md.  generates-transport: V.v still generates sm.  But V.v = B.e, whose i-th
-   entry is b_i.e_i -- so b_1.e_1 .. b_k.e_k generate sm (rows past k are 0).
-   They are REL-FREE: if sum c_i.(b_i.e_i) = 0 then sum (c_i b_i).e_i = 0, so
-   each c_i b_i = 0 by REL-FREE of e, and b_i /= 0 forces c_i = 0
-   (integral-domain-cancel-zero; a euclidean ring is an integral domain).
-   Hence sm is free of rank k <= n.  ASSEMBLY IS THE PROOF TARGET: every cited
-   piece is installed, and the only asserted input is submodule-fg.
-   No divisibility chain b_i | b_{i+1} is used -- that is needed only for
-   uniqueness of the invariant factors (tex prop:22194-20879-92458).")
+;;; submodule-of-free-is-free RAKE-ASM-B4 2026-10-12: PROVEN in theorem-library/rake-asm-b4.scm under this name; the assumption is retired.

@@ -141,28 +141,34 @@
 ;;; argument -- composition rather than symmetry -- so it carries its own note
 ;;; at its own definition below.
 ;;;
-;;; NOT covered by any of this, and deliberately left `asserted': the arity 3-5
-;;; forms, which are not converses of anything -- they FIX the reading of the
-;;; parser's flat n-ary node as a left fold, and nothing else in the theory
-;;; states it.  They have no dependents, so nothing is waiting on them.
+;;; The arity 3-5 forms are `definitional' since 2026-10-12 (the user's decision,
+;;; on RAKE-ASM-B5's finding).  The claim recorded: they are not converses of
+;;; anything -- they DEFINE the parser's flat n-ary node (+ x y z ...) as the LEFT
+;;; FOLD of binplus / bintimes.  The node does reach the kernel (the parser builds
+;;; it; to-binary and the crs / ineq checkers read it as the sum), and nothing else
+;;; in the theory says what it denotes, so a definition is what they are.  On CC
+;;; they are also theorems (rb5-nary-*-cc, theorem-library/rake-asm-b5.scm).
 
 (fluid-let ((*current-provenance* 'definitional))
   (add-axiom! *library* 'nary-plus-2
     '(FORALL x (FORALL y
         (== (+ x y) (binplus x y))))))
 
-(add-axiom! *library* 'nary-plus-3
-  '(FORALL x (FORALL y (FORALL z
-      (== (+ x y z) (binplus (binplus x y) z))))))
+(fluid-let ((*current-provenance* 'definitional))
+  (add-axiom! *library* 'nary-plus-3
+    '(FORALL x (FORALL y (FORALL z
+        (== (+ x y z) (binplus (binplus x y) z)))))))
 
-(add-axiom! *library* 'nary-plus-4
-  '(FORALL w (FORALL x (FORALL y (FORALL z
-      (== (+ w x y z) (binplus (binplus (binplus w x) y) z)))))))
+(fluid-let ((*current-provenance* 'definitional))
+  (add-axiom! *library* 'nary-plus-4
+    '(FORALL w (FORALL x (FORALL y (FORALL z
+        (== (+ w x y z) (binplus (binplus (binplus w x) y) z))))))))
 
-(add-axiom! *library* 'nary-plus-5
-  '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
-      (== (+ v w x y z)
-         (binplus (binplus (binplus (binplus v w) x) y) z))))))))
+(fluid-let ((*current-provenance* 'definitional))
+  (add-axiom! *library* 'nary-plus-5
+    '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
+        (== (+ v w x y z)
+           (binplus (binplus (binplus (binplus v w) x) y) z)))))))))
 
 ;; definitional: the converse of bintimes-apply (see the block comment above).
 (fluid-let ((*current-provenance* 'definitional))
@@ -170,18 +176,21 @@
     '(FORALL x (FORALL y
         (== (* x y) (bintimes x y))))))
 
-(add-axiom! *library* 'nary-times-3
-  '(FORALL x (FORALL y (FORALL z
-      (== (* x y z) (bintimes (bintimes x y) z))))))
+(fluid-let ((*current-provenance* 'definitional))
+  (add-axiom! *library* 'nary-times-3
+    '(FORALL x (FORALL y (FORALL z
+        (== (* x y z) (bintimes (bintimes x y) z)))))))
 
-(add-axiom! *library* 'nary-times-4
-  '(FORALL w (FORALL x (FORALL y (FORALL z
-      (== (* w x y z) (bintimes (bintimes (bintimes w x) y) z)))))))
+(fluid-let ((*current-provenance* 'definitional))
+  (add-axiom! *library* 'nary-times-4
+    '(FORALL w (FORALL x (FORALL y (FORALL z
+        (== (* w x y z) (bintimes (bintimes (bintimes w x) y) z))))))))
 
-(add-axiom! *library* 'nary-times-5
-  '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
-      (== (* v w x y z)
-         (bintimes (bintimes (bintimes (bintimes v w) x) y) z))))))))
+(fluid-let ((*current-provenance* 'definitional))
+  (add-axiom! *library* 'nary-times-5
+    '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
+        (== (* v w x y z)
+           (bintimes (bintimes (bintimes (bintimes v w) x) y) z)))))))))
 
 ;;; Unary - (negation) and binary - (subtraction).
 ;;; The parser produces (- x) for unary and (- x y) for binary; chained
@@ -434,7 +443,9 @@
 (register-definitional-structure! 'NN-ADD-MONOID  'COMM-MONOID)
 
 ;;; -----------------------------------------------------------------------
-;;; n-ary surface -> adult REDUCE bridge (parallel to nary-plus-N).
+;;; n-ary surface -> adult REDUCE bridge (parallel to nary-plus-N).  DELETED 2026-10-12
+;;; (the user's decision): the eight -list forms below were asserted, unprovable unguarded,
+;;; and cited by nothing.  What the section said they were for:
 ;;;
 ;;; Same kiddie surface (+ x_1 ... x_n), routed instead to
 ;;;   (REDUCE binplus (FAM-OF-LIST (LIST x_1 ... x_n)) n).
@@ -445,36 +456,18 @@
 ;;; fam-of-list-apply + the kernel NTH rules (not asserted, follows by
 ;;; unfolding).
 
-(add-axiom! *library* 'nary-plus-2-list
-  '(FORALL x (FORALL y
-      (== (+ x y) (REDUCE binplus (FAM-OF-LIST (LIST x y)) 2)))))
+;;; nary-plus-2-list deleted 2026-10-12 (the user's decision; RAKE-ASM-B5): not provable unguarded and not a definition -- read literally it also asserts that x + y is UNDEFINED when a component is not a set, which nothing else says; nothing cited it.  Original in archive/2026-10-12-rake-asm-b/.
 
-(add-axiom! *library* 'nary-plus-3-list
-  '(FORALL x (FORALL y (FORALL z
-      (== (+ x y z) (REDUCE binplus (FAM-OF-LIST (LIST x y z)) 3))))))
+;;; nary-plus-3-list deleted 2026-10-12 (the user's decision; RAKE-ASM-B5): not provable unguarded and not a definition -- read literally it also asserts that x + y is UNDEFINED when a component is not a set, which nothing else says; nothing cited it.  Original in archive/2026-10-12-rake-asm-b/.
 
-(add-axiom! *library* 'nary-plus-4-list
-  '(FORALL w (FORALL x (FORALL y (FORALL z
-      (== (+ w x y z) (REDUCE binplus (FAM-OF-LIST (LIST w x y z)) 4)))))))
+;;; nary-plus-4-list deleted 2026-10-12 (the user's decision; RAKE-ASM-B5): not provable unguarded and not a definition -- read literally it also asserts that x + y is UNDEFINED when a component is not a set, which nothing else says; nothing cited it.  Original in archive/2026-10-12-rake-asm-b/.
 
-(add-axiom! *library* 'nary-plus-5-list
-  '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
-      (== (+ v w x y z)
-         (REDUCE binplus (FAM-OF-LIST (LIST v w x y z)) 5))))))))
+;;; nary-plus-5-list deleted 2026-10-12 (the user's decision; RAKE-ASM-B5): not provable unguarded and not a definition -- read literally it also asserts that x + y is UNDEFINED when a component is not a set, which nothing else says; nothing cited it.  Original in archive/2026-10-12-rake-asm-b/.
 
-(add-axiom! *library* 'nary-times-2-list
-  '(FORALL x (FORALL y
-      (== (* x y) (REDUCE bintimes (FAM-OF-LIST (LIST x y)) 2)))))
+;;; nary-times-2-list deleted 2026-10-12 (the user's decision; RAKE-ASM-B5): not provable unguarded and not a definition -- read literally it also asserts that x + y is UNDEFINED when a component is not a set, which nothing else says; nothing cited it.  Original in archive/2026-10-12-rake-asm-b/.
 
-(add-axiom! *library* 'nary-times-3-list
-  '(FORALL x (FORALL y (FORALL z
-      (== (* x y z) (REDUCE bintimes (FAM-OF-LIST (LIST x y z)) 3))))))
+;;; nary-times-3-list deleted 2026-10-12 (the user's decision; RAKE-ASM-B5): not provable unguarded and not a definition -- read literally it also asserts that x + y is UNDEFINED when a component is not a set, which nothing else says; nothing cited it.  Original in archive/2026-10-12-rake-asm-b/.
 
-(add-axiom! *library* 'nary-times-4-list
-  '(FORALL w (FORALL x (FORALL y (FORALL z
-      (== (* w x y z) (REDUCE bintimes (FAM-OF-LIST (LIST w x y z)) 4)))))))
+;;; nary-times-4-list deleted 2026-10-12 (the user's decision; RAKE-ASM-B5): not provable unguarded and not a definition -- read literally it also asserts that x + y is UNDEFINED when a component is not a set, which nothing else says; nothing cited it.  Original in archive/2026-10-12-rake-asm-b/.
 
-(add-axiom! *library* 'nary-times-5-list
-  '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
-      (== (* v w x y z)
-         (REDUCE bintimes (FAM-OF-LIST (LIST v w x y z)) 5))))))))
+;;; nary-times-5-list deleted 2026-10-12 (the user's decision; RAKE-ASM-B5): not provable unguarded and not a definition -- read literally it also asserts that x + y is UNDEFINED when a component is not a set, which nothing else says; nothing cited it.  Original in archive/2026-10-12-rake-asm-b/.

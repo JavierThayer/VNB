@@ -180,11 +180,7 @@
 ;;; yet mechanized.  (support ...) installs it as a macete -- usable in
 ;;; backchaining / rewriting -- and tags it for the PSS section of the
 ;;; catalog.
-(support 'injection-extension-recurrence
-  '(FORALL A (FORALL C (FORALL b (FORALL m
-      (IMPLIES (AND (NOT (IN b A)) (AND (IN A SET) (AND (IN C SET) (AND (IN (CARD A) NN) (AND (IN m NN) (= (CARD C) (+ (CARD A) m)))))))
-               (= (CARD (INJECTION (UNION A (PAIR b b)) C))
-                  (* m (CARD (INJECTION A C))))))))))
+;;; injection-extension-recurrence RAKE-ASM-B5 2026-10-12: the asserted statement was FALSE (no b in SET guard: for a proper class b, PAIR(b,b) denotes nothing; b = SET, A = C = EMPTY-SET, m = 0).  Replaced, on the user's decision, by the GUARDED statement under the same name, PROVEN in theorem-library/rake-asm-b5.scm.
 
 ;;; -----------------------------------------------------------------------
 ;;; PERMUTATIONS(n) := the bijections of an n-element set onto itself,
@@ -233,10 +229,7 @@
 ;;; |PERMUTATIONS(n+1)| = (n+1) * |PERMUTATIONS(n)|.  This is injection-
 ;;; extension-recurrence specialised to the diagonal (domain = codomain
 ;;; grow together), via the standard falling-factorial reindexing.
-(support 'permutation-recurrence
-  '(FORALL n (IMPLIES (IN n NN)
-     (= (CARD (PERMUTATIONS (succ n)))
-        (* (succ n) (CARD (PERMUTATIONS n)))))))
+;;; permutation-recurrence RAKE-ASM-B5 2026-10-12: PROVEN in theorem-library/rake-asm-b5.scm under this name; the assumption is retired.
 
 ;;; -----------------------------------------------------------------------
 ;;; TARGET (to be PROVEN -- short nn-induction off the two PSS lemmas above
@@ -292,16 +285,7 @@
 
 ;; nPk: the number of injections of an m-set into an n-set IS the falling
 ;; factorial.  Generalises permutation-recurrence (the m = n diagonal gives n!).
-(support 'injection-count-falling
-  '(FORALL n (IMPLIES (IN n NN)
-     (FORALL m (IMPLIES (AND (IN m NN) (<= m n))
-       (= (CARD (INJECTION (ORD-SEGMENT m) (ORD-SEGMENT n))) (FALLING n m)))))))
-(warrant! 'injection-count-falling 'well-known
-  "Induction on m via injection-extension-recurrence.  Base: m = 0,
-   |INJECTION(EMPTY-SET, C)| = 1 = FALLING(n,0) (injection-from-empty,
-   ORD-SEGMENT 0 = EMPTY-SET).  Step: a domain of size m into a codomain of
-   size n leaves n - m free targets, so extending the domain by one point
-   multiplies the count by (n - m): exactly FALLING(n,succ m) = (n-m)*FALLING(n,m).")
+;;; injection-count-falling RAKE-ASM-B5 2026-10-12: PROVEN in theorem-library/rake-asm-b5.scm under this name; the assumption is retired.
 
 ;;; -----------------------------------------------------------------------
 ;;; THE THEOREM:   CHOOSE(n,m) * m!  =  n(n-1)...(n-m+1)  =  FALLING(n,m).

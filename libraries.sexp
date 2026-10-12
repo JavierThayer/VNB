@@ -336,6 +336,7 @@
     "theorem-library/mod-basis-proof"
     "theorem-library/inverse-invertible-proof"
     "theorem-library/spans-transport-proof"
+    "theorem-library/rake-asm-b4"
     "theorem-library/rank-bound-proof"
   ))
 
@@ -638,6 +639,7 @@
     "theorem-library/geometric-series"
     "theorem-library/limsup-tests"
     "theorem-library/rpow-defined"
+    "theorem-library/rake-asm-b1"
     "theorem-library/ps-series-bridges"
     "theorem-library/ratio-test-proof"
     "theorem-library/rake-series"
@@ -662,11 +664,14 @@
     "theorem-library/frechet-open-mapping-proof"
     "theorem-library/frechet-banach-steinhaus"
     "theorem-library/rake-asm-1"
+    "theorem-library/rake-asm-b2"
+    "theorem-library/rake-asm-b5"
     "theorem-library/primitive-glue"
     "theorem-library/pw-int-laws-3"
     "theorem-library/primitive-uniform-limit"
     "structure-library/hilbert-space"
     "theorem-library/hilbert-projection"
+    "theorem-library/rake-asm-b3"
     "theorem-library/series-domination"
     "theorem-library/regulated-has-primitive"
     "theorem-library/road-laws-2"
@@ -778,6 +783,7 @@
 ;;; files whose theorems belong to several books: each proven or asserted theorem is placed by
 ;;; the JOIN of the libraries of its statement's heads (libraries.scm); definitions stay with the file
 (cross-cutting
+  "theorem-library/rake-asm-b5"
   "theorem-library/rake-asm-1"
   "theorem-library/rake-asm-2"
   "structure-library/views"

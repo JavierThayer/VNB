@@ -133,26 +133,7 @@
 ;;; before leaning on it: while IS-NORMED-VECTOR-SPACE stays unsatisfiable this
 ;;; is a vacuous truth, and the warrant below is what it will be worth once the
 ;;; scalar slot of normed-vector-space.scm is pinned through the view.
-(support 'dual-is-normed-vector-space
-  '(FORALL m (IMPLIES (IS-NORMED-VECTOR-SPACE m)
-     (IS-NORMED-VECTOR-SPACE (DUAL m)))))
-(warrant! 'dual-is-normed-vector-space 'reference
-  "The dual of a normed vector space is a normed vector space.  The bounded
-   linear functionals are closed under pointwise sum, negation and real scaling
-   (each operation preserves additivity, homogeneity and boundedness, the bound
-   constants adding resp. scaling), so DUAL-VEC(m) with those operations is a
-   real vector space with the zero functional as its zero.  The operator norm is
-   a norm on it: DUAL-NORM(m,f) >= 0 by definition; DUAL-NORM(m,f) = 0 forces
-   |f(x)| <= 0 for every x, hence f = 0; DUAL-NORM(m, r.f) = |r| DUAL-NORM(m,f)
-   since c bounds |f| iff |r|c bounds |r f|; and DUAL-NORM(m, f+g) <=
-   DUAL-NORM(m,f) + DUAL-NORM(m,g) because the sum of the two bounds is a bound
-   for the sum and DUAL-NORM is the LEAST bound.  Standard: Rudin, Functional
-   Analysis, 4.1; Conway, A Course in Functional Analysis, III.1.")
-(topic! 'dual-is-normed-vector-space 'analysis)
-(gloss! 'dual-is-normed-vector-space
-  "For every normed vector space m, the tuple DUAL(m) -- the bounded linear
-   functionals on m, with pointwise addition, negation and real scaling, and the
-   operator norm DUAL-NORM -- is itself a normed vector space.")
+;;; dual-is-normed-vector-space DELETED 2026-10-12 (the user's decision): FALSE as stated.  DUAL(m) carries the 7-tuple RR-NORMED-FIELD in its scalar slot, while IS-NORMED-VECTOR-SPACE wants the 6-tuple ring view normed-field-as-commutative-ring(rr-normed-field); at m = RR-NVS (a proven normed vector space) it forced 7 = 6, so FALSITY was derivable.  The negation is proven: rb3-dual-is-normed-vector-space-false (theorem-library/rake-asm-b3.scm).  OPEN (the user's yes, 2026-10-12): make DUAL's scalar slot the ring view and prove the corrected statement.
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).

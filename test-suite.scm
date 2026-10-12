@@ -771,7 +771,13 @@
 
 (check-true "find-theorem: an unwarranted ASSERTION says so in as many words"
   (lambda ()
-    (and (string-search-forward "NO WARRANT" (ft--status-tag 'nary-plus-3 #f) 0) #t)))
+    ;; The example used to be the literal 'nary-plus-3, which became `definitional' on
+    ;; 2026-10-12 (rake RAKE-ASM-B).  A named assertion rots as the rake proceeds, so the
+    ;; example is now any asserted name in the table; with none left the check is vacuous.
+    (let ((asserted (find (lambda (n) (eq? (provenance-of n) 'asserted))
+                          (hash-table-keys *theorem-table*))))
+      (or (not asserted)
+          (and (string-search-forward "NO WARRANT" (ft--status-tag asserted #f) 0) #t)))))
 
 (check-true "find-theorem: primitive and definitional are distinguished"
   (lambda ()

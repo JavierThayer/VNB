@@ -26,15 +26,4 @@
 ;;; summable-bound-converges: the complete-space payoff -- same hypothesis,
 ;;; plus completeness, gives convergence.  (summable-bound-implies-cauchy +
 ;;; complete-cauchy-converges.)
-(support 'summable-bound-converges
-  '(FORALL s (FORALL f (FORALL rad
-     (IMPLIES (AND (IS-COMPLETE s)
-              (AND (IN f (FUN NN (PTS s)))
-              (AND (IN rad (FUN NN RR))
-              (AND (SERIES-CONVERGES rad)
-                   (FORALL k (IMPLIES (IN k NN)
-                     (<= ((DIST s) (f k) (f (succ k))) (rad k))))))))
-       (CONVERGES s f))))))
-(warrant! 'summable-bound-converges 'well-known
-  "summable-bound-implies-cauchy makes f Cauchy (IS-COMPLETE carries IS-METRIC-
-   SPACE), and complete-cauchy-converges then gives a limit in s.")
+;;; summable-bound-converges RAKE-ASM-B2 2026-10-12: PROVEN in theorem-library/rake-asm-b2.scm under this name; the assumption is retired.
