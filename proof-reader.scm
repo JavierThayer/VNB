@@ -1347,11 +1347,14 @@
                 (tm (lambda (e) (string-append "$" (expr->tex-top e) "$")))
                 (is-x (list (symbol-append 'is- (structure-def-name sd)) v)))
            (string-append
-            article noun " " (tm v) " is a list"
-            (if length-c (string-append " of length " (tm (caddr length-c))) "")
-            " whose components are listed below.  Each component is a projection, "
-            "defined for any " (tm v) " as a tuple; the clause of the declaration that "
-            "introduces it is named in typewriter.\\par\n\\begin{enumerate}[nosep]\n"
+            ;; the LEAD (notes-64, 2026-10-12): "A metric space $s$ is a 2-tuple whose
+            ;; components are listed below.", or the structure's `structure-doc!' string
+            (or (structure-doc (structure-def-name sd))
+                (string-append
+                 article noun " " (tm v) " is "
+                 (proof-reader--tuple-words (and length-c (caddr length-c)) tm)
+                 " whose components are listed below."))
+            "\\par\n\\begin{enumerate}[nosep]\n"
             (apply string-append
                    (map (lambda (slot cs)
                           (let ((ix (hash-table-ref/default *accessor-index* (car slot) #f))
@@ -1384,6 +1387,27 @@
             "every component has the typing listed with it"
             (if (pair? laws) ", and every law holds" "")
             ".\n")))))
+
+;; "a 2-tuple", "an 8-tuple", "a tuple of length $n$", "a tuple" (the user prefers
+;; n-tuple, notes-64).
+(define (proof-reader--tuple-words len tm)
+  (cond ((and (exact-nonnegative-integer? len) (> len 0))
+         (string-append (if (or (= len 8) (= len 11) (= len 18) (<= 80 len 89)) "an " "a ")
+                        (number->string len) "-tuple"))
+        (len (string-append "a tuple of length " (tm len)))
+        (#t "a tuple")))
+
+;; The `def-comments!' of NAMES (operators.scm), each once, as one small paragraph.
+(define (proof-reader--comments-tex names)
+  (let loop ((ns names) (seen '()) (acc '()))
+    (cond ((null? ns)
+           (if (null? acc) ""
+               (string-append "\\par\\noindent{\\small\\textit{Comment.} "
+                              (proof-tex--join (reverse acc) " ") "}\\par\n")))
+          ((or (not (symbol? (car ns))) (memq (car ns) seen)) (loop (cdr ns) seen acc))
+          (#t (let ((c (definition-comments (car ns))))
+                (loop (cdr ns) (cons (car ns) seen)
+                      (if c (cons (proof-tex--join c " ") acc) acc)))))))
 
 ;; one law as an itemize entry: inline up to a wider ruler than the running text's
 ;; (an item has the line to itself), else displayed -- a display right after \item
@@ -1476,13 +1500,16 @@
   (let ((h (car d)) (def (cdr d)))
     (if (eq? (car def) 'structure)
         (string-append
-         "\\noindent\\textbf{Definition} (\\texttt{" (proof-tex--escape-tt (symbol->string (cadr def))) "}).\\;"
-         (proof-reader--structure-tex (cadr def) (caddr def)) "\n")
+         "\\par\\medskip\\noindent\\textbf{Structure definition} (\\texttt{" (proof-tex--escape-tt (symbol->string (cadr def))) "}).\\;"
+         (proof-reader--structure-tex (cadr def) (caddr def))
+         (proof-reader--comments-tex (list (cadr def))) "\n")
         (proof-reader--definition-tex-1 h def))))
 (define (proof-reader--definition-tex-1 h def)
   (let ((h h) (def def))                         ; (the let the original body closed with)
     (string-append
-     "\\noindent\\textbf{Definition} (\\texttt{" (proof-tex--escape-tt (symbol->string h)) "}).\\;"
+     ;; each definition its own paragraph (notes-64): the library book prints these back
+     ;; to back, and without the \\par they ran together
+     "\\par\\medskip\\noindent\\textbf{Definition} (\\texttt{" (proof-tex--escape-tt (symbol->string h)) "}).\\;"
      (if (eq? (car def) 'functoid)
          ;; name(params) := body, as DEFINITIONS.md writes a functoid
          ;; the body on its own display, row-broken like any statement (a
@@ -1490,9 +1517,11 @@
          (string-append "$" (expr->tex (cons h (cadr def))) " :=$"
                         (proof-reader--display (caddr def)))
          ;; the defining axiom(s), read as a statement is
-         (apply string-append
-                (map (lambda (ax) (string-append (proof-reader--statement (cdr ax)) "\n"))
-                     (cdr def))))
+         ;; one defining axiom per line (reduce has several: notes-64)
+         (proof-tex--join (map (lambda (ax) (proof-reader--statement (cdr ax))) (cdr def))
+                          "\\par\n"))
+     (proof-reader--comments-tex
+      (cons h (if (eq? (car def) 'functoid) '() (map car (cdr def)))))
      "\n")))
 
 (define (proof-reader--definitions-block name)

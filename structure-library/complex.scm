@@ -34,15 +34,11 @@
 ;;; state its second guard as `not (0 <= x)' rather than `x < 0'.  This file is
 ;;; the first place that has both SQRT and a reason to talk about the modulus.
 ;;;
-;;; WHAT IT COSTS, stated plainly.  SQRT itself is NOT defined in this tree: it
-;;; is characterised by the warranted supports sqrt-nonneg / sqrt-sq /
-;;; sqrt-of-sq / sqrt-mono / sqrt-mul (real-powers.scm), which are `well-known'
-;;; DEBT.  So the five magnitude facts move from `primitive' (contributing {} to
-;;; every bill) to theorems billing those supports.  That is not a regression in
-;;; honesty but a disclosure: the assumption was always there, in a symbol whose
-;;; existence nobody had derived from order completeness, and it now shows up on
-;;; the bills of exactly the facts that use it.  No other bill in the library
-;;; moves, because nothing else cites a magnitude axiom by name.
+;;; WHAT IT COSTS.  Nothing now: SQRT is a def-functoid (an IOTA,
+;;; structure-library/real-powers.scm) and its laws sqrt-nonneg / sqrt-sq / sqrt-of-sq /
+;;; sqrt-mono / sqrt-mul are THEOREMS (theorem-library/sqrt-defined.scm), so the magnitude
+;;; facts proven from this definition bill modulo 0.  (Until then SQRT was characterised by
+;;; those five as `well-known' supports, and this paragraph disclosed the debt.)
 ;;;
 ;;; `==' and `definitional', for the same reasons as binary-minus-def: an
 ;;; unconditional equation defining a SYMBOL owes no definedness witness and is
@@ -53,6 +49,9 @@
     '(FORALL z (== (magnitude z)
                    (SQRT (+ (* (real-part z) (real-part z))
                             (* (imag-part z) (imag-part z))))))))
+(def-comments! 'magnitude-def
+  "The right-hand side is defined iff $z$ is a complex number, so $\\operatorname{magnitude}(z)$"
+  "is defined iff $z$ is a complex number.")
 
 ;;; -----------------------------------------------------------------------
 ;;; The structure CC-MS

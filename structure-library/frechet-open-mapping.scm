@@ -2,7 +2,8 @@
 ;;; definitions, notation and warranted supports, not one proof -- and every theorem
 ;;; stated with it had to load below it.  Its load.scm slot is unchanged.
 ;;; frechet-open-mapping.scm -- Frechet spaces, continuous linear maps, and the
-;;; OPEN MAPPING (bounded-inverse form) and CLOSED GRAPH theorems (statement only).
+;;; OPEN MAPPING (bounded-inverse form) and CLOSED GRAPH theorems (proven 2026-10-12 in
+;;; theorem-library/frechet-open-mapping-proof.scm and frechet-banach-steinhaus.scm).
 ;;; Seed for functional analysis.  Added 2026-07-22.
 ;;;
 ;;; The base has no topological vector space or locally-convex layer, so a
@@ -129,6 +130,9 @@
            (FORSOME k (AND (IN k NN) (NOT (= ((fam k) x) 0)))))))))
 (notation! 'IS-SEMINORM-FAMILY 'kind 'predicate 'arity 3
            'english "$3 is a separating countable family of seminorms on $2 over $1")
+(def-comments! 'IS-SEMINORM-FAMILY
+  "$\\mathit{fld}$ is the normed field of scalars, $m$ a module over it, and $\\mathit{fam} : \\mathbb{N} \\to (\\operatorname{vec}(m) \\to \\mathbb{R})$"
+  "the family of seminorms; separating: a nonzero vector has a nonzero seminorm.")
 
 ;;; FR-CONV(m, fam, seq, lim): seq -> lim in every seminorm of the family.
 (def-predicate 'FR-CONV '(m fam seq lim)
@@ -139,6 +143,9 @@
           `(< ((fam k) ,(fr-sub 'm '(seq i) 'lim)) eps))))))
 (notation! 'FR-CONV 'kind 'predicate 'arity 4
            'english "$3 converges to $4 in ($1, $2)")
+(def-comments! 'FR-CONV
+  "The pair $(m, \\mathit{fam})$ is a seminormed space: $m$ a module, its vectors $\\operatorname{vec}(m)$, and $\\mathit{fam}(k)$ the $k$-th seminorm of a family enumerated by $\\mathbb{N}$."
+  "$\\mathit{seq}$ is a sequence of vectors and $\\mathit{lim}$ the limit.")
 
 ;;; FR-CAUCHY(m, fam, seq): seq is Cauchy in every seminorm of the family.
 (def-predicate 'FR-CAUCHY '(m fam seq)
@@ -150,6 +157,9 @@
             `(< ((fam k) ,(fr-sub 'm '(seq i) '(seq j))) eps)))))))
 (notation! 'FR-CAUCHY 'kind 'predicate 'arity 3
            'english "$3 is Cauchy in ($1, $2)")
+(def-comments! 'FR-CAUCHY
+  "The pair $(m, \\mathit{fam})$ is a seminormed space: $m$ a module, its vectors $\\operatorname{vec}(m)$, and $\\mathit{fam}(k)$ the $k$-th seminorm of a family enumerated by $\\mathbb{N}$."
+  "$\\mathit{seq}$ is a sequence of vectors.")
 
 ;;; ---- Frechet space (concrete: family + sequential completeness) --------
 
@@ -167,6 +177,8 @@
            (FORSOME lim (AND (IN lim (VEC m)) (FR-CONV m fam seq lim))))))))
 (notation! 'IS-FRECHET-STRUCTURE 'kind 'predicate 'arity 3
            'english "($2, $3) is a Frechet space over $1")
+(def-comments! 'IS-FRECHET-STRUCTURE
+  "$\\mathit{fld}$ is the normed field of scalars; $(m, \\mathit{fam})$ is the space, $m$ a module and $\\mathit{fam}(k)$ its $k$-th seminorm.")
 
 ;;; ---- linear and continuous-linear maps ---------------------------------
 
@@ -187,6 +199,8 @@
           '(= (tt ((ACT m1) lam x)) ((ACT m2) lam (tt x))))))))
 (notation! 'IS-LINEAR-MAP 'kind 'predicate 'arity 3
            'english "$3 is a linear map from $1 to $2")
+(def-comments! 'IS-LINEAR-MAP
+  "$m_1$ and $m_2$ are modules over one scalar ring, $\\mathit{tt} : \\operatorname{vec}(m_1) \\to \\operatorname{vec}(m_2)$ the map.")
 
 ;;; IS-CONT-LIN(m1, fam1, m2, fam2, tt): tt is linear and sequentially continuous
 ;;; (fam1-convergent sequences map to fam2-convergent sequences, to the image).
@@ -200,6 +214,9 @@
              (FR-CONV m2 fam2 (VNB-LAMBDA i NN (tt (seq i))) (tt lim))))))))
 (notation! 'IS-CONT-LIN 'kind 'predicate 'arity 5
            'english "$5 is a continuous linear map from ($1, $2) to ($3, $4)")
+(def-comments! 'IS-CONT-LIN
+  "$(m_1, \\mathit{fam}_1)$ is the domain and $(m_2, \\mathit{fam}_2)$ the target, each a module with an $\\mathbb{N}$-enumerated seminorm family; $\\mathit{tt}$ is the map."
+  "Continuity is sequential.")
 
 ;;; HAS-CLOSED-GRAPH(m1, fam1, m2, fam2, tt): whenever seq -> p1 and tt(seq) -> p2,
 ;;; the limit is consistent (p2 = tt(p1)).
@@ -215,6 +232,8 @@
                (= p2 (tt p1)))))))))
 (notation! 'HAS-CLOSED-GRAPH 'kind 'predicate 'arity 5
            'english "$5 has a closed graph from ($1, $2) to ($3, $4)")
+(def-comments! 'HAS-CLOSED-GRAPH
+  "$(m_1, \\mathit{fam}_1)$ is the domain and $(m_2, \\mathit{fam}_2)$ the target, each a module with an $\\mathbb{N}$-enumerated seminorm family; $\\mathit{tt}$ is the map.")
 
 ;;; ---- basic neighbourhoods of 0, and openness of a linear map -----------
 
@@ -225,6 +244,9 @@
 (def-functoid 'FR-BALL '(m fam n eps)
   '(SEP x (VEC m)
      (FORALL k (IMPLIES (AND (IN k NN) (<= k n)) (< ((fam k) x) eps)))))
+(def-comments! 'FR-BALL
+  "The pair $(m, \\mathit{fam})$ is a seminormed space: $m$ a module, its vectors $\\operatorname{vec}(m)$, and $\\mathit{fam}(k)$ the $k$-th seminorm of a family enumerated by $\\mathbb{N}$."
+  "The ball is cut out by the first $n + 1$ seminorms, radius $\\varepsilon$.")
 
 ;;; IS-OPEN-LIN-MAP(m1, fam1, m2, fam2, tt): tt is linear and the image of every
 ;;; basic neighbourhood of 0 is a neighbourhood of 0.  For a linear map this is
@@ -241,26 +263,20 @@
                        (IMAGE tt (FR-BALL m1 fam1 n eps))))))))))
 (notation! 'IS-OPEN-LIN-MAP 'kind 'predicate 'arity 5
            'english "$5 is an open linear map from ($1, $2) to ($3, $4)")
+(def-comments! 'IS-OPEN-LIN-MAP
+  "$(m_1, \\mathit{fam}_1)$ is the domain and $(m_2, \\mathit{fam}_2)$ the target, each a module with an $\\mathbb{N}$-enumerated seminorm family; $\\mathit{tt}$ is the map.")
 
 ;;; ---- the theorems ------------------------------------------------------
 
 ;;; CLOSED GRAPH THEOREM: a linear map between Frechet spaces with closed graph is
 ;;; continuous.
 
-;;; The three supports below carry IS-NONTRIVIALLY-VALUED(fld) (the user's decision 2026-10-10,
+;;; The three theorems below (supports until 2026-10-12) carry IS-NONTRIVIALLY-VALUED(fld) (the user's decision 2026-10-10,
 ;;; TVS-1R's finding): over a trivially valued field all three are FALSE -- K^N with
 ;;; p_k(x) = 1 iff one of x_0..x_k is non-zero, against q(x) = 1 iff x /= 0: the identity one way
 ;;; is a continuous linear bijection that is not open, the other way has a closed graph and is not
 ;;; continuous.
-(support 'closed-graph-theorem
-  (forall-guarded '(fld m1 fam1 m2 fam2 tt)
-    (list
-      '(IS-NONTRIVIALLY-VALUED fld)
-      '(IS-FRECHET-STRUCTURE fld m1 fam1)
-      '(IS-FRECHET-STRUCTURE fld m2 fam2)
-      '(HAS-CLOSED-GRAPH m1 fam1 m2 fam2 tt))
-    '(IS-CONT-LIN m1 fam1 m2 fam2 tt)))
-(warrant! 'closed-graph-theorem 'reference '(thayer-tvs "Theorem 4.9" 43))
+;;; closed-graph-theorem PROVEN 2026-10-12 (TVS-2B) in theorem-library/frechet-banach-steinhaus.scm; the support is retired.
 (gloss! 'closed-graph-theorem
   "Closed graph theorem: a CLOSED linear map tt between Frechet spaces -- closed
    meaning precisely that its graph is closed, i.e. seq -> p1 and tt(seq) -> p2
@@ -269,21 +285,10 @@
    bijection, so its inverse is continuous and tt = projG->F o (projG->E)^-1.
    Sources: the user's TVS notes Thm 4.9; Yosida II.6.  Uses Baire.")
 (topic! 'closed-graph-theorem 'analysis)
-(rests-on 'closed-graph-theorem '(open-mapping-theorem))
 
 ;;; OPEN MAPPING THEOREM: a continuous linear SURJECTION between Frechet spaces
 ;;; is open -- the image of each basic neighbourhood of 0 contains one.
-(support 'open-mapping-theorem
-  (forall-guarded '(fld m1 fam1 m2 fam2 tt)
-    (list
-      '(IS-NONTRIVIALLY-VALUED fld)
-      '(IS-FRECHET-STRUCTURE fld m1 fam1)
-      '(IS-FRECHET-STRUCTURE fld m2 fam2)
-      '(IS-CONT-LIN m1 fam1 m2 fam2 tt)
-      '(FORALL y (IMPLIES (IN y (VEC m2))
-           (FORSOME x (AND (IN x (VEC m1)) (= y (tt x)))))))
-    '(IS-OPEN-LIN-MAP m1 fam1 m2 fam2 tt)))
-(warrant! 'open-mapping-theorem 'reference '(thayer-tvs "Theorem 4.7" 42))
+;;; open-mapping-theorem PROVEN 2026-10-12 (TVS-2A) in theorem-library/frechet-open-mapping-proof.scm; the support is retired.
 (gloss! 'open-mapping-theorem
   "Open mapping theorem (Banach): a continuous linear surjection tt between Frechet
    spaces is open.  Stated where openness of a LINEAR map actually lives -- at 0:
@@ -298,28 +303,14 @@
    surjectivity is assumed and the codomain is assumed Frechet -- meagerness
    relative to a seminorm family is not in the base.  Uses Baire.")
 (topic! 'open-mapping-theorem 'analysis)
-(rests-on 'open-mapping-theorem '(baire-category))
 
 ;;; OPEN MAPPING THEOREM (bounded-inverse form): a continuous linear bijection
 ;;; between Frechet spaces has a continuous inverse.  (gg is a linear two-sided
 ;;; inverse of the continuous linear tt; conclude gg is continuous.)
-(support 'open-mapping-bounded-inverse
-  (forall-guarded '(fld m1 fam1 m2 fam2 tt gg)
-    (list
-      '(IS-NONTRIVIALLY-VALUED fld)
-      '(IS-FRECHET-STRUCTURE fld m1 fam1)
-      '(IS-FRECHET-STRUCTURE fld m2 fam2)
-      '(IS-CONT-LIN m1 fam1 m2 fam2 tt)
-      '(IS-LINEAR-MAP m2 m1 gg)
-      '(FORALL x (IMPLIES (IN x (VEC m1)) (= (gg (tt x)) x)))
-      '(FORALL y (IMPLIES (IN y (VEC m2)) (= (tt (gg y)) y))))
-    '(IS-CONT-LIN m2 fam2 m1 fam1 gg)))
-(warrant! 'open-mapping-bounded-inverse 'reference
-  '(yosida "Corollary of the open mapping theorem, Ch. II.6" 94))
+;;; open-mapping-bounded-inverse PROVEN 2026-10-12 (TVS-2A) in theorem-library/frechet-open-mapping-proof.scm; the support is retired.
 (gloss! 'open-mapping-bounded-inverse
   "Open mapping theorem, bounded-inverse form: a continuous linear bijection tt
    between Frechet spaces (with linear two-sided inverse gg) has continuous inverse
    gg.  A corollary of `open-mapping-theorem': openness of tt is continuity of gg.
    Sources: Yosida II.5; the user's TVS notes, Thm 4.7.  Uses Baire.")
 (topic! 'open-mapping-bounded-inverse 'analysis)
-(rests-on 'open-mapping-bounded-inverse '(open-mapping-theorem))

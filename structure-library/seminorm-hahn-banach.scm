@@ -121,7 +121,7 @@
 ;;; a normed field the powers of c and of its inverse do that work, and with the TRIVIAL
 ;;; absolute value (|x| = 1 for x /= 0) there is nothing to rescale by and the bound is
 ;;; false.  RR and CC satisfy it with c = 2 (RR: `frm-rr-nontrivially-valued').  Added
-;;; 2026-10-10 (TVS-1R); the name is the brief's, for the user to confirm.  It sits in
+;;; 2026-10-10 (TVS-1R); the name is the brief's, confirmed by the user 2026-10-11.  It sits in
 ;;; this file, and not with the theorems that use it, so that the Frechet supports of
 ;;; frechet-open-mapping.scm (which load next) can take it as a hypothesis if the user so
 ;;; decides: over a trivially valued field they are false (TVS-1R report).

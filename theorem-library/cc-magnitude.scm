@@ -12,15 +12,10 @@
 ;;;
 ;;; and all seven axioms become theorems.  They are deleted at their old home.
 ;;;
-;;; WHAT IT COSTS.  SQRT is not defined in this tree; it is characterised by the
-;;; `well-known' supports sqrt-nonneg / sqrt-sq / sqrt-of-sq / sqrt-mono /
-;;; sqrt-mul (structure-library/real-powers.scm).  So these seven facts move
-;;; from `primitive' -- contributing {} to every bill -- to theorems billing
-;;; those supports at trust `well-known'.  That is a DISCLOSURE, not a
-;;; regression: the assumption was always in the tree, in a symbol whose
-;;; existence nobody has derived from order completeness, and it now shows on
-;;; the bill of every fact that leans on it.  No other bill moves: nothing else
-;;; in the library cites a magnitude axiom by name.
+;;; WHAT IT COSTS.  Nothing now: SQRT is a def-functoid and its laws
+;;; sqrt-nonneg / sqrt-sq / sqrt-of-sq / sqrt-mono / sqrt-mul are theorems
+;;; (theorem-library/sqrt-defined.scm), so these facts bill modulo 0.  Until then SQRT was
+;;; characterised by those five as `well-known' supports, and the facts below billed them.
 ;;;
 ;;; THE MECHANISM.  One driver, `cm-mag!', does the work everywhere: given z's
 ;;; coordinates it lands the radicand, its nonnegativity, the SQRT typing and

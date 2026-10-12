@@ -126,6 +126,41 @@
            (loop (cddr kvs))))))))
 
 ;;; -----------------------------------------------------------------------
+;;; COMMENTS ON A DEFINITION (the user, notes-64, 2026-10-12).  A separate form beside
+;;; the definition, never an argument of the def-* form, so it serves every way a name
+;;; is defined -- def-predicate, def-constant, def-functoid, a definitional add-axiom!
+;;; (magnitude-def), a declared structure:
+;;;   (def-comments! 'magnitude-def "The right-hand side is defined iff z is a complex"
+;;;                  "number, so magnitude(z) is defined iff z is a complex number.")
+;;; The strings are one paragraph of LaTeX text (math in $...$), joined by spaces; the
+;;; reader's Definitions block and the library book print it under the entry.  A second
+;;; call for the same name replaces the first (a user's comment replaces Claude's).
+;;; Typical content: what the arguments are, and when the defined term is defined.
+;;;
+;;; (structure-doc! 'METRIC-SPACE "...") replaces the LEAD sentence of a structure's
+;;; entry ("A metric space $s$ is a 2-tuple whose components are listed below.").
+(define *definition-comments* (make-strong-eqv-hash-table))
+(define *structure-docs* (make-strong-eqv-hash-table))
+
+(define (def-comments! name . strings)
+  (if (not (and (symbol? name) (pair? strings) (every string? strings)))
+      (error "def-comments!: wants a name and one or more strings:" name))
+  (hash-table-set! *definition-comments* name strings)
+  name)
+
+(define (definition-comments name)
+  (hash-table-ref/default *definition-comments* name #f))
+
+(define (structure-doc! name string)
+  (if (not (and (symbol? name) (string? string)))
+      (error "structure-doc!: wants a structure name and a string:" name))
+  (hash-table-set! *structure-docs* name string)
+  name)
+
+(define (structure-doc name)
+  (hash-table-ref/default *structure-docs* name #f))
+
+;;; -----------------------------------------------------------------------
 ;;; Templates.  "$1 is at most $2" + ("x" "y") -> "x is at most y".
 ;;; Returns #f when the head has no template of that kind, so every caller can
 ;;; fall back to its own default (prefix application) unchanged.

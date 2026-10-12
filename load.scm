@@ -1633,6 +1633,8 @@
     "structure-library/frechet-open-mapping"
     ;; TVS-1 (2026-10-10, Thayer Ch.8 s.4): the metric of a countable separating seminorm family (FR-METRIC-SPACE).
     "structure-library/frechet-metric"
+    ;; TVS-2B (2026-10-12): Def 8.31 bounded set, the seminorm form of equicontinuity (IS-FR-BOUNDED, IS-FR-EQUICONT).
+    "structure-library/frechet-banach-steinhaus"
     ;; subseq-of-convergent: a subsequence of a convergent sequence converges to
     ;; the same limit.  A keystone brick.  Needs cauchy-subsequence + metric-
     ;; completeness supports + interactive.
@@ -3475,6 +3477,10 @@
     "theorem-library/taylor-cluster"
     ;; TVS-1 / TVS-1R (2026-10-10): Props 8.24 (a)-(c), Def 8.28, 8.25, 8.26 (with IS-NONTRIVIALLY-VALUED).
     "theorem-library/frechet-metric"
+    ;; TVS-2A (2026-10-12): the open mapping theorem and its bounded-inverse corollary (exercise 8.9).
+    "theorem-library/frechet-open-mapping-proof"
+    ;; TVS-2B (2026-10-12): Banach-Steinhaus for Frechet spaces (Thm 8.32) and the closed graph theorem; cites the two above.
+    "theorem-library/frechet-banach-steinhaus"
     ;; 2026-09-23 (batch 22-C): primitives GLUE over adjacent intervals (primitive-glue: the pieces given by
     ;; agreement clauses, the joint into the countable exceptional set); a step function has a primitive on
     ;; [a, b] (step-fn-has-primitive, by induction over the partition, IS-PARTITION total on NN).
