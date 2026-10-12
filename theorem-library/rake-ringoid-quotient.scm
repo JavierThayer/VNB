@@ -725,4 +725,43 @@
   (list (lambda (v) (fact 'ring-left-dist-ringoid-as-ring 'r (car v) (cadr v) (caddr v)))
         (lambda (v) (fact 'ring-right-dist-ringoid-as-ring 'r (car v) (cadr v) (caddr v)))))
 
+;; ---- the owed definedness leaves (META round 3, 2026-10-09) ----
+;; Unfolding a conjunct predicate (`mac prop' in r7n-conj!) instantiates its
+;; defining IFF at CARR / ADD / ... of RINGOID-QUOTIENT-RING(r), which nothing in
+;; the top context types, so the macete owes `t = t' for each accessor (one leaf
+;; each, hash-consed).  Each is closed as conjuncts 2-7 prove the typing: read the
+;; accessor off, land the typing of the value, `rfl'.
+(define (r7n-owed-close!)
+  (for-each
+   (lambda (lf)
+     (let ((g (dk-goal-of lf)))
+       (if (and (pair? g) (eq? (car g) '=) (equal? (cadr g) (caddr g))
+                (pair? (cadr g)) (equal? (cdr (cadr g)) '((RINGOID-QUOTIENT-RING r))))
+           (let ((acc (car (cadr g))))
+             (dk-focus! lf)
+             (case acc
+               ((CARR) (mac 'rq-carr) (fact 'quotient-is-set r7n-set))
+               ((ADD)  (mac 'rq-add)
+                       (fact 'descend2-in-fun r7n-set (r7n-quot) r7n-add-lam))
+               ((MUL)  (mac 'rq-mul)
+                       (fact 'descend2-in-fun r7n-set (r7n-quot) r7n-mul-lam))
+               ((NEG)  (mac 'rq-neg)
+                       (dk-have! (list 'AND
+                                    (list 'IN r7n-neg-lam (list 'FUN '(PTS (RINGOID-SETOID r)) (r7n-quot)))
+                                    (list 'RESPECTS r7n-set r7n-neg-lam))
+                              (lambda () (dk-conj-close! (lambda () (ass)))))
+                       (fact 'descend-in-fun r7n-set (r7n-quot) r7n-neg-lam))
+               ((ZERO) (mac 'rq-zero)
+                       (dk-have! '(IN (ZERO r) (PTS (RINGOID-SETOID r)))
+                              (lambda () (mac 'ringoid-setoid-pts) (ass)))
+                       (fact 'class-in-quotient r7n-set '(ZERO r)))
+               ((ONE)  (mac 'rq-one)
+                       (dk-have! '(IN (ONE r) (PTS (RINGOID-SETOID r)))
+                              (lambda () (mac 'ringoid-setoid-pts) (ass)))
+                       (fact 'class-in-quotient r7n-set '(ONE r)))
+               (else (error "r7n-owed-close!: unexpected owed accessor" acc)))
+             (rfl)))))
+   (proof-leaves)))
+(r7n-owed-close!)
+
 (r7n-qed! 'ringoid-quotient-is-ring)

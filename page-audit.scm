@@ -84,11 +84,17 @@
            (bind-condition-handler (list condition-type:error)
              (lambda (c) (set! status 'error) (bail #f))
              (lambda ()
+               ;; THE OWED-LEAF HOOK IS OFF WHILE A PAGE IS TYPED IN (the user,
+               ;; 2026-10-10, META round 3): the hook's steps were RECORDED when
+               ;; the proof ran, so they are on the page; firing the hook again
+               ;; ran them twice, and a non-idempotent one (`cut', `fact') shifted
+               ;; every later step index.  The page reruns each step explicitly.
                (fluid-let ((*ps* *ps*)
                            (*current-goal* *current-goal*)
                            (*proof-script* *proof-script*)
                            (*live-trace* *live-trace*)
-                           (*vnb-undo-stack* *vnb-undo-stack*))
+                           (*vnb-undo-stack* *vnb-undo-stack*)
+                           (*owed-leaf-hook-active?* #t))
                  (quietly
                   (lambda ()
                     (let ((port (string->input-port text)))

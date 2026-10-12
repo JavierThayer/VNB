@@ -146,7 +146,13 @@
  (let* ((br (use-induction)) (bn (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))
   (dk-focus! (cdr (assq 'base br)))
   ;; COMB-KK is ZZ-indexed (2026-09-15): the `lam-b' owes (IN k_ ZZ).
-  (bd-peel!) (fact 'nn-subset-zz 'k_) (mac 'BERNSTEIN-BASIS) (mac 'comb-kk-zero) (lam-b)
+  (bd-peel!) (fact 'nn-subset-zz 'k_)
+  ;; RM3 2026-10-09 (macete definedness): `comb-kk-zero' is instantiated at the
+  ;; ring VIEW of RR, which nothing certified: it owed `view = view'.  The
+  ;; structure hypothesis IS-COMMUTATIVE-RING(view) certifies it.
+  (fact 'rr-is-normed-field)
+  (fact 'NORMED-FIELD-AS-COMMUTATIVE-RING-is-COMMUTATIVE-RING 'RR-NORMED-FIELD)
+  (mac 'BERNSTEIN-BASIS) (mac 'comb-kk-zero) (lam-b)
   (let ((ifterm (caddr (dk-goal))))
     (for-each
      (lambda (cs)

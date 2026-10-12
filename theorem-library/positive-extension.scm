@@ -233,6 +233,11 @@
 (dk-cite! 'ms-pts-is-set 's)
 (dk-cite! 'rr-is-set)
 (pex-m1!)
+;; 2026-10-11 (META round 3): `is-module' is a theorem macete and owes its match,
+;; the 6-tuple, DEFINED: a list denotes when every component is a set, and the
+;; real ring view is certified by its structure hypothesis, landed here.
+(fact 'rr-is-normed-field)
+(fact 'normed-field-as-commutative-ring-is-commutative-ring 'RR-NORMED-FIELD)
 (mac 'is-module)
 (for-each (lambda (nm) (dk-cite! nm 's))
           '(pex-cf-scal pex-cf-vec pex-cf-vadd pex-cf-vzero pex-cf-vneg pex-cf-act))
@@ -252,8 +257,6 @@
       ((dk-asm? g) (ass))
       ((equal? g '(= 6 6)) (rfl))
       ((dk-head-is? g 'IS-RING)
-       (fact 'rr-is-normed-field)
-       (fact 'normed-field-as-commutative-ring-is-commutative-ring 'RR-NORMED-FIELD)
        (fact 'commutative-ring-is-ring pex-R)
        (ass))
       ((and (dk-head-is? g 'IN) (equal? (cadr g) pex-zero)) (dk-cite! 'pex-zero-in 's) (ass))
@@ -391,6 +394,9 @@
 (sp (make-wff (pex-hyps (list 'IS-SUBMODULE pex-CF 'vs))))
 (pex-open!)
 (dk-split-all! (list (dk-cite! 'pex-vs-zero 's 'vs 'lm)))
+;; 2026-10-11 (META round 3): the macete owes the 6-tuple DEFINED (see pex-cf-module)
+(fact 'rr-is-normed-field)
+(fact 'normed-field-as-commutative-ring-is-commutative-ring 'RR-NORMED-FIELD)
 (mac 'is-submodule)
 (pex-readoffs!)
 (dk-conj-close!
@@ -413,6 +419,9 @@
 ;;; lm is linear on vs, in the module CF
 (sp (make-wff (pex-hyps (list 'IS-LINEAR-FUNCTIONAL-ON pex-CF 'vs 'lm))))
 (pex-open!)
+;; 2026-10-11 (META round 3): the macete owes the 6-tuple DEFINED (see pex-cf-module)
+(fact 'rr-is-normed-field)
+(fact 'normed-field-as-commutative-ring-is-commutative-ring 'RR-NORMED-FIELD)
 (mac 'is-linear-functional-on)
 (pex-readoffs!)
 (dk-conj-close!

@@ -259,8 +259,11 @@
 ;; `fin-subsets-union-closed' citations come first and `fm-beta!' second.
 (fm-disch (lambda (g) (and (pair? g) (eq? (car g) 'is-associative)))
   (lambda ()
-    (mac 'is-associative)
+    ;; RM1 2026-10-09: accessors rewritten to the explicit terms FIRST -- the
+    ;; definition's macete owes definedness of what it is matched at, and
+    ;; opr(fin-subset-monoid(a_)) is certified by nothing in context.
     (fm-co!)
+    (mac 'is-associative)
     (fm-peel!)
     ;; goal is (= (OP (OP u v) w) (OP u (OP v w))) with OP the lambda; read the
     ;; three eigenvariables off its LEFT side rather than trusting the names
@@ -282,8 +285,8 @@
 ;; union-comm composed with it.
 (fm-disch (lambda (g) (and (pair? g) (eq? (car g) 'is-identity)))
   (lambda ()
+    (fm-co!) (mac 'fsm-iden)                 ; RM1: before the definition's macete
     (mac 'is-identity)
-    (fm-co!) (mac 'fsm-iden)
     (fm-peel!)
     (for-each
       (lambda (l)
@@ -301,8 +304,8 @@
 ;; ---- 7. is-commutative ----
 (fm-disch (lambda (g) (and (pair? g) (eq? (car g) 'is-commutative)))
   (lambda ()
+    (fm-co!)                                 ; RM1: before the definition's macete
     (mac 'is-commutative)
-    (fm-co!)
     (fm-peel!)
     (let* ((lhs (cadr (dk-goal))) (u (cadr lhs)) (v (caddr lhs)))
       (fm-beta!)

@@ -39,8 +39,8 @@
 ;;;     nothing about which it was.  SUPERSEDED 2026-09-24 for forall-elim (see
 ;;;     the checker): the side sequent must be  t = t  for the instantiation
 ;;;     term, and its absence needs the certificate, part re-decided here and
-;;;     part re-run through `pi--defined?'.  `reflexivity' is still `t = t'
-;;;     with a definedness condition the checker does not re-derive.
+;;;     part re-run through `pi--defined?'.  SUPERSEDED 2026-10-10 for
+;;;     `reflexivity' too: its checker re-runs `pi--defined?' on the term.
 ;;;   * TRUST.  A checker says the inference has the shape the rule licenses.
 ;;;     It says nothing about the trust tier of the theorems cited; that is the
 ;;;     ledger's job (proof-debt.scm).
@@ -822,12 +822,60 @@
 (declare-binder-walker! 'chk-elim-outside-binders?
                         '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
 
+;;; The number class T certainly lies in, or #f (2026-10-09).  Written here, independently of
+;;; the builder's `pi--number-class'.  The classes form the chain  NN < ZZ < QQ < RR < CC,  each
+;;; closed under  + and * , ZZ and above under  - .  A numeral is in its own class; a term typed
+;;; t in X  (X in the chain) or  POS-RR t  in the context is in X, resp. RR; + and * go to the
+;;; join; - (unary or binary) to the join with ZZ; abs of a CC term to RR, else its class;
+;;; min / max of terms at most RR to the join; succ of an NN term to NN; x ^ n with n in NN to
+;;; x's class.  Every other term: #f.
+(define *chk-number-chain* '(NN ZZ QQ RR CC))
+(define (chk-class-rank c)
+  (let loop ((cs *chk-number-chain*) (i 0))
+    (cond ((null? cs) #f) ((eq? (car cs) c) i) (else (loop (cdr cs) (+ i 1))))))
+(define (chk-class-max a b) (if (>= (chk-class-rank a) (chk-class-rank b)) a b))
+(define (chk-number-class asms t depth)
+  (define (typed)
+    (let loop ((fs asms) (best #f))
+      (if (null? fs)
+          best
+          (let* ((f (car fs))
+                 (c (cond ((and (pair? f) (= (length f) 3) (eq? (car f) 'IN)
+                                (chk-class-rank (caddr f)) (chk-same? (cadr f) t))
+                           (caddr f))
+                          ((and (pair? f) (= (length f) 2) (eq? (car f) 'POS-RR)
+                                (chk-same? (cadr f) t))
+                           'RR)
+                          (else #f))))
+            (loop (cdr fs)
+                  (if (and c (or (not best) (< (chk-class-rank c) (chk-class-rank best)))) c best))))))
+  (cond
+    ((and (number? t) (exact-rational? t))
+     (cond ((and (exact-integer? t) (>= t 0)) 'NN) ((exact-integer? t) 'ZZ) (else 'QQ)))
+    ((typed) => (lambda (c) c))
+    ((not (and (pair? t) (list? t) (symbol? (car t)) (pair? (cdr t)) (< depth 12))) #f)
+    (else
+     (let ((cs (map (lambda (a) (chk-number-class asms a (+ depth 1))) (cdr t)))
+           (n  (length (cdr t))))
+       (and (not (memq #f cs))
+            (case (car t)
+              ((+ *)     (and (>= n 2) (fold-left chk-class-max (car cs) (cdr cs))))
+              ((-)       (and (<= n 2) (fold-left chk-class-max 'ZZ cs)))
+              ((abs)     (and (= n 1) (if (eq? (car cs) 'CC) 'RR (car cs))))
+              ((min max) (and (= n 2) (<= (chk-class-rank (car cs)) 3) (<= (chk-class-rank (cadr cs)) 3)
+                              (chk-class-max (car cs) (cadr cs))))
+              ((succ)    (and (= n 1) (eq? (car cs) 'NN) 'NN))
+              ((^)       (and (= n 2) (eq? (cadr cs) 'NN) (car cs)))
+              (else #f)))))))
+
 ;;; Is T certified defined in the context of CONCL?  The cases, in order:
 ;;;   RE-DECIDED HERE, independently of the builder:
 ;;;   (a) T is an atom: a variable, an atomic constant or a numeral;
 ;;;   (b) the context holds  T in _,  T = _  or  _ = T  (typed or equated);
 ;;;   (c) T occurs outside every binder in an atomic hypothesis  IN, =, <=, <
 ;;;       (these relations are strict: an undefined argument makes them false).
+;;;   (d) T is arithmetic over certified numbers, recursively (2026-10-09, the user's
+;;;       decision "Yes (b) and (c) together"): `chk-number-class' below, written here.
 ;;;   ACCEPTED ON THE BUILDER'S WORD: every other case of the certificate --
 ;;;   ground arithmetic, total class constructors on certified arguments,
 ;;;   SEP / BIG-UNION / VNB-LAMBDA over a certified domain, COMP, NTH of a
@@ -853,6 +901,7 @@
                         (or (chk-elim-outside-binders? t (cadr f))
                             (chk-elim-outside-binders? t (caddr f)))))
                  asms)
+        (and (chk-number-class asms t 0) #t)                     ; (d)
         (and (pi--defined? (sequent-assumptions concl) t 0) #t))))  ; builder's word
 
 (register-rule-checker! 'forall-elim
@@ -1039,18 +1088,22 @@
              #t)
             (else "the new goal is not the old one rewritten by a context equation"))))))
 
-;;; reflexivity: the goal is TRUTH, or (= u v) with u and v the same term.
-;;; The DEFINEDNESS side condition is policy, not a rule of logic, and is not
-;;; re-checked here (see the header).
+;;; reflexivity: the goal is TRUTH, or (= u v) with u and v the same term AND u
+;;; certified DEFINED in the conclusion's context.  The strict  t = t  asserts that
+;;; t denotes, so the definedness condition is part of the rule, not policy: the
+;;; checker re-runs the builder's certificate `pi--defined?', as the forall-elim
+;;; checker does (the user's decision, 2026-10-10, META round 3; until then the
+;;; checker accepted  t = t  for ANY t, a checker-only gap found 2026-10-09).
 (register-rule-checker! 'reflexivity
   (lambda (rule hyps concl)
     (let ((g (chk-goal concl)))
       (cond ((not (null? hyps)) "reflexivity takes no hypotheses")
             ((eq? g 'TRUTH) #t)
-            ((and (pair? g) (eq? (car g) '=) (= (length g) 3)
-                  (chk-same? (binary-left g) (binary-right g)))
-             #t)
-            (else "the goal is not  t = t  for one and the same t")))))
+            ((not (and (pair? g) (eq? (car g) '=) (= (length g) 3)
+                       (chk-same? (binary-left g) (binary-right g))))
+             "the goal is not  t = t  for one and the same t")
+            ((pi--defined? (sequent-assumptions concl) (binary-left g) 0) #t)
+            (else "t = t  for a term the context does not certify DEFINED")))))
 
 ;;; quasi-reflexivity: the goal is (== u v) with u and v the same term.
 (register-rule-checker! 'quasi-reflexivity

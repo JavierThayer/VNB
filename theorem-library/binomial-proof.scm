@@ -78,6 +78,9 @@
 (quietly (lambda ()
   (di)(di)(di)
   (fact 'nn-zero-in)(fact 'commutative-ring-is-ring 'r)(fact 'ring-one-in 'r)
+  ;; RM2 2026-10-09: type COMB-KK(r,x,y,0) before `sum-succ' matches at it (the
+  ;; macete door owes definedness of the matched summand).
+  (fact 'comb-kk-in-fun 'r 'x 'y 0)
   (macm 'ring-power-zero)(macm 'sum-succ)(mac 'sum-zero)
   (fact 'comb-kk-0-0 'r 'x 'y)(subst (list '= (list (list 'COMB-KK 'r 'x 'y 0) 0) '(ONE r)))
   (macm 'ring-add-left-id)(crs)))

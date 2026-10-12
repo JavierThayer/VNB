@@ -646,6 +646,14 @@
      (FORALL w (IMPLIES (SUMMABLE-WEIGHT w)
        (IS-METRIC-SPACE (PRODUCT-METRIC-W ms w))))))))
 (dk-peel-to! 'IS-METRIC-SPACE)
+;; RM2 2026-10-09: the macete door owes definedness of each matched term.  Land the
+;; carrier's sethood and the DIST slot's typing in the MAIN context first, so that
+;; `mac 'is-metric' below is matched at a certified DIST(PRODUCT-METRIC-W ms w) and
+;; PRODUCT-CARRIER(ms) (an owed `dist(..) = dist(..)' leaf used to reach pim-law!).
+(dk-have! '(IN (PRODUCT-CARRIER ms) SET) (lambda () (pim-carrier-set!)))
+(dk-have! '(IN (DIST (PRODUCT-METRIC-W ms w))
+               (FUN (CARTESIAN (PRODUCT-CARRIER ms) (PRODUCT-CARRIER ms)) RR))
+          (lambda () (pim-dist-typing!)))
 (mac 'IS-METRIC-SPACE)                       ; the GOAL only
 (mac 'product-metric-carrier)                ; PTS(PRODUCT-METRIC-W ms w) -> PRODUCT-CARRIER ms
 (define pim-conjuncts (pim-split-goal!))

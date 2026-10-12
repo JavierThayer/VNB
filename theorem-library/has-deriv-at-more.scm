@@ -364,6 +364,17 @@
       (fact 'ooint-elt-in-rr '(- hdx_ hdr_) '(+ hdx_ hdr_) z)
       (fact 'restrict-apply 'g hd-oo z)
       (dk-apply! hd-sub-agree z)
+      ;; META round 3: `binary-minus-def' instantiates at f(z) and g(z), which owe
+      ;; definedness unless certified.  h is typed ON the interval, so h(z) is a
+      ;; real, and through the agreement so is f(z) - g(z): a hypothesis in which
+      ;; both applications occur outside binders, which certifies them.
+      (let ((rh (list 'RESTRICT 'h hd-oo)))
+        (fact 'restrict-apply 'h hd-oo z)
+        (fact 'fun-apply-type-c rh hd-oo 'RR z)
+        (dk-have! (list 'IN (list 'h z) 'RR)
+          (lambda () (subst (list '== (list 'h z) (list rh z))) (ass)))
+        (dk-have! (list 'IN (list '- (list 'f z) (list 'g z)) 'RR)
+          (lambda () (subst (list '== (list '- (list 'f z) (list 'g z)) (list 'h z))) (ass))))
       (dk-lam-b!)
       (subst (list '== (list hd-rg z) (list 'g z)))
       (subst (list '== (list 'h z) (list '- (list 'f z) (list 'g z))))

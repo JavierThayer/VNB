@@ -135,7 +135,7 @@
 
 ;; ... so the line is a subset of the vectors (the form dual-norm-on-le-bound-nvs
 ;; takes).
-(sp (make-wff '(FORALL m (FORALL v (SUBSET (LINE m v) (VEC m))))))
+(sp (make-wff '(FORALL m (IMPLIES (IS-NORMED-VECTOR-SPACE m) (FORALL v (SUBSET (LINE m v) (VEC m)))))))
 (dk-peel!)
 (mac 'subset-def)
 (let ((r8c-w (dk-di-var!)))

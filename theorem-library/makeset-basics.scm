@@ -164,9 +164,14 @@
 ;;; proper class would be a member of {a,b} (see test-suite-negative.scm 2b).
 ;;; --------------------------------------------------------------------
 
+;; 2026-10-10 (the user's decision): a_, b_ guarded as SETS.  Unguarded the
+;; statement is FALSE: x = a = EMPTY-SET, b = SET makes [a,b] a list with a class
+;; component, which does not denote, so x in make-set([a,b]) fails while the
+;; right side holds.
 (sp (make-wff '(FORALL x_ (FORALL a_ (FORALL b_
+     (IMPLIES (IN a_ SET) (IMPLIES (IN b_ SET)
      (IFF (IN x_ (MAKE-SET (LIST a_ b_)))
-          (AND (IN x_ SET) (OR (= x_ a_) (= x_ b_)))))))))
+          (AND (IN x_ SET) (OR (= x_ a_) (= x_ b_)))))))))))
 (ms--peel!)
 
 (for-each

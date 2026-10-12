@@ -92,7 +92,10 @@
                                 (newline))
                               (sequent-node-assumptions l)))
                   (proof-open-goals *ps*))
-        (error "rake-baire-2: unfinished" name))))
+        ;; RM2 2026-10-09: no longer an ERROR -- `qed' itself records the failure
+        ;; (a HOLE under keep-going, the qed-failure gate in a strict load), so one
+        ;; unfinished theorem no longer drops the rest of the file.
+        (qed name))))
 
 ;;; (POS-RR e) in context -> its three atoms and their conjunction, which is what
 ;;; ball-is-open / ball-center-in are guarded on.  Copied from mcl-pos-parts!
@@ -135,8 +138,8 @@
 ;;; CLOSED-BALL is a separation over PTS(s), so this is the membership read-off
 ;;; and nothing else.  Unguarded: at a negative radius the ball is empty.
 
-(sp (make-wff '(FORALL s (FORALL cv_ (FORALL qv_
-   (SUBSET (CLOSED-BALL s cv_ qv_) (PTS s)))))))
+(sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (FORALL cv_ (FORALL qv_
+   (SUBSET (CLOSED-BALL s cv_ qv_) (PTS s))))))))
 (dk-peel!)
 (let ((zv (subset-by-element!)))
   (dk-split-all!

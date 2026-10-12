@@ -909,6 +909,72 @@
                         (alpha-equiv? (cadr f) a))
                    (loop (cdr as))))))))
 
+;;; NESTED ARITHMETIC (2026-10-09, the user's decision "Yes (b) and (c) together"; META round 3).
+;;; The clause above certifies an arithmetic term whose ARGUMENTS the context types in a number
+;;; class; `a*a + b*b' with a, b in RR was not certified, because its arguments are products, not
+;;; typed atoms.  `pi--number-class' returns the number class a term certainly lies in, or #f,
+;;; recursively:  NN < ZZ < QQ < RR < CC  is a chain, every class of it is closed under  + * ,
+;;; ZZ and above under  - , and
+;;;   a numeral                     its class (NN, ZZ or QQ);
+;;;   t typed  t in X  (X a number class), or POS-RR t       X, resp. RR;
+;;;   + , *                         the join of the arguments' classes;
+;;;   - (unary or binary)           the join with ZZ;
+;;;   abs                           RR for a CC argument, else the argument's class;
+;;;   min , max                     the join, only when every argument is at most RR;
+;;;   succ                          NN, only for an NN argument;
+;;;   x ^ n                         x's class, only for n in NN.
+;;; Every case returns a class the term is a MEMBER of, so the term denotes.  Nothing else
+;;; (no recip, no /, no application) is a number by this test.
+(define *pi-number-chain* '(NN ZZ QQ RR CC))
+(define (pi--class-rank c) (let ((m (memq c *pi-number-chain*))) (and m (- 5 (length m)))))
+(define (pi--class-join a b)
+  (and a b (if (>= (pi--class-rank a) (pi--class-rank b)) a b)))
+(define (pi--numeral-class t)
+  (let ((v (call-with-current-continuation
+            (lambda (k)
+              (with-exception-handler (lambda (e) (k #f))
+                (lambda () (arith-eval-term t)))))))
+    (cond ((not (and v (exact-rational? v))) #f)
+          ((and (exact-integer? v) (>= v 0)) 'NN)
+          ((exact-integer? v) 'ZZ)
+          (else 'QQ))))
+(define (pi--typed-number-class asms a)
+  (let loop ((as asms) (best #f))
+    (if (null? as)
+        best
+        (let* ((f (wff-formula (car as)))
+               (c (cond ((and (pair? f) (= (length f) 3) (eq? (car f) 'IN)
+                              (memq (caddr f) *pi-number-chain*) (alpha-equiv? (cadr f) a))
+                         (caddr f))
+                        ((and (pair? f) (= (length f) 2) (eq? (car f) 'POS-RR)
+                              (alpha-equiv? (cadr f) a))
+                         'RR)
+                        (else #f))))
+          (loop (cdr as)
+                (cond ((not c) best)
+                      ((not best) c)
+                      ((< (pi--class-rank c) (pi--class-rank best)) c)
+                      (else best)))))))
+(define (pi--number-class asms t depth)
+  (or (and (not (pair? t)) (pi--numeral-class t))
+      (pi--typed-number-class asms t)
+      (and (pair? t) (symbol? (car t)) (< depth 12)
+           (let ((cs (map (lambda (a) (pi--number-class asms a (+ depth 1))) (cdr t)))
+                 (n  (length (cdr t))))
+             (and (pair? cs)
+                  (every (lambda (c) c) cs)
+                  (case (car t)
+                    ((+ *)     (and (>= n 2) (fold-left pi--class-join (car cs) (cdr cs))))
+                    ((-)       (and (<= 1 n 2) (fold-left pi--class-join 'ZZ cs)))
+                    ((abs)     (and (= n 1) (if (eq? (car cs) 'CC) 'RR (car cs))))
+                    ((min max) (and (= n 2)
+                                    (every (lambda (c) (<= (pi--class-rank c) 3)) cs)
+                                    (pi--class-join (car cs) (cadr cs))))
+                    ((succ)    (and (= n 1) (eq? (car cs) 'NN) 'NN))
+                    ((^)       (and (= n 2) (eq? (cadr cs) 'NN) (car cs)))
+                    (else #f)))))
+      (and (pair? t) (pi--numeral-class t))))
+
 ;;; 'IS-X or the class name X  ->  the DECLARED structure-def, through the
 ;;; definitional parent chain (IS-COMMUTATIVE-RING -> RING), or #f.
 (define (pi--structure-def-for sym)
@@ -1127,6 +1193,9 @@
             (and b (pi--defined? asms (list 'NTH (cadr t) b) (+ depth 1))))) #t)
     ((and (symbol? (car t)) (memq (car t) *pi-arith-total-heads*)
           (every (lambda (a) (pi--number-typed? asms a)) (cdr t))) #t)
+    ;; nested arithmetic over certified numbers (2026-10-09, the user's decision)
+    ((and (symbol? (car t)) (memq (car t) *pi-arith-total-heads*)
+          (pi--number-class asms t 0)) #t)
     ;; LENGTH t for a t the context types in a class of TUPLES (through SEP
     ;; domains and functoid bodies: MAT -> MATRIX -> TUPLES)
     ((and (eq? (car t) 'LENGTH) (= (length t) 2)

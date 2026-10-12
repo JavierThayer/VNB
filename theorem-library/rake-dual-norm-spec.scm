@@ -178,6 +178,11 @@
         (IMPLIES (IS-LINEAR-FUNCTIONAL m f) (IS-LINEAR-FUNCTIONAL-ON m (VEC m) f))))))
 (dk-peel!)
 (mac-h 'is-linear-functional (dk-pick (dk-head? 'IS-LINEAR-FUNCTIONAL) "the plain hypothesis"))
+;; RM3 2026-10-09 (macete definedness): `mac is-linear-functional-on' is
+;; instantiated at VEC(m), which nothing certified (no structure hypothesis on
+;; m).  The typing conjunct f in FUN(VEC m, RR), standing alone, certifies it
+;; by strictness; land it on a lane, leaving the conjunction for `ass'.
+(dk-have! '(IN f (FUN (VEC m) RR)) (lambda () (dk-split-all!) (ass)))
 (mac 'is-linear-functional-on)
 (ass)
 (qed 'linfun-is-linfun-on-vec)

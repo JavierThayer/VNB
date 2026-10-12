@@ -418,6 +418,42 @@
               (or (and (memq (car vs) *rkw--path-bvars*) #t)
                   (loop (cdr vs)))))))
 
+;;; THE MATCH DENOTES (2026-10-09, the META session's finding 0c).  A match  x := t  instantiates
+;;; the macete's universal at t; the relation demands what forall-elim demands: t certified defined
+;;; in the LOCAL context of the position, or  t = t  among the minor premises (and then t mentions
+;;; no crossed bound variable).  Decided here: an atom; t typed or equated in the local context; t
+;;; outside every binder in a strict atomic local hypothesis (IN, =, <=, <); arithmetic over certified
+;;; numbers, recursively (chk-number-class, 2026-10-09).  Every other case on
+;;; the builder's certificate pi--defined?, run on the local context, as chk-elim-certified? does.
+(define (rkw--value-certified? t ctx)
+  (or (not (pair? t))
+      (any (lambda (f)
+             (and (pair? f) (= (length f) 3)
+                  (or (and (eq? (car f) 'IN) (alpha-equiv? (cadr f) t))
+                      (and (eq? (car f) '=)
+                           (or (alpha-equiv? (cadr f) t) (alpha-equiv? (caddr f) t))))))
+           ctx)
+      (any (lambda (f)
+             (and (pair? f) (memq (car f) '(IN = <= <)) (= (length f) 3)
+                  (or (chk-elim-outside-binders? t (cadr f))
+                      (chk-elim-outside-binders? t (caddr f)))))
+           ctx)
+      (and (chk-number-class ctx t 0) #t)          ; nested arithmetic (rule-checkers-logic.scm)
+      (and (pi--defined? (map (lambda (f) (%%make-concrete-wff f #f #f)) ctx) t 0) #t)))
+
+(define (rkw--value-discharged? t ctx minor-goals)
+  (or (rkw--value-certified? t ctx)
+      (and (not (rkw--mentions-path-bvar? t))
+           (rkw--in-set? (list '= t t) minor-goals))))
+
+;;; The values of a substitution, a variadic binding (a list of expressions) taken element-wise.
+(define (rkw--sub-values sub)
+  (append-map (lambda (b)
+                (let ((v (cdr b)))
+                  (cond ((and (pair? v) (eq? (car v) 'RKW-REST)) (cdr v))   ; rkw--match's variadic tail
+                        (else (list v)))))
+              sub))
+
 ;;; -----------------------------------------------------------------------
 ;;; The local context along a path
 
@@ -722,7 +758,19 @@
           (else
            (let loop ((cs conds))
              (cond
-               ((null? cs) #t)
+               ((null? cs)
+                ;; only a THEOREM's macete instantiates a universal; a functoid / accessor /
+                ;; functor-projection unfolding is schematic and owes nothing (2026-10-09)
+                (let vloop ((ts (if (and (>= (length def) 5) (eq? (list-ref def 4) 'theorem))
+                                    (rkw--sub-values sub)
+                                    '())))
+                  (cond ((null? ts) #t)
+                        ((rkw--value-discharged? (car ts) ctx minor-goals) (vloop (cdr ts)))
+                        (else
+                         (string-append
+                          "the macete fired at " (rkw--brief a) " matching the term "
+                          (rkw--brief (car ts)) ", which is neither certified defined in the"
+                          " local context of that position nor owed as a minor premise  t = t")))))
                (else
                 (let ((ci (rkw--inst sub (car cs))))
                   (if (rkw--condition-discharged? ci ctx minor-goals)

@@ -214,6 +214,10 @@
      (FORALL A (IMPLIES (SUBSET A (PTS s))
        (IS-METRIC-SPACE (SUBSPACE-MS s A))))))))
 (dk-peel!)
+;; RM1 2026-10-09: IS-METRIC-SPACE's macete owes SUBSPACE-MS(s, A) defined; the
+;; certificate accepts the functoid's LIST body once A is a SET, so land that
+;; first (on a lane: msub-a-set! consumes the folded hypothesis).
+(dk-have! '(IN A SET) (lambda () (msub-a-set!)))
 (mac 'IS-METRIC-SPACE)      ; the GOAL only; the hypothesis stays folded
 (mac 'subspace-pts)         ; PTS(SUBSPACE-MS s A) -> A
 (mac 'subspace-dist-slot)   ; DIST(SUBSPACE-MS s A) -> the lambda
@@ -223,7 +227,11 @@
      (cond
        ((and (eq? (msub-head g) '=) (pair? (cadr g)) (eq? (car (cadr g)) 'LENGTH))
         (mac 'SUBSPACE-MS) (len-r) (arith))
-       ((equal? g '(IN A SET)) (msub-a-set!))
+       ;; (IN A SET) is in context: the lane above landed it (2026-10-10, META
+       ;; round 3).  Re-deriving it here made `fact' end on a detach WARNING after
+       ;; it had already grounded the leaf by hash-consing onto the lane's node; a
+       ;; warning is not recorded, so the page lost the step and failed the audit.
+       ((equal? g '(IN A SET)) (ass))
        ((eq? (msub-head g) 'IN)
         (for-each (lambda (k) (dk-focus! k) (msub-drive!) (msub-dist-fun-leaf!))
                   (dk-opened (lambda () (lam-t)))))
@@ -300,8 +308,11 @@
  (lambda ()
    (let ((g (dk-goal)))
      (cond
+       ;; RM1 2026-10-09: subspace-pts's macete would owe PTS(s) defined, and
+       ;; nothing types s here; its proof is run in place instead (schematic).
        ((and (eq? (msub-head g) '==) (pair? (cadr g)) (eq? (car (cadr g)) 'PTS))
-        (mac 'subspace-pts) (qrfl))
+        (mac 'SUBSPACE-MS) (slot 'PTS) (nth-r)
+        (slot 'PTS) (qrfl))   ; the second read-off folds the right side's PTS(s) too
        (#t (dk-peel!)
            (fact 'subspace-dist 's '(PTS s) 'u_ 'v_)
            (ass))))))
@@ -330,6 +341,9 @@
          (list 'IFF (list 'IN 'y (list 'BALL msub-space 'c 'r))
                     (list 'AND (list 'IN 'y '(BALL s c r)) (list 'IN 'y 'A)))))))))))))
 (dk-peel!)
+;; RM1 2026-10-09: ball-membership's macete owes SUBSPACE-MS(s, A) defined;
+;; A in SET makes the functoid's LIST body certified.
+(dk-have! '(IN A SET) (lambda () (msub-a-set!)))
 (mac 'ball-membership)        ; both ball atoms at once
 (mac 'subspace-pts)           ; (IN y (PTS (SUBSPACE-MS s A))) -> (IN y A)
 (use-em '(IN y A)

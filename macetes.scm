@@ -476,15 +476,78 @@
               (or (and (memq (car vs) *rewrite-path-bvars*) #t)
                   (loop (cdr vs)))))))
 
+;;; DEFINEDNESS OF THE MATCH (2026-10-09, finding 0c; the user's decision).  A match  x := t  is an
+;;; instantiation of the macete's universal at t, and `forall-elim' at t owes  Gamma |- t = t  unless
+;;; the certificate pi--defined? accepts t.  The macete door owed nothing: `mac' of
+;;; forall x. (x = x iff 0 = 0)  proved  u = u  for a non-denoting IOTA u.  Each schema value the
+;;; certificate does not accept IN THE LOCAL CONTEXT of the position is now posted as the minor
+;;; premise  t = t  (the conclusion's context is a subset of the local one, so the posted premise is
+;;; the stronger claim).  A variadic binding certifies element by element.
+;;; ONLY A THEOREM'S macete instantiates a universal.  A functoid's unfolding, an accessor's read-off
+;;; and a functor projection are SCHEMATIC: functoid beta holds at every argument, denoting or not (the
+;;; 2026-10-01 doctrine, functoids outside quantification; the META-3 report s.4), so they owe nothing.
+;;; The two inference makers bind this to #t for a macete whose name is an installed theorem -- the
+;;; reading the checker's rkw--macete-definition gives the name first.
+(define *rewrite-owe-definedness?* #f)
+
+(define (rw--theorem-macete? name)
+  (and (symbol? name)
+       (hash-table-ref/default *theorem-table* name #f)
+       #t))
+
+;;; The owed  t = t  minor premises join forall-elim's owed side sequents (*pi-owed-nodes*,
+;;; primitive-inferences.scm), so the surface's owed-leaf hook (dk-discharge-owed!) closes those
+;;; whose typing is one citation away (2026-10-09, the user's decision "(b) and (c) together").
+;;; Untrusted: the hook only proposes steps, each checked.  NODES is dg-apply-rule!'s list of
+;;; hypothesis nodes, the main premise first; returned unchanged.
+(define (rw--note-owed-minors! nodes)
+  (if (pair? nodes)
+      (for-each (lambda (n)
+                  (let ((g (wff-formula (sequent-node-assertion n))))
+                    (if (and (pair? g) (eq? (car g) '=) (= (length g) 3)
+                             (equal? (cadr g) (caddr g)))
+                        (set! *pi-owed-nodes*
+                              (let ((l (cons n *pi-owed-nodes*)))
+                                (if (> (length l) 400) (list-head l 400) l))))))
+                (cdr nodes)))
+  nodes)
+
+(define (rw--ctx-as-wffs local-ctx)
+  (map (lambda (f) (%%make-concrete-wff f #f #f)) local-ctx))
+
+(define (rw--owed-definedness sub local-ctx)
+  (let ((wffs #f))
+    (define (certified? t)
+      (or (not (pair? t))
+          (begin (if (not wffs) (set! wffs (rw--ctx-as-wffs local-ctx)))
+                 (pi--defined? wffs t 0))))
+    (let loop ((bs sub) (acc '()))
+      (if (null? bs)
+          (reverse acc)
+          (let* ((v  (cdar bs))
+                 (ts (if (restbound? v) (restbound-exprs v) (list v)))
+                 (new (filter (lambda (t)
+                                (and (not (certified? t))
+                                     (not (member (list '= t t) acc))))
+                              ts)))
+            (loop (cdr bs)
+                  (append (reverse (map (lambda (t) (list '= t t)) new)) acc)))))))
+
 (define (rewrite-expr pattern replacement schema-vars conditions expr local-ctx)
   (let ((top-match (match-expr pattern expr schema-vars)))
     (if top-match
-        (let ((unmet (filter (lambda (c) (not (condition-holds? c local-ctx)))
-                             (map (lambda (c) (apply-subst top-match c)) conditions))))
+        (let* ((unmet (filter (lambda (c) (not (condition-holds? c local-ctx)))
+                              (map (lambda (c) (apply-subst top-match c)) conditions)))
+               (owed  (if (and *rewrite-owe-definedness?*
+                               (or (null? unmet) *macete-spawn-conditions?*))
+                          (rw--owed-definedness top-match local-ctx)
+                          '()))
+               (posted (append unmet owed)))
           (if (and (or (null? unmet) *macete-spawn-conditions?*)
-                   (not (any rw--mentions-path-bvar? unmet)))
-              ;; Fire; unmet conditions become minor premises (empty unless spawning)
-              (cons (apply-subst top-match replacement) unmet)
+                   (not (any rw--mentions-path-bvar? posted)))
+              ;; Fire; unmet conditions (only when spawning) and the owed definedness of the
+              ;; match become minor premises
+              (cons (apply-subst top-match replacement) posted)
               ;; Conditions unmet and not spawning, or a premise that would mention a crossed
               ;; bound variable: recurse into children
               (rewrite-subexpressions pattern replacement schema-vars conditions
@@ -953,8 +1016,9 @@
            (dg        (sqn-dg sqn))
            ;; Seed the local context with the sequent's current assumptions.
            (local-ctx (map wff-formula asms))
-           (result    (rewrite-expr source replacement schema-vars
-                                    conditions g local-ctx)))
+           (result    (fluid-let ((*rewrite-owe-definedness?* (rw--theorem-macete? mac-name)))
+                        (rewrite-expr source replacement schema-vars
+                                      conditions g local-ctx))))
       (let ((new-g       (car result))
             (minor-prems (cdr result)))
         (if (alpha-equiv? new-g g)
@@ -964,8 +1028,9 @@
                          (map (lambda (mp)
                                 (make-sequent asms (wff-child goal mp)))
                               minor-prems))))
-              (dg-apply-rule! dg `(macete ,mac-name ,source ,replacement)
-                              new-subgoals sqn))))))))
+              (rw--note-owed-minors!
+               (dg-apply-rule! dg `(macete ,mac-name ,source ,replacement)
+                               new-subgoals sqn)))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Compound macete constructors
@@ -2051,13 +2116,15 @@
                          (dg        (sqn-dg sqn))
                          (h         (wff-formula f))
                          (local-ctx (map wff-formula asms))
-                         (result    (fluid-let ((*macete-spawn-conditions?* #t))
+                         (result    (fluid-let ((*macete-spawn-conditions?* #t)
+                                                (*rewrite-owe-definedness?* (rw--theorem-macete? name)))
                                       (rewrite-expr source replacement schema-vars
                                                     conditions h local-ctx)))
                          (new-h     (car result))
                          (minors    (cdr result)))
                     (and (not (alpha-equiv? new-h h))
-                         (dg-apply-rule! dg `(macete-hyp ,name ,source ,replacement)
+                         (rw--note-owed-minors!
+                          (dg-apply-rule! dg `(macete-hyp ,name ,source ,replacement)
                            (cons (make-sequent
                                   (context-add-assumption
                                    (context-remove-assumption asms f)
@@ -2066,4 +2133,4 @@
                                  (map (lambda (mp)
                                         (make-sequent asms (wff-child goal mp)))
                                       minors))
-                           sqn)))))))))
+                           sqn))))))))))

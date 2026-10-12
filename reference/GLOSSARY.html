@@ -381,9 +381,9 @@
 <h4 id="GLOSSARY__cc-cos-z-*-functoid-*"><code>cc-cos(z)</code>  <em>(functoid)</em></h4>
 <p>reads: cos $1</p>
 <p>definition:</p>
-<pre>cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))</pre>
+<pre>cc-series-limit(vnb-lambda(cek_, nn, (num(-1) ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))</pre>
 <p>characterized by <a class="x" href="THEOREMS.html#t-cc-cos-pi"><code>cc-cos-pi</code></a>  <em>(proven)</em>:</p>
-<pre>cc-cos(pi) = -1</pre>
+<pre>cc-cos(pi) = num(-1)</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-cc-cos-add"><code>cc-cos-add</code></a> <a class="x" href="THEOREMS.html#t-cc-cos-exp"><code>cc-cos-exp</code></a> <a class="x" href="THEOREMS.html#t-cc-cos-even"><code>cc-cos-even</code></a> <a class="x" href="THEOREMS.html#t-cc-cos-zero"><code>cc-cos-zero</code></a> <a class="x" href="THEOREMS.html#t-cc-cos-deriv"><code>cc-cos-deriv</code></a> <a class="x" href="THEOREMS.html#t-cc-cos-sin-pi"><code>cc-cos-sin-pi</code></a> <a class="x" href="THEOREMS.html#t-cc-cos-two-pi"><code>cc-cos-two-pi</code></a> <a class="x" href="THEOREMS.html#t-cc-cos-unfold"><code>cc-cos-unfold</code></a> ... (27 in all)</p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__cc-cos-45">mentioned by 45 result(s)</a></p>
 <h4 id="GLOSSARY__cc-exp-z-*-functoid-*"><code>cc-exp(z)</code>  <em>(functoid)</em></h4>
@@ -415,7 +415,7 @@
 <p>definition:</p>
 <pre>(cmx_ + cmy_) * recip(2)</pre>
 <p>characterized by <a class="x" href="THEOREMS.html#t-cc-mid-affine"><code>cc-mid-affine</code></a>  <em>(proven)</em>:</p>
-<pre>forall([goux_ in cc, gouy_ in cc], cc-mid(goux_, gouy_) = goux_ + 1/2 * (gouy_ - goux_) and cc-mid(goux_, gouy_) = gouy_ + 1/2 * (goux_ - gouy_))</pre>
+<pre>forall([goux_ in cc, gouy_ in cc], cc-mid(goux_, gouy_) = goux_ + num(1/2) * (gouy_ - goux_) and cc-mid(goux_, gouy_) = gouy_ + num(1/2) * (goux_ - gouy_))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-cc-mid-coords"><code>cc-mid-coords</code></a> <a class="x" href="THEOREMS.html#t-cc-mid-unfold"><code>cc-mid-unfold</code></a> <a class="x" href="THEOREMS.html#t-cc-mid-in-seg-trace"><code>cc-mid-in-seg-trace</code></a></p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__cc-mid-16">mentioned by 16 result(s)</a></p>
 <h4 id="GLOSSARY__cc-ms-*-instance-*"><a class="x" href="STRUCTURE-INDEX.html#cc-ms"><code>cc-ms</code></a>  <em>(instance)</em></h4>
@@ -459,7 +459,7 @@
 <h4 id="GLOSSARY__cc-sin-z-*-functoid-*"><code>cc-sin(z)</code>  <em>(functoid)</em></h4>
 <p>reads: sin $1</p>
 <p>definition:</p>
-<pre>cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(succ(2 * cek_)))) * z ^ succ(2 * cek_)))</pre>
+<pre>cc-series-limit(vnb-lambda(cek_, nn, (num(-1) ^ cek_ * recip(factorial(succ(2 * cek_)))) * z ^ succ(2 * cek_)))</pre>
 <p>characterized by <a class="x" href="THEOREMS.html#t-cc-sin-pi"><code>cc-sin-pi</code></a>  <em>(proven)</em>:</p>
 <pre>cc-sin(pi) = 0</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-cc-sin-add"><code>cc-sin-add</code></a> <a class="x" href="THEOREMS.html#t-cc-sin-exp"><code>cc-sin-exp</code></a> <a class="x" href="THEOREMS.html#t-cc-sin-odd"><code>cc-sin-odd</code></a> <a class="x" href="THEOREMS.html#t-cc-sin-deriv"><code>cc-sin-deriv</code></a> <a class="x" href="THEOREMS.html#t-cc-sin-two-pi"><code>cc-sin-two-pi</code></a> <a class="x" href="THEOREMS.html#t-cc-sin-unfold"><code>cc-sin-unfold</code></a> <a class="x" href="THEOREMS.html#t-cc-sin-half-pi"><code>cc-sin-half-pi</code></a> <a class="x" href="THEOREMS.html#t-cc-sin-pos-half"><code>cc-sin-pos-half</code></a> ... (12 in all)</p>
@@ -1754,8 +1754,8 @@
 <p>a kernel relation</p>
 <p>characterized by <a class="x" href="THEOREMS.html#t-is-ring"><code>is-ring</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))</pre>
-<p>also: <a class="x" href="THEOREMS.html#t-is-chain"><code>is-chain</code></a> <a class="x" href="THEOREMS.html#t-is-ringoid"><code>is-ringoid</code></a> <a class="x" href="THEOREMS.html#t-ring-class"><code>ring-class</code></a> <a class="x" href="THEOREMS.html#t-rr-min-def"><code>rr-min-def</code></a> <a class="x" href="THEOREMS.html#t-is-cont-lin"><code>is-cont-lin</code></a> <a class="x" href="THEOREMS.html#t-is-ideal-in"><code>is-ideal-in</code></a> <a class="x" href="THEOREMS.html#t-is-k-linear"><code>is-k-linear</code></a> <a class="x" href="THEOREMS.html#t-is-seminorm"><code>is-seminorm</code></a> ... (1663 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__in-6482">mentioned by 6482 result(s)</a></p>
+<p>also: <a class="x" href="THEOREMS.html#t-is-chain"><code>is-chain</code></a> <a class="x" href="THEOREMS.html#t-is-ringoid"><code>is-ringoid</code></a> <a class="x" href="THEOREMS.html#t-ring-class"><code>ring-class</code></a> <a class="x" href="THEOREMS.html#t-rr-min-def"><code>rr-min-def</code></a> <a class="x" href="THEOREMS.html#t-is-cont-lin"><code>is-cont-lin</code></a> <a class="x" href="THEOREMS.html#t-is-ideal-in"><code>is-ideal-in</code></a> <a class="x" href="THEOREMS.html#t-is-k-linear"><code>is-k-linear</code></a> <a class="x" href="THEOREMS.html#t-is-seminorm"><code>is-seminorm</code></a> ... (1664 in all)</p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__in-6484">mentioned by 6484 result(s)</a></p>
 <h4 id="GLOSSARY__index-of-ssn-*-functoid-*"><code>index-of(ssn_)</code>  <em>(functoid)</em></h4>
 <p>reads: the index of the node $1</p>
 <p>definition:</p>
@@ -1817,7 +1817,7 @@
 <p>definition:</p>
 <pre>{x in pts(s): forsome([u], is-open(s, u) and x in u and u subset a)}</pre>
 <p>characterized by <a class="x" href="THEOREMS.html#t-interior-in-set"><code>interior-in-set</code></a>  <em>(proven)</em>:</p>
-<pre>forall([s, a], interior(s, a) subset a)</pre>
+<pre>forall([s], is-metric-space(s) implies forall([a], interior(s, a) subset a))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-interior-is-set"><code>interior-is-set</code></a> <a class="x" href="THEOREMS.html#t-interior-is-open"><code>interior-is-open</code></a> <a class="x" href="THEOREMS.html#t-interior-mem-intro"><code>interior-mem-intro</code></a> <a class="x" href="THEOREMS.html#t-interior-in-carrier"><code>interior-in-carrier</code></a> <a class="x" href="THEOREMS.html#t-interior-membership"><code>interior-membership</code></a> <a class="x" href="THEOREMS.html#t-interior-sep-unfold"><code>interior-sep-unfold</code></a></p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__interior-11">mentioned by 11 result(s)</a></p>
 <h4 id="GLOSSARY__intersection-*-operator-*"><code>intersection</code>  <em>(operator)</em></h4>
@@ -2095,7 +2095,7 @@
 <p>a predicate</p>
 <p>characterized by <a class="x" href="THEOREMS.html#t-is-complex-inner-product-space"><code>is-complex-inner-product-space</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([s], is-complex-inner-product-space(s) iff length(s) = 7 and is-ring(scal(s)) and vec(s) in set and vadd(s) in fun(cartesian(vec(s), vec(s)), vec(s)) and vzero(s) in vec(s) and vneg(s) in fun(vec(s), vec(s)) and act(s) in fun(cartesian(carr(scal(s)), vec(s)), vec(s)) and ip(s) in fun(cartesian(vec(s), vec(s)), cc) and is-associative(vadd(s), vec(s)) and is-commutative(vadd(s), vec(s)) and is-identity(vadd(s), vzero(s), vec(s)) and has-inverses(vadd(s), vzero(s), vneg(s), vec(s)) and scal(s) = normed-field-as-commutative-ring(cc-normed-field) and carr(scal(s)) = cc and forall([r_ in carr(scal(s)), x_ in vec(s), y_ in vec(s)], (act(s))(r_, (vadd(s))(x_, y_)) = (vadd(s))((act(s))(r_, x_), (act(s))(r_, y_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((add(scal(s)))(r_, s_), x_) = (vadd(s))((act(s))(r_, x_), (act(s))(s_, x_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((mul(scal(s)))(r_, s_), x_) = (act(s))(r_, (act(s))(s_, x_))) and forall([x_ in vec(s)], (act(s))(one(scal(s)), x_) = x_) and forall([x_ in vec(s), y_ in vec(s), z_ in vec(s)], (ip(s))((vadd(s))(x_, y_), z_) = (ip(s))(x_, z_) + (ip(s))(y_, z_)) and forall([a_ in cc, x_ in vec(s), y_ in vec(s)], (ip(s))((act(s))(a_, x_), y_) = a_ * (ip(s))(x_, y_)) and forall([x_ in vec(s), y_ in vec(s)], (ip(s))(y_, x_) = conjugate((ip(s))(x_, y_))) and forall([x_ in vec(s)], (ip(s))(x_, x_) in rr) and forall([x_ in vec(s)], 0 &lt;= (ip(s))(x_, x_)) and forall([x_ in vec(s)], (ip(s))(x_, x_) = 0 iff x_ = vzero(s)))</pre>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__is-complex-inner-product-space-129">mentioned by 129 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__is-complex-inner-product-space-130">mentioned by 130 result(s)</a></p>
 <h4 id="GLOSSARY__is-concat-trace-sasp-sas-*-predicate-*"><code>is-concat-trace(sasp_, sas_)</code>  <em>(predicate)</em></h4>
 <p>reads: $2 is a concatenation trace in the strand space $1</p>
 <p>defined by <a class="x" href="THEOREMS.html#t-is-concat-trace"><code>is-concat-trace</code></a></p>
@@ -2701,7 +2701,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-is-metric-space"><code>is-metric-space</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([s], is-metric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) in fun(cartesian(pts(s), pts(s)), rr) and is-metric(dist(s), pts(s)))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-cc-is-metric-space"><code>cc-is-metric-space</code></a> <a class="x" href="THEOREMS.html#t-rr-is-metric-space"><code>rr-is-metric-space</code></a> <a class="x" href="THEOREMS.html#t-nf-cc-is-metric-space"><code>nf-cc-is-metric-space</code></a> <a class="x" href="THEOREMS.html#t-nf-rr-is-metric-space"><code>nf-rr-is-metric-space</code></a> <a class="x" href="THEOREMS.html#t-sub-rr-is-metric-space"><code>sub-rr-is-metric-space</code></a> <a class="x" href="THEOREMS.html#t-product-is-metric-space"><code>product-is-metric-space</code></a> <a class="x" href="THEOREMS.html#t-c-metric-is-metric-space"><code>c-metric-is-metric-space</code></a> <a class="x" href="THEOREMS.html#t-subspace-is-metric-space"><code>subspace-is-metric-space</code></a> ... (19 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__is-metric-space-338">mentioned by 338 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__is-metric-space-348">mentioned by 348 result(s)</a></p>
 <h4 id="GLOSSARY__is-metrizable-top-space-s-*-predicate-*"><code>is-metrizable-top-space(s)</code>  <em>(predicate)</em></h4>
 <p>reads: $1 is a metrizable topological space</p>
 <p>a predicate</p>
@@ -2787,7 +2787,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-is-normed-vector-space"><code>is-normed-vector-space</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([s], is-normed-vector-space(s) iff length(s) = 7 and is-ring(scal(s)) and vec(s) in set and vadd(s) in fun(cartesian(vec(s), vec(s)), vec(s)) and vzero(s) in vec(s) and vneg(s) in fun(vec(s), vec(s)) and act(s) in fun(cartesian(carr(scal(s)), vec(s)), vec(s)) and vnrm(s) in fun(vec(s), rr) and is-associative(vadd(s), vec(s)) and is-commutative(vadd(s), vec(s)) and is-identity(vadd(s), vzero(s), vec(s)) and has-inverses(vadd(s), vzero(s), vneg(s), vec(s)) and scal(s) = normed-field-as-commutative-ring(rr-normed-field) and forall([r_ in carr(scal(s)), x_ in vec(s), y_ in vec(s)], (act(s))(r_, (vadd(s))(x_, y_)) = (vadd(s))((act(s))(r_, x_), (act(s))(r_, y_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((add(scal(s)))(r_, s_), x_) = (vadd(s))((act(s))(r_, x_), (act(s))(s_, x_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((mul(scal(s)))(r_, s_), x_) = (act(s))(r_, (act(s))(s_, x_))) and forall([x_ in vec(s)], (act(s))(one(scal(s)), x_) = x_) and forall([x_ in vec(s)], 0 &lt;= (vnrm(s))(x_)) and forall([x_ in vec(s)], (vnrm(s))(x_) = 0 iff x_ = vzero(s)) and forall([r_ in carr(scal(s)), x_ in vec(s)], (vnrm(s))((act(s))(r_, x_)) = abs(r_) * (vnrm(s))(x_)) and forall([x_ in vec(s), y_ in vec(s)], (vnrm(s))((vadd(s))(x_, y_)) &lt;= (vnrm(s))(x_) + (vnrm(s))(y_)))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-dual-is-normed-vector-space"><code>dual-is-normed-vector-space</code></a> <a class="x" href="THEOREMS.html#t-rr-nvs-is-normed-vector-space"><code>rr-nvs-is-normed-vector-space</code></a></p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__is-normed-vector-space-225">mentioned by 225 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__is-normed-vector-space-229">mentioned by 229 result(s)</a></p>
 <h4 id="GLOSSARY__is-nowhere-dense-s-a-*-predicate-*"><code>is-nowhere-dense(s, a)</code>  <em>(predicate)</em></h4>
 <p>reads: $2 is nowhere dense in $1</p>
 <p>defined by <a class="x" href="THEOREMS.html#t-is-nowhere-dense"><code>is-nowhere-dense</code></a></p>
@@ -3011,7 +3011,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-is-ring"><code>is-ring</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-ringoid-as-ring-is-ring"><code>ringoid-as-ring-is-ring</code></a> <a class="x" href="THEOREMS.html#t-ring-prod-is-ring-ringoid-as-ring"><code>ring-prod-is-ring-ringoid-as-ring</code></a> <a class="x" href="THEOREMS.html#t-qq-is-ring"><code>qq-is-ring</code></a> <a class="x" href="THEOREMS.html#t-zz-is-ring"><code>zz-is-ring</code></a> <a class="x" href="THEOREMS.html#t-poly-is-ring"><code>poly-is-ring</code></a> <a class="x" href="THEOREMS.html#t-monalg-is-ring"><code>monalg-is-ring</code></a> <a class="x" href="THEOREMS.html#t-mat-ring-is-ring"><code>mat-ring-is-ring</code></a> <a class="x" href="THEOREMS.html#t-ring-prod-is-ring"><code>ring-prod-is-ring</code></a> ... (12 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__is-ring-475">mentioned by 475 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__is-ring-479">mentioned by 479 result(s)</a></p>
 <h4 id="GLOSSARY__is-ringoid-s-*-predicate-*"><code>is-ringoid(s)</code>  <em>(predicate)</em></h4>
 <p>reads: a ringoid</p>
 <p>a predicate</p>
@@ -4917,7 +4917,7 @@
 <p>definition:</p>
 <pre>finsum(ring-additive-ag(r), f, s)</pre>
 <p>characterized by <a class="x" href="THEOREMS.html#t-sum-set-empty"><code>sum-set-empty</code></a>  <em>(proven)</em>:</p>
-<pre>forall([r, f], sum-set(r, empty-set, f) == zero(r))</pre>
+<pre>forall([r], is-ring(r) implies forall([f], sum-set(r, empty-set, f) == zero(r)))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-sum-set-left-scalar"><code>sum-set-left-scalar</code></a> <a class="x" href="THEOREMS.html#t-sum-set-right-scalar"><code>sum-set-right-scalar</code></a> <a class="x" href="THEOREMS.html#t-sum-set-type-defined"><code>sum-set-type-defined</code></a> <a class="x" href="THEOREMS.html#t-sum-set-singleton-defined"><code>sum-set-singleton-defined</code></a> <a class="x" href="THEOREMS.html#t-sum-set-disjoint-union-defined"><code>sum-set-disjoint-union-defined</code></a></p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__sum-set-11">mentioned by 11 result(s)</a></p>
 <h4 id="GLOSSARY__summable-weight-w-*-predicate-*"><code>summable-weight(w)</code>  <em>(predicate)</em></h4>
@@ -5276,8 +5276,8 @@
 <p>defined by <a class="x" href="THEOREMS.html#t-zkept-zero"><code>zkept-zero</code></a> <a class="x" href="THEOREMS.html#t-zkept-succ"><code>zkept-succ</code></a> <a class="x" href="THEOREMS.html#t-zkept-limit"><code>zkept-limit</code></a></p>
 <p>characterized by <a class="x" href="THEOREMS.html#t-zkept-succ"><code>zkept-succ</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([phi, grd, porel, alpha in ord], zkept(phi, grd, porel, succ_ord(alpha)) = union(zkept(phi, grd, porel, alpha), keep-set(phi, grd, porel, zkept(phi, grd, porel, alpha), alpha)))</pre>
-<p>also: <a class="x" href="THEOREMS.html#t-zkept-zero"><code>zkept-zero</code></a> <a class="x" href="THEOREMS.html#t-zkept-limit"><code>zkept-limit</code></a> <a class="x" href="THEOREMS.html#t-zorn-zkept-is-chain"><code>zorn-zkept-is-chain</code></a> <a class="x" href="THEOREMS.html#t-zorn-zkept-monotone"><code>zorn-zkept-monotone</code></a> <a class="x" href="THEOREMS.html#t-zorn-zkept-limit-is-chain"><code>zorn-zkept-limit-is-chain</code></a></p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__zkept-9">mentioned by 9 result(s)</a></p>
+<p>also: <a class="x" href="THEOREMS.html#t-zkept-zero"><code>zkept-zero</code></a> <a class="x" href="THEOREMS.html#t-zkept-limit"><code>zkept-limit</code></a> <a class="x" href="THEOREMS.html#t-zkept-defined"><code>zkept-defined</code></a> <a class="x" href="THEOREMS.html#t-zorn-zkept-is-chain"><code>zorn-zkept-is-chain</code></a> <a class="x" href="THEOREMS.html#t-zorn-zkept-monotone"><code>zorn-zkept-monotone</code></a> <a class="x" href="THEOREMS.html#t-zorn-zkept-limit-is-chain"><code>zorn-zkept-limit-is-chain</code></a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__zkept-11">mentioned by 11 result(s)</a></p>
 <h4 id="GLOSSARY__zup-*-defined-fn-*"><a class="x" href="DEFINITIONS.html#d-zup"><code>zup</code></a>  <em>(defined-fn)</em></h4>
 <p>defined by <a class="x" href="THEOREMS.html#t-zup-zero"><code>zup-zero</code></a> <a class="x" href="THEOREMS.html#t-zup-succ"><code>zup-succ</code></a> <a class="x" href="THEOREMS.html#t-zup-limit"><code>zup-limit</code></a></p>
 <p>characterized by <a class="x" href="THEOREMS.html#t-zup-succ"><code>zup-succ</code></a>  <em>(definitional)</em>:</p>

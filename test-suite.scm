@@ -818,6 +818,24 @@
 (define (rt-form e) (parse-string (expression->string e)))
 (define (rt-ok? e)  (equal? (rt-form e) e))
 
+;;; NUMBER LITERALS (the user, 2026-10-11, option 2): a negative or non-integer
+;;; literal prints as num(...) and reads back as itself.  The first three FAIL on
+;;; the old printer/reader (RM7's finding: `-1 ^ j' read back as -(1 ^ j), and
+;;; `1/2 * pi' as (* 1 (recip 2) pi)).  The controls pin that nothing that
+;;; parsed before changed meaning.
+(check-true "round trip: (power -1 j) -- a negative literal base"
+            (lambda () (rt-ok? '(power -1 j))))
+(check-true "round trip: (* 1/2 pi) -- a rational coefficient"
+            (lambda () (rt-ok? '(* 1/2 pi))))
+(check-true "round trip: -7/12 alone, and inside a sum"
+            (lambda () (and (rt-ok? -7/12) (rt-ok? '(+ x -7/12)))))
+(check "num(...) reads as the literal" (lambda () (map parse-string '("num(-1)" "num(1/12)" "num(-3/2)" "num(5)")))
+       (list -1 1/12 -3/2 5))
+(check "num literal CONTROL: `-1' still reads as the unary minus, `1/2' as a quotient"
+       (lambda () (map parse-string '("-1" "1/2")))
+       '((- 1) (* 1 (recip 2))))
+(check-true "num literal CONTROL: the unary minus (- 1) still round-trips"
+            (lambda () (rt-ok? '(- 1))))
 (check-true "round trip: flat (* a b c)"        (lambda () (rt-ok? '(* a b c))))
 (check-true "round trip: flat (* a b c d)"      (lambda () (rt-ok? '(* a b c d))))
 (check-true "round trip: left-nested (* (* a b) c)"
@@ -9195,6 +9213,58 @@
   (lambda () (let ((r (dfi--leaves-after dfi--w '(recip 0))))
                (list (car r) (cdr r))))
   '(2 ((= (recip 0) (recip 0)))))
+(check "page: typing a page in does NOT fire the owed-leaf hook (its steps are on the page)"
+  (lambda ()
+    (let ((calls 0) (saved *owed-leaf-hook*))
+      (set! *owed-leaf-hook* (lambda (l) (set! calls (+ calls 1))))
+      (page--type-in
+       "(sp (make-wff (quote (FORALL x_ (IMPLIES (FORALL a (= a a)) FALSITY)))))\n(di)\n(di)\n(inst+ (quote (FORALL a (= a a))) (quote (recip 0)))\n")
+      (set! *owed-leaf-hook* saved)
+      calls))
+  0)
+(check-true "page CONTROL: the same steps typed OUTSIDE a page do fire the hook on the owed recip(0) = recip(0)"
+  (lambda ()
+    (let ((calls 0) (saved *owed-leaf-hook*))
+      (set! *owed-leaf-hook* (lambda (l) (set! calls (+ calls 1))))
+      (fluid-let ((*ps* #f))
+        (quietly (lambda ()
+                   (sp (make-wff '(FORALL x_ (IMPLIES (FORALL a (= a a)) FALSITY))))
+                   (di) (di)
+                   (inst+ '(FORALL a (= a a)) '(recip 0)))))
+      (set! *owed-leaf-hook* saved)
+      (> calls 0))))
+(check-true "definedness: a FAILED owed-leaf discharge rolls back *proof-mints* with the script (one mint entry per step)"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff dfi--w))
+      (quietly (lambda () (dk-peel!)))
+      (quietly (lambda () (inst+ '(FORALL a (= a a)) '(recip 0))))
+      (= (length *proof-mints*) (length *proof-script*)))))
+(check "recording: a command that WARNS after moving the graph is RECORDED (the user, 2026-10-10)"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL x_ (IMPLIES (= x_ x_) (= x_ x_)))))
+      (quietly (lambda () (dk-peel!)))
+      (let ((n (length *proof-script*)))
+        ;; ground the leaf, then warn: the shape of a `fact' that closes its leaf
+        ;; by hash-consing and finds nothing left to detach
+        (quietly (lambda ()
+          (vnb--run! 'ass '()
+            (lambda () (cmd-assumption *ps*) (make-vnb-warning "warn after work")))))
+        (list (- (length *proof-script*) n)
+              (= (length *proof-mints*) (length *proof-script*))
+              (proof-done? *ps*)))))
+  '(1 #t #t))
+(check "recording CONTROL: a command that warns WITHOUT moving the graph is not recorded"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL x_ (IMPLIES (= x_ x_) (= x_ x_)))))
+      (quietly (lambda () (dk-peel!)))
+      (let ((n (length *proof-script*)))
+        (quietly (lambda ()
+          (vnb--run! 'ass '() (lambda () (make-vnb-warning "warn, no work")))))
+        (- (length *proof-script*) n))))
+  0)
 (check "definedness: instantiating at CHOICE([]) owes its leaf (CHOICE is not total)"
   (lambda () (car (dfi--leaves-after dfi--w '(CHOICE (LIST))))) 2)
 (check "definedness: instantiating at [] owes nothing (LIST is total)"
@@ -9701,7 +9771,7 @@
                               '((() . (IN (rkwn-g wqv) NN))
                                 (() . (IN wqv NN))))))))
 
-;;; --- the macete door, 2026-10-09 (the META session's findings 0 and 0b; the user's decision) ---
+;;; --- the macete door, 2026-10-09 (the META session's findings 0, 0b, 0c; the user's decisions) ---
 ;;; Each refusal below was an ACCEPTANCE before the repair, and the step it refuses is the one a
 ;;; FALSITY reproducer took (scratchpad/meta3/*-falsity.scm).  Each has its accepted control.
 (add-axiom! *library* 'rkwn-negcond-law
@@ -9760,6 +9830,73 @@
       (rewrite-expr '(rkwn-f zqv) '(rkwn-g zqv) '(zqv) '((IN zqv NN))
                     '(IN (rkwn-f wqv) NN) '())))
   '((IN (rkwn-g wqv) NN) (IN wqv NN)))
+
+;; 0c. the match must denote
+(check-true "macete door: checker refuses a match at an uncertified term with no owed t = t"
+  (lambda ()
+    (rkwn--raises?
+      (lambda () (rkwn--apply '(macete rkwn-plain-law (rkwn-f zqv) (rkwn-g zqv))
+                              '() '(IN (rkwn-f (rkwn-h wqv)) NN)
+                              '((() . (IN (rkwn-g (rkwn-h wqv)) NN))))))))
+(check-false "macete door: checker accepts the match with  t = t  owed as a minor premise (control)"
+  (lambda ()
+    (rkwn--raises?
+      (lambda () (rkwn--apply '(macete rkwn-plain-law (rkwn-f zqv) (rkwn-g zqv))
+                              '() '(IN (rkwn-f (rkwn-h wqv)) NN)
+                              '((() . (IN (rkwn-g (rkwn-h wqv)) NN))
+                                (() . (= (rkwn-h wqv) (rkwn-h wqv)))))))))
+(check-false "macete door: checker accepts the match at a term typed in context (control)"
+  (lambda ()
+    (rkwn--raises?
+      (lambda () (rkwn--apply '(macete rkwn-plain-law (rkwn-f zqv) (rkwn-g zqv))
+                              '((IN (rkwn-h wqv) NN)) '(IN (rkwn-f (rkwn-h wqv)) NN)
+                              '((((IN (rkwn-h wqv) NN)) . (IN (rkwn-g (rkwn-h wqv)) NN))))))))
+(check "macete door: rewriter owes  t = t  for an uncertified match"
+  (lambda ()
+    (fluid-let ((*rewrite-owe-definedness?* #t))
+      (cdr (rewrite-expr '(rkwn-f zqv) '(rkwn-g zqv) '(zqv) '() '(IN (rkwn-f (rkwn-h wqv)) NN) '()))))
+  '((= (rkwn-h wqv) (rkwn-h wqv))))
+;; a functoid / accessor unfolding is schematic: no definedness owed at an untyped argument
+(check-false "macete door: checker accepts a functoid unfolding at an uncertified argument (schematic)"
+  (lambda ()
+    (rkwn--raises?
+      (lambda ()
+        (let ((name (let loop ((ks (hash-table-keys *functoid-registry*)))
+                      (cond ((null? ks) #f)
+                            ((and (= (length (car (hash-table-ref *functoid-registry* (car ks) (lambda () #f)))) 1)
+                                  (not (hash-table-ref/default *theorem-table* (car ks) #f)))
+                             (car ks))
+                            (else (loop (cdr ks)))))))
+          (let* ((reg  (hash-table-ref *functoid-registry* name (lambda () #f)))
+                 (pv   (car (car reg)))
+                 (body (cadr reg))
+                 (arg  '(rkwn-h wqv)))
+            (rkwn--apply (list 'macete name (list name pv) body)
+                         '() (list 'IN (list name arg) 'NN)
+                         (list (cons '() (list 'IN (subst-free pv arg body) 'NN))))))))))
+(check "macete door: rewriter owes nothing for a match typed in the local context (control)"
+  (lambda ()
+    (fluid-let ((*rewrite-owe-definedness?* #t))
+      (cdr (rewrite-expr '(rkwn-f zqv) '(rkwn-g zqv) '(zqv) '()
+                         '(IN (rkwn-f (rkwn-h wqv)) NN) '((IN (rkwn-h wqv) NN))))))
+  '())
+
+;; (b) the certificate: nested arithmetic over certified numbers (2026-10-09, the user's decision
+;; "Yes (b) and (c) together").  Builder and checker each decide it; each has its refused control.
+(check-true "certificate: a*a + b*b with a, b in RR is certified (nested arithmetic)"
+  (lambda () (pi--defined? (list (make-wff '(IN a RR)) (make-wff '(IN b RR))) '(+ (* a a) (* b b)) 0)))
+(check-false "certificate: a*a + b*b with b untyped is NOT certified (control: one uncertified leaf)"
+  (lambda () (pi--defined? (list (make-wff '(IN a RR))) '(+ (* a a) (* b b)) 0)))
+(check-true "certificate: succ(n + 1) with n in NN is certified; |z * z| with z in CC too"
+  (lambda () (and (pi--defined? (list (make-wff '(IN n NN))) '(succ (+ n 1)) 0)
+                  (pi--defined? (list (make-wff '(IN z CC))) '(abs (* z z)) 0))))
+(check-false "certificate: succ(x + 1) with x in RR is NOT certified by the nested clause (succ wants NN)"
+  (lambda () (pi--number-class (list (make-wff '(IN x RR))) '(succ (+ x 1)) 0)))
+(check "checker: chk-number-class of a*a + b*b with a in NN, b in RR is RR"
+  (lambda () (chk-number-class '((IN a NN) (IN b RR)) '(+ (* a a) (* b b)) 0))
+  'RR)
+(check-false "checker: chk-number-class refuses a nested term with one untyped leaf (control)"
+  (lambda () (chk-number-class '((IN a NN)) '(+ (* a a) (recip a)) 0)))
 
 ;;; --- macete-hyp ---
 
@@ -10006,9 +10143,8 @@
 ;;; IF is not strict (2026-10-08, the META session's third FALSITY): IF(TRUTH, 0, u) = 0
 ;;; is true for every u and certifies nothing about u.  CONTROL: the same u inside a strict
 ;;; application in a true hypothesis does certify it.  These drive the BUILDER (`rfl', whose
-;;; certificate is pi--defined?): the reflexivity CHECKER (rule-checkers-logic.scm, 'reflexivity)
-;;; tests only that the two sides are the same term and certifies nothing -- a checker-only gap
-;;; found 2026-10-09 when this pair was first written against the checker; reported, not repaired.
+;;; certificate is pi--defined?).  The reflexivity CHECKER re-runs the same certificate since
+;;; 2026-10-10 (the gap found 2026-10-09 when this pair was first written against the checker).
 (check-true "rfl guard: IF(TRUTH, 0, u) = 0 in context does NOT certify u (IF is not strict)"
   (lambda ()
     (sp (make-wff '(IMPLIES (= (IF TRUTH 0 (IOTA z (AND (IN z NN) FALSITY))) 0)
@@ -10097,6 +10233,13 @@
 
 (rcl--accept "reflexivity" 'reflexivity (rcl--h '() '(= x x)) '())
 (rcl--refuse "reflexivity" 'reflexivity (rcl--h '() '(= x y)) '())
+;;; 2026-10-10 (the user's decision): the reflexivity CHECKER re-runs the builder's
+;;; definedness certificate.  The refusal FAILS on the old checker, which accepted any t = t.
+(rcl--refuse "reflexivity at a term the context does not certify (IOTA)" 'reflexivity
+  (rcl--h '() '(= (IOTA z (AND (IN z NN) FALSITY)) (IOTA z (AND (IN z NN) FALSITY)))) '())
+(rcl--accept "reflexivity at the same term typed in context" 'reflexivity
+  (rcl--h '((IN (IOTA z (AND (IN z NN) FALSITY)) NN))
+          '(= (IOTA z (AND (IN z NN) FALSITY)) (IOTA z (AND (IN z NN) FALSITY)))) '())
 
 (rcl--accept "quasi-reflexivity" 'quasi-reflexivity (rcl--h '() '(== x x)) '())
 (rcl--refuse "quasi-reflexivity" 'quasi-reflexivity (rcl--h '() '(== x y)) '())

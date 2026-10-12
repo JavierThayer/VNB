@@ -294,6 +294,10 @@
 (dk-peel!)
 (dk-split-all!)
 (fact 'rr-zero-in) (fact 'rr-one-in)
+;; META round 3: `binary-divide-def' instantiates at the numerators
+;; RPOW-STAR(a, p) and RPOW-STAR(b, q), which owe definedness unless typed: type
+;; them BEFORE the unfold (they were typed further down).
+(fact 'rpow-star-in-rr 'a 'p) (fact 'rpow-star-in-rr 'b 'q)
 (mac 'binary-divide-def)
 (let* ((h  '(= (+ (/ 1 p) (/ 1 q)) 1))
        (h2 (car (filter (dk-head? '=) (dk-landed (lambda () (mac-h 'binary-divide-def h))))))
@@ -321,7 +325,6 @@
         (subst '(= (RECIP p) (* 1 (RECIP p))))
         (subst '(= (RECIP q) (* 1 (RECIP q))))
         (ass)))
-    (fact 'rpow-star-in-rr 'a 'p) (fact 'rpow-star-in-rr 'b 'q)
     (fact 'rpow-star-pos 'a 'p) (fact 'rpow-star-pos 'b 'q)
     (fact 'log-rpow-star 'a 'p) (fact 'log-rpow-star 'b 'q)
     (for-each (lambda (x) (fact 'log-in-rr x)) (list 'a 'b u v))

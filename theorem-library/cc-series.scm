@@ -118,7 +118,12 @@
 ;;; =======================================================================
 
 (sp (make-wff '(FORALL f (== (CC-SERIES-PARTIAL-SUM f 0) 0))))
-(di) (mac 'cc-series-partial-sum) (mac 'sum-ag-zero) (mac 'cc-additive-ag-iden) (qrfl)
+(di)
+;; RM2 2026-10-09: the macete door owes definedness of the matched group
+;; NORMED-FIELD-ADDITIVE-AG(CC-NORMED-FIELD); the structure hypothesis certifies
+;; its slot list.
+(fact 'cc-is-normed-field)
+(mac 'cc-series-partial-sum) (mac 'sum-ag-zero) (mac 'cc-additive-ag-iden) (qrfl)
 (qed 'cc-series-partial-sum-zero)
 (topic! 'cc-series-partial-sum-zero 'analysis)
 (alias! 'cc-series-partial-sum-zero "the empty complex partial sum is 0")
@@ -141,6 +146,7 @@
    (list 'FORALL 'f (list 'IMPLIES '(IN f (FUN NN CC))
      (list 'IN (list 'SUM-AG ccs-ag 'f 'k) 'CC)))))))
 
+(fact 'cc-is-normed-field)          ; RM2 2026-10-09: certifies ccs-ag for the macetes below
 (define ccs0-br (use-induction))
 
 (dk-focus! (cdr (assq 'base ccs0-br)))

@@ -212,24 +212,24 @@
 (qed 'closed-ball-is-set)
 (topic! 'closed-ball-is-set 'plumbing)
 
-(sp (make-wff '(FORALL s (FORALL A (SUBSET (CLOSURE s A) (PTS s))))))
-(di)
+(sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (FORALL A (SUBSET (CLOSURE s A) (PTS s)))))))
+(dk-peel!)
 (let ((z (subset-by-element!)))
   (dk-split! (dk-landed-1 (lambda () (mac-h 'closure-membership (list 'IN z '(CLOSURE s A))))))
   (ass))
 (qed 'closure-in-carrier)
 (topic! 'closure-in-carrier 'topology)
 
-(sp (make-wff '(FORALL s (FORALL A (SUBSET (INTERIOR s A) (PTS s))))))
-(di)
+(sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (FORALL A (SUBSET (INTERIOR s A) (PTS s)))))))
+(dk-peel!)
 (let ((z (subset-by-element!)))
   (dk-split! (dk-landed-1 (lambda () (mac-h 'interior-membership (list 'IN z '(INTERIOR s A))))))
   (ass))
 (qed 'interior-in-carrier)
 (topic! 'interior-in-carrier 'topology)
 
-(sp (make-wff '(FORALL s (FORALL A (SUBSET (INTERIOR s A) A)))))
-(di)
+(sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (FORALL A (SUBSET (INTERIOR s A) A))))))
+(dk-peel!)
 (let ((z (subset-by-element!)))
   (dk-split! (dk-landed-1 (lambda () (mac-h 'interior-membership (list 'IN z '(INTERIOR s A))))))
   (let ((uv (dk-skolem! (dk-pick (dk-head? 'FORSOME) "the interior witness"))))
@@ -241,8 +241,8 @@
    inside A, and lie in it.")
 (topic! 'interior-in-set 'topology)
 
-(sp (make-wff '(FORALL s (FORALL A
-   (IMPLIES (SUBSET A (PTS s)) (SUBSET A (CLOSURE s A)))))))
+(sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (FORALL A
+   (IMPLIES (SUBSET A (PTS s)) (SUBSET A (CLOSURE s A))))))))
 (dk-peel!)
 (let ((z (subset-by-element!)))
   (mac 'closure-membership)
@@ -270,9 +270,9 @@
 ;;; 4.  THE TWO BALLS
 ;;; =====================================================================
 
-(sp (make-wff '(FORALL s (FORALL c (FORALL r
-   (SUBSET (BALL s c r) (CLOSED-BALL s c r)))))))
-(di)
+(sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (FORALL c (FORALL r
+   (SUBSET (BALL s c r) (CLOSED-BALL s c r))))))))
+(dk-peel!)
 (let ((z (subset-by-element!)))
   (mcl-ball-h! (list 'IN z '(BALL s c r)))
   (mac 'closed-ball-membership)

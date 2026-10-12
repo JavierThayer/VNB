@@ -483,16 +483,18 @@
             (pair x0 y0)))))))
 
 (sp (make-wff (list 'SUBSET 'CLOSED-INTERVALS lmu-bor)))
+;; a member of BOREL-SETS(RR-MS) in context FIRST: it certifies the term at which
+;; subset-def is instantiated (repair 3); the empty case below uses the same member
+(dk-have! '(IN 1 RR) (lambda () (type-term)))
+(dk-have! '(IN 0 RR) (lambda () (type-term)))
+(fact 'ccint-closed-rr-ms 1 0)
+(fact 'rr-closed-borel '(CCINT 1 0))
 (mac 'subset-def)
 (let ((v (dk-di-var!)))
   (lmu-ci-cases! v
     (lambda ()
-      (dk-have! '(IN 1 RR) (lambda () (type-term)))
-      (dk-have! '(IN 0 RR) (lambda () (type-term)))
       (dk-have! '(< 0 1) (lambda () (dk-ineq!)))
       (fact 'ccint-empty-of-lt 1 0 0)
-      (fact 'ccint-closed-rr-ms 1 0)
-      (fact 'rr-closed-borel '(CCINT 1 0))
       (dk-rewrite-h! (list 'IN '(CCINT 1 0) lmu-bor) '(CCINT 1 0) 'EMPTY-SET)
       (subst (list '= v 'EMPTY-SET))
       (ass))

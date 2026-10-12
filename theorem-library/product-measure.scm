@@ -169,6 +169,43 @@
                         (if (not (sequent-node-grounded? leaf)) (prop)))))))
           (dk-opened (lambda () (di)))))))
   (fact 'class-extensionality lhs rhs))
+;;; 2026-10-11 (META round 3): the macete door owes each match DEFINED, and a pair
+;;; (LIST x w) of untyped components is not certified until a hypothesis holds it
+;;; (LIST x w) IN something.  pms-ext-dir! is pms-ext! with the unfolding done per
+;;; direction, the antecedent's set memberships unfolded FIRST (mac-h, which sees the
+;;; antecedent itself), so the goal's membership laws are matched in a context that
+;;; certifies the pair.
+(define (pms-in-head-of f)
+  (find-first (lambda (p) (pms-has-in-head? f (cdr p))) pms-mac-heads))
+(define (pms-unfold-hyps! w)
+  (let loop ((fuel 24) (tried '()))
+    (let ((ands (filter (lambda (f) (and (dk-contains? f w) (dk-head-is? f 'AND))) (dk-asms))))
+      (if (pair? ands) (dk-split-all! ands)))
+    (let ((hit (find-first (lambda (f) (and (dk-contains? f w) (not (member f tried)) (pms-in-head-of f)))
+                           (dk-asms))))
+      (if (and hit (> fuel 0))
+          (begin (mac-h (car (pms-in-head-of hit)) hit)
+                 (loop (- fuel 1) (cons hit tried)))))))
+(define (pms-ext-dir! lhs rhs pre . keep)
+  (dk-have! (list 'FORALL 'w_ (list 'IFF (list 'IN 'w_ lhs) (list 'IN 'w_ rhs)))
+    (lambda ()
+      (let ((w (dk-di-var! (lambda (g) (cadr (cadr g))))))
+        (pre w)
+        (for-each
+          (lambda (leaf)
+            (if (not (sequent-node-grounded? leaf))
+                (begin
+                  (dk-focus! leaf)
+                  (if (dk-head-is? (dk-goal) 'IMPLIES) (di))
+                  (pms-unfold-hyps! w)
+                  (pms-unfold-sets!)
+                  (if (not (sequent-node-grounded? leaf))
+                      (begin
+                        (apply dk-only! (append (filter (lambda (f) (dk-contains? f w)) (dk-asms))
+                                                (filter (lambda (k) (dk-asm? k)) keep)))
+                        (if (not (sequent-node-grounded? leaf)) (prop)))))))
+          (dk-opened (lambda () (di)))))))
+  (fact 'class-extensionality lhs rhs))
 ;;; the conjuncts of a predicate's defining iff, landed (hypothesis kept)
 (define (pms-parts! pred args)
   (let* ((iff (apply dk-cite! (cons pred args)))
@@ -1425,7 +1462,7 @@
 (sp (make-wff '(FORALL ys (FORALL aa (FORALL bb (FORALL x
    (= (X-SECTION ys (COMPLEMENT-IN bb aa) x) (COMPLEMENT-IN (X-SECTION ys bb x) (X-SECTION ys aa x)))))))))
 (di)
-(pms-ext! '(X-SECTION ys (COMPLEMENT-IN bb aa) x) '(COMPLEMENT-IN (X-SECTION ys bb x) (X-SECTION ys aa x)) (lambda (w) #t))
+(pms-ext-dir! '(X-SECTION ys (COMPLEMENT-IN bb aa) x) '(COMPLEMENT-IN (X-SECTION ys bb x) (X-SECTION ys aa x)) (lambda (w) #t))
 (ass)
 (qed 'x-section-difference)
 (topic! 'x-section-difference 'set-quotient)
@@ -1433,7 +1470,7 @@
 (sp (make-wff '(FORALL xs (FORALL aa (FORALL bb (FORALL y
    (= (Y-SECTION xs (COMPLEMENT-IN bb aa) y) (COMPLEMENT-IN (Y-SECTION xs bb y) (Y-SECTION xs aa y)))))))))
 (di)
-(pms-ext! '(Y-SECTION xs (COMPLEMENT-IN bb aa) y) '(COMPLEMENT-IN (Y-SECTION xs bb y) (Y-SECTION xs aa y)) (lambda (w) #t))
+(pms-ext-dir! '(Y-SECTION xs (COMPLEMENT-IN bb aa) y) '(COMPLEMENT-IN (Y-SECTION xs bb y) (Y-SECTION xs aa y)) (lambda (w) #t))
 (ass)
 (qed 'y-section-difference)
 (topic! 'y-section-difference 'set-quotient)

@@ -50,14 +50,25 @@
 (sp (make-wff '(FORALL y_ (FORALL x_ (IFF (IN x_ (SINGLETON y_))
                                           (AND (IN x_ SET) (= x_ y_)))))))
 (di)
-(mac 'singleton-unfold) (mac 'make-set-membership) (len-r)
+;; RM1 2026-10-09: the macetes now owe definedness of the matched term, and
+;; [y_] is certified only where something makes y_ a set or the term occurs in
+;; an IN hypothesis.  So the IFF is split FIRST and each side unfolded where its
+;; certificate lives: forward, inside the hypothesis x_ in make-set([y_]);
+;; backward, after y_ in SET is landed from x_ in SET and x_ = y_.
 (define sm-br (dk-opened (lambda () (di))))
 
 ;; ---- FORWARD: membership gives x = y
 (dk-focus! (car sm-br))
+(mac-h 'singleton-unfold '(IN x_ (SINGLETON y_)))
+(mac-h 'make-set-membership '(IN x_ (MAKE-SET (LIST y_))))
 (dk-split! (car (dk-asms)))
 (let* ((ex (any-pred (dk-head? 'FORSOME) (dk-asms))))
   (dk-split! (dk-landed-1 (lambda () (ai ex)))))
+(let ((le (any-pred (lambda (a) (and (pair? a) (eq? (car a) '<=)
+                                     (equal? (caddr a) '(LENGTH (LIST y_)))))
+                    (dk-asms))))
+  (dk-have! '(= (LENGTH (LIST y_)) 1) (lambda () (len-r) (rfl)))
+  (dk-rewrite-h! le '(LENGTH (LIST y_)) 1))
 (display "fwd asms: ") (write (map expression->string (dk-asms))) (newline)
 (let* ((eqn (any-pred (lambda (a) (and (pair? a) (eq? (car a) '=)
                                        (pair? (cadr a)) (eq? (car (cadr a)) 'NTH)))
@@ -78,6 +89,8 @@
 ;; ---- BACKWARD: x = y gives membership, witnessed by index 1
 (dk-focus! (cadr sm-br))
 (dk-split! (car (dk-asms)))
+(dk-have! '(IN y_ SET) (lambda () (subst '(= y_ x_)) (ass)))
+(mac 'singleton-unfold) (mac 'make-set-membership) (len-r)
 (fact 'nn-one-in) (fact 'nn-le-refl 1)
 (fact 'eq-sym 'x_ 'y_)
 (for-each

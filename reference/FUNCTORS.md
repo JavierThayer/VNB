@@ -603,7 +603,7 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### cc-cos
 
-    cc-cos(z) := cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))
+    cc-cos(z) := cc-series-limit(vnb-lambda(cek_, nn, (num(-1) ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))
 
 ### cc-exp
 
@@ -631,7 +631,7 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### cc-sin
 
-    cc-sin(z) := cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(succ(2 * cek_)))) * z ^ succ(2 * cek_)))
+    cc-sin(z) := cc-series-limit(vnb-lambda(cek_, nn, (num(-1) ^ cek_ * recip(factorial(succ(2 * cek_)))) * z ^ succ(2 * cek_)))
 
 ### cc-sup-norm
 

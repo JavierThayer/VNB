@@ -599,6 +599,7 @@
 (dk-peel!)
 (let* ((z 'wnz_) (dd (wnd-pz z)) (k (wnd-kern z)) (bl '(BALL CC-MS c r)))
   (wnd-kern-setup! z)
+  (fact 'cc-is-metric-space)   ; rm7 2026-10-09: certifies BALL(CC-MS, c, r) for subset-def's macete
   (dk-have! (list 'SUBSET bl dd)
     (lambda ()
       (let ((w (subset-by-element!)))

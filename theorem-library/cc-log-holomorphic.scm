@@ -539,6 +539,8 @@
           (let ((iff (iff-for (list 'IN x (clh-B c rad)))))
             (dk-have! (list '< d rad)
               (lambda ()
+                ;; rm7 2026-10-09: land d <= rad first, so the macete's instance at d is certified
+                (dk-have! (list '<= d rad) (lambda () (if (dk-only! iff (list 'IN x (clh-B c rad))) (prop))))
                 (mac '<)
                 (dk-conj-close! (lambda () (if (dk-only! iff (list 'IN x (clh-B c rad))) (prop)))))))
           (clh-cc-typ! (list '- x c)) (clh-cc-typ! (list '- c x))

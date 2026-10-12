@@ -957,6 +957,13 @@
              (#t 'is-metric-later))))))
  r7q-cs)
 (dk-focus-goal! "is-metric(")
+;; RM3 2026-10-09 (macete definedness): `mac is-metric' instantiates at
+;; DIST(COMPLETION M), which nothing in the MAIN context certifies (the typing
+;; conjunct above was proven on its own branch), so it owed
+;; `dist(completion(m)) = dist(completion(m))' and `r7q-law!' died on that leaf.
+;; Land the FUN typing here first.
+(dk-have! (list 'IN '(DIST (COMPLETION M)) (list 'FUN (list 'CARTESIAN r7q-q r7q-q) 'RR))
+          r7q-dist-typing!)
 (mac 'is-metric)
 (r7q-drive!)
 (for-each (lambda (n)

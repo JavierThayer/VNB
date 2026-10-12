@@ -1693,6 +1693,13 @@
                               (dk-opened (lambda () (bu-mi kv))))))
                 (ai (list 'NOT (list 'IN wv buc)))))))))
     ;; A_k inside A_0
+    ;; W2B 2026-10-10: nn-nested-subset-chain now asks first that each A_k be a set.
+    (dk-have! (list 'FORALL 'k (list 'IMPLIES '(IN k NN) (list 'IN (list fv 'k) 'SET)))
+      (lambda ()
+        (let ((kv (dk-di-var!)))
+          (fact 'fun-apply-type-c fv 'NN 'cA kv)
+          (fact 'membership-implies-sethood (list fv kv) 'cA)
+          (ass))))
     (let ((chain (dk-fact! 'nn-nested-subset-chain fv)))
       (define (sub0! kv)
         (fact 'nn-zero-le kv)

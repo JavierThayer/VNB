@@ -752,8 +752,11 @@
 ;;;   HOM-NORMED-VECTOR-SPACE(a, b) subset HOM-BOUNDED-LINEAR(a, b).
 ;;; =======================================================================
 
-(define (cat-prove-subset! name hs1 member1 hs2 member2 incl)
-  (sp (make-wff `(FORALL a (FORALL b (SUBSET (,hs1 a b) (,hs2 a b))))))
+(define (cat-prove-subset! name grd hs1 member1 hs2 member2 incl)
+  ;; 2026-10-10 (the user's decision): guarded on both objects; unguarded, the
+  ;; hom-sets need not denote and the strict SUBSET is underdetermined.
+  (sp (make-wff `(FORALL a (FORALL b (IMPLIES (,grd a) (IMPLIES (,grd b)
+                   (SUBSET (,hs1 a b) (,hs2 a b))))))))
   (dk-peel!)
   (let* ((gl (dk-goal)) (va (cadr (cadr gl))) (vb (caddr (cadr gl))))
     (mac 'subset-def)
@@ -765,18 +768,18 @@
       (dk-conj-close!)))
   (cat-done! name))
 
-(cat-prove-subset! 'hom-metric-space-subset-hom-lipschitz
+(cat-prove-subset! 'hom-metric-space-subset-hom-lipschitz 'IS-METRIC-SPACE
   'HOM-METRIC-SPACE 'hom-metric-space-member-iff 'HOM-LIPSCHITZ 'hom-lipschitz-member-iff
   'hom-metric-space-is-lipschitz-arrow)
-(cat-prove-subset! 'hom-lipschitz-subset-hom-uniformly-continuous
+(cat-prove-subset! 'hom-lipschitz-subset-hom-uniformly-continuous 'IS-METRIC-SPACE
   'HOM-LIPSCHITZ 'hom-lipschitz-member-iff
   'HOM-UNIFORMLY-CONTINUOUS 'hom-uniformly-continuous-member-iff
   'lipschitz-arrow-is-uniformly-continuous-arrow)
-(cat-prove-subset! 'hom-uniformly-continuous-subset-hom-continuous
+(cat-prove-subset! 'hom-uniformly-continuous-subset-hom-continuous 'IS-METRIC-SPACE
   'HOM-UNIFORMLY-CONTINUOUS 'hom-uniformly-continuous-member-iff
   'HOM-CONTINUOUS 'hom-continuous-member-iff
   'uniformly-continuous-arrow-is-continuous-arrow)
-(cat-prove-subset! 'hom-normed-vector-space-subset-hom-bounded-linear
+(cat-prove-subset! 'hom-normed-vector-space-subset-hom-bounded-linear 'IS-NORMED-VECTOR-SPACE
   'HOM-NORMED-VECTOR-SPACE 'hom-normed-vector-space-member-iff
   'HOM-BOUNDED-LINEAR 'hom-bounded-linear-member-iff
   'hom-normed-vector-space-is-bounded-linear-arrow)

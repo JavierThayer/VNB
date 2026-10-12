@@ -477,6 +477,9 @@
            (dd-arith! (list '= (list '* 'lam xv) (list '* xv 'lam)))
            (subst (list '= (list '* 'lam xv) (list '* xv 'lam)))
            (qrfl))))
+;; RM4 2026-10-09: the macete door owes `lam * dl = lam * dl' unless dl is TYPED;
+;; read `dl in RR' off the IS-DIFF-AT hypothesis on a lane (it survives).
+(dk-project! '(IN dl RR) 'IS-DIFF-AT '(IS-DIFF-AT (SEG-CURVE m f a eta) 0 dl))
 (mac 'IS-DIR-DIFF-AT)
 (fact 'dir-diff-scale dd-hf2 dd-hg2 'lam 'dl)
 (ass)

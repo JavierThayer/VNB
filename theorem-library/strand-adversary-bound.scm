@@ -425,6 +425,14 @@
        (adv (sab-project! 'is-adversary-node '(IS-ADVERSARY-NODE isp n) '(IN (NTH 2 n) (ADV-IDS isp))))
        (tr (dk-apply! (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'IS-ADVERSARY-TRACE))) "the trace law")
                       '(NTH 2 n))))
+  ;; META round 3: the IS-ADVERSARY-TRACE unfold instantiates at the strand
+  ;; (STRAND-MAP (ISPACE isp))(NTH 2 n), which owes definedness unless typed: land
+  ;; the node's parts and the strand's typing first, as sab-setup! does.
+  (fact 'strand-space-parts spa)
+  (dk-split-all!)
+  (fact 'node-parts spa 'n)
+  (dk-split-all!)
+  (fact 'strand-at-id spa '(NTH 2 n))
   (mac-h 'is-adversary-trace tr)
   (sab-or-each! (dk-pick (lambda (f) (and (dk-head-is? f 'OR) (dk-contains? f 'IS-TEXT-TRACE))) "the seven kinds")
     (lambda (d)

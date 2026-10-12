@@ -215,6 +215,36 @@
 (define (zp-mem! sub x)
   (inst+ (dk-landed-1 (lambda () (mac-h 'subset-def sub))) x))
 
+;; (2a-0) DEFINEDNESS of the tower (W2B, 2026-10-10, META round 3).  Every
+;; `subset-def' macete below is matched at ZKEPT(phi,grd,porel,a) for an
+;; arbitrary ordinal a, and the macete door now owes that term DEFINED.  The three
+;; recursion equations zkept-zero / -succ / -limit are STRICT equations (def-by-
+;; ord-recursion installs `=', definitional), so each certifies its own left side
+;; once landed; tfi3 splits an arbitrary ordinal into exactly those three cases,
+;; and no induction hypothesis is needed.  Stated as `t = t' (definedness), not as
+;; sethood: ZKEPT(..., succ a) is a UNION with KEEP-SET, a separation over grd,
+;; which is a set only when grd is one, and zorn-zkept-monotone has no such guard.
+(define (zp-zdef-case! eqn)
+  (dk-split-all! (dk-peel!))
+  (let* ((z (cadr (dk-goal)))
+         (p (cadr z)) (g (caddr z)) (r (cadddr z)) (x (car (cddddr z))))
+    (case eqn
+      ((zero)  (fact 'zkept-zero p g r))
+      ((succ)  (fact 'zkept-succ p g r (cadr x)))
+      ((limit) (fact 'zkept-limit p g r x)))
+    (rfl)))
+
+(sp (make-wff
+      (forall-guarded '(a) '((IN a ORD))
+        (nest-quantifiers 'FORALL '(phi grd porel)
+          '(= (ZKEPT phi grd porel a) (ZKEPT phi grd porel a))))))
+(let ((zp-zcases (dk-opened (lambda () (tfi3)))))
+  (dk-focus! (car zp-zcases))   (zp-zdef-case! 'zero)
+  (dk-focus! (cadr zp-zcases))  (zp-zdef-case! 'succ)
+  (dk-focus! (caddr zp-zcases)) (zp-zdef-case! 'limit))
+(qed 'zkept-defined)
+(topic! 'zkept-defined 'plumbing)
+
 (sp (make-wff
       (forall-guarded '(b) '((IN b ORD))
         (nest-quantifiers 'FORALL '(phi grd porel)
@@ -229,6 +259,7 @@
 (have! '(AND (ORD-LE a 0) (ORD-LE 0 a)))
 (fact 'ord-le-antisymm 'a 0)
 (subst '(= a 0))
+(fact 'zkept-zero 'phi 'grd 'porel)     ; certifies ZKEPT(...,0) for subset-def
 (zp-refl!)
 
 ;;; SUCCESSOR: either a <= b -- and the induction hypothesis puts ZKEPT(a) inside
@@ -241,6 +272,9 @@
   (car (filter (dk-head? 'FORALL)
                (dk-split! (dk-landed-1 (lambda () (di)))))))
 (di) (di)
+(fact 'zkept-defined 'a 'phi 'grd 'porel)     ; W2B: the subset-def instances
+(fact 'zkept-defined 'b 'phi 'grd 'porel)     ; below are matched at these three
+(fact 'zkept-succ 'phi 'grd 'porel 'b)
 (mac 'subset-def)
 (di)
 (have! '(AND (IN a ORD) (IN b ORD)))
@@ -275,6 +309,8 @@
 (di)
 (dk-split! (dk-landed-1 (lambda () (di))))
 (di) (di)
+(fact 'zkept-defined 'a 'phi 'grd 'porel)     ; W2B: certify both sides
+(fact 'zkept-limit 'phi 'grd 'porel 'b)
 (mac 'subset-def)
 (di)
 (dk-split! (dk-fact! 'ord-le-closure 'a 'b))       ; recovers (IN b ORD)

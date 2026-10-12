@@ -74,6 +74,11 @@
 
 ;;; {0, 1} is also the set of entries of the list [0, 1] (card-pair speaks of that)
 (sp (make-wff '(= RM-TWO (MAKE-SET (LIST 0 1)))))
+;; 2026-10-11 (META round 3): makeset2-membership now guards a_, b_ in SET.
+(dk-have! '(IN 0 NN) (lambda () (from-context!)))
+(dk-have! '(IN 1 NN) (lambda () (from-context!)))
+(dk-cite! 'membership-implies-sethood 0 'NN)
+(dk-cite! 'membership-implies-sethood 1 'NN)
 (dk-have! '(FORALL rtx_ (IFF (IN rtx_ RM-TWO) (IN rtx_ (MAKE-SET (LIST 0 1)))))
   (lambda ()
     (let ((x (dk-di-var! (lambda (g) (cadr (cadr g))))))
@@ -110,6 +115,11 @@
 
 ;;; (rmm-sep-iff!): close  (IFF (IN t (SEP v D P)) (AND (IN t D) P[t]))  -- the
 ;;; two directions by sep-me / sep-mi.
+(define (rmm-sep-hyp!)
+  (let ((h (dk-pick (lambda (f) (and (dk-head-is? f 'IN) (dk-head-is? (caddr f) 'SEP)))
+                    "the SEP membership")))
+    (dk-split-all! (dk-landed (lambda () (sep-me h))))))
+
 (define (rmm-sep-iff!)
   (for-each
     (lambda (leaf)
@@ -595,9 +605,12 @@
   (list 'IFF '(IN y (RM-BALL s dseq n))
         (list 'AND '(IN y (PTS s)) (list '<= (list '(DIST s) (rmm-cn 's 'dseq 'n) 'y) (rmm-rn 'n))))))))))
 (dk-peel!)
+;; 2026-10-11 (META round 3): closed-ball-membership as a macete owes its match
+;; dseq(nnfst n), recip(nnsnd n + 1) DEFINED, unprovable for an arbitrary dseq;
+;; unfold the functoid (schematic, owes nothing) and use SEP membership instead.
 (mac 'RM-BALL)
-(mac 'closed-ball-membership)
-(prop)
+(mac 'CLOSED-BALL)
+(rmm-sep-iff!)
 (qed 'rmm-ball-mem)
 
 (sp (make-wff (list 'FORALL 's (list 'FORALL 'dseq (list 'FORALL 'n (list 'FORALL 'y
@@ -778,10 +791,15 @@
 
 (sp (make-wff '(FORALL s (FORALL dseq (SUBSET (RM-K s dseq) (PTS CANTOR-MS))))))
 (dk-peel!)
+;; 2026-10-11 (META round 3): subset-def owes its match DEFINED.  With the Cantor
+;; space a metric space in context, PTS(CANTOR-MS) and the SEP that RM-K unfolds
+;; to are certified; RM-K(s, dseq) itself is not.
+(fact 'rmm-cantor-metric)
+(mac 'RM-K)
 (mac 'subset-def)
 (let ((e (dk-di-var!)))
-  (dk-cite! 'rmm-k-mem 's 'dseq e)
-  (prop))
+  (rmm-sep-hyp!)
+  (ass))
 (qed 'rmm-k-sub)
 
 ;;; realizing a pattern below nb depends only on the first nb coordinates
@@ -1592,10 +1610,14 @@
 
 (sp (make-wff '(FORALL s (FORALL dseq (FORALL a (FORALL nb (SUBSET (RM-CYL s dseq a nb) (RM-K s dseq))))))))
 (dk-peel!)
+;; 2026-10-11 (META round 3): as rmm-k-sub, through the unfolded SEPs.
+(fact 'rmm-cantor-metric)
+(mac 'RM-CYL)
+(mac 'RM-K)
 (mac 'subset-def)
 (let ((e (dk-di-var!)))
-  (dk-cite! 'rmm-cyl-mem 's 'dseq 'a 'nb e)
-  (prop))
+  (rmm-sep-hyp!)
+  (ass))
 (qed 'rmm-cyl-sub)
 
 ;;; (rmm-near-agree! E B NB RAD AGC): with AGC the agreement clause of

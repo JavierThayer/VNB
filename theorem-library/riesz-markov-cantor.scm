@@ -731,12 +731,18 @@
 (dk-conj-close! (lambda () (ass)))
 (qed 'rmc-clopen-empty-whole)
 
-(sp (make-wff '(FORALL s (SUBSET (CLOPEN-SETS s) (POWER (PTS s))))))
+(sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (SUBSET (CLOPEN-SETS s) (POWER (PTS s)))))))
 (dk-peel!)
+;; STATEMENT CHANGE confirmed by the user 2026-10-11 (META round 3): subset-def owes POWER(PTS s)
+;; DEFINED, which no context certifies for an arbitrary s; guarded as metric-closure-laws'
+;; closure-in-carrier was.  Every citer has IS-METRIC-SPACE s in context.
+(mac 'CLOPEN-SETS)
 (mac 'subset-def)
 (let ((u (dk-di-var!)))
-  (dk-cite! 'rmc-clopen-mem 's u)
-  (prop))
+  (dk-split-all! (dk-landed (lambda () (sep-me (dk-pick (lambda (f) (and (dk-head-is? f 'IN) (equal? (cadr f) u)
+                                                                       (dk-head-is? (caddr f) 'SEP)))
+                                                         "the clopen membership")))))
+  (ass))
 (qed 'rmc-clopen-sub-power)
 
 ;;; ITEM 2a: the clopen sets of a metric space form an algebra of sets.
@@ -2172,15 +2178,20 @@
   (IMPLIES (IN n NN) (IMPLIES (IN mb_ NN) (IMPLIES (<= n mb_)
     (SUBSET (RM-CYL s dseq e mb_) (RM-CYL s dseq e n))))))))))))
 (dk-peel!)
+;; 2026-10-11 (META round 3): subset-def owes its match DEFINED; RM-CYL(...) is not
+;; certified, the SEPs it unfolds to are (the Cantor space a metric space in context).
+(fact 'rmm-cantor-metric)
+(mac 'RM-CYL)
+(mac 'RM-K)
 (mac 'subset-def)
 (define rmc-x (dk-di-var!))
-(define rmc-c1 (dk-cite! 'rmm-cyl-mem 's 'dseq 'e 'mb_ rmc-x))
-(define rmc-c2 (dk-cite! 'rmm-cyl-mem 's 'dseq 'e 'n rmc-x))
-(define rmc-ag1 (caddr (caddr rmc-c1)))
-(dk-have! rmc-ag1 (lambda () (rmc-prop! rmc-c1 (list 'IN rmc-x '(RM-CYL s dseq e mb_)))))
-(dk-have! (list 'IN rmc-x '(RM-K s dseq)) (lambda () (rmc-prop! rmc-c1 (list 'IN rmc-x '(RM-CYL s dseq e mb_)))))
-(define rmc-ag2 (caddr (caddr rmc-c2)))
-(dk-have! rmc-ag2
+(dk-split-all! (dk-landed (lambda () (sep-me (dk-pick (lambda (f) (and (dk-head-is? f 'IN) (dk-head-is? (caddr f) 'SEP)
+                                                                    (equal? (cadr f) rmc-x) (dk-contains? f 'mb_)))
+                                                       "the cylinder membership")))))
+(define rmc-ag1 (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f rmc-x) (dk-contains? f 'mb_)))
+                         "agreement below mb_"))
+(in-sep!
+  (lambda () (ass))
   (lambda ()
     (let ((i (dk-di-var!)))
       (di)
@@ -2190,7 +2201,6 @@
       (dk-have! (list '< i 'mb_) (lambda () (dk-ineq! (list '< i 'n) '(<= n mb_) (list 'IN i 'RR) '(IN n RR) '(IN mb_ RR))))
       (dk-apply! rmc-ag1 i)
       (ass))))
-(rmc-prop! rmc-c2 (list 'IN rmc-x '(RM-K s dseq)) rmc-ag2)
 (qed 'rmc-cyl-mono)
 
 (define (rmc-osc-set n)

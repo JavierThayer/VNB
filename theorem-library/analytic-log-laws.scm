@@ -1363,6 +1363,8 @@
           (let ((iff (iff-for (list 'IN x (alg-B c)))))
             (dk-have! (list '< d 'algr_)
               (lambda ()
+                ;; rm7 2026-10-09: land d <= r first, so the macete's instance at d is certified
+                (dk-have! (list '<= d 'algr_) (lambda () (if (dk-only! iff (list 'IN x (alg-B c))) (prop))))
                 (mac '<)
                 (dk-conj-close! (lambda () (if (dk-only! iff (list 'IN x (alg-B c))) (prop)))))))
           (alg-cc-typ! (list '- x c)) (alg-cc-typ! (list '- c x))

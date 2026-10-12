@@ -164,7 +164,13 @@
 (define (num-leaf->string n)
   (define (w x) (with-output-to-string (lambda () (write x))))
   (if (real? n)
-      (w n)
+      ;; A negative or non-integer literal has no plain surface spelling that
+      ;; reads back as itself (`-1' is the unary minus (- 1), `1/2' is
+      ;; (* 1 (recip 2))): it prints as num(...), which the reader takes as the
+      ;; literal (the user, 2026-10-11).
+      (if (and (exact? n) (or (negative? n) (not (integer? n))))
+          (string-append "num(" (w n) ")")
+          (w n))
       (let* ((r (real-part n))
              (m (imag-part n))
              ;; imaginary coefficient: 1 -> "", -1 -> "-", else the number

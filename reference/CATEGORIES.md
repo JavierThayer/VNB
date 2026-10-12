@@ -116,12 +116,8 @@ Laws: `hom-uniformly-continuous-id` -- proven; `hom-uniformly-continuous-compose
 
 Theorems of the form `P(a, b, f) => Q(a, b, f)` for two arrow predicates above, or `H1(a, b) subset H2(a, b)` for two hom-sets, found by shape.
 
-- `hom-lipschitz-subset-hom-uniformly-continuous` (proven): `hom-lipschitz(a, b) subset hom-uniformly-continuous(a, b)`
 - `hom-metric-space-is-lipschitz-arrow` (proven): `is-hom-metric-space(a, b, f) implies is-lipschitz-arrow(a, b, f)`
-- `hom-metric-space-subset-hom-lipschitz` (proven): `hom-metric-space(a, b) subset hom-lipschitz(a, b)`
 - `hom-normed-vector-space-is-bounded-linear-arrow` (proven): `is-hom-normed-vector-space(a, b, f) implies is-bounded-linear-arrow(a, b, f)`
-- `hom-normed-vector-space-subset-hom-bounded-linear` (proven): `hom-normed-vector-space(a, b) subset hom-bounded-linear(a, b)`
-- `hom-uniformly-continuous-subset-hom-continuous` (proven): `hom-uniformly-continuous(a, b) subset hom-continuous(a, b)`
 - `lipschitz-arrow-is-uniformly-continuous-arrow` (proven): `is-lipschitz-arrow(a, b, f) implies is-uniformly-continuous-arrow(a, b, f)`
 - `uniformly-continuous-arrow-is-continuous-arrow` (proven): `is-uniformly-continuous-arrow(a, b, f) implies is-continuous-arrow(a, b, f)`
 

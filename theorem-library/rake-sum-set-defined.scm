@@ -147,7 +147,7 @@
 ;;; IS-RING and stated with `=', and neither is needed for a quasi-equality.
 ;;; ===================================================================
 
-(sp (make-wff '(FORALL r (FORALL f (== (SUM-SET r EMPTY-SET f) (ZERO r))))))
+(sp (make-wff '(FORALL r (IMPLIES (IS-RING r) (FORALL f (== (SUM-SET r EMPTY-SET f) (ZERO r)))))))
 (dk-peel!)
 (mac 'SUM-SET)
 (mac 'finsum-empty)

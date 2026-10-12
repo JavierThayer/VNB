@@ -735,13 +735,13 @@ reads: cos $1
 definition:
 
 ```
-cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))
+cc-series-limit(vnb-lambda(cek_, nn, (num(-1) ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))
 ```
 
 characterized by `cc-cos-pi`  *(proven)*:
 
 ```
-cc-cos(pi) = -1
+cc-cos(pi) = num(-1)
 ```
 
 also: `cc-cos-add` `cc-cos-exp` `cc-cos-even` `cc-cos-zero` `cc-cos-deriv` `cc-cos-sin-pi` `cc-cos-two-pi` `cc-cos-unfold` ... (27 in all)
@@ -821,7 +821,7 @@ definition:
 characterized by `cc-mid-affine`  *(proven)*:
 
 ```
-forall([goux_ in cc, gouy_ in cc], cc-mid(goux_, gouy_) = goux_ + 1/2 * (gouy_ - goux_) and cc-mid(goux_, gouy_) = gouy_ + 1/2 * (goux_ - gouy_))
+forall([goux_ in cc, gouy_ in cc], cc-mid(goux_, gouy_) = goux_ + num(1/2) * (gouy_ - goux_) and cc-mid(goux_, gouy_) = gouy_ + num(1/2) * (goux_ - gouy_))
 ```
 
 also: `cc-mid-coords` `cc-mid-unfold` `cc-mid-in-seg-trace` 
@@ -925,7 +925,7 @@ reads: sin $1
 definition:
 
 ```
-cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(succ(2 * cek_)))) * z ^ succ(2 * cek_)))
+cc-series-limit(vnb-lambda(cek_, nn, (num(-1) ^ cek_ * recip(factorial(succ(2 * cek_)))) * z ^ succ(2 * cek_)))
 ```
 
 characterized by `cc-sin-pi`  *(proven)*:
@@ -4068,9 +4068,9 @@ characterized by `is-ring`  *(definitional)*:
 forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 ```
 
-also: `is-chain` `is-ringoid` `ring-class` `rr-min-def` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` ... (1663 in all)
+also: `is-chain` `is-ringoid` `ring-class` `rr-min-def` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` ... (1664 in all)
 
-[mentioned by 6482 result(s)](BY-OPERATOR.md#in)
+[mentioned by 6484 result(s)](BY-OPERATOR.md#in)
 
 ### `index-of(ssn_)`  *(functoid)*
 
@@ -4217,7 +4217,7 @@ definition:
 characterized by `interior-in-set`  *(proven)*:
 
 ```
-forall([s, a], interior(s, a) subset a)
+forall([s], is-metric-space(s) implies forall([a], interior(s, a) subset a))
 ```
 
 also: `interior-is-set` `interior-is-open` `interior-mem-intro` `interior-in-carrier` `interior-membership` `interior-sep-unfold` 
@@ -4870,7 +4870,7 @@ characterized by `is-complex-inner-product-space`  *(definitional)*:
 forall([s], is-complex-inner-product-space(s) iff length(s) = 7 and is-ring(scal(s)) and vec(s) in set and vadd(s) in fun(cartesian(vec(s), vec(s)), vec(s)) and vzero(s) in vec(s) and vneg(s) in fun(vec(s), vec(s)) and act(s) in fun(cartesian(carr(scal(s)), vec(s)), vec(s)) and ip(s) in fun(cartesian(vec(s), vec(s)), cc) and is-associative(vadd(s), vec(s)) and is-commutative(vadd(s), vec(s)) and is-identity(vadd(s), vzero(s), vec(s)) and has-inverses(vadd(s), vzero(s), vneg(s), vec(s)) and scal(s) = normed-field-as-commutative-ring(cc-normed-field) and carr(scal(s)) = cc and forall([r_ in carr(scal(s)), x_ in vec(s), y_ in vec(s)], (act(s))(r_, (vadd(s))(x_, y_)) = (vadd(s))((act(s))(r_, x_), (act(s))(r_, y_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((add(scal(s)))(r_, s_), x_) = (vadd(s))((act(s))(r_, x_), (act(s))(s_, x_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((mul(scal(s)))(r_, s_), x_) = (act(s))(r_, (act(s))(s_, x_))) and forall([x_ in vec(s)], (act(s))(one(scal(s)), x_) = x_) and forall([x_ in vec(s), y_ in vec(s), z_ in vec(s)], (ip(s))((vadd(s))(x_, y_), z_) = (ip(s))(x_, z_) + (ip(s))(y_, z_)) and forall([a_ in cc, x_ in vec(s), y_ in vec(s)], (ip(s))((act(s))(a_, x_), y_) = a_ * (ip(s))(x_, y_)) and forall([x_ in vec(s), y_ in vec(s)], (ip(s))(y_, x_) = conjugate((ip(s))(x_, y_))) and forall([x_ in vec(s)], (ip(s))(x_, x_) in rr) and forall([x_ in vec(s)], 0 <= (ip(s))(x_, x_)) and forall([x_ in vec(s)], (ip(s))(x_, x_) = 0 iff x_ = vzero(s)))
 ```
 
-[mentioned by 129 result(s)](BY-OPERATOR.md#is-complex-inner-product-space)
+[mentioned by 130 result(s)](BY-OPERATOR.md#is-complex-inner-product-space)
 
 ### `is-concat-trace(sasp_, sas_)`  *(predicate)*
 
@@ -6278,7 +6278,7 @@ forall([s], is-metric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) i
 
 also: `cc-is-metric-space` `rr-is-metric-space` `nf-cc-is-metric-space` `nf-rr-is-metric-space` `sub-rr-is-metric-space` `product-is-metric-space` `c-metric-is-metric-space` `subspace-is-metric-space` ... (19 in all)
 
-[mentioned by 338 result(s)](BY-OPERATOR.md#is-metric-space)
+[mentioned by 348 result(s)](BY-OPERATOR.md#is-metric-space)
 
 ### `is-metrizable-top-space(s)`  *(predicate)*
 
@@ -6476,7 +6476,7 @@ forall([s], is-normed-vector-space(s) iff length(s) = 7 and is-ring(scal(s)) and
 
 also: `dual-is-normed-vector-space` `rr-nvs-is-normed-vector-space` 
 
-[mentioned by 225 result(s)](BY-OPERATOR.md#is-normed-vector-space)
+[mentioned by 229 result(s)](BY-OPERATOR.md#is-normed-vector-space)
 
 ### `is-nowhere-dense(s, a)`  *(predicate)*
 
@@ -6996,7 +6996,7 @@ forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(ca
 
 also: `ringoid-as-ring-is-ring` `ring-prod-is-ring-ringoid-as-ring` `qq-is-ring` `zz-is-ring` `poly-is-ring` `monalg-is-ring` `mat-ring-is-ring` `ring-prod-is-ring` ... (12 in all)
 
-[mentioned by 475 result(s)](BY-OPERATOR.md#is-ring)
+[mentioned by 479 result(s)](BY-OPERATOR.md#is-ring)
 
 ### `is-ringoid(s)`  *(predicate)*
 
@@ -11535,7 +11535,7 @@ finsum(ring-additive-ag(r), f, s)
 characterized by `sum-set-empty`  *(proven)*:
 
 ```
-forall([r, f], sum-set(r, empty-set, f) == zero(r))
+forall([r], is-ring(r) implies forall([f], sum-set(r, empty-set, f) == zero(r)))
 ```
 
 also: `sum-set-left-scalar` `sum-set-right-scalar` `sum-set-type-defined` `sum-set-singleton-defined` `sum-set-disjoint-union-defined` 
@@ -12391,9 +12391,9 @@ characterized by `zkept-succ`  *(definitional)*:
 forall([phi, grd, porel, alpha in ord], zkept(phi, grd, porel, succ_ord(alpha)) = union(zkept(phi, grd, porel, alpha), keep-set(phi, grd, porel, zkept(phi, grd, porel, alpha), alpha)))
 ```
 
-also: `zkept-zero` `zkept-limit` `zorn-zkept-is-chain` `zorn-zkept-monotone` `zorn-zkept-limit-is-chain` 
+also: `zkept-zero` `zkept-limit` `zkept-defined` `zorn-zkept-is-chain` `zorn-zkept-monotone` `zorn-zkept-limit-is-chain` 
 
-[mentioned by 9 result(s)](BY-OPERATOR.md#zkept)
+[mentioned by 11 result(s)](BY-OPERATOR.md#zkept)
 
 ### `zup`  *(defined-fn)*
 

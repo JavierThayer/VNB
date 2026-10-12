@@ -424,3 +424,195 @@ FALSITY `modulo 0`.
   `x := t` is a `forall-elim` at `t` with no `t = t` owed. `macete-defined-falsity.scm`.
 
 The repairs are the user's decision. They are listed in the report, sections 0, 0b and 0c.
+
+## 14. Round 3: repair 3, the definedness door of the macete, and its cascade (2026-10-09 to 2026-10-10)
+
+### 14.1 What round 3 is
+
+Repair 3 (13.3) makes a macete instantiation owe `t = t` for each matched term `t` that the definedness
+certificate `pi--defined?` does not accept, exactly as `forall-elim` does. The user approved it together with
+two companions ("Yes (b) and (c) together"): (b) the certificate accepts `+` and `*` over number-typed arguments;
+(c) the owed `t = t` leaves are routed to `dk-discharge-owed!` (the owed-leaf hook), which closes a leaf whose
+typing is one citation away and adds no trust. The user's direction for the cascade was "Repair the proofs. The
+fewer kernel changes the better." Round 3 was built in a separate tree, `~/prover-r3`, so that the nightly exam
+of repairs 1-2 (committed `dfa453c`) was not disturbed.
+
+### 14.2 Measurements
+
+All loads below are keep-going cold loads of `~/prover-r3` on worker-05, `VNB_CERTIFIED=off`, heap 700000.
+
+| load | holes | failed files | proofs | inferences verified / refused | page audit |
+|---|---|---|---|---|---|
+| kgo10 (repair 3 with (b), (c)) | 49 | 100 | -- | -- | -- |
+| kgo12 (after repair wave RM1-RM7) | 28 | 86 | 3297 | 404494 / 0 | -- |
+| kgo13 (statement changes 14.3, wave 2, no shims) | 0 | 0 | 4151, all `modulo 0` | 723229 / 0 | 4146 / 4151 |
+| kgo14 (page-audit repairs 14.5) | 0 | 0 | 4151, all `modulo 0` | 723222 / 0 | 4151 / 4151 |
+
+kgo14 (2026-10-10, 15:30Z to about 18:10Z; cpu 6345 s, of which the page audit 2373 s): the qed-failure gate
+reports every `qed` installed. Since the load ran in keep-going mode its band is marked NOT STRICT and is not a
+band for use.
+
+### 14.3 Statement changes
+
+The user approved them on 2026-10-10 at about 01:00Z. The integrator made them in `~/prover-r3` only. The
+pre-change files are in `~/prover-r3/scratchpad/guards-backup/`.
+
+**(a) Structure guards on 14 theorems.** Each statement used a structure's accessor (`PTS(s)`, `VEC(m)`, the
+hom-sets, `ONE(R)`) with no guard on the structure. Without the guard, the certificate correctly declines to
+certify the accessor term as defined. Every `subset-def` (or ring) macete matched at that term then owes an
+unprovable `t = t`. A strict `SUBSET` or `=` between terms that need not denote is underdetermined. Every citer
+already holds the guard in context, so no citation changed.
+
+* `IS-METRIC-SPACE(s)`: `closure-in-carrier`, `interior-in-carrier`, `interior-in-set`, `closure-contains`,
+  `ball-in-closed-ball` (metric-closure-laws.scm), `closed-ball-in-carrier` (rake-baire-2.scm).
+* `IS-NORMED-VECTOR-SPACE(m)`: `submodule-nvs-module-view` (nvs-module-view.scm; it blocks Hahn-Banach),
+  `good-sub-in-power` (rake-hb-leaves-2.scm), `lfe-line-subset` (rake-line-functional.scm).
+* Both objects guarded (`IS-METRIC-SPACE`, resp. `IS-NORMED-VECTOR-SPACE`): the four hom-set inclusions of
+  categories.scm, `hom-metric-space-subset-hom-lipschitz`, `hom-lipschitz-subset-hom-uniformly-continuous`,
+  `hom-uniformly-continuous-subset-hom-continuous` and `hom-normed-vector-space-subset-hom-bounded-linear`. No
+  theorem cites them.
+* `IS-RING(R)`: `ring-power-zero` (ring-zero-one-power.scm).
+
+**(b) `sum-set-empty`** (rake-sum-set-defined.scm). Guarded by `IS-RING(r)`; the reason is the same as in (a),
+with `ZERO(r)` as the accessor.
+
+**(c) `sum-ag-fubini-ind`** (rake-finsum-core.scm). The pointwise typings of the row sums and the column sums are
+added as antecedents. As previously stated it is FALSE at `m = 1`, `n = 0`, `ff_ = rs_ = EMPTY-SET`. Guarding
+with `1 <= m, n` was considered; the pointwise typings were chosen because they also certify the folded terms
+that `sum-ag-zero` / `sum-ag-succ` are matched at (`rkq-cert-fold!`).
+
+**(d) `makeset2-membership`** (makeset-basics.scm). Guarded by `a_ in SET` and `b_ in SET`. As previously stated
+it is FALSE: at `x = a = EMPTY-SET`, `b = SET`, the list `[a, b]` has a class component and does not denote (list
+definedness, decided 2026-10-01). So `x in make-set([a, b])` fails while the right side holds.
+
+**(e) `nn-nested-subset-chain-j`** and its companion (nn-nested-subset-chain-proof.scm). The antecedent
+`forall k in NN. fam(k) in SET` is added. Without it, `SUBSET(fam j, fam k)` is a strict relation between
+applications that need not denote. The alternative proposed in the wave, a certificate clause for
+applications under `SUBSET`, would have been a kernel change and was not made.
+
+**(f) `zorn-zkept-monotone`: no statement change.** A new lemma `zkept-defined`, stating
+`forall a in ORD. ZKEPT(phi, grd, porel, a) = ZKEPT(phi, grd, porel, a)`, is proven by `tfi3` from the three
+recursion equations, with no induction hypothesis. It certifies the tower's terms for the `subset-def`
+instances. It is stated as definedness, not as sethood: `ZKEPT(..., succ a)` is a union with a separation over
+`grd`, which is a set only when `grd` is one, and the theorem carries no such guard.
+
+**A stamp carrying a claim.** `zkept-defined` is provable only because `def-by-ord-recursion` installs the
+recursion equations as STRICT `=` with provenance `definitional`. A strict equation certifies its own left side
+once it has landed. The `definitional` stamp therefore asserts, in addition to the defining equation, that every
+stage of the tower denotes. This is the species described under "A stamp must record its claim" in the
+library-build policy. The claim holds here, since each stage is built from the previous ones by operations that
+denote. It is recorded here because nothing in the bill shows it.
+
+### 14.4 The proof repairs
+
+Two agent waves did the rest of the cascade by proof repair only, with no kernel and no statement change:
+RM1-RM7 (reports `scratchpad/triage/REPAIR-MACETE-DEF-rm1..rm7.md`) and W2A-W2D (`REPAIR-W2-*.md`). The repair
+is uniform: TYPE THE TERM BEFORE THE CITED THEOREM IS INSTANTIATED AT IT. Usually this is one or two lines
+before the instantiation (a `fact` of the typing law, or an equation that certifies the term).
+
+**Results probed behind a defective loader.** RM6 probed 19 files behind a two-mode FILL loader that had two
+defects. It paired a statement with the next `qed` across an intervening `sp`, so
+`vector-taylor-remainder-bound` received a helper's statement. It also skipped a `qed` nested inside an `if`, so
+`block-family-combinatorial` was never installed. W2C found and fixed both. Other wave-1 results rested on hand
+stubs or on preloaded chains. These are RM1's `block-family-combinatorial-proof` and `cauchy-subseq-proof`;
+RM2's `rake-offbill-combinatorial`; RM4's `nvs-taylor-proof` and `rake-bolzano-weierstrass-2`; RM5's
+`heine-borel-interval`; and RM3's `vector-taylor-proof`. All of these were marked UNCONFIRMED until a cold load
+without FILL or stubs. kgo13 and kgo14 confirm every one: each file loads, its `qed` count matches, and none
+appears among the holes or failed files. The list is in `~/prover/scratchpad/round3/fill-unconfirmed.md`.
+
+### 14.5 The page-audit regression and its three causes
+
+kgo13 typed back 4146 of its 4151 pages; the exam of repairs 1-2 had read 4150 / 4150. Five pages failed, for
+three independent reasons. Each is repaired, and kgo14 reads 4151 / 4151.
+
+1. **Orphan mint entries** (`ringoid-quotient-is-ring`). When `dk-discharge-owed!` failed, it rolled back the
+   script and the trace but not `*proof-mints*`. That broke the invariant of one mint entry per recorded step, and
+   every later `name-witness! N j` on the page addressed the wrong step. Repair (driver-kit.scm): the rollback
+   restores `*proof-mints*`. Suite check: after a failed discharge (`inst+` at `recip(0)`), the number of mint
+   entries equals the script length. On the old code the counts were 6 against 3; repaired, they are 3 against 3.
+2. **The owed-leaf hook fired twice** (`free-transport`, `generates-transport`, `spans-transport`). The hook's
+   steps are recorded on the page, and the hook fired again while the page was typed back in. A step that is not
+   idempotent (`cut`, `fact`) was therefore taken twice. Two designs were put to the user. The user decided
+   "keep steps, hook off" (2026-10-10): the steps stay on the page, and `page--type-in` binds
+   `*owed-leaf-hook-active?*` to `#t`, so typing a page in runs every step explicitly and the hook never fires.
+   Repair confined to page-audit.scm. Suite checks: the hook fires 0 times while a 4-form page is typed in (1 time
+   on the old code); the control shows the same steps typed outside a page do fire it.
+3. **A step that grounded a leaf and was not recorded** (`subspace-is-metric-space`). In one case of the proof's
+   closer, a `fact` grounded the leaf `(IN A SET)` through hash-consing onto an already-proven node and then ended
+   on a warning (the detach found nothing left to detach). `vnb--run!` does not record a step whose result is a
+   warning, so the page lacked the step that closed the leaf. Repair in the proof: that case closes with `(ass)`,
+   since the hypothesis is in context there (metric-subspace-laws.scm).
+
+**Open defect, not changed (the user's decision).** Cause 3 is an instance of a general defect: `vnb--run!` does
+not record a command whose result is a warning, even when the command changed the deduction graph. Any proof
+that relies on such a step has a page that cannot be typed back. Recording such steps would change recording for
+every proof. It is reported, not repaired.
+
+### 14.6 Other findings of the round
+
+* **The printer and the reader do not round-trip two forms** (found by RM7). `(power -1 j)` prints as `-1 ^ j`,
+  which reads back as `-(1 ^ j)`. `1/2 * pi` reads back as `(* 1 (recip 2) pi)`. A statement typed back from its
+  printed form changes meaning silently. The working brief's statement that only the literal `-1` fails is
+  therefore incomplete. Recommendation: the printer brackets a negative-literal base and a rational coefficient,
+  with suite checks. This is not a kernel change.
+* **`rb2-qed!`** (rake-baire-2.scm) was changed by RM2 to fall through to `qed` instead of stopping the file at
+  its first failure. With the change, a failure costs that file one theorem instead of six. Recommendation: keep
+  it.
+* **Certificates.** Round 3 changes kernel files (macetes.scm, primitive-inferences.scm and the rule checkers),
+  so every certificate's kernel hash moves. The certificates now on the primary are those of the exam of
+  2026-10-10 06:00Z. The round-3 exam rewrites all of them; until it runs, a certified build of the round-3 tree
+  re-proves everything.
+
+### 14.7 Open items
+
+* ~~The general `vnb--run!` warning defect (14.5).~~ Closed in the merge (14.8).
+* ~~The reflexivity checker's definedness gap.~~ Closed in the merge (14.8).
+* The IOTA congruence question (13, decision (b)) and the functoid-beta encoding.
+* ~~The printer round-trip fix (14.6).~~ Closed in the merge (14.8), by the `num(...)` literal.
+* Round 3 has not yet had its own exam (`VNB_CERTIFIED=off`, strict, then the suite). It runs on the merged tree
+  (14.8).
+
+### 14.8 The merge into the main tree and its keep-going load (2026-10-11)
+
+After the nightly exam of 2026-10-11 passed on the main tree (8085 theorems; suite 1895 / 0; tree `8d68741`),
+round 3 was copied into `~/prover`, uncommitted: the four kernel files, `driver-kit.scm`, `interactive.scm`,
+`page-audit.scm`, `test-suite.scm`, 41 theorem-library files, this page and the `load.scm` hunk that makes
+`report-category-obligations!` non-fatal under keep-going. Three items of 14.7 were closed in the same merge,
+each by the user's decision ("1-3 yes"):
+
+* `vnb--run!` records a step when a command returns a warning after the deduction graph changed
+  (interactive.scm). Suite: one check, and one control that fails on the old code (a warning with no change
+  is still not recorded).
+* The reflexivity checker (rule-checkers-logic.scm) requires `pi--defined?` of the term, as the builder does,
+  and refuses otherwise. Suite: one accepted and one refused check (an IOTA term the context does not certify).
+* The printer writes a negative or non-integer exact literal as `num(...)`, and the reader reads `num(q)`,
+  `num(-q)` and `num(p/q)` as that literal (parser.scm, sequents.scm; the user chose this spelling, option 2 of
+  three). `(- 1)` still prints `-1`. Suite: round trips of `(power -1 j)`, `(* 1/2 pi)` and `-7/12`, the four
+  reader cases, and controls that `-1` still reads as unary minus and `1/2` as a quotient. A complex literal
+  with a negative or rational real part is not covered.
+
+**kgo15** (keep-going cold load of the merged tree without the printer change, worker-06, m7i.large, heap
+700000, 2026-10-11 13:28Z to 15:57Z): 4510 `qed`s; 3 holes; 8 failed files; 799793 inferences verified, 0
+refused; qed-failure gate ok; page audit 4507 / 4510. Every failure lies in the theory added after round 3
+forked (the Frechet, Hilbert, Riesz-Markov, product-measure and Lebesgue-uniqueness files of 2026-10-10).
+Each has the cause of 14.3-14.4: a macete matched at a term the context does not certify owes `t = t`. Root
+failures and repairs (all by proof unless marked):
+
+| file | failure | repair |
+|---|---|---|
+| frechet-metric | hole `frm-c-space-is-c-metric-space`: `DISTS(FR-C-SPACE m fam)(k_)` owed | the family's FUN typing is proven on the main branch before `is-c-metric-space` is unfolded |
+| lebesgue-measure-unique | hole `closed-intervals-borel`: `BOREL-SETS(RR-MS)` owed | a member, `CCINT(1, 0)`, is landed before `subset-def` |
+| hilbert-projection | `SUBSET kernel VEC(v)` lane: the `PREIMAGE` term owed | `VZERO(v)` in the kernel is landed before the lane |
+| hilbert-projection | hole `perp-subset`: `VEC(v)`, `PERP(v, ks)` owed | STATEMENT CHANGE (below) |
+| riesz-markov-model, product-measure, positive-extension, riesz-markov-cantor | (repaired by the peer session) | certifying typings first, or the functoid unfolded so the macete matches a certified SEP; one STATEMENT CHANGE (below) |
+
+`push-forward`, `riesz-markov` and `riesz-markov-compact` failed only by cascade (a name of a failed file).
+
+**Statement changes, each confirmed by the user on 2026-10-11.** Both are of species (a) of 14.3: a strict
+relation between accessor terms of an unguarded structure variable is underdetermined.
+
+* `perp-subset` (hilbert-projection.scm) is guarded by `IS-COMPLEX-INNER-PRODUCT-SPACE(v)`. `PERP(v, ks)` is a
+  SEP over `VEC(v)`; for an arbitrary `v` neither side need denote. All nine citations, in the same file, hold
+  the guard.
+* `rmc-clopen-sub-power` (riesz-markov-cantor.scm) is guarded by `IS-METRIC-SPACE(s)`; for an unguarded `s`,
+  `POWER(PTS s)` is not certified. All three citers hold the guard. (Confirmed in the peer session.)

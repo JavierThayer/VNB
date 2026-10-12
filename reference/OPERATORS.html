@@ -180,7 +180,7 @@
 <p>Declared by: <a class="x" href="THEOREMS.html#t-cc-coords-def"><code>cc-coords-def</code></a></p>
 <h4 id="OPERATORS__cc-cos-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-cc-cos"><code>cc-cos</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  cos z</p>
-<pre>cc-cos(z) := cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))</pre>
+<pre>cc-cos(z) := cc-series-limit(vnb-lambda(cek_, nn, (num(-1) ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))</pre>
 <h4 id="OPERATORS__cc-exp-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-cc-exp"><code>cc-exp</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  exp z</p>
 <pre>cc-exp(z) := cc-series-limit(vnb-lambda(cek_, nn, recip(factorial(cek_)) * z ^ cek_))</pre>
@@ -207,7 +207,7 @@
 <pre>cc-series-partial-sum(f, k) := sum-ag(normed-field-additive-ag(cc-normed-field), f, k)</pre>
 <h4 id="OPERATORS__cc-sin-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-cc-sin"><code>cc-sin</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  sin z</p>
-<pre>cc-sin(z) := cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(succ(2 * cek_)))) * z ^ succ(2 * cek_)))</pre>
+<pre>cc-sin(z) := cc-series-limit(vnb-lambda(cek_, nn, (num(-1) ^ cek_ * recip(factorial(succ(2 * cek_)))) * z ^ succ(2 * cek_)))</pre>
 <h4 id="OPERATORS__cc-sup-norm-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-cc-sup-norm"><code>cc-sup-norm</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the supremum norm of u on cpsxs_</p>
 <pre>cc-sup-norm(u, cpsxs_) := esup(image(vnb-lambda(cpsx_, cpsxs_, magnitude(u(cpsx_))), cpsxs_))</pre>

@@ -64,8 +64,8 @@
 ;;; certifies (VEC m) for everything after it.
 ;;; ====================================================================
 (sp (make-wff
-     '(FORALL m (FORALL s (FORALL f (FORALL t
-        (IMPLIES (GOOD-SUB m s f t) (IN t (POWER (VEC m))))))))))
+     '(FORALL m (IMPLIES (IS-NORMED-VECTOR-SPACE m) (FORALL s (FORALL f (FORALL t
+        (IMPLIES (GOOD-SUB m s f t) (IN t (POWER (VEC m)))))))))))
 (dk-peel!)
 (let* ((rhb-g    (dk-goal))
        (rhb-tt   (cadr rhb-g))

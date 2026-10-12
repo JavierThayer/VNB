@@ -910,27 +910,41 @@
 
 (define (vnb--run! sym args thunk)
   (let* ((mark   (vnb--take-mark (cons sym args)))
+         ;; A graph mark taken whether or not *replaying?* is bound (the undo mark
+         ;; is not): the warning branch below needs it to see whether the command
+         ;; moved the graph before it warned.
+         (dgm    (and *ps* (proof-state? *ps*) (dg-take-mark (proof-state-dg *ps*))))
          (owed0  (if (and *owed-leaf-hook* (not *owed-leaf-hook-active?*))
                      (vnb--owed-leaves) '()))
          (result (vnb-guard (lambda () (vnb--require-proof!) (thunk)))))
+    (define (record-step! new-ps)
+      (vnb--undo-push! mark)
+      (record-cmd! sym args)
+      (set! *ps* new-ps)
+      (vnb--capture-step! (cons sym args)    ; live trace for proof-tex
+                          (vnb--oracle-certs-since mark))
+      (if (and *owed-leaf-hook* (not *owed-leaf-hook-active?*))
+          (let ((fresh (filter (lambda (l) (not (memq l owed0))) (vnb--owed-leaves))))
+            (if (pair? fresh)
+                (fluid-let ((*owed-leaf-hook-active?* #t))
+                  (for-each (lambda (l) (*owed-leaf-hook* l)) fresh))))))
     (cond
       ((vnb-error? result) #f)          ; already displayed by vnb-guard
       ((vnb-warning? result)
+       ;; A command that WARNS may still have moved the graph (a `fact' that
+       ;; grounds its leaf by hash-consing and then finds nothing to detach).
+       ;; Such a step is RECORDED (the user, 2026-10-10, META round 3): an
+       ;; unrecorded step that changed the graph leaves a page that cannot be
+       ;; typed back.  The state is *ps* itself -- the graph was written in place
+       ;; and the warning carries no new state, so the focus is left where it is.
+       (if (and dgm (not (dg-mark-unchanged? dgm)))
+           (record-step! *ps*))
        (vnb--print-warning (vnb-warning-message result)))
       ((vnb--inert? mark result)        ; succeeded and did NOTHING: say so
        (vnb--report-inert! sym args)
        #f)
       (else
-       (vnb--undo-push! mark)
-       (record-cmd! sym args)
-       (set! *ps* result)
-       (vnb--capture-step! (cons sym args)    ; live trace for proof-tex
-                           (vnb--oracle-certs-since mark))
-       (if (and *owed-leaf-hook* (not *owed-leaf-hook-active?*))
-           (let ((fresh (filter (lambda (l) (not (memq l owed0))) (vnb--owed-leaves))))
-             (if (pair? fresh)
-                 (fluid-let ((*owed-leaf-hook-active?* #t))
-                   (for-each (lambda (l) (*owed-leaf-hook* l)) fresh)))))
+       (record-step! result)
        (show)))))
 
 (define (di)    (vnb--run! 'di    '()    (lambda () (cmd-direct-inference *ps*))))

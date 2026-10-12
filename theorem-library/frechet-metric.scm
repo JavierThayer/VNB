@@ -526,6 +526,21 @@
 (dk-cite! 'frm-fam-type 'fld 'm 'fam)
 (dk-cite! 'frm-module-vec-set 'm)
 (dk-cite! 'frm-c-space-pts 'm 'fam)
+;; the family's typing FIRST, on the main branch: the pseudometric law instantiates the
+;; macete at (DISTS frc)(k_), which the certificate accepts only from this typing (repair 3)
+(define (frm-dists-type!)
+  (subst (dk-cite! 'frm-c-space-dists 'm 'fam))
+  (dk-lam-type!
+   (lambda ()
+     (dk-peel!)
+     (dk-lam-type!
+      (lambda ()
+        (dk-peel!)
+        (let* ((t (cadr (dk-goal))) (k (cadr (car t))) (v (cadr t)))
+          (frm-p-real! k v)
+          (ass)))))))
+(dk-have! (list 'IN (list 'DISTS frm-frc) '(FUN NN (FUN (CARTESIAN (VEC m) (VEC m)) RR)))
+          frm-dists-type!)
 (mac 'is-c-metric-space)
 (subst '(= (PTS (FR-C-SPACE m fam)) (VEC m)))
 (for-each
@@ -537,16 +552,7 @@
         (mac 'FR-C-SPACE) (len-r) (arith))
        ((equal? g '(IN (VEC m) SET)) (ass))
        ((and (eq? (car g) 'IN) (equal? (cadr g) (list 'DISTS frm-frc)))
-        (subst (dk-cite! 'frm-c-space-dists 'm 'fam))
-        (dk-lam-type!
-         (lambda ()
-           (dk-peel!)
-           (dk-lam-type!
-            (lambda ()
-              (dk-peel!)
-              (let* ((t (cadr (dk-goal))) (k (cadr (car t))) (v (cadr t)))
-                (frm-p-real! k v)
-                (ass)))))))
+        (ass))
        ((eq? (car g) 'IS-PSEUDOMETRIC)
         (mac 'is-pseudometric)
         (for-each (lambda (l) (dk-focus! l) (frm-pseudo-law!)) (frm-goal-leaves!)))

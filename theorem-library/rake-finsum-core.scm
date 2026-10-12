@@ -156,6 +156,17 @@
 
 
 (define (rkq-tf v type body) (list 'FORALL v (list 'IMPLIES type body)))
+;; W2A 2026-10-10: with TYP = forall v in SEG. (SV v) in CARR(AG) and the
+;; equation (SV JV) == SUM-AG(AG, FAM, K) already in context, land the typing
+;; (IN (SUM-AG AG FAM K) (CARR AG)).  That hypothesis certifies FAM (a term
+;; outside binders in a true IN), which the sum-ag-zero / sum-ag-succ macetes
+;; owe when FAM is an application of one of the statement's variables.
+(define (rkq-cert-fold! typ jv sv agv fam k)
+  (dk-apply! typ jv)
+  (have! (rkq-in (list 'SUM-AG agv fam k) (list 'CARR agv))
+         (lambda ()
+           (subst (list '== (list 'SUM-AG agv fam k) (list sv jv)))
+           (ass))))
 (define (rkq-tfin S body)
   (list 'FORALL S (list 'IMPLIES (list 'IN S 'SET)
     (list 'IMPLIES (list 'IN (list 'CARD S) 'NN) body))))
@@ -992,6 +1003,13 @@
                      (== (rs_ i_) (SUM-AG ag (ff_ i_) n))))
                   '(FORALL j_ (IMPLIES (IN j_ (ORD-SEGMENT n))
                      (== (cs_ j_) (SUM-AG ag (gg_ j_) m))))
+                  ;; W2A 2026-10-10 (the user's approval, REPAIR-W2 item 3): the
+                  ;; pointwise typings of the row and column sums.  Without them
+                  ;; the statement is FALSE at m = 1, n = 0, ff_ = rs_ = EMPTY-SET.
+                  '(FORALL fbi_ (IMPLIES (IN fbi_ (ORD-SEGMENT m))
+                     (IN (rs_ fbi_) (CARR ag))))
+                  '(FORALL fbj_ (IMPLIES (IN fbj_ (ORD-SEGMENT n))
+                     (IN (cs_ fbj_) (CARR ag))))
                   '(= (SUM-AG ag rs_ m) (SUM-AG ag cs_ n)))))))))))
 
 (sp (make-wff rkq-fub-ind-stmt))
@@ -1009,7 +1027,11 @@
          (cols (dk-pick (lambda (f) (rkq-guarded-forall-inner? f (rkq-seg nv)
                           (lambda (i) (and (pair? i) (eq? (car i) '==)))))
                         "the column-sum hypothesis"))
-         (ggv  (car (caddr (caddr (caddr (caddr cols)))))))
+         (ggv  (car (caddr (caddr (caddr (caddr cols))))))
+         (ctyp (dk-pick (lambda (f) (rkq-guarded-forall-inner? f (rkq-seg nv)
+                          (lambda (i) (and (pair? i) (eq? (car i) 'IN)
+                                           (equal? (cadr i) (list csv (cadr f)))))))
+                        "the column-sum typing")))
     (display ";; rkq fub base: ") (display (list agv nv rsv csv)) (newline)
     (dk-fact! 'abelian-group-is-group agv)
     (dk-fact! 'group-identity-in agv)
@@ -1017,6 +1039,8 @@
            (lambda ()
              (let ((jv (dk-di-var!)))
                (dk-apply! cols jv)
+               ;; W2A: the column typing certifies (gg_ j) for sum-ag-zero.
+               (rkq-cert-fold! ctyp jv csv agv (list ggv jv) 0)
                (subst (list '== (list csv jv) (list 'SUM-AG agv (list ggv jv) 0)))
                (mac 'sum-ag-zero)
                (rfl))))
@@ -1054,11 +1078,23 @@
          (ih   (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
                                          (not (rkq-guarded-forall? f rkq-seg-dom?))))
                         "the IH"))
+         (rtyp (dk-pick (lambda (f) (rkq-guarded-forall-inner? f segS
+                  (lambda (i) (and (pair? i) (eq? (car i) 'IN)
+                                   (equal? (cadr i) (list rsv (cadr f)))))))
+                        "the row-sum typing"))
+         (ctyp (dk-pick (lambda (f) (rkq-guarded-forall-inner? f segN
+                  (lambda (i) (and (pair? i) (eq? (car i) 'IN)
+                                   (equal? (cadr i) (list csv (cadr f)))))))
+                        "the column-sum typing"))
          (csp  (list 'VNB-LAMBDA 'j_ segN (list 'SUM-AG agv (list ggv 'j_) mv))))
     (display ";; rkq fub step: ") (display (list mv nv agv ffv ggv rsv csv)) (newline)
     (dk-fact! 'abelian-group-is-group agv)
     (dk-fact! 'group-identity-in agv)
     (have! (rkq-in mv segS) (lambda () (mac 'ord-segment-nn-succ) (oi-r) (rfl)))
+    ;; W2A: the top row's sum, typed: certifies (ff_ m) for every macete below
+    ;; matched at that family (sum-ag-zero / sum-ag-succ in the inline lemmas).
+    (dk-apply! rows mv)
+    (rkq-cert-fold! rtyp mv rsv agv (list ffv mv) nv)
     ;; --- the four hypotheses cut down to ORD-SEGMENT(m) --------------------
     (have! (rkq-gf 'i_ segM (rkq-gf 'j_ segN
               (rkq-in (list (list ffv 'i_) 'j_) ca)))
@@ -1106,12 +1142,20 @@
           (typ-m (dk-pick (lambda (f) (equal? f (rkq-gf 'i_ segM (rkq-gf 'j_ segN
                              (rkq-in (list (list ffv 'i_) 'j_) ca)))))
                           "the restricted typing")))
-      ;; --- the IH at the truncated column sums -----------------------------
-      (dk-apply! ih agv nv ffv ggv rsv csp)
-      ;; --- pointwise typings for sum-ag-add-ind ----------------------------
-      (have! (rkq-gf 'j_ segN (rkq-in (list csp 'j_) ca))
+      ;; --- W2A: the row typing cut down to ORD-SEGMENT(m) ----------------
+      (have! (rkq-gf 'fbi_ segM (rkq-in (list rsv 'fbi_) ca))
+             (lambda ()
+               (let ((iv (dk-di-var!)))
+                 (have! (rkq-in iv segS) (lambda () (mac 'ord-segment-nn-succ) (oi-l) (ass)))
+                 (dk-apply! rtyp iv)
+                 (ass))))
+      ;; --- pointwise typings for sum-ag-add-ind (and the IH, W2A) ----------
+      (have! (rkq-gf 'fbj_ segN (rkq-in (list csp 'fbj_) ca))
              (lambda ()
                (let ((jv (dk-di-var!)))
+                 ;; W2A: certify (gg_ j) for the inline lemma's macetes.
+                 (dk-apply! cols jv)
+                 (rkq-cert-fold! ctyp jv csv agv (list ggv jv) (list 'succ mv))
                  (dk-apply! cols-m jv)
                  (subst (list '== (list csp jv) (list 'SUM-AG agv (list ggv jv) mv)))
                  (have! (rkq-gf 'i_ segM (rkq-in (list (list ggv jv) 'i_) ca))
@@ -1127,6 +1171,8 @@
                  ;; certificate cannot accept.  Proved inline instead.
                  (dk-apply! (rkq-sumag-type-inline! agv (list ggv jv) ca) mv)
                  (ass))))
+      ;; --- the IH at the truncated column sums -----------------------------
+      (dk-apply! ih agv nv ffv ggv rsv csp)
       (have! (rkq-gf 'j_ segN (rkq-in (list (list ffv mv) 'j_) ca))
              (lambda ()
                (let ((jv (dk-di-var!)))
@@ -1138,6 +1184,7 @@
              (lambda ()
                (let ((jv (dk-di-var!)))
                  (dk-apply! cols jv)
+                 (rkq-cert-fold! ctyp jv csv agv (list ggv jv) (list 'succ mv))
                  (subst (list '== (list csv jv) (list 'SUM-AG agv (list ggv jv)
                                                       (list 'succ mv))))
                  (mac 'sum-ag-succ)
@@ -1152,7 +1199,7 @@
       (dk-apply! (rkq-sumag-add-inline! agv csp (list ffv mv) csv ca) nv)
       ;; --- and the left side peels ----------------------------------------
       (mac 'sum-ag-succ)
-      (dk-apply! rows mv)
+      ;; (rows at m was applied at the top of the step, W2A)
       (subst (list '== (list rsv mv) (list 'SUM-AG agv (list ffv mv) nv)))
       (subst (list '= (list 'SUM-AG agv rsv mv) (list 'SUM-AG agv csp nv)))
       (dk-fact! 'equality-symmetry
@@ -1285,6 +1332,33 @@
              (lam-b)
              (mac 'FINSUM)
              (qrfl))))
+  ;; --- (5)/(6) W2A: the row and column sums, typed pointwise ------------
+  ;; (the antecedents sum-ag-fubini-ind gained on 2026-10-10).  rsT(i) is
+  ;; lami(phiX i) = FINSUM(ag, liP i, Y), typed by finsum-type-ptwise from
+  ;; f in FUN(X x Y, CARR ag); csT(j) likewise over X.
+  (define (rkq-fub-sum-type! bv sT lam phi seg cnt inner idom mkpair)
+    (have! (rkq-gf bv seg (rkq-in (list sT bv) ca))
+           (lambda ()
+             (let* ((iv (dk-di-var!))
+                    (li (inner iv)))
+               (dk-fact! 'fun-apply-type-c phi seg (caddr lam) iv)
+               (dk-fact! 'enum-fam-value cnt agv lam phi iv)
+               (subst (list '== (list sT iv) (list lam (list phi iv))))
+               (lam-b)
+               (have! (rkq-gf 'fbz_ idom (rkq-in (list li 'fbz_) ca))
+                      (lambda ()
+                        (let ((zv (dk-di-var!)))
+                          (lam-b)
+                          (dk-fact! 'pair-in-cartesian xv yv
+                                    (car (mkpair (list phi iv) zv))
+                                    (cadr (mkpair (list phi iv) zv)))
+                          (dk-fact! 'fun-apply-type-c fv cart ca
+                                    (cons 'LIST (mkpair (list phi iv) zv)))
+                          (ass))))
+               (dk-fact! 'finsum-type-ptwise agv idom li)
+               (ass)))))
+  (rkq-fub-sum-type! 'fbi_ rsT lami phiX segM mm liP yv (lambda (a z) (list a z)))
+  (rkq-fub-sum-type! 'fbj_ csT lamj phiY segN nn ljP xv (lambda (a z) (list z a)))
   (dk-fact! 'sum-ag-fubini-ind mm agv nn ffT ggT rsT csT)
   (ass))
 (rkq-check! 'finsum-fubini)

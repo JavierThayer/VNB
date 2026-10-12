@@ -77,11 +77,16 @@
 ;;;     goal); the six read-offs then turn the consequent's accessors into the
 ;;;     antecedent's, and the remaining goal is P => P.
 ;;; =====================================================================
-(sp (make-wff '(FORALL m_ (FORALL t_
+(sp (make-wff '(FORALL m_ (IMPLIES (IS-NORMED-VECTOR-SPACE m_) (FORALL t_
       (IMPLIES (IS-SUBMODULE m_ t_)
-               (IS-SUBMODULE (NORMED-VECTOR-SPACE-AS-MODULE m_) t_))))))
-(di)                                            ; peels m_, t_ (lands nothing:
-                                                ; the antecedent is not a typing)
+               (IS-SUBMODULE (NORMED-VECTOR-SPACE-AS-MODULE m_) t_)))))))
+(di)                                            ; peels m_ (lands nothing: the
+                                                ; guard is a predicate)
+(di)                                            ; lands IS-NORMED-VECTOR-SPACE(m_)
+(let nmv-loop ()                                ; peel t_, if that di did not
+  (if (eq? (car (dk-goal)) 'FORALL) (begin (di) (nmv-loop))))
+;; W2B 2026-10-10: the guard is now in context, so the unfold below is matched at
+;; certified accessors of m_ (the view's list body needs IS-NVS(m_)).
 (mac 'IS-SUBMODULE)
 (for-each (lambda (n) (mac n)) nvs-module-view-read-offs)
 (di)                                            ; now the antecedent lands

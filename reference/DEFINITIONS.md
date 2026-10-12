@@ -1164,7 +1164,7 @@ TRAP worth knowing before citing one: `mac` unfolds a functoid in a GOAL, but `m
 
 ### cc-cos
 
-    cc-cos(z) := cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))
+    cc-cos(z) := cc-series-limit(vnb-lambda(cek_, nn, (num(-1) ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))
 
 ### cc-exp
 
@@ -1192,7 +1192,7 @@ TRAP worth knowing before citing one: `mac` unfolds a functoid in a GOAL, but `m
 
 ### cc-sin
 
-    cc-sin(z) := cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(succ(2 * cek_)))) * z ^ succ(2 * cek_)))
+    cc-sin(z) := cc-series-limit(vnb-lambda(cek_, nn, (num(-1) ^ cek_ * recip(factorial(succ(2 * cek_)))) * z ^ succ(2 * cek_)))
 
 ### cc-sup-norm
 

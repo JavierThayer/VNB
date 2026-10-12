@@ -2760,7 +2760,7 @@
 (mir-disch! (mir-is? 'IN 'ONE)  (lambda () (mac 'monalg-carr) (mac 'monalg-one-slot)  (fact 'monalg-one-in 'a 'm)  (ass)))
 ;; 8. add associative
 (mir-disch! (mir-is? 'is-associative 'ADD)
-  (lambda () (mac 'is-associative) (mac 'monalg-carr) (mac 'monalg-add-op)
+  (lambda () (mac 'monalg-carr) (mac 'monalg-add-op) (mac 'is-associative)
     (let ((vs (mir-peel-binders!)))
       (let ((u (car vs)) (v (cadr vs)) (w (caddr vs)))
         (fact 'monalg-add-fun 'a 'm u v) (fact 'monalg-add-fun 'a 'm v w)
@@ -2768,13 +2768,13 @@
         (fact 'monalg-add-assoc 'a 'm u v w) (ass)))))
 ;; 9. add commutative
 (mir-disch! (mir-is? 'is-commutative 'ADD)
-  (lambda () (mac 'is-commutative) (mac 'monalg-carr) (mac 'monalg-add-op)
+  (lambda () (mac 'monalg-carr) (mac 'monalg-add-op) (mac 'is-commutative)
     (let ((vs (mir-peel-binders!)))
       (lam-b)
       (fact 'monalg-add-comm 'a 'm (car vs) (cadr vs)) (ass))))
 ;; 10. zero is the additive identity
 (mir-disch! (mir-is? 'is-identity 'ADD)
-  (lambda () (mac 'is-identity) (mac 'monalg-carr) (mac 'monalg-add-op) (mac 'monalg-zero-slot)
+  (lambda () (mac 'monalg-carr) (mac 'monalg-add-op) (mac 'monalg-zero-slot) (mac 'is-identity)
     (let ((vs (mir-peel-binders!)))
       (fact 'monalg-zero-in 'a 'm)
       (dk-conj-close! (lambda ()
@@ -2782,7 +2782,7 @@
         (fact 'monalg-add-zero-left 'a 'm (car vs)) (fact 'monalg-add-zero-right 'a 'm (car vs)) (ass))))))
 ;; 11. neg gives additive inverses
 (mir-disch! (mir-is? 'has-inverses 'ADD)
-  (lambda () (mac 'has-inverses) (mac 'monalg-carr) (mac 'monalg-add-op) (mac 'monalg-neg-op) (mac 'monalg-zero-slot)
+  (lambda () (mac 'monalg-carr) (mac 'monalg-add-op) (mac 'monalg-neg-op) (mac 'monalg-zero-slot) (mac 'has-inverses)
     (let ((vs (mir-peel-binders!)))
       (fact 'monalg-zero-in 'a 'm) (fact 'monalg-neg-fun 'a 'm (car vs))
       (dk-conj-close! (lambda ()
@@ -2790,7 +2790,7 @@
         (fact 'monalg-add-neg-left 'a 'm (car vs)) (fact 'monalg-add-neg-right 'a 'm (car vs)) (ass))))))
 ;; 12. mul associative -- CHAINED to the seed monalg-mul-assoc (structure-library/polynomial.scm)
 (mir-disch! (mir-is? 'is-associative 'MUL)
-  (lambda () (mac 'is-associative) (mac 'monalg-carr) (mac 'monalg-mul-op)
+  (lambda () (mac 'monalg-carr) (mac 'monalg-mul-op) (mac 'is-associative)
     (let ((vs (mir-peel-binders!)))
       (let ((u (car vs)) (v (cadr vs)) (w (caddr vs)))
         (fact 'monalg-mul-fun 'a 'm u v) (fact 'monalg-mul-fun 'a 'm v w)
@@ -2798,7 +2798,7 @@
         (fact 'monalg-mul-assoc 'a 'm u v w) (ass)))))
 ;; 13. one is the multiplicative identity
 (mir-disch! (mir-is? 'is-identity 'MUL)
-  (lambda () (mac 'is-identity) (mac 'monalg-carr) (mac 'monalg-mul-op) (mac 'monalg-one-slot)
+  (lambda () (mac 'monalg-carr) (mac 'monalg-mul-op) (mac 'monalg-one-slot) (mac 'is-identity)
     (let ((vs (mir-peel-binders!)))
       (fact 'monalg-one-in 'a 'm)
       (dk-conj-close! (lambda ()
@@ -2806,7 +2806,7 @@
         (fact 'monalg-one-left-fn 'a 'm (car vs)) (fact 'monalg-one-right-fn 'a 'm (car vs)) (ass))))))
 ;; 14. distributivity
 (mir-disch! (mir-is? 'is-distributive 'ADD)
-  (lambda () (mac 'is-distributive) (mac 'monalg-carr) (mac 'monalg-add-op) (mac 'monalg-mul-op)
+  (lambda () (mac 'monalg-carr) (mac 'monalg-add-op) (mac 'monalg-mul-op) (mac 'is-distributive)
     (let ((vs (mir-peel-binders!)))
       (let ((u (car vs)) (v (cadr vs)) (w (caddr vs)))
         (fact 'monalg-add-fun 'a 'm u v) (fact 'monalg-add-fun 'a 'm v w)

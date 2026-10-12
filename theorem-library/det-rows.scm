@@ -580,12 +580,14 @@
   (forall-guarded '(R dmx_) '((IS-RING R) (IN dmx_ NN))
     (list '= (dtr-sign '(succ dmx_)) (list '(MUL R) dtr-neg1 (dtr-sign 'dmx_))))))
 (dk-peel!)
+;; RM2 2026-10-09: type -1 BEFORE the macete (the door owes definedness of the
+;; matched base (NEG R)(ONE R)).
+(fact 'ring-one-in 'R)
+(fact 'ring-neg-in-carr 'R '(ONE R))
 (mac 'mpow-succ)
 (fact 'rmm-op 'R)
 (subst (list '= (list 'OPR dtr-mm) '(MUL R)))
 (fact 'dtr-sign-type 'R 'dmx_)
-(fact 'ring-one-in 'R)
-(fact 'ring-neg-in-carr 'R '(ONE R))
 (fact 'ring-carrier-closed-mul 'R dtr-neg1 (dtr-sign 'dmx_))
 (rfl)
 (dtr-done! 'dtr-sign-succ)

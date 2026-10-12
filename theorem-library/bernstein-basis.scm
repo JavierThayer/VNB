@@ -159,6 +159,9 @@
   (sp (make-wff (list 'FORALL 'n_ (list 'IMPLIES '(IN n_ NN)
         (list 'FORALL 'f_
               (list '== '(SERIES-PARTIAL-SUM f_ n_) (list 'SUM bn-r 'f_ 'n_)))))))
+  ;; RM2 2026-10-09: the macete door owes definedness of the matched ring view
+  ;; bn-r and group view; IS-NORMED-FIELD(RR-NORMED-FIELD) certifies both slot lists.
+  (fact 'rr-is-normed-field)
   (ni)
   (bn-focus (lambda (s) (substring? ", 0) ==" s)))
   (di)
@@ -317,6 +320,8 @@
   (have! (list 'IN '(- 1 x_) (list 'CARR bn-r))
          (lambda () (mac 'rr-scalar-ring-carr) (ass)))
   (mac 'BERNSTEIN-BASIS)
+  ;; RM2 2026-10-09: type the summand before the bridge macete matches at it.
+  (fact 'comb-kk-in-fun bn-r 'x_ '(- 1 x_) 'n_)
   (mac 'series-partial-sum-is-ring-sum)
   (mac 'binomial-sum-value)
   (have! (list '= (list (list 'ADD bn-r) 'x_ '(- 1 x_)) (list 'ONE bn-r))

@@ -24,13 +24,19 @@
 (sp (make-wff
   '(FORALL fam
      (IMPLIES
+       (FORALL k (IMPLIES (IN k NN) (IN (fam k) SET)))
+     (IMPLIES
        (FORALL k (IMPLIES (IN k NN) (SUBSET (fam (succ k)) (fam k))))
        (FORALL j (IMPLIES (IN j NN)
          (FORALL k (IMPLIES (IN k NN)
-           (IMPLIES (<= k j) (SUBSET (fam j) (fam k)))))))))))
+           (IMPLIES (<= k j) (SUBSET (fam j) (fam k))))))))))))
 
 (di)                                              ; fam
+;; W2B 2026-10-10: the new first antecedent (each fam(k) is a set) is what
+;; certifies the applications fam(t) that every subset-def macete is matched at.
+(define NC-SET (dk-landed-1 (lambda () (di))))    ; forall k in NN. fam(k) in SET
 (define NC-STEP (dk-landed-1 (lambda () (di))))   ; the descending hypothesis
+(define (nc-set-at! t) (inst*! NC-SET t))         ; lands (IN (fam t) SET)
 (define NC-BR (use-induction))                    ; induct on j
 
 ;;; base:  forall k in NN.  k <= 0  =>  fam(0) subset fam(k)
@@ -39,6 +45,8 @@
 (dk-peel-to! 'SUBSET)                  ; peel k, (IN k NN), (<= k 0) -- never count di's
 (fact 'nn-le-zero-is-zero 'k)
 (subst '(= k 0))
+(fact 'nn-zero-in)
+(nc-set-at! 0)
 (mac 'subset-def) (di) (ass)           ; reflexivity, inline (no named subset-refl)
 
 ;;; step:  forall k in NN.  k <= succ j  =>  fam(succ j) subset fam(k)
@@ -50,6 +58,10 @@
 (define NC-IH (cdr (assq 'ih  NC-BR)))
 (dk-peel-to! 'SUBSET)                  ; k, (IN k NN), (<= k (succ j))
 (fact 'nn-le-succ-cases NC-JV 'k)      ; -> (OR (<= k j) (= k (succ j)))
+(fact 'nn-succ-closed NC-JV)
+(nc-set-at! 'k)
+(nc-set-at! NC-JV)
+(nc-set-at! (list 'succ NC-JV))
 (use-cases
   (list (list '<= 'k NC-JV) (list '= 'k (list 'succ NC-JV)))
   (lambda ()                                              ; k <= j
@@ -85,10 +97,12 @@
 (sp (make-wff
   '(FORALL T
      (IMPLIES
+       (FORALL k (IMPLIES (IN k NN) (IN (T k) SET)))
+     (IMPLIES
        (FORALL k (IMPLIES (IN k NN) (SUBSET (T (succ k)) (T k))))
        (FORALL k (IMPLIES (IN k NN)
          (FORALL j (IMPLIES (IN j NN)
-           (IMPLIES (<= k j) (SUBSET (T j) (T k)))))))))))
+           (IMPLIES (<= k j) (SUBSET (T j) (T k))))))))))))
 (dk-peel-to! 'SUBSET)
 (fact 'nn-nested-subset-chain-j 'T 'j 'k)   ; fam, then j, then k -- `fact' peels
 (ass)                                       ; only the universals it is given

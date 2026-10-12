@@ -103,6 +103,12 @@
   '((IMPLIES (= n 0) (OR (= n 0) (= n 0)))                    ; matmul-type (n,n,n)
     (IMPLIES (= n 0) (OR (= n 0) (AND (= n 0) (= n 0))))))    ; matmul-assoc G1 = G2
 (for-each (lambda (g) (have! g (lambda () (prop))) (dk-focus-having! g)) MR-GUARDS)
+;; RM2 2026-10-09: the macete door owes definedness.  `mac 'IS-RING' instantiates
+;; the defining IFF at MAT-RING(a,n), a LIST whose ZEROMAT / IDENTMAT components are
+;; IOTA-bodied: type them first, so the tuple is certified.  For the same reason each
+;; property conjunct below reads its accessors off BEFORE unfolding the property.
+(fact 'zeromat-type 'a 'n 'n)
+(fact 'identmat-type 'a 'n)
 (mac 'IS-RING)                  ; -> the 14-conjunct AND
 
 ;; split the top-level (right-nested) AND into 14 conjunct leaves
@@ -144,45 +150,45 @@
 
 ;; ---- 8. is-associative(add) ----
 (mr-disch (mr-is? 'is-associative 'ADD) (lambda ()
-  (mac 'is-associative)(mr-rcarr)(mr-rops 'mat-ring-add)
+  (mr-rcarr)(mr-rops 'mat-ring-add)(mac 'is-associative)
   (mr-close-conj (list (lambda (v) (fact 'matadd-assoc 'a 'n 'n (car v) (cadr v) (caddr v))))
                  (list (mr-t-add car cadr) (mr-t-add cadr caddr)))))
 
 ;; ---- 9. is-commutative(add) ----
 (mr-disch (mr-is? 'is-commutative 'ADD) (lambda ()
-  (mac 'is-commutative)(mr-rcarr)(mr-rops 'mat-ring-add)
+  (mr-rcarr)(mr-rops 'mat-ring-add)(mac 'is-commutative)
   (mr-close-conj (list (lambda (v) (fact 'matadd-comm 'a 'n 'n (car v) (cadr v)))))))
 
 ;; ---- 10. is-identity(add, zero) ----
 (mr-disch (mr-is? 'is-identity 'ADD) (lambda ()
-  (mac 'is-identity)(mr-rcarr)(mr-rops 'mat-ring-add 'mat-ring-zero)
+  (mr-rcarr)(mr-rops 'mat-ring-add 'mat-ring-zero)(mac 'is-identity)
   (mr-close-conj (list (lambda (v) (fact 'matadd-zero-left  'a 'n 'n (car v)))    ; 0+u=u
                        (lambda (v) (fact 'matadd-zero-right 'a 'n 'n (car v))))  ; u+0=u
                  (list (mr-t-zero)))))
 
 ;; ---- 11. has-inverses(add, zero, neg) ----
 (mr-disch (mr-is? 'has-inverses 'ADD) (lambda ()
-  (mac 'has-inverses)(mr-rcarr)(mr-rops 'mat-ring-add 'mat-ring-neg 'mat-ring-zero)
+  (mr-rcarr)(mr-rops 'mat-ring-add 'mat-ring-neg 'mat-ring-zero)(mac 'has-inverses)
   (mr-close-conj (list (lambda (v) (fact 'matadd-neg-left  'a 'n 'n (car v)))     ; (-u)+u=0
                        (lambda (v) (fact 'matadd-neg-right 'a 'n 'n (car v))))   ; u+(-u)=0
                  (list (mr-t-neg car) (mr-t-zero)))))
 
 ;; ---- 12. is-associative(mul) ----
 (mr-disch (mr-is? 'is-associative 'MUL) (lambda ()
-  (mac 'is-associative)(mr-rcarr)(mr-rops 'mat-ring-mul)
+  (mr-rcarr)(mr-rops 'mat-ring-mul)(mac 'is-associative)
   (mr-close-conj (list (lambda (v) (fact 'matmul-assoc 'a 'n 'n 'n 'n (car v) (cadr v) (caddr v))))
                  (list (mr-t-mul car cadr) (mr-t-mul cadr caddr)))))
 
 ;; ---- 13. is-identity(mul, one) ----
 (mr-disch (mr-is? 'is-identity 'MUL) (lambda ()
-  (mac 'is-identity)(mr-rcarr)(mr-rops 'mat-ring-mul 'mat-ring-one)
+  (mr-rcarr)(mr-rops 'mat-ring-mul 'mat-ring-one)(mac 'is-identity)
   (mr-close-conj (list (lambda (v) (fact 'identmat-left-identity  'a 'n 'n (car v)))   ; I u = u
                        (lambda (v) (fact 'identmat-right-identity 'a 'n 'n (car v))))  ; u I = u
                  (list (mr-t-one)))))
 
 ;; ---- 14. is-distributive(add, mul) ----
 (mr-disch (mr-is? 'is-distributive 'ADD) (lambda ()
-  (mac 'is-distributive)(mr-rcarr)(mr-rops 'mat-ring-add 'mat-ring-mul)
+  (mr-rcarr)(mr-rops 'mat-ring-add 'mat-ring-mul)(mac 'is-distributive)
   (mr-close-conj (list (lambda (v) (fact 'matmul-left-dist-guarded  'a 'n 'n 'n (car v) (cadr v) (caddr v)))  ; u(v+w)
                        (lambda (v) (fact 'matmul-right-dist-guarded 'a 'n 'n 'n (car v) (cadr v) (caddr v)))) ; (u+v)w
                  (list (mr-t-add car cadr) (mr-t-add cadr caddr)

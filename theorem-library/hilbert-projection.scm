@@ -665,7 +665,11 @@
 (qed 'perp-orth)
 (topic! 'perp-orth 'plumbing)
 
-(sp (make-wff '(FORALL v (FORALL ks (SUBSET (PERP v ks) (VEC v))))))
+;; STATEMENT CHANGE confirmed by the user 2026-10-11: the guard on v is new.  Unguarded, VEC(v)
+;; need not denote, PERP(v, ks) is a SEP over it, and the strict SUBSET is underdetermined
+;; (repair 3 owes VEC(v) = VEC(v)); every citer holds the guard.
+(sp (make-wff (forall-guarded '(v ks) '((IS-COMPLEX-INNER-PRODUCT-SPACE v))
+   '(SUBSET (PERP v ks) (VEC v)))))
 (dk-peel!)
 (mac 'subset-def)
 (let ((zv (dk-di-var!)))
@@ -1846,6 +1850,12 @@
 (dk-cite! 'cips-scal-carrier 'v)
 (dk-cite! 'ip-metric-space-pts 'v)
 (let ((kk hpr-ker) (ms '(IP-METRIC-SPACE v)))
+  ;; VZERO in the kernel FIRST: that membership certifies the kernel term at which
+  ;; subset-def is instantiated (repair 3)
+  (dk-cite! 'cc-linear-functional-zero-neg 'v 'f)
+  (dk-cite! 'cips-vzero-in 'v)
+  (dk-split-all!)
+  (hpr-ker-in! '(VZERO v))
   (dk-have! (list 'SUBSET kk '(VEC v))
     (lambda ()
       (mac 'subset-def)
@@ -1864,10 +1874,6 @@
                            (crs)))
                        (hpr-ker-in! z)
                        (if (equal? (dk-goal) (list 'IN z kk)) (ass)))))
-    (dk-cite! 'cc-linear-functional-zero-neg 'v 'f)
-    (dk-cite! 'cips-vzero-in 'v)
-    (dk-split-all!)
-    (hpr-ker-in! '(VZERO v))
     (dk-have! (list 'FORALL 'x_ (list 'IMPLIES (list 'IN 'x_ kk)
                 (list 'FORALL 'y_ (list 'IMPLIES (list 'IN 'y_ kk) (list 'IN '((VADD v) x_ y_) kk)))))
       (lambda ()

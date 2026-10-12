@@ -1434,9 +1434,9 @@
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{nn-nested-subset-chain}}
-\emph{for every t, if for every k in nn, t(succ(k)) is a subset of t(k), then for every k in nn, j in nn, if k is at most j, then t(j) is a subset of t(k)}
+\emph{for every t, if for every k in nn, t(k) is in set, then if for every k in nn, t(succ(k)) is a subset of t(k), then for every k in nn, j in nn, if k is at most j, then t(j) is a subset of t(k)}
 {\small\[
-\forall t.\; (\forall k \in \mathbb{N}.\; (t((k + 1)) \subseteq t(k)) \Rightarrow \forall k, j \in \mathbb{N}.\; ((k \leq j) \Rightarrow (t(j) \subseteq t(k))))
+\forall t.\; (\forall k \in \mathbb{N}.\; (t(k) \in \mathbf{Set}) \Rightarrow (\forall k \in \mathbb{N}.\; (t((k + 1)) \subseteq t(k)) \Rightarrow \forall k, j \in \mathbb{N}.\; ((k \leq j) \Rightarrow (t(j) \subseteq t(k)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 

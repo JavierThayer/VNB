@@ -214,6 +214,15 @@
     (unless (equal? t tok)
       (error "vnb-parse: expected" tok "got" t))))
 
+;; One numeric token inside num(...): an exact real, a positive integer when it
+;; is the denominator.
+(define (p--literal-number! denominator?)
+  (let ((t (p-adv)))
+    (if (and (pair? t) (eq? (car t) 'num) (real? (cdr t)) (exact? (cdr t))
+             (or (not denominator?) (and (exact-integer? (cdr t)) (> (cdr t) 0))))
+        (cdr t)
+        (error "vnb-parse: num(...) takes a literal like num(-1) or num(1/12), got" t))))
+
 (define (p-peek-sym? s)
   (let ((t (p-peek)))
     (and (pair? t) (eq? (car t) 'sym) (eq? (cdr t) s))))
@@ -577,6 +586,20 @@
                     "whose domain may be a proper class.")))
            ((eq? sym 'lambdoid)
             (p-maybe-apply (p-parse-functoid sym)))
+           ;; num(-1), num(1/12), num(-3/2): an exact NUMBER LITERAL (the user,
+           ;; 2026-10-11).  The surface has no other spelling for a negative or
+           ;; non-integer literal -- `-1' reads as the unary minus (- 1) and `1/2'
+           ;; as (* 1 (recip 2)) -- so the printer writes such a literal this
+           ;; way and the round trip holds.  Nothing that parsed before means
+           ;; anything different: `num' is a new head.
+           ((eq? sym 'num)
+            (p-expect! 'lparen)
+            (let* ((neg? (and (p-peek-sym? '-) (begin (p-adv) #t)))
+                   (a    (p--literal-number! #f))
+                   (b    (and (p-peek-sym? '/) (begin (p-adv) (p--literal-number! #t)))))
+              (p-expect! 'rparen)
+              (let ((v (if b (/ a b) a)))
+                (if neg? (- v) v))))
            ((eq? sym 'set_of)
             (p-expect! 'lparen)
             (let* ((args (p-parse-arglist)))

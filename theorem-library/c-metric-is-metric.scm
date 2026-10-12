@@ -570,6 +570,12 @@
              (#t 'is-metric-later))))))
  cmim-conjuncts)
 (dk-focus-goal! "is-metric(")
+;; RM3 2026-10-09 (macete definedness): `mac is-metric' instantiates at
+;; DIST(C-METRIC-W s w), which the MAIN context does not certify (its typing
+;; conjunct was proven on its own branch): it owed `dist(..) = dist(..)' and
+;; `cmim-law!' died on that leaf.  Land the FUN typing here first.
+(dk-have! '(IN (DIST (C-METRIC-W s w)) (FUN (CARTESIAN (PTS s) (PTS s)) RR))
+          cmim-dist-typing!)
 (mac 'is-metric)
 (cmim-drive!)
 (for-each (lambda (n)

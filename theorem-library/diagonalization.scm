@@ -208,7 +208,15 @@
 (dia-focus! `(IN (,dia-f (succ ,dia-n)) (,dia-s (succ ,dia-n)))) (ass)
 
 (dia-focus! dia-TAIL)
-(define dia-CHAIN (dia-new (lambda () (fact 'nn-nested-subset-chain dia-s))))
+;; W2B 2026-10-10: nn-nested-subset-chain now asks first that each S(k) be a set
+;; (it certifies the applications S(t) its subset-def steps are matched at).
+(have! `(FORALL k (IMPLIES (IN k NN) (IN (,dia-s k) SET)))
+       (lambda ()
+         (let ((dia-kv (dk-di-var!)))
+           (fact 'fun-apply-type-c dia-s 'NN '(INF-SUBSETS NN) dia-kv)
+           (fact 'membership-implies-sethood (list dia-s dia-kv) '(INF-SUBSETS NN))
+           (ass))))
+(define dia-CHAIN (dk-fact! 'nn-nested-subset-chain dia-s))
 (dia-di*)                                    ; eigen kt, jt ; asms (IN kt NN)(IN jt NN)(<= kt jt)
 (define dia-fg (dia-goal))                   ; (IN (f jt)(s kt))
 (define dia-jt (cadr (cadr dia-fg)))

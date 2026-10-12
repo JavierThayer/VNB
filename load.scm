@@ -4631,7 +4631,8 @@
   ;; (declare-category!, structures.scm) must have its identity, composition and
   ;; sethood laws PROVEN under the generated names.  Backlog zero on the day it was
   ;; added, so FATAL from the start.
-  (report-category-obligations! #t)
+  ;; reported, not fatal, under keep-going: a load with holes has a residue to list, not a band (2026-10-09)
+  (report-category-obligations! (not *vnb-keep-going?*))
   (let ((sh (sethood-audit)))
     (if (null? sh)
         (display ";; sethood-audit: ok (no asserted function membership over an unguarded class)\n")

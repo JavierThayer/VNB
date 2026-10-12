@@ -2527,6 +2527,7 @@
 
 (sp (make-wff (list 'HOLOMORPHIC-ON gmf-rhp gmf-mn-f)))
 (gmf-rhp-setup!)
+(fact 'cc-is-metric-space)   ; rm7 2026-10-09: certifies BALL(CC-MS, z0, rho) for subset-def's macete
 (fact 'nn-is-set)
 (dk-have! gmf-mn-famhol
   (lambda ()

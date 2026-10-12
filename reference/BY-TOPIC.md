@@ -316,7 +316,7 @@ The library grouped by subject, like a textbook table of contents.  Each entry g
 
 - `diagonalization` — forall([s in fun(nn, inf-subsets(nn))], forall([k in nn], s(succ(k)) subset s(k)) implies forsome([f], strictly-mono-nn(f) and forall([k in nn, j in nn], k <= j implies f(j) in s(k))))  proved in [~/prover/theorem-library/diagonalization.scm](../theorem-library/diagonalization.scm)
 - `nn-step-strictly-mono` — forall([g in fun(nn, nn)], forall([k in nn], g(k) < g(succ(k))) implies strictly-mono-nn(g))  proved in [~/prover/theorem-library/rake-subseq-leaves.scm](../theorem-library/rake-subseq-leaves.scm)
-- `nn-nested-subset-chain` — forall([t], forall([k in nn], t(succ(k)) subset t(k)) implies forall([k in nn, j in nn], k <= j implies t(j) subset t(k)))  proved in [~/prover/theorem-library/nn-nested-subset-chain-proof.scm](../theorem-library/nn-nested-subset-chain-proof.scm)
+- `nn-nested-subset-chain` — forall([t], forall([k in nn], t(k) in set) implies forall([k in nn], t(succ(k)) subset t(k)) implies forall([k in nn, j in nn], k <= j implies t(j) subset t(k)))  proved in [~/prover/theorem-library/nn-nested-subset-chain-proof.scm](../theorem-library/nn-nested-subset-chain-proof.scm)
 - `inf-subset-nn-unbounded` — forall([t in inf-subsets(nn), u in nn], forsome([y in nn], y in t and u < y))  proved in [~/prover/theorem-library/nn-infinite.scm](../theorem-library/nn-infinite.scm)
 
 ### Well-ordering of NN

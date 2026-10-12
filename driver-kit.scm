@@ -2316,8 +2316,14 @@
   ;; leaf is rolled back -- graph, focus, script, trace, undo stack -- so a
   ;; failed closer leaves no half-cut leaf behind (the recip(0) suite check
   ;; found three leaves where two were owed).
+  ;; *proof-mints* is rolled back with the script (2026-10-10, META round 3): the
+  ;; record must hold ONE mint entry per recorded step, and a failed attempt's
+  ;; `dk-focus!' had left an orphan entry, so every later `name-witness! N' on
+  ;; the page addressed the wrong step (five pages failed the audit once the
+  ;; macete door began owing t = t leaves this closer cannot discharge).
   (let* ((home  (proof-state-focus *ps*))
          (mark  (vnb--take-mark '(dk-discharge-owed!)))
+         (mints *proof-mints*)
          (depth (length *vnb-undo-stack*)))
     (dk--silently
      (lambda ()
@@ -2349,6 +2355,7 @@
           (set-proof-state-focus! *ps* (vnb-undo-mark-focus mark))
           (set! *proof-script* (vnb-undo-mark-script mark))
           (set! *live-trace*   (vnb-undo-mark-trace mark))
+          (set! *proof-mints*  mints)
           (let loop () (when (> (length *vnb-undo-stack*) depth)
                          (set! *vnb-undo-stack* (cdr *vnb-undo-stack*)) (loop)))))
     (if (and home (not (sequent-node-grounded? home))

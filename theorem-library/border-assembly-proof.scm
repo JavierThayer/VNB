@@ -222,6 +222,13 @@
 (fact 'invertible-mat-is-mat 'A 'q VP)
 (dk-have-prop! '(IMPLIES (= p 0) (OR (= p 0) (= q 0))))   ; guard at (p,p,q)
 (dk-have-prop! '(IMPLIES (= q 0) (OR (= p 0) (= q 0))))   ; guard at (p,q,q)
+;; RM2 2026-10-09: the macete door owes definedness of BORDER(A,b,E,p,q); type it
+;; BEFORE `mac 'MAT-EQUIV' (E is a matrix by its equation U'.W.V'), or the owed
+;; leaf `BCE = BCE' is what the `(= BCE ...)' focus below picks.
+(fact 'matmul-type 'A 'p 'p 'q UP 'W)
+(fact 'matmul-type 'A 'p 'q 'q (list 'MATMUL 'A UP 'W) VP)   ; (U'.W).V' : p x q
+(dk-have! '(IN E (MAT p q (CARR A))) (lambda () (subst EEQ) (ass)))
+(fact 'border-type 'A 'b 'E 'p 'q)
 (mac 'MAT-EQUIV)
 (ew BU) (di)
 (bm-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'IS-INVERTIBLE-MAT) (equal? (cadddr g) BU)))) (ass)
@@ -235,14 +242,12 @@
              (list 'BORDER 'A (list '(MUL A) '(ONE A) 'b) (list 'MATMUL 'A UP 'W) 'p 'q)))
 (fact 'ring-mul-left-id 'A 'b)
 (subst (list '= (list '(MUL A) '(ONE A) 'b) 'b))
-(fact 'matmul-type 'A 'p 'p 'q UP 'W)
 (fact 'border-mult 'A 'p 'q 'q (list 'MATMUL 'A UP 'W) VP 'b '(ONE A))
 (subst (list '= (list 'MATMUL 'A (list 'BORDER 'A 'b (list 'MATMUL 'A UP 'W) 'p 'q) BV)
              (list 'BORDER 'A (list '(MUL A) 'b '(ONE A)) (list 'MATMUL 'A (list 'MATMUL 'A UP 'W) VP) 'p 'q)))
 (fact 'ring-mul-right-id 'A 'b)
 (subst (list '= (list '(MUL A) 'b '(ONE A)) 'b))
 (subst EEQ)
-(fact 'matmul-type 'A 'p 'q 'q (list 'MATMUL 'A UP 'W) VP)   ; (U'.W).V' : p x q
 (fact 'border-type 'A 'b (list 'MATMUL 'A (list 'MATMUL 'A UP 'W) VP) 'p 'q)
 (rfl)
 (qed 'bordering)

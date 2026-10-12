@@ -181,6 +181,11 @@
   ;; without it the beta still fires and the leaf is unclosable -- silent until
   ;; qed.  Both call sites have k_ in NN in context.
   (fact 'nn-subset-zz 'k_)
+  ;; META round 3: `comb-kk-zero' instantiates at the ring
+  ;; NORMED-FIELD-AS-COMMUTATIVE-RING(RR-NORMED-FIELD), which owes definedness
+  ;; unless a structure predicate on it is in context: land the view's typing.
+  (fact 'rr-is-normed-field)
+  (fact 'normed-field-as-commutative-ring-is-commutative-ring 'RR-NORMED-FIELD)
   (mac 'BERNSTEIN-BASIS) (mac 'comb-kk-zero) (lam-b)
   (let* ((goal (dk-goal))
          (ifterm (cadr goal)))

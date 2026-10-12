@@ -624,6 +624,15 @@
 
 ;; now the metric laws.
 (dk-focus-goal! "is-metric(")
+;; RM1 2026-10-09: is-metric's macete owes DIST(BDD-METRIC s) defined, and an
+;; accessor is certified only under a structure hypothesis on its argument --
+;; here that is the goal.  An equation with the slot's value certifies it; the
+;; binders are fresh (tv_, pv_) so nothing the law leaves mint can meet them.
+(bmb-have! '(= (DIST (BDD-METRIC s))
+               (VNB-LAMBDA (LIST tv_ pv_) (CARTESIAN (PTS s) (PTS s))
+                 (/ ((DIST s) tv_ pv_) (+ 1 ((DIST s) tv_ pv_)))))
+  (lambda () (mac 'BDD-METRIC) (slot 'DIST) (nth-r)
+          (slot 'DIST) (rfl)))     ; the second read-off folds dist(s) on both sides
 (mac 'is-metric)
 (bmb-drive!)
 (for-each (lambda (n)

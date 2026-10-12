@@ -220,7 +220,7 @@ Declared by: `cc-coords-def`
 
 > _Reads as:_  cos z
 
-    cc-cos(z) := cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))
+    cc-cos(z) := cc-series-limit(vnb-lambda(cek_, nn, (num(-1) ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))
 
 ### `cc-exp`  — def-functoid · element/number-valued
 
@@ -274,7 +274,7 @@ Declared by: `cc-of-pair-def`
 
 > _Reads as:_  sin z
 
-    cc-sin(z) := cc-series-limit(vnb-lambda(cek_, nn, (-1 ^ cek_ * recip(factorial(succ(2 * cek_)))) * z ^ succ(2 * cek_)))
+    cc-sin(z) := cc-series-limit(vnb-lambda(cek_, nn, (num(-1) ^ cek_ * recip(factorial(succ(2 * cek_)))) * z ^ succ(2 * cek_)))
 
 ### `cc-sup-norm`  — def-functoid · element/number-valued
 

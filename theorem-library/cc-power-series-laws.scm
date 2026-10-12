@@ -917,6 +917,10 @@
       (cpsl-term-typ-r! i 'cpsrad_)
       (cpsl-core! i)
       (cpsl-beta!))))
+;; RM6 2026-10-09: the macete owes the definedness of B(0, r); type it as a SET first
+(if (not (dk-asm? (list 'IN cpsl-b 'SET)))
+    (begin (fact 'cc-is-metric-space)
+           (fact 'closed-ball-is-set 'CC-MS 0 'cpsrad_)))
 (mac 'IS-NORMALLY-CONVERGENT)
 (dk-conj-close!
   (lambda ()

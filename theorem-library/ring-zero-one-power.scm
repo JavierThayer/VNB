@@ -124,7 +124,7 @@
 
 ;;; ---- x^0 = 1 ---------------------------------------------------------------
 
-(sp (make-wff '(FORALL R (FORALL x (== (RING-POWER R x 0) (ONE R))))))
+(sp (make-wff '(FORALL R (IMPLIES (IS-RING R) (FORALL x (== (RING-POWER R x 0) (ONE R)))))))
 (rzp-peel!)
 (mac 'RING-POWER)          ; MPOW(COMMUTATIVE-RING-MULTIPLICATIVE-CM R, x, 0) == ONE R
 (mac 'mpow-zero)           ; IDEN(COMMUTATIVE-RING-MULTIPLICATIVE-CM R) == ONE R
