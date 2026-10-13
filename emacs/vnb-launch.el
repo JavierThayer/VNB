@@ -1570,6 +1570,53 @@ only.  With a prefix argument, open in the desktop viewer instead of
       (vnb-thm--show-pdf pdf (format "Proof of %s" name) external))))
 
 ;;;###autoload
+(defun vnb-display-proof (name pdf &optional with-defs external)
+  "Typeset the READER-MODE proof of NAME into PDF and open it: `display-proof'.
+
+The prompts are the arguments of `(display-proof NAME PDF [with-defs [2]])':
+the theorem (completion over every theorem name; a certified theorem's proof
+is run first, from its file, which may take minutes), the PDF file (default
+reader-NAME.pdf in the TeX cache), and the Definitions block -- none, the
+statement's defined heads (`with-defs'), or those plus the heads of their
+definitions (`with-defs 2').  With a prefix argument, open in the desktop
+viewer instead of `doc-view-mode'."
+  (interactive
+   (let* ((name (vnb-thm--read-name "Display proof of" (vnb-thm--names) 'confirm))
+          (_ (when (string-empty-p name) (user-error "No theorem name given")))
+          (_ (vnb-tex--ensure-cache-dir))
+          (pdf (read-file-name "PDF file: " vnb-tex-cache-dir nil nil
+                               (concat "reader-" name ".pdf")))
+          (defs (completing-read "Definitions block (none / with-defs / with-defs 2): "
+                                 '("none" "with-defs" "with-defs 2") nil t nil nil "none")))
+     (list name pdf
+           (cond ((equal defs "with-defs") 1) ((equal defs "with-defs 2") 2))
+           current-prefix-arg)))
+  (vnb-launch--ensure-prover)
+  (when (string-empty-p name) (user-error "No theorem name given"))
+  (let* ((pdf  (expand-file-name pdf))
+         (pdf  (if (string-suffix-p ".pdf" pdf t) pdf (concat pdf ".pdf")))
+         (opts (cond ((null with-defs) "")
+                     ((eql with-defs 1) " 'with-defs")
+                     (t (format " 'with-defs %d" with-defs))))
+         (_    (when (file-exists-p pdf) (ignore-errors (delete-file pdf))))
+         (_    (message "VNB: display-proof of %s (a certified theorem runs its file first) ..." name))
+         (res  (string-trim (or (vnb-eval-string
+                                 (format "(display-proof '%s %S%s)" name pdf opts)
+                                 vnb-long-command-budget)
+                                "")))
+         (out  (condition-case nil
+                   (let ((v (car (read-from-string res)))) (and (stringp v) v))
+                 (error nil))))
+    (cond ((string-prefix-p ";; error" res)
+           (user-error "display-proof of `%s' failed: %s" name res))
+          ((and out (string-suffix-p ".pdf" out t) (file-exists-p out))
+           (vnb-thm--show-pdf out (format "Proof of %s" name) external))
+          ((and out (file-exists-p out))
+           (find-file-other-window out)
+           (message "pdflatex produced no PDF; this is the TeX it was given"))
+          (t (user-error "display-proof of `%s': no file came back (prover: %s)" name res)))))
+
+;;;###autoload
 (defun vnb-show-proof-script (name)
   "Show the re-runnable script -- the PAGE -- of the stored proof of NAME.
 
@@ -3515,6 +3562,7 @@ monospace font is installed.")
   '("VNB"
     ["Find Theorem..."    vnb-find-theorem      t]
     ["View Proof as PDF..." vnb-view-proof-pdf  t]
+    ["Display Proof..."   vnb-display-proof     t]
     ["View Proof Script..." vnb-show-proof-script t]
     ["Save Proof Script..." vnb-pf-save-proof-script t]
     ["Save Session Script..." vnb-ws-save-session t]
