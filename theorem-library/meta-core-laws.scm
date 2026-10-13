@@ -801,7 +801,10 @@
 (dk-peel!) (mc-hyps-in-lit! '(LIST s1 s2))
 (qed 'hyps-in-2)
 
-(sp (make-wff '(FORALL s1 (FORALL mczS_ (IMPLIES (HYPS-IN (LIST s1) mczS_) (IN s1 mczS_))))))
+;; META-4 repair (round 3): the macete instantiation at (LIST s1) now owes (LIST s1) = (LIST s1);
+;; under the list doctrine that holds only when s1 is a set, so the definedness of the list is an
+;; antecedent.  Every citer holds hs = (LIST s1), which certifies it.
+(sp (make-wff '(FORALL s1 (FORALL mczS_ (IMPLIES (= (LIST s1) (LIST s1)) (IMPLIES (HYPS-IN (LIST s1) mczS_) (IN s1 mczS_)))))))
 (dk-peel!)
 (let ((u (dk-landed-1 (lambda () (mac-h 'hyps-in '(HYPS-IN (LIST s1) mczS_))))))
   (dk-have! '(IN 1 NN) (lambda () (arith)))
@@ -921,6 +924,7 @@
     (dk-rewrite-h! '(IN c SEQ-SET) 'c (caddr ceq))
     (let* ((h2 (dk-rewrite-h! '(HYPS-IN hs (DERIVABLE tt)) 'hs (caddr heq)))
            (s1 (cadr (cadr h2))))
+      (dk-have! `(= (LIST ,s1) (LIST ,s1)) (lambda () (rfl)))
       (dk-cite! 'hyps-in-1-elim s1 '(DERIVABLE tt))
       (dk-cite! 'der-in-seq 'tt s1))
     vs))
