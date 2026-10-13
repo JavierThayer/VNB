@@ -39,7 +39,7 @@
               (let* ((entry (car rec)) (g (cadr rec)) (a (caddr rec)) (open (list-ref rec 4))
                      (added (sort (filter (lambda (k)(not (memv k prev))) open) <)))
                 (set! prev open)
-                (set! out (cons (list entry g a added) out))))
+                (set! out (cons (list entry g a added open) out))))
             trace)
            (reverse out)))))
 
@@ -58,13 +58,14 @@
                           (hash-table-ref/default *proof-start-counter* name *fresh-counter*)))
                (sp (make-wff goal))
                (set! acc (list (list (list 'sp) (proof-tex--focus-goal)
-                                     (proof-tex--focus-asms) (new-ids))))
+                                     (proof-tex--focus-asms) (new-ids) (proof-tex--open-ids))))
                (fluid-let ((*replaying?* #t))
                  (for-each
                   (lambda (entry)
                     (apply-recorded-cmd! (car entry) (cdr entry))
-                    (set! acc (cons (list entry (proof-tex--focus-goal)
-                                          (proof-tex--focus-asms) (new-ids)) acc)))
+                    (let ((added (new-ids)))
+                      (set! acc (cons (list entry (proof-tex--focus-goal)
+                                            (proof-tex--focus-asms) added (proof-tex--open-ids)) acc))))
                   script)))))
           (reverse acc)))))
 
@@ -160,7 +161,8 @@
               (let* ((blk (list-head rs 13))
                      (fst (car blk)) (lst (list-ref blk 12)) (rec (ir-rec lst))
                      (nids (apply append (map (lambda (ir) (list-ref (ir-rec ir) 3)) blk)))
-                     (syn (list (list 'CASE-SPLIT P (ir-idx lst)) (cadr rec) (caddr rec) nids)))
+                     (syn (list (list 'CASE-SPLIT P (ir-idx lst)) (cadr rec) (caddr rec) nids
+                                (if (> (length rec) 4) (list-ref rec 4) '()))))
                 (loop (list-tail rs 13) (cons (cons (ir-idx fst) syn) out)))
               (loop (cdr rs) (cons (car rs) out)))))))
 
@@ -196,8 +198,12 @@
 ;; [structural* content] run (structural leads into the content step it sets up).
 ;; Then a group whose content is a pure CLOSER is merged into the preceding
 ;; group (so "by lemma L" and "which holds" become one bullet).
-(define (proof-reader--group irecs)
+;; STOPS (optional): step indices at which a claim's proof ends; no merge joins the
+;; row ending there to the next one, so a claim's block closes where its proof does.
+(define (proof-reader--group irecs #!optional stops)
   (let* ((ht (proof-reader--annotate irecs))
+         (stops (if (default-object? stops) '() stops))
+         (stop-after? (lambda (g) (and (pair? g) (memv (ir-idx (car (last-pair g))) stops) #t)))
          (first-content
           (let loop ((rs irecs))
             (cond ((null? rs) #f)
@@ -225,7 +231,7 @@
           (for-each
            (lambda (g)
              (let ((main (proof-reader--group-main g)))
-               (if (and main (proof-reader--closer? main) (pair? merged))
+               (if (and main (proof-reader--closer? main) (pair? merged) (not (stop-after? (car merged))))
                    (set-car! merged (append (car merged) g))   ; fold into previous
                    (set! merged (cons g merged)))))
            glist)
@@ -234,7 +240,7 @@
             (for-each
              (lambda (g)
                (if (and (eq? (grp-kind g) 'typing) (pair? tmerged)
-                        (eq? (grp-kind (car tmerged)) 'typing))
+                        (eq? (grp-kind (car tmerged)) 'typing) (not (stop-after? (car tmerged))))
                    (set-car! tmerged (append (car tmerged) g))
                    (set! tmerged (cons g tmerged))))
              (reverse merged))
@@ -247,7 +253,7 @@
             (let ((imerged '()))
               (for-each
                (lambda (g)
-                 (if (and (inst-grp? g) (pair? imerged) (inst-grp? (car imerged)))
+                 (if (and (inst-grp? g) (pair? imerged) (inst-grp? (car imerged)) (not (stop-after? (car imerged))))
                      (set-car! imerged (append (car imerged) g))
                      (set! imerged (cons g imerged))))
                (reverse tmerged))
@@ -445,6 +451,104 @@
           ((eq? (car rs) primary) (if prev (cadr (ir-rec prev)) pre-goal))
           (else (loop (cdr rs) (car rs))))))
 
+;;; --- claims and where a hypothesis came from (the user, 2026-10-13) --------
+;;; "Claim: is-pk-space(n) -- is the claim made because it's obvious or because the
+;;; proof follows below?"; "(the claim holds by assumption) -- which claim?";
+;;; "in the hypothesis -- which hypothesis?".  A `cut' with a formula is a CLAIM,
+;;; numbered in order; its proof is the run of steps that follows, up to the step
+;;; after which no goal opened by the cut or by a later step is open, apart from
+;;; one of the cut's two goals (the main one, which carries the claim onward).
+;;; Records carry the open-leaf set as their fifth element.  A claim whose end is
+;;; not found this way (the driver moved focus off it) is printed without a range.
+;;; Each claim: (cut-idx number formula end-idx-or-#f).
+(define (proof-reader--claims irecs)
+  (let loop ((rs irecs) (n 1) (out '()))
+    (if (null? rs) (reverse out)
+        (let* ((ir (car rs)) (r (ir-rec ir)) (e (car r)))
+          (if (and (eq? (car e) 'cut) (pair? (cdr e)) (pair? (cadr e)))
+              (let* ((cutnew (list-ref r 3))
+                     (end (and (>= (length cutnew) 2)
+                               (let scan ((rest (cdr rs)) (later '()))
+                                 (if (null? rest) #f
+                                     (let* ((rr (ir-rec (car rest)))
+                                            (later (append (list-ref rr 3) later))
+                                            (open (if (> (length rr) 4) (list-ref rr 4) '())))
+                                       (if (and (not (find-first (lambda (k) (memv k later)) open))
+                                                (<= (length (filter (lambda (k) (memv k cutnew)) open)) 1))
+                                           (ir-idx (car rest))
+                                           (scan (cdr rest) later))))))))
+                (loop (cdr rs) (+ n 1) (cons (list (ir-idx ir) n (cadr e) end) out)))
+              (loop (cdr rs) n out))))))
+(define (proof-reader--claim-at claims idx)
+  (find-first (lambda (c) (= (car c) idx)) claims))
+;; the claims whose proof ends at one of the indices IDXS (innermost first)
+(define (proof-reader--claims-ending claims idxs)
+  (reverse (filter (lambda (c) (and (cadddr c) (memv (cadddr c) idxs))) claims)))
+(define (proof-reader--claims-text cs)
+  (proof-tex--join (map (lambda (c) (string-append "Claim " (number->string (cadr c)))) cs) " and "))
+
+;; formula -> the step index at which it first entered the context; the setup's
+;; last index (the hypotheses of the proposition are in by then).  Bound by the body.
+(define *proof-reader-first-seen* #f)
+(define *proof-reader-setup-hi* 0)
+(define (proof-reader--first-seen-table irecs ht)
+  (let ((t (make-equal-hash-table)))
+    (for-each (lambda (ir)
+                (for-each (lambda (a) (if (not (hash-table-ref/default t a #f))
+                                          (hash-table-set! t a (ir-idx ir))))
+                          (hash-table-ref/default ht (ir-idx ir) '())))
+              irecs)
+    t))
+;; " of the proposition" / " (from step N)" / "" for a hypothesis H
+(define (proof-reader--hyp-origin h)
+  (let ((i (and *proof-reader-first-seen* (hash-table-ref/default *proof-reader-first-seen* h #f))))
+    (cond ((or (member h *proof-reader-claim-guards*) (and i (<= i *proof-reader-setup-hi*)))
+           " of the proposition")
+          (i (string-append " (from step " (number->string i) ")"))
+          (else ""))))
+
+;; "at x := t1, y := t2": the cited theorem's leading universals paired with the
+;; terms `fact' recorded (flat, in order).  The theorem's own variables get display
+;; names of their own (the same renaming, run on the cited statement alone), so an
+;; agent-tagged binder `gouo_' reads as a letter.
+(define (proof-reader--fact-bindings thm terms)
+  (let* ((stmt (and (symbol? thm) (hash-table-ref/default *theorem-table* thm #f)))
+         (vars (let walk ((e stmt) (k (length terms)) (acc '()))
+                 (cond ((= k 0) (reverse acc))
+                       ((and (pair? e) (eq? (car e) 'FORALL) (= (length e) 3) (symbol? (cadr e)))
+                        (walk (caddr e) (- k 1) (cons (cadr e) acc)))
+                       ((and (pair? e) (eq? (car e) 'IMPLIES) (= (length e) 3)) (walk (caddr e) k acc))
+                       (else (reverse acc)))))
+         (own-names (if stmt (proof-reader--variable-names stmt '()) '())))
+    (cond ((null? terms) "")
+          ((= (length vars) (length terms))
+           (string-append " at "
+             (proof-tex--join
+              (map (lambda (v t)
+                     (string-append "$" (fluid-let ((*tex-variable-names* own-names)) (expr->tex v))
+                                    " := " (expr->tex-top t) "$"))
+                   vars terms)
+              ", ")))
+          (else (string-append " at "
+                  (proof-tex--join (map (lambda (t) (string-append "$" (expr->tex-top t) "$")) terms) ", "))))))
+;; the antecedents of the landed instantiation chain that were already in context:
+;; the hypotheses of the cited theorem the citation discharged silently
+(define (proof-reader--discharged news asms)
+  (let loop ((ns news) (acc '()))
+    (cond ((null? ns) (reverse acc))
+          ((and (pair? (car ns)) (eq? (caar ns) 'IMPLIES) (= (length (car ns)) 3)
+                (member (cadr (car ns)) asms) (not (member (cadr (car ns)) news))
+                (not (member (cadr (car ns)) acc)))
+           (loop (cdr ns) (cons (cadr (car ns)) acc)))
+          (else (loop (cdr ns) acc)))))
+(define (proof-reader--discharged-text hs)
+  (cond ((null? hs) "")
+        ((<= (apply + (map (lambda (a) (string-length (expression->string a))) hs)) 120)
+         (string-append " (its hypothes" (if (null? (cdr hs)) "is " "es ")
+                        (proof-reader--join-and (map proof-reader--atom-tex hs))
+                        (if (null? (cdr hs)) " is" " are") " in context)"))
+        (else (string-append " (its " (number->string (length hs)) " hypotheses are in context)"))))
+
 ;; gloss for the PRIMARY content record; pre-goal = goal of the record before it
 ;; (see proof-reader--goal-before), pre-asms = assumptions before the group.
 ;; Returns a LaTeX fragment -- prose, with any formula shown as a displayed
@@ -472,6 +576,8 @@
                       (if goal (string-append ", reduce to" (proof-reader--display goal)) ".")))
       ((fact ta)
        (string-append "By " (proof-reader--cite (and (pair? args)(car args)))
+                      (if (pair? args) (proof-reader--fact-bindings (car args) (cdr args)) "")
+                      (proof-reader--discharged-text (proof-reader--discharged news asms))
                       (cond ((pair? news)      ; show only the CONCLUSION it detaches
                              (string-append ":" (proof-reader--display (car news))))
                             (goal (string-append ", reduce to" (proof-reader--display goal)))
@@ -497,8 +603,12 @@
        (string-append "Read off the component " (proof-reader--cite (and (pair? args) (car args)))
                       (if goal (string-append " of the structure, reduce to" (proof-reader--display goal)) ".")))
       ((mac-h)
-       (string-append "Unfolding " (proof-reader--cite (and (pair? args) (car args))) " in the hypothesis"
-                      (if (pair? news) (string-append ":" (proof-reader--display (car news))) ".")))
+       ;; the hypothesis by name and by origin (the user, 2026-10-13: "which hypothesis?")
+       (let* ((h (and (pair? args) (pair? (cdr args)) (cadr args)))
+              (h (if (and (integer? h) (exact? h) (>= h 1) (<= h (length pre-asms))) (list-ref pre-asms (- h 1)) h)))
+         (string-append "Unfolding " (proof-reader--cite (and (pair? args) (car args))) " in the hypothesis"
+                        (if (pair? h) (string-append " $" (proof-reader--atom-tex h) "$" (proof-reader--hyp-origin h)) "")
+                        (if (pair? news) (string-append ", we get" (proof-reader--display (car news))) "."))))
       ((lam-b-h)
        (string-append "$\\beta$-reducing the hypothesis"
                       (if (pair? news) (string-append ":" (proof-reader--display (car news))) ".")))
@@ -932,7 +1042,8 @@
                  (list (proof-reader--subst-syms (car r) m)
                        (proof-reader--subst-syms (cadr r) m)
                        (map (lambda (a) (proof-reader--subst-syms a m)) (caddr r))
-                       (list-ref r 3)))
+                       (list-ref r 3)
+                       (if (> (length r) 4) (list-ref r 4) '())))
                records)))))
 
 ;;; --- display names for the variables (notes-59, 2026-10-05) ----------------
@@ -1078,7 +1189,8 @@
          (guards  (begin (set! *proof-reader-claim-guards* (proof-reader--claim-guards claim)) #t))
          (indexed (proof-reader--collapse-em (proof-reader--index records)))
          (ht      (proof-reader--annotate indexed))
-         (grp     (proof-reader--group indexed))
+         (claims  (proof-reader--claims indexed))
+         (grp     (proof-reader--group indexed (filter (lambda (x) x) (map cadddr claims))))
          (setup   (car grp))
          (groups  (cdr grp))
          ;; setup sequent = state just before the first content step = the last
@@ -1086,13 +1198,19 @@
          (setup-last (if (pair? setup) (ir-rec (car (last-pair setup))) (car records)))
          (setup-asms (caddr setup-last))
          (setup-goal (cadr setup-last))
-         (setup-range (if (pair? setup) (proof-reader--range setup) "0")))
-   (fluid-let ((*tex-variable-names* (proof-reader--variable-names claim records)))
+         (setup-range (if (pair? setup) (proof-reader--range setup) "0"))
+         (opened  '()))                     ; claims whose proof is an indented block now open
+   (fluid-let ((*tex-variable-names* (proof-reader--variable-names claim records))
+               (*proof-reader-first-seen* (proof-reader--first-seen-table indexed ht))
+               (*proof-reader-setup-hi* (if (pair? setup) (apply max (map ir-idx setup)) 0)))
     (apply string-append
      "\\begin{proposition*}[" (proof-tex--escape-tt (symbol->string name)) "]\n"
      (proof-reader--statement claim)
      "\n\\end{proposition*}\n\n"
      "\\begin{proof}\n"
+     "{\\small\\emph{The numbers in the margin are step numbers of the full proof "
+     "(\\texttt{proof-tex}); a range such as 13--15 is several steps shown as one row.  "
+     "A claim is proved by the indented rows under it.}}\\par\\smallskip\n"
      "\\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]\n"
      (append
       ;; walk groups, threading the pre-goal / pre-asms (the setup sequent seeds
@@ -1102,7 +1220,9 @@
       ;; P(n)=>P(n+1) (indvar free again).  See proof-reader--gloss for the ni row.
       (let loop ((gs groups) (pre-goal setup-goal) (pre-asms setup-asms)
                  (indvar #f) (phase 'none) (csplits '()) (rows '()))
-        (if (null? gs) (reverse rows)
+        (if (null? gs)
+            ;; a claim whose block is still open (its end fell inside a merged row): close it
+            (reverse (cons (apply string-append (map (lambda (c) "  \\end{itemize}\n") opened)) rows))
             (let* ((g (car gs))
                    (primary (proof-reader--group-primary g))
                    (main    (and primary (ir-rec primary)))
@@ -1116,8 +1236,22 @@
                    (main-pre-goal (if primary
                                       (proof-reader--goal-before g primary pre-goal)
                                       pre-goal))
+                   (idxs    (map ir-idx g))
+                   (claim-here (and primary (proof-reader--claim-at claims (ir-idx primary))))
+                   (ending  (proof-reader--claims-ending claims idxs))
+                   ;; a claim whose proof is in later rows opens an indented block
+                   (opens?  (and claim-here (cadddr claim-here) (not (memv (cadddr claim-here) idxs))))
                    (gloss   (cond ((eq? kind 'typing) (proof-reader--typing-row g ht))
                                   (inst-run? (proof-reader--inst-row g ht))
+                                  (claim-here
+                                   (let ((lo (+ (car claim-here) 1)) (hi (cadddr claim-here)))
+                                     (string-append
+                                      "\\textbf{Claim " (number->string (cadr claim-here)) "}"
+                                      (cond ((not opens?) "")
+                                            ((= lo hi) (string-append " (proved in step " (number->string lo) ")"))
+                                            (else (string-append " (proved in steps " (number->string lo)
+                                                                 "--" (number->string hi) ")")))
+                                      ":" (proof-reader--display (caddr claim-here)))))
                                   (main (proof-reader--gloss main main-pre-goal pre-asms))
                                   (else "")))
                    ;; What a merged closer closed depends on what it followed: a
@@ -1131,10 +1265,24 @@
                    ;; "(the claim is established)" said nothing about how; the user asked
                    ;; for the oracle, not the hypotheses it used).
                    (how     (and closer (proof-reader--closer-how closer)))
-                   (close-txt (cond ((not closer) "")
-                                    (side? (if by-ass?
-                                               "  \\emph{(the claim holds by assumption)}"
-                                               (string-append "  \\emph{(the claim is established" how ")}")))
+                   ;; the claims this row finishes, named (not "the claim"); a claim
+                   ;; stated and closed in this same row needs no name
+                   (named   (filter (lambda (c) (not (eq? c claim-here))) ending))
+                   (close-txt (cond ((pair? named)
+                                     (string-append "  \\emph{("
+                                       ;; the closer is named only when it is the one that closed
+                                       ;; the claim (not a claim stated and closed in this row)
+                                       (cond ((or (not closer) (memq claim-here ending)) "")
+                                             (by-ass? "it holds by assumption; ")
+                                             (else (string-append "established" how "; ")))
+                                       "this proves " (proof-reader--claims-text named) ")}"))
+                                    ((not closer) "")
+                                    ;; a claim stated in this row is "the claim"; otherwise what
+                                    ;; was closed is a side condition a tactic posted (a typing)
+                                    (side? (let ((what (if claim-here "the claim" "the side condition")))
+                                             (if by-ass?
+                                                 (string-append "  \\emph{(" what " holds by assumption)}")
+                                                 (string-append "  \\emph{(" what " is established" how ")}"))))
                                     (by-ass? "  \\emph{(holds by assumption)}")
                                     (else (string-append "  \\emph{(closes" how ")}"))))
                    (is-ni   (and main (eq? (car (car main)) 'ni)))
@@ -1159,7 +1307,13 @@
                          (car ch+cs)
                          "  \\item[\\textbf{" (proof-reader--range g) "}] "
                          (proof-reader--suppose-prefix g primary pre-asms setup-asms indvar)
-                         gloss close-txt "\n"))
+                         gloss close-txt "\n"
+                         ;; close the blocks of the claims proved here, then open this claim's
+                         (apply string-append
+                                (map (lambda (c) (if (memq c opened) "  \\end{itemize}\n" "")) named))
+                         (if opens? "  \\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]\n" "")))
+                   (opened! (begin (set! opened (filter (lambda (c) (not (memq c named))) opened))
+                             (if opens? (set! opened (cons claim-here opened)))))
                    ;; thread the state AFTER the whole group (its last record),
                    ;; not the first content record -- so a merged run (inst/typing)
                    ;; hands the next step its true post-run goal/asms.
@@ -1617,8 +1771,10 @@
                       ((and rerooted (file-exists? rerooted)) rerooted)
                       (else #f))))
     (or found
-        ;; the fallback: scan the proof files for the qed form
-        (let ((needle (string-append "(qed '" (symbol->string name) ")")))
+        ;; the fallback: scan the proof files for the qed form -- `(qed 'NAME)' or a
+        ;; file's own qed helper, `(ni-qed! 'NAME)' (2026-10-13: nn-lt-double was not found)
+        (let ((needle (string-append "qed '" (symbol->string name) ")"))
+              (needle! (string-append "qed! '" (symbol->string name) ")")))
           (let loop ((files (directory-read (string-append *prover-dir* "theorem-library/") #f)))
             (cond ((null? files) #f)
                   ((let ((f (->namestring (car files))))
@@ -1628,7 +1784,8 @@
                               (let scan ()
                                 (let ((line (read-line port)))
                                   (cond ((eof-object? line) #f)
-                                        ((string-search-forward needle line 0) #t)
+                                        ((or (string-search-forward needle line 0)
+                                             (string-search-forward needle! line 0)) #t)
                                         (else (scan)))))))
                           f)))
                   (else (loop (cdr files)))))))))

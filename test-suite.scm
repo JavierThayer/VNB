@@ -4306,9 +4306,11 @@
 (check-true "a cut's closer says SIDE goal; the closer of the main goal does not"
   (lambda ()
     (let ((s (proof-reader 'nn-lt-double)))
-      (and (string-search-forward "Claim:" s 0)
-           ;; notes-62 (2026-10-07): the parenthetical names the oracle or rule that closed it
+      (and (string-search-forward "\\textbf{Claim 1}" s 0)
+           ;; notes-62 (2026-10-07): the parenthetical names the oracle or rule that closed it;
+           ;; 2026-10-13: a claim proved in later rows is closed by NAME ("this proves Claim 2")
            (string-search-forward "(the claim is established by " s 0)
+           (string-search-forward "this proves Claim 2)" s 0)
            ;; the final row closes the THEOREM: it must not claim to be a side goal
            (string-search-forward "(holds by assumption)" s 0)
            (not (string-search-forward "(the claim holds by assumption)" s 0))
@@ -14783,8 +14785,32 @@
            (let ((s (proof-reader 'rdr-claim-oracle-probe)))
              ;; (the theorem's own closing `ineq' is folded into the claim's group by the
              ;; reader's grouping, so only the claim's parenthetical is checked)
-             (and (string-search-forward "Claim:" s 0)
+             (and (string-search-forward "\\textbf{Claim 1}" s 0)
                   (string-search-forward "(the claim is established by linear arithmetic)" s 0)
+                  #t))))))
+
+;; The user, 2026-10-13 (nsl-initiator-agreement): "Claim: -- obvious, or proved below?",
+;; "(the claim holds by assumption) -- which claim?".  A claim whose proof takes later
+;; rows is numbered with its step range, its rows are an indented block, and the row
+;; that finishes it names it; the block closes where its proof ends (the theorem's own
+;; closing step is not merged into it).
+(check-true "reader: a claim proved in later rows reads 'Claim 1 (proved in step ...)' and 'this proves Claim 1'"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (= y x) (IMPLIES (< 0 y) (< 0 (+ x 1)))))))))
+      (quietly (lambda ()
+        (dk-peel!)
+        (cut '(< 0 x))
+        (subst '(= x y))
+        (ass)
+        (dk-ineq! '(IN x RR) '(< 0 x))))
+      (and (proof-done? *ps*)
+           (begin (qed 'rdr-claim-block-probe) #t)
+           (let ((s (proof-reader 'rdr-claim-block-probe)))
+             (and (string-search-forward "\\textbf{Claim 1} (proved in step" s 0)
+                  (string-search-forward "this proves Claim 1)" s 0)
+                  (string-search-forward "of the full proof" s 0)
+                  (not (string-search-forward "5--7" s 0))
                   #t))))))
 
 ;; ----- the kit, 2026-10-07 (WEEK3 findings 1 and 2, and S-2b's request) -----

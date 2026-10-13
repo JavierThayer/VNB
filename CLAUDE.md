@@ -763,7 +763,15 @@ script in this image" (2026-10-05, while the primary was swapping under a compil
 real failure, and "no proof script" is said only when the file is missing after an answer. The panel check
 runs a prover on the primary: run it with nothing else running here. The reader's rules
 of 2026-10-04 (notes-58): trivial runs as one "Clearly ..." line, substitutions named, one-line equations,
-Suppose / Hence for the di / ai inside a proof, "Claim:" for a cut; examples in `docs/readability/`. **notes-59
+Suppose / Hence for the di / ai inside a proof, "Claim:" for a cut; examples in `docs/readability/`.
+**2026-10-13 (the user's questions on nsl-initiator-agreement):** a legend says the margin numbers are proof-tex
+step numbers; a cut is "Claim k (proved in steps a--b)", its proof an indented block that ends where the proof
+does (`proof-reader--claims`, from the open-leaf set the records now carry; no row merge crosses a claim's end),
+and the row that finishes it says "this proves Claim k"; `mac-h` names the hypothesis it unfolds and its origin
+("of the proposition" / "from step N"); a citation lists the values plugged in ("at x := t", the cited theorem's
+variables display-renamed on their own) and the hypotheses it discharged from context. A same-row closer of a
+non-claim side goal says "the side condition". `display-proof` also finds a theorem closed by a file's own qed
+helper (`(ni-qed! 'NAME)`). Example: `docs/readability/nsl-initiator-agreement-2026-10-13.{tex,pdf}`. **notes-59
 (2026-10-05 evening):** a formula of plain width <= 60 stays INLINE after its citation (`proof-reader--display`,
 `*proof-reader-inline-width*`); a relation or connective standing alone sheds its outer parentheses
 (`expr->tex-top`, also on every row of a broken formula and on statement antecedents); a citation reads "By the
