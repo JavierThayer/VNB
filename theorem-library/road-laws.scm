@@ -248,6 +248,7 @@
 (dk-have! '(SUBSET (CCINT a b) (PTS RR-MS))
   (lambda () (slot 'PTS) (fact 'ccint-subset-rr 'a 'b) (ass)))
 (fact 'subspace-is-metric-space 'RR-MS rd-cc)
+(dk-have! (list 'IN rd-cc 'SET) (lambda () (dk-sethood! rd-cc)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS rd-cc)
 (define (rd-to-pts! f cod)
   (dk-have! (list 'IN f (list 'FUN (list 'PTS rd-sub) cod))

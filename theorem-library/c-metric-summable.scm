@@ -291,8 +291,13 @@
 ;;; L6.  c-metric-carrier -- the carrier slot, read off the functoid.
 ;;; =====================================================================
 
-(sp (make-wff '(FORALL s (FORALL w (== (PTS (C-METRIC-W s w)) (PTS s))))))
-(di)
+;;; R4-W2 2026-10-13: GUARDED by IS-C-METRIC-SPACE(s) (R4 report s.3, species (g); the
+;;; user's ruling of 2026-10-13 replaces the drafted IS-METRIC-SPACE(s), since s here is a
+;;; countably-metrised space and every citer holds IS-C-METRIC-SPACE(s)).  Unguarded the
+;;; read-off is true but unprovable: the tuple [PTS s, lambda] denotes only when PTS(s) is
+;;; a set, which the certificate sees through the structure hypothesis.
+(sp (make-wff '(FORALL s (FORALL w (IMPLIES (IS-C-METRIC-SPACE s) (== (PTS (C-METRIC-W s w)) (PTS s)))))))
+(dk-peel!)
 (mac 'C-METRIC-W)
 ;; `slot' rewrites PTS to nth(1,.) at EVERY occurrence, the RIGHT-hand PTS(s)
 ;; included, so after the nth reduction the two sides are pts(s) and nth(1,s)

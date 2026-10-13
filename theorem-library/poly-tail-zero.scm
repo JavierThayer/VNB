@@ -62,9 +62,12 @@
 ;;; FORWARD -- a polynomial vanishes past some index
 ;;; =====================================================================
 
+;; R4 2026-10-13 (the user's approval): the three theorems of this file are GUARDED
+;; by IS-RING(a_), as poly-membership is: without a structure hypothesis on a_ the
+;; MONALG tuple, hence CARR(POLY a_), need not denote.
 (sp (make-wff (list 'FORALL 'a_ (list 'FORALL 'f_
-   (list 'IMPLIES '(IN f_ (CARR (POLY a_))) plt-tail)))))
-(di) (di)
+   (list 'IMPLIES '(IS-RING a_) (list 'IMPLIES '(IN f_ (CARR (POLY a_))) plt-tail))))))
+(let plt-lp () (if (memq (car (dk-goal)) '(FORALL IMPLIES)) (begin (di) (plt-lp))))
 (mac-h 'poly-membership '(IN f_ (CARR (POLY a_))))
 (dk-split! (list 'AND '(IN f_ (SQN (CARR a_))) (list 'IN (list 'CARD plt-supp) 'NN)))
 ;; The support is a subset of NN: its members are points of CARR(NN-ADD-MONOID),
@@ -106,9 +109,9 @@
 ;;; =====================================================================
 
 (sp (make-wff (list 'FORALL 'a_ (list 'FORALL 'f_
-   (list 'IMPLIES '(IN f_ (SQN (CARR a_)))
-     (list 'IMPLIES plt-tail '(IN f_ (CARR (POLY a_)))))))))
-(di) (di)
+   (list 'IMPLIES '(IS-RING a_) (list 'IMPLIES '(IN f_ (SQN (CARR a_)))
+     (list 'IMPLIES plt-tail '(IN f_ (CARR (POLY a_))))))))))
+(let plt-lp () (if (memq (car (dk-goal)) '(FORALL IMPLIES)) (begin (di) (plt-lp))))
 (let* ((ex  (any-pred (dk-head? 'FORSOME) (dk-asms)))
        (t2  (dk-split! (any-pred (dk-head? 'AND) (dk-landed (lambda () (ai ex))))))
        (typ (any-pred (dk-head? 'IN) t2))
@@ -176,9 +179,9 @@
 ;;; =====================================================================
 
 (sp (make-wff (list 'FORALL 'a_ (list 'FORALL 'f_
-   (list 'IFF '(IN f_ (CARR (POLY a_)))
-     (list 'AND '(IN f_ (SQN (CARR a_))) plt-tail))))))
-(di)
+   (list 'IMPLIES '(IS-RING a_) (list 'IFF '(IN f_ (CARR (POLY a_)))
+     (list 'AND '(IN f_ (SQN (CARR a_))) plt-tail)))))))
+(di) (di)
 (plt-iff!
   (lambda ()
     (fact 'poly-tail-zero-fwd 'a_ 'f_)

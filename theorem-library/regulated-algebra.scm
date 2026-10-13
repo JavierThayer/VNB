@@ -461,6 +461,7 @@
   (fact 'subclass-of-set-is-set rga-cc 'RR)
   (dk-have! (list 'SUBSET rga-cc '(PTS RR-MS)) (lambda () (subst '(== (PTS RR-MS) RR)) (ass)))
   (fact 'subspace-is-metric-space 'RR-MS rga-cc)
+  (dk-have! (list 'IN rga-cc 'SET) (lambda () (dk-sethood! rga-cc)))   ; R4-W2: subspace-* guarded by A in SET
   (fact 'subspace-pts 'RR-MS rga-cc)
   ;; the trace lies in u, pointwise.
   (dk-have! (list 'FORALL 'msy_ (list 'IMPLIES (list 'IN 'msy_ rga-cc) '(IN (pgam msy_) u)))

@@ -104,7 +104,11 @@
 ;;; The carrier of the canonical instance.
 ;;; =======================================================================
 
-(sp (make-wff '(FORALL s (== (PTS (C-METRIC s)) (PTS s)))))
+;;; R4-W2 2026-10-13: GUARDED by IS-C-METRIC-SPACE(s) (the user's ruling of 2026-10-13,
+;;; with c-metric-carrier): C-METRIC unfolds to the tuple C-METRIC-W(s, w), which denotes
+;;; only when PTS(s) is a set; the structure hypothesis certifies that.  Both citers
+;;; (below, and frechet-metric.scm) hold IS-C-METRIC-SPACE of their space.
+(sp (make-wff '(FORALL s (IMPLIES (IS-C-METRIC-SPACE s) (== (PTS (C-METRIC s)) (PTS s))))))
 (dk-peel!)
 (mac 'C-METRIC)
 (let* ((gl (dk-goal)) (cw (cadr (cadr gl))) (vs (cadr cw)) (w (caddr cw)))

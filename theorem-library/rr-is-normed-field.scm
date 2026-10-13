@@ -291,3 +291,59 @@
 (qed 'rr-is-normed-field)
 (topic! 'rr-is-normed-field 'algebra)
 (alias! 'rr-is-normed-field "the reals are a normed field under abs")
+
+;;; =====================================================================
+;;; THE RING VIEW AT THE REALS -- the tuple a real normed vector space's SCAL
+;;; slot holds (moved here 2026-10-13, R4-G, from normed-field-ring-view.scm,
+;;; which keeps the generic layer).  These are the bridge normed-vector-space.scm
+;;; needs: its laws read scalars through carr / add / mul / one (scal(s)), and with
+;;; the scalars pinned to NORMED-FIELD-AS-COMMUTATIVE-RING(RR-NORMED-FIELD) each is
+;;; one `subst' away from the six equations below.  Since R4 `nth-r' owes the view
+;;; tuple [carr(RR-NORMED-FIELD), add(..), ...] as L = L; its components are
+;;; certified by IS-NORMED-FIELD(RR-NORMED-FIELD), proved just above, which the
+;;; owed-leaf hook cites.  Five steps: slot, unfold, nth-r, slot (the instance
+;;; value macete), qrfl.
+;;; =====================================================================
+(define (rnf-ring-view-prove! name acc term val)
+  (sp (make-wff (list '== (list acc term) val)))
+  (slot acc)
+  (mac 'NORMED-FIELD-AS-COMMUTATIVE-RING)
+  (nth-r)
+  (slot acc)
+  (qrfl)
+  (if (not (proof-done? *ps*))
+      (error "rnf-ring-view-prove!: proof did not close" name (dk-goal)))
+  (qed name))
+
+(rnf-ring-view-prove! 'rr-scalar-ring-carr 'CARR
+             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD) 'RR)
+(topic! 'rr-scalar-ring-carr 'algebra)
+
+;;; 2026-08-29: the value was the shared constant `binplus'.  RR-NORMED-FIELD's
+;;; ADD slot now holds a tupled VNB-LAMBDA instead -- one function per instance,
+;;; rather than one object asserted into five function classes at once (which
+;;; proved ZZ = QQ = RR = CC and thence FALSITY; see numeric-instances.scm).
+;;; The equation is the same KIND of fact and proves by the same five steps; only
+;;; the right-hand side moved.
+(rnf-ring-view-prove! 'rr-scalar-ring-add 'ADD
+             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)
+             '(VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR RR) (+ x_ y_)))
+(topic! 'rr-scalar-ring-add 'algebra)
+
+(rnf-ring-view-prove! 'rr-scalar-ring-mul 'MUL
+             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)
+             '(VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR RR) (* x_ y_)))
+(topic! 'rr-scalar-ring-mul 'algebra)
+
+(rnf-ring-view-prove! 'rr-scalar-ring-neg 'NEG
+             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)
+             '(VNB-LAMBDA x_ RR (- x_)))
+(topic! 'rr-scalar-ring-neg 'algebra)
+
+(rnf-ring-view-prove! 'rr-scalar-ring-zero 'ZERO
+             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD) 0)
+(topic! 'rr-scalar-ring-zero 'algebra)
+
+(rnf-ring-view-prove! 'rr-scalar-ring-one 'ONE
+             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD) 1)
+(topic! 'rr-scalar-ring-one 'algebra)

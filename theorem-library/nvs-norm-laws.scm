@@ -164,8 +164,24 @@
 ;;; PTS(NVS-METRIC-SPACE m) == VEC(m).  NVS-METRIC-SPACE is a def-functoid
 ;;; LIST, so `slot-h' has no projection for it; this equation is the macete
 ;;; that reads the carrier off (bdd-metric-carrier's recipe).
-(sp (make-wff '(FORALL m (== (PTS (NVS-METRIC-SPACE m)) (VEC m)))))
-(di)
+;;;
+;;; R4-G 2026-10-13 (the user's approval): GUARDED by
+;;; IS-METRIC-SPACE(NVS-METRIC-SPACE m), the hypothesis every citer holds (three cite
+;;; nvs-metric-is-ms just before; vector-taylor's lands it from IS-CONTINUOUS-AT).
+;;; Unguarded it is TRUE but unprovable, as bdd-metric-carrier was (R4 report s.3): when
+;;; VEC(m) denotes it is a set and the pair [VEC m, lambda] denotes, when it does not
+;;; both sides fail -- a case split on definedness the logic cannot make, and nothing
+;;; certifies VEC(m) as a set without a hypothesis on m.  The proof makes the hypothesis
+;;; speak of the LIST (the unfold, rewritten into it), so `nth-r' owes nothing.
+(define r8f-nvsms-body
+  '(LIST (VEC m)
+         (VNB-LAMBDA (LIST x y) (CARTESIAN (VEC m) (VEC m)) ((VNRM m) ((VADD m) x ((VNEG m) y))))))
+(sp (make-wff '(FORALL m (IMPLIES (IS-METRIC-SPACE (NVS-METRIC-SPACE m))
+                 (== (PTS (NVS-METRIC-SPACE m)) (VEC m))))))
+(dk-peel!)
+(dk-have! (list '== '(NVS-METRIC-SPACE m) r8f-nvsms-body)
+  (lambda () (mac 'NVS-METRIC-SPACE) (qrfl)))
+(dk-rewrite-h! '(IS-METRIC-SPACE (NVS-METRIC-SPACE m)) '(NVS-METRIC-SPACE m) r8f-nvsms-body)
 (mac 'NVS-METRIC-SPACE)   ; (== (PTS (LIST (VEC m) (VNB-LAMBDA ...))) (VEC m))
 (slot 'PTS)               ; (== (nth 1 (LIST (VEC m) ...)) (VEC m))
 (nth-r)                   ; (== (VEC m) (VEC m))

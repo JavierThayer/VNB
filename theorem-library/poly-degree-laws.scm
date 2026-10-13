@@ -198,9 +198,11 @@
 
 (sp (make-wff
   (list 'FORALL 'a_ (list 'FORALL 'p_
-    (list 'IMPLIES '(IN p_ (CARR (POLY a_)))
-      (pd-prop 'a_ 'p_ '(DEG a_ p_)))))))
-(di)
+    (list 'IMPLIES '(IS-RING a_) (list 'IMPLIES '(IN p_ (CARR (POLY a_)))
+      (pd-prop 'a_ 'p_ '(DEG a_ p_))))))))
+;; R4 2026-10-13 (option A, the user's approval): deg-well-defined, leadcoef-nonzero-ptwise and
+;; deg-is GUARDED by IS-RING(a_), as poly-tail-zero-fwd (which this rests on) is.
+(di) (di) (di)
 (mac 'DEG)
 
 (define pd-iota-leaves (dk-opened (lambda () (iota-d pd-iota))))
@@ -361,9 +363,9 @@
 (define pd-allzero '(FORALL k_ (IMPLIES (IN k_ NN) (= (p_ k_) (ZERO a_)))))
 
 (sp (make-wff (list 'FORALL 'a_ (list 'FORALL 'p_
-   (list 'IMPLIES '(IN p_ (CARR (POLY a_)))
+   (list 'IMPLIES '(IS-RING a_) (list 'IMPLIES '(IN p_ (CARR (POLY a_)))
      (list 'IMPLIES '(FORSOME k_ (AND (IN k_ NN) (NOT (= (p_ k_) (ZERO a_)))))
-       (list 'NOT '(= (LEADCOEF a_ p_) (ZERO a_)))))))))
+       (list 'NOT '(= (LEADCOEF a_ p_) (ZERO a_))))))))))
 (pd-peel!)
 (mac 'LEADCOEF)
 (di)                                    ; assume p(DEG) = 0; goal FALSITY
@@ -703,11 +705,11 @@
 ;;; deg-well-defined and one antisymmetry.
 
 (sp (make-wff (list 'FORALL 'a_ (list 'FORALL 'p_ (list 'FORALL 'm_
-   (list 'IMPLIES '(IN p_ (CARR (POLY a_)))
+   (list 'IMPLIES '(IS-RING a_) (list 'IMPLIES '(IN p_ (CARR (POLY a_)))
      (list 'IMPLIES '(IN m_ NN)
        (list 'IMPLIES (pd-bound 'a_ 'p_ 'm_)
          (list 'IMPLIES (pd-minclause 'a_ 'p_ 'm_)
-           '(= (DEG a_ p_) m_))))))))))
+           '(= (DEG a_ p_) m_)))))))))))
 (pd-peel!)
 (let* ((parts (dk-split! (dk-fact! 'deg-well-defined 'a_ 'p_)))
        (dmin  (or (any-pred (dk-head? 'FORALL) parts)

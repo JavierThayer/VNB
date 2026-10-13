@@ -64,26 +64,41 @@
         (IMPLIES (AND (IN x A) (IN L (TUPLES A)))
                  (IN (CONS x L) (TUPLES A)))))))
 
+  ;; THE HEAD GUARD `x in SET' on the four equations below (the user's decision,
+  ;; 2026-10-13).  Each is a STRICT equation, and NTH and LENGTH are strict
+  ;; (the list doctrine of 2026-10-01): unguarded, `nth-cons-1' at x := ORD made
+  ;; NTH(1, CONS(ORD, L)) = ORD, hence CONS(ORD, L) DEFINED, for every L -- a
+  ;; tuple with a proper class in a component, which the doctrine says does not
+  ;; denote ([ORD] is undefined).  It was not yet a road to FALSITY (nothing put
+  ;; such a CONS into a class, and `tuple-members-are-sets' would then give
+  ;; ORD in SET against Burali-Forti), but it was the shape of the door that
+  ;; manufactured [0, SET] in C before 2026-10-01.  With the guard, CONS denotes
+  ;; for a set head exactly as LIST does, and every citer holds the head's
+  ;; sethood (it comes from a TUPLES membership).  `nth-cons-succ' is the same
+  ;; species and carries the same guard.
+
   ;; length(cons(x,L)) = succ(length(L))  -- the recursion the file is named for.
   (add-axiom! *library* 'length-cons
-    '(FORALL x (FORALL L (= (LENGTH (CONS x L)) (succ (LENGTH L))))))
+    '(FORALL x (FORALL L (IMPLIES (IN x SET) (= (LENGTH (CONS x L)) (succ (LENGTH L)))))))
 
   ;; The head, and the shift on the tail.
   (add-axiom! *library* 'nth-cons-1
-    '(FORALL x (FORALL L (= (NTH 1 (CONS x L)) x))))
+    '(FORALL x (FORALL L (IMPLIES (IN x SET) (= (NTH 1 (CONS x L)) x)))))
 
   (add-axiom! *library* 'nth-cons-succ
     '(FORALL i (FORALL x (FORALL L
-        (IMPLIES (AND (IN i NN) (AND (<= 1 i) (<= i (LENGTH L))))
-                 (= (NTH (succ i) (CONS x L)) (NTH i L)))))))
+        (IMPLIES (IN x SET)
+          (IMPLIES (AND (IN i NN) (AND (<= 1 i) (<= i (LENGTH L))))
+                   (= (NTH (succ i) (CONS x L)) (NTH i L))))))))
 
   ;; The bridge to brace notation: {x} u {the rest}.  PAIR x x is the singleton,
   ;; written that way to match `card-insert' (cardinality.scm), which is what
   ;; every cardinality argument over a literal set will meet next.
   (add-axiom! *library* 'makeset-cons
     '(FORALL x (FORALL L
-        (= (MAKE-SET (CONS x L))
-           (UNION (PAIR x x) (MAKE-SET L))))))
+        (IMPLIES (IN x SET)
+          (= (MAKE-SET (CONS x L))
+             (UNION (PAIR x x) (MAKE-SET L)))))))
 
   )   ; end definitional
 

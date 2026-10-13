@@ -651,13 +651,17 @@
 (qed 'rko2-cseq-in-fun)
 (topic! 'rko2-cseq-in-fun 'analysis)
 
-(sp (make-wff '(FORALL M (== (DIST (COMPLETION M)) (COMPLETION-DIST M)))))
-(di) (mac 'COMPLETION) (slot 'DIST) (nth-r) (qrfl)
+;;; R4-W1 2026-10-13: the three rko2 tuple read-offs below are GUARDED by
+;;; IS-METRIC-SPACE(M) (R4 species (g), approved as drafted): unguarded, CSEQ(M)
+;;; and QUOTIENT(CAUCHY-SETOID M) of a non-space need not be sets, the tuple need
+;;; not denote, and the read-off is false.  rkt-cseq-is-set certifies the tuples.
+(sp (make-wff '(FORALL M (IMPLIES (IS-METRIC-SPACE M) (== (DIST (COMPLETION M)) (COMPLETION-DIST M))))))
+(dk-peel!) (fact 'rkt-cseq-is-set 'M) (mac 'COMPLETION) (slot 'DIST) (nth-r) (qrfl)
 (qed 'rko2-completion-dist)
 (topic! 'rko2-completion-dist 'plumbing)
 
-(sp (make-wff '(FORALL M (== (REL (CAUCHY-SETOID M)) (CREL M)))))
-(di) (mac 'CAUCHY-SETOID) (slot 'REL) (nth-r) (qrfl)
+(sp (make-wff '(FORALL M (IMPLIES (IS-METRIC-SPACE M) (== (REL (CAUCHY-SETOID M)) (CREL M))))))
+(dk-peel!) (fact 'rkt-cseq-is-set 'M) (mac 'CAUCHY-SETOID) (slot 'REL) (nth-r) (qrfl)
 (qed 'rko2-cauchy-setoid-rel)
 (topic! 'rko2-cauchy-setoid-rel 'plumbing)
 
@@ -676,7 +680,10 @@
             (dk-focus! rko2-leaf)
             (if (eq? (car (dk-goal)) 'IN)
                 (begin (fact 'pair-in-cartesian '(CSEQ M) '(CSEQ M) 'p_ 'q_) (ass))
-                (begin (mac 'nth1-pair) (mac 'nth2-pair) (ass))))
+                ;; R4 2026-10-13: nth1-pair / nth2-pair guarded by `a, b in SET'
+                (begin (fact 'membership-implies-sethood 'p_ '(CSEQ M))
+                       (fact 'membership-implies-sethood 'q_ '(CSEQ M))
+                       (mac 'nth1-pair) (mac 'nth2-pair) (ass))))
           (dk-opened (lambda () (sep-mi))))
 (qed 'rko2-crel-intro)
 (topic! 'rko2-crel-intro 'plumbing)
@@ -687,6 +694,16 @@
 (mac-h 'rko2-crel-unfold (rko2-hyp 'IN "the CREL membership"))
 (sep-me (rko2-find (rko2-in-head 'SEP) "the CREL membership as a SEP"))
 (dk-split-all!)
+;; R4 2026-10-13: nth1-pair / nth2-pair guarded by `a, b in SET': the components,
+;; read off the CARTESIAN membership the SEP opened, are sets.
+(let ((rko2-cm (rko2-find (lambda (f) (and (pair? f) (eq? (car f) 'IN)
+                                            (equal? (cadr f) '(LIST p_ q_))
+                                            (pair? (caddr f)) (eq? (car (caddr f)) 'CARTESIAN)))
+                          "the CARTESIAN membership")))
+  (ce rko2-cm 1)
+  (ce rko2-cm 2))
+(fact 'membership-implies-sethood 'p_ '(CSEQ M))
+(fact 'membership-implies-sethood 'q_ '(CSEQ M))
 (mac-h 'nth1-pair (rko2-hyp 'CSEQ-EQUIV "the null-distance body"))
 (mac-h 'nth2-pair (rko2-hyp 'CSEQ-EQUIV "the null-distance body"))
 (ass)
@@ -694,8 +711,8 @@
 (topic! 'rko2-crel-elim 'plumbing)
 
 ;;; the length conjunct and the two sethoods
-(sp (make-wff '(FORALL M (= (LENGTH (CAUCHY-SETOID M)) 2))))
-(di) (mac 'CAUCHY-SETOID) (len-r) (rfl)
+(sp (make-wff '(FORALL M (IMPLIES (IS-METRIC-SPACE M) (= (LENGTH (CAUCHY-SETOID M)) 2)))))
+(dk-peel!) (fact 'rkt-cseq-is-set 'M) (mac 'CAUCHY-SETOID) (len-r) (rfl)
 (qed 'rko2-cauchy-setoid-length)
 (topic! 'rko2-cauchy-setoid-length 'plumbing)
 

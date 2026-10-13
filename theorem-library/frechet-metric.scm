@@ -243,27 +243,32 @@
      (VNB-LAMBDA (LIST fru_ frv_) (CARTESIAN (VEC m) (VEC m))
        ((fam frk_) ((VADD m) fru_ ((VNEG m) frv_))))))
 
-(sp (make-wff '(FORALL m (FORALL fam (== (PTS (FR-C-SPACE m fam)) (VEC m))))))
-(di)
+;;; R4-G 2026-10-13 (the user's approval): the three read-offs of FR-C-SPACE are
+;;; GUARDED by VEC(m) in SET.  Unguarded they are TRUE but unprovable, as
+;;; bdd-metric-carrier was (R4 report s.3): when VEC(m) denotes it is a set and the
+;;; pair [VEC m, dists] denotes, when it does not both sides fail -- a case split on
+;;; definedness the logic cannot make.  The citers hold the guard (frm-module-vec-set).
+(sp (make-wff '(FORALL m (FORALL fam (IMPLIES (IN (VEC m) SET) (== (PTS (FR-C-SPACE m fam)) (VEC m)))))))
+(dk-peel!)
 (mac 'FR-C-SPACE)
 (slot 'PTS)
 (nth-r)
 (qrfl)
 (qed 'frm-c-space-pts)
 
-(sp (make-wff (list 'FORALL 'm (list 'FORALL 'fam
-                (list '== '(DISTS (FR-C-SPACE m fam)) frm-dists-lam)))))
-(di)
+(sp (make-wff (list 'FORALL 'm (list 'FORALL 'fam (list 'IMPLIES '(IN (VEC m) SET)
+                (list '== '(DISTS (FR-C-SPACE m fam)) frm-dists-lam))))))
+(dk-peel!)
 (mac 'FR-C-SPACE)
 (slot 'DISTS)
 (nth-r)
 (qrfl)
 (qed 'frm-c-space-dists)
 
-(sp (make-wff (list 'FORALL 'm (list 'FORALL 'fam
+(sp (make-wff (list 'FORALL 'm (list 'FORALL 'fam (list 'IMPLIES '(IN (VEC m) SET)
   (forall-guarded '(k x y) '((IN k NN) (IN x (VEC m)) (IN y (VEC m)))
     (list '== '(((DISTS (FR-C-SPACE m fam)) k) x y)
-          (list '(fam k) (frm-sub 'm 'x 'y))))))))
+          (list '(fam k) (frm-sub 'm 'x 'y)))))))))
 (dk-peel!)
 (mac 'FR-C-SPACE)
 (slot 'DISTS)
@@ -595,6 +600,8 @@
 (di) (di)
 (dk-cite! 'frm-c-space-is-c-metric-space 'fld 'm 'fam)
 (dk-cite! 'c-metric-canonical-carrier frm-frc)
+(dk-cite! 'frm-fam-module 'fld 'm 'fam)       ; R4-G: the guard VEC(m) in SET
+(dk-cite! 'frm-module-vec-set 'm)
 (dk-cite! 'frm-c-space-pts 'm 'fam)
 (mac 'FR-METRIC-SPACE)
 (subst (list '== (list 'PTS (list 'C-METRIC frm-frc)) (list 'PTS frm-frc)))
@@ -938,6 +945,8 @@
 
 ;;; (IN v (PTS FRC)) from (IN v (VEC m))
 (define (frm-in-frc! v)
+  (dk-cite! 'frm-fam-module 'fld 'm 'fam)       ; R4-G: the guard VEC(m) in SET
+  (dk-cite! 'frm-module-vec-set 'm)
   (dk-cite! 'frm-c-space-pts 'm 'fam)
   (let ((ty (list 'IN v (list 'PTS frm-frc))))
     (frm-once! ty (lambda () (dk-rewrite-h! (frm-vec! 'm v) '(VEC m) (list 'PTS frm-frc))))

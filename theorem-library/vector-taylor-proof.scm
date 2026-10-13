@@ -240,8 +240,9 @@
     (let* ((typ (list 'IN nd (list 'FUN '(PTS RR-MS) (list 'PTS (list 'NVS-METRIC-SPACE m))))))
       (if (not (dk-asm? typ)) (error "vector-taylor-guarded: FUN(PTS,PTS) typing not landed"))
       (let ((h1 (dk-landed-1 (lambda () (slot-h 'PTS typ)))))
-        (mac-h 'nvs-ms-pts h1)
-        (ass)))))
+        ;; R4-G: nvs-ms-pts is guarded by IS-METRIC-SPACE(NVS-METRIC-SPACE m),
+        ;; which IS-CONTINUOUS-AT landed above; mac-h spawns it as a side leaf
+        (dk-close-all! (lambda () (mac-h 'nvs-ms-pts h1)))))))
 (qed 'taylor-v-derivs-in-fun)
 (topic! 'taylor-v-derivs-in-fun 'analysis)
 (alias! 'taylor-v-derivs-in-fun

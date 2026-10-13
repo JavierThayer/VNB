@@ -976,6 +976,7 @@
                       (list 'IMPLIES (list '<= '(magnitude (- goxz_ goxx_)) del) (list '<= '(magnitude (f goxz_)) M))))))
           (fact 'rr-pos-rr-in-rr del)
           (fact 'rr-lt-of-pos-rr del)
+          (dk-have! (list 'IN 'u 'SET) (lambda () (dk-sethood! 'u)))   ; R4-W2: subspace-* guarded by A in SET
           (fact 'subspace-pts gox-nfm 'u)
           ;; |f| <= |f(x)| + 1 within del of x
           (dk-have! bnd
@@ -988,6 +989,7 @@
                 (dk-have! (list 'IN z (list 'PTS S)) (lambda () (subst (list '== (list 'PTS S) 'u)) (ass)))
                 (for-each (lambda (pp) (dk-have! (list 'IN pp '(PTS CC-MS)) (lambda () (subst '(== (PTS CC-MS) CC)) (ass))))
                           (list x z fx fz))
+                (dk-have! (list 'IN 'u 'SET) (lambda () (dk-sethood! 'u)))   ; R4-W2: subspace-* guarded by A in SET
                 (fact 'subspace-dist gox-nfm 'u x z)
                 (fact 'nf-cc-agree-dist x z)
                 (fact 'cc-ms-dist x z)
@@ -1228,6 +1230,7 @@
 (dk-have! '(SUBSET goxs_ CC) (lambda () (subst (list '== 'CC (list 'PTS gox-nfm))) (ass)))
 (fact 'nf-open-is-set 'CC-NORMED-FIELD 'goxs_)
 (fact 'subspace-is-metric-space gox-nfm 'goxs_)
+(dk-have! (list 'IN 'goxs_ 'SET) (lambda () (dk-sethood! 'goxs_)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts gox-nfm 'goxs_)
 (gox-pts-cc!)
 (gxd-qd-pt! 'goxa_)
@@ -1302,6 +1305,7 @@
                       (gxd-qd-pt! b)
                       (inst+ gxd-qd-pt b)
                       ;; the hypothesis dist(a, b) <= delta, read as |b - a| <= delta
+                      (dk-have! (list 'IN 'goxs_ 'SET) (lambda () (dk-sethood! 'goxs_)))   ; R4-W2: subspace-* guarded by A in SET
                       (fact 'subspace-dist gox-nfm 'goxs_ 'goxa_ b)
                       (dk-have! (list 'IN 'goxa_ '(PTS CC-MS)) (lambda () (subst '(== (PTS CC-MS) CC)) (ass)))
                       (dk-have! (list 'IN b '(PTS CC-MS)) (lambda () (subst '(== (PTS CC-MS) CC)) (ass)))
@@ -1465,6 +1469,7 @@
   (fact 'cc-nf-carr)
   (dk-have! (list '== (list 'PTS gox-nfm) 'CC)
     (lambda () (subst (list '== (list 'PTS gox-nfm) '(CARR CC-NORMED-FIELD))) (ass)))
+  (dk-have! (list 'IN 'u 'SET) (lambda () (dk-sethood! 'u)))   ; R4-W2: subspace-* guarded by A in SET
   (fact 'subspace-pts gox-nfm 'u)
   (let ((edf (let loop ((r conj)) (if (eq? (car r) 'AND) (loop (caddr r)) r))))
     (mac 'is-continuous-at)
@@ -1565,6 +1570,7 @@
                                    (list '<= (list 'magnitude (list '- '(f goxcw_) fz)) e))))))
       (fact 'rr-pos-rr-in-rr del)
       (fact 'rr-lt-of-pos-rr del)
+      (dk-have! (list 'IN 'u 'SET) (lambda () (dk-sethood! 'u)))   ; R4-W2: subspace-* guarded by A in SET
       (fact 'subspace-pts gox-nfm 'u)
       (fact 'cc-is-metric-space)
       (gox-pts-cc!)
@@ -1578,6 +1584,7 @@
             (dk-have! (list 'IN w (list 'PTS S)) (lambda () (subst (list '== (list 'PTS S) 'u)) (ass)))
             (for-each (lambda (pp) (dk-have! (list 'IN pp '(PTS CC-MS)) (lambda () (subst '(== (PTS CC-MS) CC)) (ass))))
                       (list z w fz fw))
+            (dk-have! (list 'IN 'u 'SET) (lambda () (dk-sethood! 'u)))   ; R4-W2: subspace-* guarded by A in SET
             (fact 'subspace-dist gox-nfm 'u z w)
             (fact 'nf-cc-agree-dist z w)
             (fact 'cc-ms-dist z w)

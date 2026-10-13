@@ -414,6 +414,7 @@
 (dk-have! (list 'IN 'd2a_ (list 'PTS d2-M))
   (lambda () (subst (list '== (list 'PTS d2-M) '(CARR K))) (ass)))
 (fact 'subspace-is-metric-space d2-M 'U)
+(dk-have! '(IN U SET) (lambda () (dk-sethood! 'U)))   ; R4-W2: subspace-pts/-dist guarded by A in SET
 (d2-pos! 'd2r_)
 (mac-h 'IS-OPEN (list 'IS-OPEN d2-M 'U))
 (dk-split-all!)
@@ -636,6 +637,7 @@
 (dk-have! (list 'SUBSET 'U (list 'PTS d2-M))
   (lambda () (subst (list '== (list 'PTS d2-M) '(CARR K))) (ass)))
 (fact 'subspace-is-metric-space d2-M 'U)
+(dk-have! '(IN U SET) (lambda () (dk-sethood! 'U)))   ; R4-W2: subspace-pts/-dist guarded by A in SET
 (fact 'subspace-pts d2-M 'U)
 (fact 'nf-neg-in-carr 'K 'd2a_)
 (define d2-uq-lim (dk-fact! 'nf-open-limit-point 'K 'U 'd2a_))
@@ -747,13 +749,9 @@
 (fact 'nf-metric-carrier 'K)
 (fact 'nf-metric-space-is-metric-space 'K)
 (fact 'nf-open-subset-carr 'K 'U)
-(dk-have! (list 'SUBSET 'U (list 'PTS d2-M))
-  (lambda () (subst (list '== (list 'PTS d2-M) '(CARR K))) (ass)))
-(fact 'subspace-is-metric-space d2-M 'U)
-(fact 'subspace-pts d2-M 'U)
-(fact 'ms-pts-is-set d2-W)
-(subst (list '== 'U (list 'PTS d2-W)))
-(ass)
+;; R4-W2 2026-10-13: subspace-pts is now guarded by `U in SET', the very claim; the
+;; sethood is the subclass route instead (U subset CARR(K), a set under IS-NORMED-FIELD).
+(dk-sethood! 'U)
 (qed 'nf-open-is-set)
 (topic! 'nf-open-is-set 'topology)
 (alias! 'nf-open-is-set "an open set of a normed field is a set")
@@ -767,6 +765,7 @@
   (dk-have! (list 'SUBSET 'U (list 'PTS d2-M))
     (lambda () (subst (list '== (list 'PTS d2-M) '(CARR K))) (ass)))
   (fact 'subspace-is-metric-space d2-M 'U)
+  (dk-have! '(IN U SET) (lambda () (dk-sethood! 'U)))   ; R4-W2: subspace-pts/-dist guarded by A in SET
   (fact 'subspace-pts d2-M 'U)
   (fact 'nf-open-is-set 'K 'U))
 
@@ -1089,6 +1088,7 @@
                              (dk-contains? fm 'msf_)))
            "the into-V universal"))
 (fact 'subspace-is-metric-space 'mst_ 'd2s_)
+(dk-have! '(IN d2s_ SET) (lambda () (dk-sethood! 'd2s_)))   ; R4-W2: subspace-pts/-dist guarded
 (fact 'subspace-pts 'mst_ 'd2s_)
 (mac-h 'IS-CONTINUOUS-AT '(IS-CONTINUOUS-AT mss_ mst_ msf_ msa_))
 (dk-split-all!)

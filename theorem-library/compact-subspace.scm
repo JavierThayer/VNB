@@ -136,6 +136,8 @@
 (fact 'subspace-is-metric-space 's 'A)
 (have! '(IN (PTS s) SET)
   (lambda () (mac-h 'IS-METRIC-SPACE '(IS-METRIC-SPACE s)) (dk-split-all!) (ass)))
+(dk-have! '(IN A SET)                ; R4-W2: subspace-pts is guarded by A in SET
+  (lambda () (fact 'subclass-of-set-is-set 'A '(PTS s)) (ass)))
 (fact 'complement-in-set-closure '(PTS s) 'A)
 (mac 'IS-COMPACT)
 (csub-and!

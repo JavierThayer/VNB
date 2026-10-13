@@ -20,8 +20,14 @@
 ;;;
 ;;; Helper prefix: bmc- (none needed).
 
-(sp (make-wff '(FORALL s (== (PTS (BDD-METRIC s)) (PTS s)))))
-(di)
+;;; R4-W2 2026-10-13: GUARDED by IS-METRIC-SPACE(s) (R4 report s.3, species (g),
+;;; approved as drafted).  Unguarded the read-off is true but unprovable under the
+;;; list doctrine: the tuple [PTS s, lambda] denotes only when PTS(s) is a set, and
+;;; the certificate sees that only through a structure hypothesis on s.  With the
+;;; guard, IS-METRIC-SPACE(s) certifies PTS(s) and the lambda's domain, so the
+;;; `nth-r' below owes nothing.  Every citer works inside IS-METRIC-SPACE(s).
+(sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (== (PTS (BDD-METRIC s)) (PTS s))))))
+(dk-peel!)
 (mac 'BDD-METRIC)         ; goal: (== (PTS (LIST (PTS s) (VNB-LAMBDA ...))) (PTS s))
 (slot 'PTS)               ; goal: (== (nth 1 (LIST (PTS s) ...)) (nth 1 s))
 (nth-r)                   ; goal: (== (PTS s) (nth 1 s))

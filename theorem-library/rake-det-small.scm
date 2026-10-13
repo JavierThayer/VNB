@@ -724,6 +724,11 @@
      (= (ONE (MAT-RING a n)) (IDENTMAT a n))))))))
 (dk-peel!)
 (fact 'identmat-type 'a 'n)
+;; 2026-10-12 (R4, list definedness): `nth-r' on the MAT-RING tuple owes the tuple unless every
+;; component is certified a set: the carrier's sethood and ZEROMAT's typing are landed too.
+(fact 'ring-carr-in-set 'a)
+(fact 'mat-is-set '(CARR a) 'n 'n)
+(fact 'zeromat-type 'a 'n 'n)
 (slot 'ONE)
 (mac 'MAT-RING)
 (nth-r)

@@ -2311,6 +2311,61 @@
   (call-with-current-continuation
    (lambda (k)
      (with-exception-handler (lambda (e) (k #f)) thunk))))
+;;; The theorem that types a CLOSED term outright: a statement (IN c X), a structure witness
+;;; IS-X(c) on the term itself, or for c = (ACC I) the statement (IS-X I) of a structure with that
+;;; slot.  #f when there is none.  A scan of the theorem table, cached by term (a miss only
+;;; until the table grows).
+(define *dk-owed-typing-cache* (make-equal-hash-table))
+(define (dk-owed--typing-theorem c)
+  (let ((hit (hash-table-ref/default *dk-owed-typing-cache* c #f))   ; a name, (miss . size) or #f
+        (n   (hash-table-size *theorem-table*)))
+    (if (or (symbol? hit) (and (pair? hit) (= (cdr hit) n)))
+        (and (symbol? hit) hit)
+        (let ((subj (if (and (pair? c) (= (length c) 2) (symbol? (cadr c))) (cadr c) #f))
+              (found #f))
+          (hash-table-walk *theorem-table*
+            (lambda (name stmt)
+              (if (and (not found) (pair? stmt) (symbol? (car stmt)))
+                  (cond ((and (eq? (car stmt) 'IN) (= (length stmt) 3) (equal? (cadr stmt) c))
+                         (set! found name))
+                        ;; a structure witness ON the term itself: IS-X(c) certifies c
+                        ((and (pair? c) (= (length stmt) 2) (equal? (cadr stmt) c)
+                              (pi--structure-def-for (car stmt)))
+                         (set! found name))
+                        ((and subj (= (length stmt) 2) (eq? (cadr stmt) subj)
+                              (let ((sd (pi--structure-def-for (car stmt))))
+                                (and sd (memq (car c) (structure-slot-names sd)))))
+                         (set! found name))))))
+          ;; a MISS is cached with the size of the theorem table and holds only while the
+          ;; table has not grown (2026-10-13, R4-G): a miss cached forever outlived the
+          ;; witness -- normed-field-ring-view asked for (CARR RR-NORMED-FIELD) before
+          ;; rr-is-normed-field loaded, and rake-inequalities, 1700 entries later,
+          ;; inherited the miss
+          (hash-table-set! *dk-owed-typing-cache* c (or found (cons 'miss n)))
+          found))))
+;;; The closed accessor subterms (ACC I) of T, I a registered constant: what the owed-leaf
+;;; hook types before `rfl' on a term that is not a list (R4-G, 2026-10-13).  The macete
+;;; door owes SUPP(a_, NN-ADD-MONOID, f_) = SUPP(...) for `mac subset-def', and the functoid
+;;; walk certifies SUPP's SEP only once CARR(NN-ADD-MONOID) is certified -- by the structure
+;;; witness IS-COMM-MONOID(NN-ADD-MONOID), a theorem the context does not hold.
+(define (dk-owed--closed-accessors t)
+  ;; a functoid application is also searched through its instantiated body (depth 4),
+  ;; which is where the certificate's functoid walk looks
+  (let walk ((e t) (acc '()) (depth 0))
+    (cond ((not (pair? e)) acc)
+          ((and (= (length e) 2) (symbol? (car e)) (symbol? (cadr e))
+                (constant-head? (cadr e)))
+           (if (member e acc) acc (cons e acc)))
+          (#t (let* ((acc (let loop ((xs e) (acc acc))
+                            (if (pair? xs) (loop (cdr xs) (walk (car xs) acc depth)) acc)))
+                     (b (and (< depth 4) (symbol? (car e)) (pi--functoid-instance e))))
+                (if b (walk b acc (+ depth 1)) acc))))))
+(define (dk-owed--type-closed! c)
+  (if (and (or (symbol? c) (pair? c))
+           (every constant-head? (free-vars c))      ; closed: every symbol a registered constant
+           (not (pi--sets-defined? (sequent-node-assumptions (proof-state-focus *ps*)) (list 'LIST c) 0)))
+      (let ((thm (dk-owed--typing-theorem c)))
+        (if thm (fact thm)))))
 (define (dk-discharge-owed! leaf)
   ;; TRANSACTIONAL (2026-09-18 evening): an attempt that does not close the
   ;; leaf is rolled back -- graph, focus, script, trace, undo stack -- so a
@@ -2347,6 +2402,21 @@
                (fact 'series-partial-sum-in-rr (caddr t) (cadr t)) (rfl))
               ((and (pair? t) (memq (car t) '(+ - * / recip abs min max ^)))
                (dk-have! (list 'IN t 'RR) (lambda () (in-rr)))
+               (rfl))
+              ;; a LITERAL LIST (2026-10-12, R4: nth-reduce, length-reduce and
+              ;; tuple-equality-decompose owe  L = L  for a list the context does not
+              ;; certify; a list denotes when its components are sets).  Each CLOSED
+              ;; component the certificate cannot see is typed by the one theorem that
+              ;; states it outright -- `c in X' for a constant c, or the structure
+              ;; witness IS-X(I) for an accessor (ACC I) of a declared instance I --
+              ;; then `rfl'.  A component with a free variable is the driver's business.
+              ((and (pair? t) (eq? (car t) 'LIST))
+               (for-each dk-owed--type-closed! (cdr t))
+               (rfl))
+              ;; any other term with closed accessor subterms (ACC I): type those by
+              ;; their witness theorems, then `rfl' (R4-G; rolled back if it fails)
+              ((and (pair? t) (pair? (dk-owed--closed-accessors t)))
+               (for-each dk-owed--type-closed! (dk-owed--closed-accessors t))
                (rfl))
               (#t #f)))))))
     (if (and mark (not (sequent-node-grounded? leaf)))
@@ -4318,6 +4388,19 @@
                     (= (length (caddr (car as))) 3))
                (car as))
               (else (loop (cdr as))))))
+    (define (subset-superclass-of u)      ; some X with (SUBSET u X) in context, X not u:
+      (let* ((xs (let loop ((as (dk-asms)) (acc '()))   ; one already a set, else a
+                   (cond ((null? as) (reverse acc))     ; number class, else the first
+                         ((and (pair? (car as)) (eq? (caar as) 'SUBSET) (= (length (car as)) 3)
+                               (equal? (cadr (car as)) u) (not (equal? (caddr (car as)) u)))
+                          (loop (cdr as) (cons (caddr (car as)) acc)))
+                         (else (loop (cdr as) acc)))))
+             (known (lambda (x) (in-ctx? (list 'IN x 'SET))))
+             (cls   (lambda (x) (memq x '(NN RR ZZ QQ CC)))))
+        (cond ((null? xs) #f)
+              ((find-first known xs) => (lambda (x) x))
+              ((find-first cls xs) => (lambda (x) x))
+              (else (car xs)))))
     (if (not (alpha-equiv? (dk-goal) want))
         (error "dk-sethood!: the focus goal is not" (expression->string want)
                "but" (expression->string (dk-goal))))
@@ -4327,6 +4410,18 @@
       ;; a typing in context: membership-implies-sethood
       ((typing-of t)
        => (lambda (typ) (fact 'membership-implies-sethood t (caddr typ)) (ass)))
+      ;; a SUBCLASS (R4-W2, 2026-10-13): t a symbol with (SUBSET t X) in context -- the
+      ;; sethood of X on a lane, then subclass-of-set-is-set.  What a citer of a read-off
+      ;; guarded by `A in SET' (subspace-pts, subspace-dist, ...) holds: an open set or an
+      ;; interval U with SUBSET U (PTS m) / (CARR K) / CC / RR.  The first superclass found
+      ;; in context is used (its own sethood errors with the reason when it has no route).
+      ((and (symbol? t) (not (memq t '(NN RR ZZ QQ CC SET EMPTY-SET ORD)))
+            (subset-superclass-of t))
+       => (lambda (X)
+            (if (not (in-ctx? (list 'IN X 'SET)))
+                (dk-have! (list 'IN X 'SET) (lambda () (dk-sethood! X))))
+            (fact 'subclass-of-set-is-set t X)
+            (ass)))
       ;; the classes the lam-t closer knows (NN, RR, intervals, products, ...)
       ((and (or (symbol? t) (and (pair? t) (memq (car t) '(INTERVAL CARTESIAN))))
             (dk-close-if! (lambda () (dk-set-close! t)) (lambda () #f)))

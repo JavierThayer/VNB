@@ -490,6 +490,7 @@
 
 (sp (make-wff (dfo-agree-pts dfo-rr-w 'RR-MS)))
 (fact 'nf-rr-is-metric-space)
+(fact 'rr-is-set)                        ; R4-W2: subspace-pts is guarded by A in SET
 (fact 'subspace-pts dfo-rr-m 'RR)
 (subst (list '== (list 'PTS dfo-rr-w) 'RR))
 (slot 'PTS)
@@ -503,6 +504,7 @@
 (dk-have! '(== (PTS RR-MS) RR) (lambda () (slot 'PTS) (qrfl)))
 (dk-have! '(IN dfu_ RR) (lambda () (subst '(== RR (PTS RR-MS))) (ass)))
 (dk-have! '(IN dfv_ RR) (lambda () (subst '(== RR (PTS RR-MS))) (ass)))
+(fact 'rr-is-set)                        ; R4-W2: subspace-dist is guarded by A in SET
 (fact 'subspace-dist dfo-rr-m 'RR 'dfu_ 'dfv_)
 (subst (list '== (list (list 'DIST dfo-rr-w) 'dfu_ 'dfv_)
                  (list (list 'DIST dfo-rr-m) 'dfu_ 'dfv_)))
@@ -984,6 +986,8 @@
 (fact 'nf-metric-space-is-metric-space 'K)
 (dk-have! (list 'SUBSET 'U (list 'PTS dfo-M))
   (lambda () (subst (list '== (list 'PTS dfo-M) '(CARR K))) (ass)))
+;; R4-W2 2026-10-13: subspace-pts / subspace-dist are guarded by A in SET
+(dk-have! '(IN U SET) (lambda () (dk-sethood! 'U)))
 (fact 'subspace-is-metric-space dfo-M 'U)
 (fact 'subspace-pts dfo-M 'U)
 (mac-h 'IS-DIFF-ON dfo-hyp)

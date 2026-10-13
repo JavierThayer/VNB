@@ -949,6 +949,7 @@
            "the pointwise agreement"))
 (dk-have! '(SUBSET (CCINT a b) (PTS RR-MS))
   (lambda () (slot 'PTS) (fact 'ccint-subset-rr 'a 'b) (ass)))
+(dk-have! (list 'IN pw-cc 'SET) (lambda () (dk-sethood! pw-cc)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS pw-cc)
 (mac 'IS-CONTINUOUS-ON)
 (dk-conj-close!

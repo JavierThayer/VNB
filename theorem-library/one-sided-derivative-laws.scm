@@ -103,7 +103,9 @@
      (dk-have! (list 'IN v '(PTS RR-MS))
        (lambda () (subst '(== (PTS RR-MS) RR)) (ass))))
    '(dfu_ dfv_))
+  (dk-have! (list 'IN w 'SET) (lambda () (dk-sethood! w)))   ; R4-W2: subspace-* guarded by A in SET
   (fact 'subspace-dist 'RR-MS w 'dfu_ 'dfv_)
+  (dk-have! (list 'IN w 'SET) (lambda () (dk-sethood! w)))   ; R4-W2: subspace-* guarded by A in SET
   (fact 'subspace-dist os-nfm w 'dfu_ 'dfv_)
   (fact 'nf-rr-agree-dist 'dfu_ 'dfv_)
   (subst (list '== (list (list 'DIST (os-sub-nf w)) 'dfu_ 'dfv_)
@@ -124,7 +126,9 @@
     (lambda () (subst (list '== (list 'PTS os-nfm) '(PTS RR-MS))) (ass)))
   (fact 'subspace-is-metric-space 'RR-MS w)
   (fact 'subspace-is-metric-space os-nfm w)
+  (dk-have! (list 'IN w 'SET) (lambda () (dk-sethood! w)))   ; R4-W2: subspace-* guarded by A in SET
   (fact 'subspace-pts 'RR-MS w)
+  (dk-have! (list 'IN w 'SET) (lambda () (dk-sethood! w)))   ; R4-W2: subspace-* guarded by A in SET
   (fact 'subspace-pts os-nfm w)
   (dk-have! (list '== (list 'PTS (os-sub-nf w)) (list 'PTS (os-sub-rr w)))
     (lambda ()
@@ -601,6 +605,7 @@
 (dk-have! '(SUBSET osw_ (PTS RR-MS))
   (lambda () (subst '(== (PTS RR-MS) RR)) (ass)))
 (fact 'subspace-is-metric-space 'RR-MS 'osw_)
+(dk-have! (list 'IN 'osw_ 'SET) (lambda () (dk-sethood! 'osw_)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS 'osw_)
 (fact 'deriv-within-pt-in 'f 'osw_ 'osx_ 'osl_)
 (fact 'subset-mem-fwd 'osw_ 'RR 'osx_)
@@ -657,6 +662,7 @@
                              "the radius")))
            (b (dk-skolem! (dk-apply! os-uq-lim r))))
       (fact 'subset-mem-fwd 'osw_ 'RR b)
+      (dk-have! (list 'IN 'osw_ 'SET) (lambda () (dk-sethood! 'osw_)))   ; R4-W2: subspace-* guarded by A in SET
       (fact 'subspace-dist 'RR-MS 'osw_ 'osx_ b)
       (fact 'rr-ms-dist 'osx_ b)
       (ew b)
@@ -1293,6 +1299,7 @@
 (dk-have! (list 'SUBSET os-r-w '(PTS RR-MS))
   (lambda () (subst '(== (PTS RR-MS) RR)) (ass)))
 (fact 'subspace-is-metric-space 'RR-MS os-r-w)
+(dk-have! (list 'IN os-r-w 'SET) (lambda () (dk-sethood! os-r-w)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS os-r-w)
 (for-each
  (lambda (nd)
@@ -1358,6 +1365,7 @@
                        (lambda ()
                          (subst (list '== (list 'PTS (os-sub-rr os-r-w)) os-r-w))
                          (ass)))
+                     (dk-have! (list 'IN os-r-w 'SET) (lambda () (dk-sethood! os-r-w)))   ; R4-W2: subspace-* guarded by A in SET
                      (fact 'subspace-dist 'RR-MS os-r-w 'osx_ os-pt)
                      (fact 'rr-ms-dist 'osx_ os-pt)
                      (fact 'rr-sub-in-rr 'osx_ os-pt)
@@ -1462,6 +1470,7 @@
 (dk-have! (list 'SUBSET os-l-w '(PTS RR-MS))
   (lambda () (subst '(== (PTS RR-MS) RR)) (ass)))
 (fact 'subspace-is-metric-space 'RR-MS os-l-w)
+(dk-have! (list 'IN os-l-w 'SET) (lambda () (dk-sethood! os-l-w)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS os-l-w)
 (for-each
  (lambda (nd)
@@ -1533,6 +1542,7 @@
                        (lambda ()
                          (subst (list '== (list 'PTS (os-sub-rr os-l-w)) os-l-w))
                          (ass)))
+                     (dk-have! (list 'IN os-l-w 'SET) (lambda () (dk-sethood! os-l-w)))   ; R4-W2: subspace-* guarded by A in SET
                      (fact 'subspace-dist 'RR-MS os-l-w 'osx_ os-pt)
                      (fact 'rr-ms-dist 'osx_ os-pt)
                      (dk-have! (list '<= (list (list 'DIST (os-sub-rr os-l-w)) 'osx_ os-pt) dl)
@@ -1923,8 +1933,11 @@
 (fact 'subspace-is-metric-space 'RR-MS os-gl-v)
 (fact 'subspace-is-metric-space 'RR-MS os-gl-wp)
 (fact 'subspace-is-metric-space 'RR-MS os-gl-wm)
+(dk-have! (list 'IN os-gl-v 'SET) (lambda () (dk-sethood! os-gl-v)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS os-gl-v)
+(dk-have! (list 'IN os-gl-wp 'SET) (lambda () (dk-sethood! os-gl-wp)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS os-gl-wp)
+(dk-have! (list 'IN os-gl-wm 'SET) (lambda () (dk-sethood! os-gl-wm)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS os-gl-wm)
 (dk-split-all! (dk-landed* (lambda ()
   (mac-h 'HAS-DERIV-AT-WITHIN (list 'HAS-DERIV-AT-WITHIN 'f os-gl-wp 'osx_ 'osl_)))))
@@ -2091,6 +2104,7 @@
                                   (fact 'fun-apply-type-c os-gl-phim os-gl-wm 'RR mn)
                                   (fact 'fun-apply-type-c os-gl-phip os-gl-wp 'RR 'osx_)
                                   (fact 'fun-apply-type-c os-gl-phim os-gl-wm 'RR 'osx_)
+                                  (dk-have! (list 'IN os-gl-v 'SET) (lambda () (dk-sethood! os-gl-v)))   ; R4-W2: subspace-* guarded by A in SET
                                   (fact 'subspace-dist 'RR-MS os-gl-v 'osx_ b)
                                   (fact 'rr-ms-dist 'osx_ b)
                                   (fact 'rr-sub-in-rr 'osx_ b)
@@ -2119,7 +2133,9 @@
                                       (subst (list '== (list 'PTS (os-sub-rr os-gl-wm))
                                                    os-gl-wm))
                                       (ass)))
+                                  (dk-have! (list 'IN os-gl-wp 'SET) (lambda () (dk-sethood! os-gl-wp)))   ; R4-W2: subspace-* guarded by A in SET
                                   (fact 'subspace-dist 'RR-MS os-gl-wp 'osx_ mx)
+                                  (dk-have! (list 'IN os-gl-wm 'SET) (lambda () (dk-sethood! os-gl-wm)))   ; R4-W2: subspace-* guarded by A in SET
                                   (fact 'subspace-dist 'RR-MS os-gl-wm 'osx_ mn)
                                   (fact 'rr-ms-dist 'osx_ mx)
                                   (fact 'rr-ms-dist 'osx_ mn)
@@ -2382,6 +2398,7 @@
   (lambda () (subst '(== (PTS RR-MS) RR)) (ass)))
 (fact 'subclass-of-set-is-set 'osw_ 'RR)
 (fact 'subspace-is-metric-space 'RR-MS 'osw_)
+(dk-have! (list 'IN 'osw_ 'SET) (lambda () (dk-sethood! 'osw_)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS 'osw_)
 (fact 'deriv-within-pt-in 'f 'osw_ 'osx_ 'osl_)
 (fact 'subset-mem-fwd 'osw_ 'RR 'osx_)
@@ -2509,6 +2526,7 @@
                                 (fact 'subset-mem-fwd 'osw_ 'RR b)
                                 (fact 'rr-sub-in-rr 'osx_ b)
                                 (fact 'rr-abs-closed (list '- 'osx_ b))
+                                (dk-have! (list 'IN 'osw_ 'SET) (lambda () (dk-sethood! 'osw_)))   ; R4-W2: subspace-* guarded by A in SET
                                 (fact 'subspace-dist 'RR-MS 'osw_ 'osx_ b)
                                 (fact 'rr-ms-dist 'osx_ b)
                                 (dk-have! (list 'IN (list (list 'DIST (os-sub-rr 'osw_))

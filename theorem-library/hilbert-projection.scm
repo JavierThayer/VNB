@@ -337,8 +337,13 @@
 (qed 'ip-metric-space-pts)
 (topic! 'ip-metric-space-pts 'plumbing)
 
-(sp (make-wff '(FORALL v (== (OPR (IP-NORMED-AG v)) (VADD v)))))
-(di)
+;;; R4-W2 2026-10-13: ip-normed-ag-opr / -inv GUARDED by IS-COMPLEX-INNER-PRODUCT-SPACE(v)
+;;; (R4 report s.3, species (g), approved as drafted).  Unguarded they are FALSE under
+;;; the list doctrine: at v = [0], VEC v = 0 but VADD v is undefined, so the tuple
+;;; IP-NORMED-AG(v) does not denote.  The structure hypothesis certifies every slot.
+(sp (make-wff '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
+     (== (OPR (IP-NORMED-AG v)) (VADD v))))))
+(dk-peel!)
 (mac 'IP-NORMED-AG)
 (slot 'OPR)
 (nth-r)
@@ -346,8 +351,9 @@
 (qed 'ip-normed-ag-opr)
 (topic! 'ip-normed-ag-opr 'plumbing)
 
-(sp (make-wff '(FORALL v (== (INV (IP-NORMED-AG v)) (VNEG v)))))
-(di)
+(sp (make-wff '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
+     (== (INV (IP-NORMED-AG v)) (VNEG v))))))
+(dk-peel!)
 (mac 'IP-NORMED-AG)
 (slot 'INV)
 (nth-r)

@@ -572,7 +572,9 @@
 (dk-have! '(SUBSET cexu_ CC) (lambda () (subst (list '== 'CC (list 'PTS cex-nfm))) (ass)))
 (fact 'nf-open-is-set 'CC-NORMED-FIELD 'cexu_)
 (fact 'subspace-is-metric-space cex-nfm 'cexu_)
+(dk-have! (list 'IN 'cexu_ 'SET) (lambda () (dk-sethood! 'cexu_)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts cex-nfm 'cexu_)
+(dk-have! (list 'IN 'cexv_ 'SET) (lambda () (dk-sethood! 'cexv_)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts cex-nfm 'cexv_)
 ;; the derivative of g on V, unfolded
 (mac-h 'IS-DIFF-ON (dk-ctx-form '(IS-DIFF-ON CC-NORMED-FIELD cexv_ cexg_ cexa_ cexl_)))
@@ -668,6 +670,7 @@
                    (dab (list 'magnitude (list '- 'cexa_ b))))
               (dk-have! (list 'IN b 'cexu_) (lambda () (subst (list '== 'cexu_ (list 'PTS cex-lo-sub))) (ass)))
               (cex-lo-pt! b)
+              (dk-have! (list 'IN 'cexu_ 'SET) (lambda () (dk-sethood! 'cexu_)))   ; R4-W2: subspace-* guarded by A in SET
               (fact 'subspace-dist cex-nfm 'cexu_ 'cexa_ b)
               (dk-have! (list 'IN b (list 'PTS cex-nfm)) (lambda () (subst (list '== (list 'PTS cex-nfm) 'CC)) (ass)))
               (dk-have! (list 'IN b '(PTS CC-MS)) (lambda () (subst '(== (PTS CC-MS) CC)) (ass)))
@@ -688,6 +691,7 @@
               (fact 'subset-mem-fwd (list 'BALL cex-nfm 'cexa_ r0) 'cexv_ b)
               ;; psi's bound at b
               (dk-have! (list '<= dab d1) (lambda () (apply dk-ineq! (append (list (list '<= dab del)) prems))))
+              (dk-have! (list 'IN 'cexv_ 'SET) (lambda () (dk-sethood! 'cexv_)))   ; R4-W2: subspace-* guarded by A in SET
               (fact 'subspace-dist cex-nfm 'cexv_ 'cexa_ b)
               (dk-have! (list 'IN b (list 'PTS cex-lo-subv)) (lambda () (subst (list '== (list 'PTS cex-lo-subv) 'cexv_)) (ass)))
               (dk-have! (list '<= (list (list 'DIST cex-lo-subv) 'cexa_ b) d1)

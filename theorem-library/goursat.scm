@@ -2622,6 +2622,7 @@
 (dk-have! '(SUBSET gdls_ CC) (lambda () (subst (list '== 'CC (list 'PTS gdl-nfm))) (ass)))
 (fact 'nf-open-is-set 'CC-NORMED-FIELD 'gdls_)
 (fact 'subspace-is-metric-space gdl-nfm 'gdls_)
+(dk-have! (list 'IN 'gdls_ 'SET) (lambda () (dk-sethood! 'gdls_)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts gdl-nfm 'gdls_)
 (gdl-pts-cc!)
 (gdl-qd-pt! 'gdla_)
@@ -2712,6 +2713,7 @@
                       (gdl-qd-pt! b)
                       (inst+ gdl-qd-pt b)
                       ;; the hypothesis dist(a, b) <= delta, read as |b - a| <= delta
+                      (dk-have! (list 'IN 'gdls_ 'SET) (lambda () (dk-sethood! 'gdls_)))   ; R4-W2: subspace-* guarded by A in SET
                       (fact 'subspace-dist gdl-nfm 'gdls_ 'gdla_ b)
                       (dk-have! (list 'IN 'gdla_ '(PTS CC-MS)) (lambda () (subst '(== (PTS CC-MS) CC)) (ass)))
                       (dk-have! (list 'IN b '(PTS CC-MS)) (lambda () (subst '(== (PTS CC-MS) CC)) (ass)))

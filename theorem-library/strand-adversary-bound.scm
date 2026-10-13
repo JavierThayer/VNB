@@ -578,8 +578,12 @@
   (dk-split-all!)
   `(IN (LIST ,dir ,g) (DIRECTED (TOKENS spa) (KEYS spa))))
 
-(sp (make-wff '(FORALL spa (FORALL l (IMPLIES (IN l (TUPLES (MSG-SET (TOKENS spa) (KEYS spa))))
-   (FORSOME s (AND (IN s (STRANDS (TOKENS spa) (KEYS spa))) (IS-SEPARATE-TRACE spa s))))))))
+;; GUARDED by IS-STRAND-SPACE(spa) (2026-10-13, repair R4-F, the user's decision), as every other
+;; statement of this file about a space: unguarded, TOKENS(spa) and KEYS(spa) were certified only through
+;; the functoid MSG-SET (its parameters sit in a BIG-UNION body), which the repaired walker no longer
+;; reads as strict.  concat-trace-exists below likewise.
+(sp (make-wff '(FORALL spa (FORALL l (IMPLIES (IS-STRAND-SPACE spa) (IMPLIES (IN l (TUPLES (MSG-SET (TOKENS spa) (KEYS spa))))
+   (FORSOME s (AND (IN s (STRANDS (TOKENS spa) (KEYS spa))) (IS-SEPARATE-TRACE spa s)))))))))
 (dk-peel!)
 (let* ((aa '(DIRECTED (TOKENS spa) (KEYS spa)))
        (len '(LENGTH l))
@@ -606,6 +610,7 @@
     (sab-directed! 'RECEIVED '(LST l))
     (sab-have-and! `(IN ,x ,aa) `(IN ,mm (TUPLES ,aa)))
     (fact 'cons-in-tuples aa x mm)
+    (dk-have! `(IN ,x SET) (lambda () (dk-sethood! x)))  ; the guard of the CONS equations (2026-10-13)
     (ew s)
     (dk-conj-close!
       (lambda ()
@@ -642,8 +647,8 @@
                          (if (not (dk-lam-b!)) (rfl))))))))))))))
 (qed 'separate-trace-exists)
 
-(sp (make-wff '(FORALL spa (FORALL l (IMPLIES (IN l (TUPLES (MSG-SET (TOKENS spa) (KEYS spa))))
-   (FORSOME s (AND (IN s (STRANDS (TOKENS spa) (KEYS spa))) (IS-CONCAT-TRACE spa s))))))))
+(sp (make-wff '(FORALL spa (FORALL l (IMPLIES (IS-STRAND-SPACE spa) (IMPLIES (IN l (TUPLES (MSG-SET (TOKENS spa) (KEYS spa))))
+   (FORSOME s (AND (IN s (STRANDS (TOKENS spa) (KEYS spa))) (IS-CONCAT-TRACE spa s)))))))))
 (dk-peel!)
 (let* ((aa '(DIRECTED (TOKENS spa) (KEYS spa)))
        (len '(LENGTH l))

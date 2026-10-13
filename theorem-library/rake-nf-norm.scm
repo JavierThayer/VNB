@@ -74,8 +74,15 @@
   (let loop ((n 0))
     (let ((g (dk-goal)))
       (if (and (< n 8) (not (equal? (cadr g) (caddr g))))
-          (begin (for-each (lambda (acc) (quietly (lambda () (slot acc)))) accs)
-                 (quietly (lambda () (nth-r)))
+          ;; R4-W1 2026-10-13: one accessor per turn, nth-r after each, TARGET first.
+          ;; Firing the source accessor before nth-r rewrote the view list's own
+          ;; component (ADD nf) to (NTH 2 nf), which no hypothesis certifies, and
+          ;; nth-r then owed the list (list doctrine).
+          (begin (for-each (lambda (acc)
+                             (if (not (equal? (cadr (dk-goal)) (caddr (dk-goal))))
+                                 (begin (quietly (lambda () (slot acc)))
+                                        (quietly (lambda () (nth-r))))))
+                           accs)
                  (if (not (equal? (dk-goal) g)) (loop (+ n 1)))))))
   (qrfl))
 
@@ -229,12 +236,16 @@
 ;; their antecedent, and `mac-h' REPLACES it.
 (fact 'normed-field-additive-ag-is-abelian-group 'nf)
 (let ((univ (dk-fact! 'nf-norm-neg 'nf)))
+  ;; R4-W1 2026-10-13: the view read-offs BEFORE the destructive unfold.  Under the
+  ;; list doctrine the view tuple [CARR nf, ADD nf, ZERO nf, NEG nf] denotes only
+  ;; when its components are certified sets, which IS-NORMED-FIELD(nf) in context
+  ;; gives and its unfolded conjuncts do not (nth-r owed the list otherwise).
+  (for-each (lambda (p) (r6d-readoff! (car p) (cadr p) 'nf 'NORMED-FIELD-ADDITIVE-AG))
+            '((CARR CARR) (OPR ADD) (IDEN ZERO) (INV NEG)))
   (dk-split-all! (dk-landed* (lambda () (mac-h 'is-normed-field '(IS-NORMED-FIELD nf)))))
   (dk-split-all!
    (dk-landed* (lambda () (mac-h 'is-norm '(is-norm (FNRM nf) (ADD nf) (MUL nf)
                                                     (ZERO nf) (CARR nf))))))
-  (for-each (lambda (p) (r6d-readoff! (car p) (cadr p) 'nf 'NORMED-FIELD-ADDITIVE-AG))
-            '((CARR CARR) (OPR ADD) (IDEN ZERO) (INV NEG)))
   (dk-have! (list 'is-group-norm '(FNRM nf) (list 'OPR r6d-ag) (list 'INV r6d-ag)
                   (list 'IDEN r6d-ag) (list 'CARR r6d-ag))
     (lambda ()

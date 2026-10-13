@@ -110,6 +110,7 @@
       (dk-have! (list 'IN u 'SET)
         (lambda () (fact 'cc-is-set) (fact 'subclass-of-set-is-set u 'CC) (ass))))
   (fact 'subspace-is-metric-space mrr-nfm u)
+  (dk-have! (list 'IN u 'SET) (lambda () (dk-sethood! u)))   ; R4-W2: subspace-* guarded by A in SET
   (fact 'subspace-pts mrr-nfm u))
 
 ;;; ======================================================================
@@ -293,6 +294,7 @@
                                    (list '<= (list 'magnitude (list '- '(f mrrcw_) fz)) e))))))
       (fact 'rr-pos-rr-in-rr del)
       (fact 'rr-lt-of-pos-rr del)
+      (dk-have! (list 'IN 'u 'SET) (lambda () (dk-sethood! 'u)))   ; R4-W2: subspace-* guarded by A in SET
       (fact 'subspace-pts mrr-nfm 'u)
       (fact 'cc-is-metric-space)
       (mrr-pts-cc!)
@@ -306,6 +308,7 @@
             (dk-have! (list 'IN w (list 'PTS S)) (lambda () (subst (list '== (list 'PTS S) 'u)) (ass)))
             (for-each (lambda (pp) (dk-have! (list 'IN pp '(PTS CC-MS)) (lambda () (subst '(== (PTS CC-MS) CC)) (ass))))
                       (list z w fz fw))
+            (dk-have! (list 'IN 'u 'SET) (lambda () (dk-sethood! 'u)))   ; R4-W2: subspace-* guarded by A in SET
             (fact 'subspace-dist mrr-nfm 'u z w)
             (fact 'nf-cc-agree-dist z w)
             (fact 'cc-ms-dist z w)
@@ -716,6 +719,7 @@
                                           (list y0 bpt fy fb gy gb))
                                 (for-each (lambda (pq) (fact 'nf-cc-agree-dist (car pq) (cadr pq)) (fact 'cc-ms-dist (car pq) (cadr pq)))
                                           (list (list y0 bpt) (list fy fb) (list gy gb)))
+                                (dk-have! (list 'IN 'u 'SET) (lambda () (dk-sethood! 'u)))   ; R4-W2: subspace-* guarded by A in SET
                                 (fact 'subspace-dist mrr-nfm 'u y0 bpt)
                                 (mrr-cc! (list '- y0 bpt))
                                 (mrr-rr! (mg (list '- y0 bpt)))

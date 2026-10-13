@@ -1011,6 +1011,82 @@
                 (and (= (length as) (length bs))
                      (build-tuple-equality as bs)))))))
 
+;;; LIST DEFINEDNESS (2026-10-12, repair R4; the user's decision of 2026-10-12).  A literal list
+;;; denotes exactly when every component is a set (the list doctrine, 2026-10-01), and `=' is
+;;; strict: [a1..an] = [b1..bn] is false when either list fails to denote, while the conjunction of
+;;; the component equations need not be ([SET] = [SET] decomposed to SET = SET, which is true, so
+;;; the macete proved [SET] = [SET]; META-4 report s.5.4).  The decomposition is an equivalence
+;;; where BOTH lists denote.  So each list must be certified by `pi--defined?' in the LOCAL context
+;;; of the position, or the rule OWES  Gamma |- L = L  for it (Gamma the conclusion's context), as
+;;; `forall-elim' owes  t = t.  The local context and the binder reading are those of the list
+;;; reductions (primitive-inferences.scm, `pi--reduce-lists'): formulas mentioning a variable bound
+;;; on the path are dropped, an IMPLIES antecedent reaches its consequent, the domain membership of
+;;; a SEP / VNB-LAMBDA binder reaches its body (`pi--binder-domain-scope'), and an equation whose
+;;; uncertified list mentions a variable bound on the path is NOT decomposed (its owed sequent would
+;;; be stated where that variable is free).  The positions are those `rewrite-by-proc' reaches
+;;; (connectives and the binders FORALL FORSOME IOTA COMP SEP VNB-LAMBDA), unchanged.
+;;; Returns (NEW-GOAL . OWED-LISTS).
+(define (tuple-equality-decompose-walk g asms)
+  (let ((root (map wff-formula asms))
+        (owed '()))
+    (define (mentions-any? vs e)
+      (and (pair? vs)
+           (let ((fvs (free-vars e)))
+             (let loop ((vs vs))
+               (and (pair? vs) (or (and (memq (car vs) fvs) #t) (loop (cdr vs))))))))
+    (define (drop-shadowed vs ctx)
+      (if (null? vs) ctx (filter (lambda (f) (not (mentions-any? vs f))) ctx)))
+    (define (certified? L ctx)
+      (pi--defined? (if (eq? ctx root)
+                        asms
+                        (map (lambda (f) (%%make-concrete-wff f #f #f)) ctx))
+                    L 0))
+    (define (walk e ctx bvs)
+      (let ((top (tuple-equality-decompose-fire e bvs)))
+        (cond
+          (top
+           (let* ((Ls (list (cadr e) (caddr e)))
+                  (unc (filter (lambda (L) (not (certified? L ctx))) Ls)))
+             (if (any (lambda (L) (mentions-any? bvs L)) unc)
+                 e                                       ; left standing (see above)
+                 (begin
+                   (for-each (lambda (L) (if (not (member L owed)) (set! owed (cons L owed))))
+                             unc)
+                   top))))
+          ((not (pair? e)) e)
+          (else
+           (case (car e)
+             ((AND OR IFF)
+              (list (car e) (walk (cadr e) ctx bvs) (walk (caddr e) ctx bvs)))
+             ((IMPLIES)
+              (list 'IMPLIES (walk (cadr e) ctx bvs)
+                    (walk (caddr e) (append (pi--and-conjuncts (cadr e)) ctx) bvs)))
+             ((NOT) (list 'NOT (walk (cadr e) ctx bvs)))
+             ((FORALL FORSOME IOTA COMP)
+              (let ((vs (list (cadr e))))
+                (list (car e) (cadr e) (walk (caddr e) (drop-shadowed vs ctx) (append vs bvs)))))
+             ((SEP)
+              (let ((vs (list (cadr e))))
+                (list 'SEP (cadr e) (walk (caddr e) ctx bvs)
+                      (walk (cadddr e)
+                            (append (pi--binder-domain-scope (cadr e) (caddr e))
+                                    (drop-shadowed vs ctx))
+                            (append vs bvs)))))
+             ((VNB-LAMBDA)
+              (let ((vs (vnb-lambda-bvars (cadr e))))
+                (list 'VNB-LAMBDA (cadr e) (walk (caddr e) ctx bvs)
+                      (walk (cadddr e)
+                            (append (pi--binder-domain-scope (cadr e) (caddr e))
+                                    (drop-shadowed vs ctx))
+                            (append vs bvs)))))
+             (else e))))))
+    (let ((new (walk g root '())))
+      (cons new (reverse owed)))))
+;;; BIG-UNION is not descended into, as `rewrite-by-proc' does not; declared so that the binder
+;;; audit sees the walker's claim.
+(declare-binder-walker! 'tuple-equality-decompose-walk
+                        '(FORALL FORSOME IOTA COMP SEP VNB-LAMBDA BIG-UNION))
+
 (install-macete!
   'tuple-equality-decompose
   (lambda (sqn)
@@ -1018,13 +1094,28 @@
            (goal (sequent-node-assertion   sqn))
            (g    (wff-formula goal))
            (dg   (sqn-dg sqn))
-           (new  (rewrite-by-proc tuple-equality-decompose-fire g)))
+           (r    (tuple-equality-decompose-walk g asms))
+           (new  (car r)))
       (cond
         ((alpha-equiv? new g) #f)
         (else
-         (dg-apply-rule! dg 'tuple-equality-decompose
-           (list (make-sequent asms (wff-child goal new)))
-           sqn))))))
+         (pi--note-owed-all!
+          (dg-apply-rule! dg 'tuple-equality-decompose
+            (cons (make-sequent asms (wff-child goal new))
+                  (map (lambda (L) (make-sequent asms (wff-child goal (list '= L L))))
+                       (cdr r)))
+            sqn)))))))
+
+;;; Stamped `primitive' by the user's decision, 2026-10-13 (one fact, on the shelf beside
+;;; cartesian-decompose).  Before it, the macete was an asserted name with no warrant and every
+;;; proof using it billed {tuple-equality-decompose} [trust: none].
+;;;
+;;; THE CLAIM THE STAMP MAKES: two literal lists that BOTH DENOTE are equal iff they have the same
+;;; length and are equal component by component -- tuple extensionality, the core's `tuple-eq'
+;;; schema with its definedness premise (docs/meta-k2-admissibility-2026-10-08.md s.4.6).  The
+;;; claim covers only the rule as repaired above: each list the certificate does not accept is
+;;; OWED as  L = L , so the rewrite never asserts that an uncertified list denotes.
+(register-provenance! 'tuple-equality-decompose 'primitive)
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

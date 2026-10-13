@@ -401,6 +401,10 @@
               (fact 'monalg-is-ring 'a 'm)
               (ass))
        (begin
+         ;; R4-W1 2026-10-13: monalg-carr / monalg-mul-op are guarded by IS-RING(A),
+         ;; IS-MONOID(M); land both before the two conditional macetes.
+         (fact 'commutative-ring-is-ring 'a)
+         (fact 'comm-monoid-is-monoid 'm)
          (mac 'monalg-carr)
          (mac 'monalg-mul-op)
          (dk-peel!)

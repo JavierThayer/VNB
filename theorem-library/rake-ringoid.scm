@@ -78,7 +78,11 @@
 ;;; ---- REL(RINGOID-SETOID r) == RINGOID-REL r ---------------------------
 ;;; The accessor read-off of the setoid pair, as a citable EQUATION: `slot-h'
 ;;; refuses a hypothesis (no accessor fallback), so mac-h needs a theorem.
-(sp (make-wff '(FORALL r (== (REL (RINGOID-SETOID r)) (RINGOID-REL r)))))
+;;; GUARDED by IS-RINGOID(r) (R4 species (g), approved 2026-10-13): unguarded,
+;;; the pair [CARR(r), RINGOID-REL(r)] need not denote (list doctrine), and the
+;;; read-off is underdetermined.  The guard certifies both components as sets.
+(sp (make-wff '(FORALL r (IMPLIES (IS-RINGOID r) (== (REL (RINGOID-SETOID r)) (RINGOID-REL r))))))
+(di)
 (di)
 (slot 'REL)
 (mac 'RINGOID-SETOID)

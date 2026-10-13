@@ -76,6 +76,14 @@
       (when (and (> n 0) (not (equal? (rn-goal) before))) (lp (- n 1))))))
 
 (sp (make-wff '(IS-NORMED-VECTOR-SPACE RR-NVS)))
+;; R4-G 2026-10-13: what certifies the instance tuple.  Since R4 `len-r' on
+;; LENGTH(RR-NVS) = 7 owes the 7-tuple as L = L, and a list denotes only when every
+;; component is a set: the scalar slot NORMED-FIELD-AS-COMMUTATIVE-RING(RR-NORMED-FIELD)
+;; by its structure witness, RR by rr-is-set (the lambdas and 0 certify themselves).
+;; Landed on the root, before the split, so every leaf's context holds them.
+(fact 'rr-is-normed-field)
+(fact 'normed-field-as-commutative-ring-is-commutative-ring 'RR-NORMED-FIELD)
+(fact 'rr-is-set)
 (mac 'IS-NORMED-VECTOR-SPACE)
 (let loop ((n 0))
   (let ((any #f))

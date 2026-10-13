@@ -297,9 +297,14 @@
   '(LIST (VEC v) (VADD v) (VZERO v) (VNEG v)
          (VNB-LAMBDA x_ (VEC v) (IP-NORM v x_))))
 
+;;; THE CLAIM OF THE STAMP on ip-normed-ag-carrier (R4-W2, 2026-10-13, the user's ruling):
+;;; it is the carrier read-off of the IP-NORMED-AG tuple, and it holds WHERE v IS A COMPLEX
+;;; INNER-PRODUCT SPACE -- hence the guard.  Unguarded it was false under the list doctrine
+;;; (at v = [0], VEC v = 0 while VADD v is undefined, so the tuple does not denote), the
+;;; same species as the proven read-offs ip-normed-ag-opr / -inv (hilbert-projection.scm).
 (fluid-let ((*current-provenance* 'definitional))
   (support 'ip-normed-ag-carrier
-    '(FORALL v (== (CARR (IP-NORMED-AG v)) (VEC v))))
+    '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v) (== (CARR (IP-NORMED-AG v)) (VEC v)))))
   (support 'ip-normed-ag-norm-value
     '(FORALL v (FORALL x (IMPLIES (IN x (VEC v))
        (== ((NRM (IP-NORMED-AG v)) x) (IP-NORM v x)))))))

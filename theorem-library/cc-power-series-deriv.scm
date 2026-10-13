@@ -1088,6 +1088,7 @@
 (dk-have! '(SUBSET cpds_ CC) (lambda () (subst (list '== 'CC (list 'PTS cpd-nfm))) (ass)))
 (fact 'nf-open-is-set 'CC-NORMED-FIELD 'cpds_)
 (fact 'subspace-is-metric-space cpd-nfm 'cpds_)
+(dk-have! (list 'IN 'cpds_ 'SET) (lambda () (dk-sethood! 'cpds_)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts cpd-nfm 'cpds_)
 (cpd-pts-cc!)
 (cpd-qd-pt! 'cpda_)
@@ -1177,6 +1178,7 @@
                       (cpd-qd-pt! b)
                       (inst+ cpd-qd-pt b)
                       ;; the hypothesis dist(a, b) <= delta, read as |b - a| <= delta
+                      (dk-have! (list 'IN 'cpds_ 'SET) (lambda () (dk-sethood! 'cpds_)))   ; R4-W2: subspace-* guarded by A in SET
                       (fact 'subspace-dist cpd-nfm 'cpds_ 'cpda_ b)
                       (dk-have! (list 'IN 'cpda_ '(PTS CC-MS)) (lambda () (subst '(== (PTS CC-MS) CC)) (ass)))
                       (dk-have! (list 'IN b '(PTS CC-MS)) (lambda () (subst '(== (PTS CC-MS) CC)) (ass)))

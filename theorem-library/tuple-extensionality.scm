@@ -101,8 +101,12 @@
 ;;; --------------------------------------------------------------------
 ;;; plumbing equations
 
-(sp (make-wff '(FORALL a (FORALL b (== (NTH 2 (LIST a b)) b)))))
-(di)
+;;; GUARDED by a, b in SET (R4 species (g), approved 2026-10-13): at a = 0,
+;;; b = SET the list [a, b] does not denote (list doctrine), so the left side is
+;;; undefined while the right is not.  The guards certify the list.
+(sp (make-wff '(FORALL a (FORALL b (IMPLIES (IN a SET) (IMPLIES (IN b SET)
+                 (== (NTH 2 (LIST a b)) b)))))))
+(let lp () (if (memq (car (dk-goal)) '(FORALL IMPLIES)) (begin (di) (lp))))
 (nth-r)
 (qrfl)
 (qed 'nth2-pair)
@@ -167,6 +171,12 @@
                (rfl))))))
    (dk-opened (lambda () (comp-mi)))))
 
+;; The head's sethood, the guard of the CONS equations (`x in SET', 2026-10-13):
+;; from the head's typing in context, by dk-sethood!.  Landed on the MAIN branch
+;; before any lane that cites a CONS equation, so the lanes see it.
+(define (tx-set! x)
+  (dk-have! (list 'IN x 'SET) (lambda () (dk-sethood! x))))
+
 ;; The tail hypothesis:  forall k. k in NN, 1 <= k <= LENGTH(t0) => NTH(k,t0) = NTH(k,t1),
 ;; from the entry hypothesis NTHH of CONS(x0,t0) against mm = CONS(x1,t1), at succ k.
 (define (tx-tail-entries! x0 t0 x1 t1 mm nthh)
@@ -230,6 +240,7 @@
                 "the entry hypothesis of CONS(x0,t0)")))
     (if (not (and (eq? (car g) '=) (equal? (cadr g) cx)))
         (error "tx-step-property!: unexpected goal" g))
+    (tx-set! x0)                                             ; the guard of the CONS equations
     (fact 'length-cons x0 t0)                                ; LENGTH(cx) = succ LENGTH(t0)
     (fact 'length-in-nn a t0)                                ; LENGTH(t0) in NN
     (have! (list '= (list 'LENGTH mm) (list 'succ lt0))
@@ -244,6 +255,7 @@
                          "the tail existential"))
            (t1  (dk-skolem! ex2))                            ; the tail of mm
            (cx1 (list 'CONS x1 t1)))
+      (tx-set! x1)                                           ; the guard, for the head of mm
       ;; the induction hypothesis: the class property of the tail t0
       (comp-me (list 'IN t0 cls))
       (let ((ih (tx-pick-univ (lambda (c) (and (pair? c) (eq? (car c) '=) (eq? (cadr c) t0)))

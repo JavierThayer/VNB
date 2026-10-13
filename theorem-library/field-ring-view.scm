@@ -111,10 +111,15 @@
 
 (qed 'singleton-membership)
 
+;;; GUARDED by IS-FIELD(f_) (R4 species (g), approved 2026-10-13): unguarded,
+;;; f_ = [0] makes CARR(f_) denote while ADD(f_) = NTH(2, [0]) does not, so the
+;;; view tuple does not denote and the read-off is false.  The guard certifies the
+;;; accessor components as sets; `nth-r' owes nothing.
 (define (frv-slot! nm acc)
   (sp (make-wff (list 'FORALL 'f_
-        (list '== (list acc '(FIELD-AS-INTEGRAL-DOMAIN f_)) (list acc 'f_)))))
-  (di) (slot acc) (mac 'FIELD-AS-INTEGRAL-DOMAIN) (nth-r) (slot acc) (qrfl)
+        (list 'IMPLIES '(IS-FIELD f_)
+          (list '== (list acc '(FIELD-AS-INTEGRAL-DOMAIN f_)) (list acc 'f_))))))
+  (di) (di) (slot acc) (mac 'FIELD-AS-INTEGRAL-DOMAIN) (nth-r) (slot acc) (qrfl)
   (if (not (proof-done? *ps*)) (error "frv-slot!: did not close" nm))
   (qed nm))
 (frv-slot! 'field-id-carr 'CARR)

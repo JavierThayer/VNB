@@ -433,11 +433,7 @@
                       (and (eq? (car f) '=)
                            (or (alpha-equiv? (cadr f) t) (alpha-equiv? (caddr f) t))))))
            ctx)
-      (any (lambda (f)
-             (and (pair? f) (memq (car f) '(IN = <= <)) (= (length f) 3)
-                  (or (chk-elim-outside-binders? t (cadr f))
-                      (chk-elim-outside-binders? t (caddr f)))))
-           ctx)
+      (any (lambda (f) (chk-atom-certifies? f t 0)) ctx)   ; strict atoms + membership (R4-F)
       (and (chk-number-class ctx t 0) #t)          ; nested arithmetic (rule-checkers-logic.scm)
       (and (pi--defined? (map (lambda (f) (%%make-concrete-wff f #f #f)) ctx) t 0) #t)))
 
@@ -524,6 +520,30 @@
   (let ((s (call-with-output-string (lambda (p) (write e p)))))
     (if (> (string-length s) 160) (string-append (substring s 0 157) "...") s)))
 
+;;; THE DOMAIN OF A TERM BINDER, for the list-definedness checkers only (2026-10-12, R4).  Under
+;;; the fluid *rkw--binder-domains?* -- bound #t by `chk-list-reduction' (rule-checkers-logic.scm)
+;;; and `rkw--check-tuple-equality-decompose' -- the walk adds `x in A' to the local context of
+;;; the body of (SEP x A p), (BIG-UNION x A b) and (VNB-LAMBDA x A b) (and x in A, y in B for a
+;;; (LIST x y) binder over (CARTESIAN A B)): the body matters only there.  A membership whose
+;;; class mentions a variable of the binder is not added.  The macete checker leaves the fluid #f
+;;; and is unchanged.
+(define *rkw--binder-domains?* #f)
+(define (rkw--domain-scope bs A)
+  (if (not *rkw--binder-domains?*)
+      '()
+      (let* ((pairs (cond ((symbol? bs) (list (cons bs A)))
+                          ((and (pair? bs) (eq? (car bs) 'LIST) (list? A) (pair? A)
+                                (eq? (car A) 'CARTESIAN) (= (length (cdr bs)) (length (cdr A))))
+                           (map cons (cdr bs) (cdr A)))
+                          (#t '())))
+             (vs (map car pairs)))
+        (let loop ((ps pairs) (acc '()))
+          (cond ((null? ps) (reverse acc))
+                ((let ((fv (rkw--free-vars (cdar ps))))
+                   (let lp ((v vs)) (and (pair? v) (or (memq (car v) fv) (lp (cdr v))))))
+                 (loop (cdr ps) acc))
+                (#t (loop (cdr ps) (cons (list 'IN (caar ps) (cdar ps)) acc))))))))
+
 (define (rkw--descend a b explain ctx)
   (cond
     ((and (functoid? a) (functoid? b)
@@ -600,7 +620,8 @@
                   (rkw--under-binder (list (cadr a))
                     (lambda ()
                       (rkw--walk (cadddr a) (cadddr b) explain
-                                 (rkw--drop-shadowed (list (cadr a)) ctx))))
+                                 (append (rkw--domain-scope (cadr a) (caddr a))
+                                         (rkw--drop-shadowed (list (cadr a)) ctx)))))
                   r))))
        ((VNB-LAMBDA)
         (if (not (equal? (cadr a) (cadr b)))
@@ -610,7 +631,8 @@
                   (rkw--under-binder (vnb-lambda-bvars (cadr a))
                     (lambda ()
                       (rkw--walk (cadddr a) (cadddr b) explain
-                                 (rkw--drop-shadowed (vnb-lambda-bvars (cadr a)) ctx))))
+                                 (append (rkw--domain-scope (cadr a) (caddr a))
+                                         (rkw--drop-shadowed (vnb-lambda-bvars (cadr a)) ctx)))))
                   r))))
        (else
         ;; Every other head -- connectives with no increment, predicates, terms,
@@ -983,11 +1005,19 @@
 ;;; -----------------------------------------------------------------------
 ;;; tuple-equality-decompose
 ;;;
-;;; RELATION.  One hypothesis, same assumptions, same goal except that SOME
-;;; occurrences of (= (LIST a_1..a_n) (LIST b_1..b_n)) -- both sides LIST forms
-;;; of the SAME length -- are replaced by the right-nested conjunction of the
-;;; component equations, with n = 0 giving TRUTH and n = 1 giving (= a_1 b_1).
-;;; The conjunction is rebuilt here and compared.
+;;; RELATION.  A main hypothesis with the same assumptions and the same goal except that SOME
+;;; occurrences of (= (LIST a_1..a_n) (LIST b_1..b_n)) -- both sides LIST forms of the SAME
+;;; length -- are replaced by the right-nested conjunction of the component equations, with
+;;; n = 0 giving TRUTH and n = 1 giving (= a_1 b_1).  The conjunction is rebuilt here and
+;;; compared.
+;;; LIST DEFINEDNESS (2026-10-12, repair R4; the user's decision of 2026-10-12): `=' is strict
+;;; and a literal list denotes exactly when every component is a set, so the decomposition is an
+;;; equivalence only where BOTH lists denote.  At each decomposed position each list must be
+;;; certified defined in the LOCAL context (`rkw--value-certified?'), or be OWED: a further
+;;; hypothesis  Gamma => L = L  (Gamma the conclusion's assumptions) for that very list, which then
+;;; mentions no variable bound on the path (`rkw--value-discharged?', the macete door's rule).
+;;; Every further hypothesis must be such an owed sequent for a literal LIST.  CONTROL: [SET] =
+;;; [SET] decomposed with nothing owed is refused (test-suite.scm).
 
 (define (rkw--tuple-conjunction as bs)
   (cond
@@ -996,21 +1026,49 @@
     (else `(AND (= ,(car as) ,(car bs))
                 ,(rkw--tuple-conjunction (cdr as) (cdr bs))))))
 
-(define (rkw--tuple-explainer a b ctx)
+(define (rkw--tuple-explainer a b ctx minors)
   (if (and (list? a) (= 3 (length a)) (eq? (car a) '=)
            (list? (cadr a)) (pair? (cadr a)) (eq? (car (cadr a)) 'LIST)
            (list? (caddr a)) (pair? (caddr a)) (eq? (car (caddr a)) 'LIST)
            (= (length (cadr a)) (length (caddr a))))
-      (if (alpha-equiv? b (rkw--tuple-conjunction (cdr (cadr a)) (cdr (caddr a))))
-          #t
-          (string-append "tuple-equality-decompose rewrote " (rkw--brief a)
-                         " into something other than the conjunction of its"
-                         " component equations: " (rkw--brief b)))
+      (cond
+        ((not (alpha-equiv? b (rkw--tuple-conjunction (cdr (cadr a)) (cdr (caddr a)))))
+         (string-append "tuple-equality-decompose rewrote " (rkw--brief a)
+                        " into something other than the conjunction of its"
+                        " component equations: " (rkw--brief b)))
+        ((not (rkw--value-discharged? (cadr a) ctx minors))
+         (string-append "tuple-equality-decompose: the list " (rkw--brief (cadr a))
+                        " is not certified defined in the local context, and no definedness"
+                        " sequent  L = L  is owed for it (or it mentions a variable bound there)"))
+        ((not (rkw--value-discharged? (caddr a) ctx minors))
+         (string-append "tuple-equality-decompose: the list " (rkw--brief (caddr a))
+                        " is not certified defined in the local context, and no definedness"
+                        " sequent  L = L  is owed for it (or it mentions a variable bound there)"))
+        (else #t))
       'no))
 
+(define (rkw--owed-list-sequent? h concl)
+  (let ((g (rkw--goal-formula h)))
+    (and (rkw--same-assumptions? (rkw--asm-formulas concl) (rkw--asm-formulas h))
+         (pair? g) (eq? (car g) '=) (= (length g) 3)
+         (alpha-equiv? (cadr g) (caddr g))
+         (pair? (cadr g)) (eq? (car (cadr g)) 'LIST))))
+
 (define (rkw--check-tuple-equality-decompose rule hyps concl)
-  (rkw--check-one-hypothesis-rewrite 'tuple-equality-decompose hyps concl
-                                     rkw--tuple-explainer))
+  (cond
+    ((null? hyps) "tuple-equality-decompose takes at least one hypothesis")
+    ((not (rkw--same-assumptions? (rkw--asm-formulas concl)
+                                  (rkw--asm-formulas (car hyps))))
+     "tuple-equality-decompose must not change the assumptions")
+    ((not (every (lambda (h) (rkw--owed-list-sequent? h concl)) (cdr hyps)))
+     "a further hypothesis of tuple-equality-decompose is not an owed definedness sequent  Gamma => L = L  for a literal LIST")
+    (else
+     (let* ((minors (map rkw--goal-formula (cdr hyps)))
+            (r (fluid-let ((*rkw--binder-domains?* #t))
+                 (rkw--walk (rkw--goal-formula concl) (rkw--goal-formula (car hyps))
+                            (lambda (a b ctx) (rkw--tuple-explainer a b ctx minors))
+                            (rkw--asm-formulas concl)))))
+       (if (eq? r #t) #t r)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Registration

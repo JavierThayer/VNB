@@ -165,13 +165,21 @@
   (fact 'ring-carr-in-set 'a)
   (fact 'mat-is-set '(CARR a) 'n 'n))
 
+;;; 2026-10-12 (R4, list definedness): `nth-r' on the MAT-RING tuple owes the tuple unless every
+;;; component is certified a set; ZEROMAT and IDENTMAT are IOTA-bodied and are certified only
+;;; by their typings, landed here before the read-off.
+(define (rmr-tuple-typed!)
+  (rmr-carr-set!)
+  (fact 'zeromat-type 'a 'n 'n)
+  (fact 'identmat-type 'a 'n))
+
 ;;; =====================================================================
 ;;; (1) mat-ring-carr -- slot 1.  The one case where target and source
 ;;; accessor are the same symbol, so the read-back fires.
 ;;; =====================================================================
 (rmr-read-off! 'mat-ring-carr
   '(FORALL a (FORALL n (IMPLIES (IS-RING a) (IMPLIES (IN n NN) (= (CARR (MAT-RING a n)) (MAT n n (CARR a)))))))
-  'MAT-RING 'CARR rmr-carr-set!)
+  'MAT-RING 'CARR rmr-tuple-typed!)
 (topic! 'mat-ring-carr 'plumbing)
 
 ;;; =====================================================================
@@ -179,7 +187,7 @@
 ;;; =====================================================================
 (rmr-read-off! 'mat-ring-add
   '(FORALL a (FORALL n (IMPLIES (IS-RING a) (IMPLIES (IN n NN) (= (ADD (MAT-RING a n)) (VNB-LAMBDA (LIST P Q) (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MATADD a P Q)))))))
-  'MAT-RING 'ADD rmr-carr-set!)
+  'MAT-RING 'ADD rmr-tuple-typed!)
 (topic! 'mat-ring-add 'plumbing)
 
 ;;; =====================================================================
@@ -187,7 +195,7 @@
 ;;; =====================================================================
 (rmr-read-off! 'mat-ring-mul
   '(FORALL a (FORALL n (IMPLIES (IS-RING a) (IMPLIES (IN n NN) (= (MUL (MAT-RING a n)) (VNB-LAMBDA (LIST P Q) (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MATMUL a P Q)))))))
-  'MAT-RING 'MUL rmr-carr-set!)
+  'MAT-RING 'MUL rmr-tuple-typed!)
 (topic! 'mat-ring-mul 'plumbing)
 
 ;;; =====================================================================
@@ -195,7 +203,7 @@
 ;;; =====================================================================
 (rmr-read-off! 'mat-ring-neg
   '(FORALL a (FORALL n (IMPLIES (IS-RING a) (IMPLIES (IN n NN) (= (NEG (MAT-RING a n)) (VNB-LAMBDA P (MAT n n (CARR a)) (MATNEG a P)))))))
-  'MAT-RING 'NEG rmr-carr-set!)
+  'MAT-RING 'NEG rmr-tuple-typed!)
 (topic! 'mat-ring-neg 'plumbing)
 
 ;;; =====================================================================
@@ -206,7 +214,7 @@
 (rmr-read-off! 'mat-ring-zero
   '(FORALL a (FORALL n (IMPLIES (IS-RING a) (IMPLIES (IN n NN) (= (ZERO (MAT-RING a n)) (ZEROMAT a n n))))))
   'MAT-RING 'ZERO
-  (lambda () (rmr-carr-set!) (fact 'zeromat-type 'a 'n 'n)))
+  (lambda () (rmr-tuple-typed!)))
 (topic! 'mat-ring-zero 'plumbing)
 
 ;;; =====================================================================

@@ -242,6 +242,29 @@
 ;;; =====================================================================
 (define (fom-nfn fld t) (list (list 'FNRM fld) t))
 (define (fom-nfv fld) (list 'NORMED-FIELD-AS-COMMUTATIVE-RING fld))
+;;; R4-G 2026-10-13: (== (ACC v) (ACC fld)) for v = NORMED-FIELD-AS-COMMUTATIVE-RING(fld)
+;;; WITHOUT IS-NORMED-FIELD(fld), from a strict hypothesis SC = (= X v) in context.
+;;; The generic read-off normed-field-ring-view-ACC is guarded by IS-NORMED-FIELD
+;;; since R4; here the strict SC certifies that the view denotes, which is all the
+;;; read-off needs.  On a lane: the unfold v == [carr(fld), ..., one(fld)] (mac, qrfl),
+;;; rewritten into SC so the context holds the LIST outside binders in a true `=';
+;;; then the generic five steps, `nth-r' owing nothing.
+(define (fom-view-acc! sc fld acc)
+  (let* ((v (fom-nfv fld))
+         (lst (cons 'LIST (map (lambda (a) (list a fld)) '(CARR ADD MUL NEG ZERO ONE))))
+         (eqn (list '== (list acc v) (list acc fld))))
+    (if (not (dk-asm? eqn))
+        (dk-have! eqn
+          (lambda ()
+            (dk-have! (list '== v lst)
+              (lambda () (mac 'NORMED-FIELD-AS-COMMUTATIVE-RING) (qrfl)))
+            (dk-rewrite-h! sc v lst)
+            (slot acc)
+            (mac 'NORMED-FIELD-AS-COMMUTATIVE-RING)
+            (nth-r)
+            (slot acc)
+            (qrfl))))
+    eqn))
 ;;; with IS-NORMED-FIELD fld in context and the terms typed in CARR fld: prove the
 ;;; field identity (= L R) (MUL / ONE of fld) by crs in the ring view
 (define (fom-field-crs! fld lhs rhs terms)
@@ -768,9 +791,10 @@
        (sg (cadr (car sgs))) (ta (cadr (cadr sgs)))
        (z (cadr (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (caddr f) (list 'VEC md)))) ls)))
        (v (fom-nfv fld)) (sm (list 'SCAL md)))
-  (dk-cite! 'normed-field-ring-view-carr fld)
-  (dk-cite! 'normed-field-ring-view-mul fld)
-  (dk-cite! 'normed-field-ring-view-one fld)
+  ;; R4-G: no IS-NORMED-FIELD(fld) here, so the read-offs come from SC (fom-view-acc!)
+  (fom-view-acc! sc fld 'CARR)
+  (fom-view-acc! sc fld 'MUL)
+  (fom-view-acc! sc fld 'ONE)
   (for-each (lambda (t)
               (dk-rewrite-h! (dk-rewrite-h! (list 'IN t (list 'CARR fld)) (list 'CARR fld) (list 'CARR v)) v sm))
             (list sg ta))

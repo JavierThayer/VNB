@@ -669,6 +669,7 @@
 (dk-have! (list 'SUBSET cim-icc '(PTS RR-MS))
   (lambda () (slot 'PTS) (fact 'ccint-subset-rr 'av_ 'bv_) (ass)))
 (fact 'subspace-is-metric-space 'RR-MS cim-icc)
+(dk-have! (list 'IN cim-icc 'SET) (lambda () (dk-sethood! cim-icc)))   ; R4-W2: subspace-pts guarded by A in SET
 (fact 'heine-borel-ccint 'av_ 'bv_)
 (have! (list 'IS-CONTINUOUS cim-isub 'CC-MS 'pgam)
   (lambda ()

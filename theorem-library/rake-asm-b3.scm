@@ -149,15 +149,24 @@
 
 ;;; the slots of a six-tuple whose scalar slot is RR's ring view
 (define rb3-tv (rb3-tup 'ta2_ 'ta3_ 'ta4_ 'ta5_ 'ta6_))
+;;; R4-W1 2026-10-13: GUARDED by ta2_ ... ta6_ in SET (R4 species (g), approved as
+;;; drafted): at ta2_ = SET the six-tuple does not denote (list doctrine) and the
+;;; read-offs are false.  The guards certify the variable components; the owed-leaf
+;;; hook types the closed scalar component.
 (sp (make-wff (list 'FORALL 'ta2_ (list 'FORALL 'ta3_ (list 'FORALL 'ta4_ (list 'FORALL 'ta5_ (list 'FORALL 'ta6_
+  (list 'IMPLIES '(IN ta2_ SET) (list 'IMPLIES '(IN ta3_ SET) (list 'IMPLIES '(IN ta4_ SET)
+  (list 'IMPLIES '(IN ta5_ SET) (list 'IMPLIES '(IN ta6_ SET)
   (list 'AND (list '== (list 'SCAL rb3-tv) rb3-R)
   (list 'AND (list '== (list 'VEC rb3-tv) 'ta2_)
   (list 'AND (list '== (list 'VADD rb3-tv) 'ta3_)
   (list 'AND (list '== (list 'VZERO rb3-tv) 'ta4_)
   (list 'AND (list '== (list 'VNEG rb3-tv) 'ta5_)
   (list 'AND (list '== (list 'ACT rb3-tv) 'ta6_)
-             (list '= (list 'LENGTH rb3-tv) 6))))))))))))))
+             (list '= (list 'LENGTH rb3-tv) 6)))))))))))))))))))
 (dk-peel!)
+;; the closed scalar component, certified by a structure hypothesis ON it
+(dk-cite! 'rr-is-normed-field)
+(dk-cite! 'normed-field-as-commutative-ring-is-commutative-ring 'RR-NORMED-FIELD)
 (dk-conj-close!
   (lambda ()
     (let ((g (dk-goal)))
@@ -190,6 +199,37 @@
 (dk-cite! 'rr-is-set)
 (dk-cite! 'rr-one-in)
 (dk-cite! 'rb3-c-one-eq 'm)
+;; R4-W1 2026-10-13: rb3-tuple6's sethood guards, landed first -- the four module
+;; slots from the IS-MODULE typing conjuncts (on lanes: the hypothesis survives),
+;; the restricted action from its FUN typing (lam-t, as in rb3-act-law! below).
+(for-each
+  (lambda (pr)
+    (dk-project! (list 'IN (car pr) (cadr pr)) 'is-module '(IS-MODULE m))
+    (if (not (eq? (cadr pr) 'SET))
+        (dk-cite! 'membership-implies-sethood (car pr) (cadr pr))))
+  '(((VEC m) SET)
+    ((VADD m) (FUN (CARTESIAN (VEC m) (VEC m)) (VEC m)))
+    ((VZERO m) (VEC m))
+    ((VNEG m) (FUN (VEC m) (VEC m)))))
+(define rb3-lact-fun (list 'IN rb3-lact '(FUN (CARTESIAN RR (VEC m)) (VEC m))))
+(dk-have! rb3-lact-fun
+  (lambda ()
+    (for-each
+      (lambda (k)
+        (dk-focus! k)
+        (if (eq? (car (dk-goal)) 'FORALL)
+            (begin
+              (dk-peel!)
+              (let* ((app (cadr (dk-goal))) (r (cadr app)) (x (caddr app)))
+                (if (not (dk-asm? (list 'IN r 'CC))) (dk-cite! 'rr-subset-cc r))
+                (dk-cite! 'rb3-c-act-in 'm r x)
+                (ass)))
+            (begin
+              (dk-have! '(AND (IN RR SET) (IN (VEC m) SET)))
+              (mac 'cartesian-set-iff)
+              (ass))))
+      (dk-opened (lambda () (lam-t))))))
+(dk-cite! 'membership-implies-sethood rb3-lact '(FUN (CARTESIAN RR (VEC m)) (VEC m)))
 (dk-split-all! (list (dk-cite! 'rb3-tuple6 '(VEC m) '(VADD m) '(VZERO m) '(VNEG m) rb3-lact)))
 (define rb3-vs (dk-project! '(IN (VEC m) SET) 'is-module '(IS-MODULE m)))
 (ew rb3-L)
@@ -929,9 +969,14 @@
 ;;; =====================================================================
 ;;; (II) THE GAUGE TOPOLOGY OF A COUNTABLE PSEUDOMETRIC FAMILY.
 ;;; =====================================================================
+;;; R4-G 2026-10-13 (the user's approval): GUARDED by g in SET.  Unguarded the read-off
+;;; is false under the list doctrine: g = SET (a proper class) makes the pair [g, SEP]
+;;; undefined, so PTS(PSEUDO-GAUGE-TOP(fam, g)) does not denote while g does.  Every
+;;; citer holds g in SET (the metrizability citer derives it from the family, rb3-g-set!).
 (define (rb3-pgt-slot! name acc val)
-  (sp (make-wff (list 'FORALL 'fam (list 'FORALL 'g (list '== (list acc '(PSEUDO-GAUGE-TOP fam g)) val)))))
+  (sp (make-wff (list 'FORALL 'fam (list 'FORALL 'g (list 'IMPLIES '(IN g SET) (list '== (list acc '(PSEUDO-GAUGE-TOP fam g)) val))))))
   (dk-peel!)
+  (dk-cite! 'power-set 'g)
   (mac 'PSEUDO-GAUGE-TOP)
   (slot acc)
   (nth-r)
@@ -1507,10 +1552,21 @@
 ;;; =====================================================================
 ;;; (VI) metrizable-iff-gauge-countable, (=>): a metric is a one-member gauge.
 ;;; =====================================================================
-(sp (make-wff '(FORALL ta_ (FORALL tb_ (AND (== (PTS (LIST ta_ tb_)) ta_) (== (DIST (LIST ta_ tb_)) tb_))))))
+;; R4-G 2026-10-13 (the user's approval): GUARDED by ta_ in SET, tb_ in SET (rb3-tuple6's
+;; species): unguarded, ta_ = 0, tb_ = SET makes [ta_, tb_] undefined while ta_ denotes.
+(sp (make-wff '(FORALL ta_ (FORALL tb_ (IMPLIES (IN ta_ SET) (IMPLIES (IN tb_ SET)
+  (AND (== (PTS (LIST ta_ tb_)) ta_) (== (DIST (LIST ta_ tb_)) tb_))))))))
 (dk-peel!)
 (dk-conj-close! (lambda () (slot (car (cadr (dk-goal)))) (nth-r) (qrfl)))
 (rb3-qed! 'rb3-tuple2)
+
+;;; R4-G: the sethood of a metric space's two slots, for rb3-tuple2's guards (the
+;;; typing conjuncts of IS-METRIC-SPACE, projected on lanes so the hypothesis survives)
+(define (rb3-ms-sets! md)
+  (let ((dty (list 'IN (list 'DIST md) (list 'FUN (list 'CARTESIAN (list 'PTS md) (list 'PTS md)) 'RR))))
+    (dk-project! (list 'IN (list 'PTS md) 'SET) 'is-metric-space (list 'IS-METRIC-SPACE md))
+    (if (not (dk-asm? dty)) (dk-project! dty 'is-metric-space (list 'IS-METRIC-SPACE md)))
+    (dk-cite! 'membership-implies-sethood (list 'DIST md) (caddr dty))))
 
 ;;; P1.  a pseudometric on a set makes a pseudometric space.
 (sp (make-wff '(FORALL pq_ (FORALL dq_ (IMPLIES (IN pq_ SET) (IMPLIES (IN dq_ (FUN (CARTESIAN pq_ pq_) RR))
@@ -1559,6 +1615,7 @@
   (rb3-fa 'n_ 'NN (list '== (list 'DIST (list rb3-fam1 'n_)) '(DIST md)))))))
 (dk-peel!)
 (dk-lam-b!)
+(rb3-ms-sets! 'md)                      ; R4-G: rb3-tuple2's guards
 (dk-split-all! (list (dk-cite! 'rb3-tuple2 '(PTS md) '(DIST md))))
 (rb3-close!)
 (rb3-qed! 'rb3-fam1-dist)
@@ -1662,6 +1719,7 @@
   (dk-split-all! (list (dk-ctx-form (mz '(AND (IN (PTS md) SET) (IN (DIST md) (FUN (CARTESIAN (PTS md) (PTS md)) RR)))))))
   (dk-cite! 'rb3-metric-pseudo mdv)
   (dk-cite! 'rb3-pms-of (mz '(PTS md)) (mz '(DIST md)))
+  (dk-cite! 'membership-implies-sethood (mz '(DIST md)) (mz '(FUN (CARTESIAN (PTS md) (PTS md)) RR)))   ; R4-G
   (dk-split-all! (list (dk-cite! 'rb3-tuple2 (mz '(PTS md)) (mz '(DIST md)))))
   (dk-have! (list 'IS-COUNTABLE-PSEUDOMETRIC-FAMILY fam1 (mz '(PTS md)))
     (lambda () (mac 'is-countable-pseudometric-family) (dk-peel!) (dk-lam-b!) (dk-conj-close! (lambda () (ass)))))
@@ -1870,10 +1928,45 @@
 ;;; the countably-metrised space of a gauge: [g, k |-> DIST(fam k)]
 (define rb3-lam '(VNB-LAMBDA zk_ NN (DIST (fam zk_))))
 (define rb3-cs (list 'LIST 'g rb3-lam))
-(sp (make-wff '(FORALL ta_ (FORALL tb_ (AND (== (PTS (LIST ta_ tb_)) ta_) (== (DISTS (LIST ta_ tb_)) tb_))))))
+;; R4-G 2026-10-13 (the user's approval): GUARDED as rb3-tuple2 is.
+(sp (make-wff '(FORALL ta_ (FORALL tb_ (IMPLIES (IN ta_ SET) (IMPLIES (IN tb_ SET)
+  (AND (== (PTS (LIST ta_ tb_)) ta_) (== (DISTS (LIST ta_ tb_)) tb_))))))))
 (dk-peel!)
 (dk-conj-close! (lambda () (slot (car (cadr (dk-goal)))) (nth-r) (qrfl)))
 (rb3-qed! 'rb3-tuple2d)
+
+;;; R4-G: rb3-tuple2d's second guard, the sethood of k |-> DIST(fam k): typed in
+;;; FUN(NN, FUN(g x g, RR)) by lam-t (each DIST(fam k) through the family hypothesis,
+;;; as rb3-cs-is-cms types it), then membership-implies-sethood
+(define (rb3-lam-set!)
+  (let* ((cls '(FUN NN (FUN (CARTESIAN g g) RR))) (ty (list 'IN rb3-lam cls)))
+    (dk-cite! 'nn-is-set)
+    (dk-have! ty
+      (lambda ()
+        (for-each
+          (lambda (l)
+            (dk-focus! l)
+            (if (eq? (car (dk-goal)) 'FORALL)
+                (let ((k (rb3-peel-var!)))
+                  (rb3-fam-at! k)
+                  (rb3-pms-part! (list 'fam k) (list 'IN (list 'DIST (list 'fam k)) (list 'FUN (list 'CARTESIAN (list 'PTS (list 'fam k)) (list 'PTS (list 'fam k))) 'RR)))
+                  (dk-rewrite-h! (dk-ctx-form (list 'IN (list 'DIST (list 'fam k)) (list 'FUN (list 'CARTESIAN (list 'PTS (list 'fam k)) (list 'PTS (list 'fam k))) 'RR)))
+                                 (list 'PTS (list 'fam k)) 'g)
+                  (rb3-close!))
+                (rb3-close!)))
+          (dk-opened (lambda () (lam-t))))))
+    (dk-cite! 'membership-implies-sethood rb3-lam cls)))
+
+;;; R4-G: g in SET from the family hypothesis -- fam(0) is a pseudometric space whose
+;;; points are g (what the metrizability citer of rb3-pgt-pts holds before the read-off)
+(define (rb3-g-set!)
+  (dk-have! '(IN g SET)
+    (lambda ()
+      (dk-have! '(IN 0 NN) (lambda () (arith)))
+      (rb3-fam-at! 0)
+      (rb3-pms-part! '(fam 0) '(IN (PTS (fam 0)) SET))
+      (subst '(= g (PTS (fam 0))))
+      (ass))))
 
 (define rb3-sephyp (rb3-fa 'pu_ 'g (rb3-fa 'pv_ 'g (list 'IMPLIES (rb3-fa 'k_ 'NN '(= ((DIST (fam k_)) pu_ pv_) 0)) '(= pu_ pv_)))))
 
@@ -1882,6 +1975,7 @@
   (list 'IS-C-METRIC-SPACE rb3-cs))))))
 (dk-peel!)
 (dk-cite! 'nn-is-set)
+(rb3-lam-set!)                          ; R4-G: rb3-tuple2d's guards
 (dk-split-all! (list (dk-cite! 'rb3-tuple2d 'g rb3-lam)))
 (mac 'is-c-metric-space)
 (subst (list '= (list 'PTS rb3-cs) 'g))
@@ -1930,6 +2024,7 @@
   rb3-sephyp))))))
 (let* ((ld (dk-peel!))
        (u (cadr (dk-goal))) (v (caddr (dk-goal))))
+  (rb3-g-set!)                          ; R4-G: the read-offs' guard, from the family
   (dk-cite! 'rb3-pgt-pts 'fam 'g)
   (dk-cite! 'rb3-pgt-opens 'fam 'g)
   (dk-have! '(= (PTS s) g) (lambda () (subst (list '= 's rb3-pgt)) (subst (list '= (list 'PTS rb3-pgt) 'g)) (rfl)))
@@ -2176,12 +2271,14 @@
 (sp (make-wff (list 'FORALL 's (list 'FORALL 'fam (list 'FORALL 'g
   (rb3-imps (list '(IS-TOP-SPACE s) '(IS-HAUSDORFF s) rb3-cpf (list '== rb3-pgt 's)) '(IS-METRIZABLE-TOP-SPACE s)))))))
 (dk-peel!)
+;; R4-G: g in SET from the family hypothesis FIRST -- rb3-pgt-pts is guarded by it now
+(rb3-g-set!)
 (dk-cite! 'rb3-pgt-pts 'fam 'g)
 (dk-have! '(= (PTS s) g) (lambda () (subst (list '= 's rb3-pgt)) (subst (list '= (list 'PTS rb3-pgt) 'g)) (rfl)))
 (dk-have! '(IN (PTS s) SET) (lambda () (mac-h 'is-top-space (dk-ctx-form '(IS-TOP-SPACE s))) (dk-split-all!) (ass)))
-(dk-have! '(IN g SET) (lambda () (subst '(= g (PTS s))) (rb3-close!)))
 (dk-cite! 'rb3-haus-sep 's 'fam 'g)
 (dk-cite! 'rb3-cs-is-cms 'fam 'g)
+(rb3-lam-set!)                          ; R4-G: rb3-tuple2d's guards
 (dk-split-all! (list (dk-cite! 'rb3-tuple2d 'g rb3-lam)))
 (dk-have! (subst-free 'cs rb3-cs rb3-dists-eq)
   (lambda ()

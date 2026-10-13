@@ -293,7 +293,9 @@
   (dk-have! (list 'SUBSET lrp-cd '(PTS RR-MS)) (lambda () (subst '(== (PTS RR-MS) RR)) (ass)))
   (fact 'subspace-is-metric-space 'RR-MS lrp-ab)
   (fact 'subspace-is-metric-space 'RR-MS lrp-cd)
+  (dk-have! (list 'IN lrp-ab 'SET) (lambda () (dk-sethood! lrp-ab)))   ; R4-W2: subspace-* guarded by A in SET
   (fact 'subspace-pts 'RR-MS lrp-ab)
+  (dk-have! (list 'IN lrp-cd 'SET) (lambda () (dk-sethood! lrp-cd)))   ; R4-W2: subspace-* guarded by A in SET
   (fact 'subspace-pts 'RR-MS lrp-cd)
   ;; f is a function on [a,b]
   (dk-have! (list 'IN 'f (list 'FUN lrp-ab 'RR))

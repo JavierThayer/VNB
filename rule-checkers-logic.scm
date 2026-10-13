@@ -644,10 +644,7 @@
   (let walk ((f inst))
     (cond ((and (pair? f) (eq? (car f) 'AND) (= (length f) 3))
            (or (walk (cadr f)) (walk (caddr f))))
-          ((and (pair? f) (memq (car f) '(IN = <= <)) (= (length f) 3))
-           (or (chk-elim-outside-binders? t (cadr f))
-               (chk-elim-outside-binders? t (caddr f))))
-          (else #f))))
+          (else (chk-atom-certifies? f t 0)))))
 (register-rule-checker! 'forsome-intro
   (lambda (rule hyps concl)
     (let ((g (chk-goal concl)))
@@ -806,8 +803,32 @@
 ;;; already in the context (`chk-adds-nothing?') the inference adds nothing and
 ;;; is accepted whatever the side sequent says.
 (define (chk-elim-outside-binders? t e)
+  (chk-sob t e 0))
+;;; The checker's own reading of a registered def-functoid head (2026-10-13, repair R4-F):
+;;; the registry entry (PARAMS BODY ...), the body with the actual arguments substituted for
+;;; the parameters, or #f when the head is not registered, the arity differs, or a parameter
+;;; is not a plain symbol.  Written here, not borrowed from the builder's
+;;; `pi--functoid-instance'.  The registry lives in the load's environment (see
+;;; `chk-value-may-be-class?', rule-checkers-schema.scm): the lookup catches the unbound case.
+(define (chk-functoid-entry name)
+  (and (symbol? name)
+       (call-with-current-continuation
+         (lambda (k)
+           (with-exception-handler (lambda (c) (k #f))
+             (lambda () (hash-table-ref/default *functoid-registry* name #f)))))))
+(define (chk-functoid-unfold e)
+  (let ((reg (chk-functoid-entry (car e))))
+    (and reg (list? reg) (>= (length reg) 2)
+         (list? (car reg)) (= (length (car reg)) (length (cdr e)))
+         (chk-every symbol? (car reg))
+         (subst-free* (map cons (car reg) (cdr e)) (cadr reg)))))
+(define (chk-sob t e depth)
   ;; T occurs in E at a position no binder encloses.  Written here, not
   ;; borrowed: a functoid record counts as a binder throughout (conservative).
+  ;; A def-functoid APPLICATION is read through its instantiated body (R4-F,
+  ;; 2026-10-13): F(a) denoting is body[a] denoting, nothing more, so a is
+  ;; certified only where the body holds its parameter outside binders.  A
+  ;; registered head that does not instantiate certifies nothing below it.
   (cond
     ((chk-same? e t) #t)
     ((functoid? e) #f)
@@ -816,11 +837,45 @@
     ((memq (car e) '(FORALL FORSOME IOTA COMP)) #f)
     ((eq? (car e) 'IF) #f)                    ; IF is not strict (2026-10-08)
     ((and (memq (car e) '(SEP BIG-UNION VNB-LAMBDA)) (= (length e) 4))
-     (chk-elim-outside-binders? t (caddr e)))
-    (else (chk-any (lambda (x) (chk-elim-outside-binders? t x)) e))))
+     (chk-sob t (caddr e) depth))
+    ((chk-functoid-entry (car e))
+     (and (< depth 8)
+          (let ((b (chk-functoid-unfold e)))
+            (and b (chk-sob t b (+ depth 1))))))
+    (else (chk-any (lambda (x) (chk-sob t x depth)) e))))
 
-(declare-binder-walker! 'chk-elim-outside-binders?
+(declare-binder-walker! 'chk-sob
                         '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
+
+;;; THE MEMBERSHIP CLAUSE, the checker's own reading (2026-10-13, repair R4-F; the builder's is
+;;; `pi--atom-certifies?', primitive-inferences.scm).  A TRUE formula F certifies T when F is a strict
+;;; atom IN, =, <=, < holding T outside binders, or F is  y IN S  with S a SEP x D P -- literally, or as
+;;; the instantiated body of a def-functoid, through nested ones (`chk-functoid-unfold') -- and some
+;;; top-level conjunct of P[x := y] (capture-avoiding substitution) is itself a true formula
+;;; certifying T by this same test.  Depth 8.
+(define (chk-sep-form S depth)
+  (cond ((> depth 8) #f)
+        ((not (and (pair? S) (list? S))) #f)
+        ((and (eq? (car S) 'SEP) (= (length S) 4) (symbol? (cadr S))) S)
+        ((chk-functoid-entry (car S))
+         (let ((b (chk-functoid-unfold S)))
+           (and b (chk-sep-form b (+ depth 1)))))
+        (else #f)))
+(define (chk-top-conjuncts f)
+  (if (and (pair? f) (eq? (car f) 'AND) (= (length f) 3))
+      (append (chk-top-conjuncts (cadr f)) (chk-top-conjuncts (caddr f)))
+      (list f)))
+(define (chk-atom-certifies? f t depth)
+  (and (pair? f) (list? f) (memq (car f) '(IN = <= <)) (= (length f) 3)
+       (or (chk-elim-outside-binders? t (cadr f))
+           (chk-elim-outside-binders? t (caddr f))
+           (and (eq? (car f) 'IN) (< depth 8)
+                (let ((sep (chk-sep-form (caddr f) 0)))
+                  (and sep
+                       (chk-any (lambda (c) (chk-atom-certifies? c t (+ depth 1)))
+                                (chk-top-conjuncts
+                                 (subst-free (cadr sep) (cadr f) (car (cdddr sep)))))))))
+       #t))
 
 ;;; The number class T certainly lies in, or #f (2026-10-09).  Written here, independently of
 ;;; the builder's `pi--number-class'.  The classes form the chain  NN < ZZ < QQ < RR < CC,  each
@@ -896,10 +951,7 @@
                             (and (eq? (car f) '=)
                                  (or (chk-same? (cadr f) t) (chk-same? (caddr f) t))))))
                  asms)
-        (chk-any (lambda (f)                                     ; (c)
-                   (and (pair? f) (memq (car f) '(IN = <= <)) (= (length f) 3)
-                        (or (chk-elim-outside-binders? t (cadr f))
-                            (chk-elim-outside-binders? t (caddr f)))))
+        (chk-any (lambda (f) (chk-atom-certifies? f t 0))       ; (c) + membership
                  asms)
         (and (chk-number-class asms t 0) #t)                     ; (d)
         (and (pi--defined? (sequent-assumptions concl) t 0) #t))))  ; builder's word
@@ -1345,7 +1397,8 @@
 ;;; Each is checked by CONTRACTING INDEPENDENTLY: the contraction is written
 ;;; here, in three lines, and the relation tested is that the new goal is the
 ;;; old one with some licensed redexes contracted.  Nothing of the kernel's
-;;; reducer is called.
+;;; reducer is called.  nth-reduce and length-reduce license each contraction
+;;; by the definedness of its list (2026-10-12, R4: see `chk-list-reduction').
 
 ;;; nth-reduce: (NTH k (LIST a1..an)) -> a_k, anywhere in the goal.
 (define (chk-nth-redex? e)
@@ -1359,12 +1412,7 @@
 
 (register-rule-checker! 'nth-reduce
   (lambda (rule hyps concl)
-    (cond ((not (chk-arity? hyps 1)) "nth-reduce takes one hypothesis")
-          ((not (chk-ctx=? (car hyps) concl)) "nth-reduce may not change the context")
-          ((chk-same? (chk-goal (car hyps)) (chk-goal concl)) "nth-reduce changed nothing")
-          ((chk-contracts? (chk-goal concl) (chk-goal (car hyps))
-                           chk-nth-redex? chk-nth-contract) #t)
-          (else "the new goal is not the old one with NTH-of-a-literal-LIST redexes contracted"))))
+    (chk-list-reduction 'nth-reduce hyps concl chk-nth-redex? chk-nth-contract caddr)))
 
 ;;; length-reduce: (LENGTH (LIST a1..an)) -> n, anywhere in the goal.
 (define (chk-length-redex? e)
@@ -1375,12 +1423,65 @@
 
 (register-rule-checker! 'length-reduce
   (lambda (rule hyps concl)
-    (cond ((not (chk-arity? hyps 1)) "length-reduce takes one hypothesis")
-          ((not (chk-ctx=? (car hyps) concl)) "length-reduce may not change the context")
-          ((chk-same? (chk-goal (car hyps)) (chk-goal concl)) "length-reduce changed nothing")
-          ((chk-contracts? (chk-goal concl) (chk-goal (car hyps))
-                           chk-length-redex? chk-length-contract) #t)
-          (else "the new goal is not the old one with LENGTH-of-a-literal-LIST redexes contracted"))))
+    (chk-list-reduction 'length-reduce hyps concl chk-length-redex? chk-length-contract cadr)))
+
+;;; LIST DEFINEDNESS (2026-10-12, repair R4; the user's decision of 2026-10-12).  A literal list
+;;; denotes exactly when every component is a set (the list doctrine, 2026-10-01); NTH and LENGTH
+;;; are strict.  THE RELATION, for both rules: the first hypothesis has the conclusion's context and
+;;; a goal REACHABLE from the conclusion's goal by contractions of redexes (a created redex
+;;; included), each taken at a position where its LIST is
+;;;   (i)  certified defined in the LOCAL context of the position, or
+;;;   (ii) OWED: one of the further hypotheses is  Gamma => L = L  for that very list, Gamma the
+;;;        conclusion's context, and L mentions no variable bound on the path to the position;
+;;; and every further hypothesis is such an owed sequent  L = L  for a literal LIST.  The walk, the
+;;; local context (formulas mentioning a crossed bound variable dropped, an IMPLIES antecedent
+;;; reaching its consequent, the AND / OR increments read off the two sides as for the macete, and
+;;; -- under the fluid *rkw--binder-domains?* -- `x in A' in the body of a term binder over A),
+;;; the certificate of the position (`rkw--value-certified?') and the bound-variable proviso
+;;; (`rkw--mentions-path-bvar?') are the macete checker's, rule-checkers-rewrite.scm, which loads
+;;; after this file and is called at check time.  The contraction itself is the one written above.
+;;; CONTROL: the inference of nth-r on NTH(1, [0, SET]) = 0 with no owed sequent -- the old
+;;; one-hypothesis inference -- is refused (test-suite.scm).
+(define *chk-list-red-reason* #f)
+
+(define (chk-owed-list-sequent? h concl)
+  (let ((g (chk-goal h)))
+    (and (chk-ctx=? h concl)
+         (pair? g) (eq? (car g) '=) (= (length g) 3)
+         (chk-same? (cadr g) (caddr g))
+         (pair? (cadr g)) (eq? (car (cadr g)) 'LIST))))
+
+(define (chk-list-reduction tag hyps concl redex? contract list-of)
+  (let ((name (symbol->string tag)))
+    (cond
+      ((null? hyps) (string-append name " takes at least one hypothesis"))
+      ((not (chk-ctx=? (car hyps) concl)) (string-append name " may not change the context"))
+      ((chk-same? (chk-goal (car hyps)) (chk-goal concl)) (string-append name " changed nothing"))
+      ((not (chk-every (lambda (h) (chk-owed-list-sequent? h concl)) (cdr hyps)))
+       (string-append "a further hypothesis of " name
+                      " is not an owed definedness sequent  Gamma => L = L  for a literal LIST"))
+      (else
+       (let ((minors (map chk-goal (cdr hyps))))
+         (define (explain a b ctx)
+           (if (and (pair? a) (redex? a))
+               (let ((L (list-of a)))
+                 (if (rkw--value-discharged? L ctx minors)
+                     (if (eq? #t (rkw--walk (contract a) b explain ctx)) #t 'no)
+                     (begin
+                       (set! *chk-list-red-reason*
+                             (string-append "the list " (rkw--brief L)
+                                            " is not certified defined in the local context of"
+                                            " the redex, and no definedness sequent  L = L  is"
+                                            " owed for it (or it mentions a variable bound there)"))
+                       'no)))
+               'no))
+         (fluid-let ((*chk-list-red-reason* #f) (*rkw--binder-domains?* #t))
+           (let ((r (rkw--walk (chk-goal concl) (chk-goal (car hyps)) explain (chk-asms concl))))
+             (cond ((eq? r #t) #t)
+                   (*chk-list-red-reason* *chk-list-red-reason*)
+                   ((string? r) r)
+                   (else (string-append "the new goal is not the old one with " name
+                                        " redexes contracted"))))))))))
 
 ;;; functoid-beta: (apply-functoid <lambdoid> v1..vn) -> body[x_i := v_i],
 ;;; a PARALLEL substitution, anywhere in the goal.

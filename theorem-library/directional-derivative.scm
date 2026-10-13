@@ -902,9 +902,11 @@
 (define r8f-B '((VADD m) b_ ((ACT m) s_ eta)))
 (define r8f-G (list 'SEG-CURVE 'm 'f r8f-B 'eta))
 (define r8f-F '(SEG-CURVE m f b_ eta))
-(mac-h 'IS-DIR-DIFF-AT (list 'IS-DIR-DIFF-AT 'm 'f r8f-B 'eta 'k_))
+;; R4-G 2026-10-13: type the point B BEFORE unfolding the hypothesis at it -- the
+;; macete door owes B = B for a point the context does not type.
 (fact 'nvs-act-in-vec 'm 's_ 'eta)
 (fact 'nvs-vadd-in-vec 'm 'b_ '((ACT m) s_ eta))
+(mac-h 'IS-DIR-DIFF-AT (list 'IS-DIR-DIFF-AT 'm 'f r8f-B 'eta 'k_))
 (fact 'seg-curve-in-fun 'm 'f 'b_ 'eta)
 (have! (list 'FORALL 'x_ (list 'IMPLIES '(IN x_ RR)
               (list '== (list r8f-G 'x_) (list r8f-F (list '+ 's_ 'x_)))))
@@ -1012,6 +1014,10 @@
     (lambda (fm) (and (pair? fm) (eq? (car fm) 'IS-DIR-DIFF-AT)
                       (= (length fm) 6) (equal? (list-ref fm 5) r8f-dv)))))
 (define r8f-P (list-ref r8f-wit 3))
+;; R4-G 2026-10-13: type the mean-value point P = b_ + th.zeta before citing at it
+;; (dir-deriv-value is instantiated at P, which otherwise owes P = P)
+(fact 'nvs-act-in-vec 'm (cadr (caddr r8f-P)) 'zeta)
+(fact 'nvs-vadd-in-vec 'm 'b_ (caddr r8f-P))
 (ew (cadr (caddr r8f-P)))
 (r8f-and!
  (lambda ()

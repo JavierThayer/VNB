@@ -198,6 +198,9 @@
 (sp (make-wff '(== (PTS RM-TWO-MS) RM-TWO)))
 (fact 'rm-two-ms-def)
 (subst '(== RM-TWO-MS (SUBSPACE-MS RR-MS RM-TWO)))
+(fact 'rmm-two-sub-rr)                     ; R4-W2: subspace-pts is guarded by A in SET
+(fact 'rr-is-set)
+(dk-cite! 'subclass-of-set-is-set 'RM-TWO 'RR)
 (dk-cite! 'subspace-pts 'RR-MS 'RM-TWO)
 (ass)
 (qed 'rmm-two-ms-pts)
@@ -210,6 +213,8 @@
 (fact 'rmm-two-sub-rr)
 (dk-cite! 'subset-mem-fwd 'RM-TWO 'RR 'u_)
 (dk-cite! 'subset-mem-fwd 'RM-TWO 'RR 'v_)
+(fact 'rr-is-set)                          ; R4-W2: subspace-dist is guarded by A in SET
+(dk-cite! 'subclass-of-set-is-set 'RM-TWO 'RR)
 (dk-cite! 'subspace-dist 'RR-MS 'RM-TWO 'u_ 'v_)
 (subst '(== ((DIST (SUBSPACE-MS RR-MS RM-TWO)) u_ v_) ((DIST RR-MS) u_ v_)))
 (dk-cite! 'rr-ms-dist 'u_ 'v_)
@@ -921,6 +926,7 @@
 (dk-peel!)
 (mac 'RM-KMS)
 (fact 'rmm-cantor-metric)
+(dk-cite! 'rmm-k-set 's 'dseq)             ; R4-W2: subspace-pts is guarded by A in SET
 (dk-cite! 'subspace-pts 'CANTOR-MS rmm-K)
 (ass)
 (qed 'rmm-kms-pts)
@@ -1547,6 +1553,7 @@
   (== ((DIST (RM-KMS s dseq)) u_ v_) ((DIST CANTOR-MS) u_ v_))))))))))
 (dk-peel!)
 (mac 'RM-KMS)
+(dk-cite! 'rmm-k-set 's 'dseq)             ; R4-W2: subspace-dist is guarded by A in SET
 (dk-cite! 'subspace-dist 'CANTOR-MS rmm-K 'u_ 'v_)
 (ass)
 (qed 'rmm-kms-dist)

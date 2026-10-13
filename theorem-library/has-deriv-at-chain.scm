@@ -146,6 +146,7 @@
          (rf (list 'RESTRICT 'f v1))
          (sub (list 'SUBSPACE-MS cr-nfm v1)))
     (fact 'ooint-center 'crx_ w1)
+    (dk-have! (list 'IN v1 'SET) (lambda () (dk-sethood! v1)))   ; R4-W2: subspace-* guarded by A in SET
     (fact 'subspace-pts cr-nfm v1)
     (fact 'diff-on-in-fun 'RR-NORMED-FIELD v1 rf 'crx_ 'crl_)
     (dk-have! (list 'IN rf (list 'FUN v1 'RR))
@@ -196,6 +197,7 @@
                        (lambda () (subst (list '== (list 'PTS sub) v1)) (ass)))
                      (dk-have! (list 'IN y '(PTS RR-MS))
                        (lambda () (subst '(== (PTS RR-MS) RR)) (ass)))
+                     (dk-have! (list 'IN v1 'SET) (lambda () (dk-sethood! v1)))   ; R4-W2: subspace-* guarded by A in SET
                      (fact 'subspace-dist cr-nfm v1 'crx_ y)
                      (fact 'nf-rr-agree-dist 'crx_ y)
                      (fact 'rr-ms-dist 'crx_ y)

@@ -227,6 +227,12 @@
         (subst (list '= q0 nv))
         (ass)))))
 
+;; The head's sethood, the guard of the CONS equations (`x in SET', 2026-10-13):
+;; from the head's typing in context, by dk-sethood!.  Landed on the MAIN branch
+;; before the CONS equations are cited, so every later leaf sees it.
+(define (tb-set! x)
+  (dk-have! (list 'IN x 'SET) (lambda () (dk-sethood! x))))
+
 (define (tb-entries! h m0 nv k0 entu)
   (let* ((landed (dk-split-all! (dk-peel!)))
          (i0     (tb-typed-var landed))
@@ -304,6 +310,7 @@
       (dk-apply! hyp 1)
       (tb-and! (list 'AND (list 'IN h aa) (list 'IN m0 (list 'TUPLES aa))))
       (fact 'cons-in-tuples aa h m0)
+      (tb-set! h)                                    ; the guard of the CONS equations
       (fact 'length-cons h m0)
       (fact 'eq-sym (list 'LENGTH m0) nv)
       (ew (list 'CONS h m0))
@@ -634,6 +641,7 @@
         (mtb-and! (list 'AND (list 'IN r0 (list 'TUPLES aa))
                         (list 'IN m0 (list 'TUPLES (list 'TUPLES aa)))))
         (fact 'cons-in-tuples (list 'TUPLES aa) r0 m0)
+        (tb-set! r0)                                 ; the guard of the CONS equations
         (fact 'length-cons r0 m0)
         (fact 'eq-sym (list 'LENGTH m0) mv)
         (ew (list 'CONS r0 m0))

@@ -173,26 +173,28 @@
            'english "the monoid of finite subsets of $1 under union")
 
 ;;; -----------------------------------------------------------------------
-;;; The three slot read-offs, PROVEN.
+;;; The three slot read-offs, PROVEN.  GUARDED by `a_ in SET' (R4 species (g),
+;;; approved 2026-10-13): at a_ = SET, FIN-SUBSETS(SET) is a proper class, the
+;;; tuple does not denote (list doctrine) and the read-off is false.
 
 (quietly (lambda ()
-  (sp (make-wff '(FORALL a_ (== (CARR (FIN-SUBSET-MONOID a_)) (FIN-SUBSETS a_)))))
+  (sp (make-wff '(FORALL a_ (IMPLIES (IN a_ SET) (== (CARR (FIN-SUBSET-MONOID a_)) (FIN-SUBSETS a_))))))
   (fm-peel!) (slot 'carr) (mac 'fin-subset-monoid) (nth-r) (qrfl)))
 (qed 'fsm-carr)
 (topic! 'fsm-carr 'plumbing)
 
 (quietly (lambda ()
-  (sp (make-wff '(FORALL a_
+  (sp (make-wff '(FORALL a_ (IMPLIES (IN a_ SET)
         (== (OPR (FIN-SUBSET-MONOID a_))
             (VNB-LAMBDA (LIST x_ y_)
                         (CARTESIAN (FIN-SUBSETS a_) (FIN-SUBSETS a_))
-                        (UNION x_ y_))))))
+                        (UNION x_ y_)))))))
   (fm-peel!) (slot 'opr) (mac 'fin-subset-monoid) (nth-r) (qrfl)))
 (qed 'fsm-opr)
 (topic! 'fsm-opr 'plumbing)
 
 (quietly (lambda ()
-  (sp (make-wff '(FORALL a_ (== (IDEN (FIN-SUBSET-MONOID a_)) EMPTY-SET))))
+  (sp (make-wff '(FORALL a_ (IMPLIES (IN a_ SET) (== (IDEN (FIN-SUBSET-MONOID a_)) EMPTY-SET)))))
   (fm-peel!) (slot 'iden) (mac 'fin-subset-monoid) (nth-r) (qrfl)))
 (qed 'fsm-iden)
 (topic! 'fsm-iden 'plumbing)

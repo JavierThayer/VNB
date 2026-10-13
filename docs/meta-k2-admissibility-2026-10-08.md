@@ -473,7 +473,7 @@ band for use.
 ### 14.3 Statement changes
 
 The user approved them on 2026-10-10 at about 01:00Z. The integrator made them in `~/prover-r3` only. The
-pre-change files are in `~/prover-r3/scratchpad/guards-backup/`.
+pre-change files are in `~/prover/scratchpad/round3/guards-backup/` (moved from `~/prover-r3` when that tree was deleted, 2026-10-13).
 
 **(a) Structure guards on 14 theorems.** Each statement used a structure's accessor (`PTS(s)`, `VEC(m)`, the
 hom-sets, `ONE(R)`) with no guard on the structure. Without the guard, the certificate correctly declines to

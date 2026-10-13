@@ -826,6 +826,7 @@
 (fact 'ooint-subset-ccint 'a 'b)
 (dk-have! (list 'SUBSET wnr-cc '(PTS RR-MS)) (lambda () (subst '(== (PTS RR-MS) RR)) (ass)))
 (fact 'subspace-is-metric-space 'RR-MS wnr-cc)
+(dk-have! (list 'IN wnr-cc 'SET) (lambda () (dk-sethood! wnr-cc)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS wnr-cc)
 (fact 'rr-leq-reflexive 'a)
 (fact 'rr-leq-reflexive 'b)

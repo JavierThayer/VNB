@@ -392,6 +392,7 @@
 (dk-have! (list 'SUBSET gb-s (list 'PTS gb-nfm))
   (lambda () (mac-h 'is-open (list 'IS-OPEN gb-nfm gb-s)) (dk-split-all!) (ass)))
 (dk-have! (list 'SUBSET gb-s 'CC) (lambda () (subst (list '== 'CC (list 'PTS gb-nfm))) (ass)))
+(dk-have! (list 'IN gb-s 'SET) (lambda () (dk-sethood! gb-s)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts gb-nfm gb-s)
 (define (gb-cr-cc! t) (fact 'subset-mem-fwd gb-s 'CC t))
 (dk-have! (list 'IN gb-cf (list 'FUN gb-s 'CC)) (lambda () (subst '(= CC (CARR CC-NORMED-FIELD))) (ass)))
@@ -438,6 +439,7 @@
           (dk-have! (list 'IN gb-a (list 'PTS gb-sub)) (lambda () (subst (list '== (list 'PTS gb-sub) gb-s)) (ass)))
           (dk-have! (list 'IN gb-a '(PTS CC-MS)) (lambda () (subst '(== (PTS CC-MS) CC)) (ass)))
           (dk-have! (list 'IN z '(PTS CC-MS)) (lambda () (subst '(== (PTS CC-MS) CC)) (ass)))
+          (dk-have! (list 'IN gb-s 'SET) (lambda () (dk-sethood! gb-s)))   ; R4-W2: subspace-* guarded by A in SET
           (fact 'subspace-dist gb-nfm gb-s gb-a z)
           (fact 'nf-cc-agree-dist gb-a z)
           (fact 'cc-ms-dist gb-a z)

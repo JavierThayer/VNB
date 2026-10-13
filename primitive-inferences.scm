@@ -393,11 +393,7 @@
 ;;; of SUB is a strict atom IN, =, <=, < with TERM outside every binder: an atom
 ;;; with an undefined argument is false (LUTINS), and a conjunct is proven with SUB.
 (define (pi--body-certifies? sub term)
-  (any (lambda (c)
-         (and (pair? c) (memq (car c) '(IN = <= <)) (= (length c) 3)
-              (or (pi--subterm-outside-binders? term (cadr c))
-                  (pi--subterm-outside-binders? term (caddr c)))
-              #t))
+  (any (lambda (c) (pi--atom-certifies? c term 0))
        (pi--and-conjuncts sub)))
 
 (define (pi-exists-witness! sqn term)
@@ -1053,6 +1049,16 @@
 ;;; in a true atomic hypothesis of those shapes denotes.  `f in FUN(NN, PTS s)'
 ;;; certifies PTS(s); `t(j) subset t(k)' does not (SUBSET is not primitive here).
 (define (pi--subterm-outside-binders? t e)
+  (pi--sob-walk t e 0))
+;;; A DEF-FUNCTOID APPLICATION IS WALKED THROUGH ITS INSTANTIATED BODY (2026-10-13, repair R4-F,
+;;; the user's decision on META-5 finding 0.1).  A functoid unfolding is schematic: F(a) == body[a]
+;;; holds at every argument, denoting or not (2026-10-01), so F(a) denoting says only that body[a]
+;;; denotes, and that certifies a exactly where the BODY puts its parameter outside binders.
+;;; BALL(s, u, 1) in SET had certified u, whose only occurrence in BALL's body is the SEP
+;;; condition; `rfl' then took u = u for a non-denoting IOTA, and `iota-e' gave FALSITY modulo 0.
+;;; A registered head that does not instantiate (arity) certifies nothing below it; DEPTH bounds
+;;; nested functoid bodies (8, as `pi--defined?').
+(define (pi--sob-walk t e depth)
   (cond
     ((alpha-equiv? e t) #t)
     ((not (pair? e)) #f)
@@ -1062,20 +1068,46 @@
     ;; IF(TRUTH, 0, u) = 0 had certified a non-denoting IOTA u, and FALSITY followed.
     ((eq? (car e) 'IF) #f)
     ((and (memq (car e) '(SEP BIG-UNION VNB-LAMBDA)) (= (length e) 4))
-     (pi--subterm-outside-binders? t (caddr e)))      ; only the DOMAIN is outside
+     (pi--sob-walk t (caddr e) depth))      ; only the DOMAIN is outside
+    ((and (symbol? (car e)) (pi--registry-ref (car e)))
+     (and (< depth 8)
+          (let ((b (pi--functoid-instance e)))
+            (and b (pi--sob-walk t b (+ depth 1))))))
     ;; every position, the HEAD included: application is strict in its operator
-    (else (any (lambda (x) (pi--subterm-outside-binders? t x)) e))))
-(declare-binder-walker! 'pi--subterm-outside-binders?
+    (else (any (lambda (x) (pi--sob-walk t x depth)) e))))
+(declare-binder-walker! 'pi--sob-walk
                         '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
 
 (define (pi--strict-hyp-certifies? asms t)
   (let loop ((as asms))
     (and (pair? as)
-         (let ((f (wff-formula (car as))))
-           (or (and (pair? f) (memq (car f) '(IN = <= <)) (= (length f) 3)
-                    (or (pi--subterm-outside-binders? t (cadr f))
-                        (pi--subterm-outside-binders? t (caddr f))))
-               (loop (cdr as)))))))
+         (or (pi--atom-certifies? (wff-formula (car as)) t 0)
+             (loop (cdr as))))))
+
+;;; THE MEMBERSHIP CLAUSE (2026-10-13, repair R4-F, the user's decision).  A TRUE atom F certifies T
+;;; when F is a strict atom IN, =, <=, < holding T outside binders (above), or when F is a membership
+;;; y IN S with S a SEP -- or a def-functoid whose instantiated body is a SEP, through nested functoids
+;;; -- SEP x D P: then P[x := y] holds (capture-avoiding `subst-free'), and each of its top-level
+;;; conjuncts is itself a true atom, read by the same test.  So x in OOINT(x - e, x + e) certifies
+;;; x - e (the conjunct x - e < x is strict); a term under a binder, an IF branch, a disjunct or an
+;;; implication of the condition certifies nothing.  DEPTH bounds the nesting (8).
+(define (pi--sep-form S depth)
+  (cond ((> depth 8) #f)
+        ((and (pair? S) (eq? (car S) 'SEP) (= (length S) 4) (symbol? (cadr S))) S)
+        ((and (pair? S) (symbol? (car S)) (pi--registry-ref (car S)))
+         (let ((b (pi--functoid-instance S)))
+           (and b (pi--sep-form b (+ depth 1)))))
+        (else #f)))
+(define (pi--atom-certifies? f t depth)
+  (and (pair? f) (memq (car f) '(IN = <= <)) (= (length f) 3)
+       (or (pi--subterm-outside-binders? t (cadr f))
+           (pi--subterm-outside-binders? t (caddr f))
+           (and (eq? (car f) 'IN) (< depth 8)
+                (let ((s (pi--sep-form (caddr f) 0)))
+                  (and s
+                       (any (lambda (c) (pi--atom-certifies? c t (+ depth 1)))
+                            (pi--and-conjuncts (subst-free (cadr s) (cadr f) (cadddr s))))))))
+       #t))
 
 ;;; A def-predicate HYPOTHESIS certifies what its defining body's conjuncts
 ;;; certify (2026-09-18, rake repair D4: IS-ANTIDERIVABLE(s(k), a, b) has
@@ -1124,9 +1156,7 @@
 (define (pi--raw-conjuncts-certify? cs t depth)
   (any (lambda (c)
          (and (pair? c) (symbol? (car c))
-              (or (and (memq (car c) '(IN = <= <)) (= (length c) 3)
-                       (or (pi--subterm-outside-binders? t (cadr c))
-                           (pi--subterm-outside-binders? t (caddr c))))
+              (or (pi--atom-certifies? c t 0)
                   (and (= (length c) 2) (pi--structure-def-for (car c))
                        (or (alpha-equiv? (cadr c) t)
                            (and (pair? t) (= (length t) 2) (symbol? (car t))
@@ -1179,10 +1209,15 @@
     ((and (memq (car t) '(SEP BIG-UNION VNB-LAMBDA)) (= (length t) 4))
      (pi--defined? asms (caddr t) depth))
     ((eq? (car t) 'COMP) #t)
+    ;; NTH of a literal list denotes when the LIST does (2026-10-12, R4): NTH is strict, and a
+    ;; list denotes only when every component is a set (the list doctrine, 2026-10-01).  The
+    ;; clause used to certify the selected component alone, so `rfl' proved
+    ;; NTH(1, [0, SET]) = NTH(1, [0, SET]) and that strict hypothesis certified [0, SET].  A TEST,
+    ;; so that a list it cannot certify falls through to the clauses below.
     ((and (eq? (car t) 'NTH) (= (length t) 3) (exact-integer? (cadr t))
           (pair? (caddr t)) (eq? (car (caddr t)) 'LIST)
-          (<= 1 (cadr t) (length (cdr (caddr t)))))
-     (pi--defined? asms (list-ref (cdr (caddr t)) (- (cadr t) 1)) depth))
+          (<= 1 (cadr t) (length (cdr (caddr t))))
+          (pi--sets-defined? asms (caddr t) depth)) #t)
     ;; the two functoid clauses are TESTS, not `=>' clauses (2026-10-08): with `=>'
     ;; an uncertified body ended the cond with #f, so the clauses below -- the
     ;; predicate hypotheses among them -- were never tried on a functoid term
@@ -1378,18 +1413,165 @@
 
 ;;; NTH REDUCTION
 
-(define (pi-nth-reduce! sqn)
+;;; LIST DEFINEDNESS IN THE LIST REDUCTIONS (2026-10-12, repair R4; the user's decision of
+;;; 2026-10-12: "Yes for list-definedness kernel change to nth-reduce, length-reduce and
+;;; tuple-equality-decompose").  The list doctrine (the user, 2026-10-01): a literal list
+;;; [a1, ..., an] DENOTES exactly when every ai is a SET, and is then a set.  NTH and LENGTH are
+;;; strict: NTH(k, L) and LENGTH(L) denote only when L does.  So the contraction
+;;;     NTH(k, [a1..an]) -> ak        LENGTH([a1..an]) -> n
+;;; is an equivalence of the formula only where the list denotes.  Until this date the two rules
+;;; contracted whatever the components, and the kernel proved  NTH(1, [0, SET]) = 0  modulo 0,
+;;; whose strict left side then certified [0, SET] (META-4 report, s.5.4).
+;;;
+;;; THE RULE NOW.  A redex is contracted when its list L is certified by `pi--defined?' in the
+;;; LOCAL context of the position, or else the rule OWES the side sequent  Gamma |- L = L  (Gamma
+;;; the conclusion's context), exactly as `forall-elim' owes  t = t  and as a theorem macete owes
+;;; t = t  for its match (macetes.scm, `rw--owed-definedness').  One owed sequent per distinct list.
+;;;
+;;; UNDER A BINDER (the decision R4 was asked to make and document).  The local context is the
+;;; conclusion's context with every formula that mentions a variable bound on the path dropped
+;;; (it speaks of the outer variable), extended by the antecedent of an IMPLIES for the consequent
+;;; (so the guard of `forall x. x in A implies ...' reaches the body), and by `x in A' inside the
+;;; body of a term binder over A (SEP, BIG-UNION, VNB-LAMBDA: `pi--binder-domain-scope').  A
+;;; redex whose list is not certified there is contracted on an owed sequent ONLY IF the list mentions no variable bound on
+;;; the path: the owed sequent is stated in the conclusion's context, where such a variable would be
+;;; free, and either unprovable or -- worse -- closed by an outer variable of the same name (the
+;;; capture of the META session's finding 0b).  Such a redex is LEFT STANDING and the walk goes on
+;;; into its arguments.  This is the reading round 3 gave the macete door (`rw--mentions-path-bvar?')
+;;; and it keeps the rule sound: every contraction made is licensed where it sits, or rests on an owed
+;;; premise about the same term as it denotes at the root.  The cost is completeness only: such a
+;;; redex is reduced after the binder has been peeled and the components typed.
+;;;
+;;; The walk is the old one (top-down, every position, the head included; a contracted redex is
+;;; replaced by its component AS IT STANDS, not re-reduced), with the context threaded.
+;;; `reduce-nth-in-expr' / `reduce-length-in-expr' are kept, unchanged, as PURE functions: drivers
+;;; (dk-nth-h!, strand files) use them to compute the form they expect; the kernel no longer calls
+;;; them.
+
+(define (pi--nth-redex? e)
+  (and (pair? e) (eq? (car e) 'NTH) (pair? (cdr e)) (pair? (cddr e))
+       (integer? (cadr e))
+       (pair? (caddr e)) (eq? (car (caddr e)) 'LIST)))
+
+(define (pi--nth-contract e)
+  (let ((k (cadr e)) (args (cdr (caddr e))))
+    (if (and (>= k 1) (<= k (length args)))
+        (list-ref args (- k 1))
+        (error "nth-reduce: index out of range" k (length args)))))
+
+(define (pi--length-redex? e)
+  (and (pair? e) (eq? (car e) 'LENGTH) (pair? (cdr e))
+       (pair? (cadr e)) (eq? (car (cadr e)) 'LIST)))
+
+(define (pi--length-contract e) (length (cdr (cadr e))))
+
+;;; The list a redex contracts: NTH's second argument, LENGTH's only one.
+(define (pi--redex-list e)
+  (if (eq? (car e) 'NTH) (caddr e) (cadr e)))
+
+;;; THE DOMAIN OF A TERM BINDER (added after kgo3).  Inside the body of (SEP x A p), (BIG-UNION x A b)
+;;; or (VNB-LAMBDA x A b) the body matters only for x in A, so `x in A' holds where the body's redexes
+;;; sit (for (VNB-LAMBDA (LIST x y) (CARTESIAN A B) b): x in A, y in B).  A membership whose class
+;;; mentions a variable the binder binds is not added (it would speak of the inner variable).  The
+;;; memberships the lambda-beta checker calls the binder's SCOPE (rcs--binder-scope), the same reading.
+(define (pi--binder-domain-scope bs A)
+  (let ((fs (cond ((symbol? bs) (list (list 'IN bs A)))
+                  ((and (pair? bs) (eq? (car bs) 'LIST)
+                        (pair? A) (eq? (car A) 'CARTESIAN)
+                        (= (length (cdr bs)) (length (cdr A))))
+                   (map (lambda (v d) (list 'IN v d)) (cdr bs) (cdr A)))
+                  (#t '())))
+        (vs (cond ((symbol? bs) (list bs))
+                  ((and (pair? bs) (eq? (car bs) 'LIST)) (cdr bs))
+                  (#t '()))))
+    (filter (lambda (f)
+              (let ((fv (free-vars (caddr f))))
+                (not (any (lambda (v) (memq v fv)) vs))))
+            fs)))
+
+;;; Returns (NEW-EXPR . OWED), OWED the distinct lists whose  L = L  is owed, in order of first use.
+(define (pi--reduce-lists expr redex? contract asms)
+  (let ((root (map wff-formula asms))
+        (owed '()))
+    (define (mentions-any? vs e)
+      (and (pair? vs)
+           (let ((fvs (free-vars e)))
+             (let loop ((vs vs))
+               (and (pair? vs) (or (and (memq (car vs) fvs) #t) (loop (cdr vs))))))))
+    (define (drop-shadowed vs ctx)
+      (if (null? vs) ctx (filter (lambda (f) (not (mentions-any? vs f))) ctx)))
+    (define (certified? L ctx)
+      (pi--defined? (if (eq? ctx root)
+                        asms
+                        (map (lambda (f) (%%make-concrete-wff f #f #f)) ctx))
+                    L 0))
+    (define (walk e ctx bvs)
+      (cond
+        ((not (pair? e)) e)
+        ((redex? e)
+         (let ((L (pi--redex-list e)))
+           (cond ((certified? L ctx) (contract e))
+                 ((not (mentions-any? bvs L))
+                  (if (not (member L owed)) (set! owed (cons L owed)))
+                  (contract e))
+                 (else (map (lambda (x) (walk x ctx bvs)) e)))))
+        ((and (memq (car e) '(FORALL FORSOME IOTA COMP)) (= (length e) 3) (symbol? (cadr e)))
+         (let ((vs (list (cadr e))))
+           (list (car e) (cadr e) (walk (caddr e) (drop-shadowed vs ctx) (append vs bvs)))))
+        ((and (memq (car e) '(SEP BIG-UNION)) (= (length e) 4) (symbol? (cadr e)))
+         (let ((vs (list (cadr e))))
+           (list (car e) (cadr e) (walk (caddr e) ctx bvs)
+                 (walk (cadddr e)
+                       (append (pi--binder-domain-scope (cadr e) (caddr e))
+                               (drop-shadowed vs ctx))
+                       (append vs bvs)))))
+        ((and (eq? (car e) 'VNB-LAMBDA) (= (length e) 4))
+         (let ((vs (vnb-lambda-bvars (cadr e))))
+           (list (car e) (cadr e) (walk (caddr e) ctx bvs)
+                 (walk (cadddr e)
+                       (append (pi--binder-domain-scope (cadr e) (caddr e))
+                               (drop-shadowed vs ctx))
+                       (append vs bvs)))))
+        ((and (eq? (car e) 'IMPLIES) (= (length e) 3))
+         (list 'IMPLIES (walk (cadr e) ctx bvs)
+               (walk (caddr e) (append (pi--and-conjuncts (cadr e)) ctx) bvs)))
+        (else (map (lambda (x) (walk x ctx bvs)) e))))
+    (let ((new (walk expr root '())))
+      (cons new (reverse owed)))))
+(declare-binder-walker! 'pi--reduce-lists
+                        '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
+
+;;; The owed sequents join *pi-owed-nodes* (the owed-leaf hook's work list), all of them.
+(define (pi--note-owed-all! nodes)
+  (if (pair? nodes)
+      (for-each (lambda (n)
+                  (set! *pi-owed-nodes*
+                        (let ((l (cons n *pi-owed-nodes*)))
+                          (if (> (length l) 400) (list-head l 400) l))))
+                (cdr nodes)))
+  nodes)
+
+(define (pi--apply-list-reduction! sqn tag redex? contract)
   (let* ((asms (sequent-node-assumptions sqn))
          (goal (sequent-node-assertion   sqn))
          (g    (wff-formula goal))
-         (dg   (sqn-dg sqn)))
-    (let ((new-g (reduce-nth-in-expr g)))
-      (if (alpha-equiv? new-g g)
-          #f
-          (dg-apply-rule! dg 'nth-reduce
-            (list (make-sequent asms (wff-child goal new-g)))
-            sqn)))))
+         (dg   (sqn-dg sqn))
+         (r    (pi--reduce-lists g redex? contract asms))
+         (new-g (car r)))
+    (if (alpha-equiv? new-g g)
+        #f
+        (pi--note-owed-all!
+         (dg-apply-rule! dg tag
+           (cons (make-sequent asms (wff-child goal new-g))
+                 (map (lambda (L) (make-sequent asms (wff-child goal (list '= L L))))
+                      (cdr r)))
+           sqn)))))
 
+(define (pi-nth-reduce! sqn)
+  (pi--apply-list-reduction! sqn 'nth-reduce pi--nth-redex? pi--nth-contract))
+
+;;; The PURE full reduction, as before 2026-10-12 (no context, no obligation).  Not a kernel
+;;; rule: kept for drivers that compute the form they expect (see above).
 (define (reduce-nth-in-expr expr)
   (cond
     ((not (pair? expr)) expr)
@@ -1411,14 +1593,14 @@
 ;;;
 ;;; (LENGTH (LIST t_1 ... t_n))  ->  n
 ;;;
-;;; SOUND without a definedness guard, on exactly the same footing as NTH
-;;; reduction (reduce-nth-in-expr, above): a literal LIST is a total spine
-;;; (LIST is a total constructor -- library.scm / *total-term-heads*), so its
-;;; length is the structural count n regardless of whether the ELEMENTS are
-;;; defined.  LENGTH counts slots, not values -- just as (NTH 1 (LIST (1/0) 2))
-;;; reduces to (1/0) irrespective of its definedness, (LENGTH (LIST (1/0) 2))
-;;; reduces to 2.  (The empty case agrees with the length-of-empty axiom.)
-;;; Rewrites every such subterm, anywhere in the expression tree.
+;;; LENGTH is STRICT (2026-10-12, R4; the user's ruling of 2026-10-01 on list definedness):
+;;; LENGTH(L) denotes only when L does, and a literal list denotes exactly when every component
+;;; is a set.  So LENGTH([SET]) does not denote and is not 1, and the contraction is licensed
+;;; only where the list is certified, or on the owed sequent  L = L  -- the same discipline as
+;;; NTH reduction above (`pi--reduce-lists').  (The comment that stood here until 2026-10-12
+;;; argued the opposite, "LENGTH counts slots, not values"; the user has ruled.)
+;;; `reduce-length-in-expr' below is the PURE full reduction, kept for drivers; the kernel rule
+;;; is `pi-length-reduce!'.
 (define (reduce-length-in-expr expr)
   (cond
     ((not (pair? expr)) expr)
@@ -1431,16 +1613,7 @@
            (map reduce-length-in-expr (cdr expr))))))
 
 (define (pi-length-reduce! sqn)
-  (let* ((asms (sequent-node-assumptions sqn))
-         (goal (sequent-node-assertion   sqn))
-         (g    (wff-formula goal))
-         (dg   (sqn-dg sqn)))
-    (let ((new-g (reduce-length-in-expr g)))
-      (if (alpha-equiv? new-g g)
-          #f
-          (dg-apply-rule! dg 'length-reduce
-            (list (make-sequent asms (wff-child goal new-g)))
-            sqn)))))
+  (pi--apply-list-reduction! sqn 'length-reduce pi--length-redex? pi--length-contract))
 
 ;;; -----------------------------------------------------------------------
 ;;; FUNCTOID BETA REDUCTION

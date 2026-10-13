@@ -143,11 +143,15 @@
 ;;; round (rewriting the hypothesis) is not available: `subst' is goal-only.
 ;;; --------------------------------------------------------------------
 
+;; R4 2026-10-13 (species (g), approved): a_, b_ guarded as SETS.  Unguarded the
+;; statement is FALSE: a = 0, b = SET, i = 1 makes [a,b] a non-denoting list, so
+;; both disjuncts fail.  The guards certify the list; nth-r owes nothing.
 (sp (make-wff '(FORALL a_ (FORALL b_ (FORALL i_
+     (IMPLIES (IN a_ SET) (IMPLIES (IN b_ SET)
      (IMPLIES (IN i_ NN)
        (IMPLIES (<= 1 i_) (IMPLIES (<= i_ 2)
          (OR (= (NTH i_ (LIST a_ b_)) a_)
-             (= (NTH i_ (LIST a_ b_)) b_))))))))))
+             (= (NTH i_ (LIST a_ b_)) b_))))))))))))
 (ms--peel!)
 (dk-fact! 'ms-index-2 'i_)
 (use-cases (list '(= i_ 1) '(= i_ 2))

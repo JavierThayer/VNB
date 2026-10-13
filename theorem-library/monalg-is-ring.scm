@@ -95,9 +95,16 @@
 
 (define mir-F '(FINSUPP a_ m_))
 (define mir-FF (list 'CARTESIAN mir-F mir-F))
+;;; GUARDED by IS-RING(a_) and IS-MONOID(m_) (R4 species (g), 2026-10-13; the
+;;; report drafted IS-COMM-MONOID(m_), the coordinator approved the weaker guard
+;;; this file's citers hold): unguarded, the MONALG 6-tuple's components need not
+;;; be sets and the tuple need not denote (list doctrine).  The two structure
+;;; hypotheses certify every component; `nth-r' owes nothing.
 (define (mir-readoff! name acc rhs)
-  (sp (make-wff (list 'FORALL 'a_ (list 'FORALL 'm_ (list '== (list acc '(MONALG a_ m_)) rhs)))))
-  (di) (mac 'MONALG) (slot acc) (nth-r) (qrfl)
+  (sp (make-wff (list 'FORALL 'a_ (list 'FORALL 'm_
+        (list 'IMPLIES '(IS-RING a_) (list 'IMPLIES '(IS-MONOID m_)
+          (list '== (list acc '(MONALG a_ m_)) rhs)))))))
+  (di) (di) (di) (mac 'MONALG) (slot acc) (nth-r) (qrfl)
   (qed name))
 (mir-readoff! 'monalg-carr 'CARR mir-F)
 (mir-readoff! 'monalg-add-op 'ADD (list 'VNB-LAMBDA '(LIST f g) mir-FF '(MONALG-ADD a_ m_ f g)))
@@ -501,9 +508,12 @@
 (qed 'card-cartesian-nn)
 ;; ---- the additive group of a_, read off the view ----
 (define mir-ag '(RING-ADDITIVE-AG a_))
+;;; GUARDED by IS-RING(a_) (R4 species (g), approved as drafted 2026-10-13): the
+;;; view tuple [CARR a_, ADD a_, ZERO a_, NEG a_] denotes only when its components
+;;; are sets, which the structure hypothesis certifies.
 (define (mir-raag! name acc rhs)
-  (sp (make-wff (list 'FORALL 'a_ (list '== (list acc mir-ag) rhs))))
-  (di) (slot acc) (mac 'ring-additive-ag) (nth-r)
+  (sp (make-wff (list 'FORALL 'a_ (list 'IMPLIES '(IS-RING a_) (list '== (list acc mir-ag) rhs)))))
+  (di) (di) (slot acc) (mac 'ring-additive-ag) (nth-r)
   ;; `slot' rewrites EVERY occurrence of the accessor, so a CARR on the right-hand
   ;; side became NTH(1, a_) too; a second `slot' takes the left-hand side after it.
   (if (equal? (dk-goal) (list '== rhs (list 'NTH 1 'a_))) (slot acc))

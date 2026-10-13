@@ -191,6 +191,9 @@
 (dk-peel!)
 (ccc-pair-in! 'a 'b)
 (ccc-apply-at! 'cc-of-pair-def 'CC-OF-PAIR CCC-OF-PAIR-BODY '(LIST a b))
+;; R4 2026-10-13: nth1-pair / nth2-pair are guarded by `a, b in SET'.
+(fact 'membership-implies-sethood 'a 'RR)
+(fact 'membership-implies-sethood 'b 'RR)
 (mac 'nth1-pair)
 (mac 'nth2-pair)
 (qrfl)

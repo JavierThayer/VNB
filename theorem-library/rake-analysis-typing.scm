@@ -127,22 +127,6 @@
 ;;;        IMAGE, so image-membership-iff plus the beta rule of PROJ.
 ;;; =====================================================================
 
-;;; (A1) ---------------------------------------------------------------
-(sp (make-wff '(FORALL M (== (PTS (COMPLETION M)) (QUOTIENT (CAUCHY-SETOID M))))))
-(di) (mac 'COMPLETION) (slot 'PTS) (nth-r) (qrfl)
-(qed 'rkt-completion-pts)
-(topic! 'rkt-completion-pts 'plumbing)
-(gloss! 'rkt-completion-pts
-  "The points of the completion are the classes of Cauchy sequences: the carrier
-   read off the COMPLETION pair, as a citable equation.")
-
-(sp (make-wff '(FORALL M (== (PTS (CAUCHY-SETOID M)) (CSEQ M)))))
-(di) (mac 'CAUCHY-SETOID) (slot 'PTS) (nth-r) (qrfl)
-(qed 'rkt-cauchy-setoid-pts)
-(topic! 'rkt-cauchy-setoid-pts 'plumbing)
-(gloss! 'rkt-cauchy-setoid-pts
-  "The points of the Cauchy setoid are the Cauchy sequences.")
-
 ;;; (IN (PTS mm) SET) out of IS-METRIC-SPACE(mm) -- in a `have!' LANE, because
 ;;; `mac-h' REPLACES what it unfolds and every later `fact' wants the predicate.
 (define (rkt-pts-in-set! mm)
@@ -160,6 +144,27 @@
 (mac 'CSEQ) (sep-set) (mac 'fun-set-iff) (prop)
 (qed 'rkt-cseq-is-set)
 (topic! 'rkt-cseq-is-set 'plumbing)
+
+;;; (A1) ---------------------------------------------------------------
+;;; R4-W2 2026-10-13: both read-offs GUARDED by IS-METRIC-SPACE(M) (R4 report s.3,
+;;; species (g), approved as drafted): unguarded, CSEQ(M) / QUOTIENT(...) of a
+;;; non-space need not be sets, the tuple need not denote, and the read-off is
+;;; false.  They now follow rkt-cseq-is-set, whose sethood certifies the tuples.
+(sp (make-wff '(FORALL M (IMPLIES (IS-METRIC-SPACE M)
+     (== (PTS (COMPLETION M)) (QUOTIENT (CAUCHY-SETOID M)))))))
+(dk-peel!) (fact 'rkt-cseq-is-set 'M) (mac 'COMPLETION) (slot 'PTS) (nth-r) (qrfl)
+(qed 'rkt-completion-pts)
+(topic! 'rkt-completion-pts 'plumbing)
+(gloss! 'rkt-completion-pts
+  "The points of the completion are the classes of Cauchy sequences: the carrier
+   read off the COMPLETION pair, as a citable equation.")
+
+(sp (make-wff '(FORALL M (IMPLIES (IS-METRIC-SPACE M) (== (PTS (CAUCHY-SETOID M)) (CSEQ M))))))
+(dk-peel!) (fact 'rkt-cseq-is-set 'M) (mac 'CAUCHY-SETOID) (slot 'PTS) (nth-r) (qrfl)
+(qed 'rkt-cauchy-setoid-pts)
+(topic! 'rkt-cauchy-setoid-pts 'plumbing)
+(gloss! 'rkt-cauchy-setoid-pts
+  "The points of the Cauchy setoid are the Cauchy sequences.")
 
 (sp (make-wff '(FORALL M (FORALL w_ (IMPLIES (IS-METRIC-SPACE M)
      (IN (CLASS (CAUCHY-SETOID M) w_) SET))))))

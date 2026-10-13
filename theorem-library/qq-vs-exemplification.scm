@@ -118,7 +118,7 @@
                  (dk-opened (lambda () (di)))))
       ;; the scalars are a RING: the field view's typing axiom, then the ladder
       ((and (pair? g) (eq? (car g) 'IS-RING))
-       (fact 'qq-field-is-field)
+       (if (not (dk-asm? '(IS-FIELD QQ-FIELD))) (fact 'qq-field-is-field))
        (fact 'field-as-integral-domain-is-integral-domain 'QQ-FIELD)
        (fact 'integral-domain-is-commutative-ring '(FIELD-AS-INTEGRAL-DOMAIN QQ-FIELD))
        (fact 'commutative-ring-is-ring '(FIELD-AS-INTEGRAL-DOMAIN QQ-FIELD))
@@ -127,6 +127,9 @@
 
 ;;; ---- IS-MODULE(QQ-LINE) -------------------------------------------------
 (sp (make-wff '(IS-MODULE QQ-LINE)))
+;; R4-W1 2026-10-13: field-id-* are guarded by IS-FIELD(f_); landed at the root so
+;; every leaf below inherits it.
+(fact 'qq-field-is-field)
 (mac 'IS-MODULE)
 (let loop ((n 0))
   (let ((any #f))

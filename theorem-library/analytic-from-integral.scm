@@ -155,6 +155,7 @@
   (dk-have! (list 'IN u 'SET)
     (lambda () (fact 'cc-is-set) (fact 'subclass-of-set-is-set u 'CC) (ass)))
   (fact 'subspace-is-metric-space aif-nfm u)
+  (dk-have! (list 'IN u 'SET) (lambda () (dk-sethood! u)))   ; R4-W2: subspace-* guarded by A in SET
   (fact 'subspace-pts aif-nfm u))
 
 

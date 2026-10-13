@@ -461,8 +461,12 @@
 ;;; (4) nag-metric-carrier -- the first component of the LIST constructor
 ;;; =====================================================================
 
-(sp (make-wff '(FORALL nag (== (PTS (NAG-METRIC-SPACE nag)) (CARR nag)))))
-(di)
+;;; R4-W2 2026-10-13: GUARDED by IS-NORMED-AG(nag) (R4 report s.3, species (g),
+;;; approved as drafted): the tuple [CARR nag, lambda] denotes only when CARR(nag) is
+;;; a set, which the certificate sees through the structure hypothesis; unguarded the
+;;; read-off is true but unprovable.  Every citer holds IS-NORMED-AG of its group.
+(sp (make-wff '(FORALL nag (IMPLIES (IS-NORMED-AG nag) (== (PTS (NAG-METRIC-SPACE nag)) (CARR nag))))))
+(dk-peel!)
 (mac 'NAG-METRIC-SPACE)
 (slot 'PTS)
 (nth-r)

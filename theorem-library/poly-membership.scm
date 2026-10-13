@@ -147,8 +147,15 @@
 
 ;;; The carrier of POLY(A).  POLY unfolds to MONALG, MONALG to the RING 6-tuple,
 ;;; and CARR projects slot 1 -- three trusted rewrites and `nth-r'.
-(sp (make-wff '(FORALL a_ (== (CARR (POLY a_)) (FINSUPP a_ NN-ADD-MONOID)))))
-(di) (mac 'POLY) (mac 'MONALG) (slot 'CARR) (nth-r) (qrfl)
+;;; GUARDED by IS-RING(a_) (R4 species (g), approved 2026-10-13): the MONALG
+;;; 6-tuple denotes only when its components are sets; IS-RING(a_) and the strict
+;;; CARR(NN-ADD-MONOID) = NN certify them, so `nth-r' owes nothing.
+(sp (make-wff '(FORALL a_ (IMPLIES (IS-RING a_) (== (CARR (POLY a_)) (FINSUPP a_ NN-ADD-MONOID))))))
+(di) (di)
+;; CARR(NN-ADD-MONOID) certified by a STRICT equation (the instance value, by
+;; `slot'): this file loads before nn-add-monoid-is-comm-monoid is proven.
+(dk-have! '(= (CARR NN-ADD-MONOID) NN) (lambda () (slot 'CARR) (rfl)))
+(mac 'POLY) (mac 'MONALG) (slot 'CARR) (nth-r) (qrfl)
 (qed 'poly-carrier)
 (gloss! 'poly-carrier
   "The carrier of POLY(A) is FINSUPP(A, NN-ADD-MONOID): the finitely-supported
@@ -163,11 +170,14 @@
 ;;; by declare-instance!).  NOT `mac' / `mac-h' on that name: the suite pins that
 ;;; an accessor macete is never fired by name outside `slot' ("no file fires an
 ;;; accessor macete by name"), and firing it by name is what makes the pin fail.
-(sp (make-wff '(FORALL a_ (FORALL f_
+;; R4 2026-10-13 (the user's approval): GUARDED by IS-RING(a_).  The backward
+;; direction is underdetermined without it: nothing in `f in SQN(CARR a_)'
+;; certifies ADD(a_), MUL(a_), ..., so CARR(POLY a_) need not denote.
+(sp (make-wff '(FORALL a_ (FORALL f_ (IMPLIES (IS-RING a_)
    (IFF (IN f_ (CARR (POLY a_)))
         (AND (IN f_ (SQN (CARR a_)))
-             (IN (CARD (SUPP a_ NN-ADD-MONOID f_)) NN)))))))
-(di)
+             (IN (CARD (SUPP a_ NN-ADD-MONOID f_)) NN))))))))
+(di) (di)
 (plm-iff!
   (lambda ()
     (mac-h 'poly-carrier '(IN f_ (CARR (POLY a_))))

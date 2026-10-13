@@ -480,6 +480,7 @@
 (dk-have! (list 'SUBSET ccr-nz (list 'PTS ccr-m))
   (lambda () (subst (list '== (list 'PTS ccr-m) 'CC)) (ass)))
 (fact 'subspace-is-metric-space ccr-m ccr-nz)
+(fact 'cc-nonzero-is-set)                  ; R4-W2: subspace-pts/-dist guarded by A in SET
 (fact 'subspace-pts ccr-m ccr-nz)
 (dk-have! (list 'IN 'cra_ (list 'PTS ccr-w))
   (lambda () (subst (list '== (list 'PTS ccr-w) ccr-nz)) (ass)))

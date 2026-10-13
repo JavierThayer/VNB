@@ -1084,6 +1084,7 @@
   (if (not (dk-asm? (list '== (list 'PTS cek-nfm) 'CC)))
       (dk-have! (list '== (list 'PTS cek-nfm) 'CC)
         (lambda () (subst (list '== (list 'PTS cek-nfm) '(CARR CC-NORMED-FIELD))) (ass))))
+  (dk-have! (list 'IN 'CC 'SET) (lambda () (dk-sethood! 'CC)))   ; R4-W2: subspace-* guarded by A in SET
   (fact 'subspace-pts cek-nfm 'CC)
   (cek-pts-cc!) (cek-pts-rr!))
 (define (cek-in-pts! x sp)              ; (IN x (PTS SP)) from (IN x CC) / (IN x RR)
@@ -1122,6 +1123,7 @@
               (fact 'rr-subset-cc b)
               (cek-in-pts! b cek-sub) (cek-in-pts! b 'CC-MS) (cek-in-pts! x 'CC-MS) (cek-in-pts! x cek-sub)
               (cek-in-pts! b cek-nfm) (cek-in-pts! x cek-nfm)
+              (dk-have! (list 'IN 'CC 'SET) (lambda () (dk-sethood! 'CC)))   ; R4-W2: subspace-* guarded by A in SET
               (fact 'subspace-dist cek-nfm 'CC x b)
               (fact 'nf-cc-agree-dist x b)
               (fact 'cc-ms-dist x b)

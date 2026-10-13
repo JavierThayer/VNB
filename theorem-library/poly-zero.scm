@@ -166,8 +166,15 @@
 ;;; the zero of A[x], as a term and pointwise
 ;;; =====================================================================
 
-(sp (make-wff '(FORALL a_ (== (ZERO (POLY a_)) (MONALG-ZERO a_ NN-ADD-MONOID)))))
-(di) (mac 'POLY) (mac 'MONALG) (slot 'ZERO) (nth-r) (qrfl)
+;;; GUARDED by IS-RING(a_) (R4 species (g), approved 2026-10-13): the MONALG
+;;; 6-tuple denotes only when its components are sets; IS-RING(a_) and the strict
+;;; CARR(NN-ADD-MONOID) = NN certify them, so `nth-r' owes nothing.
+(sp (make-wff '(FORALL a_ (IMPLIES (IS-RING a_) (== (ZERO (POLY a_)) (MONALG-ZERO a_ NN-ADD-MONOID))))))
+(di) (di)
+;; CARR(NN-ADD-MONOID) certified by a STRICT equation (the instance value, by
+;; `slot'): this file loads before nn-add-monoid-is-comm-monoid is proven.
+(dk-have! '(= (CARR NN-ADD-MONOID) NN) (lambda () (slot 'CARR) (rfl)))
+(mac 'POLY) (mac 'MONALG) (slot 'ZERO) (nth-r) (qrfl)
 (qed 'poly-zero-unfold)
 (gloss! 'poly-zero-unfold
   "The zero of POLY(A) is MONALG-ZERO(A, NN-ADD-MONOID), the constant zero

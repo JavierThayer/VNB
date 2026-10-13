@@ -359,6 +359,8 @@
     (let ((w (dk-di-var!)))
       (fact 'image-subset-codomain '(PTS md) '(PTS mt) 'cmf_ w)
       (ass))))
+(dk-have! (list 'IN mci-img 'SET)          ; R4-W2: subspace-pts is guarded by A in SET
+  (lambda () (fact 'subclass-of-set-is-set mci-img '(PTS mt)) (ass)))
 (fact 'subspace-is-metric-space 'mt mci-img)
 (mac 'seq-compact)
 (mac 'subspace-pts)
@@ -634,16 +636,21 @@
     want))
 
 ;;; --- the read-offs ---------------------------------------------------
-(sp (make-wff '(FORALL t (FORALL A (== (PTS (SUBSPACE-TOP t A)) A)))))
-(di)
+;;; R4-W2 2026-10-13: both read-offs GUARDED by A in SET (R4 report s.3, species (g),
+;;; approved as drafted).  Unguarded they are FALSE under the list doctrine: at A = SET
+;;; the tuple [SET, SEP over POWER(SET)] does not denote.  With the guard the tuple is
+;;; certified.  Their one citer, (S1) below, lands A in SET before it fires them.
+(sp (make-wff '(FORALL t (FORALL A (IMPLIES (IN A SET) (== (PTS (SUBSPACE-TOP t A)) A))))))
+(dk-peel!)
 (mac 'SUBSPACE-TOP)
 (slot 'PTS)
 (nth-r)
 (qrfl)
 (qed 'subspace-top-pts)
 
-(sp (make-wff (list 'FORALL 't (list 'FORALL 'A (list '== '(OPENS (SUBSPACE-TOP t A)) mci-stopens)))))
-(di)
+(sp (make-wff (list 'FORALL 't (list 'FORALL 'A (list 'IMPLIES '(IN A SET)
+     (list '== '(OPENS (SUBSPACE-TOP t A)) mci-stopens))))))
+(dk-peel!)
 (mac 'SUBSPACE-TOP)
 (slot 'OPENS)                 ; also turns the OPENS(t) inside the SEP into NTH(2, t) ...
 (nth-r)

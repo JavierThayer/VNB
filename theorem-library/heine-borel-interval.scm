@@ -124,6 +124,7 @@
 (have! (list 'SUBSET hbi-int '(PTS RR-MS))
   (lambda () (slot 'PTS) (fact 'ccint-subset-rr 'av_ 'bv_) (ass)))
 (fact 'subspace-is-metric-space 'RR-MS hbi-int)
+(dk-have! (list 'IN hbi-int 'SET) (lambda () (dk-sethood! hbi-int)))   ; R4-W2: subspace-pts guarded by A in SET
 
 (have! (list 'SEQ-COMPACT hbi-ms)
   (lambda ()

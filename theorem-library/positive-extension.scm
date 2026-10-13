@@ -93,19 +93,21 @@
 ;;; (1) THE CONTINUOUS FUNCTIONS AS A REAL MODULE
 ;;; =====================================================================
 
+;;; R4-W2 2026-10-13: the six read-offs are GUARDED by IS-METRIC-SPACE(s) (R4 report
+;;; s.3, species (g), approved as drafted) and now follow pex-c-set.  Unguarded they are
+;;; false under the list doctrine: CONT-FNS(s) of a non-space need not be a set, and then
+;;; the 6-tuple does not denote.  The proof lands what certifies the tuple: CONT-FNS(s) a
+;;; set (pex-c-set), the real ring view by its structure hypothesis; PTS(s) by IS-METRIC-SPACE.
 (define (pex-readoff! name acc val)
-  (sp (make-wff (list 'FORALL 's (list '== (pex-acc acc) val))))
+  (sp (make-wff (list 'FORALL 's (list 'IMPLIES '(IS-METRIC-SPACE s) (list '== (pex-acc acc) val)))))
   (dk-peel!)
+  (dk-cite! 'pex-c-set 's)
+  (fact 'rr-is-normed-field)
+  (fact 'normed-field-as-commutative-ring-is-commutative-ring 'RR-NORMED-FIELD)
   (slot acc)
   (nth-r)
   (qrfl)
   (pex-qed! name))
-(pex-readoff! 'pex-cf-scal 'SCAL pex-R)
-(pex-readoff! 'pex-cf-vec 'VEC pex-C)
-(pex-readoff! 'pex-cf-vadd 'VADD pex-vaddl)
-(pex-readoff! 'pex-cf-vzero 'VZERO pex-zero)
-(pex-readoff! 'pex-cf-vneg 'VNEG pex-vnegl)
-(pex-readoff! 'pex-cf-act 'ACT pex-actl)
 
 (define (pex-ptsrr!)
   (dk-have! '(== (PTS RR-MS) RR) (lambda () (slot 'PTS) (qrfl))))
@@ -121,6 +123,12 @@
                 (begin (dk-focus! l) (mac 'fun-set-iff) (dk-conj-close! (lambda () (ass))))))
           (dk-opened (lambda () (sep-set))))
 (pex-qed! 'pex-c-set)
+(pex-readoff! 'pex-cf-scal 'SCAL pex-R)
+(pex-readoff! 'pex-cf-vec 'VEC pex-C)
+(pex-readoff! 'pex-cf-vadd 'VADD pex-vaddl)
+(pex-readoff! 'pex-cf-vzero 'VZERO pex-zero)
+(pex-readoff! 'pex-cf-vneg 'VNEG pex-vnegl)
+(pex-readoff! 'pex-cf-act 'ACT pex-actl)
 
 ;;; the zero function is continuous
 (sp (make-wff (list 'FORALL 's (list 'IMPLIES '(IS-METRIC-SPACE s) (list 'IN pex-zero pex-C)))))
@@ -300,8 +308,16 @@
 (if (not (dk-lam-b!)) (rfl))
 (pex-qed! 'pex-act-val)
 
-(sp (make-wff (list 'FORALL 's (list '= (pex-acc 'SCAL) pex-R))))
+;; R4-G 2026-10-13: GUARDED by IS-METRIC-SPACE(s) -- the `pex-cf-*' row of the R4
+;; species-(g) table (approved as drafted); W2 guarded the six read-offs and this
+;; seventh was missed.  Unguarded it is false under the list doctrine (CONT-FNS(s)
+;; of a non-space need not be a set, so the tuple CF does not denote).  Both citers
+;; (below, under pex-hyps) hold IS-METRIC-SPACE(s).
+(sp (make-wff (list 'FORALL 's (list 'IMPLIES '(IS-METRIC-SPACE s) (list '= (pex-acc 'SCAL) pex-R)))))
 (dk-peel!)
+(dk-cite! 'pex-c-set 's)
+(fact 'rr-is-normed-field)
+(fact 'normed-field-as-commutative-ring-is-commutative-ring 'RR-NORMED-FIELD)
 (slot 'SCAL)
 (nth-r)
 (mac 'NORMED-FIELD-AS-COMMUTATIVE-RING)

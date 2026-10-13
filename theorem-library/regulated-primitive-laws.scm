@@ -559,9 +559,11 @@
                   (xt (list '- x t)) (dfx (list '- fx ft)) (dft (list '- ft fx)))
              (fact 'subset-mem-fwd w 'RR t)
              (fact 'fun-apply-type-c f w 'RR t)
+             (dk-have! (list 'IN w 'SET) (lambda () (dk-sethood! w)))   ; R4-W2: subspace-* guarded by A in SET
              (fact 'subspace-pts 'RR-MS w)
              (dk-have! (list 'IN t (list 'PTS sub))
                (lambda () (subst (list '= (list 'PTS sub) w)) (ass)))
+             (dk-have! (list 'IN w 'SET) (lambda () (dk-sethood! w)))   ; R4-W2: subspace-* guarded by A in SET
              (fact 'subspace-dist 'RR-MS w x t)
              (fact 'rr-ms-dist x t)
              (fact 'rr-sub-in-rr x t)

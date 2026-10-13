@@ -1215,13 +1215,16 @@
 (check-proof "qrfl: n == n"
   (lambda () (sp (make-wff-from-string "n == n")) (qrfl)))
 
-;;; 6b'. Length reduction (len-r): dual of nth-r; a list literal's spine is total.
+;;; 6b'. Length reduction (len-r): dual of nth-r.  LENGTH is strict and a literal list denotes
+;;; exactly when its components are sets (2026-10-12, R4): the contraction is licensed by a
+;;; certified list, or owes  L = L.
 (check-proof "len-r: length of a 3-element list literal = 3"
-  (lambda () (sp '(= (LENGTH (LIST a b c)) 3)) (len-r) (rfl)))
+  (lambda () (sp '(= (LENGTH (LIST 1 2 3)) 3)) (len-r) (rfl)
+    (if (not (proof-done? *ps*)) (error "len-r on [1, 2, 3] left a leaf open"))))
 (check-proof "len-r: empty list length = 0"
-  (lambda () (sp '(= (LENGTH (LIST)) 0)) (len-r) (rfl)))
-(check-true "len-r: reduces LENGTH(LIST ...) even with an undefined entry"
-  ;; spine count is structural: LENGTH counts slots, not element values
+  (lambda () (sp '(= (LENGTH (LIST)) 0)) (len-r) (rfl)
+    (if (not (proof-done? *ps*)) (error "len-r on [] left a leaf open"))))
+(check-true "len-r: the PURE reducer reduce-length-in-expr is unchanged (drivers compute with it)"
   (lambda () (equal? (reduce-length-in-expr '(= (LENGTH (LIST (recip 0) b)) 2))
                      '(= 2 2))))
 
@@ -2139,7 +2142,7 @@
 
 (check-proof "tuple-equality-decompose descends under FORALL"
   (lambda ()
-    (sp (make-wff '(FORALL y (IMPLIES (= y 0)
+    (sp (make-wff '(FORALL y (IMPLIES (IN y NN)
                               (= (LIST y y) (LIST 0 0))))))
     (let ((sqn (proof-state-focus *ps*)))
       (or (apply-macete! 'tuple-equality-decompose sqn)
@@ -4748,7 +4751,8 @@
            0)
          #t)))
 
-;; THE SCALAR BRIDGE (theorem-library/normed-field-ring-view.scm).  A scalar slot
+;; THE SCALAR BRIDGE (theorem-library/normed-field-ring-view.scm; the six at
+;; RR-NORMED-FIELD moved to rr-is-normed-field.scm on 2026-10-13, R4-G).  A scalar slot
 ;; holding the projection is only usable if something says what its slots ARE:
 ;; `def-functor' installs a functoid and a typing axiom and no read-off at all.
 ;; Twelve theorems, all `proven modulo 0' -- six generic in the normed field,
@@ -4765,6 +4769,30 @@
 (check "the scalar carrier is RR, through the view"
   (lambda () (hash-table-ref/default *theorem-table* 'rr-scalar-ring-carr #f))
   '(== (CARR (NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)) RR))
+
+;; R4-G (2026-10-13): the owed-leaf hook's typing-theorem lookup must not cache a MISS
+;; beyond the moment the theorem table grows.  In the cold load normed-field-ring-view
+;; asked for (CARR RR-NORMED-FIELD) before rr-is-normed-field was proven; the miss,
+;; cached for good, outlived the proof, and rake-inequalities (1700 load entries later)
+;; failed on an owed list the hook could have closed.  Control: the old code cached #f.
+(check-true "owed-leaf hook: a miss is cached only with the theorem-table size (R4-G)"
+  (lambda ()
+    (and (not (dk-owed--typing-theorem '(r4g-no-such-acc r4g-no-such-instance)))
+         (let ((e (hash-table-ref/default *dk-owed-typing-cache*
+                                          '(r4g-no-such-acc r4g-no-such-instance) 'absent)))
+           (and (pair? e) (eqv? (cdr e) (hash-table-size *theorem-table*)))))))
+(check-true "owed-leaf hook: a hit is found once the witness exists (R4-G)"
+  (lambda ()
+    (symbol? (dk-owed--typing-theorem '(CARR RR-NORMED-FIELD)))))
+;; ... and a non-list owed term is searched for closed accessors through functoid bodies:
+;; SUPP(a_, NN-ADD-MONOID, f_) unfolds to a SEP over CARR(NN-ADD-MONOID).  Control: the old
+;; hook had no clause for a non-list term (the helper did not exist).
+(check-true "owed-leaf hook: closed accessors found through a functoid body (R4-G)"
+  (lambda ()
+    (and (environment-bound? *driver-kit-env* 'dk-owed--closed-accessors)
+         (member '(CARR NN-ADD-MONOID)
+                 (dk-owed--closed-accessors '(SUPP a_ NN-ADD-MONOID f_)))
+         #t)))
 
 ;;; -----------------------------------------------------------------------
 ;;; IF -- conditional term former and its two kernel reduction rules
@@ -8358,9 +8386,13 @@
       out)))
 
 ;;; 1. an accessor applied to a literal tuple -- the user's `opr([...])'.
+;;; The tuple's components are certified SETS (NN, RR, a numeral): since R4
+;;; (2026-10-13) `nth-r' owes  L = L  for a list it cannot certify, and the
+;;; lane rightly declines a move that opens a leaf -- the old fixture
+;;; [rr, binplus, 0, binneg], with untyped atoms, now opens one.
 (check-true "legibility: accessor on a literal tuple offers (slot ACC) then (nth-r)"
   (lambda ()
-    (equal? (legibility--moves "opr([rr, binplus, 0, binneg]) == binplus")
+    (equal? (legibility--moves "opr([nn, rr, 0, nn]) == rr")
             '((slot (quote opr)) (nth-r)))))
 
 ;;; 2. a succ tower over a literal.  MAXIMAL only: collapsing succ(succ(0))
@@ -8419,7 +8451,7 @@
 
 (check-true "legibility: the panel completes on the ugly goal, with the lane in it"
   (lambda ()
-    (let ((r (legibility--panel "opr([rr, binplus, 0, binneg]) == binplus")))
+    (let ((r (legibility--panel "opr([nn, rr, 0, nn]) == rr")))
       (and (car r) (memq 'legibility (cadr r)) #t))))
 
 (check-true "legibility: the panel completes on a clean goal, WITHOUT the lane"
@@ -9985,8 +10017,10 @@
   (lambda ()
     (rkwn--raises?
       (lambda () (rkwn--apply 'tuple-equality-decompose
-                              '() '(= (LIST aqv bqv) (LIST cqv dqv))
-                              '((() . (AND (= aqv cqv) (= bqv dqv)))))))))
+                              '((IN aqv NN) (IN bqv NN) (IN cqv NN) (IN dqv NN))
+                              '(= (LIST aqv bqv) (LIST cqv dqv))
+                              '((((IN aqv NN) (IN bqv NN) (IN cqv NN) (IN dqv NN))
+                                 . (AND (= aqv cqv) (= bqv dqv)))))))))
 
 ;;; --- the four checkers are registered at all ---
 (check-true "rule checkers: the four rewrite checkers are registered"
@@ -10158,6 +10192,121 @@
                             (= (IOTA z (AND (IN z NN) FALSITY)) (IOTA z (AND (IN z NN) FALSITY))))))
     (di) (rfl) (proof-done? *ps*)))
 
+;;; A DEF-FUNCTOID APPLICATION IS NOT STRICT IN ITS ARGUMENTS (2026-10-13, repair R4-F, META-5
+;;; finding 0.1).  A functoid unfolding is schematic, F(a) == body[a] at every argument, so a true
+;;; atom about F(a) certifies a only where F's BODY holds its parameter outside binders.  Both
+;;; walkers changed -- the builder's `pi--subterm-outside-binders?' (primitive-inferences.scm) and
+;;; the checker's own `chk-elim-outside-binders?' (rule-checkers-logic.scm) -- each with an
+;;; accepted / refused pair.  REFUSED = META-5's shape: u from a true BALL(s, u, 1) in SET (BALL's
+;;; centre sits only in the SEP condition), or from a functoid whose body ignores its parameter,
+;;; directly or one functoid down.  ACCEPTED = a parameter the body uses strictly (+ x 1, directly
+;;; and one functoid down), and BALL's space s, which sits in the SEP DOMAIN.
+(def-functoid 'r4f-k '(r4fx_) 'EMPTY-SET)
+(def-functoid 'r4f-succ '(r4fx_) '(+ r4fx_ 1))
+(def-functoid 'r4f-nest-k '(r4fx_) '(r4f-k r4fx_))
+(def-functoid 'r4f-nest-succ '(r4fx_) '(r4f-succ r4fx_))
+(define r4f-u '(IOTA z (AND (IN z NN) FALSITY)))
+
+;; the builder's walker, directly
+(check-false "R4-F builder walker: BALL(s, u, 1) does not hold u outside binders (centre in the SEP condition)"
+  (lambda () (pi--subterm-outside-binders? r4f-u `(BALL s ,r4f-u 1))))
+(check-true "R4-F builder walker: BALL(s, u, 1) holds s outside binders (control: the SEP domain PTS s)"
+  (lambda () (pi--subterm-outside-binders? 's `(BALL s ,r4f-u 1))))
+(check-false "R4-F builder walker: K(u), body EMPTY-SET, and K one functoid down, hold no u"
+  (lambda () (or (pi--subterm-outside-binders? r4f-u `(r4f-k ,r4f-u))
+                 (pi--subterm-outside-binders? r4f-u `(r4f-nest-k ,r4f-u)))))
+(check-true "R4-F builder walker: SUCC(u), body u + 1, holds u, directly and one functoid down (control)"
+  (lambda () (and (pi--subterm-outside-binders? r4f-u `(r4f-succ ,r4f-u))
+                  (pi--subterm-outside-binders? r4f-u `(r4f-nest-succ ,r4f-u)))))
+
+;; the builder through rfl (pi--strict-hyp-certifies? inside pi--defined?): META-5's reproducer
+(check-true "R4-F rfl guard: BALL(s, u, 1) in SET does NOT certify u (META-5 0.1 reproducer shape)"
+  (lambda ()
+    (sp (make-wff `(IMPLIES (IN (BALL s ,r4f-u 1) SET) (= ,r4f-u ,r4f-u))))
+    (di) (rfl) (not (proof-done? *ps*))))
+(check-true "R4-F rfl guard: K(u) in SET (body EMPTY-SET) does NOT certify u"
+  (lambda ()
+    (sp (make-wff `(IMPLIES (IN (r4f-k ,r4f-u) SET) (= ,r4f-u ,r4f-u))))
+    (di) (rfl) (not (proof-done? *ps*))))
+(check-true "R4-F rfl guard: SUCC(u) in RR (body u + 1) certifies u (control)"
+  (lambda ()
+    (sp (make-wff `(IMPLIES (IN (r4f-succ ,r4f-u) RR) (= ,r4f-u ,r4f-u))))
+    (di) (rfl) (proof-done? *ps*)))
+(check-true "R4-F rfl guard: BALL(s, u, 1) in SET certifies s (control)"
+  (lambda ()
+    (sp (make-wff `(IMPLIES (IN (BALL (r4f-succ ,r4f-u) 0 1) SET)
+                            (= (r4f-succ ,r4f-u) (r4f-succ ,r4f-u)))))
+    (di) (rfl) (proof-done? *ps*)))
+
+;; the checker's walker, directly and through the forsome-intro checker (chk-instance-certifies?;
+;; the context is empty, so the builder's-word fallback certifies nothing about u)
+(check-false "R4-F checker walker: BALL(s, u, 1) does not hold u outside binders"
+  (lambda () (chk-elim-outside-binders? r4f-u `(BALL s ,r4f-u 1))))
+(check-true "R4-F checker walker: SUCC(u) and NEST-SUCC(u) hold u (control)"
+  (lambda () (and (chk-elim-outside-binders? r4f-u `(r4f-succ ,r4f-u))
+                  (chk-elim-outside-binders? r4f-u `(r4f-nest-succ ,r4f-u)))))
+(check-false "R4-F checker walker: K(u) and NEST-K(u) hold no u"
+  (lambda () (or (chk-elim-outside-binders? r4f-u `(r4f-k ,r4f-u))
+                 (chk-elim-outside-binders? r4f-u `(r4f-nest-k ,r4f-u)))))
+(rcl--refuse "R4-F forsome-intro at u from the instance BALL(s, u, 1) in SET, nothing owed" 'forsome-intro
+  (rcl--h '() '(FORSOME x (IN (BALL s x 1) SET)))
+  (list (rcl--h '() `(IN (BALL s ,r4f-u 1) SET))))
+(rcl--accept "R4-F forsome-intro at u from the instance SUCC(u) in RR (control)" 'forsome-intro
+  (rcl--h '() '(FORSOME x (IN (r4f-succ x) RR)))
+  (list (rcl--h '() `(IN (r4f-succ ,r4f-u) RR))))
+(rcl--accept "R4-F forsome-intro at u from BALL(s, u, 1) in SET WITH the owed u = u (control)" 'forsome-intro
+  (rcl--h '() '(FORSOME x (IN (BALL s x 1) SET)))
+  (list (rcl--h '() `(IN (BALL s ,r4f-u 1) SET))
+        (rcl--h '() `(= ,r4f-u ,r4f-u))))
+
+;;; THE MEMBERSHIP CLAUSE (2026-10-13, repair R4-F, the user's decision).  A true  y in S,  S a SEP
+;;; x D P or a def-functoid whose instantiated body is one, certifies what the top-level strict atoms
+;;; of P[x := y] hold outside binders.  Builder (`pi--atom-certifies?') and checker
+;;; (`chk-atom-certifies?', written apart) each with accepted / refused cases.  ACCEPTED: x in
+;;; OOINT(x - e, x + e) certifies x - e; y in STRICT(u) (condition u < z) and y in BALL(s, u, 1)
+;;; certify u.  REFUSED: u only under a binder of the condition (BND), in an IF branch (IFC), in a
+;;; disjunct (DIS).
+(def-functoid 'r4f-strict '(r4fa_) '(SEP r4fz_ RR (< r4fa_ r4fz_)))
+(def-functoid 'r4f-bnd '(r4fa_) '(SEP r4fz_ RR (FORALL r4fw_ (IMPLIES (IN r4fw_ RR) (< r4fa_ r4fw_)))))
+(def-functoid 'r4f-ifc '(r4fa_) '(SEP r4fz_ RR (< (IF TRUTH 0 r4fa_) r4fz_)))
+(def-functoid 'r4f-dis '(r4fa_) '(SEP r4fz_ RR (OR (< r4fa_ r4fz_) (< r4fz_ r4fa_))))
+
+(check-true "R4-F membership (builder, rfl): x in OOINT(x - e, x + e) certifies x - e"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN x (OOINT (- x e) (+ x e))) (= (- x e) (- x e)))))
+    (di) (rfl) (proof-done? *ps*)))
+(check-true "R4-F membership (builder, rfl): y in BALL(s, u, 1) certifies u (BALL(s, u, 1) in SET does not)"
+  (lambda ()
+    (sp (make-wff `(IMPLIES (IN y (BALL s ,r4f-u 1)) (= ,r4f-u ,r4f-u))))
+    (di) (rfl) (proof-done? *ps*)))
+(check-true "R4-F membership (builder): y in STRICT(u) and y in raw SEP(z, RR, u < z) certify u"
+  (lambda () (and (pi--atom-certifies? `(IN y (r4f-strict ,r4f-u)) r4f-u 0)
+                  (pi--atom-certifies? `(IN y (SEP r4fz_ RR (< ,r4f-u r4fz_))) r4f-u 0))))
+(check-false "R4-F membership (builder): u under a binder (BND), in an IF branch (IFC), in a disjunct (DIS): not certified"
+  (lambda () (or (pi--atom-certifies? `(IN y (r4f-bnd ,r4f-u)) r4f-u 0)
+                 (pi--atom-certifies? `(IN y (r4f-ifc ,r4f-u)) r4f-u 0)
+                 (pi--atom-certifies? `(IN y (r4f-dis ,r4f-u)) r4f-u 0))))
+(check-true "R4-F membership (builder, rfl): y in IFC(u) does NOT certify u"
+  (lambda ()
+    (sp (make-wff `(IMPLIES (IN y (r4f-ifc ,r4f-u)) (= ,r4f-u ,r4f-u))))
+    (di) (rfl) (not (proof-done? *ps*))))
+(check-true "R4-F membership (checker): STRICT(u) and raw SEP certify u"
+  (lambda () (and (chk-atom-certifies? `(IN y (r4f-strict ,r4f-u)) r4f-u 0)
+                  (chk-atom-certifies? `(IN y (SEP r4fz_ RR (< ,r4f-u r4fz_))) r4f-u 0))))
+(check-false "R4-F membership (checker): BND, IFC, DIS do not certify u"
+  (lambda () (or (chk-atom-certifies? `(IN y (r4f-bnd ,r4f-u)) r4f-u 0)
+                 (chk-atom-certifies? `(IN y (r4f-ifc ,r4f-u)) r4f-u 0)
+                 (chk-atom-certifies? `(IN y (r4f-dis ,r4f-u)) r4f-u 0))))
+(rcl--accept "R4-F forsome-intro at u from the instance y in STRICT(u) (membership clause)" 'forsome-intro
+  (rcl--h '() '(FORSOME x (IN y (r4f-strict x))))
+  (list (rcl--h '() `(IN y (r4f-strict ,r4f-u)))))
+(rcl--refuse "R4-F forsome-intro at u from the instance y in IFC(u), nothing owed" 'forsome-intro
+  (rcl--h '() '(FORSOME x (IN y (r4f-ifc x))))
+  (list (rcl--h '() `(IN y (r4f-ifc ,r4f-u)))))
+(rcl--refuse "R4-F forsome-intro at u from the instance y in BND(u), nothing owed" 'forsome-intro
+  (rcl--h '() '(FORSOME x (IN y (r4f-bnd x))))
+  (list (rcl--h '() `(IN y (r4f-bnd ,r4f-u)))))
+
 (rcl--accept "truth-intro" 'truth-intro (rcl--h '() 'TRUTH) '())
 (rcl--refuse "truth-intro" 'truth-intro (rcl--h '() '(IN x NN)) '())
 
@@ -10324,14 +10473,110 @@
   (list (rcl--h (list '(IN x CC) '(IN x (INTERSECTION NN RR))) '(< x 1))))
 
 (rcl--case "nth-reduce" 'nth-reduce
-  (rcl--h '() '(= (NTH 2 (LIST x y)) y))
-  (list (rcl--h '() '(= y y)))
-  (list (rcl--h '() '(= x y))))
+  (rcl--h (list '(IN x NN) '(IN y NN)) '(= (NTH 2 (LIST x y)) y))
+  (list (rcl--h (list '(IN x NN) '(IN y NN)) '(= y y)))
+  (list (rcl--h (list '(IN x NN) '(IN y NN)) '(= x y))))
 
 (rcl--case "length-reduce" 'length-reduce
-  (rcl--h '() '(= (LENGTH (LIST x y)) 2))
-  (list (rcl--h '() '(= 2 2)))
-  (list (rcl--h '() '(= 3 2))))
+  (rcl--h (list '(IN x NN) '(IN y NN)) '(= (LENGTH (LIST x y)) 2))
+  (list (rcl--h (list '(IN x NN) '(IN y NN)) '(= 2 2)))
+  (list (rcl--h (list '(IN x NN) '(IN y NN)) '(= 3 2))))
+
+;;; LIST DEFINEDNESS (2026-10-12, repair R4; the user's decision of 2026-10-12).  A literal list
+;;; denotes exactly when its components are sets; NTH, LENGTH and `=' are strict.  Each rule
+;;; contracts / decomposes a list the context does not certify only on the owed sequent  L = L.
+;;; CONTROLS: the old one-hypothesis inference at [0, SET] / [SET] is refused.
+(rcl--accept "nth-reduce owes [0, SET] = [0, SET] for a list the context does not certify" 'nth-reduce
+  (rcl--h '() '(= (NTH 1 (LIST 0 SET)) 0))
+  (list (rcl--h '() '(= 0 0)) (rcl--h '() '(= (LIST 0 SET) (LIST 0 SET)))))
+(rcl--refuse "nth-reduce at [0, SET] with nothing owed (control: the old inference)" 'nth-reduce
+  (rcl--h '() '(= (NTH 1 (LIST 0 SET)) 0))
+  (list (rcl--h '() '(= 0 0))))
+(rcl--accept "length-reduce owes [SET] = [SET]" 'length-reduce
+  (rcl--h '() '(= (LENGTH (LIST SET)) 1))
+  (list (rcl--h '() '(= 1 1)) (rcl--h '() '(= (LIST SET) (LIST SET)))))
+(rcl--refuse "length-reduce at [SET] with nothing owed (control: the old inference)" 'length-reduce
+  (rcl--h '() '(= (LENGTH (LIST SET)) 1))
+  (list (rcl--h '() '(= 1 1))))
+(rcl--accept "tuple-equality-decompose owes [SET] = [SET]" 'tuple-equality-decompose
+  (rcl--h '() '(= (LIST SET) (LIST SET)))
+  (list (rcl--h '() '(= SET SET)) (rcl--h '() '(= (LIST SET) (LIST SET)))))
+(rcl--refuse "tuple-equality-decompose at [SET] = [SET] with nothing owed (control: the old inference)"
+  'tuple-equality-decompose
+  (rcl--h '() '(= (LIST SET) (LIST SET)))
+  (list (rcl--h '() '(= SET SET))))
+(rcl--refuse "tuple-equality-decompose with ONE list uncertified and nothing owed" 'tuple-equality-decompose
+  (rcl--h (list '(IN x NN)) '(= (LIST x) (LIST y)))
+  (list (rcl--h (list '(IN x NN)) '(= x y))))
+;;; UNDER A BINDER: a guard licenses the contraction where it sits; an owed sequent naming the
+;;; bound variable does not (it is stated in the conclusion's context, where the variable is free).
+(rcl--accept "nth-reduce under a binder, licensed by the guard" 'nth-reduce
+  (rcl--h '() '(FORALL x (IMPLIES (IN x NN) (= (NTH 1 (LIST x)) x))))
+  (list (rcl--h '() '(FORALL x (IMPLIES (IN x NN) (= x x))))))
+(rcl--refuse "nth-reduce under a binder on an owed sequent naming the bound variable (control)" 'nth-reduce
+  (rcl--h '() '(FORALL x (= (NTH 1 (LIST x)) x)))
+  (list (rcl--h '() '(FORALL x (= x x))) (rcl--h '() '(= (LIST x) (LIST x)))))
+(rcl--accept "nth-reduce inside a VNB-LAMBDA body, licensed by the binder's domain" 'nth-reduce
+  (rcl--h '() '(= (VNB-LAMBDA j NN (NTH 1 (LIST j 0))) (VNB-LAMBDA j NN j)))
+  (list (rcl--h '() '(= (VNB-LAMBDA j NN j) (VNB-LAMBDA j NN j)))))
+(rcl--refuse "nth-reduce inside a VNB-LAMBDA body over an untyped class, nothing owed (control)" 'nth-reduce
+  (rcl--h '() '(= (VNB-LAMBDA j (POWER q) (NTH 1 (LIST j y))) (VNB-LAMBDA j (POWER q) j)))
+  (list (rcl--h '() '(= (VNB-LAMBDA j (POWER q) j) (VNB-LAMBDA j (POWER q) j)))))
+(rcl--refuse "nth-reduce with a further hypothesis that is not an owed L = L" 'nth-reduce
+  (rcl--h (list '(IN x NN)) '(= (NTH 1 (LIST x)) x))
+  (list (rcl--h (list '(IN x NN)) '(= x x)) (rcl--h (list '(IN x NN)) '(IN x NN))))
+
+;;; The BUILDERS, end to end (the META-4 reproducers, s.5.4): each now leaves the owed leaf open.
+(check-false "R4: [SET] = [SET] is no longer proved by tuple-equality-decompose and rfl"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(= (LIST SET) (LIST SET))))
+      (mac 'tuple-equality-decompose)
+      (vnb-guard (lambda () (rfl)))
+      (proof-done? *ps*))))))
+(check-false "R4: NTH(1, [0, SET]) = 0 is no longer proved by nth-r and rfl"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(= (NTH 1 (LIST 0 SET)) 0)))
+      (nth-r)
+      (vnb-guard (lambda () (rfl)))
+      (proof-done? *ps*))))))
+(check-false "R4: LENGTH([SET]) = 1 is no longer proved by len-r and rfl"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(= (LENGTH (LIST SET)) 1)))
+      (len-r)
+      (vnb-guard (lambda () (rfl)))
+      (proof-done? *ps*))))))
+(check-true "R4 control: NTH(2, [x, y]) = y with x, y typed is proved by nth-r and rfl"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL x (IMPLIES (IN x NN) (FORALL y (IMPLIES (IN y NN) (= (NTH 2 (LIST x y)) y)))))))
+      (dk-peel!)
+      (nth-r)
+      (rfl)
+      (proof-done? *ps*))))))
+(check-true "R4: nth-r leaves standing a redex whose list names an unguarded bound variable"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL x (= (NTH 1 (LIST x 0)) x))))
+      (nth-r)
+      (equal? (map (lambda (n) (wff-formula (sequent-node-assertion n))) (proof-open-leaves *ps*))
+              '((FORALL x (= (NTH 1 (LIST x 0)) x)))))))))
+;;; THE CERTIFICATE (R4 finding 1.4): NTH of a literal list is certified only when the list is.
+;;; NTH(1, [0, SET]) = NTH(1, [0, SET]) by rfl had certified [0, SET] through the strict hypothesis.
+(check-false "R4: rfl no longer closes NTH(1, [0, SET]) = NTH(1, [0, SET])"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(= (NTH 1 (LIST 0 SET)) (NTH 1 (LIST 0 SET)))))
+      (vnb-guard (lambda () (rfl)))
+      (proof-done? *ps*))))))
+(check-true "R4 control: rfl closes NTH(1, [0, 1]) = NTH(1, [0, 1])"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(= (NTH 1 (LIST 0 1)) (NTH 1 (LIST 0 1)))))
+      (rfl)
+      (proof-done? *ps*))))))
 
 (define rcl--ftd (make-functoid 'lambdoid (list (cons 'k 'NN)) '(+ k 1)))
 
@@ -14866,6 +15111,22 @@
       (sp (make-wff '(FORALL T (FORALL K (IMPLIES (IS-TOKEN-SET T) (IMPLIES (IN K SET) (FORALL a (FORALL b (FORALL tk (IMPLIES (IN a T) (IMPLIES (IN tk T) (IMPLIES (IS-SUBTERM T K tk (LST (LIST a b))) (OR (= tk a) (= tk b))))))))))))))
       (let loop () (dk-peel!) (when (dk-head-is? (dk-goal) 'IMPLIES) (di) (loop)))
       (vnb-guard (lambda () (dk-subterm-literal! 'T 'K 'tk '(LST (LIST a b))))))))))
+
+;;; R4-W2 2026-10-13: dk-sethood!'s SUBCLASS clause.  The first check FAILS on the old
+;;; code (dk-sethood! had no route from SUBSET U RR and errored); the control shows the
+;;; clause does not invent a route when no superclass is in context.
+(check-true "kit: dk-sethood! closes U in SET from SUBSET U X with X a set (the subclass route)"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL U (IMPLIES (SUBSET U RR) (IN U SET)))))
+      (dk-peel!)
+      (vnb-guard (lambda () (dk-sethood! 'U) (proof-done? *ps*))))))))
+(check-error "kit CONTROL: dk-sethood! errors on a bare variable with no typing and no superclass in context"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL U (IMPLIES (IN 0 NN) (IN U SET)))))
+      (dk-peel!)
+      (vnb-guard (lambda () (dk-sethood! 'U))))))))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

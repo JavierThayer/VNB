@@ -286,7 +286,9 @@
 (dk-have! '(SUBSET w (PTS RR-MS)) (lambda () (subst '(== (PTS RR-MS) RR)) (ass)))
 (fact 'subspace-is-metric-space 'RR-MS 'dm)
 (fact 'subspace-is-metric-space 'RR-MS 'w)
+(dk-have! (list 'IN 'dm 'SET) (lambda () (dk-sethood! 'dm)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS 'dm)
+(dk-have! (list 'IN 'w 'SET) (lambda () (dk-sethood! 'w)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS 'w)
 (fact 'subclass-of-set-is-set 'dm 'RR)
 (fact 'subclass-of-set-is-set 'w 'RR)
@@ -763,6 +765,7 @@
 (fact 'ooint-subset-ccint 'a 'b)
 (dk-have! (list 'SUBSET lfn-cc '(PTS RR-MS)) (lambda () (subst '(== (PTS RR-MS) RR)) (ass)))
 (fact 'subspace-is-metric-space 'RR-MS lfn-cc)
+(dk-have! (list 'IN lfn-cc 'SET) (lambda () (dk-sethood! lfn-cc)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS lfn-cc)
 (fact 'rr-leq-reflexive 'a)
 (fact 'rr-leq-reflexive 'b)

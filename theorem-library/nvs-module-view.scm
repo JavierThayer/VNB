@@ -39,10 +39,16 @@
 ;;; ACC read off the module view of an arbitrary m_, in five steps.  Errors if
 ;;; the proof does not close -- a silent no-op would install nothing and say
 ;;; nothing.
+;;; GUARDED by IS-NORMED-VECTOR-SPACE(m_) (R4 species (g), approved 2026-10-13):
+;;; unguarded, m_ = [0] makes VEC(m_) denote while VADD(m_) does not, so the view
+;;; tuple does not denote and the read-off is false.  The guard certifies the
+;;; accessor components as sets; `nth-r' owes nothing.  Two `di's: binder, guard.
 (define (nmv-read-off! name acc)
   (sp (make-wff (list 'FORALL 'm_
-        (list '== (list acc (list 'NORMED-VECTOR-SPACE-AS-MODULE 'm_))
-                  (list acc 'm_)))))
+        (list 'IMPLIES (list 'IS-NORMED-VECTOR-SPACE 'm_)
+          (list '== (list acc (list 'NORMED-VECTOR-SPACE-AS-MODULE 'm_))
+                    (list acc 'm_))))))
+  (di)
   (di)
   (slot acc)                                   ; the accessor down to (NTH k _)
   (mac 'NORMED-VECTOR-SPACE-AS-MODULE)         ; the functoid unfold

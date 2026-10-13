@@ -690,6 +690,7 @@
            "the pointwise agreement"))
 (fact 'rr-is-metric-space)
 (dk-have! '(SUBSET itdm_ (PTS RR-MS)) (lambda () (slot 'PTS) (ass)))
+(dk-have! (list 'IN 'itdm_ 'SET) (lambda () (dk-sethood! 'itdm_)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS 'itdm_)
 (dk-split-all! (dk-landed* (lambda ()
   (mac-h 'IS-CONTINUOUS-ON '(IS-CONTINUOUS-ON itg_ itdm_)))))
@@ -742,6 +743,7 @@
            "the pointwise agreement"))
 (fact 'rr-is-metric-space)
 (dk-have! '(SUBSET itdm_ (PTS RR-MS)) (lambda () (slot 'PTS) (ass)))
+(dk-have! (list 'IN 'itdm_ 'SET) (lambda () (dk-sethood! 'itdm_)))   ; R4-W2: subspace-* guarded by A in SET
 (fact 'subspace-pts 'RR-MS 'itdm_)
 (fact 'restrict-in-fun 'itg_ 'RR 'RR 'itdm_)
 (dk-have! (list 'IS-CONTINUOUS-ON (list 'RESTRICT 'itg_ 'itdm_) 'itdm_)

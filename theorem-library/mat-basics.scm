@@ -114,8 +114,12 @@
 
 ;;; NTH on a literal pair.  `nth-r' reduces it in a GOAL; this makes the same
 ;;; reduction citable as an equation, which is what a `subst' chain needs.
-(sp (make-wff '(FORALL a (FORALL b (== (NTH 1 (LIST a b)) a)))))
-(di)
+;;; GUARDED by a, b in SET (R4 species (g), approved 2026-10-13): at a = 0,
+;;; b = SET the list [a, b] does not denote (list doctrine), so the left side is
+;;; undefined while the right is not.  The guards certify the list.
+(sp (make-wff '(FORALL a (FORALL b (IMPLIES (IN a SET) (IMPLIES (IN b SET)
+                 (== (NTH 1 (LIST a b)) a)))))))
+(let lp () (if (memq (car (dk-goal)) '(FORALL IMPLIES)) (begin (di) (lp))))
 (nth-r)
 (qrfl)
 (qed 'nth1-pair)
@@ -186,9 +190,17 @@
       ;; certify (nothing types NTH(1,Q) in a TUPLES class here).  The same
       ;; equation as a `have!' lane closed by nth-r/qrfl instantiates nothing
       ;; -- the mat-cols proof below already uses this shape.
+      ;; 2026-10-12 (R4, list definedness): nth-r owes the list [LENGTH Q, LENGTH(NTH 1 Q)]
+      ;; unless the context certifies it.  SIZE(Q) = [m, n] is strict and SIZE(Q) is that list
+      ;; (size-nonempty, a quasi-equation), so the STRICT equation between the two lists is one
+      ;; `subst' away, and it certifies the list for the lane below.
+      (have! '(= (LIST (LENGTH Q) (LENGTH (NTH 1 Q))) (LIST m n))
+             (lambda ()
+               (subst '(== (LIST (LENGTH Q) (LENGTH (NTH 1 Q))) (SIZE Q)))
+               (ass)))
       (have! '(== (NTH 1 (LIST (LENGTH Q) (LENGTH (NTH 1 Q)))) (LENGTH Q))
              (lambda () (nth-r) (qrfl)))
-      (fact 'nth1-pair 'm 'n)
+      (have! '(== (NTH 1 (LIST m n)) m) (lambda () (nth-r) (qrfl)))
       (subst '(== (LENGTH Q) (NTH 1 (LIST (LENGTH Q) (LENGTH (NTH 1 Q))))))
       (subst '(== (LIST (LENGTH Q) (LENGTH (NTH 1 Q))) (SIZE Q)))
       (subst '(= (SIZE Q) (LIST m n)))
@@ -250,6 +262,11 @@
 (fact 'mat-size 'm 'n 'X 'Q)
 (mb-rows-nonzero! 'Q 'm)
 (fact 'size-nonempty 'Q)
+;; 2026-10-12 (R4): the strict list equation certifies the list nth-r contracts (see mat-length)
+(have! '(= (LIST (LENGTH Q) (LENGTH (NTH 1 Q))) (LIST m n))
+       (lambda ()
+         (subst '(== (LIST (LENGTH Q) (LENGTH (NTH 1 Q))) (SIZE Q)))
+         (ass)))
 (have! '(== (NTH 2 (LIST (LENGTH Q) (LENGTH (NTH 1 Q)))) (LENGTH (NTH 1 Q)))
        (lambda () (nth-r) (qrfl)))
 (have! '(== (NTH 2 (LIST m n)) n)
@@ -269,17 +286,30 @@
 (dk-peel!)
 (fact 'mat-length 'm 'n 'X 'Q)
 (fact 'mat-rows-in-nn 'm 'n 'X 'Q)
-(fact 'size-unfold 'Q)
-(let ((ift '(IF (= (LENGTH Q) 0) 0 (LENGTH (NTH 1 Q)))))
-  ;; 2026-09-18 (LUTINS instantiation): the IF term is not certified defined,
-  ;; so `fact nth1-pair' at it owes `ift = ift'.  The have! lane below proves
-  ;; the same equation with no instantiation.
-  (have! (list '== (list 'NTH 1 (list 'LIST '(LENGTH Q) ift)) '(LENGTH Q))
-         (lambda () (nth-r) (qrfl)))
-  (subst (list '== '(SIZE Q) (list 'LIST '(LENGTH Q) ift)))
-  (subst (list '== (list 'NTH 1 (list 'LIST '(LENGTH Q) ift)) '(LENGTH Q)))
-  (subst '(= (LENGTH Q) m))
-  (rfl))
+;; 2026-10-12 (R4, list definedness): `nth-r' on SIZE's pair [LENGTH Q, IF(...)] owes the pair
+;; unless both components are certified, and the IF is not.  So the two cases are taken apart:
+;; with rows, mat-unfold's clause gives SIZE(Q) = [m, n] strictly; with none, the IF is decided
+;; to 0 (if-true) and the pair is [LENGTH Q, 0], whose first component LENGTH(Q) = m certifies.
+(let ((cl (mb-open! 'Q 'm 'n 'X))
+      (ift '(IF (= (LENGTH Q) 0) 0 (LENGTH (NTH 1 Q)))))
+  (use-em '(= (LENGTH Q) 0)
+    (lambda ()
+      (fact 'size-unfold 'Q)
+      (let* ((side '(= (LENGTH Q) 0))
+             (ls   (dk-opened (lambda () (if-true ift)))))
+        (for-each (lambda (l)
+                    (if (equal? (dk-goal-of l) side) (begin (dk-focus! l) (ass))))
+                  ls)
+        (dk-focus! (find-first (lambda (l) (not (equal? (dk-goal-of l) side))) ls)))
+      (subst (list '== '(SIZE Q) (list 'LIST '(LENGTH Q) ift)))
+      (subst (list '= ift 0))
+      (nth-r)
+      (ass))
+    (lambda ()
+      (detach! (cdr cl))
+      (subst '(= (SIZE Q) (LIST m n)))
+      (nth-r)
+      (rfl))))
 (qed 'mat-size-rows)
 (topic! 'mat-size-rows 'plumbing)
 

@@ -120,6 +120,7 @@
       (dk-have! (list 'IN u 'SET)
         (lambda () (fact 'cc-is-set) (fact 'subclass-of-set-is-set u 'CC) (ass))))
   (fact 'subspace-is-metric-space cmv-nfm u)
+  (dk-have! (list 'IN u 'SET) (lambda () (dk-sethood! u)))   ; R4-W2: subspace-* guarded by A in SET
   (fact 'subspace-pts cmv-nfm u))
 
 ;;; ======================================================================
@@ -196,6 +197,7 @@
                             (fact 'subset-mem-fwd 'u 'CC b)
                             (for-each (lambda (p) (dk-have! (list 'IN p '(PTS CC-MS)) (lambda () (subst '(== (PTS CC-MS) CC)) (ass))))
                                       (list w b))
+                            (dk-have! (list 'IN 'u 'SET) (lambda () (dk-sethood! 'u)))   ; R4-W2: subspace-* guarded by A in SET
                             (fact 'subspace-dist cmv-nfm 'u w b)
                             (fact 'nf-cc-agree-dist w b)
                             (fact 'cc-ms-dist w b)
@@ -225,6 +227,7 @@
                                               (#t (dk-ineq! (list '<= m w0) (list '<= w0 d) (list '= (list '+ d d) rho) (list '< 0 d)))))))))
                               (fact 'subset-mem-fwd bl v b)
                               (dk-have! (list 'IN b (list 'PTS sv)) (lambda () (subst (list '== (list 'PTS sv) v)) (ass)))
+                              (dk-have! (list 'IN v 'SET) (lambda () (dk-sethood! v)))   ; R4-W2: subspace-* guarded by A in SET
                               (fact 'subspace-dist cmv-nfm v w b)
                               (dk-have! (list '<= (list (list 'DIST sv) w b) del)
                                 (lambda ()
@@ -981,6 +984,7 @@
               (fact 'rr-is-metric-space)
               (dk-have! '(== (PTS RR-MS) RR) (lambda () (slot 'PTS) (qrfl)))
               (fact 'ccint-subset-rr 'cmza_ 'cmzb_)
+              (dk-have! (list 'IN dom 'SET) (lambda () (dk-sethood! dom)))   ; R4-W2: subspace-* guarded by A in SET
               (fact 'subspace-pts 'RR-MS dom)
               ;; the core, for a < p < q < b with [p, q] inside [t0 - w0, t0 + w0]
               (let ((core!
@@ -1075,6 +1079,7 @@
                                  (dk-have! (list '<= (list 'abs dt) w0)
                                    (lambda () (dk-cite! 'rr-abs-le-of-parts dt w0) (dk-ass!)))
                                  (dk-have! (list 'IN t (list 'PTS S)) (lambda () (subst (list '== (list 'PTS S) dom)) (dk-ass!)))
+                                 (dk-have! (list 'IN dom 'SET) (lambda () (dk-sethood! dom)))   ; R4-W2: subspace-* guarded by A in SET
                                  (fact 'subspace-dist 'RR-MS dom t0 t)
                                  (fact 'rr-ms-dist t0 t)
                                  (dk-have! (list '<= (list (list 'DIST S) t0 t) dl)

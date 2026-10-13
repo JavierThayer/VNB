@@ -64,14 +64,20 @@
       (error "nfrv-prove!: proof did not close" name (dk-goal)))
   (qed name))
 
-;;; The same, universally quantified over the normed field.  One extra `di' to
-;;; peel the binder, and the closing `slot' takes the recovered (ACC f_) to its
+;;; The same, universally quantified over the normed field.  GUARDED by
+;;; IS-NORMED-FIELD(f_) (R4 species (g), approved 2026-10-13): unguarded, f_ = [0]
+;;; makes CARR(f_) = 0 denote while ADD(f_) = NTH(2, [0]) does not, so the view
+;;; tuple does not denote and the quasi-equation is false.  The guard certifies
+;;; every accessor component as a set, so `nth-r' owes nothing.  Two `di's: the
+;;; binder, then the guard.  The closing `slot' takes the recovered (ACC f_) to its
 ;;; NTH projection rather than to a value -- f_ is a variable, so there is no
 ;;; instance macete to fire and the generic projection is what closes it.
 (define (nfrv-prove-generic! name acc)
   (sp (make-wff (list 'FORALL 'f_
-                  (list '== (list acc (list 'NORMED-FIELD-AS-COMMUTATIVE-RING 'f_))
-                            (list acc 'f_)))))
+                  (list 'IMPLIES (list 'IS-NORMED-FIELD 'f_)
+                    (list '== (list acc (list 'NORMED-FIELD-AS-COMMUTATIVE-RING 'f_))
+                              (list acc 'f_))))))
+  (di)
   (di)
   (slot acc)
   (mac 'NORMED-FIELD-AS-COMMUTATIVE-RING)
@@ -105,44 +111,10 @@
 (topic! 'normed-field-ring-view-one 'algebra)
 
 ;;; =====================================================================
-;;; (2) AT THE REALS -- the tuple a real normed vector space's SCAL slot holds.
-;;;
-;;; These are the bridge `normed-vector-space.scm' needs: its laws quantify
-;;; `r_ in carr(scal(s))' and apply `add(scal(s))' / `mul(scal(s))' /
-;;; `one(scal(s))', and with the scalars pinned to
-;;; NORMED-FIELD-AS-COMMUTATIVE-RING(RR-NORMED-FIELD) each of those is one
-;;; `subst' of the pinning law away from the six equations below.
+;;; (2) AT THE REALS -- MOVED 2026-10-13 (R4-G) to the end of
+;;; theorem-library/rr-is-normed-field.scm, under the same names.  Since R4,
+;;; `nth-r' owes the denotation of the view tuple [carr(RR-NORMED-FIELD), ...],
+;;; and what certifies its components is IS-NORMED-FIELD(RR-NORMED-FIELD), which
+;;; that file proves (it loads ~350 entries below this one).  The first citer of
+;;; rr-scalar-ring-* (rr-nvs-exemplification) loads right after it.
 ;;; =====================================================================
-
-(nfrv-prove! 'rr-scalar-ring-carr 'CARR
-             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD) 'RR)
-(topic! 'rr-scalar-ring-carr 'algebra)
-
-;;; 2026-08-29: the value was the shared constant `binplus'.  RR-NORMED-FIELD's
-;;; ADD slot now holds a tupled VNB-LAMBDA instead -- one function per instance,
-;;; rather than one object asserted into five function classes at once (which
-;;; proved ZZ = QQ = RR = CC and thence FALSITY; see numeric-instances.scm).
-;;; The equation is the same KIND of fact and proves by the same five steps; only
-;;; the right-hand side moved.
-(nfrv-prove! 'rr-scalar-ring-add 'ADD
-             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)
-             '(VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR RR) (+ x_ y_)))
-(topic! 'rr-scalar-ring-add 'algebra)
-
-(nfrv-prove! 'rr-scalar-ring-mul 'MUL
-             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)
-             '(VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR RR) (* x_ y_)))
-(topic! 'rr-scalar-ring-mul 'algebra)
-
-(nfrv-prove! 'rr-scalar-ring-neg 'NEG
-             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)
-             '(VNB-LAMBDA x_ RR (- x_)))
-(topic! 'rr-scalar-ring-neg 'algebra)
-
-(nfrv-prove! 'rr-scalar-ring-zero 'ZERO
-             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD) 0)
-(topic! 'rr-scalar-ring-zero 'algebra)
-
-(nfrv-prove! 'rr-scalar-ring-one 'ONE
-             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD) 1)
-(topic! 'rr-scalar-ring-one 'algebra)

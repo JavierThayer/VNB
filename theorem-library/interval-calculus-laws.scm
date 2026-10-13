@@ -644,6 +644,7 @@
 (dk-have! (list 'SUBSET ic-u '(PTS RR-MS))
   (lambda () (subst '(== (PTS RR-MS) RR)) (ass)))
 (fact 'subspace-is-metric-space 'RR-MS ic-u)
+(dk-have! (list 'IN ic-u 'SET) (lambda () (dk-sethood! ic-u)))   ; R4-W2: subspace-pts/-dist guarded by A in SET
 (fact 'subspace-pts 'RR-MS ic-u)
 (fact 'subspace-pts ic-nfm ic-u)
 (fact 'diff-on-deriv-in-carr 'RR-NORMED-FIELD ic-u (list 'RESTRICT 'f ic-u) 'a 'icl_)
@@ -1007,6 +1008,7 @@
 (dk-split-all! (dk-landed* (lambda ()
   (mac-h 'IS-CONTINUOUS-ON (list 'IS-CONTINUOUS-ON 'f ic-ci)))))
 (fact 'extend-const-in-fun 'a 'b 'f)
+(dk-have! (list 'IN ic-ci 'SET) (lambda () (dk-sethood! ic-ci)))   ; R4-W2: subspace-pts/-dist guarded by A in SET
 (fact 'subspace-pts 'RR-MS ic-ci)
 (fact 'clamp-in-rr 'a 'b 'ict_)
 (fact 'clamp-in-ccint 'a 'b 'ict_)

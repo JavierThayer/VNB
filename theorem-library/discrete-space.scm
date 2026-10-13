@@ -304,25 +304,30 @@
 ;;; accessor-callsite-audit fails any file that fires an accessor macete by name.
 ;;; -----------------------------------------------------------------------
 
+;;; R4-W2 2026-10-13: the three read-offs below are GUARDED by a_ in SET (R4 report
+;;; s.3, species (g), approved as drafted).  Unguarded they are FALSE under the list
+;;; doctrine: at a_ = SET the tuple [SET, POWER(SET)] does not denote, while the right
+;;; side does.  With the guard the tuple is certified and `nth-r' owes nothing; both
+;;; headlines already carry the guard.
 (def-functoid 'DISCRETE-SPACE '(a_)
   '(LIST a_ (POWER a_)))
 (notation! 'DISCRETE-SPACE 'kind 'functoid 'arity 1
            'english "the discrete space on $1")
 
 (quietly (lambda ()
-  (sp (make-wff '(FORALL a_ (== (PTS (DISCRETE-SPACE a_)) a_))))
+  (sp (make-wff '(FORALL a_ (IMPLIES (IN a_ SET) (== (PTS (DISCRETE-SPACE a_)) a_)))))
   (ds-peel!) (slot 'pts) (mac 'discrete-space) (nth-r) (qrfl)))
 (qed 'ds-pts)
 (topic! 'ds-pts 'plumbing)
 
 (quietly (lambda ()
-  (sp (make-wff '(FORALL a_ (== (OPENS (DISCRETE-SPACE a_)) (POWER a_)))))
+  (sp (make-wff '(FORALL a_ (IMPLIES (IN a_ SET) (== (OPENS (DISCRETE-SPACE a_)) (POWER a_))))))
   (ds-peel!) (slot 'opens) (mac 'discrete-space) (nth-r) (qrfl)))
 (qed 'ds-opens)
 (topic! 'ds-opens 'plumbing)
 
 (quietly (lambda ()
-  (sp (make-wff '(FORALL a_ (== (SIGMA (DISCRETE-SPACE a_)) (POWER a_)))))
+  (sp (make-wff '(FORALL a_ (IMPLIES (IN a_ SET) (== (SIGMA (DISCRETE-SPACE a_)) (POWER a_))))))
   (ds-peel!) (slot 'sigma) (mac 'discrete-space) (nth-r) (qrfl)))
 (qed 'ds-sigma)
 (topic! 'ds-sigma 'plumbing)

@@ -109,10 +109,16 @@
 
 ;;; =====================================================================
 ;;; (1) THE POINT SET.  SUBSPACE-MS(s,A) = (A, lambda), so its carrier slot is
-;;; `A' verbatim -- an unguarded read-off, true for every s and every A.
+;;; `A' verbatim -- a read-off, guarded by A in SET (see below).
 ;;; =====================================================================
-(sp (make-wff '(FORALL s (FORALL A (== (PTS (SUBSPACE-MS s A)) A)))))
-(di)
+;;; R4-W2 2026-10-13: GUARDED by A in SET (R4 report s.3, species (g), the drafted
+;;; `A in SET' form).  Unguarded the read-off is FALSE under the list doctrine: at
+;;; A = SET the tuple [SET, lambda] does not denote, so the left side does not, while
+;;; the right side is SET.  With the guard the tuple is certified (A a set, the
+;;; lambda over CARTESIAN(A, A)) and `nth-r' owes nothing.  The same guard on
+;;; subspace-dist-slot and subspace-dist; subspace-whole takes IS-METRIC-SPACE(s).
+(sp (make-wff '(FORALL s (FORALL A (IMPLIES (IN A SET) (== (PTS (SUBSPACE-MS s A)) A))))))
+(dk-peel!)
 (mac 'SUBSPACE-MS)        ; (== (PTS (LIST A (VNB-LAMBDA ...))) A)
 (slot 'PTS)               ; (== (nth 1 (LIST A ...)) A)
 (nth-r)                   ; (== A A)
@@ -122,13 +128,13 @@
 (alias! 'subspace-pts "the points of a subspace are the subset")
 
 ;;; =====================================================================
-;;; (2) THE DISTANCE SLOT.  Also unguarded: the second component of the tuple,
+;;; (2) THE DISTANCE SLOT.  Guarded the same way: the second component of the tuple,
 ;;; verbatim.  This is the theorem every later proof fires instead of `slot'.
 ;;; =====================================================================
-(sp (make-wff '(FORALL s (FORALL A
+(sp (make-wff '(FORALL s (FORALL A (IMPLIES (IN A SET)
      (== (DIST (SUBSPACE-MS s A))
-         (VNB-LAMBDA (LIST sbu_ sbv_) (CARTESIAN A A) ((DIST s) sbu_ sbv_)))))))
-(di)
+         (VNB-LAMBDA (LIST sbu_ sbv_) (CARTESIAN A A) ((DIST s) sbu_ sbv_))))))))
+(dk-peel!)
 (mac 'SUBSPACE-MS)
 (slot 'DIST)              ; the OUTER (DIST (LIST ...)) and the RIGHT side's (DIST s);
 (nth-r)                   ; the accessor macete does not re-descend into what it
@@ -142,9 +148,9 @@
 ;;; (3) THE DISTANCE VALUE, on points of A.  Stated with `==' and guarded: off
 ;;; A x A the left side is an application outside its lambda's domain.
 ;;; =====================================================================
-(sp (make-wff (list 'FORALL 's (list 'FORALL 'A
+(sp (make-wff (list 'FORALL 's (list 'FORALL 'A (list 'IMPLIES '(IN A SET)
      (forall-guarded '(u_ v_) '((IN u_ A) (IN v_ A))
-       '(== ((DIST (SUBSPACE-MS s A)) u_ v_) ((DIST s) u_ v_)))))))
+       '(== ((DIST (SUBSPACE-MS s A)) u_ v_) ((DIST s) u_ v_))))))))
 (dk-peel!)
 (mac 'SUBSPACE-MS)
 (slot 'DIST)
@@ -294,16 +300,19 @@
 
 ;;; =====================================================================
 ;;; (7) THE WHOLE SPACE.  SUBSPACE-MS(s, PTS s) has the points of s and its
-;;; distance on them.  Unguarded -- IS-METRIC-SPACE(s) is not needed for either
-;;; half -- so the bridge theorem of the design note (s.3.3) can cite it
-;;; wherever it lands.
+;;; distance on them.  (Unguarded until R4-W2, 2026-10-13; see below.)
 ;;; =====================================================================
-(sp (make-wff (list 'FORALL 's
+;;; R4-W2 2026-10-13: GUARDED by IS-METRIC-SPACE(s) (R4 report s.3): it certifies
+;;; PTS(s) as a set, hence the tuple SUBSPACE-MS(s, PTS s); unguarded the read-off is
+;;; true but unprovable (a case split on the definedness of PTS(s)).
+(sp (make-wff (list 'FORALL 's (list 'IMPLIES '(IS-METRIC-SPACE s)
      (list 'AND
        '(== (PTS (SUBSPACE-MS s (PTS s))) (PTS s))
        (forall-guarded '(u_ v_) '((IN u_ (PTS s)) (IN v_ (PTS s)))
-         '(== ((DIST (SUBSPACE-MS s (PTS s))) u_ v_) ((DIST s) u_ v_)))))))
-(di)
+         '(== ((DIST (SUBSPACE-MS s (PTS s))) u_ v_) ((DIST s) u_ v_))))))))
+(dk-peel!)
+(dk-have! '(IN (PTS s) SET)
+  (lambda () (mac-h 'IS-METRIC-SPACE '(IS-METRIC-SPACE s)) (dk-split-all!) (ass)))
 (msub-and!
  (lambda ()
    (let ((g (dk-goal)))
@@ -401,6 +410,7 @@
        (FORALL U (IMPLIES (IS-OPEN s U)
          (IS-OPEN (SUBSPACE-MS s A) (INTERSECTION U A))))))))))
 (dk-peel!)
+(dk-have! '(IN A SET) (lambda () (msub-a-set!)))   ; R4-W2: subspace-pts is guarded
 (fact 'subspace-is-metric-space 's 'A)
 (mac 'IS-OPEN)              ; the GOAL only
 (mac 'subspace-pts)         ; PTS(SUBSPACE-MS s A) -> A
@@ -468,6 +478,7 @@
          (IMPLIES (IS-CONTINUOUS-AT s tt_ f pa_)
            (IS-CONTINUOUS-AT (SUBSPACE-MS s A) tt_ (RESTRICT f A) pa_))))))))))))
 (dk-peel!)
+(dk-have! '(IN A SET) (lambda () (msub-a-set!)))   ; R4-W2: subspace-pts is guarded
 (mac-h 'IS-CONTINUOUS-AT '(IS-CONTINUOUS-AT s tt_ f pa_))
 (dk-split-all!)
 (fact 'subspace-is-metric-space 's 'A)
@@ -576,6 +587,7 @@
            (IFF (CONVERGES-TO (SUBSPACE-MS s A) g L)
                 (CONVERGES-TO s g L))))))))))))
 (dk-peel!)
+(dk-have! '(IN A SET) (lambda () (msub-a-set!)))   ; R4-W2: subspace-pts is guarded
 (fact 'subspace-is-metric-space 's 'A)
 (fact 'subset-mem-fwd 'A '(PTS s) 'L)
 (fact 'fun-codomain-superset 'g 'NN 'A '(PTS s))
@@ -661,6 +673,7 @@
          (list 'AND '(IS-OPEN s us_)
                     '(= vs_ (INTERSECTION us_ A))))))))))))
 (dk-peel!)
+(dk-have! '(IN A SET) (lambda () (msub-a-set!)))   ; R4-W2: subspace-pts is guarded
 (fact 'subspace-is-metric-space 's 'A)
 (mac-h 'IS-OPEN (list 'IS-OPEN msub-space 'vs_))
 (dk-split-all!)                              ; ... SUBSET vs_ (PTS sub), the witness universal
@@ -946,6 +959,7 @@
          (IFF (IS-CAUCHY-SEQ (SUBSPACE-MS s A) f)
               (IS-CAUCHY-SEQ s f))))))))))
 (dk-peel!)
+(dk-have! '(IN A SET) (lambda () (msub-a-set!)))   ; R4-W2: subspace-pts is guarded
 (fact 'subspace-is-metric-space 's 'A)
 (fact 'fun-codomain-superset 'f 'NN 'A '(PTS s))
 (dk-iff!
@@ -993,6 +1007,7 @@
   (lambda () (mac-h 'IS-CLOSED '(IS-CLOSED s A)) (dk-split-all!) (ass)))
 (have! '(SUBSET A (PTS s))
   (lambda () (mac-h 'IS-CLOSED '(IS-CLOSED s A)) (dk-split-all!) (ass)))
+(dk-have! '(IN A SET) (lambda () (msub-a-set!)))   ; R4-W2: subspace-pts is guarded
 (mac-h 'IS-COMPLETE '(IS-COMPLETE s))
 (dk-split-all!)                                ; ... the Cauchy universal of s
 (fact 'subspace-is-metric-space 's 'A)

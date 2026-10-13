@@ -271,9 +271,11 @@
            (dk-split-all!)
            ;; MAKE-SET(l) = {x0} u MAKE-SET(m0)
            (subst leq)
-           (mac 'makeset-cons)
-           ;; sethood of the head, the singleton, and the union
+           ;; sethood of the head -- BEFORE the mac: `makeset-cons' is guarded by
+           ;; it since 2026-10-13 (a guarded macete fires only on a typed head)
            (fact 'membership-implies-sethood x0 'a)
+           (mac 'makeset-cons)
+           ;; sethood of the singleton and the union
            (have! (list 'AND (list 'IN x0 'SET) (list 'IN x0 'SET)))
            (fact 'pairing x0 x0)
            (have! (list 'AND (list 'IN (list 'PAIR x0 x0) 'SET)

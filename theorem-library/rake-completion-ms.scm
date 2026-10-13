@@ -505,6 +505,8 @@
 (topic! 'r7q-limit-indep 'analysis)
 
 ;;; ---------------------------------------------------------------- S7
+;;; R4 2026-10-13 (the user's approval): both helpers GUARDED by IS-METRIC-SPACE(M),
+;;; as rko2-completion-dist is (species (g)).
 ;;; THE DESCRIPTION, read off the COMPLETION pair.  d-hat(x,y) IS the IOTA of
 ;;; COMPLETION-DIST's body at the pair [x,y]; both orientations, because
 ;;; `subst' rewrites left to right.
@@ -535,18 +537,20 @@
   (qrfl))
 
 (sp (make-wff (list 'FORALL 'M (list 'FORALL 'x_ (list 'FORALL 'y_
+   (list 'IMPLIES '(IS-METRIC-SPACE M)
    (list 'IMPLIES '(IN x_ (QUOTIENT (CAUCHY-SETOID M)))
      (list 'IMPLIES '(IN y_ (QUOTIENT (CAUCHY-SETOID M)))
-       (list '== (r7q-iota 'x_ 'y_) '((DIST (COMPLETION M)) x_ y_)))))))))
+       (list '== (r7q-iota 'x_ 'y_) '((DIST (COMPLETION M)) x_ y_))))))))))
 (dk-peel!)
 (r7q-open-dhat!)
 (qed 'r7q-iota-dhat)
 (topic! 'r7q-iota-dhat 'plumbing)
 
 (sp (make-wff (list 'FORALL 'M (list 'FORALL 'x_ (list 'FORALL 'y_
+   (list 'IMPLIES '(IS-METRIC-SPACE M)
    (list 'IMPLIES '(IN x_ (QUOTIENT (CAUCHY-SETOID M)))
      (list 'IMPLIES '(IN y_ (QUOTIENT (CAUCHY-SETOID M)))
-       (list '== '((DIST (COMPLETION M)) x_ y_) (r7q-iota 'x_ 'y_)))))))))
+       (list '== '((DIST (COMPLETION M)) x_ y_) (r7q-iota 'x_ 'y_))))))))))
 (dk-peel!)
 (r7q-open-dhat!)
 (qed 'r7q-dhat-iota)

@@ -244,6 +244,7 @@
   (dk-have! (list 'SUBSET pr-cc '(PTS RR-MS))
     (lambda () (subst '(== (PTS RR-MS) RR)) (ass)))
   (fact 'subspace-is-metric-space 'RR-MS pr-cc)
+  (dk-have! (list 'IN pr-cc 'SET) (lambda () (dk-sethood! pr-cc)))   ; R4-W2: subspace-* guarded by A in SET
   (fact 'subspace-pts 'RR-MS pr-cc)
   ;; ---- f is a function on the interval (read off the continuity hypothesis)
   (dk-have! (list 'IN 'f (list 'FUN pr-cc 'RR))
