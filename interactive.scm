@@ -5574,6 +5574,9 @@
       ;; Harvest the live trace (captured as the proof actually ran) so
       ;; proof-tex can render WITHOUT replaying -- robust for forward-fact proofs.
       (hash-table-set! *proof-live-trace* name (reverse *live-trace*))
+      ;; The COMP predicativity audit (proof-debt.scm, warn-only, never raises):
+      ;; the COMP terms this proof's commands named, the bc*-hidden steps included.
+      (comp-predicativity-note! name (append *proof-script* (reverse *proof-hidden-citations*)))
       ;; Ledger: compute and memoize this proof's bill of asserted debt from
       ;; the just-saved script, then report `proven modulo {...}'.  (Defined
       ;; in proof-debt.scm, loaded right after this file.)

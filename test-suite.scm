@@ -15128,6 +15128,27 @@
       (dk-peel!)
       (vnb-guard (lambda () (dk-sethood! 'U))))))))
 
+;;; 2026-10-14, the user's decision (e): the COMP predicativity audit (proof-debt.scm).
+;;; The first check FAILS on the old code (no such audit); the controls show a quantifier
+;;; confined to members of a class is not reported, and that the audit cannot raise.
+(check-true "comp-audit: a COMP whose condition quantifies over classes is reported"
+  (lambda () (equal? (comp-impredicative-subterms '(IN a (COMP x (FORALL y (IN x y)))))
+                     '((COMP x (FORALL y (IN x y)))))))
+(check-true "comp-audit CONTROL: forall y in A and forsome y in A inside a COMP are not reported"
+  (lambda () (and (null? (comp-impredicative-subterms '(COMP x (FORALL y (IMPLIES (IN y A) (IN x y))))))
+                  (null? (comp-impredicative-subterms '(COMP x (FORSOME y (AND (IN y A) (IN x y))))))
+                  (null? (comp-impredicative-subterms '(FORALL y (IN x y)))))))
+(check-true "comp-audit: a proof's recorded command naming an impredicative COMP is noted"
+  (lambda ()
+    (fluid-let ((*comp-impredicative-uses* '()))
+      (comp-predicativity-note! 'suite-comp-probe '((fact some-thm (COMP x (FORSOME y (IN x y))))))
+      (equal? *comp-impredicative-uses* '((suite-comp-probe COMP x (FORSOME y (IN x y))))))))
+(check-true "comp-audit CONTROL: a malformed script is swallowed, not raised (the qed hook cannot fail a proof)"
+  (lambda ()
+    (fluid-let ((*comp-impredicative-uses* '()))
+      (quietly (lambda () (comp-predicativity-note! 'suite-comp-probe '((fact (COMP x . 3))))))
+      (null? *comp-impredicative-uses*))))
+
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")
 (display *fail-count*) (display " failed ===\n")

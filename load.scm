@@ -4659,6 +4659,23 @@
   ;; added, so FATAL from the start.
   ;; reported, not fatal, under keep-going: a load with holes has a residue to list, not a band (2026-10-09)
   (report-category-obligations! (not *vnb-keep-going?*))
+  ;; COMP predicativity (the user's decision (e), 2026-10-14): every COMP term,
+  ;; named by a proof's commands, an installed formula or a functoid body, whose
+  ;; condition quantifies beyond sets (Morse-Kelley, not NBG).  WARN-ONLY, and it
+  ;; cannot raise (proof-debt.scm).  A CERTIFIED load sees only the proofs it ran.
+  (let ((imp (comp-predicativity-audit)))
+    (if (null? imp)
+        (display ";; comp-predicativity-audit: ok (every COMP condition quantifies over sets only)\n")
+        (begin
+          (display ";; comp-predicativity-audit: ") (display (length imp))
+          (display " COMP term(s) quantify beyond sets (impredicative; warn-only):\n")
+          (for-each (lambda (e)
+                      (display ";;   ") (display (car e)) (display ": ")
+                      (write (cdr e)) (newline))
+                    (list-head imp (min 40 (length imp))))
+          (if (> (length imp) 40)
+              (begin (display ";;   ... and ") (display (- (length imp) 40))
+                     (display " more: (comp-predicativity-audit) for the list\n"))))))
   (let ((sh (sethood-audit)))
     (if (null? sh)
         (display ";; sethood-audit: ok (no asserted function membership over an unguarded class)\n")

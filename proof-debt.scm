@@ -1229,3 +1229,118 @@
                     (display ")*\n"))
                   (sort keystone sym<))))
     path))
+
+;;; -----------------------------------------------------------------------
+;;; COMP PREDICATIVITY AUDIT (2026-10-14, the user's decision (e) on the META
+;;; design; docs/meta-k2-admissibility-2026-10-08.md s.15).
+;;;
+;;; WHY IT EXISTS.  The kernel accepts every comprehension term (COMP x p): it
+;;; certifies the class DEFINED (pi--defined?) and comp-mem-intro / -elim read
+;;; membership off p.  When p quantifies over CLASSES that is Morse-Kelley
+;;; comprehension, which NBG does not have; the META core's CR-DEF-COMP says so.
+;;; The user chose to MEASURE before restricting the kernel: this audit lists
+;;; every COMP term whose condition holds a quantifier not confined to sets.  If
+;;; the list stays empty, the kernel restriction to predicative comprehension and
+;;; a fatal gate are the next step -- the user's decision, not this audit's.
+;;;
+;;; WHAT COUNTS AS CONFINED TO SETS.  A bound variable is a set when the
+;;; condition makes it a member of something:
+;;;   (FORALL y (IMPLIES A _))   with (IN y C) among the conjuncts of A;
+;;;   (FORSOME y B)              with (IN y C) among the conjuncts of B.
+;;; Any other quantifier inside a COMP condition is reported.  The test is
+;;; syntactic and conservative: a quantifier confined by some other route (a
+;;; pair membership, a predicate implying sethood) is reported, for a reader to
+;;; judge.  The comprehension variable itself is a set by comp-mem-intro's
+;;; (IN y SET) obligation and is not tested.
+;;;
+;;; WHERE IT LOOKS.  A COMP term reaches a proof only through (1) the argument
+;;; of a recorded command (a `fact' term, a `cut' / `have!' claim, an
+;;; instantiation): `qed' passes the proof's script, the bc*-hidden steps
+;;; included, to comp-predicativity-note!; (2) an installed formula; (3) a
+;;; functoid body.  (2) and (3) are scanned at load end.  NOT seen: a COMP term
+;;; typed inside a STRING argument (the surface parser), and the proofs of a
+;;; CERTIFIED load, which do not run -- the exam (VNB_CERTIFIED=off) is the
+;;; run that covers every proof.  WARN-ONLY.
+
+(define *comp-impredicative-uses* '())   ; ((name . (COMP ...)) ...), newest first
+
+(define (comp--conjuncts f)
+  (if (and (pair? f) (eq? (car f) 'AND) (= (length f) 3))
+      (append (comp--conjuncts (cadr f)) (comp--conjuncts (caddr f)))
+      (list f)))
+
+(define (comp--member-guard? v f)
+  (comp--any? (lambda (c) (and (pair? c) (eq? (car c) 'IN) (= (length c) 3) (eq? (cadr c) v)))
+        (comp--conjuncts f)))
+
+(define (comp--any? pred l)
+  (let loop ((l l)) (cond ((null? l) #f) ((pred (car l)) #t) (#t (loop (cdr l))))))
+
+;;; The audit must never fail a qed or a load: an error inside it is printed and
+;;; swallowed, and the caller gets DEFAULT.
+(define (comp--safe default thunk)
+  (call-with-current-continuation
+    (lambda (k)
+      (with-exception-handler
+        (lambda (e)
+          (display ";; comp-predicativity-audit: internal error, skipped: ")
+          (display (condition/report-string e)) (newline)
+          (k default))
+        thunk))))
+
+;;; Is this quantifier node confined to sets?
+(define (comp--confined-quantifier? q)
+  (let ((head (car q)) (v (cadr q)) (body (caddr q)))
+    (case head
+      ((FORALL) (and (pair? body) (eq? (car body) 'IMPLIES) (= (length body) 3)
+                     (comp--member-guard? v (cadr body))))
+      ((FORSOME) (comp--member-guard? v body))
+      (else #t))))
+
+;;; The unconfined quantifiers inside p (nested COMPs included: their own
+;;; conditions are walked as part of p).
+(define (comp--unconfined-quantifiers p)
+  (let walk ((e p) (acc '()))
+    (cond ((not (pair? e)) acc)
+          ((and (memq (car e) '(FORALL FORSOME)) (= (length e) 3) (symbol? (cadr e)))
+           (walk (caddr e) (if (comp--confined-quantifier? e) acc (cons e acc))))
+          (#t (let loop ((xs e) (acc acc))
+                (if (pair? xs) (loop (cdr xs) (walk (car xs) acc)) acc))))))
+
+;;; Every impredicative COMP subterm of an arbitrary S-expression.
+(define (comp-impredicative-subterms e)
+  (let walk ((e e) (acc '()))
+    (cond ((not (pair? e)) acc)
+          ((and (eq? (car e) 'COMP) (= (length e) 3))
+           (let ((acc (if (pair? (comp--unconfined-quantifiers (caddr e))) (cons e acc) acc)))
+             (walk (caddr e) acc)))
+          (#t (let loop ((xs e) (acc acc))
+                (if (pair? xs) (loop (cdr xs) (walk (car xs) acc)) acc))))))
+
+;;; Called by qed with the proof's recorded commands.
+(define (comp-predicativity-note! name script)
+  (comp--safe #f (lambda () (comp-predicativity-note--raw! name script))))
+
+(define (comp-predicativity-note--raw! name script)
+  (for-each (lambda (t)
+              (if (not (member (cons name t) *comp-impredicative-uses*))
+                  (set! *comp-impredicative-uses* (cons (cons name t) *comp-impredicative-uses*))))
+            (comp-impredicative-subterms script)))
+
+;;; ((source . term) ...): proofs noted so far, then installed formulas, then functoid bodies.
+(define (comp-predicativity-audit)
+  (comp--safe '() comp-predicativity-audit--raw))
+
+(define (comp-predicativity-audit--raw)
+  (let ((found (reverse *comp-impredicative-uses*)))
+    (for-each (lambda (name)
+                (let ((f (hash-table-ref/default *theorem-table* name #f)))
+                  (if f (for-each (lambda (t) (set! found (cons (cons name t) found)))
+                                  (comp-impredicative-subterms f)))))
+              (hash-table-keys *theorem-table*))
+    (for-each (lambda (name)
+                (let ((reg (hash-table-ref/default *functoid-registry* name #f)))
+                  (if reg (for-each (lambda (t) (set! found (cons (cons name t) found)))
+                                    (comp-impredicative-subterms (cadr reg))))))
+              (hash-table-keys *functoid-registry*))
+    found))
