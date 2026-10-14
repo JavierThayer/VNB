@@ -634,3 +634,117 @@ relation between accessor terms of an unguarded structure variable is underdeter
   the guard.
 * `rmc-clopen-sub-power` (riesz-markov-cantor.scm) is guarded by `IS-METRIC-SPACE(s)`; for an unguarded `s`,
   `POWER(PTS s)` is not certified. All three citers hold the guard. (Confirmed in the peer session.)
+
+## 15. Phase 6: the definedness schemas admitted into the core, and eq-subst made two-way (2026-10-13)
+
+### 15.1 The decision
+
+META-5 (section 2 of `scratchpad/triage/META-5-REPORT.md`) classified the clauses of the kernel's certificate
+`pi--defined?` against the core. Two were derived (strictness of `=` on the left, `adm-def-strict-eq-l`; the
+application clause, `adm-def-app`). Six were found not derivable: over the core, a sequent `[g, t = t]` for a
+compound `t` is produced by no rule except eq-subst from another equation, and every route through `T`
+instantiates a universal at `t`, which owes `[g, t = t]` itself. On 2026-10-13 the user decided, on Claude's
+recommendation:
+
+* to ADMIT five of the six into the core as schemas, one at a time, each with the claim it makes written beside
+  it (the discipline of the primitive shelf): strictness of IN (left and right), the total constructors, the
+  binder terms over a denoting domain, comprehension, and the literal list of sets;
+* NOT to admit the sixth, strictness of `=` on the right, but to make the core's eq-subst two-way, after which
+  that strictness is derived.
+
+### 15.2 The rules admitted
+
+Each is a core relation in `structure-library/meta-core.scm`, section 4.7, a disjunct of `CORE-RULE`. Each is
+the relation `DEF-X` of `meta-def.scm` without its conjunct `c in SEQ-SET` (which `CORE-CLOSED` supplies); the
+bodies are written alike, so that `DEF-X(T, hs, c)` yields `CR-DEF-X(T, hs, c)` up to the names of the bound
+variables. The claims, as recorded in the file:
+
+| core relation | conclusion from premises | the claim |
+|---|---|---|
+| `CR-DEF-STRICT-IN-L` | `[g, w = w]` from `[g, w in A]` | a membership that holds has a denoting left side (in NBG / VNB only an object, indeed a set, is a member of anything) |
+| `CR-DEF-STRICT-IN-R` | `[g, A = A]` from `[g, w in A]` | a membership that holds has a denoting right side, a class (one decision with the left form) |
+| `CR-DEF-TOTAL` | `[g, h(l) = h(l)]` from `[g, l_i = l_i]`, one per argument, `TOTAL-HEAD(h)` | UNION, INTERSECTION, CARTESIAN, TUPLES, FUN applied to denoting arguments denote (class comprehension); succ and succ_ORD are total, their value at a non-number an object about which the guarded axioms say nothing |
+| `CR-DEF-BINDER` | `[g, B = B]` from `[g, A = A]`, `B` a SEP, BIG-UNION or VNB-LAMBDA over `A` | each is a class by comprehension whatever its body: the subclass of `A` cut out by the condition, the union of the set values, the class of the pairs `[x, b[x]]` with `b[x]` denoting |
+| `CR-DEF-COMP` | `[g, COMP(p) = COMP(p)]`, no premise | the class of the sets satisfying `p` denotes, for every `p` |
+| `CR-DEF-LIST` | `[g, [e_1..e_n] = [e_1..e_n]]` from `[g, e_i in SET]`, one per entry | the "if" half of the list doctrine of 2026-10-01 |
+
+`TOTAL-HEAD` (the head codes 11-14, 19, 30, 31) moved from `meta-def.scm` to `meta-core.scm` with them.
+
+**A note on the strength of `CR-DEF-COMP`.** The encoded quantifiers range over classes. For a condition `p`
+that quantifies over classes, `CR-DEF-COMP` together with the core's `comp-mem` is the impredicative
+comprehension scheme of Morse-Kelley, not the predicative scheme of NBG. The kernel already accepts every COMP
+unconditionally (META-5 row 10); the schema describes the kernel, it does not extend it. Whether the kernel
+should restrict COMP to predicative conditions is a question about the kernel, not about this phase; it is
+recorded here so that it is not mistaken for a property of NBG.
+
+### 15.3 eq-subst in both orientations
+
+The core's `CR-EQ-SUBST` rewrites `P[z := t]` into `P[z := s]` when the context holds `s = t` or `s == t`. The
+kernel's `pi-eq-subst!` (primitive-inferences.scm 604-622) performs the same step when the context holds any of
+`s = t`, `t = s`, `s == t`, `t == s`, so the one-way relation under-describes the kernel. The other orientation is
+a second relation, `CR-EQ-SUBST-SYM` (section 4.2 of `meta-core.scm`), rather than two more disjuncts of the
+first, so that no proof written against `CR-EQ-SUBST` changed. It is not named `CR-EQ-SUBST-REV`:
+`def-predicate` mints `cr-eq-subst-rev`, the reversed companion of `CR-EQ-SUBST`'s defining equivalence, and
+the first probe met the collision.
+
+With it, strictness of `=` on the right is DERIVED (`adm-def-strict-eq-r`, `theorem-library/meta-def-laws.scm`):
+from `[g, s = u]`, cut `s = u`; in the context `g + (s = u)`, apply `CR-EQ-SUBST-SYM` to `p = (z = u)` for a
+name `z` fresh for `u` and the context, licensed by the equation `s = u`: `p[z := s]` is `s = u`, an assumption,
+and `p[z := u]` is `u = u`. The proof mirrors `adm-def-strict-eq-l` with `subst-hole-l` in place of
+`subst-hole-r`.
+
+### 15.4 What the admission discharges
+
+In `theorem-library/meta-def-laws.scm`, section 4:
+
+* `def-X-admitted` for the six admitted relations: `DEF-X(T, hs, c)` and the hypotheses derivable imply `c`
+  derivable, through the closure law `derivable-def-X` of `CR-DEF-X` (proven in `meta-core-laws.scm`, which
+  lists the seven new relations in `mc-core-names`);
+* `adm-def-strict-in-l-holds`, `adm-def-strict-in-r-holds`, `adm-def-comp-holds`: the predicates
+  `ADM-DEF-STRICT-IN-L(T)`, `ADM-DEF-STRICT-IN-R(T)`, `ADM-DEF-COMP(T)` of `meta-def.scm` hold for every `T`;
+* `def-in-closed-holds`, `def-comp-closed-holds`: the two named hypotheses of phase 4 (`DEF-IN-CLOSED(T)`,
+  `DEF-COMP-CLOSED(T)`, `meta-ind.scm` section 4) hold for every `T`;
+* `adm-big-union-mem-intro-core`, `adm-transfinite-induction-core`, `adm-nn-induction-core`,
+  `adm-tfi-3cases-core`: the four admissibility theorems that carried those hypotheses, restated without them.
+  The three kernel induction rules are therefore admissible over the core plus the encoded catalog axioms each
+  names (`SUBSET T CLF`, `AX-TFI` or `AX-NN-IND`, `AX-MEM-SET`, and for nn-induction `AX-ZERO-NN`, `AX-SUCC-NN`,
+  for the three-case form `AX-LIMIT-IFF`, `AX-ORD-SUCC-ABOVE`), and nothing else.
+
+No existing statement changed. No META theorem cases on the list of core rules (the only uses of `CORE-RULE` and
+`CORE-CLOSED` are `derivable-induction`, `core-closed-apply`, `derivable-closed` and the closure laws), so every
+statement about `DERIVABLE` is monotone in the rule set and remains true; the regress re-proved all of them.
+
+### 15.5 What remains of the table
+
+Still not admissible over the core, and not decided:
+
+* `DEF-STRICT-ARG` and `DEF-STRICT-DOM` (the second half of META-5's row 5): an argument of a denoting
+  application of a strict constructor denotes, and the domain of a denoting binder term denotes. Without them the
+  kernel's walk of `pi--strict-hyp-certifies?` below the top of an atom is not admissible.
+* The strictness of a predicate application (row 6), not encoded: the encoding has predicate codes only for
+  `ORD-LT`, `LIMIT-ORD`, `<=` and `<`.
+* The functoid clauses (rows 12 and 19), for want of a functoid encoding (META-2's finding).
+
+**The table is older than R4.** META-5 transcribed `pi--defined?` at tree `f7e2246`. The R4 integration of
+2026-10-13 (`b25dd06`) changed the certificate. Its NTH clause now requires the list itself to be certified
+(which retires finding 0.2 in the kernel); the strictness walk goes through a def-functoid's instantiated body
+instead of its arguments (finding 0.1); and a new clause certifies the conjuncts of a SEP condition at a member.
+The rows for these clauses are to be re-transcribed against `b25dd06` before the table is called complete.
+
+### 15.6 Regress
+
+`scratchpad/meta6/final.scm` (META-5's final regress, with the `fixes/` copies of the phase-2 and phase-3 laws
+replaced by the `theorem-library` files, which now carry the hyps-in-1-elim guard of 2026-10-13) on worker-01
+against its band of 2026-10-12 19:45 (tree `f7e2246`), 2026-10-13 23:00Z to 2026-10-14 01:06Z, wall 7570 s, CPU
+of the run 3373 s, heap 120000 (GC 58%); log `/home/ubuntu/probes/meta6__final.scm.log`. Every file loaded for
+real, in load order: `driver-kit-meta3.scm`, `meta-syntax` and its laws, `meta-core` and its laws, `meta-cr` and
+its laws, `meta-ind`, `meta-def`, `meta-ind-laws`, `meta-def-laws`.
+
+* **395 of 395 `qed`, every one `proven modulo 0`**: META-5's 372 and 23 new (the seven closure laws, `adm-def-strict-eq-r`,
+  the six `def-X-admitted`, the three `-holds`, the two phase-4 hypotheses, the four `-core` theorems). No qed failure.
+* Page audit 395 / 395 grounded; free-variable, constant-binder, connective-arity, head-registry and
+  proven-duplicate audits empty over the new theorems; the case-fold lints empty over all nine files.
+* Four warnings, the same four as META-5's run (two `assumption` probes inside lanes, two benign `eq-subst`
+  warnings of `mi-open0!`, META-5 report section 3).
+* The first attempt (2026-10-13 21:20Z) reached all 395 `qed`s, all modulo 0, and was stopped by the probe's
+  6000 s timeout inside the page audit; META-5's run of the same wrapper had taken 7579 s.

@@ -301,6 +301,20 @@
     (mc--and '(= mcc_ (LIST mcg_ (EXPR-SUBST mcp_ mcz_ mcs_))) '(IN mcz_ NN) '(IN mcp_ EXPR-SET)
              '(OR (IN (ENC-EQ mcs_ mctm_) mcg_) (IN (ENC-QEQ mcs_ mctm_) mcg_))
              '(= mchs_ (LIST (LIST mcg_ (EXPR-SUBST mcp_ mcz_ mctm_)))))))
+;; eq-subst, THE OTHER ORIENTATION (the user's decision, 2026-10-13: the core's eq-subst is two-way).
+;; THE CLAIM: the same rewriting step as CR-EQ-SUBST, licensed by the context equation read the other
+;; way round, t = s or t == s.  The kernel's pi-eq-subst! (primitive-inferences.scm 604-622) accepts
+;; any of the four forms (= s t), (= t s), (== s t), (== t s) for the step that replaces s by t, so the
+;; one-way relation above under-describes the kernel.  It is a second relation rather than two more
+;; disjuncts of the first so that no proof written against CR-EQ-SUBST changes; together the two are
+;; the two-way rule.  With it, the strictness of = on the RIGHT is derived (meta-def-laws.scm,
+;; adm-def-strict-eq-r) and leaves the table of schemas.  (Not named CR-EQ-SUBST-REV: def-predicate mints
+;; cr-eq-subst-rev, the reversed companion of CR-EQ-SUBST's defining IFF, and the two would collide.)
+(mc--cr! 'CR-EQ-SUBST-SYM "the core eq-subst (other orientation) relates $2 to $3"
+  (mc--ex '(mcg_ mcp_ mcz_ mcs_ mctm_)
+    (mc--and '(= mcc_ (LIST mcg_ (EXPR-SUBST mcp_ mcz_ mcs_))) '(IN mcz_ NN) '(IN mcp_ EXPR-SET)
+             '(OR (IN (ENC-EQ mctm_ mcs_) mcg_) (IN (ENC-QEQ mctm_ mcs_) mcg_))
+             '(= mchs_ (LIST (LIST mcg_ (EXPR-SUBST mcp_ mcz_ mctm_)))))))
 ;; reflexivity fires only on a free variable or an atomic constant (4.7).
 (mc--cr! 'CR-REFLEXIVITY "the core reflexivity relates $2 to $3"
   (mc--ex '(mcg_ mctm_ mcn_)
@@ -419,6 +433,79 @@
   (mc--ex '(mcg_ mca_ mcb_ mctm_)
     (mc--and '(= mcc_ (LIST mcg_ (ENC-QEQ (ENC-APPLY (ENC-LAM mca_ mcb_) mctm_) (EXPR-OPEN mcb_ 0 mctm_))))
              '(= mchs_ (LIST (LIST mcg_ (ENC-IN mctm_ mca_)))))))
+
+;;; 4.7 DEFINEDNESS: THE SCHEMAS ADMITTED BY THE USER'S DECISION OF 2026-10-13.
+;;; META-5 (structure-library/meta-def.scm, scratchpad/triage/META-5-REPORT.md section 2) transcribed the
+;;; clauses of the kernel's certificate pi--defined? as rules DEF-X and showed that the core above derives
+;;; no definedness of a compound term except through eq-subst: every route through T instantiates a
+;;; universal AT the term and owes its definedness.  The rules below are therefore not derivable; they are
+;;; ADMITTED, one at a time, each with the claim it makes.  Each is the relation DEF-X of meta-def.scm
+;;; without the conjunct (IN c SEQ-SET), which CORE-CLOSED supplies; the bodies are written alike, so
+;;; that DEF-X(T, hs, c) yields CR-DEF-X(T, hs, c) up to the names of the bound variables, and the
+;;; admissibility of DEF-X is the closure law of CR-DEF-X (meta-def-laws.scm, section 4).
+;;; Strictness of = is not among them: on the left it was derived by META-5 (adm-def-strict-eq-l), on the
+;;; right it is derived with CR-EQ-SUBST-SYM (adm-def-strict-eq-r).
+;;; NOT admitted, and not decided: DEF-STRICT-ARG and DEF-STRICT-DOM (an argument of a defined application
+;;; of a strict constructor, the domain of a defined binder term, is defined; the second half of META-5's
+;;; row 5), and DEF-STRICT-PRED (row 6, not encoded).
+
+;; The TOTAL class constructors (*total-term-heads*, primitive-inferences.scm): 11 UNION, 12
+;; INTERSECTION, 13 CARTESIAN, 14 TUPLES, 19 FUN, 30 succ, 31 succ_ORD.  (Moved here from meta-def.scm,
+;; where META-5 defined it, so that CR-DEF-TOTAL can name it.)
+(def-predicate 'TOTAL-HEAD '(mchd_)
+  '(OR (AND (<= 11 mchd_) (<= mchd_ 14)) (OR (= mchd_ 19) (AND (<= 30 mchd_) (<= mchd_ 31)))))
+(notation! 'TOTAL-HEAD 'kind 'predicate 'arity 1 'english "the head $1 is a total class constructor")
+
+;; (1) STRICTNESS OF IN, LEFT.  THE CLAIM: a membership t in A that holds has a DENOTING left side; in
+;; NBG / VNB only an object (indeed a set) is a member of anything.  The kernel's clauses
+;; asm-establishes-defined? and pi--strict-hyp-certifies? (META-5 rows 3 and 5) read it.
+(mc--cr! 'CR-DEF-STRICT-IN-L "the core definedness rule strict-in-left relates $2 to $3"
+  (mc--ex '(mcg_ mcw_ mca_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ mcw_ mcw_))) '(= mchs_ (LIST (LIST mcg_ (ENC-IN mcw_ mca_)))))))
+;; (1') STRICTNESS OF IN, RIGHT.  THE CLAIM: a membership t in A that holds has a DENOTING right side, a
+;; class.  The same schema read at the other argument (META-5 row 5); one decision with (1).
+(mc--cr! 'CR-DEF-STRICT-IN-R "the core definedness rule strict-in-right relates $2 to $3"
+  (mc--ex '(mcg_ mcw_ mca_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ mca_ mca_))) '(= mchs_ (LIST (LIST mcg_ (ENC-IN mcw_ mca_)))))))
+;; (2) TOTAL CONSTRUCTORS.  THE CLAIM: UNION, INTERSECTION, CARTESIAN, TUPLES, FUN, succ and succ_ORD
+;; applied to denoting arguments denote: for the class constructors this is class comprehension (each is
+;; the class of the sets satisfying a formula of its arguments); for succ and succ_ORD it is that the
+;; operation is total, its value at a non-number an object about which the guarded axioms say nothing.
+;; The kernel's *total-term-heads* clause (META-5 row 8).  The head list is TOTAL-HEAD above; the
+;; translator extends it only with the codes of genuine total constructors, never a def-functoid's.
+(mc--cr! 'CR-DEF-TOTAL "the core definedness rule total-constructor relates $2 to $3"
+  (mc--ex '(mcg_ mchd_ mcl_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ (EAPP mchd_ mcl_) (EAPP mchd_ mcl_)))) '(TOTAL-HEAD mchd_)
+             '(= (LENGTH mchs_) (LENGTH mcl_))
+             '(FORALL mci_ (IMPLIES (IN mci_ NN) (IMPLIES (<= 1 mci_) (IMPLIES (<= mci_ (LENGTH mcl_))
+                (= (NTH mci_ mchs_) (LIST mcg_ (ENC-EQ (NTH mci_ mcl_) (NTH mci_ mcl_)))))))))))
+;; (3) BINDER TERMS OVER A DENOTING DOMAIN.  THE CLAIM: SEP x A. p, BIG-UNION x A. b and
+;; VNB-LAMBDA x A. b denote when A denotes: separation (the subclass of A cut out by p), the union of the
+;; values b[x] that are sets as x ranges over A, and the class of the pairs [x, b[x]] for x in A with
+;; b[x] denoting -- each a class by comprehension, whatever the body.  The kernel's binder-domain
+;; clause (META-5 row 9).
+(mc--cr! 'CR-DEF-BINDER "the core definedness rule binder-domain relates $2 to $3"
+  (mc--ex '(mcg_ mchd_ mca_ mcb_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ (EBIND mchd_ 1 (LIST mca_) mcb_) (EBIND mchd_ 1 (LIST mca_) mcb_))))
+             '(OR (= mchd_ 22) (OR (= mchd_ 24) (= mchd_ 26)))
+             '(= mchs_ (LIST (LIST mcg_ (ENC-EQ mca_ mca_)))))))
+;; (4) COMPREHENSION.  THE CLAIM: COMP x. p denotes, for every formula p: the class of the sets
+;; satisfying p.  Note the strength: the encoded quantifiers range over CLASSES, so for a p that
+;; quantifies over classes this is the impredicative comprehension of Morse-Kelley, not the predicative
+;; comprehension of NBG.  The kernel already accepts every COMP unconditionally (META-5 row 10); the
+;; schema describes it, it does not extend it.
+(mc--cr! 'CR-DEF-COMP "the core definedness rule comprehension relates $2 to $3"
+  (mc--ex '(mcg_ mcp_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ (ENC-COMP mcp_) (ENC-COMP mcp_)))) '(= mchs_ (LIST)))))
+;; (5) LISTS.  THE CLAIM: a literal list [e1 .. en] every entry of which is a SET denotes (the list
+;; doctrine of 2026-10-01: such a list denotes iff every entry is a set; this is the "if" half, one
+;; premise per entry).  The kernel's pi--sets-defined? clause (META-5 row 7).
+(mc--cr! 'CR-DEF-LIST "the core definedness rule list relates $2 to $3"
+  (mc--ex '(mcg_ mcl_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ (ENC-LIST mcl_) (ENC-LIST mcl_))))
+             '(= (LENGTH mchs_) (LENGTH mcl_))
+             '(FORALL mci_ (IMPLIES (IN mci_ NN) (IMPLIES (<= 1 mci_) (IMPLIES (<= mci_ (LENGTH mcl_))
+                (= (NTH mci_ mchs_) (LIST mcg_ (ENC-IN (NTH mci_ mcl_) ENC-SETC))))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; 5. CORE-RULE, CORE-CLOSED, DERIVABLE.
