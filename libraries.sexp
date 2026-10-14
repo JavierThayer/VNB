@@ -204,7 +204,6 @@
     "structure-library/prod-of-sums"
     "structure-library/binomial"
     "theorem-library/poly-membership"
-    "theorem-library/normed-field-ring-view"
     "theorem-library/ag-view-read-offs"
     "theorem-library/rake-setoid"
     "theorem-library/rake-asm-2"
@@ -345,6 +344,7 @@
   (about "Metric spaces and their topology, completeness, compactness and continuity; normed fields and normed vector spaces; sequences and series of real and complex numbers; the calculus of one real variable on an interval: derivatives, the mean value theorem, Taylor, antiderivatives, regulated functions and the integral; roads and line integrals; Ascoli, Baire, Hahn-Banach, Bernstein.")
   (imports linear-algebra)
   (files
+    "theorem-library/normed-field-ring-view"
     "theorem-library/block-family-combinatorial-proof"
     "structure-library/metric-space"
     "structure-library/metric-topology"
