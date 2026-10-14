@@ -748,3 +748,136 @@ its laws, `meta-ind`, `meta-def`, `meta-ind-laws`, `meta-def-laws`.
   warnings of `mi-open0!`, META-5 report section 3).
 * The first attempt (2026-10-13 21:20Z) reached all 395 `qed`s, all modulo 0, and was stopped by the probe's
   6000 s timeout inside the page audit; META-5's run of the same wrapper had taken 7579 s.
+
+## 16. Phase 7: strictness of the constructors and of the binder terms admitted; the R4 rows re-transcribed (2026-10-14)
+
+### 16.1 The decision
+
+Section 15.5 left two schemas of META-5's row 5 undecided: `DEF-STRICT-ARG` (an argument of a denoting
+application of a strict constructor denotes) and `DEF-STRICT-DOM` (the domain of a denoting binder term
+denotes). On 2026-10-14 the user decided to admit both into the core as schemas, in the form of section 15:
+each a core relation, a disjunct of `CORE-RULE`, with the claim it makes written beside it. The strictness of
+a predicate application (`DEF-STRICT-PRED`, row 6) is not admitted; it waits for predicate codes in the
+encoding, and none were added.
+
+### 16.2 The rules admitted
+
+Both are in `structure-library/meta-core.scm`, section 4.7, items (6) and (7). Each is the relation of
+`meta-def.scm` without its conjunct `c in SEQ-SET`, written alike, so that admissibility is the closure law
+of the core relation (section 15.2). The head class `STRICT-HEAD` moved from `meta-def.scm` to
+`meta-core.scm` with them, unchanged except for the name of its parameter.
+
+| core relation | conclusion from premise | the claim |
+|---|---|---|
+| `CR-DEF-STRICT-ARG` | `[g, l_i = l_i]` from `[g, h(l) = h(l)]`, `STRICT-HEAD(h)`, `1 <= i <= |l|` | an application of a strict constructor that denotes has denoting arguments: UNION, INTERSECTION, CARTESIAN, TUPLES, NTH, LENGTH, LIST, APPLY, FUN, succ and succ_ORD do not denote at a non-denoting argument (strict application in the partial logic the certificate adopts; for LIST, the "only if" half of the list doctrine of 2026-10-01; for APPLY, strictness in the operator and the operand); the converse of `CR-DEF-TOTAL` for the total heads |
+| `CR-DEF-STRICT-DOM` | `[g, A = A]` from `[g, B = B]`, `B` a SEP, BIG-UNION or VNB-LAMBDA over `A` | a denoting binder term has a denoting domain; the converse of `CR-DEF-BINDER` |
+
+`STRICT-HEAD` contains the codes 7 (`IN`) and 8 (`=`), as META-5 wrote it. At those codes the premise of
+`CR-DEF-STRICT-ARG` is the definedness of a formula, which is not a sentence (`WF-FML` of an equation
+requires two terms, and a node has at most one kind), so the premise is never derivable and the rule never
+fires there; the codes were kept so that the core relation is META-5's `DEF-STRICT-ARG` verbatim.
+
+### 16.3 What the admission discharges
+
+In `theorem-library/meta-def-laws.scm`, section 5:
+
+* `def-strict-arg-admitted`, `def-strict-dom-admitted` (through the closure laws `derivable-def-strict-arg`,
+  `derivable-def-strict-dom` of `meta-core-laws.scm`, which lists the two relations in `mc-core-names`), and
+  `adm-def-strict-arg-holds`, `adm-def-strict-dom-holds`: the predicates `ADM-DEF-STRICT-ARG(T)`,
+  `ADM-DEF-STRICT-DOM(T)` of `meta-def.scm` hold for every `T`.
+* Three inversion laws, needed because a conclusion is in `SEQ-SET` only when its term is closed:
+  `clt-eapp-arg` (an argument of an application that is a closed term is a closed term: a term head is at
+  least 11 and takes terms, by `HD-RES` and `HD-ARGK`), `clt-ebind-dom` (the outside argument of a
+  one-argument binder node that is a closed term is a closed term), `clf-sep-open` (the condition of a SEP
+  read at a closed term is a sentence when the membership is one: `wks-open`, `lcd-open-closes`).
+* THE WALK BELOW THE TOP OF AN ATOM (META-6 report, finding 1). `meta-def.scm` section 5 defines
+  `STRICT-STEP(s, t)` (t an argument of s at a strict head, or the domain of s at code 22, 24 or 26: the
+  steps of `pi--sob-walk` that the encoding can express), `STRICT-CLOSED(X)`, and `STRICT-REACH(s)`, the
+  least subset of `EXPR-SET` containing `s` and closed under the step (the device of `DERIVABLE` and
+  `REWR`). `adm-strict-walk`: if `[g, s = s]` is derivable and `t` is in `STRICT-REACH(s)`, then
+  `[g, t = t]` is derivable. The proof instantiates the least-set property at
+  `{u in EXPR-SET : [g, u = u] derivable}` and shows it closed under the step by `CR-DEF-STRICT-ARG` and
+  `CR-DEF-STRICT-DOM`.
+* `STRICT-ATOM(f, t)`: `f` is `x in a` or `x = a` and `t` is in `STRICT-REACH(x)` or `STRICT-REACH(a)`.
+  `adm-strict-atom`: if `[g, f]` is derivable and `STRICT-ATOM(f, t)`, then `[g, t = t]` is derivable (both
+  sides by `CR-DEF-STRICT-IN-L`, `CR-DEF-STRICT-IN-R`, `adm-def-strict-eq-l`, `adm-def-strict-eq-r`, then
+  `adm-strict-walk`).
+* THE SENTENCES A TRUE SENTENCE MAKES TRUE. `TRUE-STEP(f, f2)`: `f2` is a conjunct of the conjunction `f`, or
+  `f` is `y in SEP x D. P` and `f2` is `P[x := y]` (encoded `EXPR-OPEN(P, 0, y)`); `TRUE-CLOSED`,
+  `TRUE-REACH(f)` as above. `adm-true-walk`: if `[g, f]` is derivable and `f2` is in `TRUE-REACH(f)`, then
+  `[g, f2]` is derivable (cut and and-elim; sep-mem, `der-iff-r` and and-elim).
+
+### 16.4 The rows R4 changed, re-transcribed against b25dd06
+
+The source is `primitive-inferences.scm` at commit `b25dd06`; the working tree's copy is identical to it
+(`git diff --stat b25dd06 -- primitive-inferences.scm` is empty). Line numbers below are that file's.
+
+1. **The strict-hypothesis clause** (`pi--strict-hyp-certifies?` 1081, `pi--atom-certifies?` 1101-1112, the
+   walk `pi--sob-walk` 1061-1079). R4 changed it in two ways: a def-functoid application is walked through its
+   instantiated body instead of its arguments (finding 0.1), and a membership `y in S` with `S` a SEP (or a
+   def-functoid whose instantiated body is one, through nested functoids) certifies what the top-level
+   conjuncts of `P[x := y]` certify, each read by the same test. Re-transcribed as `DEF-STRICT-HYP(T, hs, c)`
+   (`meta-def.scm`, section 5): `c = [g, t = t]`, `hs = [[g, f]]`, some `f2` in `TRUE-REACH(f)` with
+   `STRICT-ATOM(f2, t)`. ADMISSIBLE over the core: `def-strict-hyp-derived` (from `adm-true-walk` and
+   `adm-strict-atom`) and `adm-def-strict-hyp-holds`. The relation reads every conjunction, where the kernel
+   splits only `P[x := y]`; it is therefore a superset of the clause, and admissible as such. Not covered,
+   with the reason:
+   * an atom `t1 <= t2` or `t1 < t2`, standing alone or reached as a conjunct of a SEP condition: in the
+     encoding it is a predicate application (head 10, the predicate-name constant first), so its sides are
+     reached only by the strictness of a predicate application, `DEF-STRICT-PRED`, which is not admitted
+     (16.5);
+   * a def-functoid application, walked through its instantiated body (`pi--sob-walk`, the
+     `pi--registry-ref` arm) or read as a SEP through nested functoids (`pi--sep-form`): the encoding has
+     no functoid records (META-2's finding; as rows 12 and 19 of META-5's table);
+   * a head the encoding has no code for (PAIR, SINGLETON, POWER, COMPLEMENT-IN, CHOICE, the arithmetic
+     heads, ...): the translator of K3 extends `STRICT-HEAD` with their codes.
+2. **The NTH-of-a-literal clause** (1217-1221). R4 requires the LIST itself to be certified
+   (`pi--sets-defined?`: every entry certified and not possibly a proper class), not only the selected entry.
+   Re-transcribed as `DEF-NTH-LIST`, with one premise `[g, e_i in SET]` per entry, as `DEF-LIST` reads the
+   same test. DERIVED, with no new schema: `def-nth-list-derived` (`CR-DEF-LIST` with the same premises gives
+   `[g, [l] = [l]]`; `CR-NTH-EQ` gives `[g, NTH(k, [l]) == e_k]`; `CR-DEF-STRICT-IN-L` gives `[g, e_k = e_k]`;
+   `CR-EQ-SUBST` on `P = (z = z)` at `z := 0`, in the context extended by the quasi-equation, and a cut give
+   `[g, NTH(k, [l]) = NTH(k, [l])]`) and `adm-def-nth-list-holds`. Finding 0.2 is retired in the kernel;
+   `DEF-NTH-LIT` is kept in `meta-def.scm` as the record of the clause before R4.
+3. **The NTH-through-a-functoid clause** (1225-1228): unchanged in substance; functoid beta, no functoid
+   encoding.
+
+No re-transcribed row required a schema beyond those admitted, except as stated for the predicate atoms.
+
+### 16.5 What remains open for DEF-STRICT-PRED
+
+The strictness of a predicate application, in the form META-5 stated (row 6): from `[g, P(l)]` derivable,
+`P` a predicate application (`EAPP 10 l`, the first entry the predicate's name), `[g, l_i = l_i]` for each
+argument `l_i` after the name. Without it the following kernel clauses are not admissible over the core:
+
+* the strict-hypothesis clause at the atoms `<=` and `<` (16.4, item 1), alone or as SEP conjuncts;
+* the structure-hypothesis clause (`pi--structure-hyp`, 1203: `IS-X(t)` certifies `t`), the accessor
+  clause (1239), and the predicate-hypothesis clause (`pi--via-pred-hyps?`, 1263), which META-5 classed as
+  derived from `DEF-STRICT-PRED` together with the defining equivalences (rows 1172, 1205, 1233).
+
+Once `DEF-STRICT-PRED` is admitted (with predicate codes), the extension of section 5 is mechanical:
+`STRICT-ATOM` gains a disjunct for an atom `EAPP 10 l` with `t` in `STRICT-REACH(l_i)`, and the proof of
+`adm-strict-atom` a case citing the closure law of `CR-DEF-STRICT-PRED`; `adm-strict-walk` and
+`adm-true-walk` are unchanged.
+
+### 16.6 Regress
+
+`scratchpad/meta7/final.scm` (META-6's final wrapper, unchanged but for its header line) on worker-01 against
+its band of 2026-10-12 19:45 (tree `f7e2246`), 2026-10-14 13:52Z to 16:02Z, wall 7819 s, CPU of the run
+3474 s, heap 120000 (GC 59%); log `/home/ubuntu/probes/meta7__final.scm.log`. Every file loaded for real, in
+load order: `driver-kit-meta3.scm`, `meta-syntax` and its laws, `meta-core` and its laws, `meta-cr` and its
+laws, `meta-ind`, `meta-def`, `meta-ind-laws`, `meta-def-laws`.
+
+* **416 of 416 `qed`, every one `proven modulo 0`**: section 15's 395 and 21 new (the closure laws
+  `derivable-def-strict-arg`, `derivable-def-strict-dom`; in `meta-def-laws.scm` section 5,
+  `def-strict-arg-admitted`, `def-strict-dom-admitted`, `adm-def-strict-arg-holds`,
+  `adm-def-strict-dom-holds`, `clt-eapp-arg`, `clt-ebind-dom`, `clf-sep-open`, `strict-reach-unfold`,
+  `true-reach-unfold`, `strict-reach-least`, `true-reach-least`, `adm-strict-walk`, `adm-true-walk`,
+  `adm-strict-atom`, `def-strict-hyp-derived`, `adm-def-strict-hyp-holds`, `enc-nth-unfold`,
+  `def-nth-list-derived`, `adm-def-nth-list-holds`). No qed failure; no error.
+* Page audit 416 / 416 grounded; free-variable, constant-binder, connective-arity, head-registry and
+  proven-duplicate audits empty over the new theorems; the case-fold lints empty over all nine files.
+* Four warnings, the same four as the runs of META-5 and META-6.
+* Naming: the two derived rules are `def-strict-hyp-derived` and `def-nth-list-derived`, not
+  `adm-def-strict-hyp` / `adm-def-nth-list`: `def-predicate` installs the defining equivalence of the
+  predicate `ADM-DEF-X` under the name `adm-def-x`, and the first development probe met the collision.

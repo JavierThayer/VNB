@@ -22,6 +22,7 @@
 ;;;   1169 strict-hyp: t outside binders in a true IN / = / <= / <   DEF-STRICT-IN-L/R, DEF-STRICT-EQ-L/R,
 ;;;                                                    then DEF-STRICT-ARG down the constructor heads.
 ;;;                                                    FINDING 0.1: the kernel walks def-functoid heads too.
+;;;        RE-TRANSCRIBED against b25dd06 (META-7, 2026-10-14): see DEF-STRICT-HYP below (section 5).
 ;;;   1172 structure hypothesis IS-X(t) / t in X        strictness of a predicate application (head 10): schema
 ;;;                                                    DEF-STRICT-PRED (not encoded: no predicate codes)
 ;;;   1174 LIST / PAIR / SINGLETON, every entry a set   DEF-LIST (schema here; the doctrine of 2026-10-01)
@@ -30,6 +31,7 @@
 ;;;   1180 COMP                                         DEF-COMP (schema: class comprehension)
 ;;;   1181 NTH(k, LIST l), l_k certified                DEF-NTH-LIT as the kernel has it.  FINDING 0.2: the
 ;;;                                                    doctrine denies it; the sound rule needs the LIST certified
+;;;        RE-TRANSCRIBED against b25dd06 (META-7): R4 made the clause read the LIST; see DEF-NTH-LIST (section 5).
 ;;;   1189 NTH(k, F(..)) through a functoid body        as 1181, through functoid beta (no functoid encoding)
 ;;;   1194 + - * min max abs succ ^ on number-typed args   DERIVED from T's closure laws + DEF-STRICT-IN-L; no codes
 ;;;   1197 nested arithmetic (pi--number-class)         DERIVED likewise, by induction on the term; no codes
@@ -50,9 +52,32 @@
 ;;; (structure-library/meta-core.scm, section 4.7, each with its claim); their admissibility is the closure
 ;;; law of the core relation (theorem-library/meta-def-laws.scm, section 4).  DEF-STRICT-EQ-R left the table
 ;;; of schemas: the core's eq-subst became two-way (CR-EQ-SUBST-SYM) and adm-def-strict-eq-r is DERIVED.
-;;; Still schemas, not admitted and not decided: DEF-STRICT-ARG, DEF-STRICT-DOM (the walk down the strict
-;;; constructors and into a binder's domain, row 1169) and the strictness of a predicate application (row
-;;; 1172, not encoded).
+;;; Then still schemas: DEF-STRICT-ARG, DEF-STRICT-DOM (the walk down the strict constructors and into a
+;;; binder's domain, row 1169) and the strictness of a predicate application (row 1172, not encoded).
+;;;
+;;; THE SCHEMAS ADMITTED (the user's decision, 2026-10-14; agent META-7).  DEF-STRICT-ARG and DEF-STRICT-DOM
+;;; entered the core as CR-DEF-STRICT-ARG and CR-DEF-STRICT-DOM (meta-core.scm 4.7, (6) and (7), each with its
+;;; claim); STRICT-HEAD moved to meta-core.scm with them.  Still a schema, not admitted: the strictness of a
+;;; predicate application (DEF-STRICT-PRED, row 1172), which waits for predicate codes in the encoding.
+;;;
+;;; THE ROWS R4 CHANGED, RE-TRANSCRIBED against b25dd06's pi--defined? (primitive-inferences.scm 1194-1265 and
+;;; its helpers; agent META-7, 2026-10-14; section 5 below):
+;;;   1081-1112 strict-hyp, and the SEP-membership clause of pi--atom-certifies? (new in R4)
+;;;        DEF-STRICT-HYP: a derivable sentence f; f2 reached from f by and-elimination and by reading a
+;;;        membership y in SEP x D. P as P[x := y] (TRUE-REACH); f2 an IN or = atom; t reached from a side of
+;;;        f2 by STRICT-STEP (down a strict constructor, into a binder's domain; STRICT-REACH).  ADMISSIBLE over
+;;;        the core with CR-DEF-STRICT-IN-L/R, the derived strictness of =, CR-DEF-STRICT-ARG, CR-DEF-STRICT-DOM,
+;;;        sep-mem, iff-elim, and-elim (meta-def-laws.scm, section 5).  NOT covered, and why:
+;;;          - an atom <= or < (on its own or as a SEP conjunct): its sides are arguments of a predicate
+;;;            application (head 10), so the first step needs DEF-STRICT-PRED (not admitted; stop);
+;;;          - a def-functoid application, walked through its instantiated body (pi--sob-walk) or read as a
+;;;            SEP through nested functoids (pi--sep-form): the encoding has no functoid records (as 1229);
+;;;          - a head the encoding has no code for (PAIR, POWER, the arithmetic heads, ...): the translator's.
+;;;   1217 NTH(k, LIST l), the LIST certified by pi--sets-defined? (R4)
+;;;        DEF-NTH-LIST: one premise [g, e_i in SET] per entry, as DEF-LIST.  DERIVED: CR-DEF-LIST,
+;;;        CR-DEF-STRICT-IN-L, CR-NTH-EQ and eq-subst (meta-def-laws.scm, def-nth-list-derived).  Finding 0.2 is
+;;;        retired in the kernel; DEF-NTH-LIT is kept as the record of the clause before R4.
+;;;   1225 NTH(k, F(..)) through a functoid body          unchanged: functoid beta, no functoid encoding.
 
 ;;; -----------------------------------------------------------------------
 ;;; 0. Helpers (as meta-ind.scm's mi--ex / mi--and, renamed).
@@ -71,14 +96,9 @@
 ;;; 1. The head classes the clauses name.
 
 ;; The constructor heads an application of which is STRICT in its arguments (1052-1068, the walk of
-;; pi--subterm-outside-binders?, RESTRICTED to genuine constructors: the kernel walks every head but
-;; FORALL FORSOME IOTA COMP IF and the binder bodies, def-functoid heads included -- finding 0.1).
-;; Encoded: the relations 7 IN and 8 = (their two arguments), the term heads 11-19 (UNION .. FUN), and
-;; the named constructors succ (30) and succ_ORD (31).  The translator extends the list with the codes it
-;; gives the other constructors of *total-term-heads*; never with a def-functoid's code.
-(def-predicate 'STRICT-HEAD '(mdh_)
-  '(OR (AND (<= 7 mdh_) (<= mdh_ 8)) (OR (AND (<= 11 mdh_) (<= mdh_ 19)) (AND (<= 30 mdh_) (<= mdh_ 31)))))
-(notation! 'STRICT-HEAD 'kind 'predicate 'arity 1 'english "an application of the head $1 is strict in its arguments")
+;; pi--subterm-outside-binders?, RESTRICTED to genuine constructors).  STRICT-HEAD is defined in
+;; structure-library/meta-core.scm, section 4.7 (moved there 2026-10-14, META-7, when DEF-STRICT-ARG was
+;; admitted into the core as CR-DEF-STRICT-ARG); its codes and the reading of 7 and 8 are recorded there.
 ;; The TOTAL class constructors (*total-term-heads*, 698): a class term on defined arguments denotes.
 ;; Encoded: 11 UNION, 12 INTERSECTION, 13 CARTESIAN, 14 TUPLES, 19 FUN, 30 succ, 31 succ_ORD.
 ;; TOTAL-HEAD is defined in structure-library/meta-core.scm, section 4.7 (moved there 2026-10-13, META-6,
@@ -102,7 +122,8 @@
   (md--ex '(mdg_ mds_ mdu_)
     (md--and '(= mdc_ (LIST mdg_ (ENC-EQ mdu_ mdu_))) '(= mdhs_ (LIST (LIST mdg_ (ENC-EQ mds_ mdu_)))))))
 ;; 1052-1068: down a strict constructor: an argument of a defined application of a strict head is defined;
-;; the DOMAIN of a defined SEP / BIG-UNION / VNB-LAMBDA (22 / 24 / 26) is defined.
+;; the DOMAIN of a defined SEP / BIG-UNION / VNB-LAMBDA (22 / 24 / 26) is defined.  ADMITTED 2026-10-14
+;; (CR-DEF-STRICT-ARG, CR-DEF-STRICT-DOM, meta-core.scm 4.7).
 (md--rel! 'DEF-STRICT-ARG "the definedness rule strict-argument relates $2 to $3"
   (md--ex '(mdg_ mdh_ mdl_ mdi_)
     (md--and '(= mdc_ (LIST mdg_ (ENC-EQ (NTH mdi_ mdl_) (NTH mdi_ mdl_))))
@@ -165,6 +186,8 @@
 (md--adm! 'ADM-DEF-STRICT-IN-L 'DEF-STRICT-IN-L)
 (md--adm! 'ADM-DEF-COMP 'DEF-COMP)
 (md--adm! 'ADM-DEF-STRICT-IN-R 'DEF-STRICT-IN-R)
+(md--adm! 'ADM-DEF-STRICT-ARG 'DEF-STRICT-ARG)
+(md--adm! 'ADM-DEF-STRICT-DOM 'DEF-STRICT-DOM)
 
 ;;; -----------------------------------------------------------------------
 ;;; 4. The encoded catalog axiom DEF-APP is derived from.
@@ -177,3 +200,72 @@
                                              (ENC-IFF (ENC-EQ (ENC-APPLY (EBVAR 1) (EBVAR 0)) (ENC-APPLY (EBVAR 1) (EBVAR 0)))
                                                       (ENC-IN (EBVAR 0) (EBVAR 2))))))))))
 (notation! 'AX-FUN-APP 'kind 'constant 'arity 0 'english "the encoded axiom fun-domain-apply-def")
+
+;;; -----------------------------------------------------------------------
+;;; 5. THE ROWS R4 CHANGED, RE-TRANSCRIBED against b25dd06 (agent META-7, 2026-10-14).  Binders: md7*_.
+
+;; THE WALK BELOW THE TOP OF AN ATOM (pi--sob-walk, 1061-1079).  One step: from an application of a strict
+;; head to an argument, from a SEP / BIG-UNION / VNB-LAMBDA to its domain.  The kernel walks nothing else
+;; that the encoding has a code for: not FORALL FORSOME IOTA COMP (20 21 25 23), not IF (27), not a binder's
+;; body.
+(def-predicate 'STRICT-STEP '(md7s_ md7t_)
+  '(OR (FORSOME md7h_ (FORSOME md7l_ (FORSOME md7i_
+         (AND (= md7s_ (EAPP md7h_ md7l_))
+              (AND (STRICT-HEAD md7h_)
+                   (AND (IN md7i_ NN) (AND (<= 1 md7i_) (AND (<= md7i_ (LENGTH md7l_)) (= md7t_ (NTH md7i_ md7l_))))))))))
+       (FORSOME md7k_ (FORSOME md7a_ (FORSOME md7b_
+         (AND (OR (= md7k_ 22) (OR (= md7k_ 24) (= md7k_ 26)))
+              (AND (= md7s_ (EBIND md7k_ 1 (LIST md7a_) md7b_)) (= md7t_ md7a_))))))))
+(notation! 'STRICT-STEP 'kind 'predicate 'arity 2 'english "$2 is one strict step below $1")
+(def-predicate 'STRICT-CLOSED '(md7x_)
+  '(FORALL md7p_ (FORALL md7q_ (IMPLIES (IN md7p_ md7x_) (IMPLIES (STRICT-STEP md7p_ md7q_) (IN md7q_ md7x_))))))
+(notation! 'STRICT-CLOSED 'kind 'predicate 'arity 1 'english "$1 is closed under strict steps")
+;; the expressions reached from e by strict steps (e included): the least closed subset of EXPR-SET with e
+(def-functoid 'STRICT-REACH '(md7e_)
+  '(SEP md7z_ EXPR-SET (FORALL md7w_ (IMPLIES (IN md7w_ (POWER EXPR-SET))
+                          (IMPLIES (IN md7e_ md7w_) (IMPLIES (STRICT-CLOSED md7w_) (IN md7z_ md7w_)))))))
+(notation! 'STRICT-REACH 'kind 'functoid 'arity 1 'english "the expressions reached from $1 by strict steps")
+
+;; THE SENTENCES A TRUE SENTENCE MAKES TRUE, as the kernel reads them (pi--atom-certifies?, 1101-1112, the
+;; SEP-membership clause of R4, and pi--and-conjuncts): a conjunct of a conjunction, and P[x := y] from a
+;; membership y in SEP x D. P.  (The kernel starts from an atom and splits only P[x := y]; reading every
+;; conjunction is a superset, sound by and-elim.)
+(def-predicate 'TRUE-STEP '(md7f_ md7g_)
+  '(OR (FORSOME md7c_ (FORSOME md7d_ (AND (= md7f_ (ENC-AND md7c_ md7d_)) (OR (= md7g_ md7c_) (= md7g_ md7d_)))))
+       (FORSOME md7y_ (FORSOME md7o_ (FORSOME md7r_
+         (AND (= md7f_ (ENC-IN md7y_ (ENC-SEP md7o_ md7r_))) (= md7g_ (EXPR-OPEN md7r_ 0 md7y_))))))))
+(notation! 'TRUE-STEP 'kind 'predicate 'arity 2 'english "$2 is one step of truth below $1")
+(def-predicate 'TRUE-CLOSED '(md7v_)
+  '(FORALL md7m_ (FORALL md7n_ (IMPLIES (IN md7m_ md7v_) (IMPLIES (TRUE-STEP md7m_ md7n_) (IN md7n_ md7v_))))))
+(notation! 'TRUE-CLOSED 'kind 'predicate 'arity 1 'english "$1 is closed under steps of truth")
+(def-functoid 'TRUE-REACH '(md7j_)
+  '(SEP md7zz_ EXPR-SET (FORALL md7ww_ (IMPLIES (IN md7ww_ (POWER EXPR-SET))
+                           (IMPLIES (IN md7j_ md7ww_) (IMPLIES (TRUE-CLOSED md7ww_) (IN md7zz_ md7ww_)))))))
+(notation! 'TRUE-REACH 'kind 'functoid 'arity 1 'english "the sentences reached from $1 by steps of truth")
+
+;; An atom IN or = certifies the terms reached from either side (the kernel's atoms <= and < are predicate
+;; applications, head 10: their sides need DEF-STRICT-PRED, which is not admitted).
+(def-predicate 'STRICT-ATOM '(md7af_ md7at_)
+  '(FORSOME md7ax_ (FORSOME md7ay_
+     (AND (OR (= md7af_ (ENC-IN md7ax_ md7ay_)) (= md7af_ (ENC-EQ md7ax_ md7ay_)))
+          (OR (IN md7at_ (STRICT-REACH md7ax_)) (IN md7at_ (STRICT-REACH md7ay_)))))))
+(notation! 'STRICT-ATOM 'kind 'predicate 'arity 2 'english "the atom $1 certifies the term $2")
+
+;; 1081-1112 (pi--strict-hyp-certifies?, pi--atom-certifies?), RE-TRANSCRIBED: the fact f (a premise, by the
+;; conventions above), a sentence f2 it makes true, an atom, and a term below a side.
+(md--rel! 'DEF-STRICT-HYP "the definedness rule strict-hypothesis relates $2 to $3"
+  (md--ex '(mdg_ mdf_ md7h2_ mdw_)
+    (md--and '(= mdc_ (LIST mdg_ (ENC-EQ mdw_ mdw_))) '(= mdhs_ (LIST (LIST mdg_ mdf_)))
+             '(IN md7h2_ (TRUE-REACH mdf_)) '(STRICT-ATOM md7h2_ mdw_))))
+(md--adm! 'ADM-DEF-STRICT-HYP 'DEF-STRICT-HYP)
+
+;; 1217-1221 (R4): NTH(k, [l]) when the LIST is certified, i.e. every entry a set (pi--sets-defined?, read
+;; as DEF-LIST reads it: one premise per entry).
+(md--rel! 'DEF-NTH-LIST "the definedness rule nth-of-list relates $2 to $3"
+  (md--ex '(mdg_ mdl_ mdk_)
+    (md--and '(= mdc_ (LIST mdg_ (ENC-EQ (ENC-NTH (ENC-NUM mdk_) (ENC-LIST mdl_)) (ENC-NTH (ENC-NUM mdk_) (ENC-LIST mdl_)))))
+             '(IN mdk_ NN) '(<= 1 mdk_) '(<= mdk_ (LENGTH mdl_))
+             '(= (LENGTH mdhs_) (LENGTH mdl_))
+             '(FORALL mdi_ (IMPLIES (IN mdi_ NN) (IMPLIES (<= 1 mdi_) (IMPLIES (<= mdi_ (LENGTH mdl_))
+                (= (NTH mdi_ mdhs_) (LIST mdg_ (ENC-IN (NTH mdi_ mdl_) ENC-SETC))))))))))
+(md--adm! 'ADM-DEF-NTH-LIST 'DEF-NTH-LIST)

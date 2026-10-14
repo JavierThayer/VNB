@@ -828,7 +828,10 @@
     ;; META-6, 2026-10-13 (the user's decision): the other orientation of eq-subst, and the five
     ;; definedness schemas admitted into the core (structure-library/meta-core.scm, 4.2 and 4.7).
     CR-EQ-SUBST-SYM
-    CR-DEF-STRICT-IN-L CR-DEF-STRICT-IN-R CR-DEF-TOTAL CR-DEF-BINDER CR-DEF-COMP CR-DEF-LIST))
+    CR-DEF-STRICT-IN-L CR-DEF-STRICT-IN-R CR-DEF-TOTAL CR-DEF-BINDER CR-DEF-COMP CR-DEF-LIST
+    ;; META-7, 2026-10-14 (the user's decision): the strictness of the constructors in their arguments
+    ;; and of the binder terms in their domain (structure-library/meta-core.scm 4.7, (6) and (7)).
+    CR-DEF-STRICT-ARG CR-DEF-STRICT-DOM))
 (define (mc-or-pick! target)
   (let loop ()
     (let ((g (dk-goal)))

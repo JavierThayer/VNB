@@ -434,7 +434,7 @@
     (mc--and '(= mcc_ (LIST mcg_ (ENC-QEQ (ENC-APPLY (ENC-LAM mca_ mcb_) mctm_) (EXPR-OPEN mcb_ 0 mctm_))))
              '(= mchs_ (LIST (LIST mcg_ (ENC-IN mctm_ mca_)))))))
 
-;;; 4.7 DEFINEDNESS: THE SCHEMAS ADMITTED BY THE USER'S DECISION OF 2026-10-13.
+;;; 4.7 DEFINEDNESS: THE SCHEMAS ADMITTED BY THE USER'S DECISIONS OF 2026-10-13 AND 2026-10-14.
 ;;; META-5 (structure-library/meta-def.scm, scratchpad/triage/META-5-REPORT.md section 2) transcribed the
 ;;; clauses of the kernel's certificate pi--defined? as rules DEF-X and showed that the core above derives
 ;;; no definedness of a compound term except through eq-subst: every route through T instantiates a
@@ -445,9 +445,11 @@
 ;;; admissibility of DEF-X is the closure law of CR-DEF-X (meta-def-laws.scm, section 4).
 ;;; Strictness of = is not among them: on the left it was derived by META-5 (adm-def-strict-eq-l), on the
 ;;; right it is derived with CR-EQ-SUBST-SYM (adm-def-strict-eq-r).
-;;; NOT admitted, and not decided: DEF-STRICT-ARG and DEF-STRICT-DOM (an argument of a defined application
-;;; of a strict constructor, the domain of a defined binder term, is defined; the second half of META-5's
-;;; row 5), and DEF-STRICT-PRED (row 6, not encoded).
+;;; ADMITTED LATER (the user's decision of 2026-10-14; agent META-7): DEF-STRICT-ARG and DEF-STRICT-DOM (an
+;;; argument of a defined application of a strict constructor, the domain of a defined binder term, is
+;;; defined; the second half of META-5's row 5), as (6) and (7) below, with STRICT-HEAD (moved here from
+;;; meta-def.scm).  NOT admitted, and not decided: DEF-STRICT-PRED (row 6; it waits for predicate codes in
+;;; the encoding).
 
 ;; The TOTAL class constructors (*total-term-heads*, primitive-inferences.scm): 11 UNION, 12
 ;; INTERSECTION, 13 CARTESIAN, 14 TUPLES, 19 FUN, 30 succ, 31 succ_ORD.  (Moved here from meta-def.scm,
@@ -506,6 +508,45 @@
              '(= (LENGTH mchs_) (LENGTH mcl_))
              '(FORALL mci_ (IMPLIES (IN mci_ NN) (IMPLIES (<= 1 mci_) (IMPLIES (<= mci_ (LENGTH mcl_))
                 (= (NTH mci_ mchs_) (LIST mcg_ (ENC-IN (NTH mci_ mcl_) ENC-SETC))))))))))
+
+;; The constructor heads an application of which is STRICT in its arguments (primitive-inferences.scm,
+;; pi--sob-walk, RESTRICTED to genuine constructors: the kernel walks every head but FORALL FORSOME IOTA
+;; COMP IF and the binder bodies, and walks a def-functoid application through its instantiated body
+;; since R4, 2026-10-13).  Encoded: the relations 7 IN and 8 = (their two arguments), the term heads 11-19
+;; (UNION INTERSECTION CARTESIAN TUPLES NTH LENGTH LIST APPLY FUN), and the named constructors succ (30)
+;; and succ_ORD (31).  The translator extends the list with the codes it gives the other constructors of
+;; *total-term-heads* and the arithmetic heads; never with a def-functoid's code.  (Defined by META-5 in
+;; meta-def.scm; moved here 2026-10-14, META-7, so that CR-DEF-STRICT-ARG can name it.)  For 7 and 8 the
+;; premise of (6) is the definedness of a FORMULA, which is no sentence (WF-FML of ENC-EQ wants terms), so
+;; (6) never fires at those codes; they are kept so that the relation is META-5's DEF-STRICT-ARG verbatim.
+(def-predicate 'STRICT-HEAD '(mchd_)
+  '(OR (AND (<= 7 mchd_) (<= mchd_ 8)) (OR (AND (<= 11 mchd_) (<= mchd_ 19)) (AND (<= 30 mchd_) (<= mchd_ 31)))))
+(notation! 'STRICT-HEAD 'kind 'predicate 'arity 1 'english "an application of the head $1 is strict in its arguments")
+
+;; (6) STRICTNESS OF THE CONSTRUCTORS IN THEIR ARGUMENTS (the user's decision, 2026-10-14).  THE CLAIM: an
+;; application of a strict constructor that denotes has denoting arguments: UNION, INTERSECTION,
+;; CARTESIAN, TUPLES, NTH, LENGTH, LIST, APPLY, FUN, succ and succ_ORD at an argument that does not denote
+;; do not denote (the manual's "undefinedness propagates through all operations", the strictness of
+;; application in the partial logic of LUTINS that VNB's certificate adopts).  For LIST it is the "only
+;; if" half of the list doctrine of 2026-10-01 read for definedness (a list denotes only if its entries
+;; are sets, so only if they denote); for APPLY it is strictness in the operator and the operand.  It is
+;; the converse of (2) for the total heads.  The kernel's clause pi--strict-hyp-certifies? walks down
+;; these heads (META-5 row 5); one premise, the definedness of the application, one conclusion per
+;; argument position.
+(mc--cr! 'CR-DEF-STRICT-ARG "the core definedness rule strict-argument relates $2 to $3"
+  (mc--ex '(mcg_ mchd_ mcl_ mci_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ (NTH mci_ mcl_) (NTH mci_ mcl_))))
+             '(STRICT-HEAD mchd_) '(IN mci_ NN) '(<= 1 mci_) '(<= mci_ (LENGTH mcl_))
+             '(= mchs_ (LIST (LIST mcg_ (ENC-EQ (EAPP mchd_ mcl_) (EAPP mchd_ mcl_))))))))
+;; (7) STRICTNESS OF THE BINDER TERMS IN THEIR DOMAIN (the user's decision, 2026-10-14).  THE CLAIM: a
+;; denoting SEP x A. p, BIG-UNION x A. b or VNB-LAMBDA x A. b has a denoting domain A: each is formed from
+;; the class A, and a term built on a non-denoting part does not denote.  It is the converse of (3).  The
+;; kernel's walk enters a binder term through its domain only (pi--sob-walk; META-5 row 5).
+(mc--cr! 'CR-DEF-STRICT-DOM "the core definedness rule strict-domain relates $2 to $3"
+  (mc--ex '(mcg_ mchd_ mca_ mcb_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ mca_ mca_)))
+             '(OR (= mchd_ 22) (OR (= mchd_ 24) (= mchd_ 26)))
+             '(= mchs_ (LIST (LIST mcg_ (ENC-EQ (EBIND mchd_ 1 (LIST mca_) mcb_) (EBIND mchd_ 1 (LIST mca_) mcb_))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; 5. CORE-RULE, CORE-CLOSED, DERIVABLE.
