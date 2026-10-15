@@ -293,6 +293,23 @@
 ;; collapse of trivial runs counted ordering facts as trivial, the LAST group of
 ;; nn-lt-double (two order-transitivity citations, then `ass') became a typing
 ;; run and the theorem's closer read "(the claim holds by assumption)".
+;; The goal a group's CLOSER closed: the focus goal recorded by the step before it
+;; (the group's entry goal when the closer is its first record).
+(define (proof-reader--closed-goal g closer pre-goal)
+  (let loop ((rs g) (prev pre-goal))
+    (cond ((null? rs) prev)
+          ((eq? (ir-rec (car rs)) closer) prev)
+          (else (loop (cdr rs) (cadr (ir-rec (car rs))))))))
+;; What a closing remark is ABOUT (the user, 2026-10-15, on fom-baire-approx: "it holds
+;; by assumption -- say what the `it' refers to", and no parentheses): a claim whose
+;; formula is the closed goal is named; otherwise the closed goal is written out, after
+;; the noun KIND ("The goal", "The side condition").
+(define (proof-reader--closed-subject goal claims kind)
+  (let ((c (find-first (lambda (c) (equal? (caddr c) goal)) claims)))
+    (cond (c (proof-reader--claims-text (list c)))
+          (goal (string-append kind (proof-reader--display goal)))
+          (else kind))))
+
 (define (proof-reader--side-closer? g closer irecs setup-goal)
   (let ((closed (let loop ((rs g) (prev #f))
                   (cond ((null? rs) prev)
@@ -1212,6 +1229,14 @@
      "(\\texttt{proof-tex}); a range such as 13--15 is several steps shown as one row.  "
      "A claim is proved by the indented rows under it.}}\\par\\smallskip\n"
      "\\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]\n"
+     ;; the setup steps (di / ai / wk / keep before the first content step) are not shown
+     ;; one by one; their row says so, so the first number in the margin is not a puzzle
+     ;; (the user, 2026-10-15: "the first number (9) ... is a little confusing").
+     (let ((hi (if (pair? setup) (apply max (map ir-idx setup)) 0)))
+       (cond ((< hi 1) "")
+             ((= hi 1) "  \\item[\\textbf{1}] Step 1 takes the proposition apart: it introduces the variables and hypotheses of the statement.\n")
+             (else (string-append "  \\item[\\textbf{1--" (number->string hi) "}] Steps 1--" (number->string hi)
+                                  " take the proposition apart: they introduce the variables and hypotheses of the statement and are not shown one by one.\n"))))
      (append
       ;; walk groups, threading the pre-goal / pre-asms (the setup sequent seeds
       ;; it) and, for an `ni' proof, the induction variable + branch phase so we
@@ -1268,22 +1293,29 @@
                    ;; the claims this row finishes, named (not "the claim"); a claim
                    ;; stated and closed in this same row needs no name
                    (named   (filter (lambda (c) (not (eq? c claim-here))) ending))
+                   (closed  (and closer (proof-reader--closed-goal g closer main-pre-goal)))
                    (close-txt (cond ((pair? named)
-                                     (string-append "  \\emph{("
+                                     (string-append
                                        ;; the closer is named only when it is the one that closed
                                        ;; the claim (not a claim stated and closed in this row)
                                        (cond ((or (not closer) (memq claim-here ending)) "")
-                                             (by-ass? "it holds by assumption; ")
-                                             (else (string-append "established" how "; ")))
-                                       "this proves " (proof-reader--claims-text named) ")}"))
+                                             (else (string-append "  "
+                                                     (proof-reader--closed-subject closed named "The goal")
+                                                     (if by-ass? " holds by assumption." (string-append " is established" how ".")))))
+                                       "  This proves " (proof-reader--claims-text named) "."))
                                     ((not closer) "")
-                                    ;; a claim stated in this row is "the claim"; otherwise what
-                                    ;; was closed is a side condition a tactic posted (a typing)
-                                    (side? (let ((what (if claim-here "the claim" "the side condition")))
-                                             (if by-ass?
-                                                 (string-append "  \\emph{(" what " holds by assumption)}")
-                                                 (string-append "  \\emph{(" what " is established" how ")}"))))
-                                    (by-ass? "  \\emph{(holds by assumption)}")
+                                    ;; a claim stated in this row is named; otherwise what was
+                                    ;; closed is a side condition a tactic posted (a typing)
+                                    (side? (if by-ass?
+                                               (string-append "  "
+                                                 (if claim-here
+                                                     (proof-reader--claims-text (list claim-here))
+                                                     (proof-reader--closed-subject closed '() "The side condition"))
+                                                 " holds by assumption.")
+                                               (string-append "  \\emph{(" (if claim-here "the claim" "the side condition")
+                                                              " is established" how ")}")))
+                                    (by-ass? (string-append "  " (proof-reader--closed-subject closed claims "The goal")
+                                                            " holds by assumption."))
                                     (else (string-append "  \\emph{(closes" how ")}"))))
                    (is-ni   (and main (eq? (car (car main)) 'ni)))
                    (new-indvar (if is-ni
