@@ -12,9 +12,9 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-741 operators: 3 functions, 11 syntax, 438 functoids, 286 predicates, 3 undeclared.
+743 operators: 3 functions, 11 syntax, 437 functoids, 288 predicates, 4 undeclared.
 
-> **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
+> **⚠ Undeclared heads (mushrooms):** `cos` `delete-at` `exp` `sin` — registered and usable but backed by no def or axiom.
 
 ## Functions  (3)
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (438)
+## Functoids  (437)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -124,11 +124,11 @@ Declared by: `binneg-apply` `nary-minus-2` `nary-neg-1`
 
 ### `binplus`  — characterized by axiom(s)
 
-Declared by: `binplus-apply` `eplus-def` `eplus-real-defined` `nary-minus-2` `nary-plus-2` `nary-plus-2-list` `nary-plus-3` `nary-plus-3-list` 
+Declared by: `binplus-apply` `eplus-def` `eplus-real-defined` `nary-minus-2` `nary-plus-2` `nary-plus-3` `nary-plus-4` `nary-plus-5` 
 
 ### `bintimes`  — characterized by axiom(s)
 
-Declared by: `bintimes-apply` `etimes-def` `etimes-real-defined` `nary-times-2` `nary-times-2-list` `nary-times-3` `nary-times-3-list` `nary-times-4` 
+Declared by: `bintimes-apply` `etimes-def` `etimes-real-defined` `nary-times-2` `nary-times-3` `nary-times-4` `nary-times-5` `rb5-nary-times-2-list-cc` 
 
 ### `block`  — def-functoid · element/number-valued
 
@@ -429,10 +429,6 @@ Declared by: `dc-iter-zero` `dc-iter-succ`
 > _Reads as:_  the degree of p
 
     deg(a, p) := iota(n_, n_ in nn and deg-bound(a, p, n_) and forall([j_ in nn], deg-bound(a, p, j_) implies n_ <= j_))
-
-### `delete-at`  — characterized by axiom(s)
-
-Declared by: `delete-at-above-k` `delete-at-below-k` `delete-at-in-fun` `delete-at-is-bijection` 
 
 ### `deriv`  — def-functoid · element/number-valued
 
@@ -1678,7 +1674,7 @@ Declared by: `intersection-decompose` `union-decompose`
 
 ### `ring-prod`  — def-functoid · tuple/structure-valued
 
-    ring-prod(x, y) := [cartesian(carr(x), carr(y)), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda([p], cartesian(carr(x), carr(y)), [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]
+    ring-prod(x, y) := [cartesian(carr(x), carr(y)), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda(p, cartesian(carr(x), carr(y)), [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]
 
 ### `ring-prod-n`  — recursively defined (def-by-nn-recursion)
 
@@ -2154,7 +2150,7 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (286)
+## Predicates  (288)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -2529,6 +2525,14 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-flush-trace`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  sas_ is a flushing trace in the strand space sasp_
+
+### `is-fr-bounded`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  aa is a bounded set in (m, fam)
+
+### `is-fr-equicont`  — def-predicate · proposition (arity 6)
+
+> _Reads as:_  the family tf indexed by ix is equicontinuous from (m1, fam1) to (m2, fam2)
 
 ### `is-frechet-structure`  — def-predicate · proposition (arity 3)
 
@@ -3302,11 +3306,13 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  d is a greatest common divisor of a and b
 
-## Undeclared  (3)
+## Undeclared  (4)
 
 Registered operator heads with NO def-form and NO characterizing axiom.  Each is a defect: declare it or retire the head.
 
 ### `cos`  — REGISTERED HEAD, NO DECLARATION
+
+### `delete-at`  — REGISTERED HEAD, NO DECLARATION
 
 ### `exp`  — REGISTERED HEAD, NO DECLARATION
 

@@ -301,7 +301,7 @@
 <h4 id="FUNCTORS__rectangles">rectangles</h4>
 <pre>rectangles(xs, ca, ys, cb) := {rcr_ in power(cartesian(xs, ys)): forsome([rca_ in ca, rcb_ in cb], rcr_ = cartesian(rca_, rcb_))}</pre>
 <h4 id="FUNCTORS__ring-prod">ring-prod</h4>
-<pre>ring-prod(x, y) := [cartesian(carr(x), carr(y)), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda([p], cartesian(carr(x), carr(y)), [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]</pre>
+<pre>ring-prod(x, y) := [cartesian(carr(x), carr(y)), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda(p, cartesian(carr(x), carr(y)), [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]</pre>
 <h4 id="FUNCTORS__ringoid-quotient">ringoid-quotient</h4>
 <pre>ringoid-quotient(r) := quotient(ringoid-setoid(r))</pre>
 <h4 id="FUNCTORS__ringoid-quotient-ring">ringoid-quotient-ring</h4>

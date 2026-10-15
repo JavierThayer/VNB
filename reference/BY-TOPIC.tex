@@ -2421,16 +2421,16 @@
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{concat-trace-exists}}
-\emph{for every spa, l in tuples(msg-set(tokens(spa), keys(spa))), there is some s in strands(tokens(spa), keys(spa)) such that s is a concatenation trace in the strand space spa}
+\emph{for every spa, l, if spa is a strand space, then if l is in tuples(msg-set(tokens(spa), keys(spa))), then there is some s in strands(tokens(spa), keys(spa)) such that s is a concatenation trace in the strand space spa}
 {\small\[
-\forall \mathit{spa}.; \forall l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))).\; \exists s \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa})).\; \operatorname{is\text{-}concat\text{-}trace}(\mathit{spa}, s)
+\forall \mathit{spa}, l.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa})))) \Rightarrow \exists s \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa})).\; \operatorname{is\text{-}concat\text{-}trace}(\mathit{spa}, s)))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{separate-trace-exists}}
-\emph{for every spa, l in tuples(msg-set(tokens(spa), keys(spa))), there is some s in strands(tokens(spa), keys(spa)) such that s is a separation trace in the strand space spa}
+\emph{for every spa, l, if spa is a strand space, then if l is in tuples(msg-set(tokens(spa), keys(spa))), then there is some s in strands(tokens(spa), keys(spa)) such that s is a separation trace in the strand space spa}
 {\small\[
-\forall \mathit{spa}.; \forall l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))).\; \exists s \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa})).\; \operatorname{is\text{-}separate\text{-}trace}(\mathit{spa}, s)
+\forall \mathit{spa}, l.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((l \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa})))) \Rightarrow \exists s \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa})).\; \operatorname{is\text{-}separate\text{-}trace}(\mathit{spa}, s)))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 

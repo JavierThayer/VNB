@@ -1,3 +1,3 @@
 ;;; VNB proof certificates for theorem-library/rr-ms-dist.scm -- written by a load that proved them; do not edit.
-(vnb-certificate-file "theorem-library/rr-ms-dist" (kernel "80eb1a0d7314d66c324cb978939fa134") (count 1))
-(rr-ms-dist "6745c28a0c314c7f63eee92e8dc875e8" (forall u_ (forall v_ (implies (in u_ rr) (implies (in v_ rr) (== ((dist rr-ms) u_ v_) (abs (- u_ v_))))))) (cites) (defs) (uses (rr-ms@dist . "T43c73b3d5b509a051c6e8438e27eefe5")) (own-oracles) (bill) (oracles) (kernel "80eb1a0d7314d66c324cb978939fa134"))
+(vnb-certificate-file "theorem-library/rr-ms-dist" (kernel "35209c1a593172ac1806c2173a7446ad") (count 1))
+(rr-ms-dist "6745c28a0c314c7f63eee92e8dc875e8" (forall u_ (forall v_ (implies (in u_ rr) (implies (in v_ rr) (== ((dist rr-ms) u_ v_) (abs (- u_ v_))))))) (cites) (defs) (uses (rr-ms@dist . "T43c73b3d5b509a051c6e8438e27eefe5")) (own-oracles) (bill) (oracles) (kernel "35209c1a593172ac1806c2173a7446ad"))
