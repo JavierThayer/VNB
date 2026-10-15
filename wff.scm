@@ -73,7 +73,11 @@
 ;;; measurements and the argument.
 (define (wff-equiv? w1 w2)
   (or (eq? w1 w2)
-      (and (equal? (wff-library w1) (wff-library w2))
+      (and (let ((l1 (wff-library w1)) (l2 (wff-library w2)))
+             ;; F2 (Ignacio's GC study, approved 2026-10-15): eq? first.  (eq? a b)
+             ;; implies (equal? a b), so the answer is unchanged for every input; it
+             ;; skips MIT 12.1's per-call equal? hash table on the common path.
+             (or (eq? l1 l2) (equal? l1 l2)))
            (alpha-equiv? (wff-formula w1) (wff-formula w2)))))
 
 ;;; wff->sexp: extract the raw S-expression from a wff.

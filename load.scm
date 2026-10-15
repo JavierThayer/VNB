@@ -90,7 +90,12 @@
     (not (and v (string=? v "0")))))
 
 (define *vnb-files*
-  '(;; FIRST, so that every later file is checked.  It snapshots every name
+  '(;; Before everything: MIT 12.1's equal? without its per-call hash table (F1 of
+    ;; Ignacio's GC study, approved 2026-10-15).  It defines no top-level name, so the
+    ;; clobber guard's snapshot is unchanged; its self-test stops the load if the
+    ;; patch is not in effect.
+    "equal-patch"
+    ;; Then the clobber guard, so that every later file is checked.  It snapshots every name
     ;; currently bound to a procedure -- which at this point is MIT Scheme's own
     ;; (`append', `list', `cons', `length' ...), exactly the ones a proof file's
     ;; (define APPEND '(...)) would clobber -- and grows the set after each file.
