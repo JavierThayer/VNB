@@ -821,13 +821,19 @@
              (alpha-equiv-under? (cadddr e1) (cadddr e2)
                                  (cons (cons (cadr e1) (cadr e2)) env))))
        ((VNB-LAMBDA)
-        ;; Multi-var binder; allow cross-shape comparison via vnb-lambda-bvars.
-        ;; The DOMAIN is compared outside the binder (like SEP's and BIG-UNION's
-        ;; A).  This is what makes two lambdas with the same body and different
-        ;; domains DISTINCT terms -- the whole point of carrying the domain.
+        ;; Multi-var binder.  The DOMAIN is compared outside the binder (like
+        ;; SEP's and BIG-UNION's A).  This is what makes two lambdas with the same
+        ;; body and different domains DISTINCT terms -- the whole point of
+        ;; carrying the domain.  THE BINDER SHAPES ARE COMPARED FIRST (2026-10-15,
+        ;; the user's decision, option (3)): a one-entry (LIST p) binder
+        ;; destructures a 1-tuple and is NOT the plain binder p, so the two
+        ;; shapes are never alpha-equivalent.  (Until 2026-10-15 a cross-shape
+        ;; comparison identified them; with lam-t's componentwise reading of
+        ;; (LIST p) that gave FALSITY, scratchpad/triage/META-9-REPORT.md.)
         (let ((bv1 (vnb-lambda-bvars (cadr e1)))
               (bv2 (vnb-lambda-bvars (cadr e2))))
-          (and (= (length bv1) (length bv2))
+          (and (eq? (symbol? (cadr e1)) (symbol? (cadr e2)))
+               (= (length bv1) (length bv2))
                (alpha-equiv-under? (caddr e1) (caddr e2) env)
                (alpha-equiv-under? (cadddr e1) (cadddr e2)
                                    (append (map cons bv1 bv2) env)))))
@@ -989,11 +995,15 @@
                  (%fh (cadddr e) (cons (cadr e) env))))
        ((lambda)                                    ; (H bspec A body)
         (let ((bv (vnb-lambda-bvars (cadr e))))
-          ;; The bare-symbol and one-element (LIST v) spellings are the same
-          ;; binder -- alpha-equiv-under? compares them across shapes -- so only
-          ;; the ARITY of the spec is hashed, never its shape.
+          ;; The ARITY of the spec is hashed, and the one-entry (LIST v) shape is
+          ;; told apart from the bare symbol v (2026-10-15, option (3): they are
+          ;; different binders, and alpha-equiv-under? no longer identifies them).
+          ;; 999983 is an arity code no real binder list has; every other spec
+          ;; hashes as before.
           (%fh-mix (%fh-mix (%fh-mix (%fh-mix 1000037 (%fh-sym (car e)))
-                                     (length bv))
+                                     (if (and (pair? (cadr e)) (= (length bv) 1))
+                                         999983
+                                         (length bv)))
                             (%fh (caddr e) env))
                    (%fh (cadddr e) (append bv env)))))
        (else
@@ -1071,7 +1081,9 @@
               (%canon (cadddr e) (cons (cadr e) env))))
        ((lambda)
         (let ((bv (vnb-lambda-bvars (cadr e))))
-          (list (car e) (list %canon-binder (length bv))
+          (list (car e) (if (and (pair? (cadr e)) (= (length bv) 1))
+                            (list %canon-binder 'LIST 1)  ; a 1-tuple binder (2026-10-15)
+                            (list %canon-binder (length bv)))
                 (%canon (caddr e) env)
                 (%canon (cadddr e) (append bv env)))))
        (else (map (lambda (x) (%canon x env)) e))))

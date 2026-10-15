@@ -1019,10 +1019,27 @@
 ;;; The comm-monoid twin of finsum-fiber (finsum-fiber.scm), which needs an
 ;;; abelian group; proved directly by finite-set-induction on S, peeling the
 ;;; new point's fiber off T with finsum-cm-remove-ptwise.
+;;;
+;;; THE CLASS (NBG comprehension, 2026-10-15, the user's decision (i)).  The
+;;; induction hypothesis is needed at a DIFFERENT G than the one fixed (the
+;;; S-side fiber sums), so G cannot simply be hoisted; instead the class speaks
+;;; of the CANONICAL G of U, the lambda t |-> SUM of f over fib_U(t)
+;;; (ibk-gcan), and quantifies over nothing.  The theorem's arbitrary G is
+;;; brought in at the end by finsum-cm-congruence-q, G and the canonical G
+;;; agreeing pointwise on T.  (Until 2026-10-15 the class carried
+;;; `forall gq_' over every class function: Morse-Kelley, not NBG.)
 
 (define (ibk-fib u z) (list 'SEP 'fw_ u (list '= '(phi fw_) z)))
 (define (ibk-hg-of u gv)
   (ibk-ptw 't (lambda (z) (list '== (list gv z) (list 'FINSUM 'm 'f (ibk-fib u z))))))
+(define (ibk-gcan u) (list 'VNB-LAMBDA 'tv_ 't (list 'FINSUM 'm 'f (ibk-fib u 'tv_))))
+;; (ibk-hg-of U G) for G a lambda whose value at z is literally the fiber sum
+(define (ibk-hg-lam! u gv)
+  (dk-have! (ibk-hg-of u gv)
+    (lambda ()
+      (let ((zv (dk-di-var!)))
+        (dk-lam-b!)
+        (qrfl)))))
 (define (ibk-tphi z) (list 'IN (list 'phi z) 't))
 (define (ibk-tf z) (list 'IN (list 'f z) '(CARR m)))
 
@@ -1059,15 +1076,14 @@
          (lambda (u)
            (list 'IMPLIES (ibk-ptw u ibk-tphi)
              (list 'IMPLIES (ibk-ptw u ibk-tf)
-               (list 'FORALL 'gq_
-                 (list 'IMPLIES (ibk-hg-of u 'gq_)
-                   (list '= (list 'FINSUM 'm 'f u) '(FINSUM m gq_ t))))))))
+               (list '= (list 'FINSUM 'm 'f u) (list 'FINSUM 'm (ibk-gcan u) 't))))))
        (px (ibk-induct! 's prop-of
              ;; ---- base: S = EMPTY-SET
              (lambda ()
                (dk-peel!)
                (let* ((g  (dk-goal))
-                      (gv (caddr (caddr g))))
+                      (gv (caddr (caddr g))))     ; the canonical G of EMPTY-SET
+                 (ibk-hg-lam! 'EMPTY-SET gv)
                  (fact 'finsum-empty 'm 'f)
                  (subst '(== (FINSUM m f EMPTY-SET) (IDEN m)))
                  (dk-have! (ibk-ptw 't (lambda (z) (list '= (list gv z) '(IDEN m))))
@@ -1094,13 +1110,14 @@
              (lambda (sv xv u ih)
                (dk-peel!)
                (let* ((g    (dk-goal))
-                      (gv   (caddr (caddr g)))
+                      (gv   (caddr (caddr g)))      ; the canonical G of U
                       (pxv  (list 'phi xv))
                       (gs   (list 'VNB-LAMBDA 'tv_ 't (list 'FINSUM 'm 'f (ibk-fib sv 'tv_))))
                       (tp   (list 'DIFFERENCE 't (list 'PAIR pxv pxv)))
                       (fbu  (ibk-fib u pxv))
                       (fbs  (ibk-fib sv pxv))
                       (fbsx (list 'UNION fbs (list 'PAIR xv xv))))
+                 (ibk-hg-lam! u gv)
                  (ibk-restrict! (ibk-ptw u ibk-tphi) sv u ibk-tphi)
                  (ibk-restrict! (ibk-ptw u ibk-tf) sv u ibk-tf)
                  (ibk-in-union-new! xv u)
@@ -1112,9 +1129,10 @@
                      (let ((zv (dk-di-var!)))
                        (dk-lam-b!)
                        (qrfl))))
-                 ;; the induction hypothesis at gs
-                 (let ((fa (ibk-detach-all! ih)))
-                   (dk-apply! fa gs))
+                 ;; the induction hypothesis: its G is the canonical G of S, i.e. gs
+                 (let ((ihq (ibk-detach-all! ih)))
+                   (if (not (equal? ihq (list '= (list 'FINSUM 'm 'f sv) (list 'FINSUM 'm gs 't))))
+                       (error "finsum-cm-fiber-ptwise: the IH is not about gs:" ihq)))
                  (fact 'finsum-cm-insert-ptwise 'm sv xv 'f)
                  ;; G and gs are typed on T
                  (for-each
@@ -1208,11 +1226,22 @@
                  (subst (list '= (list 'FINSUM 'm 'f fbs) (list gs pxv)))
                  (fact 'comm-monoid-assoc 'm (list 'FINSUM 'm gs tp) (list gs pxv) (list 'f xv))
                  (ass))))))
-  (ibk-detach-all! px)
-  (let ((fa (dk-ctx-form '(FORALL gq_ (IMPLIES (FORALL z_ (IMPLIES (IN z_ t)
-                             (== (gq_ z_) (FINSUM m f (SEP fw_ s (= (phi fw_) z_))))))
-                          (= (FINSUM m f s) (FINSUM m gq_ t)))))))
-    (dk-apply! fa 'gq)
+  ;; the class property at S: the sum is the sum of the canonical G of S ...
+  (let* ((eqs (ibk-detach-all! px))
+         (g0  (caddr (caddr eqs))))
+    (ibk-hg-lam! 's g0)
+    ;; ... which agrees with the given G on T
+    (dk-have! (ibk-ptw 't (lambda (z) (list '= (list 'gq z) (list g0 z))))
+      (lambda ()
+        (let ((zv (dk-di-var!)))
+          (inst+ (ibk-hg-of 's 'gq) zv)
+          (inst+ (ibk-hg-of 's g0) zv)
+          (ibk-fib-typed! 's zv)
+          (subst (list '== (list 'gq zv) (list 'FINSUM 'm 'f (ibk-fib 's zv))))
+          (subst (list '== (list g0 zv) (list 'FINSUM 'm 'f (ibk-fib 's zv))))
+          (rfl))))
+    (fact 'finsum-cm-congruence-q 'm 't 'gq g0)
+    (subst (list '== (list 'FINSUM 'm 'gq 't) (list 'FINSUM 'm g0 't)))
     (ass)))
 (qed 'finsum-cm-fiber-ptwise)
 (topic! 'finsum-cm-fiber-ptwise 'algebra)

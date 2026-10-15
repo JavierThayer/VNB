@@ -1927,6 +1927,73 @@
 ;;; pi-comp-mem-intro!: goal (IN y (COMP x p))  =>  subgoals (IN y SET) and p[x:=y]
 ;;; pi-comp-mem-elim!:  assumption (IN y (COMP x p)) =>  context gains
 ;;;                     (IN y SET) and p[x:=y]; assumption is removed.
+;;;
+;;; NBG COMPREHENSION (the user's decision (i), 2026-10-15).  Both rules REFUSE,
+;;; with an error naming the binder, a COMP whose condition p quantifies beyond
+;;; sets: VNB is von Neumann-Bernays, whose class comprehension is PREDICATIVE
+;;; (until 2026-10-15 every COMP was accepted, which is Morse-Kelley).  Every
+;;; binder in p, at any depth, must be CONFINED to sets:
+;;;   FORALL v B   B is (IMPLIES A _) with (IN v C) among A's conjuncts;
+;;;   FORSOME v B  (IN v C) is among B's conjuncts;
+;;;   SEP, BIG-UNION, VNB-LAMBDA, and a functoid's bindings, bind over the members
+;;;                of a domain; a nested COMP's own variable is a set (comp-mem);
+;;;   IOTA         REFUSED: an IOTA in the condition hides a quantifier over every
+;;;                class (the description's uniqueness clause).
+;;; A member of anything is a set, so a confined variable ranges over sets.  The
+;;; test is syntactic and conservative, and is the notion of proof-debt.scm's
+;;; comp-predicativity-audit with IOTA added; the checker (rule-checkers-schema.scm,
+;;; rcs--comp-unconfined-binder) states it again independently.  A free class
+;;; PARAMETER of p is fine.
+
+;;; The first binder of P that is not confined to sets, or #f.
+(define (pi--comp-unconfined-binder p)
+  (define (conjuncts f)
+    (if (and (pair? f) (eq? (car f) 'AND) (= (length f) 3))
+        (append (conjuncts (cadr f)) (conjuncts (caddr f)))
+        (list f)))
+  (define (member-guard? v f)
+    (let loop ((cs (conjuncts f)))
+      (cond ((null? cs) #f)
+            ((let ((c (car cs)))
+               (and (pair? c) (eq? (car c) 'IN) (= (length c) 3) (eq? (cadr c) v)))
+             #t)
+            (#t (loop (cdr cs))))))
+  (define (confined? q)
+    (let ((v (cadr q)) (body (caddr q)))
+      (and (symbol? v)
+           (if (eq? (car q) 'FORALL)
+               (and (pair? body) (eq? (car body) 'IMPLIES) (= (length body) 3)
+                    (member-guard? v (cadr body)))
+               (member-guard? v body)))))
+  (define (walk-list xs)
+    (cond ((not (pair? xs)) #f)
+          ((walk (car xs)) => (lambda (b) b))
+          (#t (walk-list (cdr xs)))))
+  (define (walk e)
+    (cond ((functoid? e)
+           (or (walk-list (map cdr (functoid-bindings e)))
+               (walk (functoid-body e))))
+          ((not (pair? e)) #f)
+          ((and (memq (car e) '(FORALL FORSOME)) (= (length e) 3))
+           (if (confined? e) (walk (caddr e)) e))
+          ((eq? (car e) 'IOTA) e)
+          (#t (walk-list e))))
+  (walk p))
+
+;; A new binder head must be taught to this walker (binder-walker-audit).
+(declare-binder-walker! 'pi--comp-unconfined-binder
+                        '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
+
+(define (pi--refuse-impredicative-comp! tag subj)
+  (let ((b (pi--comp-unconfined-binder (caddr subj))))
+    (if b
+        (error (string-append tag ": NBG comprehension refuses this COMP -- its condition has a binder not confined to sets, "
+                              (if (eq? (car b) 'IOTA)
+                                  "an IOTA"
+                                  (string-append "an unconfined " (symbol->string (car b)) " "
+                                                 (expression->string (cadr b)))))
+               b)
+        #t)))
 
 (define (pi-comp-mem-intro! sqn)
   (let* ((asms (sequent-node-assumptions sqn))
@@ -1937,6 +2004,7 @@
          (let ((y (cadr g)) (subj (caddr g)))
            (and (pair? subj) (eq? (car subj) 'COMP) (= (length subj) 3)
                 (let ((x (cadr subj)) (p (caddr subj)))
+                  (pi--refuse-impredicative-comp! "comp-mem-intro" subj)
                   (dg-apply-rule! dg 'comp-mem-intro
                     (list (make-sequent asms (wff-child goal `(IN ,y SET)))
                           (make-sequent asms (wff-child goal (subst-free x y p))))
@@ -1952,6 +2020,7 @@
            (and (pair? raw-f) (eq? (car raw-f) 'IN)
                 (let ((y (cadr raw-f)) (subj (caddr raw-f)))
                   (and (pair? subj) (eq? (car subj) 'COMP) (= (length subj) 3)
+                       (pi--refuse-impredicative-comp! "comp-mem-elim" subj)
                        (let* ((x (cadr subj)) (p (caddr subj))
                               (asms*  (context-remove-assumption asms f))
                               (asms** (context-add-assumption asms* (wff-child f `(IN ,y SET))))
@@ -2619,12 +2688,43 @@
            value
            ;; not licensed: leave the redex alone, but still normalise inside it
            (list (list 'VNB-LAMBDA x A body) arg)))))
-    ;; ((VNB-LAMBDA (LIST x1 ... xn) body) arg1 ... argn)  — multi-binder, parallel.
+    ;; ((VNB-LAMBDA (LIST p) A body) (LIST q))  — the ONE-ENTRY binder (the user's
+    ;; decision, option (3), 2026-10-15).  (LIST p) destructures a 1-TUPLE, as
+    ;; (LIST x y) destructures a pair, so the lambda applied to the 1-tuple [q]
+    ;; contracts to body[p := q] -- never p := [q].  Applied to anything that is
+    ;; not, as written, a literal one-entry LIST there is no contraction, as for
+    ;; n >= 2, whose (f [a, b]) is not contracted either.  The licence is the
+    ;; argument's: (IN (LIST q) A), or componentwise q in A1 over a literal
+    ;; (CARTESIAN A1) (pi--beta-licensed?'s tupled spelling).  Until 2026-10-15
+    ;; the n >= 2 branch below took n = 1 too, reading (f [q]) as p := [q] while
+    ;; lam-t and the beta scope read p as the ENTRY: FALSITY, META-9-REPORT.md.
     ((and (pair? (car expr))
           (eq? (caar expr) 'VNB-LAMBDA)
           (= (length (car expr)) 4)
           (pair? (cadar expr))
           (eq? (car (cadar expr)) 'LIST)
+          (= (length (cadar expr)) 2)
+          (symbol? (cadr (cadar expr)))
+          (= (length expr) 2)
+          (pair? (cadr expr)) (list? (cadr expr))
+          (eq? (car (cadr expr)) 'LIST)
+          (= (length (cadr expr)) 2))
+     (let* ((p     (cadr (cadar expr)))
+            (A     (caddr (car expr)))
+            (body  (reduce-in-body (cadar expr) A (cadddr (car expr))))
+            (arg   (reduce-lambda-in-expr (cadr expr)))      ; still (LIST q*)
+            (value (subst-free p (cadr arg) body)))
+       (if (ok?* (list arg) A value)
+           value
+           (list (list 'VNB-LAMBDA (cadar expr) A body) arg))))
+    ;; ((VNB-LAMBDA (LIST x1 ... xn) body) arg1 ... argn)  — multi-binder, parallel,
+    ;; n >= 2 (the one-entry binder is the case above).
+    ((and (pair? (car expr))
+          (eq? (caar expr) 'VNB-LAMBDA)
+          (= (length (car expr)) 4)
+          (pair? (cadar expr))
+          (eq? (car (cadar expr)) 'LIST)
+          (pair? (cddr (cadar expr)))
           (= (length (cdr (cadar expr))) (length (cdr expr))))
      (let* ((bvars  (cdr (cadar expr)))
             (body   (reduce-in-body (cadar expr) (caddr (car expr))

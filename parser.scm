@@ -580,9 +580,10 @@
            ((eq? sym 'lambda)
             (error (string-append
                     "vnb-parse: `lambda' is not a VNB binder.  Write "
-                    "`vnb-lambda([x in A], body)' for a set-function (an "
+                    "`vnb-lambda(x, A, body)' for a set-function (an "
                     "element of FUN(A,B), typed by lam-t and reduced by "
-                    "lam-b), or `lambdoid([x in A], body)' for a functoid, "
+                    "lam-b; `vnb-lambda([x in A], body)' is the function on the "
+                    "1-tuples [x], x in A), or `lambdoid([x in A], body)' for a functoid, "
                     "whose domain may be a proper class.")))
            ((eq? sym 'lambdoid)
             (p-maybe-apply (p-parse-functoid sym)))

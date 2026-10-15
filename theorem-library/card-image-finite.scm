@@ -15,11 +15,12 @@
 ;;; THE PROOF is `finite-set-induction' (structure-library/cardinality.scm,
 ;;; primitive) on X, with the class instantiated to the COMP
 ;;;
-;;;     C = { x_ | forall p_. CARD(IMAGE(p_, x_)) in NN }
+;;;     C = { x_ | CARD(IMAGE(phi, x_)) in NN }
 ;;;
-;;; (the map is quantified INSIDE the class property, so both induction
-;;; premises are closed formulas and the driver shape of card-subset-nn.scm
-;;; carries over unchanged).  Third firing of finite-set-induction in the tree.
+;;; with phi FIXED as an eigenvariable first, a parameter of the class (NBG
+;;; comprehension, 2026-10-15: until then the map was quantified INSIDE the
+;;; class property, which is Morse-Kelley).  Third firing of
+;;; finite-set-induction in the tree.
 ;;;
 ;;; NO SET EXTENSIONALITY IS NEEDED.  The naive plan -- IMAGE(p, S u {x}) =
 ;;; IMAGE(p, S) u {p(x)}, an iff over an existential on each side -- is twice
@@ -33,7 +34,7 @@
 ;;;
 ;;;   BASE  IMAGE(p, {}) subset {}:  the preimage y is in {}, absurd.
 ;;;   STEP  S in SET, CARD S in NN, S in C, x in SET  =>  S u {x} in C.
-;;;         Fix p.  `use-em' on  p(x) in SET:
+;;;         With p the fixed map, `use-em' on  p(x) in SET:
 ;;;           defined:    IMAGE(p, S u {x}) subset {p(x)} u IMAGE(p, S), which is
 ;;;                       finite by the hypothesis at p and
 ;;;                       card-union-singleton-bound (makeset-card-bound.scm).
@@ -66,8 +67,14 @@
 ;;; --- file-local helpers (cif- prefix) -----------------------------------
 
 ;; The class property, x_ free, and the class itself.
-(define cif-prop  '(FORALL p_ (IN (CARD (IMAGE p_ x_)) NN)))
-(define cif-class (list 'COMP 'x_ cif-prop))
+;; NBG COMPREHENSION (2026-10-15, the user's decision (i)): the map is FIXED as an
+;; eigenvariable of the theorem BEFORE the induction and is a PARAMETER of the
+;; class, which quantifies over nothing.  (Until 2026-10-15 the class was
+;; { x_ | forall p_. CARD(IMAGE(p_, x_)) in NN }, a quantifier over every class
+;; function inside a comprehension: Morse-Kelley, not NBG.  The induction
+;; hypothesis is only ever used at the map being fixed, so nothing is lost.)
+(define (cif-prop phi)  (list 'IN (list 'CARD (list 'IMAGE phi 'x_)) 'NN))
+(define (cif-class phi) (list 'COMP 'x_ (cif-prop phi)))
 
 ;; Read the map off a goal (IN (CARD (IMAGE p U)) NN).
 (define (cif-goal-map g)
@@ -134,8 +141,7 @@
        ((equal? (dk-goal) '(in empty-set set))
         (fact 'empty-set-is-set) (ass))
        (#t
-        ;; goal: forall p_. CARD(IMAGE(p_, EMPTY-SET)) in NN
-        (dk-peel!)                                          ; unguarded: lands nothing
+        ;; goal: CARD(IMAGE(phi, EMPTY-SET)) in NN, phi the fixed map
         (let ((p (cif-goal-map (dk-goal))))
           (fact 'empty-set-is-set)
           (have! '(IN (CARD EMPTY-SET) NN)
@@ -152,12 +158,12 @@
 
 ;; The step premise of finite-set-induction with C := cif-class, spelled so
 ;; that `fact' finds it in context up to alpha.
-(define cif-step-formula
-  `(FORALL S (IMPLIES (AND (IN S SET) (AND (IN (CARD S) NN) (IN S ,cif-class)))
+(define (cif-step-formula phi)
+  `(FORALL S (IMPLIES (AND (IN S SET) (AND (IN (CARD S) NN) (IN S ,(cif-class phi))))
      (FORALL x (IMPLIES (AND (IN x SET) (NOT (IN x S)))
-       (IN (UNION S (PAIR x x)) ,cif-class))))))
+       (IN (UNION S (PAIR x x)) ,(cif-class phi)))))))
 
-(define (cif-step!)
+(define (cif-step! phi)
   (let* ((landed (dk-peel!))
          (g      (dk-goal))                       ; (in (union S (pair x x)) C)
          (S      (cadr (cadr g)))
@@ -169,9 +175,10 @@
     (fact 'pairing x x)
     (have! (list 'AND (list 'IN S 'SET) (list 'IN (list 'PAIR x x) 'SET)))
     (fact 'union-set-closure S (list 'PAIR x x))
-    ;; the induction hypothesis: the class property at S
-    (let ((ih (dk-landed-find (lambda () (comp-me (list 'IN S cif-class)))
-                              (dk-head? 'forall))))
+    ;; the induction hypothesis: the class property at S, i.e. CARD(IMAGE(phi, S)) in NN
+    (let ((ih (dk-landed-find (lambda () (comp-me (list 'IN S (cif-class phi))))
+                              (lambda (f)
+                                (alpha-equiv? f (list 'IN (list 'CARD (list 'IMAGE phi S)) 'NN))))))
       (for-each
        (lambda (leaf)
          (dk-focus! leaf)
@@ -180,14 +187,12 @@
              (cif-step-property! S x U ih)))
        (dk-opened (lambda () (comp-mi)))))))
 
-;; goal: forall p_. CARD(IMAGE(p_, U)) in NN
+;; goal: CARD(IMAGE(phi, U)) in NN; IH, CARD(IMAGE(phi, S)) in NN, is in context
 (define (cif-step-property! S x U ih)
-  (dk-peel!)                                      ; unguarded: lands nothing
   (let* ((p   (cif-goal-map (dk-goal)))
          (px  (list p x))
          (img (list 'IMAGE p S)))
-    (fact 'image-set p S)                         ; (IN img SET)
-    (dk-apply! ih p)                              ; (IN (CARD img) NN)
+    (fact 'image-set p S)                         ; (IN img SET); ih is (IN (CARD img) NN)
     (use-em (list 'IN px 'SET)
       ;; p(x) defined:  IMAGE(p, U) subset {p(x)} u IMAGE(p, S)
       (lambda ()
@@ -233,20 +238,21 @@
         (IMPLIES (IN X SET)
           (IMPLIES (IN (CARD X) NN)
                    (IN (CARD (IMAGE phi X)) NN)))))))
-  ;; the two induction premises, as closed formulas
-  (have! (list 'IN 'EMPTY-SET cif-class) cif-base!)
-  (have! cif-step-formula cif-step!)
-  (have! (list 'AND (list 'IN 'EMPTY-SET cif-class) cif-step-formula))
-  ;; finite-set-induction at C: every finite set is in C
-  (let ((ind (dk-fact! 'finite-set-induction cif-class)))
-    (dk-peel!)                                    ; (IN X SET), (IN (CARD X) NN)
-    (let* ((g   (dk-goal))                        ; (in (card (image phi X)) nn)
-           (phi (cif-goal-map g))
-           (X   (caddr (cadr (cadr g)))))
+  ;; fix the map and the set first: phi is a parameter of the class
+  (dk-peel!)                                      ; (IN X SET), (IN (CARD X) NN)
+  (let* ((g   (dk-goal))                          ; (in (card (image phi X)) nn)
+         (phi (cif-goal-map g))
+         (X   (caddr (cadr (cadr g))))
+         (C   (cif-class phi)))
+    ;; the two induction premises, phi free
+    (have! (list 'IN 'EMPTY-SET C) cif-base!)
+    (have! (cif-step-formula phi) (lambda () (cif-step! phi)))
+    (have! (list 'AND (list 'IN 'EMPTY-SET C) (cif-step-formula phi)))
+    ;; finite-set-induction at C: every finite set is in C
+    (let ((ind (dk-fact! 'finite-set-induction C)))
       (have! (list 'AND (list 'IN X 'SET) (list 'IN (list 'CARD X) 'NN)))
-      (let* ((inx (dk-apply! ind X))
-             (px  (dk-landed-find (lambda () (comp-me inx)) (dk-head? 'forall))))
-        (dk-apply! px phi)
+      (let ((inx (dk-apply! ind X)))
+        (dk-landed-find (lambda () (comp-me inx)) (lambda (f) (alpha-equiv? f g)))
         (ass))))))
 (qed 'card-image-finite)
 (topic! 'card-image-finite 'combinatorial)

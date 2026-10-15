@@ -1242,6 +1242,12 @@
 ;;; every COMP term whose condition holds a quantifier not confined to sets.  If
 ;;; the list stays empty, the kernel restriction to predicative comprehension and
 ;;; a fatal gate are the next step -- the user's decision, not this audit's.
+;;; DONE 2026-10-15 (the user's decision (i)): comp-mem-intro / -elim REFUSE an
+;;; impredicative COMP (primitive-inferences.scm, rule-checkers-schema.scm; IOTA
+;;; in the condition is refused as well), and this audit is a FATAL gate in a
+;;; strict load (comp-predicativity-gate!, load.scm).  It still catches what the
+;;; kernel rules do not see: a COMP named in a proof's commands or an installed
+;;; formula without ever being opened.
 ;;;
 ;;; WHAT COUNTS AS CONFINED TO SETS.  A bound variable is a set when the
 ;;; condition makes it a member of something:
@@ -1260,7 +1266,8 @@
 ;;; functoid body.  (2) and (3) are scanned at load end.  NOT seen: a COMP term
 ;;; typed inside a STRING argument (the surface parser), and the proofs of a
 ;;; CERTIFIED load, which do not run -- the exam (VNB_CERTIFIED=off) is the
-;;; run that covers every proof.  WARN-ONLY.
+;;; run that covers every proof.  The audit never raises; the GATE that reads
+;;; it (load.scm) is fatal in a strict load since 2026-10-15.
 
 (define *comp-impredicative-uses* '())   ; ((name . (COMP ...)) ...), newest first
 

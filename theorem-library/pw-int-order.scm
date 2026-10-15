@@ -159,23 +159,61 @@
                '(FORSOME pal_ (AND (IS-DIFF-AT pah_ pat_ pal_) (<= 0 pal_))))))
      '(<= (pah_ pau_) (pah_ pav_))))))))))))
 
-(define pio-cls (list 'COMP 'pcs_ (pio-fin-body 'pcs_)))
+;;; THE CLASS (NBG comprehension, 2026-10-15, the user's decision (i)).  The
+;;; induction hypothesis is used only at the function being fixed (at other
+;;; ENDPOINTS, which stay quantified, over RR), so h is peeled FIRST and is a
+;;; PARAMETER of the class.  The derivative's existential is CONFINED to RR in
+;;; the class (pio-cex), so that the condition quantifies over sets only; the
+;;; statement keeps the unconfined form (pio-uex), and the two are converted by
+;;; skolemising and re-witnessing (diff-value-real gives the confinement).
+;;; Until 2026-10-15 the class was { pcs_ | pio-fin-body }, with `forall pah_'
+;;; over every class and an unconfined `forsome pal_' inside: Morse-Kelley.
+(define (pio-cex hv tv)
+  (list 'FORSOME 'pal_ (list 'AND (list 'IN 'pal_ 'RR)
+                             (list 'AND (list 'IS-DIFF-AT hv tv 'pal_) '(<= 0 pal_)))))
+
+(define (pio-cfin-body sv hv)
+  (list 'FORALL 'pau_
+   (list 'IMPLIES '(IN pau_ RR)
+   (list 'FORALL 'pav_
+   (list 'IMPLIES '(IN pav_ RR)
+   (list 'IMPLIES '(< pau_ pav_)
+   (list 'IMPLIES
+     (list 'FORALL 'pat_
+       (list 'IMPLIES (list 'IN 'pat_ (list 'OOINT 'pau_ 'pav_))
+         (list 'IMPLIES (list 'NOT (list 'IN 'pat_ sv)) (pio-cex hv 'pat_))))
+     (list '<= (list hv 'pau_) (list hv 'pav_)))))))))
+
+(define (pio-cls hv) (list 'COMP 'pcs_ (pio-cfin-body 'pcs_ hv)))
+
+;;; goal: the UNCONFINED existential at t; EX, the confined one, in context.
+(define (pio-c->u! ex)
+  (let ((l (dk-skolem! ex)))
+    (ew l)
+    (dk-conj-close!)))
+
+;;; goal: the CONFINED existential at t; EX, the unconfined one, in context.
+(define (pio-u->c! hv tv ex)
+  (let ((l (dk-skolem! ex)))
+    (fact 'diff-value-real hv tv l)               ; (IN l RR)
+    (ew l)
+    (dk-conj-close!)))
 
 (define pio-fin-stmt
   (list 'FORALL 'pas_
     (list 'IMPLIES '(IN pas_ SET)
       (list 'IMPLIES '(IN (CARD pas_) NN) (pio-fin-body 'pas_)))))
 
-(define pio-base-claim (list 'IN 'EMPTY-SET pio-cls))
+(define (pio-base-claim hv) (list 'IN 'EMPTY-SET (pio-cls hv)))
 
-(define pio-step-claim
+(define (pio-step-claim hv)
   (list 'FORALL 'pcs_
     (list 'IMPLIES
       (list 'AND '(IN pcs_ SET)
-            (list 'AND '(IN (CARD pcs_) NN) (list 'IN 'pcs_ pio-cls)))
+            (list 'AND '(IN (CARD pcs_) NN) (list 'IN 'pcs_ (pio-cls hv))))
       (list 'FORALL 'pcx_
         (list 'IMPLIES (list 'AND '(IN pcx_ SET) '(NOT (IN pcx_ pcs_)))
-              (list 'IN '(UNION pcs_ (PAIR pcx_ pcx_)) pio-cls))))))
+              (list 'IN '(UNION pcs_ (PAIR pcx_ pcx_)) (pio-cls hv)))))))
 
 ;;; the eigenvariables of the class body, READ OFF THE GOAL after the peel.
 (define (pio-body-vars)
@@ -210,8 +248,7 @@
                (lambda ()
                  (let ((tv (pio-peel-point! (list 'OOINT uv vv))))
                    (fact 'empty-set-has-no-members tv)
-                   (dk-apply! dd tv)
-                   (ass))))
+                   (pio-c->u! (dk-apply! dd tv)))))
              (fact 'nondecreasing-total hv uv vv)
              (ass)))))
    (dk-opened (lambda () (comp-mi)))))
@@ -230,9 +267,7 @@
             (dk-have! (list 'FORALL 'pat_
                         (list 'IMPLIES (list 'IN 'pat_ (list 'OOINT lo hi))
                           (list 'IMPLIES (list 'NOT (list 'IN 'pat_ sv))
-                                (list 'FORSOME 'pal_
-                                  (list 'AND (list 'IS-DIFF-AT hv 'pat_ 'pal_)
-                                             '(<= 0 pal_))))))
+                                (pio-cex hv 'pat_))))
               (lambda ()
                 (let ((tv (pio-peel-point! (list 'OOINT lo hi))))
                   (pio-ooint-in! tv lo hi)
@@ -251,7 +286,7 @@
                (lambda (tv) (list (list 'IN tv 'RR) (list 'IN xv 'RR)
                                   (list '< uv tv) (list '< tv xv) (list '< xv vv)))
                #f)
-        (let ((ihh (dk-apply! ih hv)))
+        (let ((ihh ih))                           ; h is a parameter of the class
           (dk-apply! ihh uv xv)
           (half! xv vv
                  (lambda (tv) (list (list 'IN tv 'RR) (list 'IN xv 'RR)
@@ -268,9 +303,7 @@
         (dk-have! (list 'FORALL 'pat_
                     (list 'IMPLIES (list 'IN 'pat_ (list 'OOINT uv vv))
                       (list 'IMPLIES (list 'NOT (list 'IN 'pat_ sv))
-                            (list 'FORSOME 'pal_
-                              (list 'AND (list 'IS-DIFF-AT hv 'pat_ 'pal_)
-                                         '(<= 0 pal_))))))
+                            (pio-cex hv 'pat_))))
           (lambda ()
             (let ((tv (pio-peel-point! (list 'OOINT uv vv))))
               (dk-have! (list 'NOT (list '= tv xv))
@@ -282,10 +315,10 @@
               (pio-not-in-union! tv sv xv)
               (dk-apply! dd tv)
               (ass))))
-        (dk-apply! ih hv uv vv)
+        (dk-apply! ih uv vv)
         (ass)))))
 
-(define (pio-step!)
+(define (pio-step! hv)
   (dk-peel!)
   (dk-split-all!)
   (let* ((g  (dk-goal))
@@ -297,7 +330,7 @@
     (have! (list 'AND (list 'IN sv 'SET) (list 'IN (list 'PAIR xv xv) 'SET)))
     (fact 'union-set-closure sv (list 'PAIR xv xv))
     (fact 'pairing-membership xv xv)
-    (let ((ih (dk-landed-find (lambda () (comp-me (list 'IN sv pio-cls)))
+    (let ((ih (dk-landed-find (lambda () (comp-me (list 'IN sv (pio-cls hv))))
                               (dk-head? 'FORALL))))
       (for-each
        (lambda (leaf)
@@ -309,20 +342,28 @@
 
 (sp (make-wff pio-fin-stmt))
 (dk-peel!)
-(have! pio-base-claim (lambda () (pio-base!)))
-(have! pio-step-claim (lambda () (pio-step!)))
-(have! (list 'AND pio-base-claim pio-step-claim))
 (let* ((vs  (pio-body-vars))
        (hv  (car vs)) (uv (cadr vs)) (vv (caddr vs))
        (sv  (cadr (dk-pick (lambda (fm) (and (pair? fm) (eq? (car fm) 'IN)
                                              (eq? (caddr fm) 'SET)))
                            "the exceptional set typing")))
-       (ind (dk-fact! 'finite-set-induction pio-cls)))
-  (have! (list 'AND (list 'IN sv 'SET) (list 'IN (list 'CARD sv) 'NN)))
-  (let* ((int  (dk-apply! ind sv))
-         (body (dk-landed-find (lambda () (comp-me int)) (dk-head? 'FORALL))))
-    (dk-apply! body hv uv vv)
-    (ass)))
+       (dd0 (pio-deriv-univ sv)))                 ; the statement's, unconfined
+  (have! (pio-base-claim hv) (lambda () (pio-base!)))
+  (have! (pio-step-claim hv) (lambda () (pio-step! hv)))
+  (have! (list 'AND (pio-base-claim hv) (pio-step-claim hv)))
+  ;; the derivative hypothesis on (u, v) in the class's confined form
+  (dk-have! (list 'FORALL 'pat_
+              (list 'IMPLIES (list 'IN 'pat_ (list 'OOINT uv vv))
+                (list 'IMPLIES (list 'NOT (list 'IN 'pat_ sv)) (pio-cex hv 'pat_))))
+    (lambda ()
+      (let ((tv (pio-peel-point! (list 'OOINT uv vv))))
+        (pio-u->c! hv tv (dk-apply! dd0 tv)))))
+  (let ((ind (dk-fact! 'finite-set-induction (pio-cls hv))))
+    (have! (list 'AND (list 'IN sv 'SET) (list 'IN (list 'CARD sv) 'NN)))
+    (let* ((int  (dk-apply! ind sv))
+           (body (dk-landed-find (lambda () (comp-me int)) (dk-head? 'FORALL))))
+      (dk-apply! body uv vv)
+      (ass))))
 (qed 'nondecreasing-off-finite-set)
 (topic! 'nondecreasing-off-finite-set 'analysis)
 (alias! 'nondecreasing-off-finite-set

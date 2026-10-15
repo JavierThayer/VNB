@@ -278,11 +278,12 @@
     (equal? (parse-string "vnb-lambda([a in nn, x in cc, w in cc], a*(x + w)+35)")
             (parse-string "vnb-lambda([a,x,w], cartesian(nn,cc,cc), a*(x + w)+35)"))))
 
-(check-true "vnb-lambda: one typed binder collapses to the bare-symbol form"
-  ;; NOT a one-element LIST over a one-factor CARTESIAN
+(check-true "vnb-lambda: one typed binder is a function on 1-TUPLES (option (3), 2026-10-15)"
+  ;; a one-element LIST over a one-factor CARTESIAN, as for n >= 2 -- no longer
+  ;; collapsed to the bare-symbol binder (META-9-REPORT.md)
   (lambda ()
     (equal? (parse-string "vnb-lambda([a in nn], a+35)")
-            '(VNB-LAMBDA a nn (+ a 35)))))
+            '(VNB-LAMBDA (LIST a) (CARTESIAN nn) (+ a 35)))))
 
 (check-true "vnb-lambda: a PARTLY typed binder list is left alone"
   ;; there is no honest reading of `[a in nn, x]' as a domain, so it must stay
@@ -419,7 +420,9 @@
                   #t))))))
 (check-true "kept: vnb-lambda is still the set-function binder, not a functoid"
   (lambda ()
-    (and (equal? (parse-string "vnb-lambda([a in nn], a+35)") '(VNB-LAMBDA a nn (+ a 35)))
+    (and (equal? (parse-string "vnb-lambda([a in nn], a+35)")
+                 '(VNB-LAMBDA (LIST a) (CARTESIAN nn) (+ a 35)))
+         (equal? (parse-string "vnb-lambda(a, nn, a+35)") '(VNB-LAMBDA a nn (+ a 35)))
          (not (functoid? (parse-string "vnb-lambda([a in nn], a+35)"))))))
 (check-true "kept: lambdoid still builds a functoid record"
             (lambda () (functoid? (parse-string "lambdoid([x in ord], x)"))))
@@ -1495,10 +1498,10 @@
                            '(VNB-LAMBDA (LIST u v) (CARTESIAN NN NN) (f u v))))
   #t)
 
-(check "alpha-equiv: (VNB-LAMBDA x (f x)) ~ (VNB-LAMBDA (LIST y) (f y)) -- cross-shape"
-  (lambda () (alpha-equiv? '(VNB-LAMBDA x NN (f x))
-                           '(VNB-LAMBDA (LIST y) NN (f y))))
-  #t)
+(check "alpha-equiv: (VNB-LAMBDA x (f x)) is NOT (VNB-LAMBDA (LIST y) (f y)) -- a 1-tuple binder (2026-10-15)"
+  (lambda () (alpha-equiv? '(VNB-LAMBDA x (CARTESIAN NN) (f x))
+                           '(VNB-LAMBDA (LIST y) (CARTESIAN NN) (f y))))
+  #f)
 
 (check "subst-free: capture avoidance — y -> y_replacement in (VNB-LAMBDA y body) leaves bound"
   (lambda () (subst-free 'y 'foo '(VNB-LAMBDA y NN (+ y x))))
@@ -7939,10 +7942,12 @@
          ;; ... and the domain is outside the binder
          (not (= (formula-hash '(SEP x A (P x)))   (formula-hash '(SEP x B (P x))))))))
 
-(check-true "formula-hash: the two spellings of a one-variable VNB-LAMBDA agree"
+(check-true "formula-hash: a one-entry (LIST m) binder hashes apart from the plain binder (2026-10-15)"
   (lambda ()
-    (= (formula-hash '(VNB-LAMBDA n NN (f n)))
-       (formula-hash '(VNB-LAMBDA (LIST m) NN (f m))))))
+    (and (not (= (formula-hash '(VNB-LAMBDA n (CARTESIAN NN) (f n)))
+                 (formula-hash '(VNB-LAMBDA (LIST m) (CARTESIAN NN) (f m)))))
+         (= (formula-hash '(VNB-LAMBDA (LIST n) (CARTESIAN NN) (f n)))
+            (formula-hash '(VNB-LAMBDA (LIST m) (CARTESIAN NN) (f m)))))))
 
 (check-true "formula-canon: alpha-equivalent formulas have equal canonical forms"
   (lambda ()
@@ -10952,6 +10957,164 @@
     (rcs-chk--refuses? 'comp-mem-elim
       '((((IN y_ SET) (IN x_ ZZ)) (IN y_ ZZ)))
       '(((IN y_ (COMP x_ (IN x_ ZZ)))) (IN y_ ZZ)))))
+;;; NBG COMPREHENSION (2026-10-15, the user's decision (i)).  A COMP whose
+;;; condition has a binder not confined to sets is refused by the CHECKER and by
+;;; the BUILDER (pi-comp-mem-intro! / pi-comp-mem-elim!), for both rules.  The
+;;; refused shape is card-image-finite's induction class before its repair,
+;;; { x_ | forall p_. CARD(IMAGE(p_, x_)) in NN }; the accepted one has its
+;;; quantifier confined, forall p_ in NN.
+
+(check-true "comp-mem-intro, NBG: a confined COMP condition is accepted by the checker"
+  (lambda ()
+    (rcs-chk--accepts? 'comp-mem-intro
+      '((() (IN y_ SET)) (() (FORALL p_ (IMPLIES (IN p_ NN) (IN (CARD (IMAGE p_ y_)) NN)))))
+      '(() (IN y_ (COMP x_ (FORALL p_ (IMPLIES (IN p_ NN) (IN (CARD (IMAGE p_ x_)) NN)))))))))
+
+(check-true "comp-mem-intro, NBG: an unconfined FORALL in the COMP condition is refused by the checker, naming it"
+  (lambda ()
+    (and (rcs-chk--refuses? 'comp-mem-intro
+           '((() (IN y_ SET)) (() (FORALL p_ (IN (CARD (IMAGE p_ y_)) NN))))
+           '(() (IN y_ (COMP x_ (FORALL p_ (IN (CARD (IMAGE p_ x_)) NN))))))
+         (let ((r (rcs-comp-mem-intro 'comp-mem-intro
+                    (map rcs-chk--sequent '((() (IN y_ SET)) (() (FORALL p_ (IN (CARD (IMAGE p_ y_)) NN)))))
+                    (rcs-chk--sequent '(() (IN y_ (COMP x_ (FORALL p_ (IN (CARD (IMAGE p_ x_)) NN)))))))))
+           (and (string? r) (string-search-forward "unconfined forall p_" r 0) #t)))))
+
+(check-true "comp-mem-elim, NBG: a confined COMP condition is accepted by the checker"
+  (lambda ()
+    (rcs-chk--accepts? 'comp-mem-elim
+      '((((IN y_ SET) (FORALL p_ (IMPLIES (IN p_ NN) (IN (CARD (IMAGE p_ y_)) NN)))) (IN y_ ZZ)))
+      '(((IN y_ (COMP x_ (FORALL p_ (IMPLIES (IN p_ NN) (IN (CARD (IMAGE p_ x_)) NN)))))) (IN y_ ZZ)))))
+
+(check-true "comp-mem-elim, NBG: an unconfined FORALL in the COMP condition is refused by the checker, naming it"
+  (lambda ()
+    (and (rcs-chk--refuses? 'comp-mem-elim
+           '((((IN y_ SET) (FORALL p_ (IN (CARD (IMAGE p_ y_)) NN))) (IN y_ ZZ)))
+           '(((IN y_ (COMP x_ (FORALL p_ (IN (CARD (IMAGE p_ x_)) NN))))) (IN y_ ZZ)))
+         (let ((r (rcs-comp-mem-elim 'comp-mem-elim
+                    (map rcs-chk--sequent '((((IN y_ SET) (FORALL p_ (IN (CARD (IMAGE p_ y_)) NN))) (IN y_ ZZ))))
+                    (rcs-chk--sequent '(((IN y_ (COMP x_ (FORALL p_ (IN (CARD (IMAGE p_ x_)) NN))))) (IN y_ ZZ))))))
+           (and (string? r) (string-search-forward "unconfined forall p_" r 0) #t)))))
+
+(check-true "comp-mem-intro, NBG: an IOTA in the COMP condition is refused by the checker"
+  (lambda ()
+    (rcs-chk--refuses? 'comp-mem-intro
+      '((() (IN y_ SET)) (() (= y_ (IOTA w_ (IN w_ y_)))))
+      '(() (IN y_ (COMP x_ (= x_ (IOTA w_ (IN w_ x_)))))))))
+
+(check-true "comp-mem-intro, NBG: the builder splits a confined COMP"
+  (lambda ()
+    (sp (make-wff '(IN 0 (COMP x_ (FORALL p_ (IMPLIES (IN p_ NN) (IN (CARD (IMAGE p_ x_)) NN)))))))
+    (and (pi-comp-mem-intro! (proof-state-focus *ps*)) #t)))
+
+(check-true "comp-mem-intro, NBG: the builder refuses an unconfined FORALL (card-image-finite's old class)"
+  (lambda ()
+    (sp (make-wff '(IN 0 (COMP x_ (FORALL p_ (IN (CARD (IMAGE p_ x_)) NN))))))
+    (rcs-chk--raises? (lambda () (pi-comp-mem-intro! (proof-state-focus *ps*))))))
+
+(check-true "comp-mem-elim, NBG: the builder opens a confined COMP"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN 0 (COMP x_ (FORALL p_ (IMPLIES (IN p_ NN) (IN (CARD (IMAGE p_ x_)) NN))))) TRUTH)))
+    (di)
+    (and (pi-comp-mem-elim! (proof-state-focus *ps*)
+           '(IN 0 (COMP x_ (FORALL p_ (IMPLIES (IN p_ NN) (IN (CARD (IMAGE p_ x_)) NN))))))
+         #t)))
+
+(check-true "comp-mem-elim, NBG: the builder refuses an unconfined FORALL (card-image-finite's old class)"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN 0 (COMP x_ (FORALL p_ (IN (CARD (IMAGE p_ x_)) NN)))) TRUTH)))
+    (di)
+    (rcs-chk--raises?
+      (lambda () (pi-comp-mem-elim! (proof-state-focus *ps*)
+                   '(IN 0 (COMP x_ (FORALL p_ (IN (CARD (IMAGE p_ x_)) NN)))))))))
+
+;;; THE ONE-ENTRY LIST BINDER (2026-10-15, the user's decision, option (3)).  A
+;;; binder (LIST p) destructures a 1-TUPLE: (VNB-LAMBDA (LIST p) (CARTESIAN D) b)
+;;; is the function on {[x] : x in D} sending [x] to b[p := x]; [a] /= a.  META-9
+;;; (scratchpad/triage/META-9-REPORT.md) derived FALSITY three ways from the old
+;;; mixed reading; each attack's decisive step is refused below, in the builder
+;;; and in the checker where it is an inference, and in the shared alpha test
+;;; where it is an identification.
+
+;; attack A's step: (f [q]) contracted with p := [q].  Now p := q.
+(check-true "one-entry binder, lam-b checker: (f [u]) contracts to body[p := u] (accepted)"
+  (lambda ()
+    (rcs-chk--accepts? 'lambda-beta
+      '((((IN u_ NN)) (IN (POWER u_) SET)))
+      '(((IN u_ NN)) (IN ((VNB-LAMBDA (LIST x_) (CARTESIAN NN) (POWER x_)) (LIST u_)) SET)))))
+
+(check-true "one-entry binder, lam-b checker: attack A's contraction p := [u] is refused"
+  (lambda ()
+    (rcs-chk--refuses? 'lambda-beta
+      '((((IN u_ NN)) (IN (POWER (LIST u_)) SET)))
+      '(((IN u_ NN)) (IN ((VNB-LAMBDA (LIST x_) (CARTESIAN NN) (POWER x_)) (LIST u_)) SET)))))
+
+(check-true "one-entry binder, lam-b checker: (f u) with u not a literal 1-tuple does not contract (refused)"
+  (lambda ()
+    (rcs-chk--refuses? 'lambda-beta
+      '((((IN u_ NN)) (IN (POWER u_) SET)))
+      '(((IN u_ NN)) (IN ((VNB-LAMBDA (LIST x_) (CARTESIAN NN) (POWER x_)) u_) SET)))))
+
+(check-true "one-entry binder, lam-b builder: (f [0]) reduces to the body at 0, never at [0]"
+  (lambda ()
+    (sp (make-wff '(IN ((VNB-LAMBDA (LIST x_) (CARTESIAN NN) (POWER x_)) (LIST 0)) SET)))
+    (lam-b)
+    (let ((goals (map (lambda (l) (wff-formula (sequent-node-assertion l))) (dk-open-leaves))))
+      (and (find-first (lambda (g) (alpha-equiv? g '(IN (POWER 0) SET))) goals)
+           (not (find-first (lambda (g) (alpha-equiv? g '(IN (POWER (LIST 0)) SET))) goals))
+           #t))))
+
+(check-true "one-entry binder, lam-b builder: (f 0), 0 not a literal 1-tuple, is not contracted"
+  (lambda ()
+    (sp (make-wff '(IN ((VNB-LAMBDA (LIST x_) (CARTESIAN NN) (POWER x_)) 0) SET)))
+    (not (pi-lambda-beta! (proof-state-focus *ps*)))))
+
+;; attacks B and C's step: the typing of the LIST spelling read as the plain one.
+(check-true "one-entry binder, attack B: a typing of the (LIST p) lambda does not close the plain lambda's (refused)"
+  (lambda ()
+    (rcs-chk--refuses? 'assumption '()
+      '(((IN (VNB-LAMBDA (LIST p_) (CARTESIAN NN) (POWER p_)) (FUN (CARTESIAN NN) SET)))
+        (IN (VNB-LAMBDA p_ (CARTESIAN NN) (POWER p_)) (FUN (CARTESIAN NN) SET))))))
+
+(check-true "one-entry binder, attack B control: the same typing closes its own alpha-variant (accepted)"
+  (lambda ()
+    (rcs-chk--accepts? 'assumption '()
+      '(((IN (VNB-LAMBDA (LIST p_) (CARTESIAN NN) (POWER p_)) (FUN (CARTESIAN NN) SET)))
+        (IN (VNB-LAMBDA (LIST q_) (CARTESIAN NN) (POWER q_)) (FUN (CARTESIAN NN) SET))))))
+
+(check-true "one-entry binder, attack C: T1 = (LIST p) |-> g(p) is not alpha-equivalent to p |-> g(p)"
+  (lambda ()
+    (not (alpha-equiv? '(VNB-LAMBDA (LIST p_) (CARTESIAN NN) ((VNB-LAMBDA z_ NN 0) p_))
+                       '(VNB-LAMBDA p_ (CARTESIAN NN) ((VNB-LAMBDA z_ NN 0) p_))))))
+
+;; formation
+(check-true "one-entry binder, formation: vnb-lambda([x], rr, x * x) is refused"
+  (lambda ()
+    (vnb-error? (make-wff-from-string "vnb-lambda([x], rr, x * x) in fun(rr, rr)"))))
+
+(define (one-entry--refused? thunk)       ; raised, or make-wff's vnb-error record
+  (call-with-current-continuation
+   (lambda (k) (with-exception-handler (lambda (e) (k #t)) (lambda () (vnb-error? (thunk)))))))
+
+(check-true "one-entry binder, formation: a LIST binder over a non-CARTESIAN domain is refused (n = 2)"
+  (lambda ()
+    (one-entry--refused? (lambda () (make-wff '(IN (VNB-LAMBDA (LIST x_ y_) NN x_) SET))))))
+
+(check-true "one-entry binder, formation: a LIST binder over CARTESIAN with the wrong factor count is refused"
+  (lambda ()
+    (one-entry--refused? (lambda () (make-wff '(IN (VNB-LAMBDA (LIST x_) (CARTESIAN NN NN) x_) SET))))))
+
+(check-true "one-entry binder, formation: vnb-lambda([x in rr], x * x) and the literal one-factor form are accepted"
+  (lambda ()
+    (and (wff? (make-wff-from-string "vnb-lambda([x in rr], x * x) in fun(cartesian(rr), rr)"))
+         (wff? (make-wff '(IN (VNB-LAMBDA (LIST x_) (CARTESIAN RR) (* x_ x_)) (FUN (CARTESIAN RR) RR)))))))
+
+(check-true "comp-predicativity gate: FATAL on a planted impredicative COMP, silent on none"
+  (lambda ()
+    (and (fluid-let ((*comp-impredicative-uses* '((suite-gate-probe COMP x (FORSOME y (IN x y))))))
+           (rcs-chk--raises? (lambda () (quietly (lambda () (comp-predicativity-gate! #t))))))
+         (fluid-let ((*comp-impredicative-uses* '((suite-gate-probe COMP x (FORSOME y (IN x y))))))
+           (not (rcs-chk--raises? (lambda () (quietly (lambda () (comp-predicativity-gate! #f))))))))))
 
 ;;; BIG-UNION --------------------------------------------------------------
 

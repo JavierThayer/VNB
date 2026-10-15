@@ -103,7 +103,8 @@
 ;;;   (VNB-LAMBDA ((IN v1 A1) ... (IN vn An)) body)
 ;;;                                   =>  (VNB-LAMBDA (LIST v1 ... vn)
 ;;;                                                   (CARTESIAN A1 ... An) body)
-;;;   (VNB-LAMBDA ((IN v A)) body)    =>  (VNB-LAMBDA v A body)
+;;;   (n = 1 included: (VNB-LAMBDA (LIST (IN v A)) body) => (VNB-LAMBDA (LIST v)
+;;;   (CARTESIAN A) body), a function on 1-tuples, since 2026-10-15.)
 ;;; See the clause itself for why this cannot change an accepted formula.
 
 (define (all-symbols? lst)
@@ -431,15 +432,19 @@
          ;; applied to a lambda, and a user who has just written the one will
          ;; write the other.  It desugars to the canonical form:
          ;;
-         ;;   n > 1  ->  (VNB-LAMBDA (LIST v1 ... vn) (CARTESIAN A1 ... An) body)
-         ;;   n = 1  ->  (VNB-LAMBDA v1 A1 body)
+         ;;   n >= 1  ->  (VNB-LAMBDA (LIST v1 ... vn) (CARTESIAN A1 ... An) body)
          ;;
          ;; -- the SAME S-expression the explicit spelling produces, so nothing
          ;; downstream (lam-t's componentwise typing, lam-b, the printer) needs
-         ;; to know this syntax exists.  The single-binder case collapses to the
-         ;; bare-symbol binder rather than a one-element LIST over a one-factor
-         ;; CARTESIAN: that is the form the rest of the machinery expects, and a
-         ;; 1-ary product is an object nobody wants to meet.
+         ;; to know this syntax exists.  THE ONE-ENTRY CASE (the user's decision,
+         ;; option (3), 2026-10-15): `vnb-lambda([z in D], body)' is the function on
+         ;; CARTESIAN(D) = {[x] : x in D}, sending the 1-tuple [x] to body[z := x],
+         ;; exactly as `[x in A, y in B]' destructures a pair; [a] /= a.  Until
+         ;; 2026-10-15 it collapsed to the bare-symbol binder (VNB-LAMBDA z D body),
+         ;; while lam-t and the beta scope read a one-entry LIST binder
+         ;; componentwise and alpha-equivalence identified (LIST z) with z: three
+         ;; derivations of FALSITY (scratchpad/triage/META-9-REPORT.md).  The plain
+         ;; function on D is spelled `vnb-lambda(z, D, body)'.
          ;;
          ;; Adding this could not change any accepted formula: validate-wff!
          ;; requires a VNB-LAMBDA to have a DOMAIN (a domainless lambda does not
@@ -455,9 +460,9 @@
                  (vars  (map cadr  specs))
                  (doms  (map caddr specs))
                  (body  (caddr mapped)))
-            (if (null? (cdr vars))
-                `(VNB-LAMBDA ,(car vars) ,(car doms) ,body)
-                `(VNB-LAMBDA (LIST ,@vars) (CARTESIAN ,@doms) ,body))))
+            ;; n = 1 included: a one-entry binder destructures a 1-TUPLE (the
+            ;; user's decision, option (3), 2026-10-15).
+            `(VNB-LAMBDA (LIST ,@vars) (CARTESIAN ,@doms) ,body)))
          (else mapped))))))
 
 ;;; -----------------------------------------------------------------------
@@ -773,6 +778,17 @@
             ;; the body sees the bound variables.
             (or (= (length e) 4)
                 (error "make-wff: VNB-LAMBDA arity -- expected (VNB-LAMBDA bind-spec DOMAIN body)" e))
+            ;; FORMATION (the user's decision, option (3), 2026-10-15): a LIST
+            ;; binder of length n destructures an n-TUPLE, so its domain must be
+            ;; LITERALLY (CARTESIAN A1 .. An), n factors -- n = 1 included, where
+            ;; the domain is the set of 1-tuples.  `vnb-lambda([x], rr, x * x)'
+            ;; is refused; the function on RR is `vnb-lambda(x, rr, x * x)'.
+            (let ((bs (cadr e)) (dom (caddr e)))
+              (if (and (pair? bs) (eq? (car bs) 'LIST))
+                  (or (and (pair? (cdr bs)) (list? dom) (pair? dom)
+                           (eq? (car dom) 'CARTESIAN)
+                           (= (length (cdr dom)) (length (cdr bs))))
+                      (error "make-wff: a VNB-LAMBDA binder (LIST v1 .. vn) needs a domain written literally as (CARTESIAN A1 .. An) with the same n factors (a one-entry binder is a function on 1-tuples; the plain binder is a bare symbol)" e))))
             (walk-term (caddr e) bound-env)
             (let ((bvars (vnb-lambda-bvars (cadr e))))
               (for-each (lambda (bv)

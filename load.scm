@@ -4217,6 +4217,28 @@
         (set! *vnb-load-end-times* (cons (cons key secs) *vnb-load-end-times*)))
     result))
 
+;;; The COMP-predicativity gate (run-load-end!).  A procedure of its own so that it
+;;; can be driven on purpose (the fail-on-purpose control): FATAL? #t raises after
+;;; the list when the audit is not empty.
+(define (comp-predicativity-gate! fatal?)
+  (let ((imp (comp-predicativity-audit)))
+    (if (null? imp)
+        (display ";; comp-predicativity-audit: ok (every COMP condition quantifies over sets only)\n")
+        (begin
+          (display ";; comp-predicativity-audit: ") (display (length imp))
+          (display " COMP term(s) quantify beyond sets (impredicative")
+          (display (if fatal? "; FATAL):\n" "; reported under keep-going):\n"))
+          (for-each (lambda (e)
+                      (display ";;   ") (display (car e)) (display ": ")
+                      (write (cdr e)) (newline))
+                    (list-head imp (min 40 (length imp))))
+          (if (> (length imp) 40)
+              (begin (display ";;   ... and ") (display (- (length imp) 40))
+                     (display " more: (comp-predicativity-audit) for the list\n")))
+          (if fatal?
+              (error "comp-predicativity gate: COMP terms quantify beyond sets; VNB's comprehension is NBG's (predicative)"
+                     (length imp)))))))
+
 ;;; THE END-OF-LOAD BLOCK, as ONE procedure (2026-09-23): the catalog and
 ;;; reference writers, the gates, the page audit, the band record and the
 ;;; session reset.  `vnb-extend-band!' (extend-band.scm) calls the same
@@ -4673,23 +4695,14 @@
   ;; added, so FATAL from the start.
   ;; reported, not fatal, under keep-going: a load with holes has a residue to list, not a band (2026-10-09)
   (report-category-obligations! (not *vnb-keep-going?*))
-  ;; COMP predicativity (the user's decision (e), 2026-10-14): every COMP term,
-  ;; named by a proof's commands, an installed formula or a functoid body, whose
-  ;; condition quantifies beyond sets (Morse-Kelley, not NBG).  WARN-ONLY, and it
-  ;; cannot raise (proof-debt.scm).  A CERTIFIED load sees only the proofs it ran.
-  (let ((imp (comp-predicativity-audit)))
-    (if (null? imp)
-        (display ";; comp-predicativity-audit: ok (every COMP condition quantifies over sets only)\n")
-        (begin
-          (display ";; comp-predicativity-audit: ") (display (length imp))
-          (display " COMP term(s) quantify beyond sets (impredicative; warn-only):\n")
-          (for-each (lambda (e)
-                      (display ";;   ") (display (car e)) (display ": ")
-                      (write (cdr e)) (newline))
-                    (list-head imp (min 40 (length imp))))
-          (if (> (length imp) 40)
-              (begin (display ";;   ... and ") (display (- (length imp) 40))
-                     (display " more: (comp-predicativity-audit) for the list\n"))))))
+  ;; COMP predicativity (the user's decisions (e), 2026-10-14, and (i), 2026-10-15):
+  ;; every COMP term, named by a proof's commands, an installed formula or a
+  ;; functoid body, whose condition quantifies beyond sets (Morse-Kelley, not NBG).
+  ;; FATAL in a strict load since 2026-10-15 (backlog zero; the kernel's comp-mem
+  ;; rules refuse such a COMP too, primitive-inferences.scm); reported, not fatal,
+  ;; under keep-going.  The audit itself cannot raise (proof-debt.scm).  A
+  ;; CERTIFIED load sees only the proofs it ran.
+  (comp-predicativity-gate! (not *vnb-keep-going?*))
   (let ((sh (sethood-audit)))
     (if (null? sh)
         (display ";; sethood-audit: ok (no asserted function membership over an unguarded class)\n")

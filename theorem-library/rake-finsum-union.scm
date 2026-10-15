@@ -344,9 +344,11 @@
 ;;;
 ;;; THE ARGUMENT is `finite-set-induction' (primitive, class form) on T, with
 ;;; the class
-;;;     C = { u | S and u disjoint => for every pointwise-typed f,
+;;;     C = { u | S and u disjoint => f typed pointwise on S u u =>
 ;;;                the sum over S u u splits }
-;;; -- ag and S are fixed eigenvariables, so C is an honest class term.  The
+;;; -- ag, S and f are fixed eigenvariables, so C is an honest class term whose
+;;; condition quantifies over sets only (NBG comprehension; until 2026-10-15 f
+;;; was quantified inside the class, which is Morse-Kelley).  The
 ;;; base is union-empty-right plus finsum-empty and the unit law; the step is
 ;;; union-assoc (S u (T u {x}) = (S u T) u {x}) plus finsum-insert-ptwise twice
 ;;; -- once to peel x off the big sum, once to peel it off the T sum -- and
@@ -367,6 +369,21 @@
         (list '= (list 'FINSUM agv 'f_ (list 'UNION sv tv))
                  (list (list 'OPR agv) (list 'FINSUM agv 'f_ sv)
                                        (list 'FINSUM agv 'f_ tv)))))))
+
+;; the CLASS body at TV for a FIXED summand FV (NBG comprehension, 2026-10-15, the
+;; user's decision (i)): the induction hypothesis is used only at the summand being
+;; fixed, so FV is peeled first and is a PARAMETER of the class, which then
+;; quantifies over sets only.  (Until 2026-10-15 the class was built from r7m-body,
+;; with `forall f_' over every class function inside the comprehension.)
+(define (r7m-cbody agv sv tv fv)
+  (list 'IMPLIES
+    (list 'FORALL 'z_ (list 'IMPLIES (list 'IN 'z_ tv) (list 'NOT (list 'IN 'z_ sv))))
+    (list 'IMPLIES
+      (list 'FORALL 'z_ (list 'IMPLIES (list 'IN 'z_ (list 'UNION sv tv))
+                              (list 'IN (list fv 'z_) (list 'CARR agv))))
+      (list '= (list 'FINSUM agv fv (list 'UNION sv tv))
+               (list (list 'OPR agv) (list 'FINSUM agv fv sv)
+                                     (list 'FINSUM agv fv tv))))))
 
 (define r7m-fud-stmt
   (list 'FORALL 'ag (list 'IMPLIES '(IS-ABELIAN-GROUP ag)
@@ -498,8 +515,8 @@
     ;; the two peels and the induction hypothesis
     (dk-fact! 'finsum-insert-ptwise agv w xv fv)
     (dk-fact! 'finsum-insert-ptwise agv tv1 xv fv)
-    (let* ((inner (dk-landed-1 (lambda () (detach! ih))))
-           (ihq   (dk-apply! inner fv)))
+    (let* ((inner (dk-landed-1 (lambda () (detach! ih))))      ; ptw on W => the split
+           (ihq   (dk-landed-1 (lambda () (detach! inner)))))
       (fact 'finsum-type-ptwise agv sv fv)
       (fact 'finsum-type-ptwise agv tv1 fv)
       (dk-apply! ptwV xv)                      ; (IN (f x) (CARR ag))
@@ -543,7 +560,7 @@
        (lhs (cadr g))
        (agv (cadr lhs)) (fv (caddr lhs)) (st (cadddr lhs))
        (sv  (cadr st)) (tv (caddr st))
-       (cls (list 'COMP 'u_ (r7m-body agv sv 'u_)))
+       (cls (list 'COMP 'u_ (r7m-cbody agv sv 'u_ fv)))
        (stp (list 'FORALL 'u_
               (list 'IMPLIES (list 'AND (list 'IN 'u_ 'SET)
                                    (list 'AND (list 'IN (list 'CARD 'u_) 'NN)
@@ -561,7 +578,7 @@
     (let* ((int  (dk-apply! ind tv))
            (body (dk-landed-find (lambda () (comp-me int)) (dk-head? 'IMPLIES)))
            (inner (dk-landed-1 (lambda () (detach! body)))))
-      (dk-apply! inner fv)
+      (detach! inner)
       (ass))))
 (r7m-check! 'finsum-union-disjoint)
 (qed 'finsum-union-disjoint)

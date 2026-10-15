@@ -597,10 +597,11 @@
 
 ;;; =====================================================================
 ;;; (12) prod-of-sums-ptwise -- the expansion, a and b typed POINTWISE.
-;;;      finite-set-induction on the index set; the class carries a and b as
-;;;      BOUND variables, so the step may re-use the hypothesis at the same
-;;;      two families (a pointwise typing restricts to the smaller index set,
-;;;      a FUN typing would not).
+;;;      finite-set-induction on the index set; a and b are fixed first and
+;;;      the class carries them as PARAMETERS (NBG comprehension; until
+;;;      2026-10-15 they were BOUND inside the class), so the step re-uses the
+;;;      hypothesis at the same two families (a pointwise typing restricts to
+;;;      the smaller index set, a FUN typing would not).
 ;;; =====================================================================
 
 ;; the pointwise typing over DOM with a chosen binder and a chosen carrier
@@ -625,10 +626,32 @@
                    (list 'FINSUM (list 'COMMUTATIVE-RING-ADDITIVE-AG rv)
                          (r12e-term-lam rv uu) (list 'POWER uu))))))))
 
-(define (r12e-cls rv) (list 'COMP 'pu_ (r12e-pos-body rv 'pu_)))
+;; THE CLASS (NBG comprehension, 2026-10-15, the user's decision (i)).  The
+;; induction hypothesis is used only at the two families being fixed, so A and B
+;; are peeled FIRST and are PARAMETERS of the class, whose condition then
+;; quantifies over sets only.  (Until 2026-10-15 the class was
+;; { pu_ | r12e-pos-body }, with `forall a_' and `forall b_' over every class
+;; function inside the comprehension: Morse-Kelley, not NBG.)  The statement
+;; still reads r12e-pos-body.
+(define (r12e-csum-lam rv uu av bv)
+  (list 'VNB-LAMBDA 'kv_ uu (list (list 'ADD rv) (list av 'kv_) (list bv 'kv_))))
 
-(define (r12e-step-formula rv)
-  (let ((cls (r12e-cls rv)))
+(define (r12e-cterm-lam rv uu av bv)
+  (list 'VNB-LAMBDA 'sv_ (list 'POWER uu)
+        (list (list 'MUL rv) (list 'PROD-RING rv av 'sv_)
+              (list 'PROD-RING rv bv (list 'DIFFERENCE uu 'sv_)))))
+
+(define (r12e-cbody rv uu av bv)
+  (list 'IMPLIES (r12e-ptw rv av uu)
+    (list 'IMPLIES (r12e-ptw rv bv uu)
+      (list '= (list 'PROD-RING rv (r12e-csum-lam rv uu av bv) uu)
+               (list 'FINSUM (list 'COMMUTATIVE-RING-ADDITIVE-AG rv)
+                     (r12e-cterm-lam rv uu av bv) (list 'POWER uu))))))
+
+(define (r12e-cls rv av bv) (list 'COMP 'pu_ (r12e-cbody rv 'pu_ av bv)))
+
+(define (r12e-step-formula rv av bv)
+  (let ((cls (r12e-cls rv av bv)))
     (list 'FORALL 'u_
       (list 'IMPLIES (list 'AND (list 'IN 'u_ 'SET)
                            (list 'AND (list 'IN (list 'CARD 'u_) 'NN) (list 'IN 'u_ cls)))
@@ -849,7 +872,8 @@
     (r12e-and! (list 'IN u1 'SET) (list 'IN (list 'CARD u1) 'NN))
     (r12e-fact! 'card-power-nn u1)
     ;; ---- the left-hand side
-    (let* ((ihEq (dk-apply! ih av bv))
+    (let* ((ihB  (dk-landed-1 (lambda () (detach! ih))))      ; the b typing => the expansion
+           (ihEq (dk-landed-1 (lambda () (detach! ihB))))
            (lam0 (caddr (cadr ihEq)))
            (g0   (caddr (caddr ihEq)))
            (psum (caddr ihEq))
@@ -1014,8 +1038,8 @@
                 (subst (list '= (list lam1 kv) (list (list 'ADD rv) ak bk)))
                 (rfl)))))))))
 
-(define (r12e-step! rv)
-  (let ((cls (r12e-cls rv)))
+(define (r12e-step! rv av bv)
+  (let ((cls (r12e-cls rv av bv)))
     (dk-split-all! (dk-peel!))
     (let* ((g  (dk-goal))
            (u1 (cadr g))
@@ -1023,7 +1047,7 @@
            (pr (caddr u1))
            (kv (cadr pr))
            (ih (dk-landed-find (lambda () (comp-me (list 'IN uv cls)))
-                               (dk-head? 'FORALL))))
+                               (dk-head? 'IMPLIES))))
       (r12e-and! (list 'IN kv 'SET) (list 'IN kv 'SET))
       (dk-fact! 'pairing kv kv)
       (r12e-and! (list 'IN uv 'SET) (list 'IN pr 'SET))
@@ -1039,23 +1063,26 @@
 (sp (make-wff (r12e-tf 'R '(IS-COMMUTATIVE-RING R) (r12e-tfin 'W (r12e-pos-body 'R 'W)))))
 (di)                                    ; the binder
 (di)                                    ; the guard -- not a typing
-(let* ((rv  (cadr (dk-pick (dk-head? 'IS-COMMUTATIVE-RING) "the ring")))
-       (cls (r12e-cls rv))
-       (stp (r12e-step-formula rv)))
-  (have! (list 'IN 'EMPTY-SET cls) (lambda () (r12e-base! rv)))
-  (have! stp (lambda () (r12e-step! rv)))
-  (r12e-and! (list 'IN 'EMPTY-SET cls) stp)
-  (let ((ind (dk-fact! 'finite-set-induction cls)))
-    (dk-peel!)
-    (let* ((g   (dk-goal))
-           (wv  (cadddr (cadr g)))
-           (bdy (cadddr (caddr (caddr g))))
-           (av  (caddr (cadr bdy)))
-           (bv  (caddr (caddr bdy))))
+(let ((rv (cadr (dk-pick (dk-head? 'IS-COMMUTATIVE-RING) "the ring"))))
+  ;; fix W, a and b first (with W's guards and the two typings): a and b are
+  ;; parameters of the class
+  (dk-peel!)
+  (let* ((g   (dk-goal))
+         (wv  (cadddr (cadr g)))
+         (bdy (cadddr (caddr (caddr g))))
+         (av  (caddr (cadr bdy)))
+         (bv  (caddr (caddr bdy)))
+         (cls (r12e-cls rv av bv))
+         (stp (r12e-step-formula rv av bv)))
+    (have! (list 'IN 'EMPTY-SET cls) (lambda () (r12e-base! rv)))
+    (have! stp (lambda () (r12e-step! rv av bv)))
+    (r12e-and! (list 'IN 'EMPTY-SET cls) stp)
+    (let ((ind (dk-fact! 'finite-set-induction cls)))
       (r12e-and! (list 'IN wv 'SET) (list 'IN (list 'CARD wv) 'NN))
       (let* ((inW  (dk-apply! ind wv))
-             (body (dk-landed-find (lambda () (comp-me inW)) (dk-head? 'FORALL))))
-        (dk-apply! body av bv)
+             (body (dk-landed-find (lambda () (comp-me inW)) (dk-head? 'IMPLIES)))
+             (inner (dk-landed-1 (lambda () (detach! body)))))
+        (detach! inner)
         (ass)))))
 (r12e-done! 'prod-of-sums-ptwise)
 (gloss! 'prod-of-sums-ptwise

@@ -49,6 +49,8 @@
 ;;;   sep-mem-elim         y in SEP(x,A,p) consumed; context gains y in A, p[x:=y]
 ;;;   comp-mem-intro       G => y in COMP(x,p)           <=  G => y in SET ; G => p[x:=y]
 ;;;   comp-mem-elim        y in COMP(x,p) consumed; context gains y in SET, p[x:=y]
+;;;                        (both: p PREDICATIVE -- every binder in p confined to
+;;;                        sets; NBG comprehension, since 2026-10-15)
 ;;;   big-union-sethood    G => BIG-UNION(z,A,b) in SET  <=  G => A in SET ;
 ;;;                                                          G => forall v in A. b[z:=v] in SET
 ;;;   big-union-mem-intro  G => x in BIG-UNION(z,A,b)    <=  G => w in A ; G => x in b[z:=w]
@@ -174,16 +176,111 @@
 ;;; COMPREHENSION  COMP(x, p) = { x | p }.  Members of a class are sets, so the
 ;;; domain obligation is sethood.
 
+;;; NBG COMPREHENSION (the user's decision (i), 2026-10-15).  VNB is von
+;;; Neumann-Bernays: a COMP is admitted only when its condition is PREDICATIVE,
+;;; i.e. quantifies over sets only.  The relation, stated here from its
+;;; definition (the builder, primitive-inferences.scm, has its own test):
+;;; collect EVERY binder node of the condition, at any depth; the condition is
+;;; predicative iff each of them is confined --
+;;;   (FORALL v (IMPLIES A B))  some conjunct of A is (IN v C);
+;;;   (FORSOME v B)             some conjunct of B is (IN v C);
+;;;   SEP / BIG-UNION / VNB-LAMBDA / a functoid's bindings: confined by their
+;;;                             domain; a nested COMP's variable: a set;
+;;;   IOTA                      never (its uniqueness clause quantifies over
+;;;                             every class).
+;;; A member of any class is a set, so a confined variable ranges over sets.
+
+;;; The first element of L satisfying PRED, or #f.
+(define (rcs--first pred l)
+  (cond ((null? l) #f) ((pred (car l)) (car l)) (#t (rcs--first pred (cdr l)))))
+
+;;; The flat conjunct list of F (binary ANDs).
+(define (rcs--and-leaves f)
+  (let loop ((todo (list f)) (out '()))
+    (cond ((null? todo) out)
+          ((let ((g (car todo))) (and (pair? g) (eq? (car g) 'AND) (= (length g) 3)))
+           (loop (cons (cadr (car todo)) (cons (caddr (car todo)) (cdr todo))) out))
+          (#t (loop (cdr todo) (cons (car todo) out))))))
+
+;;; Every FORALL / FORSOME / IOTA node of E, in pre-order.
+(define (rcs--quantifier-nodes e)
+  (cond ((functoid? e)
+         (append (apply append (map rcs--quantifier-nodes (map cdr (functoid-bindings e))))
+                 (rcs--quantifier-nodes (functoid-body e))))
+        ((not (pair? e)) '())
+        (#t (let ((here (if (memq (car e) '(FORALL FORSOME IOTA)) (list e) '()))
+                  (below (let kids ((xs e) (acc '()))
+                           (if (pair? xs)
+                               (kids (cdr xs) (append acc (rcs--quantifier-nodes (car xs))))
+                               acc))))
+              (append here below)))))
+
+(define (rcs--quantifier-confined? q)
+  (and (= (length q) 3) (symbol? (cadr q))
+       (let* ((v (cadr q))
+              (scope (case (car q)
+                       ((FORALL) (let ((b (caddr q)))
+                                   (and (pair? b) (eq? (car b) 'IMPLIES) (= (length b) 3) (cadr b))))
+                       ((FORSOME) (caddr q))
+                       (else #f))))
+         (and scope
+              (rcs--first (lambda (c) (and (pair? c) (eq? (car c) 'IN) (= (length c) 3) (eq? (cadr c) v)))
+                        (rcs--and-leaves scope))
+              #t))))
+
+;;; The first binder node of the condition of the COMP term T that is not
+;;; confined to sets, or #f.
+(define (rcs--comp-unconfined-binder t)
+  (let loop ((qs (rcs--quantifier-nodes (caddr t))))
+    (cond ((null? qs) #f)
+          ((rcs--quantifier-confined? (car qs)) (loop (cdr qs)))
+          (#t (car qs)))))
+
+;; A new binder head must be taught to rcs--quantifier-nodes (binder-walker-audit).
+(declare-binder-walker! 'rcs--quantifier-nodes
+                        '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
+
+(define (rcs--comp-nbg? t) (and (rcs--comp? t) (not (rcs--comp-unconfined-binder t))))
+
+(define (rcs--nbg-reason tag t)
+  (let ((b (rcs--comp-unconfined-binder t)))
+    (string-append tag ": NBG comprehension -- the COMP condition has a binder not confined to sets, "
+                   (if (eq? (car b) 'IOTA)
+                       "an IOTA"
+                       (string-append "an unconfined "
+                                      (symbol->string (car b)) " "
+                                      (if (symbol? (cadr b)) (symbol->string (cadr b)) "?"))))))
+
 (define (rcs-comp-mem-intro rule hyps concl)
-  (rcs--mem-intro-check "comp-mem-intro" hyps concl rcs--comp?
-    (lambda (y subj) (list 'IN y 'SET))
-    (lambda (y subj) (subst-free (cadr subj) y (caddr subj)))))
+  (let ((g (rcs--goal concl)))
+    (if (and (rcs--in? g) (rcs--comp? (caddr g)) (not (rcs--comp-nbg? (caddr g))))
+        (rcs--nbg-reason "comp-mem-intro" (caddr g))
+        (rcs--mem-intro-check "comp-mem-intro" hyps concl rcs--comp-nbg?
+          (lambda (y subj) (list 'IN y 'SET))
+          (lambda (y subj) (subst-free (cadr subj) y (caddr subj)))))))
+
+(define (rcs--comp-gains y subj)
+  (list (list 'IN y 'SET)
+        (subst-free (cadr subj) y (caddr subj))))
 
 (define (rcs-comp-mem-elim rule hyps concl)
-  (rcs--mem-elim-check "comp-mem-elim" hyps concl rcs--comp?
-    (lambda (y subj)
-      (list (list 'IN y 'SET)
-            (subst-free (cadr subj) y (caddr subj))))))
+  (let ((v (rcs--mem-elim-check "comp-mem-elim" hyps concl rcs--comp-nbg? rcs--comp-gains)))
+    (if (eq? v #t)
+        #t
+        ;; refused: name the binder when the inference is a comp-mem-elim of an
+        ;; impredicative COMP, otherwise give the shape reason
+        (let ((bad (and (= (length hyps) 1)
+                        (let ((gamma* (rcs--asms (car hyps))))
+                          (rcs--first (lambda (f)
+                                      (and (rcs--in? f) (rcs--comp? (caddr f))
+                                           (not (rcs--comp-nbg? (caddr f)))
+                                           (chk-set=? gamma*
+                                                      (append (rcs--comp-gains (cadr f) (caddr f))
+                                                              (rcs--drop f (rcs--asms concl))))))
+                                    (rcs--asms concl))))))
+          (if (pair? bad)
+              (rcs--nbg-reason "comp-mem-elim" (caddr bad))
+              v)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; BIG-UNION  BIG-UNION(z, A, b) = union over z in A of b
@@ -536,12 +633,28 @@
        (pair? (car e)) (eq? (caar e) 'VNB-LAMBDA) (= (length (car e)) 4)
        (symbol? (cadr (car e)))))
 
+;;; n >= 2 binders, applied to n arguments (the spread application).
 (define (rcs--redex-multi? e)
   (and (pair? e) (pair? (car e)) (eq? (caar e) 'VNB-LAMBDA) (= (length (car e)) 4)
        (pair? (cadr (car e))) (eq? (car (cadr (car e))) 'LIST)
+       (>= (length (cdr (cadr (car e)))) 2)
        (= (length (cdr (cadr (car e)))) (length (cdr e)))))
 
-(define (rcs--redex? e) (or (rcs--redex-single? e) (rcs--redex-multi? e)))
+;;; THE ONE-ENTRY BINDER (the user's decision, option (3), 2026-10-15).  A binder
+;;; (LIST p) destructures a 1-TUPLE: the lambda's points are the pairs
+;;; <[p], body>, so the redex is the lambda applied to a LITERAL one-entry list
+;;; [q], and it contracts to body[p := q].  Applied to any other argument there is
+;;; no contraction (as (f [a, b]) is none for a two-entry binder).  The licence
+;;; is the argument's, (IN [q] A), or q's componentwise over (CARTESIAN A1): that
+;;; is rcs--beta-licensed?'s one-argument case, unchanged.
+(define (rcs--redex-one? e)
+  (and (pair? e) (= (length e) 2)
+       (pair? (car e)) (eq? (caar e) 'VNB-LAMBDA) (= (length (car e)) 4)
+       (let ((bs (cadr (car e))) (a (cadr e)))
+         (and (pair? bs) (eq? (car bs) 'LIST) (list? bs) (= (length bs) 2) (symbol? (cadr bs))
+              (pair? a) (list? a) (eq? (car a) 'LIST) (= (length a) 2)))))
+
+(define (rcs--redex? e) (or (rcs--redex-single? e) (rcs--redex-multi? e) (rcs--redex-one? e)))
 
 ;;; The complete development: contract every redex, innermost first, in
 ;;; parallel.  A redex created BY the substitution is not contracted -- one
@@ -554,6 +667,8 @@
     ((rcs--redex-multi? e)
      (subst-free* (map cons (cdr (cadr (car e))) (map rcs--dev (cdr e)))
                   (rcs--dev (cadddr (car e)))))
+    ((rcs--redex-one? e)                                  ; [q] |-> body[p := q]
+     (subst-free (cadr (cadr (car e))) (rcs--dev (cadr (cadr e))) (rcs--dev (cadddr (car e)))))
     (#t (cons (rcs--dev (car e)) (map rcs--dev (cdr e))))))
 
 ;;; The memberships a binder contributes inside its own body.
@@ -671,6 +786,8 @@
      (subst-free (cadr (car e)) (cadr e) (cadddr (car e))))
     ((rcs--redex-multi? e)
      (subst-free* (map cons (cdr (cadr (car e))) (cdr e)) (cadddr (car e))))
+    ((rcs--redex-one? e)                                  ; [q] |-> body[p := q]
+     (subst-free (cadr (cadr (car e))) (cadr (cadr e)) (cadddr (car e))))
     (#t #f)))
 
 ;;; The record of one contraction: the arguments as spelled and as developed
@@ -682,9 +799,12 @@
   (let* ((lam   (car e))
          (dargs (map rcs--dev (cdr e)))
          ;; the VALUE of the contraction, on the developed arguments (2026-10-01)
-         (value (if (symbol? (cadr lam))
-                    (subst-free (cadr lam) (car dargs) (cadddr lam))
-                    (subst-free* (map cons (cdr (cadr lam)) dargs) (cadddr lam)))))
+         (value (cond ((symbol? (cadr lam))
+                       (subst-free (cadr lam) (car dargs) (cadddr lam)))
+                      ((rcs--redex-one? e)              ; the entry of the 1-tuple
+                       (subst-free (cadr (cadr lam)) (cadr (car dargs)) (cadddr lam)))
+                      (#t
+                       (subst-free* (map cons (cdr (cadr lam)) dargs) (cadddr lam))))))
     (list (cdr e) dargs (caddr lam) scope bvars
           (rcs--collect-list (cdr e) scope bvars)
           value)))
