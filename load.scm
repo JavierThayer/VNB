@@ -5126,3 +5126,11 @@
   (cert-strict-gate!))
 
 (run-load-end!)
+
+;; The load COMPLETED: every file and the end-of-load block ran without an error.
+;; The launcher's self-healing start (prover, the stale-band branches) saves the
+;; image as the band ONLY when this is bound to #t.  Before 2026-10-15 it saved
+;; whatever image the load left behind: on the user's laptop a load that stopped
+;; at the second file was saved as a 20 MB band with no library in it, and every
+;; later start restored that band (`;Unbound variable: display-proof').
+(define *vnb-load-complete?* #t)

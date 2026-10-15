@@ -152,6 +152,12 @@ band_newer_scm_all() {
        -newer "$BAND" -print "$@" 2>/dev/null
 }
 
+# The self-healing save of the two stale-band branches below.  It saves ONLY
+# when load.scm ran to its end (`*vnb-load-complete?*', defined by load.scm's
+# last form): a load that stopped on an error used to fall through to this
+# --eval and save the half-loaded image as the band, which every later start
+# then restored with no library in it (the user's laptop, 2026-10-15).
+SELF_HEAL_SAVE="(if (and (environment-bound? (the-environment) '*vnb-load-complete?*) *vnb-load-complete?*) (begin (disk-save \"$BAND.new\") (if (file-exists? \"$BAND.new\") (rename-file \"$BAND.new\" \"$BAND\"))) (begin (display \";VNB: the library load did NOT complete -- the band was NOT saved; read the first error above.\") (newline)))"
 case "$1" in
   --build-band)
     # THE EXAM (2026-09-24, certificates.scm): a band build runs EVERY proof and
@@ -370,7 +376,7 @@ PYEOF
     # the SAVING process; in the restarted image vnb.band.new no longer exists
     # and the guard skips it.
     exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD" \
-         --eval "(begin (disk-save \"$BAND.new\") (if (file-exists? \"$BAND.new\") (rename-file \"$BAND.new\" \"$BAND\")))"
+         --eval "$SELF_HEAL_SAVE"
     ;;
   -b)
     if [ ! -f "$BAND" ]; then
@@ -410,7 +416,7 @@ PYEOF
     # a stale band: a CERTIFIED load (certificates.scm), saved on the way past
     export VNB_CERTIFIED="${VNB_CERTIFIED:-on}"
     exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD" \
-         --eval "(begin (disk-save \"$BAND.new\") (if (file-exists? \"$BAND.new\") (rename-file \"$BAND.new\" \"$BAND\")))"
+         --eval "$SELF_HEAL_SAVE"
     ;;
   -i)
     # Load script then interactive -- band first, on the same freshness test.
