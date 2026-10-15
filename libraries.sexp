@@ -719,6 +719,14 @@
     "theorem-library/morera"
     "structure-library/gamma-function"
     "theorem-library/gamma-function"
+    "structure-library/ca5-function-spaces"
+    "structure-library/ca-ac-vocab"
+    "theorem-library/ca5-function-spaces"
+    "theorem-library/weierstrass-convergence"
+    "theorem-library/analytic-continuation"
+    "theorem-library/ca5-frechet"
+    "theorem-library/ca5-montel"
+    "theorem-library/ca5-series"
   ))
 
 (library measure

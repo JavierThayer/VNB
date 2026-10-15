@@ -3658,6 +3658,14 @@
     "theorem-library/morera"                 ; Morera and uniform limits of holomorphic functions, conditional and, by holomorphic-deriv-holomorphic, unconditional (CA-4, 2026-10-04)
     "structure-library/gamma-function"       ; IMPROPER-INT-CONVERGES-TO, IMPROPER-INT, GAMMA-INTEGRAND, GAMMA-FUNCTION (CA-6, 2026-10-04; the user to confirm)
     "theorem-library/gamma-function"         ; the improper integral, convergence of Gamma on the right half-plane, the truncations holomorphic, GAMMA holomorphic (3.9), Gamma(z+1) = z Gamma(z), Gamma(n+1) = n! (CA-6, 2026-10-04)
+    "structure-library/ca5-function-spaces"  ; CC-EXHAUST, CC-CONT-FNS, CC-HOL-FNS, CC-FN-MODULE, CC-EXHAUST-SEMINORMS, CC-HOL-BOUNDED (CA-5, 2026-10-14; confirmed by the user 2026-10-14)
+    "structure-library/ca-ac-vocab"          ; UNIF-ON-COMPACTA, ZEROS-ACCUMULATE-AT (CA-AC, 2026-10-14)
+    "theorem-library/ca5-function-spaces"    ; the exhaustion K_n of an open set (Lemma 5.1), the sup seminorms (CA-5, 2026-10-14)
+    "theorem-library/weierstrass-convergence" ; Weierstrass: locally uniform limits of holomorphic functions are holomorphic, with the derivatives (3.44) (CA-AC, 2026-10-14)
+    "theorem-library/analytic-continuation"  ; the identity principle, analytic continuation (2.12), zeros finite in a ball (2.13) (CA-AC, 2026-10-14)
+    "theorem-library/ca5-frechet"            ; C(U) a Frechet module (5.2), H(U) closed in it (5.3, sequence form) (CA-5, 2026-10-14)
+    "theorem-library/ca5-montel"             ; bounded sets equicontinuous (5.8), Montel, the derivative continuous on H(U) (5.20, sequence form) (CA-5, 2026-10-14)
+    "theorem-library/ca5-series"             ; Lemma 5.21, normally convergent series of holomorphic functions (5.22), linearity of the derivative (CA-5, 2026-10-14)
     ;; preamble -- a STRATEGY, executed: (preamble '(induct) '(unfold ...)
     ;; '(instantiate) '(close)) runs the clause list against every open leaf,
     ;; commits ordinary tactics that each record themselves, and RETURNS the

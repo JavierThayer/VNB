@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-743 operators: 3 functions, 11 syntax, 437 functoids, 288 predicates, 4 undeclared.
+751 operators: 3 functions, 11 syntax, 442 functoids, 291 predicates, 4 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `delete-at` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (437)
+## Functoids  (442)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -212,6 +212,12 @@ Declared by: `bintimes-apply` `etimes-def` `etimes-real-defined` `nary-times-2` 
 
     cauchy-setoid(m) := [cseq(m), crel(m)]
 
+### `cc-cont-fns`  — def-functoid · set-valued
+
+> _Reads as:_  the continuous complex functions on u
+
+    cc-cont-fns(u) := {ccf_ in fun(u, cc): forall([ccy_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), ccf_, ccy_))}
+
 ### `cc-coords`  — characterized by axioms (def-constant)
 
 Declared by: `cc-coords-def` 
@@ -222,11 +228,35 @@ Declared by: `cc-coords-def`
 
     cc-cos(z) := cc-series-limit(vnb-lambda(cek_, nn, (num(-1) ^ cek_ * recip(factorial(2 * cek_))) * z ^ (2 * cek_)))
 
+### `cc-exhaust`  — def-functoid · set-valued
+
+> _Reads as:_  the n-th compact set of the exhaustion of u
+
+    cc-exhaust(u, n) := {cxz_ in cc: magnitude(cxz_) <= n and ball(cc-ms, cxz_, recip(n + 1)) subset u}
+
+### `cc-exhaust-seminorms`  — def-functoid · function-valued
+
+> _Reads as:_  the sup seminorms on the exhaustion of u, on v
+
+    cc-exhaust-seminorms(u, v) := vnb-lambda(cfk_, nn, vnb-lambda(cfa_, v, cc-sup-norm(cfa_, cc-exhaust(u, cfk_))))
+
 ### `cc-exp`  — def-functoid · element/number-valued
 
 > _Reads as:_  exp z
 
     cc-exp(z) := cc-series-limit(vnb-lambda(cek_, nn, recip(factorial(cek_)) * z ^ cek_))
+
+### `cc-fn-module`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the module of the functions v on u, with pointwise operations
+
+    cc-fn-module(u, v) := [normed-field-as-commutative-ring(cc-normed-field), v, vnb-lambda([cfa_, cfb_], cartesian(v, v), vnb-lambda(cfz_, u, cfa_(cfz_) + cfb_(cfz_))), vnb-lambda(cfz_, u, 0), vnb-lambda(cfa_, v, vnb-lambda(cfz_, u, -cfa_(cfz_))), vnb-lambda([cfc_, cfa_], cartesian(cc, v), vnb-lambda(cfz_, u, cfc_ * cfa_(cfz_)))]
+
+### `cc-hol-fns`  — def-functoid · set-valued
+
+> _Reads as:_  the holomorphic functions on u
+
+    cc-hol-fns(u) := {ccf_ in fun(u, cc): holomorphic-on(u, ccf_)}
 
 ### `cc-int`  — def-functoid · element/number-valued
 
@@ -2150,7 +2180,7 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (288)
+## Predicates  (291)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -2169,6 +2199,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `==`  — kernel primitive (notation-declared, no def-*) · proposition
 
 > _Reads as:_  (==)()
+
+### `cc-hol-bounded`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  a is a bounded set of holomorphic functions on u
 
 ### `cc-series-converges`  — def-predicate · proposition (arity 1)
 
@@ -3290,9 +3324,17 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  s is totally bounded
 
+### `unif-on-compacta`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  fam converges to f uniformly on the compact subsets of u
+
 ### `uniquely-originates`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  ssu_ originates uniquely in the strand space ssp_
+
+### `zeros-accumulate-at`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the zeros of f in u accumulate at a
 
 ### `zz-coprime`  — def-predicate · proposition (arity 2)
 
