@@ -4316,9 +4316,12 @@
            ;; notes-62 (2026-10-07): the parenthetical names the oracle or rule that closed it;
            ;; 2026-10-13: a claim proved in later rows is closed by NAME ("this proves Claim 2")
            (string-search-forward "(the claim is established by " s 0)
-           (string-search-forward "this proves Claim 2)" s 0)
+           ;; 2026-10-15 (f8dbdc8, fom-baire-approx): no parentheses, and the closed goal is
+           ;; named -- "The goal G holds by assumption.  This proves Claim 2."
+           (string-search-forward "This proves Claim 2." s 0)
            ;; the final row closes the THEOREM: it must not claim to be a side goal
-           (string-search-forward "(holds by assumption)" s 0)
+           (string-search-forward "The goal " s 0)
+           (string-search-forward " holds by assumption." s 0)
            (not (string-search-forward "(the claim holds by assumption)" s 0))
            (not (string-search-forward "(closes)" s 0))
            #t)))))
@@ -15216,7 +15219,7 @@
            (begin (qed 'rdr-claim-block-probe) #t)
            (let ((s (proof-reader 'rdr-claim-block-probe)))
              (and (string-search-forward "\\textbf{Claim 1} (proved in step" s 0)
-                  (string-search-forward "this proves Claim 1)" s 0)
+                  (string-search-forward "This proves Claim 1." s 0)
                   (string-search-forward "of the full proof" s 0)
                   (not (string-search-forward "5--7" s 0))
                   #t))))))

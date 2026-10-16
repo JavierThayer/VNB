@@ -585,7 +585,7 @@ every proof. It is reported, not repaired.
 
 * ~~The general `vnb--run!` warning defect (14.5).~~ Closed in the merge (14.8).
 * ~~The reflexivity checker's definedness gap.~~ Closed in the merge (14.8).
-* The IOTA congruence question (13, decision (b)) and the functoid-beta encoding.
+* ~~The IOTA congruence question (13, decision (b)).~~ Closed by IOTA-CR in the core (17). The functoid-beta encoding remains open.
 * ~~The printer round-trip fix (14.6).~~ Closed in the merge (14.8), by the `num(...)` literal.
 * Round 3 has not yet had its own exam (`VNB_CERTIFIED=off`, strict, then the suite). It runs on the merged tree
   (14.8).
@@ -881,3 +881,33 @@ laws, `meta-ind`, `meta-def`, `meta-ind-laws`, `meta-def-laws`.
 * Naming: the two derived rules are `def-strict-hyp-derived` and `def-nth-list-derived`, not
   `adm-def-strict-hyp` / `adm-def-nth-list`: `def-predicate` installs the defining equivalence of the
   predicate `ADM-DEF-X` under the name `adm-def-x`, and the first development probe met the collision.
+
+## 17. Decision (b) for IOTA: the congruence rule enters the core (2026-10-15 / 2026-10-16)
+
+**The count.** META-8 (cold load, 4917 proofs, 888021 inferences, `scratchpad/triage/META-8-REPORT.md`): ten inferences in seven theorems rewrite inside an IOTA body (`eq-subst` 4, `macete` 2, `nth-reduce` 4), none renaming an IOTA binder. Under decision (b), a nonzero count means a core congruence rule.
+
+**Rule (IOTA-CR).** From `Gamma, x fresh |- phi(x) iff psi(x)` infer `Gamma |- (IOTA x phi) == (IOTA x psi)`.
+
+**Not derivable over the present core.** Two derivation attempts fail, each for want of a law the core does not contain:
+
+1. *Both sides undefined.* The only sources of `==` are `quasi-eq-reflexivity`, `-symmetry`, `-transitivity`
+   and `quasi-eq-def`, and the last yields `a == b` only under `a = a`. No law concludes `a == b` from
+   `NOT (a = a)` and `NOT (b = b)`. So when neither description denotes, nothing in the core yields `==`
+   between two syntactically distinct descriptions.
+2. *One side defined.* `iota-in-elim` gives `phi(IOTA x phi)` from the definedness of `IOTA x phi`, hence
+   `psi(IOTA x phi)`. Concluding `IOTA x psi = IOTA x phi` needs the UNIQUENESS of the `psi`-witness, and no
+   rule yields uniqueness from denotation: `iota-def` runs from existence-and-uniqueness to the property, and
+   `iota-in-elim` runs from denotation to the property only.
+
+Either missing law would suffice for its own case, so the alternative to IOTA-CR is two smaller core facts:
+`(NOT (= a a)) AND (NOT (= b b)) => (== a b)`, and "a denoting description has a unique witness". The user
+chose one congruence rule, option (1) of 2026-10-15, confirmed 2026-10-16.
+
+**Soundness.** On VNB's semantics, `IOTA x phi` denotes the unique `x` satisfying `phi` when there is one, and
+nothing otherwise. Two conditions equivalent at every `x` have the same satisfiers, hence the same unique
+satisfier or the same absence of one.
+
+**Effect.** The core grows from 44 to 45 rules. No kernel code changes: the ten inferences META-8 counted
+(seven theorems; `scratchpad/triage/META-8-REPORT.md`) are already accepted by the checker under `eq-subst`,
+`macete` and `nth-reduce`. K2 now reads each of them as an instance of CR at an IOTA body, with IOTA-CR as
+the case of the induction on positions.
