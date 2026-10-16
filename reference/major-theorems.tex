@@ -5273,6 +5273,571 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \noindent\textbf{Deviation from the notes.} PROVEN 2026-09-26 (batch 35) with the exceptional point; a closed path is a road on [a, b] with pgam(b) = pgam(a). the exceptional-point hypothesis is the notes' (f continuous on the open set u, x in u, f holomorphic on u minus \{x\}), spelled with restrict(f, difference(u, singleton(x))) because HOLOMORPHIC-ON types its function on exactly its set. Earlier: PROVEN 2026-09-25 (batch 30) for f holomorphic on the whole convex open set U: for a road on [a, b] with trace in U and gamma(b) = gamma(a), the integral of f along it is 0 (from 3.8 and Cor 3.3 for a closed road). 'Closed path' is the hypothesis gamma(b) = gamma(a); there is no closed-road predicate. The exceptional point x as for 3.6.
 %
+\renewcommand{\thethm}{2.12}
+\begin{prop}[{Principle of analytic continuation}]\label{thm:analytic-continuation}
+%
+\leavevmode
+\vnbpart{\texttt{analytic-continuation}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall f \in (u \to \mathbb{C}), z \in u. \\ \quad \operatorname{is\text{-}open}(\operatorname{cc\text{-}ms}, u) \wedge \\ \quad \operatorname{is\text{-}connected}(\operatorname{cc\text{-}ms}, u) \wedge \\ \quad \forall b \in u.\; f \text{ is analytic at } b \wedge \\ \quad \exists a \in u.\; \operatorname{zeros\text{-}accumulate\text{-}at}(u, f, a) \Rightarrow \\ \quad \quad f(z) = 0 \end{array}}
+\vnbpart{\texttt{holomorphic-identity-principle}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, f.; \forall a, z \in u. \\ \quad (\operatorname{is\text{-}connected}(\operatorname{cc\text{-}ms}, u) \wedge (\operatorname{holomorphic\text{-}on}(u, f) \wedge \operatorname{zeros\text{-}accumulate\text{-}at}(u, f, a))) \Rightarrow  \\ \quad \quad f(z) = 0 \end{array}}
+\vnbpart{\texttt{holomorphic-zeros-local}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, f.; \forall c \in u. \\ \quad (\operatorname{holomorphic\text{-}on}(u, f) \wedge \operatorname{zeros\text{-}accumulate\text{-}at}(u, f, c)) \Rightarrow  \\ \quad \quad \exists r. \\ \quad \quad \quad (\operatorname{pos\text{-}rr}(r) \wedge ((\operatorname{ball}(\operatorname{cc\text{-}ms}, c, r) \subseteq u) \wedge \forall z \in \operatorname{ball}(\operatorname{cc\text{-}ms}, c, r).\; (f(z) = 0))) \end{array}}
+\vnbpart{\texttt{holomorphic-zero-coefficients}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, f.; \forall c \in \mathbb{C}, s, r \in \mathbb{R}, k \in \mathbb{N}. \\ \quad \operatorname{holomorphic\text{-}on}(u, f) \wedge \\ \quad 0 < s \wedge \\ \quad \operatorname{ball}(\operatorname{cc\text{-}ms}, c, s) \subseteq u \wedge \\ \quad 0 < r \wedge \\ \quad r < s \wedge \\ \quad \operatorname{zeros\text{-}accumulate\text{-}at}(u, f, c) \Rightarrow \\ \quad \quad \operatorname{recip}(((2 \cdot \pi) \cdot +i)) \cdot \operatorname{line\text{-}int}((\lambda w \in \operatorname{trace}(\operatorname{circle\text{-}path}(c, r), 0, (2 \cdot \pi)).\; (\operatorname{restrict}(f, \operatorname{trace}(\operatorname{circle\text{-}path}(c, r), 0, (2 \cdot \pi)))(w) \cdot \operatorname{power}(\operatorname{recip}((w - c)), (k + 1)))), \operatorname{circle\text{-}path}(c, r), \operatorname{circle\text{-}deriv}(c, r), 0, (2 \cdot \pi)) \\ \quad \quad =\; 0 \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{analytic-continuation}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/analytic-\allowbreak{}continuation.scm} --- 12 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{analytic-on-holomorphic}, \texttt{holomorphic-identity-principle}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{holomorphic-identity-principle}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/analytic-\allowbreak{}continuation.scm} --- 716 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{holomorphic-on-open}, \texttt{cc-open-subset-cc}, \texttt{cc-is-metric-space}, \texttt{nn-zero-in}, \texttt{cc-zero-in}, \texttt{rr-zero-in}, \texttt{rr-one-in}, \texttt{subset-mem-fwd}, \texttt{holomorphic-zeros-local}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-lt-of-pos-rr}, \texttt{ball-membership}, \texttt{cc-ms-dist}, \texttt{cc-sub-in-cc}, \texttt{cc-magnitude-closed}, \texttt{cc-magnitude-sub-sym}, \texttt{rr-le-ne-lt}, \texttt{rr-sub-in-rr}, \texttt{rr-min-pos}, \texttt{rr-pos-rr-of-lt}, \texttt{rr-pos-halvable}, \texttt{rr-subset-cc}, \texttt{cc-add-closed}, \texttt{rr-magnitude-is-abs}, \texttt{rr-abs-of-nonneg}, \texttt{rr-abs-closed}, \texttt{cc-magnitude-triangle}, \texttt{ball-mem-from-le}, \texttt{rr-lt-irrefl}, \texttt{cc-sub-zero-eq}, \texttt{cc-magnitude-nonneg}, \texttt{cc-magnitude-zero-iff}, \texttt{connected-locally-constant}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{holomorphic-zeros-local}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/analytic-\allowbreak{}continuation.scm} --- 146 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{holomorphic-on-open-cc-ms}, \texttt{holomorphic-on-open}, \texttt{cc-open-subset-cc}, \texttt{subset-mem-fwd}, \texttt{cc-is-metric-space}, \texttt{rr-pos-halvable}, \texttt{rr-lt-of-pos-rr}, \texttt{rr-pos-rr-in-rr}, \texttt{closed-ball-in-ball}, \texttt{ball-in-closed-ball}, \texttt{subset-trans}, \texttt{holomorphic-zero-coefficients}, \texttt{ball-membership}, \texttt{cc-ms-dist}, \texttt{cc-sub-in-cc}, \texttt{cc-magnitude-closed}, \texttt{cc-magnitude-sub-sym}, \texttt{rr-le-ne-lt}, \texttt{holomorphic-power-series-disc}, \texttt{fun-apply-type-c}, \texttt{cc-zero-in}, \texttt{power-typing-nonneg}, \texttt{cc-mul-closed}, \texttt{nn-is-set}, \texttt{cc-series-of-zeros}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{holomorphic-zero-coefficients}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/analytic-\allowbreak{}continuation.scm} --- 477 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-sub-in-cc}, \texttt{cc-magnitude-closed}, \texttt{cc-magnitude-zero-iff}, \texttt{cc-is-metric-space}, \texttt{cc-ms-dist}, \texttt{cc-magnitude-sub-sym}, \texttt{ball-mem-from-le}, \texttt{rr-zero-in}, \texttt{pi-pos}, \texttt{rr-mul-in-rr}, \texttt{circle-is-road}, \texttt{is-road-is-path}, \texttt{is-path-in-fun}, \texttt{trace-subset-cc}, \texttt{trace-is-set}, \texttt{subset-refl}, \texttt{circle-path-closed}, \texttt{nf-cc-is-metric-space}, \texttt{cc-nf-carr}, \texttt{holomorphic-on-in-fun}, \texttt{holomorphic-on-open}, \texttt{holomorphic-on-continuous}, \texttt{cc-open-subset-cc}, \texttt{subset-def}, \texttt{subset-mem-fwd}, \texttt{circle-trace-magnitude}, \texttt{cc-magnitude-zero}, \texttt{rr-lt-irrefl}, \texttt{cc-sub-zero-eq}, \texttt{cc-punctured-membership}, \texttt{subset-trans}, \texttt{restrict-in-fun}, \texttt{subspace-restrict-continuous-at}, \texttt{rr-pos-ne-zero}, \texttt{rr-subset-cc}, \texttt{cc-i-in}, \texttt{cc-i-squared}, \texttt{cc-mul-nonzero}, \texttt{cc-mul-closed}, \texttt{cc-recip-closed}, \texttt{cc-recip-inverse}, \texttt{nn-succ-closed}, \texttt{holomorphic-zero-factor}, \texttt{fun-apply-type-c}, \texttt{restrict-apply}, \texttt{power-typing-nonneg}, \texttt{cc-power-mul-base}, \texttt{rr-power-one}, \texttt{line-int-domain-congruence}, \texttt{cauchy-disc}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} PROVEN 2026-10-14 as the notes state it: u open and IS-CONNECTED(CC-MS, u), f in FUN(u, CC) analytic at every point of u, and a point a of u with ZEROS-ACCUMULATE-AT(u, f, a) (every ball about a contains a zero of f in u other than a) give f(z) = 0 for every z in u. The route differs from the notes: connectedness (connected-locally-constant) replaces the largest initial subpath of a polygonal path, and the local step shows that every Taylor coefficient at a vanishes instead of factoring f = (z - a)\textasciicircum{}n g with g(a) /= 0. holomorphic-identity-principle is the same statement for f holomorphic on u.
+%
+\renewcommand{\thethm}{2.13}
+\begin{cor}[{Finitely many zeros in a closed ball}]\label{thm:analytic-zeros-finite-in-ball}
+%
+\leavevmode
+\vnbpart{\texttt{analytic-zeros-finite-in-ball}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall f \in (u \to \mathbb{C}), c \in \mathbb{C}, r \in \mathbb{R}. \\ \quad \operatorname{is\text{-}open}(\operatorname{cc\text{-}ms}, u) \wedge \\ \quad \operatorname{is\text{-}connected}(\operatorname{cc\text{-}ms}, u) \wedge \\ \quad \forall b \in u.\; f \text{ is analytic at } b \wedge \\ \quad \exists e \in u.\; \neg (f(e) = 0) \wedge \\ \quad \operatorname{closed\text{-}ball}(\operatorname{cc\text{-}ms}, c, r) \subseteq u \Rightarrow \\ \quad \quad |\{z \in \operatorname{closed\text{-}ball}(\operatorname{cc\text{-}ms}, c, r) : (f(z) = 0)\}| \in \mathbb{N} \end{array}}
+\vnbpart{\texttt{compact-cover-by-balls}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s.; \forall h \in (s \to \mathbb{R}). \\ \quad ((s \subseteq \mathbb{C}) \wedge (\operatorname{is\text{-}compact}(\operatorname{subspace\text{-}ms}(\operatorname{cc\text{-}ms}, s)) \wedge \forall x \in s.\; (0 < h(x)))) \Rightarrow  \\ \quad \quad \exists p. \\ \quad \quad \quad ((p \subseteq s) \wedge ((|p| \in \mathbb{N}) \wedge \forall y \in s.\; \exists x \in p.\; (y \in \operatorname{ball}(\operatorname{cc\text{-}ms}, x, h(x))))) \end{array}}
+%
+\end{cor}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{analytic-zeros-finite-in-ball}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/analytic-\allowbreak{}continuation.scm} --- 278 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{analytic-on-holomorphic}, \texttt{holomorphic-on-open}, \texttt{cc-open-subset-cc}, \texttt{cc-is-metric-space}, \texttt{holomorphic-identity-principle}, \texttt{cc-closed-ball-compact}, \texttt{subset-trans}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-lt-of-pos-rr}, \texttt{choice-axiom}, \texttt{compact-cover-by-balls}, \texttt{card-subset-nn}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{compact-cover-by-balls}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/weierstrass-\allowbreak{}convergence.scm} --- 418 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-is-metric-space}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{subspace-is-metric-space}, \texttt{subspace-pts}, \texttt{image-set}, \texttt{subset-mem-fwd}, \texttt{fun-apply-type-c}, \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}, \texttt{ball-is-set}, \texttt{ball-is-open}, \texttt{ball-center-in}, \texttt{ball-membership}, \texttt{class-extensionality}, \texttt{card-image-finite}, \texttt{subset-def}, \texttt{choice-axiom}, \texttt{subspace-ball-membership}, \texttt{membership-implies-sethood}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} PROVEN 2026-10-14: with u and f as in 2.12, f(e) /= 0 for some e in u (not identically 0), and CLOSED-BALL(CC-MS, c, r) a subset of u, the set of zeros of f in the ball has CARD in NN. The proof uses a finite subcover of the compact ball (compact-cover-by-balls) instead of an injective sequence of zeros.
+%
+\renewcommand{\thethm}{3.44}
+\begin{prop}[{Weierstrass: uniform limits on compacta of holomorphic functions are holomorphic}]\label{thm:holomorphic-limit-on-compacta}
+%
+\leavevmode
+\vnbpart{\texttt{holomorphic-limit-on-compacta}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, m.; \forall f \in (u \to \mathbb{C}). \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge \\ \quad \forall k \in \mathbb{N}.\; \operatorname{holomorphic\text{-}on}(u, m(k)) \wedge \\ \quad \operatorname{unif\text{-}on\text{-}compacta}(u, m, f) \Rightarrow \\ \quad \quad \operatorname{holomorphic\text{-}on}(u, f) \end{array}}
+\vnbpart{\texttt{holomorphic-limit-derivatives}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, m.; \forall f \in (u \to \mathbb{C}). \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge \\ \quad \forall k \in \mathbb{N}.\; \operatorname{holomorphic\text{-}on}(u, m(k)) \wedge \\ \quad \operatorname{unif\text{-}on\text{-}compacta}(u, m, f) \Rightarrow \\ \quad \quad \operatorname{unif\text{-}on\text{-}compacta}(u, \\ \quad \quad \quad (\lambda \mathit{wcvk} \in \mathbb{N}.\; (\lambda w \in u.\; \operatorname{deriv\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, m(\mathit{wcvk}), w))), \\ \quad \quad \quad (\lambda w \in u.\; \operatorname{deriv\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, f, w))) \end{array}}
+\vnbpart{\texttt{unif-on-compacta-locally}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, m, f.; \forall z \in u. \\ \quad (\operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge \operatorname{unif\text{-}on\text{-}compacta}(u, m, f)) \Rightarrow  \\ \quad \quad \exists r. \\ \quad \quad \quad \operatorname{pos\text{-}rr}(r) \wedge \\ \quad \quad \quad \operatorname{ball}(\operatorname{cc\text{-}ms}, z, r) \subseteq u \wedge \\ \quad \quad \quad \forall s. \\ \quad \quad \quad \quad \operatorname{pos\text{-}rr}(s) \Rightarrow  \\ \quad \quad \quad \quad \quad \exists p \in \mathbb{N}. \forall k \in \mathbb{N}, y \in \operatorname{ball}(\operatorname{cc\text{-}ms}, z, r). \\ \quad \quad \quad \quad \quad \quad (p \leq k) \Rightarrow (\operatorname{magnitude}((m(k)(y) - f(y))) \leq s) \end{array}}
+\vnbpart{\texttt{locally-uniform-on-compacta}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, g, l. \\ \quad u \subseteq \mathbb{C} \wedge \\ \quad \forall z \in u. \exists r. \\ \quad \quad \operatorname{pos\text{-}rr}(r) \wedge \\ \quad \quad \operatorname{ball}(\operatorname{cc\text{-}ms}, z, r) \subseteq u \wedge \\ \quad \quad \forall s. \\ \quad \quad \quad \operatorname{pos\text{-}rr}(s) \Rightarrow  \\ \quad \quad \quad \quad \exists p \in \mathbb{N}. \forall k \in \mathbb{N}, y \in \operatorname{ball}(\operatorname{cc\text{-}ms}, z, r). \\ \quad \quad \quad \quad \quad (p \leq k) \Rightarrow (\operatorname{magnitude}((g(k)(y) - l(y))) \leq s) \Rightarrow \\ \quad \quad \operatorname{unif\text{-}on\text{-}compacta}(u, g, l) \end{array}}
+\vnbpart{\texttt{cc-closed-ball-compact}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall c \in \mathbb{C}, r \in \mathbb{R}. \\ \quad \operatorname{is\text{-}compact}(\operatorname{subspace\text{-}ms}(\operatorname{cc\text{-}ms}, \operatorname{closed\text{-}ball}(\operatorname{cc\text{-}ms}, c, r))) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{holomorphic-limit-on-compacta}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/weierstrass-\allowbreak{}convergence.scm} --- 9 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{unif-on-compacta-locally}, \texttt{holomorphic-uniform-limit}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{holomorphic-limit-derivatives}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/weierstrass-\allowbreak{}convergence.scm} --- 1135 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{holomorphic-limit-on-compacta}, \texttt{cc-is-metric-space}, \texttt{locally-uniform-on-compacta}, \texttt{subset-mem-fwd}, \texttt{cc-ms-open-iff}, \texttt{rr-pos-halvable}, \texttt{rr-lt-of-pos-rr}, \texttt{rr-pos-rr-in-rr}, \texttt{closed-ball-in-ball}, \texttt{ball-in-closed-ball}, \texttt{subset-trans}, \texttt{cc-closed-ball-compact}, \texttt{rr-mul-closed}, \texttt{rr-mul-in-rr}, \texttt{rr-mul-pos}, \texttt{rr-pos-rr-of-lt}, \texttt{ball-membership}, \texttt{cc-ms-dist}, \texttt{cc-sub-in-cc}, \texttt{cc-magnitude-closed}, \texttt{cc-magnitude-sub-sym}, \texttt{rr-le-ne-lt}, \texttt{holomorphic-on-diff}, \texttt{cc-deriv-on-of-is-diff-on}, \texttt{diff-on-deriv-in-carr}, \texttt{cc-nf-carr}, \texttt{membership-implies-sethood}, \texttt{holomorphic-on-in-fun}, \texttt{cc-is-normed-field}, \texttt{fun-apply-type-c}, \texttt{nf-open-is-set}, \texttt{diff-on-identity}, \texttt{diff-on-value-in-carr}, \texttt{diff-on-chain}, \texttt{diff-on-const}, \texttt{diff-on-product}, \texttt{diff-on-sum}, \texttt{cc-nf-mul-apply}, \texttt{cc-neg-closed}, \texttt{cc-nf-add-apply}, \texttt{diff-on-transfer-ptwise-eq}, \texttt{cc-mul-closed}, \texttt{cc-add-closed}, \texttt{subset-def}, \texttt{cc-magnitude-triangle}, \texttt{ball-mem-from-le}, \texttt{pi-pos}, \texttt{rr-zero-in}, \texttt{circle-is-road}, \texttt{is-road-is-path}, \texttt{is-path-in-fun}, \texttt{trace-subset-cc}, \texttt{circle-trace-magnitude}, \texttt{cc-closed-ball-mem-intro}, \texttt{nn-zero-in}, \texttt{nn-succ-closed}, \texttt{cauchy-estimate-derivative}, \texttt{cc-magnitude-zero-iff}, \texttt{rr-lt-irrefl}, \texttt{ball-is-open}, \texttt{diff-on-shrink}, \texttt{nth-deriv-on-succ-apply}, \texttt{rr-pos-ne-zero}, \texttt{rr-recip-closed}, \texttt{rr-recip-inverse}, \texttt{rr-subset-cc}, \texttt{power-succ}, \texttt{power-zero}, \texttt{nn-one-is-succ-zero}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{unif-on-compacta-locally}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/weierstrass-\allowbreak{}convergence.scm} --- 80 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{subset-mem-fwd}, \texttt{cc-is-metric-space}, \texttt{cc-ms-open-iff}, \texttt{rr-pos-halvable}, \texttt{rr-lt-of-pos-rr}, \texttt{rr-pos-rr-in-rr}, \texttt{closed-ball-in-ball}, \texttt{subset-trans}, \texttt{ball-in-closed-ball}, \texttt{cc-closed-ball-compact}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{locally-uniform-on-compacta}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/weierstrass-\allowbreak{}convergence.scm} --- 301 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{subset-trans}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-lt-of-pos-rr}, \texttt{choice-axiom}, \texttt{compact-cover-by-balls}, \texttt{card-image-finite}, \texttt{subset-def}, \texttt{nn-finite-subset-bounded}, \texttt{membership-implies-sethood}, \texttt{nn-in-rr}, \texttt{rr-not-le-lt}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-closed-ball-compact}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/weierstrass-\allowbreak{}convergence.scm} --- 381 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-is-metric-space}, \texttt{closed-ball-in-carrier}, \texttt{closed-ball-is-set}, \texttt{subspace-is-metric-space}, \texttt{subspace-pts}, \texttt{compact-iff-cluster-point}, \texttt{real-part-in-rr}, \texttt{rr-abs-closed}, \texttt{rr-add-in-rr}, \texttt{imag-part-in-rr}, \texttt{fun-apply-type-c}, \texttt{cc-closed-ball-mem}, \texttt{cc-parts-bound-of-dist}, \texttt{nn-is-set}, \texttt{rr-bolzano-weierstrass}, \texttt{subseq-of-convergent}, \texttt{rr-subset-cc}, \texttt{cc-i-in}, \texttt{cc-mul-closed}, \texttt{cc-add-closed}, \texttt{cc-re-im-of}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-pos-halvable}, \texttt{rr-lt-of-pos-rr}, \texttt{rr-subseq-converges-abs}, \texttt{nn-add-closed}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{subseq-apply}, \texttt{cc-dist-le-coords}, \texttt{cc-sub-in-cc}, \texttt{cc-magnitude-closed}, \texttt{rr-sub-in-rr}, \texttt{nn-le-refl}, \texttt{cc-magnitude-triangle}, \texttt{cc-magnitude-sub-sym}, \texttt{rr-le-of-le-add-all-pos}, \texttt{cc-closed-ball-mem-intro}, \texttt{nn-le-add-left}, \texttt{nn-le-add-right}, \texttt{strictly-mono-ge-id}, \texttt{subspace-dist}, \texttt{cc-ms-dist}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} PROVEN 2026-10-14: a sequence of functions holomorphic on the open set u with UNIF-ON-COMPACTA(u, fam, g) (uniform convergence on every K inside u with IS-COMPACT(SUBSPACE-MS(CC-MS, K))) has g holomorphic on u, through the locally uniform form of morera.scm and the compactness of closed discs (cc-closed-ball-compact). holomorphic-limit-derivatives adds what the notes do not state: the derivatives converge to g' uniformly on compacta.
+%
+\renewcommand{\thethm}{5.1}
+\begin{lem}[{An exhaustive sequence of compact sets}]\label{thm:cc-exhaust-exhaustive}
+%
+\leavevmode
+\vnbpart{\texttt{cc-exhaust-exhaustive}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, p. \\ \quad (\operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge ((p \subseteq u) \wedge \operatorname{is\text{-}compact}(\operatorname{subspace\text{-}ms}(\operatorname{cc\text{-}ms}, p)))) \Rightarrow  \\ \quad \quad \exists n \in \mathbb{N}.\; (p \subseteq \operatorname{cc\text{-}exhaust}(u, n)) \end{array}}
+\vnbpart{\texttt{cc-exhaust-compact}}
+\vnbstmt{\forall u.; \forall n \in \mathbb{N}.\; \operatorname{is\text{-}compact}(\operatorname{subspace\text{-}ms}(\operatorname{cc\text{-}ms}, \operatorname{cc\text{-}exhaust}(u, n)))}
+\vnbpart{\texttt{cc-exhaust-subset}}
+\vnbstmt{\forall u.; \forall n \in \mathbb{N}.\; (\operatorname{cc\text{-}exhaust}(u, n) \subseteq u)}
+\vnbpart{\texttt{cc-exhaust-interior}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall n \in \mathbb{N}. \\ \quad \operatorname{cc\text{-}exhaust}(u, n) \subseteq \operatorname{interior}(\operatorname{cc\text{-}ms}, \operatorname{cc\text{-}exhaust}(u, (n + 1))) \end{array}}
+\vnbpart{\texttt{cc-exhaust-mono}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall a, b \in \mathbb{N}. \\ \quad (a \leq b) \Rightarrow (\operatorname{cc\text{-}exhaust}(u, a) \subseteq \operatorname{cc\text{-}exhaust}(u, b)) \end{array}}
+\vnbpart{\texttt{cc-exhaust-covers}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall z \in u. \\ \quad \operatorname{is\text{-}open}(\operatorname{cc\text{-}ms}, u) \Rightarrow \exists n \in \mathbb{N}.\; (z \in \operatorname{cc\text{-}exhaust}(u, n)) \end{array}}
+%
+\end{lem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{cc-exhaust-exhaustive}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}function-\allowbreak{}spaces.scm} --- 200 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-is-metric-space}, \texttt{cc-open-subset-cc}, \texttt{cc-ms-open-iff}, \texttt{subset-trans}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{subspace-is-metric-space}, \texttt{not-subset-witness}, \texttt{rmm-nn-choice}, \texttt{subspace-pts}, \texttt{compact-iff-cluster-point}, \texttt{subset-mem-fwd}, \texttt{cc-exhaust-covers}, \texttt{cc-exhaust-interior}, \texttt{interior-membership}, \texttt{nn-one-in}, \texttt{nn-add-closed}, \texttt{fun-apply-type-c}, \texttt{subspace-dist}, \texttt{cc-ms-dist}, \texttt{rr-pos-rr-in-rr}, \texttt{cc-ms-ball-membership}, \texttt{cc-exhaust-mono}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-exhaust-compact}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}function-\allowbreak{}spaces.scm} --- 115 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-is-metric-space}, \texttt{nn-in-rr}, \texttt{subset-def}, \texttt{cc-exhaust-membership}, \texttt{cc-is-set}, \texttt{subspace-is-metric-space}, \texttt{subspace-pts}, \texttt{fun-codomain-superset}, \texttt{fun-apply-type-c}, \texttt{cc-bolzano-weierstrass}, \texttt{subseq-is-fun}, \texttt{cc-exhaust-limit-in}, \texttt{subspace-converges-to}, \texttt{seq-compact-implies-compact}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-exhaust-subset}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}function-\allowbreak{}spaces.scm} --- 39 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{subset-def}, \texttt{cc-exhaust-membership}, \texttt{cc-exhaust-radius}, \texttt{cc-sub-in-cc}, \texttt{cc-magnitude-zero}, \texttt{cc-ms-ball-membership}, \texttt{subset-mem-fwd}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-exhaust-interior}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}function-\allowbreak{}spaces.scm} --- 162 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-is-metric-space}, \texttt{subset-def}, \texttt{cc-exhaust-membership}, \texttt{nn-one-in}, \texttt{nn-add-closed}, \texttt{nn-in-rr}, \texttt{cc-exhaust-radius}, \texttt{cc-exhaust-radius-decrease}, \texttt{rr-sub-in-rr}, \texttt{cc-magnitude-closed}, \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}, \texttt{ball-is-open}, \texttt{cc-ms-ball-centre}, \texttt{cc-ms-ball-membership}, \texttt{cc-sub-in-cc}, \texttt{cc-magnitude-triangle}, \texttt{cc-magnitude-sub-chain}, \texttt{subset-mem-fwd}, \texttt{interior-mem-intro}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-exhaust-mono}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}function-\allowbreak{}spaces.scm} --- 54 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{subset-def}, \texttt{cc-exhaust-membership}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{rr-one-in}, \texttt{rr-add-in-rr}, \texttt{cc-exhaust-radius}, \texttt{rr-recip-antitone}, \texttt{cc-magnitude-closed}, \texttt{cc-ms-ball-mono}, \texttt{subset-trans}, \texttt{cc-is-metric-space}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-exhaust-covers}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}function-\allowbreak{}spaces.scm} --- 107 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-is-metric-space}, \texttt{subset-mem-fwd}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-lt-of-pos-rr}, \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}, \texttt{rr-recip-closed}, \texttt{cc-magnitude-closed}, \texttt{nn-unbounded-in-rr}, \texttt{nn-add-closed}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{rr-one-in}, \texttt{rr-add-in-rr}, \texttt{nn-recip-succ-small-at}, \texttt{cc-exhaust-radius}, \texttt{cc-ms-ball-mono}, \texttt{subset-trans}, \texttt{cc-exhaust-membership}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} PROVEN 2026-10-14 for an OPEN subset u of CC, the only case chapter 5 uses, with the sequence written down: K\_n = CC-EXHAUST(u, n) = \{z in CC : |z| $<$= n, B(z, 1/(n+1)) subset u\}. Each K\_n is compact, lies in u and in the interior of K\_\{n+1\}, and every compact subset of u lies in some K\_n (cc-exhaust-exhaustive). The general separable locally compact metric space is not stated.
+%
+\renewcommand{\thethm}{5.2}
+\begin{prop}[{C(U) is a Frechet space for uniform convergence on compacta}]\label{thm:cc-cont-fns-frechet}
+%
+\leavevmode
+\vnbpart{\texttt{cc-cont-fns-frechet}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u. \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}frechet\text{-}structure}(\operatorname{cc\text{-}normed\text{-}field}, \operatorname{cc\text{-}fn\text{-}module}(u, \operatorname{cc\text{-}cont\text{-}fns}(u)), \\ \quad \quad \quad \operatorname{cc\text{-}exhaust\text{-}seminorms}(u, \operatorname{cc\text{-}cont\text{-}fns}(u))) \end{array}}
+\vnbpart{\texttt{cc-fn-module-is-module}}
+\vnbstmt{\forall u.\; ((u \subseteq \mathbb{C}) \Rightarrow \operatorname{is\text{-}module}(\operatorname{cc\text{-}fn\text{-}module}(u, \operatorname{cc\text{-}cont\text{-}fns}(u))))}
+\vnbpart{\texttt{cc-exhaust-seminorms-family}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u. \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}seminorm\text{-}family}(\operatorname{cc\text{-}normed\text{-}field}, \operatorname{cc\text{-}fn\text{-}module}(u, \operatorname{cc\text{-}cont\text{-}fns}(u)), \\ \quad \quad \quad \operatorname{cc\text{-}exhaust\text{-}seminorms}(u, \operatorname{cc\text{-}cont\text{-}fns}(u))) \end{array}}
+\vnbpart{\texttt{cc-exhaust-uniform-iff-compacta}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, m, f. \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \Rightarrow  \\ \quad \quad \forall n \in \mathbb{N}, s. \\ \quad \quad \quad \operatorname{pos\text{-}rr}(s) \Rightarrow  \\ \quad \quad \quad \quad \exists p \in \mathbb{N}. \forall k \in \mathbb{N}, z \in \operatorname{cc\text{-}exhaust}(u, n). \\ \quad \quad \quad \quad \quad (p \leq k) \Rightarrow (\operatorname{magnitude}((m(k)(z) - f(z))) \leq s) \\ \quad \quad \Leftrightarrow\; \operatorname{unif\text{-}on\text{-}compacta}(u, m, f) \end{array}}
+\vnbpart{\texttt{cc-fr-conv-iff-unif-on-compacta}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall s \in (\mathbb{N} \to \operatorname{cc\text{-}cont\text{-}fns}(u)), f \in \operatorname{cc\text{-}cont\text{-}fns}(u). \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \Rightarrow  \\ \quad \quad \operatorname{fr\text{-}conv}(\operatorname{cc\text{-}fn\text{-}module}(u, \operatorname{cc\text{-}cont\text{-}fns}(u)), \operatorname{cc\text{-}exhaust\text{-}seminorms}(u, \operatorname{cc\text{-}cont\text{-}fns}(u)), s, f) \\ \quad \quad \Leftrightarrow\; \operatorname{unif\text{-}on\text{-}compacta}(u, s, f) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{cc-cont-fns-frechet}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}frechet.scm} --- 223 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{cc-cont-fns-is-set}, \texttt{cc-is-normed-field}, \texttt{cc-fn-module-is-module}, \texttt{cc-exhaust-seminorms-family}, \texttt{cc-fn-module-scal}, \texttt{cc-fn-module-vec}, \texttt{cc-fn-module-vadd}, \texttt{cc-fn-module-vzero}, \texttt{cc-fn-module-vneg}, \texttt{cc-fn-module-act}, \texttt{cc-ms-open-iff}, \texttt{cc-is-metric-space}, \texttt{cc-fn-module-cauchy-uniform}, \texttt{cc-fn-module-limit-function}, \texttt{cc-fn-module-limit-uniform}, \texttt{cc-cont-fns-membership}, \texttt{cc-exhaust-covers}, \texttt{nn-one-in}, \texttt{nn-add-closed}, \texttt{cc-exhaust-interior}, \texttt{subset-mem-fwd}, \texttt{cc-exhaust-subset}, \texttt{interior-membership}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-lt-of-pos-rr}, \texttt{subset-trans}, \texttt{cc-uniform-limit-continuous-at}, \texttt{rr-mul-closed}, \texttt{rr-pos-rr-of-lt}, \texttt{fun-apply-type-c}, \texttt{cc-fn-module-seminorm-of-difference}, \texttt{cc-cont-fns-fun}, \texttt{cc-sub-in-cc}, \texttt{cc-sup-norm-bound}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-fn-module-is-module}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}frechet.scm} --- 169 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{cc-cont-fns-is-set}, \texttt{cc-is-normed-field}, \texttt{commutative-ring-is-ring}, \texttt{cc-cont-fns-zero}, \texttt{cc-fn-module-scal}, \texttt{cc-fn-module-vec}, \texttt{cc-fn-module-vadd}, \texttt{cc-fn-module-vzero}, \texttt{cc-fn-module-vneg}, \texttt{cc-fn-module-act}, \texttt{cc-scalar-ring-carr}, \texttt{cc-scalar-ring-add}, \texttt{cc-scalar-ring-mul}, \texttt{cc-scalar-ring-one}, \texttt{cc-cont-fns-add}, \texttt{cartesian-set-iff}, \texttt{cc-cont-fns-neg}, \texttt{cc-cont-fns-scale}, \texttt{cc-fn-vadd-assoc}, \texttt{cc-fn-vadd-comm}, \texttt{cc-fn-vadd-zero-left}, \texttt{cc-fn-vadd-zero-right}, \texttt{cc-fn-vadd-neg-left}, \texttt{cc-fn-vadd-neg-right}, \texttt{cc-fn-act-distrib-vec}, \texttt{cc-fn-act-distrib-scalar}, \texttt{cc-fn-act-mul-compat}, \texttt{cc-fn-act-unital}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-exhaust-seminorms-family}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}frechet.scm} --- 175 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{cc-cont-fns-is-set}, \texttt{cc-is-normed-field}, \texttt{cc-fn-module-is-module}, \texttt{cc-fn-module-scal}, \texttt{cc-fn-module-vec}, \texttt{cc-fn-module-vadd}, \texttt{cc-fn-module-vzero}, \texttt{cc-fn-module-vneg}, \texttt{cc-fn-module-act}, \texttt{cc-cont-fns-membership}, \texttt{cc-exhaust-seminorm-real}, \texttt{nn-is-set}, \texttt{cc-scalar-ring-carr}, \texttt{cc-cont-fns-add}, \texttt{cc-exhaust-seminorm-subadditive}, \texttt{cc-cont-fns-scale}, \texttt{cc-exhaust-seminorm-homogeneous}, \texttt{cc-exhaust-seminorms-separate}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-exhaust-uniform-iff-compacta}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}function-\allowbreak{}spaces.scm} --- 46 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-exhaust-exhaustive}, \texttt{subset-mem-fwd}, \texttt{cc-exhaust-subset}, \texttt{cc-exhaust-compact}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-fr-conv-iff-unif-on-compacta}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}montel.scm} --- 195 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{cc-cont-fns-is-set}, \texttt{cc-fn-module-is-module}, \texttt{cc-exhaust-seminorms-family}, \texttt{cc-cont-fns-membership}, \texttt{cc-exhaust-uniform-iff-compacta}, \texttt{rr-pos-rr-in-rr}, \texttt{fun-apply-type-c}, \texttt{cc-fn-module-seminorm-of-difference}, \texttt{cc-exhaust-subset}, \texttt{cc-cont-fns-fun}, \texttt{subset-mem-fwd}, \texttt{cc-sub-in-cc}, \texttt{cc-cont-fns-diff}, \texttt{cc-exhaust-seminorm-real}, \texttt{cc-sup-norm-upper}, \texttt{cc-magnitude-closed}, \texttt{rr-lt-of-pos-rr}, \texttt{rr-mul-in-rr}, \texttt{rr-pos-rr-of-lt}, \texttt{cc-sup-norm-bound}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} PROVEN 2026-10-14 for an open u in CC: IS-FRECHET-STRUCTURE(CC-NORMED-FIELD, CC-FN-MODULE(u, CC-CONT-FNS(u)), CC-EXHAUST-SEMINORMS(u, CC-CONT-FNS(u))), the seminorms p\_n(f) = sup of |f| on K\_n. The metric of the notes is the library's FR-METRIC-SPACE of a countable seminorm family (TVS-1), and convergence in it is exactly UNIF-ON-COMPACTA (cc-fr-conv-iff-unif-on-compacta), which is the topology statement in the form of convergent sequences.
+%
+\renewcommand{\thethm}{5.3}
+\begin{prop}[{H(U) is closed in C(U)}]\label{thm:cc-hol-fns-closed}
+%
+\leavevmode
+\vnbpart{\texttt{cc-hol-fns-closed}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall s \in (\mathbb{N} \to \operatorname{cc\text{-}hol\text{-}fns}(u)), f \in \operatorname{cc\text{-}cont\text{-}fns}(u). \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge \\ \quad \operatorname{fr\text{-}conv}(\operatorname{cc\text{-}fn\text{-}module}(u, \operatorname{cc\text{-}cont\text{-}fns}(u)), \operatorname{cc\text{-}exhaust\text{-}seminorms}(u, \operatorname{cc\text{-}cont\text{-}fns}(u)), s, f) \Rightarrow \\ \quad \quad f \in \operatorname{cc\text{-}hol\text{-}fns}(u) \end{array}}
+\vnbpart{\texttt{cc-hol-fns-subset-cont}}
+\vnbstmt{\forall u.\; (\operatorname{cc\text{-}hol\text{-}fns}(u) \subseteq \operatorname{cc\text{-}cont\text{-}fns}(u))}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{cc-hol-fns-closed}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}frechet.scm} --- 143 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{cc-cont-fns-is-set}, \texttt{cc-fn-module-is-module}, \texttt{cc-exhaust-seminorms-family}, \texttt{cc-hol-fns-subset-cont}, \texttt{fun-codomain-superset}, \texttt{cc-cont-fns-membership}, \texttt{cc-exhaust-uniform-iff-compacta}, \texttt{rr-pos-rr-in-rr}, \texttt{fun-apply-type-c}, \texttt{cc-fn-module-seminorm-of-difference}, \texttt{cc-exhaust-subset}, \texttt{cc-cont-fns-fun}, \texttt{subset-mem-fwd}, \texttt{cc-sub-in-cc}, \texttt{cc-sup-norm-upper}, \texttt{cc-magnitude-closed}, \texttt{cc-cont-fns-diff}, \texttt{cc-exhaust-seminorm-real}, \texttt{cc-hol-fns-membership}, \texttt{holomorphic-limit-on-compacta}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-hol-fns-subset-cont}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}frechet.scm} --- 21 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{subset-def}, \texttt{cc-hol-fns-membership}, \texttt{holomorphic-on-continuous}, \texttt{cc-cont-fns-membership}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} PROVEN 2026-10-14 in SEQUENCE form (the user's decision of 2026-10-14): a sequence in H(u) converging in the Frechet structure of C(u) to f in C(u) has f in H(u). C(u) is metrizable, so this is closedness; no topology layer states it as a closed set.
+%
+\renewcommand{\thethm}{5.7}
+\begin{thm}[{Montel: bounded closed subsets of H(U) are compact}]\label{thm:cc-montel}
+%
+\leavevmode
+\vnbpart{\texttt{cc-montel}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall s \in (\mathbb{N} \to \operatorname{cc\text{-}hol\text{-}fns}(u)). \\ \quad (\operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge \operatorname{cc\text{-}hol\text{-}bounded}(u, \operatorname{image}(s, \mathbb{N}))) \Rightarrow  \\ \quad \quad \exists i. \\ \quad \quad \quad (\operatorname{strictly\text{-}mono\text{-}nn}(i) \wedge \exists g \in \operatorname{cc\text{-}hol\text{-}fns}(u).\; \operatorname{unif\text{-}on\text{-}compacta}(u, \operatorname{subseq}(s, i), g)) \end{array}}
+\vnbpart{\texttt{cc-montel-subsequence}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall s \in (\mathbb{N} \to \operatorname{cc\text{-}hol\text{-}fns}(u)). \\ \quad (\operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge \operatorname{cc\text{-}hol\text{-}bounded}(u, \operatorname{image}(s, \mathbb{N}))) \Rightarrow  \\ \quad \quad \exists a. \\ \quad \quad \quad \operatorname{strictly\text{-}mono\text{-}nn}(a) \wedge \\ \quad \quad \quad \forall k \in \mathbb{N}, b. \\ \quad \quad \quad \quad \operatorname{pos\text{-}rr}(b) \Rightarrow  \\ \quad \quad \quad \quad \quad \exists p \in \mathbb{N}. \forall i, j \in \mathbb{N}, z \in \operatorname{cc\text{-}exhaust}(u, k). \\ \quad \quad \quad \quad \quad \quad ((p \leq i) \wedge (p \leq j)) \Rightarrow  \\ \quad \quad \quad \quad \quad \quad \quad \operatorname{magnitude}((\operatorname{subseq}(s, a)(i)(z) - \operatorname{subseq}(s, a)(j)(z))) < b \end{array}}
+\vnbpart{\texttt{cc-montel-tail}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall s \in (\mathbb{N} \to \operatorname{cc\text{-}hol\text{-}fns}(u)). \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge \\ \quad \forall k \in \mathbb{N}, a. \\ \quad \quad \operatorname{pos\text{-}rr}(a) \Rightarrow  \\ \quad \quad \quad \exists p \in \mathbb{N}. \forall i, j \in \mathbb{N}, z \in \operatorname{cc\text{-}exhaust}(u, k). \\ \quad \quad \quad \quad ((p \leq i) \wedge (p \leq j)) \Rightarrow (\operatorname{magnitude}((s(i)(z) - s(j)(z))) < a) \Rightarrow \\ \quad \quad \exists g \in \operatorname{cc\text{-}hol\text{-}fns}(u).\; \operatorname{unif\text{-}on\text{-}compacta}(u, s, g) \end{array}}
+\vnbpart{\texttt{cc-pointwise-diagonal}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, s, d. \\ \quad u \subseteq \mathbb{C} \wedge \\ \quad \forall k \in \mathbb{N}, z \in u.\; (s(k)(z) \in \mathbb{C}) \wedge \\ \quad \forall z \in u. \exists a \in \mathbb{R}. \forall k \in \mathbb{N}. \\ \quad \quad \operatorname{magnitude}(s(k)(z)) \leq a \wedge \\ \quad \operatorname{is\text{-}dense\text{-}seq}(\operatorname{subspace\text{-}ms}(\operatorname{cc\text{-}ms}, u), d) \Rightarrow \\ \quad \quad \exists i. \\ \quad \quad \quad \operatorname{strictly\text{-}mono\text{-}nn}(i) \wedge \\ \quad \quad \quad \forall j \in \mathbb{N}. \exists \ell \in \mathbb{C}. \\ \quad \quad \quad \quad \operatorname{converges\text{-}to}(\operatorname{cc\text{-}ms}, (\lambda \mathit{cmk} \in \mathbb{N}.\; s(i(\mathit{cmk}))(d(j))), \ell) \end{array}}
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{cc-montel}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}montel.scm} --- 41 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-montel-subsequence}, \texttt{fun-apply-type-c}, \texttt{nn-is-set}, \texttt{cc-montel-tail}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-montel-subsequence}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}montel.scm} --- 435 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{cc-is-metric-space}, \texttt{cc-ms-open-iff}, \texttt{fun-apply-type-c}, \texttt{cc-hol-fns-membership}, \texttt{cc-exhaust-covers}, \texttt{membership-implies-sethood}, \texttt{cc-hol-bounded-equicontinuous}, \texttt{cc-exhaust-dense-seqs}, \texttt{cc-exhaust-dense-in-u}, \texttt{cc-pointwise-diagonal}, \texttt{nn-add-closed}, \texttt{nn-le-add-right}, \texttt{cc-exhaust-mono}, \texttt{cc-exhaust-subset}, \texttt{subset-trans}, \texttt{cc-exhaust-compact}, \texttt{subseq-apply}, \texttt{subset-mem-fwd}, \texttt{nnpair-type}, \texttt{nnfst-nnpair}, \texttt{nnsnd-nnpair}, \texttt{subspace-pts}, \texttt{nn-is-set}, \texttt{fun-codomain-iff}, \texttt{fun-domain-extensionality}, \texttt{cc-unif-cauchy-on-compact}, \texttt{nn-zero-in}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-montel-tail}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}montel.scm} --- 50 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-hol-fns-subset-cont}, \texttt{fun-codomain-superset}, \texttt{cc-fn-module-limit-function}, \texttt{cc-fn-module-limit-uniform}, \texttt{cc-exhaust-uniform-iff-compacta}, \texttt{fun-apply-type-c}, \texttt{cc-hol-fns-membership}, \texttt{holomorphic-limit-on-compacta}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-pointwise-diagonal}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}montel.scm} --- 533 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-is-metric-space}, \texttt{rr-is-metric-space}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{subspace-is-metric-space}, \texttt{subspace-pts}, \texttt{real-part-in-rr}, \texttt{nn-is-set}, \texttt{cc-abs-re-le-magnitude}, \texttt{cc-magnitude-closed}, \texttt{rr-abs-closed}, \texttt{ascoli-pointwise-diagonal}, \texttt{fun-apply-type-c}, \texttt{imag-part-in-rr}, \texttt{cc-abs-im-le-magnitude}, \texttt{subseq-of-convergent}, \texttt{subseq-apply}, \texttt{subseq-is-fun}, \texttt{rr-subset-cc}, \texttt{cc-i-in}, \texttt{cc-mul-closed}, \texttt{cc-add-closed}, \texttt{cc-re-im-of}, \texttt{cc-converges-of-coords}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} PROVEN 2026-10-14 in SEQUENCE form (the user's decision of 2026-10-14): u open, s in FUN(NN, H(u)) with CC-HOL-BOUNDED(u, IMAGE(s, NN)) has a strictly monotone phi and g in H(u) with UNIF-ON-COMPACTA(u, SUBSEQ(s, phi), g). The set form needs compactness relative to a seminorm family, which the library does not have. The route avoids Tychonoff (5.15): the diagonal step is ascoli-pointwise-diagonal, the uniform step equicont-dense-conv-implies-unif-cauchy. Corollary 5.19 is not stated.
+%
+\renewcommand{\thethm}{5.8}
+\begin{prop}[{Bounded subsets of H(U) are equicontinuous}]\label{thm:cc-hol-bounded-equicontinuous}
+%
+\leavevmode
+\vnbpart{\texttt{cc-hol-bounded-equicontinuous}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, a.; \forall b \in u, s. \\ \quad (\operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge (\operatorname{cc\text{-}hol\text{-}bounded}(u, a) \wedge \operatorname{pos\text{-}rr}(s))) \Rightarrow  \\ \quad \quad \exists l. \\ \quad \quad \quad (\operatorname{pos\text{-}rr}(l) \wedge \forall f \in a, z \in u.\; ((\operatorname{magnitude}((z - b)) < l) \Rightarrow (\operatorname{magnitude}((f(z) - f(b))) < s))) \end{array}}
+\vnbpart{\texttt{cc-holomorphic-deriv-estimate}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, f.; \forall y \in \mathbb{C}, q, m \in \mathbb{R}. \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge \\ \quad \operatorname{holomorphic\text{-}on}(u, f) \wedge \\ \quad 0 < q \wedge \\ \quad \operatorname{ball}(\operatorname{cc\text{-}ms}, y, (2 \cdot q)) \subseteq u \wedge \\ \quad \forall \mathit{cmy} \in \operatorname{ball}(\operatorname{cc\text{-}ms}, y, (2 \cdot q)).\; (\operatorname{magnitude}(f(\mathit{cmy})) \leq m) \Rightarrow \\ \quad \quad \operatorname{magnitude}(\operatorname{deriv\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, f, y)) \leq (m \cdot \operatorname{recip}(q)) \end{array}}
+\vnbpart{\texttt{cc-holomorphic-lipschitz-at-centre}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, f.; \forall c \in \mathbb{C}, q, m \in \mathbb{R}, z \in \operatorname{ball}(\operatorname{cc\text{-}ms}, c, q). \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge \\ \quad \operatorname{holomorphic\text{-}on}(u, f) \wedge \\ \quad 0 < q \wedge \\ \quad \operatorname{ball}(\operatorname{cc\text{-}ms}, c, (3 \cdot q)) \subseteq u \wedge \\ \quad \forall y \in \operatorname{ball}(\operatorname{cc\text{-}ms}, c, (3 \cdot q)).\; (\operatorname{magnitude}(f(y)) \leq m) \Rightarrow \\ \quad \quad \operatorname{magnitude}((f(z) - f(c))) \leq ((m \cdot \operatorname{recip}(q)) \cdot \operatorname{magnitude}((z - c))) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{cc-hol-bounded-equicontinuous}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}montel.scm} --- 268 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{cc-is-metric-space}, \texttt{subset-mem-fwd}, \texttt{cc-ms-open-iff}, \texttt{cc-exhaust-covers}, \texttt{nn-one-in}, \texttt{nn-add-closed}, \texttt{cc-exhaust-interior}, \texttt{cc-exhaust-subset}, \texttt{interior-membership}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-lt-of-pos-rr}, \texttt{rr-mul-in-rr}, \texttt{cc-ms-ball-mono}, \texttt{subset-trans}, \texttt{rr-abs-closed}, \texttt{rr-abs-nonneg}, \texttt{rr-le-abs}, \texttt{rr-pos-ne-zero}, \texttt{rr-recip-closed}, \texttt{rr-recip-pos}, \texttt{rr-leq-mul-nonneg}, \texttt{rr-pos-rr-of-lt}, \texttt{aif-scale-small}, \texttt{rr-min-pos}, \texttt{cc-hol-fns-membership}, \texttt{cc-sub-in-cc}, \texttt{cc-magnitude-closed}, \texttt{cc-ms-dist}, \texttt{cc-magnitude-sub-sym}, \texttt{ball-mem-from-le}, \texttt{fun-apply-type-c}, \texttt{cc-holomorphic-lipschitz-at-centre}, \texttt{rr-le-scale-nonneg}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-holomorphic-deriv-estimate}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}montel.scm} --- 218 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{cc-is-metric-space}, \texttt{rr-mul-in-rr}, \texttt{circle-trace-in-punctured-ball}, \texttt{nn-zero-in}, \texttt{nn-succ-closed}, \texttt{cauchy-estimate-derivative}, \texttt{cc-sub-in-cc}, \texttt{cc-magnitude-closed}, \texttt{cc-magnitude-zero-iff}, \texttt{cc-ms-dist}, \texttt{cc-magnitude-sub-sym}, \texttt{ball-mem-from-le}, \texttt{cc-ms-open-iff}, \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}, \texttt{ball-is-open}, \texttt{cc-ms-ball-mono}, \texttt{subset-trans}, \texttt{subset-mem-fwd}, \texttt{holomorphic-on-diff}, \texttt{cc-deriv-on-of-is-diff-on}, \texttt{diff-on-shrink}, \texttt{nth-deriv-on-succ-apply}, \texttt{rr-pos-ne-zero}, \texttt{rr-recip-closed}, \texttt{rr-subset-cc}, \texttt{power-succ}, \texttt{power-zero}, \texttt{nn-one-is-succ-zero}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-holomorphic-lipschitz-at-centre}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}montel.scm} --- 397 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{cc-is-metric-space}, \texttt{rr-mul-in-rr}, \texttt{cc-ms-ball-mono}, \texttt{subset-trans}, \texttt{ball-membership}, \texttt{cc-ms-dist}, \texttt{cc-sub-in-cc}, \texttt{cc-magnitude-closed}, \texttt{cc-magnitude-sub-sym}, \texttt{rr-le-ne-lt}, \texttt{cc-magnitude-zero-iff}, \texttt{ball-mem-from-le}, \texttt{holomorphic-deriv-holomorphic}, \texttt{holomorphic-on-in-fun}, \texttt{holomorphic-on-continuous}, \texttt{holomorphic-on-diff}, \texttt{cc-deriv-on-of-is-diff-on}, \texttt{segment-is-road}, \texttt{cc-ball-is-convex}, \texttt{seg-trace-in-convex}, \texttt{seg-trace-bridge}, \texttt{subset-mem-fwd}, \texttt{subset-def}, \texttt{cc-magnitude-triangle}, \texttt{cc-holomorphic-deriv-estimate}, \texttt{rr-zero-in}, \texttt{rr-one-in}, \texttt{line-int-of-derivative}, \texttt{ccint-membership}, \texttt{rr-pos-ne-zero}, \texttt{rr-recip-closed}, \texttt{segment-int-abs-bound}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} PROVEN 2026-10-14: CC-HOL-BOUNDED(u, a) (a subset of H(u), with a bound M\_n on every K\_n) gives equicontinuity of a at every point of u. The proof uses Cauchy's estimate on a disc, not the integral over a triangle (3.41) of the notes.
+%
+\renewcommand{\thethm}{5.20}
+\begin{prop}[{Differentiation is continuous on H(U)}]\label{thm:cc-deriv-continuous-on-hol}
+%
+\leavevmode
+\vnbpart{\texttt{cc-deriv-continuous-on-hol}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall s \in (\mathbb{N} \to \operatorname{cc\text{-}hol\text{-}fns}(u)), f \in \operatorname{cc\text{-}hol\text{-}fns}(u). \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge \\ \quad \operatorname{fr\text{-}conv}(\operatorname{cc\text{-}fn\text{-}module}(u, \operatorname{cc\text{-}cont\text{-}fns}(u)), \operatorname{cc\text{-}exhaust\text{-}seminorms}(u, \operatorname{cc\text{-}cont\text{-}fns}(u)), s, f) \Rightarrow \\ \quad \quad \operatorname{fr\text{-}conv}(\operatorname{cc\text{-}fn\text{-}module}(u, \operatorname{cc\text{-}cont\text{-}fns}(u)), \\ \quad \quad \quad \operatorname{cc\text{-}exhaust\text{-}seminorms}(u, \operatorname{cc\text{-}cont\text{-}fns}(u)), \\ \quad \quad \quad (\lambda k \in \mathbb{N}.\; (\lambda w \in u.\; \operatorname{deriv\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, s(k), w))), \\ \quad \quad \quad (\lambda w \in u.\; \operatorname{deriv\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, f, w))) \end{array}}
+\vnbpart{\texttt{cc-deriv-linear}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, f, g.; \forall a, b \in \mathbb{C}, z \in u. \\ \quad (\operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge (\operatorname{holomorphic\text{-}on}(u, f) \wedge \operatorname{holomorphic\text{-}on}(u, g))) \Rightarrow  \\ \quad \quad \operatorname{deriv\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, (\lambda w \in u.\; ((a \cdot f(w)) + (b \cdot g(w)))), z) \\ \quad \quad =\; (a \cdot \operatorname{deriv\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, f, z)) + (b \cdot \operatorname{deriv\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, g, z)) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{cc-deriv-continuous-on-hol}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}montel.scm} --- 90 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{cc-hol-fns-subset-cont}, \texttt{fun-codomain-superset}, \texttt{subset-mem-fwd}, \texttt{cc-fr-conv-iff-unif-on-compacta}, \texttt{cc-hol-fns-membership}, \texttt{fun-apply-type-c}, \texttt{holomorphic-limit-derivatives}, \texttt{holomorphic-deriv-holomorphic}, \texttt{holomorphic-on-in-fun}, \texttt{nn-is-set}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-deriv-linear}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}series.scm} --- 176 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{cc-is-normed-field}, \texttt{holomorphic-on-diff}, \texttt{cc-deriv-on-of-is-diff-on}, \texttt{diff-on-deriv-in-carr}, \texttt{cc-nf-carr}, \texttt{cc-mul-closed}, \texttt{cc-diff-on-scale}, \texttt{diff-on-sum}, \texttt{cc-nf-add-apply}, \texttt{fun-apply-type-c}, \texttt{cc-add-closed}, \texttt{subset-refl}, \texttt{cc-diff-on-local}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} PROVEN 2026-10-14 in two halves: SEQUENTIAL continuity (cc-deriv-continuous-on-hol: s\_k -$>$ f in the Frechet structure, all in H(u), gives s\_k' -$>$ f') and linearity (cc-deriv-linear: D(c f + d g) = c f' + d g'). Not stated: D as a continuous linear operator on an H(U) module, which needs CC-FN-MODULE(u, CC-HOL-FNS(u)) shown to be a module.
+%
+\renewcommand{\thethm}{5.21}
+\begin{lem}[{The seminorms of f' are bounded by seminorms of f}]\label{thm:cc-deriv-seminorm-estimate}
+%
+\leavevmode
+\vnbpart{\texttt{cc-deriv-seminorm-estimate}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, f.; \forall n \in \mathbb{N}, m \in \mathbb{R}, y \in \operatorname{cc\text{-}exhaust}(u, n). \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge \\ \quad \operatorname{holomorphic\text{-}on}(u, f) \wedge \\ \quad \forall \mathit{cmy} \in \operatorname{cc\text{-}exhaust}(u, ((4 \cdot n) + 3)).\; (\operatorname{magnitude}(f(\mathit{cmy})) \leq m) \Rightarrow \\ \quad \quad \operatorname{magnitude}(\operatorname{deriv\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, f, y)) \leq (m \cdot (4 \cdot (n + 1))) \end{array}}
+\vnbpart{\texttt{cc-exhaust-ball-inside}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall n \in \mathbb{N}, y \in \operatorname{cc\text{-}exhaust}(u, n). \\ \quad \operatorname{ball}(\operatorname{cc\text{-}ms}, y, (1/2 \cdot \operatorname{recip}((n + 1)))) \subseteq \operatorname{cc\text{-}exhaust}(u, ((4 \cdot n) + 3)) \end{array}}
+%
+\end{lem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{cc-deriv-seminorm-estimate}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}series.scm} --- 207 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-is-metric-space}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{cc-exhaust-radius}, \texttt{rr-mul-in-rr}, \texttt{cc-exhaust-membership}, \texttt{cc-ms-ball-mono}, \texttt{nn-mul-closed}, \texttt{nn-add-closed}, \texttt{cc-exhaust-ball-inside}, \texttt{cc-exhaust-subset}, \texttt{subset-trans}, \texttt{subset-mem-fwd}, \texttt{cc-holomorphic-deriv-estimate}, \texttt{rr-one-in}, \texttt{rr-add-in-rr}, \texttt{rr-pos-ne-zero}, \texttt{rr-recip-inverse}, \texttt{rr-recip-solve}, \texttt{rr-recip-closed}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-exhaust-ball-inside}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}series.scm} --- 230 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-is-metric-space}, \texttt{cc-exhaust-membership}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{cc-exhaust-radius}, \texttt{cc-exhaust-radius-decrease}, \texttt{cc-exhaust-radius-quarter}, \texttt{rr-mul-in-rr}, \texttt{nn-mul-closed}, \texttt{nn-add-closed}, \texttt{subset-def}, \texttt{ball-membership}, \texttt{cc-ms-dist}, \texttt{cc-sub-in-cc}, \texttt{cc-magnitude-closed}, \texttt{cc-magnitude-sub-sym}, \texttt{rr-le-ne-lt}, \texttt{cc-magnitude-triangle}, \texttt{cc-magnitude-sub-chain}, \texttt{ball-mem-from-le}, \texttt{subset-mem-fwd}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} PROVEN 2026-10-14 on the exhaustion, with another constant: if |f| $<$= M on K\_\{4n+3\} then |f'| $<$= 4(n+1) M on K\_n, i.e. p\_n(f') $<$= 4(n+1) p\_\{4n+3\}(f). The notes bound p\_K(f') through a triangle containing K (Cor. 3.42); here the bound comes from Cauchy's estimate on discs.
+%
+\renewcommand{\thethm}{5.22}
+\begin{prop}[{Normally convergent series of holomorphic functions differentiate term by term}]\label{thm:cc-series-holomorphic}
+%
+\leavevmode
+\vnbpart{\texttt{cc-series-holomorphic}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall g \in (\mathbb{N} \to \operatorname{cc\text{-}hol\text{-}fns}(u)). \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge \\ \quad \forall n \in \mathbb{N}.\; \operatorname{is\text{-}normally\text{-}convergent}(g, \operatorname{cc\text{-}exhaust}(u, n)) \Rightarrow \\ \quad \quad \operatorname{holomorphic\text{-}on}(u, (\lambda w \in u.\; \operatorname{cc\text{-}series\text{-}limit}((\lambda i \in \mathbb{N}.\; g(i)(w))))) \wedge \\ \quad \quad \forall z \in u. \\ \quad \quad \quad \operatorname{deriv\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, (\lambda w \in u.\; \operatorname{cc\text{-}series\text{-}limit}((\lambda i \in \mathbb{N}.\; g(i)(w)))), z) \\ \quad \quad \quad =\; \operatorname{cc\text{-}series\text{-}limit}((\lambda \mathit{cdi} \in \mathbb{N}.\; \operatorname{deriv\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, g(\mathit{cdi}), z))) \end{array}}
+\vnbpart{\texttt{cc-derived-series-normally-convergent}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u.; \forall g \in (\mathbb{N} \to \operatorname{cc\text{-}hol\text{-}fns}(u)), n \in \mathbb{N}. \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \wedge \\ \quad \forall n \in \mathbb{N}.\; \operatorname{is\text{-}normally\text{-}convergent}(g, \operatorname{cc\text{-}exhaust}(u, n)) \Rightarrow \\ \quad \quad \operatorname{is\text{-}normally\text{-}convergent}((\lambda i \in \mathbb{N}.\; (\lambda z \in u.\; \operatorname{deriv\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, g(i), z))), \\ \quad \quad \quad \operatorname{cc\text{-}exhaust}(u, n)) \end{array}}
+\vnbpart{\texttt{cc-normal-convergence-uniform}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall g, s, a. \\ \quad (\forall i \in \mathbb{N}, y \in s.\; (g(i)(y) \in \mathbb{C}) \wedge (\operatorname{is\text{-}normally\text{-}convergent}(g, s) \wedge \operatorname{pos\text{-}rr}(a))) \Rightarrow  \\ \quad \quad \exists p \in \mathbb{N}. \forall n \in \mathbb{N}, z \in s. \\ \quad \quad \quad (p \leq n) \Rightarrow  \\ \quad \quad \quad \quad \operatorname{magnitude}((\operatorname{cc\text{-}series\text{-}limit}((\lambda i \in \mathbb{N}.\; g(i)(z))) - \operatorname{cc\text{-}series\text{-}partial\text{-}sum}((\lambda i \in \mathbb{N}.\; g(i)(z)), n))) \\ \quad \quad \quad \quad \leq\; a \end{array}}
+\vnbpart{\texttt{cc-normal-convergence-pointwise}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall g, s.; \forall z \in s. \\ \quad (\forall i \in \mathbb{N}, y \in s.\; (g(i)(y) \in \mathbb{C}) \wedge \operatorname{is\text{-}normally\text{-}convergent}(g, s)) \Rightarrow  \\ \quad \quad \operatorname{cc\text{-}series\text{-}converges}((\lambda i \in \mathbb{N}.\; g(i)(z))) \end{array}}
+\vnbpart{\texttt{cc-partial-sums-diff}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall n \in \mathbb{N}, u.; \forall g \in (\mathbb{N} \to \operatorname{cc\text{-}hol\text{-}fns}(u)), z \in u. \\ \quad \operatorname{is\text{-}open}(\operatorname{nf\text{-}metric\text{-}space}(\operatorname{cc\text{-}normed\text{-}field}), u) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}diff\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, \\ \quad \quad \quad (\lambda w \in u.\; \operatorname{cc\text{-}series\text{-}partial\text{-}sum}((\lambda i \in \mathbb{N}.\; g(i)(w)), n)), \\ \quad \quad \quad z, \\ \quad \quad \quad \operatorname{cc\text{-}series\text{-}partial\text{-}sum}((\lambda \mathit{cdi} \in \mathbb{N}.\; \operatorname{deriv\text{-}on}(\operatorname{cc\text{-}normed\text{-}field}, u, g(\mathit{cdi}), z)), n)) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{cc-series-holomorphic}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}series.scm} --- 548 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{cc-is-normed-field}, \texttt{cc-ms-open-iff}, \texttt{fun-apply-type-c}, \texttt{cc-hol-fns-membership}, \texttt{holomorphic-on-continuous}, \texttt{nn-is-set}, \texttt{cc-series-partial-sum-in-cc}, \texttt{holomorphic-on-diff}, \texttt{cc-deriv-on-of-is-diff-on}, \texttt{diff-on-deriv-in-carr}, \texttt{cc-nf-carr}, \texttt{cc-partial-sums-diff}, \texttt{cc-exhaust-covers}, \texttt{cc-exhaust-subset}, \texttt{subset-mem-fwd}, \texttt{cc-normal-convergence-pointwise}, \texttt{cc-series-limit-in-cc}, \texttt{cc-exhaust-uniform-iff-compacta}, \texttt{cc-normal-convergence-uniform}, \texttt{cc-magnitude-sub-sym}, \texttt{holomorphic-limit-on-compacta}, \texttt{holomorphic-limit-derivatives}, \texttt{cc-exhaust-compact}, \texttt{cc-derived-series-normally-convergent}, \texttt{cc-magnitude-closed}, \texttt{cc-magnitude-nonneg}, \texttt{cc-sup-norm-upper}, \texttt{comparison-test}, \texttt{cc-series-abs-converges}, \texttt{cc-sub-in-cc}, \texttt{cc-series-limit-converges-to}, \texttt{rr-pos-rr-in-rr}, \texttt{cek-limit-tail-le}, \texttt{rr-le-all-pos-nonpos}, \texttt{rr-zero-in}, \texttt{rr-leq-antisymmetric}, \texttt{cc-magnitude-zero-iff}, \texttt{cc-sub-zero-eq}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-derived-series-normally-convergent}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}series.scm} --- 301 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{nn-mul-closed}, \texttt{nn-add-closed}, \texttt{cc-exhaust-subset}, \texttt{rr-one-in}, \texttt{rr-add-in-rr}, \texttt{rr-mul-in-rr}, \texttt{fun-apply-type-c}, \texttt{cc-hol-fns-membership}, \texttt{holomorphic-on-continuous}, \texttt{subset-mem-fwd}, \texttt{cc-sup-norm-upper}, \texttt{cc-deriv-seminorm-estimate}, \texttt{cc-exhaust-seminorm-real}, \texttt{rr-leq-mul-nonneg}, \texttt{holomorphic-on-diff}, \texttt{cc-deriv-on-of-is-diff-on}, \texttt{diff-on-deriv-in-carr}, \texttt{cc-nf-carr}, \texttt{cc-magnitude-closed}, \texttt{cc-sup-norm-bound}, \texttt{nn-is-set}, \texttt{series-scale-converges}, \texttt{comparison-test}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}, \texttt{sos}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-normal-convergence-uniform}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}series.scm} --- 223 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nn-is-set}, \texttt{series-tail-small}, \texttt{rr-pos-rr-in-rr}, \texttt{cc-magnitude-closed}, \texttt{cc-magnitude-nonneg}, \texttt{cc-sup-norm-upper}, \texttt{comparison-test}, \texttt{cc-series-abs-converges}, \texttt{cc-series-limit-in-cc}, \texttt{cc-series-partial-sum-in-cc}, \texttt{nn-in-rr}, \texttt{cc-series-limit-converges-to}, \texttt{rr-sub-in-rr}, \texttt{series-partial-sum-in-rr}, \texttt{cc-sub-in-cc}, \texttt{cc-series-block-le}, \texttt{series-partial-sum-add}, \texttt{series-partial-sum-mono}, \texttt{cek-limit-tail-le}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-normal-convergence-pointwise}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}series.scm} --- 97 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nn-is-set}, \texttt{cc-magnitude-closed}, \texttt{cc-magnitude-nonneg}, \texttt{cc-sup-norm-upper}, \texttt{comparison-test}, \texttt{cc-series-abs-converges}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cc-partial-sums-diff}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca5-\allowbreak{}series.scm} --- 247 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-open-subset-cc}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{cc-is-normed-field}, \texttt{cc-zero-in}, \texttt{cc-nf-carr}, \texttt{cc-series-partial-sum-zero}, \texttt{diff-on-const}, \texttt{cc-nf-zero}, \texttt{fun-apply-type-c}, \texttt{cc-hol-fns-membership}, \texttt{holomorphic-on-continuous}, \texttt{nn-is-set}, \texttt{cc-series-partial-sum-in-cc}, \texttt{subset-refl}, \texttt{cc-diff-on-local}, \texttt{nn-succ-closed}, \texttt{holomorphic-on-diff}, \texttt{cc-deriv-on-of-is-diff-on}, \texttt{diff-on-deriv-in-carr}, \texttt{cc-series-partial-sum-succ}, \texttt{diff-on-sum}, \texttt{cc-nf-add-apply}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} PROVEN 2026-10-14, with normal convergence on compact subsets stated as IS-NORMALLY-CONVERGENT on every K\_n (equivalent by cc-exhaust-exhaustive): the derived series is normally convergent on every K\_n, the sum S is holomorphic on u, and DERIV-ON(u, S, z) = CC-SERIES-LIMIT of the derivatives.
+%
 \section{Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60)}
 %
 \renewcommand{\thethm}{2.7}
@@ -7095,6 +7660,17 @@ Complex analysis & 3.6 & Cauchy's theorem for triangles (Goursat) & \texttt{gour
 Complex analysis & 3.7 & Segment integrals in a convex set & \texttt{cauchy-\allowbreak{}convex-\allowbreak{}segments-\allowbreak{}except}, \texttt{cauchy-\allowbreak{}convex-\allowbreak{}segments} & proven \\
 Complex analysis & 3.8 & A primitive on a convex set & \texttt{cauchy-\allowbreak{}convex-\allowbreak{}primitive-\allowbreak{}except}, \texttt{cc-\allowbreak{}diff-\allowbreak{}on-\allowbreak{}of-\allowbreak{}eps-\allowbreak{}bound}, \texttt{cc-\allowbreak{}continuous-\allowbreak{}at-\allowbreak{}add-\allowbreak{}const}, \texttt{cauchy-\allowbreak{}convex-\allowbreak{}primitive} & proven \\
 Complex analysis & 3.9 & Cauchy's theorem on a convex set & \texttt{cauchy-\allowbreak{}convex-\allowbreak{}closed-\allowbreak{}except}, \texttt{cauchy-\allowbreak{}convex-\allowbreak{}closed}, \texttt{line-\allowbreak{}int-\allowbreak{}closed-\allowbreak{}road-\allowbreak{}of-\allowbreak{}derivative} & proven \\
+Complex analysis & 2.12 & Principle of analytic continuation & \texttt{analytic-\allowbreak{}continuation}, \texttt{holomorphic-\allowbreak{}identity-\allowbreak{}principle}, \texttt{holomorphic-\allowbreak{}zeros-\allowbreak{}local}, \texttt{holomorphic-\allowbreak{}zero-\allowbreak{}coefficients} & proven \\
+Complex analysis & 2.13 & Finitely many zeros in a closed ball & \texttt{analytic-\allowbreak{}zeros-\allowbreak{}finite-\allowbreak{}in-\allowbreak{}ball}, \texttt{compact-\allowbreak{}cover-\allowbreak{}by-\allowbreak{}balls} & proven \\
+Complex analysis & 3.44 & Weierstrass: uniform limits on compacta of holomorphic functions are holomorphic & \texttt{holomorphic-\allowbreak{}limit-\allowbreak{}on-\allowbreak{}compacta}, \texttt{holomorphic-\allowbreak{}limit-\allowbreak{}derivatives}, \texttt{unif-\allowbreak{}on-\allowbreak{}compacta-\allowbreak{}locally}, \texttt{locally-\allowbreak{}uniform-\allowbreak{}on-\allowbreak{}compacta}, \texttt{cc-\allowbreak{}closed-\allowbreak{}ball-\allowbreak{}compact} & proven \\
+Complex analysis & 5.1 & An exhaustive sequence of compact sets & \texttt{cc-\allowbreak{}exhaust-\allowbreak{}exhaustive}, \texttt{cc-\allowbreak{}exhaust-\allowbreak{}compact}, \texttt{cc-\allowbreak{}exhaust-\allowbreak{}subset}, \texttt{cc-\allowbreak{}exhaust-\allowbreak{}interior}, \texttt{cc-\allowbreak{}exhaust-\allowbreak{}mono}, \texttt{cc-\allowbreak{}exhaust-\allowbreak{}covers} & partial \\
+Complex analysis & 5.2 & C(U) is a Frechet space for uniform convergence on compacta & \texttt{cc-\allowbreak{}cont-\allowbreak{}fns-\allowbreak{}frechet}, \texttt{cc-\allowbreak{}fn-\allowbreak{}module-\allowbreak{}is-\allowbreak{}module}, \texttt{cc-\allowbreak{}exhaust-\allowbreak{}seminorms-\allowbreak{}family}, \texttt{cc-\allowbreak{}exhaust-\allowbreak{}uniform-\allowbreak{}iff-\allowbreak{}compacta}, \texttt{cc-\allowbreak{}fr-\allowbreak{}conv-\allowbreak{}iff-\allowbreak{}unif-\allowbreak{}on-\allowbreak{}compacta} & proven \\
+Complex analysis & 5.3 & H(U) is closed in C(U) & \texttt{cc-\allowbreak{}hol-\allowbreak{}fns-\allowbreak{}closed}, \texttt{cc-\allowbreak{}hol-\allowbreak{}fns-\allowbreak{}subset-\allowbreak{}cont} & proven \\
+Complex analysis & 5.7 & Montel: bounded closed subsets of H(U) are compact & \texttt{cc-\allowbreak{}montel}, \texttt{cc-\allowbreak{}montel-\allowbreak{}subsequence}, \texttt{cc-\allowbreak{}montel-\allowbreak{}tail}, \texttt{cc-\allowbreak{}pointwise-\allowbreak{}diagonal} & partial \\
+Complex analysis & 5.8 & Bounded subsets of H(U) are equicontinuous & \texttt{cc-\allowbreak{}hol-\allowbreak{}bounded-\allowbreak{}equicontinuous}, \texttt{cc-\allowbreak{}holomorphic-\allowbreak{}deriv-\allowbreak{}estimate}, \texttt{cc-\allowbreak{}holomorphic-\allowbreak{}lipschitz-\allowbreak{}at-\allowbreak{}centre} & proven \\
+Complex analysis & 5.20 & Differentiation is continuous on H(U) & \texttt{cc-\allowbreak{}deriv-\allowbreak{}continuous-\allowbreak{}on-\allowbreak{}hol}, \texttt{cc-\allowbreak{}deriv-\allowbreak{}linear} & partial \\
+Complex analysis & 5.21 & The seminorms of f' are bounded by seminorms of f & \texttt{cc-\allowbreak{}deriv-\allowbreak{}seminorm-\allowbreak{}estimate}, \texttt{cc-\allowbreak{}exhaust-\allowbreak{}ball-\allowbreak{}inside} & proven \\
+Complex analysis & 5.22 & Normally convergent series of holomorphic functions differentiate term by term & \texttt{cc-\allowbreak{}series-\allowbreak{}holomorphic}, \texttt{cc-\allowbreak{}derived-\allowbreak{}series-\allowbreak{}normally-\allowbreak{}convergent}, \texttt{cc-\allowbreak{}normal-\allowbreak{}convergence-\allowbreak{}uniform}, \texttt{cc-\allowbreak{}normal-\allowbreak{}convergence-\allowbreak{}pointwise}, \texttt{cc-\allowbreak{}partial-\allowbreak{}sums-\allowbreak{}diff} & proven \\
 Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 2.7 & Causal precedence in a bundle is a partial order with minimal elements & \texttt{precedes-\allowbreak{}partial-\allowbreak{}order}, \texttt{finite-\allowbreak{}strict-\allowbreak{}minimal}, \texttt{bundle-\allowbreak{}minimal} & proven \\
 Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 2.8 & A minimal node of a content-closed node set is a sent node & \texttt{bundle-\allowbreak{}minimal-\allowbreak{}sent} & proven \\
 Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 2.9 & A minimal node among those whose content contains t originates t & \texttt{bundle-\allowbreak{}minimal-\allowbreak{}originates} & proven \\
@@ -7149,7 +7725,7 @@ document & entries & proven & asserted & partial & absent \\
 \hline
 Calculus & 66 & 42 & 0 & 13 & 11 \\
 Linear algebra & 33 & 10 & 1 & 6 & 16 \\
-Complex analysis & 44 & 27 & 0 & 6 & 11 \\
+Complex analysis & 55 & 35 & 0 & 9 & 11 \\
 Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 10 & 10 & 0 & 0 & 0 \\
 Construction of measures (Thayer, notes) & 28 & 27 & 0 & 1 & 0 \\
 Functional analysis (Thayer, Analise Funcional e Teoria Espectral; Riesz-Markov from notes-63) & 8 & 8 & 0 & 0 & 0 \\
