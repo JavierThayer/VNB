@@ -102,6 +102,11 @@
     ;; prover-load--file calls case-fold-define-lint!, which clobber-guard.scm defines
     ;; (the 2026-10-15 exam died at 0.3 s on exactly that).
     "equal-patch"
+    ;; THIRD: MIT 12.1's string-append without its two 1024-slot builder buffers per call
+    ;; (F14 of Ignacio's GC study, approved 2026-10-16).  The replacement is the compiled
+    ;; strapp-fast.com, loaded into (runtime string); the self-test stops the load if the
+    ;; patch is not in effect or differs from the original on its 29 cases.
+    "strapp-patch"
     ;; Core kernel
     "errors"
     "expressions"
@@ -3346,6 +3351,11 @@
     ;; di/ai runs into the opening and collapses typing/bookkeeping fact-runs;
     ;; shows only content steps with original step-number margins.  Needs proof-tex.
     "proof-reader"
+    ;; (implied-types 'NAME): the typings of a statement's variables, stated and derived
+    ;; (structure laws, views, functor typing axioms, transport along equations), each
+    ;; derived one confirmed by a scratch proof; implied-types-tex is the reader's
+    ;; 'with-types paragraph.  Optional, reads the library, installs nothing.  Needs proof-reader.
+    "statement-types"
     ;; Centre-extraction lemma (compact => totally bounded, calculus.pdf Prop 3.12):
     ;; chosen-centre-is-centre + finite-ball-subcover-r-net.  Needs compactness
     ;; (support lemmas) + proof-tex (fbsr-eig uses proof-tex--focus-asms to capture

@@ -8,6 +8,9 @@ the files at the root and the structure library by theory.
 
 ## structure-library: _unfiled
 
+- [ca-ac-vocab.scm](structure-library/ca-ac-vocab.scm)
+- [ca5-function-spaces.scm](structure-library/ca5-function-spaces.scm)
+- [frechet-banach-steinhaus.scm](structure-library/frechet-banach-steinhaus.scm)
 - [frechet-metric.scm](structure-library/frechet-metric.scm)
 - [gamma-function.scm](structure-library/gamma-function.scm)
 - [hahn-banach-sublinear.scm](structure-library/hahn-banach-sublinear.scm)
@@ -17,6 +20,8 @@ the files at the root and the structure library by theory.
 - [lp-seminorm.scm](structure-library/lp-seminorm.scm)
 - [meta-core.scm](structure-library/meta-core.scm)
 - [meta-cr.scm](structure-library/meta-cr.scm)
+- [meta-def.scm](structure-library/meta-def.scm)
+- [meta-ind.scm](structure-library/meta-ind.scm)
 - [meta-syntax.scm](structure-library/meta-syntax.scm)
 - [metric-connected.scm](structure-library/metric-connected.scm)
 - [metric-outer-measure.scm](structure-library/metric-outer-measure.scm)

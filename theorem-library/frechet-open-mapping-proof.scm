@@ -778,11 +778,11 @@
     (dk-ineq! (list '<= (list p (fom-add m u nv)) (list '+ (list p u) (list p nv))) e)))
 (fom-qed! 'fom-sn-sub-le)
 
-;;; sg.(ta.z) = z when sg ta = 1 in the module's field
-(sp (make-wff '(FORALL fld (FORALL m (IMPLIES (IS-MODULE m) (IMPLIES (= (SCAL m) (NORMED-FIELD-AS-COMMUTATIVE-RING fld))
+;;; sg.(ta.z) = z when sg ta = 1 in the module's field (a normed field)
+(sp (make-wff '(FORALL fld (FORALL m (IMPLIES (IS-NORMED-FIELD fld) (IMPLIES (IS-MODULE m) (IMPLIES (= (SCAL m) (NORMED-FIELD-AS-COMMUTATIVE-RING fld))
   (FORALL sg (IMPLIES (IN sg (CARR fld)) (FORALL ta (IMPLIES (IN ta (CARR fld))
     (IMPLIES (= ((MUL fld) sg ta) (ONE fld))
-      (FORALL z (IMPLIES (IN z (VEC m)) (= ((ACT m) sg ((ACT m) ta z)) z))))))))))))))
+      (FORALL z (IMPLIES (IN z (VEC m)) (= ((ACT m) sg ((ACT m) ta z)) z)))))))))))))))
 (let* ((ls (dk-peel!))
        (md (cadr (find-first (dk-head? 'IS-MODULE) ls)))
        (sc (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) (list 'SCAL md)))) ls))
@@ -791,7 +791,8 @@
        (sg (cadr (car sgs))) (ta (cadr (cadr sgs)))
        (z (cadr (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (caddr f) (list 'VEC md)))) ls)))
        (v (fom-nfv fld)) (sm (list 'SCAL md)))
-  ;; R4-G: no IS-NORMED-FIELD(fld) here, so the read-offs come from SC (fom-view-acc!)
+  ;; IS-NORMED-FIELD(fld) is stated since 2026-10-17 (implied-types: the view equation
+  ;; does not give it); the read-offs still come from SC (fom-view-acc!)
   (fom-view-acc! sc fld 'CARR)
   (fom-view-acc! sc fld 'MUL)
   (fom-view-acc! sc fld 'ONE)

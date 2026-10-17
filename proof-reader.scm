@@ -310,6 +310,90 @@
           (goal (string-append kind (proof-reader--display goal)))
           (else kind))))
 
+;; A goal closed by `ass' right after an unfold whose result is a CONJUNCTION is
+;; not "by assumption" in any sense a reader can follow: the split that made it a
+;; hypothesis is not shown.  The user, 2026-10-16, on fom-baire-approx: "Claim 1 holds
+;; by assumption.  This proves Claim 1." -- "this doesn't make any sense".  When the
+;; closed goal is a conjunct of a formula the row's main step introduced (NEWS), and
+;; was not itself a hypothesis, the row says which conjunct it is.
+(define (proof-reader--conjuncts w)
+  (if (and (pair? w) (eq? (car w) 'AND))
+      (append (proof-reader--conjuncts (cadr w)) (proof-reader--conjuncts (caddr w)))
+      (list w)))
+(define (proof-reader--conjunct-position goal news)
+  (and goal (not (member goal news))
+       (let loop ((fs news))
+         (cond ((null? fs) #f)
+               ((and (pair? (car fs)) (eq? (car (car fs)) 'AND)
+                     (let find ((cs (proof-reader--conjuncts (car fs))) (k 1))
+                       (cond ((null? cs) #f)
+                             ((equal? (car cs) goal) k)
+                             (else (find (cdr cs) (+ k 1)))))))
+               (else (loop (cdr fs)))))))
+(define (proof-reader--ordinal k)
+  (if (<= 1 k 10)
+      (list-ref '("first" "second" "third" "fourth" "fifth" "sixth" "seventh" "eighth" "ninth" "tenth") (- k 1))
+      (string-append "number " (number->string k))))
+;; The final consequent of an implication chain (curried, possibly under universals
+;; already peeled by the citation) and the antecedent next to it.
+(define (proof-reader--consequent-ante f goal)
+  (let loop ((f f))
+    (cond ((not (and (pair? f) (eq? (car f) 'IMPLIES))) #f)
+          ((equal? (caddr f) goal) (cadr f))
+          (else (loop (caddr f))))))
+;; The closing sentence of a row whose closer is `ass' (the user, 2026-10-16: "make
+;; that fix everywhere").  "X holds by assumption" said nothing a reader could check;
+;; the sentence now says WHERE the closed formula is, in this order: a conjunct of
+;; what the row's main step produced; the consequent of the implication it cited,
+;; the antecedent being in hand; the trivial implication P => P a rewrite left; a
+;; formula the row itself just displayed; a hypothesis of the proposition or of a
+;; named step.  OWN is the claim the closed formula IS (#f if none): the sentence then
+;; names it, so the caller does not say "This proves" of it again.  KIND is "goal" or
+;; "side condition".
+(define (proof-reader--ass-text kind closed own news main-goal claims . row)
+  ;; ROW (optional): the step indices of the row and whether its gloss DISPLAYS the
+  ;; formulas the main step introduced; "This is the goal." is said only then
+  (let ((idxs (if (pair? row) (car row) '()))
+        (shown? (and (pair? row) (pair? (cdr row)) (cadr row))))
+  (proof-reader--ass-text-1 kind closed own news main-goal claims idxs shown?)))
+(define (proof-reader--ass-text-1 kind closed own news main-goal claims idxs shown?)
+  (let* ((cap  (lambda (s) (string-append (string (char-upcase (string-ref s 0)))
+                                          (substring s 1 (string-length s)))))
+         (subj (lambda ()     ; "the goal G" / "Claim n", lower case
+                 (if own (proof-reader--claims-text (list own))
+                     (string-append "the " kind (proof-reader--display closed)))))
+         (claim-of (lambda (w) (and w (find-first (lambda (c) (equal? (caddr c) w)) claims))))
+         (k    (proof-reader--conjunct-position closed news))
+         (ante (and closed (not k)
+                    (let loop ((fs news))
+                      (cond ((null? fs) #f)
+                            ((proof-reader--consequent-ante (car fs) closed))
+                            (else (loop (cdr fs)))))))
+         (i    (and closed *proof-reader-first-seen*
+                    (hash-table-ref/default *proof-reader-first-seen* closed #f))))
+    (cond ((not closed) "")
+          (k (string-append (cap (subj)) " is its " (proof-reader--ordinal k) " conjunct."))
+          (ante (let ((ac (claim-of ante)))
+                  (string-append (if ac
+                                     (string-append "Since " (proof-reader--claims-text (list ac)) " holds, this gives ")
+                                     "Its antecedent holds, so this gives ")
+                                 (subj) ".")))
+          ((and (pair? main-goal) (eq? (car main-goal) 'IMPLIES)
+                (equal? (cadr main-goal) closed) (equal? (caddr main-goal) closed))
+           (if own
+               (string-append "The implication is trivial.  This proves " (subj) ".")
+               "The implication is trivial."))
+          ((or (member closed news) (and i (memv i idxs)))
+           (cond (own (string-append "This proves " (subj) "."))
+                 (shown? (string-append "This is the " kind "."))
+                 (else (string-append (cap (subj)) " is now a hypothesis."))))
+          ((and (not own) (claim-of closed))
+           => (lambda (c) (string-append "This is " (proof-reader--claims-text (list c)) ".")))
+          ((or (member closed *proof-reader-claim-guards*) (and i (<= i *proof-reader-setup-hi*)))
+           (string-append (cap (subj)) " is a hypothesis of the proposition."))
+          (i (string-append (cap (subj)) " was obtained in step " (number->string i) "."))
+          (else (string-append (cap (subj)) " holds by assumption.")))))
+
 (define (proof-reader--side-closer? g closer irecs setup-goal)
   (let ((closed (let loop ((rs g) (prev #f))
                   (cond ((null? rs) prev)
@@ -381,7 +465,13 @@
     (weaken    . "Weakening the context.")
     (grind     . "By exhaustive simplification.")
     (unfold    . "Unfold the definition.")
-    (gi        . "Generalize.")))
+    (gi        . "Generalize.")
+    ;; kernel rules on separations and lambdas, which an unlisted-tactic fallback read
+    ;; as lemmas ("By the axiom sep-set", 2026-10-16)
+    (sep-set   . "A separation from a set is a set.")
+    (sep-mi    . "To show membership in the separation: the point lies in the set separated from, and satisfies the condition.")
+    (sep-me    . "Membership in the separation gives the point in the set separated from, satisfying the condition.")
+    (lam-t     . "The $\\lambda$-term is a function: its values are typed pointwise, on a domain that is a set.")))
 
 ;; The goal as it stood immediately before the group's PRIMARY record.
 ;;
@@ -638,6 +728,15 @@
               (string-append "Substituting $" (expr->tex (cadr eqn)) " = " (expr->tex (caddr eqn)) "$")
               "Substituting the established equation")
           (if goal (string-append ", reduce to" (proof-reader--display goal)) "."))))
+      ;; forward modus ponens on an implication in context (the user, 2026-10-16: it read
+      ;; "By the axiom detach!")
+      ((detach! detach)
+       (let* ((f (and (pair? args) (car args)))
+              (a (and (pair? f) (eq? (car f) 'IMPLIES) (cadr f))))
+         (string-append (if a (string-append "Since" (proof-reader--display a) " holds, the implication gives")
+                            "Detaching the implication gives")
+                        (if (pair? news) (proof-reader--display (car news))
+                            (if (and (pair? f) (eq? (car f) 'IMPLIES)) (proof-reader--display (caddr f)) ".")))))
       ((lam-b) "$\\beta$-reduce the applied $\\lambda$.")
       ((ass) "\\emph{Holds by assumption.}")
       ((rfl qrfl) "\\emph{Holds by reflexivity.}")
@@ -648,7 +747,8 @@
       (else
        (let ((p (assq tac *proof-reader-tac-prose*)))
          (if p (cdr p)
-             (string-append "By " (proof-reader--cite tac) ".")))))))
+             ;; an unlisted TACTIC is not a lemma: "By the axiom detach!" (2026-10-16)
+             (string-append "By the step \\texttt{" (proof-tex--escape-tt (symbol->string tac)) "}.")))))))
 
 ;; " by linear arithmetic", " by reflexivity", ...: the closer named for the
 ;; parenthetical after a claim or a branch (notes-62).  `ass' is worded by its callers.
@@ -1224,6 +1324,7 @@
      "\\begin{proposition*}[" (proof-tex--escape-tt (symbol->string name)) "]\n"
      (proof-reader--statement claim)
      "\n\\end{proposition*}\n\n"
+     (if *proof-reader-with-types* (implied-types-tex claim) "")
      "\\begin{proof}\n"
      "{\\small\\emph{The numbers in the margin are step numbers of the full proof "
      "(\\texttt{proof-tex}); a range such as 13--15 is several steps shown as one row.  "
@@ -1294,28 +1395,56 @@
                    ;; stated and closed in this same row needs no name
                    (named   (filter (lambda (c) (not (eq? c claim-here))) ending))
                    (closed  (and closer (proof-reader--closed-goal g closer main-pre-goal)))
+                   ;; what the row's main step introduced: an `ass' closer may have
+                   ;; picked one conjunct of it (proof-reader--ass-text)
+                   (news    (if main (proof-reader--new-asms pre-asms (caddr main)) '()))
+                   ;; the gloss displays what the main step introduced (a typing run,
+                   ;; an unfold, a citation, an instance): "This is the goal" can point at it
+                   (shown?  (or (eq? kind 'typing) inst-run?
+                                (and main (memq (car (car main)) '(mac-h fact ta inst inst+ lam-b-h detach! detach)))))
+                   ;; the named claim that IS the closed goal: the closing sentence
+                   ;; names it, so "This proves" is not said of it a second time
+                   (own     (and closed (find-first (lambda (c) (equal? (caddr c) closed)) named)))
                    (close-txt (cond ((pair? named)
-                                     (string-append
-                                       ;; the closer is named only when it is the one that closed
-                                       ;; the claim (not a claim stated and closed in this row)
-                                       (cond ((or (not closer) (memq claim-here ending)) "")
-                                             (else (string-append "  "
-                                                     (proof-reader--closed-subject closed named "The goal")
-                                                     (if by-ass? " holds by assumption." (string-append " is established" how ".")))))
-                                       "  This proves " (proof-reader--claims-text named) "."))
+                                     (let* ((says? (not (or (not closer) (memq claim-here ending))))
+                                            (rest (if (and says? own)
+                                                      (filter (lambda (c) (not (eq? c own))) named)
+                                                      named)))
+                                       (string-append
+                                         ;; the closer is named only when it is the one that closed
+                                         ;; the claim (not a claim stated and closed in this row)
+                                         (if says?
+                                             (string-append "  "
+                                               (if by-ass?
+                                                   (proof-reader--ass-text "goal" closed own news (and main (cadr main)) claims idxs shown?)
+                                                   (string-append (proof-reader--closed-subject closed named "The goal")
+                                                                  " is established" how ".")))
+                                             "")
+                                         (if (pair? rest)
+                                             (string-append "  This proves " (proof-reader--claims-text rest) ".")
+                                             ""))))
                                     ((not closer) "")
                                     ;; a claim stated in this row is named; otherwise what was
                                     ;; closed is a side condition a tactic posted (a typing)
+                                    ;; a claim stated and closed in this row: a conjunction whose
+                                    ;; conjuncts are all hypotheses says so; otherwise as any `ass'
                                     (side? (if by-ass?
                                                (string-append "  "
-                                                 (if claim-here
-                                                     (proof-reader--claims-text (list claim-here))
-                                                     (proof-reader--closed-subject closed '() "The side condition"))
-                                                 " holds by assumption.")
+                                                 (let ((cf (and claim-here (caddr claim-here))))
+                                                   (if (and cf (pair? cf) (eq? (car cf) 'AND)
+                                                            (proof-reader--all? (lambda (c) (member c pre-asms))
+                                                                                (proof-reader--conjuncts cf)))
+                                                       (if (= (length (proof-reader--conjuncts cf)) 2)
+                                                           "Both conjuncts are hypotheses."
+                                                           "Each conjunct is a hypothesis.")
+                                                       (proof-reader--ass-text "side condition" closed
+                                                         (or claim-here (and closed (find-first (lambda (c) (equal? (caddr c) closed)) claims)))
+                                                         news (and main (cadr main)) claims idxs shown?))))
                                                (string-append "  \\emph{(" (if claim-here "the claim" "the side condition")
                                                               " is established" how ")}")))
-                                    (by-ass? (string-append "  " (proof-reader--closed-subject closed claims "The goal")
-                                                            " holds by assumption."))
+                                    (by-ass? (string-append "  " (proof-reader--ass-text "goal" closed
+                                                                  (and closed (find-first (lambda (c) (equal? (caddr c) closed)) claims))
+                                                                  news (and main (cadr main)) claims idxs shown?)))
                                     (else (string-append "  \\emph{(closes" how ")}"))))
                    (is-ni   (and main (eq? (car (car main)) 'ni)))
                    (new-indvar (if is-ni
@@ -1368,6 +1497,8 @@
 ;;; those definitions, and so on.  The block is independent of the proof: it is
 ;;; printed for a certified theorem too.
 (define *proof-reader-with-defs* #f)        ; #f, or the depth (1 = the statement's heads)
+(define *proof-reader-with-types* #f)       ; #t: a "Types of the variables" paragraph under the
+                                            ; proposition (implied-types-tex, statement-types.scm)
 
 (define (proof-reader--heads e)
   ;; the applied heads of E, each once, in order of first occurrence
@@ -1902,13 +2033,20 @@
 ;;; (display-proof 'NAME "path.pdf" 'with-defs)  prefixed by the definitions of the
 ;;;                                              statement's defined heads
 ;;; (display-proof 'NAME "path.pdf" 'with-defs 2) ... and of those definitions' heads
+;;; (display-proof 'NAME "path.pdf" 'with-types) ... with the implied types of the
+;;;                                              statement's variables; combines with 'with-defs [n]
 (define (display-proof name pdf-path . opts)
-  (let ((depth (cond ((null? opts) #f)
-                     ((eq? (car opts) 'with-defs)
-                      (if (and (pair? (cdr opts)) (number? (cadr opts))) (cadr opts) 1))
-                     (else (error "display-proof: unknown option" (car opts))))))
-    (fluid-let ((*proof-reader-with-defs* depth))
-      (display-proof--to-pdf name pdf-path))))
+  (let loop ((o opts) (depth #f) (types #f))
+    (cond ((null? o)
+           (fluid-let ((*proof-reader-with-defs* depth)
+                       (*proof-reader-with-types* types))
+             (display-proof--to-pdf name pdf-path)))
+          ((eq? (car o) 'with-defs)
+           (if (and (pair? (cdr o)) (number? (cadr o)))
+               (loop (cddr o) (cadr o) types)
+               (loop (cdr o) 1 types)))
+          ((eq? (car o) 'with-types) (loop (cdr o) depth #t))
+          (#t (error "display-proof: unknown option" (car o))))))
 (define (display-proof--to-pdf name pdf-path)
   (load-option 'synchronous-subprocess)
   (if (not (hash-table-ref/default *proof-live-trace* name #f))

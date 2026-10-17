@@ -1570,7 +1570,7 @@ only.  With a prefix argument, open in the desktop viewer instead of
       (vnb-thm--show-pdf pdf (format "Proof of %s" name) external))))
 
 ;;;###autoload
-(defun vnb-display-proof (name pdf &optional with-defs external)
+(defun vnb-display-proof (name pdf &optional with-defs external with-types)
   "Typeset the READER-MODE proof of NAME into PDF and open it: `display-proof'.
 
 The prompts are the arguments of `(display-proof NAME PDF [with-defs [2]])':
@@ -1578,8 +1578,9 @@ the theorem (completion over every theorem name; a certified theorem's proof
 is run first, from its file, which may take minutes), the PDF file (default
 reader-NAME.pdf in the TeX cache), and the Definitions block -- none, the
 statement's defined heads (`with-defs'), or those plus the heads of their
-definitions (`with-defs 2').  With a prefix argument, open in the desktop
-viewer instead of `doc-view-mode'."
+definitions (`with-defs 2'), and whether to add the implied types of the
+statement's variables (`with-types', see `vnb-implied-types').  With a prefix
+argument, open in the desktop viewer instead of `doc-view-mode'."
   (interactive
    (let* ((name (vnb-thm--read-name "Display proof of" (vnb-thm--names) 'confirm))
           (_ (when (string-empty-p name) (user-error "No theorem name given")))
@@ -1587,17 +1588,19 @@ viewer instead of `doc-view-mode'."
           (pdf (read-file-name "PDF file: " vnb-tex-cache-dir nil nil
                                (concat "reader-" name ".pdf")))
           (defs (completing-read "Definitions block (none / with-defs / with-defs 2): "
-                                 '("none" "with-defs" "with-defs 2") nil t nil nil "none")))
+                                 '("none" "with-defs" "with-defs 2") nil t nil nil "none"))
+          (types (y-or-n-p "Add the implied types of the statement's variables? ")))
      (list name pdf
            (cond ((equal defs "with-defs") 1) ((equal defs "with-defs 2") 2))
-           current-prefix-arg)))
+           current-prefix-arg types)))
   (vnb-launch--ensure-prover)
   (when (string-empty-p name) (user-error "No theorem name given"))
   (let* ((pdf  (expand-file-name pdf))
          (pdf  (if (string-suffix-p ".pdf" pdf t) pdf (concat pdf ".pdf")))
-         (opts (cond ((null with-defs) "")
-                     ((eql with-defs 1) " 'with-defs")
-                     (t (format " 'with-defs %d" with-defs))))
+         (opts (concat (cond ((null with-defs) "")
+                             ((eql with-defs 1) " 'with-defs")
+                             (t (format " 'with-defs %d" with-defs)))
+                       (if with-types " 'with-types" "")))
          (_    (when (file-exists-p pdf) (ignore-errors (delete-file pdf))))
          (_    (message "VNB: display-proof of %s (a certified theorem runs its file first) ..." name))
          (res  (string-trim (or (vnb-eval-string
@@ -2007,6 +2010,38 @@ unless the Focus Workspace is live, the toggle is on, and the prover is up."
                        "when to reach for this structure.\n\n"
                        "They live in `%s` and are yours to edit.\n")
                (file-relative-name path vnb-launch--dir))))))
+
+;;;###autoload
+(defun vnb-implied-types (name)
+  "Show the implied types of the variables of theorem NAME's statement.
+The prover's `(implied-types-string \\='NAME)' (statement-types.scm): for each
+variable, the typings the statement states and those it entails by a
+structure law, a view, a functor's typing axiom or transport along an
+equation, each derived one confirmed by a scratch proof; a variable with no
+typing found is flagged, with the reason when a view is involved.  An empty
+name means the statement of the proof in progress.  Nothing is installed."
+  (interactive
+   (list (vnb-thm--read-name "Implied types of (empty: the current proof)"
+                             (vnb-thm--names) nil)))
+  (vnb-launch--ensure-prover)
+  (let* ((name (string-trim (or name "")))
+         (form (if (string-empty-p name) "(implied-types-string)"
+                 (format "(implied-types-string '%s)" name)))
+         (res  (string-trim (or (vnb-eval-string form vnb-long-command-budget) "")))
+         (out  (condition-case nil
+                   (let ((v (car (read-from-string res)))) (and (stringp v) v))
+                 (error nil)))
+         (buf  (get-buffer-create
+                (format "*VNB Implied Types: %s*"
+                        (if (string-empty-p name) "current proof" name)))))
+    (unless out (user-error "implied-types: %s" (if (string-empty-p res) "no answer from the prover" res)))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (insert out)
+        (goto-char (point-min))
+        (special-mode)))
+    (pop-to-buffer buf)))
 
 (defun vnb-describe-structure (name)
   "Show a rendered reference card for structure NAME.
@@ -3574,6 +3609,7 @@ monospace font is installed.")
     ["Show Theorems"      vnb-ws-show-theorems  t]
     ["Show PSS"           vnb-ws-show-pss       t]
     ["Describe Structure..." vnb-describe-structure t]
+    ["Implied Types..."   vnb-implied-types     t]
     ["Definitions"        vnb-ws-show-definitions t]
     ["Structure Manual"   vnb-structure-manual  t]
     ["Read Note..."       vnb-view-note         t]

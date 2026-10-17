@@ -4318,10 +4318,20 @@
            (string-search-forward "(the claim is established by " s 0)
            ;; 2026-10-15 (f8dbdc8, fom-baire-approx): no parentheses, and the closed goal is
            ;; named -- "The goal G holds by assumption.  This proves Claim 2."
-           (string-search-forward "This proves Claim 2." s 0)
+           ;; 2026-10-16: a row whose closing sentence already names Claim 2 does not
+           ;; repeat it ("Claim 2 is established by X.", not "... This proves Claim 2.")
+           (or (string-search-forward "This proves Claim 2." s 0)
+               (string-search-forward "Claim 2 is established by " s 0)
+               (string-search-forward "Claim 2 holds by assumption." s 0)
+               (string-search-forward "Claim 2 is " s 0)
+               (string-search-forward "Claim 2 was obtained" s 0)
+               (string-search-forward "this gives Claim 2." s 0))
            ;; the final row closes the THEOREM: it must not claim to be a side goal
-           (string-search-forward "The goal " s 0)
-           (string-search-forward " holds by assumption." s 0)
+           ;; 2026-10-16: an `ass' closer says where the goal is ("The goal G is a hypothesis
+           ;; of the proposition.", "... was obtained in step N.", "This is the goal.")
+           (or (string-search-forward "The goal " s 0)
+               (string-search-forward "This is the goal." s 0)
+               (string-search-forward "this gives the goal" s 0))
            (not (string-search-forward "(the claim holds by assumption)" s 0))
            (not (string-search-forward "(closes)" s 0))
            #t)))))
@@ -15220,9 +15230,86 @@
            (let ((s (proof-reader 'rdr-claim-block-probe)))
              (and (string-search-forward "\\textbf{Claim 1} (proved in step" s 0)
                   (string-search-forward "This proves Claim 1." s 0)
+                  ;; 2026-10-16: the `ass' that closes it says where the goal comes from
+                  (string-search-forward "is a hypothesis of the proposition." s 0)
+                  (not (string-search-forward "holds by assumption." s 0))
                   (string-search-forward "of the full proof" s 0)
                   (not (string-search-forward "5--7" s 0))
                   #t))))))
+
+;; The user, 2026-10-16, on fom-baire-approx: "Claim 1 holds by assumption.  This proves
+;; Claim 1." -- "this doesn't make any sense".  The claim was a conjunct of a hypothesis
+;; the same row unfolded (mac-h, then a split that is not shown, then `ass'): the row
+;; says WHICH conjunct, and does not say "this proves" of the claim it has just named.
+(check-true "reader: a claim read off an unfolded conjunction says 'is its second conjunct', once"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL e (IMPLIES (POS-RR e) (OR (<= 0 e) (= e 5))))))
+      (quietly (lambda ()
+        (di)
+        (let ((h (cadr (dk-goal))))
+          (di)
+          (dk-have! '(<= 0 e) (lambda () (mac-h 'pos-rr h) (dk-split-all!) (ass)))
+          (prop))))
+      (and (proof-done? *ps*)
+           (begin (qed 'rdr-conjunct-claim-probe) #t)
+           (let ((s (proof-reader 'rdr-conjunct-claim-probe)))
+             (and (string-search-forward "Claim 1 is its second conjunct." s 0)
+                  (not (string-search-forward "This proves Claim 1." s 0))
+                  (not (string-search-forward "Claim 1 holds by assumption." s 0))
+                  #t))))))
+
+;; ----- implied-types (statement-types.scm), 2026-10-17
+(define st-test--stmt
+  '(FORALL fld (FORALL m (IMPLIES (IS-MODULE m)
+     (IMPLIES (= (SCAL m) (NORMED-FIELD-AS-COMMUTATIVE-RING fld))
+       (FORALL sg (IMPLIES (IN sg (CARR fld)) (IN sg (CARR fld)))))))))
+(define (st-test--run x)
+  (let ((res #f)) (with-output-to-string (lambda () (set! res (implied-types x)))) res))
+(define (st-test--row res v) (assq v (car res)))
+(check-true "implied-types: a view's argument with no structure predicate is flagged, its slots read off, a member carried over"
+  (lambda ()
+    (let* ((res (st-test--run st-test--stmt))
+           (fld (st-test--row res 'fld)) (sg (st-test--row res 'sg)))
+      (and (null? (cadr res))                                    ; every derived line confirmed
+           (cadddr fld)                                           ; fld: no typing found
+           (equal? (list-ref fld 4) '((NORMED-FIELD-AS-COMMUTATIVE-RING fld)))
+           (member '(== (CARR fld) (CARR (SCAL m))) (caddr fld))
+           (member '(IN sg (CARR (SCAL m))) (caddr sg))
+           (not (cadddr sg))
+           #t))))
+(check-true "implied-types: control -- with IS-NORMED-FIELD(fld) stated, fld is typed and the view's typing axiom fires"
+  (lambda ()
+    (let* ((res (st-test--run (list 'FORALL 'fld (list 'IMPLIES '(IS-NORMED-FIELD fld) (caddr st-test--stmt)))))
+           (fld (st-test--row res 'fld)))
+      (and (null? (cadr res))
+           (not (cadddr fld))
+           (null? (list-ref fld 4))
+           (member '(IS-COMMUTATIVE-RING (NORMED-FIELD-AS-COMMUTATIVE-RING fld)) (caddr fld))
+           #t))))
+(check-true "implied-types: control -- the scratch proof refuses a typing that does not follow"
+  (lambda ()
+    (let* ((pre (st--prefix st-test--stmt))
+           (facts (st--derive (car pre) (cadr pre))))
+      (and (not (st--confirm st-test--stmt facts
+                             (st--fact '(IS-NORMED-FIELD fld) 'functor
+                                       'normed-field-as-commutative-ring-is-commutative-ring '())))
+           (st--confirm st-test--stmt facts
+                        (find-first (lambda (y) (eq? (st--fact-rule y) 'view)) facts))
+           #t))))
+(check-true "implied-types: a defined predicate on several variables types each (is-linear-map)"
+  (lambda ()
+    (let* ((res (st-test--run 'frm-linear-homog)))
+      (and (null? (cadr res))
+           (member '(IN tt (FUN (VEC m1) (VEC m2))) (caddr (st-test--row res 'tt)))
+           (member '(IS-MODULE m2) (caddr (st-test--row res 'm2)))
+           #t))))
+(check-true "implied-types: the TeX block says the view does not give the source predicate"
+  (lambda ()
+    (let ((s (implied-types-tex st-test--stmt)))
+      (and (string-search-forward "does not follow" s 0)
+           (string-search-forward "Types of the variables" s 0)
+           #t))))
 
 ;; ----- the kit, 2026-10-07 (WEEK3 findings 1 and 2, and S-2b's request) -----
 (check-true "kit: dk-rewrite-h! rewrites a hypothesis by an equation in context and leaves it in place"
