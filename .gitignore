@@ -37,3 +37,5 @@
 *.elc
 reference/__pycache__/
 scratchpad/
+# A band saved under another name (vnb.band.exam, vnb.band.new); 595 MB were committed once (2026-10-05)
+*.band.*
