@@ -25,6 +25,8 @@
 ;;;        RE-TRANSCRIBED against b25dd06 (META-7, 2026-10-14): see DEF-STRICT-HYP below (section 5).
 ;;;   1172 structure hypothesis IS-X(t) / t in X        strictness of a predicate application (head 10): schema
 ;;;                                                    DEF-STRICT-PRED (not encoded: no predicate codes)
+;;;        ADMITTED 2026-10-17 (META-10): CR-DEF-STRICT-PRED with the predicate codes PRED-CODE; the clause is
+;;;        DEF-STRUCT-HYP (section 6), DERIVED.
 ;;;   1174 LIST / PAIR / SINGLETON, every entry a set   DEF-LIST (schema here; the doctrine of 2026-10-01)
 ;;;   1176 *total-term-heads* on certified arguments    DEF-TOTAL (schema: class comprehension), heads TOTAL-HEAD
 ;;;   1178 SEP / BIG-UNION / VNB-LAMBDA, certified domain   DEF-BINDER (schema: separation / union / graph)
@@ -43,6 +45,8 @@
 ;;;   1229 a functoid with a certified instantiated body   functoid beta (schematic): no functoid encoding
 ;;;   1233 a predicate hypothesis's defining conjuncts  DERIVED: DEF-STRICT-PRED, the defining IFF (a member of
 ;;;                                                    T) instantiated at the parameters, and-elim, DEF-STRICT-*
+;;;        ENCODED 2026-10-17 (META-10) for a ONE-parameter predicate: DEF-PRED-UNFOLD and DEF-PRED-HYP
+;;;        (section 6), DERIVED; the accessor clause (1205, 1239) is DEF-PRED-HYP at a structure predicate.
 ;;;
 ;;; HEAD CODES ADDED (the translator of K3 must mirror them): CONST 11 = the predicate name <=, CONST 13 =
 ;;; the predicate name < (meta-ind.scm took 7 = ORD-LT and 9 = LIMIT-ORD).
@@ -59,6 +63,25 @@
 ;;; entered the core as CR-DEF-STRICT-ARG and CR-DEF-STRICT-DOM (meta-core.scm 4.7, (6) and (7), each with its
 ;;; claim); STRICT-HEAD moved to meta-core.scm with them.  Still a schema, not admitted: the strictness of a
 ;;; predicate application (DEF-STRICT-PRED, row 1172), which waits for predicate codes in the encoding.
+;;;
+;;; THE SCHEMA ADMITTED (the user's decision, 2026-10-17, "yes do the predicate case"; agent META-10).
+;;; DEF-STRICT-PRED entered the core as CR-DEF-STRICT-PRED (meta-core.scm 4.7, (8), with its claim and the
+;;; precondition of its soundness), and the encoding has PREDICATE CODES (PRED-CODE, meta-core.scm 4.7).
+;;; With it (section 6 below; theorem-library/meta-ind-laws.scm section L, meta-def-laws.scm section 6):
+;;;   - STRICT-ATOM gains the predicate atoms: the kernel's strict atoms <= and < (ENC-LE, ENC-LT below),
+;;;     alone or as SEP conjuncts, are covered by DEF-STRICT-HYP;
+;;;   - the structure-hypothesis clause (pi--structure-hyp, primitive-inferences.scm 989 / 1203) is
+;;;     DEF-STRUCT-HYP, an instance of DEF-STRICT-PRED;
+;;;   - the predicate-hypothesis clause (pi--via-pred-hyps?, 1170 / 1263) and the accessor clause
+;;;     (pi--accessor-certified?, 836, and 1239) are DEF-PRED-HYP for a ONE-parameter predicate: the
+;;;     definition (a derivable sentence: a member of T by theorem-assumption, or proven) instantiated at
+;;;     the argument, whose definedness DEF-STRICT-PRED supplies, then iff-elim (DEF-PRED-UNFOLD), then the
+;;;     walks of section 5.  NOT covered: predicates of two or more parameters (the encoding has no iterated
+;;;     instantiation; each further parameter is one more forall-elim of the same shape); the body's leading
+;;;     FORSOMEs, which the kernel strips to fresh witnesses (a forsome-elim per binder); the view clause of
+;;;     pi--accessor-certified? and every functoid row (no functoid encoding).  The nested reading
+;;;     (depth < 3: a conjunct that is itself a predicate hypothesis) is the composition of these admissible
+;;;     steps: DEF-PRED-UNFOLD and adm-true-walk each take a derivable sequent to a derivable sequent.
 ;;;
 ;;; THE ROWS R4 CHANGED, RE-TRANSCRIBED against b25dd06's pi--defined? (primitive-inferences.scm 1194-1265 and
 ;;; its helpers; agent META-7, 2026-10-14; section 5 below):
@@ -243,12 +266,24 @@
                            (IMPLIES (IN md7j_ md7ww_) (IMPLIES (TRUE-CLOSED md7ww_) (IN md7zz_ md7ww_)))))))
 (notation! 'TRUE-REACH 'kind 'functoid 'arity 1 'english "the sentences reached from $1 by steps of truth")
 
-;; An atom IN or = certifies the terms reached from either side (the kernel's atoms <= and < are predicate
-;; applications, head 10: their sides need DEF-STRICT-PRED, which is not admitted).
+;; An atom IN or = certifies the terms reached from either side.  SECOND DISJUNCT (agent META-10, 2026-10-17,
+;; with DEF-STRICT-PRED admitted): a PREDICATE atom, head 10 with a predicate code first (the kernel's atoms
+;; <= and <, ENC-LE / ENC-LT below; any def-predicate or structure predicate), certifies the terms reached from
+;; each of its arguments.  (Before: "the kernel's atoms <= and < are predicate applications, head 10: their sides
+;; need DEF-STRICT-PRED, which is not admitted.")  The kernel's pi--atom-certifies? reads IN = <= < only; the
+;; relation reads every predicate atom, a superset, admissible as such.
 (def-predicate 'STRICT-ATOM '(md7af_ md7at_)
-  '(FORSOME md7ax_ (FORSOME md7ay_
-     (AND (OR (= md7af_ (ENC-IN md7ax_ md7ay_)) (= md7af_ (ENC-EQ md7ax_ md7ay_)))
-          (OR (IN md7at_ (STRICT-REACH md7ax_)) (IN md7at_ (STRICT-REACH md7ay_)))))))
+  '(OR (FORSOME md7ax_ (FORSOME md7ay_
+         (AND (OR (= md7af_ (ENC-IN md7ax_ md7ay_)) (= md7af_ (ENC-EQ md7ax_ md7ay_)))
+              (OR (IN md7at_ (STRICT-REACH md7ax_)) (IN md7at_ (STRICT-REACH md7ay_))))))
+       (FORSOME md7pl_ (FORSOME md7pk_ (FORSOME md7pi_
+         (AND (= md7af_ (EAPP 10 md7pl_))
+              (AND (= (NTH 1 md7pl_) (ECONST md7pk_))
+                   (AND (PRED-CODE md7pk_)
+                        (AND (IN md7pi_ NN)
+                             (AND (<= 2 md7pi_)
+                                  (AND (<= md7pi_ (LENGTH md7pl_))
+                                       (IN md7at_ (STRICT-REACH (NTH md7pi_ md7pl_))))))))))))))
 (notation! 'STRICT-ATOM 'kind 'predicate 'arity 2 'english "the atom $1 certifies the term $2")
 
 ;; 1081-1112 (pi--strict-hyp-certifies?, pi--atom-certifies?), RE-TRANSCRIBED: the fact f (a premise, by the
@@ -269,3 +304,57 @@
              '(FORALL mdi_ (IMPLIES (IN mdi_ NN) (IMPLIES (<= 1 mdi_) (IMPLIES (<= mdi_ (LENGTH mdl_))
                 (= (NTH mdi_ mdhs_) (LIST mdg_ (ENC-IN (NTH mdi_ mdl_) ENC-SETC))))))))))
 (md--adm! 'ADM-DEF-NTH-LIST 'DEF-NTH-LIST)
+
+;;; -----------------------------------------------------------------------
+;;; 6. DEF-STRICT-PRED AND THE CLAUSES THAT WAITED FOR IT (agent META-10, 2026-10-17).  Binders: md10*_.
+
+;; 1172: the strictness of a predicate application, as the core has it (CR-DEF-STRICT-PRED, meta-core.scm 4.7
+;; (8)): from [g, P(l)], P a predicate constant (PRED-CODE), [g, l_i = l_i] for i = 2 .. |l|.  ADMITTED.
+(md--rel! 'DEF-STRICT-PRED "the definedness rule strict-predicate relates $2 to $3"
+  (md--ex '(mdg_ mdl_ mdk_ mdi_)
+    (md--and '(= mdc_ (LIST mdg_ (ENC-EQ (NTH mdi_ mdl_) (NTH mdi_ mdl_))))
+             '(= (NTH 1 mdl_) (ECONST mdk_)) '(PRED-CODE mdk_)
+             '(IN mdi_ NN) '(<= 2 mdi_) '(<= mdi_ (LENGTH mdl_))
+             '(= mdhs_ (LIST (LIST mdg_ (EAPP 10 mdl_)))))))
+(md--adm! 'ADM-DEF-STRICT-PRED 'DEF-STRICT-PRED)
+
+;; The encoded predicate atoms the clauses name.  CONST 11 = <=, CONST 13 = < (the codes of the header);
+;; ENC-PRED1(n, p) is the atom of a ONE-parameter predicate whose name is the expression n (a CONST).
+(def-functoid 'ENC-LE '(md10x_ md10y_) '(EAPP 10 (LIST (ECONST 11) md10x_ md10y_)))
+(def-functoid 'ENC-LT '(md10x_ md10y_) '(EAPP 10 (LIST (ECONST 13) md10x_ md10y_)))
+(def-functoid 'ENC-PRED1 '(md10n_ md10p_) '(EAPP 10 (LIST md10n_ md10p_)))
+(notation! 'ENC-LE 'kind 'functoid 'arity 2 'english "the encoded atom $1 <= $2")
+(notation! 'ENC-LT 'kind 'functoid 'arity 2 'english "the encoded atom $1 < $2")
+(notation! 'ENC-PRED1 'kind 'functoid 'arity 2 'english "the encoded atom of the one-place predicate named $1 at $2")
+
+;; 989 / 1203 (pi--structure-hyp): a structure hypothesis IS-X(s) certifies s.  The other form of the clause,
+;; s in X, is DEF-STRICT-IN-L.  DERIVED: DEF-STRICT-PRED at i = 2 (meta-def-laws.scm, def-struct-hyp-derived).
+(md--rel! 'DEF-STRUCT-HYP "the definedness rule structure-hypothesis relates $2 to $3"
+  (md--ex '(mdg_ mdk_ mds_)
+    (md--and '(= mdc_ (LIST mdg_ (ENC-EQ mds_ mds_))) '(PRED-CODE mdk_)
+             '(= mdhs_ (LIST (LIST mdg_ (ENC-PRED1 (ECONST mdk_) mds_)))))))
+(md--adm! 'ADM-DEF-STRUCT-HYP 'DEF-STRUCT-HYP)
+
+;; THE UNFOLDING OF A ONE-PARAMETER DEFINITION at a predicate hypothesis: from [g, P(s)] and the definition
+;; [g, forall x. P(x) iff b] (derivable: a member of T, read by theorem-assumption, or a proven sentence),
+;; [g, b[x := s]].  DERIVED (meta-ind-laws.scm, section L, def-pred-unfold-derived): the instance at s owes
+;; s = s, which DEF-STRICT-PRED gives from P(s); then iff-elim.  Without DEF-STRICT-PRED the core cannot
+;; instantiate the definition at a compound s at all.
+(md--rel! 'DEF-PRED-UNFOLD "the definedness rule predicate-unfolding relates $2 to $3"
+  (md--ex '(mdg_ mdk_ mds_ mdb_)
+    (md--and '(= mdc_ (LIST mdg_ (EXPR-OPEN mdb_ 0 mds_))) '(PRED-CODE mdk_)
+             '(= mdhs_ (LIST (LIST mdg_ (ENC-PRED1 (ECONST mdk_) mds_))
+                             (LIST mdg_ (ENC-ALL (ENC-IFF (ENC-PRED1 (ECONST mdk_) (EBVAR 0)) mdb_))))))))
+(md--adm! 'ADM-DEF-PRED-UNFOLD 'DEF-PRED-UNFOLD)
+
+;; 1170 / 1263 (pi--via-pred-hyps?) and 836 / 1239 (the accessor clause, IS-X(s) certifying ACC(s): the
+;; structure's IFF types the slot): a predicate hypothesis certifies what an atom its unfolded body makes true
+;; certifies.  One parameter; the body's sentences read as section 5 reads them.  DERIVED (meta-def-laws.scm,
+;; def-pred-hyp-derived: DEF-PRED-UNFOLD, adm-true-walk, adm-strict-atom).
+(md--rel! 'DEF-PRED-HYP "the definedness rule predicate-hypothesis relates $2 to $3"
+  (md--ex '(mdg_ mdk_ mds_ mdb_ md10f_ mdw_)
+    (md--and '(= mdc_ (LIST mdg_ (ENC-EQ mdw_ mdw_))) '(PRED-CODE mdk_)
+             '(= mdhs_ (LIST (LIST mdg_ (ENC-PRED1 (ECONST mdk_) mds_))
+                             (LIST mdg_ (ENC-ALL (ENC-IFF (ENC-PRED1 (ECONST mdk_) (EBVAR 0)) mdb_)))))
+             '(IN md10f_ (TRUE-REACH (EXPR-OPEN mdb_ 0 mds_))) '(STRICT-ATOM md10f_ mdw_))))
+(md--adm! 'ADM-DEF-PRED-HYP 'DEF-PRED-HYP)

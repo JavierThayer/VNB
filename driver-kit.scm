@@ -6410,3 +6410,63 @@
                 (if (not (dk-asm? goal))
                     (error (string-append "dk-derive!: " (what) ": the closure law did not land") (expression->string goal)))
                 goal))))))))
+
+;;; ---- dk-meta-derive!: lemma nodes, one node at a time, the context pruned between nodes
+
+;;; (dk-meta-derive! TT TREE) -- dk-derive! with two additions (agent META-3, 2026-10-09; spliced here
+;;; from scratchpad/meta3/driver-kit-meta3.scm by META-W1, 2026-10-16, since three files use it:
+;;; meta-cr-laws, meta-ind-laws, meta-def-laws).
+;;;
+;;;  1. LEMMA NODES:  (lemma (G ==> F) NAME (ARG ...) CHILD ...)  derives each CHILD, then cites NAME
+;;;     at TT ARG ... (dk-cite!, which detaches the children's derivabilities and whatever typings are
+;;;     in context) and demands that (IN [G, F] (DERIVABLE TT)) landed.  A derived rule proven once
+;;;     (der-iff-r: (g ==> b) from (g ==> a IFF b) and (g ==> a)) replaces its expansion at every use.
+;;;
+;;;  2. ONE NODE AT A TIME, THE CONTEXT PRUNED BETWEEN NODES.  dk-derive! lands, at every node, the
+;;;     node's CR instance, its HYPS-IN, its SEQ-SET membership and the typing of every context and
+;;;     formula the planner touched, all in the one sequent the driver works in; the rule checkers
+;;;     compare contexts as sets up to alpha, so every later step pays for every earlier node.  Here
+;;;     each core node is handed to dk-derive! with its premises as (given ...) leaves, and after it
+;;;     the context is cut back by ONE `keep' to the formulas present at entry plus every
+;;;     derivability (IN (LIST g f) (DERIVABLE TT)) landed since.  A typing the next node needs is
+;;;     planned again.  CONSEQUENCE FOR THE CALLER: a formula that landed during the call and is not
+;;;     a derivability is GONE afterwards; land it after the call, or before it (then it is kept).
+;;;
+;;; Returns the root's derivability formula.  Suite: two "kit: dk-meta-derive!" checks.
+
+(define (dk-meta-derive! tt tree)
+  (let ((base (dk-asms)))
+    (define (with? i) (and (list? i) (= (length i) 3) (eq? (cadr i) ':=)))
+    (define (der-fact? f)
+      (and (dk-head-is? f 'IN) (dk-head-is? (caddr f) 'DERIVABLE) (equal? (cadr (caddr f)) tt)))
+    (define (prune!)
+      (let* ((keepers (filter (lambda (f) (or (member f base) (der-fact? f))) (dk-asms))))
+        (if (< (length keepers) (length (dk-asms)))
+            (apply keep keepers))))
+    (define (goal-of seq) `(IN ,(dk-meta--seq-term seq) (DERIVABLE ,tt)))
+    (define (der t)
+      (if (not (and (pair? t) (symbol? (car t)) (pair? (cdr t))))
+          (error "dk-meta-derive!: a node is (RULE (G ==> F) ...), not" t))
+      (let ((seq (cadr t)))
+        (cond
+          ((eq? (car t) 'given)
+           (if (not (dk-asm? (goal-of seq)))
+               (error "dk-meta-derive!: the given sequent is not derivable in context"
+                      (expression->string (goal-of seq)))))
+          ((dk-asm? (goal-of seq)) #t)
+          ((eq? (car t) 'lemma)
+           (let ((name (caddr t)) (args (cadddr t)) (kids (cddddr t)))
+             (for-each der kids)
+             (apply dk-cite! name tt args)
+             (if (not (dk-asm? (goal-of seq)))
+                 (error "dk-meta-derive!: the lemma did not land its sequent" name (expression->string (goal-of seq))))
+             (prune!)))
+          (#t
+           (let* ((items (cddr t))
+                  (withs (filter with? items))
+                  (kids (filter (lambda (i) (not (with? i))) items)))
+             (for-each der kids)
+             (dk-derive! tt `(,(car t) ,seq ,@withs ,@(map (lambda (k) `(given ,(cadr k))) kids)))
+             (prune!))))
+        (goal-of seq)))
+    (der tree)))

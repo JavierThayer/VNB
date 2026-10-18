@@ -27,7 +27,9 @@
 ;;;         19 FUN; 30 and above: the named term constants (PAIR, succ, +, a functoid name ...)
 ;;;    CONST codes (node [2, c]): an EVEN code 2k is the numeral k (ENC-NUM); an ODD code is a
 ;;;    named constant, 1 = SET (ENC-SETC); the others (NN, RR, EMPTY-SET ...) are the
-;;;    translator's to assign.
+;;;    translator's to assign.  An odd code is either a TERM constant or a PREDICATE NAME (the
+;;;    first argument of a head-10 atom); PRED-CODE (section 4.7, (8)) lists the predicate names:
+;;;    7 ORD-LT, 9 LIMIT-ORD (meta-ind.scm), 11 <=, 13 < (meta-def.scm).  (META-10, 2026-10-17.)
 ;;;    The arity of the term heads >= 11 is NOT checked (TUPLES with three arguments is WF): the
 ;;;    schemas of the core name each head at its intended arity, so a mis-arity term is an
 ;;;    uninterpreted term no rule speaks of.  The connectives and relations are checked exactly.
@@ -448,8 +450,10 @@
 ;;; ADMITTED LATER (the user's decision of 2026-10-14; agent META-7): DEF-STRICT-ARG and DEF-STRICT-DOM (an
 ;;; argument of a defined application of a strict constructor, the domain of a defined binder term, is
 ;;; defined; the second half of META-5's row 5), as (6) and (7) below, with STRICT-HEAD (moved here from
-;;; meta-def.scm).  NOT admitted, and not decided: DEF-STRICT-PRED (row 6; it waits for predicate codes in
-;;; the encoding).
+;;; meta-def.scm).
+;;; ADMITTED LATER (the user's decision of 2026-10-17, "yes do the predicate case"; agent META-10):
+;;; DEF-STRICT-PRED (META-5's row 6), the strictness of a predicate application, as (8) below, with the
+;;; predicate codes PRED-CODE.
 
 ;; The TOTAL class constructors (*total-term-heads*, primitive-inferences.scm): 11 UNION, 12
 ;; INTERSECTION, 13 CARTESIAN, 14 TUPLES, 19 FUN, 30 succ, 31 succ_ORD.  (Moved here from meta-def.scm,
@@ -547,6 +551,45 @@
     (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ mca_ mca_)))
              '(OR (= mchd_ 22) (OR (= mchd_ 24) (= mchd_ 26)))
              '(= mchs_ (LIST (LIST mcg_ (ENC-EQ (EBIND mchd_ 1 (LIST mca_) mcb_) (EBIND mchd_ 1 (LIST mca_) mcb_))))))))
+
+;; THE PREDICATE CODES (agent META-10, 2026-10-17).  A predicate atom P(a1 .. an) is the head-10 node
+;; [3, 10, [ECONST k, a1, .., an]] (section 1): the name first, a CONST, then the arguments.  PRED-CODE(k)
+;; says that the code k names a PREDICATE CONSTANT: a primitive relation the encoding writes as a head-10
+;; atom (11 <=, 13 <, 7 ORD-LT), a def-predicate name (9 LIMIT-ORD), a structure predicate IS-X.  Taken:
+;; 7 ORD-LT and 9 LIMIT-ORD (meta-ind.scm), 11 <= and 13 < (meta-def.scm).  The translator of K3 extends
+;; the list with the codes it gives the other def-predicate names and the structure predicates IS-X,
+;; never with the code of a term constant.  IN, = and == are not predicate NAMES: they are the heads 7, 8,
+;; 9 of section 1, as the connectives (heads 0-6) and the quantifiers (binder heads 20, 21) are.
+(def-predicate 'PRED-CODE '(mcpk_)
+  '(OR (= mcpk_ 7) (OR (= mcpk_ 9) (OR (= mcpk_ 11) (= mcpk_ 13)))))
+(notation! 'PRED-CODE 'kind 'predicate 'arity 1 'english "the code $1 names a predicate constant")
+
+;; (8) STRICTNESS OF A PREDICATE APPLICATION (the user's decision, 2026-10-17; agent META-10).  THE CLAIM:
+;; an atom P(a1 .. an) that holds, P a PREDICATE CONSTANT (PRED-CODE: a primitive relation <=, <, ORD-LT,
+;; a def-predicate name, a structure predicate IS-X), has DENOTING arguments a1 .. an.  VNB's atoms are
+;; strict: an atom with a non-denoting argument is false, whatever the constant's definition says, because
+;; def-predicate installs  forall x1 .. xn. P(x1 .. xn) iff body  quantified over OBJECTS, so the body
+;; speaks only where the arguments denote.  One premise [g, P(l)], one conclusion [g, l_i = l_i] per
+;; argument position i = 2 .. |l| (position 1 is the name).
+;; WHAT IT DOES NOT SAY, and the relation's form excludes it: the premise is a HEAD-10 node whose first
+;; entry is a CONST with a predicate code.  So NOT for == (head 9: quasi-equality is NOT strict,
+;; 1/0 == 1/0 holds), NOT for a connective (heads 0-6: NOT (1/0 = 1/0) is true) or a quantifier (binder
+;; heads 20, 21), and NOT for a definition's BODY read in place of the predicate: with P(x, y) iff
+;; NOT x = y, NOT (1/0 = 1/0) is true and P(1/0, 1/0) is false.  (IN and = have their own strictness
+;; rules, (1), (1') and the derived strictness of =.)  META controls: def-strict-pred-refuses-qeq and
+;; def-strict-pred-refuses-not (theorem-library/meta-def-laws.scm, section 6).
+;; PRECONDITION OF ITS SOUNDNESS.  The rule is sound only together with a kernel in which every
+;; INSTANTIATION of a definition owes the definedness of the instance: forall-elim (the core's
+;; CR-FORALL-ELIM carries [g, t = t] as a premise; the kernel's posts t = t, LUTINS rule of 2026-09-18)
+;; and, since round 3 (docs s.14.1), the macete door, which owes t = t at an uncertified match.  An
+;; unfolding that did not owe it would rewrite NOT (1/0 = 1/0) into P(1/0, 1/0), this rule would give
+;; 1/0 = 1/0, and FALSITY would follow.  Suite control: "DEF-STRICT-PRED precondition".
+(mc--cr! 'CR-DEF-STRICT-PRED "the core definedness rule strict-predicate relates $2 to $3"
+  (mc--ex '(mcg_ mcl_ mck_ mci_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ (NTH mci_ mcl_) (NTH mci_ mcl_))))
+             '(= (NTH 1 mcl_) (ECONST mck_)) '(PRED-CODE mck_)
+             '(IN mci_ NN) '(<= 2 mci_) '(<= mci_ (LENGTH mcl_))
+             '(= mchs_ (LIST (LIST mcg_ (EAPP 10 mcl_)))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; 5. CORE-RULE, CORE-CLOSED, DERIVABLE.

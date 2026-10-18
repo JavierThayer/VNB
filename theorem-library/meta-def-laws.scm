@@ -9,7 +9,7 @@
 ;;; (CR-DEF-*): their admissibility, the ADM-X predicates for every T, the two phase-4 hypotheses for every
 ;;; T, and the four admissibility theorems that carried those hypotheses restated without them (-core).
 ;;; Load window: after theorem-library/meta-ind-laws.scm and structure-library/meta-def.scm;
-;;; scratchpad/meta3/driver-kit-meta3.scm (dk-meta-derive!) before it.  Library: meta.
+;;; dk-meta-derive! is in driver-kit.scm.  Library: meta.
 
 (define (md+ g . fs) (fold-left (lambda (g f) `(CTX-ADD ,g ,f)) g fs))
 (define (md-der g f) `(IN (LIST ,g ,f) (DERIVABLE tt)))
@@ -295,7 +295,7 @@
 ;;; admissible for the atoms IN and = (adm-strict-walk, adm-strict-atom), and so is the R4 form of the clause
 ;;; with the SEP-membership reading (adm-true-walk, def-strict-hyp-derived); the R4 NTH clause is derived
 ;;; (def-nth-list-derived).  (Not named adm-def-X: def-predicate installs the defining IFF of the predicate
-;;; ADM-DEF-X of meta-def.scm under that name.)  The atoms <= and < need DEF-STRICT-PRED, not admitted (meta-def.scm, header).
+;;; ADM-DEF-X of meta-def.scm under that name.)  The atoms <= and < needed DEF-STRICT-PRED, admitted 2026-10-17 (section 6).
 
 (md-admitted! 'DEF-STRICT-ARG 'CR-DEF-STRICT-ARG 'def-strict-arg-admitted)
 (md-admitted! 'DEF-STRICT-DOM 'CR-DEF-STRICT-DOM 'def-strict-dom-admitted)
@@ -571,7 +571,9 @@
 (qed 'adm-true-walk)
 
 ;;; 5.3 The atom: both sides of a derivable IN or = denote (CR-DEF-STRICT-IN-L/R; adm-def-strict-eq-l/r),
-;;; and so does every term below a side (adm-strict-walk).
+;;; and so does every term below a side (adm-strict-walk).  Since META-10 (2026-10-17) also a predicate atom:
+;;; each argument denotes (CR-DEF-STRICT-PRED, through clf-pred-arg of meta-ind-laws.scm section L), and so
+;;; does every term below it.  The statement is unchanged; STRICT-ATOM gained the disjunct.
 
 ;; DEF-X(tt, [[g, atom]], c) closed and its derived admissibility LAW cited: c derivable
 (define (md-def-one! rel law c atom ws)
@@ -583,31 +585,46 @@
 (sp (make-wff '(FORALL tt (FORALL g (FORALL f (FORALL w (IMPLIES (IN (LIST g f) (DERIVABLE tt))
    (IMPLIES (STRICT-ATOM f w) (IN (LIST g (ENC-EQ w w)) (DERIVABLE tt))))))))))
 (dk-peel!)
-(let* ((vs (dk-meta-unpack! (dk-landed-1 (lambda () (mac-h 'strict-atom '(STRICT-ATOM f w))))))
-       (x (car vs)) (a (cadr vs))
-       (o1 (find-first (lambda (f) (and (dk-head-is? f 'OR) (dk-contains? f 'ENC-IN))) (dk-asms)))
-       (o2 (find-first (lambda (f) (and (dk-head-is? f 'OR) (dk-contains? f 'STRICT-REACH))) (dk-asms))))
-  (dk-cite! 'der-in-seq 'tt '(LIST g f))
-  (dk-split! (dk-meta-iff-r! (dk-meta-iff! 'seq-iff 'g 'f)))
-  (dk-meta-or-each! o1
-    (lambda (dj)
-      (let ((atom (caddr dj)) (xx `(LIST g (ENC-EQ ,x ,x))) (aa `(LIST g (ENC-EQ ,a ,a))))
-        (dk-rewrite-h! '(IN f CLF) 'f atom)
-        (dk-rewrite-h! '(IN (LIST g f) (DERIVABLE tt)) 'f atom)
-        (dk-split! (dk-cite! (if (dk-head-is? atom 'ENC-IN) 'clf-in-elim 'clf-eq-elim) x a))
-        (dk-cite! 'clf-eq-intro x x)
-        (dk-cite! 'clf-eq-intro a a)
-        (if (dk-head-is? atom 'ENC-IN)
-            (begin
-              (dk-meta-derive! 'tt `(def-strict-in-l (g ==> (ENC-EQ ,x ,x)) (given (g ==> ,atom))))
-              (dk-meta-derive! 'tt `(def-strict-in-r (g ==> (ENC-EQ ,a ,a)) (given (g ==> ,atom)))))
-            (begin
-              (md-def-one! 'DEF-STRICT-EQ-L 'adm-def-strict-eq-l xx atom (list 'g x a))
-              (md-def-one! 'DEF-STRICT-EQ-R 'adm-def-strict-eq-r aa atom (list 'g x a))))
-        (dk-meta-or-each! o2
-          (lambda (dk)
-            (dk-cite! 'adm-strict-walk 'tt 'g (cadr (caddr dk)) 'w)
-            (ass)))))))
+(dk-cite! 'der-in-seq 'tt '(LIST g f))
+(dk-split! (dk-meta-iff-r! (dk-meta-iff! 'seq-iff 'g 'f)))
+(dk-meta-or-each! (dk-landed-1 (lambda () (mac-h 'strict-atom '(STRICT-ATOM f w))))
+  (lambda (d)
+    (if (not (dk-contains? d 'EAPP))
+        ;; an atom IN or =: both sides denote, and so does every term below a side
+        (let* ((vs (dk-meta-unpack! d)) (x (car vs)) (a (cadr vs))
+               (o1 (find-first (lambda (o) (and (dk-head-is? o 'OR) (equal? (cadr o) `(= f (ENC-IN ,x ,a))))) (dk-asms)))
+               (o2 (find-first (lambda (o) (and (dk-head-is? o 'OR) (equal? (cadr o) `(IN w (STRICT-REACH ,x))))) (dk-asms))))
+          (dk-meta-or-each! o1
+            (lambda (dj)
+              (let ((atom (caddr dj)) (xx `(LIST g (ENC-EQ ,x ,x))) (aa `(LIST g (ENC-EQ ,a ,a))))
+                (dk-rewrite-h! '(IN f CLF) 'f atom)
+                (dk-rewrite-h! '(IN (LIST g f) (DERIVABLE tt)) 'f atom)
+                (dk-split! (dk-cite! (if (dk-head-is? atom 'ENC-IN) 'clf-in-elim 'clf-eq-elim) x a))
+                (dk-cite! 'clf-eq-intro x x)
+                (dk-cite! 'clf-eq-intro a a)
+                (if (dk-head-is? atom 'ENC-IN)
+                    (begin
+                      (dk-meta-derive! 'tt `(def-strict-in-l (g ==> (ENC-EQ ,x ,x)) (given (g ==> ,atom))))
+                      (dk-meta-derive! 'tt `(def-strict-in-r (g ==> (ENC-EQ ,a ,a)) (given (g ==> ,atom)))))
+                    (begin
+                      (md-def-one! 'DEF-STRICT-EQ-L 'adm-def-strict-eq-l xx atom (list 'g x a))
+                      (md-def-one! 'DEF-STRICT-EQ-R 'adm-def-strict-eq-r aa atom (list 'g x a))))
+                (dk-meta-or-each! o2
+                  (lambda (dk)
+                    (dk-cite! 'adm-strict-walk 'tt 'g (cadr (caddr dk)) 'w)
+                    (ass)))))))
+        ;; a predicate atom (META-10, 2026-10-17): its argument at position i denotes (CR-DEF-STRICT-PRED),
+        ;; and so does every term below it
+        (let* ((vs (dk-meta-unpack! d)) (l (car vs)) (k (cadr vs)) (i (caddr vs))
+               (ea `(EAPP 10 ,l)) (nt `(NTH ,i ,l)))
+          (dk-rewrite-h! '(IN f CLF) 'f ea)
+          (dk-rewrite-h! '(IN (LIST g f) (DERIVABLE tt)) 'f ea)
+          (dk-have! `(<= 1 ,i) (lambda () (dk-nn! `(<= 2 ,i))))
+          (dk-cite! 'clf-pred-arg l i)
+          (dk-cite! 'clf-eq-intro nt nt)
+          (dk-meta-derive! 'tt `(def-strict-pred (g ==> (ENC-EQ ,nt ,nt)) (k := ,k) (given (g ==> ,ea))))
+          (dk-cite! 'adm-strict-walk 'tt 'g nt 'w)
+          (ass)))))
 (qed 'adm-strict-atom)
 
 ;;; 5.4 THE R4 STRICT-HYPOTHESIS CLAUSE (DEF-STRICT-HYP, meta-def.scm section 5) is admissible over the core.
@@ -699,3 +716,114 @@
     (md-close!)))
 (qed 'def-nth-list-derived)
 (md-adm-holds! 'ADM-DEF-NTH-LIST 'def-nth-list-derived 'adm-def-nth-list-holds)
+
+;;; -----------------------------------------------------------------------
+;;; 6. DEF-STRICT-PRED ADMITTED (the user's decision, 2026-10-17, "yes do the predicate case"; agent META-10).
+;;; CR-DEF-STRICT-PRED is a core relation (structure-library/meta-core.scm 4.7 (8), its claim and the
+;;; precondition of its soundness written beside it); the predicate names have codes (PRED-CODE).  Its
+;;; admissibility is the closure law; the controls show that it does not reach == or a negation; the kernel
+;;; clauses that waited for it are derived: the strict atoms <= and < (STRICT-ATOM, section 5.3, and the
+;;; witnesses strict-atom-le / -lt below), the structure-hypothesis clause (DEF-STRUCT-HYP), the
+;;; predicate-hypothesis and accessor clauses for a one-parameter predicate (DEF-PRED-UNFOLD,
+;;; meta-ind-laws.scm section L, and DEF-PRED-HYP).
+
+(md-admitted! 'DEF-STRICT-PRED 'CR-DEF-STRICT-PRED 'def-strict-pred-admitted)
+(md-adm-holds! 'ADM-DEF-STRICT-PRED 'def-strict-pred-admitted 'adm-def-strict-pred-holds)
+
+;;; 6.1 THE CONTROLS.  The relation has no instance whose premise is a quasi-equation a == b (head 9) or a
+;;; negation NOT (a = a) (head 2), a, b closed terms and g a context: the premise of every instance is a head-10
+;;; node.  (The typings make the premise list a term the certificate accepts, so that the relation's defining
+;;; equivalence can be instantiated at it.)  So DEF-STRICT-PRED gives
+;;; nothing from 1/0 == 1/0, which holds, nor from NOT (1/0 = 1/0), which holds too.
+(define (md10-refuses! vars prem unfold-law unfold-args code name)
+  (sp (make-wff (dk-meta-wrap (append '(tt g) vars '(c))
+                  `(IMPLIES (IN g CTX-SET)
+                     ,(fold-right (lambda (v f) `(IMPLIES (IN ,v CLT) ,f))
+                                  `(NOT (CR-DEF-STRICT-PRED tt (LIST (LIST g ,prem)) c)) vars)))))
+  (dk-peel!)
+  (if (dk-head-is? (dk-goal) 'NOT) (di))
+  (let* ((hsl `(LIST (LIST g ,prem)))
+         (ex (dk-meta-iff-r! (dk-meta-iff! 'cr-def-strict-pred 'tt hsl 'c)))
+         (vs (dk-meta-unpack! ex)) (l (cadr vs))
+         (heq (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) hsl))) (dk-asms)))
+         (l2 (caddr heq)) (s1 (cadr hsl)) (s2 (cadr l2)) (rhs (caddr s2)))
+    (dk-have! `(= ,s1 ,s2) (lambda () (dk-meta-component! hsl l2 1)))
+    (dk-have! `(= ,prem ,rhs) (lambda () (dk-meta-component! s1 s2 2)))
+    (let* ((u (apply dk-cite! unfold-law unfold-args)) (ue (caddr u)))
+      (dk-rewrite-h! `(= ,prem ,rhs) prem ue)
+      (dk-split! (dk-cite! 'eapp-injective code (caddr ue) 10 l)))
+    (dk-have! `(NOT (= ,code 10)) (lambda () (arith)))
+    (ai `(NOT (= ,code 10))))
+  (qed name))
+(md10-refuses! '(a b) '(ENC-QEQ a b) 'enc-qeq-unfold '(a b) 9 'def-strict-pred-refuses-qeq)
+(md10-refuses! '(a) '(ENC-NOT (ENC-EQ a a)) 'enc-not-unfold '((ENC-EQ a a)) 2 'def-strict-pred-refuses-not)
+
+;;; 6.2 THE STRICT ATOMS <= AND < (pi--atom-certifies?, primitive-inferences.scm 1101-1112: the atoms IN = <= <,
+;;; alone or as conjuncts of a SEP condition): a two-argument predicate atom is a STRICT-ATOM for every term
+;;; below either argument, so DEF-STRICT-HYP (section 5.4) covers them.
+(sp (make-wff '(FORALL k (FORALL x (FORALL y (FORALL w (IMPLIES (PRED-CODE k) (IMPLIES (IN x EXPR-SET) (IMPLIES (IN y EXPR-SET)
+   (IMPLIES (OR (IN w (STRICT-REACH x)) (IN w (STRICT-REACH y))) (STRICT-ATOM (EAPP 10 (LIST (ECONST k) x y)) w)))))))))))
+(dk-peel!)
+(let ((l '(LIST (ECONST k) x y)))
+  (dk-cite! 'pred-code-nn 'k)
+  (dk-have! `(= (NTH 1 ,l) (ECONST k)) (lambda () (nth-r) (rfl)))
+  (dk-have! `(= (NTH 2 ,l) x) (lambda () (nth-r) (rfl)))
+  (dk-have! `(= (NTH 3 ,l) y) (lambda () (nth-r) (rfl)))
+  (dk-have! '(IN 2 NN) (lambda () (arith)))
+  (dk-have! '(IN 3 NN) (lambda () (arith)))
+  (dk-have! '(<= 2 2) (lambda () (arith)))
+  (dk-have! '(<= 2 3) (lambda () (arith)))
+  (dk-have! `(<= 2 (LENGTH ,l)) (lambda () (len-r) (arith)))
+  (dk-have! `(<= 3 (LENGTH ,l)) (lambda () (len-r) (arith)))
+  (mac 'strict-atom)
+  (oi-r)
+  (dk-meta-or-each! '(OR (IN w (STRICT-REACH x)) (IN w (STRICT-REACH y)))
+    (lambda (d)
+      (let* ((v (cadr (caddr d))) (j (if (eq? v 'x) 2 3)))
+        (dk-have! `(IN w (STRICT-REACH (NTH ,j ,l))) (lambda () (subst `(= (NTH ,j ,l) ,v)) (ass)))
+        (dk-meta-ex-fill! (list l 'k j))))))
+(qed 'strict-atom-pred2)
+(define (md10-strict-atom-rel! enc code unfold name)
+  (sp (make-wff `(FORALL x (FORALL y (FORALL w (IMPLIES (IN x EXPR-SET) (IMPLIES (IN y EXPR-SET)
+     (IMPLIES (OR (IN w (STRICT-REACH x)) (IN w (STRICT-REACH y))) (STRICT-ATOM (,enc x y) w)))))))))
+  (dk-peel!)
+  (dk-have! `(PRED-CODE ,code)
+    (lambda () (mac 'pred-code)
+      (let loop () (if (dk-asm? (dk-goal)) (ass)
+                       (let ((g (dk-goal)))
+                         (cond ((and (dk-head-is? g 'OR) (equal? (cadr g) `(= ,code ,code))) (oi-l) (rfl))
+                               ((dk-head-is? g 'OR) (oi-r) (loop))
+                               (#t (rfl))))))))
+  (dk-cite! 'strict-atom-pred2 code 'x 'y 'w)
+  (subst (dk-cite! unfold 'x 'y))
+  (ass)
+  (qed name))
+(md10-strict-atom-rel! 'ENC-LE 11 'enc-le-unfold 'strict-atom-le)
+(md10-strict-atom-rel! 'ENC-LT 13 'enc-lt-unfold 'strict-atom-lt)
+
+;;; 6.3 THE STRUCTURE-HYPOTHESIS CLAUSE (pi--structure-hyp, primitive-inferences.scm 989, read at 1203) is
+;;; DERIVED: DEF-STRICT-PRED at position 2 (adm-pred1-arg, meta-ind-laws.scm section L).
+(sp (make-wff '(FORALL tt (FORALL hs (FORALL c (IMPLIES (DEF-STRUCT-HYP tt hs c)
+   (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt)))))))))
+(dk-peel!)
+(let* ((vs (md-rel-open! 'def-struct-hyp 1)) (g (car vs)) (k (cadr vs)) (s (caddr vs)))
+  (dk-cite! 'adm-pred1-arg 'tt g k s)
+  (md-close!))
+(qed 'def-struct-hyp-derived)
+(md-adm-holds! 'ADM-DEF-STRUCT-HYP 'def-struct-hyp-derived 'adm-def-struct-hyp-holds)
+(md-adm-holds! 'ADM-DEF-PRED-UNFOLD 'def-pred-unfold-derived 'adm-def-pred-unfold-holds)
+
+;;; 6.4 THE PREDICATE-HYPOTHESIS CLAUSE (pi--via-pred-hyps?, 1170, read at 1263) AND THE ACCESSOR CLAUSE (836,
+;;; 1239), for a one-parameter predicate, are DERIVED: the unfolding (adm-pred1-unfold), the sentences its body
+;;; makes true (adm-true-walk), the atom (adm-strict-atom).
+(sp (make-wff '(FORALL tt (FORALL hs (FORALL c (IMPLIES (DEF-PRED-HYP tt hs c)
+   (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt)))))))))
+(dk-peel!)
+(let* ((vs (md-rel-open! 'def-pred-hyp 2)) (g (car vs)) (k (cadr vs)) (s (caddr vs)) (b (cadddr vs))
+       (f2 (list-ref vs 4)) (w (list-ref vs 5)))
+  (dk-cite! 'adm-pred1-unfold 'tt g k s b)
+  (dk-cite! 'adm-true-walk 'tt g `(EXPR-OPEN ,b 0 ,s) f2)
+  (dk-cite! 'adm-strict-atom 'tt g f2 w)
+  (md-close!))
+(qed 'def-pred-hyp-derived)
+(md-adm-holds! 'ADM-DEF-PRED-HYP 'def-pred-hyp-derived 'adm-def-pred-hyp-holds)

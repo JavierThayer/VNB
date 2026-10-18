@@ -15402,6 +15402,66 @@
       (quietly (lambda () (comp-predicativity-note! 'suite-comp-probe '((fact (COMP x . 3))))))
       (null? *comp-impredicative-uses*))))
 
+;;; 2026-10-16, META-W1: dk-meta-derive! (driver-kit.scm, spliced from META-3's kit file).  A lemma
+;;; node is closed by citing the derived rule, and afterwards the context holds only what it held at
+;;; entry plus derivabilities (the pruning `keep'); the control: a (given ...) leaf whose sequent is
+;;; not derivable in context is an error, not a silent pass.
+(define (w1-der-iff-r-goal)
+  (make-wff '(FORALL tt (FORALL g (FORALL a (FORALL b (IMPLIES (IN (LIST g (ENC-IFF a b)) (DERIVABLE tt))
+     (IMPLIES (IN (LIST g a) (DERIVABLE tt)) (IN (LIST g b) (DERIVABLE tt))))))))))
+(check-true "kit: dk-meta-derive! closes a lemma node and prunes the context to entry plus derivabilities"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (w1-der-iff-r-goal))
+      (dk-peel!)
+      (let* ((base (dk-asms))
+             (r (dk-meta-derive! 'tt '(lemma (g ==> b) der-iff-r (g a b)
+                                         (given (g ==> (ENC-IFF a b))) (given (g ==> a))))))
+        (and (equal? r '(IN (LIST g b) (DERIVABLE tt)))
+             (dk-asm? r)
+             (every (lambda (f) (or (member f base)
+                                    (and (dk-head-is? f 'IN) (dk-head-is? (caddr f) 'DERIVABLE))))
+                    (dk-asms))
+             (begin (ass) (proof-done? *ps*)))))))))
+(check-error "kit CONTROL: dk-meta-derive! errors on a given sequent that is not derivable in context"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (w1-der-iff-r-goal))
+      (dk-peel!)
+      (vnb-guard (lambda () (dk-meta-derive! 'tt '(given (g ==> b))))))))))
+
+;;; 2026-10-17, META-10: THE PRECONDITION OF DEF-STRICT-PRED (the user's example; docs/meta-k2-admissibility,
+;;; section 18).  P(x, y) iff NOT x = y: NOT (1/0 = 1/0) is true and P(1/0, 1/0) is false.  The META core admits
+;;; the strictness of a predicate application (CR-DEF-STRICT-PRED), which is sound only because unfolding P's
+;;; definition at (1/0, 1/0) OWES 1/0 = 1/0 (the macete door, round 3): were it free, `mac' would turn the true
+;;; NOT (1/0 = 1/0) into P(1/0, 1/0), the rule would give 1/0 = 1/0, and FALSITY would follow.  The first check
+;;; pins the owed leaf (the kernel is not changed); the control shows the unfolding owes nothing at arguments the
+;;; context certifies and the proof closes.
+(def-predicate 'M10-NEQ '(m10x_ m10y_) '(NOT (= m10x_ m10y_)))
+(define (m10-leaf-goals) (map dk-goal-of (dk-open-leaves)))
+(check-true "DEF-STRICT-PRED precondition: unfolding P(x, y) iff NOT x = y at (1/0, 1/0) owes 1/0 = 1/0, the proof stays open"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(IMPLIES (NOT (= (/ 1 0) (/ 1 0))) (M10-NEQ (/ 1 0) (/ 1 0)))))
+      (di)
+      (vnb-guard (lambda () (mac 'm10-neq)))
+      (let ((owed? (member '(= (/ 1 0) (/ 1 0)) (m10-leaf-goals))))
+        (for-each (lambda (n) (if (and (not (sequent-node-grounded? n)) (dk-asm? (dk-goal-of n)))
+                                  (begin (dk-focus! n) (vnb-guard (lambda () (ass))))))
+                  (dk-open-leaves))
+        (and owed? #t
+             (member '(= (/ 1 0) (/ 1 0)) (m10-leaf-goals)) #t
+             (not (proof-done? *ps*)))))))))
+(check-true "DEF-STRICT-PRED precondition CONTROL: at arguments typed in context the unfolding owes nothing and the proof closes"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL m10a_ (FORALL m10b_ (IMPLIES (IN m10a_ RR) (IMPLIES (IN m10b_ RR)
+                        (IMPLIES (NOT (= m10a_ m10b_)) (M10-NEQ m10a_ m10b_))))))))
+      (dk-peel!)
+      (mac 'm10-neq)
+      (and (= (length (dk-open-leaves)) 1)
+           (begin (ass) (proof-done? *ps*))))))))
+
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")
 (display *fail-count*) (display " failed ===\n")

@@ -1748,6 +1748,25 @@
     ;; the ORD-LE/<= bridge; exercises the new ai iff-elim.  Needs interactive
     ;; tactics + qed and the ordinal axioms.
     "theorem-library/nn-least-element"
+    ;; THE META LIBRARY (K2: the kernel's rules against an encoded core; docs/meta-k2-admissibility-
+    ;; 2026-10-08.md), wired by META-W1, 2026-10-16, at the earliest slot after everything its files
+    ;; cite: nn-least-element (meta-syntax-laws) is the latest.  First the three generic set lemmas
+    ;; the META laws, driver-kit's dk-meta-unpack! / dk-meta-close-in! and the strand files cite
+    ;; (pair-self-member, pair-self-eq, cartesian3-set; moved out of strand-messages-laws, library
+    ;; core).  Then each phase's definitions before its laws: syntax (phase 1), the core and
+    ;; DERIVABLE (2), contextual rewriting (3), induction and definedness (4-7).  dk-meta-derive!
+    ;; (meta-cr / -ind / -def-laws) is in driver-kit.scm.  Library: meta (libraries.sexp).
+    "theorem-library/pair-self-cartesian3"
+    "structure-library/meta-syntax"
+    "theorem-library/meta-syntax-laws"
+    "structure-library/meta-core"
+    "theorem-library/meta-core-laws"
+    "structure-library/meta-cr"
+    "theorem-library/meta-cr-laws"
+    "structure-library/meta-ind"
+    "structure-library/meta-def"
+    "theorem-library/meta-ind-laws"
+    "theorem-library/meta-def-laws"
     ;; DEG / LEADCOEF / MONOMIAL for A[x].  The definitions (structure-library/
     ;; poly-degree) and their proofs (theorem-library/poly-degree-laws), split
     ;; the usual way.  DEG(A,p) is the LARGEST exponent with a nonzero

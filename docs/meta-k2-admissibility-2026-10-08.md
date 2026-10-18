@@ -846,6 +846,8 @@ No re-transcribed row required a schema beyond those admitted, except as stated 
 
 ### 16.5 What remains open for DEF-STRICT-PRED
 
+(Admitted on 2026-10-17; see section 18.)
+
 The strictness of a predicate application, in the form META-5 stated (row 6): from `[g, P(l)]` derivable,
 `P` a predicate application (`EAPP 10 l`, the first entry the predicate's name), `[g, l_i = l_i]` for each
 argument `l_i` after the name. Without it the following kernel clauses are not admissible over the core:
@@ -911,3 +913,145 @@ satisfier or the same absence of one.
 (seven theorems; `scratchpad/triage/META-8-REPORT.md`) are already accepted by the checker under `eq-subst`,
 `macete` and `nth-reduce`. K2 now reads each of them as an instance of CR at an IOTA body, with IOTA-CR as
 the case of the induction on positions.
+
+## 18. Phase 8: the strictness of a predicate application admitted, with predicate codes (2026-10-17)
+
+### 18.1 The decision
+
+On 2026-10-17 the user decided to admit `DEF-STRICT-PRED` (META-5's row 6; open in 16.5) into the core, with
+codes for predicate names in the encoding ("yes do the predicate case"). The rule is admitted in the form of
+sections 15 and 16: a core relation, a disjunct of `CORE-RULE`, with the claim it makes written beside it.
+Agent META-10.
+
+### 18.2 The predicate codes
+
+A predicate atom `P(a1, ..., an)` was already encoded as the head-10 node `EAPP(10, [ECONST(k), a1, ..., an])`
+(section 5; `meta-core.scm` section 1), but no code was marked as the name of a predicate. Codes 7 (`ORD-LT`) and
+9 (`LIMIT-ORD`) had been assigned by `meta-ind.scm`, and codes 11 (`<=`) and 13 (`<`) were named in a comment of
+`meta-def.scm`. The new predicate `PRED-CODE(k)` (`meta-core.scm` 4.7) holds exactly for 7, 9, 11 and 13. The
+translator of K3 extends this list with the codes of the other def-predicate names and of the structure
+predicates `IS-X`, and never with the code of a term constant. An odd CONST code therefore names either a term
+constant or a predicate, and `PRED-CODE` says which. No existing code changed. No existing theorem statement
+changed.
+
+`IN`, `=` and `==` are heads 7, 8 and 9, not predicate names. The connectives are heads 0 to 6. The quantifiers
+are binder heads 20 and 21.
+
+New encoders (`meta-def.scm` section 6): `ENC-LE(x, y) = EAPP(10, [ECONST 11, x, y])`, `ENC-LT` with code 13, and
+`ENC-PRED1(n, p) = EAPP(10, [n, p])`, the atom of a one-parameter predicate whose name is the expression `n`.
+
+### 18.3 The rule admitted
+
+| core relation | conclusion from premise | the claim |
+|---|---|---|
+| `CR-DEF-STRICT-PRED` | `[g, l_i = l_i]` from `[g, EAPP(10, l)]`, `NTH(1, l) = ECONST(k)`, `PRED-CODE(k)`, `2 <= i <= LENGTH(l)` | an atom `P(a1 .. an)` that holds, where `P` is a predicate constant (a primitive relation, a def-predicate name, a structure predicate), has denoting arguments. VNB's atoms are strict: an atom with a non-denoting argument is false, whatever the definition of the constant says, because `def-predicate` installs `forall x1 .. xn. P(x1 .. xn) iff body`, quantified over objects, so the body speaks only where the arguments denote |
+
+**What the relation excludes, by its form.** The premise must be a head-10 node whose first entry is a constant
+with a predicate code. The rule therefore does not apply to:
+
+* `==` (head 9). Quasi-equality is not strict: `1/0 == 1/0` holds.
+* a connective (heads 0 to 6) or a quantifier (binder heads 20 and 21). `NOT (1/0 = 1/0)` is true.
+* the body of a definition read in place of the predicate. With `P(x, y) iff NOT x = y`, the atom
+  `NOT (1/0 = 1/0)` is true and `P(1/0, 1/0)` is false.
+
+The claim, written beside the relation, states these exclusions.
+
+**The precondition of soundness.** The rule is sound only if every instantiation of a definition owes the
+definedness of the instance. In the core, `CR-FORALL-ELIM` always carries the premise `[g, t = t]`. In the
+kernel, forall-elim posts `t = t` (the LUTINS rule of 2026-09-18), and so does the macete door at a match it
+cannot certify (round 3, 14.1). Suppose an unfolding did not owe this. It would rewrite the true
+`NOT (1/0 = 1/0)` into `P(1/0, 1/0)`. `DEF-STRICT-PRED` would then give `1/0 = 1/0`, and FALSITY would follow.
+The repair of 14.1 is therefore a precondition of the soundness of `DEF-STRICT-PRED`. The precondition is written
+in the claim (`meta-core.scm` 4.7 (8)) and pinned by the suite (18.6).
+
+### 18.4 What the admission discharges
+
+All of the following are in `theorem-library/meta-ind-laws.scm` section L and `meta-def-laws.scm` section 6.
+
+* `derivable-def-strict-pred` (the closure law; `mc-core-names` in `meta-core-laws.scm`),
+  `def-strict-pred-admitted` and `adm-def-strict-pred-holds`.
+* **The META controls.** `def-strict-pred-refuses-qeq`: for a context `g` and closed terms `a`, `b`,
+  `NOT CR-DEF-STRICT-PRED(T, [[g, a == b]], c)`. `def-strict-pred-refuses-not`: likewise at the premise
+  `NOT (a = a)`. Each proof reads the premise list off the relation and reduces the equation of the two premise
+  formulas to head 9 = head 10 or head 2 = head 10 (`eapp-injective`), which `arith` refutes.
+* The inversion `clf-pred-arg`: an argument of a head-10 sentence is a closed term. Also `pred-code-nn`, and the
+  unfold laws of `ENC-PRED1`, `ENC-LE` and `ENC-LT`.
+* **The strict atoms `<=` and `<`** (`pi--atom-certifies?`, `primitive-inferences.scm` 1101-1112, alone or as SEP
+  conjuncts). `STRICT-ATOM` gains a second disjunct: a head-10 atom with a predicate code certifies every term in
+  `STRICT-REACH(l_i)` for `2 <= i <= |l|`. The proof of `adm-strict-atom` gains the matching case
+  (`CR-DEF-STRICT-PRED`, then `adm-strict-walk`), and its statement is unchanged. `DEF-STRICT-HYP` therefore
+  covers these atoms, and `def-strict-hyp-derived` is unchanged. Witnesses: `strict-atom-pred2` (any
+  two-argument predicate atom), `strict-atom-le` and `strict-atom-lt`. The relation reads every predicate atom,
+  where the kernel reads `<=` and `<` only. It is a superset of the kernel's clause, and admissible as such.
+* **The structure-hypothesis clause** (`pi--structure-hyp`, 989, read at 1203): `IS-X(s)` certifies `s`. It is
+  transcribed as `DEF-STRUCT-HYP`, premise `[g, ENC-PRED1(ECONST k, s)]`, `PRED-CODE(k)`, conclusion `[g, s = s]`.
+  It is DERIVED as `CR-DEF-STRICT-PRED` at position 2 (`adm-pred1-arg`, `def-struct-hyp-derived`,
+  `adm-def-struct-hyp-holds`). The other form of the clause, `s in X`, is `CR-DEF-STRICT-IN-L`.
+* **The unfolding of a one-parameter definition** (`DEF-PRED-UNFOLD`): from `[g, P(s)]` and
+  `[g, forall x. P(x) iff b]`, derive `[g, b[x := s]]`. The definition is a derivable sentence: a member of T read
+  by theorem-assumption, or a proven sentence, which is the kernel's "definitional, primitive or proven" entry.
+  DERIVED in `adm-pred1-unfold` by cut, forall-elim at `s` (whose owed `[g, s = s]` is `adm-pred1-arg`),
+  iff-elim and backchain, using the OPEN calculator of section D. Also `def-pred-unfold-derived` and
+  `adm-def-pred-unfold-holds`. This is the role META-5 gave `DEF-STRICT-PRED` in rows 1205 and 1233: without it,
+  the core cannot instantiate the definition at a compound `s`.
+* **The predicate-hypothesis clause** (`pi--via-pred-hyps?`, 1170, read at 1263) **and the accessor clause**
+  (`pi--accessor-certified?`, 836, and the clause at 1239), for a one-parameter predicate. Both are transcribed as
+  `DEF-PRED-HYP`: the two premises of `DEF-PRED-UNFOLD`, a sentence `f2` in `TRUE-REACH(b[x := s])`, and
+  `STRICT-ATOM(f2, w)`; the conclusion is `[g, w = w]`. DERIVED: `adm-pred1-unfold`, `adm-true-walk`,
+  `adm-strict-atom` (`def-pred-hyp-derived`, `adm-def-pred-hyp-holds`). The accessor clause is the instance at a
+  structure predicate whose body has the typing conjunct `ACC(s) in C`. The kernel's nested reading (depth < 3: a
+  conjunct that is itself a predicate hypothesis) is a composition of these steps. Each of `adm-pred1-unfold` and
+  `adm-true-walk` takes a derivable sequent to a derivable sequent.
+
+**Not covered**, with the reason for each:
+
+* Predicates of two or more parameters. The encoding has no iterated instantiation. Each further parameter is one
+  more forall-elim of the same shape, whose owed definedness is again `CR-DEF-STRICT-PRED`.
+* The leading FORSOMEs of a definition's body, which the kernel strips to fresh witnesses. Each binder needs one
+  forsome-elim with the eigenvariable condition.
+* The view clause of `pi--accessor-certified?` (`ACC(V(r))` through the body of a view functoid). Like every
+  functoid row (`pi--sob-walk` through a functoid body, `pi--sep-form`, the NTH-through-a-functoid clause), this
+  waits for a functoid encoding. That is the next agent's work.
+* Heads with no code (PAIR, POWER, the arithmetic heads, CHOICE, ...). These are left to the K3 translator.
+
+### 18.5 The count
+
+The core grows from 45 rules (after IOTA-CR, section 17) to 46. In `meta-core.scm`, `CORE-RULE` has 52 disjuncts,
+up from 51. (IOTA-CR, decided in section 17, is not yet a relation of `meta-core.scm`.) META has 21 new theorems:
+`derivable-def-strict-pred`; in `meta-ind-laws.scm` section L, `enc-pred1-unfold`, `enc-le-unfold`,
+`enc-lt-unfold`, `pred-code-nn`, `clf-pred-arg`, `adm-pred1-arg`, `adm-pred1-unfold` and
+`def-pred-unfold-derived`; in `meta-def-laws.scm` section 6, `def-strict-pred-admitted`,
+`adm-def-strict-pred-holds`, `def-strict-pred-refuses-qeq`, `def-strict-pred-refuses-not`, `strict-atom-pred2`,
+`strict-atom-le`, `strict-atom-lt`, `def-struct-hyp-derived`, `adm-def-struct-hyp-holds`,
+`adm-def-pred-unfold-holds`, `def-pred-hyp-derived` and `adm-def-pred-hyp-holds`. The total is 437, up from 416.
+`adm-strict-atom` has a new proof and the same statement.
+
+### 18.6 The suite controls
+
+`test-suite.scm` carries the user's example as a kernel control. The kernel is not changed.
+
+* `DEF-STRICT-PRED precondition`: with `M10-NEQ(x, y) iff NOT x = y` and `NOT (1/0 = 1/0)` in context, `mac` of
+  the definition at `(1/0, 1/0)` posts the owed leaf `1/0 = 1/0`. After every leaf the context closes has been
+  closed, that leaf is still open and the proof is not done.
+* `... CONTROL`: at arguments typed in `RR`, the unfolding owes nothing and the proof closes.
+
+### 18.7 Regress
+
+All runs were on worker-01 on 2026-10-17. The report is `scratchpad/triage/META-10-REPORT.md` in the main tree.
+
+* **The whole META chain proven** (`prover-mw/scratchpad/m10/final.scm`, the META-W1 probe with its names
+  changed), against the certified band of the main tree, which holds no META. Quiet, at heap 120000, from 01:47:55Z
+  to 02:40:14Z (3139 s). Every form of the ten files ran under an error trap. Result: 437 `;; qed` lines, every one
+  `proven modulo 0`, and none billed. `*vnb-qed-failures*` was empty and no form errored. The run printed the same
+  four warnings as META-5 to META-W1.
+* **The keep-going certified cold load of `prover-mw`** (`VNB_KEEP_GOING=1 VNB_CERTIFIED=on`, heap 200000), from
+  02:40:14Z to 02:49:21Z. The load had 0 holes and 0 failed files. The qed-failure gate was ok. 28771 inferences were
+  verified with 0 refusals. 312 theorems were proven and 5155 certified; the page audit covered all 312 proofs that
+  ran. The library gate found 8 libraries and 0 violations. The other audits were ok, except the existing backlog
+  of 13 proven-duplicate groups (none of them META) and a pre-existing case-fold-local warning in three non-META
+  files. Every `;; qed` line read `modulo 0`. Of the META proofs, 22 ran: the 21 new ones and `adm-strict-atom`.
+  The other 415 were certified. Their records stayed valid because a certificate's key does not follow the
+  def-functoid `DERIVABLE` into `CORE-RULE` (finding 1 of the report). The probe above is the evidence for them.
+* **The suite from that band**, run alone in the foreground: `=== SUMMARY: 1993 passed, 1 failed ===`. The one
+  failure is the known check `keep-going load mode is OFF unless VNB_KEEP_GOING is set`, which fails on a
+  keep-going band. Both checks of 18.6 pass.

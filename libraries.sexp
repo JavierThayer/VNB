@@ -166,6 +166,7 @@
     "theorem-library/zorn-proof"
     "theorem-library/zorn-route-two"
     "theorem-library/nn-least-element"
+    "theorem-library/pair-self-cartesian3"   ; pair-self-member, pair-self-eq, cartesian3-set (moved from strand-messages-laws, META-W1 2026-10-16)
     "theorem-library/interval-widen"
     "theorem-library/rake-finsum-typing-nn"
     "structure-library/rr-ineq"
@@ -786,6 +787,23 @@
     "theorem-library/strand-adversary-bound"
     "structure-library/nsl"
     "theorem-library/nsl"
+  ))
+
+(library meta
+  (title "The Kernel Encoded")
+  (about "Expressions of the VNB language encoded as sets (syntax, free variables, substitution, rank); the core calculus as an inductively defined set DERIVABLE(T) of sequents; contextual rewriting and the rewriting rules as admissible rules of the core; the induction rules and the definedness clauses of the kernel against the core (K2, docs/meta-k2-admissibility-2026-10-08.md).")
+  (imports core)
+  (files
+    "structure-library/meta-syntax"
+    "theorem-library/meta-syntax-laws"
+    "structure-library/meta-core"
+    "theorem-library/meta-core-laws"
+    "structure-library/meta-cr"
+    "theorem-library/meta-cr-laws"
+    "structure-library/meta-ind"
+    "structure-library/meta-def"
+    "theorem-library/meta-ind-laws"
+    "theorem-library/meta-def-laws"
   ))
 
 ;;; files whose theorems belong to several books: each proven or asserted theorem is placed by

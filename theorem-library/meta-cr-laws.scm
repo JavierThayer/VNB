@@ -3,7 +3,7 @@
 ;;; (docs/meta-k2-admissibility-2026-10-08.md, section 6, phase 3.)
 ;;; Agent META-3, 2026-10-09.  Builds on theorem-library/meta-syntax-laws.scm and meta-core-laws.scm,
 ;;; which it does not edit; the shared helpers (dk-meta-*, dk-derive!) are in driver-kit.scm, section
-;;; META, and dk-meta-derive! in scratchpad/meta3/driver-kit-meta3.scm (to be spliced there).  The
+;;; META, with dk-meta-derive! (spliced there from META-3's kit file by META-W1, 2026-10-16).  The
 ;;; helpers defined below are local to this file (prefix mr-).
 ;;; Sections: A the universe, EQV, REWR; B the derivation templates and the clause driver; C-E, G, H
 ;;; the clause laws of stages 1 (connectives, atoms), 2 (quantifiers), 3 (IF), 4 (term heads), 5
@@ -199,7 +199,7 @@
 (define (mr+ g . fs) (fold-left (lambda (g f) `(CTX-ADD ,g ,f)) g fs))
 ;; (g ==> b) from trees for (g ==> a IFF b) and (g ==> a); (g ==> a) from (g ==> a IFF b) and (g ==> b):
 ;; the four-node expansions (mr-iffr0 / mr-iffl0), which prove the two derived rules der-iff-r /
-;; der-iff-l below, and the lemma nodes every later tree uses (dk-meta-derive!, driver-kit-meta3.scm).
+;; der-iff-l below, and the lemma nodes every later tree uses (dk-meta-derive!, driver-kit.scm).
 (define (mr-iffr0 g a b t-iff t-a)
   (let* ((i `(ENC-IFF ,a ,b)) (g1 (mr+ g i)) (g3 (mr+ g1 `(ENC-IMP ,a ,b) `(ENC-IMP ,b ,a))))
     `(cut (,g ==> ,b) ,t-iff (iff-elim (,g1 ==> ,b) (backchain (,g3 ==> ,b) ,(mr-wk g3 t-a))))))

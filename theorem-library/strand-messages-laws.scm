@@ -16,12 +16,12 @@
 ;;; WHAT IS PROVEN (in this order)
 ;;;  0. lst-unfold, encr-unfold; FREENESS OF THE TAGS: encr-ne-list, lst-ne-encr, lst-injective,
 ;;;     encr-injective
-;;;  1. pair-self-member, pair-self-eq            a set is the one member of PAIR(a, a)
+;;;  1. (pair-self-member, pair-self-eq: moved to pair-self-cartesian3.scm, core, 2026-10-16)
 ;;;  2. msg-stage-token, -keep, -list, -encr      the stage clauses, introduction
 ;;;     msg-stage-zero-elim, msg-stage-succ-cases ... and elimination (three cases)
 ;;;     msg-stage-add                             S_j is included in S_(j + d)
 ;;;  3. msg-set-unfold, msg-set-intro, msg-set-elim   A is the union of the stages
-;;;     token-in-msgs, cartesian3-set, msg-stage-set, msg-set-is-set
+;;;     token-in-msgs, msg-stage-set, msg-set-is-set (cartesian3-set: moved to pair-self-cartesian3.scm)
 ;;;     msg-lists-are-lists, list-in-some-stage, list-in-msgs (LST(l) is a message),
 ;;;     encr-in-msgs (ENCR(g, k) is a message), lst-in-tuples-set, encr-in-tuples-set (both
 ;;;     constructors make LISTS as sets -- what the token law needs)
@@ -309,28 +309,8 @@
 (qed 'encr-injective)
 
 ;;; -----------------------------------------------------------------------
-;;; 1. A set is the only member of its own singleton PAIR(a, a).
-
-(sp (make-wff '(FORALL a (IMPLIES (IN a SET) (IN a (PAIR a a))))))
-(di)
-(dk-have! '(AND (IN a SET) (IN a SET)) (lambda () (dk-conj-close! (lambda () (ass)))))
-(fact 'pairing-membership 'a 'a)
-(inst*! (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL) (dk-head-is? (caddr f) 'IFF)))
-                 "the pairing universal")
-        'a)
-(dk-have! '(OR (= a a) (= a a)) (lambda () (oi-l) (rfl)))
-(sml-keep-prop! (iff-for '(IN a (PAIR a a))) '(OR (= a a) (= a a)))
-(qed 'pair-self-member)
-
-(sp (make-wff '(FORALL a (FORALL x (IMPLIES (IN a SET) (IMPLIES (IN x (PAIR a a)) (= x a)))))))
-(di) (di) (di)
-(dk-have! '(AND (IN a SET) (IN a SET)) (lambda () (dk-conj-close! (lambda () (ass)))))
-(fact 'pairing-membership 'a 'a)
-(inst*! (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL) (dk-head-is? (caddr f) 'IFF)))
-                 "the pairing universal")
-        'x)
-(sml-keep-prop! (iff-for '(IN x (PAIR a a))) '(IN x (PAIR a a)))
-(qed 'pair-self-eq)
+;;; 1. pair-self-member and pair-self-eq (a set is the one member of PAIR(a, a)) were proven here; they
+;;; moved to theorem-library/pair-self-cartesian3.scm (core), META-W1, 2026-10-16.
 
 ;;; -----------------------------------------------------------------------
 ;;; 2. The stages.
@@ -505,43 +485,9 @@
     (sml-set! (cadr g))
     (if (and (alpha-equiv? (dk-goal) g) (dk-asm? g)) (ass))))
 
-;;; The ternary product is a set by REPLACEMENT over the binary product U x (V x W) (S-1).
-(define sml-phi
-  '(VNB-LAMBDA cqp_ (CARTESIAN U (CARTESIAN V W))
-     (LIST (NTH 1 cqp_) (NTH 1 (NTH 2 cqp_)) (NTH 2 (NTH 2 cqp_)))))
-
-(sp (make-wff '(FORALL U (FORALL V (FORALL W
-   (IMPLIES (IN U SET) (IMPLIES (IN V SET) (IMPLIES (IN W SET) (IN (CARTESIAN U V W) SET)))))))))
-(dk-peel!)
-(let* ((ww '(CARTESIAN U (CARTESIAN V W)))
-       (img `(IMAGE ,sml-phi ,ww))
-       (sub `(SUBSET (CARTESIAN U V W) ,img)))
-  (sml-set! ww)
-  (fact 'image-set sml-phi ww)
-  (dk-have! sub
-    (lambda ()
-      (mac 'subset-def)
-      (di)
-      (let* ((x (cadr (dk-goal)))
-             (vs (sml-unpack! (sml-cart-open! `(IN ,x (CARTESIAN U V W)))))
-             (a1 (car vs)) (a2 (cadr vs)) (a3 (caddr vs))
-             (pr `(LIST ,a1 (LIST ,a2 ,a3))))
-        (dk-image-goal!)
-        (ew pr)
-        (fact 'pair-in-cartesian 'V 'W a2 a3)
-        (fact 'pair-in-cartesian 'U '(CARTESIAN V W) a1 `(LIST ,a2 ,a3))
-        (dk-each-leaf! (lambda () (di))
-          (lambda ()
-            (if (dk-head-is? (dk-goal) 'IN)
-                (ass)
-                (begin
-                  (dk-lam-b!)
-                  (let loop () (if (dk-contains? (dk-goal) 'NTH) (begin (nth-r) (loop))))
-                  (subst (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) x))) (dk-asms)))
-                  (rfl))))))))
-  (fact 'subclass-of-set-is-set '(CARTESIAN U V W) img)
-  (ass))
-(qed 'cartesian3-set)
+;;; The ternary product is a set by REPLACEMENT over the binary product U x (V x W) (S-1):
+;;; cartesian3-set, cited by sml-set! above, moved to theorem-library/pair-self-cartesian3.scm (core),
+;;; META-W1, 2026-10-16.
 
 (sp (make-wff '(FORALL n (IMPLIES (IN n NN)
    (FORALL T (FORALL K (IMPLIES (IN T SET) (IMPLIES (IN K SET) (IN (MSG-STAGE T K n) SET)))))))))
@@ -1552,8 +1498,7 @@
 ;;; Topics.
 
 (for-each (lambda (n) (topic! n 'plumbing))
-          '(pair-self-member pair-self-eq msg-set-unfold subterm-rel-unfold pair-in-cartesian-parts
-            lst-unfold encr-unfold cartesian3-set))
+          '(msg-set-unfold subterm-rel-unfold pair-in-cartesian-parts lst-unfold encr-unfold))
 (for-each (lambda (n) (topic! n 'constructions))
           '(encr-ne-list lst-ne-encr lst-injective encr-injective
             msg-stage-token msg-stage-keep msg-stage-list msg-stage-encr msg-stage-zero-elim

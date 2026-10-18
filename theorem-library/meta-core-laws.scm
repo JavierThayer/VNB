@@ -831,7 +831,10 @@
     CR-DEF-STRICT-IN-L CR-DEF-STRICT-IN-R CR-DEF-TOTAL CR-DEF-BINDER CR-DEF-COMP CR-DEF-LIST
     ;; META-7, 2026-10-14 (the user's decision): the strictness of the constructors in their arguments
     ;; and of the binder terms in their domain (structure-library/meta-core.scm 4.7, (6) and (7)).
-    CR-DEF-STRICT-ARG CR-DEF-STRICT-DOM))
+    CR-DEF-STRICT-ARG CR-DEF-STRICT-DOM
+    ;; META-10, 2026-10-17 (the user's decision): the strictness of a predicate application
+    ;; (structure-library/meta-core.scm 4.7, (8)).
+    CR-DEF-STRICT-PRED))
 (define (mc-or-pick! target)
   (let loop ()
     (let ((g (dk-goal)))
