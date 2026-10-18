@@ -844,7 +844,7 @@ History: `docs/history/claude-md-2026-09-18--where-a-driver-helper-lives.md`.
                          KERNEL-RULES.md, REVIEW.md, USABILITY-REVIEW.md, VNB-TEST.md.
                          KERNEL-MAP.md is GENERATED from reference/kernel-map-{static,dynamic}.sexp
                          (kernel-map-static.scm / kernel-map-trace.scm, then scratchpad/km/gen-kernel-map.py).
-                         A .md absent from build-reference-html.py's DOCS list is
+                         A .md absent from `rh--docs' in reference-html.scm is
                          reachable from nowhere.
     docs/                design notes, the manual; docs/history/ holds the case histories
     archive/             retired and spliced originals, by date

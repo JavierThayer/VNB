@@ -9,7 +9,7 @@
 ;;;   * `(tactics)'        -- print the grouped menu at the REPL.
 ;;;     `(tactics 'mac-h)' -- print the long blurb for a single tactic.
 ;;;   * `(write-tactics-md)' -- emit reference/TACTICS.md, which
-;;;     build-reference-html.py folds into the browser reference (the `R'
+;;;     `build-reference-html' folds into the browser reference (the `R'
 ;;;     button) as a "Tactics" section.  Single source of truth, so the menu
 ;;;     can never fossilise the way a hand-maintained doc would.
 ;;;
@@ -594,7 +594,7 @@
 
 ;;; --------------------------------------------------------------------
 ;;; reference/TACTICS.md  (folded into the browser reference by
-;;; build-reference-html.py; section headers `### name' make it navigable
+;;; `build-reference-html'; section headers `### name' make it navigable
 ;;; with the same vnb-library-mode machinery as the other indexes).
 ;;; --------------------------------------------------------------------
 

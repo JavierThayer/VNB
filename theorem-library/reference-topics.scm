@@ -6,7 +6,7 @@
 ;;; future work.  No result is unique to a topic page; it is a curated view.
 ;;;
 ;;; Generated into reference/<TOPIC>.md and surfaced as hub cards by
-;;; reference/build-reference-html.py (its DOCS list).  Loaded last, after every
+;;; `build-reference-html' (reference-html.scm, its `rh--docs' list).  Loaded last, after every
 ;;; result is installed.  Re-emit by hand with (write-topic-pages).
 ;;; ====================================================================
 

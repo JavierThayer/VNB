@@ -2653,11 +2653,35 @@ the window on exit."
       (browse-url url)))
    (t (browse-url url))))
 
+;;; The three browser pages are built by reference-html.scm (the Scheme port,
+;;; 2026-10-18, of the Python builders that lived in reference/).  Each command
+;;; runs it in a FRESH `mit-scheme', not in the prover: the reference and home
+;;; pages only read files on disk, and home.html is wanted before the prover is up.
+(defun vnb-launch--html-build (form log-name)
+  "Run FORM (a Scheme expression string) after loading reference-html.
+A fresh `mit-scheme' in the prover directory, stdin from /dev/null; its output
+goes to the buffer LOG-NAME.  Signal a `user-error' naming LOG-NAME when it
+does not exit 0 (an error in FORM leaves MIT Scheme at a REPL level, which
+reads end of file from /dev/null and exits non-zero)."
+  (unless (executable-find "mit-scheme")
+    (user-error "`mit-scheme' not found on PATH -- needed to build the HTML pages"))
+  (let ((log (get-buffer-create log-name))
+        (default-directory vnb-launch--dir))
+    (with-current-buffer log (erase-buffer))
+    (unless (eq 0 (call-process "mit-scheme" nil log nil "--quiet"
+                                "--load" (expand-file-name "reference-html" vnb-launch--dir)
+                                "--eval" (concat "(begin " form " (exit 0))")))
+      (user-error "Building the HTML page failed (see `%s')" log-name))))
+
+(defun vnb-launch--scheme-string (s)
+  "S as a Scheme string literal."
+  (concat "\"" (replace-regexp-in-string "[\\\"]" "\\\\\\&" s) "\""))
+
 ;;; The inline PNG above is a flat raster -- nodes aren't clickable.  The
 ;;; mouse-sensitive graph is a self-contained HTML page (one inlined SVG plus a
 ;;; per-structure reference section): click a node/arrow and the page scrolls to
-;;; that entry.  reference/build-graph-html.py builds it from the prover's .dot
-;;; (it runs `dot -Tsvg' itself).  We regenerate both, then open in a browser
+;;; that entry.  `build-graph-html' (reference-html.scm) builds it from the prover's
+;;; .dot (it runs `dot -Tsvg' itself).  We regenerate both, then open in a browser
 ;;; (the one chosen by `vnb-graph-browser').
 (defun vnb-structure-graph-html ()
   "Open the mouse-sensitive structure graph in a web browser.
@@ -2668,18 +2692,13 @@ structure's entry (slots, views-out, refines) or the all-views table."
   (vnb-launch--ensure-prover)
   (unless (executable-find "dot")
     (user-error "Graphviz `dot' not found on PATH -- install graphviz"))
-  (unless (executable-find "python3")
-    (user-error "`python3' not found on PATH -- needed to build the graph HTML"))
-  (let ((py   (expand-file-name "build-graph-html.py" vnb-launch--ref-dir))
-        (html (expand-file-name "structure-graph.html" vnb-launch--ref-dir))
-        (log  (get-buffer-create " *vnb-graph-html*")))
+  (let ((html (expand-file-name "structure-graph.html" vnb-launch--ref-dir))
+        (dir  (vnb-launch--scheme-string vnb-launch--ref-dir)))
     ;; 1. rewrite the .dot from the live prover (slots/views/refines current)
     (vnb-eval-string "(structure-graph-dot-file)")
-    ;; 2. build the self-contained HTML (the script runs `dot -Tsvg' internally)
-    (with-current-buffer log (erase-buffer))
-    (let ((default-directory vnb-launch--ref-dir))
-      (unless (eq 0 (call-process "python3" nil log nil py))
-        (user-error "build-graph-html.py failed (see ` *vnb-graph-html*')")))
+    ;; 2. build the self-contained HTML (`build-graph-html' runs `dot -Tsvg')
+    (vnb-launch--html-build (format "(build-graph-html %s %s)" dir dir)
+                            " *vnb-graph-html*")
     (unless (file-exists-p html)
       (user-error "structure-graph.html was not produced"))
     ;; 3. hand off to the chosen browser, where the SVG's clicks are live
@@ -2688,7 +2707,7 @@ structure's entry (slots, views-out, refines) or the all-views table."
              (or vnb-graph-browser "default browser") html)))
 
 ;;; The whole library as a set of cross-linked browser pages.  reference/*.md
-;;; (the docs the prover writes on load) are compiled by build-reference-html.py
+;;; (the docs the prover writes on load) are compiled by `build-reference-html'
 ;;; into one standalone page per doc (THEOREMS.html, STRUCTURE-INDEX.html, ...)
 ;;; plus a reference.html hub that links them all.  Every page has a shared
 ;;; sidebar and every backticked name is hyperlinked to its entry (across pages
@@ -2702,15 +2721,10 @@ doc plus a reference.html hub, opened via `vnb-graph-browser'.
 Click any backticked name to jump to its entry.  Refreshes the .md by
 reloading the prover; this command just renders whatever is on disk."
   (interactive)
-  (unless (executable-find "python3")
-    (user-error "`python3' not found on PATH -- needed to build the reference HTML"))
-  (let ((py   (expand-file-name "build-reference-html.py" vnb-launch--ref-dir))
-        (html (expand-file-name "reference.html" vnb-launch--ref-dir))
-        (log  (get-buffer-create " *vnb-reference-html*")))
-    (with-current-buffer log (erase-buffer))
-    (let ((default-directory vnb-launch--ref-dir))
-      (unless (eq 0 (call-process "python3" nil log nil py))
-        (user-error "build-reference-html.py failed (see ` *vnb-reference-html*')")))
+  (let ((html (expand-file-name "reference.html" vnb-launch--ref-dir))
+        (dir  (vnb-launch--scheme-string vnb-launch--ref-dir)))
+    (vnb-launch--html-build (format "(build-reference-html %s %s)" dir dir)
+                            " *vnb-reference-html*")
     (unless (file-exists-p html)
       (user-error "reference.html was not produced"))
     (vnb--browse-graph (concat "file://" html))
@@ -2759,7 +2773,7 @@ Workspace is always the front door."
 listener never evaluates arbitrary input from the socket.  Emacs is reserved
 for WORK (start/continue proofs, scratch, building) -- reference reading lives
 in the browser (reference.html), so there is no `workspace'/landing-page entry
-here.  Each name must also appear in build-home-html.py's WORKBENCH table; the
+here.  Each name must also appear in reference-html.scm's workbench table; the
 two are kept in sync by hand.")
 
 (defun vnb--home-respond (proc status)
@@ -2807,17 +2821,12 @@ Reference links open other HTML pages; workbench links poke a localhost
 listener that runs a whitelisted Emacs command and raises this frame, so
 the actual proving keeps happening in Emacs."
   (interactive)
-  (unless (executable-find "python3")
-    (user-error "`python3' not found on PATH -- needed to build home.html"))
   (let ((port (vnb--home-server-ensure))
-        (py   (expand-file-name "build-home-html.py" vnb-launch--ref-dir))
-        (html (expand-file-name "home.html" vnb-launch--ref-dir))
-        (log  (get-buffer-create " *vnb-home-html*")))
-    (with-current-buffer log (erase-buffer))
-    (let ((default-directory vnb-launch--ref-dir))
-      (unless (eq 0 (call-process "python3" nil log nil py
-                                  (number-to-string port)))
-        (user-error "build-home-html.py failed (see ` *vnb-home-html*')")))
+        (html (expand-file-name "home.html" vnb-launch--ref-dir)))
+    (vnb-launch--html-build
+     (format "(build-home-html %s %d)"
+             (vnb-launch--scheme-string vnb-launch--ref-dir) port)
+     " *vnb-home-html*")
     (unless (file-exists-p html)
       (user-error "home.html was not produced"))
     (vnb--browse-graph (concat "file://" html))

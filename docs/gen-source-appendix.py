@@ -130,7 +130,7 @@ def main():
                 'prover load (\\texttt{STRUCTURE-INDEX}, \\texttt{TACTICS}, '
                 '\\texttt{OPERATORS}, \\texttt{THEOREMS}, \\texttt{BY-TOPIC}, '
                 '\\texttt{PROOF-DEBT}, \\ldots) as \\texttt{.md}, converted to the browser '
-                'HTML by \\texttt{reference/build-reference-html.py}; it is never '
+                'HTML by \\texttt{build-reference-html} (reference-html.scm); it is never '
                 'hand-edited.\n')
 
     n = len(root_files) + len(struct)

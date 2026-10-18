@@ -56,7 +56,7 @@ doctor:
 	if command -v emacs >/dev/null 2>&1; then echo "emacs  : $$(emacs --version | head -1)"; \
 	else echo "emacs  : not found (needed for 'make run'; the REPL works without it)"; fi; \
 	if command -v python3 >/dev/null 2>&1; then echo "python3: $$(python3 --version)"; \
-	else echo "python3: not found (needed for 'make html' and 'make manual')"; fi; \
+	else echo "python3: not found (needed for 'make manual')"; fi; \
 	if command -v pdflatex >/dev/null 2>&1; then echo "latex  : pdflatex present"; \
 	else echo "latex  : pdflatex not found (needed only for 'make manual')"; fi; \
 	n=$$(find $(ROOT) -maxdepth 1 -name '*.com' | wc -l); echo "compiled core files at the root: $$n  (0 means the tree is INTERPRETED: run 'make compile')"; \
@@ -110,7 +110,7 @@ repl:
 # --- documentation ---------------------------------------------------------
 
 html:
-	cd $(ROOT) && python3 reference/build-reference-html.py
+	cd $(ROOT) && mit-scheme --quiet --load reference-html --eval '(begin (build-reference-html "$(ROOT)/reference/" "$(ROOT)/reference/") (exit 0))' < /dev/null
 
 manual:
 	$(MAKE) -C $(ROOT)/docs all

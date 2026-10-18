@@ -3726,10 +3726,14 @@
     ;; the menu, (write-tactics-md) emits reference/TACTICS.md for the browser
     ;; reference.  Pure display/string; no dependencies beyond *reference-dir*.
     "tactics-help"
+    ;; The browser pages: (build-reference-html), (build-graph-html),
+    ;; (build-home-html).  The Scheme port (2026-10-18) of the three Python
+    ;; builders that lived in reference/; called at the end of every load.
+    "reference-html"
     ;; Curated browser topic pages (Elementary calculus, Metric spaces): pure
     ;; reading-order organization of already-installed results.  Loads LAST so
     ;; every result it lists is installed; emits reference/<TOPIC>.md, which the
-    ;; end-of-load build-reference-html.py turns into hub cards.
+    ;; end-of-load `build-reference-html' turns into hub cards.
     "theorem-library/reference-topics"
     ;; The alphabetical glossary: (glossary), (glossary 'NAME), GLOSSARY.md.
     ;; Reads the constant registry, the operator table, the functoid registry,
@@ -5079,15 +5083,18 @@
   ;; an Emacs subprocess (the GUI launcher).  A synchronous child that inherits
   ;; Emacs's pty can deadlock on terminal I/O -- which wedges the whole load, so
   ;; the prover never reaches its prompt: the launcher then sits with no Emacs
-  ;; workspace and a blank browser.  So make the rebuild strictly best-effort and
-  ;; un-wedgeable: detach the child from the terminal (stdin from /dev/null,
-  ;; output discarded) and guard it (a missing/failing/blocking python3 just
-  ;; leaves the previous HTML in place).
+  ;; workspace and a blank browser.  That was true of the Python builder, run as a
+  ;; child; since 2026-10-18 the build is `build-reference-html' (reference-html.scm),
+  ;; run IN THIS IMAGE, with no child and no terminal.  It is synchronous (6-7 s on
+  ;; a t3.medium) and guarded: an error leaves the previous HTML in place.  NOTE:
+  ;; MIT Scheme 12.1's `ignore-errors' is a PROCEDURE of a THUNK; the Python line
+  ;; that stood here passed it the shell command's VALUE, so the command ran
+  ;; unguarded and the application of its exit status was the error swallowed.
   (load-option 'synchronous-subprocess)
-  (ignore-errors
-    (run-shell-command
-      (string-append "python3 " *prover-dir*
-                     "reference/build-reference-html.py < /dev/null > /dev/null 2>&1 &")))
+  (let ((r (ignore-errors (lambda () (build-reference-html)))))
+    (if (condition? r)
+        (begin (display ";; WARNING: build-reference-html failed, previous HTML kept: ")
+               (display (condition/report-string r)) (newline))))
 
   ;; THE STRUCTURE GRAPH, rendered here too -- and the reason it was not is worth
   ;; recording, because it is the very rot the comment above `write-all-reference'
@@ -5112,14 +5119,25 @@
   ;; sixteen dot layouts build-graph-html.py inlines, plus 0.04 s for the
   ;; standalone .svg -- and it is backgrounded, so it is off the load's path
   ;; entirely.
-  (ignore-errors
-    (run-shell-command
-      (string-append
-       "{ command -v dot >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1 && "
-       "cd " *prover-dir* "reference && "
-       "python3 build-graph-html.py >/dev/null 2>&1 && "
-       "dot -Tsvg structure-graph.dot > structure-graph.svg 2>/dev/null ; } "
-       "< /dev/null > /dev/null 2>&1 &")))
+  ;;
+  ;; Since 2026-10-18 the page is built in this image by `build-graph-html'
+  ;; (reference-html.scm), which runs `dot' itself, synchronously (0.4 s), and
+  ;; signals an error when `dot' fails; a box without graphviz skips both renders
+  ;; and keeps the previous ones.  The standalone .svg stays a detached child.
+  (if (= 0 (run-shell-command "command -v dot >/dev/null 2>&1 < /dev/null"
+                              'output #f))
+      (begin
+        (let ((r (ignore-errors (lambda () (build-graph-html)))))
+          (if (condition? r)
+              (begin (display ";; WARNING: build-graph-html failed, previous page kept: ")
+                     (display (condition/report-string r)) (newline))))
+        (ignore-errors
+          (lambda ()
+            (run-shell-command
+              (string-append
+               "cd " *prover-dir* "reference && "
+               "{ dot -Tsvg structure-graph.dot > structure-graph.svg 2>/dev/null ; } "
+               "< /dev/null > /dev/null 2>&1 &"))))))
 
   ;; Clean slate.  The theorem-library / calculus proof scripts loaded above each
   ;; run an interactive (sp ...) ... (qed ...) and leave their finished proof
