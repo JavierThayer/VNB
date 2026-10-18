@@ -266,7 +266,8 @@
          (lambda (nm acc)
            (let ((s (symbol->string nm)))
              (when (and (> (string-length s) 0) (char=? (string-ref s 0) #\$))
-               (hash-table-set! *accessor-display* acc (sym->display-leaf nm)))))
+               (hash-table-set! *accessor-display* acc (sym->display-leaf nm))
+               (bump-display-epoch!))))   ; F15: display state changed; cached wff texts are stale
          names accs)
         (list 'struct svar profile
               (map (lambda (nm acc) (cons nm (list acc svar))) names accs))))))
@@ -346,6 +347,7 @@
 (define (nullify)
   (set! *current-context* '())
   (hash-table-clear! *accessor-display*)   ; drop $-alias display capitalizations
+  (bump-display-epoch!)                    ; F15: display state changed; cached wff texts are stale
   (display ";VNB context nullified -- input is tel-quel (no closure, no remap)")
   (newline))
 

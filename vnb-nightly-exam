@@ -122,7 +122,7 @@ capataz run "$WORKER" --json --user root 'command -v mit-scheme >/dev/null || ap
 PUB=$(cat ~/.ssh/vnb-secondary.pub)
 capataz run "$WORKER" --json --user ubuntu "mkdir -p /home/ubuntu/.ssh && chmod 700 /home/ubuntu/.ssh && touch /home/ubuntu/.ssh/authorized_keys && chmod 600 /home/ubuntu/.ssh/authorized_keys && (grep -qF '$PUB' /home/ubuntu/.ssh/authorized_keys || echo '$PUB' >> /home/ubuntu/.ssh/authorized_keys) && echo key-ok" 2>/dev/null | grep -q key-ok \
   || { say "FAIL: could not install the pull key on $WORKER"; record failed "pull-key"; exit 2; }
-capataz push "$WORKER" --yes --rsync --src "$PROVER" --dest "$PROVER" --exclude .git --exclude scratchpad/ --exclude scratch/ --exclude vnb.band --exclude reference/ > /dev/null 2>&1 \
+capataz push "$WORKER" --yes --rsync --src "$PROVER" --dest "$PROVER" --exclude .git --exclude scratchpad/ --exclude scratch/ --exclude .claude/ --exclude vnb.band --exclude reference/ > /dev/null 2>&1 \
   || { say "FAIL: push to $WORKER"; record failed "push"; exit 2; }
 want=$(md5sum load.scm certificates.scm | awk '{print $1}' | paste -sd' ')
 have=$(capataz run "$WORKER" --json --user ubuntu "cd $PROVER && md5sum load.scm certificates.scm" 2>/dev/null | python3 -c 'import json,sys; print(" ".join(l.split()[0] for l in json.load(sys.stdin)["stdout"].splitlines()))' 2>/dev/null)

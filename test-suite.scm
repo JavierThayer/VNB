@@ -9222,7 +9222,7 @@
     ;; grep -l exits 1 when nothing matches, which is the pass
     (load-option 'synchronous-subprocess)
     (= 1 (run-shell-command
-          "cd /home/ubuntu/prover && grep -rlE '[( ](theory-add-axiom!|theory-add-theorem!|theory-add-support!|theory-add-constant!|theory-add-definition!|make-theory|make-vnb-base-theory|theory-get-theorem|current-theory|wff-theory|[*]current-theory[*])[ )]' --include=*.scm --include=*.el . 2>/dev/null | grep -v '^./archive/' | grep -v '^./library.scm$' | grep -v '^./wff.scm$' | grep -v '^./test-suite.scm$' | grep -v '^./scratchpad/' > /dev/null"
+          "cd /home/ubuntu/prover && grep -rlE '[( ](theory-add-axiom!|theory-add-theorem!|theory-add-support!|theory-add-constant!|theory-add-definition!|make-theory|make-vnb-base-theory|theory-get-theorem|current-theory|wff-theory|[*]current-theory[*])[ )]' --include=*.scm --include=*.el . 2>/dev/null | grep -v '^./archive/' | grep -v '^./library.scm$' | grep -v '^./wff.scm$' | grep -v '^./test-suite.scm$' | grep -v '^./scratchpad/' | grep -v '^./.claude/' > /dev/null"
           'output #f))))
 
 ;;; -----------------------------------------------------------------------

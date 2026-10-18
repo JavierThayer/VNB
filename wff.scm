@@ -19,16 +19,66 @@
 ;;; every sequent posted -- and almost every one of those calls is a MISMATCH
 ;;; that alpha-equiv? has to walk into before it can say so.  Comparing two
 ;;; cached fixnums first rejects a mismatch in one machine word.
+;;;
+;;; F15: the fourth and fifth fields are a second CACHE: the wff's printed text
+;;; (expression->string of its formula) and the value of *display-epoch* at the
+;;; moment it was printed.  See wff-display-string below.
 (define-record-type <wff>
-  (%%make-concrete-wff formula theory digest)
+  (%%%make-concrete-wff formula theory digest dstr depoch)
   concrete-wff?
   (formula   concrete-wff-formula)
   (theory    concrete-wff-library)
-  (digest    concrete-wff-digest set-concrete-wff-digest!))
+  (digest    concrete-wff-digest set-concrete-wff-digest!)
+  (dstr      concrete-wff-dstr set-concrete-wff-dstr!)           ; F15
+  (depoch    concrete-wff-depoch set-concrete-wff-depoch!))      ; F15
 
 ;;; The two-argument constructor every caller uses; the digest starts unfilled.
+;;; F15: so do the cached text (#f) and its epoch (#f, never eq? to a fixnum).
+;;; The three-argument constructor keeps its old signature: macetes.scm (rw--ctx-as-wffs)
+;;; and primitive-inferences.scm (the definedness walk) call it directly, and both are in the
+;;; certificate key, so they are left as they were (2026-10-17, when F15 was wired).
+(define (%%make-concrete-wff formula theory digest)
+  (%%%make-concrete-wff formula theory digest #f #f))
 (define (%make-concrete-wff formula theory)
   (%%make-concrete-wff formula theory #f))
+
+;;; F15: the display epoch.  A formula's printed text depends on the formula and
+;;; on ONE piece of mutable display state, *accessor-display* (sequents.scm), which
+;;; is mutated at exactly two sites, both in input-context.scm (the $-alias
+;;; registration and `nullify').  Each of them calls bump-display-epoch! right
+;;; after it mutates, so a cached text is valid exactly while its epoch is current.
+(define *display-epoch* 0)
+(define (bump-display-epoch!)
+  (set! *display-epoch* (+ *display-epoch* 1)))
+
+;;; F15: (expression->string (wff-formula w)), cached in the wff.  While the epoch
+;;; is unchanged this returns the SAME string object on every call (so callers may
+;;; test eq? first); after a bump it re-prints and caches the new text.  The string
+;;; must be treated as read-only by callers.  A non-wff is rejected by wff-formula
+;;; exactly as before.
+(define (wff-display-string w)
+  (if (and (concrete-wff? w) (eq? (concrete-wff-depoch w) *display-epoch*))
+      (concrete-wff-dstr w)
+      (let ((s (expression->string (wff-formula w))))
+        (set-concrete-wff-dstr! w s)
+        (set-concrete-wff-depoch! w *display-epoch*)
+        s)))
+
+;; F15: string compare that tries eq? first.  wff-display-string returns the SAME
+;; string object for an unchanged assumption, so before/after hits are pointer
+;; compares; anything else falls back to string=? (which is what equal? does on two
+;; strings), so the answer is the same as before for every pair of strings.
+;; (These three live here, not in driver-kit.scm, because wff.scm is compiled and
+;; driver-kit.scm never is: interpreted they lost to the compiled `member'.)
+(define (wff-str=? a b) (or (eq? a b) (string=? a b)))
+
+;; F15: dk--drop-one and `member' with wff-str=?; same first-match semantics.
+(define (wff-drop-one/str s lst)
+  (cond ((null? lst) '())
+        ((wff-str=? s (car lst)) (cdr lst))
+        (else (cons (car lst) (wff-drop-one/str s (cdr lst))))))
+(define (wff-member/str s lst)
+  (and (pair? lst) (or (wff-str=? s (car lst)) (wff-member/str s (cdr lst)))))
 
 (define wff? concrete-wff?)
 

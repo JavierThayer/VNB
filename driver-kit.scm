@@ -206,6 +206,9 @@
 (define (dk-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
 (define (dk-head? h) (lambda (f) (and (pair? f) (eq? (car f) h))))
 
+;; F15: dk-landed* compares with wff-str=?, wff-member/str, wff-drop-one/str (defined in
+;; wff.scm, which is compiled; driver-kit.scm never is).
+
 (define (dk--drop-one s lst)            ; remove ONE occurrence (contexts hold duplicates)
   (cond ((null? lst) '())
         ((string=? s (car lst)) (cdr lst))
@@ -213,16 +216,21 @@
 
 ;; run `thunk'; return the assumptions it ADDED to the focus context, in context
 ;; order.  May be empty.
+;; F15: assumptions are printed through wff-display-string (cached in the wff, same
+;; string object until *accessor-display* changes) instead of expression->string,
+;; and compared with eq?-then-string=? (wff-member/str, compiled in wff.scm).  The multiset difference is unchanged and
+;; the returned items are still (wff-formula w), the very objects dk-asms returns.
 (define (dk-landed* thunk)
-  (let ((before (map expression->string (dk-asms))))
+  (let ((before (map wff-display-string
+                     (sequent-node-assumptions (proof-state-focus *ps*)))))
     (thunk)
-    (let loop ((as (dk-asms)) (bs before) (acc '()))
+    (let loop ((as (sequent-node-assumptions (proof-state-focus *ps*))) (bs before) (acc '()))
       (if (null? as)
           (reverse acc)
-          (let ((s (expression->string (car as))))
-            (if (member s bs)
-                (loop (cdr as) (dk--drop-one s bs) acc)
-                (loop (cdr as) bs (cons (car as) acc))))))))
+          (let ((s (wff-display-string (car as))))
+            (if (wff-member/str s bs)
+                (loop (cdr as) (wff-drop-one/str s bs) acc)
+                (loop (cdr as) bs (cons (wff-formula (car as)) acc))))))))
 
 (define (dk-landed thunk)
   (let ((new (dk-landed* thunk)))

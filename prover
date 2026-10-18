@@ -139,7 +139,7 @@ band_newer_scm() { band_newer_scm_all -quit; }
 band_newer_scm_all() {
   find "$PROVER_DIR" -name '*.scm' \
        -not -path '*/scratchpad/*' -not -path '*/scratch/*' \
-       -not -path '*/prove-scripts/*' \
+       -not -path '*/prove-scripts/*' -not -path '*/.claude/*' \
        -not -path "$PROVER_DIR/test-suite.scm" \
        -not -path "$PROVER_DIR/test-suite-negative.scm" \
        -not -path "$PROVER_DIR/harvest.scm" \
