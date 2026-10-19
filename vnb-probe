@@ -53,7 +53,41 @@ done
 # tree).  It reads the shipped SOURCE with folding off and prints `;VNB warning' lines.
 BASE="$(basename "$(dirname "$(readlink -f "$FILE")")")__$(basename "$FILE")"
 LINT="(case-fold-define-lint! \"theorem-library/$BASE\" \"/home/ubuntu/probes/$BASE\")   ; vnb-probe lint"
-B64=$( { [ "$QUIET" = 1 ] && echo '(set! *vnb-loading* #t)   ; vnb-probe --quiet'; echo "$LINT"; cat "$FILE"; } | gzip -9 | base64 -w0)
+# The lint also covers every file the probed file (load ...)s by a literal path, read with
+# the READER, transitively (2026-10-19, the SIP-D agent: an unwired file loaded by a probe
+# WRAPPER had a C/c collision that built a wrong statement, and the lint saw only the wrapper).
+LINT_LOADS='(let vnbp-walk ((todo (list "/home/ubuntu/probes/'"$BASE"'")) (seen (list)))   ; vnb-probe lint of loaded files
+  (define (vnbp-scan f acc)
+    (cond ((and (pair? f) (eq? (car f) (quote load)) (pair? (cdr f)) (string? (cadr f))) (cons (cadr f) acc))
+          ((pair? f) (vnbp-scan (cdr f) (vnbp-scan (car f) acc)))
+          (#t acc)))
+  (define (vnbp-loads path)
+    (call-with-current-continuation
+      (lambda (k)
+        (with-exception-handler (lambda (e) (k (list)))
+          (lambda ()
+            (call-with-input-file path
+              (lambda (port)
+                (let loop ((acc (list)))
+                  (let ((f (read port))) (if (eof-object? f) acc (loop (vnbp-scan f acc))))))))))))
+  (define (vnbp-resolve s)
+    (let ((a (if (and (> (string-length s) 0) (char=? (string-ref s 0) #\/)) s (string-append "/home/ubuntu/prover/" s))))
+      (cond ((file-exists? a) a) ((file-exists? (string-append a ".scm")) (string-append a ".scm")) (#t #f))))
+  (define (vnbp-label a)
+    (let ((pre "/home/ubuntu/prover/"))
+      (if (and (> (string-length a) (string-length pre)) (string=? (substring a 0 (string-length pre)) pre))
+          (substring a (string-length pre) (string-length a)) a)))
+  (if (pair? todo)
+      (let* ((path (car todo))
+             (new (let filt ((l (vnbp-loads path)) (acc (list)))
+                    (if (null? l) acc
+                        (let ((a (vnbp-resolve (car l))))
+                          (filt (cdr l) (if (and a (not (member a seen)) (not (member a acc))
+                                                 (let ((n (string-length a))) (and (> n 4) (string=? (substring a (- n 4) n) ".scm"))))
+                                            (cons a acc) acc)))))))
+        (for-each (lambda (a) (case-fold-define-lint! (vnbp-label a) a)) new)
+        (vnbp-walk (append (cdr todo) new) (append new seen)))))'
+B64=$( { [ "$QUIET" = 1 ] && echo '(set! *vnb-loading* #t)   ; vnb-probe --quiet'; echo "$LINT"; echo "$LINT_LOADS"; cat "$FILE"; } | gzip -9 | base64 -w0)
 if [ ${#B64} -gt 90000 ]; then
   echo "vnb-probe: $FILE is $(( ${#B64} / 1024 )) KB gzipped+base64, over the ~90 KB SSM limit." >&2
   echo "           Push the tree instead (capataz push $WORKER --rsync --src ~/prover --dest /home/ubuntu/prover ...)" >&2
