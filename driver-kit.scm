@@ -1198,11 +1198,35 @@
 ;;; form, the detached result -- so the thunk lands several formulas and
 ;;; dk-landed-1 errors "expected 1".  That is why the `dk-landed-1' here sits
 ;;; around the `detach!' alone (found 2026-09-14 by the card-subset-nn driver).
+;;;
+;;; A PARTIAL INSTANCE ALREADY IN CONTEXT (2026-10-18, the LA-DET2 agent; also the
+;;; dk-holomorphic! failure on a + -b of CA-6): after (dk-apply! F i k), a second
+;;; (dk-apply! F i l) used to fail -- the instance at i was in context, so `inst+'
+;;; landed nothing and the chain errored "landed no assumption".  `dk--reuse-prefix'
+;;; walks the instantiation as far as its forms are ALREADY in context (each
+;;; instance, each guard detached) and the rest goes through `inst*!' as before; a
+;;; call whose first instance is not in context takes exactly the old path.
+(define (dk--reuse-prefix f terms)
+  ;; -> (FORM . REMAINING-TERMS) for the deepest in-context form reached, or #f
+  (let loop ((f f) (ts terms) (best #f))
+    (cond ((and (pair? f) (eq? (car f) 'IMPLIES) (dk-asm? (cadr f))
+                (dk-ctx-form (caddr f)))
+           (let ((c (dk-ctx-form (caddr f))))
+             (loop c ts (cons c ts))))
+          ((and (pair? ts) (pair? f) (eq? (car f) 'FORALL))
+           (let ((have (dk-ctx-form (subst-free (quantifier-var f) (car ts) (quantifier-body f)))))
+             (if have (loop have (cdr ts) (cons have (cdr ts))) best)))
+          (#t best))))
 (define (dk-apply! f . terms)
-  (let loop ((r (apply inst*! f terms)))
-    (if (and (pair? r) (eq? (car r) 'IMPLIES))
-        (loop (dk-landed-1 (lambda () (detach! r))))
-        r)))
+  (let* ((f0   (or (dk-ctx-form f) f))
+         (pre  (dk--reuse-prefix f0 terms))
+         (r0   (cond ((not pre) (apply inst*! f terms))
+                     ((null? (cdr pre)) (car pre))
+                     (#t (apply inst*! (car pre) (cdr pre))))))
+    (let loop ((r r0))
+      (if (and (pair? r) (eq? (car r) 'IMPLIES))
+          (loop (dk-landed-1 (lambda () (detach! r))))
+          r))))
 
 ;;; (dk-di-var!)             -- `di' one GUARDED binder; return its eigenvariable,
 ;;;                             read off the landed typing (IN v A).
@@ -2079,6 +2103,15 @@
 ;;; CLOSED and the focus has moved to another leaf: the value is #t in that case
 ;;; alone, so a caller that goes on can tell and re-focus.
 (define (dk-have! form0 . opt)
+  ;; At most ONE further argument, a procedure (or #f).  A stray argument is a
+  ;; closer meant to FOLLOW the call, swallowed by a paren in the wrong place; MIT
+  ;; evaluates arguments right to left, so it has already run, before the lane
+  ;; (2026-10-18, the CA-6 agent: `prop' printed a countermodel and dk-have! said
+  ;; nothing).  `have!' has the same check.
+  (if (or (and (pair? opt) (pair? (cdr opt)))
+          (and (pair? opt) (car opt) (not (procedure? (car opt)))))
+      (error "dk-have!: takes a claim and at most one THUNK; got extra or non-procedure arguments -- a paren in the wrong place swallowed the following form(s), which have ALREADY RUN (right-to-left evaluation)"
+             (length opt)))
   (let ((f (->raw-formula form0))
         (thunk (and (pair? opt) (car opt))))
     (cond

@@ -554,7 +554,16 @@
 ;; syntax (parsed), or a raw S-expr.  Strings/S-exprs are coerced exactly as the
 ;; user would by hand -- make-wff-from-string / make-wff -- so (sp "forall(...)")
 ;; and (sp '(FORALL ...)) both work, not only (sp (make-wff-from-string "...")).
-(define (sp wic-in)
+(define (sp wic-in . extra)
+  ;; ONE argument.  `(sp STATEMENT (di) (mac ...) ...)' -- the statement closed one
+  ;; paren short -- swallows the proof as ARGUMENTS, and MIT evaluates them right to
+  ;; left, BEFORE sp: the proof ran against the previous theorem's finished state
+  ;; (2026-10-18, the CA-6 agent, twice).  Outside `vnb-guard', so the load stops
+  ;; here as it did on the arity error, now saying why.  See also
+  ;; `*vnb-after-qed-steps*' (vnb--run!), which names the steps that ran.
+  (if (pair? extra)
+      (error "sp: takes ONE statement; got extra arguments -- the statement is closed one paren short and swallowed the following forms, which have ALREADY RUN against the previous proof state (right-to-left evaluation)"
+             (length extra)))
   (vnb-guard
     (lambda ()
       ;; CLEAR THE CURRENT PROOF FIRST.  `vnb-guard' catches the coercion
@@ -908,7 +917,22 @@
       (filter (lambda (l) (memq l *pi-owed-nodes*)) (proof-open-leaves *ps*))
       '()))
 
+(define *ps-closed-by-qed* #f)       ; the proof-state object the last qed installed
+(define *ps-closed-by-qed-name* #f)
+(define *vnb-after-qed-steps* '())    ; (THEOREM . COMMAND) per step run on a qed-closed state
 (define (vnb--run! sym args thunk)
+  ;; A command on the very proof state the last `qed' closed is almost always a
+  ;; swallowed proof (see `sp'): WARN, record it for the end of the load, and run
+  ;; it as before.  WARN-ONLY (2026-10-18), to go fatal once the load's list is
+  ;; empty.  `eq?' on the state object, so a page replay or a probe on a fresh
+  ;; state never trips it.
+  (if (and *ps-closed-by-qed* (eq? *ps* *ps-closed-by-qed*))
+      (begin
+        (set! *vnb-after-qed-steps*
+              (cons (cons *ps-closed-by-qed-name* sym) *vnb-after-qed-steps*))
+        (display ";VNB warning: `") (display sym)
+        (display "' runs on the proof `") (display *ps-closed-by-qed-name*)
+        (display "' that qed already closed -- a statement closed one paren short?\n")))
   (let* ((mark   (vnb--take-mark (cons sym args)))
          ;; A graph mark taken whether or not *replaying?* is bound (the undo mark
          ;; is not): the warning branch below needs it to see whether the command
@@ -5567,6 +5591,8 @@
       (vnb--require-proof!)
       (cmd-qed *ps* name)
       (save-proof name)
+      (set! *ps-closed-by-qed* *ps*)          ; see vnb--run!
+      (set! *ps-closed-by-qed-name* name)
       (set! *session-log*
             (append *session-log*
                     (list (list name *current-goal* *proof-script*))))

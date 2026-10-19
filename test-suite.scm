@@ -9226,6 +9226,79 @@
           'output #f))))
 
 ;;; -----------------------------------------------------------------------
+;;; KIT-4 (2026-10-18, the user's "do all four"): the swallowed-proof traps and the
+;;; partial-instance defect of dk-apply!.  Each fix has a check, each with a control.
+
+(define (kit4-raises? thunk)
+  (call-with-current-continuation
+    (lambda (k)
+      (with-exception-handler (lambda (e) (k #t))
+        (lambda () (thunk) #f)))))
+
+(check-true "kit4: sp with an extra argument raises (a statement closed one paren short)"
+  (lambda () (kit4-raises? (lambda () (sp (make-wff '(= 1 1)) 'swallowed)))))
+(check-false "kit4: control -- sp with one statement does not raise"
+  (lambda () (kit4-raises? (lambda () (quietly (lambda () (sp (make-wff '(= 1 1)))))))))
+
+(check-true "kit4: dk-have! with a stray third argument raises"
+  (lambda ()
+    (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (= x x)))))))
+    (quietly (lambda () (di)))
+    (kit4-raises? (lambda () (dk-have! '(= x x) (lambda () (rfl)) 'stray)))))
+(check-true "kit4: dk-have! with a non-procedure second argument raises"
+  (lambda ()
+    (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (= x x)))))))
+    (quietly (lambda () (di)))
+    (kit4-raises? (lambda () (dk-have! '(= x x) 'not-a-thunk)))))
+(check-false "kit4: control -- dk-have! with a claim and a thunk does not raise"
+  (lambda ()
+    (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (= x x)))))))
+    (quietly (lambda () (di)))
+    (kit4-raises? (lambda () (quietly (lambda () (dk-have! '(= x x) (lambda () (rfl)))))))))
+
+(check-true "kit4: a command on the proof qed just closed is recorded (after-qed gate)"
+  (lambda ()
+    (let ((saved *vnb-after-qed-steps*))
+      (quietly (lambda ()
+                 (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (= x x)))))
+                 (di) (rfl)
+                 (qed 'kit4-after-qed-fixture)))
+      (let ((n (length *vnb-after-qed-steps*)))
+        (quietly (lambda () (ass)))
+        (let ((grew (= (length *vnb-after-qed-steps*) (+ n 1))))
+          (set! *vnb-after-qed-steps* saved)
+          grew)))))
+(check-true "kit4: control -- a command on a fresh proof is not recorded"
+  (lambda ()
+    (let ((saved *vnb-after-qed-steps*))
+      (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (= x x)))))))
+      (let ((n (length *vnb-after-qed-steps*)))
+        (quietly (lambda () (di)))
+        (let ((same (= (length *vnb-after-qed-steps*) n)))
+          (set! *vnb-after-qed-steps* saved)
+          same)))))
+
+(check-true "kit4: dk-apply! a second time with a shared partial instance (was: landed no assumption)"
+  (lambda ()
+    (quietly (lambda ()
+               (sp (make-wff '(IMPLIES (FORALL a (FORALL b (= (+ a b) (+ b a))))
+                                       (= (+ 1 2) (+ 2 1)))))
+               (di)))
+    (let* ((u '(FORALL a (FORALL b (= (+ a b) (+ b a)))))
+           (r1 (quietly (lambda () (dk-apply! u 1 2))))
+           (r2 (quietly (lambda () (dk-apply! u 1 3)))))
+      (and (equal? r1 '(= (+ 1 2) (+ 2 1)))
+           (equal? r2 '(= (+ 1 3) (+ 3 1)))))))
+(check-true "kit4: control -- dk-apply! on fresh terms takes the old path"
+  (lambda ()
+    (quietly (lambda ()
+               (sp (make-wff '(IMPLIES (FORALL a (FORALL b (= (+ a b) (+ b a))))
+                                       (= (+ 1 2) (+ 2 1)))))
+               (di)))
+    (equal? (quietly (lambda () (dk-apply! '(FORALL a (FORALL b (= (+ a b) (+ b a)))) 1 2)))
+            '(= (+ 1 2) (+ 2 1)))))
+
+;;; -----------------------------------------------------------------------
 ;;; Summary
 
 (newline)

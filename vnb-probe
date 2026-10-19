@@ -47,7 +47,13 @@ done
 # was 120 KB of plain base64 and capataz refused it -- "The total size of your
 # parameter(s) and document exceeds the 97KB limit"; gzipped it is 28 KB).  The
 # cap below is on the wire size; a proof file compresses about 4:1.
-B64=$( { [ "$QUIET" = 1 ] && echo '(set! *vnb-loading* #t)   ; vnb-probe --quiet'; cat "$FILE"; } | gzip -9 | base64 -w0)
+# The remote name is computed here, before the payload, because the payload's first
+# line names it: the CASE-FOLD LINT of the probed file (2026-10-18, the LA-DET agent: a
+# K/k collision in its own helper went unseen, since the lint ran only in a load of the
+# tree).  It reads the shipped SOURCE with folding off and prints `;VNB warning' lines.
+BASE="$(basename "$(dirname "$(readlink -f "$FILE")")")__$(basename "$FILE")"
+LINT="(case-fold-define-lint! \"theorem-library/$BASE\" \"/home/ubuntu/probes/$BASE\")   ; vnb-probe lint"
+B64=$( { [ "$QUIET" = 1 ] && echo '(set! *vnb-loading* #t)   ; vnb-probe --quiet'; echo "$LINT"; cat "$FILE"; } | gzip -9 | base64 -w0)
 if [ ${#B64} -gt 90000 ]; then
   echo "vnb-probe: $FILE is $(( ${#B64} / 1024 )) KB gzipped+base64, over the ~90 KB SSM limit." >&2
   echo "           Push the tree instead (capataz push $WORKER --rsync --src ~/prover --dest /home/ubuntu/prover ...)" >&2
@@ -57,7 +63,6 @@ fi
 # The remote name is <parent-dir>__<basename> (2026-09-18): two agents probing their own
 # scratch `p4.scm' on one worker shared /home/ubuntu/probes/p4.scm and one log, and their
 # runs interleaved.  A theorem-library file lands as theorem-library__<name>.scm.
-BASE="$(basename "$(dirname "$(readlink -f "$FILE")")")__$(basename "$FILE")"
 # The SSM command must outlive the prover's own timeout, or the reply comes back
 # EMPTY and the run looks like it printed nothing (found 2026-09-16: a 600 s probe
 # vanished that way).  The prover gets TIMEOUT (applied INSIDE the memory slot, so

@@ -4628,6 +4628,21 @@
           (if (not *vnb-keep-going?*)
               (error "qed-failure gate: this load has proofs that did not reach qed; the library is NOT complete")))))
 
+  ;;; after-qed gate (2026-10-18, warn-only; fatal once its backlog is zero): commands
+  ;;; that ran on the very proof state a `qed' had just closed -- the symptom of a
+  ;;; statement closed one paren short, whose proof ran as `sp's arguments
+  ;;; (interactive.scm, vnb--run! and sp).
+  (let ((steps (reverse *vnb-after-qed-steps*)))
+    (if (null? steps)
+        (display ";; after-qed gate: ok (no command ran on a proof qed had closed)\n")
+        (begin
+          (display ";; after-qed gate: ") (display (length steps))
+          (display " command(s) ran on a proof qed had already closed (warn-only):\n")
+          (for-each (lambda (s)
+                      (display ";;   after ") (display (car s)) (display ": ")
+                      (display (cdr s)) (newline))
+                    steps))))
+
   ;; Not a question about the installed formulas, but about the CODE that walks
   ;; them: does every traversal agree with *binder-shapes* on which heads bind?
   ;; See binder-walker-audit in audit.scm for what a disagreement costs.
