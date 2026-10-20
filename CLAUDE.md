@@ -965,6 +965,10 @@ the gates; each catches a defect the others call well-formed.
   prints one line and RETURNS; when no later file cites the theorem nothing stopped, and a strict
   load exited 0 with a theorem missing. `qed` records every failure in `*vnb-qed-failures*`; the
   end of the load lists them. Under keep-going an incomplete proof is a HOLE and prints as one.
+* `after-qed gate` (2026-10-18; FATAL in a strict load since 2026-10-19) -- a command that ran on the
+  proof state a `qed` had just closed: the symptom of a statement closed one paren short, whose
+  proof ran as `sp`'s arguments (`*vnb-after-qed-steps*`, interactive.scm). It sees only proofs
+  that RAN: a certified theorem's steps do not run, so the exam is where it bites.
 * `connective-arity-audit` -- FATAL. A flat `(AND a b c)` silently drops conjuncts.
 * `free-variable-audit` -- warn-only.
 * `head-registry-sweep` -- warn-only. Every applied head against `*constant-registry*`, the

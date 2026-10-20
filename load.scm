@@ -4628,20 +4628,22 @@
           (if (not *vnb-keep-going?*)
               (error "qed-failure gate: this load has proofs that did not reach qed; the library is NOT complete")))))
 
-  ;;; after-qed gate (2026-10-18, warn-only; fatal once its backlog is zero): commands
-  ;;; that ran on the very proof state a `qed' had just closed -- the symptom of a
-  ;;; statement closed one paren short, whose proof ran as `sp's arguments
-  ;;; (interactive.scm, vnb--run! and sp).
+  ;;; after-qed gate (2026-10-18; FATAL in a strict load since 2026-10-19, after the
+  ;;; exam of 493d5162 read ok): commands that ran on the very proof state a `qed' had
+  ;;; just closed -- the symptom of a statement closed one paren short, whose proof ran
+  ;;; as `sp's arguments (interactive.scm, vnb--run! and sp).
   (let ((steps (reverse *vnb-after-qed-steps*)))
     (if (null? steps)
         (display ";; after-qed gate: ok (no command ran on a proof qed had closed)\n")
         (begin
           (display ";; after-qed gate: ") (display (length steps))
-          (display " command(s) ran on a proof qed had already closed (warn-only):\n")
+          (display " command(s) ran on a proof qed had already closed:\n")
           (for-each (lambda (s)
                       (display ";;   after ") (display (car s)) (display ": ")
                       (display (cdr s)) (newline))
-                    steps))))
+                    steps)
+          (if (not *vnb-keep-going?*)
+              (error "after-qed gate: commands ran on a proof qed had already closed (a statement closed one paren short?)")))))
 
   ;; Not a question about the installed formulas, but about the CODE that walks
   ;; them: does every traversal agree with *binder-shapes* on which heads bind?
