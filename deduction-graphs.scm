@@ -385,20 +385,50 @@
 ;;; and whatever put it there (the statement, a cited theorem, a macete unfold)
 ;;; is already in the key.  Recorded AFTER the check, so a refused inference
 ;;; records nothing; the recording cannot raise and does not touch the verdict.
+;;;
+;;; DEFINITIONS THE CHECKER READ (2026-10-18, the user's decision "record beta in
+;;; uses", CERT-KEY-2).  A functoid-beta contracts an ANONYMOUS lambdoid record
+;;; (pi-functoid-beta!, chk-functoid-redex?: the head must be a functoid RECORD,
+;;; never a registered name), so there is no name to record: the record came into
+;;; the goal through the statement, a cited theorem or a named unfold, each in the
+;;; key.  The place where a definition's BODY decides an inference without a
+;;; named macete is the definedness certificate: the checkers re-run `pi--defined?'
+;;; and walk def-functoid applications through their instantiated bodies
+;;; (`chk-functoid-unfold', `chk-value-may-be-class?', R4-F), and read a
+;;; predicate's defining IFF (`pi--pred-def-conjuncts').  While a checker runs,
+;;; each such read notes the NAME here (*dg-defs-read*, #f outside a check); once
+;;; the verdict is #t the names join *proof-used-defs*, and the certificate keys
+;;; them like a named unfold (F + the body's fingerprint; T + the IFF's hash).
+;;; Read off the CHECKER's relation, so the builder's own reads count only when
+;;; the checker repeats them.  With checking off (VNB_NO_RULE_CHECK=1, the A/B
+;;; control) nothing is noted.
 (define *proof-used-defs* '())           ; macete names, newest first, no repeats
+(define *dg-defs-read* #f)               ; names read by the running checker, or #f
+
+(define (dg-note-read-def! name)
+  (if (and *dg-defs-read* (symbol? name) (not (memq name *dg-defs-read*)))
+      (set! *dg-defs-read* (cons name *dg-defs-read*))))
+
+(define (dg-note-used-name! name)
+  (if (not (memq name *proof-used-defs*))
+      (set! *proof-used-defs* (cons name *proof-used-defs*))))
 
 (define (dg-note-used-def! rule)
   (if (and (pair? rule)
            (memq (car rule) '(macete macete-hyp))
            (pair? (cdr rule))
            (symbol? (cadr rule))
-           (not (eq? (cadr rule) '<anonymous>))
-           (not (memq (cadr rule) *proof-used-defs*)))
-      (set! *proof-used-defs* (cons (cadr rule) *proof-used-defs*))))
+           (not (eq? (cadr rule) '<anonymous>)))
+      (dg-note-used-name! (cadr rule))))
 
 (define (dg-apply-rule! dg rule hyp-sequents conclusion-sqn)
   (if *dg-check-inferences?*
-      (dg-check-inference! rule hyp-sequents (sequent-node-sequent conclusion-sqn)))
+      (let ((read
+             (fluid-let ((*dg-defs-read* '()))
+               (dg-check-inference! rule hyp-sequents (sequent-node-sequent conclusion-sqn))
+               *dg-defs-read*)))
+        ;; accepted (a refusal raised above): the definitions it read are used
+        (for-each dg-note-used-name! (reverse read))))
   (dg-note-used-def! rule)
   (hash-table-set! *rules-applied* (rule-tag-head rule) #t)
   (let ((hyp-nodes (map (lambda (s) (dg-post! dg s)) hyp-sequents)))

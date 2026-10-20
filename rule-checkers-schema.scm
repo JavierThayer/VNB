@@ -978,10 +978,12 @@
                                     (find-shape-structure (string->symbol (substring nm 3 (string-length nm))))
                                     #t))))))
   (define (registry-ref name)             ; see pi--registry-ref: the registry lives in the
-    (call-with-current-continuation         ; load's environment, not system-global
-      (lambda (k)
-        (with-exception-handler (lambda (e) (k #f))
-          (lambda () (hash-table-ref/default *functoid-registry* name #f))))))
+    (let ((e (call-with-current-continuation ; load's environment, not system-global
+               (lambda (k)
+                 (with-exception-handler (lambda (e) (k #f))
+                   (lambda () (hash-table-ref/default *functoid-registry* name #f)))))))
+      (if e (dg-note-read-def! name))     ; CERT-KEY-2: the verdict read this body
+      e))
   (define (unfold t)
     (and (pair? t) (symbol? (car t))
          (let ((reg (registry-ref (car t))))

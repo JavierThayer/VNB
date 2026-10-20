@@ -293,10 +293,12 @@
 ;;; there says #f while the variable is in reach (the suite found it, 2026-10-01).  So the
 ;;; lookup is guarded by catching the unbound-variable condition, not by a test.
 (define (pi--registry-ref name)
-  (call-with-current-continuation
-    (lambda (k)
-      (with-exception-handler (lambda (e) (k #f))
-        (lambda () (hash-table-ref/default *functoid-registry* name #f))))))
+  (let ((e (call-with-current-continuation
+             (lambda (k)
+               (with-exception-handler (lambda (e) (k #f))
+                 (lambda () (hash-table-ref/default *functoid-registry* name #f)))))))
+    (if e (dg-note-read-def! name))       ; CERT-KEY-2: a definition a checker read
+    e))
 
 (define (pi--functoid-instance? t)
   (or (functoid? t)
@@ -709,11 +711,15 @@
 ;;; The registered body / parameters of a def-functoid (structures.scm's
 ;;; *functoid-registry* holds (params body path)), or #f.  Read at call time;
 ;;; the registry is defined by a later file.
+;;; A found entry is noted as read (dg-note-read-def!, a no-op outside a checker
+;;; run; CERT-KEY-2, 2026-10-18).
 (define (pi--functoid-body name)
   (let ((e (hash-table-ref/default *functoid-registry* name #f)))
+    (if e (dg-note-read-def! name))
     (and e (pair? e) (pair? (cdr e)) (cadr e))))
 (define (pi--functoid-params name)
   (let ((e (hash-table-ref/default *functoid-registry* name #f)))
+    (if e (dg-note-read-def! name))
     (and e (pair? e) (car e))))
 
 ;;; Is a functoid BODY, read with its parameters as variables, a class term
@@ -1139,6 +1145,7 @@
 (define (pi--pred-def-conjuncts f)
   (let ((def (and (pi--pred-def-trusted? (car f))
                   (hash-table-ref/default *theorem-table* (car f) #f))))
+    (if def (dg-note-read-def! (car f)))        ; a definition the certificate read (CERT-KEY-2)
     (and def (pair? def)
          (let loop ((e def) (args (cdr f)) (binds '()))
            (cond ((and (pair? e) (eq? (car e) 'FORALL) (pair? args))

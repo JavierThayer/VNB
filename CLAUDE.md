@@ -152,8 +152,14 @@ its citers; a changed kernel file (the `dg-apply-rule!` callers and the four che
 everything. The bill line reads `certified modulo {...}` (no date or host in a record since 2026-09-30: an exam that changes nothing rewrites nothing); the load summary counts `proven` and
 `certified` apart; the word `proven` alone means the proof ran in this image. The page audit covers the
 proofs that ran. A file the skipper cannot handle is retracted and reloaded in `off` mode with a warning
-(none in the tree on 2026-09-25). NOT in the key: a functoid reduced by `beta` or an accessor read by `slot`
-(the exam is the backstop; recording them is an open decision). `VNB_LOAD_LIMIT=N` loads the first N proof
+(none in the tree on 2026-09-25). THE KEY (2026-10-20, the user's decision, CERT-KEY):
+`defs` is the closure of the statement's defined heads through their definitions (def-functoid bodies,
+def-predicate / def-constant axioms, a definitional-named theorem; proven theorems are not followed); `uses` holds
+the macetes the kernel saw fire (an accessor read by `slot` among them, M hash) and every def-functoid body and
+predicate IFF a checker read while accepting an inference (the definedness certificate). A functoid reduced by
+`beta` needs nothing: `beta` contracts only an anonymous lambdoid record, which reached the goal through the
+statement, a cited theorem or a named unfold, all keyed. The exam is the backstop for what the kernel hash does not
+cover: tactics and the kit. `VNB_LOAD_LIMIT=N` loads the first N proof
 files, for development. The store lives in the tree and travels in the tarball.
 
 **EXTENDING THE BAND (built 2026-09-23 from Ignacio's plan; the user's decision: build it, and

@@ -11,7 +11,8 @@
 ;;;
 ;;;   (NAME "STATEMENT-HASH" STATEMENT
 ;;;         (cites (NAME . "HASH") ...)   ; the names the ledger read off the script
-;;;         (defs (NAME . "HASH") ...)    ; the defined heads the statement mentions
+;;;         (defs (NAME . "HASH") ...)    ; the defined heads the statement reaches,
+;;;                                       ; through definitions (2026-10-17)
 ;;;         (uses (NAME . "HASH") ...)    ; every macete the KERNEL saw fire (2026-09-26)
 ;;;         (own-oracles VERB ...)        ; the oracles the script called directly
 ;;;         (bill NAME ...) (oracles VERB ...)   ; what qed announced
@@ -23,7 +24,10 @@
 ;;; on how much was proved before (band-dump.scm relabels the same way).  The
 ;;; hash of a CITED name is `T'+ the hash of its installed statement, `F'+ the
 ;;; hash of its functoid definition (params and body) when it is a functoid
-;;; macete and no theorem, and "-" when it is neither.  A USED name (below) that
+;;; macete and no theorem, and "-" when it is neither.  The hash of a DEFS name
+;;; that has a library-definitions entry (a def-constant, a def-predicate) is
+;;; `D'+ the hash of all its defining axioms (see "the definition closure",
+;;; below); any other defs name hashes as a cited one.  A USED name (below) that
 ;;; is neither has `M'+ the hash of the rewrite rule the macete checker reads
 ;;; for it (an accessor, a functor projection), and "-" only when there is none.
 ;;;
@@ -38,10 +42,17 @@
 ;;; independent of the ledger's reading.  A beta, NTH or LENGTH contraction
 ;;; names nothing: its redex is literally in the goal, put there by the
 ;;; statement, a cited theorem or a macete unfold, each of which is in the key.
+;;; Since 2026-10-18 (CERT-KEY-2, the user's "record beta in uses") `uses' also
+;;; holds every def-functoid whose BODY, and every predicate whose defining IFF,
+;;; a checker READ while accepting an inference of the proof -- the definedness
+;;; certificate walks def-functoid applications through their bodies (R4-F) --
+;;; noted by deduction-graphs.scm's dg-note-read-def! and hashed like a named
+;;; unfold (F + body; T + statement).
 ;;;
 ;;; VALIDITY.  A record is valid in a load when the statement `sp' starts hashes
 ;;; to its STATEMENT-HASH, every (NAME . HASH) of its cites and defs hashes the
-;;; same here, every (NAME . HASH) of its USES hashes the same here (a record
+;;; same here, every name of the definition closure of the statement computed
+;;; here is among its defs (2026-10-17), every (NAME . HASH) of its USES hashes the same here (a record
 ;;; with no `uses' field, written before 2026-09-26, is not valid), and its
 ;;; kernel hash is this tree's.  The KERNEL HASH is the MD5 of the source text of
 ;;; the files that may call `dg-apply-rule!' (*cert-kernel-caller-files*, below:
@@ -65,8 +76,12 @@
 ;;; is read FORM BY FORM from its .scm and each form is `eval'ed in a fresh file
 ;;; environment, as `load' would.  `sp' hashes its statement and looks it up; on
 ;;; a valid record it installs the theorem (`install-from-certificate!'), sets
-;;; the SKIP STATE and escapes the current top-level form.  While the skip state
-;;; is set, a top-level form that errors is swallowed (its output too); `qed'
+;;; the SKIP STATE and escapes the current top-level form.  A top-level form that
+;;; starts while the skip state is set runs with its output GATED (dropped while a
+;;; skipped proof is in progress, shown after its qed) and its errors swallowed for
+;;; as long as the state holds; once a proof of its own clears it (a new sp), its
+;;; output and its errors count as in any other form (2026-10-17; before, the
+;;; whole form was captured and every error swallowed); `qed'
 ;;; checks its name against the record and clears the state.  A body (lambda,
 ;;; define, let, begin, ...) in which `(sp X)' is followed by `(qed N)' is
 ;;; rewritten before evaluation so that the forms between run only when the
@@ -184,8 +199,17 @@
                        (hash-table-set! *cert-hash-memo* name (cons thm h))
                        h))))
           ((hash-table-ref/default *functoid-registry* name #f)
-           => (lambda (e) (string-append "F" (cert-md5 (cert-canon (list (car e) (cadr e)))))))
+           ;; memoised on the registry ENTRY (a redefinition is a new entry);
+           ;; CERT-KEY-2 put many more functoids in `uses' (2026-10-18)
+           => (lambda (e)
+                (let ((m (hash-table-ref/default *cert-fhash-memo* name #f)))
+                  (if (and m (eq? (car m) e))
+                      (cdr m)
+                      (let ((h (string-append "F" (cert-md5 (cert-canon (list (car e) (cadr e)))))))
+                        (hash-table-set! *cert-fhash-memo* name (cons e h))
+                        h)))))
           (#t "-"))))
+(define *cert-fhash-memo* (make-strong-eqv-hash-table))   ; name -> (entry . hash)
 
 ;;; ---------------------------------------------------------------- the kernel hash
 ;;; THE code that may CALL `dg-apply-rule!': the closed list the fatal
@@ -270,18 +294,166 @@
                         `(FORALL ,(wff-formula (car rest)) ,(loop (cdr rest)))))))
     (expand-destructuring-quantifiers wrapped)))
 
-;;; The defined heads a statement mentions: every symbol that names an installed
-;;; theorem or a functoid, other than NAME itself.
-(define (cert--defs-of stmt name)
-  (let ((acc '()))
-    (let walk ((x stmt))
-      (cond ((symbol? x)
-             (if (and (not (eq? x name)) (not (memq x acc))
-                      (or (hash-table-ref/default *theorem-table* x #f)
-                          (hash-table-ref/default *functoid-registry* x #f)))
-                 (set! acc (cons x acc))))
-            ((pair? x) (walk (car x)) (walk (cdr x)))))
-    (sort acc (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
+;;; ---------------------------------------------------------------- the definition closure
+;;; THE DEFINED HEADS OF A RECORD (the user's decision of 2026-10-17, META-10 finding
+;;; 1).  Until that date a record's `defs' were the defined heads its STATEMENT
+;;; mentions, and a head's own definition was not looked into: the META statements
+;;; name the def-functoid DERIVABLE, whose body names CORE-RULE; CORE-RULE was
+;;; changed, and 415 theorems were installed from records that could not see it.
+;;; One kind of head was invisible altogether: a `def-constant' whose defining
+;;; axioms carry other names ((def-constant 'CLT '(clt-def ...)), CTX-SET, SENT)
+;;; names neither a theorem nor a functoid.
+;;;
+;;; A DEFINED HEAD is a symbol that names an installed theorem, a def-functoid, or a
+;;; `library-definitions' entry (def-constant, structures.scm's def-predicate, the
+;;; def-*-recursion forms).  THE DEFINITION of a head is
+;;;   - a def-functoid: its body;
+;;;   - a library-definitions entry: the installed statement of each defining axiom;
+;;;   - otherwise, a theorem NAMED like the head whose provenance is `definitional'
+;;;     (library.scm's class-membership def-predicate, which installs its IFF under
+;;;     the head's own name by add-axiom!): its statement.
+;;; A head with none of these has no definition and is a leaf of the closure.  In
+;;; particular a PROVEN, asserted or primitive theorem whose name happens to be the
+;;; head is not its definition and is not followed: a proven statement that
+;;; mentions a head says something ABOUT the head, it does not fix what the head
+;;; means, and a change in it is caught where it matters, by the `cites' of the
+;;; records that use it.  Following it would make every record depend on every
+;;; theorem reachable through mentions, which is most of the library.
+;;;
+;;; A record's `defs' are the TRANSITIVE CLOSURE: the defined heads of the
+;;; statement, and the defined heads of the definition of each, recursively, NAME
+;;; itself excepted; cycle-safe (a recursive definition names its own head).  Each
+;;; carries `cert-def-hash'.  The writer (`cert-make-record') and the validity test
+;;; (`cert-record-invalid-reason') compute the closure with the same procedure, and
+;;; the test demands that every name of the closure computed NOW be in the record
+;;; with the hash it has now: a record written before this code lacks the deeper
+;;; names and is invalid once.
+;;;
+;;; The per-head step (the head's definition and the defined heads it mentions) is
+;;; memoised on the definition OBJECTS, compared by eq?, so a reinstall or a
+;;; redefinition cannot answer from a stale entry (the discipline of
+;;; *cert-hash-memo*); the closure itself is recomputed per record.
+
+;;; name -> the NEWEST library-definitions entry of that name (the alist is consed
+;;; at the front, so the first entry is the newest, as `assq' reads it).  Rebuilt
+;;; when the alist object changes.
+(define *cert-libdefs-cache* (cons 'none #f))
+(define (cert--libdef-entry h)
+  (let ((defs (library-definitions *library*)))
+    (if (not (eq? (car *cert-libdefs-cache*) defs))
+        (let ((t (make-strong-eqv-hash-table)))
+          (for-each (lambda (e)
+                      (if (and (pair? e) (not (hash-table-ref/default t (car e) #f)))
+                          (hash-table-set! t (car e) e)))
+                    defs)
+          (set! *cert-libdefs-cache* (cons defs t))))
+    (hash-table-ref/default (cdr *cert-libdefs-cache*) h #f)))
+
+(define (cert--defined-head? x)
+  (and (symbol? x)
+       (or (hash-table-ref/default *theorem-table* x #f)
+           (hash-table-ref/default *functoid-registry* x #f)
+           (cert--libdef-entry x))
+       #t))
+
+;;; The defined heads a formula (or a functoid body) mentions, in no order.  A
+;;; functoid RECORD (a lambdoid) is walked through its bindings and body.
+(define (cert--heads-in x)
+  (let ((seen (make-strong-eqv-hash-table)) (acc '()))
+    (let walk ((y x))
+      (cond ((symbol? y)
+             (if (and (not (hash-table-ref/default seen y #f)) (cert--defined-head? y))
+                 (begin (hash-table-set! seen y #t) (set! acc (cons y acc)))))
+            ((functoid? y) (walk (functoid-bindings y)) (walk (functoid-body y)))
+            ((pair? y) (walk (car y)) (walk (cdr y)))
+            ((vector? y) (for-each walk (vector->list y)))))
+    acc))
+
+;;; The objects H's definition is made of (see above), '() when it has none.
+(define (cert--definition-parts h)
+  (let ((f (hash-table-ref/default *functoid-registry* h #f))
+        (e (cert--libdef-entry h)))
+    (append (if f (list (cadr f)) '())
+            (if e
+                (map (lambda (ax)
+                       (or (hash-table-ref/default *theorem-table* (car ax) #f) (cdr ax)))
+                     (filter pair? (cdr e)))
+                '())
+            (let ((thm (hash-table-ref/default *theorem-table* h #f)))
+              (if (and thm (not e) (eq? (provenance-of h) 'definitional))
+                  (list thm)
+                  '())))))
+
+;;; name -> #(parts children D-hash), valid while the parts are the same objects.
+(define *cert-def-memo* (make-strong-eqv-hash-table))
+(define (cert--def-entry h)
+  (let* ((parts (cert--definition-parts h))
+         (m (hash-table-ref/default *cert-def-memo* h #f)))
+    ;; (the tree's `every' takes ONE list: deduction-graphs.scm)
+    (if (and m
+             (let same? ((a (vector-ref m 0)) (b parts))
+               (cond ((null? a) (null? b))
+                     ((null? b) #f)
+                     (#t (and (eq? (car a) (car b)) (same? (cdr a) (cdr b)))))))
+        m
+        (let ((v (vector parts
+                         (let ((acc '()))
+                           (for-each (lambda (p)
+                                       (for-each (lambda (c) (if (not (memq c acc)) (set! acc (cons c acc))))
+                                                 (cert--heads-in p)))
+                                     parts)
+                           acc)
+                         #f)))
+          (hash-table-set! *cert-def-memo* h v)
+          v))))
+
+(define (cert--def-children h) (vector-ref (cert--def-entry h) 1))
+
+;;; The closure computations of this image, and the CPU time they took (ms, from
+;;; `runtime', seconds), for the load summary's measurement line.
+(define *cert-closure-calls* 0)
+(define *cert-closure-ms* 0)
+
+;;; A record's defs: the closure, sorted by name.
+(define (cert--defs-closure stmt name)
+  (let ((t0 (runtime))
+        (seen (make-strong-eqv-hash-table))
+        (acc '()))
+    (let visit ((hs (cert--heads-in stmt)))
+      (for-each (lambda (x)
+                  (if (and (not (eq? x name)) (not (hash-table-ref/default seen x #f)))
+                      (begin (hash-table-set! seen x #t)
+                             (set! acc (cons x acc))
+                             (visit (cert--def-children x)))))
+                hs))
+    (let ((r (sort acc (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
+      (set! *cert-closure-calls* (+ *cert-closure-calls* 1))
+      (set! *cert-closure-ms* (+ *cert-closure-ms* (* 1000 (- (runtime) t0))))
+      r)))
+
+;;; The name the defs list had since 2026-09-25; now the closure.
+(define (cert--defs-of stmt name) (cert--defs-closure stmt name))
+
+;;; The hash of a DEFINED HEAD in a record's defs.  A library-definitions entry:
+;;; `D'+ the hash of its defining axioms, names and installed statements (all of
+;;; them: a def-constant may have several, and at most one carries the head's
+;;; name).  Otherwise what `cert-name-hash' says: T for a theorem named like the
+;;; head, F for a functoid.
+(define (cert-def-hash h)
+  (let ((e (cert--libdef-entry h)))
+    (if e
+        (let ((m (cert--def-entry h)))
+          (or (vector-ref m 2)
+              (let ((hsh (string-append
+                          "D" (cert-md5 (cert-canon
+                                         (map (lambda (ax)
+                                                (list (car ax)
+                                                      (or (hash-table-ref/default *theorem-table* (car ax) #f)
+                                                          (cdr ax))))
+                                              (filter pair? (cdr e))))))))
+                (vector-set! m 2 hsh)
+                hsh)))
+        (cert-name-hash h))))
 
 (define (cert--self? c name)
   (or (eq? c name) (eq? (rev-companion-source c) name)))
@@ -310,7 +482,7 @@
          (cites (filter (lambda (c) (not (cert--self? c name))) *pd-last-citations*)))
     (list name (cert-statement-hash stmt) stmt
           (cons 'cites (map (lambda (c) (cons c (cert-name-hash c))) cites))
-          (cons 'defs (map (lambda (c) (cons c (cert-name-hash c))) (cert--defs-of stmt name)))
+          (cons 'defs (map (lambda (c) (cons c (cert-def-hash c))) (cert--defs-closure stmt name)))
           (cons 'uses (map (lambda (c) (cons c (cert-use-hash c))) (cert--uses-of name)))
           (cons 'own-oracles (script-oracles (append *proof-script* (reverse *proof-hidden-citations*))))
           (cons 'bill bill)
@@ -321,21 +493,32 @@
 ;;; certificate could not be told from an unchanged one in git.  The last exam and its
 ;;; host are in ~/mailbox/metrics/last-exam.json and the ledger.
 
-;;; Why RECORD is not valid here, or #f when it is.
-(define (cert-record-invalid-reason rec)
+;;; Why RECORD is not valid here, or #f when it is.  STMT is the statement `sp'
+;;; computed in this load (it hashes to the record's); by default the record's own.
+;;; The defs are read exactly as the writer computes them: every recorded def must
+;;; hash as it does here (cert-def-hash), and every name of the definition closure
+;;; of the statement computed HERE must be recorded (a record written before
+;;; 2026-10-17 has only the heads the statement mentions).
+(define (cert-record-invalid-reason rec #!optional stmt)
   (cond ((not (equal? (cert-rec-field1 rec 'kernel) (cert-kernel-hash))) "kernel changed")
         ((not (assq 'uses (cdddr rec))) "no uses list")
+        ((find-first (lambda (p) (not (equal? (cert-name-hash (car p)) (cdr p))))
+                     (cert-rec-field rec 'cites))
+         => (lambda (p) (string-append "statement of " (symbol->string (car p)) " changed")))
+        ((find-first (lambda (p) (not (equal? (cert-def-hash (car p)) (cdr p))))
+                     (cert-rec-field rec 'defs))
+         => (lambda (p) (string-append "definition of " (symbol->string (car p)) " changed")))
+        ((let ((recorded (cert-rec-field rec 'defs)))
+           (find-first (lambda (n) (not (assq n recorded)))
+                       (cert--defs-closure (if (default-object? stmt) (cert-rec-statement rec) stmt)
+                                           (cert-rec-name rec))))
+         => (lambda (n) (string-append "definition closure: " (symbol->string n) " not in the record")))
         (#t
-         (let loop ((ps (append (cert-rec-field rec 'cites) (cert-rec-field rec 'defs))))
-           (cond ((null? ps)
-                  (let uloop ((us (cert-rec-field rec 'uses)))
-                    (cond ((null? us) #f)
-                          ((not (equal? (cert-use-hash (caar us)) (cdar us)))
-                           (string-append "uses changed: " (symbol->string (caar us))))
-                          (#t (uloop (cdr us))))))
-                 ((not (equal? (cert-name-hash (caar ps)) (cdar ps)))
-                  (string-append "statement of " (symbol->string (caar ps)) " changed"))
-                 (#t (loop (cdr ps))))))))
+         (let uloop ((us (cert-rec-field rec 'uses)))
+           (cond ((null? us) #f)
+                 ((not (equal? (cert-use-hash (caar us)) (cdar us)))
+                  (string-append "uses changed: " (symbol->string (caar us))))
+                 (#t (uloop (cdr us))))))))
 
 ;;; ---------------------------------------------------------------- the store
 (define (cert--ensure-dir! dir)
@@ -458,6 +641,36 @@
 (define (cert--with-output-to-port port thunk)
   (parameterize ((current-output-port port)) (thunk)))
 
+;;; THE GATED PORT (2026-10-17).  Writes reach *cert-gate-target* unless a
+;;; skipped proof is IN PROGRESS -- *cert-skip* is (certified NAME) or (uncovered
+;;; ...): its steps would print about a proof that is not there -- and are dropped
+;;; while it is.  After the skipped proof's qed (the state (closed NAME)) the gate
+;;; is open: what follows a qed is metadata (topic!, gloss!, warnings) and, under
+;;; the load, no `show' dump.  The gate is read at every write, so a form that
+;;; starts in a skip state and then runs a proof of its own shows that proof's
+;;; output.
+(define *cert-gate-target* #f)
+(define (cert--gate-open?)
+  (and *cert-gate-target*
+       (or (not *cert-skip*) (eq? (car *cert-skip*) 'closed))))
+(define cert--gated-port-type
+  (make-textual-port-type
+   `((write-char ,(lambda (port ch)
+                    (if (cert--gate-open?) (write-char ch *cert-gate-target*))
+                    1))
+     (write-substring ,(lambda (port str start end)
+                         (if (cert--gate-open?)
+                             (write-string (substring str start end) *cert-gate-target*))
+                         (- end start)))
+     (flush-output ,(lambda (port)
+                      (if (cert--gate-open?) (flush-output *cert-gate-target*)))))
+   #f))
+
+(define (cert--with-gated-output target thunk)
+  (fluid-let ((*cert-gate-target* target))
+    (parameterize ((current-output-port (make-textual-port cert--gated-port-type #f)))
+      (thunk))))
+
 ;;; ---------------------------------------------------------------- the hooks
 ;;; interactive.scm calls these through *cert-sp-hook*, *cert-qed-hook* and
 ;;; *cert-record-hook* (it loads before this file).
@@ -494,7 +707,7 @@
                (cell (find-first (lambda (c) (and (not (cdr c)) (equal? (cert-rec-hash (car c)) h)))
                                  *cert-records*))
                (rec  (and cell (car cell)))
-               (why  (if rec (cert-record-invalid-reason rec) "no certificate for this statement")))
+               (why  (if rec (cert-record-invalid-reason rec stmt) "no certificate for this statement")))
           (if cell (set-cdr! cell #t))
           (cond ((not why)
                  (install-from-certificate! rec stmt)
@@ -875,23 +1088,33 @@
                     (let loop ((k 1) (forms forms))
                       (let ((form (if (pair? forms) (car forms) (eof-object))))
                         (if (and (not (eof-object? form)) (not *cert-loader-error*))
+                            ;; A form that STARTS in a skip state (the steps of a
+                            ;; skipped proof, or the forms after its qed) runs with
+                            ;; its output GATED (cert--gate-open?): dropped while a
+                            ;; skipped proof is in progress, shown otherwise -- in
+                            ;; particular once a proof of its own runs (a new sp
+                            ;; cleared the state); and an error is swallowed only
+                            ;; when it is raised while a skip state holds (META-10
+                            ;; finding 2, 2026-10-17: the whole form used to be
+                            ;; captured and every error of it swallowed, so the proof
+                            ;; that ran in the form right after a certified one lost
+                            ;; its `;; qed' line).
                             (let* ((skipping *cert-skip*)
                                    (run (lambda ()
                                           (call-with-current-continuation
                                            (lambda (esc)
                                              (fluid-let ((*cert-escape* esc))
                                                (with-exception-handler
-                                                (lambda (e) (esc (cons 'cert-error e)))
+                                                (lambda (e) (esc (list 'cert-error e (and *cert-skip* #t))))
                                                 (lambda () (eval (cert-rewrite form) env) 'ok)))))))
                                    (r (if skipping
-                                          (let ((cell #f))
-                                            (with-output-to-string (lambda () (set! cell (run))))
-                                            cell)
+                                          (cert--with-gated-output console run)
                                           (run))))
-                              (if (and (pair? r) (eq? (car r) 'cert-error) (not skipping))
+                              (if (and (pair? r) (eq? (car r) 'cert-error)
+                                       (not (and skipping (caddr r))))
                                   (set! *cert-loader-error*
                                         (string-append "form " (number->string k) " failed: "
-                                                       (cert--msg (cdr r)))))
+                                                       (cert--msg (cadr r)))))
                               (loop (+ k 1) (cdr forms)))))))))
               (cert--close-skip!)
               (if (and (not *cert-loader-error*) (> (length *vnb-qed-failures*) nfail))
@@ -964,6 +1187,8 @@
   (display " certified")          ; no exam date: records carry none (2026-09-30)
   (display " [VNB_CERTIFIED=") (display (cert-mode)) (display "]")
   (newline)
+  (display ";; certificates: definition closure computed ") (display *cert-closure-calls*)
+  (display " time(s), ") (display (round->exact *cert-closure-ms*)) (display " ms") (newline)
   (if (> *cert-files-written* 0)
       (begin (display ";; certificates: ") (display *cert-files-written*)
              (display " file(s) written to ") (display (cert-dir)) (newline)))

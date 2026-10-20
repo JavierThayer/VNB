@@ -810,12 +810,16 @@
 ;;; is not a plain symbol.  Written here, not borrowed from the builder's
 ;;; `pi--functoid-instance'.  The registry lives in the load's environment (see
 ;;; `chk-value-may-be-class?', rule-checkers-schema.scm): the lookup catches the unbound case.
+;;; A found entry is noted as a definition this check read (CERT-KEY-2, 2026-10-18;
+;;; deduction-graphs.scm, dg-note-read-def!): the verdict depends on the body.
 (define (chk-functoid-entry name)
   (and (symbol? name)
-       (call-with-current-continuation
-         (lambda (k)
-           (with-exception-handler (lambda (c) (k #f))
-             (lambda () (hash-table-ref/default *functoid-registry* name #f)))))))
+       (let ((e (call-with-current-continuation
+                  (lambda (k)
+                    (with-exception-handler (lambda (c) (k #f))
+                      (lambda () (hash-table-ref/default *functoid-registry* name #f)))))))
+         (if e (dg-note-read-def! name))
+         e)))
 (define (chk-functoid-unfold e)
   (let ((reg (chk-functoid-entry (car e))))
     (and reg (list? reg) (>= (length reg) 2)

@@ -15534,6 +15534,334 @@
       (mac 'm10-neq)
       (and (= (length (dk-open-leaves)) 1)
            (begin (ass) (proof-done? *ps*))))))))
+;;; -----------------------------------------------------------------------
+;;; CERT-KEY (2026-10-17, the user's decision on META-10 findings 1 and 2;
+;;; certificates.scm).  (1) A record's `defs' are the TRANSITIVE closure of the
+;;; defined heads through DEFINITIONS (a functoid's body, a def-predicate's or
+;;; def-constant's defining axioms), and the validity test reads the same closure.
+;;; (2) The certified loader no longer captures the whole of a form that starts
+;;; after a skipped proof: a proof that runs in it prints its `;; qed' line, and an
+;;; error raised outside the skip state fails the pass.  Fixtures through the
+;;; certified loader itself (cfx-load!, above).  Every check marked OLD-FAILS fails
+;;; on the code before 2026-10-17; the (accepted) checks pass on both.
+
+(define (ck-safe thunk)
+  (call-with-current-continuation
+   (lambda (k) (with-exception-handler (lambda (e) (k (list 'raised (cert--msg e)))) thunk))))
+
+(define ck-names '(cert-fx-ck1 cert-fx-ck2 cert-fx-ck3 cert-fx-ga cert-fx-gb cert-fx-gc cert-fx-gd))
+(define (ck-retract!)
+  (let ((present (filter (lambda (n) (hash-table-ref/default *theorem-table* n #f)) ck-names)))
+    (for-each (lambda (n) (hash-table-delete! *certified-theorems* n)) present)
+    (if (pair? present) (xb-retract-names! present 'full))))
+
+;; the vocabulary: F -> P (one step), F2 -> G -> P2 (two steps), F3 -> K where K is a
+;; def-constant whose defining axiom has ANOTHER name (ckc-k-def)
+(def-predicate 'ckc-p '(ckc_x) '(IN ckc_x RR))
+(def-functoid 'ckc-f '(ckc_a) '(SEP ckv1_ ckc_a (ckc-p ckv1_)))
+(def-predicate 'ckc-p2 '(ckc_x2) '(IN ckc_x2 RR))
+(def-functoid 'ckc-g '(ckc_b) '(SEP ckv2_ ckc_b (ckc-p2 ckv2_)))
+(def-functoid 'ckc-f2 '(ckc_c) '(ckc-g ckc_c))
+(def-constant 'ckc-k '(ckc-k-def (IN 0 ckc-k)))
+(def-functoid 'ckc-f3 '(ckc_d) '(PAIR ckc_d ckc-k))
+
+(define ck-text
+  (string-append
+   "(sp (make-wff '(FORALL ckc_y (IMPLIES (IN ckc_y (ckc-f RR)) (IN ckc_y (ckc-f RR))))))\n(di)\n(ass)\n(qed 'cert-fx-ck1)\n"
+   "(sp (make-wff '(FORALL ckc_y2 (IMPLIES (IN ckc_y2 (ckc-f2 RR)) (IN ckc_y2 (ckc-f2 RR))))))\n(di)\n(ass)\n(qed 'cert-fx-ck2)\n"
+   "(sp (make-wff '(FORALL ckc_y3 (IMPLIES (IN ckc_y3 (ckc-f3 RR)) (IN ckc_y3 (ckc-f3 RR))))))\n(di)\n(ass)\n(qed 'cert-fx-ck3)\n"))
+
+;; Run THUNK with the installed statement of NAME replaced by FORMULA (a changed
+;; definition), restored after.
+(define (ck-with-statement name formula thunk)
+  (let ((old (hash-table-ref/default *theorem-table* name #f)))
+    (dynamic-wind
+     (lambda () (hash-table-set! *theorem-table* name formula))
+     thunk
+     (lambda () (if old (hash-table-set! *theorem-table* name old)
+                    (hash-table-delete! *theorem-table* name))))))
+
+(define (ck-pc r) (list (car r) (cadr r)))      ; (proved certified)
+
+(ck-retract!)
+(cfx-write! "fx/ck" ck-text)
+(define ck-r-off (ck-safe (lambda () (cfx-load! "fx/ck" 'off))))
+(check "cert-key: the exam proves the three fixture theorems (F, F2, F3)"
+  (lambda () (if (and (pair? ck-r-off) (number? (car ck-r-off))) (ck-pc ck-r-off) ck-r-off))
+  '(3 0))
+(define (ck-record name)
+  (let ((st (fluid-let ((*cert-dir-override* cfx-store)) (cert-read-file "fx/ck"))))
+    (and st (find-first (lambda (r) (eq? (car r) name)) (cdr st)))))
+(check "cert-key OLD-FAILS: a record's defs are the closure through definitions (F -> P; F2 -> G -> P2; F3 -> K)"
+  (lambda () (map (lambda (n) (let ((r (ck-record n))) (and r (map car (cert-rec-field r 'defs)))))
+                  '(cert-fx-ck1 cert-fx-ck2 cert-fx-ck3)))
+  '((ckc-f ckc-p) (ckc-f2 ckc-g ckc-p2) (ckc-f3 ckc-k)))
+(check-true "cert-key: the validity test reads the closure the writer wrote (record defs = closure computed now)"
+  (lambda () (let ((r (ck-record 'cert-fx-ck2)))
+               (and r (equal? (map car (cert-rec-field r 'defs))
+                              (ck-safe (lambda () (cert--defs-closure
+                                                   (hash-table-ref/default *theorem-table* 'cert-fx-ck2 #f)
+                                                   'cert-fx-ck2))))))))
+
+;; (accepted) nothing changed: all three install from their records
+(ck-retract!)
+(define ck-r-same (ck-safe (lambda () (cfx-load! "fx/ck" 'on #!default #f))))
+(check "cert-key (accepted): definitions unchanged -> the three records are valid, nothing re-proved"
+  (lambda () (if (number? (car ck-r-same)) (ck-pc ck-r-same) ck-r-same))
+  '(0 3))
+
+;; (refused) P changed under F: the theorem stated with F is re-proved, the others not
+(ck-retract!)
+(define ck-r-p
+  (ck-with-statement 'ckc-p '(FORALL ckc_x (IFF (ckc-p ckc_x) (IN ckc_x QQ)))
+    (lambda () (ck-safe (lambda () (cfx-load! "fx/ck" 'on #!default #f))))))
+(check "cert-key OLD-FAILS (refused): P's definition changed under F -> the record of the F theorem is invalid, re-proved"
+  (lambda () (if (number? (car ck-r-p)) (list (ck-pc ck-r-p) (provenance-of 'cert-fx-ck1)
+                                              (provenance-of 'cert-fx-ck2)) ck-r-p))
+  '((1 2) proven certified))
+(check-true "cert-key OLD-FAILS: the re-proof says which definition changed"
+  (lambda () (and (pair? ck-r-p) (string? (cadddr ck-r-p))
+                  (cfx-has? (cadddr ck-r-p) "definition of ckc-p changed"))))
+
+;; (refused) the two-step chain: P2 changed under G under F2
+(ck-retract!)
+(define ck-r-p2
+  (ck-with-statement 'ckc-p2 '(FORALL ckc_x2 (IFF (ckc-p2 ckc_x2) (IN ckc_x2 QQ)))
+    (lambda () (ck-safe (lambda () (cfx-load! "fx/ck" 'on #!default #f))))))
+(check "cert-key OLD-FAILS (refused): P2 changed two steps down (F2 -> G -> P2) -> the F2 theorem is re-proved"
+  (lambda () (if (number? (car ck-r-p2)) (list (ck-pc ck-r-p2) (provenance-of 'cert-fx-ck2)
+                                               (provenance-of 'cert-fx-ck1)) ck-r-p2))
+  '((1 2) proven certified))
+
+;; (refused) the def-constant K: its axiom ckc-k-def is named apart from it
+(ck-retract!)
+(define ck-r-k
+  (ck-with-statement 'ckc-k-def '(IN 1 ckc-k)
+    (lambda () (ck-safe (lambda () (cfx-load! "fx/ck" 'on #!default #f))))))
+(check "cert-key OLD-FAILS (refused): a def-constant's defining axiom changed under F3 -> the F3 theorem is re-proved"
+  (lambda () (if (number? (car ck-r-k)) (list (ck-pc ck-r-k) (provenance-of 'cert-fx-ck3)) ck-r-k))
+  '((1 2) proven))
+
+;; (accepted) back to the original definitions: valid again (the memo saw the
+;; restored objects, it did not keep the changed answer)
+(ck-retract!)
+(define ck-r-back (ck-safe (lambda () (cfx-load! "fx/ck" 'on #!default #f))))
+(check "cert-key (accepted): definitions restored -> the records are valid again"
+  (lambda () (if (number? (car ck-r-back)) (ck-pc ck-r-back) ck-r-back))
+  '(0 3))
+
+;; (accepted) a record from before the closure (defs = the heads the statement
+;; mentions) is refused when the closure is larger, and only then
+(check "cert-key OLD-FAILS (refused): a record whose defs lack a closure name is invalid, naming it"
+  (lambda ()
+    (let ((r (ck-record 'cert-fx-ck2)))
+      (and r (ck-safe (lambda ()
+                        (fluid-let ((*cert-kernel-hash* "suite-kernel-1"))   ; the fixtures' kernel
+                        (cert-record-invalid-reason
+                         (map (lambda (f) (if (and (pair? f) (eq? (car f) 'defs))
+                                              (cons 'defs (filter (lambda (p) (eq? (car p) 'ckc-f2)) (cdr f)))
+                                              f))
+                              r)
+                         (hash-table-ref/default *theorem-table* 'cert-fx-ck2 #f))))))))
+  "definition closure: ckc-g not in the record")
+(check "cert-key: a PROVEN theorem is not followed as a definition (cert-fx-ck1 names ckc-f, not the theorems about it)"
+  (lambda () (ck-safe (lambda () (cert--defs-closure '(IMPLIES (cert-fx-ck2) (ckc-f ckc_w)) 'nothing))))
+  '(cert-fx-ck2 ckc-f ckc-p))
+(ck-retract!)
+
+;; ---- (2) the output of a form that starts after a skipped proof
+(define ckg-helper "(define (ckg-prove! stmt n) (sp (make-wff stmt)) (di) (ass) (qed n))\n")
+(define (ckg-text gb-class)
+  (string-append
+   ckg-helper
+   "(ckg-prove! '(IMPLIES (IN ckga_ RR) (IN ckga_ RR)) 'cert-fx-ga)\n"
+   ;; starts in the (closed cert-fx-ga) state: META-10's def-strict-pred-admitted shape
+   "(begin (display \";; ckg-tail-shown\") (newline)\n"
+   "       (ckg-prove! '(IMPLIES (IN ckgb_ " gb-class ") (IN ckgb_ " gb-class ")) 'cert-fx-gb))\n"
+   ;; the steps of a skipped proof print nothing
+   "(sp (make-wff '(IMPLIES (IN ckgd_ RR) (IN ckgd_ RR))))\n(di)\n(display \";; ckg-step-hidden\")\n(newline)\n(ass)\n(qed 'cert-fx-gd)\n"))
+(ck-retract!)
+(cfx-write! "fx/gate" (ckg-text "QQ"))
+(define ckg-r-off (ck-safe (lambda () (cfx-load! "fx/gate" 'off))))
+(ck-retract!)
+(cfx-write! "fx/gate" (ckg-text "ZZ"))           ; cert-fx-gb changes, the other two do not
+(define ckg-r-on (ck-safe (lambda () (cfx-load! "fx/gate" 'on #!default #f))))
+(check "cert-gate: the changed proof after a certified one is proved, the others certified"
+  (lambda () (if (number? (car ckg-r-on)) (ck-pc ckg-r-on) ckg-r-on))
+  '(1 2))
+(check-true "cert-gate OLD-FAILS: the proof that ran in the form after a skipped qed prints its `;; qed' line"
+  (lambda () (and (pair? ckg-r-on) (string? (cadddr ckg-r-on))
+                  (cfx-has? (cadddr ckg-r-on) ";; qed cert-fx-gb: proven modulo"))))
+(check-true "cert-gate OLD-FAILS: what a form prints after a skipped proof's qed reaches the log"
+  (lambda () (and (pair? ckg-r-on) (string? (cadddr ckg-r-on))
+                  (cfx-has? (cadddr ckg-r-on) ";; ckg-tail-shown"))))
+(check-false "cert-gate (control): a step of a skipped proof prints nothing"
+  (lambda () (and (pair? ckg-r-on) (string? (cadddr ckg-r-on))
+                  (cfx-has? (cadddr ckg-r-on) ";; ckg-step-hidden"))))
+(check-true "cert-gate (control): the certified theorems still announce `certified modulo'"
+  (lambda () (and (pair? ckg-r-on) (string? (cadddr ckg-r-on))
+                  (cfx-has? (cadddr ckg-r-on) ";; qed cert-fx-ga: certified modulo")
+                  (cfx-has? (cadddr ckg-r-on) ";; qed cert-fx-gd: certified modulo"))))
+
+;; an ERROR raised after a proof of its own ran, in a form that started after a
+;; skipped qed, fails the certified pass (FALLBACK) instead of vanishing.  The off
+;; reload then raises the same error, as an off load of the file would.
+(define (ckge-text gc-class tail)
+  (string-append
+   ckg-helper
+   "(ckg-prove! '(IMPLIES (IN ckga_ RR) (IN ckga_ RR)) 'cert-fx-ga)\n"
+   "(begin (ckg-prove! '(IMPLIES (IN ckgc_ " gc-class ") (IN ckgc_ " gc-class ")) 'cert-fx-gc)" tail ")\n"))
+(ck-retract!)
+(cfx-write! "fx/gate-err" (ckge-text "RR" ""))
+(ck-safe (lambda () (cfx-load! "fx/gate-err" 'off)))
+(ck-retract!)
+;; cert-fx-gc's statement changes, so its proof RUNS in the form, then the error
+(cfx-write! "fx/gate-err" (ckge-text "QQ" " (car '())"))
+(define ckge-fb0 (length *cert-fallbacks*))
+(define ckge-r (ck-safe (lambda () (cfx-load! "fx/gate-err" 'on #!default #f))))
+(check "cert-gate OLD-FAILS (refused): an error after a proof ran in that form fails the pass and falls back"
+  (lambda () (list (- (length *cert-fallbacks*) ckge-fb0)
+                   (and (pair? *cert-fallbacks*) (car (car *cert-fallbacks*)))
+                   (and (pair? ckge-r) (eq? (car ckge-r) 'raised))))
+  '(1 "fx/gate-err" #t))
+(ck-retract!)
+(cfx-write! "fx/gate-err" (ckge-text "RR" ""))
+(define ckge-fb1 (length *cert-fallbacks*))
+(define ckge-r2 (ck-safe (lambda () (cfx-load! "fx/gate-err" 'on #!default #f))))
+(check "cert-gate (accepted): the same file without the error installs from the store, no fallback"
+  (lambda () (list (if (number? (car ckge-r2)) (ck-pc ckge-r2) ckge-r2)
+                   (- (length *cert-fallbacks*) ckge-fb1)))
+  '((0 2) 0))
+(ck-retract!)
+
+;;; -----------------------------------------------------------------------
+;;; CERT-KEY-2 (2026-10-18, the user's decision "record beta in uses";
+;;; deduction-graphs.scm dg-note-read-def!).  A functoid-beta contracts an
+;;; ANONYMOUS lambdoid record, so it has no name to record; the lambdoid reached
+;;; the goal through a NAMED unfold, already in `uses' (PIN (a): passes on the old
+;;; code too).  The definitions a checker READS to accept an inference -- the
+;;; definedness certificate walks a def-functoid application through its body --
+;;; are now in `uses' (CONTROL (b): fails on the old code).  PIN (c): an accessor
+;;; read by `slot' is in `uses' with its M hash (passes on the old code too).
+
+(define ck2-names '(cert-fx-sqt cert-fx-dft cert-fx-slt))
+(define (ck2-retract!)
+  (let ((present (filter (lambda (n) (hash-table-ref/default *theorem-table* n #f)) ck2-names)))
+    (for-each (lambda (n) (hash-table-delete! *certified-theorems* n)) present)
+    (if (pair? present) (xb-retract-names! present 'full))))
+(define (ck2-record key name)
+  (let ((st (fluid-let ((*cert-dir-override* cfx-store)) (cert-read-file key))))
+    (and st (find-first (lambda (r) (eq? (car r) name)) (cdr st)))))
+(define (ck2-reason key name)               ; the verdict on NAME's stored record, now
+  (let ((r (ck2-record key name)))
+    (if r
+        (ck-safe (lambda ()
+                   ;; one argument (the record's own statement), so the same check
+                   ;; runs on the code before CERT-KEY, whose test takes one
+                   (fluid-let ((*cert-kernel-hash* "suite-kernel-1"))
+                     (cert-record-invalid-reason r))))
+        'no-record)))
+;; Run THUNK with def-functoid NAME's body replaced by BODY (a NEW registry entry), restored after.
+(define (ck2-with-body name body thunk)
+  (let ((old (hash-table-ref/default *functoid-registry* name #f)))
+    (dynamic-wind
+     (lambda () (hash-table-set! *functoid-registry* name (list (car old) body (caddr old))))
+     thunk
+     (lambda () (hash-table-set! *functoid-registry* name old)))))
+
+;; (a) the L/T example: SQ's body is a LAMBDOID application; T unfolds SQ at 3 by
+;; name, then beta-reduces the lambdoid, then computes
+(def-functoid 'ckb-sq '(ckb_x)
+  (make-apply-functoid (make-functoid 'lambdoid (list (cons 'ckb_y 'RR)) '(* ckb_y ckb_y)) 'ckb_x))
+(ck2-retract!)
+(cfx-write! "fx/sq" "(sp (make-wff '(= (ckb-sq 3) 9)))\n(mac 'ckb-sq)\n(beta)\n(arith)\n(qed 'cert-fx-sqt)\n")
+(define ck2-r-sq (ck-safe (lambda () (cfx-load! "fx/sq" 'off))))
+(check "cert-key-2: the SQ fixture proves (unfold SQ, beta, arith)"
+  (lambda () (if (number? (car ck2-r-sq)) (ck-pc ck2-r-sq) ck2-r-sq))
+  '(1 0))
+(check-true "cert-key-2 PIN (a): T's record has SQ in `uses' with its F hash (from the named unfold)"
+  (lambda () (let ((r (ck2-record "fx/sq" 'cert-fx-sqt)))
+               (and r (let ((u (assq 'ckb-sq (cert-rec-field r 'uses))))
+                        (and u (char=? #\F (string-ref (cdr u) 0))))))))
+(check "cert-key-2 PIN (a, accepted): SQ unchanged -> T's record is valid"
+  (lambda () (ck2-reason "fx/sq" 'cert-fx-sqt))
+  #f)
+;; the named unfold is in BOTH lists: the ledger cites the functoid (`cites', F hash)
+;; and the kernel saw its macete (`uses'); the cites test runs first and names it
+(check-true "cert-key-2 PIN (a): SQ is in T's `cites' too (the ledger read the unfold)"
+  (lambda () (let ((r (ck2-record "fx/sq" 'cert-fx-sqt)))
+               (and r (assq 'ckb-sq (cert-rec-field r 'cites)) #t))))
+(check "cert-key-2 PIN (a, refused): SQ's lambdoid body changed -> T invalid, naming ckb-sq"
+  (lambda () (ck2-with-body 'ckb-sq
+               (make-apply-functoid (make-functoid 'lambdoid (list (cons 'ckb_y 'RR)) '(+ ckb_y ckb_y)) 'ckb_x)
+               (lambda () (ck2-reason "fx/sq" 'cert-fx-sqt))))
+  "statement of ckb-sq changed")
+
+;; (b) a body read by the DEFINEDNESS certificate: L (asserted) puts the atom
+;; G(LIST(c1, c2)) in RR in context; `rfl' on LIST(c1, c2) = LIST(c1, c2) is licensed
+;; only because G's body holds its parameter outside binders (R4-F).  T's statement
+;; does not mention G, and T cites L, whose statement does not change with G's body.
+(def-functoid 'ckb-g '(ckb_p) '(+ ckb_p 1))
+(if (not (hash-table-ref/default *theorem-table* 'ckb-l #f))
+    (add-axiom! *library* 'ckb-l '(IN (ckb-g (LIST ckb-c1 ckb-c2)) RR)))
+(ck2-retract!)
+(cfx-write! "fx/dft" "(sp (make-wff '(= (LIST ckb-c1 ckb-c2) (LIST ckb-c1 ckb-c2))))\n(fact 'ckb-l)\n(rfl)\n(qed 'cert-fx-dft)\n")
+(define ck2-r-df (ck-safe (lambda () (cfx-load! "fx/dft" 'off))))
+(check "cert-key-2: the definedness fixture proves (fact L, rfl)"
+  (lambda () (if (number? (car ck2-r-df)) (ck-pc ck2-r-df) ck2-r-df))
+  '(1 0))
+(check-true "cert-key-2 OLD-FAILS: the body the checker read (G) is in T's `uses'"
+  (lambda () (let ((r (ck2-record "fx/dft" 'cert-fx-dft)))
+               (and r (assq 'ckb-g (cert-rec-field r 'uses)) #t))))
+(check "cert-key-2 (accepted): G unchanged -> T's record is valid"
+  (lambda () (ck2-reason "fx/dft" 'cert-fx-dft))
+  #f)
+(check "cert-key-2 OLD-FAILS (refused): G's body changed -> T invalid, `uses changed: ckb-g'"
+  (lambda () (ck2-with-body 'ckb-g 'EMPTY-SET (lambda () (ck2-reason "fx/dft" 'cert-fx-dft))))
+  "uses changed: ckb-g")
+(check-false "cert-key-2 (the dependency is real): with G's body EMPTY-SET the same rfl no longer closes"
+  (lambda () (ck2-with-body 'ckb-g 'EMPTY-SET
+               (lambda () (ck-safe (lambda ()
+                 (quietly (lambda ()
+                   (fluid-let ((*ps* #f))
+                     (sp (make-wff '(= (LIST ckb-c1 ckb-c2) (LIST ckb-c1 ckb-c2))))
+                     (fact 'ckb-l)
+                     (vnb-guard (lambda () (rfl)))
+                     (and *ps* (proof-done? *ps*)))))))))))
+(ck2-retract!)
+(define ck2-r-df-on (ck-safe (lambda () (cfx-load! "fx/dft" 'on #!default #f))))
+(check "cert-key-2 (accepted): the certified loader installs T from its record, nothing re-proved"
+  (lambda () (if (number? (car ck2-r-df-on)) (ck-pc ck2-r-df-on) ck2-r-df-on))
+  '(0 1))
+
+;; (c) PIN: an accessor read by `slot' is in `uses' with its M hash, and moving the
+;; accessor to another slot invalidates the record
+(define ck2-acc 'pts)
+(define ck2-k (car (hash-table-ref/default *accessor-index* ck2-acc '(1 . #f))))
+(ck2-retract!)
+(cfx-write! "fx/slt"
+  (string-append "(sp (make-wff '(FORALL cks_ (IMPLIES (IN (NTH " (number->string ck2-k)
+                 " cks_) RR) (IN (pts cks_) RR)))))\n(di)\n(di)\n(slot 'pts)\n(ass)\n(qed 'cert-fx-slt)\n"))
+(define ck2-r-sl (ck-safe (lambda () (cfx-load! "fx/slt" 'off))))
+(check "cert-key-2: the slot fixture proves"
+  (lambda () (if (number? (car ck2-r-sl)) (ck-pc ck2-r-sl) ck2-r-sl))
+  '(1 0))
+(check-true "cert-key-2 PIN (c): the accessor read by `slot' is in `uses' with an M hash"
+  (lambda () (let ((r (ck2-record "fx/slt" 'cert-fx-slt)))
+               (and r (let ((u (assq ck2-acc (cert-rec-field r 'uses))))
+                        (and u (char=? #\M (string-ref (cdr u) 0))))))))
+(check "cert-key-2 PIN (c, accepted): slots unchanged -> valid"
+  (lambda () (ck2-reason "fx/slt" 'cert-fx-slt))
+  #f)
+(check "cert-key-2 PIN (c, refused): the accessor moved to another slot -> invalid, `uses changed: pts'"
+  (lambda ()
+    (let ((old (hash-table-ref/default *accessor-index* ck2-acc #f)))
+      (dynamic-wind
+       (lambda () (hash-table-set! *accessor-index* ck2-acc (cons (+ (car old) 1) (cdr old))))
+       (lambda () (ck2-reason "fx/slt" 'cert-fx-slt))
+       (lambda () (hash-table-set! *accessor-index* ck2-acc old)))))
+  "uses changed: pts")
+(ck2-retract!)
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

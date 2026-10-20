@@ -172,3 +172,75 @@ same image (an extend-band reload) went on being checked against its old reading
 `M` hash, computed without the memo, saw the new one. The key is now the object the answer was computed from
 (`rkw--definition-witness`: the theorem, the functoid registration, the accessor entry, or both for a
 projection), and a suite check redefines a functoid in place and reads the new body back.
+
+
+## 2026-10-17: the definition closure (CERT-KEY)
+
+The user's decision on META-10's finding 1. Until then, a record's `defs` were the defined heads its statement
+mentions, and a head's own definition was not looked into. The META statements name the def-functoid `DERIVABLE`,
+whose body names `CORE-RULE`; `CORE-RULE` was changed, and 415 theorems were installed from records that could not see
+the change. A `def-constant` whose defining axiom carries another name (`(def-constant 'CLT '(clt-def ...))`, and
+CTX-SET, SEQ-SET, SENT and others) was not in `defs` at all, because it names neither a theorem nor a functoid.
+
+- A *defined head* is a symbol that names an installed theorem, a def-functoid, or a `library-definitions` entry.
+- Its *definition* is one of the following:
+  - a def-functoid's body;
+  - the installed statements of a library-definitions entry's defining axioms;
+  - a theorem named like the head, but only when its provenance is `definitional`.
+- A proven, asserted or primitive statement that mentions a head is not the head's definition and is not followed. It
+  says something about the head; it does not fix what the head means, and a change in it reaches its users through
+  `cites`.
+- `defs` is the transitive closure: the heads of the statement, plus, recursively, the heads of each one's definition.
+  The walk is cycle-safe and leaves out the theorem's own name.
+- A library-definitions head is hashed `D` + the hash of all its defining axioms. Every other head keeps its `T` or `F`
+  hash.
+- The validity test recomputes the closure of the live statement. It refuses a record that lacks a name of that closure
+  ("definition closure: X not in the record") or whose recorded hash differs ("definition of X changed").
+- The per-head step is memoised on the definition objects (compared by `eq?`).
+- Cost: about 0.1 ms per record; 720 ms of CPU over the whole store.
+- Measured against the store of ef5271a, 3 964 of 4 991 records became invalid once.
+- The same change fixed a loader defect (META-10 finding 2). After a skipped proof's `qed`, the next top-level form used
+  to run with its whole output captured and its errors swallowed, so a proof that ran in that form lost its `;; qed`
+  line. Such a form now writes through a gated port, read at every write: output is dropped only while a skipped proof
+  is in progress. An error is swallowed only when it is raised while a skip state holds.
+
+## 2026-10-18: definitions the checker reads (CERT-KEY-2)
+
+The user's decision: "Record beta in uses. Each beta step adds the functoid it reduced, with its body's fingerprint, the
+way a named unfold does today."
+
+**A `functoid-beta` step has no name to record.**
+- The builder (`pi-functoid-beta!`) and the checker (`chk-functoid-redex?`) contract only `(apply-functoid <record>
+  args)`, where the head is an ANONYMOUS lambdoid record and never a registered name.
+- A lambdoid reaches a goal only literally, through one of three routes, and each is already in the key:
+  - the statement (its hash);
+  - a cited theorem's statement (`cites`);
+  - a named unfold of a def-functoid whose body holds the lambdoid (`(macete NAME ...)`, `uses`).
+- The suite pins this (PIN (a)): SQ's body is a lambdoid application; T unfolds SQ at 3, beta-reduces and computes;
+  changing SQ's body invalidates T through `uses`. This already held before the change.
+- `lambda-beta` (a VNB-LAMBDA set term), `nth-reduce` and `length-reduce` contract redexes that are literal in the goal.
+  They read no table, so the same argument applies to them.
+
+**Where a definition's body does decide an inference without a named macete: the definedness certificate.**
+- The checkers re-run `pi--defined?` and walk a def-functoid application through its instantiated body (R4-F:
+  `pi--sob-walk`, `pi--sep-form`, `chk-sob`, `chk-sep-form`, `chk-value-may-be-class?`).
+- They also read a predicate's defining IFF (`pi--pred-def-conjuncts`).
+
+**What changed.**
+- Each of those reads now notes the head's name while a checker runs: `pi--registry-ref`, `pi--functoid-body`,
+  `pi--functoid-params`, `pi--pred-def-conjuncts`, `chk-functoid-entry`, and the local `registry-ref` of
+  `chk-value-may-be-class?`.
+- The names are collected in `*dg-defs-read*` (deduction-graphs.scm, `dg-note-read-def!`), which is `#f` outside a
+  check.
+- When the verdict is `#t`, the names join `*proof-used-defs*`. The certificate then keys them with `cert-use-hash`
+  exactly like a named unfold (`F` + the body; `T` + the IFF's statement). A refused inference records nothing.
+- The names are read off the checker's relation, so a builder's read counts only when the checker repeats it.
+- With checking off (`VNB_NO_RULE_CHECK=1`), nothing is noted.
+- The functoid hash is now memoised on the registry entry.
+- CONTROL (b) in the suite: lemma L (asserted) puts `G(LIST(c1, c2)) in RR` in context. `rfl` on
+  `LIST(c1, c2) = LIST(c1, c2)` is licensed only through G's body. T's statement does not mention G, and L's statement
+  does not change with G's body, so before this change T stayed certified when G's body changed. A further check shows
+  the dependency is real: with G's body `EMPTY-SET`, the same `rfl` no longer closes.
+
+deduction-graphs.scm, primitive-inferences.scm and two rule-checker files are kernel files, so this change
+invalidates every record once. It rides the same exam night as CERT-KEY.
