@@ -145,6 +145,9 @@ if [ "$MODE" = build ]; then
   # key file.
   ENVV="VNB_HOST=$WORKER VNB_CERTIFIED=$CERT"
   [ -n "$HEAP" ] && ENVV="$ENVV VNB_BUILD_HEAP=$HEAP"
+  # VNB_WRITE_BOOK=1 in the caller's environment is passed on: a certified build then
+  # writes reference/library-book.tex too (load.scm; the exam writes it regardless).
+  [ "${VNB_WRITE_BOOK:-}" = 1 ] && ENVV="$ENVV VNB_WRITE_BOOK=1"
 else
   ARGS="--extend-band"
   [ "$DRY" = 1 ] && ARGS="$ARGS --dry-run"

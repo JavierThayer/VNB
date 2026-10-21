@@ -477,6 +477,11 @@
     ;; MINOR + DET's two definitional recursion axioms + the first theorem menu
     ;; (computational checks det-1x1/2x2, det-identity, alternating, product).
     "structure-library/determinant"
+    ;; LA-DET / LA-DET2 / LA-Z (2026-10-18/19): IS-LOWER/UPPER-TRIANGULAR, ADJ; IS-ELEMENTARY, ELEM-GEN,
+    ;; COL-EQUIV, IS-COLUMN-STEP, COL-STEP-ROW; SUBMATRIX, SDET, ELEM-EQUIV, ZZ-IS-GCD-SET.
+    "structure-library/la-det-vocab"
+    "structure-library/la-elem-vocab"
+    "structure-library/la-z-vocab"
     ;; The monoid algebra A[M] (Bourbaki III.2): finitely-supported functions
     ;; M -> A, pointwise sum, convolution product, as a RING tuple.  POLY(A) =
     ;; A[NN-ADD-MONOID] is one-variable polynomials.  Ring laws seeded; the
@@ -2155,6 +2160,15 @@
     ;; the free generating sequence backwards along Smith's right factor, so the
     ;; inverse must itself be invertible before the transports will accept it.
     "theorem-library/inverse-invertible-proof"
+    ;; LA-DET (2026-10-18): triangular determinants (3.23), A adj A = det A I (3.25), Cramer, invertible iff
+    ;; det /= 0 (3.26).  LA-DET2: the column-step proposition, 3.12, 3.13.  LA-Z (2026-10-19): subdeterminants under
+    ;; elementary operations (3.29), gcd invariance (3.31), invertible integer matrices are products of elementary
+    ;; ones (3.38, over any euclidean ring).
+    "theorem-library/la-det-adjoint"
+    "theorem-library/la-elem-gen"
+    "theorem-library/la-z-sdet"
+    "theorem-library/la-z-gcd"
+    "theorem-library/la-z-elem"
     ;; The SPANS-relativized generates-transport: an invertible matrix carries a
     ;; sequence spanning a SUBMODULE to another such.  Cor 3.46 needs it because
     ;; F is a submodule, not the whole module.
@@ -3545,6 +3559,17 @@
     ;; countable-union-nn (an NN-indexed union of countable sets, by nn-flatten) and the Cauchy estimate
     ;; primitive-pair-lipschitz from the mean value inequality.
     "theorem-library/primitive-uniform-limit"
+    ;; CALC-2 (2026-10-19): R^n with the sup norm (RN, RN-MAXABS, RN-UNIT, RN-TRUNC) a normed vector space;
+    ;; HAS-DIR-DERIV; Prop 2.29 (continuous-partials-estimate) and Prop 2.28 (directional derivatives from
+    ;; continuous partials).
+    "structure-library/rn-vocab"
+    "theorem-library/calc2-rn-basics"
+    "theorem-library/calc2-rn-norm"
+    "theorem-library/calc2-rn-nvs"
+    "theorem-library/calc2-segment"
+    "theorem-library/calc2-dirderiv"
+    "theorem-library/calc2-prop229"
+    "theorem-library/calc2-prop228"
     ;; HILBERT-1 (2026-10-10, Thayer Ch.2 s.3-4): IS-HILBERT-SPACE, PERP; parallelogram, Prop 2.19, Cor 2.21, Riesz 2.22.
     "structure-library/hilbert-space"
     "theorem-library/hilbert-projection"
@@ -3573,7 +3598,11 @@
     "structure-library/metric-outer-measure"
     "theorem-library/metric-outer-measure"
     ;; RM-2 (2026-10-10, notes-63): CONT-FNS, IS-POSITIVE-FUNCTIONAL, CLOPEN-SETS; Riesz-Markov on the Cantor model K.
+    ;; Moved 2026-10-20 out of riesz-markov-cantor (measure) for the library gate: a closed set of a compact
+    ;; metric space covered by countably many open sets has a finite subcover.
+    "theorem-library/metric-finite-subcover"
     "structure-library/positive-functional"
+    "theorem-library/cont-fns-laws"           ; CONT-FNS / CLOPEN-SETS laws, moved 2026-10-20 out of riesz-markov-cantor (measure) for the library gate
     "theorem-library/riesz-markov-cantor"
     ;; RM-3A: the M. Riesz positive extension to C(s), s compact.
     "theorem-library/positive-extension"
@@ -3594,6 +3623,18 @@
     ;; Prop 3.5; Fubini (Thm 3.7) for sigma-finite measures and f >= 0; the product measure (Def 3.8).
     "structure-library/product-measure"
     "theorem-library/product-measure"
+    ;; ESUP-PROD (2026-10-18): the ESUP product law; rho(A x B) = mu(A) nu(B) with no finiteness hypothesis.
+    ;; SIP-1 / SIP-D / SIP-D2 (2026-10-18/19, the user's design): SEMI-INNER-PRODUCT-SPACE, PRE-HILBERT-SPACE,
+    ;; the complex case as real + J, COMPLEXIFY, L^2 as an a.e. setoid; the projection theorems.
+    "theorem-library/esup-product"
+    "structure-library/sip-vocab"
+    "theorem-library/sip-a"
+    "structure-library/sip-complex-vocab"
+    "theorem-library/sip-b"
+    "structure-library/sip-l2-vocab"
+    "theorem-library/sip-c"
+    "structure-library/sip-hilbert-vocab"
+    "theorem-library/sip-d1"
     ;; RM-3B (2026-10-10): Borel preimages, PUSH-FORWARD, change of variables; Riesz-Markov on X from K.
     "structure-library/push-forward"
     "theorem-library/push-forward"
@@ -3642,6 +3683,13 @@
     ;; a path is compact; "derivative >= 0 off a finite set => nondecreasing", monotonicity of PW-INT,
     ;; |pw-int(phi)| <= pw-int(|phi|); the notes' estimate (45) for CC-INT.
     "theorem-library/compact-image"
+    ;; CALC-3 (2026-10-19): IS-ACCUMULATION-POINT, IS-HOMEOMORPHISM, IS-DENSE, IS-LIMIT-ALONG; calculus 3.10,
+    ;; 3.20, 3.22, 3.23, 3.26.
+    "structure-library/calc3-vocab"
+    "theorem-library/calc3-closed"
+    "theorem-library/calc3-compact-closed"
+    "theorem-library/calc3-uniform"
+    "theorem-library/calc3-extension"
     "theorem-library/pw-int-order"
     "theorem-library/cc-int-estimate"
     ;; 2026-09-23 (batch 24-A): the laws of the line integral for a ROAD and a CONTINUOUS f, no primitive in the
@@ -3681,6 +3729,11 @@
     "theorem-library/analytic-from-integral"  ; the geometric expansion, line integrals of uniform limits, analyticity from the integral formula, the Cauchy estimate (CA-2, 2026-10-03)
     "theorem-library/cauchy-integral-formula" ; cauchy-disc-except, winding-circle-inside, the Cauchy integral formula on a disc, Theorem 3.35, holomorphic-deriv-holomorphic (CA-3, 2026-10-04)
     "theorem-library/cauchy-estimates"        ; the derivative formula, Cauchy's estimates, Liouville, the Fundamental Theorem of Algebra (CA-3, 2026-10-04)
+    ;; CA-1 (2026-10-19): CC as the real matrices [[a, b], [-b, a]] (CC-MATRIX-OF, CC-MATRICES, CC-MATRIX-REP);
+    ;; CC algebraically closed (1.15 restated).
+    "structure-library/ca1-vocab"
+    "theorem-library/ca1-matrix-rep"
+    "theorem-library/ca1-alg-closed"
     "theorem-library/winding-number-integer" ; the winding number of a closed road is an integer: the integral as a function of its upper limit, exp(H)/(gamma - z) constant (CA-5, 2026-10-04)
     "theorem-library/winding-number-components" ; the winding number is locally constant, constant on connected sets off the trace, zero on an unbounded one; juxtaposition and the opposite road (CA-5, 2026-10-04)
     "theorem-library/cauchy-centre-mean-value" ; the integral formula at the centre, the mean value property, the maximum modulus principle on a disc (CA-4, 2026-10-04)
@@ -3695,6 +3748,18 @@
     "theorem-library/ca5-frechet"            ; C(U) a Frechet module (5.2), H(U) closed in it (5.3, sequence form) (CA-5, 2026-10-14)
     "theorem-library/ca5-montel"             ; bounded sets equicontinuous (5.8), Montel, the derivative continuous on H(U) (5.20, sequence form) (CA-5, 2026-10-14)
     "theorem-library/ca5-series"             ; Lemma 5.21, normally convergent series of holomorphic functions (5.22), linearity of the derivative (CA-5, 2026-10-14)
+    ;; CA-6 (2026-10-18): Hurwitz and its corollaries (5.19, 5.20, 5.23-5.25).  CA-LFT (2026-10-19): the
+    ;; extended plane (CC-INF a fresh constant, the user's decision), LFTs, Prop 1.18, Cor 1.19, Cor 1.20 (SL(2,C)),
+    ;; the Cayley transform (Prop 1.21).
+    "theorem-library/ca6-hurwitz"
+    "structure-library/ca-lft-vocab"
+    "theorem-library/ca-lft-plane"
+    "theorem-library/ca-lft-compose"
+    "theorem-library/ca-lft-topology"
+    "theorem-library/ca-lft-cayley"
+    "theorem-library/ca-lft-group"
+    "theorem-library/ca-lft-matrix"
+    "theorem-library/ca-lft-sl2"
     ;; preamble -- a STRATEGY, executed: (preamble '(induct) '(unfold ...)
     ;; '(instantiate) '(close)) runs the clause list against every open leaf,
     ;; commits ordinary tactics that each record themselves, and RETURNS the

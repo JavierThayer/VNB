@@ -887,3 +887,25 @@
    nowhere-dense set leaves room for a CLOSED ball missing its closure.  The single
    step of the Baire category construction.")
 (topic! 'nowhere-dense-closed-ball 'topology)
+
+;;; Moved 2026-10-20 from theorem-library/hilbert-projection.scm (where HILBERT-1 proved it for
+;;; perp-is-closed): basic metric topology, cited by calc3-* and sip-d1 as well.
+;;; a set that contains its closure is closed
+(sp (make-wff (forall-guarded '(s aa)
+   '((IS-METRIC-SPACE s) (SUBSET aa (PTS s)) (SUBSET (CLOSURE s aa) aa))
+   '(IS-CLOSED s aa))))
+(dk-peel!)
+(dk-cite! 'closure-is-closed 's 'aa)
+(dk-cite! 'closure-contains 's 'aa)
+(dk-have! '(FORALL hcx_ (IFF (IN hcx_ (CLOSURE s aa)) (IN hcx_ aa)))
+  (lambda ()
+    (dk-peel!)
+    (let ((xv (cadr (cadr (dk-goal)))))
+      (dk-iff! (lambda (g) (equal? g (list 'IN xv 'aa)))
+               (lambda () (dk-cite! 'subset-mem-fwd '(CLOSURE s aa) 'aa xv) (ass))
+               (lambda () (dk-cite! 'subset-mem-fwd 'aa '(CLOSURE s aa) xv) (ass))))))
+(dk-cite! 'class-extensionality '(CLOSURE s aa) 'aa)
+(subst '(= aa (CLOSURE s aa)))
+(ass)
+(qed 'closure-subset-closed)
+(topic! 'closure-subset-closed 'analysis)

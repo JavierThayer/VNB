@@ -23,10 +23,9 @@
 ;;;   product-measure-is-measure                    DEF. 3.8: mu, nu sigma-finite  ==>
 ;;;                                                 rho = PRODUCT-MEASURE is a measure on A (x) B
 ;;;   product-measure-symmetric                     rho(C) = integral over Y of mu(C^y) d nu
-;;;   product-measure-rectangle                     rho(aa x bb) = mu(aa) nu(bb), FINITE sides
-;;;                                                 (infinite sides are not proved: that needs
-;;;                                                 sup_n etimes(a_n, b_n) = etimes(sup a_n, sup b_n)
-;;;                                                 for nondecreasing a_n, b_n in [0, inf])
+;;;   (product-measure-rectangle, rho(aa x bb) = mu(aa) nu(bb), is in esup-product.scm,
+;;;                                                 with no finiteness hypothesis; the finite form
+;;;                                                 proven here was retired 2026-10-20)
 ;;; AND THE GENERAL FACTS ON THE WAY (each usable on its own):
 ;;;   dynkin-pi-lambda             a Dynkin system containing a pi-system contains the
 ;;;                                sigma-algebra it generates (with dynkin-generated-*,
@@ -3748,23 +3747,9 @@
 (qed 'product-measure-symmetric)
 (topic! 'product-measure-symmetric 'set-quotient)
 
-(sp (make-wff (forall-guarded '(xs cA mu ys cB nu aa bb)
-   (append pms-meas2 '((IN aa cA) (IN bb cB) (IN (mu aa) RR) (IN (nu bb) RR)))
-   (list '= (list pms-pm '(CARTESIAN aa bb)) '(etimes (mu aa) (nu bb))))))
-(dk-peel!)
-(pms-meas-parts!)
-(fact 'rectangle-in-product-sigma 'xs 'cA 'ys 'cB 'aa 'bb)
-(dk-split! (dk-fact! 'x-section-measure-rectangle 'xs 'cA 'mu 'ys 'cB 'nu 'aa 'bb))
-(dk-cite! 'product-measure-apply 'xs 'cA 'mu 'ys 'cB 'nu '(CARTESIAN aa bb))
-(fact 'fun-apply-type-c 'nu 'cB 'RR-POS-STAR 'bb)
-(fact 'fun-apply-type-c 'mu 'cA 'RR-POS-STAR 'aa)
-(pms-and! '(IN (nu bb) RR-POS-STAR) '(IN (mu aa) RR-POS-STAR))
-(fact 'etimes-comm '(nu bb) '(mu aa))
-(subst (list '= (list pms-pm '(CARTESIAN aa bb)) '(INTEGRAL xs cA mu (X-SECTION-MEASURE xs ys nu (CARTESIAN aa bb)))))
-(subst '(= (INTEGRAL xs cA mu (X-SECTION-MEASURE xs ys nu (CARTESIAN aa bb))) (etimes (nu bb) (mu aa))))
-(if (not (proof-done? *ps*)) (ass))
-(qed 'product-measure-rectangle)
-(topic! 'product-measure-rectangle 'set-quotient)
+;;; product-measure-rectangle (finite sides) RETIRED 2026-10-20: the name now belongs to the
+;;; general statement, with no finiteness hypothesis, proven in theorem-library/esup-product.scm
+;;; (ESUP-PROD, 2026-10-18; integral-homogeneous-star).  Nothing cited the finite form.
 
 (gloss! 'dynkin-pi-lambda
   "Dynkin's pi-lambda theorem: a Dynkin system over X (X in it, closed under proper

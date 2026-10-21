@@ -11,9 +11,13 @@
 ;;;                     cc-magnitude-sqrt-self-conj, cips-eq-of-dist-sq-zero
 ;;;   (1) (1.1)         cips-parallelogram(-ip), cips-pythagoras
 ;;;   (2)               ip-orth-closure: orthogonality to A passes to the closure of A
-;;;   (3) Def. 2.18     perp-is-submodule, perp-is-closed (closure-subset-closed)
+;;;   (3) Def. 2.18     perp-is-submodule, perp-is-closed (closure-subset-closed: metric-closure-laws)
 ;;;   (4) Prop. 2.19(i) cips-dist-sq-inf, cips-midpoint-estimate (2.6),
-;;;                     hilbert-closest-point, cips-variational,
+;;;                     hilbert-closest-point, each the corollary of its general form
+;;;                     for a nonempty (closed) set closed under midpoints:
+;;;                     cips-dist-sq-inf-nonempty, cips-midpoint-estimate-midpoint,
+;;;                     hilbert-closest-point-midpoint (SIP-D2, spliced 2026-10-20);
+;;;                     cips-variational,
 ;;;                     hilbert-projection-exists, hilbert-projection-point,
 ;;;                     hilbert-decomposition-unique
 ;;;   (5) 2.19(ii)-(iii) orthogonal-projection-{apply,type,exists,unique,additive,
@@ -684,25 +688,8 @@
 (qed 'perp-subset)
 (topic! 'perp-subset 'plumbing)
 
-;;; a set that contains its closure is closed
-(sp (make-wff (forall-guarded '(s aa)
-   '((IS-METRIC-SPACE s) (SUBSET aa (PTS s)) (SUBSET (CLOSURE s aa) aa))
-   '(IS-CLOSED s aa))))
-(dk-peel!)
-(dk-cite! 'closure-is-closed 's 'aa)
-(dk-cite! 'closure-contains 's 'aa)
-(dk-have! '(FORALL hcx_ (IFF (IN hcx_ (CLOSURE s aa)) (IN hcx_ aa)))
-  (lambda ()
-    (dk-peel!)
-    (let ((xv (cadr (cadr (dk-goal)))))
-      (dk-iff! (lambda (g) (equal? g (list 'IN xv 'aa)))
-               (lambda () (dk-cite! 'subset-mem-fwd '(CLOSURE s aa) 'aa xv) (ass))
-               (lambda () (dk-cite! 'subset-mem-fwd 'aa '(CLOSURE s aa) xv) (ass))))))
-(dk-cite! 'class-extensionality '(CLOSURE s aa) 'aa)
-(subst '(= aa (CLOSURE s aa)))
-(ass)
-(qed 'closure-subset-closed)
-(topic! 'closure-subset-closed 'analysis)
+;;; closure-subset-closed (a set containing its closure is closed) MOVED 2026-10-20 to
+;;; theorem-library/metric-closure-laws.scm, where the closure laws it cites are proven.
 
 ;;; z in PERP(v, ks), built from vectors in PERP: the membership, by expansion.
 ;;; ATOMS are the vectors of z known to be in PERP.
@@ -800,20 +787,46 @@
 
 (define (hpr-qd p xi) (hpr-q (hpr-sub p xi)))
 
-;;; (a) the infimum of the squared distance from xi to K
+;;; kk is closed under midpoints: p, q in kk => (1/2)(p + q) in kk
+(define (hpr-midclosed ks)
+  (list 'FORALL 'hm1_ (list 'IMPLIES (list 'IN 'hm1_ ks)
+    (list 'FORALL 'hm2_ (list 'IMPLIES (list 'IN 'hm2_ ks)
+      (list 'IN (hpr-act 1/2 (hpr-add 'hm1_ 'hm2_)) ks))))))
+;;; kk is nonempty
+(define (hpr-nonempty ks) (list 'FORSOME 'hke_ (list 'IN 'hke_ ks)))
+
+;;; the conclusions, shared by the general forms and the corollaries
+(define hpr-inf-concl
+  (list 'FORSOME 'aa
+    (hpr-and
+      (list '(IN aa RR)
+            '(<= 0 aa)
+            (list 'FORALL 'hdp_ (list 'IMPLIES '(IN hdp_ kk) (list '<= 'aa (hpr-qd 'hdp_ 'xi))))
+            (list 'FORALL 'hdn_ (list 'IMPLIES '(IN hdn_ NN)
+               (list 'FORSOME 'hdq_ (list 'AND '(IN hdq_ kk)
+                  (list '<= (hpr-qd 'hdq_ 'xi) '(+ aa (recip (+ hdn_ 1))))))))))))
+(define hpr-lb (list 'FORALL 'hdp_ (list 'IMPLIES '(IN hdp_ kk) (list '<= 'aa (hpr-qd 'hdp_ 'xi)))))
+(define hpr-est-concl
+  (forall-guarded '(p1_ p2_) '((IN p1_ kk) (IN p2_ kk))
+    (list '<= (hpr-qd 'p1_ 'p2_)
+          (list '- (list '+ (list '* 2 (hpr-qd 'p1_ 'xi)) (list '* 2 (hpr-qd 'p2_ 'xi)))
+                   '(* 4 aa)))))
+(define hpr-cp-concl
+  (list 'FORSOME 'hcp_
+    (list 'AND '(IN hcp_ kk)
+      (list 'FORALL 'hdp_ (list 'IMPLIES '(IN hdp_ kk)
+                                (list '<= (hpr-qd 'hcp_ 'xi) (hpr-qd 'hdp_ 'xi)))))))
+
+;;; (a) for a NONEMPTY SUBSET kk (SIP-D2, 2026-10-19; spliced 2026-10-20 from hp-midpoint.scm), then the
+;;; submodule statement as a corollary.  The general forms serve the closed convex sets of SIP-D2.
+;;; ====================================================================
+;;; (a) the infimum of the squared distance from xi to a nonempty subset kk
+;;; ====================================================================
 (set! hpr-v 'v)
 (sp (make-wff (forall-guarded '(v kk xi)
-   '((IS-COMPLEX-INNER-PRODUCT-SPACE v) (IS-SUBMODULE v kk) (IN xi (VEC v)))
-   (list 'FORSOME 'aa
-     (hpr-and
-       (list '(IN aa RR)
-             '(<= 0 aa)
-             (list 'FORALL 'hdp_ (list 'IMPLIES '(IN hdp_ kk) (list '<= 'aa (hpr-qd 'hdp_ 'xi))))
-             (list 'FORALL 'hdn_ (list 'IMPLIES '(IN hdn_ NN)
-                (list 'FORSOME 'hdq_ (list 'AND '(IN hdq_ kk)
-                   (list '<= (hpr-qd 'hdq_ 'xi) '(+ aa (recip (+ hdn_ 1))))))))))))))
+   (list '(IS-COMPLEX-INNER-PRODUCT-SPACE v) '(SUBSET kk (VEC v)) (hpr-nonempty 'kk) '(IN xi (VEC v)))
+   hpr-inf-concl)))
 (dk-peel!)
-(dk-cite! 'submodule-subset 'v 'kk)
 (let* ((ss (list 'SEP 'hrs_ 'RR
                  (list 'FORSOME 'hrp_ (list 'AND '(IN hrp_ kk) (list '= 'hrs_ (list '- (hpr-qd 'hrp_ 'xi)))))))
        (in-kk! (lambda (p) (dk-cite! 'subset-mem-fwd 'kk '(VEC v) p)))
@@ -830,13 +843,14 @@
                    (sep-me (list 'IN w ss))
                    (let ((ex (dk-pick (lambda (f) (and (dk-head-is? f 'FORSOME) (memq w (free-vars f))))
                                       "the separation's existential")))
-                     (dk-skolem! ex)))))
+                     (dk-skolem! ex))))
+       (k0 (dk-skolem! (dk-pick (lambda (f) (and (dk-head-is? f 'FORSOME) (dk-contains? f 'hke_)))
+                                "the nonemptiness of kk"))))
   (dk-have! (list 'SUBSET ss 'RR)
     (lambda () (mac 'subset-def) (let ((zv (dk-di-var!))) (sep-me (list 'IN zv ss)) (dk-split-all!) (ass))))
-  (dk-cite! 'submodule-vzero-in 'v 'kk)
-  (neg-in-ss! '(VZERO v))
+  (neg-in-ss! k0)
   (dk-have! (list 'FORSOME 'hrx_ (list 'IN 'hrx_ ss))
-    (lambda () (witness! (list '- (hpr-qd '(VZERO v) 'xi)) (lambda () (ass)))))
+    (lambda () (witness! (list '- (hpr-qd k0 'xi)) (lambda () (ass)))))
   (dk-have! '(IN 0 RR) (lambda () (arith)))
   (dk-have! (list 'FORALL 'hrx_ (list 'IMPLIES (list 'IN 'hrx_ ss) '(<= hrx_ 0)))
     (lambda ()
@@ -887,32 +901,59 @@
                           (dk-ineq! (list '< (list '- sg d) w)
                                     (list '= w (list '- (hpr-qd p 'xi)))))))))))))
       (witness! aa (lambda () (dk-conj-close! dk-ass!))))))
+(qed 'cips-dist-sq-inf-nonempty)
+(topic! 'cips-dist-sq-inf-nonempty 'analysis)
+
+;;; with IS-COMPLEX-INNER-PRODUCT-SPACE(v) and IS-SUBMODULE(v, kk) in context: land
+;;; kk subset VEC(v), kk nonempty, and kk closed under midpoints
+(define (hpr-submodule-hyps!)
+  (dk-cite! 'submodule-subset 'v 'kk)
+  (dk-cite! 'submodule-vzero-in 'v 'kk)
+  (dk-have! (hpr-nonempty 'kk) (lambda () (witness! '(VZERO v) (lambda () (ass)))))
+  (dk-have! (hpr-midclosed 'kk)
+    (lambda ()
+      (dk-peel!)
+      (let* ((g (dk-goal))                 ; (IN ((ACT v) 1/2 ((VADD v) p q)) kk)
+             (sum (caddr (cadr g)))
+             (p (cadr sum)) (q (caddr sum)))
+        (dk-cite! 'cips-scal-carrier 'v)
+        (dk-have! '(IN 1/2 CC) (lambda () (arith)))
+        (dk-rewrite-h! '(IN 1/2 CC) 'CC '(CARR (SCAL v)))
+        (dk-cite! 'submodule-vadd-closed 'v 'kk p q)
+        (dk-cite! 'submodule-act-closed 'v 'kk 1/2 sum)
+        (ass)))))
+
+(set! hpr-v 'v)
+(sp (make-wff (forall-guarded '(v kk xi)
+   '((IS-COMPLEX-INNER-PRODUCT-SPACE v) (IS-SUBMODULE v kk) (IN xi (VEC v)))
+   hpr-inf-concl)))
+(dk-peel!)
+(hpr-submodule-hyps!)
+(dk-cite! 'cips-dist-sq-inf-nonempty 'v 'kk 'xi)
+(ass)
 (qed 'cips-dist-sq-inf)
 (topic! 'cips-dist-sq-inf 'analysis)
 
-;;; (b) the book's (2.6): for phi, psi in K,
+
+;;; ====================================================================
+;;; (b) the book's (2.6) for a set closed under midpoints: for phi, psi in kk,
 ;;;     ||phi - psi||^2 <= 2 (||phi - xi||^2 + ||psi - xi||^2) - 4 alpha^2,
-;;; for any lower bound alpha^2 of the squared distance (the midpoint is in K).
+;;; for any lower bound alpha^2 of the squared distance.
+;;; ====================================================================
 (set! hpr-v 'v)
 (sp (make-wff (forall-guarded '(v kk xi aa)
-   (list '(IS-COMPLEX-INNER-PRODUCT-SPACE v) '(IS-SUBMODULE v kk) '(IN xi (VEC v)) '(IN aa RR)
-         (list 'FORALL 'hdp_ (list 'IMPLIES '(IN hdp_ kk) (list '<= 'aa (hpr-qd 'hdp_ 'xi)))))
-   (forall-guarded '(p1_ p2_) '((IN p1_ kk) (IN p2_ kk))
-     (list '<= (hpr-qd 'p1_ 'p2_)
-           (list '- (list '+ (list '* 2 (hpr-qd 'p1_ 'xi)) (list '* 2 (hpr-qd 'p2_ 'xi)))
-                    '(* 4 aa)))))))
+   (list '(IS-COMPLEX-INNER-PRODUCT-SPACE v) '(SUBSET kk (VEC v)) (hpr-midclosed 'kk)
+         '(IN xi (VEC v)) '(IN aa RR) hpr-lb)
+   hpr-est-concl)))
 (dk-peel!)
-(let* ((lb (dk-pick (dk-head? 'FORALL) "the lower bound"))
+(let* ((lb (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'hdp_))) "the lower bound"))
+       (mc (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'hm1_))) "the midpoint closure"))
        (sum (hpr-add 'p1_ 'p2_))
        (mid (hpr-act 1/2 sum)))
-  (dk-cite! 'submodule-subset 'v 'kk)
   (dk-cite! 'subset-mem-fwd 'kk '(VEC v) 'p1_)
   (dk-cite! 'subset-mem-fwd 'kk '(VEC v) 'p2_)
-  (dk-cite! 'cips-scal-carrier 'v)
   (dk-have! '(IN 1/2 CC) (lambda () (arith)))
-  (dk-rewrite-h! '(IN 1/2 CC) 'CC '(CARR (SCAL v)))
-  (dk-cite! 'submodule-vadd-closed 'v 'kk 'p1_ 'p2_)
-  (dk-cite! 'submodule-act-closed 'v 'kk 1/2 sum)
+  (dk-apply! mc 'p1_ 'p2_)
   (dk-cite! 'subset-mem-fwd 'kk '(VEC v) mid)
   (let ((le (dk-apply! lb mid)))
     (for-each (lambda (u) (hpr-q-facts! u))
@@ -922,8 +963,24 @@
                              (list '* 4 (hpr-qd mid 'xi))))))
       (dk-have! id (lambda () (hpr-expand!) (hpr-type-ips! (dk-goal)) (crs)))
       (dk-ineq! id le))))
+(qed 'cips-midpoint-estimate-midpoint)
+(topic! 'cips-midpoint-estimate-midpoint 'inequalities)
+
+(set! hpr-v 'v)
+(sp (make-wff (forall-guarded '(v kk xi aa)
+   (list '(IS-COMPLEX-INNER-PRODUCT-SPACE v) '(IS-SUBMODULE v kk) '(IN xi (VEC v)) '(IN aa RR) hpr-lb)
+   hpr-est-concl)))
+(dk-peel!)
+(hpr-submodule-hyps!)
+(let* ((g (dk-goal))                       ; (<= <p1 - p2, p1 - p2> ...)
+       (x (cadr (cadr g)))
+       (p1 (cadr x)) (p2 (cadr (caddr x)))
+       (est (dk-cite! 'cips-midpoint-estimate-midpoint 'v 'kk 'xi 'aa)))
+  (dk-apply! est p1 p2)
+  (ass))
 (qed 'cips-midpoint-estimate)
 (topic! 'cips-midpoint-estimate 'inequalities)
+
 
 ;;; x = y from <x - y, x - y> = 0: the metric of v separates points.  Every
 ;;; vector identity below is proved through this door -- expand <A-B, A-B> to a
@@ -1052,26 +1109,26 @@
       (hpr-iff-bwd! 'closed-ball-membership ms 'xi r gn)
       (ass))))
 
+;;; ====================================================================
+;;; (c)-(d) THE CLOSEST POINT of a nonempty closed set closed under midpoints
+;;; ====================================================================
 (set! hpr-v 'v)
 (sp (make-wff (forall-guarded '(v kk xi)
-   '((IS-HILBERT-SPACE v) (IS-SUBMODULE v kk) (IS-CLOSED (IP-METRIC-SPACE v) kk) (IN xi (VEC v)))
-   (list 'FORSOME 'hcp_
-     (list 'AND '(IN hcp_ kk)
-       (list 'FORALL 'hdp_ (list 'IMPLIES '(IN hdp_ kk)
-                                 (list '<= (hpr-qd 'hcp_ 'xi) (hpr-qd 'hdp_ 'xi)))))))))
+   (list '(IS-HILBERT-SPACE v) '(SUBSET kk (VEC v)) (hpr-nonempty 'kk) (hpr-midclosed 'kk)
+         '(IS-CLOSED (IP-METRIC-SPACE v) kk) '(IN xi (VEC v)))
+   hpr-cp-concl)))
 (dk-peel!)
 (dk-cite! 'hilbert-space-is-cips 'v)
 (dk-cite! 'hilbert-space-complete 'v)
 (define hpr-ms '(IP-METRIC-SPACE v))
 (dk-cite! 'ip-metric-space-is-metric-space 'v)
 (dk-cite! 'ip-metric-space-pts 'v)
-(dk-cite! 'submodule-subset 'v 'kk)
-(let* ((ex (dk-cite! 'cips-dist-sq-inf 'v 'kk 'xi))
+(let* ((ex (dk-cite! 'cips-dist-sq-inf-nonempty 'v 'kk 'xi))
        (aa (dk-skolem! ex)))
   (set! hpr-cp-aa aa)
   (set! hpr-cp-apx (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'hdn_)))
                             "the approximation universal"))
-  (dk-cite! 'cips-midpoint-estimate 'v 'kk 'xi aa))
+  (dk-cite! 'cips-midpoint-estimate-midpoint 'v 'kk 'xi aa))
 (define hpr-cp-g
   (car (dk-abstract! 'NN 'kk (lambda (n) (list 'CHOICE (hpr-cp-set n)))
                      (lambda (n) (hpr-cp-choice! n) (ass)))))
@@ -1203,6 +1260,18 @@
                 (dk-cite! 'subset-mem-fwd 'kk '(VEC v) p)
                 (hpr-q-facts! (hpr-sub p 'xi))
                 (dk-ineq! (dk-apply! lb p) (list '<= (hpr-qd hpr-cp-l 'xi) hpr-cp-aa)))))))))
+(qed 'hilbert-closest-point-midpoint)
+(topic! 'hilbert-closest-point-midpoint 'analysis)
+
+(set! hpr-v 'v)
+(sp (make-wff (forall-guarded '(v kk xi)
+   '((IS-HILBERT-SPACE v) (IS-SUBMODULE v kk) (IS-CLOSED (IP-METRIC-SPACE v) kk) (IN xi (VEC v)))
+   hpr-cp-concl)))
+(dk-peel!)
+(dk-cite! 'hilbert-space-is-cips 'v)
+(hpr-submodule-hyps!)
+(dk-cite! 'hilbert-closest-point-midpoint 'v 'kk 'xi)
+(ass)
 (qed 'hilbert-closest-point)
 (topic! 'hilbert-closest-point 'analysis)
 

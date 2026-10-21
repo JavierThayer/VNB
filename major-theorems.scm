@@ -155,7 +155,8 @@
     ("complex-analysis" . "Complex analysis")
     ("strand-spaces"    . "Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60)")
     ("construction-of-measures" . "Construction of measures (Thayer, notes)")
-    ("functional-analysis" . "Functional analysis (Thayer, Analise Funcional e Teoria Espectral; Riesz-Markov from notes-63)")))
+    ("functional-analysis" . "Functional analysis (Thayer, Analise Funcional e Teoria Espectral; Riesz-Markov from notes-63)")
+    ("topological-vector-spaces" . "Topological vector spaces (Thayer, notes)")))
 
 (define (mt--doc-title doc)
   (let ((hit (assoc doc *mt-doc-titles*)))
@@ -601,6 +602,7 @@
         ((memq kind '(lemma lem))        "lem")
         ((memq kind '(corollary cor))    "cor")
         ((memq kind '(definition defn))  "defn")   ; 2026-09-27: the principal logarithm row
+        ((memq kind '(remark rem))       "rem")    ; 2026-10-20: complex analysis 5.24
         (#t "thm")))
 
 (define (mt--doc-ref-label entry)
