@@ -4996,11 +4996,18 @@ like a name.  An unanchored \"(\\(.*\\))\" accepted the first parenthesised
 fragment of ANY text: fed the prover's load output it returned things like
 \(\"(h3\" \".\" \"1)\"), which then showed up in the prompt as a ranked
 suggestion (\"[4 match; top: +]\") and, on RET, as the string searched for.
-Garbage in the response must read as NO names, not as names."
+Garbage in the response must read as NO names, not as names.
+
+The anchoring is tested on the first and last characters, not by a regexp:
+\"\\`(\\(.*\\))\\'\" backtracks over the whole reply, and at 12200 theorem
+names (2026-10-21) it died with \"Stack overflow in regexp matcher\"."
   (let* ((raw  (ignore-errors (vnb-eval-string form)))
          (raw  (and (stringp raw) (string-trim raw))))
-    (when (and raw (string-match "\\`(\\(.*\\))\\'" raw))
-      (let ((names (split-string (match-string 1 raw) "[ \t\n]+" t)))
+    (when (and raw
+               (>= (length raw) 2)
+               (eq (aref raw 0) ?\()
+               (eq (aref raw (1- (length raw))) ?\)))
+      (let ((names (split-string (substring raw 1 -1) "[ \t\n]+" t)))
         (and (cl-every (lambda (n)
                          (and (not (equal n "."))
                               (string-match-p "\\`[^()\";' \t\n]+\\'" n)))
