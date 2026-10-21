@@ -137,8 +137,8 @@
 \vnbdef{real-part-def}{\vnbstmt{\forall z.\; (\operatorname{real\text{-}part}(z) \simeq ((z + \operatorname{conjugate}(z)) \cdot \operatorname{recip}(2)))}}
 \vnbdef{imag-part-def}{\vnbstmt{\forall z.\; (\operatorname{imag\text{-}part}(z) \simeq ((z - \operatorname{conjugate}(z)) \cdot \operatorname{recip}(+2i)))}}
 \vnbaxiom{rr-add-assoc}{\vnbstmt{\begin{array}{@{}l@{}} \forall a, b, c. \\ \quad ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (c \in \mathbb{R}))) \Rightarrow (((a + b) + c) = (a + (b + c))) \end{array}}}
-\vnbaxiom{cc-conjugate-fixes-rr}{\vnbstmt{\forall a \in \mathbb{R}.\; (\operatorname{conjugate}(a) = a)}}
 \vnbaxiom{cc-neg-closed}{\vnbstmt{\forall a \in \mathbb{C}.\; (-a \in \mathbb{C})}}
+\vnbaxiom{cc-conjugate-fixes-rr}{\vnbstmt{\forall a \in \mathbb{R}.\; (\operatorname{conjugate}(a) = a)}}
 \vnbaxiom{cc-mul-closed}{\vnbstmt{\forall a, b.\; (((a \in \mathbb{C}) \wedge (b \in \mathbb{C})) \Rightarrow ((a \cdot b) \in \mathbb{C}))}}
 \vnbaxiom{qq-subset-rr}{\vnbstmt{\forall n \in \mathbb{Q}.\; (n \in \mathbb{R})}}
 \vnbaxiom{qq-recip-closed}{\vnbstmt{\forall a \in \mathbb{Q}.\; (\neg (a = 0) \Rightarrow (\operatorname{recip}(a) \in \mathbb{Q}))}}
@@ -1905,8 +1905,8 @@ The characteristic law (the axiom \texttt{is-field}): $\operatorname{is\text{-}f
 \vnbdef{qq-field@one}{\vnbstmt{(\operatorname{one}(\operatorname{qq\text{-}field}) \simeq 1)}}
 \vnbdef{qq-ring@add}{\vnbstmt{(\operatorname{add}(\operatorname{qq\text{-}ring}) \simeq (\lambda \langle \operatorname{x\_}, \operatorname{y\_} \rangle \in (\mathbb{Q} \times \mathbb{Q}).\; (\operatorname{x\_} + \operatorname{y\_})))}}
 \vnbdef{qq-field@zero}{\vnbstmt{(\operatorname{zero}(\operatorname{qq\text{-}field}) \simeq 0)}}
-\vnbdef{cc-normed-field@carr}{\vnbstmt{(\operatorname{carr}(\operatorname{cc\text{-}normed\text{-}field}) \simeq \mathbb{C})}}
 \vnbdef{rr-normed-field@neg}{\vnbstmt{(\operatorname{neg}(\operatorname{rr\text{-}normed\text{-}field}) \simeq (\lambda x \in \mathbb{R}.\; -x))}}
+\vnbdef{cc-normed-field@carr}{\vnbstmt{(\operatorname{carr}(\operatorname{cc\text{-}normed\text{-}field}) \simeq \mathbb{C})}}
 \vnbdef{cc-normed-field@zero}{\vnbstmt{(\operatorname{zero}(\operatorname{cc\text{-}normed\text{-}field}) \simeq 0)}}
 \vnbdef{qq-field@carr}{\vnbstmt{(\operatorname{carr}(\operatorname{qq\text{-}field}) \simeq \mathbb{Q})}}
 \vnbdef{rr-normed-field@carr}{\vnbstmt{(\operatorname{carr}(\operatorname{rr\text{-}normed\text{-}field}) \simeq \mathbb{R})}}
