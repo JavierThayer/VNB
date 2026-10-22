@@ -712,6 +712,12 @@ instantiation opened an owed `t = t` leaf the owed-leaf hook could not close ("T
 used to show only at `qed`); `dk-subterm-literal!` (with `IS-SUBTERM(T, K, tk, m)` for a literal message `m` in
 context, lands `tk = a1 OR ... OR tk = ak` over the token leaves of `m`: the law at a leaf, through an
 encryption, through a list with its index enumerated by excluded middle -- what NSL asks at every step).
+**Added 2026-10-21 (META-FALLBACK; five suite checks, two controls):** `dk-sp-qed!` (`(dk-sp-qed! STMT STEPS! NAME)`:
+open, drive and close a proof from INSIDE a kit helper, as the certified loader does for a proof written in a file --
+`cert-sp/body`, the steps only while `(cert-proof-running?)`, then `qed`). A helper that called bare `sp` / `qed`
+was invisible to the loader's body rewrite: the first certified `sp` escaped the form, the helper's later theorems were
+never installed, and the file fell back to off mode (`dk-meta-struct-laws!`: meta-syntax-laws and meta-core-laws, 291
+re-proofs at every certified build). A kit helper never calls bare `sp`; a suite check guards it.
 STILL OWED: a helper closing a structure predicate's TYPING conjunct from a property already proven
 (batch 40, finding 3); the view slot read-off (`slot-close!` / `readoff!` / `dk-read-off!`), `dk-finite!`,
 `dk-least-ordinal!`, the quotient-of-a-structure driver (`rep!` /

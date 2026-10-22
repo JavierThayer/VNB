@@ -13352,6 +13352,66 @@
   (lambda () (list (car cfx-r-meta) (cadr cfx-r-meta) (provenance-of 'cert-fx-h) (topic-of 'cert-fx-h)))
   '(0 1 certified algebra))
 
+;; ---- META-FALLBACK (2026-10-20): a KIT helper (defined outside the proof file, as
+;; driver-kit.scm's dk-meta-struct-laws! is) that opens and closes TWO proofs.  The body
+;; rewrite sees only the file's forms, so a helper that calls `sp' directly escapes the
+;; whole form at its first certified sp: the second theorem is never reached and the file
+;; FALLS BACK (CONTROL: the old shape of dk-meta-struct-laws!).  The same helper written
+;; with dk-sp-qed! installs both from the store, with no fallback (the fix).
+(eval '(define (cfx-kit-old! n1 n2)
+         (sp (make-wff '(IMPLIES (IN cfxi_ RR) (IN cfxi_ RR)))) (di) (ass) (qed n1)
+         (sp (make-wff '(IMPLIES (IN cfxj_ QQ) (IN cfxj_ QQ)))) (di) (ass) (qed n2))
+      *driver-kit-env*)
+(eval '(define (cfx-kit-new! n1 n2)
+         (dk-sp-qed! (make-wff '(IMPLIES (IN cfxk_ RR) (IN cfxk_ RR))) (lambda () (di) (ass)) n1)
+         (dk-sp-qed! (make-wff '(IMPLIES (IN cfxl_ QQ) (IN cfxl_ QQ))) (lambda () (di) (ass)) n2))
+      *driver-kit-env*)
+(define cfx-kit-names '(cert-fx-i cert-fx-j cert-fx-k cert-fx-l))
+(define (cfx-kit-retract!)
+  (let ((present (filter (lambda (n) (hash-table-ref/default *theorem-table* n #f)) cfx-kit-names)))
+    (for-each (lambda (n) (hash-table-delete! *certified-theorems* n)) present)
+    (if (pair? present) (xb-retract-names! present 'full))))
+(cfx-kit-retract!)
+(cfx-write! "fx/kit-old" "(cfx-kit-old! 'cert-fx-i 'cert-fx-j)\n")
+(cfx-write! "fx/kit-new" "(cfx-kit-new! 'cert-fx-k 'cert-fx-l)\n")
+(define cfx-r-kit0 (let* ((r1 (cfx-load! "fx/kit-old" 'off)) (r2 (cfx-load! "fx/kit-new" 'off))) (list r1 r2)))
+(check "META-FALLBACK: off mode proves both theorems of each kit helper and writes their records"
+  (lambda () (list (map car cfx-r-kit0)
+                   (map (lambda (k) (let ((st (fluid-let ((*cert-dir-override* cfx-store)) (cert-read-file k))))
+                                      (and st (map car (cdr st)))))
+                        '("fx/kit-old" "fx/kit-new"))))
+  '((2 2) ((cert-fx-i cert-fx-j) (cert-fx-k cert-fx-l))))
+(cfx-kit-retract!)
+(define cfx-kit-fb0 (length *cert-fallbacks*))
+(define cfx-r-kit-old (cfx-load! "fx/kit-old" 'on))
+(check "META-FALLBACK (CONTROL, the old helper shape): a kit helper calling sp twice FALLS BACK and re-proves"
+  (lambda () (list (car cfx-r-kit-old) (cadr cfx-r-kit-old) (- (length *cert-fallbacks*) cfx-kit-fb0)
+                   (provenance-of 'cert-fx-i) (provenance-of 'cert-fx-j)))
+  '(2 0 1 proven proven))
+(define cfx-r-kit-new (cfx-load! "fx/kit-new" 'on))
+(check "META-FALLBACK (accepted): the same helper through dk-sp-qed! installs both certified, no fallback"
+  (lambda () (list (car cfx-r-kit-new) (cadr cfx-r-kit-new) (- (length *cert-fallbacks*) cfx-kit-fb0)
+                   (provenance-of 'cert-fx-k) (provenance-of 'cert-fx-l) (caddr cfx-r-kit-new)))
+  '(0 2 1 certified certified 0))
+(cfx-kit-retract!)
+;; THE PIN on the tree: no top-level procedure of driver-kit.scm calls `sp' directly (a kit
+;; helper opens a proof through dk-sp-qed!), read with the reader; the audit itself is
+;; controlled on a literal helper of the old shape.
+(define (cfx-kit-bare-sp-openers forms)
+  (filter-map (lambda (f) (and (pair? f) (eq? (car f) 'define) (pair? (cdr f)) (pair? (cadr f))
+                               (cert--contains-call? (cddr f) 'sp)
+                               (car (cadr f))))
+              forms))
+(check "META-FALLBACK (CONTROL): the bare-sp audit names a kit helper of the old shape"
+  (lambda () (cfx-kit-bare-sp-openers '((define (h! s n) (sp s) (di) (qed n)) (define (g! s n) (dk-sp-qed! s (lambda () (di)) n)))))
+  '(h!))
+(check "META-FALLBACK (pin): no procedure of driver-kit.scm opens a proof with a bare sp"
+  (lambda ()
+    (cfx-kit-bare-sp-openers
+     (call-with-input-file (string-append *prover-dir* "driver-kit.scm")
+       (lambda (port) (let rd ((acc '())) (let ((x (read port))) (if (eof-object? x) (reverse acc) (rd (cons x acc)))))))))
+  '())
+
 ;; ---- (7) a load outside the load list (a probe) writes no certificate
 (define (cfx-probe-load! key write-list?)
   (with-output-to-string

@@ -5807,68 +5807,93 @@
   (let ((ift (cadr (dk-goal))))
     (dk-if-branch! true? ift (if (pair? close) (car close) dk-meta-cond-close!) k)))
 
+;;; ONE PROOF OPENED AND CLOSED BY A KIT HELPER, so the certified loader can skip it
+;;; (META-FALLBACK, 2026-10-20).  The loader's body rewrite (certificates.scm, cert-rewrite)
+;;; sees only the `sp' / `qed' forms written in the proof FILE; a helper here that opens
+;;; several proofs is invisible to it, so under VNB_CERTIFIED=on the first certified `sp'
+;;; inside the helper escaped the whole top-level form and the helper's later theorems were
+;;; never installed (the file then fell back to off mode).  This procedure does by hand what
+;;; the rewrite does for a body: the `sp' runs as cert-sp/body (it installs a certified
+;;; theorem and does NOT escape), the steps run only while (cert-proof-running?), and the
+;;; `qed' always runs (for a skipped proof the qed hook takes it).  Outside a certified load
+;;; cert-proof-running? is #t and this is (sp STMT) (STEPS!) (qed NAME).  A kit helper that
+;;; opens more than one proof must open each through this procedure.
+(define (dk-sp-qed! stmt steps! name)
+  (cert-sp/body stmt)
+  (if (cert-proof-running?) (steps!))
+  (qed name))
+
 (define (dk-meta-struct-laws! F-of G-of params zero-name succ-name step-name coh-name at-name . extra)
   ;; EXTRA, optional: (ARGS GUARDS) -- further arguments of the stage map after e (OPEN's
-  ;; index), quantified inside e, with their guards
+  ;; index), quantified inside e, with their guards.  Each of the three proofs is opened and
+  ;; closed by dk-sp-qed! (above), so a certified load installs all three.
   (let* ((ghead (car (G-of 'e)))
          (ex  (if (pair? extra) (car extra) '()))
          (exg (if (pair? extra) (cadr extra) '()))
          (guard (lambda (f) (fold-right (lambda (g f) `(IMPLIES ,g ,f)) f exg))))
     ;; STEP
-    (sp (make-wff (dk-meta-wrap params
-          `(FORALL k (FORALL e ,(dk-meta-wrap ex `(IMPLIES (IN k NN) (IMPLIES (IN e (EXPR-STAGE k))
-              ,(guard `(== (,(F-of '(succ k)) e ,@ex) (,(F-of 'k) e ,@ex)))))))))))
-    (dk-peel!)
-    (let* ((lhs (cadr (dk-goal))) (ft (car lhs)) (pv (dk-meta-but-last (cdr ft))))
-      (fact 'expr-stage-keep 'k 'e)
-      (subst (apply dk-cite! succ-name (append pv '(k))))
-      (dk-lam-b!)
-      (dk-meta-if-left! #t (lambda () (qrfl))))
-    (qed step-name)
+    (dk-sp-qed!
+     (make-wff (dk-meta-wrap params
+       `(FORALL k (FORALL e ,(dk-meta-wrap ex `(IMPLIES (IN k NN) (IMPLIES (IN e (EXPR-STAGE k))
+           ,(guard `(== (,(F-of '(succ k)) e ,@ex) (,(F-of 'k) e ,@ex))))))))))
+     (lambda ()
+       (dk-peel!)
+       (let* ((lhs (cadr (dk-goal))) (ft (car lhs)) (pv (dk-meta-but-last (cdr ft))))
+         (fact 'expr-stage-keep 'k 'e)
+         (subst (apply dk-cite! succ-name (append pv '(k))))
+         (dk-lam-b!)
+         (dk-meta-if-left! #t (lambda () (qrfl)))))
+     step-name)
     ;; COH
-    (sp (make-wff `(FORALL d (IMPLIES (IN d NN)
-          ,(dk-meta-wrap params `(FORALL j (FORALL e ,(dk-meta-wrap ex `(IMPLIES (IN j NN) (IMPLIES (IN e (EXPR-STAGE j))
-              ,(guard `(== (,(F-of '(+ j d)) e ,@ex) (,(F-of 'j) e ,@ex)))))))))))))
-    (let ((cs (dk-meta-ni-cases!)))
-      (dk-focus! (car cs))
-      (dk-peel!)
-      (let ((j (last (cdr (car (caddr (dk-goal)))))))
-        (subst (dk-cite! 'nn-add-zero j))
-        (qrfl))
-      (dk-focus! (cadr cs))
-      (let* ((landed (dk-peel!))
-             (ih (or (find-first (lambda (f) (dk-head-is? f 'FORALL)) landed)
-                     (error "coh: no induction hypothesis")))
-             (lhs (cadr (dk-goal))) (ft (car lhs)) (e (cadr lhs))
-             (pv (dk-meta-but-last (cdr ft)))
-             (sum (last ft)) (j (cadr sum)) (n (cadr (caddr sum))))
-        (subst (dk-cite! 'nn-add-succ j n))
-        (dk-meta-and! `(IN ,j NN) `(IN ,n NN))
-        (fact 'nn-add-closed j n)
-        (fact 'expr-stage-add n j e)
-        (let ((s1 (apply dk-cite! step-name (append pv (list `(+ ,j ,n) e) (cddr lhs))))
-              (s2 (apply dk-apply! ih (append pv (list j e) (cddr lhs)))))
-          (subst s1)
-          (subst s2)
-          (qrfl))))
-    (qed coh-name)
+    (dk-sp-qed!
+     (make-wff `(FORALL d (IMPLIES (IN d NN)
+       ,(dk-meta-wrap params `(FORALL j (FORALL e ,(dk-meta-wrap ex `(IMPLIES (IN j NN) (IMPLIES (IN e (EXPR-STAGE j))
+           ,(guard `(== (,(F-of '(+ j d)) e ,@ex) (,(F-of 'j) e ,@ex))))))))))))
+     (lambda ()
+       (let ((cs (dk-meta-ni-cases!)))
+         (dk-focus! (car cs))
+         (dk-peel!)
+         (let ((j (last (cdr (car (caddr (dk-goal)))))))
+           (subst (dk-cite! 'nn-add-zero j))
+           (qrfl))
+         (dk-focus! (cadr cs))
+         (let* ((landed (dk-peel!))
+                (ih (or (find-first (lambda (f) (dk-head-is? f 'FORALL)) landed)
+                        (error "coh: no induction hypothesis")))
+                (lhs (cadr (dk-goal))) (ft (car lhs)) (e (cadr lhs))
+                (pv (dk-meta-but-last (cdr ft)))
+                (sum (last ft)) (j (cadr sum)) (n (cadr (caddr sum))))
+           (subst (dk-cite! 'nn-add-succ j n))
+           (dk-meta-and! `(IN ,j NN) `(IN ,n NN))
+           (fact 'nn-add-closed j n)
+           (fact 'expr-stage-add n j e)
+           ;; let*, s2 FIRST: the order the interpreter took when these two recording calls
+           ;; shared one let (operands right to left); never bind two recording calls in one let.
+           (let* ((s2 (apply dk-apply! ih (append pv (list j e) (cddr lhs))))
+                  (s1 (apply dk-cite! step-name (append pv (list `(+ ,j ,n) e) (cddr lhs)))))
+             (subst s1)
+             (subst s2)
+             (qrfl)))))
+     coh-name)
     ;; AT
-    (sp (make-wff (dk-meta-wrap params
-          `(FORALL j (FORALL e ,(dk-meta-wrap ex `(IMPLIES (IN j NN) (IMPLIES (IN e (EXPR-STAGE j))
-              ,(guard `(== ,(G-of 'e) (,(F-of 'j) e ,@ex)))))))))))
-    (dk-peel!)
-    (let* ((rhs (caddr (dk-goal))) (ft (car rhs)) (pv (dk-meta-but-last (cdr ft))))
-      (fact 'expr-set-intro 'j 'e)
-      (let* ((r (dk-meta-rank! 'e)))
-        (dk-apply! (dk-meta-rank-min 'e) 'j)
-        (let* ((d (dk-skolem! (dk-cite! 'nn-le-gap 'j r))))
-          (dk-split-all!)
-          (let ((c (apply dk-cite! coh-name d (append pv (list r 'e) (cddr rhs)))))
-            (mac ghead)
-            (subst `(= j (+ ,r ,d)))
-            (subst c)
-            (qrfl)))))
-    (qed at-name)))
+    (dk-sp-qed!
+     (make-wff (dk-meta-wrap params
+       `(FORALL j (FORALL e ,(dk-meta-wrap ex `(IMPLIES (IN j NN) (IMPLIES (IN e (EXPR-STAGE j))
+           ,(guard `(== ,(G-of 'e) (,(F-of 'j) e ,@ex))))))))))
+     (lambda ()
+       (dk-peel!)
+       (let* ((rhs (caddr (dk-goal))) (ft (car rhs)) (pv (dk-meta-but-last (cdr ft))))
+         (fact 'expr-set-intro 'j 'e)
+         (let* ((r (dk-meta-rank! 'e)))
+           (dk-apply! (dk-meta-rank-min 'e) 'j)
+           (let* ((d (dk-skolem! (dk-cite! 'nn-le-gap 'j r))))
+             (dk-split-all!)
+             (let ((c (apply dk-cite! coh-name d (append pv (list r 'e) (cddr rhs)))))
+               (mac ghead)
+               (subst `(= j (+ ,r ,d)))
+               (subst c)
+               (qrfl))))))
+     at-name)))
 
 ;;; The node-value drivers.  X a constructor term; AT the read-off law of the operation; ZS the
 ;;; zero / succ recursion law of its map; PV its parameter values; TRUTHS the sides of the IFs
