@@ -135,12 +135,27 @@
              (and e (find-first (lambda (x) x)
                                 (map (lambda (nf) (instantiate (car nf))) (cdr e))))))))
 
+;;; A defined predicate on several arguments (IS-SEMINORM-FAMILY(fld, m, fam)) met as a
+;;; conjunct of a law: not a typing itself, but a STEP -- its own law holds the typings
+;;; (IS-MODULE m, fam in FUN(...)).  Kept as a fact so the next round unfolds it, never
+;;; shown in a report.  Until 2026-10-22 the filter dropped it, and the chain stopped one
+;;; level down: open-mapping-theorem's m, g, x, h, t were reported untyped (the user).
+(define (st--intermediate? f)
+  (and (pair? f) (symbol? (car f))
+       (not (memq (car f) '(IN SUBSET = == AND OR NOT IMPLIES IFF FORALL FORSOME)))
+       (not (st--typing? f))
+       (not (st--binder? f))
+       (st--law-of f)
+       #t))
+
 ;;; the conjuncts of a law worth showing: memberships, structure predicates, and
-;;; equations between terms, none under a binder
+;;; equations between terms, none under a binder; plus the intermediate predicates
+;;; the next round unfolds
 (define (st--law-conjuncts f)
   (let ((l (st--law-of f)))
     (if l
         (filter (lambda (c) (or (st--typing? c)
+                                (st--intermediate? c)
                                 (and (pair? c) (memq (car c) '(= ==)) (= (length c) 3) (not (st--binder? c))
                                      ;; (= (length s) 6) is the shape's bookkeeping, not a typing
                                      (not (st--head-is? (cadr c) 'LENGTH)))))
@@ -350,7 +365,9 @@
   (let* ((pre (st--prefix stmt))
          (vars (car pre)) (stated (cadr pre))
          (facts (st--derive vars stated))
-         (derived (filter (lambda (y) (not (eq? (st--fact-rule y) 'stated))) facts))
+         (derived (filter (lambda (y) (and (not (eq? (st--fact-rule y) 'stated))
+                                           (not (st--intermediate? (st--fact-formula y)))))
+                          facts))
          (status (map (lambda (y) (cons y (if check? (st--confirm stmt facts y) 'unchecked))) derived))
          (shown (map car (filter (lambda (p) (not (eq? (cdr p) #f))) status)))
          (failed (map car (filter (lambda (p) (eq? (cdr p) #f)) status))))

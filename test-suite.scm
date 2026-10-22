@@ -15384,6 +15384,21 @@
            (string-search-forward "Types of the variables" s 0)
            #t))))
 
+;; 2026-10-22, the user: open-mapping-theorem's m1, fam1, m2, fam2, tt were reported untyped,
+;; because IS-SEMINORM-FAMILY (a three-argument conjunct of IS-FRECHET-STRUCTURE) was dropped
+;; instead of unfolded in turn.  The intermediate predicate itself is never shown.
+(check-true "implied-types: a defined predicate met inside a law is unfolded in turn (open-mapping-theorem)"
+  (lambda ()
+    (let* ((res (st-test--run 'open-mapping-theorem)))
+      (and (null? (cadr res))
+           (member '(IS-MODULE m1) (caddr (st-test--row res 'm1)))
+           (member '(IN fam1 (FUN NN (FUN (VEC m1) RR))) (caddr (st-test--row res 'fam1)))
+           (member '(IN tt (FUN (VEC m1) (VEC m2))) (caddr (st-test--row res 'tt)))
+           (not (cadddr (st-test--row res 'm2)))
+           (not (find-first (lambda (f) (and (pair? f) (eq? (car f) 'IS-SEMINORM-FAMILY)))
+                            (caddr (st-test--row res 'm1))))
+           #t))))
+
 ;; ----- the kit, 2026-10-07 (WEEK3 findings 1 and 2, and S-2b's request) -----
 (check-true "kit: dk-rewrite-h! rewrites a hypothesis by an equation in context and leaves it in place"
   (lambda () (quietly (lambda ()
