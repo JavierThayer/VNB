@@ -865,9 +865,13 @@
                       (let ((comp (list-ref (cdr body) (- (car ix) 1))))
                         (and (pair? comp) (= (length comp) 2) (symbol? (car comp))
                              (eq? (cadr comp) (car params))
-                             (let ((inst (list (car comp) (cadr arg))))
-                               (or (term-self-defined? inst)
-                                   (asm-establishes-defined? asms inst))))))))))))
+                             ;; THE WHOLE INSTANTIATED LIST must denote (K2-END, 2026-10-22): ACC(V(r)) is
+                             ;; NTH(k, [c1(r) .. cn(r)]) (the accessor macete, V's unfold), and a list denotes
+                             ;; only when every entry is a set (the list doctrine of 2026-10-01), as the
+                             ;; NTH-of-a-literal clause of pi--defined? reads it (R4).  The k-th entry alone
+                             ;; certified CARR(V(r)) for V(p) = [CARR(p), IOTA z. FALSITY], and the strict walk
+                             ;; through V's body then the description: FALSITY modulo 0.
+                             (pi--sets-defined? asms (pi--functoid-instance arg) 0))))))))))
 
 
 ;;; ---------------------------------------------------------------------
