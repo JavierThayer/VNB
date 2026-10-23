@@ -15735,6 +15735,76 @@
                   (suite-proven? 'j-fb-sub) (suite-proven? 'adm-functoid-beta-1)
                   (suite-proven? 'def-fun-inst-derived) (suite-proven? 'def-fun-strict-derived)
                   (suite-proven? 'def-fun-nth-derived) (suite-proven? 'def-fun-sep-derived))))
+;;; 2026-10-22, K2-END (1): THE META-10 LEFTOVERS (structure-library/meta-def.scm section 8; theorem-library/meta-def-laws.scm
+;;; section 8).  The kernel clauses the new rows transcribe, pinned by accepted / refused pairs: a predicate hypothesis of TWO
+;;; parameters certifies a term its body makes strict (DEF-PRED-UNFOLD-N, DEF-PRED-HYP-N); a FORSOME of the body is stripped
+;;; to a witness that certifies the parameters' terms (CERT-STEP (c)) and no term of the context (the witness is fresh, the
+;;; name condition of CERT-STEP (c)).  The META theorems are proven.
+(def-predicate 'K2E-P2 '(k2ef_ k2ex_) '(IN (k2ef_ k2ex_) RR))
+(def-predicate 'K2E-Q2 '(k2ef_ k2ex_) '(FORSOME k2ek_ (AND (IN k2ek_ RR) (= (k2ef_ k2ex_) k2ek_))))
+(define (k2e-rfl-closes? stmt)
+  (fluid-let ((*ps* #f))
+    (sp (make-wff stmt))
+    (dk-peel!)
+    (vnb-guard (lambda () (rfl)))
+    (proof-done? *ps*)))
+(check-true "K2-END: a TWO-parameter predicate hypothesis P(g, c), P(f, x) iff f(x) in RR, certifies g(c) (DEF-PRED-HYP-N)"
+  (lambda () (quietly (lambda ()
+    (k2e-rfl-closes? '(FORALL k2eg_ (FORALL k2ec_ (IMPLIES (K2E-P2 k2eg_ k2ec_) (= (k2eg_ k2ec_) (k2eg_ k2ec_))))))))))
+(check-true "K2-END CONTROL: without the hypothesis g(c) is not certified and rfl refuses g(c) = g(c)"
+  (lambda () (quietly (lambda ()
+    (not (k2e-rfl-closes? '(FORALL k2eg_ (FORALL k2ec_ (= (k2eg_ k2ec_) (k2eg_ k2ec_))))))))))
+(check-true "K2-END: a FORSOME of the body, Q(f, x) iff forsome k. k in RR and f(x) = k, is stripped: Q(g, c) certifies g(c) (CERT-STEP (c))"
+  (lambda () (quietly (lambda ()
+    (k2e-rfl-closes? '(FORALL k2eg_ (FORALL k2ec_ (IMPLIES (K2E-Q2 k2eg_ k2ec_) (= (k2eg_ k2ec_) (k2eg_ k2ec_))))))))))
+(check-true "K2-END CONTROL: the stripped witness is fresh: Q(g, c) does not certify k * k for the context's own k"
+  (lambda () (quietly (lambda ()
+    (not (k2e-rfl-closes? '(FORALL k2eg_ (FORALL k2ec_ (FORALL k2ek_ (IMPLIES (K2E-Q2 k2eg_ k2ec_) (= (* k2ek_ k2ek_) (* k2ek_ k2ek_))))))))))))
+(check-true "K2-END: the instances, the unfolding of any arity, the certifying reading and the two rows built on them are proven"
+  (lambda () (and (suite-proven? 'adm-pred-arg) (suite-proven? 'der-forall-inst) (suite-proven? 'adm-inst-reach)
+                  (suite-proven? 'adm-pred-unfold-n) (suite-proven? 'def-pred-unfold-n-derived) (suite-proven? 'adm-cert)
+                  (suite-proven? 'def-pred-hyp-n-derived) (suite-proven? 'def-cert-hyp-derived)
+                  (suite-proven? 'adm-def-pred-hyp-n-holds) (suite-proven? 'adm-def-cert-hyp-holds))))
+;;; 2026-10-22, K2-END (2): THE ONE-POSITION ADMISSIBILITY AT EVERY STAGE (structure-library/meta-cr.scm section 5;
+;;; theorem-library/meta-ind-laws.scm section N).  The kernel rewrites inside binder bodies (a position of stage 6 or 7):
+;;; nth-reduce contracts NTH(1, [z, 0]) inside the condition of a SEP; that position is covered by REL-NTH-REDUCE-7 and not
+;;; by REL-NTH-REDUCE-1 (stage <= 5).  The META theorems are proven.
+(check-true "K2-END (2): the kernel's nth-reduce rewrites inside the body of a SEP (a stage-6 position, REL-NTH-REDUCE-7)"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(= (SEP k2ez_ RR (= (NTH 1 (LIST k2ez_ 0)) k2ez_)) (SEP k2ez_ RR (= k2ez_ k2ez_)))))
+      (vnb-guard (lambda () (nth-r)))
+      (vnb-guard (lambda () (rfl)))
+      (proof-done? *ps*))))))
+(check-true "K2-END (2): adm-rewrite-7, adm-rewrite-hyp-7 and the seven rules at one position of any stage are proven"
+  (lambda () (and (suite-proven? 'adm-rewrite-7) (suite-proven? 'adm-rewrite-hyp-7) (suite-proven? 'adm-nth-reduce-7)
+                  (suite-proven? 'adm-length-reduce-7) (suite-proven? 'adm-lambda-beta-7) (suite-proven? 'adm-lambda-beta-hyp-7)
+                  (suite-proven? 'adm-macete-7) (suite-proven? 'adm-macete-hyp-7) (suite-proven? 'adm-functoid-beta-7))))
+;;; 2026-10-22, K2-END (3): THE N-ARY SCHEMAS IN THE CORE ENCODING (structure-library/meta-def.scm sections 9 and 10;
+;;; theorem-library/meta-def-laws.scm sections 9 and 10): the macetes of any number of schema variables at one position
+;;; (J-MACN), and the catalog's n-ary union-decompose / intersection-decompose, every instance derivable over the core
+;;; and their rewrites admissible at one position.  The pin: the kernel's instance of union-decompose at three sets is
+;;; the RIGHT-nested fold with the last atom bare, the shape RF-SET transcribes, and not the core's left fold.
+(define k2e-rfold '(OR (IN k2ex_ k2ea_) (OR (IN k2ex_ k2eb_) (IN k2ex_ k2ec_))))
+(define k2e-lfold '(OR (OR (IN k2ex_ k2ea_) (IN k2ex_ k2eb_)) (IN k2ex_ k2ec_)))
+(check-true "K2-END (3): the kernel's union-decompose at three sets gives the RIGHT fold x in a or (x in b or x in c) (RF-SET), not the left fold"
+  (lambda () (quietly (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff `(IFF (IN k2ex_ (UNION k2ea_ k2eb_ k2ec_)) ,k2e-rfold)))
+      (vnb-guard (lambda () (mac 'union-decompose)))
+      (let ((g (dk-goal)))
+        (and (pair? g) (eq? (car g) 'IFF)
+             (equal? (cadr g) k2e-rfold) (not (equal? (cadr g) k2e-lfold)))))))))
+(check-true "K2-END (3): J-MACN inside EQV and the macete of any number of schema variables at one position (stage <= 5 and any stage) are proven"
+  (lambda () (and (suite-proven? 'j-macn-sub) (suite-proven? 'adm-macete-n-1) (suite-proven? 'adm-macete-n-hyp-1)
+                  (suite-proven? 'adm-macete-n-7) (suite-proven? 'adm-macete-n-hyp-7))))
+(check-true "K2-END (3): every instance of union-decompose and intersection-decompose is derivable over the core, the binary axioms included, and their rewrites are admissible at one position"
+  (lambda () (and (suite-proven? 'rf-orl) (suite-proven? 'rf-andl)
+                  (suite-proven? 'der-union-decompose) (suite-proven? 'der-intersection-decompose)
+                  (suite-proven? 'der-union-binary) (suite-proven? 'der-intersection-binary)
+                  (suite-proven? 'j-udec-sub) (suite-proven? 'j-idec-sub)
+                  (suite-proven? 'adm-union-decompose-1) (suite-proven? 'adm-union-decompose-hyp-7)
+                  (suite-proven? 'adm-intersection-decompose-1) (suite-proven? 'adm-intersection-decompose-hyp-7))))
 
 ;;; -----------------------------------------------------------------------
 ;;; CERT-KEY (2026-10-17, the user's decision on META-10 findings 1 and 2;

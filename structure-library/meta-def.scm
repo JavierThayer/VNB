@@ -47,6 +47,9 @@
 ;;;                                                    T) instantiated at the parameters, and-elim, DEF-STRICT-*
 ;;;        ENCODED 2026-10-17 (META-10) for a ONE-parameter predicate: DEF-PRED-UNFOLD and DEF-PRED-HYP
 ;;;        (section 6), DERIVED; the accessor clause (1205, 1239) is DEF-PRED-HYP at a structure predicate.
+;;;        EXTENDED 2026-10-22 (K2-END, section 8): a predicate of ANY number of parameters (DEF-PRED-UNFOLD-N),
+;;;        the body's FORSOMEs, the nested reading, the class form s in X and the parent chain (DEF-PRED-HYP-N,
+;;;        DEF-CERT-HYP, through the least set CERT-SET), DERIVED.  Still a row of its own: the view clause.
 ;;;
 ;;; HEAD CODES ADDED (the translator of K3 must mirror them): CONST 11 = the predicate name <=, CONST 13 =
 ;;; the predicate name < (meta-ind.scm took 7 = ORD-LT and 9 = LIMIT-ORD).
@@ -76,10 +79,11 @@
 ;;;     (pi--accessor-certified?, 836, and 1239) are DEF-PRED-HYP for a ONE-parameter predicate: the
 ;;;     definition (a derivable sentence: a member of T by theorem-assumption, or proven) instantiated at
 ;;;     the argument, whose definedness DEF-STRICT-PRED supplies, then iff-elim (DEF-PRED-UNFOLD), then the
-;;;     walks of section 5.  NOT covered: predicates of two or more parameters (the encoding has no iterated
+;;;     walks of section 5.  NOT covered then: predicates of two or more parameters (the encoding has no iterated
 ;;;     instantiation; each further parameter is one more forall-elim of the same shape); the body's leading
 ;;;     FORSOMEs, which the kernel strips to fresh witnesses (a forsome-elim per binder); the view clause of
-;;;     pi--accessor-certified? and every functoid row (no functoid encoding).  The nested reading
+;;;     pi--accessor-certified? and every functoid row (no functoid encoding).  The first two are covered since
+;;;     2026-10-22 (section 8), the functoid rows since 2026-10-21 (section 7).  The nested reading
 ;;;     (depth < 3: a conjunct that is itself a predicate hypothesis) is the composition of these admissible
 ;;;     steps: DEF-PRED-UNFOLD and adm-true-walk each take a derivable sequent to a derivable sequent.
 ;;;
@@ -406,3 +410,196 @@
 (md--adm! 'ADM-DEF-FUN-STRICT 'DEF-FUN-STRICT)
 (md--adm! 'ADM-DEF-FUN-NTH 'DEF-FUN-NTH)
 (md--adm! 'ADM-DEF-FUN-SEP 'DEF-FUN-SEP)
+
+;;; -----------------------------------------------------------------------
+;;; 8. THE META-10 LEFTOVERS (agent K2-END, 2026-10-22): the predicate-hypothesis and accessor clauses for a
+;;; predicate of ANY number of parameters, the body's FORSOMEs, the nested reading, the class form s in X and
+;;; the parent chain.  Re-transcribed against the current kernel (primitive-inferences.scm: pi--pred-def-conjuncts,
+;;; pi--raw-conjuncts-certify?, pi--via-pred-hyps?, pi--structure-hyp, pi--structure-def-for, pi--accessor-certified?
+;;; first branch, and the accessor clause of pi--defined?).  Binders: md12*_.
+;;;   K1  pi--pred-def-conjuncts: the definition  forall x1 .. xn. P(x1 .. xn) iff body  instantiated at the
+;;;       arguments a1 .. an of the hypothesis P(a1 .. an), one FORALL per argument      INST-REACH, DEF-PRED-UNFOLD-N
+;;;   K2  the same: the instantiated body's LEADING FORSOMEs stripped to fresh (uninterned) witnesses   CERT-STEP (c)
+;;;   K3  pi--raw-conjuncts-certify?: a conjunct certifies by pi--atom-certifies? (IN = <= <, and the SEP reading),
+;;;       by a structure predicate IS-Y(c) (c itself, and ACC(c) for a slot ACC of Y), or, at depth < 3, as a
+;;;       predicate hypothesis in its turn, through ITS definition                          CERT-STEP (a), (b), (d)
+;;;   K4  pi--structure-hyp, the class form  s in X  (X a structure's class name, the class axiom
+;;;       forall s. s in X iff IS-X(s), structures.scm), read through the parent chain of
+;;;       pi--structure-def-for (IS-COMMUTATIVE-RING -> RING: the refinement's IFF has the parent conjunct first)
+;;;                                                                                          CERT-STEP (e), (d)
+;;;   K5  the accessor clauses (pi--accessor-certified? first branch; pi--defined?, ACC(s) under pi--structure-hyp):
+;;;       ACC(s) by the typing conjunct of the structure's IFF, directly or through the chain  DEF-PRED-HYP-N, DEF-CERT-HYP
+;;; THE READING.  A sentence f "certifies" w in the context g when the kernel's walks reach, from f, an atom of
+;;; which w is a strict subterm.  CERT-SET(T, g, w) is the LEAST set of expressions closed under the five steps
+;;; of CERT-STEP: an atom that certifies w (STRICT-ATOM, section 5); a sentence f2 that f makes true
+;;; (TRUE-REACH(f), section 5) and that certifies w; an existential whose body, opened at a name free neither in
+;;; g + f nor in w = w, certifies w (the forsome-elim of a stripped FORSOME: the kernel's uninterned witness is
+;;; such a name); a predicate atom P(l) whose definition, derivable in g, instantiated at the arguments gives
+;;; P(l) iff b with b certifying w (K1, K3 at depth < 3, K4's chain); a membership s in A whose class axiom,
+;;; derivable in g, instantiated at s gives (s in A) iff b with b certifying w (K4).  The relation reads every
+;;; conjunction, every FORSOME and every nesting depth, where the kernel strips leading FORSOMEs only and nests to
+;;; depth 3: a superset of the clauses, admissible as such (theorem-library/meta-def-laws.scm, section 8).
+;;; The definitions are read as derivable sentences (a member of T by theorem-assumption, or proven), the
+;;; kernel's "definitional, primitive or proven" entry (pi--pred-def-trusted?).
+;; one instantiation of a universal at an ARGUMENT of the list l (an entry 2 .. |l|; for a predicate atom
+;; EAPP(10, l) the entries after the name)
+(def-predicate 'INST-STEP '(md12l_ md12f_ md12g_)
+  '(FORSOME md12b_ (FORSOME md12i_
+     (AND (= md12f_ (ENC-ALL md12b_))
+          (AND (IN md12i_ NN) (AND (<= 2 md12i_) (AND (<= md12i_ (LENGTH md12l_))
+               (= md12g_ (EXPR-OPEN md12b_ 0 (NTH md12i_ md12l_))))))))))
+(notation! 'INST-STEP 'kind 'predicate 'arity 3 'english "$3 is $2 instantiated at an argument of $1")
+(def-predicate 'INST-CLOSED '(md12l_ md12x_)
+  '(FORALL md12p_ (FORALL md12q_ (IMPLIES (IN md12p_ md12x_) (IMPLIES (INST-STEP md12l_ md12p_ md12q_) (IN md12q_ md12x_))))))
+(notation! 'INST-CLOSED 'kind 'predicate 'arity 2 'english "$2 is closed under instantiations at the arguments of $1")
+;; the instances of d at arguments of l, d included: the least closed subset of EXPR-SET holding d
+(def-functoid 'INST-REACH '(md12d_ md12l_)
+  '(SEP md12z_ EXPR-SET (FORALL md12w_ (IMPLIES (IN md12w_ (POWER EXPR-SET))
+      (IMPLIES (IN md12d_ md12w_) (IMPLIES (INST-CLOSED md12l_ md12w_) (IN md12z_ md12w_)))))))
+(notation! 'INST-REACH 'kind 'functoid 'arity 2 'english "the instances of $1 at the arguments of $2")
+
+;; K1: THE UNFOLDING OF A DEFINITION OF ANY NUMBER OF PARAMETERS at a predicate hypothesis: from [g, P(l)] and
+;; a derivable definition d with (P(l) iff b) an instance of d at the arguments, [g, b].  DERIVED
+;; (meta-def-laws.scm, def-pred-unfold-n-derived): each instance at an argument owes its definedness, which
+;; CR-DEF-STRICT-PRED gives from P(l).  For one parameter it is DEF-PRED-UNFOLD (section 6).
+(md--rel! 'DEF-PRED-UNFOLD-N "the definedness rule predicate-unfolding (any arity) relates $2 to $3"
+  (md--ex '(mdg_ mdl_ mdk_ mdd_ mdb_)
+    (md--and '(= mdc_ (LIST mdg_ mdb_)) '(= (NTH 1 mdl_) (ECONST mdk_)) '(PRED-CODE mdk_)
+             '(IN (ENC-IFF (EAPP 10 mdl_) mdb_) (INST-REACH mdd_ mdl_))
+             '(= mdhs_ (LIST (LIST mdg_ (EAPP 10 mdl_)) (LIST mdg_ mdd_))))))
+(md--adm! 'ADM-DEF-PRED-UNFOLD-N 'DEF-PRED-UNFOLD-N)
+
+;; K2-K5: one step of the reading, f certifying w in g (the steps (a) .. (e) of the header), X the set built so far
+(def-predicate 'CERT-STEP '(md12t_ md12cg_ md12cw_ md12x_ md12f_)
+  '(OR (STRICT-ATOM md12f_ md12cw_)
+   (OR (FORSOME md12f2_ (AND (IN md12f2_ (TRUE-REACH md12f_)) (IN md12f2_ md12x_)))
+   (OR (FORSOME md12b_ (FORSOME md12y_
+         (AND (= md12f_ (ENC-EX md12b_))
+              (AND (IN md12y_ NN)
+                   (AND (NOT (IN md12y_ (UNION (CTX-FV (CTX-ADD md12cg_ md12f_)) (EXPR-FV (ENC-EQ md12cw_ md12cw_)))))
+                        (IN (EXPR-OPEN md12b_ 0 (EFVAR md12y_)) md12x_))))))
+   (OR (FORSOME md12l_ (FORSOME md12k_ (FORSOME md12d_ (FORSOME md12b2_
+         (AND (= md12f_ (EAPP 10 md12l_))
+              (AND (= (NTH 1 md12l_) (ECONST md12k_))
+                   (AND (PRED-CODE md12k_)
+                        (AND (IN (LIST md12cg_ md12d_) (DERIVABLE md12t_))
+                             (AND (IN (ENC-IFF md12f_ md12b2_) (INST-REACH md12d_ md12l_))
+                                  (IN md12b2_ md12x_))))))))))
+       (FORSOME md12a_ (FORSOME md12s_ (FORSOME md12d3_ (FORSOME md12b3_
+         (AND (= md12f_ (ENC-IN md12s_ md12a_))
+              (AND (IN (LIST md12cg_ md12d3_) (DERIVABLE md12t_))
+                   (AND (IN (ENC-IFF md12f_ md12b3_) (INST-REACH md12d3_ (LIST md12a_ md12s_)))
+                        (IN md12b3_ md12x_)))))))))))))
+(notation! 'CERT-STEP 'kind 'predicate 'arity 5 'english "$5 certifies $3 in $2 over $1 by one step into $4")
+(def-predicate 'CERT-CLOSED '(md12t_ md12cg_ md12cw_ md12x_)
+  '(FORALL md12e_ (IMPLIES (IN md12e_ EXPR-SET) (IMPLIES (CERT-STEP md12t_ md12cg_ md12cw_ md12x_ md12e_) (IN md12e_ md12x_)))))
+(notation! 'CERT-CLOSED 'kind 'predicate 'arity 4 'english "$4 is closed under the steps certifying $3 in $2 over $1")
+;; the sentences that certify w in g: the least closed subset of EXPR-SET
+(def-functoid 'CERT-SET '(md12t_ md12cg_ md12cw_)
+  '(SEP md12zz_ EXPR-SET (FORALL md12v_ (IMPLIES (IN md12v_ (POWER EXPR-SET))
+      (IMPLIES (CERT-CLOSED md12t_ md12cg_ md12cw_ md12v_) (IN md12zz_ md12v_))))))
+(notation! 'CERT-SET 'kind 'functoid 'arity 3 'english "the sentences certifying $3 in $2 over $1")
+
+;; K1-K5 at a top-level predicate hypothesis: [g, P(l)] and its definition d derivable, b the instance of d's
+;; body at the arguments, and b certifies w: [g, w = w].  It extends DEF-PRED-HYP (section 6) to any arity, to the
+;; body's FORSOMEs and to the nested readings.  DERIVED (meta-def-laws.scm, def-pred-hyp-n-derived).
+(md--rel! 'DEF-PRED-HYP-N "the definedness rule predicate-hypothesis (any arity) relates $2 to $3"
+  (md--ex '(mdg_ mdl_ mdk_ mdd_ mdb_ mdw_)
+    (md--and '(= mdc_ (LIST mdg_ (ENC-EQ mdw_ mdw_))) '(= (NTH 1 mdl_) (ECONST mdk_)) '(PRED-CODE mdk_)
+             '(IN (ENC-IFF (EAPP 10 mdl_) mdb_) (INST-REACH mdd_ mdl_))
+             '(IN mdb_ (CERT-SET mdt_ mdg_ mdw_))
+             '(= mdhs_ (LIST (LIST mdg_ (EAPP 10 mdl_)) (LIST mdg_ mdd_))))))
+(md--adm! 'ADM-DEF-PRED-HYP-N 'DEF-PRED-HYP-N)
+;; the reading at ANY derivable hypothesis f (an atom, a predicate hypothesis, a class membership): [g, f]
+;; derivable and f certifying w give [g, w = w].  Its steps include the readings of DEF-STRICT-HYP (section 5),
+;; DEF-STRUCT-HYP and DEF-PRED-HYP (section 6) and DEF-PRED-HYP-N.  DERIVED (meta-def-laws.scm, def-cert-hyp-derived).
+(md--rel! 'DEF-CERT-HYP "the definedness rule certifying-hypothesis relates $2 to $3"
+  (md--ex '(mdg_ mdf_ mdw_)
+    (md--and '(= mdc_ (LIST mdg_ (ENC-EQ mdw_ mdw_))) '(IN mdf_ (CERT-SET mdt_ mdg_ mdw_))
+             '(= mdhs_ (LIST (LIST mdg_ mdf_))))))
+(md--adm! 'ADM-DEF-CERT-HYP 'DEF-CERT-HYP)
+
+;;; -----------------------------------------------------------------------
+;;; 9. THE MACETES OF ANY NUMBER OF SCHEMA VARIABLES, AT ONE POSITION (agent K2-END, 2026-10-22).  J-MAC
+;;; (structure-library/meta-cr.scm, section 4) takes a member of T of ONE schema variable, ALL(c IMP (l == r)) or
+;;; ALL(c IMP (l iff r)); an n-variable macete is an n-fold forall-elim (scratchpad/triage/META-3-REPORT.md, s.6,
+;;; obstacle 3).  J-MACN reads the instance through INST-REACH (section 8): any sequence of instantiations of the
+;;; member m at entries 2 .. |l| of a list l (the first entry is unread, as the predicate's name is at a predicate
+;;; atom), each entry DENOTING in the local context (the macete door owes t = t for every value of the
+;;; substitution, each element of a rest binding included: rule-checkers-rewrite.scm, rkw--sub-values).  The
+;;; instance is the equation or equivalence itself (a macete with no condition, as the catalog's n-ary
+;;; union-decompose and intersection-decompose) or an implication from one condition c (a conjunction of conditions
+;;; is one formula), c derivable in the local context.  For one schema variable, J-MAC's instance OPEN(b, 0, e) is
+;;; one INST-STEP from the member at the list [e0, e] (e0 unread).
+;;; A RESTVAR schema of the catalog (library.scm: union-decompose, intersection-decompose) is a FAMILY of members of
+;;; T, one per length of the rest binding: each of its instances is an instance of one member, at n + 1 entries.
+;;; Binders: md13*_.
+(def-functoid 'J-MACN '(md13t_)
+  `(SEP md13x_ RW-UNIV
+     ,(md--ex '(md13g_ md13m_ md13l_ md13i_ md13r_ md13a_ md13b_)
+        (md--and '(IN md13m_ md13t_) '(IN md13m_ CLF) '(IN md13i_ (INST-REACH md13m_ md13l_))
+                 '(FORALL md13j_ (IMPLIES (IN md13j_ NN) (IMPLIES (<= 2 md13j_) (IMPLIES (<= md13j_ (LENGTH md13l_))
+                    (IN (LIST md13g_ (ENC-EQ (NTH md13j_ md13l_) (NTH md13j_ md13l_))) (DERIVABLE md13t_))))))
+                 '(OR (= md13i_ md13r_)
+                      (FORSOME md13c_ (AND (= md13i_ (ENC-IMP md13c_ md13r_)) (IN (LIST md13g_ md13c_) (DERIVABLE md13t_)))))
+                 '(OR (AND (= md13r_ (ENC-QEQ md13a_ md13b_))
+                           (AND (= md13x_ (LIST 1 md13g_ md13a_ md13b_)) (AND (IN md13a_ CLT) (IN md13b_ CLT))))
+                      (AND (= md13r_ (ENC-IFF md13a_ md13b_))
+                           (AND (= md13x_ (LIST 2 md13g_ md13a_ md13b_)) (AND (IN md13a_ CLF) (IN md13b_ CLF)))))))))
+(notation! 'J-MACN 'kind 'functoid 'arity 1 'english "the local instances of the macetes of $1 of any number of schema variables, the condition derivable and every value denoting")
+(def-predicate 'REL-MACETE-N-1 '(md13t_ md13hs_ md13c_) '(REL-REWRITE-1 (J-MACN md13t_) md13hs_ md13c_))
+(def-predicate 'REL-MACETE-N-HYP-1 '(md13t_ md13hs_ md13c_) '(REL-REWRITE-HYP-1 (J-MACN md13t_) md13hs_ md13c_))
+(def-predicate 'REL-MACETE-N-7 '(md13t_ md13hs_ md13c_) '(REL-REWRITE-7 (J-MACN md13t_) md13hs_ md13c_))
+(def-predicate 'REL-MACETE-N-HYP-7 '(md13t_ md13hs_ md13c_) '(REL-REWRITE-HYP-7 (J-MACN md13t_) md13hs_ md13c_))
+(for-each (lambda (n) (notation! n 'kind 'predicate 'arity 3 'english "the kernel's macete of any number of schema variables, at one position, relates $2 to $3"))
+  '(REL-MACETE-N-1 REL-MACETE-N-HYP-1 REL-MACETE-N-7 REL-MACETE-N-HYP-7))
+
+;;; -----------------------------------------------------------------------
+;;; 10. THE CATALOG'S N-ARY DECOMPOSITIONS (agent K2-END, 2026-10-22; docs/meta-k2-admissibility-2026-10-08.md
+;;; section 8, decision (a); scratchpad/triage/META-4-REPORT.md, section 5.2).  The catalog states the membership of
+;;; an n-ary UNION and INTERSECTION once, as the primitive RESTVAR / SPLICE schemas union-decompose and
+;;; intersection-decompose (library.scm 776, 781): an instance at x, S_1 .. S_n (n >= 1) is
+;;;     x in UNION(S_1 .. S_n)  iff  x in S_1 or (x in S_2 or .. (x in S_n))
+;;; the RIGHT-nested fold of the atoms, the last bare (n = 1: the atom alone), and likewise with AND for
+;;; INTERSECTION.  The core's schemas CR-UNION-MEM and CR-INTERSECTION-MEM (meta-core.scm 4.6) state the LEFT-nested
+;;; fold over FALSITY / TRUTH (ENC-ORL, ENC-ANDL).  RF-SET(h, x, l) holds the pairs [j, f] with f the right fold, by
+;;; the connective head h (4 OR, 3 AND), of the atoms x in l_(j+1) .. x in l_|l|: the least set closed under the base
+;;; [|l| - 1, x in l_|l|] and the step from [j + 1, f] to [j, h(x in l_(j+1), f)]; the catalog's instance is the f of
+;;; the pair [0, f].  Every instance is DERIVABLE over the core with no member of T (meta-def-laws.scm section 10,
+;;; der-union-decompose, der-intersection-decompose): the core does not need the two schemas, and the kernel's
+;;; rewrite by either at one position is admissible (J-UDEC, J-IDEC, the relations below).  The binary axioms
+;;; union-membership and intersection-membership are the instances at n = 2.  Binders: md14*_.
+(def-predicate 'RF-CLOSED '(md14h_ md14x_ md14l_ md14s_)
+  '(AND (FORALL md14j_ (IMPLIES (IN md14j_ NN) (IMPLIES (= (succ md14j_) (LENGTH md14l_))
+           (IN (LIST md14j_ (ENC-IN md14x_ (NTH (succ md14j_) md14l_))) md14s_))))
+        (FORALL md14k_ (FORALL md14f_ (IMPLIES (IN md14k_ NN) (IMPLIES (IN (LIST (succ md14k_) md14f_) md14s_)
+           (IN (LIST md14k_ (EAPP md14h_ (LIST (ENC-IN md14x_ (NTH (succ md14k_) md14l_)) md14f_))) md14s_)))))))
+(notation! 'RF-CLOSED 'kind 'predicate 'arity 4 'english "$4 is closed under the right folds by $1 of the memberships of $2 in the entries of $3")
+(def-functoid 'RF-SET '(md14h_ md14x_ md14l_)
+  '(SEP md14p_ (CARTESIAN NN EXPR-SET) (FORALL md14w_ (IMPLIES (IN md14w_ (POWER (CARTESIAN NN EXPR-SET)))
+      (IMPLIES (RF-CLOSED md14h_ md14x_ md14l_ md14w_) (IN md14p_ md14w_))))))
+(notation! 'RF-SET 'kind 'functoid 'arity 3 'english "the right folds by $1 of the memberships of $2 in the entries of $3 from an index on")
+;; the local redexes of the two schemas: x in UNION(l) -> the right fold f, x in INTERSECTION(l) -> the right fold f
+(def-functoid 'J-UDEC '(md14t_)
+  '(SEP md14y_ RW-UNIV (FORSOME md14g_ (FORSOME md14x2_ (FORSOME md14l2_ (FORSOME md14f2_
+     (AND (= md14y_ (LIST 2 md14g_ (ENC-IN md14x2_ (ENC-UNION md14l2_)) md14f2_))
+          (AND (IN (LIST 0 md14f2_) (RF-SET 4 md14x2_ md14l2_))
+               (AND (IN (ENC-IN md14x2_ (ENC-UNION md14l2_)) CLF) (IN md14f2_ CLF))))))))))
+(def-functoid 'J-IDEC '(md14t_)
+  '(SEP md14y_ RW-UNIV (FORSOME md14g_ (FORSOME md14x2_ (FORSOME md14l2_ (FORSOME md14f2_
+     (AND (= md14y_ (LIST 2 md14g_ (ENC-IN md14x2_ (ENC-INTER md14l2_)) md14f2_))
+          (AND (IN (LIST 0 md14f2_) (RF-SET 3 md14x2_ md14l2_))
+               (AND (IN (ENC-IN md14x2_ (ENC-INTER md14l2_)) CLF) (IN md14f2_ CLF))))))))))
+(notation! 'J-UDEC 'kind 'functoid 'arity 1 'english "the local instances over $1 of the catalog's union-decompose")
+(notation! 'J-IDEC 'kind 'functoid 'arity 1 'english "the local instances over $1 of the catalog's intersection-decompose")
+(def-predicate 'REL-UNION-DECOMPOSE-1 '(md14t_ md14hs_ md14c_) '(REL-REWRITE-1 (J-UDEC md14t_) md14hs_ md14c_))
+(def-predicate 'REL-UNION-DECOMPOSE-HYP-1 '(md14t_ md14hs_ md14c_) '(REL-REWRITE-HYP-1 (J-UDEC md14t_) md14hs_ md14c_))
+(def-predicate 'REL-UNION-DECOMPOSE-7 '(md14t_ md14hs_ md14c_) '(REL-REWRITE-7 (J-UDEC md14t_) md14hs_ md14c_))
+(def-predicate 'REL-UNION-DECOMPOSE-HYP-7 '(md14t_ md14hs_ md14c_) '(REL-REWRITE-HYP-7 (J-UDEC md14t_) md14hs_ md14c_))
+(def-predicate 'REL-INTERSECTION-DECOMPOSE-1 '(md14t_ md14hs_ md14c_) '(REL-REWRITE-1 (J-IDEC md14t_) md14hs_ md14c_))
+(def-predicate 'REL-INTERSECTION-DECOMPOSE-HYP-1 '(md14t_ md14hs_ md14c_) '(REL-REWRITE-HYP-1 (J-IDEC md14t_) md14hs_ md14c_))
+(def-predicate 'REL-INTERSECTION-DECOMPOSE-7 '(md14t_ md14hs_ md14c_) '(REL-REWRITE-7 (J-IDEC md14t_) md14hs_ md14c_))
+(def-predicate 'REL-INTERSECTION-DECOMPOSE-HYP-7 '(md14t_ md14hs_ md14c_) '(REL-REWRITE-HYP-7 (J-IDEC md14t_) md14hs_ md14c_))
+(for-each (lambda (n) (notation! n 'kind 'predicate 'arity 3 'english "the kernel's rewrite by the catalog's n-ary decomposition, at one position, relates $2 to $3"))
+  '(REL-UNION-DECOMPOSE-1 REL-UNION-DECOMPOSE-HYP-1 REL-UNION-DECOMPOSE-7 REL-UNION-DECOMPOSE-HYP-7
+    REL-INTERSECTION-DECOMPOSE-1 REL-INTERSECTION-DECOMPOSE-HYP-1 REL-INTERSECTION-DECOMPOSE-7 REL-INTERSECTION-DECOMPOSE-HYP-7))

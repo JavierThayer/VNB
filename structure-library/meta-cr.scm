@@ -312,6 +312,8 @@
 ;;; Each rule's justification set J-<RULE>(T) holds its LOCAL redex pairs with their side conditions
 ;;; DERIVED in the local context: the list denotes (nth, length), the argument is in the domain
 ;;; (lambda), the condition holds and the instantiating term denotes (macete).
+;;; The forms at a position of ANY stage (binder bodies included), REL-REWRITE-7 and REL-<RULE>-7, are section 5
+;;; (agent K2-END, 2026-10-22): their admissibility needs CR at stage 7, hence AX-CLASS-EXT in T.
 
 (def-predicate 'REL-REWRITE-1 '(mrt_ mrhs_ mrc_)
   (mr--and '(IN mrc_ SEQ-SET)
@@ -400,3 +402,39 @@
 (for-each (lambda (n) (notation! n 'kind 'predicate 'arity 3 'english "the kernel rule, at one position, relates $2 to $3"))
   '(REL-NTH-REDUCE-1 REL-LENGTH-REDUCE-1 REL-LAMBDA-BETA-1 REL-LAMBDA-BETA-HYP-1 REL-MACETE-1 REL-MACETE-HYP-1
     REL-FUNCTOID-BETA-1))
+
+;;; -----------------------------------------------------------------------
+;;; 5. THE ONE-POSITION FORMS AT EVERY STAGE (agent K2-END, 2026-10-22).  Since cr-closed-7
+;;; (theorem-library/meta-ind-laws.scm, section M) CR is closed at every position, binder bodies included, for
+;;; every T of sentences containing the encoded class-extensionality AX-CLASS-EXT.  REL-REWRITE-7 and
+;;; REL-REWRITE-HYP-7 are REL-REWRITE-1 and REL-REWRITE-HYP-1 with the position of ANY stage (REWR(J, 7) for
+;;; REWR(J, 5)): the bodies of SEP, BIG-UNION and VNB-LAMBDA (stage 6) and of COMP and IOTA (stage 7), where the
+;;; kernel's reduction rules and macetes also rewrite (section 4: "at ANY depth ... binders included").  The
+;;; justification sets J-<RULE> are section 4's; at a position under a binder the clause passes the context g
+;;; unchanged (section 2 of the header), so a justification is derived in the AMBIENT context: a kernel step
+;;; that reads the binder's own hypothesis (lambda-beta licensed by x in A inside VNB-LAMBDA x A) is outside the
+;;; relation, as at stage 5.  The stage-<= 5 forms are kept: their admissibility needs no hypothesis on T.
+;;; Admissibility: theorem-library/meta-ind-laws.scm, section N (adm-rewrite-7, adm-rewrite-hyp-7, adm-<rule>-7).
+(def-predicate 'REL-REWRITE-7 '(mrt_ mrhs_ mrc_)
+  (mr--and '(IN mrc_ SEQ-SET)
+    (mr--ex '(mrg_ mra_ mrb_)
+      (mr--and '(= mrc_ (LIST mrg_ mra_)) '(= mrhs_ (LIST (LIST mrg_ mrb_)))
+               '(IN (LIST 2 mrg_ mra_ mrb_) (REWR mrt_ 7))))))
+(notation! 'REL-REWRITE-7 'kind 'predicate 'arity 3 'english "$2 is $3 with its goal rewritten at one position of any stage justified by $1")
+(def-predicate 'REL-REWRITE-HYP-7 '(mrt_ mrhs_ mrc_)
+  (mr--and '(IN mrc_ SEQ-SET)
+    (mr--ex '(mrg_ mrf_ mra_ mrb_)
+      (mr--and '(= mrc_ (LIST mrg_ mrf_)) '(IN mra_ mrg_)
+               '(= mrhs_ (LIST (LIST (CTX-ADD (DIFFERENCE mrg_ (PAIR mra_ mra_)) mrb_) mrf_)))
+               '(IN (LIST 2 mrg_ mra_ mrb_) (REWR mrt_ 7))))))
+(notation! 'REL-REWRITE-HYP-7 'kind 'predicate 'arity 3 'english "$2 is $3 with one assumption rewritten at one position of any stage justified by $1")
+(def-predicate 'REL-NTH-REDUCE-7 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-7 (J-NTH mrt_) mrhs_ mrc_))
+(def-predicate 'REL-LENGTH-REDUCE-7 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-7 (J-LEN mrt_) mrhs_ mrc_))
+(def-predicate 'REL-LAMBDA-BETA-7 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-7 (J-LB mrt_) mrhs_ mrc_))
+(def-predicate 'REL-LAMBDA-BETA-HYP-7 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-HYP-7 (J-LB mrt_) mrhs_ mrc_))
+(def-predicate 'REL-MACETE-7 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-7 (J-MAC mrt_) mrhs_ mrc_))
+(def-predicate 'REL-MACETE-HYP-7 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-HYP-7 (J-MAC mrt_) mrhs_ mrc_))
+(def-predicate 'REL-FUNCTOID-BETA-7 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-7 (J-FB mrt_) mrhs_ mrc_))
+(for-each (lambda (n) (notation! n 'kind 'predicate 'arity 3 'english "the kernel rule, at one position of any stage, relates $2 to $3"))
+  '(REL-NTH-REDUCE-7 REL-LENGTH-REDUCE-7 REL-LAMBDA-BETA-7 REL-LAMBDA-BETA-HYP-7 REL-MACETE-7 REL-MACETE-HYP-7
+    REL-FUNCTOID-BETA-7))
