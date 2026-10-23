@@ -15645,6 +15645,96 @@
     (vnb-guard (lambda () (icr-run! '(ENC-EQ (ENC-IOTA p) (ENC-IOTA q)) icr-iff #t)))))))
 (check-true "IOTA-CR: the META control iota-cr-refuses-eq is a proven theorem"
   (lambda () (suite-proven? 'iota-cr-refuses-eq)))
+;;; 2026-10-21, META-FUN: TBIND-CR, THE CONGRUENCE RULE FOR THE TERM BINDERS SEP, BIG-UNION, VNB-LAMBDA in the META
+;;; core (structure-library/meta-core.scm 4.9).  From [g, p(y) iff q(y)] (SEP) or [g, p(y) == q(y)] (BIG-UNION,
+;;; VNB-LAMBDA), y a name free neither in g nor in the conclusion, the core derives [g, BIND(h, [d], p) ==
+;;; BIND(h, [d], q)].  The accepted checks derive that sequent through the rule (dk-derive! reads CR-TBIND-CR off its
+;;; definition, the closure law derivable-tbind-cr puts it in DERIVABLE through CORE-RULE's last disjunct); on the old
+;;; core the rule name does not resolve and they error.  The controls: the premise of the wrong kind for the head (an
+;;; == for SEP), a premise whose bodies are not the conclusion's, a name not known to be fresh, the STRICT equation.
+(define (tbc-bind h b) `(EBIND ,h 1 (LIST d) ,b))
+(define (tbc-goal h concl prem fresh?)
+  (make-wff `(FORALL tt (FORALL g (FORALL d (FORALL p (FORALL q (FORALL tbcr_ (FORALL y
+     (IMPLIES (IN g CTX-SET) (IMPLIES (IN ,(tbc-bind h 'p) CLT) (IMPLIES (IN ,(tbc-bind h 'q) CLT) (IMPLIES (IN y NN)
+       ,(let ((tail `(IMPLIES (IN (LIST g ,prem) (DERIVABLE tt)) (IN (LIST g ,concl) (DERIVABLE tt)))))
+          (if fresh?
+              `(IMPLIES (NOT (IN y (UNION (CTX-FV g) (EXPR-FV (ENC-QEQ ,(tbc-bind h 'p) ,(tbc-bind h 'q)))))) ,tail)
+              tail)))))))))))))))
+(define tbc-op '(EXPR-OPEN p 0 (EFVAR y)))
+(define tbc-oq '(EXPR-OPEN q 0 (EFVAR y)))
+(define (tbc-run! h concl prem fresh?)
+  (fluid-let ((*ps* #f))
+    (sp (tbc-goal h concl prem fresh?))
+    (dk-peel!)
+    (dk-cite! 'clf-qeq-intro (tbc-bind h 'p) (tbc-bind h 'q))
+    ;; the relation's shape condition, landed when it holds (dk-derive! reads a disjunction off the context; when
+    ;; it does not hold, dk-derive! refuses the node on the unclosed side condition)
+    (if (equal? prem (if (= h 22) `(ENC-IFF ,tbc-op ,tbc-oq) `(ENC-QEQ ,tbc-op ,tbc-oq)))
+        (dk-have! `(OR (AND (= ,h 22) (= ,prem (ENC-IFF ,tbc-op ,tbc-oq)))
+                       (AND (OR (= ,h 24) (= ,h 26)) (= ,prem (ENC-QEQ ,tbc-op ,tbc-oq))))
+          (lambda () (if (= h 22) (oi-l) (oi-r))
+                     (dk-conj-close! (lambda () (cond ((dk-head-is? (dk-goal) 'OR) (if (= h 24) (oi-l) (oi-r)) (rfl)) (#t (rfl))))))))
+    (dk-derive! 'tt `(tbind-cr (g ==> ,concl) (given (g ==> ,prem)) (y := y)))
+    (ass)
+    (proof-done? *ps*)))
+(define (tbc-qeq h) `(ENC-QEQ ,(tbc-bind h 'p) ,(tbc-bind h 'q)))
+(check-true "TBIND-CR: the core derives [g, SEP(d, p) == SEP(d, q)] from [g, p(y) iff q(y)], y fresh (fails on the old core: no such rule)"
+  (lambda () (quietly (lambda () (tbc-run! 22 (tbc-qeq 22) `(ENC-IFF ,tbc-op ,tbc-oq) #t)))))
+(check-true "TBIND-CR: the core derives [g, LAMBDA(d, p) == LAMBDA(d, q)] from [g, p(y) == q(y)], y fresh"
+  (lambda () (quietly (lambda () (tbc-run! 26 (tbc-qeq 26) `(ENC-QEQ ,tbc-op ,tbc-oq) #t)))))
+(check-error "TBIND-CR CONTROL: the rule refuses a SEP whose premise is a quasi-equation (the body of a SEP is a formula)"
+  (lambda () (quietly (lambda ()
+    (vnb-guard (lambda () (tbc-run! 22 (tbc-qeq 22) `(ENC-QEQ ,tbc-op ,tbc-oq) #t)))))))
+(check-error "TBIND-CR CONTROL: the rule refuses a premise whose bodies are not the conclusion's (p, r for p, q)"
+  (lambda () (quietly (lambda ()
+    (vnb-guard (lambda () (tbc-run! 24 (tbc-qeq 24) `(ENC-QEQ ,tbc-op (EXPR-OPEN tbcr_ 0 (EFVAR y))) #t)))))))
+(check-error "TBIND-CR CONTROL: the rule refuses a name not known to be fresh for the context and the conclusion"
+  (lambda () (quietly (lambda () (vnb-guard (lambda () (tbc-run! 26 (tbc-qeq 26) `(ENC-QEQ ,tbc-op ,tbc-oq) #f)))))))
+(check-error "TBIND-CR CONTROL: the rule refuses the STRICT equation of the two binder terms"
+  (lambda () (quietly (lambda ()
+    (vnb-guard (lambda () (tbc-run! 24 `(ENC-EQ ,(tbc-bind 24 'p) ,(tbc-bind 24 'q)) `(ENC-QEQ ,tbc-op ,tbc-oq) #t)))))))
+(check-true "TBIND-CR: the META control tbind-cr-refuses-eq is a proven theorem"
+  (lambda () (suite-proven? 'tbind-cr-refuses-eq)))
+(check-true "META-FUN: CR is closed at stage 6 (cr-closed-6) and, with the encoded class-extensionality in T, at stage 7 (cr-closed-7, der-comp-cr, eqv-desc-body)"
+  (lambda () (and (suite-proven? 'cr-closed-6) (suite-proven? 'cr-goal-6) (suite-proven? 'der-comp-cr)
+                  (suite-proven? 'eqv-desc-body) (suite-proven? 'cr-closed-7) (suite-proven? 'cr-goal-7))))
+;;; 2026-10-21, META-FUN (B1): THE FUNCTOID TABLE AND FUNCTOID-BETA-EQ in the META core (structure-library/meta-core.scm
+;;; 4.10).  For the table's illustrative row (code 32, arity 2, body SEP x A. x in B) the core derives
+;;; [g, F32(p, q) == OPENL(body, [p, q], 2)] with no premise; on the old core the rule name does not resolve.  The
+;;; controls: the STRICT equation, a body that is not the row's, an argument list of the wrong length.
+(define fbe-body '(ENC-SEP (EBVAR 0) (ENC-IN (EBVAR 0) (EBVAR 2))))
+(define (fbe-run! args body strict?)
+  (let* ((l `(LIST ,@args)) (lhs `(EAPP 32 ,l)) (rhs `(OPENL ,body ,l (LENGTH ,l)))
+         (concl (if strict? `(ENC-EQ ,lhs ,rhs) `(ENC-QEQ ,lhs ,rhs))))
+    (fluid-let ((*ps* #f))
+      (sp (make-wff `(FORALL tt (FORALL g (FORALL p (FORALL q
+             (IMPLIES (IN g CTX-SET) (IMPLIES (IN ,lhs CLT) (IMPLIES (IN ,rhs CLT) (IN (LIST g ,concl) (DERIVABLE tt)))))))))))
+      (dk-peel!)
+      (dk-cite! (if strict? 'clf-eq-intro 'clf-qeq-intro) lhs rhs)
+      ;; the table's row, landed when it is the row (dk-derive! reads the side condition off the context)
+      (if (and (= (length args) 2) (equal? body fbe-body))
+          (dk-have! `(FUN-DEF 32 (LENGTH ,l) ,body)
+            (lambda ()
+              (dk-have! `(= (LENGTH ,l) 2) (lambda () (len-r) (rfl)))
+              (subst `(= (LENGTH ,l) 2))
+              (mac 'fun-def)
+              (dk-conj-close! (lambda () (rfl))))))
+      (dk-derive! 'tt `(functoid-beta-eq (g ==> ,concl)))
+      (ass)
+      (proof-done? *ps*))))
+(check-true "FUNCTOID-BETA-EQ: the core derives [g, F32(p, q) == b[p, q]] for the table's row, no premise (fails on the old core: no such rule)"
+  (lambda () (quietly (lambda () (fbe-run! '(p q) fbe-body #f)))))
+(check-error "FUNCTOID-BETA-EQ CONTROL: the rule refuses the STRICT equation F32(p, q) = b[p, q]"
+  (lambda () (quietly (lambda () (vnb-guard (lambda () (fbe-run! '(p q) fbe-body #t)))))))
+(check-error "FUNCTOID-BETA-EQ CONTROL: the rule refuses a body that is not the row's"
+  (lambda () (quietly (lambda () (vnb-guard (lambda () (fbe-run! '(p q) '(ENC-IN (EBVAR 0) (EBVAR 1)) #f)))))))
+(check-error "FUNCTOID-BETA-EQ CONTROL: the rule refuses an argument list of the wrong length"
+  (lambda () (quietly (lambda () (vnb-guard (lambda () (fbe-run! '(p) fbe-body #f)))))))
+(check-true "FUNCTOID-BETA-EQ: the control functoid-beta-eq-refuses-eq, the table check fun-def-heads, the admissibility of functoid-beta (j-fb-sub, adm-functoid-beta-1) and the four functoid rows of the definedness table are proven"
+  (lambda () (and (suite-proven? 'functoid-beta-eq-refuses-eq) (suite-proven? 'fun-def-heads)
+                  (suite-proven? 'j-fb-sub) (suite-proven? 'adm-functoid-beta-1)
+                  (suite-proven? 'def-fun-inst-derived) (suite-proven? 'def-fun-strict-derived)
+                  (suite-proven? 'def-fun-nth-derived) (suite-proven? 'def-fun-sep-derived))))
 
 ;;; -----------------------------------------------------------------------
 ;;; CERT-KEY (2026-10-17, the user's decision on META-10 findings 1 and 2;

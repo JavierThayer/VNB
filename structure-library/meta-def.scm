@@ -358,3 +358,51 @@
                              (LIST mdg_ (ENC-ALL (ENC-IFF (ENC-PRED1 (ECONST mdk_) (EBVAR 0)) mdb_)))))
              '(IN md10f_ (TRUE-REACH (EXPR-OPEN mdb_ 0 mds_))) '(STRICT-ATOM md10f_ mdw_))))
 (md--adm! 'ADM-DEF-PRED-HYP 'DEF-PRED-HYP)
+
+;;; -----------------------------------------------------------------------
+;;; 7. THE FUNCTOID ROWS (agent META-FUN, 2026-10-21; the user's decision B1: the functoid table FUN-DEF and
+;;; the rule functoid-beta-eq, structure-library/meta-core.scm 4.10).  Re-transcribed against the CURRENT
+;;; kernel's pi--defined? and its helpers (primitive-inferences.scm, md5 b2c1422a; rule-checkers-logic.scm,
+;;; md5 02411d9b), the record rows against the repair running in parallel (an applied anonymous record walked
+;;; through its contraction in pi--sob-walk and chk-sob; under a record binder a term mentioning the
+;;; record's variable not certified).  A kernel functoid term is encoded as the application EAPP(h, l) of a
+;;; row (h, |l|, b) of FUN-DEF, its instantiated body as OPENL(b, l, |l|) (a record lambda-lifted, its free
+;;; variables the first entries of l).  Binders: md11*_.
+;;;   F1  pi--defined?, the functoid clause: F(a) certified when its instantiated body is   DEF-FUN-INST
+;;;   F2  pi--defined?, NTH(k, F(a)) certified when NTH(k, body[a]) is                     DEF-FUN-NTH
+;;;   F3  pi--sob-walk (and chk-sob), the registry arm: a strict walk goes from F(a) into   DEF-FUN-STRICT
+;;;       body[a]; with the repair, the same arm for an applied record (lambda-lifted)
+;;;   F4  pi--sep-form (and the checker's): y in F(a) read as y in body[a], through nested DEF-FUN-SEP
+;;;       functoids, until a SEP is reached (then TRUE-STEP's SEP reading)
+;;; Each is DERIVED (theorem-library/meta-def-laws.scm, section 7): functoid-beta-eq gives F(l) == b[l], and
+;;; eq-subst carries the premise along it.  Composed with the walks of section 5 they give the kernel's
+;;; interleaved walks (each step takes a derivable sequent to a derivable sequent).  NOT a row: the view
+;;; clause of pi--accessor-certified? (ACC(V(r)) certified when the corresponding component of V's LIST body
+;;; is): it reads ONE component of a list whose definedness it does not establish, and over the core
+;;; NTH(k, [..]) == the k-th entry needs the whole list to denote (CR-NTH-EQ); not admissible, not shown
+;;; unsound, left as found (the user's instruction, 2026-10-21).
+(md--rel! 'DEF-FUN-INST "the definedness rule functoid-instance relates $2 to $3"
+  (md--ex '(mdg_ mdh_ mdl_ mdb_)
+    (md--and '(= mdc_ (LIST mdg_ (ENC-EQ (EAPP mdh_ mdl_) (EAPP mdh_ mdl_))))
+             '(FUN-DEF mdh_ (LENGTH mdl_) mdb_)
+             '(= mdhs_ (LIST (LIST mdg_ (ENC-EQ (OPENL mdb_ mdl_ (LENGTH mdl_)) (OPENL mdb_ mdl_ (LENGTH mdl_)))))))))
+(md--rel! 'DEF-FUN-STRICT "the definedness rule functoid-strict-step relates $2 to $3"
+  (md--ex '(mdg_ mdh_ mdl_ mdb_)
+    (md--and '(= mdc_ (LIST mdg_ (ENC-EQ (OPENL mdb_ mdl_ (LENGTH mdl_)) (OPENL mdb_ mdl_ (LENGTH mdl_)))))
+             '(FUN-DEF mdh_ (LENGTH mdl_) mdb_)
+             '(= mdhs_ (LIST (LIST mdg_ (ENC-EQ (EAPP mdh_ mdl_) (EAPP mdh_ mdl_))))))))
+(md--rel! 'DEF-FUN-NTH "the definedness rule nth-of-functoid relates $2 to $3"
+  (md--ex '(mdg_ mdh_ mdl_ mdb_ mdk_)
+    (md--and '(= mdc_ (LIST mdg_ (ENC-EQ (ENC-NTH (ENC-NUM mdk_) (EAPP mdh_ mdl_)) (ENC-NTH (ENC-NUM mdk_) (EAPP mdh_ mdl_)))))
+             '(FUN-DEF mdh_ (LENGTH mdl_) mdb_) '(IN mdk_ NN)
+             '(= mdhs_ (LIST (LIST mdg_ (ENC-EQ (ENC-NTH (ENC-NUM mdk_) (OPENL mdb_ mdl_ (LENGTH mdl_)))
+                                                (ENC-NTH (ENC-NUM mdk_) (OPENL mdb_ mdl_ (LENGTH mdl_))))))))))
+(md--rel! 'DEF-FUN-SEP "the definedness rule functoid-membership relates $2 to $3"
+  (md--ex '(mdg_ mdh_ mdl_ mdb_ md11y_)
+    (md--and '(= mdc_ (LIST mdg_ (ENC-IN md11y_ (OPENL mdb_ mdl_ (LENGTH mdl_)))))
+             '(FUN-DEF mdh_ (LENGTH mdl_) mdb_)
+             '(= mdhs_ (LIST (LIST mdg_ (ENC-IN md11y_ (EAPP mdh_ mdl_))))))))
+(md--adm! 'ADM-DEF-FUN-INST 'DEF-FUN-INST)
+(md--adm! 'ADM-DEF-FUN-STRICT 'DEF-FUN-STRICT)
+(md--adm! 'ADM-DEF-FUN-NTH 'DEF-FUN-NTH)
+(md--adm! 'ADM-DEF-FUN-SEP 'DEF-FUN-SEP)

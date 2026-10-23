@@ -9,8 +9,9 @@
 ;;; the clause laws of stages 1 (connectives, atoms), 2 (quantifiers), 3 (IF), 4 (term heads), 5
 ;;; (binder domains); F the CR theorems cr-closed-k / cr-k / cr-goal-k (k = 1 .. 5, each after its
 ;;; stage); I the rewriting rules (nth-reduce, length-reduce, lambda-beta, lambda-beta-hyp, macete,
-;;; macete-hyp) at one position.  The body clauses of stages 6 and 7 have no law: see
-;;; scratchpad/triage/META-3-REPORT.md, section 3.
+;;; macete-hyp) at one position; J the IOTA half of stage 7 (IOTA-CR); K stage 6, the binder bodies
+;;; (TBIND-CR, 2026-10-21), with cr-closed-6.  Stage 7 as a whole, and cr-closed-7, are in
+;;; theorem-library/meta-ind-laws.scm, section M (the COMP half needs its OPEN calculator).
 ;;; Every theorem below bills `modulo 0'.
 
 ;;; -----------------------------------------------------------------------
@@ -1639,6 +1640,8 @@
 ;;; positions at an IOTA body (docs/meta-k2-admissibility-2026-10-08.md, section 17, "Effect").  The
 ;;; COMP half of the clause (head 23) has no core rule, and stage 6 (the bodies of SEP, BIG-UNION,
 ;;; VNB-LAMBDA) has no law, so there is no cr-closed-7: stages form a prefix (RW-RULE).
+;;; (2026-10-21, META-FUN: stage 6 is closed in section K by TBIND-CR; the COMP half is derived from the encoded
+;;; class-extensionality and stage 7 closed in meta-ind-laws.scm, section M, eqv-desc-body / cr-closed-7.)
 (sp (make-wff '(FORALL mrp_ (== (ENC-IOTA mrp_) (EBIND 25 1 (LIST) mrp_)))))
 (di) (mac 'enc-iota) (qrfl)
 (qed 'enc-iota-unfold)
@@ -1688,3 +1691,148 @@
       (dk-cite! 'eqv-t-intro 'tt 'g ia ib)
       (ass))))
 (qed 'eqv-iota-body)
+
+;;; -----------------------------------------------------------------------
+;;; K. STAGE 6 (agent META-FUN, 2026-10-21; the user's decision of 2026-10-21, TBIND-CR): the BODY of SEP /
+;;; BIG-UNION / VNB-LAMBDA rewritten.  The clauses RW-SEP-BODY and RW-TBIND-BODY preserve EQV(T) by the core
+;;; rule TBIND-CR (structure-library/meta-core.scm 4.9): the cofinite premise opened at a name z outside the
+;;; exception set and fresh for the context and the conclusion (mr-fresh), and TBIND-CR at z.  Then CR at
+;;; stage 6 (cr-closed-6, cr-6, cr-goal-6).  Stage 7 (the bodies of COMP and IOTA) is closed in
+;;; theorem-library/meta-ind-laws.scm, section M, whose OPEN calculator the COMP half needs; the strict
+;;; equation to quasi-equation step it uses, der-eq-qeq, is proven here.
+
+;; [g, x = y] derivable => [g, x == y] derivable (x, y closed terms): eq-subst (the other orientation) from the
+;; quasi-reflexivity x == x under the cut equation, the hole a name z fresh for x.
+(sp (make-wff (mr-st '(tt g x y) '(IN x CLT) '(IN y CLT) '(IN (LIST g (ENC-EQ x y)) (DERIVABLE tt))
+                '(IN (LIST g (ENC-QEQ x y)) (DERIVABLE tt)))))
+(dk-peel!)
+(let* ((e0 '(ENC-EQ x y)))
+  (dk-cite! 'der-in-seq 'tt `(LIST g ,e0))
+  (dk-split! (dk-meta-iff-r! (dk-meta-iff! 'seq-iff 'g e0)))
+  (for-each (lambda (v) (dk-split! (dk-meta-iff-r! (dk-meta-iff! 'clt-iff v)))) '(x y))
+  (let* ((z (dk-skolem! (dk-cite! 'fresh-name-exists 'g 'x) #t))
+         (zfresh `(NOT (IN ,z (UNION (CTX-FV g) (EXPR-FV x)))))
+         (ez `(EFVAR ,z))
+         (p `(EAPP 9 (LIST x ,ez)))
+         (g1 `(CTX-ADD g ,e0)))
+    (dk-have! `(NOT (IN ,z (EXPR-FV x)))
+      (lambda () (di) (dk-meta-keep-prop! (dk-meta-iff! 'union-membership '(CTX-FV g) '(EXPR-FV x) z)
+                                          `(IN ,z (EXPR-FV x)) zfresh)))
+    (fact 'efvar-in-expr z)
+    (dk-have! '(IN 9 NN) (lambda () (arith)))
+    (dk-have! `(IN (LIST x ,ez) (TUPLES EXPR-SET)) (lambda () (dk-close-all! (lambda () (ti)))))
+    (fact 'eapp-in-expr 9 `(LIST x ,ez))
+    (for-each (lambda (s)
+                (dk-have! `(= (EXPR-SUBST ,p ,z ,s) (EAPP 9 (LIST x ,s)))
+                  (lambda ()
+                    (subst (dk-cite! 'subst-app2 z s 9 'x ez))
+                    (subst (dk-cite! 'subst-fresh z s 'x))
+                    (subst (dk-cite! 'subst-efvar-hit z s))
+                    (dk-have! `(IN (LIST x ,s) (TUPLES EXPR-SET)) (lambda () (dk-close-all! (lambda () (ti)))))
+                    (fact 'eapp-in-expr 9 `(LIST x ,s))
+                    (rfl))))
+              '(x y))
+    (dk-cite! 'clf-qeq-intro 'x 'x)
+    (dk-cite! 'clf-qeq-intro 'x 'y)
+    (let ((uxy (dk-cite! 'enc-qeq-unfold 'x 'y)))
+      (dk-cite! 'enc-qeq-unfold 'x 'x)
+      (mr-clf! g1 'CTX-SET)
+      (dk-meta-seq! g1 '(ENC-QEQ x x))
+      (dk-derive! 'tt `(quasi-reflexivity (,g1 ==> (ENC-QEQ x x))))
+      (dk-have! `(IN (LIST ,g1 (EXPR-SUBST ,p ,z x)) (DERIVABLE tt))
+        (lambda () (subst `(= (EXPR-SUBST ,p ,z x) (EAPP 9 (LIST x x)))) (subst `(= (EAPP 9 (LIST x x)) (ENC-QEQ x x))) (ass)))
+      (dk-have! `(IN (EXPR-SUBST ,p ,z y) CLF)
+        (lambda () (subst `(= (EXPR-SUBST ,p ,z y) (EAPP 9 (LIST x y)))) (subst `(= (EAPP 9 (LIST x y)) (ENC-QEQ x y))) (ass)))
+      (dk-meta-set-of! e0 'CLF)
+      (dk-have! `(OR (IN ,e0 ,g1) (IN (ENC-QEQ x y) ,g1)) (lambda () (oi-l) (dk-cite! 'ctx-add-has 'g e0) (ass)))
+      (dk-derive! 'tt `(eq-subst-sym (,g1 ==> (EXPR-SUBST ,p ,z y)) (given (,g1 ==> (EXPR-SUBST ,p ,z x)))))
+      (dk-have! `(IN (LIST ,g1 (ENC-QEQ x y)) (DERIVABLE tt))
+        (lambda () (subst uxy) (subst `(= (EAPP 9 (LIST x y)) (EXPR-SUBST ,p ,z y))) (ass)))
+      (dk-meta-seq! 'g '(ENC-QEQ x y))
+      (dk-cite! 'derivable-cut-c 'tt 'g '(ENC-QEQ x y) e0)
+      (ass))))
+(qed 'der-eq-qeq)
+
+;; The spec of a stage-6 clause for mr-eqv-clause!.  SEP? #t: RW-SEP-BODY, witnesses g a b c fs (bodies a, b
+;; formulas, domain c, the conclusion through ENC-SEP); #f: RW-TBIND-BODY, witnesses g h a b c fs (h 24 or 26,
+;; bodies terms, the conclusion through EBIND).
+(define (mr-body-spec sep?)
+  (lambda (vs)
+    (let* ((g (car vs))
+           (h (if sep? 22 (cadr vs)))
+           (rest (if sep? (cdr vs) (cddr vs)))
+           (a (car rest)) (b (cadr rest)) (c (caddr rest)) (fs (cadddr rest))
+           (ea `(EBIND ,h 1 (LIST ,c) ,a)) (eb `(EBIND ,h 1 (LIST ,c) ,b))
+           (sa (if sep? `(ENC-SEP ,c ,a) ea)) (sb (if sep? `(ENC-SEP ,c ,b) eb))
+           (kk (if sep? 2 1)) (rel (if sep? 'ENC-IFF 'ENC-QEQ))
+           (f `(ENC-QEQ ,ea ,eb)))
+      (values `(LIST 1 ,g ,sa ,sb) '()
+        (lambda ()
+          (let ((u (find-first (lambda (x) (and (dk-head-is? x 'FORALL) (dk-contains? x fs) (dk-contains? x 'EQV))) (dk-asms))))
+            (if (not u) (error "mr-body-spec: no cofinite universal"))
+            (if sep?
+                ;; RW-SEP-BODY is stated through ENC-SEP, TBIND-CR through EBIND: the unfold in a lane (the
+                ;; theorem enc-sep-unfold is proven later, in meta-ind-laws.scm)
+                (for-each (lambda (s e)
+                            (dk-have! `(== ,s ,e) (lambda () (mac 'enc-sep) (qrfl)))
+                            (dk-rewrite-h! `(IN ,s CLT) s e))
+                          (list sa sb) (list ea eb)))
+            (dk-cite! 'clf-qeq-intro ea eb)
+            (dk-split-all! (list (dk-meta-iff-r! (dk-meta-iff! 'clf-iff f))))
+            (let* ((z (dk-skolem! (dk-cite! 'mr-fresh fs g f) #t))
+                   (az `(EXPR-OPEN ,a 0 (EFVAR ,z))) (bz `(EXPR-OPEN ,b 0 (EFVAR ,z)))
+                   (pf `(,rel ,az ,bz)))
+              (dk-apply! u z)
+              (mr-open-prem! (list kk g az bz))
+              ;; the relation's shape condition: the premise is the opened bodies' IFF for SEP, their == otherwise
+              (dk-have! `(OR (AND (= ,h 22) (= ,pf (ENC-IFF ,az ,bz))) (AND (OR (= ,h 24) (= ,h 26)) (= ,pf (ENC-QEQ ,az ,bz))))
+                (lambda () (if sep? (oi-l) (oi-r)) (dk-conj-close! (lambda () (if (dk-asm? (dk-goal)) (ass) (rfl))))))
+              (dk-meta-derive! 'tt `(tbind-cr (,g ==> ,f) (given (,g ==> ,pf)) (y := ,z)))
+              (if sep?
+                  (dk-have! `(IN (LIST ,g (ENC-QEQ ,sa ,sb)) (DERIVABLE tt))
+                    (lambda () (mac 'enc-sep) (ass)))))))))))
+
+(mr-eqv-clause! 'RW-SEP-BODY (mr-body-spec #t))
+(qed 'eqv-sep-body)
+(mr-eqv-clause! 'RW-TBIND-BODY (mr-body-spec #f))
+(qed 'eqv-tbind-body)
+
+(set! mr-clause-laws (append mr-clause-laws '((RW-SEP-BODY . eqv-sep-body) (RW-TBIND-BODY . eqv-tbind-body))))
+(mr-cr-closed! 6)
+(qed 'cr-closed-6)
+(mr-cr-law! 6 'cr-closed-6)
+(qed 'cr-6)
+(mr-cr-goal-law! 6 'cr-6)
+(qed 'cr-goal-6)
+
+;;; -----------------------------------------------------------------------
+;;; L. FUNCTOID BETA AT ONE POSITION (agent META-FUN, 2026-10-21; the user's decision B1): the local redexes
+;;; F(l) -> b[l] of the functoid table are inside EQV(T) by the core rule functoid-beta-eq
+;;; (structure-library/meta-core.scm 4.10), so the kernel's functoid-beta -- and the unfold macete of a
+;;; def-functoid, which is the same contraction at a def-functoid row -- is admissible at one position of stage
+;;; <= 5 (adm-rewrite-1).  (At the binder bodies, stages 6 and 7, cr-goal-7 of meta-ind-laws.scm gives the same
+;;; for every T containing the encoded class-extensionality.  Inside a row's body there is no clause.)
+(sp (make-wff '(FORALL tt (SUBSET (J-FB tt) (EQV tt)))))
+(di)
+(mac 'J-FB)
+(mac 'subset-def)
+(dk-peel!)
+(let* ((m (find-first (lambda (f) (and (dk-head-is? f 'IN) (dk-head-is? (caddr f) 'SEP))) (dk-asms)))
+       (x (cadr m))
+       (landed (dk-landed (lambda () (sep-me m))))
+       (ex (find-first (lambda (f) (dk-head-is? f 'FORSOME)) landed))
+       (vs (dk-meta-unpack! ex))
+       (g (car vs)) (h (cadr vs)) (l (caddr vs)) (b (cadddr vs))
+       (lhs `(EAPP ,h ,l)) (rhs `(OPENL ,b ,l (LENGTH ,l)))
+       (lit `(LIST 1 ,g ,lhs ,rhs)))
+  (if (not (dk-asm? `(= ,x ,lit))) (error "j-fb-sub: the redex tuple is not" (expression->string lit)))
+  (dk-rewrite-h! `(IN ,x RW-UNIV) x lit)
+  (dk-cite! 'rw-univ-ctx 1 g lhs rhs)
+  (dk-cite! 'clf-qeq-intro lhs rhs)
+  (dk-derive! 'tt `(functoid-beta-eq (,g ==> (ENC-QEQ ,lhs ,rhs))))
+  (subst `(= ,x ,lit))
+  (dk-cite! 'eqv-t-intro 'tt g lhs rhs)
+  (ass))
+(qed 'j-fb-sub)
+(mr-adm! 'REL-FUNCTOID-BETA-1 'J-FB 'j-fb-sub 'adm-rewrite-1)
+(qed 'adm-functoid-beta-1)

@@ -156,6 +156,15 @@
 (notation! 'AX-NN-IND 'kind 'constant 'arity 0 'english "the encoded axiom nn-induction")
 (notation! 'AX-TFI 'kind 'constant 'arity 0 'english "the encoded axiom transfinite-induction")
 (notation! 'AX-MEM-SET 'kind 'constant 'arity 0 'english "the encoded axiom membership-implies-sethood")
+;;  class-extensionality (library.scm 309):  forall A. forall B. (forall x. x in A iff x in B) => A = B
+;;  (A = index 2, B = index 1, x = index 0 under the innermost binder; A = index 1, B = index 0 outside it).
+;;  Added 2026-10-21 (agent META-FUN): the COMP half of the stage-7 rewrite clause is derived from it
+;;  (theorem-library/meta-ind-laws.scm, section M, der-comp-cr).
+(def-constant 'AX-CLASS-EXT
+  '(ax-class-ext-def
+     (== AX-CLASS-EXT (ENC-ALL (ENC-ALL (ENC-IMP (ENC-ALL (ENC-IFF (ENC-IN (EBVAR 0) (EBVAR 2)) (ENC-IN (EBVAR 0) (EBVAR 1))))
+                                                 (ENC-EQ (EBVAR 1) (EBVAR 0))))))))
+(notation! 'AX-CLASS-EXT 'kind 'constant 'arity 0 'english "the encoded axiom class-extensionality")
 
 ;; 1408-1436 (nn-induction): the goal (FORALL n (IMPLIES (IN n NN) body)) with n outermost; two
 ;; hypotheses, the same context: the BASE body[n := 0] and the STEP

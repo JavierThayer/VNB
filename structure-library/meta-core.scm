@@ -383,8 +383,9 @@
              '(= mchs_ (LIST (LIST mcg_ (ENC-NOT mcp_))
                              (LIST (CTX-ADD mcg_ (ENC-QEQ (ENC-IF mcp_ mca_ mcb_) mcb_)) mcf_))))))
 
-;;; 4.4 SET FORMATION, DESCRIPTIONS, FUNCTIONS (9 of the note's 10: functoid-beta-eq has no
-;;; encoding, the encoding has no functoid records -- a finding).  Bodies use the index 0 for the
+;;; 4.4 SET FORMATION, DESCRIPTIONS, FUNCTIONS (9 of the note's 10: functoid-beta-eq had no
+;;; encoding, the encoding having no functoid records -- META-2's finding; since 2026-10-21 it is 4.10,
+;;; over the functoid table FUN-DEF).  Bodies use the index 0 for the
 ;;; bound variable; an outside argument is locally closed (it sits in a sentence), so it needs no
 ;;; shift under one more binder.
 (mc--cr! 'CR-SEP-SETHOOD "the core sep-sethood relates $2 to $3"
@@ -457,6 +458,9 @@
 ;;; ADMITTED LATER (the user's decision of 2026-10-15 / 10-16; agent IOTA-CR, 2026-10-20): the congruence
 ;;; rule for descriptions, IOTA-CR, as 4.8 below (a rule of 4.4 by subject, placed last for the order of
 ;;; CORE-RULE's disjuncts).
+;;; ADMITTED LATER (the user's decision of 2026-10-21; agent META-FUN): the congruence rule for the term
+;;; binders over a domain, TBIND-CR (SEP, BIG-UNION, VNB-LAMBDA), as 4.9 below, after 4.8; and the
+;;; functoid table FUN-DEF with the rule functoid-beta-eq (the note's 4.4 row), as 4.10 below, after 4.9.
 
 ;; The TOTAL class constructors (*total-term-heads*, primitive-inferences.scm): 11 UNION, 12
 ;; INTERSECTION, 13 CARTESIAN, 14 TUPLES, 19 FUN, 30 succ, 31 succ_ORD.  (Moved here from meta-def.scm,
@@ -619,6 +623,87 @@
     (mc--and '(= mcc_ (LIST mcg_ (ENC-QEQ (ENC-IOTA mcp_) (ENC-IOTA mcq_)))) '(IN mcy_ NN)
              '(NOT (IN mcy_ (UNION (CTX-FV mcg_) (EXPR-FV (ENC-QEQ (ENC-IOTA mcp_) (ENC-IOTA mcq_))))))
              '(= mchs_ (LIST (LIST mcg_ (ENC-IFF (EXPR-OPEN mcp_ 0 (EFVAR mcy_)) (EXPR-OPEN mcq_ 0 (EFVAR mcy_)))))))))
+
+;;; 4.9 THE CONGRUENCE RULE FOR THE TERM BINDERS OVER A DOMAIN (TBIND-CR; the user's decision of 2026-10-21,
+;;; agent META-FUN; scratchpad/META-FUN-REPORT.md, section 2, option (i)).
+;;;   from  Gamma, y fresh |- phi(y) iff psi(y)  infer  Gamma |- (SEP x A. phi) == (SEP x A. psi);
+;;;   from  Gamma, y fresh |- b(y) == c(y)      infer  Gamma |- (BIG-UNION x A. b) == (BIG-UNION x A. c),
+;;;                                                    Gamma |- (VNB-LAMBDA x A. b) == (VNB-LAMBDA x A. c).
+;;; THE CLAIM: the value of SEP x A. p, BIG-UNION x A. b and VNB-LAMBDA x A. b depends on the domain A and on
+;;; the values of the body at OBJECTS only: SEP is the subclass of A of the members satisfying p, BIG-UNION
+;;; the union of the values b[x] that are sets as x ranges over A, VNB-LAMBDA the class of the pairs
+;;; [x, b[x]] for x in A with b[x] denoting.  Bodies equivalent (formulas) or quasi-equal (terms) at an
+;;; ARBITRARY value of the bound variable therefore give quasi-equal binder terms; when A does not denote,
+;;; neither side denotes (CR-DEF-STRICT-DOM), and the conclusion holds as a quasi-equation of two
+;;; non-denoting terms.  It is not derivable over the rules above (the report, section 2: over a
+;;; non-denoting domain no rule concludes a quasi-equation between distinct terms, and the core has no
+;;; membership schema for a lambda term).  The kernel exercises exactly this licence: its rewriters
+;;; descend into the bodies of the three binders (rkw--descend; the stage-6 clauses RW-SEP-BODY and
+;;; RW-TBIND-BODY of structure-library/meta-cr.scm).
+;;; THE ENCODING.  One relation for the three heads 22, 24, 26.  The premise formula f is named, and its
+;;; shape is fixed by the head: the opened bodies' equivalence (ENC-IFF) for SEP, whose body is a formula,
+;;; their quasi-equation (ENC-QEQ) for BIG-UNION and VNB-LAMBDA, whose bodies are terms.  As in IOTA-CR the
+;;; bodies are opened at a free name y, the premise has the conclusion's context, and y is free neither in
+;;; the context nor in the conclusion (whose free names are those of A and of the two bodies).
+;;; WHAT IT DOES NOT SAY: the conclusion is the QUASI-equation (head 9); the strict equation would assert
+;;; that the binder terms denote, which fails over a non-denoting domain.  META control:
+;;; tbind-cr-refuses-eq (theorem-library/meta-core-laws.scm).  It says nothing of COMP (head 23), whose
+;;; body clause is DERIVED from the encoded class-extensionality (meta-ind-laws.scm, der-comp-cr), nor of
+;;; IOTA (25, rule 4.8).  It is defined LAST, after 4.8, so that no earlier disjunct of CORE-RULE moves.
+(mc--cr! 'CR-TBIND-CR "the core congruence rule for the term binders relates $2 to $3"
+  (mc--ex '(mcg_ mchd_ mca_ mcp_ mcq_ mcy_ mcf_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-QEQ (EBIND mchd_ 1 (LIST mca_) mcp_) (EBIND mchd_ 1 (LIST mca_) mcq_))))
+             '(IN mcy_ NN)
+             '(NOT (IN mcy_ (UNION (CTX-FV mcg_) (EXPR-FV (ENC-QEQ (EBIND mchd_ 1 (LIST mca_) mcp_) (EBIND mchd_ 1 (LIST mca_) mcq_))))))
+             '(OR (AND (= mchd_ 22) (= mcf_ (ENC-IFF (EXPR-OPEN mcp_ 0 (EFVAR mcy_)) (EXPR-OPEN mcq_ 0 (EFVAR mcy_)))))
+                  (AND (OR (= mchd_ 24) (= mchd_ 26)) (= mcf_ (ENC-QEQ (EXPR-OPEN mcp_ 0 (EFVAR mcy_)) (EXPR-OPEN mcq_ 0 (EFVAR mcy_))))))
+             '(= mchs_ (LIST (LIST mcg_ mcf_))))))
+
+;;; 4.10 THE FUNCTOID TABLE AND FUNCTOID BETA (B1; the user's decision of 2026-10-21, agent META-FUN;
+;;; scratchpad/META-FUN-REPORT.md, section 3, option (B1)).
+;;; THE TABLE.  A functoid of the kernel -- a def-functoid of *functoid-registry*, or an anonymous lambdoid
+;;; record -- is encoded as an APPLICATION of a term head h >= 32 (section 1: a head >= 11 is a term head
+;;; of any arity, so the syntax is unchanged), with its definition a ROW of FUN-DEF: the code h, the arity
+;;; n, and the body b, a term in which the parameters are the indices 0 .. n-1 at the top (parameter i,
+;;; counted from 1, is the index i - 1, and i - 1 + d under d binders of the body).  The translator of K3
+;;; fills the table from *functoid-registry* (one row per def-functoid, in the registry's order) and
+;;; LAMBDA-LIFTS each anonymous record: a record lambdoid(x1 .. xn). e whose free variables are z1 .. zm
+;;; becomes a fresh row of arity m + n with body e[z, x := indices], and its application
+;;; (apply-functoid R v1 .. vn) the application of that row's code to [z1 .. zm, v1 .. vn].  An unapplied
+;;; record is outside the translation (the kernel does not instantiate a quantifier at one, 2026-10-01).
+;;; The table below holds ONE ILLUSTRATIVE ROW, for the suite: code 32, arity 2, the body SEP x A. x in B
+;;; (the row a translator would write for a def-functoid INTER2(A, B) := SEP x A. x in B); the translator
+;;; replaces it.
+;;; THE CLAIM OF THE TABLE (the precondition of the rule's soundness, the translator's obligation, and the
+;;; trust the kernel places in its registry): every row is an ABBREVIATION -- its code is used by no other
+;;; row and by no fixed head, it is not a STRICT-HEAD or a TOTAL-HEAD code (meta-core-laws.scm,
+;;; fun-def-heads, for the rows present), its body is a well-formed term closed at depth n, and the rows
+;;; are ACYCLIC (a row's body applies only codes of earlier rows), as a def-functoid's body names only
+;;; functoids already registered.
+(def-predicate 'FUN-DEF '(mcfh_ mcfn_ mcfb_)
+  '(AND (= mcfh_ 32) (AND (= mcfn_ 2) (= mcfb_ (ENC-SEP (EBVAR 0) (ENC-IN (EBVAR 0) (EBVAR 2)))))))
+(notation! 'FUN-DEF 'kind 'predicate 'arity 3 'english "the functoid code $1 has arity $2 and body $3")
+;; The body opened at the first n entries of a list, index i - 1 at the i-th entry, by recursion on n.
+(def-by-nn-recursion 'OPENL '(mcob_ mcol_) 'mcob_ '(mcon_ mcov_) '(EXPR-OPEN mcov_ mcon_ (NTH (succ mcon_) mcol_)))
+(notation! 'OPENL 'kind 'functoid 'arity 3 'english "$1 opened at the first $3 entries of $2")
+;;; THE RULE (functoid-beta-eq; the K2 note's 4.4 row, the 44th relation).
+;;;   F(l) == b[l]   for every row (F, |l|, b) of the table, l any list of terms; no premise.
+;;; THE CLAIM: a functoid application is quasi-equal to its instantiated body at EVERY argument list,
+;;; denoting or not: the kernel's functoid-beta contracts (apply-functoid R v ..) with no condition on the
+;;; v (rule-checkers-logic.scm, functoid-beta), and a def-functoid's unfold macete owes nothing
+;;; (rule-checkers-rewrite.scm, the macete kind functoid); the unfolding is schematic (2026-10-01).  It is
+;;; not derivable from a member of T: an instance of an encoded definition ALL x. F(x) == b[x] owes the
+;;; definedness of the arguments (CR-FORALL-ELIM), so it would give the rule at denoting arguments only.
+;;; WHAT IT DOES NOT SAY: (1) the conclusion is the QUASI-equation; F(l) = b[l] would assert that both
+;;; denote (META control functoid-beta-eq-refuses-eq, meta-core-laws.scm).  (2) Nothing is said of the
+;;; BODY of a row under rewriting: there is no clause of contextual rewriting inside a row (in the kernel,
+;;; inside a record's body, the parameter ranges over terms that need not denote, so a rewrite valid at
+;;; every object is not valid there; META-FUN report, finding 1.1).  It is defined LAST, after 4.9.
+(mc--cr! 'CR-FUNCTOID-BETA-EQ "the core functoid-beta-eq relates $2 to $3"
+  (mc--ex '(mcg_ mchd_ mcl_ mcb_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-QEQ (EAPP mchd_ mcl_) (OPENL mcb_ mcl_ (LENGTH mcl_)))))
+             '(FUN-DEF mchd_ (LENGTH mcl_) mcb_)
+             '(= mchs_ (LIST)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; 5. CORE-RULE, CORE-CLOSED, DERIVABLE.

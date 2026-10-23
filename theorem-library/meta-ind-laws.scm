@@ -2153,3 +2153,179 @@
   (dk-cite! 'adm-pred1-unfold 'tt g k s b)
   (mi-lane-close!))
 (qed 'def-pred-unfold-derived)
+
+;;; -----------------------------------------------------------------------
+;;; M. STAGE 7 OF CONTEXTUAL REWRITING: THE BODIES OF COMP AND IOTA (agent META-FUN, 2026-10-21; the user's
+;;; decision of 2026-10-21).  The IOTA half of the clause RW-DESC-BODY (structure-library/meta-cr.scm) is the
+;;; core rule IOTA-CR; the COMP half is DERIVED, here, from the encoded class-extensionality AX-CLASS-EXT
+;;; (structure-library/meta-ind.scm), a member of T: no core rule is needed for it.  The law of the whole
+;;; clause is eqv-desc-body; with it CR is closed at stage 7, the last stage (cr-closed-7, cr-7, cr-goal-7),
+;;; for every T that contains AX-CLASS-EXT and is a set of sentences.  This section is here and not in
+;;; meta-cr-laws.scm because the instances of the axiom need this file's OPEN calculator (section D.3).
+
+(set! mi-const-laws (append mi-const-laws '((AX-CLASS-EXT . ax-class-ext-def))))
+
+;; THE DERIVED RULE: from [g, a(y) iff b(y)], y a name free neither in g nor in the formula
+;; ALL x. (x in COMP a iff x in COMP b), the comprehensions are quasi-equal.
+;;  1. [g + (y in COMP a), y in COMP b] by comprehension out (y a set, a(y)), the premise, comprehension in;
+;;     the converse likewise; iff-intro and forall-intro at y give [g, ALL x. x in COMP a iff x in COMP b].
+;;  2. AX-CLASS-EXT by theorem-assumption, instantiated at COMP a and at COMP b (each instance owes the
+;;     definedness of the comprehension, which CR-DEF-COMP gives with no premise), and backchain:
+;;     [g, COMP a = COMP b].  3. der-eq-qeq.
+(sp (make-wff '(FORALL tt (FORALL g (FORALL a (FORALL b (FORALL y
+   (IMPLIES (SUBSET tt CLF) (IMPLIES (IN AX-CLASS-EXT tt) (IMPLIES (IN g CTX-SET)
+   (IMPLIES (IN (ENC-COMP a) CLT) (IMPLIES (IN (ENC-COMP b) CLT) (IMPLIES (IN y NN)
+   (IMPLIES (NOT (IN y (UNION (CTX-FV g) (EXPR-FV (ENC-IFF (ENC-IN (EBVAR 0) (ENC-COMP a)) (ENC-IN (EBVAR 0) (ENC-COMP b)))))))
+   (IMPLIES (IN (LIST g (ENC-IFF (EXPR-OPEN a 0 (EFVAR y)) (EXPR-OPEN b 0 (EFVAR y)))) (DERIVABLE tt))
+     (IN (LIST g (ENC-QEQ (ENC-COMP a) (ENC-COMP b))) (DERIVABLE tt)))))))))))))))))
+(dk-peel!)
+(let* ((ca '(ENC-COMP a)) (cb '(ENC-COMP b)) (ey '(EFVAR y))
+       (bd `(ENC-IFF (ENC-IN (EBVAR 0) ,ca) (ENC-IN (EBVAR 0) ,cb))) (all `(ENC-ALL ,bd))
+       (ay '(EXPR-OPEN a 0 (EFVAR y))) (by '(EXPR-OPEN b 0 (EFVAR y))) (prem `(ENC-IFF ,ay ,by))
+       (ya `(ENC-IN ,ey ,ca)) (yb `(ENC-IN ,ey ,cb)) (ysc `(ENC-IN ,ey ENC-SETC))
+       (eqab `(ENC-EQ ,ca ,cb)))
+  (dk-cite! 'der-in-seq 'tt `(LIST g ,prem))
+  (dk-split! (dk-meta-iff-r! (dk-meta-iff! 'seq-iff 'g prem)))
+  (dk-split! (dk-cite! 'clf-iff-elim ay by))
+  (dk-cite! 'clt-efvar 'y)
+  (let* ((axu (mi-unfold-const! 'AX-CLASS-EXT)) (axb (cadr axu))
+         (i1 (mi-open2! axb 0 ca)) (i1b (cadr i1)) (i2 (mi-open2! i1b 0 cb))
+         (g1 (mi+ 'g axu)) (g2 (mi+ g1 i1)) (g3 (mi+ g2 i2)))
+    (if (not (equal? i2 `(ENC-IMP ,all ,eqab)))
+        (error "der-comp-cr: the instance is not the expected one" (expression->string i2)))
+    (for-each mi-tcl! (list axu i1 i2))
+    (mi-prune!)
+    ;; 1. the two directions, then the universal
+    (for-each
+      (lambda (ysrc ydst p q fwd?)
+        (let* ((h1 (mi+ 'g ysrc)) (op `(EXPR-OPEN ,p 0 ,ey)) (oq `(EXPR-OPEN ,q 0 ,ey))
+               (rr `(ENC-AND ,ysc ,op)))
+          (mi-derive2!
+            `(lemma (,h1 ==> ,ydst) der-comp-in (,h1 ,q ,ey)
+               (cut (,h1 ==> ,ysc)
+                 (lemma (,h1 ==> ,rr) der-iff-r (,h1 ,ysrc ,rr) (comp-mem (,h1 ==> (ENC-IFF ,ysrc ,rr))) (assumption (,h1 ==> ,ysrc)))
+                 (and-elim (,(mi+ h1 rr) ==> ,ysc) (assumption (,(mi+ h1 rr ysc op) ==> ,ysc))))
+               (lemma (,h1 ==> ,oq) ,(if fwd? 'der-iff-r 'der-iff-l) (,h1 ,ay ,by)
+                 (weakening (,h1 ==> ,prem) (given (g ==> ,prem)))
+                 (lemma (,h1 ==> ,op) der-comp-out (,h1 ,p ,ey) (assumption (,h1 ==> ,ysrc))))))))
+      (list ya yb) (list yb ya) (list 'a 'b) (list 'b 'a) (list #t #f))
+    (mi-derive2! `(iff-intro (g ==> (ENC-IFF ,ya ,yb)) (given (,(mi+ 'g ya) ==> ,yb)) (given (,(mi+ 'g yb) ==> ,ya))))
+    (let ((o (mi-open2! bd 0 ey)))
+      (if (not (equal? o `(ENC-IFF ,ya ,yb)))
+          (error "der-comp-cr: the opened body is not the expected one" (expression->string o)))
+      (mi-conv! 'g `(EXPR-OPEN ,bd 0 ,ey) `(= (EXPR-OPEN ,bd 0 ,ey) ,o)))
+    (mi-derive2! `(forall-intro (g ==> ,all) (given (g ==> (EXPR-OPEN ,bd 0 ,ey)))))
+    ;; 2. the axiom at the two comprehensions
+    (mi-derive2! `(backchain (,g3 ==> ,eqab) (weakening (,g3 ==> ,all) (given (g ==> ,all)))))
+    (mi-conv! (mi+ g2 `(EXPR-OPEN ,i1b 0 ,cb)) eqab `(= (EXPR-OPEN ,i1b 0 ,cb) ,i2))
+    (mi-derive2! `(forall-elim (,g2 ==> ,eqab) (given (,(mi+ g2 `(EXPR-OPEN ,i1b 0 ,cb)) ==> ,eqab)) (def-comp (,g2 ==> (ENC-EQ ,cb ,cb)))))
+    (mi-conv! (mi+ g1 `(EXPR-OPEN ,axb 0 ,ca)) eqab `(= (EXPR-OPEN ,axb 0 ,ca) ,i1))
+    (mi-derive2! `(cut (g ==> ,eqab) (theorem-assumption (g ==> ,axu))
+                   (forall-elim (,g1 ==> ,eqab) (given (,(mi+ g1 `(EXPR-OPEN ,axb 0 ,ca)) ==> ,eqab)) (def-comp (,g1 ==> (ENC-EQ ,ca ,ca))))))
+    ;; 3. the quasi-equation
+    (dk-cite! 'der-eq-qeq 'tt 'g ca cb)
+    (ass)))
+(qed 'der-comp-cr)
+
+;; THE LAW OF THE STAGE-7 CLAUSE: RW-DESC-BODY preserves EQV(T), the COMP case by der-comp-cr, the IOTA case by
+;; the core rule IOTA-CR (as eqv-iota-body, meta-cr-laws.scm section J, for the clause at a given tuple).
+(sp (make-wff '(FORALL jj (FORALL tt (FORALL x (IMPLIES (SUBSET tt CLF) (IMPLIES (IN AX-CLASS-EXT tt)
+   (IMPLIES (RW-DESC-BODY jj (EQV tt) x) (IMPLIES (IN x RW-UNIV) (IN x (EQV tt)))))))))))
+(dk-peel!)
+(let* ((ex (dk-landed-1 (lambda () (mac-h 'RW-DESC-BODY '(RW-DESC-BODY jj (EQV tt) x)))))
+       (vs (dk-meta-unpack! ex))
+       (body (find-first (lambda (f) (and (dk-head-is? f 'AND) (dk-contains? f 'x))) (dk-asms))))
+  (if body (dk-split! body))
+  (let* ((g (car vs)) (h (cadr vs)) (a (caddr vs)) (b (cadddr vs)) (fs (list-ref vs 4))
+         (ea `(EBIND ,h 1 (LIST) ,a)) (eb `(EBIND ,h 1 (LIST) ,b))
+         (lit `(LIST 1 ,g ,ea ,eb))
+         (u (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f fs) (dk-contains? f 'EQV))) (dk-asms))
+                (error "eqv-desc-body: no cofinite universal")))
+         (o (or (find-first (lambda (f) (and (dk-head-is? f 'OR) (equal? (cadr f) `(= ,h 23)))) (dk-asms))
+                (error "eqv-desc-body: no head condition"))))
+    (if (not (dk-asm? `(= x ,lit))) (error "eqv-desc-body: the clause's tuple is not" (expression->string lit)))
+    (dk-rewrite-h! '(IN x RW-UNIV) 'x lit)
+    (dk-cite! 'rw-univ-ctx 1 g ea eb)
+    (subst `(= x ,lit))
+    (dk-meta-or-each! o
+      (lambda (d)
+        (let* ((hv (caddr d)) (cmp? (equal? hv 23))
+               (e1 `(EBIND ,hv 1 (LIST) ,a)) (e2 `(EBIND ,hv 1 (LIST) ,b))
+               (ca (if cmp? `(ENC-COMP ,a) `(ENC-IOTA ,a))) (cb (if cmp? `(ENC-COMP ,b) `(ENC-IOTA ,b)))
+               (unf (if cmp? 'enc-comp-unfold 'enc-iota-unfold)))
+          (subst d)
+          (for-each (lambda (v e0 e c)
+                      (let ((t1 (dk-rewrite-h! `(IN ,e0 CLT) h hv)))
+                        (dk-cite! unf v)
+                        (dk-rewrite-h! t1 e c)))
+                    (list a b) (list ea eb) (list e1 e2) (list ca cb))
+          (let ((ff (if cmp? `(ENC-IFF (ENC-IN (EBVAR 0) ,ca) (ENC-IN (EBVAR 0) ,cb)) `(ENC-QEQ ,ca ,cb))))
+            (if cmp?
+                (mi-expr! ff)
+                (begin (dk-cite! 'clf-qeq-intro ca cb)
+                       (dk-split-all! (list (dk-meta-iff-r! (dk-meta-iff! 'clf-iff ff))))))
+            (let* ((z (dk-skolem! (dk-cite! 'mr-fresh fs g ff) #t))
+                   (az `(EXPR-OPEN ,a 0 (EFVAR ,z))) (bz `(EXPR-OPEN ,b 0 (EFVAR ,z))))
+              (dk-apply! u z)
+              (dk-split! (dk-cite! 'eqv-f-open 'tt g az bz))
+              (dk-cite! 'der-in-seq 'tt `(LIST ,g (ENC-IFF ,az ,bz)))
+              (if cmp?
+                  (dk-cite! 'der-comp-cr 'tt g a b z)
+                  (dk-meta-derive! 'tt `(iota-cr (,g ==> (ENC-QEQ ,ca ,cb)) (given (,g ==> (ENC-IFF ,az ,bz))) (y := ,z))))
+              (let* ((d1 `(IN (LIST ,g (ENC-QEQ ,ca ,cb)) (DERIVABLE tt)))
+                     (d2 (dk-rewrite-h! d1 ca e1)))
+                (dk-rewrite-h! d2 cb e2)
+                (dk-cite! 'eqv-t-intro 'tt g e1 e2)
+                (ass)))))))))
+(qed 'eqv-desc-body)
+
+;; CR AT STAGE 7, the last stage: every clause of RW-RULE has its law (meta-cr-laws.scm, sections C-H, K; above).
+(define mi-clause-laws7
+  '((RW-TOP . eqv-top) (RW-NOT . eqv-not) (RW-AND-L . eqv-and-l) (RW-AND-R . eqv-and-r)
+    (RW-OR-L . eqv-or-l) (RW-OR-R . eqv-or-r) (RW-IMP-L . eqv-imp-l) (RW-IMP-R . eqv-imp-r)
+    (RW-IFF-L . eqv-iff-l) (RW-IFF-R . eqv-iff-r) (RW-REL-L . eqv-rel-l) (RW-REL-R . eqv-rel-r)
+    (RW-ALL . eqv-all) (RW-EX . eqv-ex)
+    (RW-IF-COND . eqv-if-cond) (RW-IF-THEN . eqv-if-then) (RW-IF-ELSE . eqv-if-else)
+    (RW-PRED . eqv-pred) (RW-TAPP . eqv-tapp) (RW-BIND-DOM . eqv-bind-dom)
+    (RW-SEP-BODY . eqv-sep-body) (RW-TBIND-BODY . eqv-tbind-body) (RW-DESC-BODY . eqv-desc-body)))
+(sp (make-wff '(FORALL tt (FORALL jj (IMPLIES (SUBSET tt CLF) (IMPLIES (IN AX-CLASS-EXT tt)
+   (IMPLIES (SUBSET jj (EQV tt)) (RW-CLOSED jj 7 (EQV tt)))))))))
+(dk-peel!)
+(mac 'rw-closed)
+(dk-peel!)
+(let* ((r (find-first (lambda (f) (dk-head-is? f 'RW-RULE)) (dk-asms)))
+       (o (dk-landed-1 (lambda () (mac-h 'rw-rule r)))))
+  (dk-meta-or-each! o
+    (lambda (d)
+      (let* ((parts (dk-split! d))
+             (le (find-first (lambda (f) (dk-head-is? f '<=)) parts))
+             (cl (find-first (lambda (f) (not (dk-head-is? f '<=))) parts))
+             (law (assq (car cl) mi-clause-laws7)))
+        (if (> (cadr le) 7)
+            (begin (dk-have! `(NOT ,le) (lambda () (arith))) (ai `(NOT ,le)))
+            (begin
+              (if (not law) (error "cr-closed-7: no EQV law for the clause" (car cl)))
+              (dk-cite! (cdr law) 'jj 'tt (cadddr cl))
+              (ass)))))))
+(qed 'cr-closed-7)
+
+(sp (make-wff '(FORALL tt (FORALL jj (FORALL x (IMPLIES (SUBSET tt CLF) (IMPLIES (IN AX-CLASS-EXT tt)
+   (IMPLIES (SUBSET jj (EQV tt)) (IMPLIES (IN x (REWR jj 7)) (IN x (EQV tt)))))))))))
+(dk-peel!)
+(dk-cite! 'cr-closed-7 'tt 'jj)
+(fact 'eqv-in-power 'tt)
+(dk-apply! (dk-cite! 'rewr-least 'jj 7 '(EQV tt)) 'x)
+(ass)
+(qed 'cr-7)
+
+;; THE BRIEF'S FORM OF CR at every stage: a one-position rewrite of the goal anywhere (binder bodies
+;; included), justified in the local context, reduces the goal to the rewritten goal.
+(sp (make-wff '(FORALL tt (FORALL jj (FORALL g (FORALL fo (FORALL fo2 (IMPLIES (SUBSET tt CLF) (IMPLIES (IN AX-CLASS-EXT tt)
+   (IMPLIES (SUBSET jj (EQV tt)) (IMPLIES (IN (LIST 2 g fo fo2) (REWR jj 7))
+     (IMPLIES (IN (LIST g fo2) (DERIVABLE tt)) (IN (LIST g fo) (DERIVABLE tt))))))))))))))
+(dk-peel!)
+(dk-cite! 'cr-7 'tt 'jj '(LIST 2 g fo fo2))
+(dk-split! (dk-cite! 'eqv-f-open 'tt 'g 'fo 'fo2))
+(dk-cite! 'der-iff-l 'tt 'g 'fo 'fo2)
+(ass)
+(qed 'cr-goal-7)

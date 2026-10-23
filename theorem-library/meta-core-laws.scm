@@ -836,8 +836,14 @@
     ;; (structure-library/meta-core.scm 4.7, (8)).
     CR-DEF-STRICT-PRED
     ;; IOTA-CR, 2026-10-20 (the user's decision of 2026-10-15 / 10-16): the congruence rule for
-    ;; descriptions (structure-library/meta-core.scm 4.8), the last disjunct of CORE-RULE.
-    CR-IOTA-CR))
+    ;; descriptions (structure-library/meta-core.scm 4.8).
+    CR-IOTA-CR
+    ;; META-FUN, 2026-10-21 (the user's decision of 2026-10-21): the congruence rule for the term
+    ;; binders SEP, BIG-UNION, VNB-LAMBDA (structure-library/meta-core.scm 4.9).
+    CR-TBIND-CR
+    ;; META-FUN, 2026-10-21 (the user's decision of 2026-10-21, B1): functoid-beta-eq over the functoid table
+    ;; FUN-DEF (structure-library/meta-core.scm 4.10), the last disjunct of CORE-RULE.
+    CR-FUNCTOID-BETA-EQ))
 (define (mc-or-pick! target)
   (let loop ()
     (let ((g (dk-goal)))
@@ -879,6 +885,83 @@
   (dk-have! '(NOT (= 8 9)) (lambda () (arith)))
   (ai '(NOT (= 8 9))))
 (qed 'iota-cr-refuses-eq)
+
+;;; THE CONTROL OF TBIND-CR (structure-library/meta-core.scm 4.9): no instance concludes the STRICT equation
+;;; of the two binder terms (head 8); every instance concludes the quasi-equation (head 9).  The strict form
+;;; would assert that the binder terms denote, which fails over a non-denoting domain.
+(sp (make-wff '(FORALL tt (FORALL hs (FORALL g (FORALL h (FORALL d (FORALL a (FORALL b (IMPLIES (IN g CTX-SET)
+   (IMPLIES (IN (EBIND h 1 (LIST d) a) CLT) (IMPLIES (IN (EBIND h 1 (LIST d) b) CLT)
+     (NOT (CR-TBIND-CR tt hs (LIST g (ENC-EQ (EBIND h 1 (LIST d) a) (EBIND h 1 (LIST d) b)))))))))))))))))
+(dk-peel!)
+(if (dk-head-is? (dk-goal) 'NOT) (di))
+(let* ((c '(LIST g (ENC-EQ (EBIND h 1 (LIST d) a) (EBIND h 1 (LIST d) b))))
+       (ex (dk-meta-iff-r! (dk-meta-iff! 'cr-tbind-cr 'tt 'hs c)))
+       (vs (dk-meta-unpack! ex))
+       (ceq (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) c))) (dk-asms)))
+       (c2 (caddr ceq)) (lhs (caddr c)) (rhs (caddr c2)))
+  (dk-have! `(= ,lhs ,rhs) (lambda () (dk-meta-component! c c2 2)))
+  (let* ((u1 (dk-cite! 'enc-eq-unfold (cadr lhs) (caddr lhs))) (e1 (caddr u1))
+         (f1 (dk-rewrite-h! `(= ,lhs ,rhs) lhs e1))
+         (u2 (dk-cite! 'enc-qeq-unfold (cadr rhs) (caddr rhs))) (e2 (caddr u2))
+         (f2 (dk-rewrite-h! f1 rhs e2)))
+    (dk-split! (dk-cite! 'eapp-injective 8 (caddr e1) 9 (caddr e2))))
+  (dk-have! '(NOT (= 8 9)) (lambda () (arith)))
+  (ai '(NOT (= 8 9))))
+(qed 'tbind-cr-refuses-eq)
+
+;;; THE CONTROL OF FUNCTOID-BETA-EQ (structure-library/meta-core.scm 4.10): no instance concludes the STRICT
+;;; equation F(l) = b[l]; the strict form would assert that both sides denote.
+(sp (make-wff '(FORALL tt (FORALL hs (FORALL g (FORALL h (FORALL l (FORALL b (IMPLIES (IN g CTX-SET)
+   (IMPLIES (IN (EAPP h l) CLT) (IMPLIES (IN (OPENL b l (LENGTH l)) CLT)
+     (NOT (CR-FUNCTOID-BETA-EQ tt hs (LIST g (ENC-EQ (EAPP h l) (OPENL b l (LENGTH l)))))))))))))))))
+(dk-peel!)
+(if (dk-head-is? (dk-goal) 'NOT) (di))
+(let* ((c '(LIST g (ENC-EQ (EAPP h l) (OPENL b l (LENGTH l)))))
+       (ex (dk-meta-iff-r! (dk-meta-iff! 'cr-functoid-beta-eq 'tt 'hs c)))
+       (vs (dk-meta-unpack! ex))
+       (ceq (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) c))) (dk-asms)))
+       (c2 (caddr ceq)) (lhs (caddr c)) (rhs (caddr c2)))
+  (dk-have! `(= ,lhs ,rhs) (lambda () (dk-meta-component! c c2 2)))
+  (let* ((u1 (dk-cite! 'enc-eq-unfold (cadr lhs) (caddr lhs))) (e1 (caddr u1))
+         (f1 (dk-rewrite-h! `(= ,lhs ,rhs) lhs e1))
+         (u2 (dk-cite! 'enc-qeq-unfold (cadr rhs) (caddr rhs))) (e2 (caddr u2))
+         (f2 (dk-rewrite-h! f1 rhs e2)))
+    (dk-split! (dk-cite! 'eapp-injective 8 (caddr e1) 9 (caddr e2))))
+  (dk-have! '(NOT (= 8 9)) (lambda () (arith)))
+  (ai '(NOT (= 8 9))))
+(qed 'functoid-beta-eq-refuses-eq)
+
+;;; THE TABLE'S CODES (the precondition of functoid-beta-eq's soundness, for the rows present): a row's code is
+;;; at least 32, and it is neither a strict nor a total constructor head, so that no definedness schema of 4.7
+;;; reads a functoid application as a constructor application.
+(sp (make-wff '(FORALL h (FORALL n (FORALL b (IMPLIES (FUN-DEF h n b)
+   (AND (<= 32 h) (AND (NOT (STRICT-HEAD h)) (NOT (TOTAL-HEAD h))))))))))
+(dk-peel!)
+(let ((parts (dk-split! (dk-landed-1 (lambda () (mac-h 'fun-def '(FUN-DEF h n b)))))))
+  (subst '(= h 32))
+  (dk-have! '(<= 32 32) (lambda () (arith)))
+  (dk-have! '(NOT (STRICT-HEAD 32))
+    (lambda () (di)
+      (dk-meta-or-each! (dk-landed-1 (lambda () (mac-h 'strict-head '(STRICT-HEAD 32))))
+        (lambda (d)
+          (let loop ((d d))
+            (cond ((dk-head-is? d 'OR) (dk-meta-or-each! d loop))
+                  ((dk-head-is? d 'AND)
+                   (let* ((ps (dk-split! d)) (bad (find-first (lambda (f) (not (eq? #t (vnb-guard (lambda () (arith-eval-formula f)))))) ps)))
+                     (dk-have! `(NOT ,bad) (lambda () (arith))) (ai `(NOT ,bad))))
+                  (#t (dk-have! `(NOT ,d) (lambda () (arith))) (ai `(NOT ,d)))))))))
+  (dk-have! '(NOT (TOTAL-HEAD 32))
+    (lambda () (di)
+      (dk-meta-or-each! (dk-landed-1 (lambda () (mac-h 'total-head '(TOTAL-HEAD 32))))
+        (lambda (d)
+          (let loop ((d d))
+            (cond ((dk-head-is? d 'OR) (dk-meta-or-each! d loop))
+                  ((dk-head-is? d 'AND)
+                   (let* ((ps (dk-split! d)) (bad (find-first (lambda (f) (not (eq? #t (vnb-guard (lambda () (arith-eval-formula f)))))) ps)))
+                     (dk-have! `(NOT ,bad) (lambda () (arith))) (ai `(NOT ,bad))))
+                  (#t (dk-have! `(NOT ,d) (lambda () (arith))) (ai `(NOT ,d)))))))))
+  (dk-conj-close! (lambda () (ass))))
+(qed 'fun-def-heads)
 
 ;;; The closure laws the admissibility proofs cite, in CONCRETE form: the sequents written out,
 ;;; the side conditions as hypotheses, the conclusion a sequent.

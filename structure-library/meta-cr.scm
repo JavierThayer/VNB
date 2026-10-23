@@ -373,14 +373,30 @@
     (J-LB "the local lambda redexes over $1, the argument in the domain")
     (J-MAC "the local instances of the one-variable macetes of $1, the condition derivable and the instance denoting")))
 
+;; functoid-beta (agent META-FUN, 2026-10-21; the user's decision B1): F(l) -> b[l] for a row (F, |l|, b) of
+;; the functoid table FUN-DEF (structure-library/meta-core.scm 4.10), at ANY argument list: no side condition,
+;; as the kernel's functoid-beta (an anonymous record, lambda-lifted into a row) and the unfold macete of a
+;; def-functoid (kind functoid, which owes nothing) have none.  The parameter T is unused (the J sets of the
+;; other rules read DERIVABLE(T)); it keeps the shape REL-REWRITE-1 and mr-adm! take.
+(def-functoid 'J-FB '(mrt_)
+  `(SEP mrx_ RW-UNIV
+     ,(mr--ex '(mrg_ mrh_ mrl_ mrb_)
+        (mr--and '(= mrx_ (LIST 1 mrg_ (EAPP mrh_ mrl_) (OPENL mrb_ mrl_ (LENGTH mrl_))))
+                 '(FUN-DEF mrh_ (LENGTH mrl_) mrb_)
+                 '(IN (EAPP mrh_ mrl_) CLT) '(IN (OPENL mrb_ mrl_ (LENGTH mrl_)) CLT)))))
+(notation! 'J-FB 'kind 'functoid 'arity 1 'english "the local functoid redexes over $1, at any arguments")
+
 ;; The one-position kernel relations.  functoid-beta, under META-2's recommendation 4.4 (a functoid's
 ;; definition an encoded == equation of T), is the unconditional case of REL-MACETE-1 (c = TRUTH):
-;; see the report, section 4, for why that recommendation is not adopted as it stands.
+;; see the report, section 4, for why that recommendation is not adopted as it stands.  It is
+;; REL-FUNCTOID-BETA-1 below, over the functoid table (META-FUN, 2026-10-21).
 (def-predicate 'REL-NTH-REDUCE-1 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-1 (J-NTH mrt_) mrhs_ mrc_))
 (def-predicate 'REL-LENGTH-REDUCE-1 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-1 (J-LEN mrt_) mrhs_ mrc_))
 (def-predicate 'REL-LAMBDA-BETA-1 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-1 (J-LB mrt_) mrhs_ mrc_))
 (def-predicate 'REL-LAMBDA-BETA-HYP-1 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-HYP-1 (J-LB mrt_) mrhs_ mrc_))
 (def-predicate 'REL-MACETE-1 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-1 (J-MAC mrt_) mrhs_ mrc_))
 (def-predicate 'REL-MACETE-HYP-1 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-HYP-1 (J-MAC mrt_) mrhs_ mrc_))
+(def-predicate 'REL-FUNCTOID-BETA-1 '(mrt_ mrhs_ mrc_) '(REL-REWRITE-1 (J-FB mrt_) mrhs_ mrc_))
 (for-each (lambda (n) (notation! n 'kind 'predicate 'arity 3 'english "the kernel rule, at one position, relates $2 to $3"))
-  '(REL-NTH-REDUCE-1 REL-LENGTH-REDUCE-1 REL-LAMBDA-BETA-1 REL-LAMBDA-BETA-HYP-1 REL-MACETE-1 REL-MACETE-HYP-1))
+  '(REL-NTH-REDUCE-1 REL-LENGTH-REDUCE-1 REL-LAMBDA-BETA-1 REL-LAMBDA-BETA-HYP-1 REL-MACETE-1 REL-MACETE-HYP-1
+    REL-FUNCTOID-BETA-1))
