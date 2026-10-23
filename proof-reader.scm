@@ -2047,7 +2047,36 @@
                (loop (cdr o) 1 types)))
           ((eq? (car o) 'with-types) (loop (cdr o) depth #t))
           (#t (error "display-proof: unknown option" (car o))))))
+;;; A name that is not a theorem is said to be one, with the names that contain it
+;;; (the user typed frechet-open-mapping, a FILE name, 2026-10-21, and was told "no
+;;; proof script found": true, and no help).
+(define (display-proof--near-names name)
+  ;; the names containing it whole, else ranked by how many of its words (3 letters
+  ;; or more) they contain: frechet-open-mapping finds open-mapping-theorem first
+  (let* ((s (string-downcase (symbol->string name)))
+         (all (theorem-names))
+         (hits (filter (lambda (n) (string-search-forward s (symbol->string n) 0)) all)))
+    (if (pair? hits) hits
+        (let* ((words (filter (lambda (w) (>= (string-length w) 3)) (burst-string s #\- #t)))
+               (score (lambda (n) (let ((ns (symbol->string n)))
+                                    (length (filter (lambda (w) (string-search-forward w ns 0)) words)))))
+               (scored (filter (lambda (p) (> (cdr p) 0)) (map (lambda (n) (cons n (score n))) all))))
+          (map car (sort scored (lambda (a b) (> (cdr a) (cdr b)))))))))
+
+(define (display-proof--check-name! name)
+  (if (not (hash-table-ref/default *theorem-table* name #f))
+      (let* ((near (display-proof--near-names name))
+             (shown (list-head near (min 12 (length near)))))
+        (display ";; display-proof: there is no theorem named ") (display name) (newline)
+        (if (pair? shown)
+            (begin
+              (display ";; the closest names") (display (if (> (length near) 12) (string-append " (12 of " (number->string (length near)) ")") ""))
+              (display ":") (newline)
+              (for-each (lambda (n) (display ";;   ") (display n) (newline)) shown)))
+        (error "display-proof: no theorem named" name))))
+
 (define (display-proof--to-pdf name pdf-path)
+  (display-proof--check-name! name)
   (load-option 'synchronous-subprocess)
   (if (not (hash-table-ref/default *proof-live-trace* name #f))
       (display-proof--run-source! name))
