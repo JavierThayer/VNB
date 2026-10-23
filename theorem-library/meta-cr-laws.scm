@@ -1629,3 +1629,62 @@
 (qed 'adm-macete-1)
 (mr-adm! 'REL-MACETE-HYP-1 'J-MAC 'j-mac-sub 'adm-rewrite-hyp-1)
 (qed 'adm-macete-hyp-1)
+
+;;; -----------------------------------------------------------------------
+;;; J. STAGE 7, THE IOTA HALF (agent IOTA-CR, 2026-10-20; the user's decision of 2026-10-15 / 10-16):
+;;; the body of a description rewritten.  The clause RW-DESC-BODY at head 25 preserves EQV(T) by the
+;;; core rule IOTA-CR (structure-library/meta-core.scm 4.8): the cofinite premise is opened at a name z
+;;; outside the exception set and fresh for the context and the conclusion (mr-fresh), and IOTA-CR at z
+;;; concludes the quasi-equation of the two descriptions.  This is the case of CR's induction on
+;;; positions at an IOTA body (docs/meta-k2-admissibility-2026-10-08.md, section 17, "Effect").  The
+;;; COMP half of the clause (head 23) has no core rule, and stage 6 (the bodies of SEP, BIG-UNION,
+;;; VNB-LAMBDA) has no law, so there is no cr-closed-7: stages form a prefix (RW-RULE).
+(sp (make-wff '(FORALL mrp_ (== (ENC-IOTA mrp_) (EBIND 25 1 (LIST) mrp_)))))
+(di) (mac 'enc-iota) (qrfl)
+(qed 'enc-iota-unfold)
+
+(sp (make-wff '(FORALL jj (FORALL tt (FORALL g (FORALL a (FORALL b
+   (IMPLIES (RW-DESC-BODY jj (EQV tt) (LIST 1 g (ENC-IOTA a) (ENC-IOTA b)))
+     (IMPLIES (IN (LIST 1 g (ENC-IOTA a) (ENC-IOTA b)) RW-UNIV) (IN (LIST 1 g (ENC-IOTA a) (ENC-IOTA b)) (EQV tt)))))))))))
+(dk-peel!)
+(let* ((x '(LIST 1 g (ENC-IOTA a) (ENC-IOTA b)))
+       (ia '(ENC-IOTA a)) (ib '(ENC-IOTA b)) (f `(ENC-QEQ ,ia ,ib))
+       (ex (dk-landed-1 (lambda () (mac-h 'RW-DESC-BODY `(RW-DESC-BODY jj (EQV tt) ,x)))))
+       (vs (dk-meta-unpack! ex))
+       (body (find-first (lambda (f) (and (dk-head-is? f 'AND) (dk-contains? f x))) (dk-asms))))
+  (if body (dk-split! body))
+  (let* ((eqn (or (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) x))) (dk-asms))
+                  (error "eqv-iota-body: the clause's conclusion equation did not land")))
+         (l2 (caddr eqn)) (gp (caddr l2)) (eap (cadddr l2)) (ebp (list-ref l2 4))
+         (ap (list-ref eap 4)) (bp (list-ref ebp 4)) (fs (list-ref vs 4))
+         (u (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f fs) (dk-contains? f 'EQV))) (dk-asms))
+                (error "eqv-iota-body: no cofinite universal"))))
+    ;; the components: g = g', IOTA a = EBIND(h', 1, [], a'), IOTA b = EBIND(h', 1, [], b'), then a = a', b = b'
+    (dk-have! `(= g ,gp) (lambda () (dk-meta-component! x l2 2)))
+    (dk-have! `(= ,ia ,eap) (lambda () (dk-meta-component! x l2 3)))
+    (dk-have! `(= ,ib ,ebp) (lambda () (dk-meta-component! x l2 4)))
+    (for-each
+      (lambda (v vp iv ev)
+        (let* ((ue (caddr (dk-cite! 'enc-iota-unfold v)))
+               (e2 (dk-rewrite-h! `(= ,iv ,ev) iv ue)))
+          (dk-split! (dk-cite! 'ebind-injective 25 1 '(LIST) v (cadr ev) 1 '(LIST) vp))
+          ;; the typing of the description, from the clause's (IN EBIND(h', 1, [], v') CLT)
+          (dk-rewrite-h! `(IN ,ev CLT) ev iv)))
+      (list 'a 'b) (list ap bp) (list ia ib) (list eap ebp))
+    ;; the typings mr-fresh asks for
+    (dk-cite! 'rw-univ-ctx 1 'g ia ib)
+    (dk-cite! 'clf-qeq-intro ia ib)
+    (dk-split-all! (list (dk-meta-iff-r! (dk-meta-iff! 'clf-iff f))))
+    (let* ((z (dk-skolem! (dk-cite! 'mr-fresh fs 'g f) #t))
+           (az `(EXPR-OPEN a 0 (EFVAR ,z))) (bz `(EXPR-OPEN b 0 (EFVAR ,z)))
+           (m0 (dk-apply! u z))
+           (m1 (dk-rewrite-h! m0 gp 'g))
+           (m2 (dk-rewrite-h! m1 ap 'a))
+           (m3 (dk-rewrite-h! m2 bp 'b)))
+      (if (not (equal? m3 `(IN (LIST 2 g ,az ,bz) (EQV tt))))
+          (error "eqv-iota-body: the opened premise is not" (expression->string m3)))
+      (mr-open-prem! (list 2 'g az bz))
+      (dk-meta-derive! 'tt `(iota-cr (g ==> ,f) (given (g ==> (ENC-IFF ,az ,bz))) (y := ,z)))
+      (dk-cite! 'eqv-t-intro 'tt 'g ia ib)
+      (ass))))
+(qed 'eqv-iota-body)

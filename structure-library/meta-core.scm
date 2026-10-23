@@ -454,6 +454,9 @@
 ;;; ADMITTED LATER (the user's decision of 2026-10-17, "yes do the predicate case"; agent META-10):
 ;;; DEF-STRICT-PRED (META-5's row 6), the strictness of a predicate application, as (8) below, with the
 ;;; predicate codes PRED-CODE.
+;;; ADMITTED LATER (the user's decision of 2026-10-15 / 10-16; agent IOTA-CR, 2026-10-20): the congruence
+;;; rule for descriptions, IOTA-CR, as 4.8 below (a rule of 4.4 by subject, placed last for the order of
+;;; CORE-RULE's disjuncts).
 
 ;; The TOTAL class constructors (*total-term-heads*, primitive-inferences.scm): 11 UNION, 12
 ;; INTERSECTION, 13 CARTESIAN, 14 TUPLES, 19 FUN, 30 succ, 31 succ_ORD.  (Moved here from meta-def.scm,
@@ -590,6 +593,32 @@
              '(= (NTH 1 mcl_) (ECONST mck_)) '(PRED-CODE mck_)
              '(IN mci_ NN) '(<= 2 mci_) '(<= mci_ (LENGTH mcl_))
              '(= mchs_ (LIST (LIST mcg_ (EAPP 10 mcl_)))))))
+
+;;; 4.8 THE CONGRUENCE RULE FOR DESCRIPTIONS (IOTA-CR; the user's decision of 2026-10-15, option (1),
+;;; confirmed 2026-10-16; docs/meta-k2-admissibility-2026-10-08.md, section 17, rule 45 of the core).
+;;;   from  Gamma, y fresh |- phi(y) iff psi(y)  infer  Gamma |- (IOTA x. phi) == (IOTA x. psi).
+;;; THE CLAIM: two descriptions whose conditions are equivalent at an ARBITRARY value of the bound variable
+;;; are quasi-equal.  On VNB's semantics IOTA x. phi denotes the unique x satisfying phi when there is one,
+;;; and nothing otherwise; conditions equivalent at every x have the same satisfiers, hence the same unique
+;;; satisfier or the same absence of one.  It is not derivable over the rules above (section 17: no rule
+;;; concludes a == b from the non-denotation of both sides, and none yields the uniqueness of a witness
+;;; from the denotation of a description).
+;;; THE ENCODING.  The bodies p, q are opened at a free name y (EXPR-OPEN, index 0), and the premise
+;;; sequent has the conclusion's context: the bound variable adds no assumption.  The eigenvariable
+;;; condition is that of forsome-elim: y is free neither in the context nor in the CONCLUSION, whose free
+;;; names are those of p and q.
+;;; WHAT IT DOES NOT SAY: the conclusion is the QUASI-equation (head 9).  The strict IOTA x. phi =
+;;; IOTA x. psi would assert that the descriptions denote, and is false for two empty conditions.  META
+;;; control: iota-cr-refuses-eq (theorem-library/meta-core-laws.scm).  The rule is the IOTA half of the
+;;; stage-7 rewrite clause RW-DESC-BODY (structure-library/meta-cr.scm), whose law is eqv-iota-body
+;;; (theorem-library/meta-cr-laws.scm, section J); the COMP half has no core rule.
+;;; It is defined LAST, after (8), so that it is the last disjunct of CORE-RULE and no earlier disjunct
+;;; moves.
+(mc--cr! 'CR-IOTA-CR "the core congruence rule for descriptions relates $2 to $3"
+  (mc--ex '(mcg_ mcp_ mcq_ mcy_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-QEQ (ENC-IOTA mcp_) (ENC-IOTA mcq_)))) '(IN mcy_ NN)
+             '(NOT (IN mcy_ (UNION (CTX-FV mcg_) (EXPR-FV (ENC-QEQ (ENC-IOTA mcp_) (ENC-IOTA mcq_))))))
+             '(= mchs_ (LIST (LIST mcg_ (ENC-IFF (EXPR-OPEN mcp_ 0 (EFVAR mcy_)) (EXPR-OPEN mcq_ 0 (EFVAR mcy_)))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; 5. CORE-RULE, CORE-CLOSED, DERIVABLE.

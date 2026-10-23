@@ -834,7 +834,10 @@
     CR-DEF-STRICT-ARG CR-DEF-STRICT-DOM
     ;; META-10, 2026-10-17 (the user's decision): the strictness of a predicate application
     ;; (structure-library/meta-core.scm 4.7, (8)).
-    CR-DEF-STRICT-PRED))
+    CR-DEF-STRICT-PRED
+    ;; IOTA-CR, 2026-10-20 (the user's decision of 2026-10-15 / 10-16): the congruence rule for
+    ;; descriptions (structure-library/meta-core.scm 4.8), the last disjunct of CORE-RULE.
+    CR-IOTA-CR))
 (define (mc-or-pick! target)
   (let loop ()
     (let ((g (dk-goal)))
@@ -851,6 +854,31 @@
   (ass)
   (qed (dk-meta-law-name cr)))
 (for-each mc-closure-law! mc-core-names)
+
+;;; THE CONTROL OF IOTA-CR (structure-library/meta-core.scm 4.8): the relation has no instance whose
+;;; conclusion is the STRICT equation IOTA p = IOTA q (head 8): every instance concludes the quasi-equation
+;;; (head 9).  The strict form would assert that both descriptions denote, which is false for two empty
+;;; conditions.  (The typings make the conclusion sequent a term the certificate accepts, so that the
+;;; relation's defining equivalence can be instantiated at it.)
+(sp (make-wff '(FORALL tt (FORALL hs (FORALL g (FORALL a (FORALL b (IMPLIES (IN g CTX-SET)
+   (IMPLIES (IN (ENC-IOTA a) CLT) (IMPLIES (IN (ENC-IOTA b) CLT)
+     (NOT (CR-IOTA-CR tt hs (LIST g (ENC-EQ (ENC-IOTA a) (ENC-IOTA b)))))))))))))))
+(dk-peel!)
+(if (dk-head-is? (dk-goal) 'NOT) (di))
+(let* ((c '(LIST g (ENC-EQ (ENC-IOTA a) (ENC-IOTA b))))
+       (ex (dk-meta-iff-r! (dk-meta-iff! 'cr-iota-cr 'tt 'hs c)))
+       (vs (dk-meta-unpack! ex))
+       (ceq (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) c))) (dk-asms)))
+       (c2 (caddr ceq)) (lhs (caddr c)) (rhs (caddr c2)))
+  (dk-have! `(= ,lhs ,rhs) (lambda () (dk-meta-component! c c2 2)))
+  (let* ((u1 (dk-cite! 'enc-eq-unfold (cadr lhs) (caddr lhs))) (e1 (caddr u1))
+         (f1 (dk-rewrite-h! `(= ,lhs ,rhs) lhs e1))
+         (u2 (dk-cite! 'enc-qeq-unfold (cadr rhs) (caddr rhs))) (e2 (caddr u2))
+         (f2 (dk-rewrite-h! f1 rhs e2)))
+    (dk-split! (dk-cite! 'eapp-injective 8 (caddr e1) 9 (caddr e2))))
+  (dk-have! '(NOT (= 8 9)) (lambda () (arith)))
+  (ai '(NOT (= 8 9))))
+(qed 'iota-cr-refuses-eq)
 
 ;;; The closure laws the admissibility proofs cite, in CONCRETE form: the sequents written out,
 ;;; the side conditions as hypotheses, the conclusion a sequent.

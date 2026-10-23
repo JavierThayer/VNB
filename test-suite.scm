@@ -15609,6 +15609,43 @@
       (mac 'm10-neq)
       (and (= (length (dk-open-leaves)) 1)
            (begin (ass) (proof-done? *ps*))))))))
+;;; 2026-10-20, IOTA-CR: THE CONGRUENCE RULE FOR DESCRIPTIONS in the META core (structure-library/meta-core.scm 4.8;
+;;; docs/meta-k2-admissibility, section 17).  From [g, p(y) iff q(y)], y a name free neither in g nor in the
+;;; conclusion, the core derives [g, IOTA p == IOTA q].  The accepted check derives that sequent through the rule
+;;; (dk-derive! reads the relation CR-IOTA-CR off its definition, the closure law derivable-iota-cr puts it in
+;;; DERIVABLE through CORE-RULE's last disjunct); on the old core there is no such rule and the check errors.  The
+;;; controls: the rule refuses a premise whose bodies are not the conclusion's, a name not known to be fresh, and a
+;;; STRICT equation of the two descriptions (which would assert that they denote).
+(define (icr-goal concl prem fresh?)
+  (make-wff `(FORALL tt (FORALL g (FORALL p (FORALL q (FORALL icrr_ (FORALL y
+     (IMPLIES (IN g CTX-SET) (IMPLIES (IN (ENC-IOTA p) CLT) (IMPLIES (IN (ENC-IOTA q) CLT) (IMPLIES (IN y NN)
+       ,(let ((tail `(IMPLIES (IN (LIST g ,prem) (DERIVABLE tt)) (IN (LIST g ,concl) (DERIVABLE tt)))))
+          (if fresh?
+              `(IMPLIES (NOT (IN y (UNION (CTX-FV g) (EXPR-FV (ENC-QEQ (ENC-IOTA p) (ENC-IOTA q)))))) ,tail)
+              tail))))))))))))))
+(define icr-qeq '(ENC-QEQ (ENC-IOTA p) (ENC-IOTA q)))
+(define icr-iff '(ENC-IFF (EXPR-OPEN p 0 (EFVAR y)) (EXPR-OPEN q 0 (EFVAR y))))
+(define (icr-run! concl prem fresh?)
+  (fluid-let ((*ps* #f))
+    (sp (icr-goal concl prem fresh?))
+    (dk-peel!)
+    (dk-cite! 'clf-qeq-intro '(ENC-IOTA p) '(ENC-IOTA q))
+    (dk-derive! 'tt `(iota-cr (g ==> ,concl) (given (g ==> ,prem)) (y := y)))
+    (ass)
+    (proof-done? *ps*)))
+(check-true "IOTA-CR: the core derives [g, IOTA p == IOTA q] from [g, p(y) iff q(y)], y fresh (fails on the old core: no such rule)"
+  (lambda () (quietly (lambda () (icr-run! icr-qeq icr-iff #t)))))
+(check-error "IOTA-CR CONTROL: the rule refuses a premise whose bodies are not the conclusion's (p, r for p, q)"
+  (lambda () (quietly (lambda ()
+    (vnb-guard (lambda () (icr-run! icr-qeq '(ENC-IFF (EXPR-OPEN p 0 (EFVAR y)) (EXPR-OPEN icrr_ 0 (EFVAR y))) #t)))))))
+(check-error "IOTA-CR CONTROL: the rule refuses a name not known to be fresh for the context and the conclusion"
+  (lambda () (quietly (lambda () (vnb-guard (lambda () (icr-run! icr-qeq icr-iff #f)))))))
+(check-error "IOTA-CR CONTROL: the rule refuses the STRICT equation IOTA p = IOTA q"
+  (lambda () (quietly (lambda ()
+    (vnb-guard (lambda () (icr-run! '(ENC-EQ (ENC-IOTA p) (ENC-IOTA q)) icr-iff #t)))))))
+(check-true "IOTA-CR: the META control iota-cr-refuses-eq is a proven theorem"
+  (lambda () (suite-proven? 'iota-cr-refuses-eq)))
+
 ;;; -----------------------------------------------------------------------
 ;;; CERT-KEY (2026-10-17, the user's decision on META-10 findings 1 and 2;
 ;;; certificates.scm).  (1) A record's `defs' are the TRANSITIVE closure of the
