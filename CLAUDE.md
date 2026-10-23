@@ -269,7 +269,7 @@ Bringing up a worker (no compile: `.com` files and the band are portable, MIT Sc
     capataz run worker-NN --json --user root 'apt-get install -y -q mit-scheme'
     capataz run worker-NN --json --user root 'fallocate -l 2G /swapfile; chmod 600 /swapfile; mkswap /swapfile; swapon /swapfile'
     capataz push worker-NN --yes --rsync --src ~/prover --dest /home/ubuntu/prover \
-        --exclude .git --exclude scratchpad/ --exclude scratch/
+        --exclude .git --exclude scratchpad/ --exclude scratch/ --exclude .claude/
     capataz run worker-NN --user root 'bash /home/ubuntu/prover/vnb-idle-stop-install 30'
 
 `capataz run` is UNPRIVILEGED by default (0.2.6): `--user root` for apt-get, the swapfile and the
