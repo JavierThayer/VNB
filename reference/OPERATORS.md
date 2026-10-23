@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-1104 operators: 3 functions, 11 syntax, 609 functoids, 477 predicates, 4 undeclared.
+1158 operators: 3 functions, 11 syntax, 618 functoids, 522 predicates, 4 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `delete-at` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (609)
+## Functoids  (618)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -107,6 +107,10 @@ Declared by: `amgm-2-sqrt` `bdd-fn-le-arg` `bdd-fn-lt-one` `bdd-fn-mono` `bdd-fn
     ae-setoid(omega, ca, mu, sf) := [sf, ae-rel(omega, ca, mu, sf)]
 
 ### `apply-functoid`  — implicit application operator (the invisible head of `f(args)`)
+
+### `ax-class-ext`  — kernel primitive (notation-declared, no def-*)
+
+> _Reads as:_  the encoded axiom class-extensionality
 
 ### `ax-fun-app`  — kernel primitive (notation-declared, no def-*)
 
@@ -415,6 +419,12 @@ Declared by: `cc-of-pair-def`
 ### `centres`  — def-functoid · set-valued
 
     centres(s, b, r) := {c in pts(s): ball(s, c, r) = b}
+
+### `cert-set`  — def-functoid · set-valued
+
+> _Reads as:_  the sentences certifying md12cw_ in md12cg_ over md12t_
+
+    cert-set(md12t_, md12cg_, md12cw_) := {md12zz_ in expr-set: forall([md12v_ in power(expr-set)], cert-closed(md12t_, md12cg_, md12cw_, md12v_) implies md12zz_ in md12v_)}
 
 ### `choice`  — kernel term-former
 
@@ -1648,6 +1658,12 @@ Declared by: `fam-of-list-apply`
 
     insert-last(phi, x, n) := vnb-lambda(i, nn, if(i in ord-segment(n), phi(i), x))
 
+### `inst-reach`  — def-functoid · set-valued
+
+> _Reads as:_  the instances of md12d_ at the arguments of md12l_
+
+    inst-reach(md12d_, md12l_) := {md12z_ in expr-set: forall([md12w_ in power(expr-set)], md12d_ in md12w_ implies inst-closed(md12l_, md12w_) implies md12z_ in md12w_)}
+
 ### `integral`  — def-functoid · element/number-valued
 
 > _Reads as:_  the integral of f over omega with respect to the measure mu
@@ -1722,6 +1738,18 @@ Declared by: `fam-of-list-apply`
 
     j-cart(mit_) := {mix_ in rw-univ: forsome([mig_, miz_, mia_], mix_ = [2, mig_, enc-in(miz_, enc-cart(mia_)), enc-cch(miz_, mia_, length(mia_), length(mia_))] and mig_ in ctx-set and 1 <= length(mia_))}
 
+### `j-fb`  — def-functoid · set-valued
+
+> _Reads as:_  the local functoid redexes over mrt_, at any arguments
+
+    j-fb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrh_, mrl_, mrb_], mrx_ = [1, mrg_, eapp(mrh_, mrl_), openl(mrb_, mrl_, length(mrl_))] and fun-def(mrh_, length(mrl_), mrb_) and eapp(mrh_, mrl_) in clt and openl(mrb_, mrl_, length(mrl_)) in clt)}
+
+### `j-idec`  — def-functoid · set-valued
+
+> _Reads as:_  the local instances over md14t_ of the catalog's intersection-decompose
+
+    j-idec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14y_ = [2, md14g_, enc-in(md14x2_, enc-inter(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(3, md14x2_, md14l2_) and enc-in(md14x2_, enc-inter(md14l2_)) in clf and md14f2_ in clf)}
+
 ### `j-lb`  — def-functoid · set-valued
 
 > _Reads as:_  the local lambda redexes over mrt_, the argument in the domain
@@ -1740,6 +1768,12 @@ Declared by: `fam-of-list-apply`
 
     j-mac(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrc_, mra_, mrb_, mre_ in clt], [mrg_, expr-open(mrc_, 0, mre_)] in derivable(mrt_) and [mrg_, enc-eq(mre_, mre_)] in derivable(mrt_) and (mrx_ = [1, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clt and expr-open(mrb_, 0, mre_) in clt or mrx_ = [2, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clf and expr-open(mrb_, 0, mre_) in clf))}
 
+### `j-macn`  — def-functoid · set-valued
+
+> _Reads as:_  the local instances of the macetes of md13t_ of any number of schema variables, the condition derivable and every value denoting
+
+    j-macn(md13t_) := {md13x_ in rw-univ: forsome([md13g_, md13m_, md13l_, md13i_, md13r_, md13a_, md13b_], md13m_ in md13t_ and md13m_ in clf and md13i_ in inst-reach(md13m_, md13l_) and forall([md13j_ in nn], 2 <= md13j_ implies md13j_ <= length(md13l_) implies [md13g_, enc-eq(nth(md13j_, md13l_), nth(md13j_, md13l_))] in derivable(md13t_)) and (md13i_ = md13r_ or forsome([md13c_], md13i_ = enc-imp(md13c_, md13r_) and [md13g_, md13c_] in derivable(md13t_))) and (md13r_ = enc-qeq(md13a_, md13b_) and md13x_ = [1, md13g_, md13a_, md13b_] and md13a_ in clt and md13b_ in clt or md13r_ = enc-iff(md13a_, md13b_) and md13x_ = [2, md13g_, md13a_, md13b_] and md13a_ in clf and md13b_ in clf))}
+
 ### `j-nth`  — def-functoid · set-valued
 
 > _Reads as:_  the local NTH-of-a-list redexes over mrt_, the list denoting
@@ -1751,6 +1785,12 @@ Declared by: `fam-of-list-apply`
 > _Reads as:_  the local instances of tuple-equality-decompose
 
     j-teq(mit_) := {mix_ in rw-univ: forsome([mig_, mia_, mib_], mix_ = [2, mig_, enc-eq(enc-list(mia_), enc-list(mib_)), enc-tcj(mia_, mib_, length(mia_), length(mia_))] and mig_ in ctx-set and length(mia_) = length(mib_))}
+
+### `j-udec`  — def-functoid · set-valued
+
+> _Reads as:_  the local instances over md14t_ of the catalog's union-decompose
+
+    j-udec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14y_ = [2, md14g_, enc-in(md14x2_, enc-union(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(4, md14x2_, md14l2_) and enc-in(md14x2_, enc-union(md14l2_)) in clf and md14f2_ in clf)}
 
 ### `jop`  — structure accessor · element (slot value)
 
@@ -2152,6 +2192,10 @@ Declared by: `nth-deriv-v-zero` `nth-deriv-v-succ`
 
 > _Reads as:_  open-stage()
 
+### `openl`  — kernel primitive (notation-declared, no def-*)
+
+> _Reads as:_  openl()
+
 ### `opens`  — structure accessor · element (slot value)
 
 > _Reads as:_  the topology of s
@@ -2431,6 +2475,12 @@ Declared by: `intersection-decompose` `union-decompose`
 > _Reads as:_  the one-position rewrites justified by mrt_, of stage at most mrk_
 
     rewr(mrt_, mrk_) := {mrx_ in rw-univ: forall([mrs_ in power(rw-univ)], rw-closed(mrt_, mrk_, mrs_) implies mrx_ in mrs_)}
+
+### `rf-set`  — def-functoid · set-valued
+
+> _Reads as:_  the right folds by md14h_ of the memberships of md14x_ in the entries of md14l_ from an index on
+
+    rf-set(md14h_, md14x_, md14l_) := {md14p_ in cartesian(nn, expr-set): forall([md14w_ in power(cartesian(nn, expr-set))], rf-closed(md14h_, md14x_, md14l_, md14w_) implies md14p_ in md14w_)}
 
 ### `ring-power`  — def-functoid · element/number-valued
 
@@ -3056,7 +3106,7 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (477)
+## Predicates  (522)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -3076,9 +3126,29 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  (==)()
 
+### `adm-def-cert-hyp`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  the core over mdt_ is closed under def-cert-hyp
+
 ### `adm-def-comp`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  the core over mdt_ is closed under def-comp
+
+### `adm-def-fun-inst`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  the core over mdt_ is closed under def-fun-inst
+
+### `adm-def-fun-nth`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  the core over mdt_ is closed under def-fun-nth
+
+### `adm-def-fun-sep`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  the core over mdt_ is closed under def-fun-sep
+
+### `adm-def-fun-strict`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  the core over mdt_ is closed under def-fun-strict
 
 ### `adm-def-nth-list`  — def-predicate · proposition (arity 1)
 
@@ -3088,9 +3158,17 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  the core over mdt_ is closed under def-pred-hyp
 
+### `adm-def-pred-hyp-n`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  the core over mdt_ is closed under def-pred-hyp-n
+
 ### `adm-def-pred-unfold`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  the core over mdt_ is closed under def-pred-unfold
+
+### `adm-def-pred-unfold-n`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  the core over mdt_ is closed under def-pred-unfold-n
 
 ### `adm-def-strict-arg`  — def-predicate · proposition (arity 1)
 
@@ -3139,6 +3217,14 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `cc-series-converges-to`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  the complex series f converges to l
+
+### `cert-closed`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  md12x_ is closed under the steps certifying md12cw_ in md12cg_ over md12t_
+
+### `cert-step`  — def-predicate · proposition (arity 5)
+
+> _Reads as:_  md12f_ certifies md12cw_ in md12cg_ over md12t_ by one step into md12x_
 
 ### `cluster-point`  — def-predicate · proposition (arity 3)
 
@@ -3280,6 +3366,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  the core forsome-intro relates mchs_ to mcc_
 
+### `cr-functoid-beta-eq`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the core functoid-beta-eq relates mchs_ to mcc_
+
 ### `cr-if-false`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the core if-false relates mchs_ to mcc_
@@ -3303,6 +3393,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `cr-intersection-mem`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the core intersection-mem relates mchs_ to mcc_
+
+### `cr-iota-cr`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the core congruence rule for descriptions relates mchs_ to mcc_
 
 ### `cr-iota-def`  — def-predicate · proposition (arity 3)
 
@@ -3364,6 +3458,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  the core sep-sethood relates mchs_ to mcc_
 
+### `cr-tbind-cr`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the core congruence rule for the term binders relates mchs_ to mcc_
+
 ### `cr-theorem-assumption`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the core theorem-assumption relates mchs_ to mcc_
@@ -3400,6 +3498,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  the definedness rule binder-domain relates mdhs_ to mdc_
 
+### `def-cert-hyp`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the definedness rule certifying-hypothesis relates mdhs_ to mdc_
+
 ### `def-comp`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the definedness rule comprehension relates mdhs_ to mdc_
@@ -3407,6 +3509,22 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `def-comp-closed`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  every closed comprehension is derivably defined over mit_
+
+### `def-fun-inst`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the definedness rule functoid-instance relates mdhs_ to mdc_
+
+### `def-fun-nth`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the definedness rule nth-of-functoid relates mdhs_ to mdc_
+
+### `def-fun-sep`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the definedness rule functoid-membership relates mdhs_ to mdc_
+
+### `def-fun-strict`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the definedness rule functoid-strict-step relates mdhs_ to mdc_
 
 ### `def-in-closed`  — def-predicate · proposition (arity 1)
 
@@ -3428,9 +3546,17 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  the definedness rule predicate-hypothesis relates mdhs_ to mdc_
 
+### `def-pred-hyp-n`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the definedness rule predicate-hypothesis (any arity) relates mdhs_ to mdc_
+
 ### `def-pred-unfold`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the definedness rule predicate-unfolding relates mdhs_ to mdc_
+
+### `def-pred-unfold-n`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the definedness rule predicate-unfolding (any arity) relates mdhs_ to mdc_
 
 ### `def-strict-arg`  — def-predicate · proposition (arity 3)
 
@@ -3508,6 +3634,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  seq converges to lim in (m, fam)
 
+### `fun-def`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the functoid code mcfh_ has arity mcfn_ and body mcfb_
+
 ### `generates`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the n vectors u generate md
@@ -3571,6 +3701,14 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `injective-star`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  f is injective
+
+### `inst-closed`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  md12x_ is closed under instantiations at the arguments of md12l_
+
+### `inst-step`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  md12g_ is md12f_ instantiated at an argument of md12l_
 
 ### `is-abelian-group`  — def-predicate · proposition (arity 1)
 
@@ -4632,6 +4770,30 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  the n vectors u are linearly independent in md
 
+### `rel-functoid-beta-1`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel rule, at one position, relates mrhs_ to mrc_
+
+### `rel-functoid-beta-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel rule, at one position of any stage, relates mrhs_ to mrc_
+
+### `rel-intersection-decompose-1`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel's rewrite by the catalog's n-ary decomposition, at one position, relates md14hs_ to md14c_
+
+### `rel-intersection-decompose-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel's rewrite by the catalog's n-ary decomposition, at one position, relates md14hs_ to md14c_
+
+### `rel-intersection-decompose-hyp-1`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel's rewrite by the catalog's n-ary decomposition, at one position, relates md14hs_ to md14c_
+
+### `rel-intersection-decompose-hyp-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel's rewrite by the catalog's n-ary decomposition, at one position, relates md14hs_ to md14c_
+
 ### `rel-intersection-elim`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the kernel's intersection-elim relates mchs_ to mcc_
@@ -4644,21 +4806,57 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  the kernel rule, at one position, relates mrhs_ to mrc_
 
+### `rel-lambda-beta-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel rule, at one position of any stage, relates mrhs_ to mrc_
+
 ### `rel-lambda-beta-hyp-1`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the kernel rule, at one position, relates mrhs_ to mrc_
+
+### `rel-lambda-beta-hyp-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel rule, at one position of any stage, relates mrhs_ to mrc_
 
 ### `rel-length-reduce-1`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the kernel rule, at one position, relates mrhs_ to mrc_
 
+### `rel-length-reduce-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel rule, at one position of any stage, relates mrhs_ to mrc_
+
 ### `rel-macete-1`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the kernel rule, at one position, relates mrhs_ to mrc_
 
+### `rel-macete-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel rule, at one position of any stage, relates mrhs_ to mrc_
+
 ### `rel-macete-hyp-1`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the kernel rule, at one position, relates mrhs_ to mrc_
+
+### `rel-macete-hyp-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel rule, at one position of any stage, relates mrhs_ to mrc_
+
+### `rel-macete-n-1`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel's macete of any number of schema variables, at one position, relates md13hs_ to md13c_
+
+### `rel-macete-n-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel's macete of any number of schema variables, at one position, relates md13hs_ to md13c_
+
+### `rel-macete-n-hyp-1`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel's macete of any number of schema variables, at one position, relates md13hs_ to md13c_
+
+### `rel-macete-n-hyp-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel's macete of any number of schema variables, at one position, relates md13hs_ to md13c_
 
 ### `rel-nn-induction`  — def-predicate · proposition (arity 3)
 
@@ -4668,13 +4866,25 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  the kernel rule, at one position, relates mrhs_ to mrc_
 
+### `rel-nth-reduce-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel rule, at one position of any stage, relates mrhs_ to mrc_
+
 ### `rel-rewrite-1`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  mrhs_ is mrc_ with its goal rewritten at one position justified by mrt_
 
+### `rel-rewrite-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  mrhs_ is mrc_ with its goal rewritten at one position of any stage justified by mrt_
+
 ### `rel-rewrite-hyp-1`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  mrhs_ is mrc_ with one assumption rewritten at one position justified by mrt_
+
+### `rel-rewrite-hyp-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  mrhs_ is mrc_ with one assumption rewritten at one position of any stage justified by mrt_
 
 ### `rel-sep-mem-elim`  — def-predicate · proposition (arity 3)
 
@@ -4708,6 +4918,22 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  the kernel's tuples-intro relates mchs_ to mcc_
 
+### `rel-union-decompose-1`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel's rewrite by the catalog's n-ary decomposition, at one position, relates md14hs_ to md14c_
+
+### `rel-union-decompose-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel's rewrite by the catalog's n-ary decomposition, at one position, relates md14hs_ to md14c_
+
+### `rel-union-decompose-hyp-1`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel's rewrite by the catalog's n-ary decomposition, at one position, relates md14hs_ to md14c_
+
+### `rel-union-decompose-hyp-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel's rewrite by the catalog's n-ary decomposition, at one position, relates md14hs_ to md14c_
+
 ### `rel-union-elim`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the kernel's union-elim relates mchs_ to mcc_
@@ -4715,6 +4941,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `rel-union-intro`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the kernel's union-intro relates mchs_ to mcc_
+
+### `rf-closed`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  md14s_ is closed under the right folds by md14h_ of the memberships of md14x_ in the entries of md14l_
 
 ### `rm-address`  — def-predicate · proposition (arity 4)
 
