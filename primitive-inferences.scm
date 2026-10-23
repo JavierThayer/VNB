@@ -1079,6 +1079,19 @@
      (and (< depth 8)
           (let ((b (pi--functoid-instance e)))
             (and b (pi--sob-walk t b (+ depth 1))))))
+    ;; AN APPLIED ANONYMOUS RECORD IS WALKED THROUGH ITS CONTRACTION (2026-10-21, repair KREC; the
+    ;; user's decision on the META-FUN report s.1.2), exactly as R4-F walks a def-functoid head:
+    ;; functoid-beta gives R(v) == body[v] at every v, so R(v) denoting certifies v only where the
+    ;; body holds its parameter outside binders.  R0 = lambdoid(y). 0: R0(u) in NN had certified a
+    ;; non-denoting IOTA u.  A record of the wrong arity certifies nothing below it.
+    ((and (eq? (car e) 'apply-functoid) (pair? (cdr e)) (functoid? (cadr e)))
+     (and (< depth 8)
+          (let ((ftd (cadr e)) (args (cddr e)))
+            (and (= (length (functoid-bindings ftd)) (length args))
+                 (pi--sob-walk t
+                               (subst-free* (map cons (map car (functoid-bindings ftd)) args)
+                                            (functoid-body ftd))
+                               (+ depth 1))))))
     ;; every position, the HEAD included: application is strict in its operator
     (else (any (lambda (x) (pi--sob-walk t x depth)) e))))
 (declare-binder-walker! 'pi--sob-walk

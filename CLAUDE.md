@@ -550,6 +550,16 @@ landed inside a `have!` lane does not reach the main branch. Citing a typing "to
 costs a bill entry. `dk-discharge-owed!` closes the tagged leaves when the typing is one
 citation away. Policy: `docs/definedness-instantiation-2026-09-18.md`.
 
+**Functoid records (KREC, 2026-10-21).** `functoid-beta` instantiates an anonymous record's variable at ANY
+term, denoting or not, so under a record binder that variable is not an object. A term that mentions it is not
+certified defined (`rkw--value-certified?`), and since it is a path variable it cannot be owed. A theorem
+macete matched at it, or a list reduction whose list mentions it, is REFUSED. A rewrite of a closed subterm
+inside a record body is unaffected, and a variable rebound by an inner binder is an object again. An applied
+record `(apply-functoid R v ..)` is read through its contraction by both strictness walks (`pi--sob-walk`,
+`chk-sob`), as R4-F reads a def-functoid head: `R(v) in C` certifies `v` only where R's body holds its
+parameter outside binders. The macete BUILDER still offers the refused step and the checker raises; reduce
+under a record only after `beta`. Reproducers and controls: the KREC block of test-suite.scm.
+
 **Statements: the species of FALSE or underdetermined support found so far.** Check for them
 before proving, report with a counterexample, prove the guarded form, stop:
 

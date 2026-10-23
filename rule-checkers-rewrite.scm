@@ -408,8 +408,36 @@
 (define *rkw--path-bvars* '())
 
 (define (rkw--under-binder bvars thunk)
-  (fluid-let ((*rkw--path-bvars* (append bvars *rkw--path-bvars*)))
+  (fluid-let ((*rkw--path-bvars* (append bvars *rkw--path-bvars*))
+              (*rkw--record-bvars* (rkw--remove-vars bvars *rkw--record-bvars*)))
     (thunk)))
+
+;;; THE VARIABLES OF A FUNCTOID RECORD ON THE PATH (2026-10-21, repair KREC; the user's decision,
+;;; option (a) of the META-FUN report s.1.1).  Every other binder the walk crosses ranges over
+;;; OBJECTS, so its variable denotes; but `functoid-beta' instantiates a record's variable at ANY
+;;; term, denoting or not (rule-checkers-logic.scm, no condition, the 2026-10-01 doctrine).  So a
+;;; term that mentions a record variable is not certified defined at a position inside the record's
+;;; body, and since it is also a path variable it cannot be owed: the step is refused.  A record
+;;; variable rebound by an inner binder (FORALL, SEP, VNB-LAMBDA, ...) is an object variable again
+;;; below it, and leaves this list there.  A rewrite of a CLOSED subterm inside a record body is
+;;; unaffected.  Read by `rkw--value-certified?', hence by the macete door, the list reductions
+;;; (chk-list-reduction) and tuple-equality-decompose.
+(define *rkw--record-bvars* '())
+
+(define (rkw--remove-vars vs l)
+  (if (or (null? l) (null? vs)) l (filter (lambda (v) (not (memq v vs))) l)))
+
+(define (rkw--under-record-binder bvars thunk)
+  (fluid-let ((*rkw--path-bvars* (append bvars *rkw--path-bvars*))
+              (*rkw--record-bvars* (append bvars *rkw--record-bvars*)))
+    (thunk)))
+
+(define (rkw--mentions-record-bvar? t)
+  (and (pair? *rkw--record-bvars*)
+       (let loop ((vs (if (pair? t) (rkw--free-vars t) (list t))))
+         (and (pair? vs)
+              (or (and (memq (car vs) *rkw--record-bvars*) #t)
+                  (loop (cdr vs)))))))
 
 (define (rkw--mentions-path-bvar? f)
   (and (pair? *rkw--path-bvars*)
@@ -426,7 +454,9 @@
 ;;; numbers, recursively (chk-number-class, 2026-10-09).  Every other case on
 ;;; the builder's certificate pi--defined?, run on the local context, as chk-elim-certified? does.
 (define (rkw--value-certified? t ctx)
-  (or (not (pair? t))
+  (and
+   (not (rkw--mentions-record-bvar? t))   ; under a record binder: refused (KREC, 2026-10-21)
+   (or (not (pair? t))
       (any (lambda (f)
              (and (pair? f) (= (length f) 3)
                   (or (and (eq? (car f) 'IN) (alpha-equiv? (cadr f) t))
@@ -435,7 +465,7 @@
            ctx)
       (any (lambda (f) (chk-atom-certifies? f t 0)) ctx)   ; strict atoms + membership (R4-F)
       (and (chk-number-class ctx t 0) #t)          ; nested arithmetic (rule-checkers-logic.scm)
-      (and (pi--defined? (map (lambda (f) (%%make-concrete-wff f #f #f)) ctx) t 0) #t)))
+      (and (pi--defined? (map (lambda (f) (%%make-concrete-wff f #f #f)) ctx) t 0) #t))))
 
 (define (rkw--value-discharged? t ctx minor-goals)
   (or (rkw--value-certified? t ctx)
@@ -557,7 +587,7 @@
                                    explain
                                    (map (lambda (x) ctx) (functoid-bindings a)))))
        (if (eq? doms #t)
-           (rkw--under-binder bvars
+           (rkw--under-record-binder bvars
              (lambda () (rkw--walk (functoid-body a) (functoid-body b) explain inner)))
            doms)))
     ((or (functoid? a) (functoid? b)) (rkw--shape-refusal a b))

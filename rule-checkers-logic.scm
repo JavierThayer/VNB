@@ -846,6 +846,17 @@
      (and (< depth 8)
           (let ((b (chk-functoid-unfold e)))
             (and b (chk-sob t b (+ depth 1))))))
+    ;; AN APPLIED ANONYMOUS RECORD IS READ THROUGH ITS CONTRACTION (2026-10-21, repair KREC; the
+    ;; user's decision on the META-FUN report s.1.2), as R4-F reads a def-functoid head:
+    ;; functoid-beta gives R(v) == body[v] at every v, denoting or not, so R(v) denoting certifies
+    ;; v only where the body holds its parameter outside binders.  R0 = lambdoid(y). 0 had R0(u) in
+    ;; NN certify a non-denoting IOTA u, and FALSITY followed.  A record of the wrong arity
+    ;; certifies nothing below it.  `chk-functoid-redex?' / `chk-functoid-contract' are this
+    ;; file's own (the functoid-beta checker, below).
+    ((and (eq? (car e) 'apply-functoid) (pair? (cdr e)) (functoid? (cadr e)))
+     (and (< depth 8)
+          (chk-functoid-redex? e)
+          (chk-sob t (chk-functoid-contract e) (+ depth 1))))
     (else (chk-any (lambda (x) (chk-sob t x depth)) e))))
 
 (declare-binder-walker! 'chk-sob

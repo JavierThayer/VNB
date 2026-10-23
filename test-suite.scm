@@ -15938,6 +15938,99 @@
   "uses changed: pts")
 (ck2-retract!)
 
+;;; =======================================================================
+;;; KREC (2026-10-21, the user's decision on the META-FUN report s.1): the two lambdoid-record
+;;; falsities.  `functoid-beta' instantiates a record's variable at ANY term, denoting or not.
+;;; (1.1) Under a record binder a term mentioning the record's variable is not certified defined
+;;; (rkw--value-certified?), so a theorem macete matched at it, or a list reduction whose list
+;;; mentions it, is refused; a CLOSED subterm inside the body is still rewritten.  (1.2) An
+;;; applied record is read through its contraction by both strictness walks (pi--sob-walk,
+;;; chk-sob), as R4-F reads a def-functoid head.  Each REFUSED / #f control below is ACCEPTED /
+;;; #t by the kernel of fa5333d5 (run on its band, 2026-10-21; scratchpad/KREC-REPORT.md).
+;;; u is IOTA z. (z in NN and FALSITY), which denotes nothing.
+;;; =======================================================================
+(define krec-u '(IOTA krec_z (AND (IN krec_z NN) FALSITY)))
+(define krec-r0  (make-functoid 'lambdoid (list (cons 'krec_y 'SET)) 0))          ; y |-> 0
+(define krec-rid (make-functoid 'lambdoid (list (cons 'krec_y 'SET)) 'krec_y))    ; y |-> y
+
+;;; 1.1, the macete door: rkwn-plain-law (forall zqv. f(zqv) = g(zqv)) inside a record body.
+(check-true "KREC 1.1 (refused): a theorem macete matched at a record's variable inside its body"
+  (lambda ()
+    (rkwn--raises?
+      (lambda ()
+        (rkwn--apply '(macete rkwn-plain-law (rkwn-f zqv) (rkwn-g zqv))
+                     '()
+                     `(IN (apply-functoid ,(make-functoid 'lambdoid (list (cons 'krec_y 'SET))
+                                                          '(rkwn-f krec_y)) 0) NN)
+                     `((() . (IN (apply-functoid ,(make-functoid 'lambdoid (list (cons 'krec_y 'SET))
+                                                                 '(rkwn-g krec_y)) 0) NN))))))))
+(check-true "KREC 1.1 (accepted): the same macete at a CLOSED subterm inside the record body"
+  (lambda ()
+    (not (rkwn--raises?
+          (lambda ()
+            (rkwn--apply '(macete rkwn-plain-law (rkwn-f zqv) (rkwn-g zqv))
+                         '()
+                         `(IN (apply-functoid ,(make-functoid 'lambdoid (list (cons 'krec_y 'SET))
+                                                              '(+ (rkwn-f 0) krec_y)) 0) NN)
+                         `((() . (IN (apply-functoid ,(make-functoid 'lambdoid (list (cons 'krec_y 'SET))
+                                                                     '(+ (rkwn-g 0) krec_y)) 0) NN)))))))))
+(check-true "KREC 1.1 (accepted): the record's variable rebound by an inner FORALL is an object variable"
+  (lambda ()
+    (not (rkwn--raises?
+          (lambda ()
+            (rkwn--apply '(macete rkwn-plain-law (rkwn-f zqv) (rkwn-g zqv))
+                         '()
+                         `(IN (apply-functoid ,(make-functoid 'lambdoid (list (cons 'krec_y 'SET))
+                                                              '(IF (FORALL krec_y (IN (rkwn-f krec_y) NN)) 0 1))
+                                              0) NN)
+                         `((() . (IN (apply-functoid ,(make-functoid 'lambdoid (list (cons 'krec_y 'SET))
+                                                                     '(IF (FORALL krec_y (IN (rkwn-g krec_y) NN)) 0 1))
+                                                     0) NN)))))))))
+
+;;; 1.1, the list-reduction certificate (chk-list-reduction): NTH(1, [0, succ(y)]) under the record.
+(rcl--refuse "KREC 1.1: nth-reduce inside a record body at a list mentioning the record's variable" 'nth-reduce
+  (rcl--h '() `(= (apply-functoid ,(make-functoid 'lambdoid (list (cons 'krec_y 'SET))
+                                                  '(NTH 1 (LIST 0 (succ krec_y)))) 0) 0))
+  (list (rcl--h '() `(= (apply-functoid ,(make-functoid 'lambdoid (list (cons 'krec_y 'SET)) 0) 0) 0))))
+(rcl--accept "KREC 1.1: nth-reduce inside a record body at a CLOSED list" 'nth-reduce
+  (rcl--h '() `(= (apply-functoid ,(make-functoid 'lambdoid (list (cons 'krec_y 'SET))
+                                                  '(+ (NTH 1 (LIST 0 1)) krec_y)) 0) 0))
+  (list (rcl--h '() `(= (apply-functoid ,(make-functoid 'lambdoid (list (cons 'krec_y 'SET))
+                                                        '(+ 0 krec_y)) 0) 0))))
+
+;;; 1.2, the checker's walk (chk-sob, through chk-atom-certifies?).
+(check "KREC 1.2 (chk-sob): R0(u) in NN, R0 = lambdoid(y). 0, does not certify u; Rid(u) in NN does"
+  (lambda ()
+    (list (and (chk-atom-certifies? `(IN (apply-functoid ,krec-r0 ,krec-u) NN) krec-u 0) #t)
+          (and (chk-atom-certifies? `(IN (apply-functoid ,krec-rid ,krec-u) NN) krec-u 0) #t)))
+  '(#f #t))
+;;; 1.2, the builder's walk (pi--sob-walk, through pi--defined?).
+(check "KREC 1.2 (pi--sob-walk): R0(u) in NN does not certify u defined; Rid(u) in NN does"
+  (lambda ()
+    (list (and (pi--defined? (list (make-wff `(IN (apply-functoid ,krec-r0 ,krec-u) NN))) krec-u 0) #t)
+          (and (pi--defined? (list (make-wff `(IN (apply-functoid ,krec-rid ,krec-u) NN))) krec-u 0) #t)))
+  '(#f #t))
+;;; 1.2, end to end on the checker: forall-elim at u with nothing owed.
+(rcl--refuse "KREC 1.2: forall-elim at u with nothing owed, R0(u) in NN in context" 'forall-elim
+  (rcl--h (list `(IN (apply-functoid ,krec-r0 ,krec-u) NN) '(FORALL a (= a a))) '(IN q NN))
+  (list (rcl--h (list `(= ,krec-u ,krec-u) `(IN (apply-functoid ,krec-r0 ,krec-u) NN) '(FORALL a (= a a)))
+                '(IN q NN))))
+(rcl--accept "KREC 1.2: forall-elim at u with nothing owed, Rid(u) in NN in context" 'forall-elim
+  (rcl--h (list `(IN (apply-functoid ,krec-rid ,krec-u) NN) '(FORALL a (= a a))) '(IN q NN))
+  (list (rcl--h (list `(= ,krec-u ,krec-u) `(IN (apply-functoid ,krec-rid ,krec-u) NN) '(FORALL a (= a a)))
+                '(IN q NN))))
+;;; 1.2, end to end on the builder: `rfl' on u = u (the reproducer's step 3).
+(define (krec--rfl-closes? rec)
+  (quietly
+   (lambda ()
+     (sp (make-wff `(IMPLIES (IN (apply-functoid ,rec ,krec-u) NN) (= ,krec-u ,krec-u))))
+     (di)
+     (vnb-guard (lambda () (rfl)))
+     (and *ps* (proof-done? *ps*) #t))))
+(check "KREC 1.2 (builder): rfl closes u = u from Rid(u) in NN, not from R0(u) in NN"
+  (lambda () (list (krec--rfl-closes? krec-r0) (krec--rfl-closes? krec-rid)))
+  '(#f #t))
+
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")
 (display *fail-count*) (display " failed ===\n")
