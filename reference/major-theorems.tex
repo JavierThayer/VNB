@@ -1888,7 +1888,7 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} Y is fixed to rr-ms, so the notes' hypothesis that Y be a complete metric space is discharged by the completeness of RR rather than assumed; a general complete Y is not available. The dense set D is presented as a dense SEQUENCE is-dense-seq(s, dseq) rather than as a dense subset, and convergence on it as converges-on(s, fam, dseq). The library's conclusion is UNIFORM convergence to a continuous g, which is stronger than the notes' pointwise conclusion plus continuity of the limit. fam must be typed fam in fun(nn, fun(pts(s), rr)) and each fam(k) assumed is-continuous, where the notes assume only equicontinuity of the sequence.
+\noindent\textbf{Deviation from the notes.} UNIQUENESS proven (2026-10-23): diagonal-normal-form-unique for ELEM-EQUIV and diagonal-normal-form-unique-invertible for U D V with U, V invertible over Z; diagonal-chain-sdet-gcd gives b\_11 ... b\_ss as a gcd of the s-th subdeterminants of a diagonal matrix with the divisibility chain.  EXISTENCE is partial: smith-normal-form gives, over a euclidean ring, a mat-equiv diagonal d whose nonzero entries form an initial segment (smith-staircase), but not the divisibility chain, not non-negativity, and with mat-equiv (some invertible U, V) rather than elementary operations.
 %
 \renewcommand{\thethm}{3.37}
 \begin{prop}[{The isometry group of a compact metric space is compact}]\label{thm:calculus-3.37}
@@ -3408,11 +3408,17 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \noindent\textbf{Deviation from the notes.} The first sentence is proven, for a module whose SCALAR RING IS EUCLIDEAN (the notes' Z case is only an instance once the missing abelian-group-as-ZZ-module view exists).  The second sentence -- that all free generating sequences of an abelian group have the same LENGTH, the fact that makes rank well defined -- is NOT stated anywhere, although it follows by two applications of the first.  Guards the notes do not carry: n, m in nn, and both sequences are column matrices u in mat(n,1,vec(md)), v in mat(m,1,vec(md)).
 %
 \renewcommand{\thethm}{3.43}
-\begin{cor}[{GL\_n(Z) acts freely and transitively on the free generating sequences}]\label{thm:linear-algebra-3.43}
+\begin{cor}[{GL\_n(Z) acts freely and transitively on the free generating sequences}]\label{thm:free-generating-action-free}
 %
-\textit{If E is a free abelian group of rank n, the action (A, u) |-$>$ A . u of M\_n\textasciicircum{}x(Z) on free generating sequences of E is free and transitive.}
-%
-Not in the library.
+\leavevmode
+\vnbpart{\texttt{free-generating-action-free}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, n, s, m, a. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad s \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad \operatorname{generates}(d, n, s) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, s) \wedge \\ \quad \operatorname{is\text{-}invertible\text{-}mat}(\operatorname{scal}(d), n, m) \wedge \\ \quad \operatorname{is\text{-}invertible\text{-}mat}(\operatorname{scal}(d), n, a) \wedge \\ \quad \operatorname{matact}(d, m, s) = \operatorname{matact}(d, a, s) \Rightarrow \\ \quad \quad m = a \end{array}}
+\vnbpart{\texttt{free-generating-action-stabilizer}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, n, s, m. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad s \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad \operatorname{generates}(d, n, s) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, s) \wedge \\ \quad \operatorname{is\text{-}invertible\text{-}mat}(\operatorname{scal}(d), n, m) \wedge \\ \quad \operatorname{matact}(d, m, s) = s \Rightarrow \\ \quad \quad m = \operatorname{identmat}(\operatorname{scal}(d), n) \end{array}}
+\vnbpart{\texttt{free-generating-action-transitive}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, n, s, a. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad s \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad a \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad \operatorname{generates}(d, n, s) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, s) \wedge \\ \quad \operatorname{generates}(d, n, a) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, a) \Rightarrow \\ \quad \quad \exists m.\; (\operatorname{is\text{-}invertible\text{-}mat}(\operatorname{scal}(d), n, m) \wedge (a = \operatorname{matact}(d, m, s))) \end{array}}
+\vnbpart{\texttt{free-generating-action-closed}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, n, s, m. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad s \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad \operatorname{is\text{-}invertible\text{-}mat}(\operatorname{scal}(d), n, m) \wedge \\ \quad \operatorname{generates}(d, n, s) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, s) \Rightarrow \\ \quad \quad \operatorname{generates}(d, n, \operatorname{matact}(d, m, s)) \wedge \operatorname{rel\text{-}free}(d, n, \operatorname{matact}(d, m, s)) \end{array}}
 %
 \end{cor}
 %
@@ -3420,11 +3426,41 @@ Not in the library.
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{There is no library statement, and so no proof.}
+\vnbprf{\vnbproofpart{\texttt{free-generating-action-free}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z2-\allowbreak{}action.scm} --- 13 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{invertible-mat-is-mat}, \texttt{rel-free-matact-cancel}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{free-generating-action-stabilizer}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z2-\allowbreak{}action.scm} --- 20 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{mat-rows-in-nn}, \texttt{identmat-type}, \texttt{invertible-mat-is-mat}, \texttt{matact-identmat}, \texttt{rel-free-matact-cancel}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{free-generating-action-transitive}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z2-\allowbreak{}action.scm} --- 14 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{mat-rows-in-nn}, \texttt{generates-implies-spans-vec}, \texttt{spans-rel-free-transitive}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{free-generating-action-closed}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z2-\allowbreak{}action.scm} --- 14 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{generates-transport}, \texttt{free-transport}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} Only the one-way transport exists (generates-transport, free-transport).  matact is never presented as a GROUP ACTION, and neither freeness nor transitivity of it is stated; the library does not form the group M\_n\textasciicircum{}x(Z) at all.
+\noindent\textbf{Deviation from the notes.} Proven for a module over any ring; the action is matact.  The group M\_n\textasciicircum{}x(Z) is not formed as a group: freeness is stated as A . u = u implies A = I for an invertible A and a free generating u, transitivity as the existence of an invertible A with v = A . u, closure as A . u free generating again.
 %
 \renewcommand{\thethm}{3.44}
 \begin{prop}[{Adapted basis for a subgroup, with the divisibility chain}]\label{thm:submodule-of-free-is-free}
@@ -3448,11 +3484,13 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \noindent\textbf{Deviation from the notes.} Much weaker.  submodule-of-free-is-free (ASSERTED, warrant reference) gives only that the submodule has SOME family w of length k $<$= n that spans it and is rel-free.  It gives no ADAPTED BASIS e\_1,...,e\_n OF E, no coefficients b\_i, hence no divisibility chain b\_i divides b\_\{i+1\}, no non-negativity, and no claim that the b\_i are invariants of F.  Setting is a module over a euclidean ring rather than a free abelian group.
 %
 \renewcommand{\thethm}{3.45}
-\begin{cor}[{The norm N\_F(E): the absolute determinant is basis-independent}]\label{thm:linear-algebra-3.45}
+\begin{cor}[{The norm N\_F(E): the absolute determinant is basis-independent}]\label{thm:norm-independent}
 %
-\textit{If F is contained in E, with free generating sets v, u and v = A . u, then |det A| does not depend on the choice of v and u.}
-%
-Not in the library.
+\leavevmode
+\vnbpart{\texttt{norm-independent}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, n, s, s_{2}, a, b, m, c, m_{2}. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad \operatorname{scal}(d) = \operatorname{zz\text{-}ring} \wedge \\ \quad s \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad s_{2} \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad a \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad b \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad \operatorname{generates}(d, n, s) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, s) \wedge \\ \quad \operatorname{generates}(d, n, s_{2}) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, s_{2}) \wedge \\ \quad \operatorname{spans}(d, n, a, m) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, a) \wedge \\ \quad \operatorname{spans}(d, n, b, m) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, b) \wedge \\ \quad c \in \operatorname{mat}(n, n, \mathbb{Z}) \wedge \\ \quad m_{2} \in \operatorname{mat}(n, n, \mathbb{Z}) \wedge \\ \quad a = \operatorname{matact}(d, c, s) \wedge \\ \quad b = \operatorname{matact}(d, m_{2}, s_{2}) \Rightarrow \\ \quad \quad \lvert \operatorname{det}(\operatorname{zz\text{-}ring}, n, m_{2}) \rvert = \lvert \operatorname{det}(\operatorname{zz\text{-}ring}, n, c) \rvert \end{array}}
+\vnbpart{\texttt{change-of-basis-det-unit}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, n, s, s_{2}, a, b, m, c, m_{2}. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad \operatorname{is\text{-}commutative\text{-}ring}(\operatorname{scal}(d)) \wedge \\ \quad s \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad s_{2} \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad a \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad b \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad \operatorname{generates}(d, n, s) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, s) \wedge \\ \quad \operatorname{generates}(d, n, s_{2}) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, s_{2}) \wedge \\ \quad \operatorname{spans}(d, n, a, m) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, a) \wedge \\ \quad \operatorname{spans}(d, n, b, m) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, b) \wedge \\ \quad c \in \operatorname{mat}(n, n, \operatorname{carr}(\operatorname{scal}(d))) \wedge \\ \quad m_{2} \in \operatorname{mat}(n, n, \operatorname{carr}(\operatorname{scal}(d))) \wedge \\ \quad a = \operatorname{matact}(d, c, s) \wedge \\ \quad b = \operatorname{matact}(d, m_{2}, s_{2}) \Rightarrow \\ \quad \quad \exists w \in \operatorname{carr}(\operatorname{scal}(d)). \\ \quad \quad \quad \exists v \in \operatorname{carr}(\operatorname{scal}(d)).\; (\operatorname{mul}(\operatorname{scal}(d))(w, v) = \operatorname{one}(\operatorname{scal}(d))) \wedge \\ \quad \quad \quad \operatorname{det}(\operatorname{scal}(d), n, m_{2}) = \operatorname{mul}(\operatorname{scal}(d))(w, \operatorname{det}(\operatorname{scal}(d), n, c)) \end{array}}
 %
 \end{cor}
 %
@@ -3460,11 +3498,25 @@ Not in the library.
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{There is no library statement, and so no proof.}
+\vnbprf{\vnbproofpart{\texttt{norm-independent}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z2-\allowbreak{}norm.scm} --- 217 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{zz-is-commutative-ring}, \texttt{zz-is-ring}, \texttt{mat-rows-in-nn}, \texttt{det-in-carrier}, \texttt{change-of-basis-det-unit}, \texttt{zz-mul-closed}, \texttt{zz-in-rr}, \texttt{rr-abs-closed}, \texttt{zz-mul-eq-one}, \texttt{zz-one-mul}, \texttt{rr-abs-neg}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{change-of-basis-det-unit}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z2-\allowbreak{}norm.scm} --- 143 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{mat-rows-in-nn}, \texttt{ring-one-in}, \texttt{identmat-type}, \texttt{free-generating-action-transitive}, \texttt{invertible-mat-is-mat}, \texttt{spans-rel-free-transitive}, \texttt{matmul-type}, \texttt{matact-assoc}, \texttt{rel-free-matact-cancel}, \texttt{det-in-carrier}, \texttt{det-identity-ind}, \texttt{det-multiplicative}, \texttt{ring-carrier-closed-mul}, \texttt{lzn-ring-cancel-unit}, \texttt{lze-unit-mul}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} No determinant of a change-of-basis matrix is ever taken, and no index or norm invariant of a submodule is defined.  Depends on 3.44's adapted basis and on determinant theory the library does not have.
+\noindent\textbf{Deviation from the notes.} Stated for F of rank n (so that A is square), with SCAL(md) = ZZ-RING; change-of-basis-det-unit holds over any commutative ring.  N\_F(E) is not yet defined as an object.
 %
 \renewcommand{\thethm}{3.46}
 \begin{cor}[{A subgroup of a free abelian group of rank n is free of rank at most n}]\label{thm:linear-algebra-3.46}
@@ -3523,11 +3575,9 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \noindent\textbf{Deviation from the notes.} This is the library's headline linear-algebra result, proven and billing modulo 0 since 2026-09-17.  Differences: it is stated for a MODULE over a euclidean ring (the notes' abelian group is not an instance, the abelian-group-as-ZZ-module view being absent), and its conclusion is a column family w in mat(k,1,vec(md)) with k $<$= n that SPANS the submodule.  spans-submodule-fg is the strictly more general form the descent actually needs: a submodule of a submodule spanned by n elements is spanned by k $<$= n.  The notes' own proof of this corollary (through Z\textasciicircum{}n and 3.44) is CIRCULAR -- Smith form consumes a finite generating set for F and cannot produce one -- so the library proves it directly, by descent on the ideal of last coefficients; the \textbackslash{}iffalse'd induction at tex:1651 is load-bearing in the notes.
 %
 \renewcommand{\thethm}{3.48}
-\begin{prop}[{Uniqueness of the principal sequence of a subgroup}]\label{thm:linear-algebra-3.48}
+\begin{prop}[{Uniqueness of the principal sequence of a subgroup}]\label{thm:principal-sequence-unique}
 %
-\textit{The principal sequence b of a subgroup F of E is uniquely determined.}
-%
-Not in the library.
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, n, m, s, s_{2}, a, m_{2}. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad \operatorname{scal}(d) = \operatorname{zz\text{-}ring} \wedge \\ \quad n \in \mathbb{N} \wedge \\ \quad \operatorname{is\text{-}principal\text{-}sequence}(d, n, m, s, a) \wedge \\ \quad \operatorname{is\text{-}principal\text{-}sequence}(d, n, m, s_{2}, m_{2}) \Rightarrow \\ \quad \quad a = m_{2} \end{array}}
 %
 \end{prop}
 %
@@ -3535,11 +3585,15 @@ Not in the library.
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{There is no library statement, and so no proof.}
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z2-\allowbreak{}principal.scm} --- 418 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{zz-is-commutative-ring}, \texttt{zz-is-ring}, \texttt{zz-is-euclidean-ring}, \texttt{nn-one-in}, \texttt{matact-type}, \texttt{free-generating-action-transitive}, \texttt{invertible-mat-is-mat}, \texttt{spans-coeff-matrix}, \texttt{matmul-type}, \texttt{mat-rows-in-nn}, \texttt{matact-assoc}, \texttt{rel-free-matact-cancel}, \texttt{inverse-is-invertible}, \texttt{euclidean-invertible-iff-elem-gen}, \texttt{matmul-assoc}, \texttt{identmat-right-identity}, \texttt{lzg-zz-to-ring}, \texttt{lzd-id-injection}, \texttt{submatrix-type}, \texttt{sdet-intro}, \texttt{diagonal-leading-minor}, \texttt{det-in-carrier}, \texttt{diagonal-right-factor-sdet-divisible}, \texttt{sdet-divisor-col-gen}, \texttt{lzg-ring-to-zz}, \texttt{zz-divides-antisym}, \texttt{diagonal-chain-products-determine}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} The uniqueness half of the Smith theory is nowhere in the library: smith-normal-form is pure existence, and neither the principal sequence nor the notion of invariant factor is defined.  It is exactly the part of 3.36 that the library dropped.
+\noindent\textbf{Deviation from the notes.} The principal sequence is the diagonal of the matrix dm in IS-PRINCIPAL-SEQUENCE(md, n, sm, es, dm).  The proof goes through diagonal-right-factor-sdet-divisible and the invariance of the subdeterminant gcds (3.31), not through bases of F, and needs no Cauchy-Binet.
 %
 \renewcommand{\thethm}{3.49}
 \begin{lem}[{The quotient E/F for a diagonal subgroup}]\label{thm:linear-algebra-3.49}
@@ -8451,12 +8505,12 @@ Linear algebra & 3.37 & The reducing matrices U and V are products of elementary
 Linear algebra & 3.38 & An invertible integer matrix is a product of elementary matrices & \texttt{zz-\allowbreak{}invertible-\allowbreak{}iff-\allowbreak{}elementary-\allowbreak{}product}, \texttt{euclidean-\allowbreak{}invertible-\allowbreak{}iff-\allowbreak{}elem-\allowbreak{}gen}, \texttt{euclidean-\allowbreak{}unit-\allowbreak{}det-\allowbreak{}elem-\allowbreak{}gen}, \texttt{elem-\allowbreak{}gen-\allowbreak{}det-\allowbreak{}unit} & proven \\
 Linear algebra & 3.40 & An invertible change of sequence preserves generation and freeness & \texttt{generates-\allowbreak{}transport}, \texttt{free-\allowbreak{}transport}, \texttt{spans-\allowbreak{}transport} & proven \\
 Linear algebra & 3.41 & A relation-free sequence is no longer than a generating sequence & \texttt{free-\allowbreak{}length-\allowbreak{}le-\allowbreak{}generators} & partial \\
-Linear algebra & 3.43 & GL\_n(Z) acts freely and transitively on the free generating sequences & --- & absent \\
+Linear algebra & 3.43 & GL\_n(Z) acts freely and transitively on the free generating sequences & \texttt{free-\allowbreak{}generating-\allowbreak{}action-\allowbreak{}free}, \texttt{free-\allowbreak{}generating-\allowbreak{}action-\allowbreak{}stabilizer}, \texttt{free-\allowbreak{}generating-\allowbreak{}action-\allowbreak{}transitive}, \texttt{free-\allowbreak{}generating-\allowbreak{}action-\allowbreak{}closed} & proven \\
 Linear algebra & 3.44 & Adapted basis for a subgroup, with the divisibility chain & \texttt{submodule-\allowbreak{}of-\allowbreak{}free-\allowbreak{}is-\allowbreak{}free} & partial \\
-Linear algebra & 3.45 & The norm N\_F(E): the absolute determinant is basis-independent & --- & absent \\
+Linear algebra & 3.45 & The norm N\_F(E): the absolute determinant is basis-independent & \texttt{norm-\allowbreak{}independent}, \texttt{change-\allowbreak{}of-\allowbreak{}basis-\allowbreak{}det-\allowbreak{}unit} & proven \\
 Linear algebra & 3.46 & A subgroup of a free abelian group of rank n is free of rank at most n & \texttt{submodule-\allowbreak{}of-\allowbreak{}free-\allowbreak{}is-\allowbreak{}free} & proven \\
 Linear algebra & 3.47 & A subgroup of an n-generated group is generated by at most n elements & \texttt{submodule-\allowbreak{}fg}, \texttt{spans-\allowbreak{}submodule-\allowbreak{}fg} & proven \\
-Linear algebra & 3.48 & Uniqueness of the principal sequence of a subgroup & --- & absent \\
+Linear algebra & 3.48 & Uniqueness of the principal sequence of a subgroup & \texttt{principal-\allowbreak{}sequence-\allowbreak{}unique} & proven \\
 Linear algebra & 3.49 & The quotient E/F for a diagonal subgroup & --- & absent \\
 Linear algebra & 3.50 & Structure of a finitely generated abelian group & --- & absent \\
 Linear algebra & 3.51 & Every finitely generated abelian group is a direct sum of cyclic groups & --- & absent \\
@@ -8577,7 +8631,7 @@ Topological vector spaces (Thayer, notes) & 1.25 & A real pre-Hilbert space with
 document & entries & proven & asserted & partial & absent \\
 \hline
 Calculus & 66 & 49 & 0 & 13 & 4 \\
-Linear algebra & 33 & 19 & 0 & 6 & 8 \\
+Linear algebra & 33 & 22 & 0 & 6 & 5 \\
 Complex analysis & 57 & 47 & 0 & 8 & 2 \\
 Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 10 & 10 & 0 & 0 & 0 \\
 Construction of measures (Thayer, notes) & 28 & 28 & 0 & 0 & 0 \\

@@ -490,6 +490,8 @@
     ;; Phase C: a matrix of scalars acting on a matrix (column sequence) of
     ;; module elements -- MATACT, the book's A . u_col (eq. 82).
     "structure-library/mod-seq"
+    ;; LA-Z2 (2026-10-23): IS-PRINCIPAL-SEQUENCE (3.48).
+    "structure-library/la-z2-vocab"
     ;; User-added structures (auto-managed by Build Structure button)
     "structure-library/user-additions"
     ;; Reclassify hand-written defining iffs (property/class/membership defs)
@@ -2175,6 +2177,13 @@
     "theorem-library/spans-transport-proof"
     ;; RAKE-ASM-B4 (2026-10-12): submodule-of-free-is-free proven (Smith normal form route).
     "theorem-library/rake-asm-b4"
+    ;; LA-Z2 (2026-10-23): GL_n acts freely and transitively on free generating sequences (3.43), the norm of a
+    ;; submodule is independent of the bases (3.45), uniqueness of the diagonal normal form (3.36) and of the
+    ;; principal sequence (3.48).
+    "theorem-library/la-z2-action"
+    "theorem-library/la-z2-norm"
+    "theorem-library/la-z2-diag"
+    "theorem-library/la-z2-principal"
     ;; Phase C, Prop 3.41: an n-generated module bounds every relation-free
     ;; sequence by n -- so rank is well defined.  The payoff of the Smith arc.
     "theorem-library/rank-bound-proof"

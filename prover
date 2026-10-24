@@ -134,9 +134,26 @@ fi
 #
 # Excluded by FULL PATH, not by bare -name: a future theorem-library/harvest.scm
 # is a library file and must still count.
-band_newer_scm() { band_newer_scm_all -quit; }
-# The same test, every file (no -quit) -- the stale-band notice counts them.
+#
+# A LIBRARY file (theorem-library/, structure-library/, calculus/) counts only
+# when load.scm names it (2026-10-24, the user's approval): an unwired proof
+# file written there by a proving agent is not in the band, and with it counted
+# the next start did a full certified load for a file the band cannot contain.
+# Nothing loads a library file except load.scm (checked 2026-10-24: no `(load'
+# in either library directory).
+band_newer_scm() { band_newer_scm_all | head -1; }
+# The same test, every file -- the stale-band notice counts them.
 band_newer_scm_all() {
+  band_newer_scm_raw | while IFS= read -r f; do
+    case "$f" in
+      "$PROVER_DIR"/theorem-library/*|"$PROVER_DIR"/structure-library/*|"$PROVER_DIR"/calculus/*)
+        rel="${f#"$PROVER_DIR"/}"
+        grep -qF "\"${rel%.scm}\"" "$PROVER_DIR/load.scm" && printf '%s\n' "$f" ;;
+      *) printf '%s\n' "$f" ;;
+    esac
+  done
+}
+band_newer_scm_raw() {
   find "$PROVER_DIR" -name '*.scm' \
        -not -path '*/scratchpad/*' -not -path '*/scratch/*' \
        -not -path '*/prove-scripts/*' -not -path '*/.claude/*' \
