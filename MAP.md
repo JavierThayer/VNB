@@ -22,6 +22,8 @@ the files at the root and the structure library by theory.
 - [la-elem-vocab.scm](structure-library/la-elem-vocab.scm)
 - [la-z-vocab.scm](structure-library/la-z-vocab.scm)
 - [la-z2-vocab.scm](structure-library/la-z2-vocab.scm)
+- [la-z3-vocab.scm](structure-library/la-z3-vocab.scm)
+- [la-z4-vocab.scm](structure-library/la-z4-vocab.scm)
 - [lebesgue-translate.scm](structure-library/lebesgue-translate.scm)
 - [lp-inequalities.scm](structure-library/lp-inequalities.scm)
 - [lp-seminorm.scm](structure-library/lp-seminorm.scm)

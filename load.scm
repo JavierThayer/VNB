@@ -492,6 +492,9 @@
     "structure-library/mod-seq"
     ;; LA-Z2 (2026-10-23): IS-PRINCIPAL-SEQUENCE (3.48).
     "structure-library/la-z2-vocab"
+    ;; LA-Z3 / LA-Z4 (2026-10-24): quotient module, direct sums, Smith; free modules, Z^n, Schanuel.
+    "structure-library/la-z3-vocab"
+    "structure-library/la-z4-vocab"
     ;; User-added structures (auto-managed by Build Structure button)
     "structure-library/user-additions"
     ;; Reclassify hand-written defining iffs (property/class/membership defs)
@@ -2187,6 +2190,8 @@
     "theorem-library/la-z2-norm"
     "theorem-library/la-z2-diag"
     "theorem-library/la-z2-principal"
+    ;; LA-Z3 (2026-10-24): Smith form existence. The rest of LA-Z3 loads after rake-setoid2.
+    "theorem-library/la-z3-smith"
     ;; Phase C, Prop 3.41: an n-generated module bounds every relation-free
     ;; sequence by n -- so rank is well defined.  The payoff of the Smith arc.
     "theorem-library/rank-bound-proof"
@@ -2672,6 +2677,17 @@
     ;; (term restated to ((EMBED M) u)): PROVEN 2026-09-17 (rake batch O).  Window
     ;; [after product-convergence (rr-null-squeeze), end).
     "theorem-library/rake-setoid2"
+    ;; LA-Z3 / LA-Z4 (2026-10-24): quotient module, direct sum, structure steps; Z^n free, Schanuel,
+    ;; Props 3.50 / 3.51. After rake-setoid2 (class-eq-iff, rko2-related-unfold) and
+    ;; rake-finsum-typing-nn (nn-minus-in-nn).
+    "theorem-library/la-z3-quotient"
+    "theorem-library/la-z3-dsum"
+    "theorem-library/la-z3-struct"
+    "theorem-library/la-z4-free"
+    "theorem-library/la-z4-dsum"
+    "theorem-library/la-z4-exist"
+    "theorem-library/la-z4-schanuel"
+    "theorem-library/la-z4-unique"
     ;; rake batch 5c (2026-09-18): completion-is-metric-space
     "theorem-library/rake-completion-ms"
     ;; 2026-09-20 (batch 12-D): completion-is-complete PROVEN.
