@@ -4,9 +4,9 @@
 ;;;
 ;;; reads its structure argument ONLY through PTS.  And METRIC-TOP carries PTS
 ;;; across on the nose: PTS(METRIC-TOP r) is PTS(r) -- a metric space and its
-;;; topology have the same points.  So, for EVERY r, both sides of
+;;; topology have the same points.  So, for every METRIC SPACE r, both sides of
 ;;;
-;;;     PREIMAGE(METRIC-TOP r, f, V)  ==  PREIMAGE(r, f, V)
+;;;     IS-METRIC-SPACE(r)  =>  PREIMAGE(METRIC-TOP r, f, V)  ==  PREIMAGE(r, f, V)
 ;;;
 ;;; unfold to the same separation, and the functor is invisible to the preimage.
 ;;;
@@ -20,9 +20,12 @@
 ;;; therefore assert that both preimages are DEFINED for every r whatsoever --
 ;;; including an r that is no metric space at all -- and would need a guard, and a
 ;;; sethood argument, to be honest.  `==' claims exactly what is true: the same
-;;; thing, defined or not.  It is unconditional, and `qrfl' closes it on alpha-
-;;; equivalence with no definedness obligation.  `macete-equivalence?' accepts
-;;; `==', so the theorem is a REWRITE by name, usable with mac / mac-h.
+;;; thing, defined or not, and `qrfl' closes it on alpha-equivalence with no
+;;; definedness obligation.  The GUARD IS-<src>(r) is still needed (FPROJ,
+;;; 2026-10-23, below): the projection that removes the functor owes the
+;;; definedness of the functor's whole list.  `macete-equivalence?' accepts `==',
+;;; so the theorem is a guarded REWRITE by name: `mac' fires it where IS-<src>(r)
+;;; is in the local context, `mac-h' posts the guard when it is not.
 ;;;
 ;;; NOTHING IS ASSERTED.  Each equation is PROVED, by the same three moves every
 ;;; time -- unfold the functoid, project the accessors, qrfl -- and installed as a
@@ -72,15 +75,26 @@
          (every (lambda (a) (memq a nose)) reads)
          reads)))
 
+;;; THE GUARD (FPROJ, 2026-10-23; the user's decision, option 1).  The canned proof projects
+;;; ACC(G r) -> ACC(r) with G's projection macete, which OWES the definedness of G's whole list
+;;; [c1(r) .. cn(r)] (structures.scm, install-functor-projections!).  For an r that is nothing at all
+;;; that list need not denote while ACC(r) does, so the unconditional equation is not a theorem.  The
+;;; equation is therefore stated under G's SOURCE structure predicate, read from *functor-info*: with
+;;; IS-<src>(r) in context the certificate accepts the list and the projection owes nothing.
+(define (fni--guard gname r)
+  (let ((info (functor-info gname)))
+    (and info (list (symbol-append 'IS- (car info)) r))))
+
 (define (fni--statement fname gname)
   (let* ((entry  (hash-table-ref/default *functoid-registry* fname #f))
          (params (car entry))
          (r      (car params))
          (rest   (cdr params)))
-    ;; FORALL r, x... :  F(G r, x...) == F(r, x...)
+    ;; FORALL r, x... :  IS-<src>(r) => F(G r, x...) == F(r, x...)
     (fold-right (lambda (v f) `(FORALL ,v ,f))
-                `(== (,fname (,gname ,r) ,@rest)
-                     (,fname ,r ,@rest))
+                `(IMPLIES ,(fni--guard gname r)
+                          (== (,fname (,gname ,r) ,@rest)
+                              (,fname ,r ,@rest)))
                 params)))
 
 ;;; --- the canned proof: unfold, project, qrfl --------------------------------
@@ -94,9 +108,14 @@
     (and (not (hash-table-ref/default *theorem-table* nm #f))
          (begin
            (sp (make-wff (fni--statement fname gname)))
-           (let peel ((n (length (car (hash-table-ref/default
-                                        *functoid-registry* fname '(()))))))
-             (unless (= n 0) (quietly (lambda () (di))) (peel (- n 1))))
+           ;; peel the universals and land the guard: `di' takes every leading FORALL in one
+           ;; call and the IMPLIES in the next, so loop on the goal's head, not on a count
+           (let peel ((n 0))
+             (when (and (< n 8)
+                        (let ((g (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+                          (and (pair? g) (memq (car g) '(FORALL IMPLIES)))))
+               (quietly (lambda () (di)))
+               (peel (+ n 1))))
            (quietly (lambda () (mac fname)))
            (for-each (lambda (a) (quietly (lambda () (slot a)))) accs)
            (quietly (lambda () (qrfl)))

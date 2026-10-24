@@ -694,10 +694,13 @@
                          (pair? body) (list? body) (eq? (car body) 'LIST)
                          (exact-nonnegative-integer? k) (> k 0)
                          (< k (length body))
+                         ;; the sixth entry: the functor and its LIST body, whose instance at the
+                         ;; matched argument every firing owes (FPROJ, 2026-10-23; the explainer)
                          (list pvars '()
                                (list acc (cons fn pvars))
                                (list-ref body k)
-                               'functor-projection)))))))))
+                               'functor-projection
+                               (cons fn body))))))))))
 
 ;;; A memo, because every macete step asks this question and reading a statement
 ;;; as a rewrite rule is not free.  Keyed by name AND by the statement object the
@@ -811,12 +814,28 @@
            (let loop ((cs conds))
              (cond
                ((null? cs)
-                ;; only a THEOREM's macete instantiates a universal; a functoid / accessor /
-                ;; functor-projection unfolding is schematic and owes nothing (2026-10-09)
+                ;; only a THEOREM's macete instantiates a universal; a functoid / accessor
+                ;; unfolding is schematic and owes nothing (2026-10-09).  A FUNCTOR PROJECTION
+                ;; owes the definedness of its whole instantiated list (FPROJ, 2026-10-23):
+                ;; ACC(NAME(t)) is NTH(k, [c1(t) .. cn(t)]), which denotes only when every
+                ;; component is a set, while ck(t) may denote alone -- T09F(r) = [PTS(r), IOTA z.
+                ;; FALSITY] took PTS(T09F(r)) = PTS(T09F(r)) to PTS(r) = PTS(r) and FALSITY followed.
                 (let vloop ((ts (if (and (>= (length def) 5) (eq? (list-ref def 4) 'theorem))
                                     (rkw--sub-values sub)
                                     '())))
-                  (cond ((null? ts) #t)
+                  (cond ((and (null? ts)
+                              (>= (length def) 6) (eq? (list-ref def 4) 'functor-projection))
+                         (let* ((fb (list-ref def 5))
+                                (l  (rkw--inst sub (cdr fb))))
+                           (dg-note-read-def! (car fb))   ; the verdict read the functor's body
+                           (if (rkw--value-discharged? l ctx minor-goals)
+                               #t
+                               (string-append
+                                "the functor projection " (rkw--brief (car fb)) "@.. fired at "
+                                (rkw--brief a) ", but the list " (rkw--brief l)
+                                " is neither certified defined in the local context of that position"
+                                " nor owed as a minor premise  L = L"))))
+                        ((null? ts) #t)
                         ((rkw--value-discharged? (car ts) ctx minor-goals) (vloop (cdr ts)))
                         (else
                          (string-append

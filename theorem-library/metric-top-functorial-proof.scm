@@ -122,11 +122,12 @@
 ;;; INVISIBLE to the preimage, and functor-invariance.scm proved it, once, for
 ;;; every r:
 ;;;
-;;;     metric-top@preimage :  PREIMAGE(METRIC-TOP r, f, V) == PREIMAGE(r, f, V)
+;;;     metric-top@preimage :  IS-METRIC-SPACE(r) => PREIMAGE(METRIC-TOP r, f, V) == PREIMAGE(r, f, V)
 ;;;
-;;; It is a `==' (quasi-equality), so it is unconditional -- no metric-space guard,
-;;; no sethood of the separation, no definedness owed.  And `macete-equivalence?'
-;;; accepts `==', so it rewrites by name.  This replaced a nine-line detour: cut
+;;; It is a `==' (quasi-equality): no sethood of the separation, no definedness owed.
+;;; Its one guard (FPROJ, 2026-10-23) is IS-METRIC-SPACE(a), cut into the context
+;;; above, so the guarded `mac' fires here.  And `macete-equivalence?' accepts `==',
+;;; so it rewrites by name.  This replaced a nine-line detour: cut
 ;;; the `=' equation, cut the SEP's sethood to satisfy rfl's definedness guard,
 ;;; unfold, project, subst.
 (mac 'metric-top@preimage)

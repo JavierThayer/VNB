@@ -533,14 +533,45 @@
             (loop (cdr bs)
                   (append (reverse (map (lambda (t) (list '= t t)) new)) acc)))))))
 
+;;; THE DEFINEDNESS A MACETE OWES BY CONSTRUCTION (2026-10-23, repair FPROJ).  A functor projection
+;;; NAME@ACC (install-functor-projections!, structures.scm) rewrites  ACC(NAME(t)) -> c_k(t), and
+;;; ACC(NAME(t)) is NTH(k, [c_1(t) .. c_n(t)]): it denotes only when the whole LIST does, i.e. when
+;;; every component is a SET (the list doctrine, 2026-10-01).  The rewrite is a quasi-equality only
+;;; there: with T09F(r) = [PTS(r), IOTA z. FALSITY] it took PTS(T09F(r)) = PTS(T09F(r)) to
+;;; PTS(r) = PTS(r), and the strict walk through T09F's body then certified the description: FALSITY
+;;; modulo 0.  Such a macete is built with the list of TERMS (patterns in its schema variables) whose
+;;; definedness each firing owes; make-elementary-macete binds them here, and each instance the
+;;; certificate pi--defined? does not accept in the LOCAL context of the position is posted as the
+;;; minor premise  t = t,  as a theorem macete posts its matched values.  A premise that would mention
+;;; a crossed bound variable is never posted: the position is left unrewritten (rewrite-expr below).
+(define *rewrite-owed-terms* '())
+
+(define (rw--owed-terms sub local-ctx)
+  (if (null? *rewrite-owed-terms*)
+      '()
+      (let ((wffs (rw--ctx-as-wffs local-ctx)))
+        (let loop ((ps *rewrite-owed-terms*) (acc '()))
+          (if (null? ps)
+              (reverse acc)
+              (let ((t (apply-subst sub (car ps))))
+                (loop (cdr ps)
+                      (if (or (not (pair? t))
+                              (pi--defined? wffs t 0)
+                              (member (list '= t t) acc))
+                          acc
+                          (cons (list '= t t) acc)))))))))
+
 (define (rewrite-expr pattern replacement schema-vars conditions expr local-ctx)
   (let ((top-match (match-expr pattern expr schema-vars)))
     (if top-match
         (let* ((unmet (filter (lambda (c) (not (condition-holds? c local-ctx)))
                               (map (lambda (c) (apply-subst top-match c)) conditions)))
-               (owed  (if (and *rewrite-owe-definedness?*
-                               (or (null? unmet) *macete-spawn-conditions?*))
-                          (rw--owed-definedness top-match local-ctx)
+               (owed  (if (or (null? unmet) *macete-spawn-conditions?*)
+                          (append
+                           (if *rewrite-owe-definedness?*
+                               (rw--owed-definedness top-match local-ctx)
+                               '())
+                           (rw--owed-terms top-match local-ctx))
                           '()))
                (posted (append unmet owed)))
           (if (and (or (null? unmet) *macete-spawn-conditions?*)
@@ -1007,8 +1038,10 @@
 ;;; moved on by one.  `<anonymous>' is the name of a macete built outside
 ;;; install-macete! (only the S-10 fixture in test-suite.scm does that).
 (define (make-elementary-macete schema-vars conditions source replacement
-                                #!optional name)
-  (let ((mac-name (if (default-object? name) '<anonymous> name)))
+                                #!optional name owed-terms)
+  (let ((mac-name (if (default-object? name) '<anonymous> name))
+        ;; the terms whose definedness every firing owes (FPROJ, 2026-10-23; *rewrite-owed-terms*)
+        (owed     (if (default-object? owed-terms) '() owed-terms)))
    (lambda (sqn)
     (let* ((asms      (sequent-node-assumptions sqn))
            (goal      (sequent-node-assertion   sqn))
@@ -1016,7 +1049,8 @@
            (dg        (sqn-dg sqn))
            ;; Seed the local context with the sequent's current assumptions.
            (local-ctx (map wff-formula asms))
-           (result    (fluid-let ((*rewrite-owe-definedness?* (rw--theorem-macete? mac-name)))
+           (result    (fluid-let ((*rewrite-owe-definedness?* (rw--theorem-macete? mac-name))
+                                      (*rewrite-owed-terms* owed))
                         (rewrite-expr source replacement schema-vars
                                       conditions g local-ctx))))
       (let ((new-g       (car result))

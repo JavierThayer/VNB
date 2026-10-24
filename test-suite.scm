@@ -4487,22 +4487,27 @@
 ;;; applied.
 ;;;
 ;;; It is `==', not `=': VNB's `=' is partial (t = t IS the definedness claim), so
-;;; an unconditional `=' would assert both preimages DEFINED for every r, metric
-;;; space or not.  `==' claims exactly what holds, unconditionally, and `qrfl'
-;;; closes it with no definedness obligation.
+;;; `=' would assert both preimages DEFINED.  `==' claims exactly what holds, and
+;;; `qrfl' closes it with no definedness obligation.  It is guarded by
+;;; IS-METRIC-SPACE(r) (FPROJ, 2026-10-23): removing the functor owes its list.
 ;;;
 ;;; And it is PROVED, not warranted: the machine may generate statements freely, it
 ;;; may not assert them.  A qualifying pair whose canned proof fails is reported.
 
 (display "\n=== functor invariance ===\n")
 
-(check-true "metric-top@preimage is PROVEN, modulo 0, and is a quasi-equality"
+;;; GUARDED since FPROJ (2026-10-23, the user's decision): the projection that removes
+;;; METRIC-TOP owes the definedness of its whole list, which IS-METRIC-SPACE(s) certifies.
+(check-true "metric-top@preimage is PROVEN, modulo 0, and is the GUARDED quasi-equality IS-METRIC-SPACE(s) => .. == .."
   (lambda ()
     (let ((f (hash-table-ref/default *theorem-table* 'metric-top@preimage #f)))
       (and f
            (suite-proven? 'metric-top@preimage)   ; proved, not asserted
            (null? (debt-of 'metric-top@preimage))               ; ... modulo 0
-           (string-search-forward "==" (expression->string f) 0)
+           (alpha-equiv? (if (wff? f) (wff-formula f) f)
+                         '(FORALL s (FORALL f (FORALL V
+                            (IMPLIES (IS-METRIC-SPACE s)
+                                     (== (PREIMAGE (METRIC-TOP s) f V) (PREIMAGE s f V)))))))
            #t))))
 
 ;; PREIMAGE qualifies (reads only PTS); BALL does not (it reads DIST, which the
@@ -16227,6 +16232,95 @@
 (check "KREC 1.2 (builder): rfl closes u = u from Rid(u) in NN, not from R0(u) in NN"
   (lambda () (list (krec--rfl-closes? krec-r0) (krec--rfl-closes? krec-rid)))
   '(#f #t))
+
+;;; FPROJ (2026-10-23): THE FUNCTOR-PROJECTION MACETE OWES THE LIST'S DEFINEDNESS.
+;;; def-constructed-functor installs NAME@ACC : ACC(NAME(r)) -> ck(r) for NAME(r) = [c1(r) .. cn(r)].
+;;; ACC(NAME(t)) is NTH(k, [c1(t) .. cn(t)]), which denotes only when every component is a set (the
+;;; list doctrine, 2026-10-01), while ck(t) may denote alone.  The rewrite owed nothing, and with
+;;; T09F(r) = [PTS(r), IOTA z. (z in NN and FALSITY)] it proved FALSITY modulo 0 (~/hunt/t09).  Since
+;;; the repair the builder posts  L = L  for the instantiated list L unless the certificate accepts L
+;;; in the local context (macetes.scm, *rewrite-owed-terms*), and the checker accepts the step only
+;;; certified-or-owed (rule-checkers-rewrite.scm, rkw--functor-projection-def / the explainer).
+;;; The checks marked CONTROL fail on the kernel before the repair (scratchpad/FPROJ-REPORT.md).
+(define fpj-u '(IOTA fpjz_ (AND (IN fpjz_ NN) FALSITY)))
+(def-constructed-functor 'FPJBAD 'METRIC-SPACE 'METRIC-SPACE '(fpjp_) `(LIST (PTS fpjp_) ,fpj-u))
+(define fpj-list '(LIST (PTS fpjr_) (IOTA fpjz_ (AND (IN fpjz_ NN) FALSITY))))
+
+;;; Drive STMT: peel it, run `slot ACC', and report (open leaves, owed L = L present?, done after rfl).
+(define (fpj--slot-run stmt acc owed-list)
+  (quietly
+   (lambda ()
+     (sp (make-wff stmt))
+     (di) (di)
+     (slot acc)
+     (let* ((leaves (dk-open-leaves))
+            (goals  (map (lambda (n) (wff-formula (sequent-node-assertion n))) leaves))
+            (owed?  (and owed-list
+                         (any (lambda (g) (alpha-equiv? g (list '= owed-list owed-list))) goals)
+                         #t)))
+       (vnb-guard (lambda () (rfl)))
+       (list (length leaves) owed? (and *ps* (proof-done? *ps*) #t))))))
+
+(check "FPROJ (builder, accepted): TRUNC-METRIC@PTS under IS-METRIC-SPACE(s) owes nothing; rfl closes"
+  (lambda ()
+    (fpj--slot-run '(FORALL fpjs_ (IMPLIES (IS-METRIC-SPACE fpjs_)
+                                           (= (PTS (TRUNC-METRIC fpjs_)) (PTS fpjs_))))
+                   'PTS #f))
+  '(1 #f #t))
+
+(check "FPROJ (builder, owed) CONTROL: FPJBAD@PTS owes [PTS(r), IOTA ..] = [..]; the main leaf closes, the proof does not"
+  (lambda ()
+    (fpj--slot-run `(FORALL fpjr_ (IMPLIES (IN (PTS fpjr_) RR)
+                                           (= (PTS (FPJBAD fpjr_)) (PTS (FPJBAD fpjr_)))))
+                   'PTS fpj-list))
+  '(2 #t #f))
+
+;;; The checker, independently of the builder.
+(define fpj-tag '(macete FPJBAD@PTS (PTS (FPJBAD fpjp_)) (PTS fpjp_)))
+(define fpj-concl (rcl--h '((IN (PTS fpjr_) RR)) '(= (PTS (FPJBAD fpjr_)) (PTS (FPJBAD fpjr_)))))
+(rcl--refuse "FPROJ CONTROL: FPJBAD@PTS with the list neither certified nor owed" fpj-tag fpj-concl
+  (list (rcl--h '((IN (PTS fpjr_) RR)) '(= (PTS fpjr_) (PTS fpjr_)))))
+(rcl--accept "FPROJ: FPJBAD@PTS with the list owed as the minor premise L = L" fpj-tag fpj-concl
+  (list (rcl--h '((IN (PTS fpjr_) RR)) '(= (PTS fpjr_) (PTS fpjr_)))
+        (rcl--h '((IN (PTS fpjr_) RR)) `(= ,fpj-list ,fpj-list))))
+(rcl--accept "FPROJ: TRUNC-METRIC@PTS with IS-METRIC-SPACE(s) in context (the list certified, nothing owed)"
+  '(macete TRUNC-METRIC@PTS (PTS (TRUNC-METRIC s)) (PTS s))
+  (rcl--h '((IS-METRIC-SPACE fpjs_)) '(= (PTS (TRUNC-METRIC fpjs_)) (PTS fpjs_)))
+  (list (rcl--h '((IS-METRIC-SPACE fpjs_)) '(= (PTS fpjs_) (PTS fpjs_)))))
+(rcl--refuse "FPROJ CONTROL: TRUNC-METRIC@PTS with no structure hypothesis and nothing owed"
+  '(macete TRUNC-METRIC@PTS (PTS (TRUNC-METRIC s)) (PTS s))
+  (rcl--h '() '(== (PTS (TRUNC-METRIC fpjs_)) (PTS fpjs_)))
+  (list (rcl--h '() '(== (PTS fpjs_) (PTS fpjs_)))))
+
+;;; The reproducer (~/hunt/t09-functor-projection.scm, on FPJBAD): the kernel no longer closes it.
+(check "FPROJ CONTROL: the t09 reproducer reaches neither its lemma nor FALSITY"
+  (lambda ()
+    (let ((saved *vnb-qed-failures*))
+      (call-with-current-continuation
+       (lambda (k)
+         (with-exception-handler
+          (lambda (e) (k #f))
+          (lambda ()
+            (quietly
+             (lambda ()
+               (sp (make-wff '(FORALL fpjr_ (IMPLIES (IN (PTS fpjr_) RR) FALSITY))))
+               (dk-peel!)
+               (vnb-guard
+                (lambda ()
+                  (dk-have! '(= (PTS (FPJBAD fpjr_)) (PTS (FPJBAD fpjr_)))
+                            (lambda () (mac 'FPJBAD@PTS) (rfl)))
+                  (dk-have! `(= ,fpj-u ,fpj-u) (lambda () (rfl)))
+                  (iota-e fpj-u)
+                  (dk-split-all!)
+                  (ass)))
+               (vnb-guard (lambda () (qed 'fpj-t09-lemma)))))))))
+      (set! *vnb-qed-failures* saved)
+      ;; installed AS PROVEN (a keep-going load installs an incomplete proof as an asserted HOLE)
+      (list (and (hash-table-ref/default *theorem-table* 'fpj-t09-lemma #f)
+                 (memq (provenance-of 'fpj-t09-lemma) '(proven certified)) #t)
+            (and (hash-table-ref/default *theorem-table* 'fpj-t09-falsity #f)
+                 (memq (provenance-of 'fpj-t09-falsity) '(proven certified)) #t))))
+  '(#f #f))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

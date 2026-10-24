@@ -4971,8 +4971,8 @@
 
 \vnbfile{structure-library/functor-invariance.scm}{structure-library/functor-invariance.scm}
 \noindent{\small functor-invariance.scm -- a construction that cannot see the functor.}\par
-\vnbentry{\texttt{metric-\allowbreak{}top@preimage}}{\vnbstmt{\forall s, f, v.\; (\operatorname{preimage}(\operatorname{metric\text{-}top}(s), f, v) \simeq \operatorname{preimage}(s, f, v))}}
-\vnbentry{\texttt{trunc-\allowbreak{}metric@preimage}}{\vnbstmt{\forall s, f, v.\; (\operatorname{preimage}(\operatorname{trunc\text{-}metric}(s), f, v) \simeq \operatorname{preimage}(s, f, v))}}
+\vnbentry{\texttt{metric-\allowbreak{}top@preimage}}{\vnbstmt{\begin{array}{@{}l@{}} \forall s, f, v. \\ \quad \operatorname{is\text{-}metric\text{-}space}(s) \Rightarrow (\operatorname{preimage}(\operatorname{metric\text{-}top}(s), f, v) \simeq \operatorname{preimage}(s, f, v)) \end{array}}}
+\vnbentry{\texttt{trunc-\allowbreak{}metric@preimage}}{\vnbstmt{\begin{array}{@{}l@{}} \forall s, f, v. \\ \quad \operatorname{is\text{-}metric\text{-}space}(s) \Rightarrow (\operatorname{preimage}(\operatorname{trunc\text{-}metric}(s), f, v) \simeq \operatorname{preimage}(s, f, v)) \end{array}}}
 
 \vnbfile{theorem-library/metric-top-proof.scm}{theorem-library/metric-top-proof.scm}
 \noindent{\small metric-top-proof.scm -- the metric open sets form a topology.}\par

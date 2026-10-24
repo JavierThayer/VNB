@@ -7370,8 +7370,8 @@ Let $m$ and $f$ be arbitrary. Let $n \in \mathbb{N}$. Then
 
 \vnbbookfile{structure-library/functor-invariance}{structure-library/functor-invariance}
 \noindent{\small functor-invariance.scm -- a construction that cannot see the functor.}\par
-\vnbprop{metric-top@preimage}{\vnbstmt{\forall s, f, v.\; (\operatorname{preimage}(\operatorname{metric\text{-}top}(s), f, v) \simeq \operatorname{preimage}(s, f, v))}}
-\vnbprop{trunc-metric@preimage}{\vnbstmt{\forall s, f, v.\; (\operatorname{preimage}(\operatorname{trunc\text{-}metric}(s), f, v) \simeq \operatorname{preimage}(s, f, v))}}
+\vnbprop{metric-top@preimage}{\vnbstmt{\begin{array}{@{}l@{}} \forall s, f, v. \\ \quad \operatorname{is\text{-}metric\text{-}space}(s) \Rightarrow (\operatorname{preimage}(\operatorname{metric\text{-}top}(s), f, v) \simeq \operatorname{preimage}(s, f, v)) \end{array}}}
+\vnbprop{trunc-metric@preimage}{\vnbstmt{\begin{array}{@{}l@{}} \forall s, f, v. \\ \quad \operatorname{is\text{-}metric\text{-}space}(s) \Rightarrow (\operatorname{preimage}(\operatorname{trunc\text{-}metric}(s), f, v) \simeq \operatorname{preimage}(s, f, v)) \end{array}}}
 
 \vnbbookfile{theorem-library/metric-top-proof}{theorem-library/metric-top-proof}
 \noindent{\small metric-top-proof.scm -- the metric open sets form a topology.}\par

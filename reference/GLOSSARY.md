@@ -10180,7 +10180,7 @@ forall([s], is-metric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) i
 
 also: `cc-is-metric-space` `rr-is-metric-space` `nf-cc-is-metric-space` `nf-rr-is-metric-space` `sub-rr-is-metric-space` `product-is-metric-space` `c-metric-is-metric-space` `subspace-is-metric-space` ... (20 in all)
 
-[mentioned by 405 result(s)](BY-OPERATOR.md#is-metric-space)
+[mentioned by 409 result(s)](BY-OPERATOR.md#is-metric-space)
 
 ### `is-metrizable-top-space(s)`  *(predicate)*
 

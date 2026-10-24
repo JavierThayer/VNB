@@ -2075,12 +2075,21 @@
                 (let ((mname (symbol-append name '@ (car accs))))
                   (if (hash-table-ref/default *macete-table* mname #f)
                       (error "def-constructed-functor: macete name already taken" mname))
+                  ;; The macete OWES the definedness of the whole instantiated LIST (FPROJ,
+                  ;; 2026-10-23): ACC(NAME(t)) is NTH(k, [c1(t) .. cn(t)]), which denotes only when
+                  ;; every component is a set, while ck(t) may denote alone.  Each firing whose list
+                  ;; the certificate does not accept in the local context posts  L = L  as a minor
+                  ;; premise (macetes.scm, *rewrite-owed-terms*); the checker demands the same
+                  ;; (rule-checkers-rewrite.scm, rkw--functor-projection-def).  So the stamp below
+                  ;; claims  forall r. [c1(r) .. cn(r)] = [c1(r) .. cn(r)] => ACC(NAME r) = ck(r),
+                  ;; which the functoid unfold, the accessor's definition and NTH-reduction give.
                   (install-macete! mname
                     (make-elementary-macete
                       (list r) '()
                       `(,(car accs) (,name ,r))
                       (car ts)
-                      mname))
+                      mname
+                      (list term)))
                   (register-provenance! mname 'definitional)
                   (loop (cdr accs) (cdr ts)
                         (cons (list (car accs) mname (car ts)) acc)))))))))
