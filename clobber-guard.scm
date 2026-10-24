@@ -342,6 +342,70 @@
               (cfl--binders form #t '()))
     (if mixed? (cfd--collisions names) '())))
 
+;;; QUOTED DATA (2026-10-24, the LA-Z3 agent): a statement written as a quoted
+;;; S-expression, `(FORSOME x (IN x X))', is read by the folding reader into
+;;; `x in x', and the binder walk above never enters a quote.  Each quoted datum
+;;; of a form is checked on its own: two symbols in ONE datum that differ only by
+;;; case are one symbol.  Data in different quotes are not compared (a helper's
+;;; 'X and a statement's 'x elsewhere in the form are separate things).
+(define (cfl--quoted-data x acc)
+  (cond ((not (pair? x)) acc)
+        ((and (memq (car x) '(quote quasiquote)) (pair? (cdr x)))
+         (cons (cadr x) acc))
+        (#t (cfl--quoted-data (cdr x) (cfl--quoted-data (car x) acc)))))
+
+;;; Only symbols in ARGUMENT position count: a head (`(HAS-INVERSES ..)', `(LIST ..)')
+;;; is a constant, which reads the same in either spelling.  A registered constant
+;;; met as an argument is passed over for the same reason (the registry exists by the
+;;; time any library file is linted).
+(define cfl--env (the-environment))        ; clobber-guard.scm is never compiled (load.scm)
+(define (cfl--constant-name? s)
+  (and (environment-bound? cfl--env '*constant-registry*)
+       (hash-table-ref/default (eval '*constant-registry* cfl--env)
+                               (string->symbol (string-downcase s)) #f)
+       #t))
+
+(define (cfl--datum-symbols d acc)
+  (cond ((symbol? d) (if (cfl--constant-name? (symbol->string d)) acc (cons (symbol->string d) acc)))
+        ((pair? d)
+         (let walk ((l (cdr d)) (acc (if (pair? (car d)) (cfl--datum-symbols (car d) acc) acc)))
+           (cond ((pair? l) (walk (cdr l) (cfl--datum-symbols (car l) acc)))
+                 ((symbol? l) (cfl--datum-symbols l acc))
+                 (#t acc))))
+        ((vector? d) (fold-left (lambda (a e) (cfl--datum-symbols e a)) acc (vector->list d)))
+        (#t acc)))
+
+;;; One exemption: a FLAT list of symbols that spells a multi-letter name both
+;;; ALL-UPPER and all-lower is a deliberate case-insensitive table (a `memq' list
+;;; such as '(is-identity IS-IDENTITY)), not a statement.  A single letter, or a
+;;; mixed spelling (bd-K / bd-k), is reported even there: '(R n B r) handed to
+;;; forall-guarded is exactly the binder list that read r as R (LA-Z, 2026-10-19).
+(define (cfl--flat-symbol-list? d)
+  (and (list? d) (every symbol? d)))
+
+(define (cfl--dual-listing? col)            ; (folded spelling spelling ...)
+  (let ((sp (cdr col)))
+    (and (= (length sp) 2)
+         (> (string-length (car col)) 1)
+         (let ((u (string-upcase (car col))) (l (car col)))
+           (and (member u sp) (member l sp) #t)))))
+
+(define (cfl--quoted-collisions form)
+  (fold-left
+   (lambda (acc d)
+     (let ((names (if (cfl--flat-symbol-list? d)   ; a binder list: every entry is a name
+                      (fold-left (lambda (a e) (cfl--datum-symbols e a)) '() d)
+                      (cfl--datum-symbols d '()))))
+       (if (any (lambda (s) (not (string=? s (string-downcase s)))) names)
+           (append acc
+                   (let ((cols (cfd--collisions names)))
+                     (if (cfl--flat-symbol-list? d)
+                         (filter (lambda (c) (not (cfl--dual-listing? c))) cols)
+                         cols)))
+           acc)))
+   '()
+   (reverse (cfl--quoted-data form '()))))
+
 (define (case-fold-local-lint-text text)
   (let ((port (string->input-port text)))
         (parameterize ((param:reader-fold-case? #f))
@@ -349,8 +413,12 @@
             (let ((f (read port)))
               (if (eof-object? f)
                   (reverse acc)
-                  (loop (let ((cols (if (pair? f) (cfl--form-collisions f) '())))
-                          (if (pair? cols) (cons (cons (cfl--form-name f) cols) acc) acc)))))))))
+                  (loop (let* ((cols (if (pair? f) (cfl--form-collisions f) '()))
+                               (acc (if (pair? cols) (cons (cons (cfl--form-name f) cols) acc) acc))
+                               (qcols (if (pair? f) (cfl--quoted-collisions f) '())))
+                          (if (pair? qcols)
+                              (cons (cons (string-append (cfl--form-name f) " (a quoted datum)") qcols) acc)
+                              acc)))))))))
 
 (define (case-fold-local-lint! file path)
   (let ((hits
@@ -371,7 +439,8 @@
                               (display "->  ") (display (car c)) (newline))
                             (cdr h)))
                 hits)
-      (display ";              The inner binding silently SHADOWS (or replaces) the other.\n"))
+      (display ";              The inner binding silently SHADOWS (or replaces) the other; inside one quoted\n")
+      (display ";              datum the two spellings are ONE symbol (a statement's x and X read as one variable).\n"))
     (if (pair? hits) hits '())))
 
 (define (cfl--proof-file? file)

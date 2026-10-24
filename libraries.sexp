@@ -341,6 +341,7 @@
     "theorem-library/inverse-invertible-proof"
     "theorem-library/la-det-adjoint"
     "theorem-library/la-elem-gen"
+    "theorem-library/module-laws"
     "theorem-library/la-z-sdet"
     "theorem-library/la-z-gcd"
     "theorem-library/la-z-elem"

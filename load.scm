@@ -1751,6 +1751,9 @@
     ;; 0.x = 0_V : first proven MODULE theorem; worked test of `fact' + the
     ;; MODULE-VECTOR-AG view.  Needs interactive tactics + the module bricks.
     "theorem-library/module-zero-act"
+    ;; MODLAWS (2026-10-24): the laws of any module, moved here from frechet-metric and
+    ;; hahn-banach-sublinear (analysis) so that linear-algebra files can cite them.
+    "theorem-library/module-laws"
     ;; Well-ordering of NN, PROVEN from ord-well-ordered (ordinals.scm) via
     ;; the ORD-LE/<= bridge; exercises the new ai iff-elim.  Needs interactive
     ;; tactics + qed and the ordinal axioms.

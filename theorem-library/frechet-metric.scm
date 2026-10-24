@@ -91,148 +91,13 @@
     (if (not (frm-asm? ty)) (error "frm-vec!: typing did not land" (expression->string v)))
     ty))
 
-;;; ---- the read-off procedure of ag-view-read-offs.scm (avr-read-off!), local copy --
-(define (frm-read-off! name var is-pred is-mac view acc val witness)
-  (sp (make-wff (list 'FORALL var
-                  (list 'IMPLIES is-pred
-                    (list '= (list acc (list view var)) val)))))
-  (di)
-  (di)
-  (mac-h is-mac is-pred)
-  (dk-split-all!)
-  (if (not (member witness (dk-asms)))
-      (error "frm-read-off!: the typing conjunct is not in the context"
-             name (expression->string witness)))
-  (slot acc)
-  (mac view)
-  (nth-r)
-  (rfl)
-  (if (not (proof-done? *ps*))
-      (error "frm-read-off!: proof did not close" name (dk-goal)))
-  (qed name))
-
 ;;; =====================================================================
-;;; (1) THE VECTOR GROUP OF A MODULE: the fourth read-off, and the group laws
-;;;     on VEC m that the differences x - y need.
+;;; (1) THE VECTOR GROUP OF A MODULE.
+;;; MOVED 2026-10-24 (MODLAWS) to theorem-library/module-laws.scm (library linear-algebra), same names, same statements:
+;;;   frm-mvag-inv, frm-v-right-inv, frm-v-neg-add, frm-v-neg-neg, frm-v-sub-anti, frm-v-sub-chain,
+;;;   frm-v-sub-zero-eq, frm-v-sub-shift, frm-v-sub-add (and with them the helpers frm-read-off!,
+;;;   frm-ag!, frm-ag-lemma!, frm-vstmt, frm-subst-all!, used by nothing else here).
 ;;; =====================================================================
-
-(frm-read-off! 'frm-mvag-inv 'md '(IS-MODULE md) 'is-module 'MODULE-VECTOR-AG
-               'INV '(VNEG md) '(IN (VNEG md) (FUN (VEC md) (VEC md))))
-
-;;; cite an ABELIAN-GROUP law at MODULE-VECTOR-AG(m) and land it in the module's own
-;;; vocabulary (VADD / VZERO / VNEG / VEC).  The VECS must be typed in VEC m.
-(define (frm-ag! thm m . vecs)
-  (let* ((g (list 'MODULE-VECTOR-AG m))
-         (rw (lambda (f from to) (if (dk-contains? f from) (dk-rewrite-h! f from to) f))))
-    (dk-cite! 'module-vector-ag-is-abelian-group m)
-    (dk-cite! 'mvag-carr m) (dk-cite! 'mvag-op m) (dk-cite! 'mvag-id m)
-    (dk-cite! 'frm-mvag-inv m)
-    (for-each (lambda (v)
-                (let ((ty (frm-vec! m v)))
-                  (frm-once! (list 'IN v (list 'CARR g))
-                             (lambda () (dk-rewrite-h! ty (list 'VEC m) (list 'CARR g))))))
-              vecs)
-    (let* ((f0 (apply dk-cite! thm g vecs))
-           (f1 (rw f0 (list 'OPR g) (list 'VADD m)))
-           (f2 (rw f1 (list 'INV g) (list 'VNEG m)))
-           (f3 (rw f2 (list 'IDEN g) (list 'VZERO m))))
-      f3)))
-
-(define (frm-vstmt vars body)
-  (list 'FORALL 'm
-    (list 'IMPLIES '(IS-MODULE m)
-      (let loop ((vs vars))
-        (if (null? vs) body
-            (list 'FORALL (car vs)
-                  (list 'IMPLIES (list 'IN (car vs) '(VEC m)) (loop (cdr vs)))))))))
-
-(define (frm-ag-lemma! name thm vars body)
-  (sp (make-wff (frm-vstmt vars body)))
-  (dk-peel!)
-  (apply frm-ag! thm 'm vars)
-  (ass)
-  (qed name))
-
-;;; frm-v-comm and frm-v-interchange were proven here; they are the statements of
-;;; hbs-vadd-comm and hbs-interchange (theorem-library/hahn-banach-sublinear.scm, loaded
-;;; earlier), so they were removed at integration (2026-10-10, proven-duplicate-audit) and
-;;; their citations renamed.
-(frm-ag-lemma! 'frm-v-right-inv 'abelian-group-right-inv '(x)
-  (list '= (frm-sub 'm 'x 'x) '(VZERO m)))
-(frm-ag-lemma! 'frm-v-neg-add 'abelian-group-inv-opr '(x y)
-  (list '= (frm-neg 'm (frm-add 'm 'x 'y)) (frm-add 'm (frm-neg 'm 'x) (frm-neg 'm 'y))))
-(frm-ag-lemma! 'frm-v-neg-neg 'abelian-group-inv-inv '(x)
-  (list '= (frm-neg 'm (frm-neg 'm 'x)) 'x))
-
-;;; ---- differences x - y = x + (-y) ------------------------------------
-
-(define (frm-subst-all! . eqs) (for-each (lambda (e) (subst e)) eqs))
-
-;;; -(x - y) = y - x
-(sp (make-wff (frm-vstmt '(x y) (list '= (frm-neg 'm (frm-sub 'm 'x 'y)) (frm-sub 'm 'y 'x)))))
-(dk-peel!)
-(frm-vec! 'm (frm-neg 'm 'y)) (frm-vec! 'm (frm-neg 'm 'x))
-(let* ((e1 (dk-cite! 'frm-v-neg-add 'm 'x (frm-neg 'm 'y)))
-       (e2 (dk-cite! 'frm-v-neg-neg 'm 'y))
-       (e3 (dk-cite! 'hbs-vadd-comm 'm (frm-neg 'm 'x) 'y)))
-  (frm-subst-all! e1 e2)
-  (ass))
-(qed 'frm-v-sub-anti)
-
-;;; (x - y) + (y - z) = x - z
-(sp (make-wff (frm-vstmt '(x y z)
-  (list '= (frm-add 'm (frm-sub 'm 'x 'y) (frm-sub 'm 'y 'z)) (frm-sub 'm 'x 'z)))))
-(dk-peel!)
-(for-each (lambda (v) (frm-vec! 'm v))
-          (list (frm-neg 'm 'x) (frm-neg 'm 'y) (frm-neg 'm 'z) (frm-sub 'm 'x 'z)))
-(let* ((e1 (dk-cite! 'hbs-vadd-comm 'm 'y (frm-neg 'm 'z)))
-       (e2 (dk-cite! 'hbs-interchange 'm 'x (frm-neg 'm 'y) (frm-neg 'm 'z) 'y))
-       (e3 (dk-cite! 'hbs-vadd-comm 'm (frm-neg 'm 'y) 'y))
-       (e4 (dk-cite! 'frm-v-right-inv 'm 'y))
-       (e5 (dk-cite! 'abelian-group-right-id-module-vector-ag 'm (frm-sub 'm 'x 'z))))
-  (frm-subst-all! e1 e2 e3 e4 e5)
-  (rfl))
-(qed 'frm-v-sub-chain)
-
-;;; x - y = 0  =>  x = y
-(sp (make-wff (frm-vstmt '(x y)
-  (list 'IMPLIES (list '= (frm-sub 'm 'x 'y) '(VZERO m)) '(= x y)))))
-(dk-peel!)
-(frm-vec! 'm (frm-neg 'm 'y)) (frm-vec! 'm (frm-neg 'm 'x))
-(let* ((e1 (dk-cite! 'abelian-group-inverse-unique-module-vector-ag 'm 'x (frm-neg 'm 'y)))
-       (e2 (dk-cite! 'frm-v-neg-neg 'm 'x))
-       (e3 (dk-cite! 'frm-v-neg-neg 'm 'y)))
-  (subst (list '= 'x (frm-neg 'm (frm-neg 'm 'x))))
-  (subst (list '= (frm-neg 'm 'x) (frm-neg 'm 'y)))
-  (ass))
-(qed 'frm-v-sub-zero-eq)
-
-;;; (x + r) - (y + r) = x - y      (translation invariance of the difference)
-(sp (make-wff (frm-vstmt '(x y r)
-  (list '= (frm-sub 'm (frm-add 'm 'x 'r) (frm-add 'm 'y 'r)) (frm-sub 'm 'x 'y)))))
-(dk-peel!)
-(for-each (lambda (v) (frm-vec! 'm v))
-          (list (frm-neg 'm 'y) (frm-neg 'm 'r) (frm-sub 'm 'x 'y)))
-(let* ((e1 (dk-cite! 'frm-v-neg-add 'm 'y 'r))
-       (e2 (dk-cite! 'hbs-interchange 'm 'x 'r (frm-neg 'm 'y) (frm-neg 'm 'r)))
-       (e3 (dk-cite! 'frm-v-right-inv 'm 'r))
-       (e4 (dk-cite! 'abelian-group-right-id-module-vector-ag 'm (frm-sub 'm 'x 'y))))
-  (frm-subst-all! e1 e2 e3 e4)
-  (rfl))
-(qed 'frm-v-sub-shift)
-
-;;; (x + y) - (u + v) = (x - u) + (y - v)
-(sp (make-wff (frm-vstmt '(x y u v)
-  (list '= (frm-sub 'm (frm-add 'm 'x 'y) (frm-add 'm 'u 'v))
-           (frm-add 'm (frm-sub 'm 'x 'u) (frm-sub 'm 'y 'v))))))
-(dk-peel!)
-(for-each (lambda (v) (frm-vec! 'm v))
-          (list (frm-neg 'm 'u) (frm-neg 'm 'v) (frm-add 'm (frm-sub 'm 'x 'u) (frm-sub 'm 'y 'v))))
-(let* ((e1 (dk-cite! 'frm-v-neg-add 'm 'u 'v))
-       (e2 (dk-cite! 'hbs-interchange 'm 'x 'y (frm-neg 'm 'u) (frm-neg 'm 'v))))
-  (frm-subst-all! e1 e2)
-  (rfl))
-(qed 'frm-v-sub-add)
 
 ;;; =====================================================================
 ;;; (2) THE FAMILY'S SPACE FR-C-SPACE(m, fam): the read-offs.
@@ -410,8 +275,7 @@
   (frm-fstmt '(IN fam (FUN NN (FUN (VEC m) RR)))))
 (frm-project! 'frm-fam-seminorm '(IS-SEMINORM-FAMILY fld m fam) 'is-seminorm-family
   (frm-fstmt '(FORALL k (IMPLIES (IN k NN) (IS-SEMINORM fld m (fam k))))))
-(frm-project! 'frm-module-vec-set '(IS-MODULE m) 'is-module
-  '(FORALL m (IMPLIES (IS-MODULE m) (IN (VEC m) SET))))
+;;; frm-module-vec-set: MOVED to theorem-library/module-laws.scm (MODLAWS, 2026-10-24).
 
 ;;; separation, in the form the zero law wants: a vector all of whose seminorms
 ;;; vanish is the zero vector.
@@ -1954,98 +1818,11 @@
 (frm-project! 'frm-fam-scal '(IS-SEMINORM-FAMILY fld m fam) 'is-seminorm-family
   (frm-fstmt '(= (SCAL m) (NORMED-FIELD-AS-COMMUTATIVE-RING fld))))
 
+;;; MOVED 2026-10-24 (MODLAWS) to theorem-library/module-laws.scm: the scalar-action laws
+;;; frm-act-neg-vec, frm-act-neg-scal, frm-act-sub-vec, frm-act-sub-scal, frm-act-diff
+;;; (and the helper frm-mstmt, used by nothing else here).  frm-act stays: (13) uses it.
+
 (define (frm-act m r v) (list (list 'ACT m) r v))
-(define (frm-mstmt vars guards body)
-  (list 'FORALL 'm (list 'IMPLIES '(IS-MODULE m) (forall-guarded vars guards body))))
-
-;;; r.(-x) = -(r.x)
-(sp (make-wff (frm-mstmt '(r x) '((IN r (CARR (SCAL m))) (IN x (VEC m)))
-  (list '= (frm-act 'm 'r (frm-neg 'm 'x)) (frm-neg 'm (frm-act 'm 'r 'x))))))
-(dk-peel!)
-(let* ((nx (frm-neg 'm 'x)) (ax (frm-act 'm 'r 'x)) (anx (frm-act 'm 'r nx)))
-  (frm-vec! 'm nx)
-  (dk-cite! 'module-act-type 'm 'r 'x)
-  (dk-cite! 'module-act-type 'm 'r nx)
-  (let* ((e1 (dk-cite! 'module-act-distrib-vec 'm 'r 'x nx))
-         (e2 (dk-cite! 'frm-v-right-inv 'm 'x))
-         (e3 (dk-cite! 'module-act-zero-vec 'm 'r)))
-    (dk-have! (list '= (frm-add 'm ax anx) '(VZERO m))
-      (lambda ()
-        (subst (list '= (frm-add 'm ax anx) (frm-act 'm 'r (frm-add 'm 'x nx))))
-        (subst e2)
-        (ass)))
-    (dk-cite! 'abelian-group-inverse-unique-module-vector-ag 'm ax anx)
-    (ass)))
-(qed 'frm-act-neg-vec)
-
-;;; (-r).x = -(r.x)
-(sp (make-wff (frm-mstmt '(r x) '((IN r (CARR (SCAL m))) (IN x (VEC m)))
-  (list '= (frm-act 'm '((NEG (SCAL m)) r) 'x) (frm-neg 'm (frm-act 'm 'r 'x))))))
-(dk-peel!)
-(let* ((nr '((NEG (SCAL m)) r)) (ax (frm-act 'm 'r 'x)) (anx (frm-act 'm nr 'x)))
-  (dk-cite! 'module-scalar-ring 'm)
-  (dk-cite! 'ring-neg-in-carr '(SCAL m) 'r)
-  (dk-cite! 'module-act-type 'm 'r 'x)
-  (dk-cite! 'module-act-type 'm nr 'x)
-  (let* ((e1 (dk-cite! 'module-act-distrib-scalar 'm 'r nr 'x))
-         (e2 (dk-cite! 'ring-add-right-inv '(SCAL m) 'r))
-         (e3 (dk-cite! 'module-zero-act 'm 'x)))
-    (dk-have! (list '= (frm-add 'm ax anx) '(VZERO m))
-      (lambda ()
-        (subst (list '= (frm-add 'm ax anx) (frm-act 'm (list '(ADD (SCAL m)) 'r nr) 'x)))
-        (subst e2)
-        (ass)))
-    (dk-cite! 'abelian-group-inverse-unique-module-vector-ag 'm ax anx)
-    (ass)))
-(qed 'frm-act-neg-scal)
-
-;;; r.(x - y) = r.x - r.y
-(sp (make-wff (frm-mstmt '(r x y) '((IN r (CARR (SCAL m))) (IN x (VEC m)) (IN y (VEC m)))
-  (list '= (frm-act 'm 'r (frm-sub 'm 'x 'y)) (frm-sub 'm (frm-act 'm 'r 'x) (frm-act 'm 'r 'y))))))
-(dk-peel!)
-(let ((ny (frm-neg 'm 'y)))
-  (frm-vec! 'm ny)
-  (dk-cite! 'module-act-type 'm 'r 'x)
-  (dk-cite! 'module-act-type 'm 'r 'y)
-  (subst (dk-cite! 'module-act-distrib-vec 'm 'r 'x ny))
-  (subst (dk-cite! 'frm-act-neg-vec 'm 'r 'y))
-  (frm-vec! 'm (frm-sub 'm (frm-act 'm 'r 'x) (frm-act 'm 'r 'y)))
-  (rfl))
-(qed 'frm-act-sub-vec)
-
-;;; (r - s).x = r.x - s.x
-(sp (make-wff (frm-mstmt '(r s x) '((IN r (CARR (SCAL m))) (IN s (CARR (SCAL m))) (IN x (VEC m)))
-  (list '= (frm-act 'm '((ADD (SCAL m)) r ((NEG (SCAL m)) s)) 'x)
-           (frm-sub 'm (frm-act 'm 'r 'x) (frm-act 'm 's 'x))))))
-(dk-peel!)
-(let ((ns '((NEG (SCAL m)) s)))
-  (dk-cite! 'module-scalar-ring 'm)
-  (dk-cite! 'ring-neg-in-carr '(SCAL m) 's)
-  (dk-cite! 'module-act-type 'm 'r 'x)
-  (dk-cite! 'module-act-type 'm 's 'x)
-  (subst (dk-cite! 'module-act-distrib-scalar 'm 'r ns 'x))
-  (subst (dk-cite! 'frm-act-neg-scal 'm 's 'x))
-  (frm-vec! 'm (frm-sub 'm (frm-act 'm 'r 'x) (frm-act 'm 's 'x)))
-  (rfl))
-(qed 'frm-act-sub-scal)
-
-;;; r.x - s.y = r.(x - y) + (r - s).y
-(sp (make-wff (frm-mstmt '(r s x y)
-  '((IN r (CARR (SCAL m))) (IN s (CARR (SCAL m))) (IN x (VEC m)) (IN y (VEC m)))
-  (list '= (frm-sub 'm (frm-act 'm 'r 'x) (frm-act 'm 's 'y))
-           (frm-add 'm (frm-act 'm 'r (frm-sub 'm 'x 'y))
-                       (frm-act 'm '((ADD (SCAL m)) r ((NEG (SCAL m)) s)) 'y))))))
-(dk-peel!)
-(let ((rx (frm-act 'm 'r 'x)) (ry (frm-act 'm 'r 'y)) (sy (frm-act 'm 's 'y)))
-  (dk-cite! 'module-act-type 'm 'r 'x)
-  (dk-cite! 'module-act-type 'm 'r 'y)
-  (dk-cite! 'module-act-type 'm 's 'y)
-  (subst (dk-cite! 'frm-act-sub-vec 'm 'r 'x 'y))
-  (subst (dk-cite! 'frm-act-sub-scal 'm 'r 's 'y))
-  (subst (dk-cite! 'frm-v-sub-chain 'm rx ry sy))
-  (frm-vec! 'm (frm-sub 'm rx sy))
-  (rfl))
-(qed 'frm-act-diff)
 
 ;;; =====================================================================
 ;;; (13) PROP. 8.25 (i): scalar multiplication is continuous, stated
@@ -2230,17 +2007,7 @@
 ;;;      spaces, with (U) for the domain family and (L) for the codomain family.
 ;;; =====================================================================
 
-;;; x - 0 = x
-(sp (make-wff (frm-vstmt '(x) (list '= (frm-sub 'm 'x '(VZERO m)) 'x))))
-(dk-peel!)
-(let ((z '(VZERO m)))
-  (dk-cite! 'module-vzero-in 'm)
-  (dk-cite! 'abelian-group-right-id-module-vector-ag 'm z)
-  (dk-cite! 'abelian-group-inverse-unique-module-vector-ag 'm z z)
-  (subst (list '= (frm-neg 'm z) z))
-  (dk-cite! 'abelian-group-right-id-module-vector-ag 'm 'x)
-  (ass))
-(qed 'frm-v-sub-zero)
+;;; frm-v-sub-zero (x - 0 = x): MOVED to theorem-library/module-laws.scm (MODLAWS, 2026-10-24).
 
 (define (frm-lstmt body)
   (list 'FORALL 'm1 (list 'FORALL 'm2 (list 'FORALL 'tt (list 'IMPLIES '(IS-LINEAR-MAP m1 m2 tt) body)))))

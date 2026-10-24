@@ -85,7 +85,10 @@ LINT_LOADS='(let vnbp-walk ((todo (list "/home/ubuntu/probes/'"$BASE"'")) (seen 
                           (filt (cdr l) (if (and a (not (member a seen)) (not (member a acc))
                                                  (let ((n (string-length a))) (and (> n 4) (string=? (substring a (- n 4) n) ".scm"))))
                                             (cons a acc) acc)))))))
-        (for-each (lambda (a) (case-fold-define-lint! (vnbp-label a) a)) new)
+        (for-each (lambda (a)
+                    (case-fold-define-lint! (vnbp-label a) a)
+                    (if (not (cfl--proof-file? (vnbp-label a))) (case-fold-local-lint! (vnbp-label a) a)))
+                  new)
         (vnbp-walk (append (cdr todo) new) (append new seen)))))'
 B64=$( { [ "$QUIET" = 1 ] && echo '(set! *vnb-loading* #t)   ; vnb-probe --quiet'; echo "$LINT"; echo "$LINT_LOADS"; cat "$FILE"; } | gzip -9 | base64 -w0)
 if [ ${#B64} -gt 90000 ]; then

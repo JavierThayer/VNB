@@ -13085,10 +13085,30 @@
     (case-fold-local-lint-text "(define (r27-g X) (map (lambda (x) x) X))\n"))
   '(("r27-g" ("x" "X" "x"))))
 
-(check "27-B (14): the local lint ignores quoted formulas and distinct names"
+(check "27-B (14): the local lint ignores distinct names and a quoted datum's heads"
   (lambda ()
     (case-fold-local-lint-text
-      "(define (r27-h A) (let ((b 1)) (list '(IN a A) b A)))\n(define r27-k '(let ((u 1) (U 2)) u))\n"))
+      "(define (r27-h A) (let ((b 1)) (list '(IN a b) b A)))\n(define r27-k '(let ((u 1) (U 2)) u))\n"))
+  '())
+
+;;; ---- the QUOTED-DATUM case-fold lint (2026-10-24, the LA-Z3 agent) -------
+;;; A statement written as a quoted S-expression is read by the FOLDING reader:
+;;; '(FORSOME x (IN x X)) is `x in x'.  The lint reads each quoted datum with
+;;; folding off.  The first check is the control: before 2026-10-24 the lint
+;;; never entered a quote and returned ().
+(check "case-fold lint: a quoted statement with x and X is reported"
+  (lambda ()
+    (case-fold-local-lint-text "(sp (make-wff '(FORSOME x (IN x X))))\n"))
+  '(("<top-level form> (a quoted datum)" ("x" "X" "x"))))
+
+(check "case-fold lint: a quoted binder list (R n B r) is reported"
+  (lambda ()
+    (case-fold-local-lint-text "(define (r27-m) (forall-guarded '(R n B r) 1))\n"))
+  '(("r27-m (a quoted datum)" ("r" "R" "r"))))
+
+(check "case-fold lint: a flat case-insensitive table '(is-identity IS-IDENTITY) is not"
+  (lambda ()
+    (case-fold-local-lint-text "(define (r27-n g) (memq g '(is-identity IS-IDENTITY)))\n"))
   '())
 
 ;;; ---- (15) iff-for and the IF resolver -----------------------------------

@@ -160,48 +160,9 @@
 (ass)
 (hbs-qed! 'hbs-act-vadd)
 
-;;; ---- the vector group, read off the IS-MODULE unfold ----
-(define (hbs-module-law! prop)
-  (dk-project! prop 'is-module '(IS-MODULE m)))
-
-(sp (make-wff (hbs-mod1 (hbs-fa 'x_ '(VEC m) (hbs-fa 'y_ '(VEC m) (hbs-fa 'z_ '(VEC m)
-  '(= ((VADD m) ((VADD m) x_ y_) z_) ((VADD m) x_ ((VADD m) y_ z_)))))))))
-(dk-peel!)
-(let* ((h (hbs-module-law! '(IS-ASSOCIATIVE (VADD m) (VEC m))))
-       (u (dk-landed-1 (lambda () (mac-h 'is-associative h)))))
-  (dk-apply! u 'x_ 'y_ 'z_))
-(ass)
-(hbs-qed! 'hbs-vadd-assoc)
-
-(sp (make-wff (hbs-mod1 (hbs-fa 'x_ '(VEC m) (hbs-fa 'y_ '(VEC m)
-  '(= ((VADD m) x_ y_) ((VADD m) y_ x_)))))))
-(dk-peel!)
-(let* ((h (hbs-module-law! '(IS-COMMUTATIVE (VADD m) (VEC m))))
-       (u (dk-landed-1 (lambda () (mac-h 'is-commutative h)))))
-  (dk-apply! u 'x_ 'y_))
-(ass)
-(hbs-qed! 'hbs-vadd-comm)
-
-(sp (make-wff (hbs-mod1 (hbs-fa 'x_ '(VEC m)
-  '(AND (= ((VADD m) (VZERO m) x_) x_) (= ((VADD m) x_ (VZERO m)) x_))))))
-(dk-peel!)
-(let* ((h (hbs-module-law! '(IS-IDENTITY (VADD m) (VZERO m) (VEC m))))
-       (u (dk-landed-1 (lambda () (mac-h 'is-identity h)))))
-  (dk-apply! u 'x_))
-(ass)
-(hbs-qed! 'hbs-vzero-lr)
-
-(sp (make-wff (hbs-mod1 (hbs-fa 'x_ '(VEC m) '(= ((VADD m) x_ (VZERO m)) x_)))))
-(dk-peel!)
-(dk-split-all! (list (dk-cite! 'hbs-vzero-lr 'm 'x_)))
-(ass)
-(hbs-qed! 'hbs-vzero-r)
-
-(sp (make-wff (hbs-mod1 (hbs-fa 'x_ '(VEC m) '(= ((VADD m) (VZERO m) x_) x_)))))
-(dk-peel!)
-(dk-split-all! (list (dk-cite! 'hbs-vzero-lr 'm 'x_)))
-(ass)
-(hbs-qed! 'hbs-vzero-l)
+;;; MOVED 2026-10-24 (MODLAWS) to theorem-library/module-laws.scm (library linear-algebra), same names, same statements:
+;;;   hbs-vadd-assoc, hbs-vadd-comm, hbs-vzero-lr, hbs-vzero-r, hbs-vzero-l (and the helper
+;;;   hbs-module-law!, used by nothing else here); hbs-interchange and hbs-sub-vec below likewise.
 
 
 ;;; ---- cancellation by (-1).x ----
@@ -261,26 +222,7 @@
 (ass)
 (hbs-qed! 'hbs-cancel-l)
 
-;;; (a + b) + (c + d) = (a + c) + (b + d)
-(sp (make-wff (hbs-mod1 (hbs-fa 'a_ '(VEC m) (hbs-fa 'b_ '(VEC m) (hbs-fa 'c_ '(VEC m) (hbs-fa 'd_ '(VEC m)
-  '(= ((VADD m) ((VADD m) a_ b_) ((VADD m) c_ d_)) ((VADD m) ((VADD m) a_ c_) ((VADD m) b_ d_))))))))))
-(dk-peel!)
-(dk-cite! 'module-vadd-type 'm 'c_ 'd_)
-(dk-cite! 'module-vadd-type 'm 'b_ 'd_)
-(dk-cite! 'module-vadd-type 'm 'b_ 'c_)
-(dk-cite! 'module-vadd-type 'm 'c_ 'b_)
-(dk-cite! 'hbs-vadd-assoc 'm 'a_ 'b_ '((VADD m) c_ d_))
-(subst '(= ((VADD m) ((VADD m) a_ b_) ((VADD m) c_ d_)) ((VADD m) a_ ((VADD m) b_ ((VADD m) c_ d_)))))
-(dk-cite! 'hbs-vadd-assoc 'm 'b_ 'c_ 'd_)
-(subst '(= ((VADD m) b_ ((VADD m) c_ d_)) ((VADD m) ((VADD m) b_ c_) d_)))
-(dk-cite! 'hbs-vadd-comm 'm 'b_ 'c_)
-(subst '(= ((VADD m) b_ c_) ((VADD m) c_ b_)))
-(dk-cite! 'hbs-vadd-assoc 'm 'c_ 'b_ 'd_)
-(subst '(= ((VADD m) ((VADD m) c_ b_) d_) ((VADD m) c_ ((VADD m) b_ d_))))
-(dk-cite! 'hbs-vadd-assoc 'm 'a_ 'c_ '((VADD m) b_ d_))
-(subst '(= ((VADD m) a_ ((VADD m) c_ ((VADD m) b_ d_))) ((VADD m) ((VADD m) a_ c_) ((VADD m) b_ d_))))
-(rfl)
-(hbs-qed! 'hbs-interchange)
+;;; hbs-interchange ((a + b) + (c + d) = (a + c) + (b + d)): MOVED to theorem-library/module-laws.scm.
 
 ;;; =====================================================================
 ;;; (B) THE GREATEST LOWER BOUND OF A FAMILY OF REALS, AS A FUNCTION.
@@ -1300,12 +1242,7 @@
 (ass)
 (hbs-qed! 'hbs-lf-val)
 
-(sp (make-wff (hbs-mod1 '(FORALL s (IMPLIES (IS-SUBMODULE m s) (FORALL x_ (IMPLIES (IN x_ s) (IN x_ (VEC m)))))))))
-(dk-peel!)
-(dk-cite! 'submodule-subset 'm 's)
-(dk-cite! 'subset-mem-fwd 's '(VEC m) 'x_)
-(ass)
-(hbs-qed! 'hbs-sub-vec)
+;;; hbs-sub-vec (a member of a submodule is a vector): MOVED to theorem-library/module-laws.scm.
 
 (sp (make-wff (hbs-mod '(FORALL s (IMPLIES (IS-SUBMODULE m s) (FORALL r_ (IMPLIES (IN r_ RR) (FORALL x_ (IMPLIES (IN x_ s)
   (IN ((ACT m) r_ x_) s))))))))))
