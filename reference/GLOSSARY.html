@@ -3234,14 +3234,14 @@
 <p>reads: the Hopf map pi($1) = (2 u1 conj(u2), |u1|^2 - |u2|^2)</p>
 <p>definition:</p>
 <pre>[2 * (nth(1, w) * conjugate(nth(2, w))), magnitude(nth(1, w)) * magnitude(nth(1, w)) - magnitude(nth(2, w)) * magnitude(nth(2, w))]</pre>
-<p>characterized by <a class="x" href="THEOREMS.html#t-hopf-map-pair"><code>hopf-map-pair</code></a>  <em>(certified)</em>:</p>
+<p>characterized by <a class="x" href="THEOREMS.html#t-hopf-map-pair"><code>hopf-map-pair</code></a>  <em>(proven)</em>:</p>
 <pre>forall([a in cc, b in cc], hopf-map([a, b]) = [2 * (a * conjugate(b)), magnitude(a) * magnitude(a) - magnitude(b) * magnitude(b)])</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-hopf-map-in-cr"><code>hopf-map-in-cr</code></a> <a class="x" href="THEOREMS.html#t-hopf-maps-sphere"><code>hopf-maps-sphere</code></a> <a class="x" href="THEOREMS.html#t-hopf-map-continuous"><code>hopf-map-continuous</code></a> <a class="x" href="THEOREMS.html#t-hopf-map-unimodular-scale"><code>hopf-map-unimodular-scale</code></a></p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__hopf-map-17">mentioned by 17 result(s)</a></p>
 <h4 id="GLOSSARY__hopf-quotient-map-*-constant-*"><a class="x" href="DEFINITIONS.html#d-hopf-quotient-map"><code>hopf-quotient-map</code></a>  <em>(constant)</em></h4>
 <p>reads: the bijection S^2 -&gt; C u {oo} through which the Hopf map factors</p>
 <p>defined by <a class="x" href="THEOREMS.html#t-hopf-quotient-map-def"><code>hopf-quotient-map-def</code></a></p>
-<p>characterized by <a class="x" href="THEOREMS.html#t-hopf-quotient-map-onto"><code>hopf-quotient-map-onto</code></a>  <em>(certified)</em>:</p>
+<p>characterized by <a class="x" href="THEOREMS.html#t-hopf-quotient-map-onto"><code>hopf-quotient-map-onto</code></a>  <em>(proven)</em>:</p>
 <pre>forall([w in cc-hat], forsome([z in unit-sphere-cr], hopf-quotient-map(z) = w))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-hopf-quotient-map-apply"><code>hopf-quotient-map-apply</code></a> <a class="x" href="THEOREMS.html#t-hopf-quotient-map-injective"><code>hopf-quotient-map-injective</code></a></p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__hopf-quotient-map-7">mentioned by 7 result(s)</a></p>
@@ -5242,7 +5242,7 @@
 <p>definition:</p>
 <pre>finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (act(md))(entry(c, 1, j), entry(u, j, 1))), interval(1, n))</pre>
 <p>characterized by <a class="x" href="THEOREMS.html#t-lincomb-snoc-sip-as-module"><code>lincomb-snoc-sip-as-module</code></a>  <em>(definitional)</em>:</p>
-<pre>forall([r], is-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_17 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(r), succ(n), snoc-row(c, n, r_17), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(r), n, c, u), (act(r))(r_17, x))))</pre>
+<pre>forall([r], is-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_244 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(r), succ(n), snoc-row(c, n, r_244), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(r), n, c, u), (act(r))(r_244, x))))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-lincomb-type-sip-as-module"><code>lincomb-type-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lincomb-empty-sip-as-module"><code>lincomb-empty-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-matact-lincomb-sip-as-module"><code>matact-lincomb-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lincomb-row-add-sip-as-module"><code>lincomb-row-add-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lincomb-unitrow-sip-as-module"><code>lincomb-unitrow-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lincomb-zerorow-sip-as-module"><code>lincomb-zerorow-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lincomb-row-peel-sip-as-module"><code>lincomb-row-peel-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lincomb-row-scale-sip-as-module"><code>lincomb-row-scale-sip-as-module</code></a> ... (47 in all)</p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__lincomb-224">mentioned by 224 result(s)</a></p>
 <h4 id="GLOSSARY__line-m-v-*-functoid-*"><code>line(m, v)</code>  <em>(functoid)</em></h4>

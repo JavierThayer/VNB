@@ -4714,27 +4714,27 @@ Conservative defining `iff`/`==` axioms installed via `add-axiom!`, so absent fr
 
 ### finsum-act-distrib-gen-rev-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_11 in carr(scal(r)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(sip-as-module(r))))], finsum(module-vector-ag(sip-as-module(r)), vnb-lambda(z, s, (act(r))(r_11, f(z))), s) = (act(r))(r_11, finsum(module-vector-ag(sip-as-module(r)), f, s)))))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_238 in carr(scal(r)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(sip-as-module(r))))], finsum(module-vector-ag(sip-as-module(r)), vnb-lambda(z, s, (act(r))(r_238, f(z))), s) = (act(r))(r_238, finsum(module-vector-ag(sip-as-module(r)), f, s)))))
 
 ### finsum-act-distrib-gen-rev-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_11 in carr(scal(r)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(sip-as-module(csip-as-sip(r)))))], finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), vnb-lambda(z, s, (act(r))(r_11, f(z))), s) = (act(r))(r_11, finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), f, s)))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_238 in carr(scal(r)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(sip-as-module(csip-as-sip(r)))))], finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), vnb-lambda(z, s, (act(r))(r_238, f(z))), s) = (act(r))(r_238, finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), f, s)))))
 
 ### finsum-act-distrib-gen-rev-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_11 in carr(scal(r)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(sip-as-module(csip-as-sip(r)))))], (act(r))(r_11, finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), f, s)) = finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), vnb-lambda(z, s, (act(r))(r_11, f(z))), s))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_238 in carr(scal(r)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(sip-as-module(csip-as-sip(r)))))], (act(r))(r_238, finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), f, s)) = finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), vnb-lambda(z, s, (act(r))(r_238, f(z))), s))))
 
 ### finsum-act-distrib-gen-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_19 in carr(scal(r)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(sip-as-module(r))))], (act(r))(r_19, finsum(module-vector-ag(sip-as-module(r)), f, s)) = finsum(module-vector-ag(sip-as-module(r)), vnb-lambda(z, s, (act(r))(r_19, f(z))), s))))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_246 in carr(scal(r)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(sip-as-module(r))))], (act(r))(r_246, finsum(module-vector-ag(sip-as-module(r)), f, s)) = finsum(module-vector-ag(sip-as-module(r)), vnb-lambda(z, s, (act(r))(r_246, f(z))), s))))
 
 ### finsum-act-distrib-gen-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_19 in carr(scal(r)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(sip-as-module(csip-as-sip(r)))))], (act(r))(r_19, finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), f, s)) = finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), vnb-lambda(z, s, (act(r))(r_19, f(z))), s))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_246 in carr(scal(r)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(sip-as-module(csip-as-sip(r)))))], (act(r))(r_246, finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), f, s)) = finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), vnb-lambda(z, s, (act(r))(r_246, f(z))), s))))
 
 ### finsum-act-distrib-gen-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_19 in carr(scal(r)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(sip-as-module(csip-as-sip(r)))))], finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), vnb-lambda(z, s, (act(r))(r_19, f(z))), s) = (act(r))(r_19, finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), f, s)))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_246 in carr(scal(r)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(sip-as-module(csip-as-sip(r)))))], finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), vnb-lambda(z, s, (act(r))(r_246, f(z))), s) = (act(r))(r_246, finsum(module-vector-ag(sip-as-module(csip-as-sip(r))), f, s)))))
 
 ### finsum-all-id-rev-ring-additive-ag
 
@@ -4906,123 +4906,123 @@ Conservative defining `iff`/`==` axioms installed via `add-axiom!`, so absent fr
 
 ### frm-act-diff-rev-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_8, s, x, y], r_8 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_8, (vadd(r))(x, (vneg(r))(y))), (act(r))((add(scal(r)))(r_8, (neg(scal(r)))(s)), y)) = (vadd(r))((act(r))(r_8, x), (vneg(r))((act(r))(s, y)))))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_235, s, x, y], r_235 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_235, (vadd(r))(x, (vneg(r))(y))), (act(r))((add(scal(r)))(r_235, (neg(scal(r)))(s)), y)) = (vadd(r))((act(r))(r_235, x), (vneg(r))((act(r))(s, y)))))
 
 ### frm-act-diff-rev-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_8, s, x, y], r_8 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_8, (vadd(r))(x, (vneg(r))(y))), (act(r))((add(scal(r)))(r_8, (neg(scal(r)))(s)), y)) = (vadd(r))((act(r))(r_8, x), (vneg(r))((act(r))(s, y)))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_235, s, x, y], r_235 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_235, (vadd(r))(x, (vneg(r))(y))), (act(r))((add(scal(r)))(r_235, (neg(scal(r)))(s)), y)) = (vadd(r))((act(r))(r_235, x), (vneg(r))((act(r))(s, y)))))
 
 ### frm-act-diff-rev-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_8, s, x, y], r_8 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_8, x), (vneg(r))((act(r))(s, y))) = (vadd(r))((act(r))(r_8, (vadd(r))(x, (vneg(r))(y))), (act(r))((add(scal(r)))(r_8, (neg(scal(r)))(s)), y))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_235, s, x, y], r_235 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_235, x), (vneg(r))((act(r))(s, y))) = (vadd(r))((act(r))(r_235, (vadd(r))(x, (vneg(r))(y))), (act(r))((add(scal(r)))(r_235, (neg(scal(r)))(s)), y))))
 
 ### frm-act-diff-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_12, s, x, y], r_12 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_12, x), (vneg(r))((act(r))(s, y))) = (vadd(r))((act(r))(r_12, (vadd(r))(x, (vneg(r))(y))), (act(r))((add(scal(r)))(r_12, (neg(scal(r)))(s)), y))))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_239, s, x, y], r_239 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_239, x), (vneg(r))((act(r))(s, y))) = (vadd(r))((act(r))(r_239, (vadd(r))(x, (vneg(r))(y))), (act(r))((add(scal(r)))(r_239, (neg(scal(r)))(s)), y))))
 
 ### frm-act-diff-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_12, s, x, y], r_12 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_12, x), (vneg(r))((act(r))(s, y))) = (vadd(r))((act(r))(r_12, (vadd(r))(x, (vneg(r))(y))), (act(r))((add(scal(r)))(r_12, (neg(scal(r)))(s)), y))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_239, s, x, y], r_239 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_239, x), (vneg(r))((act(r))(s, y))) = (vadd(r))((act(r))(r_239, (vadd(r))(x, (vneg(r))(y))), (act(r))((add(scal(r)))(r_239, (neg(scal(r)))(s)), y))))
 
 ### frm-act-diff-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_12, s, x, y], r_12 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_12, (vadd(r))(x, (vneg(r))(y))), (act(r))((add(scal(r)))(r_12, (neg(scal(r)))(s)), y)) = (vadd(r))((act(r))(r_12, x), (vneg(r))((act(r))(s, y)))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_239, s, x, y], r_239 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_239, (vadd(r))(x, (vneg(r))(y))), (act(r))((add(scal(r)))(r_239, (neg(scal(r)))(s)), y)) = (vadd(r))((act(r))(r_239, x), (vneg(r))((act(r))(s, y)))))
 
 ### frm-act-neg-scal-rev-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_2, x], r_2 in carr(scal(r)) implies x in vec(r) implies (vneg(r))((act(r))(r_2, x)) = (act(r))((neg(scal(r)))(r_2), x)))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_229, x], r_229 in carr(scal(r)) implies x in vec(r) implies (vneg(r))((act(r))(r_229, x)) = (act(r))((neg(scal(r)))(r_229), x)))
 
 ### frm-act-neg-scal-rev-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_2, x], r_2 in carr(scal(r)) implies x in vec(r) implies (vneg(r))((act(r))(r_2, x)) = (act(r))((neg(scal(r)))(r_2), x)))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_229, x], r_229 in carr(scal(r)) implies x in vec(r) implies (vneg(r))((act(r))(r_229, x)) = (act(r))((neg(scal(r)))(r_229), x)))
 
 ### frm-act-neg-scal-rev-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_2, x], r_2 in carr(scal(r)) implies x in vec(r) implies (act(r))((neg(scal(r)))(r_2), x) = (vneg(r))((act(r))(r_2, x))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_229, x], r_229 in carr(scal(r)) implies x in vec(r) implies (act(r))((neg(scal(r)))(r_229), x) = (vneg(r))((act(r))(r_229, x))))
 
 ### frm-act-neg-scal-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_3, x], r_3 in carr(scal(r)) implies x in vec(r) implies (act(r))((neg(scal(r)))(r_3), x) = (vneg(r))((act(r))(r_3, x))))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_230, x], r_230 in carr(scal(r)) implies x in vec(r) implies (act(r))((neg(scal(r)))(r_230), x) = (vneg(r))((act(r))(r_230, x))))
 
 ### frm-act-neg-scal-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_3, x], r_3 in carr(scal(r)) implies x in vec(r) implies (act(r))((neg(scal(r)))(r_3), x) = (vneg(r))((act(r))(r_3, x))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_230, x], r_230 in carr(scal(r)) implies x in vec(r) implies (act(r))((neg(scal(r)))(r_230), x) = (vneg(r))((act(r))(r_230, x))))
 
 ### frm-act-neg-scal-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_3, x], r_3 in carr(scal(r)) implies x in vec(r) implies (vneg(r))((act(r))(r_3, x)) = (act(r))((neg(scal(r)))(r_3), x)))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_230, x], r_230 in carr(scal(r)) implies x in vec(r) implies (vneg(r))((act(r))(r_230, x)) = (act(r))((neg(scal(r)))(r_230), x)))
 
 ### frm-act-neg-vec-rev-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_21, x], r_21 in carr(scal(r)) implies x in vec(r) implies (vneg(r))((act(r))(r_21, x)) = (act(r))(r_21, (vneg(r))(x))))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_248, x], r_248 in carr(scal(r)) implies x in vec(r) implies (vneg(r))((act(r))(r_248, x)) = (act(r))(r_248, (vneg(r))(x))))
 
 ### frm-act-neg-vec-rev-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_21, x], r_21 in carr(scal(r)) implies x in vec(r) implies (vneg(r))((act(r))(r_21, x)) = (act(r))(r_21, (vneg(r))(x))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_248, x], r_248 in carr(scal(r)) implies x in vec(r) implies (vneg(r))((act(r))(r_248, x)) = (act(r))(r_248, (vneg(r))(x))))
 
 ### frm-act-neg-vec-rev-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_21, x], r_21 in carr(scal(r)) implies x in vec(r) implies (act(r))(r_21, (vneg(r))(x)) = (vneg(r))((act(r))(r_21, x))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_248, x], r_248 in carr(scal(r)) implies x in vec(r) implies (act(r))(r_248, (vneg(r))(x)) = (vneg(r))((act(r))(r_248, x))))
 
 ### frm-act-neg-vec-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_20, x], r_20 in carr(scal(r)) implies x in vec(r) implies (act(r))(r_20, (vneg(r))(x)) = (vneg(r))((act(r))(r_20, x))))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_247, x], r_247 in carr(scal(r)) implies x in vec(r) implies (act(r))(r_247, (vneg(r))(x)) = (vneg(r))((act(r))(r_247, x))))
 
 ### frm-act-neg-vec-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_20, x], r_20 in carr(scal(r)) implies x in vec(r) implies (act(r))(r_20, (vneg(r))(x)) = (vneg(r))((act(r))(r_20, x))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_247, x], r_247 in carr(scal(r)) implies x in vec(r) implies (act(r))(r_247, (vneg(r))(x)) = (vneg(r))((act(r))(r_247, x))))
 
 ### frm-act-neg-vec-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_20, x], r_20 in carr(scal(r)) implies x in vec(r) implies (vneg(r))((act(r))(r_20, x)) = (act(r))(r_20, (vneg(r))(x))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_247, x], r_247 in carr(scal(r)) implies x in vec(r) implies (vneg(r))((act(r))(r_247, x)) = (act(r))(r_247, (vneg(r))(x))))
 
 ### frm-act-sub-scal-rev-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_10, s, x], r_10 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies (vadd(r))((act(r))(r_10, x), (vneg(r))((act(r))(s, x))) = (act(r))((add(scal(r)))(r_10, (neg(scal(r)))(s)), x)))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_237, s, x], r_237 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies (vadd(r))((act(r))(r_237, x), (vneg(r))((act(r))(s, x))) = (act(r))((add(scal(r)))(r_237, (neg(scal(r)))(s)), x)))
 
 ### frm-act-sub-scal-rev-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_10, s, x], r_10 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies (vadd(r))((act(r))(r_10, x), (vneg(r))((act(r))(s, x))) = (act(r))((add(scal(r)))(r_10, (neg(scal(r)))(s)), x)))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_237, s, x], r_237 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies (vadd(r))((act(r))(r_237, x), (vneg(r))((act(r))(s, x))) = (act(r))((add(scal(r)))(r_237, (neg(scal(r)))(s)), x)))
 
 ### frm-act-sub-scal-rev-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_10, s, x], r_10 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies (act(r))((add(scal(r)))(r_10, (neg(scal(r)))(s)), x) = (vadd(r))((act(r))(r_10, x), (vneg(r))((act(r))(s, x)))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_237, s, x], r_237 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies (act(r))((add(scal(r)))(r_237, (neg(scal(r)))(s)), x) = (vadd(r))((act(r))(r_237, x), (vneg(r))((act(r))(s, x)))))
 
 ### frm-act-sub-scal-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_0, s, x], r_0 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies (act(r))((add(scal(r)))(r_0, (neg(scal(r)))(s)), x) = (vadd(r))((act(r))(r_0, x), (vneg(r))((act(r))(s, x)))))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_227, s, x], r_227 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies (act(r))((add(scal(r)))(r_227, (neg(scal(r)))(s)), x) = (vadd(r))((act(r))(r_227, x), (vneg(r))((act(r))(s, x)))))
 
 ### frm-act-sub-scal-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_0, s, x], r_0 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies (act(r))((add(scal(r)))(r_0, (neg(scal(r)))(s)), x) = (vadd(r))((act(r))(r_0, x), (vneg(r))((act(r))(s, x)))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_227, s, x], r_227 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies (act(r))((add(scal(r)))(r_227, (neg(scal(r)))(s)), x) = (vadd(r))((act(r))(r_227, x), (vneg(r))((act(r))(s, x)))))
 
 ### frm-act-sub-scal-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_0, s, x], r_0 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies (vadd(r))((act(r))(r_0, x), (vneg(r))((act(r))(s, x))) = (act(r))((add(scal(r)))(r_0, (neg(scal(r)))(s)), x)))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_227, s, x], r_227 in carr(scal(r)) implies s in carr(scal(r)) implies x in vec(r) implies (vadd(r))((act(r))(r_227, x), (vneg(r))((act(r))(s, x))) = (act(r))((add(scal(r)))(r_227, (neg(scal(r)))(s)), x)))
 
 ### frm-act-sub-vec-rev-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_9, x, y], r_9 in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_9, x), (vneg(r))((act(r))(r_9, y))) = (act(r))(r_9, (vadd(r))(x, (vneg(r))(y)))))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_236, x, y], r_236 in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_236, x), (vneg(r))((act(r))(r_236, y))) = (act(r))(r_236, (vadd(r))(x, (vneg(r))(y)))))
 
 ### frm-act-sub-vec-rev-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_9, x, y], r_9 in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_9, x), (vneg(r))((act(r))(r_9, y))) = (act(r))(r_9, (vadd(r))(x, (vneg(r))(y)))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_236, x, y], r_236 in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_236, x), (vneg(r))((act(r))(r_236, y))) = (act(r))(r_236, (vadd(r))(x, (vneg(r))(y)))))
 
 ### frm-act-sub-vec-rev-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_9, x, y], r_9 in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (act(r))(r_9, (vadd(r))(x, (vneg(r))(y))) = (vadd(r))((act(r))(r_9, x), (vneg(r))((act(r))(r_9, y)))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_236, x, y], r_236 in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (act(r))(r_236, (vadd(r))(x, (vneg(r))(y))) = (vadd(r))((act(r))(r_236, x), (vneg(r))((act(r))(r_236, y)))))
 
 ### frm-act-sub-vec-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_22, x, y], r_22 in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (act(r))(r_22, (vadd(r))(x, (vneg(r))(y))) = (vadd(r))((act(r))(r_22, x), (vneg(r))((act(r))(r_22, y)))))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_249, x, y], r_249 in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (act(r))(r_249, (vadd(r))(x, (vneg(r))(y))) = (vadd(r))((act(r))(r_249, x), (vneg(r))((act(r))(r_249, y)))))
 
 ### frm-act-sub-vec-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_22, x, y], r_22 in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (act(r))(r_22, (vadd(r))(x, (vneg(r))(y))) = (vadd(r))((act(r))(r_22, x), (vneg(r))((act(r))(r_22, y)))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_249, x, y], r_249 in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (act(r))(r_249, (vadd(r))(x, (vneg(r))(y))) = (vadd(r))((act(r))(r_249, x), (vneg(r))((act(r))(r_249, y)))))
 
 ### frm-act-sub-vec-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_22, x, y], r_22 in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_22, x), (vneg(r))((act(r))(r_22, y))) = (act(r))(r_22, (vadd(r))(x, (vneg(r))(y)))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_249, x, y], r_249 in carr(scal(r)) implies x in vec(r) implies y in vec(r) implies (vadd(r))((act(r))(r_249, x), (vneg(r))((act(r))(r_249, y))) = (act(r))(r_249, (vadd(r))(x, (vneg(r))(y)))))
 
 ### frm-mvag-inv-rev-sip-as-module
 
@@ -5194,27 +5194,27 @@ Conservative defining `iff`/`==` axioms installed via `add-axiom!`, so absent fr
 
 ### frm-v-sub-shift-rev-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([x in vec(r), y in vec(r), r_6 in vec(r)], (vadd(r))(x, (vneg(r))(y)) = (vadd(r))((vadd(r))(x, r_6), (vneg(r))((vadd(r))(y, r_6)))))
+    forall([r], is-semi-inner-product-space(r) implies forall([x in vec(r), y in vec(r), r_233 in vec(r)], (vadd(r))(x, (vneg(r))(y)) = (vadd(r))((vadd(r))(x, r_233), (vneg(r))((vadd(r))(y, r_233)))))
 
 ### frm-v-sub-shift-rev-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([x in vec(r), y in vec(r), r_6 in vec(r)], (vadd(r))(x, (vneg(r))(y)) = (vadd(r))((vadd(r))(x, r_6), (vneg(r))((vadd(r))(y, r_6)))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([x in vec(r), y in vec(r), r_233 in vec(r)], (vadd(r))(x, (vneg(r))(y)) = (vadd(r))((vadd(r))(x, r_233), (vneg(r))((vadd(r))(y, r_233)))))
 
 ### frm-v-sub-shift-rev-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([x in vec(r), y in vec(r), r_6 in vec(r)], (vadd(r))((vadd(r))(x, r_6), (vneg(r))((vadd(r))(y, r_6))) = (vadd(r))(x, (vneg(r))(y))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([x in vec(r), y in vec(r), r_233 in vec(r)], (vadd(r))((vadd(r))(x, r_233), (vneg(r))((vadd(r))(y, r_233))) = (vadd(r))(x, (vneg(r))(y))))
 
 ### frm-v-sub-shift-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([x in vec(r), y in vec(r), r_18 in vec(r)], (vadd(r))((vadd(r))(x, r_18), (vneg(r))((vadd(r))(y, r_18))) = (vadd(r))(x, (vneg(r))(y))))
+    forall([r], is-semi-inner-product-space(r) implies forall([x in vec(r), y in vec(r), r_245 in vec(r)], (vadd(r))((vadd(r))(x, r_245), (vneg(r))((vadd(r))(y, r_245))) = (vadd(r))(x, (vneg(r))(y))))
 
 ### frm-v-sub-shift-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([x in vec(r), y in vec(r), r_18 in vec(r)], (vadd(r))((vadd(r))(x, r_18), (vneg(r))((vadd(r))(y, r_18))) = (vadd(r))(x, (vneg(r))(y))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([x in vec(r), y in vec(r), r_245 in vec(r)], (vadd(r))((vadd(r))(x, r_245), (vneg(r))((vadd(r))(y, r_245))) = (vadd(r))(x, (vneg(r))(y))))
 
 ### frm-v-sub-shift-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([x in vec(r), y in vec(r), r_18 in vec(r)], (vadd(r))(x, (vneg(r))(y)) = (vadd(r))((vadd(r))(x, r_18), (vneg(r))((vadd(r))(y, r_18)))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([x in vec(r), y in vec(r), r_245 in vec(r)], (vadd(r))(x, (vneg(r))(y)) = (vadd(r))((vadd(r))(x, r_245), (vneg(r))((vadd(r))(y, r_245)))))
 
 ### frm-v-sub-zero-eq-rev-sip-as-module
 
@@ -6110,51 +6110,51 @@ Conservative defining `iff`/`==` axioms installed via `add-axiom!`, so absent fr
 
 ### lincomb-row-scale-rev-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([n, r_7, c, u], r_7 in carr(scal(r)) implies c in mat(1, n, carr(scal(r))) implies u in mat(n, 1, vec(r)) implies (act(r))(r_7, lincomb(sip-as-module(r), n, c, u)) = lincomb(sip-as-module(r), n, matscale(scal(r), r_7, c), u)))
+    forall([r], is-semi-inner-product-space(r) implies forall([n, r_234, c, u], r_234 in carr(scal(r)) implies c in mat(1, n, carr(scal(r))) implies u in mat(n, 1, vec(r)) implies (act(r))(r_234, lincomb(sip-as-module(r), n, c, u)) = lincomb(sip-as-module(r), n, matscale(scal(r), r_234, c), u)))
 
 ### lincomb-row-scale-rev-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([n, r_7, c, u], r_7 in carr(scal(r)) implies c in mat(1, n, carr(scal(r))) implies u in mat(n, 1, vec(r)) implies (act(r))(r_7, lincomb(sip-as-module(csip-as-sip(r)), n, c, u)) = lincomb(sip-as-module(csip-as-sip(r)), n, matscale(scal(r), r_7, c), u)))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([n, r_234, c, u], r_234 in carr(scal(r)) implies c in mat(1, n, carr(scal(r))) implies u in mat(n, 1, vec(r)) implies (act(r))(r_234, lincomb(sip-as-module(csip-as-sip(r)), n, c, u)) = lincomb(sip-as-module(csip-as-sip(r)), n, matscale(scal(r), r_234, c), u)))
 
 ### lincomb-row-scale-rev-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([n, r_7, c, u], r_7 in carr(scal(r)) implies c in mat(1, n, carr(scal(r))) implies u in mat(n, 1, vec(r)) implies lincomb(sip-as-module(csip-as-sip(r)), n, matscale(scal(r), r_7, c), u) = (act(r))(r_7, lincomb(sip-as-module(csip-as-sip(r)), n, c, u))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([n, r_234, c, u], r_234 in carr(scal(r)) implies c in mat(1, n, carr(scal(r))) implies u in mat(n, 1, vec(r)) implies lincomb(sip-as-module(csip-as-sip(r)), n, matscale(scal(r), r_234, c), u) = (act(r))(r_234, lincomb(sip-as-module(csip-as-sip(r)), n, c, u))))
 
 ### lincomb-row-scale-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([n, r_15, c, u], r_15 in carr(scal(r)) implies c in mat(1, n, carr(scal(r))) implies u in mat(n, 1, vec(r)) implies lincomb(sip-as-module(r), n, matscale(scal(r), r_15, c), u) = (act(r))(r_15, lincomb(sip-as-module(r), n, c, u))))
+    forall([r], is-semi-inner-product-space(r) implies forall([n, r_242, c, u], r_242 in carr(scal(r)) implies c in mat(1, n, carr(scal(r))) implies u in mat(n, 1, vec(r)) implies lincomb(sip-as-module(r), n, matscale(scal(r), r_242, c), u) = (act(r))(r_242, lincomb(sip-as-module(r), n, c, u))))
 
 ### lincomb-row-scale-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([n, r_15, c, u], r_15 in carr(scal(r)) implies c in mat(1, n, carr(scal(r))) implies u in mat(n, 1, vec(r)) implies lincomb(sip-as-module(csip-as-sip(r)), n, matscale(scal(r), r_15, c), u) = (act(r))(r_15, lincomb(sip-as-module(csip-as-sip(r)), n, c, u))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([n, r_242, c, u], r_242 in carr(scal(r)) implies c in mat(1, n, carr(scal(r))) implies u in mat(n, 1, vec(r)) implies lincomb(sip-as-module(csip-as-sip(r)), n, matscale(scal(r), r_242, c), u) = (act(r))(r_242, lincomb(sip-as-module(csip-as-sip(r)), n, c, u))))
 
 ### lincomb-row-scale-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([n, r_15, c, u], r_15 in carr(scal(r)) implies c in mat(1, n, carr(scal(r))) implies u in mat(n, 1, vec(r)) implies (act(r))(r_15, lincomb(sip-as-module(csip-as-sip(r)), n, c, u)) = lincomb(sip-as-module(csip-as-sip(r)), n, matscale(scal(r), r_15, c), u)))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([n, r_242, c, u], r_242 in carr(scal(r)) implies c in mat(1, n, carr(scal(r))) implies u in mat(n, 1, vec(r)) implies (act(r))(r_242, lincomb(sip-as-module(csip-as-sip(r)), n, c, u)) = lincomb(sip-as-module(csip-as-sip(r)), n, matscale(scal(r), r_242, c), u)))
 
 ### lincomb-snoc-rev-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_16 in carr(scal(r)), x in vec(r)], (vadd(r))(lincomb(sip-as-module(r), n, c, u), (act(r))(r_16, x)) = lincomb(sip-as-module(r), succ(n), snoc-row(c, n, r_16), snoc-col(u, n, x))))
+    forall([r], is-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_243 in carr(scal(r)), x in vec(r)], (vadd(r))(lincomb(sip-as-module(r), n, c, u), (act(r))(r_243, x)) = lincomb(sip-as-module(r), succ(n), snoc-row(c, n, r_243), snoc-col(u, n, x))))
 
 ### lincomb-snoc-rev-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_16 in carr(scal(r)), x in vec(r)], (vadd(r))(lincomb(sip-as-module(csip-as-sip(r)), n, c, u), (act(r))(r_16, x)) = lincomb(sip-as-module(csip-as-sip(r)), succ(n), snoc-row(c, n, r_16), snoc-col(u, n, x))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_243 in carr(scal(r)), x in vec(r)], (vadd(r))(lincomb(sip-as-module(csip-as-sip(r)), n, c, u), (act(r))(r_243, x)) = lincomb(sip-as-module(csip-as-sip(r)), succ(n), snoc-row(c, n, r_243), snoc-col(u, n, x))))
 
 ### lincomb-snoc-rev-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_16 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(csip-as-sip(r)), succ(n), snoc-row(c, n, r_16), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(csip-as-sip(r)), n, c, u), (act(r))(r_16, x))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_243 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(csip-as-sip(r)), succ(n), snoc-row(c, n, r_243), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(csip-as-sip(r)), n, c, u), (act(r))(r_243, x))))
 
 ### lincomb-snoc-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_17 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(r), succ(n), snoc-row(c, n, r_17), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(r), n, c, u), (act(r))(r_17, x))))
+    forall([r], is-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_244 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(r), succ(n), snoc-row(c, n, r_244), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(r), n, c, u), (act(r))(r_244, x))))
 
 ### lincomb-snoc-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_17 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(csip-as-sip(r)), succ(n), snoc-row(c, n, r_17), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(csip-as-sip(r)), n, c, u), (act(r))(r_17, x))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_244 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(csip-as-sip(r)), succ(n), snoc-row(c, n, r_244), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(csip-as-sip(r)), n, c, u), (act(r))(r_244, x))))
 
 ### lincomb-snoc-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_17 in carr(scal(r)), x in vec(r)], (vadd(r))(lincomb(sip-as-module(csip-as-sip(r)), n, c, u), (act(r))(r_17, x)) = lincomb(sip-as-module(csip-as-sip(r)), succ(n), snoc-row(c, n, r_17), snoc-col(u, n, x))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_244 in carr(scal(r)), x in vec(r)], (vadd(r))(lincomb(sip-as-module(csip-as-sip(r)), n, c, u), (act(r))(r_244, x)) = lincomb(sip-as-module(csip-as-sip(r)), succ(n), snoc-row(c, n, r_244), snoc-col(u, n, x))))
 
 ### lincomb-unitrow-rev-sip-as-module
 
@@ -6922,27 +6922,27 @@ Conservative defining `iff`/`==` axioms installed via `add-axiom!`, so absent fr
 
 ### module-act-zero-vec-rev-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_5 in carr(scal(r))], vzero(r) = (act(r))(r_5, vzero(r))))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_232 in carr(scal(r))], vzero(r) = (act(r))(r_232, vzero(r))))
 
 ### module-act-zero-vec-rev-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_5 in carr(scal(r))], vzero(r) = (act(r))(r_5, vzero(r))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_232 in carr(scal(r))], vzero(r) = (act(r))(r_232, vzero(r))))
 
 ### module-act-zero-vec-rev-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_5 in carr(scal(r))], (act(r))(r_5, vzero(r)) = vzero(r)))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_232 in carr(scal(r))], (act(r))(r_232, vzero(r)) = vzero(r)))
 
 ### module-act-zero-vec-sip-as-module
 
-    forall([r], is-semi-inner-product-space(r) implies forall([r_4 in carr(scal(r))], (act(r))(r_4, vzero(r)) = vzero(r)))
+    forall([r], is-semi-inner-product-space(r) implies forall([r_231 in carr(scal(r))], (act(r))(r_231, vzero(r)) = vzero(r)))
 
 ### module-act-zero-vec-sip-as-module-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_4 in carr(scal(r))], (act(r))(r_4, vzero(r)) = vzero(r)))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_231 in carr(scal(r))], (act(r))(r_231, vzero(r)) = vzero(r)))
 
 ### module-act-zero-vec-sip-as-module-rev-csip-as-sip
 
-    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_4 in carr(scal(r))], vzero(r) = (act(r))(r_4, vzero(r))))
+    forall([r], is-complex-semi-inner-product-space(r) implies forall([r_231 in carr(scal(r))], vzero(r) = (act(r))(r_231, vzero(r))))
 
 ### module-zero-act-rev-sip-as-module
 

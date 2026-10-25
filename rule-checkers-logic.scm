@@ -76,8 +76,17 @@
 (define (chk-same? a b)
   (or (eq? a b) (alpha-equiv? a b)))
 
+;;; K1 (2026-10-17): try `memq' first.  If F is eq? to an element, the chk-any walk below
+;;; would reach that element unless an EARLIER element already answered #t, and chk-same?
+;;; answers #t on it by its eq? arm (above); so the answer is #t either way.  If memq finds
+;;; nothing, the old walk runs unchanged.  Returns exactly #t or #f, as before.
+;;; The rule, for anyone tempted to copy this: memq-first is valid ONLY where the predicate
+;;; has an eq? arm AND the caller wants a boolean.  Bare alpha-equiv? is not reflexive (a
+;;; string, boolean or () leaf falls to its final `else #f') and a caller that wants the
+;;; matching element or its index would get a different one.
 (define (chk-mem? f fs)
-  (chk-any (lambda (g) (chk-same? f g)) fs))
+  (or (and (memq f fs) #t)
+      (chk-any (lambda (g) (chk-same? f g)) fs)))
 
 (define (chk-subset? fs gs)
   (chk-every (lambda (f) (chk-mem? f gs)) fs))

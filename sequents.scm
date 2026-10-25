@@ -58,8 +58,13 @@
 ;;; -----------------------------------------------------------------------
 ;;; Context operations on lists of <wff>
 
+;;; K1 (2026-10-17): try `memq' first; exact because wff-equiv? answers #t on eq? wffs by
+;;; its first arm (wff.scm), so a memq hit is an answer the walk below would also give.
+;;; Same rule as chk-mem? (rule-checkers-logic.scm): eq? arm AND a boolean result.
+;;; context-remove-assumption below drops EVERY alpha-copy and must not get this.
 (define (context-contains? asms formula-wff)
-  (any (lambda (a) (wff-equiv? a formula-wff)) asms))
+  (or (and (memq formula-wff asms) #t)
+      (any (lambda (a) (wff-equiv? a formula-wff)) asms)))
 
 (define (context-add-assumption asms formula-wff)
   (if (context-contains? asms formula-wff)

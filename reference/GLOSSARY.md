@@ -7611,7 +7611,7 @@ definition:
 [2 * (nth(1, w) * conjugate(nth(2, w))), magnitude(nth(1, w)) * magnitude(nth(1, w)) - magnitude(nth(2, w)) * magnitude(nth(2, w))]
 ```
 
-characterized by `hopf-map-pair`  *(certified)*:
+characterized by `hopf-map-pair`  *(proven)*:
 
 ```
 forall([a in cc, b in cc], hopf-map([a, b]) = [2 * (a * conjugate(b)), magnitude(a) * magnitude(a) - magnitude(b) * magnitude(b)])
@@ -7627,7 +7627,7 @@ reads: the bijection S^2 -> C u {oo} through which the Hopf map factors
 
 defined by `hopf-quotient-map-def` 
 
-characterized by `hopf-quotient-map-onto`  *(certified)*:
+characterized by `hopf-quotient-map-onto`  *(proven)*:
 
 ```
 forall([w in cc-hat], forsome([z in unit-sphere-cr], hopf-quotient-map(z) = w))
@@ -12314,7 +12314,7 @@ finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (act(md))(entry(c, 1,
 characterized by `lincomb-snoc-sip-as-module`  *(definitional)*:
 
 ```
-forall([r], is-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_17 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(r), succ(n), snoc-row(c, n, r_17), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(r), n, c, u), (act(r))(r_17, x))))
+forall([r], is-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_244 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(r), succ(n), snoc-row(c, n, r_244), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(r), n, c, u), (act(r))(r_244, x))))
 ```
 
 also: `lincomb-type-sip-as-module` `lincomb-empty-sip-as-module` `matact-lincomb-sip-as-module` `lincomb-row-add-sip-as-module` `lincomb-unitrow-sip-as-module` `lincomb-zerorow-sip-as-module` `lincomb-row-peel-sip-as-module` `lincomb-row-scale-sip-as-module` ... (47 in all)
