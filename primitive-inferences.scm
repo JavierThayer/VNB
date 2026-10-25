@@ -1208,7 +1208,9 @@
 ;;; component is a set when it is certified defined AND the negative value
 ;;; certificate of the beta licence cannot see it denoting a proper class
 ;;; (`pi--value-may-be-class?': a bare untyped variable, SET, ORD, POWER of a
-;;; possibly-proper class, ... MAY be proper and so does not certify).
+;;; possibly-proper class, ... MAY be proper and so does not certify; since BVAL,
+;;; 2026-10-23, so does every head that test has no row for -- DOM(lambda x in
+;;; ORD. x) and MATRIX(SET) used to certify [DOM(..)] and [MATRIX(SET)]).
 (define (pi--sets-defined? asms t depth)
   (every (lambda (a)
            (and (pi--defined? asms a depth)
@@ -2485,26 +2487,157 @@
 ;;; denotes a PROPER CLASS: then (L x) is undefined and b[x] is not.  So the obligation
 ;;; `(IN value SET)' is owed exactly when the value MAY denote a proper class, and the
 ;;; test asks that question rather than its converse (the converse -- certify the value
-;;; a set -- broke 273 files on 2026-10-01: a library lambda's value is typically an
-;;; arithmetic term, an application, a CHOICE, an IOTA, none of them typed in context,
-;;; none of them a proper class).  KNOWN: raw formulas from the binder scope and wffs
-;;; from the context.  MAY BE A PROPER CLASS:
-;;;   SET, ORD (the proper-class constants); a bare symbol with no typing (IN v C) in
-;;;   KNOWN and no equation to a set-term (a variable may stand for a proper class);
-;;;   POWER, FUN, TUPLES, INJECTION, BIJECTION of a class that may be proper;
-;;;   SEP / VNB-LAMBDA / IMAGE / BIG-UNION / COMP whose domain may be proper (COMP:
-;;;   always); UNION / INTERSECTION / DIFFERENCE / COMPLEMENT-IN / CARTESIAN with a
-;;;   part that may be proper; a registered functoid applied, by its body with the
-;;;   arguments substituted (BALL, CLASS, QUOTIENT, ... unfold to SEP or IMAGE over a
-;;;   carrier); an IF whose branches may be proper.
-;;;   NOT: a numeral, a typed symbol, the set constants (NN ZZ QQ RR CC EMPTY-SET
-;;;   RR-STAR RR-POS-STAR POS-INF NEG-INF), LIST / PAIR (a pair with a proper class in
-;;;   it is no object: undefined, not proper), arithmetic (its values are numbers or
-;;;   junk sets), INTERVAL, NTH, LENGTH, CHOICE, IOTA (a chosen or described member),
-;;;   an application `(v args)' of a variable or an unregistered head (undefined or a
-;;;   set), an accessor of a structure KNOWN holds, any other term.
+;;; a set -- broke 273 files on 2026-10-01).  KNOWN: raw formulas from the binder scope
+;;; and wffs from the context.
+;;;
+;;; THE DEFAULT IS "MAY BE A CLASS" (BVAL, 2026-10-23).  The test used to end in
+;;; "any other term -> not a class", so every head it did not list was certified a set
+;;; or nothing: DOM, RES, MATRIX, ORD-SEGMENT, SUP-ORD, succ_ORD, PARTIAL-FUN among them,
+;;; and `(DOM (VNB-LAMBDA x ORD x))' -- a proper class, every ordinal is a member by
+;;; `dom-membership' -- licensed a contraction owing nothing, from which FALSITY
+;;; followed modulo 0 (~/hunt/t10-beta-value-dom.scm; the BVAL block of test-suite.scm).
+;;; A head is now certified only by a row below, and each row says why.
+;;;
+;;; SET OR NOTHING (no obligation):
+;;;   a numeral; a set constant (NN ZZ QQ RR CC EMPTY-SET RR-STAR RR-POS-STAR POS-INF
+;;;     NEG-INF); a symbol typed (IN v C) in KNOWN;
+;;;   ANY TERM typed (IN t C) in KNOWN: a member of a class is a set
+;;;     (`membership-implies-sethood');
+;;;   LIST, PAIR: a tuple is an object only when its components are sets (the list
+;;;     doctrine, notes-54, 2026-10-01), and then it is a set;
+;;;   MAKE-SET(L): its members are sets x = NTH(i, L) for i in NN (`make-set-membership'),
+;;;     at most one per i, so it is a subclass of the image of the set NN: a set by
+;;;     replacement, whatever L is;
+;;;   NTH, LENGTH, and a structure ACCESSOR (registered kind `accessor': the macete
+;;;     (NAME s) -> (NTH k s) is installed for every s, structures.scm): a component of
+;;;     a tuple or a length.  The library's axioms place NTH(k, L) in a class
+;;;     (`nth-in-range', `tuple-members-are-sets') or equate it to a literal component,
+;;;     and none makes a value of NTH or LENGTH a proper class; the reading of NTH(k, L)
+;;;     as the application L(k) -- a set or nothing, by `app-graph' -- is a model of
+;;;     them, and the test relies on that reading.  So `[PTS(s), ...]' with s
+;;;     unconstrained is a list of sets wherever PTS(s) DENOTES;
+;;;   CHOICE, IOTA: a member of the class chosen from, or the object described (an IOTA
+;;;     binds a set variable), or nothing;
+;;;   INTERVAL: a SEP over NN (matrix.scm), a subclass of a set;
+;;;   the number operations + - * / min max abs succ ^ recip conjugate exp sin cos
+;;;     real-part imag-part magnitude binplus bintimes binneg: the library characterises
+;;;     them only as numbers on number arguments, and their reading as applications of
+;;;     operations on a number class (a set or nothing) is a model of those axioms;
+;;;   an APPLICATION whose operator is a compound term or an unregistered symbol (a
+;;;     variable): (f a) == IOTA(v, [a, v] in f) by `app-graph', an IOTA;
+;;;   an accessor of a structure KNOWN holds (as before).
+;;; A CLASS WHEN AN ARGUMENT MAY BE ONE (each a set on set arguments):
+;;;   POWER; TUPLES; FUN, INJECTION, BIJECTION, PARTIAL-FUN with a CODOMAIN (two or
+;;;     more arguments); UNION, INTERSECTION, DIFFERENCE, COMPLEMENT-IN, CARTESIAN;
+;;;   SEP / VNB-LAMBDA / IMAGE over the domain; IF by its branches;
+;;;   BIG-UNION(z, D, b): by D AND by b at a point z of D -- every member of b(z) is a
+;;;     member of the union (`big-union-mem-intro'), so (BIG-UNION z {0} ORD) is ORD.
+;;;     The test used to read the domain alone;
+;;;   DOM(f): x in DOM(f) iff x is a set and f(x) is one (`dom-membership'); for a set
+;;;     f, f(x) == IOTA(v, [x, v] in f) gives [x, f(x)] in f, so DOM(f) is a subclass of
+;;;     the double union of f: a set.  Decided by f;
+;;;   RES(f, B): read as {p in f : NTH(1, p) in B} (library.scm, beside `res-typing'), a
+;;;     subclass of f.  Decided by f;
+;;;   MATRIX(S): a subclass of TUPLES(TUPLES(S)) (`matrix-membership').  Decided by S;
+;;;   ORD-SEGMENT(a): read as {x in ORD : ORD-LT(x, a)}, a subclass of a for an ordinal
+;;;     a (`ord-segment-membership', `ord-segment-is-set'); off ORD no axiom constrains
+;;;     it and the reading is kept.  Decided by a;
+;;;   SUP-ORD(A): the union of the ordinals in A.  Decided by A;
+;;;   succ_ORD(a): a u {a}.  Decided by a;
+;;;   a registered functoid applied: by its body with the arguments substituted;
+;;;   a DEFINED FUNCTION applied (def-constant, def-by-nn/ord-recursion, or an operator
+;;;     with an unguarded definitional NAME-def): by the right-hand sides of its
+;;;     defining equations (`pi--defined-fn-values', above).
+;;; MAY BE A PROPER CLASS:
+;;;   SET, ORD; an untyped bare symbol; COMP; FUN, INJECTION, BIJECTION, PARTIAL-FUN
+;;;   with ONE argument (the codomain is free: FUN({0}) holds {[0, x]} for every set x);
+;;;   and EVERY OTHER TERM -- an axiomatised constructor (SUM, ESUP, ESUM, INTEGRAL,
+;;;   ETIMES, ENTRY, MATOF, ...), an applied record, a registered constant applied.
+;;;   Each such contraction owes `(IN value SET)'; a head joins a row above only with
+;;;   its reason.
+;;; The checker reads the value with its own test (`chk-value-may-be-class?',
+;;; rule-checkers-schema.scm), written apart.
 (define *pi-proper-class-constants* '(SET ORD))
 (define *pi-set-constants* '(NN ZZ QQ RR CC EMPTY-SET RR-STAR RR-POS-STAR POS-INF NEG-INF))
+(define *pi-value-set-heads*              ; set or nothing, whatever the arguments
+  '(LIST PAIR MAKE-SET NTH LENGTH CHOICE IOTA INTERVAL
+    / recip conjugate exp sin cos real-part imag-part magnitude binplus bintimes binneg))
+(define *pi-value-arg-heads*              ; a class exactly when an argument may be one
+  '(POWER TUPLES UNION INTERSECTION DIFFERENCE COMPLEMENT-IN CARTESIAN))
+(define *pi-value-first-arg-heads*        ; decided by the first argument
+  '(DOM RES MATRIX ORD-SEGMENT SUP-ORD succ_ORD))
+(define *pi-value-codomain-heads*         ; a class when unary; else by the arguments
+  '(FUN INJECTION BIJECTION PARTIAL-FUN))
+
+;;; A DEFINED FUNCTION is decided by its defining equations (BVAL, 2026-10-23).  The
+;;; equations are the head's characterising axioms in library-definitions (`def-constant',
+;;; `def-by-nn-recursion', `def-by-ord-recursion'), or else the one theorem NAME-def, when
+;;; it is UNGUARDED (no implication in it: it determines the head everywhere) -- the shape
+;;; of an already-registered operator defined later by a quasi-equation (`eplus-def',
+;;; `etimes-def', `rpow-def').  Every axiom read must be `definitional' or `primitive' and
+;;; must be an equation (= or ==), under universals and guards, whose left-hand side is
+;;; either the head applied to as many arguments as the term, or the bare head.  The value
+;;; of an applied left-hand side's right-hand side is read with its plain variables bound
+;;; to the actual arguments and every occurrence of the head replaced by a FRESH UNTYPED
+;;; symbol (so a step `val' that passes the previous value through may be a class); a
+;;; bare head equal to R gives the application (R args).  Returns that list of values, or
+;;; #f.  Reading: where a guard holds the term IS that value; where none holds the axioms
+;;; say nothing and the term is read as undefined.  By induction over a recursion, the
+;;; head may be a class only when a base, step or limit value may be one.  Each axiom read
+;;; is noted (CERT-KEY-2).
+(define (pi--defined-fn-values head args)
+  (define (strip e vars)                  ; -> (vars . equation) or #f
+    (cond ((and (pair? e) (eq? (car e) 'FORALL) (= (length e) 3) (symbol? (cadr e)))
+           (strip (caddr e) (cons (cadr e) vars)))
+          ((and (pair? e) (eq? (car e) 'IMPLIES) (= (length e) 3))
+           (strip (caddr e) vars))
+          ((and (pair? e) (memq (car e) '(= ==)) (= (length e) 3)
+                (or (eq? (cadr e) head)
+                    (and (pair? (cadr e)) (eq? (car (cadr e)) head) (list? (cadr e))
+                         (= (length (cdr (cadr e))) (length args)))))
+           (cons vars e))
+          (else #f)))
+  (define (unguarded? e)
+    (cond ((and (pair? e) (eq? (car e) 'FORALL) (= (length e) 3)) (unguarded? (caddr e)))
+          ((and (pair? e) (eq? (car e) 'IMPLIES)) #f)
+          (else #t)))
+  (define (hide-head e)                   ; every (HEAD ...) -> a fresh untyped symbol
+    (cond ((not (pair? e)) e)
+          ((eq? (car e) head) (generate-uninterned-symbol))
+          ((list? e) (map hide-head e))
+          (else e)))
+  (define (safely thunk)
+    (call-with-current-continuation
+      (lambda (k) (with-exception-handler (lambda (c) (k #f)) thunk))))
+  (define (trusted? nm)
+    (and *pi-provenance-of* (memq (*pi-provenance-of* nm) '(definitional primitive)) #t))
+  (let* ((defs  (safely (lambda () (library-definitions *library*))))
+         (entry (and (symbol? head) (list? defs) (assq head defs)))
+         (axs   (cond ((and entry (pair? (cdr entry))) (cdr entry))
+                      ((not (symbol? head)) #f)
+                      (#t (let* ((nm (symbol-append head '-def))
+                                 (f  (safely (lambda () (hash-table-ref/default *theorem-table* nm #f)))))
+                            (and f (unguarded? f) (list (cons nm f))))))))
+    (and axs
+         (let loop ((axs axs) (acc '()))
+           (if (null? axs)
+               (reverse acc)
+               (let* ((ax (car axs))
+                      (nm (and (pair? ax) (car ax)))
+                      (sv (and (symbol? nm) (trusted? nm) (strip (cdr ax) '()))))
+                 (if (symbol? nm) (dg-note-read-def! nm))
+                 (and sv
+                      (let* ((vars (car sv)) (eqn (cdr sv)) (lhs (cadr eqn)))
+                        (if (eq? lhs head)
+                            (loop (cdr axs) (cons (cons (caddr eqn) args) acc))
+                            (let ((binds (let b ((ps (cdr lhs)) (as args) (out '()))
+                                           (cond ((null? ps) out)
+                                                 ((and (symbol? (car ps)) (memq (car ps) vars)
+                                                       (not (assq (car ps) out)))
+                                                  (b (cdr ps) (cdr as) (cons (cons (car ps) (car as)) out)))
+                                                 (#t (b (cdr ps) (cdr as) out))))))
+                              (loop (cdr axs)
+                                    (cons (subst-free* binds (hide-head (caddr eqn))) acc))))))))))))
 
 (define (pi--value-may-be-class? known t)
   (define (raw e) (if (wff? e) (wff-formula e) e))
@@ -2527,6 +2660,8 @@
                 (list? (car reg)) (= (length (car reg)) (length (cdr t)))
                 (subst-free* (map cons (car reg) (cdr t)) (cadr reg))))))
   (let may? ((t t) (depth 0))
+    (define (any-may? as)
+      (let loop ((as as)) (and (pair? as) (or (may? (car as) (+ depth 1)) (loop (cdr as))))))
     (cond
       ((> depth 8) #t)                                   ; too deep to tell: owe it
       ((not (pair? t))
@@ -2535,19 +2670,30 @@
             (or (memq t *pi-proper-class-constants*)
                 (not (typed? t)))
             #t))
-      ((memq (car t) '(LIST PAIR INTERVAL NTH LENGTH CHOICE IOTA)) #f)
-      ((and (symbol? (car t)) (memq (car t) *pi-arith-total-heads*)) #f)
-      ((memq (car t) '(POWER FUN TUPLES INJECTION BIJECTION))
-       (let loop ((as (cdr t))) (and (pair? as) (or (may? (car as) (+ depth 1)) (loop (cdr as))))))
+      ((typed? t) #f)                                    ; a member of a class
+      ((not (symbol? (car t))) #f)                       ; ((...) args): app-graph
+      ((memq (car t) *pi-value-set-heads*) #f)
+      ((memq (car t) *pi-arith-total-heads*) #f)
+      ((eq? (constant-head? (car t)) 'accessor) #f)      ; (NAME s) -> (NTH k s)
+      ((memq (car t) *pi-value-arg-heads*) (any-may? (cdr t)))
+      ((memq (car t) *pi-value-codomain-heads*)
+       (or (< (length t) 3) (any-may? (cdr t))))
+      ((and (memq (car t) *pi-value-first-arg-heads*) (>= (length t) 2))
+       (may? (cadr t) (+ depth 1)))
       ((eq? (car t) 'COMP) #t)
-      ((and (memq (car t) '(SEP VNB-LAMBDA BIG-UNION)) (= (length t) 4)) (may? (caddr t) (+ depth 1)))
+      ((and (memq (car t) '(SEP VNB-LAMBDA)) (= (length t) 4)) (may? (caddr t) (+ depth 1)))
+      ((and (eq? (car t) 'BIG-UNION) (= (length t) 4))   ; the domain, and the body at its points
+       (or (may? (caddr t) (+ depth 1))
+           (pi--value-may-be-class? (cons (list 'IN (cadr t) (caddr t)) known) (cadddr t))))
       ((and (eq? (car t) 'IMAGE) (= (length t) 3)) (may? (caddr t) (+ depth 1)))
-      ((memq (car t) '(UNION INTERSECTION DIFFERENCE COMPLEMENT-IN CARTESIAN))
-       (let loop ((as (cdr t))) (and (pair? as) (or (may? (car as) (+ depth 1)) (loop (cdr as))))))
-      ((eq? (car t) 'IF) (or (may? (caddr t) (+ depth 1)) (may? (cadddr t) (+ depth 1))))
-      ((and (= (length t) 2) (symbol? (car t)) (structure-known? (cadr t))) #f)
+      ((and (eq? (car t) 'IF) (= (length t) 4))
+       (or (may? (caddr t) (+ depth 1)) (may? (cadddr t) (+ depth 1))))
+      ((and (= (length t) 2) (structure-known? (cadr t))) #f)
       ((functoid-body-of t) => (lambda (b) (may? b (+ depth 1))))
-      (else #f))))
+      ((pi--defined-fn-values (car t) (cdr t))          ; by its defining equations
+       => (lambda (vs) (any-may? vs)))
+      ((not (constant-head? (car t))) #f)                ; a variable applied: app-graph
+      (#t #t))))                                         ; any other head: owe it
 
 (define (pi--beta-obligation args A)
   (if (= (length args) 1)

@@ -946,13 +946,28 @@
 ;;; THE VALUE CERTIFICATE, the checker's own reading (the builder's is
 ;;; `pi--value-may-be-class?', primitive-inferences.scm; written apart on purpose).
 ;;; A contraction owes `(IN value SET)' exactly when the value MAY denote a proper
-;;; class: SET or ORD; an untyped bare symbol; POWER / FUN / TUPLES / INJECTION /
-;;; BIJECTION of such a thing; SEP, VNB-LAMBDA, BIG-UNION or IMAGE over such a domain;
-;;; COMP; UNION, INTERSECTION, DIFFERENCE, COMPLEMENT-IN, CARTESIAN with such a part;
-;;; an IF with such a branch; a registered functoid applied, by its body.  Everything
-;;; else -- numerals, typed symbols, the set constants, LIST, PAIR, INTERVAL, NTH,
-;;; LENGTH, CHOICE, IOTA, arithmetic, an application of a variable, an accessor of a
-;;; structure the context holds -- denotes a set or nothing, and owes nothing.
+;;; class.  Since BVAL (2026-10-23) a term is cleared only by a reason the checker
+;;; knows; a head it does not know MAY be a class (it used to be cleared: DOM, RES,
+;;; MATRIX, ORD-SEGMENT ... and `(DOM (VNB-LAMBDA x ORD x))' gave FALSITY).
+;;;   CLEARED, whatever the arguments: a numeral, a set constant, a term the known
+;;;     formulas put IN some class; a literal tuple (LIST, PAIR: an object only when
+;;;     its components are sets); MAKE-SET (a subclass of an image of NN); NTH, LENGTH
+;;;     and a structure accessor (a component or a length, read as an application);
+;;;     CHOICE, IOTA (a member or the described object); INTERVAL (a SEP over NN);
+;;;     the number operations; an application of a variable or of a compound term
+;;;     (app-graph: an IOTA); an accessor of a structure the context holds.
+;;;   CLEARED WHEN THE ARGUMENTS ARE: POWER, TUPLES, the Boolean operations,
+;;;     CARTESIAN; FUN / INJECTION / BIJECTION / PARTIAL-FUN with a codomain;
+;;;     SEP, VNB-LAMBDA, IMAGE by the domain; BIG-UNION by the domain and by the body at
+;;;     a point of the domain; IF by both branches.
+;;;   CLEARED WHEN THE FIRST ARGUMENT IS: DOM, RES (subclasses of a set f, or of its
+;;;     double union), MATRIX (inside TUPLES(TUPLES S)), ORD-SEGMENT, SUP-ORD,
+;;;     succ_ORD.
+;;;   A registered functoid: by its body at the arguments; a defined function
+;;;     (def-constant, def-by-nn/ord-recursion, an operator with an implication-free
+;;;     definitional HEAD-def): by its defining equations (`chk-defined-fn-values').
+;;;   NEVER CLEARED: SET, ORD, an untyped variable, COMP, a one-argument FUN /
+;;;     INJECTION / BIJECTION / PARTIAL-FUN (free codomain), and any other head.
 ;; the memberships a redex's argument carries, licensed or owed: they type the value
 (define (rcs--arg-typings args A)
   (cond ((and (= (length args) 1) (pair? (car args)) (eq? (car (car args)) 'LIST)
@@ -962,6 +977,65 @@
         ((and (pair? A) (eq? (car A) 'CARTESIAN) (= (length args) (length (cdr A))))
          (cons (list 'IN (cons 'LIST args) A) (map (lambda (a d) (list 'IN a d)) args (cdr A))))
         (else (list (list 'IN (cons 'LIST args) A)))))
+
+;;; A defined function's values, the checker's own reading (the builder's is
+;;; `pi--defined-fn-values').  The defining axioms: HEAD's entry in library-definitions,
+;;; else the single theorem HEAD-def provided no implication occurs in it.  Each must be
+;;; definitional or primitive and end, under universals and implications, in an equation
+;;; (= or ==) whose left-hand side is HEAD itself -- the value is then the application of
+;;; the right-hand side to ARGS -- or HEAD applied to (length ARGS) arguments -- the
+;;; value is then the right-hand side read at ARGS: a parameter that is a plain variable
+;;; of the axiom's universal prefix is replaced by the matching argument, and every
+;;; subterm headed by HEAD becomes an unknown (a fresh symbol, typed nowhere).  One axiom
+;;; of another shape: #f, and the head stays unknown.
+(define (chk-defined-fn-values head args)
+  (define (guarded c)
+    (call-with-current-continuation
+      (lambda (k) (with-exception-handler (lambda (e) (k #f)) c))))
+  (define (prov-ok? nm)
+    (guarded (lambda () (and (memq (*pi-provenance-of* nm) '(definitional primitive)) #t))))
+  (define (has-implication? e)
+    (and (pair? e) (or (eq? (car e) 'IMPLIES) (and (list? e) (chk-any has-implication? (cdr e))))))
+  (define (unknownify e)
+    (if (pair? e)
+        (if (eq? (car e) head) (generate-uninterned-symbol) (if (list? e) (map unknownify e) e))
+        e))
+  (define (read-axiom f)                  ; the value at ARGS, or #f
+    (let walk ((e f) (bound '()))
+      (cond
+        ((not (pair? e)) #f)
+        ((and (eq? (car e) 'FORALL) (= (length e) 3)) (walk (caddr e) (cons (cadr e) bound)))
+        ((and (eq? (car e) 'IMPLIES) (= (length e) 3)) (walk (caddr e) bound))
+        ((and (or (eq? (car e) '=) (eq? (car e) '==)) (= (length e) 3))
+         (let ((lhs (cadr e)))
+           (cond
+             ((eq? lhs head) (cons (caddr e) args))
+             ((and (pair? lhs) (eq? (car lhs) head) (list? lhs) (= (length lhs) (+ 1 (length args))))
+              (let pair-up ((ps (cdr lhs)) (as args) (al '()))
+                (if (null? ps)
+                    (subst-free* al (unknownify (caddr e)))
+                    (pair-up (cdr ps) (cdr as)
+                             (if (and (symbol? (car ps)) (memq (car ps) bound) (not (assq (car ps) al)))
+                                 (cons (cons (car ps) (car as)) al)
+                                 al)))))
+             (#t #f))))
+        (#t #f))))
+  (and (symbol? head)
+       (let* ((entry (guarded (lambda () (assq head (library-definitions *library*)))))
+              (axioms
+               (if (and entry (pair? (cdr entry)))
+                   (cdr entry)
+                   (let* ((nm (symbol-append head '-def))
+                          (f (guarded (lambda () (hash-table-ref/default *theorem-table* nm #f)))))
+                     (if (and f (not (has-implication? f))) (list (cons nm f)) '())))))
+         (and (pair? axioms)
+              (let collect ((axs axioms) (out '()))
+                (cond ((null? axs) out)
+                      ((not (and (pair? (car axs)) (symbol? (caar axs)))) #f)
+                      (#t
+                       (dg-note-read-def! (caar axs))
+                       (let ((v (and (prov-ok? (caar axs)) (read-axiom (cdar axs)))))
+                         (and v (collect (cdr axs) (cons v out)))))))))))
 
 (define (chk-value-may-be-class? t known)
   (define (raw e) (if (wff? e) (wff-formula e) e))
@@ -991,23 +1065,58 @@
                 (list? (car reg)) (= (length (car reg)) (length (cdr t)))
                 (subst-free* (map cons (car reg) (cdr t)) (cadr reg))))))
   (define (any-may? ts d) (let loop ((ts ts)) (and (pair? ts) (or (may? (car ts) d) (loop (cdr ts))))))
+  (define (registered-kind h)             ; the constant registry (expressions.scm), or #f
+    (call-with-current-continuation
+      (lambda (k)
+        (with-exception-handler (lambda (e) (k #f))
+          (lambda () (hash-table-ref/default *constant-registry* h #f))))))
+  (define (member-of-something? u)
+    (holds? (lambda (f) (and (pair? f) (eq? (car f) 'IN) (= (length f) 3) (chk-same? (cadr f) u)))))
   (define (may? t d)
-    (cond ((> d 8) #t)
-          ((not (pair? t))
-           (and (symbol? t)
-                (not (memq t '(NN ZZ QQ RR CC EMPTY-SET RR-STAR RR-POS-STAR POS-INF NEG-INF)))
-                (or (memq t '(SET ORD)) (not (typed? t)))
-                #t))
-          ((memq (car t) '(LIST PAIR INTERVAL NTH LENGTH CHOICE IOTA + - * min max abs succ ^)) #f)
-          ((memq (car t) '(POWER FUN TUPLES INJECTION BIJECTION)) (any-may? (cdr t) (+ d 1)))
-          ((eq? (car t) 'COMP) #t)
-          ((and (memq (car t) '(SEP VNB-LAMBDA BIG-UNION)) (= (length t) 4)) (may? (caddr t) (+ d 1)))
-          ((and (eq? (car t) 'IMAGE) (= (length t) 3)) (may? (caddr t) (+ d 1)))
-          ((memq (car t) '(UNION INTERSECTION DIFFERENCE COMPLEMENT-IN CARTESIAN)) (any-may? (cdr t) (+ d 1)))
-          ((eq? (car t) 'IF) (any-may? (cddr t) (+ d 1)))
-          ((and (= (length t) 2) (symbol? (car t)) (struct-pred? (cadr t))) #f)
-          ((unfold t) => (lambda (b) (may? b (+ d 1))))
-          (else #f)))
+    (if (> d 8)
+        #t
+        (if (not (pair? t))
+            (and (symbol? t)
+                 (not (memq t '(NN ZZ QQ RR CC EMPTY-SET RR-STAR RR-POS-STAR POS-INF NEG-INF)))
+                 (or (memq t '(SET ORD)) (not (typed? t)))
+                 #t)
+            (let ((h (car t)) (as (cdr t)))
+              (cond
+                ((member-of-something? t) #f)
+                ((pair? h) #f)
+                ((not (symbol? h)) #t)
+                (#t
+                 (case h
+                   ((LIST PAIR MAKE-SET NTH LENGTH CHOICE IOTA INTERVAL
+                     + - * / ^ min max abs succ recip conjugate exp sin cos
+                     real-part imag-part magnitude binplus bintimes binneg) #f)
+                   ((POWER TUPLES UNION INTERSECTION DIFFERENCE COMPLEMENT-IN CARTESIAN)
+                    (any-may? as (+ d 1)))
+                   ((FUN INJECTION BIJECTION PARTIAL-FUN)
+                    (if (null? as) #t (if (null? (cdr as)) #t (any-may? as (+ d 1)))))
+                   ((DOM RES MATRIX ORD-SEGMENT SUP-ORD succ_ORD)
+                    (if (pair? as) (may? (car as) (+ d 1)) #t))
+                   ((COMP) #t)
+                   ((SEP VNB-LAMBDA)
+                    (if (= (length as) 3) (may? (cadr as) (+ d 1)) #t))
+                   ((BIG-UNION)                 ; every member of a body value is a member
+                    (if (= (length as) 3)
+                        (if (may? (cadr as) (+ d 1))
+                            #t
+                            (chk-value-may-be-class? (caddr as) (cons (list 'IN (car as) (cadr as)) known)))
+                        #t))
+                   ((IMAGE) (if (= (length as) 2) (may? (cadr as) (+ d 1)) #t))
+                   ((IF) (if (= (length as) 3) (any-may? (cdr as) (+ d 1)) #t))
+                   (else
+                    (let ((kind (registered-kind h)))
+                      (cond
+                        ((eq? kind 'accessor) #f)
+                        ((and (= (length as) 1) (struct-pred? (car as))) #f)
+                        ((unfold t) => (lambda (b) (may? b (+ d 1))))
+                        ((chk-defined-fn-values h as)
+                         => (lambda (vs) (any-may? vs (+ d 1))))
+                        ((not kind) #f)           ; a variable applied: app-graph
+                        (#t #t)))))))))))
   (may? t 0))
 
 ;;; Each contracted redex must be licensed where it sits, or owe its membership

@@ -77,7 +77,7 @@
 <p>The VNB universe has SETS (the elements of <code>SET</code>), CLASSES, and further entities about which VNB makes no commitment.  A term-forming operator is classified by WHAT IT DENOTES:</p>
 <ul><li>A <strong>function</strong> denotes an element of a set: specifically a set-function, an element of some <code>FUN(A, B)</code> with <code>A</code>,<code>B</code> sets.  This class is DERIVED, not listed: a head appears here exactly when some installed formula states <code>head in FUN(...)</code>, and the entry names that statement.  Being <em>applicable</em> is not the criterion and never was — <a class="x" href="THEOREMS.html#t-app-graph"><code>app-graph</code></a> makes <code>f(x)</code> a well-formed term for any <code>f</code> at all, defined or not.  <code>vnb-lambda</code> is the binder that constructs a set-function.</li><li>A <strong>syntax</strong> head forms terms and denotes NOTHING itself.  <code>+</code> is not an object of the theory: there is no <code>+ in SET</code> to be had, and <code>x + y + z</code> is the flat node <code>(+ x y z)</code>, so the head is not even of fixed arity (<code>nary-plus-3/4/5</code> interpret the 3-, 4- and 5-ary forms).  When a binary addition must be NAMED as an object, that object is <code>binplus</code>, tied to the syntax by <code>x + y == binplus(x, y)</code>.  The theory characterizes the APPLICATIONS of these heads by axiom and says nothing about the heads.</li><li>A <strong>functoid</strong> denotes something that is not required to be an element of <code>SET</code>.  This is a large, somewhat amorphous category: the kernel set- and tuple-builders (<code>union</code>, <code>sep</code>, <code>power</code>, <code>fun</code>, <code>image</code>, …) whose arguments range over a proper class; every library constructor (<a class="x" href="DEFINITIONS.html#d-matmul"><code>matmul</code></a>, <a class="x" href="DEFINITIONS.html#d-mat-ring"><code>mat-ring</code></a>, the structure accessors, …); and the recursively-defined ones.  Some functoids can be regarded as functions, but a functoid is not required to be one.  <code>lambdoid</code> is the binder that constructs a functoid — the class-domain sibling of <code>vnb-lambda</code>.  Application is implicit: writing <code>f(args)</code> denotes <code>apply-functoid(f, args)</code> when <code>f</code> is a functoid and <code>apply-function(f, args)</code> when <code>f</code> is a function — these two application operators are never written by hand.  Whether an operator is a kernel primitive or a library definition is a matter of ORIGIN, recorded as metadata; it is not a VNB distinction and carries no semantic weight.  A kernel set-former is a functoid exactly as a library constructor is.</li><li>A <strong>predicate</strong> is an operator whose application to argument terms is a proposition — an entity whose value is either true or false.  The proposition and its truth value are two separate things in the mathematical universe: a predicate applied to terms always denotes a proposition, but the truth value of that proposition may not be known.</li></ul>
 <p>Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An <strong>undeclared</strong> head is a defect.</p>
-<p>1159 operators: 3 functions, 11 syntax, 618 functoids, 523 predicates, 4 undeclared.</p>
+<p>1187 operators: 3 functions, 11 syntax, 644 functoids, 525 predicates, 4 undeclared.</p>
 <p>&gt; <strong>⚠ Undeclared heads (mushrooms):</strong> <code>cos</code> <code>delete-at</code> <code>exp</code> <code>sin</code> — registered and usable but backed by no def or axiom.</p>
 <h3 id="OPERATORS__functions-3">Functions  (3)</h3>
 <p>A head is listed here exactly when the theory STATES that it is an element of a <code>FUN</code> set; the statement is named.  Nothing is claimed on a head&#x27;s behalf: this section was a hand-typed list until 2026-08-31, and every one of the fifteen heads on it (<code>+ - * recip abs exp sin cos sqrt</code> …) turned out to have no such statement anywhere in the theory.</p>
@@ -95,7 +95,7 @@
 <h4 id="OPERATORS__recip-syntax-the-head-denotes-nothing"><code>recip</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__rpow-syntax-the-head-denotes-nothing"><code>rpow</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__succ-syntax-the-head-denotes-nothing"><code>succ</code>  — syntax: the head denotes nothing</h4>
-<h3 id="OPERATORS__functoids-618">Functoids  (618)</h3>
+<h3 id="OPERATORS__functoids-644">Functoids  (644)</h3>
 <p>Term-valued operators that do NOT denote an element of <code>SET</code> — the big amorphous category.  Sub-labelled by how each is declared (<code>kernel term-former</code>; <code>def-functoid</code> body; <code>def-by-nn-recursion</code>; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  <code>def-functor</code> bridges live in <code>STRUCTURE-INDEX.md</code>; <code>lambdoid</code> (the functoid binder) is a parser-level form, not a registered head.</p>
 <h4 id="OPERATORS__/-characterized-by-axiom-s"><code>/</code>  — characterized by axiom(s)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-amgm-2-sqrt"><code>amgm-2-sqrt</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-le-arg"><code>bdd-fn-le-arg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-lt-one"><code>bdd-fn-lt-one</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-mono"><code>bdd-fn-mono</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-nonneg"><code>bdd-fn-nonneg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-subadd"><code>bdd-fn-subadd</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-zero"><code>bdd-fn-zero</code></a> <a class="x" href="THEOREMS.html#t-bdd-metric-distance"><code>bdd-metric-distance</code></a></p>
@@ -401,6 +401,9 @@
 <pre>cx-vadd(v) := vnb-lambda([cp_, cq_], cartesian(cartesian(vec(v), vec(v)), cartesian(vec(v), vec(v))), [(vadd(v))(nth(1, cp_), nth(1, cq_)), (vadd(v))(nth(2, cp_), nth(2, cq_))])</pre>
 <h4 id="OPERATORS__cx-vneg-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-cx-vneg"><code>cx-vneg</code></a>  — def-functoid · function-valued</h4>
 <pre>cx-vneg(v) := vnb-lambda(cp_, cartesian(vec(v), vec(v)), [(vneg(v))(nth(1, cp_)), (vneg(v))(nth(2, cp_))])</pre>
+<h4 id="OPERATORS__cyclic-sum-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-cyclic-sum"><code>cyclic-sum</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the direct sum of the cyclic groups Z/(a_i), i = 1, ..., l</p>
+<pre>cyclic-sum(l, a) := direct-sum(zz-ring, l, vnb-lambda(csi_, interval(1, l), zz-mod(a(csi_))))</pre>
 <h4 id="OPERATORS__dc-iter-recursively-defined-def-by-nn-recursion"><a class="x" href="DEFINITIONS.html#d-dc-iter"><code>dc-iter</code></a>  — recursively defined (def-by-nn-recursion)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-dc-iter-zero"><code>dc-iter-zero</code></a> <a class="x" href="THEOREMS.html#t-dc-iter-succ"><code>dc-iter-succ</code></a></p>
 <h4 id="OPERATORS__deg-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-deg"><code>deg</code></a>  — def-functoid · element/number-valued</h4>
@@ -423,6 +426,9 @@
 <h4 id="OPERATORS__det-recursively-defined-def-by-nn-recursion"><a class="x" href="DEFINITIONS.html#d-det"><code>det</code></a>  — recursively defined (def-by-nn-recursion)</h4>
 <p>&gt; _Reads as:_  det()</p>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-det-zero"><code>det-zero</code></a> <a class="x" href="THEOREMS.html#t-det-cofactor"><code>det-cofactor</code></a></p>
+<h4 id="OPERATORS__diag-mat-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-diag-mat"><code>diag-mat</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the diagonal matrix with diagonal f(1), ..., f(n)</p>
+<pre>diag-mat(n, f) := matof(n, n, vnb-lambda([dga_, dgb_], cartesian(interval(1, n), interval(1, n)), (mul(zz-ring))(f(dga_), entry(identmat(zz-ring, n), dga_, dgb_))))</pre>
 <h4 id="OPERATORS__difference-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-difference"><code>difference</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the set difference of u_ and b_</p>
 <pre>difference(u_, b_) := complement-in(u_, b_)</pre>
@@ -431,6 +437,9 @@
 <h4 id="OPERATORS__dir-of-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-dir-of"><code>dir-of</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the direction of the directed message ssd_</p>
 <pre>dir-of(ssd_) := nth(1, ssd_)</pre>
+<h4 id="OPERATORS__direct-sum-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-direct-sum"><code>direct-sum</code></a>  — def-functoid · tuple/structure-valued</h4>
+<p>&gt; _Reads as:_  the direct sum of the n modules f over s</p>
+<pre>direct-sum(s, n, f) := [s, dsum-vec(n, f), dsum-vadd(n, f), dsum-vzero(n, f), dsum-vneg(n, f), dsum-act(s, n, f)]</pre>
 <h4 id="OPERATORS__directed-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-directed"><code>directed</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the directed messages over the tokens sst_ and the keys ssk_</p>
 <pre>directed(sst_, ssk_) := cartesian(pair(sent, received), msg-set(sst_, ssk_))</pre>
@@ -444,6 +453,16 @@
 <h4 id="OPERATORS__dists-structure-accessor-element-slot-value"><code>dists</code>  — structure accessor · element (slot value)</h4>
 <p>&gt; _Reads as:_  the pseudometric family of s</p>
 <h4 id="OPERATORS__dom-kernel-term-former"><code>dom</code>  — kernel term-former</h4>
+<h4 id="OPERATORS__dsum-act-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-dsum-act"><code>dsum-act</code></a>  — def-functoid · function-valued</h4>
+<pre>dsum-act(s, n, f) := vnb-lambda([dqr_, dsf_], cartesian(carr(s), dsum-vec(n, f)), vnb-lambda(dsi_, interval(1, n), (act(f(dsi_)))(dqr_, dsf_(dsi_))))</pre>
+<h4 id="OPERATORS__dsum-vadd-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-dsum-vadd"><code>dsum-vadd</code></a>  — def-functoid · function-valued</h4>
+<pre>dsum-vadd(n, f) := vnb-lambda([dsf_, dsg_], cartesian(dsum-vec(n, f), dsum-vec(n, f)), vnb-lambda(dsi_, interval(1, n), (vadd(f(dsi_)))(dsf_(dsi_), dsg_(dsi_))))</pre>
+<h4 id="OPERATORS__dsum-vec-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-dsum-vec"><code>dsum-vec</code></a>  — def-functoid · set-valued</h4>
+<pre>dsum-vec(n, f) := {dsv_ in fun(interval(1, n), big-union(dsk_, interval(1, n), vec(f(dsk_)))): forall([dsj_ in interval(1, n)], dsv_(dsj_) in vec(f(dsj_)))}</pre>
+<h4 id="OPERATORS__dsum-vneg-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-dsum-vneg"><code>dsum-vneg</code></a>  — def-functoid · function-valued</h4>
+<pre>dsum-vneg(n, f) := vnb-lambda(dsf_, dsum-vec(n, f), vnb-lambda(dsi_, interval(1, n), (vneg(f(dsi_)))(dsf_(dsi_))))</pre>
+<h4 id="OPERATORS__dsum-vzero-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-dsum-vzero"><code>dsum-vzero</code></a>  — def-functoid · function-valued</h4>
+<pre>dsum-vzero(n, f) := vnb-lambda(dsi_, interval(1, n), vzero(f(dsi_)))</pre>
 <h4 id="OPERATORS__dual-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-dual"><code>dual</code></a>  — def-functoid · tuple/structure-valued</h4>
 <p>&gt; _Reads as:_  the dual space of m</p>
 <pre>dual(m) := [rr-normed-field, dual-vec(m), vnb-lambda([f_, g_], cartesian(dual-vec(m), dual-vec(m)), vnb-lambda(x_, vec(m), f_(x_) + g_(x_))), vnb-lambda(x_, vec(m), 0), vnb-lambda(f_, dual-vec(m), vnb-lambda(x_, vec(m), -f_(x_))), vnb-lambda([r_, f_], cartesian(rr, dual-vec(m)), vnb-lambda(x_, vec(m), r_ * f_(x_))), vnb-lambda(f_, dual-vec(m), dual-norm(m, f_))]</pre>
@@ -1028,6 +1047,9 @@
 <p>&gt; _Reads as:_  the list message of sml_</p>
 <pre>lst(sml_) := [1, sml_]</pre>
 <h4 id="OPERATORS__make-set-kernel-term-former"><code>make-set</code>  — kernel term-former</h4>
+<h4 id="OPERATORS__map-seq-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-map-seq"><code>map-seq</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the image under h of the sequence u of length n</p>
+<pre>map-seq(h, n, u) := matof(n, 1, vnb-lambda([msa_, msb_], cartesian(interval(1, n), interval(1, 1)), h(entry(u, msa_, msb_))))</pre>
 <h4 id="OPERATORS__mapl-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-mapl"><code>mapl</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the list of the values of mxf_ at the entries of mxl_</p>
 <pre>mapl(mxf_, mxl_) := iota(mxr_, mxr_ in tuples(set) and length(mxr_) = length(mxl_) and forall([mxi_ in nn], 1 &lt;= mxi_ implies mxi_ &lt;= length(mxl_) implies nth(mxi_, mxr_) = mxf_(nth(mxi_, mxl_))))</pre>
@@ -1176,6 +1198,9 @@
 <h4 id="OPERATORS__ord-lt-unknown-registry-kind"><code>ord-lt</code>  — unknown registry kind</h4>
 <h4 id="OPERATORS__ord-segment-characterized-by-axiom-s"><code>ord-segment</code>  — characterized by axiom(s)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-ord-segment-insert"><code>ord-segment-insert</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-is-set"><code>ord-segment-is-set</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-membership"><code>ord-segment-membership</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-nn-succ"><code>ord-segment-nn-succ</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-pigeonhole-guarded"><code>ord-segment-pigeonhole-guarded</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-self"><code>ord-segment-self</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-succ"><code>ord-segment-succ</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-trans"><code>ord-segment-trans</code></a></p>
+<h4 id="OPERATORS__pad-ones-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-pad-ones"><code>pad-ones</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  the sequence of k ones followed by f, of length m</p>
+<pre>pad-ones(m, k, f) := vnb-lambda(poj_, interval(1, m), if(poj_ &lt;= k, 1, f(nn-minus(poj_, k))))</pre>
 <h4 id="OPERATORS__pair-kernel-term-former"><code>pair</code>  — kernel term-former</h4>
 <h4 id="OPERATORS__partial-fun-kernel-term-former"><code>partial-fun</code>  — kernel term-former</h4>
 <h4 id="OPERATORS__permutations-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-permutations"><code>permutations</code></a>  — def-functoid · set-valued</h4>
@@ -1268,6 +1293,20 @@
 <h4 id="OPERATORS__pw-int-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-pw-int"><code>pw-int</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the piecewise integral of pphi_ from a to b</p>
 <pre>pw-int(pphi_, a, b) := iota(pav_, pav_ in rr and forsome([paw_], is-primitive(paw_, pphi_, a, b) and pav_ = paw_(b) - paw_(a)))</pre>
+<h4 id="OPERATORS__qmod-act-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-qmod-act"><code>qmod-act</code></a>  — def-functoid · function-valued</h4>
+<pre>qmod-act(md, sm) := vnb-lambda([qmr_, qmc_], cartesian(carr(scal(md)), quotient(qmod-setoid(md, sm))), (qmod-scale(md, sm, qmr_))(qmc_))</pre>
+<h4 id="OPERATORS__qmod-rel-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-qmod-rel"><code>qmod-rel</code></a>  — def-functoid · set-valued</h4>
+<p>&gt; _Reads as:_  the congruence modulo sm on md</p>
+<pre>qmod-rel(md, sm) := {qmp_ in cartesian(vec(md), vec(md)): (vadd(md))(nth(1, qmp_), (vneg(md))(nth(2, qmp_))) in sm}</pre>
+<h4 id="OPERATORS__qmod-scale-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-qmod-scale"><code>qmod-scale</code></a>  — def-functoid · element/number-valued</h4>
+<pre>qmod-scale(md, sm, r) := descend(qmod-setoid(md, sm), vnb-lambda(qma_, vec(md), class(qmod-setoid(md, sm), (act(md))(r, qma_))))</pre>
+<h4 id="OPERATORS__qmod-setoid-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-qmod-setoid"><code>qmod-setoid</code></a>  — def-functoid · tuple/structure-valued</h4>
+<p>&gt; _Reads as:_  the vectors of md under the congruence modulo sm</p>
+<pre>qmod-setoid(md, sm) := [vec(md), qmod-rel(md, sm)]</pre>
+<h4 id="OPERATORS__qmod-vadd-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-qmod-vadd"><code>qmod-vadd</code></a>  — def-functoid · element/number-valued</h4>
+<pre>qmod-vadd(md, sm) := descend2(qmod-setoid(md, sm), vnb-lambda([qma_, qmb_], cartesian(vec(md), vec(md)), class(qmod-setoid(md, sm), (vadd(md))(qma_, qmb_))))</pre>
+<h4 id="OPERATORS__qmod-vneg-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-qmod-vneg"><code>qmod-vneg</code></a>  — def-functoid · element/number-valued</h4>
+<pre>qmod-vneg(md, sm) := descend(qmod-setoid(md, sm), vnb-lambda(qma_, vec(md), class(qmod-setoid(md, sm), (vneg(md))(qma_))))</pre>
 <h4 id="OPERATORS__qq-field-characterized-by-axioms-def-constant"><a class="x" href="STRUCTURE-INDEX.html#qq-field"><code>qq-field</code></a>  — characterized by axioms (def-constant)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-qq-field-def"><code>qq-field-def</code></a></p>
 <h4 id="OPERATORS__qq-line-characterized-by-axioms-def-constant"><a class="x" href="STRUCTURE-INDEX.html#qq-line"><code>qq-line</code></a>  — characterized by axioms (def-constant)</h4>
@@ -1276,6 +1315,9 @@
 <p>Declared by: <a class="x" href="THEOREMS.html#t-qq-ring-def"><code>qq-ring-def</code></a></p>
 <h4 id="OPERATORS__quotient-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-quotient"><code>quotient</code></a>  — def-functoid · set-valued</h4>
 <pre>quotient(s) := image(proj(s), pts(s))</pre>
+<h4 id="OPERATORS__quotient-module-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-quotient-module"><code>quotient-module</code></a>  — def-functoid · tuple/structure-valued</h4>
+<p>&gt; _Reads as:_  the quotient module md/sm</p>
+<pre>quotient-module(md, sm) := [scal(md), quotient(qmod-setoid(md, sm)), qmod-vadd(md, sm), class(qmod-setoid(md, sm), vzero(md)), qmod-vneg(md, sm), qmod-act(md, sm)]</pre>
 <h4 id="OPERATORS__r-exp-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-r-exp"><code>r-exp</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the exponential of y_</p>
 <pre>r-exp(y_) := iota(x_, x_ in rr and 0 &lt; x_ and log(x_) = y_)</pre>
@@ -1311,6 +1353,9 @@
 <h4 id="OPERATORS__rf-set-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-rf-set"><code>rf-set</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the right folds by md14h_ of the memberships of md14x_ in the entries of md14l_ from an index on</p>
 <pre>rf-set(md14h_, md14x_, md14l_) := {md14p_ in cartesian(nn, expr-set): forall([md14w_ in power(cartesian(nn, expr-set))], rf-closed(md14h_, md14x_, md14l_, md14w_) implies md14p_ in md14w_)}</pre>
+<h4 id="OPERATORS__ring-as-module-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-ring-as-module"><code>ring-as-module</code></a>  — def-functoid · tuple/structure-valued</h4>
+<p>&gt; _Reads as:_  r as a module over itself</p>
+<pre>ring-as-module(r) := [r, carr(r), add(r), zero(r), neg(r), mul(r)]</pre>
 <h4 id="OPERATORS__ring-power-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-ring-power"><code>ring-power</code></a>  — def-functoid · element/number-valued</h4>
 <pre>ring-power(r, x, n) := mpow(commutative-ring-multiplicative-cm(r), x, n)</pre>
 <h4 id="OPERATORS__ring-prod-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-ring-prod"><code>ring-prod</code></a>  — def-functoid · tuple/structure-valued</h4>
@@ -1386,6 +1431,9 @@
 <p>&gt; _Reads as:_  the rewrite tuples [kind, context, expression, expression]</p>
 <h4 id="OPERATORS__scal-structure-accessor-element-slot-value"><code>scal</code>  — structure accessor · element (slot value)</h4>
 <p>&gt; _Reads as:_  the scalar ring of s</p>
+<h4 id="OPERATORS__schanuel-map-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-schanuel-map"><code>schanuel-map</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  the map (t, b) |-&gt; (b - lb(t), t + la(b - lb(t))) on Z^m</p>
+<pre>schanuel-map(m, n, la, lb) := vnb-lambda(scz_, vec(zz-pow(m)), seq-join(m, n, (vadd(zz-pow(n)))(seq-shift(n, scz_), (vneg(zz-pow(n)))(lb(seq-head(n, scz_)))), (vadd(zz-pow(n)))(seq-head(n, scz_), la((vadd(zz-pow(n)))(seq-shift(n, scz_), (vneg(zz-pow(n)))(lb(seq-head(n, scz_))))))))</pre>
 <h4 id="OPERATORS__sdet-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-sdet"><code>sdet</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the set of order-s subdeterminants of a</p>
 <pre>sdet(r, m, n, a, s) := {sdx_ in carr(r): forsome([sdp_, sdq_], sdp_ in injection(interval(1, s), interval(1, m)) and sdq_ in injection(interval(1, s), interval(1, n)) and sdx_ = det(r, s, submatrix(a, s, sdp_, sdq_)))}</pre>
@@ -1403,11 +1451,20 @@
 <h4 id="OPERATORS__sent-characterized-by-axioms-def-constant"><a class="x" href="DEFINITIONS.html#d-sent"><code>sent</code></a>  — characterized by axioms (def-constant)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-sent-def"><code>sent-def</code></a></p>
 <h4 id="OPERATORS__sep-kernel-term-former"><code>sep</code>  — kernel term-former</h4>
+<h4 id="OPERATORS__seq-head-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-seq-head"><code>seq-head</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  the first n terms of z</p>
+<pre>seq-head(n, z) := vnb-lambda(shi_, interval(1, n), z(shi_))</pre>
+<h4 id="OPERATORS__seq-join-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-seq-join"><code>seq-join</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  hd followed by tl, of length m</p>
+<pre>seq-join(m, n, hd, tl) := vnb-lambda(jnj_, interval(1, m), if(jnj_ &lt;= n, hd(jnj_), tl(nn-minus(jnj_, n))))</pre>
 <h4 id="OPERATORS__seq-limit-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-seq-limit"><code>seq-limit</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the limit of the sequence f</p>
 <pre>seq-limit(f) := if(converges(rr-ms, f), iota(lm_, converges-to(rr-ms, f, lm_)), 0)</pre>
 <h4 id="OPERATORS__seq-set-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-seq-set"><code>seq-set</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
 <p>&gt; _Reads as:_  the sequents</p>
+<h4 id="OPERATORS__seq-shift-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-seq-shift"><code>seq-shift</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  the terms n + 1, ..., n + n of z</p>
+<pre>seq-shift(n, z) := vnb-lambda(sfi_, interval(1, n), z(n + sfi_))</pre>
 <h4 id="OPERATORS__series-limit-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-series-limit"><code>series-limit</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the sum of the series f</p>
 <pre>series-limit(f) := iota(lm_, series-converges-to(f, lm_))</pre>
@@ -1621,9 +1678,21 @@
 <pre>zz-act(g_, k_, a_) := if(k_ in nn, mpow(abelian-group-as-monoid(g_), a_, k_), (inv(g_))(mpow(abelian-group-as-monoid(g_), a_, -k_)))</pre>
 <h4 id="OPERATORS__zz-bezout-set-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-zz-bezout-set"><code>zz-bezout-set</code></a>  — def-functoid · set-valued</h4>
 <pre>zz-bezout-set(a, b) := {z in zz: forsome([x_ in zz, y_ in zz], z = x_ * a + y_ * b)}</pre>
+<h4 id="OPERATORS__zz-mod-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-zz-mod"><code>zz-mod</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  Z/(a)</p>
+<pre>zz-mod(a) := quotient-module(ring-as-module(zz-ring), principal-ideal(zz-ring, a))</pre>
+<h4 id="OPERATORS__zz-pow-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-zz-pow"><code>zz-pow</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the free module Z^n</p>
+<pre>zz-pow(n) := direct-sum(zz-ring, n, vnb-lambda(zpi_, interval(1, n), ring-as-module(zz-ring)))</pre>
 <h4 id="OPERATORS__zz-ring-characterized-by-axioms-def-constant"><a class="x" href="STRUCTURE-INDEX.html#zz-ring"><code>zz-ring</code></a>  — characterized by axioms (def-constant)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-zz-ring-def"><code>zz-ring-def</code></a></p>
-<h3 id="OPERATORS__predicates-523">Predicates  (523)</h3>
+<h4 id="OPERATORS__zz-row-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-zz-row"><code>zz-row</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the coefficient row of x in Z^n</p>
+<pre>zz-row(n, x) := matof(1, n, vnb-lambda([zra_, zrb_], cartesian(interval(1, 1), interval(1, n)), x(zrb_)))</pre>
+<h4 id="OPERATORS__zz-units-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-zz-units"><code>zz-units</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the unit vectors of Z^n</p>
+<pre>zz-units(n) := matof(n, 1, vnb-lambda([zua_, zub_], cartesian(interval(1, n), interval(1, 1)), vnb-lambda(zut_, interval(1, n), entry(unitrow(zz-ring, n, zua_), 1, zut_))))</pre>
+<h3 id="OPERATORS__predicates-525">Predicates  (525)</h3>
 <p>Proposition-valued operators.  Their defining axiom is an <code>iff</code> on the applied head.  Full definitions in <code>DEFINITIONS.md</code>.</p>
 <h4 id="OPERATORS__&lt;-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-&lt;"><code>&lt;</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  x is less than y</p>
@@ -2165,8 +2234,12 @@
 <p>&gt; _Reads as:_  f is integrable on omega with respect to the measure mu</p>
 <h4 id="OPERATORS__is-integral-domain-def-predicate-proposition-arity-1"><code>is-integral-domain</code>  — def-predicate · proposition (arity 1)</h4>
 <p>&gt; _Reads as:_  s is an integral domain</p>
+<h4 id="OPERATORS__is-invariant-factors-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-invariant-factors"><code>is-invariant-factors</code></a>  — def-predicate · proposition (arity 2)</h4>
+<p>&gt; _Reads as:_  a_1, ..., a_l are invariant factors (non-negative, none equal to 1, each dividing the next)</p>
 <h4 id="OPERATORS__is-invertible-mat-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-invertible-mat"><code>is-invertible-mat</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  u is an invertible n-by-n matrix over a</p>
+<h4 id="OPERATORS__is-iso-module-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-iso-module"><code>is-iso-module</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  f is an isomorphism of the module a onto the module b</p>
 <h4 id="OPERATORS__is-isometric-op-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-isometric-op"><code>is-isometric-op</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  jo is isometric on v</p>
 <h4 id="OPERATORS__is-isometry-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-isometry"><code>is-isometry</code></a>  — def-predicate · proposition (arity 3)</h4>

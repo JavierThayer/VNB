@@ -1888,7 +1888,7 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} UNIQUENESS proven (2026-10-23): diagonal-normal-form-unique for ELEM-EQUIV and diagonal-normal-form-unique-invertible for U D V with U, V invertible over Z; diagonal-chain-sdet-gcd gives b\_11 ... b\_ss as a gcd of the s-th subdeterminants of a diagonal matrix with the divisibility chain.  EXISTENCE is partial: smith-normal-form gives, over a euclidean ring, a mat-equiv diagonal d whose nonzero entries form an initial segment (smith-staircase), but not the divisibility chain, not non-negativity, and with mat-equiv (some invertible U, V) rather than elementary operations.
+\noindent\textbf{Deviation from the notes.} Y is fixed to rr-ms, so the notes' hypothesis that Y be a complete metric space is discharged by the completeness of RR rather than assumed; a general complete Y is not available. The dense set D is presented as a dense SEQUENCE is-dense-seq(s, dseq) rather than as a dense subset, and convergence on it as converges-on(s, fam, dseq). The library's conclusion is UNIFORM convergence to a continuous g, which is stronger than the notes' pointwise conclusion plus continuity of the limit. fam must be typed fam in fun(nn, fun(pts(s), rr)) and each fam(k) assumed is-continuous, where the notes assume only equicontinuity of the sequence.
 %
 \renewcommand{\thethm}{3.37}
 \begin{prop}[{The isometry group of a compact metric space is compact}]\label{thm:calculus-3.37}
@@ -3207,13 +3207,19 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \noindent\textbf{Deviation from the notes.} SDET uses injective index maps where the notes use increasing ones (see 3.29); no gcd changes. A -$>$ B is ELEM-EQUIV(ZZ-RING, m, n, A, B): B = P A Q with P, Q in ELEM-GEN. A gcd of a set is ZZ-IS-GCD-SET(S, d), and the conclusion is d = e or d = -e for any gcd d of SDET(A) and e of SDET(B). The notes' ideal argument is replaced by its divisor form.
 %
 \renewcommand{\thethm}{3.36}
-\begin{prop}[{Integer normal form: existence and uniqueness of the diagonal form}]\label{thm:smith-normal-form}
+\begin{prop}[{Integer normal form: existence and uniqueness of the diagonal form}]\label{thm:integer-normal-form}
 %
 \leavevmode
-\vnbpart{\texttt{smith-normal-form}}
-\vnbstmt{\begin{array}{@{}l@{}} \forall a.; \forall k \in \mathbb{N}, n, p. \\ \quad (\operatorname{is\text{-}euclidean\text{-}ring}(a) \wedge ((n \in \mathbb{N}) \wedge (p \in \operatorname{mat}(k, n, \operatorname{carr}(a))))) \Rightarrow  \\ \quad \quad \exists d.; \exists b \in \mathbb{N}. \\ \quad \quad \quad \operatorname{mat\text{-}equiv}(a, k, n, p, d) \wedge \operatorname{smith\text{-}staircase}(a, k, n, d, b) \end{array}}
-\vnbpart{\texttt{smith-diagonalization}}
-\vnbstmt{\begin{array}{@{}l@{}} \forall a.; \forall k \in \mathbb{N}, n, p. \\ \quad (\operatorname{is\text{-}euclidean\text{-}ring}(a) \wedge ((n \in \mathbb{N}) \wedge (p \in \operatorname{mat}(k, n, \operatorname{carr}(a))))) \Rightarrow  \\ \quad \quad \exists d.\; (\operatorname{mat\text{-}equiv}(a, k, n, p, d) \wedge \operatorname{is\text{-}diagonal}(a, k, n, d)) \end{array}}
+\vnbpart{\texttt{integer-normal-form}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, n, a. \\ \quad ((m \in \mathbb{N}) \wedge ((n \in \mathbb{N}) \wedge (a \in \operatorname{mat}(m, n, \mathbb{Z})))) \Rightarrow  \\ \quad \quad \exists d \in \operatorname{mat}(m, n, \mathbb{Z}). \\ \quad \quad \quad \operatorname{elem\text{-}equiv}(\operatorname{zz\text{-}ring}, m, n, a, d) \wedge \\ \quad \quad \quad \operatorname{is\text{-}diagonal}(\operatorname{zz\text{-}ring}, m, n, d) \wedge \\ \quad \quad \quad \forall i \in \operatorname{interval}(1, m).\; ((i \in \operatorname{interval}(1, n)) \Rightarrow (0 \leq \operatorname{entry}(d, i, i))) \wedge \\ \quad \quad \quad \forall \mathit{ci}, j. \\ \quad \quad \quad \quad \mathit{ci} \in \operatorname{interval}(1, m) \wedge \\ \quad \quad \quad \quad \mathit{ci} \in \operatorname{interval}(1, n) \wedge \\ \quad \quad \quad \quad j \in \operatorname{interval}(1, m) \wedge \\ \quad \quad \quad \quad j \in \operatorname{interval}(1, n) \wedge \\ \quad \quad \quad \quad \mathit{ci} \leq j \Rightarrow \\ \quad \quad \quad \quad \quad \operatorname{zz\text{-}divides}(\operatorname{entry}(d, \mathit{ci}, \mathit{ci}), \operatorname{entry}(d, j, j)) \wedge \\ \quad \quad \quad \forall b \in \operatorname{mat}(m, n, \mathbb{Z}). \\ \quad \quad \quad \quad \operatorname{elem\text{-}equiv}(\operatorname{zz\text{-}ring}, m, n, a, b) \wedge \\ \quad \quad \quad \quad \operatorname{is\text{-}diagonal}(\operatorname{zz\text{-}ring}, m, n, b) \wedge \\ \quad \quad \quad \quad \forall i \in \operatorname{interval}(1, m).\; ((i \in \operatorname{interval}(1, n)) \Rightarrow (0 \leq \operatorname{entry}(b, i, i))) \wedge \\ \quad \quad \quad \quad \forall \mathit{ci}, j. \\ \quad \quad \quad \quad \quad \mathit{ci} \in \operatorname{interval}(1, m) \wedge \\ \quad \quad \quad \quad \quad \mathit{ci} \in \operatorname{interval}(1, n) \wedge \\ \quad \quad \quad \quad \quad j \in \operatorname{interval}(1, m) \wedge \\ \quad \quad \quad \quad \quad j \in \operatorname{interval}(1, n) \wedge \\ \quad \quad \quad \quad \quad \mathit{ci} \leq j \Rightarrow \\ \quad \quad \quad \quad \quad \quad \operatorname{zz\text{-}divides}(\operatorname{entry}(b, \mathit{ci}, \mathit{ci}), \operatorname{entry}(b, j, j)) \Rightarrow \\ \quad \quad \quad \quad \quad b = d \end{array}}
+\vnbpart{\texttt{integer-normal-form-exists}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, n, a. \\ \quad ((m \in \mathbb{N}) \wedge ((n \in \mathbb{N}) \wedge (a \in \operatorname{mat}(m, n, \mathbb{Z})))) \Rightarrow  \\ \quad \quad \exists d \in \operatorname{mat}(m, n, \mathbb{Z}). \\ \quad \quad \quad \operatorname{elem\text{-}equiv}(\operatorname{zz\text{-}ring}, m, n, a, d) \wedge \\ \quad \quad \quad \operatorname{is\text{-}diagonal}(\operatorname{zz\text{-}ring}, m, n, d) \wedge \\ \quad \quad \quad \forall i \in \operatorname{interval}(1, m).\; ((i \in \operatorname{interval}(1, n)) \Rightarrow (0 \leq \operatorname{entry}(d, i, i))) \wedge \\ \quad \quad \quad \forall \mathit{ci}, j. \\ \quad \quad \quad \quad \mathit{ci} \in \operatorname{interval}(1, m) \wedge \\ \quad \quad \quad \quad \mathit{ci} \in \operatorname{interval}(1, n) \wedge \\ \quad \quad \quad \quad j \in \operatorname{interval}(1, m) \wedge \\ \quad \quad \quad \quad j \in \operatorname{interval}(1, n) \wedge \\ \quad \quad \quad \quad \mathit{ci} \leq j \Rightarrow \\ \quad \quad \quad \quad \quad \operatorname{zz\text{-}divides}(\operatorname{entry}(d, \mathit{ci}, \mathit{ci}), \operatorname{entry}(d, j, j)) \end{array}}
+\vnbpart{\texttt{diagonal-normal-form-unique}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, n, d, a. \\ \quad m \in \mathbb{N} \wedge \\ \quad n \in \mathbb{N} \wedge \\ \quad d \in \operatorname{mat}(m, n, \mathbb{Z}) \wedge \\ \quad a \in \operatorname{mat}(m, n, \mathbb{Z}) \wedge \\ \quad \operatorname{is\text{-}diagonal}(\operatorname{zz\text{-}ring}, m, n, d) \wedge \\ \quad \operatorname{is\text{-}diagonal}(\operatorname{zz\text{-}ring}, m, n, a) \wedge \\ \quad \forall i \in \operatorname{interval}(1, m).\; ((i \in \operatorname{interval}(1, n)) \Rightarrow (0 \leq \operatorname{entry}(d, i, i))) \wedge \\ \quad \forall i \in \operatorname{interval}(1, m).\; ((i \in \operatorname{interval}(1, n)) \Rightarrow (0 \leq \operatorname{entry}(a, i, i))) \wedge \\ \quad \forall \mathit{ci}, j. \\ \quad \quad \mathit{ci} \in \operatorname{interval}(1, m) \wedge \\ \quad \quad \mathit{ci} \in \operatorname{interval}(1, n) \wedge \\ \quad \quad j \in \operatorname{interval}(1, m) \wedge \\ \quad \quad j \in \operatorname{interval}(1, n) \wedge \\ \quad \quad \mathit{ci} \leq j \Rightarrow \\ \quad \quad \quad \operatorname{zz\text{-}divides}(\operatorname{entry}(d, \mathit{ci}, \mathit{ci}), \operatorname{entry}(d, j, j)) \wedge \\ \quad \forall \mathit{ci}, j. \\ \quad \quad \mathit{ci} \in \operatorname{interval}(1, m) \wedge \\ \quad \quad \mathit{ci} \in \operatorname{interval}(1, n) \wedge \\ \quad \quad j \in \operatorname{interval}(1, m) \wedge \\ \quad \quad j \in \operatorname{interval}(1, n) \wedge \\ \quad \quad \mathit{ci} \leq j \Rightarrow \\ \quad \quad \quad \operatorname{zz\text{-}divides}(\operatorname{entry}(a, \mathit{ci}, \mathit{ci}), \operatorname{entry}(a, j, j)) \wedge \\ \quad \operatorname{elem\text{-}equiv}(\operatorname{zz\text{-}ring}, m, n, d, a) \Rightarrow \\ \quad \quad d = a \end{array}}
+\vnbpart{\texttt{diagonal-normal-form-unique-invertible}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, n, d, a, b, c. \\ \quad m \in \mathbb{N} \wedge \\ \quad n \in \mathbb{N} \wedge \\ \quad d \in \operatorname{mat}(m, n, \mathbb{Z}) \wedge \\ \quad a \in \operatorname{mat}(m, n, \mathbb{Z}) \wedge \\ \quad \operatorname{is\text{-}diagonal}(\operatorname{zz\text{-}ring}, m, n, d) \wedge \\ \quad \operatorname{is\text{-}diagonal}(\operatorname{zz\text{-}ring}, m, n, a) \wedge \\ \quad \forall i \in \operatorname{interval}(1, m).\; ((i \in \operatorname{interval}(1, n)) \Rightarrow (0 \leq \operatorname{entry}(d, i, i))) \wedge \\ \quad \forall i \in \operatorname{interval}(1, m).\; ((i \in \operatorname{interval}(1, n)) \Rightarrow (0 \leq \operatorname{entry}(a, i, i))) \wedge \\ \quad \forall \mathit{ci}, j. \\ \quad \quad \mathit{ci} \in \operatorname{interval}(1, m) \wedge \\ \quad \quad \mathit{ci} \in \operatorname{interval}(1, n) \wedge \\ \quad \quad j \in \operatorname{interval}(1, m) \wedge \\ \quad \quad j \in \operatorname{interval}(1, n) \wedge \\ \quad \quad \mathit{ci} \leq j \Rightarrow \\ \quad \quad \quad \operatorname{zz\text{-}divides}(\operatorname{entry}(d, \mathit{ci}, \mathit{ci}), \operatorname{entry}(d, j, j)) \wedge \\ \quad \forall \mathit{ci}, j. \\ \quad \quad \mathit{ci} \in \operatorname{interval}(1, m) \wedge \\ \quad \quad \mathit{ci} \in \operatorname{interval}(1, n) \wedge \\ \quad \quad j \in \operatorname{interval}(1, m) \wedge \\ \quad \quad j \in \operatorname{interval}(1, n) \wedge \\ \quad \quad \mathit{ci} \leq j \Rightarrow \\ \quad \quad \quad \operatorname{zz\text{-}divides}(\operatorname{entry}(a, \mathit{ci}, \mathit{ci}), \operatorname{entry}(a, j, j)) \wedge \\ \quad \operatorname{is\text{-}invertible\text{-}mat}(\operatorname{zz\text{-}ring}, m, b) \wedge \\ \quad \operatorname{is\text{-}invertible\text{-}mat}(\operatorname{zz\text{-}ring}, n, c) \wedge \\ \quad a = \operatorname{matmul}(\operatorname{zz\text{-}ring}, \operatorname{matmul}(\operatorname{zz\text{-}ring}, b, d), c) \Rightarrow \\ \quad \quad d = a \end{array}}
+\vnbpart{\texttt{diagonal-chain-sdet-gcd}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, n, d, s. \\ \quad m \in \mathbb{N} \wedge \\ \quad n \in \mathbb{N} \wedge \\ \quad d \in \operatorname{mat}(m, n, \mathbb{Z}) \wedge \\ \quad \operatorname{is\text{-}diagonal}(\operatorname{zz\text{-}ring}, m, n, d) \wedge \\ \quad \forall i, j. \\ \quad \quad i \in \operatorname{interval}(1, m) \wedge \\ \quad \quad i \in \operatorname{interval}(1, n) \wedge \\ \quad \quad j \in \operatorname{interval}(1, m) \wedge \\ \quad \quad j \in \operatorname{interval}(1, n) \wedge \\ \quad \quad i \leq j \Rightarrow \\ \quad \quad \quad \operatorname{zz\text{-}divides}(\operatorname{entry}(d, i, i), \operatorname{entry}(d, j, j)) \wedge \\ \quad s \in \mathbb{N} \wedge \\ \quad s \leq m \wedge \\ \quad s \leq n \Rightarrow \\ \quad \quad \operatorname{zz\text{-}is\text{-}gcd\text{-}set}(\operatorname{sdet}(\operatorname{zz\text{-}ring}, m, n, d, s), \\ \quad \quad \quad \operatorname{prod\text{-}ring}(\operatorname{zz\text{-}ring}, (\lambda k \in \operatorname{interval}(1, s).\; \operatorname{entry}(d, k, k)), \operatorname{interval}(1, s))) \end{array}}
 %
 \end{prop}
 %
@@ -3221,36 +3227,54 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{\vnbproofpart{\texttt{smith-normal-form}}}
+\vnbprf{\vnbproofpart{\texttt{integer-normal-form}}}
 %
-\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/smith-\allowbreak{}staircase-\allowbreak{}proof.scm} --- 317 recorded steps.}
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z3-\allowbreak{}smith.scm} --- 63 recorded steps.}
 %
-\vnbprf{\textbf{Lemmas.} \texttt{euclidean-ring-is-integral-domain}, \texttt{integral-domain-is-commutative-ring}, \texttt{commutative-ring-is-ring}, \texttt{nn-zero-in}, \texttt{mat-equiv-refl}, \texttt{nn-zero-le}, \texttt{interval-lo}, \texttt{interval-hi}, \texttt{interval-elt-in-nn}, \texttt{nn-not-le-zero-pos}, \texttt{nn-succ-closed}, \texttt{nn-one-in}, \texttt{nn-le-trans-guarded}, \texttt{nn-pos-is-succ}, \texttt{eq-sym}, \texttt{clear-pivot-cross}, \texttt{mat-equiv-target-is-mat}, \texttt{submat-type}, \texttt{one-in-interval}, \texttt{entry-in-carrier}, \texttt{bordering}, \texttt{border-type}, \texttt{mat-equiv-trans}, \texttt{border-staircase}.}
+\vnbprf{\textbf{Lemmas.} \texttt{zz-is-commutative-ring}, \texttt{zz-is-ring}, \texttt{zz-is-euclidean-ring}, \texttt{integer-normal-form-exists}, \texttt{elem-equiv-symmetric}, \texttt{elem-equiv-trans}, \texttt{diagonal-normal-form-unique}.}
 %
-\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
-\vnbprf{\vnbproofpart{\texttt{smith-diagonalization}}}
+\vnbprf{\vnbproofpart{\texttt{integer-normal-form-exists}}}
 %
-\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/smith-\allowbreak{}diagonalization-\allowbreak{}proof.scm} --- 162 recorded steps.}
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z3-\allowbreak{}smith.scm} --- 80 recorded steps.}
 %
-\vnbprf{\textbf{Lemmas.} \texttt{euclidean-ring-is-integral-domain}, \texttt{integral-domain-is-commutative-ring}, \texttt{commutative-ring-is-ring}, \texttt{mat-equiv-refl}, \texttt{interval-lo}, \texttt{interval-hi}, \texttt{interval-elt-in-nn}, \texttt{nn-not-le-zero-pos}, \texttt{nn-one-in}, \texttt{nn-le-trans-guarded}, \texttt{nn-pos-is-succ}, \texttt{eq-sym}, \texttt{clear-pivot-cross}, \texttt{mat-equiv-target-is-mat}, \texttt{submat-type}, \texttt{one-in-interval}, \texttt{entry-in-carrier}, \texttt{bordering}, \texttt{border-is-diagonal}, \texttt{border-type}, \texttt{mat-equiv-trans}.}
+\vnbprf{\textbf{Lemmas.} \texttt{zz-is-commutative-ring}, \texttt{zz-is-ring}, \texttt{zz-is-euclidean-ring}, \texttt{integer-normal-form-elementary}, \texttt{elem-gen-mat}, \texttt{matmul-type}.}
 %
-\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{diagonal-normal-form-unique}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z2-\allowbreak{}diag.scm} --- 24 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{diagonal-chain-sdet-gcd}, \texttt{sdet-gcd-invariant}, \texttt{diagonal-chain-products-determine}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{diagonal-normal-form-unique-invertible}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z2-\allowbreak{}diag.scm} --- 44 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{zz-is-euclidean-ring}, \texttt{euclidean-invertible-iff-elem-gen}, \texttt{diagonal-normal-form-unique}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{diagonal-chain-sdet-gcd}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z2-\allowbreak{}diag.scm} --- 110 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{zz-is-commutative-ring}, \texttt{zz-is-ring}, \texttt{lzg-zz-to-ring}, \texttt{diagonal-leading-minor}, \texttt{lzd-id-injection}, \texttt{submatrix-type}, \texttt{det-in-carrier}, \texttt{sdet-intro}, \texttt{sdet-elim}, \texttt{diagonal-chain-minor-divisible}, \texttt{lzg-ring-to-zz}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} The heaviest gap in the chapter.  smith-normal-form gives, over a EUCLIDEAN RING (Z qualifies, zz-is-euclidean-ring), the EXISTENCE of a mat-equiv d that is is-diagonal and whose nonzero diagonal entries form an initial segment of length kk (smith-staircase).  It does NOT give the divisibility chain b\_ii divides b\_jj, does NOT give non-negativity of the entries, and does NOT give UNIQUENESS -- the notes' whole second half.  Moreover the notes' relation \textasciitilde{} is generated by integral elementary operations, whereas mat-equiv is d = U c V for SOME invertible U, V; the two are never shown to coincide.
+\noindent\textbf{Deviation from the notes.} The relation \textasciitilde{} is ELEM-EQUIV(ZZ-RING, m, n, A, B): B = P A Q with P, Q in ELEM-GEN (over Z the row and the column elementary matrices form one set).  Existence (integer-normal-form-exists) gives a diagonal B with non-negative entries and the divisibility chain; uniqueness (diagonal-normal-form-unique, and diagonal-normal-form-unique-invertible for U D V with U, V invertible over Z) goes through diagonal-chain-sdet-gcd: b\_11 ... b\_ss is a gcd of the s-th subdeterminants.
 %
 \renewcommand{\thethm}{3.37}
-\begin{cor}[{The reducing matrices U and V are products of elementary matrices}]\label{thm:linear-algebra-3.37}
+\begin{cor}[{The reducing matrices U and V are products of elementary matrices}]\label{thm:integer-normal-form-elementary}
 %
-\leavevmode
-\vnbpart{\texttt{smith-normal-form}}
-\vnbstmt{\begin{array}{@{}l@{}} \forall a.; \forall k \in \mathbb{N}, n, p. \\ \quad (\operatorname{is\text{-}euclidean\text{-}ring}(a) \wedge ((n \in \mathbb{N}) \wedge (p \in \operatorname{mat}(k, n, \operatorname{carr}(a))))) \Rightarrow  \\ \quad \quad \exists d.; \exists b \in \mathbb{N}. \\ \quad \quad \quad \operatorname{mat\text{-}equiv}(a, k, n, p, d) \wedge \operatorname{smith\text{-}staircase}(a, k, n, d, b) \end{array}}
-\vnbpart{\texttt{euclidean-invertible-iff-elem-gen}}
-\vnbstmt{\begin{array}{@{}l@{}} \forall r, n, u. \\ \quad (\operatorname{is\text{-}euclidean\text{-}ring}(r) \wedge (n \in \mathbb{N})) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}invertible\text{-}mat}(r, n, u) \Leftrightarrow (u \in \operatorname{elem\text{-}gen}(r, n)) \end{array}}
-\vnbpart{\texttt{euclidean-unit-det-elem-gen}}
-\vnbstmt{\begin{array}{@{}l@{}} \forall r, n, u. \\ \quad \operatorname{is\text{-}euclidean\text{-}ring}(r) \wedge \\ \quad n \in \mathbb{N} \wedge \\ \quad u \in \operatorname{mat}(n, n, \operatorname{carr}(r)) \wedge \\ \quad \exists s \in \operatorname{carr}(r).\; (\operatorname{mul}(r)(\operatorname{det}(r, n, u), s) = \operatorname{one}(r)) \Rightarrow \\ \quad \quad u \in \operatorname{elem\text{-}gen}(r, n) \end{array}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, n, a. \\ \quad ((m \in \mathbb{N}) \wedge ((n \in \mathbb{N}) \wedge (a \in \operatorname{mat}(m, n, \mathbb{Z})))) \Rightarrow  \\ \quad \quad \exists u \in \operatorname{elem\text{-}gen}(\operatorname{zz\text{-}ring}, m), v \in \operatorname{elem\text{-}gen}(\operatorname{zz\text{-}ring}, n). \\ \quad \quad \quad \operatorname{is\text{-}diagonal}(\operatorname{zz\text{-}ring}, m, n, \operatorname{matmul}(\operatorname{zz\text{-}ring}, \operatorname{matmul}(\operatorname{zz\text{-}ring}, u, a), v)) \wedge \\ \quad \quad \quad \forall i \in \operatorname{interval}(1, m). \\ \quad \quad \quad \quad (i \in \operatorname{interval}(1, n)) \Rightarrow  \\ \quad \quad \quad \quad \quad 0 \leq \operatorname{entry}(\operatorname{matmul}(\operatorname{zz\text{-}ring}, \operatorname{matmul}(\operatorname{zz\text{-}ring}, u, a), v), i, i) \wedge \\ \quad \quad \quad \forall \mathit{ci}, j. \\ \quad \quad \quad \quad \mathit{ci} \in \operatorname{interval}(1, m) \wedge \\ \quad \quad \quad \quad \mathit{ci} \in \operatorname{interval}(1, n) \wedge \\ \quad \quad \quad \quad j \in \operatorname{interval}(1, m) \wedge \\ \quad \quad \quad \quad j \in \operatorname{interval}(1, n) \wedge \\ \quad \quad \quad \quad \mathit{ci} \leq j \Rightarrow \\ \quad \quad \quad \quad \quad \operatorname{zz\text{-}divides}(\operatorname{entry}(\operatorname{matmul}(\operatorname{zz\text{-}ring}, \operatorname{matmul}(\operatorname{zz\text{-}ring}, u, a), v), \mathit{ci}, \mathit{ci}), \\ \quad \quad \quad \quad \quad \quad \operatorname{entry}(\operatorname{matmul}(\operatorname{zz\text{-}ring}, \operatorname{matmul}(\operatorname{zz\text{-}ring}, u, a), v), j, j)) \end{array}}
 %
 \end{cor}
 %
@@ -3258,33 +3282,15 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{\vnbproofpart{\texttt{smith-normal-form}}}
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z3-\allowbreak{}smith.scm} --- 70 recorded steps.}
 %
-\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/smith-\allowbreak{}staircase-\allowbreak{}proof.scm} --- 317 recorded steps.}
+\vnbprf{\textbf{Lemmas.} \texttt{zz-is-commutative-ring}, \texttt{zz-is-ring}, \texttt{zz-is-euclidean-ring}, \texttt{integer-normal-form-mat-equiv}, \texttt{euclidean-invertible-iff-elem-gen}.}
 %
-\vnbprf{\textbf{Lemmas.} \texttt{euclidean-ring-is-integral-domain}, \texttt{integral-domain-is-commutative-ring}, \texttt{commutative-ring-is-ring}, \texttt{nn-zero-in}, \texttt{mat-equiv-refl}, \texttt{nn-zero-le}, \texttt{interval-lo}, \texttt{interval-hi}, \texttt{interval-elt-in-nn}, \texttt{nn-not-le-zero-pos}, \texttt{nn-succ-closed}, \texttt{nn-one-in}, \texttt{nn-le-trans-guarded}, \texttt{nn-pos-is-succ}, \texttt{eq-sym}, \texttt{clear-pivot-cross}, \texttt{mat-equiv-target-is-mat}, \texttt{submat-type}, \texttt{one-in-interval}, \texttt{entry-in-carrier}, \texttt{bordering}, \texttt{border-type}, \texttt{mat-equiv-trans}, \texttt{border-staircase}.}
-%
-\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
-%
-\vnbprf{\vnbproofpart{\texttt{euclidean-invertible-iff-elem-gen}}}
-%
-\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z-\allowbreak{}elem.scm} --- 40 recorded steps.}
-%
-\vnbprf{\textbf{Lemmas.} \texttt{euclidean-ring-is-integral-domain}, \texttt{integral-domain-is-commutative-ring}, \texttt{commutative-ring-is-ring}, \texttt{ring-one-in}, \texttt{det-multiplicative}, \texttt{det-identity-ind}, \texttt{det-in-carrier}, \texttt{euclidean-unit-det-elem-gen}, \texttt{elem-gen-invertible}.}
-%
-\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
-%
-\vnbprf{\vnbproofpart{\texttt{euclidean-unit-det-elem-gen}}}
-%
-\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z-\allowbreak{}elem.scm} --- 89 recorded steps.}
-%
-\vnbprf{\textbf{Lemmas.} \texttt{euclidean-ring-is-integral-domain}, \texttt{integral-domain-is-commutative-ring}, \texttt{commutative-ring-is-ring}, \texttt{ring-one-in}, \texttt{nn-le-refl}, \texttt{lze-main-ind}, \texttt{elem-gen-mat}, \texttt{identmat-type}, \texttt{matmul-type}, \texttt{matrix-entry-extensionality}, \texttt{elem-gen-inverse}, \texttt{matmul-assoc}, \texttt{identmat-left-identity}, \texttt{identmat-right-identity}, \texttt{elem-gen-mul}.}
-%
-\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} Unfolding mat-equiv inside smith-normal-form does produce invertible U (m x m) and V (n x n) with d = U A V, so part (1) holds as far as 3.36 goes.  Part (2) -- that U and V are PRODUCTS OF ELEMENTARY matrices -- is established only where the matrix is INVERTIBLE: over a euclidean ring an invertible matrix lies in ELEM-GEN (euclidean-invertible-iff-elem-gen, 2026-10-19).  For general A, mat-equiv is defined by existence of invertible factors, not by a sequence of elementary operations, and no theorem bridges the two.  The normal form reached also lacks 3.36's divisibility and non-negativity.
+\noindent\textbf{Deviation from the notes.} U and V lie in ELEM-GEN(ZZ-RING, -): over Z the row and the column elementary matrices generate one set, so the notes' distinction between products of column and of row elementary matrices disappears.
 %
 \renewcommand{\thethm}{3.38}
 \begin{cor}[{An invertible integer matrix is a product of elementary matrices}]\label{thm:zz-invertible-iff-elementary-product}
@@ -3463,9 +3469,13 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \noindent\textbf{Deviation from the notes.} Proven for a module over any ring; the action is matact.  The group M\_n\textasciicircum{}x(Z) is not formed as a group: freeness is stated as A . u = u implies A = I for an invertible A and a free generating u, transitivity as the existence of an invertible A with v = A . u, closure as A . u free generating again.
 %
 \renewcommand{\thethm}{3.44}
-\begin{prop}[{Adapted basis for a subgroup, with the divisibility chain}]\label{thm:submodule-of-free-is-free}
+\begin{prop}[{Adapted basis for a subgroup, with the divisibility chain}]\label{thm:principal-sequence-exists}
 %
-\vnbstmt{\begin{array}{@{}l@{}} \forall d.; \forall n \in \mathbb{N}, u \in \operatorname{mat}(n, 1, \operatorname{vec}(d)), m. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad \operatorname{is\text{-}euclidean\text{-}ring}(\operatorname{scal}(d)) \wedge \\ \quad \operatorname{generates}(d, n, u) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, u) \wedge \\ \quad \operatorname{is\text{-}submodule}(d, m) \Rightarrow \\ \quad \quad \exists k. \\ \quad \quad \quad (((k \in \mathbb{N}) \wedge (k \leq n)) \wedge \exists w \in \operatorname{mat}(k, 1, \operatorname{vec}(d)).\; (\operatorname{spans}(d, k, w, m) \wedge \operatorname{rel\text{-}free}(d, k, w))) \end{array}}
+\leavevmode
+\vnbpart{\texttt{principal-sequence-exists}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, n, u, m. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad \operatorname{scal}(d) = \operatorname{zz\text{-}ring} \wedge \\ \quad n \in \mathbb{N} \wedge \\ \quad u \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad \operatorname{generates}(d, n, u) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, u) \wedge \\ \quad \operatorname{is\text{-}submodule}(d, m) \Rightarrow \\ \quad \quad \exists s, a.\; \operatorname{is\text{-}principal\text{-}sequence}(d, n, m, s, a) \end{array}}
+\vnbpart{\texttt{principal-sequence-exists-unique}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, n, u, m. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad \operatorname{scal}(d) = \operatorname{zz\text{-}ring} \wedge \\ \quad n \in \mathbb{N} \wedge \\ \quad u \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad \operatorname{generates}(d, n, u) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, u) \wedge \\ \quad \operatorname{is\text{-}submodule}(d, m) \Rightarrow \\ \quad \quad \exists s, a. \\ \quad \quad \quad \operatorname{is\text{-}principal\text{-}sequence}(d, n, m, s, a) \wedge \\ \quad \quad \quad \forall s_{2}, m_{2}.\; (\operatorname{is\text{-}principal\text{-}sequence}(d, n, m, s_{2}, m_{2}) \Rightarrow (a = m_{2})) \end{array}}
 %
 \end{prop}
 %
@@ -3473,15 +3483,25 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/rake-\allowbreak{}asm-\allowbreak{}b4.scm} --- 238 recorded steps.}
+\vnbprf{\vnbproofpart{\texttt{principal-sequence-exists}}}
 %
-\vnbprf{\textbf{Lemmas.} \texttt{euclidean-ring-is-integral-domain}, \texttt{nn-in-rr}, \texttt{nn-one-in}, \texttt{one-in-interval-1}, \texttt{submodule-fg}, \texttt{interval-elt-in-nn}, \texttt{interval-lo}, \texttt{interval-hi}, \texttt{nn-le-trans-guarded}, \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}, \texttt{nn-zero-in}, \texttt{nn-not-le-succ-le}, \texttt{nn-zero-le}, \texttt{nn-succ-closed}, \texttt{nn-succ-plus-one}, \texttt{generates-coeff-matrix}, \texttt{smith-normal-form}, \texttt{rb4-equiv-act}, \texttt{invertible-mat-is-mat}, \texttt{matact-type}, \texttt{free-transport}, \texttt{spans-transport}, \texttt{rb4-act-entry-zero-row}, \texttt{rb4-span-trunc}, \texttt{block-type}, \texttt{interval-widen}, \texttt{entry-of-block}, \texttt{diagonal-off-entry}, \texttt{rb4-act-entry-single}, \texttt{rb4-diag-rel-free}.}
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z3-\allowbreak{}smith.scm} --- 246 recorded steps.}
 %
-\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+\vnbprf{\textbf{Lemmas.} \texttt{zz-is-commutative-ring}, \texttt{zz-is-ring}, \texttt{zz-is-euclidean-ring}, \texttt{submodule-fg}, \texttt{spans-pad-zero}, \texttt{generates-coeff-matrix}, \texttt{integer-normal-form-elementary}, \texttt{elem-gen-inverse}, \texttt{elem-gen-mat}, \texttt{elem-gen-invertible}, \texttt{matmul-type}, \texttt{matact-type}, \texttt{generates-transport}, \texttt{free-transport}, \texttt{matact-assoc}, \texttt{matmul-assoc}, \texttt{identmat-right-identity}, \texttt{spans-transport}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{principal-sequence-exists-unique}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z3-\allowbreak{}smith.scm} --- 22 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{principal-sequence-exists}, \texttt{principal-sequence-unique}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} Much weaker.  submodule-of-free-is-free (ASSERTED, warrant reference) gives only that the submodule has SOME family w of length k $<$= n that spans it and is rel-free.  It gives no ADAPTED BASIS e\_1,...,e\_n OF E, no coefficients b\_i, hence no divisibility chain b\_i divides b\_\{i+1\}, no non-negativity, and no claim that the b\_i are invariants of F.  Setting is a module over a euclidean ring rather than a free abelian group.
+\noindent\textbf{Deviation from the notes.} Stated for a module md with SCAL(md) = ZZ-RING (the notes' free abelian group of rank n), F a submodule; the coefficients b\_i are the diagonal of the matrix dm in IS-PRINCIPAL-SEQUENCE(md, n, sm, es, dm).  Invariance is 3.48.
 %
 \renewcommand{\thethm}{3.45}
 \begin{cor}[{The norm N\_F(E): the absolute determinant is basis-independent}]\label{thm:norm-independent}
@@ -3519,7 +3539,7 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \noindent\textbf{Deviation from the notes.} Stated for F of rank n (so that A is square), with SCAL(md) = ZZ-RING; change-of-basis-det-unit holds over any commutative ring.  N\_F(E) is not yet defined as an object.
 %
 \renewcommand{\thethm}{3.46}
-\begin{cor}[{A subgroup of a free abelian group of rank n is free of rank at most n}]\label{thm:linear-algebra-3.46}
+\begin{cor}[{A subgroup of a free abelian group of rank n is free of rank at most n}]\label{thm:submodule-of-free-is-free}
 %
 \vnbstmt{\begin{array}{@{}l@{}} \forall d.; \forall n \in \mathbb{N}, u \in \operatorname{mat}(n, 1, \operatorname{vec}(d)), m. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad \operatorname{is\text{-}euclidean\text{-}ring}(\operatorname{scal}(d)) \wedge \\ \quad \operatorname{generates}(d, n, u) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, u) \wedge \\ \quad \operatorname{is\text{-}submodule}(d, m) \Rightarrow \\ \quad \quad \exists k. \\ \quad \quad \quad (((k \in \mathbb{N}) \wedge (k \leq n)) \wedge \exists w \in \operatorname{mat}(k, 1, \operatorname{vec}(d)).\; (\operatorname{spans}(d, k, w, m) \wedge \operatorname{rel\text{-}free}(d, k, w))) \end{array}}
 %
@@ -3596,11 +3616,13 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \noindent\textbf{Deviation from the notes.} The principal sequence is the diagonal of the matrix dm in IS-PRINCIPAL-SEQUENCE(md, n, sm, es, dm).  The proof goes through diagonal-right-factor-sdet-divisible and the invariance of the subdeterminant gcds (3.31), not through bases of F, and needs no Cauchy-Binet.
 %
 \renewcommand{\thethm}{3.49}
-\begin{lem}[{The quotient E/F for a diagonal subgroup}]\label{thm:linear-algebra-3.49}
+\begin{lem}[{The quotient E/F for a diagonal subgroup}]\label{thm:quotient-by-diagonal-subgroup}
 %
-\textit{If E is freely generated by e\_1,...,e\_n, the a\_1,...,a\_k are non-zero and F is generated by a\_1 e\_1,...,a\_k e\_k, then E/F is isomorphic to Z/(a\_1) + ... + Z/(a\_k) + Z\textasciicircum{}\{n-k\}.}
-%
-Not in the library.
+\leavevmode
+\vnbpart{\texttt{quotient-by-diagonal-subgroup}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, n, s, m, a. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad n \in \mathbb{N} \wedge \\ \quad s \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad \operatorname{generates}(d, n, s) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, s) \wedge \\ \quad \operatorname{scal}(d) = \operatorname{zz\text{-}ring} \wedge \\ \quad m \in \operatorname{mat}(n, n, \mathbb{Z}) \wedge \\ \quad \operatorname{is\text{-}diagonal}(\operatorname{zz\text{-}ring}, n, n, m) \wedge \\ \quad \operatorname{is\text{-}submodule}(d, a) \wedge \\ \quad \operatorname{spans}(d, n, \operatorname{matact}(d, m, s), a) \Rightarrow \\ \quad \quad \exists f. \\ \quad \quad \quad \operatorname{is\text{-}iso\text{-}module}(\operatorname{quotient\text{-}module}(d, a), \\ \quad \quad \quad \quad \operatorname{direct\text{-}sum}(\operatorname{zz\text{-}ring}, n, (\lambda i \in \operatorname{interval}(1, n).\; \operatorname{zz\text{-}mod}(\operatorname{entry}(m, i, i)))), \\ \quad \quad \quad \quad f) \end{array}}
+\vnbpart{\texttt{first-isomorphism-module}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall m, n, i, a. \\ \quad \operatorname{is\text{-}hom\text{-}module}(m, n, i) \wedge \\ \quad \operatorname{is\text{-}submodule}(m, a) \wedge \\ \quad \forall y \in \operatorname{vec}(n).\; \exists x \in \operatorname{vec}(m).\; (i(x) = y) \wedge \\ \quad \forall x \in \operatorname{vec}(m).\; ((i(x) = \operatorname{vzero}(n)) \Leftrightarrow (x \in a)) \Rightarrow \\ \quad \quad \operatorname{is\text{-}iso\text{-}module}(\operatorname{quotient\text{-}module}(m, a), n, \operatorname{descend}(\operatorname{qmod\text{-}setoid}(m, a), i)) \end{array}}
 %
 \end{lem}
 %
@@ -3608,18 +3630,36 @@ Not in the library.
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{There is no library statement, and so no proof.}
+\vnbprf{\vnbproofpart{\texttt{quotient-by-diagonal-subgroup}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z3-\allowbreak{}struct.scm} --- 46 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{one-in-interval-1}, \texttt{ring-carr-in-set}, \texttt{zz-is-commutative-ring}, \texttt{zz-is-ring}, \texttt{lzt-fam-modules}, \texttt{direct-sum-is-module}, \texttt{dsum-ro-scal}, \texttt{dsum-ro-vec}, \texttt{dsum-ro-vadd}, \texttt{dsum-ro-vzero}, \texttt{dsum-ro-vneg}, \texttt{dsum-ro-act}, \texttt{lzt-ph-hom}, \texttt{lzt-ph-onto}, \texttt{lzt-ph-kernel}, \texttt{first-isomorphism-module}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{first-isomorphism-module}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z3-\allowbreak{}struct.scm} --- 339 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{qmod-setoid-is-setoid}, \texttt{qmod-setoid-pts}, \texttt{qmod-ro-scal}, \texttt{qmod-ro-vec}, \texttt{qmod-ro-vadd}, \texttt{qmod-ro-vzero}, \texttt{qmod-ro-vneg}, \texttt{qmod-ro-act}, \texttt{respects-unfold}, \texttt{qmod-related-out}, \texttt{fun-apply-type-c}, \texttt{lzt-eq-of-d-zero}, \texttt{descend-in-fun}, \texttt{quotient-module-is-module}, \texttt{quotient-rep}, \texttt{qmod-vadd-computes}, \texttt{descend-computes}, \texttt{qmod-vneg-computes}, \texttt{qmod-act-computes}, \texttt{lzq-inv-r}, \texttt{qmod-class-eq-iff}, \texttt{class-in-quotient}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} The library has no quotient MODULE and no quotient group -- only the quotient of a SETOID (quotient, class, proj, quotient-universal) and ringoid-quotient-ring.  It also has no direct sum of modules and no cyclic group Z/(a).  is-hom-module-def exists as a homomorphism predicate, but nothing builds the map of this lemma.
+\noindent\textbf{Deviation from the notes.} All n summands are written Z/(b\_i), Z/(0) standing for Z, so the notes' split into k cyclic summands and Z\textasciicircum{}\{n-k\} is one direct sum.  The quotient is QUOTIENT-MODULE(md, sm); first-isomorphism-module is the general first isomorphism theorem for modules.
 %
 \renewcommand{\thethm}{3.50}
-\begin{prop}[{Structure of a finitely generated abelian group}]\label{thm:linear-algebra-3.50}
+\begin{prop}[{Structure of a finitely generated abelian group}]\label{thm:fg-abelian-group-structure-exists}
 %
-\textit{If E is a finitely generated abelian group there are w\_1,...,w\_l in E and non-negative a\_1,...,a\_l with a\_i dividing a\_j for i $<$= j such that (x\_1,...,x\_l) |-$>$ sum x\_i w\_i induces an isomorphism Z/(a\_1) + ... + Z/(a\_l) -$>$ E; the sequence a\_1,...,a\_l is unique up to sign.}
-%
-Not in the library.
+\leavevmode
+\vnbpart{\texttt{fg-abelian-group-structure-exists}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall e, n, u. \\ \quad (\operatorname{is\text{-}module}(e) \wedge ((\operatorname{scal}(e) = \operatorname{zz\text{-}ring}) \wedge ((n \in \mathbb{N}) \wedge ((u \in \operatorname{mat}(n, 1, \operatorname{vec}(e))) \wedge \operatorname{generates}(e, n, u))))) \Rightarrow  \\ \quad \quad \exists l \in \mathbb{N}, a, f. \\ \quad \quad \quad (l \leq n) \wedge (\operatorname{is\text{-}invariant\text{-}factors}(l, a) \wedge \operatorname{is\text{-}iso\text{-}module}(\operatorname{cyclic\text{-}sum}(l, a), e, f)) \end{array}}
+\vnbpart{\texttt{fg-abelian-group-structure-unique}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall e, l, a, f, c, b, g. \\ \quad \operatorname{is\text{-}module}(e) \wedge \\ \quad l \in \mathbb{N} \wedge \\ \quad c \in \mathbb{N} \wedge \\ \quad \operatorname{is\text{-}invariant\text{-}factors}(l, a) \wedge \\ \quad \operatorname{is\text{-}invariant\text{-}factors}(c, b) \wedge \\ \quad \operatorname{is\text{-}iso\text{-}module}(\operatorname{cyclic\text{-}sum}(l, a), e, f) \wedge \\ \quad \operatorname{is\text{-}iso\text{-}module}(\operatorname{cyclic\text{-}sum}(c, b), e, g) \Rightarrow \\ \quad \quad (l = c) \wedge (a = b) \end{array}}
+\vnbpart{\texttt{cyclic-sum-iso-core}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall n, l, e, h. \\ \quad n \in \mathbb{N} \wedge \\ \quad l \in (\operatorname{interval}(1, n) \to \mathbb{Z}) \wedge \\ \quad e \in (\operatorname{interval}(1, n) \to \mathbb{Z}) \wedge \\ \quad \forall i \in \operatorname{interval}(1, n).\; (0 \leq l(i)) \wedge \\ \quad \forall i \in \operatorname{interval}(1, n).\; (0 \leq e(i)) \wedge \\ \quad \forall i, j. \\ \quad \quad ((i \in \operatorname{interval}(1, n)) \wedge ((j \in \operatorname{interval}(1, n)) \wedge (i \leq j))) \Rightarrow  \\ \quad \quad \quad \operatorname{zz\text{-}divides}(l(i), l(j)) \wedge \\ \quad \forall i, j. \\ \quad \quad ((i \in \operatorname{interval}(1, n)) \wedge ((j \in \operatorname{interval}(1, n)) \wedge (i \leq j))) \Rightarrow  \\ \quad \quad \quad \operatorname{zz\text{-}divides}(e(i), e(j)) \wedge \\ \quad \operatorname{is\text{-}iso\text{-}module}(\operatorname{cyclic\text{-}sum}(n, l), \operatorname{cyclic\text{-}sum}(n, e), h) \Rightarrow \\ \quad \quad l = e \end{array}}
 %
 \end{prop}
 %
@@ -3627,18 +3667,42 @@ Not in the library.
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{There is no library statement, and so no proof.}
+\vnbprf{\vnbproofpart{\texttt{fg-abelian-group-structure-exists}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z4-\allowbreak{}exist.scm} --- 312 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nn-one-in}, \texttt{one-in-interval-1}, \texttt{zz-is-ring}, \texttt{zz-is-commutative-ring}, \texttt{zz-pow-is-module}, \texttt{zz-pow-scal}, \texttt{zz-units-type}, \texttt{zz-units-generate}, \texttt{zz-units-rel-free}, \texttt{free-lift-hom}, \texttt{hom-kernel-submodule}, \texttt{lincomb-type}, \texttt{free-lift-lincomb}, \texttt{equality-symmetry}, \texttt{first-isomorphism-module}, \texttt{principal-sequence-exists}, \texttt{quotient-by-diagonal-subgroup}, \texttt{iso-module-inverse}, \texttt{iso-module-compose}, \texttt{lzt-fam-modules}, \texttt{lzx-ones-prefix}, \texttt{nn-minus-in-nn}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{lzu-shift-in}, \texttt{entry-in-carrier}, \texttt{zz-mod-is-module}, \texttt{zz-mod-scal}, \texttt{interval-widen}, \texttt{interval-elt-in-nn}, \texttt{interval-lo}, \texttt{interval-hi}, \texttt{zz-mod-one-trivial}, \texttt{dsum-drop-iso}, \texttt{interval-in-set}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{fg-abelian-group-structure-unique}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z4-\allowbreak{}unique.scm} --- 12 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{iso-module-inverse}, \texttt{iso-module-compose}, \texttt{cyclic-sum-iso-unique}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cyclic-sum-iso-core}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z4-\allowbreak{}unique.scm} --- 840 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{interval-in-set}, \texttt{fun-codomain-iff}, \texttt{interval-elt-in-nn}, \texttt{interval-hi}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}, \texttt{interval-lo}, \texttt{fun-domain-extensionality}, \texttt{nn-not-le-succ-le}, \texttt{nn-succ-closed}, \texttt{nn-succ-plus-one}, \texttt{zz-is-ring}, \texttt{zz-is-commutative-ring}, \texttt{nn-one-in}, \texttt{one-in-interval-1}, \texttt{ring-as-module-is-module}, \texttt{ram-ro-scal}, \texttt{ram-ro-vec}, \texttt{ram-ro-vadd}, \texttt{ram-ro-vzero}, \texttt{ram-ro-vneg}, \texttt{ram-ro-act}, \texttt{zz-pow-family}, \texttt{direct-sum-is-module}, \texttt{dsum-ro-scal}, \texttt{dsum-ro-vec}, \texttt{dsum-ro-vadd}, \texttt{dsum-ro-vzero}, \texttt{dsum-ro-vneg}, \texttt{dsum-ro-act}, \texttt{zz-pow-unfold}, \texttt{zz-pow-is-module}, \texttt{zz-pow-scal}, \texttt{zz-units-type}, \texttt{zz-units-generate}, \texttt{zz-units-rel-free}, \texttt{diag-mat-type}, \texttt{diag-mat-diagonal}, \texttt{matact-type}, \texttt{span-is-submodule}, \texttt{spans-span}, \texttt{nn-add-closed}, \texttt{lzt-fam-modules}, \texttt{fun-apply-type-c}, \texttt{zz-mod-is-module}, \texttt{zz-mod-scal}, \texttt{diag-mat-diag}, \texttt{nn-zero-in}, \texttt{dsum-drop-iso}, \texttt{iso-module-compose}, \texttt{iso-module-inverse}, \texttt{lzt-ph-hom}, \texttt{lzt-ph-onto}, \texttt{hom-module-compose}, \texttt{free-module-lift}, \texttt{compose-apply}, \texttt{inverse-bij-right}, \texttt{inverse-bij-left}, \texttt{schanuel-iso}, \texttt{schanuel-type}, \texttt{schanuel-kernel-map}, \texttt{pad-ones-type}, \texttt{iso-free-generating}, \texttt{hom-matact}, \texttt{map-seq-type}, \texttt{entry-in-carrier}, \texttt{map-seq-entry}, \texttt{hom-lincomb}, \texttt{schanuel-inverse}, \texttt{pad-ones-nonneg}, \texttt{pad-ones-chain}, \texttt{principal-sequence-unique}, \texttt{lzu-shift-in}, \texttt{lzu-shift-cancel}, \texttt{pad-ones-hi}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} Absent for the reasons listed under 3.49 (no quotient module, no direct sum, no cyclic group) and under 3.48 (no uniqueness).  The nearest library assets are submodule-fg and smith-normal-form, which supply the existence half of the input but nothing of the conclusion.
+\noindent\textbf{Deviation from the notes.} E is a ZZ-module generated by n elements.  The invariant factors are normalised a\_i $>$= 0 and a\_i /= 1, Z/(0) standing for Z, with l $<$= n; uniqueness is equality of the sequences, not up to sign.  The isomorphism is stated as existing: every homomorphism out of the sum is the notes' map induced by the w\_i.  Uniqueness goes through Schanuel's lemma (schanuel-iso) and 3.48.
 %
 \renewcommand{\thethm}{3.51}
-\begin{cor}[{Every finitely generated abelian group is a direct sum of cyclic groups}]\label{thm:linear-algebra-3.51}
+\begin{cor}[{Every finitely generated abelian group is a direct sum of cyclic groups}]\label{thm:fg-abelian-group-cyclic-decomposition}
 %
-\textit{Every finitely generated abelian group is a finite direct sum Z/(m\_1) + ... + Z/(m\_l) with m\_k $>$ 0 and m\_k dividing m\_\{k+1\}; the representation is unique.}
-%
-Not in the library.
+\leavevmode
+\vnbpart{\texttt{fg-abelian-group-cyclic-decomposition}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall e, n, u. \\ \quad (\operatorname{is\text{-}module}(e) \wedge ((\operatorname{scal}(e) = \operatorname{zz\text{-}ring}) \wedge ((n \in \mathbb{N}) \wedge ((u \in \operatorname{mat}(n, 1, \operatorname{vec}(e))) \wedge \operatorname{generates}(e, n, u))))) \Rightarrow  \\ \quad \quad \exists l \in \mathbb{N}, a. \\ \quad \quad \quad \operatorname{is\text{-}invariant\text{-}factors}(l, a) \wedge \\ \quad \quad \quad \exists f.\; \operatorname{is\text{-}iso\text{-}module}(\operatorname{cyclic\text{-}sum}(l, a), e, f) \wedge \\ \quad \quad \quad \forall c, b. \\ \quad \quad \quad \quad ((c \in \mathbb{N}) \wedge (\operatorname{is\text{-}invariant\text{-}factors}(c, b) \wedge \exists g.\; \operatorname{is\text{-}iso\text{-}module}(\operatorname{cyclic\text{-}sum}(c, b), e, g))) \Rightarrow  \\ \quad \quad \quad \quad \quad (l = c) \wedge (a = b) \end{array}}
+\vnbpart{\texttt{cyclic-sum-iso-unique}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall l, a, c, b, h. \\ \quad l \in \mathbb{N} \wedge \\ \quad c \in \mathbb{N} \wedge \\ \quad \operatorname{is\text{-}invariant\text{-}factors}(l, a) \wedge \\ \quad \operatorname{is\text{-}invariant\text{-}factors}(c, b) \wedge \\ \quad \operatorname{is\text{-}iso\text{-}module}(\operatorname{cyclic\text{-}sum}(l, a), \operatorname{cyclic\text{-}sum}(c, b), h) \Rightarrow \\ \quad \quad (l = c) \wedge (a = b) \end{array}}
 %
 \end{cor}
 %
@@ -3646,11 +3710,25 @@ Not in the library.
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{There is no library statement, and so no proof.}
+\vnbprf{\vnbproofpart{\texttt{fg-abelian-group-cyclic-decomposition}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z4-\allowbreak{}unique.scm} --- 36 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{fg-abelian-group-structure-exists}, \texttt{fg-abelian-group-structure-unique}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cyclic-sum-iso-unique}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z4-\allowbreak{}unique.scm} --- 589 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{zz-is-ring}, \texttt{nn-add-closed}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{pad-ones-type}, \texttt{pad-ones-nonneg}, \texttt{pad-ones-chain}, \texttt{fun-apply-type-c}, \texttt{zz-mod-is-module}, \texttt{zz-mod-scal}, \texttt{lzu-shift-in}, \texttt{interval-elt-in-nn}, \texttt{interval-lo}, \texttt{interval-hi}, \texttt{pad-ones-hi}, \texttt{lzu-shift-cancel}, \texttt{interval-widen}, \texttt{pad-ones-lo}, \texttt{zz-mod-one-trivial}, \texttt{direct-sum-is-module}, \texttt{dsum-drop-iso}, \texttt{iso-module-compose}, \texttt{iso-module-inverse}, \texttt{cyclic-sum-iso-core}, \texttt{nn-not-le-succ-le}, \texttt{nn-le-refl}, \texttt{nn-succ-closed}, \texttt{nn-succ-plus-one}, \texttt{interval-mem-intro}, \texttt{lzu-shift-back}, \texttt{equality-symmetry}, \texttt{nn-le-antisym}, \texttt{fun-codomain-iff}, \texttt{fun-domain-extensionality}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} Absent; it is the restatement of 3.50, and the library has neither the direct sum nor the cyclic groups nor the uniqueness.
+\noindent\textbf{Deviation from the notes.} m\_k $>$= 0 and m\_k /= 1 replace the notes' m\_k $>$ 0, which would exclude the free part; uniqueness means equal lengths and equal sequences.
 %
 \renewcommand{\thethm}{3.52}
 \begin{cor}[{The cardinality of E/F is the norm N\_E(F)}]\label{thm:linear-algebra-3.52}
@@ -4041,9 +4119,9 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca-\allowbreak{}lft-\allowbreak{}group.scm} --- 104 recorded steps.}
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca-\allowbreak{}lft-\allowbreak{}group.scm} --- 101 recorded steps.}
 %
-\vnbprf{\textbf{Lemmas.} \texttt{lfts-in-set}, \texttt{lft-group-opr-type}, \texttt{id-in-lfts}, \texttt{lft-group-inv-type}, \texttt{cc-hat-in-set}, \texttt{lfts-in-fun}, \texttt{lfts-compose-closed}, \texttt{compose-assoc}, \texttt{compose-id-left}, \texttt{compose-id-right}, \texttt{lfts-inverse-in}, \texttt{membership-implies-sethood}, \texttt{lft-inverse-bij}, \texttt{lft-adjugate-left}, \texttt{lft-adjugate-right}.}
+\vnbprf{\textbf{Lemmas.} \texttt{lfts-in-set}, \texttt{lft-group-opr-type}, \texttt{id-in-lfts}, \texttt{lft-group-inv-type}, \texttt{cc-hat-in-set}, \texttt{lfts-in-fun}, \texttt{lfts-compose-closed}, \texttt{compose-assoc}, \texttt{compose-id-left}, \texttt{compose-id-right}, \texttt{lfts-inverse-in}, \texttt{lft-inverse-bij}, \texttt{lft-adjugate-left}, \texttt{lft-adjugate-right}.}
 %
 \vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
@@ -6959,7 +7037,7 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/measure-\allowbreak{}laws.scm} --- 499 recorded steps.}
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/measure-\allowbreak{}laws.scm} --- 495 recorded steps.}
 %
 \vnbprf{\textbf{Lemmas.} \texttt{nn-zero-in}, \texttt{fun-apply-type-c}, \texttt{nn-is-set}, \texttt{sigma-algebra-complement-closed}, \texttt{sigma-algebra-union-closed}, \texttt{membership-implies-sethood}, \texttt{class-extensionality}, \texttt{subset-def}, \texttt{complement-in-membership}, \texttt{nn-nested-subset-chain}, \texttt{measure-finite-subset}, \texttt{sigma-algebra-difference-closed}, \texttt{nn-succ-closed}, \texttt{subset-mem-fwd}, \texttt{measure-continuity-from-below}, \texttt{power-mem-in}, \texttt{image-subset-codomain}, \texttt{einf-in}, \texttt{einf-lower}, \texttt{rr-pos-star-le-real-in-rr}, \texttt{rr-pos-star-nonneg}, \texttt{rr-sub-in-rr}, \texttt{nn-zero-le}, \texttt{measure-subtractive}, \texttt{esup-least}, \texttt{complement-in-subset}, \texttt{measure-monotone}, \texttt{einf-greatest}, \texttt{rr-pos-star-le-antisymm}.}
 %
@@ -8500,20 +8578,20 @@ Linear algebra & 3.26 & Over a field, invertible iff the determinant is nonzero 
 Linear algebra & 3.27 & det is multiplicative & \texttt{det-\allowbreak{}multiplicative}, \texttt{det-\allowbreak{}alternating-\allowbreak{}form} & proven \\
 Linear algebra & 3.29 & Behaviour of the sigma-th order subdeterminants under F and G operations & \texttt{sdet-\allowbreak{}col-\allowbreak{}swap}, \texttt{sdet-\allowbreak{}row-\allowbreak{}swap}, \texttt{sdet-\allowbreak{}col-\allowbreak{}add}, \texttt{sdet-\allowbreak{}row-\allowbreak{}add}, \texttt{sdet-\allowbreak{}col-\allowbreak{}scale}, \texttt{sdet-\allowbreak{}row-\allowbreak{}scale} & proven \\
 Linear algebra & 3.31 & The gcd of the sigma-th subdeterminants is an invariant over Z & \texttt{sdet-\allowbreak{}gcd-\allowbreak{}invariant}, \texttt{sdet-\allowbreak{}divisor-\allowbreak{}equiv} & proven \\
-Linear algebra & 3.36 & Integer normal form: existence and uniqueness of the diagonal form & \texttt{smith-\allowbreak{}normal-\allowbreak{}form}, \texttt{smith-\allowbreak{}diagonalization} & partial \\
-Linear algebra & 3.37 & The reducing matrices U and V are products of elementary matrices & \texttt{smith-\allowbreak{}normal-\allowbreak{}form}, \texttt{euclidean-\allowbreak{}invertible-\allowbreak{}iff-\allowbreak{}elem-\allowbreak{}gen}, \texttt{euclidean-\allowbreak{}unit-\allowbreak{}det-\allowbreak{}elem-\allowbreak{}gen} & partial \\
+Linear algebra & 3.36 & Integer normal form: existence and uniqueness of the diagonal form & \texttt{integer-\allowbreak{}normal-\allowbreak{}form}, \texttt{integer-\allowbreak{}normal-\allowbreak{}form-\allowbreak{}exists}, \texttt{diagonal-\allowbreak{}normal-\allowbreak{}form-\allowbreak{}unique}, \texttt{diagonal-\allowbreak{}normal-\allowbreak{}form-\allowbreak{}unique-\allowbreak{}invertible}, \texttt{diagonal-\allowbreak{}chain-\allowbreak{}sdet-\allowbreak{}gcd} & proven \\
+Linear algebra & 3.37 & The reducing matrices U and V are products of elementary matrices & \texttt{integer-\allowbreak{}normal-\allowbreak{}form-\allowbreak{}elementary} & proven \\
 Linear algebra & 3.38 & An invertible integer matrix is a product of elementary matrices & \texttt{zz-\allowbreak{}invertible-\allowbreak{}iff-\allowbreak{}elementary-\allowbreak{}product}, \texttt{euclidean-\allowbreak{}invertible-\allowbreak{}iff-\allowbreak{}elem-\allowbreak{}gen}, \texttt{euclidean-\allowbreak{}unit-\allowbreak{}det-\allowbreak{}elem-\allowbreak{}gen}, \texttt{elem-\allowbreak{}gen-\allowbreak{}det-\allowbreak{}unit} & proven \\
 Linear algebra & 3.40 & An invertible change of sequence preserves generation and freeness & \texttt{generates-\allowbreak{}transport}, \texttt{free-\allowbreak{}transport}, \texttt{spans-\allowbreak{}transport} & proven \\
 Linear algebra & 3.41 & A relation-free sequence is no longer than a generating sequence & \texttt{free-\allowbreak{}length-\allowbreak{}le-\allowbreak{}generators} & partial \\
 Linear algebra & 3.43 & GL\_n(Z) acts freely and transitively on the free generating sequences & \texttt{free-\allowbreak{}generating-\allowbreak{}action-\allowbreak{}free}, \texttt{free-\allowbreak{}generating-\allowbreak{}action-\allowbreak{}stabilizer}, \texttt{free-\allowbreak{}generating-\allowbreak{}action-\allowbreak{}transitive}, \texttt{free-\allowbreak{}generating-\allowbreak{}action-\allowbreak{}closed} & proven \\
-Linear algebra & 3.44 & Adapted basis for a subgroup, with the divisibility chain & \texttt{submodule-\allowbreak{}of-\allowbreak{}free-\allowbreak{}is-\allowbreak{}free} & partial \\
+Linear algebra & 3.44 & Adapted basis for a subgroup, with the divisibility chain & \texttt{principal-\allowbreak{}sequence-\allowbreak{}exists}, \texttt{principal-\allowbreak{}sequence-\allowbreak{}exists-\allowbreak{}unique} & proven \\
 Linear algebra & 3.45 & The norm N\_F(E): the absolute determinant is basis-independent & \texttt{norm-\allowbreak{}independent}, \texttt{change-\allowbreak{}of-\allowbreak{}basis-\allowbreak{}det-\allowbreak{}unit} & proven \\
 Linear algebra & 3.46 & A subgroup of a free abelian group of rank n is free of rank at most n & \texttt{submodule-\allowbreak{}of-\allowbreak{}free-\allowbreak{}is-\allowbreak{}free} & proven \\
 Linear algebra & 3.47 & A subgroup of an n-generated group is generated by at most n elements & \texttt{submodule-\allowbreak{}fg}, \texttt{spans-\allowbreak{}submodule-\allowbreak{}fg} & proven \\
 Linear algebra & 3.48 & Uniqueness of the principal sequence of a subgroup & \texttt{principal-\allowbreak{}sequence-\allowbreak{}unique} & proven \\
-Linear algebra & 3.49 & The quotient E/F for a diagonal subgroup & --- & absent \\
-Linear algebra & 3.50 & Structure of a finitely generated abelian group & --- & absent \\
-Linear algebra & 3.51 & Every finitely generated abelian group is a direct sum of cyclic groups & --- & absent \\
+Linear algebra & 3.49 & The quotient E/F for a diagonal subgroup & \texttt{quotient-\allowbreak{}by-\allowbreak{}diagonal-\allowbreak{}subgroup}, \texttt{first-\allowbreak{}isomorphism-\allowbreak{}module} & proven \\
+Linear algebra & 3.50 & Structure of a finitely generated abelian group & \texttt{fg-\allowbreak{}abelian-\allowbreak{}group-\allowbreak{}structure-\allowbreak{}exists}, \texttt{fg-\allowbreak{}abelian-\allowbreak{}group-\allowbreak{}structure-\allowbreak{}unique}, \texttt{cyclic-\allowbreak{}sum-\allowbreak{}iso-\allowbreak{}core} & proven \\
+Linear algebra & 3.51 & Every finitely generated abelian group is a direct sum of cyclic groups & \texttt{fg-\allowbreak{}abelian-\allowbreak{}group-\allowbreak{}cyclic-\allowbreak{}decomposition}, \texttt{cyclic-\allowbreak{}sum-\allowbreak{}iso-\allowbreak{}unique} & proven \\
 Linear algebra & 3.52 & The cardinality of E/F is the norm N\_E(F) & --- & absent \\
 Complex analysis & 1.2 & Uniqueness of the least upper bound & \texttt{esup-\allowbreak{}unique} & partial \\
 Complex analysis & 1.3 & C as 2x2 real matrices & \texttt{cc-\allowbreak{}matrix-\allowbreak{}representation}, \texttt{cc-\allowbreak{}matrix-\allowbreak{}rep-\allowbreak{}bijection}, \texttt{cc-\allowbreak{}matrix-\allowbreak{}of-\allowbreak{}mul} & proven \\
@@ -8631,7 +8709,7 @@ Topological vector spaces (Thayer, notes) & 1.25 & A real pre-Hilbert space with
 document & entries & proven & asserted & partial & absent \\
 \hline
 Calculus & 66 & 49 & 0 & 13 & 4 \\
-Linear algebra & 33 & 22 & 0 & 6 & 5 \\
+Linear algebra & 33 & 28 & 0 & 3 & 2 \\
 Complex analysis & 57 & 47 & 0 & 8 & 2 \\
 Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 10 & 10 & 0 & 0 & 0 \\
 Construction of measures (Thayer, notes) & 28 & 28 & 0 & 0 & 0 \\

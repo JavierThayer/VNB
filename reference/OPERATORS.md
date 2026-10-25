@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-1159 operators: 3 functions, 11 syntax, 618 functoids, 523 predicates, 4 undeclared.
+1187 operators: 3 functions, 11 syntax, 644 functoids, 525 predicates, 4 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `delete-at` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (618)
+## Functoids  (644)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -662,6 +662,12 @@ Declared by: `cons-in-tuples` `length-cons` `makeset-cons` `nth-cons-1` `nth-con
 
     cx-vneg(v) := vnb-lambda(cp_, cartesian(vec(v), vec(v)), [(vneg(v))(nth(1, cp_)), (vneg(v))(nth(2, cp_))])
 
+### `cyclic-sum`  — def-functoid · element/number-valued
+
+> _Reads as:_  the direct sum of the cyclic groups Z/(a_i), i = 1, ..., l
+
+    cyclic-sum(l, a) := direct-sum(zz-ring, l, vnb-lambda(csi_, interval(1, l), zz-mod(a(csi_))))
+
 ### `dc-iter`  — recursively defined (def-by-nn-recursion)
 
 Declared by: `dc-iter-zero` `dc-iter-succ` 
@@ -706,6 +712,12 @@ Declared by: `dc-iter-zero` `dc-iter-succ`
 
 Declared by: `det-zero` `det-cofactor` 
 
+### `diag-mat`  — def-functoid · element/number-valued
+
+> _Reads as:_  the diagonal matrix with diagonal f(1), ..., f(n)
+
+    diag-mat(n, f) := matof(n, n, vnb-lambda([dga_, dgb_], cartesian(interval(1, n), interval(1, n)), (mul(zz-ring))(f(dga_), entry(identmat(zz-ring, n), dga_, dgb_))))
+
 ### `difference`  — def-functoid · set-valued
 
 > _Reads as:_  the set difference of u_ and b_
@@ -721,6 +733,12 @@ Declared by: `det-zero` `det-cofactor`
 > _Reads as:_  the direction of the directed message ssd_
 
     dir-of(ssd_) := nth(1, ssd_)
+
+### `direct-sum`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the direct sum of the n modules f over s
+
+    direct-sum(s, n, f) := [s, dsum-vec(n, f), dsum-vadd(n, f), dsum-vzero(n, f), dsum-vneg(n, f), dsum-act(s, n, f)]
 
 ### `directed`  — def-functoid · set-valued
 
@@ -747,6 +765,26 @@ Declared by: `det-zero` `det-cofactor`
 > _Reads as:_  the pseudometric family of s
 
 ### `dom`  — kernel term-former
+
+### `dsum-act`  — def-functoid · function-valued
+
+    dsum-act(s, n, f) := vnb-lambda([dqr_, dsf_], cartesian(carr(s), dsum-vec(n, f)), vnb-lambda(dsi_, interval(1, n), (act(f(dsi_)))(dqr_, dsf_(dsi_))))
+
+### `dsum-vadd`  — def-functoid · function-valued
+
+    dsum-vadd(n, f) := vnb-lambda([dsf_, dsg_], cartesian(dsum-vec(n, f), dsum-vec(n, f)), vnb-lambda(dsi_, interval(1, n), (vadd(f(dsi_)))(dsf_(dsi_), dsg_(dsi_))))
+
+### `dsum-vec`  — def-functoid · set-valued
+
+    dsum-vec(n, f) := {dsv_ in fun(interval(1, n), big-union(dsk_, interval(1, n), vec(f(dsk_)))): forall([dsj_ in interval(1, n)], dsv_(dsj_) in vec(f(dsj_)))}
+
+### `dsum-vneg`  — def-functoid · function-valued
+
+    dsum-vneg(n, f) := vnb-lambda(dsf_, dsum-vec(n, f), vnb-lambda(dsi_, interval(1, n), (vneg(f(dsi_)))(dsf_(dsi_))))
+
+### `dsum-vzero`  — def-functoid · function-valued
+
+    dsum-vzero(n, f) := vnb-lambda(dsi_, interval(1, n), vzero(f(dsi_)))
 
 ### `dual`  — def-functoid · tuple/structure-valued
 
@@ -1916,6 +1954,12 @@ Declared by: `limit-ord-iff`
 
 ### `make-set`  — kernel term-former
 
+### `map-seq`  — def-functoid · element/number-valued
+
+> _Reads as:_  the image under h of the sequence u of length n
+
+    map-seq(h, n, u) := matof(n, 1, vnb-lambda([msa_, msb_], cartesian(interval(1, n), interval(1, 1)), h(entry(u, msa_, msb_))))
+
 ### `mapl`  — def-functoid · element/number-valued
 
 > _Reads as:_  the list of the values of mxf_ at the entries of mxl_
@@ -2212,6 +2256,12 @@ Declared by: `nth-deriv-v-zero` `nth-deriv-v-succ`
 
 Declared by: `ord-segment-insert` `ord-segment-is-set` `ord-segment-membership` `ord-segment-nn-succ` `ord-segment-pigeonhole-guarded` `ord-segment-self` `ord-segment-succ` `ord-segment-trans` 
 
+### `pad-ones`  — def-functoid · function-valued
+
+> _Reads as:_  the sequence of k ones followed by f, of length m
+
+    pad-ones(m, k, f) := vnb-lambda(poj_, interval(1, m), if(poj_ <= k, 1, f(nn-minus(poj_, k))))
+
 ### `pair`  — kernel term-former
 
 ### `partial-fun`  — kernel term-former
@@ -2396,6 +2446,34 @@ Declared by: `prod-ord-zero` `prod-ord-succ`
 
     pw-int(pphi_, a, b) := iota(pav_, pav_ in rr and forsome([paw_], is-primitive(paw_, pphi_, a, b) and pav_ = paw_(b) - paw_(a)))
 
+### `qmod-act`  — def-functoid · function-valued
+
+    qmod-act(md, sm) := vnb-lambda([qmr_, qmc_], cartesian(carr(scal(md)), quotient(qmod-setoid(md, sm))), (qmod-scale(md, sm, qmr_))(qmc_))
+
+### `qmod-rel`  — def-functoid · set-valued
+
+> _Reads as:_  the congruence modulo sm on md
+
+    qmod-rel(md, sm) := {qmp_ in cartesian(vec(md), vec(md)): (vadd(md))(nth(1, qmp_), (vneg(md))(nth(2, qmp_))) in sm}
+
+### `qmod-scale`  — def-functoid · element/number-valued
+
+    qmod-scale(md, sm, r) := descend(qmod-setoid(md, sm), vnb-lambda(qma_, vec(md), class(qmod-setoid(md, sm), (act(md))(r, qma_))))
+
+### `qmod-setoid`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the vectors of md under the congruence modulo sm
+
+    qmod-setoid(md, sm) := [vec(md), qmod-rel(md, sm)]
+
+### `qmod-vadd`  — def-functoid · element/number-valued
+
+    qmod-vadd(md, sm) := descend2(qmod-setoid(md, sm), vnb-lambda([qma_, qmb_], cartesian(vec(md), vec(md)), class(qmod-setoid(md, sm), (vadd(md))(qma_, qmb_))))
+
+### `qmod-vneg`  — def-functoid · element/number-valued
+
+    qmod-vneg(md, sm) := descend(qmod-setoid(md, sm), vnb-lambda(qma_, vec(md), class(qmod-setoid(md, sm), (vneg(md))(qma_))))
+
 ### `qq-field`  — characterized by axioms (def-constant)
 
 Declared by: `qq-field-def` 
@@ -2411,6 +2489,12 @@ Declared by: `qq-ring-def`
 ### `quotient`  — def-functoid · set-valued
 
     quotient(s) := image(proj(s), pts(s))
+
+### `quotient-module`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the quotient module md/sm
+
+    quotient-module(md, sm) := [scal(md), quotient(qmod-setoid(md, sm)), qmod-vadd(md, sm), class(qmod-setoid(md, sm), vzero(md)), qmod-vneg(md, sm), qmod-act(md, sm)]
 
 ### `r-exp`  — def-functoid · element/number-valued
 
@@ -2481,6 +2565,12 @@ Declared by: `intersection-decompose` `union-decompose`
 > _Reads as:_  the right folds by md14h_ of the memberships of md14x_ in the entries of md14l_ from an index on
 
     rf-set(md14h_, md14x_, md14l_) := {md14p_ in cartesian(nn, expr-set): forall([md14w_ in power(cartesian(nn, expr-set))], rf-closed(md14h_, md14x_, md14l_, md14w_) implies md14p_ in md14w_)}
+
+### `ring-as-module`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  r as a module over itself
+
+    ring-as-module(r) := [r, carr(r), add(r), zero(r), neg(r), mul(r)]
 
 ### `ring-power`  — def-functoid · element/number-valued
 
@@ -2632,6 +2722,12 @@ Declared by: `rr-pos-star-add-monoid-def`
 
 > _Reads as:_  the scalar ring of s
 
+### `schanuel-map`  — def-functoid · function-valued
+
+> _Reads as:_  the map (t, b) |-> (b - lb(t), t + la(b - lb(t))) on Z^m
+
+    schanuel-map(m, n, la, lb) := vnb-lambda(scz_, vec(zz-pow(m)), seq-join(m, n, (vadd(zz-pow(n)))(seq-shift(n, scz_), (vneg(zz-pow(n)))(lb(seq-head(n, scz_)))), (vadd(zz-pow(n)))(seq-head(n, scz_), la((vadd(zz-pow(n)))(seq-shift(n, scz_), (vneg(zz-pow(n)))(lb(seq-head(n, scz_))))))))
+
 ### `sdet`  — def-functoid · set-valued
 
 > _Reads as:_  the set of order-s subdeterminants of a
@@ -2666,6 +2762,18 @@ Declared by: `sent-def`
 
 ### `sep`  — kernel term-former
 
+### `seq-head`  — def-functoid · function-valued
+
+> _Reads as:_  the first n terms of z
+
+    seq-head(n, z) := vnb-lambda(shi_, interval(1, n), z(shi_))
+
+### `seq-join`  — def-functoid · function-valued
+
+> _Reads as:_  hd followed by tl, of length m
+
+    seq-join(m, n, hd, tl) := vnb-lambda(jnj_, interval(1, m), if(jnj_ <= n, hd(jnj_), tl(nn-minus(jnj_, n))))
+
 ### `seq-limit`  — def-functoid · element/number-valued
 
 > _Reads as:_  the limit of the sequence f
@@ -2675,6 +2783,12 @@ Declared by: `sent-def`
 ### `seq-set`  — kernel primitive (notation-declared, no def-*)
 
 > _Reads as:_  the sequents
+
+### `seq-shift`  — def-functoid · function-valued
+
+> _Reads as:_  the terms n + 1, ..., n + n of z
+
+    seq-shift(n, z) := vnb-lambda(sfi_, interval(1, n), z(n + sfi_))
 
 ### `series-limit`  — def-functoid · element/number-valued
 
@@ -3102,11 +3216,35 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
     zz-bezout-set(a, b) := {z in zz: forsome([x_ in zz, y_ in zz], z = x_ * a + y_ * b)}
 
+### `zz-mod`  — def-functoid · element/number-valued
+
+> _Reads as:_  Z/(a)
+
+    zz-mod(a) := quotient-module(ring-as-module(zz-ring), principal-ideal(zz-ring, a))
+
+### `zz-pow`  — def-functoid · element/number-valued
+
+> _Reads as:_  the free module Z^n
+
+    zz-pow(n) := direct-sum(zz-ring, n, vnb-lambda(zpi_, interval(1, n), ring-as-module(zz-ring)))
+
 ### `zz-ring`  — characterized by axioms (def-constant)
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (523)
+### `zz-row`  — def-functoid · element/number-valued
+
+> _Reads as:_  the coefficient row of x in Z^n
+
+    zz-row(n, x) := matof(1, n, vnb-lambda([zra_, zrb_], cartesian(interval(1, 1), interval(1, n)), x(zrb_)))
+
+### `zz-units`  — def-functoid · element/number-valued
+
+> _Reads as:_  the unit vectors of Z^n
+
+    zz-units(n) := matof(n, 1, vnb-lambda([zua_, zub_], cartesian(interval(1, n), interval(1, 1)), vnb-lambda(zut_, interval(1, n), entry(unitrow(zz-ring, n, zua_), 1, zut_))))
+
+## Predicates  (525)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -4190,9 +4328,17 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  s is an integral domain
 
+### `is-invariant-factors`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  a_1, ..., a_l are invariant factors (non-negative, none equal to 1, each dividing the next)
+
 ### `is-invertible-mat`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  u is an invertible n-by-n matrix over a
+
+### `is-iso-module`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is an isomorphism of the module a onto the module b
 
 ### `is-isometric-op`  — def-predicate · proposition (arity 2)
 

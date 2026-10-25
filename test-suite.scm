@@ -16342,6 +16342,176 @@
                  (memq (provenance-of 'fpj-t09-falsity) '(proven certified)) #t))))
   '(#f #f))
 
+;;; =======================================================================
+;;; BVAL (2026-10-23, FALSITY #8): the value certificate's default arm.
+;;; `pi--value-may-be-class?' (builder) and `chk-value-may-be-class?' (checker) answered
+;;; "not a proper class" for every head they did not list, DOM among them, so beta
+;;; contracted (lambda y in NN. DOM(lambda x in ORD. x))(0) owing nothing, and FALSITY
+;;; followed modulo 0 (~/hunt/t10-beta-value-dom.scm, the last check below).  The same
+;;; test certified a list entry a set (`pi--sets-defined?').  Since BVAL an unknown head
+;;; MAY be a class, and DOM, RES, MATRIX, ORD-SEGMENT, SUP-ORD, succ_ORD are decided by
+;;; their first argument.  Each REFUSED / #f control below is ACCEPTED / #t by the kernel
+;;; of 0deadbf2 (scratchpad/BVAL-REPORT.md).
+;;; =======================================================================
+(define bval-d '(DOM (VNB-LAMBDA bval_x ORD bval_x)))          ; a proper class
+(define bval-dset '(DOM bval_f))                                ; DOM of a function in FUN(NN, NN)
+(define bval-fty '(IN bval_f (FUN NN NN)))
+
+;;; beta, the checker
+(check-true "BVAL lambda-beta (checker): refuses a contraction to DOM(lambda x in ORD. x) with nothing owed"
+  (lambda ()
+    (rcod--refuses? 'lambda-beta '((IN 0 NN)) `(= ((VNB-LAMBDA bval_y NN ,bval-d) 0) ,bval-d)
+                    (list (cons '((IN 0 NN)) `(= ,bval-d ,bval-d))))))
+(check-true "BVAL lambda-beta (checker): accepts the same contraction when (IN DOM(..) SET) is owed"
+  (lambda ()
+    (rcod--accepts? 'lambda-beta '((IN 0 NN)) `(= ((VNB-LAMBDA bval_y NN ,bval-d) 0) ,bval-d)
+                    (list (cons '((IN 0 NN)) `(= ,bval-d ,bval-d))
+                          (cons '((IN 0 NN)) `(IN ,bval-d SET))))))
+(check-true "BVAL lambda-beta (checker): accepts DOM(f), f in FUN(NN, NN), with nothing owed"
+  (lambda ()
+    (rcod--accepts? 'lambda-beta `(,bval-fty (IN 0 NN)) `(= ((VNB-LAMBDA bval_y NN ,bval-dset) 0) ,bval-dset)
+                    (list (cons `(,bval-fty (IN 0 NN)) `(= ,bval-dset ,bval-dset))))))
+(register-constant! 'BVAL-OPAQUE 'operator)                    ; a head no row lists
+(check-true "BVAL lambda-beta (checker): refuses a value with an unlisted constant head with nothing owed"
+  (lambda ()
+    (rcod--refuses? 'lambda-beta '((IN 0 NN)) '(= ((VNB-LAMBDA bval_y NN (BVAL-OPAQUE 0)) 0) (BVAL-OPAQUE 0))
+                    (list (cons '((IN 0 NN)) '(= (BVAL-OPAQUE 0) (BVAL-OPAQUE 0)))))))
+(check-true "BVAL lambda-beta (checker): accepts the same contraction when (IN (BVAL-OPAQUE 0) SET) is owed"
+  (lambda ()
+    (rcod--accepts? 'lambda-beta '((IN 0 NN)) '(= ((VNB-LAMBDA bval_y NN (BVAL-OPAQUE 0)) 0) (BVAL-OPAQUE 0))
+                    (list (cons '((IN 0 NN)) '(= (BVAL-OPAQUE 0) (BVAL-OPAQUE 0)))
+                          (cons '((IN 0 NN)) '(IN (BVAL-OPAQUE 0) SET))))))
+(check-true "BVAL lambda-beta (checker): refuses a one-argument FUN(NN) (free codomain) with nothing owed"
+  (lambda ()
+    (rcod--refuses? 'lambda-beta '((IN 0 NN)) '(= ((VNB-LAMBDA bval_y NN (FUN NN)) 0) (FUN NN))
+                    (list (cons '((IN 0 NN)) '(= (FUN NN) (FUN NN)))))))
+(check-true "BVAL lambda-beta (checker): accepts FUN(NN, NN) with nothing owed"
+  (lambda ()
+    (rcod--accepts? 'lambda-beta '((IN 0 NN)) '(= ((VNB-LAMBDA bval_y NN (FUN NN NN)) 0) (FUN NN NN))
+                    (list (cons '((IN 0 NN)) '(= (FUN NN NN) (FUN NN NN)))))))
+
+;;; a defined function, by its defining equations: DC-ITER(S, a, nxt, 0) == a
+;;; (dc-iter-zero, theorem-library/rake-dc-on-nn.scm) is ORD at a := ORD, and its step is a
+;;; CHOICE; SUM-AG's base is an accessor and its step an application.
+(check-true "BVAL lambda-beta (checker): refuses DC-ITER(S, ORD, nxt, k) (base value ORD) with nothing owed"
+  (lambda ()
+    (rcod--refuses? 'lambda-beta '((IN 0 NN)) '(= ((VNB-LAMBDA bval_y NN (DC-ITER bval_s ORD bval_n bval_k)) 0) (DC-ITER bval_s ORD bval_n bval_k))
+                    (list (cons '((IN 0 NN)) '(= (DC-ITER bval_s ORD bval_n bval_k) (DC-ITER bval_s ORD bval_n bval_k)))))))
+(check-true "BVAL lambda-beta (checker): accepts DC-ITER(S, a, nxt, k) with a in S, nothing owed"
+  (lambda ()
+    (rcod--accepts? 'lambda-beta '((IN bval_a bval_s) (IN 0 NN)) '(= ((VNB-LAMBDA bval_y NN (DC-ITER bval_s bval_a bval_n bval_k)) 0) (DC-ITER bval_s bval_a bval_n bval_k))
+                    (list (cons '((IN bval_a bval_s) (IN 0 NN)) '(= (DC-ITER bval_s bval_a bval_n bval_k) (DC-ITER bval_s bval_a bval_n bval_k)))))))
+(check-true "BVAL lambda-beta (checker): accepts SUM-AG(ag, f, k), nothing owed"
+  (lambda ()
+    (rcod--accepts? 'lambda-beta '((IN 0 NN)) '(= ((VNB-LAMBDA bval_y NN (SUM-AG bval_g bval_f bval_k)) 0) (SUM-AG bval_g bval_f bval_k))
+                    (list (cons '((IN 0 NN)) '(= (SUM-AG bval_g bval_f bval_k) (SUM-AG bval_g bval_f bval_k)))))))
+(check "BVAL value certificate (builder, checker): DC-ITER at a := ORD may be a class, at a typed a not"
+  (lambda ()
+    (list (and (pi--value-may-be-class? '() '(DC-ITER bval_s ORD bval_n bval_k)) #t)
+          (and (pi--value-may-be-class? '((IN bval_a bval_s)) '(DC-ITER bval_s bval_a bval_n bval_k)) #t)
+          (and (chk-value-may-be-class? '(DC-ITER bval_s ORD bval_n bval_k) '()) #t)
+          (and (chk-value-may-be-class? '(DC-ITER bval_s bval_a bval_n bval_k) '((IN bval_a bval_s))) #t)))
+  '(#t #f #t #f))
+
+;;; BIG-UNION: by its domain AND by its body at a point of the domain.
+(check-true "BVAL lambda-beta (checker): refuses BIG-UNION(z, {0}, ORD) (it is ORD) with nothing owed"
+  (lambda ()
+    (rcod--refuses? 'lambda-beta '((IN 0 NN)) '(= ((VNB-LAMBDA bval_y NN (BIG-UNION bval_z (MAKE-SET (LIST 0)) ORD)) 0) (BIG-UNION bval_z (MAKE-SET (LIST 0)) ORD))
+                    (list (cons '((IN 0 NN)) '(= (BIG-UNION bval_z (MAKE-SET (LIST 0)) ORD) (BIG-UNION bval_z (MAKE-SET (LIST 0)) ORD)))))))
+(check-true "BVAL lambda-beta (checker): accepts BIG-UNION(z, NN, POWER(z)) with nothing owed"
+  (lambda ()
+    (rcod--accepts? 'lambda-beta '((IN 0 NN)) '(= ((VNB-LAMBDA bval_y NN (BIG-UNION bval_z NN (POWER bval_z))) 0) (BIG-UNION bval_z NN (POWER bval_z)))
+                    (list (cons '((IN 0 NN)) '(= (BIG-UNION bval_z NN (POWER bval_z)) (BIG-UNION bval_z NN (POWER bval_z))))))))
+
+;;; beta, the builder
+(check-true "BVAL lambda-beta (builder): lam-b on a DOM(lambda x in ORD. x) body posts the owed leaf (IN DOM(..) SET)"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff `(IMPLIES (IN 0 NN) (= ((VNB-LAMBDA bval_y NN ,bval-d) 0) ,bval-d))))
+      (quietly (lambda () (di) (lam-b)))
+      (and (any-pred (lambda (l) (equal? (dk-goal-of l) `(IN ,bval-d SET))) (dk-open-leaves)) #t))))
+(check-true "BVAL lambda-beta (builder): lam-b on a DOM(f) body, f in FUN(NN, NN), owes nothing and the proof closes"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff `(IMPLIES ,bval-fty (IMPLIES (IN 0 NN) (= ((VNB-LAMBDA bval_y NN ,bval-dset) 0) ,bval-dset)))))
+      (quietly (lambda () (di) (di) (lam-b) (rfl)))
+      (proof-done? *ps*))))
+
+;;; list definedness (pi--sets-defined?, through pi--defined?)
+(check "BVAL list definedness: [DOM(lambda x in ORD. x)] is not certified; [DOM(f)], f in FUN(NN, NN), is"
+  (lambda ()
+    (list (and (pi--defined? '() `(LIST ,bval-d) 0) #t)
+          (and (pi--defined? (list (make-wff bval-fty)) `(LIST ,bval-dset) 0) #t)))
+  '(#f #t))
+(check "BVAL list definedness: [MATRIX(SET)] is not certified; [MATRIX(NN)] is"
+  (lambda ()
+    (list (and (pi--defined? '() '(LIST (MATRIX SET)) 0) #t)
+          (and (pi--defined? '() '(LIST (MATRIX NN)) 0) #t)))
+  '(#f #t))
+(check "BVAL list definedness (builder): rfl refuses [MATRIX(SET)] = [MATRIX(SET)] and closes [MATRIX(NN)] = [MATRIX(NN)]"
+  (lambda ()
+    (map (lambda (m)
+           (fluid-let ((*ps* #f))
+             (sp (make-wff `(= (LIST ,m) (LIST ,m))))
+             (quietly (lambda () (vnb-guard (lambda () (rfl)))))
+             (and *ps* (proof-done? *ps*) #t)))
+         '((MATRIX SET) (MATRIX NN))))
+  '(#f #t))
+
+;;; the reproducer, end to end: the kernel no longer closes FALSITY.  Step A now owes
+;;; (IN D SET), which nothing proves, so the `dk-have!' raises; the proof is not done.
+(define (bval--reproducer-closes?)
+  (fluid-let ((*ps* #f))
+    (let* ((f `(VNB-LAMBDA bval_x ORD bval_x))
+           (d `(DOM ,f))
+           (g `(VNB-LAMBDA bval_y NN ,d))
+           (i `(IOTA bval_v (IN (LIST 0 bval_v) ,g)))
+           (l `(LIST 0 ,i)))
+      (call-with-current-continuation
+       (lambda (k)
+         (with-exception-handler
+          (lambda (e) (k #f))
+          (lambda ()
+            (quietly
+             (lambda ()
+               (sp (make-wff 'FALSITY))
+               (dk-have! `(= (,g 0) ,d)
+                 (lambda () (lam-b) (rfl)
+                   (for-each (lambda (n) (if (equal? (dk-goal-of n) '(IN 0 NN)) (begin (dk-focus! n) (arith))))
+                             (dk-open-leaves))))
+               (dk-cite! 'app-graph g 0)
+               (dk-have! `(= ,i ,d) (lambda () (subst `(= ,i (,g 0))) (ass)))
+               (iota-e i)
+               (dk-have! '(IN 2 NN) (lambda () (arith)))
+               (dk-have! `(AND (<= 1 2) (<= 2 (LENGTH ,l)))
+                 (lambda () (di)
+                   (for-each (lambda (n) (dk-focus! n)
+                               (if (equal? (dk-goal-of n) '(<= 1 2)) (arith) (begin (len-r) (arith))))
+                             (filter (lambda (n) (and (pair? (dk-goal-of n)) (eq? (car (dk-goal-of n)) '<=)))
+                                     (dk-open-leaves)))))
+               (dk-cite! 'tuple-members-are-sets l g 2)
+               (dk-nth-h! `(IN (NTH 2 ,l) SET))
+               (dk-rewrite-h! `(IN ,i SET) i d)
+               (dk-have! `(SUBSET ORD ,d)
+                 (lambda ()
+                   (mac 'subset-def) (di) (mac 'dom-membership) (di)
+                   (for-each (lambda (n) (dk-focus! n)
+                               (if (pair? (cadr (dk-goal-of n))) (lam-b))
+                               (if (not (sequent-node-grounded? n))
+                                   (begin (dk-cite! 'membership-implies-sethood (cadr (dk-goal)) 'ORD)
+                                          (if (not (sequent-node-grounded? n)) (ass)))))
+                             (filter (lambda (n) (let ((gl (dk-goal-of n)))
+                                                   (and (pair? gl) (eq? (car gl) 'IN) (eq? (caddr gl) 'SET))))
+                                     (dk-open-leaves)))))
+               (dk-cite! 'subclass-of-set-is-set 'ORD d)
+               (dk-cite! 'burali-forti)
+               (keep '(IN ORD SET) '(NOT (IN ORD SET)))
+               (prop)))
+            (and *ps* (proof-done? *ps*) #t))))))))
+(check "BVAL reproducer (t10): the kernel does not close FALSITY through DOM(lambda x in ORD. x)"
+  (lambda () (bval--reproducer-closes?))
+  #f)
+
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")
 (display *fail-count*) (display " failed ===\n")
