@@ -1,0 +1,192 @@
+;;; product2-cc.scm -- CC and the plane PRODUCT2-MS(RR-MS, RR-MS): the gap that
+;;; theorem-library/cc-coords-laws.scm recorded ("there is no binary product of
+;;; metric spaces in the tree"), closed.  Helper prefix p2c-.
+;;;
+;;;   product2-rr-rr-pts        PTS(PRODUCT2-MS(RR-MS, RR-MS)) == CARTESIAN(RR, RR)
+;;;   cc-coords-dist-le         d_max(coords z, coords w) <= |z - w|
+;;;   cc-coords-dist-ge         |z - w| <= 2 d_max(coords z, coords w)
+;;;   cc-coords-continuous-at   CC-COORDS : CC-MS -> PRODUCT2-MS(RR-MS, RR-MS) is continuous
+;;;   cc-of-pair-continuous-at  CC-OF-PAIR : PRODUCT2-MS(RR-MS, RR-MS) -> CC-MS is continuous
+;;;
+;;; So CC is bi-Lipschitz equivalent (constants 1 and 2) to the plane with the
+;;; max metric, through the two coordinate bijections of cc-coords-laws.scm.
+;;; The two estimates are the ones cc-coords-laws.scm proved coordinatewise
+;;; (cc-abs-re/im-le-magnitude, cc-magnitude-le-re-im), read through the product
+;;; distance.
+
+;;; Local copies of four product2-laws.scm helpers (a file's helpers stay in its frame).
+(define (p2c-pos! t)
+  (if (not (dk-asm? (list 'IN t 'RR))) (dk-cite! 'rr-pos-rr-in-rr t))
+  (if (not (dk-asm? (list '< 0 t))) (dk-cite! 'rr-lt-of-pos-rr t)))
+(define (p2c-landed-eps landed)
+  (let ((l (filter (dk-head? 'POS-RR) landed)))
+    (if (null? l) (error "p2c-landed-eps: no POS-RR landed") (cadr (car l)))))
+(define (p2c-landed-var landed cls)
+  (let ((l (filter (lambda (f) (and (dk-head-is? f 'IN) (equal? (caddr f) cls))) landed)))
+    (if (null? l) (error "p2c-landed-var: nothing typed in" cls) (cadr (car l)))))
+(define (p2c-dreal! s a b)
+  (let ((f (list 'IN (list (list 'DIST s) a b) 'RR)))
+    (if (not (dk-asm? f)) (dk-cite! 'metric-dist-real s a b))
+    f))
+
+(define (p2c-in-pts-rr! x)          ; (IN x (PTS RR-MS)) from (IN x RR)
+  (dk-have! (list 'IN x '(PTS RR-MS)) (lambda () (slot 'PTS) (ass))))
+(define (p2c-in-pts-cc! x)          ; (IN x (PTS CC-MS)) from (IN x CC)
+  (dk-have! (list 'IN x '(PTS CC-MS)) (lambda () (slot 'PTS) (ass))))
+
+;;; =====================================================================
+(sp (make-wff '(== (PTS (PRODUCT2-MS RR-MS RR-MS)) (CARTESIAN RR RR))))
+(fact 'rr-is-metric-space)
+(mac 'product2-pts)
+(slot 'PTS)
+(qrfl)
+(qed 'product2-rr-rr-pts)
+(topic! 'product2-rr-rr-pts 'constructions)
+(alias! 'product2-rr-rr-pts "the points of the plane RR x RR with the max metric are the real pairs")
+
+;;; =====================================================================
+;;; THE TWO ESTIMATES.  Open both: rewrite the product distance of the
+;;; coordinates to max(|re z - re w|, |im z - im w|) and |z - w|, and land
+;;; |re z - re w| <= |z - w|, |im z - im w| <= |z - w| with the typings.
+;;; Returns (X Y M).
+;;; =====================================================================
+(define (p2c-open! z w)
+  (let* ((rz (list 'real-part z)) (rw (list 'real-part w))
+         (iz (list 'imag-part z)) (iw (list 'imag-part w))
+         (d  (list '- z w))
+         (x  (list 'abs (list '- rz rw)))
+         (y  (list 'abs (list '- iz iw)))
+         (m  (list 'magnitude d)))
+    (fact 'rr-is-metric-space)
+    (for-each (lambda (v) (dk-cite! 'real-part-in-rr v) (dk-cite! 'imag-part-in-rr v)) (list z w))
+    (for-each p2c-in-pts-rr! (list rz rw iz iw))
+    (subst (dk-cite! 'cc-coords-apply z))
+    (subst (dk-cite! 'cc-coords-apply w))
+    (subst (dk-cite! 'product2-dist-pair 'RR-MS 'RR-MS rz rw iz iw))
+    (subst (dk-cite! 'rr-ms-dist rz rw))
+    (subst (dk-cite! 'rr-ms-dist iz iw))
+    (subst (dk-cite! 'cc-ms-dist z w))
+    (dk-cite! 'cc-sub-in-cc z w)
+    (dk-cite! 'cc-magnitude-closed d)
+    (dk-rewrite-h! (dk-cite! 'cc-abs-re-le-magnitude d) (list 'real-part d) (caddr (dk-cite! 'cc-re-sub z w)))
+    (dk-rewrite-h! (dk-cite! 'cc-abs-im-le-magnitude d) (list 'imag-part d) (caddr (dk-cite! 'cc-im-sub z w)))
+    (dk-cite! 'rr-sub-in-rr rz rw) (dk-cite! 'rr-abs-closed (list '- rz rw))
+    (dk-cite! 'rr-sub-in-rr iz iw) (dk-cite! 'rr-abs-closed (list '- iz iw))
+    (dk-cite! 'rr-max-closed x y)
+    (list x y m)))
+
+(sp (make-wff '(FORALL p2cz_ (IMPLIES (IN p2cz_ CC) (FORALL p2cw_ (IMPLIES (IN p2cw_ CC)
+     (<= ((DIST (PRODUCT2-MS RR-MS RR-MS)) (CC-COORDS p2cz_) (CC-COORDS p2cw_))
+         ((DIST CC-MS) p2cz_ p2cw_))))))))
+(dk-peel!)
+(let ((xym (p2c-open! 'p2cz_ 'p2cw_)))
+  (dk-cite! 'rr-max-le (car xym) (cadr xym) (caddr xym))
+  (ass))
+(qed 'cc-coords-dist-le)
+(topic! 'cc-coords-dist-le 'analysis)
+(alias! 'cc-coords-dist-le "the max distance of the coordinates is at most the complex distance")
+
+(sp (make-wff '(FORALL p2cz_ (IMPLIES (IN p2cz_ CC) (FORALL p2cw_ (IMPLIES (IN p2cw_ CC)
+     (<= ((DIST CC-MS) p2cz_ p2cw_)
+         (* 2 ((DIST (PRODUCT2-MS RR-MS RR-MS)) (CC-COORDS p2cz_) (CC-COORDS p2cw_))))))))))
+(dk-peel!)
+(let* ((xym (p2c-open! 'p2cz_ 'p2cw_))
+       (x (car xym)) (y (cadr xym)) (m (caddr xym)) (mx (list 'max x y))
+       (d '(- p2cz_ p2cw_))
+       (h0 (dk-cite! 'cc-magnitude-le-re-im d))
+       (h1 (dk-rewrite-h! h0 (list 'real-part d) (caddr (dk-cite! 'cc-re-sub 'p2cz_ 'p2cw_))))
+       (h2 (dk-rewrite-h! h1 (list 'imag-part d) (caddr (dk-cite! 'cc-im-sub 'p2cz_ 'p2cw_)))))
+  (dk-cite! 'rr-le-max-left x y)
+  (dk-cite! 'rr-le-max-right x y)
+  (dk-ineq! h2 (list '<= x mx) (list '<= y mx)
+            (list 'IN x 'RR) (list 'IN y 'RR) (list 'IN m 'RR) (list 'IN mx 'RR)))
+(qed 'cc-coords-dist-ge)
+(topic! 'cc-coords-dist-ge 'analysis)
+(alias! 'cc-coords-dist-ge "the complex distance is at most twice the max distance of the coordinates")
+
+;;; =====================================================================
+;;; CONTINUITY BOTH WAYS.
+;;; =====================================================================
+(define (p2c-ms-facts!)
+  (fact 'rr-is-metric-space)
+  (fact 'cc-is-metric-space)
+  (dk-cite! 'product2-is-metric-space 'RR-MS 'RR-MS))
+
+(sp (make-wff '(FORALL p2cz_ (IMPLIES (IN p2cz_ CC)
+     (IS-CONTINUOUS-AT CC-MS (PRODUCT2-MS RR-MS RR-MS) CC-COORDS p2cz_)))))
+(dk-peel!)
+(p2c-ms-facts!)
+(fact 'cc-coords-in-fun)
+(mac 'IS-CONTINUOUS-AT)
+(mac 'product2-rr-rr-pts)
+(slot 'PTS)
+(dk-conj-close!
+ (lambda ()
+   (if (not (dk-head-is? (dk-goal) 'FORALL))
+       (ass)
+       (let* ((ld (dk-peel!)) (eps (p2c-landed-eps ld)))
+         (p2c-pos! eps)
+         (ew eps)
+         (dk-conj-close!
+          (lambda ()
+            (if (dk-head-is? (dk-goal) 'POS-RR)
+                (ass)
+                (let* ((ld2 (dk-peel!))
+                       (b (p2c-landed-var ld2 'CC))
+                       (le (dk-cite! 'cc-coords-dist-le 'p2cz_ b)))
+                  (p2c-in-pts-cc! 'p2cz_) (p2c-in-pts-cc! b)
+                  (p2c-dreal! 'CC-MS 'p2cz_ b)
+                  (for-each (lambda (v)
+                              (dk-cite! 'fun-apply-type-c 'CC-COORDS 'CC '(CARTESIAN RR RR) v)
+                              (dk-have! (list 'IN (list 'CC-COORDS v) '(PTS (PRODUCT2-MS RR-MS RR-MS)))
+                                (lambda () (mac 'product2-rr-rr-pts) (ass))))
+                            (list 'p2cz_ b))
+                  (p2c-dreal! '(PRODUCT2-MS RR-MS RR-MS) '(CC-COORDS p2cz_) (list 'CC-COORDS b))
+                  (dk-le-chain! (cadr le) (caddr le) eps)))))))))
+(qed 'cc-coords-continuous-at)
+(topic! 'cc-coords-continuous-at 'analysis)
+(alias! 'cc-coords-continuous-at "the coordinate map CC -> RR x RR (max metric) is continuous")
+
+(sp (make-wff '(FORALL p2cp_ (IMPLIES (IN p2cp_ (CARTESIAN RR RR))
+     (IS-CONTINUOUS-AT (PRODUCT2-MS RR-MS RR-MS) CC-MS CC-OF-PAIR p2cp_)))))
+(dk-peel!)
+(p2c-ms-facts!)
+(fact 'cc-of-pair-in-fun)
+(mac 'IS-CONTINUOUS-AT)
+(mac 'product2-rr-rr-pts)
+(slot 'PTS)
+(dk-conj-close!
+ (lambda ()
+   (if (not (dk-head-is? (dk-goal) 'FORALL))
+       (ass)
+       (let* ((ld (dk-peel!)) (eps (p2c-landed-eps ld)))
+         (p2c-pos! eps)
+         (let ((dl (dk-halve! eps)))
+           (ew dl)
+           (dk-conj-close!
+            (lambda ()
+              (if (dk-head-is? (dk-goal) 'POS-RR)
+                  (ass)
+                  (let* ((ld2 (dk-peel!))
+                         (q (p2c-landed-var ld2 '(CARTESIAN RR RR)))
+                         (zp '(CC-OF-PAIR p2cp_)) (zq (list 'CC-OF-PAIR q))
+                         (dpq (list '(DIST (PRODUCT2-MS RR-MS RR-MS)) 'p2cp_ q)))
+                    (dk-cite! 'fun-apply-type-c 'CC-OF-PAIR '(CARTESIAN RR RR) 'CC 'p2cp_)
+                    (dk-cite! 'fun-apply-type-c 'CC-OF-PAIR '(CARTESIAN RR RR) 'CC q)
+                    (let* ((h0 (dk-cite! 'cc-coords-dist-ge zp zq))
+                           (h1 (dk-rewrite-h! h0 (list 'CC-COORDS zp)
+                                              (caddr (dk-cite! 'cc-coords-of-pair 'p2cp_))))
+                           (h2 (dk-rewrite-h! h1 (list 'CC-COORDS zq)
+                                              (caddr (dk-cite! 'cc-coords-of-pair q)))))
+                      (dk-have! '(IN p2cp_ (PTS (PRODUCT2-MS RR-MS RR-MS)))
+                        (lambda () (mac 'product2-rr-rr-pts) (ass)))
+                      (dk-have! (list 'IN q '(PTS (PRODUCT2-MS RR-MS RR-MS)))
+                        (lambda () (mac 'product2-rr-rr-pts) (ass)))
+                      (p2c-dreal! '(PRODUCT2-MS RR-MS RR-MS) 'p2cp_ q)
+                      (p2c-in-pts-cc! zp) (p2c-in-pts-cc! zq)
+                      (let ((dz (p2c-dreal! 'CC-MS zp zq)))
+                        (dk-ineq! h2 (list '<= dpq dl) (list '= (list '+ dl dl) eps)
+                                  (list 'IN dpq 'RR) dz (list 'IN dl 'RR) (list 'IN eps 'RR)))))))))))))
+(qed 'cc-of-pair-continuous-at)
+(topic! 'cc-of-pair-continuous-at 'analysis)
+(alias! 'cc-of-pair-continuous-at "the map RR x RR (max metric) -> CC, [a, b] |-> a + b i, is continuous")

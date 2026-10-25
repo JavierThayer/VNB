@@ -349,6 +349,7 @@
     ;; 2026-09-20 (batch 12): SUBSPACE-MS / RESTRICT, and IS-DIFF-ON / DERIV-ON / HOLOMORPHIC-ON
     ;; (the derivative over a normed field on an OPEN set; docs/diff-on-open-sets-2026-09-20.md).
     "structure-library/metric-subspace"
+    "structure-library/product2-vocab"
     "structure-library/diff-on"
     ;; ---- THE CALCULUS VOCABULARY (hoisted 2026-09-20, batch 12-A) ----------------
     ;; Three definition files that used to sit inside proof files far below, each one
@@ -487,6 +488,7 @@
     ;; A[NN-ADD-MONOID] is one-variable polynomials.  Ring laws seeded; the
     ;; convolution-associativity proof is deferred, poly-is-ring is derived.
     "structure-library/polynomial"
+    "structure-library/la-z6-vocab"
     ;; Phase C: a matrix of scalars acting on a matrix (column sequence) of
     ;; module elements -- MATACT, the book's A . u_col (eq. 82).
     "structure-library/mod-seq"
@@ -1738,12 +1740,15 @@
     ;; theorem-library/poly-degree-laws.
     "theorem-library/poly-zero"
     "theorem-library/monalg-is-ring"
+    "theorem-library/la-z6-pullback"
+    "theorem-library/product2-laws"
     ;; 2026-09-20 (batch 12-E): prod-of-sums-expansion PROVEN.
     "theorem-library/rake-prod-of-sums"
     ;; rake batch 6 (2026-09-19): finsum-interval-shift.  After rake-border-siblings (cites succ-nn-minus-1) and monalg-is-ring; before border-mult-proof.
     "theorem-library/rake-smith-leaves"
     ;; rake batch 5b (2026-09-18): monalg-comm, bijection-from-inverse, lambda-compose-value
     "theorem-library/rake-monalg-comm"
+    "theorem-library/la-z6-mpoly"
     ;; coord-block-estimate: convergence ALONG a block transfers to a reindexing
     ;; whose tail lands in the block, PROVEN to QED.  The estimate brick of the
     ;; coordinatewise-diagonal-subseq keystone.  Needs seq-compact-product's
@@ -2176,6 +2181,7 @@
     ;; ones (3.38, over any euclidean ring).
     "theorem-library/la-det-adjoint"
     "theorem-library/la-elem-gen"
+    "theorem-library/la-z6-col"
     "theorem-library/la-z-sdet"
     "theorem-library/la-z-gcd"
     "theorem-library/la-z-elem"
@@ -3518,6 +3524,7 @@
     "theorem-library/heine-borel-interval"
     ;; 2026-09-21 (batch 14-A): CC and cartesian(rr, rr): bijections, coordinate laws, transfer of convergence, continuity, differentiability.
     "theorem-library/cc-coords-laws"
+    "theorem-library/product2-cc"
     ;; 2026-09-21 (batch 14-C): IS-CC-DIFF-AT: continuity, constants, complex multiples, difference, uniqueness, chain rule with a real inner map.
     "theorem-library/cc-diff-laws-2"
     ;; 2026-09-21 (batch 15-B): THE DEFINITIONS OF THE INTEGRAL ALONG A PATH, for functions ON [a, b]
@@ -3796,6 +3803,7 @@
     "theorem-library/ca-lft-sl2"
     "structure-library/ca-hopf-vocab"
     "theorem-library/ca-hopf-fibration"
+    "theorem-library/product2-hopf"
     ;; preamble -- a STRATEGY, executed: (preamble '(induct) '(unfold ...)
     ;; '(instantiate) '(close)) runs the clause list against every open leaf,
     ;; commits ordinary tactics that each record themselves, and RETURNS the
