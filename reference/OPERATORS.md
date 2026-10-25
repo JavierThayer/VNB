@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-1187 operators: 3 functions, 11 syntax, 644 functoids, 525 predicates, 4 undeclared.
+1194 operators: 3 functions, 11 syntax, 649 functoids, 527 predicates, 4 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `delete-at` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (644)
+## Functoids  (649)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -405,6 +405,10 @@ Declared by: `cc-of-pair-def`
 > _Reads as:_  the supremum norm of u on cpsxs_
 
     cc-sup-norm(u, cpsxs_) := esup(image(vnb-lambda(cpsx_, cpsxs_, magnitude(u(cpsx_))), cpsxs_))
+
+### `cc2-sphere`  — kernel primitive (notation-declared, no def-*)
+
+> _Reads as:_  the unit sphere S^3 of C^2
 
 ### `ccint`  — def-functoid · set-valued
 
@@ -1629,6 +1633,16 @@ Declared by: `fam-of-list-apply`
 > _Reads as:_  the point of the extended plane with homogeneous coordinates (u, v)
 
     homog-point(u, v) := if(v = 0, cc-inf, u * recip(v))
+
+### `hopf-map`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the Hopf map pi(w) = (2 u1 conj(u2), |u1|^2 - |u2|^2)
+
+    hopf-map(w) := [2 * (nth(1, w) * conjugate(nth(2, w))), magnitude(nth(1, w)) * magnitude(nth(1, w)) - magnitude(nth(2, w)) * magnitude(nth(2, w))]
+
+### `hopf-quotient-map`  — kernel primitive (notation-declared, no def-*)
+
+> _Reads as:_  the bijection S^2 -> C u {oo} through which the Hopf map factors
 
 ### `id-fun`  — def-functoid · function-valued
 
@@ -2952,6 +2966,12 @@ Declared by: `intersection-decompose` `union-decompose`
 
     submatrix(a, s, p, q) := matof(s, s, vnb-lambda([smi_, smj_], cartesian(interval(1, s), interval(1, s)), entry(a, p(smi_), q(smj_))))
 
+### `submodule-norm`  — def-functoid · element/number-valued
+
+> _Reads as:_  the norm N_E(F) of sm relative to md
+
+    submodule-norm(md, sm) := if(forsome([nmn_, nmx_, nmy_, nma_], is-norm-data(md, sm, nmn_, nmx_, nmy_, nma_)), iota(nmd_, forsome([nmn_, nmx_, nmy_, nma_], is-norm-data(md, sm, nmn_, nmx_, nmy_, nma_) and nmd_ = abs(det(zz-ring, nmn_, nma_)))), 0)
+
 ### `subseq`  — def-functoid · function-valued
 
     subseq(f, phi) := vnb-lambda(k, nn, f(phi(k)))
@@ -3110,6 +3130,10 @@ Declared by: `taylor-poly-v-zero` `taylor-poly-v-succ`
 
 > _Reads as:_  the unit circle {z : |z| = 1}
 
+### `unit-sphere-cr`  — kernel primitive (notation-declared, no def-*)
+
+> _Reads as:_  the unit sphere S^2 of C x R
+
 ### `unitrow`  — def-functoid · element/number-valued
 
     unitrow(a, n, i) := matof(1, n, vnb-lambda([rw, cl], cartesian(interval(1, 1), interval(1, n)), if(cl = i, one(a), zero(a))))
@@ -3244,7 +3268,7 @@ Declared by: `zz-ring-def`
 
     zz-units(n) := matof(n, 1, vnb-lambda([zua_, zub_], cartesian(interval(1, n), interval(1, 1)), vnb-lambda(zut_, interval(1, n), entry(unitrow(zz-ring, n, zua_), 1, zut_))))
 
-## Predicates  (525)
+## Predicates  (527)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -3823,6 +3847,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `holomorphic-on`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  f is holomorphic on u
+
+### `homog-equiv`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  u and w are proportional homogeneous coordinates
 
 ### `hyps-in`  — def-predicate · proposition (arity 2)
 
@@ -4471,6 +4499,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-norm`  — def-predicate · proposition (arity 5)
 
 > _Reads as:_  nm is a norm on crr
+
+### `is-norm-data`  — def-predicate · proposition (arity 6)
+
+> _Reads as:_  xs freely generates md, ys is relation-free and spans sm, both of length n, and ys = am . xs
 
 ### `is-normally-convergent`  — def-predicate · proposition (arity 2)
 

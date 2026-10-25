@@ -77,7 +77,7 @@
 <p>The VNB universe has SETS (the elements of <code>SET</code>), CLASSES, and further entities about which VNB makes no commitment.  A term-forming operator is classified by WHAT IT DENOTES:</p>
 <ul><li>A <strong>function</strong> denotes an element of a set: specifically a set-function, an element of some <code>FUN(A, B)</code> with <code>A</code>,<code>B</code> sets.  This class is DERIVED, not listed: a head appears here exactly when some installed formula states <code>head in FUN(...)</code>, and the entry names that statement.  Being <em>applicable</em> is not the criterion and never was — <a class="x" href="THEOREMS.html#t-app-graph"><code>app-graph</code></a> makes <code>f(x)</code> a well-formed term for any <code>f</code> at all, defined or not.  <code>vnb-lambda</code> is the binder that constructs a set-function.</li><li>A <strong>syntax</strong> head forms terms and denotes NOTHING itself.  <code>+</code> is not an object of the theory: there is no <code>+ in SET</code> to be had, and <code>x + y + z</code> is the flat node <code>(+ x y z)</code>, so the head is not even of fixed arity (<code>nary-plus-3/4/5</code> interpret the 3-, 4- and 5-ary forms).  When a binary addition must be NAMED as an object, that object is <code>binplus</code>, tied to the syntax by <code>x + y == binplus(x, y)</code>.  The theory characterizes the APPLICATIONS of these heads by axiom and says nothing about the heads.</li><li>A <strong>functoid</strong> denotes something that is not required to be an element of <code>SET</code>.  This is a large, somewhat amorphous category: the kernel set- and tuple-builders (<code>union</code>, <code>sep</code>, <code>power</code>, <code>fun</code>, <code>image</code>, …) whose arguments range over a proper class; every library constructor (<a class="x" href="DEFINITIONS.html#d-matmul"><code>matmul</code></a>, <a class="x" href="DEFINITIONS.html#d-mat-ring"><code>mat-ring</code></a>, the structure accessors, …); and the recursively-defined ones.  Some functoids can be regarded as functions, but a functoid is not required to be one.  <code>lambdoid</code> is the binder that constructs a functoid — the class-domain sibling of <code>vnb-lambda</code>.  Application is implicit: writing <code>f(args)</code> denotes <code>apply-functoid(f, args)</code> when <code>f</code> is a functoid and <code>apply-function(f, args)</code> when <code>f</code> is a function — these two application operators are never written by hand.  Whether an operator is a kernel primitive or a library definition is a matter of ORIGIN, recorded as metadata; it is not a VNB distinction and carries no semantic weight.  A kernel set-former is a functoid exactly as a library constructor is.</li><li>A <strong>predicate</strong> is an operator whose application to argument terms is a proposition — an entity whose value is either true or false.  The proposition and its truth value are two separate things in the mathematical universe: a predicate applied to terms always denotes a proposition, but the truth value of that proposition may not be known.</li></ul>
 <p>Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An <strong>undeclared</strong> head is a defect.</p>
-<p>1187 operators: 3 functions, 11 syntax, 644 functoids, 525 predicates, 4 undeclared.</p>
+<p>1194 operators: 3 functions, 11 syntax, 649 functoids, 527 predicates, 4 undeclared.</p>
 <p>&gt; <strong>⚠ Undeclared heads (mushrooms):</strong> <code>cos</code> <code>delete-at</code> <code>exp</code> <code>sin</code> — registered and usable but backed by no def or axiom.</p>
 <h3 id="OPERATORS__functions-3">Functions  (3)</h3>
 <p>A head is listed here exactly when the theory STATES that it is an element of a <code>FUN</code> set; the statement is named.  Nothing is claimed on a head&#x27;s behalf: this section was a hand-typed list until 2026-08-31, and every one of the fifteen heads on it (<code>+ - * recip abs exp sin cos sqrt</code> …) turned out to have no such statement anywhere in the theory.</p>
@@ -95,7 +95,7 @@
 <h4 id="OPERATORS__recip-syntax-the-head-denotes-nothing"><code>recip</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__rpow-syntax-the-head-denotes-nothing"><code>rpow</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__succ-syntax-the-head-denotes-nothing"><code>succ</code>  — syntax: the head denotes nothing</h4>
-<h3 id="OPERATORS__functoids-644">Functoids  (644)</h3>
+<h3 id="OPERATORS__functoids-649">Functoids  (649)</h3>
 <p>Term-valued operators that do NOT denote an element of <code>SET</code> — the big amorphous category.  Sub-labelled by how each is declared (<code>kernel term-former</code>; <code>def-functoid</code> body; <code>def-by-nn-recursion</code>; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  <code>def-functor</code> bridges live in <code>STRUCTURE-INDEX.md</code>; <code>lambdoid</code> (the functoid binder) is a parser-level form, not a registered head.</p>
 <h4 id="OPERATORS__/-characterized-by-axiom-s"><code>/</code>  — characterized by axiom(s)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-amgm-2-sqrt"><code>amgm-2-sqrt</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-le-arg"><code>bdd-fn-le-arg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-lt-one"><code>bdd-fn-lt-one</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-mono"><code>bdd-fn-mono</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-nonneg"><code>bdd-fn-nonneg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-subadd"><code>bdd-fn-subadd</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-zero"><code>bdd-fn-zero</code></a> <a class="x" href="THEOREMS.html#t-bdd-metric-distance"><code>bdd-metric-distance</code></a></p>
@@ -273,6 +273,8 @@
 <h4 id="OPERATORS__cc-sup-norm-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-cc-sup-norm"><code>cc-sup-norm</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the supremum norm of u on cpsxs_</p>
 <pre>cc-sup-norm(u, cpsxs_) := esup(image(vnb-lambda(cpsx_, cpsxs_, magnitude(u(cpsx_))), cpsxs_))</pre>
+<h4 id="OPERATORS__cc2-sphere-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-cc2-sphere"><code>cc2-sphere</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
+<p>&gt; _Reads as:_  the unit sphere S^3 of C^2</p>
 <h4 id="OPERATORS__ccint-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-ccint"><code>ccint</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the closed real interval [a, b]</p>
 <pre>ccint(a, b) := {x in rr: a &lt;= x and x &lt;= b}</pre>
@@ -885,6 +887,11 @@
 <h4 id="OPERATORS__homog-point-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-homog-point"><code>homog-point</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the point of the extended plane with homogeneous coordinates (u, v)</p>
 <pre>homog-point(u, v) := if(v = 0, cc-inf, u * recip(v))</pre>
+<h4 id="OPERATORS__hopf-map-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-hopf-map"><code>hopf-map</code></a>  — def-functoid · tuple/structure-valued</h4>
+<p>&gt; _Reads as:_  the Hopf map pi(w) = (2 u1 conj(u2), |u1|^2 - |u2|^2)</p>
+<pre>hopf-map(w) := [2 * (nth(1, w) * conjugate(nth(2, w))), magnitude(nth(1, w)) * magnitude(nth(1, w)) - magnitude(nth(2, w)) * magnitude(nth(2, w))]</pre>
+<h4 id="OPERATORS__hopf-quotient-map-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-hopf-quotient-map"><code>hopf-quotient-map</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
+<p>&gt; _Reads as:_  the bijection S^2 -&gt; C u {oo} through which the Hopf map factors</p>
 <h4 id="OPERATORS__id-fun-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-id-fun"><code>id-fun</code></a>  — def-functoid · function-valued</h4>
 <p>&gt; _Reads as:_  the identity map of a_</p>
 <pre>id-fun(a_) := vnb-lambda(idfx_, a_, idfx_)</pre>
@@ -1546,6 +1553,9 @@
 <h4 id="OPERATORS__submatrix-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-submatrix"><code>submatrix</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the s-by-s submatrix of a on the rows p and the columns q</p>
 <pre>submatrix(a, s, p, q) := matof(s, s, vnb-lambda([smi_, smj_], cartesian(interval(1, s), interval(1, s)), entry(a, p(smi_), q(smj_))))</pre>
+<h4 id="OPERATORS__submodule-norm-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-submodule-norm"><code>submodule-norm</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the norm N_E(F) of sm relative to md</p>
+<pre>submodule-norm(md, sm) := if(forsome([nmn_, nmx_, nmy_, nma_], is-norm-data(md, sm, nmn_, nmx_, nmy_, nma_)), iota(nmd_, forsome([nmn_, nmx_, nmy_, nma_], is-norm-data(md, sm, nmn_, nmx_, nmy_, nma_) and nmd_ = abs(det(zz-ring, nmn_, nma_)))), 0)</pre>
 <h4 id="OPERATORS__subseq-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-subseq"><code>subseq</code></a>  — def-functoid · function-valued</h4>
 <pre>subseq(f, phi) := vnb-lambda(k, nn, f(phi(k)))</pre>
 <h4 id="OPERATORS__subspace-ms-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-subspace-ms"><code>subspace-ms</code></a>  — def-functoid · tuple/structure-valued</h4>
@@ -1625,6 +1635,8 @@
 <h4 id="OPERATORS__union-kernel-term-former"><code>union</code>  — kernel term-former</h4>
 <h4 id="OPERATORS__unit-circle-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-unit-circle"><code>unit-circle</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
 <p>&gt; _Reads as:_  the unit circle {z : |z| = 1}</p>
+<h4 id="OPERATORS__unit-sphere-cr-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-unit-sphere-cr"><code>unit-sphere-cr</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
+<p>&gt; _Reads as:_  the unit sphere S^2 of C x R</p>
 <h4 id="OPERATORS__unitrow-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-unitrow"><code>unitrow</code></a>  — def-functoid · element/number-valued</h4>
 <pre>unitrow(a, n, i) := matof(1, n, vnb-lambda([rw, cl], cartesian(interval(1, 1), interval(1, n)), if(cl = i, one(a), zero(a))))</pre>
 <h4 id="OPERATORS__upper-half-plane-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-upper-half-plane"><code>upper-half-plane</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
@@ -1692,7 +1704,7 @@
 <h4 id="OPERATORS__zz-units-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-zz-units"><code>zz-units</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the unit vectors of Z^n</p>
 <pre>zz-units(n) := matof(n, 1, vnb-lambda([zua_, zub_], cartesian(interval(1, n), interval(1, 1)), vnb-lambda(zut_, interval(1, n), entry(unitrow(zz-ring, n, zua_), 1, zut_))))</pre>
-<h3 id="OPERATORS__predicates-525">Predicates  (525)</h3>
+<h3 id="OPERATORS__predicates-527">Predicates  (527)</h3>
 <p>Proposition-valued operators.  Their defining axiom is an <code>iff</code> on the applied head.  Full definitions in <code>DEFINITIONS.md</code>.</p>
 <h4 id="OPERATORS__&lt;-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-&lt;"><code>&lt;</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  x is less than y</p>
@@ -1982,6 +1994,8 @@
 <p>&gt; _Reads as:_  f has right derivative l at x</p>
 <h4 id="OPERATORS__holomorphic-on-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-holomorphic-on"><code>holomorphic-on</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  f is holomorphic on u</p>
+<h4 id="OPERATORS__homog-equiv-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-homog-equiv"><code>homog-equiv</code></a>  — def-predicate · proposition (arity 2)</h4>
+<p>&gt; _Reads as:_  u and w are proportional homogeneous coordinates</p>
 <h4 id="OPERATORS__hyps-in-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-hyps-in"><code>hyps-in</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  every entry of the list mchs_ is in mcs_</p>
 <h4 id="OPERATORS__improper-int-converges-to-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-improper-int-converges-to"><code>improper-int-converges-to</code></a>  — def-predicate · proposition (arity 2)</h4>
@@ -2306,6 +2320,8 @@
 <p>&gt; _Reads as:_  fld is a non-trivially valued normed field</p>
 <h4 id="OPERATORS__is-norm-def-predicate-proposition-arity-5"><a class="x" href="THEOREMS.html#t-is-norm"><code>is-norm</code></a>  — def-predicate · proposition (arity 5)</h4>
 <p>&gt; _Reads as:_  nm is a norm on crr</p>
+<h4 id="OPERATORS__is-norm-data-def-predicate-proposition-arity-6"><a class="x" href="THEOREMS.html#t-is-norm-data"><code>is-norm-data</code></a>  — def-predicate · proposition (arity 6)</h4>
+<p>&gt; _Reads as:_  xs freely generates md, ys is relation-free and spans sm, both of length n, and ys = am . xs</p>
 <h4 id="OPERATORS__is-normally-convergent-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-normally-convergent"><code>is-normally-convergent</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  the series of the functions u is normally convergent on cpsxs_</p>
 <h4 id="OPERATORS__is-normed-ag-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-is-normed-ag"><code>is-normed-ag</code></a>  — def-predicate · proposition (arity 1)</h4>

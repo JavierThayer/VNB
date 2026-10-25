@@ -9,6 +9,7 @@ the files at the root and the structure library by theory.
 ## structure-library: _unfiled
 
 - [ca-ac-vocab.scm](structure-library/ca-ac-vocab.scm)
+- [ca-hopf-vocab.scm](structure-library/ca-hopf-vocab.scm)
 - [ca-lft-vocab.scm](structure-library/ca-lft-vocab.scm)
 - [ca1-vocab.scm](structure-library/ca1-vocab.scm)
 - [ca5-function-spaces.scm](structure-library/ca5-function-spaces.scm)
@@ -24,6 +25,7 @@ the files at the root and the structure library by theory.
 - [la-z2-vocab.scm](structure-library/la-z2-vocab.scm)
 - [la-z3-vocab.scm](structure-library/la-z3-vocab.scm)
 - [la-z4-vocab.scm](structure-library/la-z4-vocab.scm)
+- [la-z5-vocab.scm](structure-library/la-z5-vocab.scm)
 - [lebesgue-translate.scm](structure-library/lebesgue-translate.scm)
 - [lp-inequalities.scm](structure-library/lp-inequalities.scm)
 - [lp-seminorm.scm](structure-library/lp-seminorm.scm)

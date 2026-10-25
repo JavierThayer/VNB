@@ -495,6 +495,7 @@
     ;; LA-Z3 / LA-Z4 (2026-10-24): quotient module, direct sums, Smith; free modules, Z^n, Schanuel.
     "structure-library/la-z3-vocab"
     "structure-library/la-z4-vocab"
+    "structure-library/la-z5-vocab"
     ;; User-added structures (auto-managed by Build Structure button)
     "structure-library/user-additions"
     ;; Reclassify hand-written defining iffs (property/class/membership defs)
@@ -1281,6 +1282,7 @@
     ;; makeset-basics because it is what retires that file's per-arity ladder.
     "theorem-library/tuples-induction"
     "theorem-library/tuple-extensionality"
+    "theorem-library/la-z5-card"
     ;; The LIST TABULATION primitive and what it builds: tuple-tabulation (for every
     ;; n and f there is a tuple whose i-th entry is f(i)), its row and matrix
     ;; versions, and then mat-tabulation-exists / matof-exists-image /
@@ -2688,6 +2690,10 @@
     "theorem-library/la-z4-exist"
     "theorem-library/la-z4-schanuel"
     "theorem-library/la-z4-unique"
+    "theorem-library/la-z5-norm"
+    "theorem-library/la-z5-zzmod"
+    "theorem-library/la-z5-dsumcard"
+    "theorem-library/la-z5-card52"
     ;; rake batch 5c (2026-09-18): completion-is-metric-space
     "theorem-library/rake-completion-ms"
     ;; 2026-09-20 (batch 12-D): completion-is-complete PROVEN.
@@ -3788,6 +3794,8 @@
     "theorem-library/ca-lft-group"
     "theorem-library/ca-lft-matrix"
     "theorem-library/ca-lft-sl2"
+    "structure-library/ca-hopf-vocab"
+    "theorem-library/ca-hopf-fibration"
     ;; preamble -- a STRATEGY, executed: (preamble '(induct) '(unfold ...)
     ;; '(instantiate) '(close)) runs the clause list against every open leaf,
     ;; commits ordinary tactics that each record themselves, and RETURNS the

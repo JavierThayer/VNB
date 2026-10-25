@@ -147,6 +147,7 @@
     "theorem-library/empty-cardinality"
     "theorem-library/tuples-induction"
     "theorem-library/tuple-extensionality"
+    "theorem-library/la-z5-card"
     "theorem-library/tuple-tabulation"
     "theorem-library/matof-in-mat"
     "theorem-library/makeset-card-bound"
@@ -285,6 +286,7 @@
     "structure-library/la-z2-vocab"
     "structure-library/la-z3-vocab"
     "structure-library/la-z4-vocab"
+    "structure-library/la-z5-vocab"
     "structure-library/mod-seq"
     "theorem-library/entry-in-carrier"
     "theorem-library/qq-vs-exemplification"
@@ -360,6 +362,10 @@
     "theorem-library/la-z4-exist"
     "theorem-library/la-z4-schanuel"
     "theorem-library/la-z4-unique"
+    "theorem-library/la-z5-norm"
+    "theorem-library/la-z5-zzmod"
+    "theorem-library/la-z5-dsumcard"
+    "theorem-library/la-z5-card52"
     "theorem-library/spans-transport-proof"
     "theorem-library/rake-asm-b4"
     "theorem-library/rank-bound-proof"
@@ -786,6 +792,8 @@
     "theorem-library/ca-lft-group"
     "theorem-library/ca-lft-matrix"
     "theorem-library/ca-lft-sl2"
+    "structure-library/ca-hopf-vocab"
+    "theorem-library/ca-hopf-fibration"
   ))
 
 (library measure
