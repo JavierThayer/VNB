@@ -35,13 +35,13 @@ glossary reader's question.  At the REPL: `(glossary 'NAME)`, or
 
 a term-forming head
 
-[mentioned by 1666 result(s)](BY-OPERATOR.md#*)
+[mentioned by 1662 result(s)](BY-OPERATOR.md#*)
 
 ### `+`  *(operator)*
 
 a term-forming head
 
-[mentioned by 1373 result(s)](BY-OPERATOR.md#+)
+[mentioned by 1371 result(s)](BY-OPERATOR.md#+)
 
 ### `-`  *(operator)*
 
@@ -176,9 +176,9 @@ characterized by `rr-nvs@act`  *(definitional)*:
 act(rr-nvs) == vnb-lambda([r_, x_], cartesian(rr, rr), r_ * x_)
 ```
 
-also: `qq-line@act` `cips-act-type` `module-act-type` `module-act-unital` `sipq-act-csip-as-sip` `submodule-act-closed` `module-act-mul-compat` `module-act-distrib-vec` ... (249 in all)
+also: `qq-line@act` `cips-act-type` `module-act-type` `module-act-unital` `sipq-act-csip-as-sip` `submodule-act-closed` `module-act-mul-compat` `module-act-distrib-vec` ... (246 in all)
 
-[mentioned by 1263 result(s)](BY-OPERATOR.md#act)
+[mentioned by 1249 result(s)](BY-OPERATOR.md#act)
 
 ### `add(s)`  *(accessor)*
 
@@ -192,9 +192,9 @@ characterized by `rq-add`  *(definitional)*:
 forall([r], add(ringoid-quotient-ring(r)) == descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (add(r))(a, b)))))
 ```
 
-also: `qq-ring@add` `zz-ring@add` `qq-field@add` `ring-add-comm` `ring-add-assoc` `ring-add-left-id` `ring-add-left-inv` `ringoid-ideal-add` ... (72 in all)
+also: `qq-ring@add` `zz-ring@add` `qq-field@add` `ring-add-comm` `ring-add-assoc` `ring-add-left-id` `ring-add-left-inv` `ringoid-ideal-add` ... (71 in all)
 
-[mentioned by 449 result(s)](BY-OPERATOR.md#add)
+[mentioned by 447 result(s)](BY-OPERATOR.md#add)
 
 ### `adj(r, n, a)`  *(functoid)*
 
@@ -1120,9 +1120,9 @@ characterized by `rq-carr`  *(definitional)*:
 forall([r], carr(ringoid-quotient-ring(r)) == quotient(ringoid-setoid(r)))
 ```
 
-also: `qq-ring@carr` `zz-ring@carr` `qq-field@carr` `lft-group@carr` `cips-scal-carrier` `nf-metric-carrier` `nn-add-monoid@carr` `ringoid-carr-in-set` ... (83 in all)
+also: `qq-ring@carr` `zz-ring@carr` `qq-field@carr` `lft-group@carr` `cips-scal-carrier` `nf-metric-carrier` `nn-add-monoid@carr` `ringoid-carr-in-set` ... (82 in all)
 
-[mentioned by 2262 result(s)](BY-OPERATOR.md#carr)
+[mentioned by 2246 result(s)](BY-OPERATOR.md#carr)
 
 ### `cartesian`  *(operator)*
 
@@ -1136,7 +1136,7 @@ forall([a, b], cartesian(a, b) in set iff a in set and b in set)
 
 also: `cartesian-nth` `card-cartesian` `cartesian-mono` `cartesian3-set` `cartesian4-set` `cartesian5-set` `card-cartesian-nn` `cartesian-pair-eq` ... (14 in all)
 
-[mentioned by 590 result(s)](BY-OPERATOR.md#cartesian)
+[mentioned by 586 result(s)](BY-OPERATOR.md#cartesian)
 
 ### `cauchy-setoid(m)`  *(functoid)*
 
@@ -2290,7 +2290,7 @@ conjugate(1i) = -1i
 
 also: `cc-conjugate-add` `cc-conjugate-mul` `cc-conjugate-closed` `cc-conjugate-fixes-rr` `cc-conjugate-involution` `cc-conjugate-neg` `cc-conjugate-sub` `cc-conjugate-power` ... (12 in all)
 
-[mentioned by 82 result(s)](BY-OPERATOR.md#conjugate)
+[mentioned by 78 result(s)](BY-OPERATOR.md#conjugate)
 
 ### `cons`  *(operator)*
 
@@ -7860,9 +7860,9 @@ characterized by `hyps-in`  *(definitional)*:
 forall([mchs_, mcs_], hyps-in(mchs_, mcs_) iff forall([mci_ in nn], 1 <= mci_ implies mci_ <= length(mchs_) implies nth(mci_, mchs_) in mcs_))
 ```
 
-also: `is-ring` `is-chain` `inst-step` `def-binder` `is-ringoid` `ring-class` `rr-min-def` `cr-tbind-cr` ... (2254 in all)
+also: `is-ring` `is-chain` `inst-step` `def-binder` `is-ringoid` `ring-class` `rr-min-def` `cr-tbind-cr` ... (2249 in all)
 
-[mentioned by 10848 result(s)](BY-OPERATOR.md#in)
+[mentioned by 10741 result(s)](BY-OPERATOR.md#in)
 
 ### `index-of(ssn_)`  *(functoid)*
 
@@ -8076,7 +8076,7 @@ forall([r], is-semi-inner-product-space(r) implies forall([s1], is-submodule(sip
 
 also: `submodule-intersection-sip-as-module-csip-as-sip` `intersection-decompose` `intersection-membership` `intersection-set-closure` `cartesian-intersection` `submodule-intersection` `translate-intersection` `intersection-empty-transfer` ... (9 in all)
 
-[mentioned by 110 result(s)](BY-OPERATOR.md#intersection)
+[mentioned by 109 result(s)](BY-OPERATOR.md#intersection)
 
 ### `intersection-of(c)`  *(functoid)*
 
@@ -8782,7 +8782,7 @@ characterized by `is-complex-semi-inner-product-space`  *(definitional)*:
 forall([s], is-complex-semi-inner-product-space(s) iff length(s) = 8 and is-ring(scal(s)) and vec(s) in set and vadd(s) in fun(cartesian(vec(s), vec(s)), vec(s)) and vzero(s) in vec(s) and vneg(s) in fun(vec(s), vec(s)) and act(s) in fun(cartesian(carr(scal(s)), vec(s)), vec(s)) and rip(s) in fun(cartesian(vec(s), vec(s)), rr) and jop(s) in fun(vec(s), vec(s)) and is-semi-inner-product-space([scal(s), vec(s), vadd(s), vzero(s), vneg(s), act(s), rip(s)]) and is-real-linear-op(s, jop(s)) and is-square-minus-id(s, jop(s)) and is-antisymmetric-op(s, jop(s)))
 ```
 
-[mentioned by 1530 result(s)](BY-OPERATOR.md#is-complex-semi-inner-product-space)
+[mentioned by 1473 result(s)](BY-OPERATOR.md#is-complex-semi-inner-product-space)
 
 ### `is-concat-trace(sasp_, sas_)`  *(predicate)*
 
@@ -10450,7 +10450,7 @@ forall([s], is-module(s) iff length(s) = 6 and is-ring(scal(s)) and vec(s) in se
 
 also: `sip-as-module-is-module` `sip-as-module-is-module-csip-as-sip` `normed-vector-space-as-module-is-module` `quotient-module-is-module-sip-as-module` `complex-inner-product-space-as-module-is-module` `quotient-module-is-module-sip-as-module-csip-as-sip` `zz-mod-is-module` `zz-pow-is-module` ... (15 in all)
 
-[mentioned by 552 result(s)](BY-OPERATOR.md#is-module)
+[mentioned by 537 result(s)](BY-OPERATOR.md#is-module)
 
 ### `is-monoid(s)`  *(predicate)*
 
@@ -11266,7 +11266,7 @@ forall([s], is-semi-inner-product-space(s) iff length(s) = 7 and is-ring(scal(s)
 
 also: `csip-as-sip-is-semi-inner-product-space` 
 
-[mentioned by 920 result(s)](BY-OPERATOR.md#is-semi-inner-product-space)
+[mentioned by 891 result(s)](BY-OPERATOR.md#is-semi-inner-product-space)
 
 ### `is-semigroup(s)`  *(predicate)*
 
@@ -11414,7 +11414,7 @@ forall([omega, ca], is-sigma-algebra(omega, ca) iff omega in set and ca subset p
 
 also: `dynkin-pi-is-sigma-algebra` `product-sigma-is-sigma-algebra` `sigma-generated-is-sigma-algebra` 
 
-[mentioned by 71 result(s)](BY-OPERATOR.md#is-sigma-algebra)
+[mentioned by 69 result(s)](BY-OPERATOR.md#is-sigma-algebra)
 
 ### `is-sigma-finite(omega, ca, mu)`  *(predicate)*
 
@@ -12385,7 +12385,7 @@ forall([mdt_, mdhs_, mdc_], def-list(mdt_, mdhs_, mdc_) iff mdc_ in seq-set and 
 
 also: `cr-def-list` `def-nth-list` `der-list-hole` `nsl-list-source` `rb5-nary-plus-2-list-cc` `rb5-nary-plus-3-list-cc` `rb5-nary-plus-4-list-cc` `rb5-nary-plus-5-list-cc` ... (12 in all)
 
-[mentioned by 1035 result(s)](BY-OPERATOR.md#list)
+[mentioned by 1031 result(s)](BY-OPERATOR.md#list)
 
 ### `little-o-at(g, a)`  *(predicate)*
 
@@ -12500,7 +12500,7 @@ forall([z], magnitude(z) == sqrt(real-part(z) * real-part(z) + imag-part(z) * im
 
 also: `cc-magnitude-i` `half-magnitude` `cc-magnitude-sq` `rr-magnitude-sq` `cc-exp-magnitude` `cc-magnitude-mul` `cc-magnitude-neg` `cc-magnitude-one` ... (40 in all)
 
-[mentioned by 316 result(s)](BY-OPERATOR.md#magnitude)
+[mentioned by 312 result(s)](BY-OPERATOR.md#magnitude)
 
 ### `make-set`  *(operator)*
 
@@ -13286,9 +13286,9 @@ characterized by `rq-mul`  *(definitional)*:
 forall([r], mul(ringoid-quotient-ring(r)) == descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (mul(r))(a, b)))))
 ```
 
-also: `qq-ring@mul` `zz-ring@mul` `qq-field@mul` `ring-mul-assoc` `ring-mul-left-id` `ring-mul-right-id` `cc-normed-field@mul` `rr-normed-field@mul` ... (88 in all)
+also: `qq-ring@mul` `zz-ring@mul` `qq-field@mul` `ring-mul-assoc` `ring-mul-left-id` `ring-mul-right-id` `cc-normed-field@mul` `rr-normed-field@mul` ... (87 in all)
 
-[mentioned by 609 result(s)](BY-OPERATOR.md#mul)
+[mentioned by 607 result(s)](BY-OPERATOR.md#mul)
 
 ### `mul-inv(s)`  *(accessor)*
 
@@ -13639,7 +13639,7 @@ forall([r], is-normed-field(r) implies is-commutative-ring(normed-field-as-commu
 
 also: `commutative-ring-additive-ag-is-abelian-group-normed-field-as-commutative-ring` `commutative-ring-multiplicative-cm-is-comm-monoid-normed-field-as-commutative-ring` `abelian-group-as-monoid-is-monoid-commutative-ring-additive-ag-normed-field-as-commutative-ring` `normed-field-as-commutative-ring-functorial` 
 
-[mentioned by 650 result(s)](BY-OPERATOR.md#normed-field-as-commutative-ring)
+[mentioned by 640 result(s)](BY-OPERATOR.md#normed-field-as-commutative-ring)
 
 ### `normed-field-as-integral-domain(s)`  *(view)*
 
@@ -13890,9 +13890,9 @@ characterized by `rq-one`  *(definitional)*:
 forall([r], one(ringoid-quotient-ring(r)) == class(ringoid-setoid(r), one(r)))
 ```
 
-also: `qq-ring@one` `zz-ring@one` `qq-field@one` `cc-normed-field@one` `rr-normed-field@one` `hbs-one-eq-sip-as-module` `rb3-c-one-eq-sip-as-module` `lza-vadd-neg-one-sip-as-module` ... (40 in all)
+also: `qq-ring@one` `zz-ring@one` `qq-field@one` `cc-normed-field@one` `rr-normed-field@one` `hbs-one-eq-sip-as-module` `rb3-c-one-eq-sip-as-module` `lza-vadd-neg-one-sip-as-module` ... (39 in all)
 
-[mentioned by 376 result(s)](BY-OPERATOR.md#one)
+[mentioned by 374 result(s)](BY-OPERATOR.md#one)
 
 ### `ooint(a, b)`  *(functoid)*
 
@@ -17064,7 +17064,7 @@ forall([m], scal(dual(m)) == rr-normed-field)
 
 also: `rr-nvs@scal` `qq-line@scal` `cips-scal-carrier` `module-scalar-ring` `module-scalar-zero-in` `sipq-scal-csip-as-sip` `sip-scal-pin-csip-as-sip` `module-act-distrib-scalar` ... (104 in all)
 
-[mentioned by 1728 result(s)](BY-OPERATOR.md#scal)
+[mentioned by 1714 result(s)](BY-OPERATOR.md#scal)
 
 ### `schanuel-map(m, n, la, lb)`  *(functoid)*
 
@@ -18898,9 +18898,9 @@ characterized by `rel-big-union-mem-elim`  *(definitional)*:
 forall([mit_, mihs_, mic_], rel-big-union-mem-elim(mit_, mihs_, mic_) iff mic_ in seq-set and forsome([mig_, mif_, mia_, mib_, mix_, mie_], mic_ = [mig_, mif_] and enc-in(mix_, enc-bu(mia_, mib_)) in mig_ and mie_ in nn and not(mie_ in union(ctx-fv(mig_), expr-fv(mif_))) and mihs_ = [[ctx-add(ctx-add(difference(mig_, pair(enc-in(mix_, enc-bu(mia_, mib_)), enc-in(mix_, enc-bu(mia_, mib_)))), enc-in(efvar(mie_), mia_)), enc-in(mix_, expr-open(mib_, 0, efvar(mie_)))), mif_]]))
 ```
 
-also: `union-decompose` `union-membership` `union-set-closure` `union-comm` `union-assoc` `ae-null-union` `card-union-nn` `rb2-dist-union` ... (40 in all)
+also: `union-decompose` `union-membership` `union-set-closure` `union-comm` `union-assoc` `ae-null-union` `card-union-nn` `rb2-dist-union` ... (39 in all)
 
-[mentioned by 201 result(s)](BY-OPERATOR.md#union)
+[mentioned by 200 result(s)](BY-OPERATOR.md#union)
 
 ### `uniquely-originates(ssp_, ssu_)`  *(predicate)*
 
@@ -18969,7 +18969,7 @@ vadd(rr-nvs) == vnb-lambda([x_, y_], cartesian(rr, rr), x_ + y_)
 
 also: `qq-line@vadd` `cips-vadd-type` `cips-vadd-vzero` `module-vadd-type` `sipq-vadd-csip-as-sip` `submodule-vadd-closed` `lzq-d-vadd-sip-as-module` `sip-vadd-fun-csip-as-sip` ... (112 in all)
 
-[mentioned by 1551 result(s)](BY-OPERATOR.md#vadd)
+[mentioned by 1481 result(s)](BY-OPERATOR.md#vadd)
 
 ### `var-permute(r, n, s, p)`  *(functoid)*
 
@@ -19001,9 +19001,9 @@ characterized by `rr-nvs@vec`  *(definitional)*:
 vec(rr-nvs) == rr
 ```
 
-also: `qq-line@vec` `cips-ip-zero-vector` `dual-vec-membership` `sipq-vec-csip-as-sip` `is-normed-vector-space` `module-act-distrib-vec` `sip-vec-set-csip-as-sip` `sipq-vec-set-csip-as-sip` ... (129 in all)
+also: `qq-line@vec` `cips-ip-zero-vector` `dual-vec-membership` `sipq-vec-csip-as-sip` `is-normed-vector-space` `module-act-distrib-vec` `sip-vec-set-csip-as-sip` `sipq-vec-set-csip-as-sip` ... (126 in all)
 
-[mentioned by 3065 result(s)](BY-OPERATOR.md#vec)
+[mentioned by 2964 result(s)](BY-OPERATOR.md#vec)
 
 ### `vector-space`  *(refinement)*
 
@@ -19019,7 +19019,7 @@ declared in `tactics-help.scm`
 
 a term-forming head
 
-[mentioned by 1727 result(s)](BY-OPERATOR.md#vnb-lambda)
+[mentioned by 1723 result(s)](BY-OPERATOR.md#vnb-lambda)
 
 ### `vneg(s)`  *(accessor)*
 
@@ -19035,7 +19035,7 @@ vneg(rr-nvs) == vnb-lambda(x_, rr, -x_)
 
 also: `qq-line@vneg` `module-vneg-type` `sipq-vneg-csip-as-sip` `submodule-vneg-closed` `lzq-d-vneg-sip-as-module` `sip-vneg-fun-csip-as-sip` `sip-null-vneg-csip-as-sip` `sipq-vneg-fun-csip-as-sip` ... (76 in all)
 
-[mentioned by 892 result(s)](BY-OPERATOR.md#vneg)
+[mentioned by 808 result(s)](BY-OPERATOR.md#vneg)
 
 ### `vnrm(s)`  *(accessor)*
 
@@ -19065,9 +19065,9 @@ characterized by `rr-nvs@vzero`  *(definitional)*:
 vzero(rr-nvs) == 0
 ```
 
-also: `cips-vzero-in` `qq-line@vzero` `cips-vadd-vzero` `module-vzero-in` `submodule-vzero-in` `sipq-vzero-csip-as-sip` `sip-vzero-in-csip-as-sip` `hbs-vzero-l-sip-as-module` ... (69 in all)
+also: `cips-vzero-in` `qq-line@vzero` `cips-vadd-vzero` `module-vzero-in` `submodule-vzero-in` `sipq-vzero-csip-as-sip` `sip-vzero-in-csip-as-sip` `hbs-vzero-l-sip-as-module` ... (66 in all)
 
-[mentioned by 648 result(s)](BY-OPERATOR.md#vzero)
+[mentioned by 592 result(s)](BY-OPERATOR.md#vzero)
 
 
 ## W
@@ -19303,9 +19303,9 @@ characterized by `rq-zero`  *(definitional)*:
 forall([r], zero(ringoid-quotient-ring(r)) == class(ringoid-setoid(r), zero(r)))
 ```
 
-also: `sum-zero` `comb-kk-zero` `qq-ring@zero` `ring-zero-in` `zz-ring@zero` `qq-field@zero` `ringoid-ideal-zero` `cc-normed-field@zero` ... (77 in all)
+also: `sum-zero` `comb-kk-zero` `qq-ring@zero` `ring-zero-in` `zz-ring@zero` `qq-field@zero` `ringoid-ideal-zero` `cc-normed-field@zero` ... (76 in all)
 
-[mentioned by 491 result(s)](BY-OPERATOR.md#zero)
+[mentioned by 489 result(s)](BY-OPERATOR.md#zero)
 
 ### `zero-it`  *(tactic)*
 

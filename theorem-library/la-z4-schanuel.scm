@@ -580,7 +580,7 @@
             (lzc-uv! 'la 'lb z)
             (fact 'seq-join-vec 'm 'n (lzc-u 'la 'lb z) (lzc-v 'la 'lb z))
             (ass)))))
-  (lambda () (fact 'lzq-vec-set '(ZZ-POW m)) (ass)))
+  (lambda () (fact 'frm-module-vec-set '(ZZ-POW m)) (ass)))
 (lzc-done! 'schanuel-type)
 
 ;; HEAD and SHIFT of (SC z), rewritten in the GOAL

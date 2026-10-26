@@ -700,10 +700,10 @@
                (_6 (dk-split-all! (list (dk-cite! 'cc-re-im-of v p q))))
                (w (lambda (j) (list h (list phi (list psi j)))))
                ;; E: |h(phi(psi j)) - v| <= eps eventually
-               (E (list 'FORALL 'wcve_ (list 'IMPLIES '(POS-RR wcve_) (list 'FORSOME 'wcvn_ (list 'AND '(IN wcvn_ NN)
+               (wcv-ef (list 'FORALL 'wcve_ (list 'IMPLIES '(POS-RR wcve_) (list 'FORSOME 'wcvn_ (list 'AND '(IN wcvn_ NN)
                     (list 'FORALL 'wcvj_ (list 'IMPLIES '(IN wcvj_ NN) (list 'IMPLIES '(<= wcvn_ wcvj_)
                       (list '<= (list 'magnitude (list '- (w 'wcvj_) v)) 'wcve_))))))))))
-          (dk-have! E
+          (dk-have! wcv-ef
             (lambda ()
               (let* ((e (cadr (wcv-first-of (filter (lambda (f) (wcv-op? f 'POS-RR 2)) (dk-peel!)))))
                      (d (begin (fact (quote rr-pos-rr-in-rr) e) (dk-halve! e)))
@@ -749,7 +749,7 @@
                             (wcv-rr! (list 'ABS (list '- (list 'real-part wj) p)))
                             (wcv-rr! (list 'ABS (list '- (list 'imag-part wj) q)))
                             (dk-ineq! co2 a1c a2c (list '= (list '+ d d) e))))))))))
-          (set! wcv-E-ctx (dk-ctx-form E))
+          (set! wcv-E-ctx (dk-ctx-form wcv-ef))
           ;; v lies in the disc
           (dk-have! (list '<= (list 'magnitude (list '- v 'wcvc_)) 'wcvr_)
             (lambda ()

@@ -406,30 +406,82 @@
    '()
    (reverse (cfl--quoted-data form '()))))
 
-(define (case-fold-local-lint-text text)
+;;; A LOCAL NAME AGAINST A TOP-LEVEL ONE (2026-10-25, KIT-5 item 7; LA-Z5
+;;; finding 1).  The per-form walk compares the binders of ONE top-level form,
+;;; so the shape LA-Z5 described -- `I' bound by an outer let* of a define, `i'
+;;; by a let* inside a lambda of the same define -- IS reported (the KIT-5 probe
+;;; ran the lint on la-z5-card52.scm with its `ivl' renamed back to `I': "in
+;;; lz5q-main!: I i -> i").  What no walk compared is a local binder against a
+;;; TOP-LEVEL define of the same file: `(define LZ-I ...)' at the top and
+;;; `(let ((lz-i ...)) ...)' in a helper are one symbol, and inside the let every
+;;; reference meant for the top-level value reads the local one.  The text is now
+;;; read once into its forms; the top-level define spellings are collected
+;;; first, and each form's binders are tested against them as well.  Such an
+;;; entry is labelled "<form> (against a top-level define)".
+(define (cfl--read-forms text)
   (let ((port (string->input-port text)))
-        (parameterize ((param:reader-fold-case? #f))
-          (let loop ((acc '()))
-            (let ((f (read port)))
-              (if (eof-object? f)
-                  (reverse acc)
-                  (loop (let* ((cols (if (pair? f) (cfl--form-collisions f) '()))
-                               (acc (if (pair? cols) (cons (cons (cfl--form-name f) cols) acc) acc))
-                               (qcols (if (pair? f) (cfl--quoted-collisions f) '())))
-                          (if (pair? qcols)
-                              (cons (cons (string-append (cfl--form-name f) " (a quoted datum)") qcols) acc)
-                              acc)))))))))
+    (parameterize ((param:reader-fold-case? #f))
+      (let loop ((acc '()))
+        (let ((f (read port)))
+          (if (eof-object? f) (reverse acc) (loop (cons f acc))))))))
+
+(define (cfl--toplevel-collisions form tops)
+  (let ((out '()))
+    (for-each (lambda (b)
+                (if (symbol? b)
+                    (let ((s (symbol->string b)))
+                      (for-each (lambda (d)
+                                  (if (and (not (string=? s d)) (string-ci=? s d))
+                                      (let ((c (cfd--collisions (list d s))))
+                                        (if (and (pair? c) (not (member (car c) out)))
+                                            (set! out (cons (car c) out))))))
+                                tops))))
+              (cfl--binders form #t '()))
+    (reverse out)))
+
+(define (cfl--forms-collisions forms)
+  (let ((tops (filter (lambda (s) s) (map cfd--define-target forms))))
+    (let loop ((fs forms) (acc '()))
+      (if (null? fs)
+          (reverse acc)
+          (let* ((f (car fs))
+                 (cols (if (pair? f) (cfl--form-collisions f) '()))
+                 (acc (if (pair? cols) (cons (cons (cfl--form-name f) cols) acc) acc))
+                 (qcols (if (pair? f) (cfl--quoted-collisions f) '()))
+                 (acc (if (pair? qcols)
+                          (cons (cons (string-append (cfl--form-name f) " (a quoted datum)") qcols) acc)
+                          acc))
+                 (tcols (if (pair? f) (cfl--toplevel-collisions f tops) '())))
+            (loop (cdr fs)
+                  (if (pair? tcols)
+                      (cons (cons (string-append (cfl--form-name f) " (against a top-level define)") tcols) acc)
+                      acc)))))))
+
+(define (case-fold-local-lint-text text)
+  (cfl--forms-collisions (cfl--read-forms text)))
 
 (define (case-fold-local-lint! file path)
-  (let ((hits
-         (and (file-exists? path)
-              (call-with-current-continuation
-                (lambda (k)
-                  (with-exception-handler (lambda (e) (k '()))
-                    (lambda () (case-fold-local-lint-text (cfd--slurp path)))))))))
+  (let* ((forms
+          (and (file-exists? path)
+               (call-with-current-continuation
+                 (lambda (k)
+                   (with-exception-handler (lambda (e) (k #f))
+                     (lambda () (cfl--read-forms (cfd--slurp path))))))))
+         (hits (if forms
+                   (call-with-current-continuation
+                     (lambda (k)
+                       (with-exception-handler (lambda (e) (k '()))
+                         (lambda () (cfl--forms-collisions forms)))))
+                   '())))
+    ;; the recording-order lint reads the same forms (KIT-5): no second read
+    (if forms (recording-order-lint-forms! file forms))
     (when (pair? hits)
       (set! *case-fold-local-collisions*
-            (cons (cons file hits) *case-fold-local-collisions*))
+            (cons (cons file hits) *case-fold-local-collisions*)))
+    ;; Per-file lines only for a probe or a wrapper load (as the recording-order lint
+    ;; below): a load prints the roll-up (`report-case-fold-defines').
+    (when (and (pair? hits)
+               (or (not (cfl--proof-file? file)) (string-search-forward "__" file 0)))
       (display ";VNB warning: case-fold lint: ") (display file)
       (display " binds two LOCAL names MIT Scheme reads as ONE:\n")
       (for-each (lambda (h)
@@ -442,6 +494,211 @@
       (display ";              The inner binding silently SHADOWS (or replaces) the other; inside one quoted\n")
       (display ";              datum the two spellings are ONE symbol (a statement's x and X read as one variable).\n"))
     (if (pair? hits) hits '())))
+
+;;; =======================================================================
+;;; THE RECORDING-ORDER LINT (2026-10-25, KIT-5 item 7; LA-Z6 finding 4).
+;;;
+;;;     (let ((a (dk-cite! 'x ...)) (b (dk-cite! 'y ...))) ...)
+;;;     (chain! (dk-cite! ...) (dk-cite! ...))
+;;;
+;;; Two RECORDING calls -- calls that take a proof step -- whose order the
+;;; language leaves unspecified: the inits of a `let', the arguments of one
+;;; application.  MIT evaluates arguments right to left, and compiled and
+;;; interpreted code do not agree on the order of a `let''s inits: the first
+;;; extend-band compare mismatch (2026-09-24) was such a driver, its page
+;;; recorded in one order by the cold load and in the other by the extension.
+;;; LA-Z6 met the argument-list form and found it only by reading its own file:
+;;; it passed every probe.  `let*', `begin', `cond', `and', `or', `if' fix the
+;;; order and are not findings.
+;;;
+;;; A RECORDING CALL is, syntactically: an application whose head is a surface
+;;; tactic (the names `vnb--run!' records, plus the composites and the kit's
+;;; thunk-runners such as `dk-landed' and `quietly' when their thunk records),
+;;; or whose head symbol ends in `!' and is not a Scheme mutator (`set-car!',
+;;; `hash-table-set!', ...) -- the kit's and the drivers' naming convention.
+;;; A `lambda' is not evaluated where it stands, so its body never counts toward
+;;; the enclosing form (`(dk-have! claim (lambda () ...))' is one call).  Quoted
+;;; data are skipped.  WARN-ONLY; run with the case-fold local lint (same read
+;;; of the file), on every proof file of a load and every file a probe loads by
+;;; a literal path; `report-case-fold-defines' prints the roll-up.
+(define *recording-order-findings* '())     ; (file (form-name head (rec-head ...)) ...)
+
+(define cro--tactics
+  '(ai apply-thm arith ass bc beta bu-me bu-mi bu-set ce ci comp-me comp-mi crs cut di ew
+    fact grind ie if-false if-true ii ineq inst inst+ iota-d iota-e keep lam-b lam-b-h lam-t
+    len-r mac mac-h mac-h* macm ni nth-r oi-l oi-r pbc qrfl rfl rs sep-me sep-mi sep-set simp
+    slot slot-h sos subst ta te tfi tfi3 ti ue ui wk zero-it
+    use-em use-cases prop contra prep type-term preamble obtain focus sp qed mp push-not
+    push-not-h in-rr from-context ew-poly backup-one undo))
+
+;;; take a thunk and RUN it: a call records when its thunk does
+(define cro--thunk-runners
+  '(dk-landed dk-landed* dk-landed-1 dk-landed-find dk-deepest dk-opened quietly vnb-guard
+    dk--silently dk--transaction call-with-current-continuation with-exception-handler
+    dynamic-wind))
+
+(define cro--mutators
+  '(set! set-car! set-cdr! vector-set! string-set! list-set! vector-fill! string-fill!
+    hash-table-set! hash-table-update! hash-table-update!/default hash-table-delete!
+    hash-table-clear! bytevector-u8-set! set-cdr! 1d-table/put! 2d-put! fluid-let))
+
+(define (cro--bang? s)
+  (and (symbol? s)
+       (not (memq s cro--mutators))
+       (let ((str (symbol->string s)))
+         (and (> (string-length str) 1)
+              (char=? (string-ref str (- (string-length str) 1)) #\!)))))
+
+(define (cro--lambda? e) (and (pair? e) (memq (car e) '(lambda named-lambda))))
+
+;;; THE SHAPES.  An expression is classified once, here, so the two walks below
+;;; agree on what is an expression: a binding list, a cond clause, a lambda's
+;;; parameter list are NOT applications (a variable named `ti' or `ii' -- both
+;;; tactic names -- heading a binding pair is not a call of the tactic).
+;;; (cro--parts E) => (KIND . STUFF):
+;;;   (skip)                     quoted data, a lambda (not run where it stands)
+;;;   (seq EXPR ...)             subexpressions evaluated in a FIXED order
+;;;   (unordered (INIT ...) EXPR ...)  a let's inits (unordered), then the body
+;;;   (runner EXPR ...)          a thunk-runner: its lambdas' bodies are RUN
+;;;   (app HEAD EXPR ...)        an application; HEAD the symbol or #f
+(define (cro--binding-inits bs)
+  (if (list? bs) (filter-map (lambda (b) (and (pair? b) (pair? (cdr b)) (cadr b))) bs) '()))
+
+(define (cro--clauses cls)                  ; cond / guard clauses: their expressions
+  (append-map (lambda (cl) (if (list? cl) (filter (lambda (e) (not (eq? e '=>))) cl) '())) cls))
+
+(define (cro--parts e)
+  (let ((h (car e)) (r (cdr e)))
+    (cond
+      ((memq h '(quote quasiquote define-record-type define-syntax let-syntax letrec-syntax
+                 syntax-rules delay delay-force make-promise cons-stream))
+       '(skip))
+      ((memq h '(lambda named-lambda case-lambda)) '(skip))
+      ((not (list? r)) '(skip))
+      ((and (memq h '(let letrec fluid-let)) (pair? r))
+       (if (and (eq? h 'let) (symbol? (car r)))
+           (if (pair? (cdr r)) (cons 'unordered (cons (cro--binding-inits (cadr r)) (cddr r))) '(skip))
+           (cons 'unordered (cons (cro--binding-inits (car r)) (cdr r)))))
+      ((and (memq h '(let* letrec* parameterize let-values let*-values)) (pair? r))
+       (cons 'seq (append (cro--binding-inits (car r)) (cdr r))))
+      ((and (eq? h 'receive) (pair? r)) (cons 'seq (cdr r)))
+      ((and (eq? h 'define-values) (pair? r)) (cons 'seq (cdr r)))
+      ((and (eq? h 'define) (pair? r))
+       (if (pair? (car r)) '(skip) (cons 'seq (cdr r))))   ; (define (f) ..) runs nothing
+      ((eq? h 'cond) (cons 'seq (cro--clauses r)))
+      ((and (eq? h 'case) (pair? r))
+       (cons 'seq (cons (car r) (append-map (lambda (cl) (if (list? cl) (cdr cl) '())) (cdr r)))))
+      ((and (eq? h 'guard) (pair? r) (pair? (car r)))
+       (cons 'seq (append (cdr r) (cro--clauses (cdar r)))))
+      ((and (eq? h 'do) (pair? r) (list? (car r)))
+       (cons 'seq (append (append-map (lambda (b) (if (list? b) (cdr b) '())) (car r))
+                          (if (and (pair? (cdr r)) (list? (cadr r))) (cadr r) '())
+                          (if (pair? (cdr r)) (cddr r) '()))))
+      ((memq h '(if and or when unless begin assert the-environment declare-structure vlet bc*))
+       (cons 'seq r))
+      ((and (symbol? h) (memq h cro--thunk-runners)) (cons 'runner r))
+      ((symbol? h) (cons 'app (cons h r)))
+      (#t (cons 'app (cons #f e))))))
+
+;;; The recording heads E calls when it is EVALUATED (not inside a lambda it
+;;; builds, not inside quoted data), in order of appearance.
+(define (cro--recording-heads e)
+  (if (not (pair? e))
+      '()
+      (let ((p (cro--parts e)))
+        (case (car p)
+          ((skip) '())
+          ((seq) (append-map cro--recording-heads (cdr p)))
+          ((unordered) (append (append-map cro--recording-heads (cadr p))
+                               (append-map cro--recording-heads (cddr p))))
+          ((runner) (append-map (lambda (a)
+                                  (if (and (pair? a) (memq (car a) '(lambda named-lambda)))
+                                      (append-map cro--recording-heads
+                                                  (if (eq? (car a) 'lambda) (cddr a) (cddr a)))
+                                      (cro--recording-heads a)))
+                                (cdr p)))
+          (else (let ((h (cadr p)))
+                  (append (if (and h (or (memq h cro--tactics) (cro--bang? h))) (list h) '())
+                          (append-map cro--recording-heads (cddr p)))))))))
+
+(define (cro--records? e) (pair? (cro--recording-heads e)))
+
+;;; Findings in the expression X of the top-level form NAME, consed onto ACC.
+;;; A finding is (NAME HEAD (RECORDING-HEAD ...)): HEAD is `let' / `letrec' /
+;;; `fluid-let' for unordered inits, else the head of the application.
+(define (cro--finding name head exprs acc)
+  (let ((recs (filter cro--records? exprs)))
+    (if (and (pair? recs) (pair? (cdr recs)))
+        (cons (list name head (append-map cro--recording-heads recs)) acc)
+        acc)))
+
+(define (cro--walk x name acc)
+  (if (not (pair? x))
+      acc
+      (let ((p (cro--parts x)))
+        (case (car p)
+          ((skip)
+           ;; a lambda's BODY is code: walk it on its own
+           (if (and (memq (car x) '(lambda named-lambda)) (pair? (cdr x)))
+               (cro--walk-list (cddr x) name acc)
+               (if (and (eq? (car x) 'define) (pair? (cdr x)) (pair? (cadr x)))
+                   (cro--walk-list (cddr x) name acc)
+                   acc)))
+          ((seq runner) (cro--walk-list (cdr p) name acc))
+          ((unordered)
+           (cro--walk-list (cddr p) name
+                           (cro--walk-list (cadr p) name (cro--finding name (car x) (cadr p) acc))))
+          (else
+           (let ((parts (if (cadr p) (cddr p) (cddr p))))
+             (cro--walk-list parts name
+                             (cro--finding name (or (cadr p) '<application>) parts acc))))))))
+
+(define (cro--walk-list l name acc)
+  (if (pair? l) (cro--walk-list (cdr l) name (cro--walk (car l) name acc)) acc))
+
+(define (recording-order-forms forms)
+  (reverse
+   (fold-left (lambda (acc f)
+                (if (pair? f) (cro--walk f (cfl--form-name f) acc) acc))
+              '() forms)))
+
+;;; for the suite: the findings of a TEXT, as (form-name head (recording-head ...))
+(define (recording-order-lint-text text)
+  (recording-order-forms (cfl--read-forms text)))
+
+(define (recording-order-lint-forms! file forms)
+  (let ((hits (call-with-current-continuation
+                (lambda (k)
+                  (with-exception-handler (lambda (e) (k '()))
+                    (lambda () (recording-order-forms forms)))))))
+    (if (pair? hits)
+        (set! *recording-order-findings* (cons (cons file hits) *recording-order-findings*)))
+    ;; PER-FILE LINES ONLY FOR A PROBE.  The backlog on the day the lint was written
+    ;; was 148 findings in 68 proof files; printed per file at every load it would
+    ;; bury the log, so a load prints the roll-up alone (`report-case-fold-defines')
+    ;; and the per-file lines appear for a file a probe ships (label "<dir>__<file>")
+    ;; or loads by a wrapper (a label outside theorem-library/ and calculus/).
+    (when (and (pair? hits)
+               (or (not (cfl--proof-file? file)) (string-search-forward "__" file 0)))
+      (display ";VNB warning: recording-order lint: ") (display file)
+      (display " evaluates two proof steps in an UNSPECIFIED order:\n")
+      (for-each (lambda (h)
+                  (display ";              in ") (display (car h)) (display ": (")
+                  (display (cadr h)) (display " ...) holds ")
+                  (for-each (lambda (s) (display s) (display " ")) (caddr h))
+                  (newline))
+                hits)
+      (display ";              The inits of a `let' and the arguments of a call run in an order the compiler\n")
+      (display ";              and the interpreter do not agree on: sequence them with `let*' or `begin'.\n"))
+    hits))
+
+(define (recording-order-lint! file path)
+  (let ((forms (and (file-exists? path)
+                    (call-with-current-continuation
+                      (lambda (k)
+                        (with-exception-handler (lambda (e) (k #f))
+                          (lambda () (cfl--read-forms (cfd--slurp path)))))))))
+    (if forms (recording-order-lint-forms! file forms) '())))
 
 (define (cfl--proof-file? file)
   (and (string? file)
@@ -497,4 +754,12 @@
                               (cdr e))
                     (newline))
                   (reverse *case-fold-local-collisions*))))
+  ;; KIT-5: the recording-order lint's roll-up
+  (if (null? *recording-order-findings*)
+      (display ";; recording-order lint: no proof file evaluates two proof steps in an unspecified order.\n")
+      (begin
+        (display ";VNB warning: recording-order lint: ")
+        (display (length *recording-order-findings*))
+        (display " proof file(s) evaluate two proof steps in an unspecified order\n")
+        (display ";              (backlog; *recording-order-findings* lists them)\n")))
   *case-fold-define-collisions*)

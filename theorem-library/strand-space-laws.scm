@@ -255,16 +255,6 @@
     (nth-r)
     (rfl)))
 
-(sp (make-wff '(FORALL k (FORALL a (FORALL j (FORALL b
-   (IMPLIES (= (LIST k a) (LIST j b)) (AND (= k j) (= a b)))))))))
-(dk-peel!)
-(dk-conj-close!
-  (lambda ()
-    (if (equal? (cadr (dk-goal)) 'k)
-        (ssl-component! '(LIST k a) '(LIST j b) 1)
-        (ssl-component! '(LIST k a) '(LIST j b) 2))))
-(qed 'node-pair-injective)
-
 (sp (make-wff '(FORALL spa (FORALL x (FORALL y (IMPLIES (IN x (NODES spa)) (IMPLIES (IN y (NODES spa))
    (IMPLIES (= (NTH 1 x) (NTH 1 y)) (IMPLIES (= (NTH 2 x) (NTH 2 y)) (= x y))))))))))
 (dk-peel!)
@@ -1359,7 +1349,7 @@
           '(nodes-unfold node-content-unfold node-dir-unfold directed-unfold strands-unfold index-id-unfold
             prec-strict-unfold precedes-strict-unfold precedes-unfold pair-in-power-box))
 (for-each (lambda (n) (topic! n 'constructions))
-          '(strand-space-parts keys-in-tokens kinv-in-fun kinv-involution kinv-injective strand-at-id node-parts node-intro node-pair-injective node-ext directed-parts
+          '(strand-space-parts keys-in-tokens kinv-in-fun kinv-involution kinv-injective strand-at-id node-parts node-intro node-ext directed-parts
             node-step-in-directed node-content-in-msgs node-dir-cases sent-ne-received node-sent-or-received
             node-not-sent-and-received node-content-eq ssb-irreflexive ssb-transitive ssu-of-ssb ssu-refl
             ssu-cases sends-to-dirs bundle-space bundle-nodes-set bundle-send-typing

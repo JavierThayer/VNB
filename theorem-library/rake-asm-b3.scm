@@ -62,17 +62,17 @@
   (qrfl)
   (rb3-qed! name))
 
-(rb3-view-slot! 'rb3-cc-ring-carr 'CARR 'CC)
-(rb3-view-slot! 'rb3-cc-ring-add 'ADD '(VNB-LAMBDA (LIST x_ y_) (CARTESIAN CC CC) (+ x_ y_)))
-(rb3-view-slot! 'rb3-cc-ring-mul 'MUL '(VNB-LAMBDA (LIST x_ y_) (CARTESIAN CC CC) (* x_ y_)))
-(rb3-view-slot! 'rb3-cc-ring-one 'ONE 1)
-(rb3-view-slot! 'rb3-cc-ring-zero 'ZERO 0)
+(rb3-view-slot! 'cc-scalar-ring-carr 'CARR 'CC)
+(rb3-view-slot! 'cc-scalar-ring-add 'ADD '(VNB-LAMBDA (LIST x_ y_) (CARTESIAN CC CC) (+ x_ y_)))
+(rb3-view-slot! 'cc-scalar-ring-mul 'MUL '(VNB-LAMBDA (LIST x_ y_) (CARTESIAN CC CC) (* x_ y_)))
+(rb3-view-slot! 'cc-scalar-ring-one 'ONE 1)
+(rb3-view-slot! 'cc-scalar-ring-zero 'ZERO 0)
 
 ;;; ---- a CC-module: the scalar slots read as complex numbers ----
 (sp (make-wff (rb3-cmod '(= (CARR (SCAL m)) CC))))
 (dk-peel!)
 (subst rb3-cpin)
-(mac 'rb3-cc-ring-carr)
+(mac 'cc-scalar-ring-carr)
 (rfl)
 (rb3-qed! 'rb3-c-carr)
 
@@ -91,13 +91,13 @@
   (if (not (dk-lam-b!)) (rfl))
   (rb3-qed! name))
 
-(rb3-scalar-eq! 'rb3-c-add-eq 'rb3-cc-ring-add '((ADD (SCAL m)) r_ s_) '(+ r_ s_))
-(rb3-scalar-eq! 'rb3-c-mul-eq 'rb3-cc-ring-mul '((MUL (SCAL m)) r_ s_) '(* r_ s_))
+(rb3-scalar-eq! 'rb3-c-add-eq 'cc-scalar-ring-add '((ADD (SCAL m)) r_ s_) '(+ r_ s_))
+(rb3-scalar-eq! 'rb3-c-mul-eq 'cc-scalar-ring-mul '((MUL (SCAL m)) r_ s_) '(* r_ s_))
 
 (sp (make-wff (rb3-cmod '(= (ONE (SCAL m)) 1))))
 (dk-peel!)
 (subst rb3-cpin)
-(mac 'rb3-cc-ring-one)
+(mac 'cc-scalar-ring-one)
 (rfl)
 (rb3-qed! 'rb3-c-one-eq)
 
@@ -741,7 +741,7 @@
   (dk-have! (list 'AND (list 'IN a 'RR) (list '<= 0 a)))
   (dk-cite! 'sqrt-sq a)
   (rb3-close!))
-(rb3-qed! 'rb3-mag-sq-conj)
+(rb3-qed! 'cc-magnitude-sq-conjugate)
 
 (sp (make-wff (rb3-fa 'z 'CC '(= (magnitude (conjugate z)) (magnitude z)))))
 (dk-peel!)
@@ -756,7 +756,7 @@
 (dk-split-all! (list (dk-cite! 'cc-self-conj-nonneg 'z)))
 (dk-cite! 'cc-magnitude-closed 'z)
 (rfl)
-(rb3-qed! 'rb3-mag-conj)
+(rb3-qed! 'cc-magnitude-conjugate)
 
 ;;; D8.  |cfn y| <= p(y) when rfn <= p.  |z|^2 = z conj(z) = cfn(conj(z).y), real, so
 ;;;      |z|^2 = rfn(conj(z).y) <= p(conj(z).y) = |z| p(y).
@@ -782,7 +782,7 @@
   ;; rfn(w.y) = |z|^2
   (dk-cite! 'rb3-cf-chom 'm 'rfn 'cfn w 'y)
   (dk-cite! 'rb3-cf-re 'm 'rfn 'cfn wy)
-  (dk-cite! 'rb3-mag-sq-conj z)
+  (dk-cite! 'cc-magnitude-sq-conjugate z)
   (rb3-ty! (list '* w z) 'CC)
   (dk-have! (list '= (list '* w z) (list '* z w)) (lambda () (rb3-crs!)))
   (dk-cite! 'rr-zero-in)
@@ -799,7 +799,7 @@
   ;; p(w.y) = |z| p(y)
   (rb3-apply! (dk-ctx-form rb3-semi-hom) w 'y)
   (dk-cite! 'cc-nf-fnrm-apply w)
-  (dk-cite! 'rb3-mag-conj z)
+  (dk-cite! 'cc-magnitude-conjugate z)
   (dk-have! (list '= (list 'p wy) mp)
     (lambda ()
       (subst (list '= (list 'p wy) (list '* (list '(FNRM CC-NORMED-FIELD) w) pp)))

@@ -123,30 +123,6 @@
     (if (> k 3) (error "ffb-di-land!: nothing landed"))
     (let ((l (dk-landed* (lambda () (di))))) (if (null? l) (lp (+ k 1)) l))))
 
-;;; =====================================================================
-;;; brick: the projections of a member of a cartesian product
-;;; =====================================================================
-
-(sp (make-wff '(FORALL x_ (FORALL aa (FORALL bb
-   (IMPLIES (IN x_ (CARTESIAN aa bb))
-     (AND (IN (NTH 1 x_) aa) (IN (NTH 2 x_) bb))))))))
-;; `mac' BEFORE any `di': cartesian-decompose descends through the connectives
-;; and rewrites the ANTECEDENT in place; there is no `mac-h' route, a procedural
-;; macete not being a theorem the hypothesis rewriter can rebuild.
-(mac 'cartesian-decompose)
-(di) (di)
-(let lp ((k 0))                            ; skolemize the two existentials
-  (let ((ex (any-pred (dk-head? 'FORSOME) (dk-asms))))
-    (if (and ex (< k 5)) (begin (dk-split! ex) (lp (+ k 1))))))
-(subst (any-pred (lambda (a) (and (pair? a) (eq? (car a) '=) (eq? (cadr a) 'x_))) (dk-asms)))
-(nth-r)
-(ffb-each-opened! (lambda () (di)))
-(qed 'cartesian-nth)
-(gloss! 'cartesian-nth
-  "A member of a cartesian product is the pair of its projections: z in X x Y
-   implies NTH(1,z) in X and NTH(2,z) in Y.  What every typing of a lambda whose
-   domain is a product needs, and what matmul-assoc-summand-type asserts.")
-(topic! 'cartesian-nth 'plumbing)
 
 ;;; =====================================================================
 ;;; finsum-fiber

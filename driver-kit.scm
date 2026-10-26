@@ -2102,6 +2102,12 @@
 ;;; focus leaf, which must end GROUNDED, else this errors.  The goal is then
 ;;; CLOSED and the focus has moved to another leaf: the value is #t in that case
 ;;; alone, so a caller that goes on can tell and re-focus.
+;;; THE CLOSER THAT FOLLOWS IT DRIFTS (LA-Z5, LA-Z6, CA-HOPF, 2026-10-25): a
+;;; driver that writes `(dk-have! claim thunk) (ass)' -- the claim being a typing
+;;; the next step needs -- closes the focus goal in place when the claim IS the
+;;; goal, and its `(ass)' then fires on another leaf.  This cannot be cured here
+;;; (the leaf is closed; there is nowhere for the focus to stay): capture the node
+;;; and close THAT -- `dk-by!', `dk-ass-on!', `dk-close-on!' (KIT-5 section).
 (define (dk-have! form0 . opt)
   ;; At most ONE further argument, a procedure (or #f).  A stray argument is a
   ;; closer meant to FOLLOW the call, swallowed by a paren in the wrong place; MIT
@@ -2640,7 +2646,10 @@
 ;;; the reduction closed the branch -- the reduced goal was in context, say --
 ;;; and the focus has then MOVED to another leaf, so the caller's next closer
 ;;; must not run: (if (not (dk-lam-b!)) (ass)), or (dk-close-if! dk-lam-b!
-;;; ass).  #f when the reduced goal is open and in focus.  Four files guarded the
+;;; ass) -- the second only since 2026-10-25 (KIT-5): `dk-close-if!' used to
+;;; read the focus on the REDUCED node as drift and skip the closer (PRODUCT2
+;;; finding 1); it now follows the one open leaf below the node it started on.
+;;; #f when the reduced goal is open and in focus.  Four files guarded the
 ;;; closer by hand (`(if (not (sequent-node-grounded? ...)))' after a beta).
 ;;; ERRORS when the goal holds no redex at all: a `lam-b' that reduces nothing
 ;;; prints "nothing changed ... The step was NOT recorded" and is otherwise
@@ -2775,24 +2784,39 @@
 ;;; following `(ass)' closes the second.
 ;;;
 ;;; (dk-close-if! THUNK CLOSER): run THUNK on the focus leaf N, run CLOSER only
-;;; if N is still OPEN and still the FOCUS, and return whether N is grounded.
-;;; The third case -- N open, focus moved -- is the drift, and it is reported
-;;; rather than papered over: the caller gets #f and a warning naming both nodes.
+;;; if N is still OPEN and the focus is on N -- or on the ONE open leaf below N,
+;;; the node a rewrite of N created -- and return whether N is grounded.  The
+;;; third case -- N open, focus moved anywhere else -- is the drift, and it is
+;;; reported rather than papered over: the caller gets #f and a warning naming
+;;; both nodes.
+;;;
+;;; FOLLOWING THE CHILD (2026-10-25, KIT-5 item 2; PRODUCT2 finding 1).  A step
+;;; that REWRITES the goal -- lam-b, fact, subst, mac -- does not leave the focus
+;;; on N: it justifies N by a new node and focuses that.  The old test (focus
+;;; still `eq?' to N) therefore failed on every such thunk, so the idiom the
+;;; `dk-lam-b!' comment recommended, (dk-close-if! dk-lam-b! ass), always warned
+;;; "moved the focus" and skipped the closer, and the enclosing lane failed.  The
+;;; focus on the UNIQUE open leaf below N is not drift: that leaf IS what the
+;;; driver means by "the leaf just worked on".  A focus on any other leaf -- a
+;;; sibling, as the CONTROL in the 11-D checks shows -- still is.
 (define (dk-close-if! thunk closer)
   (let ((node (proof-state-focus *ps*)))
     (thunk)
-    (cond ((sequent-node-grounded? node) #t)
-          ((eq? node (proof-state-focus *ps*))
-           (closer)
-           (sequent-node-grounded? node))
-          (#t
-           (display ";VNB warning: dk-close-if!: the thunk left node ")
-           (write (sequent-node-number node))
-           (display " OPEN and moved the focus to ")
-           (write (sequent-node-number (proof-state-focus *ps*)))
-           (display " -- the closer was NOT run.")
-           (newline)
-           #f))))
+    (let ((focus (proof-state-focus *ps*)))
+      (cond ((sequent-node-grounded? node) #t)
+            ((or (eq? node focus)
+                 (let ((below (dk--open-below node)))
+                   (and (pair? below) (null? (cdr below)) (eq? (car below) focus))))
+             (closer)
+             (sequent-node-grounded? node))
+            (#t
+             (display ";VNB warning: dk-close-if!: the thunk left node ")
+             (write (sequent-node-number node))
+             (display " OPEN and moved the focus to ")
+             (write (sequent-node-number focus))
+             (display ", which is not the one open leaf below it -- the closer was NOT run.")
+             (newline)
+             #f)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; (dk-close-all! THUNK) -- run a BRANCHING tactic and close every leaf it
@@ -3419,9 +3443,42 @@
          (list (dk-cite! 'nn-zero-le t)))
         (#t '())))
 
-(define (dk-nn! . prems0)
-  (let* ((prems (map ->raw-formula prems0))
-         (g     (dk-goal))
+;;; THE BARE CALL (2026-10-25, KIT-5 item 3; LA-Z6 finding 5).  (dk-nn!) with
+;;; no PREMISE used to pass none to `ineq', so (dk-nn!) could not show 1 <= j
+;;; from 2 <= j in context.  Now a bare call first runs exactly as before,
+;;; inside a TRANSACTION (`dk--transaction': kept only when it closes the
+;;; goal, otherwise undone without a trace), and only if that fails runs again
+;;; with the CONTEXT'S NN ORDER ATOMS as premises: every (<= a b), (< a b),
+;;; (= a b) in context whose two sides are built from numerals, + - * succ and
+;;; terms the context types in NN or RR (so `ineq' can certify every atom and
+;;; none poisons the call), connected to the goal's terms through shared terms
+;;; (the closure is taken, at most 12 atoms).  A NOT atom is never gathered:
+;;; `ineq' cannot use one.  When the context holds no such atom the call is the
+;;; old one, run as before.  A call that names its premises is unchanged.
+(define (dk--nn-cert? e)
+  (cond ((number? e) (and (exact? e) (rational? e)))
+        ((and (pair? e) (eq? (car e) 'succ) (= (length e) 2)) (dk--nn-cert? (cadr e)))
+        ((and (pair? e) (memq (car e) '(+ - *)) (pair? (cdr e)))
+         (every dk--nn-cert? (cdr e)))
+        (#t (or (dk-asm? (list 'IN e 'NN)) (dk-asm? (list 'IN e 'RR))))))
+
+(define (dk--nn-context-premises atom)
+  (let* ((cands (filter (lambda (f)
+                          (and (pair? f) (memq (car f) '(< <= =)) (= (length f) 3)
+                               (not (equal? f atom))
+                               (dk--nn-cert? (cadr f)) (dk--nn-cert? (caddr f))))
+                        (dk-asms)))
+         (leaves-of (lambda (f) (filter (lambda (t) (not (number? t))) (dk--nn-leaves f '())))))
+    (let loop ((terms (leaves-of atom)) (picked '()) (rest cands))
+      (let ((hit (find-first (lambda (f) (any (lambda (t) (member t terms)) (leaves-of f))) rest)))
+        (if (or (not hit) (>= (length picked) 12))
+            (reverse picked)
+            (loop (append (leaves-of hit) terms)
+                  (cons hit picked)
+                  (filter (lambda (f) (not (eq? f hit))) rest)))))))
+
+(define (dk--nn-run! prems)
+  (let* ((g     (dk-goal))
          (neg?  (and (pair? g) (eq? (car g) 'NOT)))
          (atom  (if neg? (cadr g) g))
          (terms (reverse (fold-left (lambda (a f) (dk--nn-leaves f a)) '() (cons atom prems))))
@@ -3431,6 +3488,17 @@
           (dk-landed (lambda () (di)))
           (apply dk-absurd! (append prems extra (list atom))))
         (apply dk-ineq! (append prems extra)))))
+
+(define (dk-nn! . prems0)
+  (if (pair? prems0)
+      (dk--nn-run! (map ->raw-formula prems0))
+      (let* ((g    (dk-goal))
+             (atom (if (and (pair? g) (eq? (car g) 'NOT)) (cadr g) g))
+             (ctx  (dk--nn-context-premises atom))
+             (leaf (proof-state-focus *ps*)))
+        (cond ((null? ctx) (dk--nn-run! '()))
+              ((dk--transaction (lambda () (dk--nn-run! '()) (sequent-node-grounded? leaf))) #t)
+              (#t (dk--nn-run! ctx))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; (dk-crs-opaque! [TYPER]) -- `crs' ON A GOAL WITH recip OR A BINDER IN IT
@@ -3877,6 +3945,40 @@
                     (list 'AND (list 'IN (car args) (car classes))
                           (list 'IN (cadr args) (cadr classes))))))))
 
+;;; UNARY CLOSURE LAWS (2026-10-25, KIT-5 item 6; CA-HOPF finding 1).  A head
+;;; with no branch below fell through to the LEAF test, which accepts only a
+;;; term the context types or an application f(a) with f in FUN(A, C) in
+;;; context -- so conjugate(u2(z)) and magnitude(a) declined ("an atom is not
+;;; typed"), and with them every product holding one.  The finding read this as
+;;; "type-term declines products of APPLICATIONS"; it does not (u1(z) * u2(z) in
+;;; CC with u1 in FUN(CC, CC) closes, and magnitude(u1(z)) * magnitude(u1(z)) in
+;;; RR closes once magnitude(u1(z)) in RR is in context): what was missing is a
+;;; closure law for the unary heads.  Each row is (HEAD DOMAIN RANGE THEOREM),
+;;; THEOREM: forall a. a in DOMAIN => HEAD(a) in RANGE.  A goal class other than
+;;; RANGE is reached by the inclusion route RANGE -> C (magnitude(a) in CC: RR,
+;;; then rr-subset-cc) -- the `up' plan node.  A row whose theorem is not in the
+;;; table yet (early in the load) is simply not offered.
+(define *type-term-unary-laws*
+  '((conjugate CC CC cc-conjugate-closed)
+    (magnitude CC RR cc-magnitude-closed)
+    (abs       RR RR rr-abs-closed)
+    (real-part CC RR real-part-in-rr)
+    (imag-part CC RR imag-part-in-rr)))
+
+(define (type-term--unary-plan t C)
+  (let ((row (assq (car t) *type-term-unary-laws*)))
+    (and row
+         (let ((D (cadr row)) (R (caddr row)) (thm (type-term--thm (cadddr row))))
+           (and thm
+                (if (eq? R C)
+                    (type-term--law-plan t C thm (cdr t) (list D) #f)
+                    (let ((route (in-rr--inclusion-route R C))
+                          (rplan (if (dk-asm? (list 'IN t R))
+                                     (list 'ctx (list 'IN t R))
+                                     (type-term--law-plan t R thm (cdr t) (list D) #f))))
+                      (and route rplan (every type-term--thm route)
+                           (list 'up (list 'IN t C) (list rplan) route)))))))))
+
 (define (type-term--plan t C)
   (let ((typ (list 'IN t C)))
     (cond
@@ -3920,6 +4022,10 @@
                 ((and (number? k) (exact? k) (integer? k) (>= k 0))
                  (type-term--eq-plan t C (type-term--product b k)))
                 (#t #f))))
+           ;; a unary head with a closure law (KIT-5), else a leaf or nothing
+           ((and (= n 1) (assq h *type-term-unary-laws*))
+            (or (type-term--unary-plan t C)
+                (and (type-term--leaf-ok? t C) (list 'leaf typ))))
            ;; anything else is a leaf or nothing
            (#t (and (type-term--leaf-ok? t C) (list 'leaf typ)))))))))
 
@@ -3927,6 +4033,8 @@
 ;;; each subterm's typing proved in its own `dk-have!' lane so the lane's
 ;;; citations stay out of the main context), or, when the typing IS the focus
 ;;; goal, prove it in place (`dk-have!' does that).  Returns the typing.
+;;; `up' (KIT-5): land the typing in the law's own class, then cite the
+;;; inclusion route to the goal's class.
 (define (type-term--exec! p)
   (let ((kind (car p)) (typ (cadr p)))
     (cond
@@ -3942,6 +4050,13 @@
                          (if conj (dk-have! conj))
                          (apply fact thm args)
                          (ass)))
+         typ))
+      ((eq? kind 'up)
+       (let ((kids (list-ref p 2)) (route (list-ref p 3)) (t (cadr typ)))
+         (for-each type-term--exec! kids)
+         (dk-have! typ (dk-lane (lambda ()
+                                  (for-each (lambda (thm) (fact thm t)) route)
+                                  (dk-lane-if! ass))))
          typ))
       ((eq? kind 'eq)
        (let* ((kids (list-ref p 2)) (E (list-ref p 3))
@@ -6528,3 +6643,181 @@
              (prune!))))
         (goal-of seq)))
     (der tree)))
+
+;;; =======================================================================
+;;; KIT-5 (2026-10-25) -- the kit fixes owed by the LA-Z5, LA-Z6, PRODUCT2 and
+;;; CA-HOPF sessions.  Each item has suite checks (test-suite.scm, "driver kit
+;;; (KIT-5)"), with a CONTROL that fails on the code before this section.
+;;; Changed in place elsewhere in this file: dk-close-if! (follows the leaf its
+;;; thunk created), dk-nn! (a bare call gathers the context's NN order atoms),
+;;; type-term--plan / type-term--exec! (unary closure laws: conjugate,
+;;; magnitude, abs, real-part, imag-part).
+;;; =======================================================================
+
+;;; -----------------------------------------------------------------------
+;;; THE LEAF A NODE BECAME.  A step that rewrites the goal -- lam-b, mac, subst,
+;;; fact, a cut -- does not close the node it ran on: it justifies it by a NEW
+;;; node, and the focus moves there.  The node the driver captured is then an
+;;; ungrounded INNER node, and what the driver means by "that leaf" is the open
+;;; leaf below it.  (dk--open-below NODE): the open leaves reachable from NODE
+;;; through the rules that justify it -- NODE itself when it is still a leaf,
+;;; () when it is grounded.  Hash-consing makes the graph a DAG, so the walk
+;;; keeps a visited list.
+(define (dk--open-below node)
+  (let ((leaves (dk-open-leaves)) (seen '()) (acc '()))
+    (let walk ((n node))
+      (if (not (memq n seen))
+          (begin
+            (set! seen (cons n seen))
+            (cond ((sequent-node-grounded? n) #f)
+                  ((memq n leaves) (set! acc (cons n acc)))
+                  (#t (for-each (lambda (inf) (for-each walk (inference-node-hypotheses inf)))
+                                (sequent-node-in-arrows n)))))))
+    (reverse acc)))
+
+;;; -----------------------------------------------------------------------
+;;; (dk-close-on! NODE CLOSER) / (dk-ass-on! NODE) / (dk-by! THUNK [CLOSER])
+;;; -- THE GUARDED CLOSER (KIT-5 items 1 and 4; LA-Z5 finding 4, LA-Z6 finding
+;;; 3, CA-HOPF finding 2).
+;;;
+;;; The drift: a step that CLOSES the focus leaf -- `dk-have!' of a claim equal
+;;; to the focus goal (proved in place), a `dk-cite!' / `detach-with!' /
+;;; `dk-lam-b!' whose result was already in context -- moves the focus to
+;;; another leaf, and the `(ass)' the driver wrote next, as the closer of the
+;;; leaf just worked on, fires THERE ("assumption: goal not in context: I in
+;;; set" was a lam-t sethood leaf).  `dk-have!' cannot be fixed to prevent it:
+;;; once its claim was the focus goal, the leaf is CLOSED and there is no place
+;;; left for the focus to stay; `dk-have!' says so by returning #t, and a caller
+;;; that reads the value can tell.  What can be fixed is the closer: capture the
+;;; node BEFORE the step, and close THAT, wherever it now is.
+;;;
+;;;   (dk-close-on! NODE CLOSER) -- NODE grounded: nothing, #t.  NODE still has
+;;;       ONE open leaf below it (itself, or the node a rewrite of it created):
+;;;       focus it if the focus is elsewhere, run CLOSER, and ERROR unless NODE
+;;;       is then grounded.  Several open leaves below NODE: an ERROR naming
+;;;       them, since which one the closer was meant for cannot be decided.
+;;;   (dk-ass-on! NODE) -- the same with `ass', which ERRORS, naming the goal,
+;;;       when the goal is not in context (the bare `ass' only warns).
+;;;   (dk-by! THUNK [CLOSER]) -- capture the focus, run THUNK, close the
+;;;       captured node with CLOSER (default `ass') if it is still open.
+;;;
+;;; Replaces: lz5c- / lz5d- / lz5q- / lz5z-ass-if!, lz5d- / lz5q- / lz5z-ass-ctx!,
+;;; lz5d- / lz5q-by! (la-z5-*.scm), lz6p-ass-on! (la-z6-pullback.scm).  The
+;;; -ass-if! copies tested the goal by SHAPE (`equal?' to the captured goal),
+;;; which a sibling with the same goal passes; these test the NODE.
+(define (dk-close-on! node closer)
+  (if (sequent-node-grounded? node)
+      #t
+      (let ((below (dk--open-below node)))
+        (cond
+          ((null? below)
+           (error "dk-close-on!: the node is open but has no open leaf below it"
+                  (expression->string (dk-goal-of node))))
+          ((pair? (cdr below))
+           (error "dk-close-on!: the node has several open leaves below it; which one the closer is for is not decidable"
+                  (map (lambda (l) (expression->string (dk-goal-of l))) below)))
+          (#t
+           (let ((leaf (car below)))
+             (if (not (eq? leaf (proof-state-focus *ps*))) (dk-focus! leaf))
+             (closer)
+             (if (not (sequent-node-grounded? node))
+                 (error "dk-close-on!: the closer left the node open"
+                        (expression->string (dk-goal-of leaf))))
+             #t))))))
+
+(define (dk-ass-on! node)
+  (dk-close-on! node
+    (lambda ()
+      (if (not (dk-asm? (dk-goal)))
+          (error "dk-ass-on!: the goal is not in context" (expression->string (dk-goal))))
+      (ass))))
+
+(define (dk-by! thunk . opt)
+  (let ((node (proof-state-focus *ps*)))
+    (thunk)
+    (if (pair? opt) (dk-close-on! node (car opt)) (dk-ass-on! node))))
+
+;;; -----------------------------------------------------------------------
+;;; (dk-have-cases! CLAIM P THEN ELSE) -- LAND A FACT BY CASES (KIT-5 item 4;
+;;; LA-Z5 finding 3).  A helper meant to LAND a fact that splits on cases with a
+;;; bare `use-em' leaves both branches open on the CALLER's goal; the cure is to
+;;; run the split inside a `dk-have!' lane whose claim is the fact.  This is that
+;;; lane: CLAIM is proved by `use-em' on P, THEN on the P branch and ELSE on the
+;;; NOT-P branch.  A branch that leaves its leaf open with the goal in context is
+;;; closed by `ass' (on the branch's own node, `dk-ass-on!'); one that leaves it
+;;; open otherwise is an ERROR.  When the context ALREADY DECIDES P -- where
+;;; `use-em' errors, rightly, as a split there is vacuous -- only the matching
+;;; branch runs, with no split.  CLAIM equal to the focus goal is proved in place,
+;;; as by `dk-have!'.  Returns CLAIM as a raw formula.  MODEL: lz5d-val!
+;;; (la-z5-dsumcard.scm).
+(define (dk--case-lane body)
+  (lambda ()
+    (let ((node (proof-state-focus *ps*)))
+      (body)
+      (if (not (sequent-node-grounded? node))
+          (let ((below (dk--open-below node)))
+            (if (and (pair? below) (null? (cdr below)) (dk-asm? (dk-goal-of (car below))))
+                (dk-ass-on! node)
+                (error "dk-have-cases!: a branch left its leaf open"
+                       (map (lambda (l) (expression->string (dk-goal-of l))) below))))))))
+
+(define (dk-have-cases! claim p then-body else-body)
+  (let ((P (->raw-formula p)))
+    (dk-have! claim
+      (lambda ()
+        (let ((dec (use-em--decided P)))
+          (cond ((not dec) (use-em P (dk--case-lane then-body) (dk--case-lane else-body)))
+                ((eq? (car dec) 'P) ((dk--case-lane then-body)))
+                (#t ((dk--case-lane else-body)))))))
+    (->raw-formula claim)))
+
+;;; -----------------------------------------------------------------------
+;;; READING EIGENVARIABLES OFF A LANDING (KIT-5 item 5; PRODUCT2 finding 2).
+;;; `dk-peel!' returns what it landed.  The eps of an unfolded continuity or
+;;; convergence goal is the variable of the POS-RR the peel landed, and the
+;;; point is the variable the peel typed in the space; reading them off the
+;;; CONTEXT instead (`msc-eps' in ms-continuity-algebra.scm: the first POS-RR in
+;;; context) picks the wrong one as soon as a second POS-RR is there -- a delta
+;;; already obtained, a hypothesis's own eps.
+;;;
+;;;   (dk-landed-vars LANDED CLASS)  -- every t with (IN t CLASS) among LANDED,
+;;;                                     in landing order (CLASS compared by equal?)
+;;;   (dk-landed-var LANDED CLASS)   -- the ONE such t; ERRORS on none and when
+;;;                                     ambiguous (two variables typed in CLASS:
+;;;                                     pass K)
+;;;   (dk-landed-var LANDED CLASS K) -- the K-th (1-based)
+;;;   (dk-landed-eps LANDED)         -- the ONE e with (POS-RR e) among LANDED, else
+;;;                                     the one with (< 0 e); ERRORS on none or two
+;;;
+;;; Replaces p2-landed-eps / p2-landed-var (product2-laws.scm), p2c-landed-eps /
+;;; p2c-landed-var (product2-cc.scm), which took the FIRST match silently.
+(define (dk-landed-vars landed cls)
+  (map cadr (filter (lambda (f) (and (dk-head-is? f 'IN) (= (length f) 3) (equal? (caddr f) cls)))
+                    landed)))
+
+(define (dk-landed-var landed cls . opt)
+  (let ((vs (dk-landed-vars landed cls)))
+    (cond ((null? vs)
+           (error "dk-landed-var: nothing typed in the class among the landed formulas"
+                  (expression->string cls) (map expression->string landed)))
+          ((pair? opt)
+           (if (and (exact-nonnegative-integer? (car opt)) (<= 1 (car opt) (length vs)))
+               (list-ref vs (- (car opt) 1))
+               (error "dk-landed-var: no such index; typed in the class:" (car opt) vs)))
+          ((pair? (cdr vs))
+           (error "dk-landed-var: ambiguous -- several variables typed in the class (pass the index):"
+                  (expression->string cls) vs))
+          (#t (car vs)))))
+
+(define (dk-landed-eps landed)
+  (let* ((pos (filter (lambda (f) (and (dk-head-is? f 'POS-RR) (= (length f) 2))) landed))
+         (lt0 (filter (lambda (f) (and (dk-head-is? f '<) (= (length f) 3) (eqv? (cadr f) 0)))
+                      landed))
+         (hits (if (pair? pos) pos lt0)))
+    (cond ((null? hits)
+           (error "dk-landed-eps: no POS-RR (nor 0 < e) among the landed formulas"
+                  (map expression->string landed)))
+          ((pair? (cdr hits))
+           (error "dk-landed-eps: ambiguous -- several positive reals landed"
+                  (map expression->string hits)))
+          (#t (if (dk-head-is? (car hits) 'POS-RR) (cadr (car hits)) (caddr (car hits)))))))

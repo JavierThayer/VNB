@@ -47,14 +47,6 @@
             ((> n 8) (error "sat-peel-to!: never reached" head))
             (else (di) (loop (+ n 1)))))))
 
-;;; abs(0) = 0 first: the base case needs it.
-(sp (make-wff '(= (abs 0) 0)))
-(fact 'rr-zero-in)
-(have! '(<= 0 0) (lambda () (arith)))
-(fact 'rr-abs-of-nonneg 0)
-(ass)
-(qed 'rr-abs-zero-value)
-
 (sp (make-wff
      '(FORALL k (IMPLIES (IN k NN)
         (FORALL f (IMPLIES (IN f (FUN NN RR))
@@ -101,8 +93,6 @@
           (list '= (list 'g 'k) (list 'abs sat-fk)))
 (qed 'series-abs-triangle)
 
-(topic! 'rr-abs-zero-value 'inequalities)
-(alias! 'rr-abs-zero-value "the absolute value of 0 is 0")
 (topic! 'series-abs-triangle 'analysis)
 (alias! 'series-abs-triangle
         "the absolute value of a partial sum is at most the partial sum of the absolute values")

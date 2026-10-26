@@ -90,12 +90,7 @@
   (if (not (proof-done? *ps*)) (error "ca5-ring-view!: did not close" name (dk-goal)))
   (qed name)
   (topic! name 'algebra))
-(ca5-ring-view! 'cc-scalar-ring-carr 'CARR 'CC)
-(ca5-ring-view! 'cc-scalar-ring-add 'ADD '(VNB-LAMBDA (LIST x_ y_) (CARTESIAN CC CC) (+ x_ y_)))
-(ca5-ring-view! 'cc-scalar-ring-mul 'MUL '(VNB-LAMBDA (LIST x_ y_) (CARTESIAN CC CC) (* x_ y_)))
 (ca5-ring-view! 'cc-scalar-ring-neg 'NEG '(VNB-LAMBDA x_ CC (- x_)))
-(ca5-ring-view! 'cc-scalar-ring-zero 'ZERO 0)
-(ca5-ring-view! 'cc-scalar-ring-one 'ONE 1)
 
 ;;; membership in C(u)
 (define ca5-ccont '(FORALL ccy_ (IMPLIES (IN ccy_ u)

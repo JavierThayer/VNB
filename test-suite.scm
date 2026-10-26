@@ -13149,6 +13149,243 @@
       (b27b-if-setup!)
       (vnb-guard (lambda () (dk-if-branch! #t b27b-ift #f (lambda () (arith)))))))))
 
+;;; =======================================================================
+;;; driver kit (KIT-5, 2026-10-25) -- for test-suite.scm, after the 27-B block.
+;;; Each item: the check, and a CONTROL.  A control marked "(fails on the old
+;;; code)" fails, or raises, on the driver-kit.scm / clobber-guard.scm before
+;;; KIT-5; one marked "(must keep passing)" pins the engine behaviour the fix
+;;; is about, so that the check beside it keeps testing something.
+;;; =======================================================================
+(display "\n=== driver kit (KIT-5): guarded closers, dk-close-if! on a rewrite, bare dk-nn!, dk-have-cases!, landed read-offs, unary type-term, recording-order lint ===\n")
+
+(define (k5-raises? thunk)
+  (call-with-current-continuation
+    (lambda (k) (with-exception-handler (lambda (e) (k #t)) (lambda () (thunk) #f)))))
+
+;;; the two-leaf AND of the 11-D drift checks: returns (eqleaf . inleaf), focus on eqleaf
+(define (k5-and-setup!)
+  (sp (make-wff '(FORALL u_ (IMPLIES (IN u_ RR) (AND (= u_ u_) (IN u_ RR))))))
+  (dk-peel!)
+  (let* ((ls (dk-opened (lambda () (di))))
+         (eqleaf (any-pred (dk-goal-head? '=) ls))
+         (inleaf (any-pred (dk-goal-head? 'IN) ls)))
+    (dk-focus! eqleaf)
+    (cons eqleaf inleaf)))
+
+;;; ---- (1) the guarded closer -------------------------------------------------
+(check-true "KIT-5 CONTROL (1, must keep passing): dk-have! of the focus goal closes it in place, and a bare ass then fires on the SIBLING"
+  (lambda ()
+    (quietly (lambda ()
+      (let ((ls (k5-and-setup!)))
+        (dk-have! '(= u_ u_) (lambda () (rfl)))
+        (vnb-guard (lambda () (ass)))
+        (and (sequent-node-grounded? (car ls)) (sequent-node-grounded? (cdr ls))))))))
+
+(check-true "KIT-5 (1): dk-by! closes the node it started on and leaves the sibling alone (fails on the old code)"
+  (lambda ()
+    (quietly (lambda ()
+      (let ((ls (k5-and-setup!)))
+        (and (dk-by! (lambda () (dk-have! '(= u_ u_) (lambda () (rfl)))))
+             (sequent-node-grounded? (car ls))
+             (not (sequent-node-grounded? (cdr ls)))))))))
+
+(check-true "KIT-5 (1): dk-ass-on! follows the node a rewrite created (lam-b) and closes it (fails on the old code)"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL tv_ (IMPLIES (IN tv_ RR) (IMPLIES (= tv_ 0) (= ((VNB-LAMBDA w_ RR w_) tv_) 0))))))
+      (dk-peel!)
+      (let ((n0 (proof-state-focus *ps*)))
+        (dk-lam-b!)
+        (and (not (eq? n0 (proof-state-focus *ps*)))
+             (dk-ass-on! n0)
+             (proof-done? *ps*)))))))
+
+(check-true "KIT-5 (1): dk-ass-on! ERRORS when the goal is not in context (the bare ass only warns), and closes a node whose goal is (fails on the old code)"
+  (lambda ()
+    (quietly (lambda ()
+      (let ((ls (k5-and-setup!)))
+        (and (k5-raises? (lambda () (dk-ass-on! (car ls))))
+             (not (sequent-node-grounded? (car ls)))
+             (eq? #t (dk-ass-on! (cdr ls)))
+             (sequent-node-grounded? (cdr ls))
+             (not (sequent-node-grounded? (car ls)))))))))
+
+;;; ---- (2) dk-close-if! on a rewriting thunk ----------------------------------
+(check-true "KIT-5 (2): (dk-close-if! dk-lam-b! rfl) runs the closer on the reduced goal (fails on the old code)"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL tv_ (IMPLIES (IN tv_ RR) (= ((VNB-LAMBDA w_ RR w_) tv_) tv_)))))
+      (dk-peel!)
+      (and (eq? #t (dk-close-if! dk-lam-b! rfl))
+           (proof-done? *ps*))))))
+
+(check-true "KIT-5 (2): dk-close-if! still refuses a focus moved to a SIBLING (must keep passing)"
+  (lambda ()
+    (quietly (lambda ()
+      (let* ((ls (k5-and-setup!))
+             (r (dk-close-if! (lambda () (dk-focus! (cdr ls))) (lambda () (ass)))))
+        (and (eq? r #f)
+             (not (sequent-node-grounded? (car ls)))
+             (not (sequent-node-grounded? (cdr ls)))))))))
+
+;;; ---- (3) bare dk-nn! ----------------------------------------------------------
+(check-true "KIT-5 (3): a bare (dk-nn!) gathers 2 <= nv_ from context to show 1 <= nv_ (fails on the old code)"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL nv_ (IMPLIES (IN nv_ NN) (IMPLIES (<= 2 nv_) (<= 1 nv_))))))
+      (dk-peel!)
+      (dk-nn!)
+      (proof-done? *ps*)))))
+
+(check-true "KIT-5 (3): ... and refutes a negated goal the same way (fails on the old code)"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL nv_ (IMPLIES (IN nv_ NN) (IMPLIES (<= 2 nv_) (NOT (< nv_ 1)))))))
+      (dk-peel!)
+      (dk-nn!)
+      (proof-done? *ps*)))))
+
+(check-true "KIT-5 (3): ... and skips an atom ineq could not certify (CARD of an untyped set), which would poison the call"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL nv_ (IMPLIES (IN nv_ NN) (FORALL sv_ (IMPLIES (<= 2 nv_)
+                       (IMPLIES (<= nv_ (CARD sv_)) (<= 1 nv_))))))))
+      (dk-peel!)
+      (dk-nn!)
+      (proof-done? *ps*)))))
+
+(check-true "KIT-5 (3): a bare (dk-nn!) the old call closes is still closed (must keep passing)"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL nv_ (IMPLIES (IN nv_ NN) (IMPLIES (<= 2 nv_) (<= 0 nv_))))))
+      (dk-peel!)
+      (dk-nn!)
+      (proof-done? *ps*)))))
+
+;;; ---- (4) dk-have-cases! -------------------------------------------------------
+(define (k5-cases-setup!)
+  (sp (make-wff '(FORALL uv_ (IMPLIES (IN uv_ RR) (IMPLIES (< 0 uv_) (<= (- 1) uv_))))))
+  (dk-peel!))
+
+(check-true "KIT-5 CONTROL (4, must keep passing): use-em on a proposition the context decides ERRORS"
+  (lambda ()
+    (quietly (lambda ()
+      (k5-cases-setup!)
+      (k5-raises? (lambda () (use-em '(< 0 uv_) (lambda () #t) (lambda () #t))))))))
+
+(check-true "KIT-5 (4): dk-have-cases! lands the claim by a split, both branches closed in the lane (fails on the old code)"
+  (lambda ()
+    (quietly (lambda ()
+      (k5-cases-setup!)
+      (dk-have-cases! '(<= 0 uv_) '(<= uv_ 1)
+        (lambda () (dk-ineq! '(< 0 uv_)))
+        (lambda () (dk-ineq! '(< 0 uv_))))
+      (and (dk-asm? '(<= 0 uv_))
+           (begin (dk-ineq! '(<= 0 uv_)) (proof-done? *ps*)))))))
+
+(check-true "KIT-5 (4): dk-have-cases! on a DECIDED proposition runs the matching branch only, no split (fails on the old code)"
+  (lambda ()
+    (quietly (lambda ()
+      (k5-cases-setup!)
+      (let ((ran-else #f))
+        (dk-have-cases! '(<= 0 uv_) '(< 0 uv_)
+          (lambda () (dk-ineq! '(< 0 uv_)))
+          (lambda () (set! ran-else #t)))
+        (and (not ran-else) (dk-asm? '(<= 0 uv_))))))))
+
+;;; ---- (5) read-offs from a landing ---------------------------------------------
+(check-true "KIT-5 CONTROL (5, must keep passing): two POS-RR in context, so a context-wide pick is ambiguous"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(IMPLIES (POS-RR 1) (FORALL e_ (IMPLIES (POS-RR e_) (FORALL x_ (IMPLIES (IN x_ RR) (< 0 e_))))))))
+      (di)
+      (dk-peel!)
+      (= 2 (length (filter (dk-head? 'POS-RR) (dk-asms))))))))
+
+(check-true "KIT-5 (5): dk-landed-eps / dk-landed-var read the eigenvariables off the peel's landing (fails on the old code)"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(IMPLIES (POS-RR 1) (FORALL e_ (IMPLIES (POS-RR e_) (FORALL x_ (IMPLIES (IN x_ RR) (< 0 e_))))))))
+      (di)
+      (let* ((ld (dk-peel!)) (e (dk-landed-eps ld)) (x (dk-landed-var ld 'RR)))
+        (and (symbol? e) (not (eqv? e 1)) (dk-asm? (list 'POS-RR e))
+             (symbol? x) (dk-asm? (list 'IN x 'RR))))))))
+
+(check-true "KIT-5 (5): dk-landed-var ERRORS when two variables are typed in the class, and takes an index (fails on the old code)"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ RR) (FORALL y_ (IMPLIES (IN y_ RR) (= x_ x_)))))))
+      (let ((ld (dk-peel!)))
+        (and (k5-raises? (lambda () (dk-landed-var ld 'RR)))
+             (= 2 (length (dk-landed-vars ld 'RR)))
+             (eq? (dk-landed-var ld 'RR 2) (cadr (dk-landed-vars ld 'RR)))))))))
+
+;;; ---- (6) type-term: unary closure laws ----------------------------------------
+(check-true "KIT-5 (6): type-term closes a product holding conjugate of an application (fails on the old code)"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL fva_ (IMPLIES (IN fva_ (FUN CC CC)) (FORALL zv_ (IMPLIES (IN zv_ CC)
+                       (IN (* (fva_ zv_) (conjugate (fva_ zv_))) CC)))))))
+      (dk-peel!)
+      (and (eq? #t (type-term)) (proof-done? *ps*))))))
+
+(check-true "KIT-5 (6): type-term types magnitude(a) in CC through RR and the inclusion (fails on the old code)"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL av_ (IMPLIES (IN av_ CC) (IN (* (magnitude av_) (magnitude av_)) CC)))))
+      (dk-peel!)
+      (and (eq? #t (type-term)) (proof-done? *ps*))))))
+
+(check-true "KIT-5 (6): a unary head with no law still declines and changes nothing (must keep passing)"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL av_ (IMPLIES (IN av_ RR) (IN (* av_ (SQRT av_)) RR)))))
+      (dk-peel!)
+      (let* ((n0 (length *proof-script*)) (r (type-term)))
+        (and (not (eq? r #t)) (not (proof-done? *ps*)) (= n0 (length *proof-script*))))))))
+
+;;; ---- (7) the recording-order lint and the case-fold lint ----------------------
+(check "KIT-5 (7): the recording-order lint reports two recording inits of a let (fails on the old code)"
+  (lambda ()
+    (recording-order-lint-text
+      "(define (k5-a! x)\n  (let ((p (dk-cite! 'foo x)) (q (dk-cite! 'bar x))) (list p q)))\n"))
+  '(("k5-a!" let (dk-cite! dk-cite!))))
+
+(check "KIT-5 (7): ... and two recording arguments of one call"
+  (lambda ()
+    (recording-order-lint-text "(define (k5-b! x) (chain! (dk-cite! 'foo x) (fact 'bar x)))\n"))
+  '(("k5-b!" chain! (dk-cite! fact))))
+
+(check "KIT-5 (7): ... but not let*, cond clauses, a variable named like a tactic, or a lambda argument"
+  (lambda ()
+    (recording-order-lint-text
+      (string-append
+        "(define (k5-c! x)\n"
+        "  (let* ((p (dk-cite! 'foo x)) (q (dk-cite! 'bar x))) p)\n"
+        "  (let ((ti (car x)) (ii (cdr x))) (list ti ii))\n"
+        "  (cond ((dk-asm? x) (ass) (rfl)) (#t (fact 'baz x)))\n"
+        "  (dk-have! (list 'IN x 'RR) (lambda () (fact 'qux x) (ass)))\n"
+        "  (list '(fact a) '(ass)))\n")))
+  '())
+
+(check "KIT-5 (7): ... and a thunk-runner counts when its thunk records"
+  (lambda ()
+    (recording-order-lint-text
+      "(define (k5-d! f) (list (dk-landed (lambda () (ai f))) (dk-split! f)))\n"))
+  '(("k5-d!" list (ai dk-split!))))
+
+(check "KIT-5 CONTROL (7, must keep passing): the case-fold lint reports LA-Z5's shape, outer let* I against an inner let* i"
+  (lambda ()
+    (case-fold-local-lint-text
+      "(define (k5-main! n1)\n  (let* ((I (list 'INTERVAL 1 n1)))\n    (dk-have! (list 'FORALL 'i_ (list 'IN 'i_ I))\n      (lambda () (let* ((i (dk-di-var!))) (list 'IN 'pzz_ I))))))\n"))
+  '(("k5-main!" ("i" "I" "i"))))
+
+(check "KIT-5 (7): the case-fold lint reports a local name against a TOP-LEVEL define of the file (fails on the old code)"
+  (lambda ()
+    (case-fold-local-lint-text
+      "(define K5-I '(INTERVAL 1 n))\n(define (k5-e! x) (let ((k5-i (car x))) (list 'IN k5-i K5-I)))\n"))
+  '(("k5-e! (against a top-level define)" ("k5-i" "K5-I" "k5-i"))))
+
 ;;; -----------------------------------------------------------------------
 ;;; PROOF CERTIFICATES (batch 28, 2026-09-24; certificates.scm,
 ;;; docs/certificates-2026-09-24.md).  Fixture proof files are written to a

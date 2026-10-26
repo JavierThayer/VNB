@@ -986,6 +986,74 @@ Point is left after the inserted text."
                  "\n"))
         (t (insert result "\n"))))))
 
+;;; Read in English: the highlighted formula (or term) rendered by the
+;;; prover's `wff->english' (wff-english.scm), inserted as a ;; comment line
+;;; just after the region.  Nothing is recorded on the proof.  The region may be
+;;;   * VNB string (infix) syntax, bare:     is-measure(s, a, u)
+;;;   * the same as a string literal:        "is-measure(s, a, u)"
+;;;   * a call on one string literal:        (wff "is-measure(s, a, u)")
+;;;   * a QUOTED raw S-expression:           '(IS-MEASURE s a u)
+;;; Infix may itself begin with a parenthesis, `(a + b) = c', which is why a raw
+;;; S-expression must carry its quote.
+
+(defconst vnb-command--english-query
+  (concat
+   "(let ((e %s))"
+   "  (cond ((vnb-error? e) (string-append \"cannot read: \" (vnb-error-message e)))"
+   "        ((not e) \"cannot read the region\")"
+   "        (#t (wff->english e))))")
+  "Query for `vnb-command-english-region'.
+The %s is the form that yields the raw formula.")
+
+(defun vnb-command--english-source (text)
+  "The Scheme form that reads TEXT (see `vnb-command-english-region')."
+  (let ((one (and (string-match-p "\\`[(\"]" text)
+                  (condition-case nil
+                      (let ((r (read-from-string text)))
+                        (and (string-blank-p (substring text (cdr r))) (car r)))
+                    (error nil)))))
+    (cond
+     ((string-prefix-p "'(" text) text)
+     ((stringp one) (format "(parse-string %s)" (prin1-to-string one)))
+     ((and (consp one) (symbolp (car one)) (= (length one) 2) (stringp (cadr one)))
+      (format "(parse-string %s)" (prin1-to-string (cadr one))))
+     (t (format "(parse-string %s)" (prin1-to-string text))))))
+
+(defun vnb-command-english-region (beg end)
+  "Render the formula or term in the region in English and insert it below.
+The region is sent as `(wff->english (parse-string REGION))' and the sentence
+is inserted as a `;; ' line after the region.  The region may be bare string
+syntax, a string literal, a call on one string literal such as (wff \"...\"),
+or a quoted raw S-expression '(...).  Nothing is recorded."
+  (interactive "r")
+  (unless (use-region-p)
+    (user-error "Highlight a formula or term first"))
+  (let* ((text (vnb--trim (buffer-substring-no-properties beg end)))
+         (text (replace-regexp-in-string "[ \t]*\n[ \t]*" " " text))
+         (raw  (condition-case err
+                   (vnb-eval-string (format vnb-command--english-query
+                                            (vnb-command--english-source text))
+                                    30)
+                 (error (format "error: %s" (error-message-string err)))))
+         (eng  (if (string-prefix-p "\"" raw)
+                   (condition-case nil (car (read-from-string raw)) (error raw))
+                 raw)))
+    (deactivate-mark)
+    (goto-char end)
+    (unless (bolp) (end-of-line) (insert "\n"))
+    (insert ";; " (replace-regexp-in-string "\n" "\n;; " eng) "\n")))
+
+(defun vnb-command-mouse-3 (event)
+  "Right click: on the highlighted region, offer `Read in English'; else default."
+  (interactive "e")
+  (let ((pos (posn-point (event-start event))))
+    (if (and (use-region-p) pos
+             (>= pos (region-beginning)) (<= pos (region-end))
+             (x-popup-menu event
+                           '("Region" ("" ("Read in English" . english)))))
+        (vnb-command-english-region (region-beginning) (region-end))
+      (unless (use-region-p) (mouse-save-then-kill event)))))
+
 (defun vnb-command-send-buffer ()
   "Send the entire buffer content to the VNB prover."
   (interactive)
@@ -1031,7 +1099,9 @@ Key bindings:
   \\[vnb-command-send-buffer] send entire buffer to VNB
   \\[vnb-command-complete]    complete VNB command name at point
   \\[vnb-describe-command]    look up VNB command documentation
-  \\[vnb-show-state]          refresh the *VNB State* proof-state buffer"
+  \\[vnb-show-state]          refresh the *VNB State* proof-state buffer
+  \\[vnb-command-english-region]  render the highlighted formula in English
+                (also on the right-click menu of the region)"
   (make-local-variable 'comment-start)
   (setq comment-start ";; ")
   (make-local-variable 'comment-end)
@@ -1042,6 +1112,8 @@ Key bindings:
 (define-key vnb-command-mode-map (kbd "TAB")     'vnb-command-complete)
 (define-key vnb-command-mode-map (kbd "C-c C-d") 'vnb-describe-command)
 (define-key vnb-command-mode-map (kbd "C-c C-s") 'vnb-show-state)
+(define-key vnb-command-mode-map (kbd "C-c C-e") 'vnb-command-english-region)
+(define-key vnb-command-mode-map [mouse-3]      'vnb-command-mouse-3)
 
 (defun vnb-command-buffer ()
   "Open (or switch to) the *VNB Commands* scratch buffer in vnb-command-mode.

@@ -221,42 +221,6 @@
 (qed 'abs-nonneg-le)
 
 ;;; ====================================================================
-;;; rr-mul-le-right -- vector-taylor-proof.scm:689
-;;; rr-leq-mul-nonneg is an arithmetic-base axiom with a CONJUNCTIVE
-;;; antecedent, so each AND is `have!'d whole before the citation.
-;;; ====================================================================
-(sp (make-wff
-     '(FORALL a (IMPLIES (IN a RR) (FORALL b (IMPLIES (IN b RR) (FORALL c (IMPLIES (IN c RR)
-        (IMPLIES (<= a b) (IMPLIES (<= 0 c) (<= (* a c) (* b c))))))))))))
-(dk-peel!)
-(let* ((rhb-g (dk-goal))
-       (rhb-a (cadr  (cadr rhb-g)))
-       (rhb-c (caddr (cadr rhb-g)))
-       (rhb-b (cadr  (caddr rhb-g)))
-       (rhb-d (list '- rhb-b rhb-a)))
-  (dk-fact! 'rr-sub-in-rr rhb-b rhb-a)
-  (dk-fact! 'rr-mul-in-rr rhb-d rhb-c)
-  (dk-fact! 'rr-mul-in-rr rhb-a rhb-c)
-  (dk-fact! 'rr-mul-in-rr rhb-b rhb-c)
-  (have! (list 'AND (list 'IN rhb-d 'RR) (list 'IN rhb-c 'RR)))
-  (have! (list 'AND (list '<= 0 rhb-d) (list '<= 0 rhb-c))
-         (lambda ()
-           (dk-conj-close!
-            (lambda ()
-              (if (equal? (dk-goal) (list '<= 0 rhb-c))
-                  (ass)
-                  (rhb-ineq! (list '<= rhb-a rhb-b)
-                             (list 'IN rhb-a 'RR) (list 'IN rhb-b 'RR)))))))
-  (dk-fact! 'rr-leq-mul-nonneg rhb-d rhb-c)
-  (have! (list '= (list '* rhb-d rhb-c)
-                  (list '- (list '* rhb-b rhb-c) (list '* rhb-a rhb-c)))
-         (lambda () (crs)))
-  (rhb-ineq! (list '<= 0 (list '* rhb-d rhb-c))
-             (list '= (list '* rhb-d rhb-c)
-                      (list '- (list '* rhb-b rhb-c) (list '* rhb-a rhb-c)))))
-(qed 'rr-mul-le-right)
-
-;;; ====================================================================
 ;;; proper-subset-witness -- hahn-banach-full-proof.scm:100
 ;;; The contrapositive of class-extensionality.  `pbc' opens it; the inner
 ;;; `pbc' turns "x in b but the witness set is empty" into the very existential
@@ -337,4 +301,3 @@
 (topic! 'linfun-on-vec-is-linfun 'analysis)
 (topic! 'abs-nonneg-le 'analysis)
 (topic! 'blf-app-real 'analysis)
-(topic! 'rr-mul-le-right 'analysis)

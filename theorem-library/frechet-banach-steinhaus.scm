@@ -862,17 +862,6 @@
 (rfl)
 (qed 'fbs-v-sub-add)
 
-;;; (x + y) - y = x
-(sp (make-wff '(FORALL m (IMPLIES (IS-MODULE m) (FORALL x (IMPLIES (IN x (VEC m)) (FORALL y (IMPLIES (IN y (VEC m))
-   (= ((VADD m) ((VADD m) x y) ((VNEG m) y)) x)))))))))
-(dk-peel!)
-(fbs-ty! '((VNEG m) y) '(VEC m))
-(subst (dk-cite! 'hbs-vadd-assoc 'm 'x 'y '((VNEG m) y)))
-(subst (dk-cite! 'frm-v-right-inv 'm 'y))
-(subst (dk-cite! 'hbs-vzero-r 'm 'x))
-(rfl)
-(qed 'fbs-v-add-sub)
-
 ;;; ---- continuity of x |-> q_k(tt x) in the metric, from below ---------------
 
 (define fbs-f2 '(FR-METRIC-SPACE m2 fam2))
@@ -1299,7 +1288,7 @@
          (q (list 'fam2 k)))
     (fbs-ty! (fbs-add 'm1 w x0) '(VEC m1))
     (let* ((v (dk-name! (fbs-add 'm1 w x0) '(VEC m1)))
-           (e1 (dk-cite! 'fbs-v-add-sub 'm1 w x0))
+           (e1 (dk-cite! 'fom-v-shift-back 'm1 w x0))
            (e2 (dk-rewrite-h! e1 (fbs-add 'm1 w x0) v))         ; v - x0 = w
            (vx (fbs-sub 'm1 v x0)))
       (dk-have! (list 'FORALL 'j (list 'IMPLIES '(IN j NN) (list 'IMPLIES (list '<= 'j nb)
@@ -1408,5 +1397,5 @@
 (for-each (lambda (n) (topic! n 'analysis))
   '(closed-graph-theorem frechet-banach-steinhaus fbs-conv-dom fbs-cauchy-dom fbs-conv-sum
     fbs-graph-fam-exists fbs-graph-seminorm fbs-graph-family fbs-graph-frechet fbs-id-linear
-    fbs-baire-ball fbs-v-sub-add fbs-v-add-sub fbs-q-cont fbs-closure-bound fbs-ball-bound
+    fbs-baire-ball fbs-v-sub-add fbs-q-cont fbs-closure-bound fbs-ball-bound
     fbs-uniform-ball))

@@ -85,7 +85,7 @@
                     (#t (let* ((ld (dk-peel!))
                                (i (cadr (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (caddr f) LZS-IV))) ld))))
                           (lzs-mod-at! i)
-                          (fact 'lzq-vec-set (list 'F i))
+                          (fact 'frm-module-vec-set (list 'F i))
                           (ass))))))
           (dk-opened (lambda () (bu-set))))
 (lzs-done! 'dsum-union-set)
@@ -479,9 +479,9 @@
 (lzs-qlaw! 'dsum-comm (list 'is-commutative LZS-VADD LZSV) 'is-commutative
   (list (cons 'lzq-vadd-comm (lambda (as rs) as))))
 (lzs-qlaw! 'dsum-identity (list 'is-identity LZS-VADD LZS-VZERO LZSV) 'is-identity
-  (list (cons 'lzq-vzero-l (lambda (as rs) as)) (cons 'abelian-group-right-id-module-vector-ag (lambda (as rs) as))))
+  (list (cons 'hbs-vzero-l (lambda (as rs) as)) (cons 'abelian-group-right-id-module-vector-ag (lambda (as rs) as))))
 (lzs-qlaw! 'dsum-inverses (list 'has-inverses LZS-VADD LZS-VZERO LZS-VNEG LZSV) 'has-inverses
-  (list (cons 'lzq-inv-l (lambda (as rs) as)) (cons 'lzq-inv-r (lambda (as rs) as))))
+  (list (cons 'lzq-inv-l (lambda (as rs) as)) (cons 'frm-v-right-inv (lambda (as rs) as))))
 (lzs-qlaw! 'dsum-act-distrib-vec
   (list 'FORALL 'r_ (list 'IMPLIES (list 'IN 'r_ LZSC)
     (list 'FORALL 'x_ (list 'IMPLIES (list 'IN 'x_ LZSV) (list 'FORALL 'y_ (list 'IMPLIES (list 'IN 'y_ LZSV)

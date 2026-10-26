@@ -809,20 +809,6 @@
 ;;; -----------------------------------------------------------------------
 ;;; 5. The subterm relation: its three clauses, minimality, inversion.
 
-(sp (make-wff '(FORALL X (FORALL Y (FORALL u (FORALL v
-   (IMPLIES (IN (LIST u v) (CARTESIAN X Y)) (AND (IN u X) (IN v Y)))))))))
-(dk-peel!)
-(let* ((vs (sml-unpack! (sml-cart-open! '(IN (LIST u v) (CARTESIAN X Y)))))
-       (c1 (car vs)) (c2 (cadr vs))
-       (eqn (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) '(LIST u v)))) (dk-asms))))
-  (dk-have! `(= u ,c1) (lambda () (sml-component! '(LIST u v) (caddr eqn) 1)))
-  (dk-have! `(= v ,c2) (lambda () (sml-component! '(LIST u v) (caddr eqn) 2)))
-  (dk-each-leaf! (lambda () (di))
-    (lambda ()
-      (if (equal? (cadr (dk-goal)) 'u) (subst `(= u ,c1)) (subst `(= v ,c2)))
-      (ass))))
-(qed 'pair-in-cartesian-parts)
-
 (sp (make-wff '(FORALL T (FORALL K (== (SUBTERM-REL T K)
    (SEP p_ (CARTESIAN (MSG-SET T K) (MSG-SET T K))
         (FORALL q_ (IMPLIES (IN q_ (POWER (CARTESIAN (MSG-SET T K) (MSG-SET T K))))
@@ -1498,7 +1484,7 @@
 ;;; Topics.
 
 (for-each (lambda (n) (topic! n 'plumbing))
-          '(msg-set-unfold subterm-rel-unfold pair-in-cartesian-parts lst-unfold encr-unfold))
+          '(msg-set-unfold subterm-rel-unfold lst-unfold encr-unfold))
 (for-each (lambda (n) (topic! n 'constructions))
           '(encr-ne-list lst-ne-encr lst-injective encr-injective
             msg-stage-token msg-stage-keep msg-stage-list msg-stage-encr msg-stage-zero-elim

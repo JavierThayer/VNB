@@ -41,24 +41,6 @@
         (if cj (begin (dk-split! cj) (loop)))))
     w))
 
-;;; ---- a + -b = 0 => a = b in a module -----------------------------------------------
-(sp (make-wff '(FORALL md (IMPLIES (IS-MODULE md) (FORALL a_ (IMPLIES (IN a_ (VEC md)) (FORALL b_ (IMPLIES (IN b_ (VEC md))
-  (IMPLIES (= ((VADD md) a_ ((VNEG md) b_)) (VZERO md)) (= a_ b_))))))))))
-(dk-peel!)
-(fact 'module-vneg-type 'md 'b_)
-(fact 'module-vneg-type 'md 'a_)
-(let ((e (dk-cite! 'abelian-group-inverse-unique-module-vector-ag 'md 'a_ '((VNEG md) b_))))
-  ;; e: -b = -a
-  (fact 'lzq-neg-neg 'md 'b_)
-  (fact 'lzq-neg-neg 'md 'a_)
-  (dk-have! '(= ((VNEG md) ((VNEG md) b_)) ((VNEG md) ((VNEG md) a_)))
-    (lambda () (subst e) (fact 'module-vneg-type 'md '((VNEG md) a_)) (rfl)))
-  (subst '(= a_ ((VNEG md) ((VNEG md) a_))))
-  (subst '(= ((VNEG md) ((VNEG md) a_)) ((VNEG md) ((VNEG md) b_))))
-  (subst '(= ((VNEG md) ((VNEG md) b_)) b_))
-  (rfl))
-(lzt-done! 'lzt-eq-of-d-zero)
-
 ;;; =====================================================================
 ;;; (A) The first isomorphism theorem.
 ;;; =====================================================================
@@ -145,7 +127,7 @@
       (lzt-phi-typ! a) (lzt-phi-typ! b)
       (dk-have! (list '= (list '(VADD N) (list 'phi a) (list '(VNEG N) (list 'phi b))) '(VZERO N))
         (lambda () (subst (list '= (list '(VADD N) (list 'phi a) (list '(VNEG N) (list 'phi b))) (list 'phi d))) (ass)))
-      (dk-cite! 'lzt-eq-of-d-zero 'N (list 'phi a) (list 'phi b))
+      (dk-cite! 'frm-v-sub-zero-eq 'N (list 'phi a) (list 'phi b))
       (ass))))
 (dk-have! (list 'AND '(IN phi (FUN (PTS (QMOD-SETOID M sm)) (VEC N))) (list 'RESPECTS LZT-S 'phi)))
 (fact 'descend-in-fun LZT-S '(VEC N) 'phi)
@@ -237,7 +219,7 @@
                                  (d (list '(VADD M) a (list '(VNEG M) b))))
                             (lzt-phi-d! a b)
                             (lzt-phi-typ! a) (lzt-phi-typ! b)
-                            (fact 'lzq-inv-r 'N (list 'phi b))
+                            (fact 'frm-v-right-inv 'N (list 'phi b))
                             (dk-have! (list '= (list 'phi d) '(VZERO N))
                               (lambda ()
                                 (subst (list '= (list 'phi d) (list '(VADD N) (list 'phi a) (list '(VNEG N) (list 'phi b)))))
@@ -573,7 +555,7 @@
 (sp (make-wff (lzt-hstmt '() '() (list 'IN LZT-PH (list 'FUN '(VEC md) LZT-TV)))))
 (dk-peel!)
 (lzt-tsetup!)
-(fact 'lzq-vec-set 'md)
+(fact 'frm-module-vec-set 'md)
 (dk-lam-type!
   (lambda ()
     (let* ((ld (dk-peel!)) (x (cadr (car ld))) (inner (cadr (dk-goal))))

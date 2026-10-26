@@ -571,3 +571,14 @@
 (qed 'rr-abs-prod-bound)
 (topic! 'rr-abs-prod-bound 'inequalities)
 (alias! 'rr-abs-prod-bound "the eps/2 estimate for a product")
+
+;;; rr-abs-zero-value -- abs(0) = 0; moved here from series-abs-triangle.scm
+;;; (CLEANUP-1, 2026-10-25).
+(sp (make-wff '(= (abs 0) 0)))
+(fact 'rr-zero-in)
+(have! '(<= 0 0) (lambda () (arith)))
+(fact 'rr-abs-of-nonneg 0)
+(ass)
+(qed 'rr-abs-zero-value)
+(topic! 'rr-abs-zero-value 'inequalities)
+(alias! 'rr-abs-zero-value "the absolute value of 0 is 0")

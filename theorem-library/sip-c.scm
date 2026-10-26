@@ -63,7 +63,7 @@
        (a2 (dk-skolem! (dk-landed-1 (lambda () (mac-h 'IS-NULL-SET '(IS-NULL-SET omega cA mu nb_))))))
        (u (list 'UNION a1 a2))
        (d (list 'COMPLEMENT-IN a2 a1)))
-  (fact 'sigma-algebra-binary-union 'omega 'cA a1 a2)
+  (fact 'sigma-algebra-union-closed-2 'omega 'cA a1 a2)
   (fact 'sigma-algebra-difference-closed 'omega 'cA a2 a1)
   ;; the two subsets as universals
   (let ((s1 (dk-cite! 'subset-def 'na_ a1)) (s2 (dk-cite! 'subset-def 'nb_ a2)))

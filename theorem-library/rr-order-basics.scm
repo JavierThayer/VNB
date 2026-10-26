@@ -724,3 +724,34 @@
   "The converse bridge: not(a <= b) implies b < a, by totality of <= plus
    reflexivity to rule the equal case out.")
 (topic! 'rr-not-le-lt 'inequalities)
+
+;;; rr-mul-le-right -- moved here from rake-hb-leaves.scm (CLEANUP-1, 2026-10-25):
+;;; a <= b and 0 <= c give a*c <= b*c, the companion of rr-cancel-mul-right.
+(sp (make-wff
+     '(FORALL a (IMPLIES (IN a RR) (FORALL b (IMPLIES (IN b RR) (FORALL c (IMPLIES (IN c RR)
+        (IMPLIES (<= a b) (IMPLIES (<= 0 c) (<= (* a c) (* b c))))))))))))
+(dk-peel!)
+(let* ((g (dk-goal))
+       (a (cadr  (cadr g)))
+       (c (caddr (cadr g)))
+       (b (cadr  (caddr g)))
+       (d (list '- b a)))
+  (dk-fact! 'rr-sub-in-rr b a)
+  (dk-fact! 'rr-mul-in-rr d c)
+  (dk-fact! 'rr-mul-in-rr a c)
+  (dk-fact! 'rr-mul-in-rr b c)
+  (have! (list 'AND (list 'IN d 'RR) (list 'IN c 'RR)))
+  (have! (list 'AND (list '<= 0 d) (list '<= 0 c))
+         (lambda ()
+           (dk-conj-close!
+            (lambda ()
+              (if (equal? (dk-goal) (list '<= 0 c))
+                  (ass)
+                  (dk-ineq! (list '<= a b) (list 'IN a 'RR) (list 'IN b 'RR)))))))
+  (dk-fact! 'rr-leq-mul-nonneg d c)
+  (have! (list '= (list '* d c) (list '- (list '* b c) (list '* a c)))
+         (lambda () (crs)))
+  (dk-ineq! (list '<= 0 (list '* d c))
+            (list '= (list '* d c) (list '- (list '* b c) (list '* a c)))))
+(qed 'rr-mul-le-right)
+(topic! 'rr-mul-le-right 'analysis)

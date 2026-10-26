@@ -86,6 +86,7 @@
     "theorem-library/compose-apply-proof"
     "theorem-library/id-fun-laws"
     "theorem-library/pair-tuple-sethood"
+    "theorem-library/pair-laws"          ; cartesian-nth, cartesian-pair-eq, pair-in-cartesian-parts, node-pair-injective (CLEANUP-1, 2026-10-25)
     "theorem-library/nn-order-ord"
     "theorem-library/nn-not-le-succ-le"
     "theorem-library/nn-order-basics"

@@ -655,22 +655,6 @@
 ;; ======================================================================
 ;; DISTRIBUTIVITY -- bricks first
 ;; ======================================================================
-;; a member of a cartesian product is the pair of its projections (the equation form)
-(sp (make-wff '(FORALL x_ (FORALL aa (FORALL bb
-   (IMPLIES (IN x_ (CARTESIAN aa bb))
-     (= x_ (LIST (NTH 1 x_) (NTH 2 x_)))))))))
-(mac 'cartesian-decompose)
-(dk-peel!)
-(let lp ((k 0))
-  (let ((ex (any-pred (dk-head? 'FORSOME) (dk-asms))))
-    (if (and ex (< k 5)) (begin (dk-split! ex) (lp (+ k 1))))))
-(let* ((eq (dk-pick (lambda (a) (and (pair? a) (eq? (car a) '=) (eq? (cadr a) 'x_))) "x_ = [u,v]"))
-       (pr (caddr eq)))
-  (fact 'pair-in-cartesian 'aa 'bb (cadr pr) (caddr pr))
-  (subst eq)
-  (nth-r)
-  (rfl))
-(qed 'cartesian-pair-eq)
 
 ;; supp(g+h) is contained in supp(g) u supp(h)  (the inclusion inside monalg-add-fun, as a lemma)
 (sp (make-wff `(FORALL a_ (FORALL m_ (FORALL g_ (FORALL h_ (FORALL z_

@@ -799,6 +799,11 @@
     ;; membership-implies-sethood.  See structure-notes/tuples-rung.md.  Needs
     ;; only base axioms + driver-kit, so it sits with the other plumbing.
     "theorem-library/pair-tuple-sethood"
+    ;; pair-laws -- cartesian-nth, cartesian-pair-eq, pair-in-cartesian-parts,
+    ;; node-pair-injective: plain facts about pairs, moved to CORE (CLEANUP-1,
+    ;; 2026-10-25) from finsum-fiber, monalg-is-ring, strand-messages-laws and
+    ;; strand-space-laws.  Cites pair-in-cartesian (pair-tuple-sethood, just above).
+    "theorem-library/pair-laws"
     ;; rake-setoid -- class-is-set, quotient-is-set, proj-in-fun, descend-in-fun,
     ;; descend2-in-fun (setoid.scm), vec-is-set and vspace-vec-is-set (were add-to-pss
     ;; inside hahn-banach-full-proof / noetherian-maximal-proof): PROVEN 2026-09-17
