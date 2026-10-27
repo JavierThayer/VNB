@@ -724,11 +724,36 @@
 ;;; INVERSION: a strictly preceding pair is reached by a LAST edge -- a send edge or a
 ;;; same-strand step into y -- from x itself or from a node x strictly precedes.  The one
 ;;; device: ps-least at the separation of PREC-STRICT by that condition.
+;;; NBGSEP (2026-10-25): the separation below quantifies over the witnesses slu_, slv_ and
+;;; slz_; each is bounded by (IN v SET), so the separation is predicative (NBG).  slu_, slv_
+;;; are the components of the pair p; slz_ is a component of a pair in ED or a member of ND:
+;;; sets in every case, so the bounds are implied.
 (define (ssl-last-cond spa nd ed u v)
-  `(FORSOME slz_ (AND (OR (IN (LIST slz_ ,v) ,ed) (AND (IN slz_ ,nd) (SAME-STRAND-BEFORE ,spa slz_ ,v)))
-                      (OR (= slz_ ,u) (IN (LIST ,u slz_) (PREC-STRICT ,spa ,nd ,ed))))))
+  `(FORSOME slz_ (AND (IN slz_ SET)
+                 (AND (OR (IN (LIST slz_ ,v) ,ed) (AND (IN slz_ ,nd) (SAME-STRAND-BEFORE ,spa slz_ ,v)))
+                      (OR (= slz_ ,u) (IN (LIST ,u slz_) (PREC-STRICT ,spa ,nd ,ed)))))))
 (define (ssl-pair-cond p cond2)
-  `(FORSOME slu_ (FORSOME slv_ (AND (= ,p (LIST slu_ slv_)) ,(cond2 'slu_ 'slv_)))))
+  `(FORSOME slu_ (FORSOME slv_ (AND (IN slu_ SET) (AND (IN slv_ SET) (AND (= ,p (LIST slu_ slv_)) ,(cond2 'slu_ 'slv_)))))))
+
+;; (IN x SET) in context, from any typing (IN x C) there (a member of a class is a set)
+;; ... or, failing that, from a literal list holding x that is a member of a class
+;; (`tuple-members-are-sets', at x's index, the NTH reduced)
+(define (ssl-sethood! x)
+  (if (not (dk-asm? (list 'IN x 'SET)))
+      (let ((m (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (cadr f) x) (not (eq? (caddr f) 'SET))))
+                           (dk-asms))))
+        (if m
+            (fact 'membership-implies-sethood x (caddr m))
+            (let ((pm (find-first (lambda (f) (and (dk-head-is? f 'IN) (pair? (cadr f)) (eq? (car (cadr f)) 'LIST)
+                                                   (member x (cdr (cadr f)))))
+                                  (dk-asms))))
+              (if (not pm) (error "ssl-sethood!: no typing of" x))
+              (let* ((lit (cadr pm))
+                     (k (let find ((l (cdr lit)) (i 1)) (if (equal? (car l) x) i (find (cdr l) (+ i 1))))))
+                (dk-have! (list 'IN k 'NN) (lambda () (arith)))
+                (dk-have! (list 'AND (list '<= 1 k) (list '<= k (list 'LENGTH lit)))
+                          (lambda () (len-r) (dk-conj-close! (lambda () (arith)))))
+                (dk-nth-h! (dk-cite! 'tuple-members-are-sets lit (caddr pm) k))))))))
 
 ;; (IN (LIST a b) RR) in context, RR the SEP by (pair-cond COND2): land COND2(a, b).
 (define (ssl-pair-cond-open! rr a b cond2)
@@ -748,9 +773,19 @@
 (define (ssl-pair-cond-intro! a b cond-thunk)
   (in-sep! (lambda () (ass))
            (lambda ()
+             (ssl-sethood! a) (ssl-sethood! b)
              (ew a) (ew b)
+             ;; NBGSEP: (AND (IN a SET) (AND (IN b SET) (AND (= p [a, b]) COND)))
              (dk-each-leaf! (lambda () (di))
-               (lambda () (if (dk-head-is? (dk-goal) '=) (rfl) (cond-thunk)))))))
+               (lambda ()
+                 (if (dk-head-is? (dk-goal) 'IN)
+                     (ass)
+                     (dk-each-leaf! (lambda () (di))
+                       (lambda ()
+                         (if (dk-head-is? (dk-goal) 'IN)
+                             (ass)
+                             (dk-each-leaf! (lambda () (di))
+                               (lambda () (if (dk-head-is? (dk-goal) '=) (rfl) (cond-thunk)))))))))))))
 
 (sp (make-wff '(FORALL spa (FORALL ND (FORALL ED (IMPLIES (IN ND SET) (IMPLIES (IN ED (POWER (CARTESIAN ND ND)))
   (FORALL x (FORALL y (IMPLIES (IN (LIST x y) (PREC-STRICT spa ND ED))
@@ -797,9 +832,10 @@
                  (fact 'ps-send 'spa 'ND 'ED x y)
                  (ssl-pair-cond-intro! x y
                    (lambda () (ew x) (dk-conj-close!
-                                       (lambda () (if (dk-head-is? (cadr (dk-goal)) '=)
-                                                      (begin (oi-l) (rfl))
-                                                      (begin (oi-l) (ass))))))))
+                                       (lambda () (cond ((dk-head-is? (dk-goal) 'IN) (ass))   ; NBGSEP: x in SET
+                                                        ((dk-head-is? (cadr (dk-goal)) '=)
+                                                         (oi-l) (rfl))
+                                                        (#t (oi-l) (ass))))))))
                 ((ssb)
                  (fact 'ps-ssb 'spa 'ND 'ED x y)
                  (ssl-pair-cond-intro! x y
@@ -817,7 +853,12 @@
                                                      (dk-asms)))))
                         (dummy0 (ssl-pair-cond-open! rr x mid cond2))
                         (h2 (ssl-pair-cond-open! rr mid y cond2))
-                        (zz (dk-skolem! h2 'top)))
+                        (zz (dk-skolem! h2 'top))
+                        ;; NBGSEP: 'top leaves (AND OR1 OR2) under the bound zz in SET
+                        (dummy1 (let ((a (find-first (lambda (f) (and (dk-head-is? f 'AND) (dk-contains? f zz)
+                                                                      (dk-head-is? (cadr f) 'OR)))
+                                                     (dk-asms))))
+                                  (if a (dk-landed (lambda () (ai a)))))))
                    (fact 'ps-trans 'spa 'ND 'ED x mid y)
                    (ssl-pair-cond-intro! x y
                      (lambda ()
@@ -841,8 +882,11 @@
                              (dk-asms))
                  (error "ps-last-step: ps-least did not detach"))
              'x 'y)
-  (ssl-pair-cond-open! rr 'x 'y cond2)
-  (dk-ass!))
+  ;; NBGSEP: the landed claim carries the bound slz_ in SET, the statement's does not
+  (let* ((cl (ssl-pair-cond-open! rr 'x 'y cond2))
+         (zz (dk-skolem! cl #t)))
+    (ew zz)
+    (dk-conj-close! (lambda () (dk-ass!)))))
 (qed 'ps-last-step)
 
 ;;; -----------------------------------------------------------------------

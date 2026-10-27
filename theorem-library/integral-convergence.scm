@@ -3911,11 +3911,13 @@
 (let* ((ff '(PTWISE-SUP omega cf))
        (iff (list 'INTEGRAL 'omega 'cA 'mu ff))
        (hm '(FORALL n_ (IMPLIES (IN n_ NN) (IS-MEASURABLE-FN omega cA (cf n_)))))
+       ;; NBGSEP (2026-10-25): INTEGRAL's body bounds ins_ by FUN(omega, RR-POS-STAR)
        (sset (list 'SEP 'iny_ 'RR-POS-STAR
                    (list 'FORSOME 'ins_
-                         (list 'AND '(IS-SIMPLE-FN omega cA ins_)
-                               (list 'AND (list 'PTWISE-LE 'omega 'ins_ ff)
-                                     '(= iny_ (SIMPLE-INTEGRAL omega mu ins_))))))))
+                         (list 'AND '(IN ins_ (FUN omega RR-POS-STAR))
+                               (list 'AND '(IS-SIMPLE-FN omega cA ins_)
+                                     (list 'AND (list 'PTWISE-LE 'omega 'ins_ ff)
+                                           '(= iny_ (SIMPLE-INTEGRAL omega mu ins_)))))))))
   (icv-parts! 'IS-MEASURE '(omega cA mu))
   (fact 'measurable-fn-sup 'omega 'cA 'cf)
   (fact 'integral-in 'omega 'cA 'mu ff)

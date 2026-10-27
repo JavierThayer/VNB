@@ -1375,13 +1375,27 @@
 (define (fom-ap nb eta bound dl)
   (list 'FORALL 'fz_ (list 'IMPLIES '(IN fz_ (VEC m2))
     (list 'IMPLIES (fom-pfx 'fam2 'fi_ nb 'fz_ '< eta) (fom-apx 'fz_ bound dl)))))
+;;; NBGSEP (2026-10-25): the invariant below sits in the body of the DC step's
+;;; separation (fom-nxt), so its binders are bounded there -- geta_ by geta_ in RR and
+;;; the approximation's fth_ by fth_ in RR, each implied by its POS-RR guard -- and the
+;;; separation is predicative (NBG).  fom-apx-b / fom-ap-b are the bounded spellings;
+;;; fom-apx itself is the hypothesis' (fom-hapx) and is not changed.
+(define (fom-apx-b z nb0 dl)
+  (list 'FORALL 'fk_ (list 'IMPLIES '(IN fk_ NN)
+    (list 'FORALL 'fth_ (list 'IMPLIES '(IN fth_ RR) (list 'IMPLIES '(POS-RR fth_)
+      (list 'FORSOME 'fx_ (list 'AND '(IN fx_ (VEC m1))
+        (list 'AND (fom-pfx 'fam1 'fj_ nb0 'fx_ '< dl)
+                   (fom-pfx 'fam2 'fi_ 'fk_ (fom-sub 'm2 z '(tt fx_)) '< 'fth_))))))))))
+(define (fom-ap-b nb eta bound dl)
+  (list 'FORALL 'fz_ (list 'IMPLIES '(IN fz_ (VEC m2))
+    (list 'IMPLIES (fom-pfx 'fam2 'fi_ nb 'fz_ '< eta) (fom-apx-b 'fz_ bound dl)))))
 (define (fom-inv yv nv n0 k u)
   (list 'FORSOME 'gnb_ (list 'AND '(IN gnb_ NN)
-    (list 'FORSOME 'geta_ (list 'AND '(POS-RR geta_)
+    (list 'FORSOME 'geta_ (list 'AND '(IN geta_ RR) (list 'AND '(POS-RR geta_)
       (list 'AND (list '<= k 'gnb_)
         (list 'AND (list '<= 'geta_ (fom-a n0 k))
-          (list 'AND (fom-ap 'gnb_ 'geta_ (list '+ nv k) (fom-rad n0 k))
-            (fom-pfx 'fam2 'gi_ 'gnb_ (fom-sub 'm2 yv (list 'tt u)) '< 'geta_)))))))))
+          (list 'AND (fom-ap-b 'gnb_ 'geta_ (list '+ nv k) (fom-rad n0 k))
+            (fom-pfx 'fam2 'gi_ 'gnb_ (fom-sub 'm2 yv (list 'tt u)) '< 'geta_))))))))))
 (define (fom-stepc nv n0 k u v) (fom-pfx 'fam1 'gj_ (list '+ nv k) (fom-sub 'm1 v u) '< (fom-rad n0 k)))
 (define (fom-nxt yv nv n0)
   (list 'VNB-LAMBDA '(LIST gkv_ guv_) '(CARTESIAN NN (VEC m1))
@@ -1436,8 +1450,17 @@
           (fom-pval! 'm2 'fam2 i zz)
           (dk-apply! pz i)
           (dk-ineq! (list '< (list (list 'fam2 i) zz) eta2) (list '<= eta2 eta)))))
-    (dk-apply! ap zz)
-    (ass)))
+    ;; NBGSEP: AP and the goal may be the bounded spelling (fom-ap-b) or not; when they
+    ;; differ, close the approximation at the goal's own fk_, fth_
+    (let ((apx (dk-apply! ap zz)))
+      (if (dk-asm? (dk-goal))
+          (ass)
+          (let* ((ls3 (dk-peel!))
+                 (kk (cadr (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (caddr f) 'NN))) ls3)))
+                 (th (cadr (find-first (dk-head? 'POS-RR) ls3))))
+            (dk-cite! 'rr-pos-rr-in-rr th)
+            (dk-apply! apx kk th)
+            (ass))))))
 
 (sp (make-wff (fom-6
   (list 'IMPLIES '(IS-FRECHET-STRUCTURE fld m1 fam1)
@@ -1543,6 +1566,7 @@
                                             (lambda ()
                                               (let ((g3 (dk-goal)))
                                                 (cond
+                                                  ((dk-head-is? g3 'IN) (ass))        ; NBGSEP: eta2 in RR
                                                   ((dk-head-is? g3 'POS-RR) (ass))
                                                   ((dk-head-is? g3 '<=) (ass))
                                                   ((dk-contains? g3 'fam1) (fom-ap-shrink! ap1 nb1 eta1 nb2 eta2))
@@ -1609,6 +1633,7 @@
                         (lambda ()
                           (let ((g3 (dk-goal)))
                             (cond
+                              ((dk-head-is? g3 'IN) (ass))                    ; NBGSEP: eta0p in RR
                               ((dk-head-is? g3 'POS-RR) (ass))
                               ((dk-head-is? g3 '<=) (ass))
                               ((dk-contains? g3 'fam1) (fom-ap-shrink! ap0 nb0 eta0 nb0 eta0p))

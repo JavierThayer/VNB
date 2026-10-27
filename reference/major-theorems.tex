@@ -61,7 +61,7 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \vnbprf{\vnbproofpart{\texttt{rr-mul-le-right}}}
 %
-\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/rake-\allowbreak{}hb-\allowbreak{}leaves.scm} --- 29 recorded steps.}
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/rr-\allowbreak{}order-\allowbreak{}basics.scm} --- 29 recorded steps.}
 %
 \vnbprf{\textbf{Lemmas.} \texttt{rr-sub-in-rr}, \texttt{rr-mul-in-rr}, \texttt{rr-leq-mul-nonneg}.}
 %
@@ -2560,9 +2560,13 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \noindent\textbf{Deviation from the notes.} Two differences.  (1) F and G are given is-invertible-mat (elem-f-invertible, elem-g-invertible), but there is NO elem-h-invertible: for H the library installs only the product equation matmul(a,elem-h(a,n,r,k),elem-h(a,n,s,k)) = identmat(a,n) under the hypothesis mul(a)(r,s) = one(a), so the inverse is a SUPPLIED s, not r\textasciicircum{}\{-1\} -- the library has no ring-inverse operation.  (2) Generality gained: is-ring rather than a commutative ring.  The notes' G inverse formula G[-r,k,l] and the k /= l guard match elem-g-inverse exactly.
 %
 \renewcommand{\thethm}{3.8}
-\begin{lem}[{Column reduction of the first row over a field}]\label{thm:clear-first-row}
+\begin{lem}[{Column reduction of the first row over a field}]\label{thm:col-reduce-first-row}
 %
 \leavevmode
+\vnbpart{\texttt{col-reduce-first-row}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall r, m, n, a. \\ \quad (\operatorname{is\text{-}field\text{-}ring}(r) \wedge ((m \in \mathbb{N}) \wedge ((n \in \mathbb{N}) \wedge ((1 \leq m) \wedge ((1 \leq n) \wedge (a \in \operatorname{mat}(m, n, \operatorname{carr}(r)))))))) \Rightarrow  \\ \quad \quad \exists b. \\ \quad \quad \quad \operatorname{col\text{-}equiv}(r, n, a, b) \wedge \\ \quad \quad \quad \forall j \in \operatorname{interval}(2, n).\; (\operatorname{entry}(b, 1, j) = \operatorname{zero}(r)) \wedge \\ \quad \quad \quad (\operatorname{entry}(b, 1, 1) = \operatorname{zero}(r)) \vee (\operatorname{entry}(b, 1, 1) = \operatorname{one}(r)) \end{array}}
+\vnbpart{\texttt{column-step-exists}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall r, m, n, a. \\ \quad (\operatorname{is\text{-}field\text{-}ring}(r) \wedge ((m \in \mathbb{N}) \wedge ((n \in \mathbb{N}) \wedge (a \in \operatorname{mat}(m, n, \operatorname{carr}(r)))))) \Rightarrow  \\ \quad \quad \exists e.\; (\operatorname{col\text{-}equiv}(r, n, a, e) \wedge \operatorname{is\text{-}column\text{-}step}(r, m, n, e)) \end{array}}
 \vnbpart{\texttt{clear-first-row}}
 \vnbstmt{\begin{array}{@{}l@{}} \forall a, m, n.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)). \\ \quad \operatorname{is\text{-}euclidean\text{-}ring}(a) \wedge \\ \quad m \in \mathbb{N} \wedge \\ \quad n \in \mathbb{N} \wedge \\ \quad 1 \in \operatorname{interval}(1, m) \wedge \\ \quad 1 \in \operatorname{interval}(1, n) \wedge \\ \quad \neg (\operatorname{entry}(p, 1, 1) = \operatorname{zero}(a)) \wedge \\ \quad \forall c, i, b. \\ \quad \quad \operatorname{mat\text{-}equiv}(a, m, n, p, c) \wedge \\ \quad \quad i \in \operatorname{interval}(1, m) \wedge \\ \quad \quad b \in \operatorname{interval}(1, n) \wedge \\ \quad \quad \neg (\operatorname{entry}(c, i, b) = \operatorname{zero}(a)) \Rightarrow \\ \quad \quad \quad \operatorname{gauge}(a)(\operatorname{entry}(p, 1, 1)) \leq \operatorname{gauge}(a)(\operatorname{entry}(c, i, b)) \Rightarrow \\ \quad \quad \exists q. \\ \quad \quad \quad \operatorname{mat\text{-}equiv}(a, m, n, p, q) \wedge \\ \quad \quad \quad \operatorname{entry}(q, 1, 1) = \operatorname{entry}(p, 1, 1) \wedge \\ \quad \quad \quad \forall j \in \operatorname{interval}(1, n).\; (\neg (j = 1) \Rightarrow (\operatorname{entry}(q, 1, j) = \operatorname{zero}(a))) \end{array}}
 \vnbpart{\texttt{class-min-pivot}}
@@ -2573,6 +2577,22 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \begin{proof}
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{col-reduce-first-row}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z6-\allowbreak{}col.scm} --- 70 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{column-step-exists}, \texttt{interval-mem-intro}, \texttt{interval-elt-in-nn}, \texttt{interval-lo}, \texttt{interval-hi}, \texttt{nn-in-rr}, \texttt{nn-zero-le}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{column-step-exists}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}elem-\allowbreak{}gen.scm} --- 15 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{column-step-reduced}, \texttt{laeg-rows-colstep}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \vnbprf{\vnbproofpart{\texttt{clear-first-row}}}
 %
@@ -2592,11 +2612,17 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} Three losses and one gain.  The library works over a EUCLIDEAN RING, not a field (gain), and therefore (a) cannot scale the pivot: clear-first-row concludes entry(q,1,1) = entry(p,1,1) and never normalises the corner to 0 or 1, which is precisely the notes' conclusion b\_11 in \{0,1\}; (b) needs the pivot to be nonzero AND to MINIMISE the gauge over the whole equivalence class (that hypothesis is supplied by class-min-pivot), where the notes need no such thing; (c) works modulo MAT-EQUIV, which is two-sided (an invertible U on the left and V on the right), not the notes' column equivalence.  Extra guards: m, n in nn and 1 in interval(1,m), 1 in interval(1,n).
+\noindent\textbf{Deviation from the notes.} Stated over IS-FIELD-RING with column equivalence COL-EQUIV(R, n, A, B): B = A P with P in ELEM-GEN(R, n). The guards m, n in nn and 1 $<$= m, 1 $<$= n make b\_11 an entry. Derived from the column-step proposition (column-step-exists) as its first row; the tree proves that proposition row by row, with this lemma's argument as the row step. The euclidean, MAT-EQUIV form clear-first-row (no normalisation of the corner) stays as before.
 %
 \renewcommand{\thethm}{3.10}
-\begin{prop}[{Column reduction to a step matrix with zeros above the diagonal}]\label{thm:smith-diagonalization}
+\begin{prop}[{Column reduction to a step matrix with zeros above the diagonal}]\label{thm:column-step-exists}
 %
+\leavevmode
+\vnbpart{\texttt{column-step-exists}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall r, m, n, a. \\ \quad (\operatorname{is\text{-}field\text{-}ring}(r) \wedge ((m \in \mathbb{N}) \wedge ((n \in \mathbb{N}) \wedge (a \in \operatorname{mat}(m, n, \operatorname{carr}(r)))))) \Rightarrow  \\ \quad \quad \exists e.\; (\operatorname{col\text{-}equiv}(r, n, a, e) \wedge \operatorname{is\text{-}column\text{-}step}(r, m, n, e)) \end{array}}
+\vnbpart{\texttt{column-step-reduced}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall r, m, n, a. \\ \quad (\operatorname{is\text{-}field\text{-}ring}(r) \wedge ((m \in \mathbb{N}) \wedge ((n \in \mathbb{N}) \wedge (a \in \operatorname{mat}(m, n, \operatorname{carr}(r)))))) \Rightarrow  \\ \quad \quad \exists c. \\ \quad \quad \quad (\operatorname{col\text{-}equiv}(r, n, a, c) \wedge \forall i \in \operatorname{interval}(1, m).\; \operatorname{col\text{-}step\text{-}row}(r, n, c, i)) \end{array}}
+\vnbpart{\texttt{smith-diagonalization}}
 \vnbstmt{\begin{array}{@{}l@{}} \forall a.; \forall k \in \mathbb{N}, n, p. \\ \quad (\operatorname{is\text{-}euclidean\text{-}ring}(a) \wedge ((n \in \mathbb{N}) \wedge (p \in \operatorname{mat}(k, n, \operatorname{carr}(a))))) \Rightarrow  \\ \quad \quad \exists d.\; (\operatorname{mat\text{-}equiv}(a, k, n, p, d) \wedge \operatorname{is\text{-}diagonal}(a, k, n, d)) \end{array}}
 %
 \end{prop}
@@ -2604,6 +2630,24 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \begin{proof}
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{column-step-exists}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}elem-\allowbreak{}gen.scm} --- 15 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{column-step-reduced}, \texttt{laeg-rows-colstep}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{column-step-reduced}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}elem-\allowbreak{}gen.scm} --- 17 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{laeg-colstep-ind}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{smith-diagonalization}}}
 %
 \vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/smith-\allowbreak{}diagonalization-\allowbreak{}proof.scm} --- 162 recorded steps.}
 %
@@ -2613,7 +2657,7 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} Neither statement implies the other.  smith-diagonalization reaches a FULLY DIAGONAL d (is-diagonal: every off-diagonal entry zero) over a euclidean ring, which is stronger than the notes' zeros above the diagonal; but it reaches it through MAT-EQUIV -- row AND column operations -- where the notes use COLUMN operations only, and it does not normalise the diagonal entries to 0 or 1 (that step needs a field).  The library has no column-only equivalence relation at all.
+\noindent\textbf{Deviation from the notes.} Stated over IS-FIELD-RING, as the lemma 3.8 it rests on. COL-EQUIV(R, n, A, B) and IS-COLUMN-STEP(R, m, n, B): b\_ij = 0 for i $<$ j and b\_ii in \{0, 1\}. Proved by induction on the number of rows treated, not on min(m, n). column-step-reduced also clears the rest of a row whose diagonal entry is 1. smith-diagonalization (euclidean, MAT-EQUIV, fully diagonal, not normalised) stays as before.
 %
 \renewcommand{\thethm}{3.12}
 \begin{cor}[{Over a field, invertible iff column equivalent to the identity}]\label{thm:invertible-iff-col-equiv-identity}
@@ -2706,11 +2750,21 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \noindent\textbf{Deviation from the notes.} The group of invertible matrices is not formed (MAT-RING has no unit-group structure); generation is stated as IS-INVERTIBLE-MAT(R, n, A) iff A in ELEM-GEN(R, n), over IS-FIELD-RING.
 %
 \renewcommand{\thethm}{3.15}
-\begin{prop}[{A permutation of the indeterminates is a ring automorphism of R[x\_1,...,x\_n]}]\label{thm:linear-algebra-3.15}
+\begin{prop}[{A permutation of the indeterminates is a ring automorphism of R[x\_1,...,x\_n]}]\label{thm:var-permute-is-ring-iso}
 %
-\textit{For a permutation sigma of the indeterminates, p |-$>$ sigma . p is an isomorphism of the ring R[x\_1, x\_2, ..., x\_n].}
-%
-Not in the library.
+\leavevmode
+\vnbpart{\texttt{var-permute-is-ring-iso}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall r, n, s. \\ \quad (\operatorname{is\text{-}ring}(r) \wedge ((n \in \mathbb{N}) \wedge (s \in \mathrm{Bij}(\operatorname{interval}(1, n), \operatorname{interval}(1, n))))) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}iso\text{-}ring}(\operatorname{mpoly}(r, n), \operatorname{mpoly}(r, n), (\lambda p \in \operatorname{carr}(\operatorname{mpoly}(r, n)).\; \operatorname{var\text{-}permute}(r, n, s, p))) \end{array}}
+\vnbpart{\texttt{multi-index-reindex-is-ring-iso}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall r, s, a. \\ \quad (\operatorname{is\text{-}ring}(r) \wedge ((s \in \mathbf{Set}) \wedge (a \in \mathrm{Bij}(s, s)))) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}iso\text{-}ring}(\operatorname{monalg}(r, \operatorname{multi\text{-}index\text{-}monoid}(s)), \operatorname{monalg}(r, \operatorname{multi\text{-}index\text{-}monoid}(s)), \\ \quad \quad \quad (\lambda f \in \operatorname{finsupp}(r, \operatorname{multi\text{-}index\text{-}monoid}(s)).\; \\ \quad \quad \quad \quad \operatorname{monalg\text{-}pullback}(r, \operatorname{multi\text{-}index\text{-}monoid}(s), (\lambda b \in (s \to \mathbb{N}).\; \operatorname{mi\text{-}reindex}(s, a, b)), f))) \end{array}}
+\vnbpart{\texttt{monalg-pullback-iso}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, m, h, s. \\ \quad \operatorname{is\text{-}ring}(a) \wedge \\ \quad \operatorname{is\text{-}monoid}(m) \wedge \\ \quad h \in (\operatorname{carr}(m) \to \operatorname{carr}(m)) \wedge \\ \quad s \in (\operatorname{carr}(m) \to \operatorname{carr}(m)) \wedge \\ \quad \forall u \in \operatorname{carr}(m).\; (s(h(u)) = u) \wedge \\ \quad \forall u \in \operatorname{carr}(m).\; (h(s(u)) = u) \wedge \\ \quad \forall u, v \in \operatorname{carr}(m).\; (h(\operatorname{opr}(m)(u, v)) = \operatorname{opr}(m)(h(u), h(v))) \wedge \\ \quad h(\operatorname{iden}(m)) = \operatorname{iden}(m) \Rightarrow \\ \quad \quad \operatorname{is\text{-}iso\text{-}ring}(\operatorname{monalg}(a, m), \operatorname{monalg}(a, m), (\lambda f \in \operatorname{finsupp}(a, m).\; \operatorname{monalg\text{-}pullback}(a, m, h, f))) \end{array}}
+\vnbpart{\texttt{mpoly-is-ring}}
+\vnbstmt{\forall r, n.\; ((\operatorname{is\text{-}ring}(r) \wedge (n \in \mathbb{N})) \Rightarrow \operatorname{is\text{-}ring}(\operatorname{mpoly}(r, n)))}
+\vnbpart{\texttt{mpoly-is-commutative-ring}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall r, n. \\ \quad (\operatorname{is\text{-}commutative\text{-}ring}(r) \wedge (n \in \mathbb{N})) \Rightarrow \operatorname{is\text{-}commutative\text{-}ring}(\operatorname{mpoly}(r, n)) \end{array}}
+\vnbpart{\texttt{multi-index-monoid-is-comm-monoid}}
+\vnbstmt{\forall s \in \mathbf{Set}.\; \operatorname{is\text{-}comm\text{-}monoid}(\operatorname{multi\text{-}index\text{-}monoid}(s))}
 %
 \end{prop}
 %
@@ -2718,11 +2772,57 @@ Not in the library.
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{There is no library statement, and so no proof.}
+\vnbprf{\vnbproofpart{\texttt{var-permute-is-ring-iso}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z6-\allowbreak{}mpoly.scm} --- 12 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{interval-in-set}, \texttt{multi-index-monoid-is-comm-monoid}, \texttt{comm-monoid-is-monoid}, \texttt{monalg-carr}, \texttt{multi-index-reindex-is-ring-iso}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{multi-index-reindex-is-ring-iso}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z6-\allowbreak{}mpoly.scm} --- 115 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nn-is-set}, \texttt{bijection-in-fun}, \texttt{inverse-bij-in-fun}, \texttt{multi-index-monoid-is-comm-monoid}, \texttt{comm-monoid-is-monoid}, \texttt{inverse-bij-right}, \texttt{inverse-bij-left}, \texttt{monalg-pullback-iso}, \texttt{multi-index-monoid-carr}, \texttt{mi-reindex-fun}, \texttt{fun-set-iff}, \texttt{mi-reindex-inverse}, \texttt{multi-index-monoid-opr}, \texttt{mi-add-fun}, \texttt{mi-reindex-add}, \texttt{multi-index-monoid-iden}, \texttt{mi-zero-fun}, \texttt{mi-reindex-zero}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{monalg-pullback-iso}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z6-\allowbreak{}pullback.scm} --- 89 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{monoid-carrier-is-set}, \texttt{monalg-carr}, \texttt{monalg-add-op}, \texttt{monalg-mul-op}, \texttt{monalg-neg-op}, \texttt{monalg-zero-slot}, \texttt{monalg-one-slot}, \texttt{monalg-is-ring}, \texttt{monalg-pullback-map-fun}, \texttt{monalg-pullback-finsupp}, \texttt{monalg-add-fun}, \texttt{monalg-pullback-add}, \texttt{monalg-mul-fun}, \texttt{monalg-pullback-mul}, \texttt{monalg-neg-fun}, \texttt{monalg-pullback-neg}, \texttt{monalg-zero-in}, \texttt{monalg-pullback-zero}, \texttt{monalg-one-in}, \texttt{monalg-pullback-one}, \texttt{monalg-pullback-map-bijection}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{mpoly-is-ring}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z6-\allowbreak{}mpoly.scm} --- 9 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{interval-in-set}, \texttt{multi-index-monoid-is-comm-monoid}, \texttt{comm-monoid-is-monoid}, \texttt{monalg-is-ring}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{mpoly-is-commutative-ring}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z6-\allowbreak{}mpoly.scm} --- 9 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{interval-in-set}, \texttt{multi-index-monoid-is-comm-monoid}, \texttt{comm-monoid-is-monoid}, \texttt{monalg-comm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{multi-index-monoid-is-comm-monoid}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z6-\allowbreak{}mpoly.scm} --- 77 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nn-is-set}, \texttt{multi-index-monoid-carr}, \texttt{multi-index-monoid-opr}, \texttt{multi-index-monoid-iden}, \texttt{fun-set-iff}, \texttt{mi-add-fun}, \texttt{cartesian-set-iff}, \texttt{mi-zero-fun}, \texttt{mi-add-assoc}, \texttt{mi-add-zero-left}, \texttt{mi-add-zero-right}, \texttt{mi-add-comm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} The library has the monoid algebra monalg(a,m) and, on top of it, poly(a) = monalg over the additive monoid of NN, i.e. ONE-VARIABLE polynomials only; there is no R[x\_1,...,x\_n].  permutations(n) is defined (injection(ord-segment(n), ord-segment(n))) but acts on nothing.  No sign of a permutation, hence none of the sign machinery under this proposition either.
+\noindent\textbf{Deviation from the notes.} R[x\_1, ..., x\_n] is MPOLY(R, n) = MONALG(R, MULTI-INDEX-MONOID([1, n])), the multi-indices being the functions [1, n] -$>$ NN under pointwise addition. sigma is a bijection of [1, n] (the notes' definition of a permutation), not a member of PERMUTATIONS(n), which is defined on ORD-SEGMENT(n). sigma . p is VAR-PERMUTE(R, n, sigma, p), whose coefficient at beta is p(beta o sigma); isomorphism is IS-ISO-RING (a ring hom and a bijection of the carriers). Proven for any ring R; the notes take R commutative, and MPOLY(R, n) is commutative when R is (mpoly-is-commutative-ring). The proof is the general monalg-pullback-iso: a monoid automorphism of M induces a ring automorphism of MONALG(A, M).
 %
 \renewcommand{\thethm}{3.18}
 \begin{prop}[{det is multilinear and alternating, and det of the transpose equals det}]\label{thm:det-row-linear}
@@ -3395,7 +3495,11 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \renewcommand{\thethm}{3.41}
 \begin{prop}[{A relation-free sequence is no longer than a generating sequence}]\label{thm:free-length-le-generators}
 %
+\leavevmode
+\vnbpart{\texttt{free-length-le-generators}}
 \vnbstmt{\begin{array}{@{}l@{}} \forall d, n, m, u, v. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad \operatorname{is\text{-}euclidean\text{-}ring}(\operatorname{scal}(d)) \wedge \\ \quad n \in \mathbb{N} \wedge \\ \quad m \in \mathbb{N} \wedge \\ \quad u \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad v \in \operatorname{mat}(m, 1, \operatorname{vec}(d)) \wedge \\ \quad \operatorname{generates}(d, n, u) \wedge \\ \quad \operatorname{rel\text{-}free}(d, m, v) \Rightarrow \\ \quad \quad m \leq n \end{array}}
+\vnbpart{\texttt{free-generating-length-unique}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, n, m, u, v. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad \operatorname{is\text{-}euclidean\text{-}ring}(\operatorname{scal}(d)) \wedge \\ \quad n \in \mathbb{N} \wedge \\ \quad m \in \mathbb{N} \wedge \\ \quad u \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad v \in \operatorname{mat}(m, 1, \operatorname{vec}(d)) \wedge \\ \quad \operatorname{generates}(d, n, u) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, u) \wedge \\ \quad \operatorname{generates}(d, m, v) \wedge \\ \quad \operatorname{rel\text{-}free}(d, m, v) \Rightarrow \\ \quad \quad m = n \end{array}}
 %
 \end{prop}
 %
@@ -3403,15 +3507,25 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
+\vnbprf{\vnbproofpart{\texttt{free-length-le-generators}}}
+%
 \vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/rank-\allowbreak{}bound-\allowbreak{}proof.scm} --- 356 recorded steps.}
 %
 \vnbprf{\textbf{Lemmas.} \texttt{euclidean-ring-is-integral-domain}, \texttt{integral-domain-nontrivial}, \texttt{one-in-interval-1}, \texttt{interval-in-set}, \texttt{interval-card-in-nn}, \texttt{nn-nonzero-is-succ}, \texttt{nn-one-le-succ}, \texttt{nn-one-in}, \texttt{nn-le-refl}, \texttt{interval-mem-intro}, \texttt{entry-in-carrier}, \texttt{lincomb-empty}, \texttt{unitrow-type}, \texttt{lincomb-unfold}, \texttt{matact-summand-type}, \texttt{unitrow-entry-off}, \texttt{module-zero-act}, \texttt{mvag-id}, \texttt{finsum-single-support}, \texttt{unitrow-entry-at}, \texttt{eq-sym}, \texttt{eq-trans}, \texttt{generates-coeff-matrix}, \texttt{smith-diagonalization}, \texttt{mat-equiv-target-is-mat}, \texttt{invertible-mat-is-mat}, \texttt{matact-type}, \texttt{free-transport}, \texttt{matmul-type}, \texttt{matact-assoc}, \texttt{matmul-assoc}, \texttt{identmat-right-identity}, \texttt{nn-not-le-succ-le}, \texttt{nn-succ-closed}, \texttt{matact-entry}, \texttt{interval-elt-in-nn}, \texttt{interval-hi}, \texttt{nn-le-imp-neq-succ}, \texttt{neq-sym}, \texttt{diagonal-off-entry}, \texttt{finsum-all-id}.}
 %
 \vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
+\vnbprf{\vnbproofpart{\texttt{free-generating-length-unique}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z5-\allowbreak{}norm.scm} --- 16 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{free-length-le-generators}, \texttt{nn-le-antisym}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} The first sentence is proven, for a module whose SCALAR RING IS EUCLIDEAN (the notes' Z case is only an instance once the missing abelian-group-as-ZZ-module view exists).  The second sentence -- that all free generating sequences of an abelian group have the same LENGTH, the fact that makes rank well defined -- is NOT stated anywhere, although it follows by two applications of the first.  Guards the notes do not carry: n, m in nn, and both sequences are column matrices u in mat(n,1,vec(md)), v in mat(m,1,vec(md)).
+\noindent\textbf{Deviation from the notes.} Both sentences are proven for a module over a EUCLIDEAN scalar ring (an abelian group is the case SCAL = ZZ-RING).  The second sentence is free-generating-length-unique: two free generating sequences have equal lengths.  Guards the notes do not carry: n, m in nn, and both sequences are column matrices u in mat(n,1,vec(md)), v in mat(m,1,vec(md)).
 %
 \renewcommand{\thethm}{3.43}
 \begin{cor}[{GL\_n(Z) acts freely and transitively on the free generating sequences}]\label{thm:free-generating-action-free}
@@ -3536,7 +3650,7 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} Stated for F of rank n (so that A is square), with SCAL(md) = ZZ-RING; change-of-basis-det-unit holds over any commutative ring.  N\_F(E) is not yet defined as an object.
+\noindent\textbf{Deviation from the notes.} Stated for F of rank n (so that A is square), with SCAL(md) = ZZ-RING; change-of-basis-det-unit holds over any commutative ring.  N\_E(F) is defined as SUBMODULE-NORM(md, sm): |det am| for any IS-NORM-DATA presentation (free generating xs of E, relation-free ys spanning F, both of length n, ys = am . xs), else 0 (submodule-norm-value, submodule-norm-zero, norm-data-det-unique).
 %
 \renewcommand{\thethm}{3.46}
 \begin{cor}[{A subgroup of a free abelian group of rank n is free of rank at most n}]\label{thm:submodule-of-free-is-free}
@@ -3642,7 +3756,7 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z3-\allowbreak{}struct.scm} --- 339 recorded steps.}
 %
-\vnbprf{\textbf{Lemmas.} \texttt{qmod-setoid-is-setoid}, \texttt{qmod-setoid-pts}, \texttt{qmod-ro-scal}, \texttt{qmod-ro-vec}, \texttt{qmod-ro-vadd}, \texttt{qmod-ro-vzero}, \texttt{qmod-ro-vneg}, \texttt{qmod-ro-act}, \texttt{respects-unfold}, \texttt{qmod-related-out}, \texttt{fun-apply-type-c}, \texttt{lzt-eq-of-d-zero}, \texttt{descend-in-fun}, \texttt{quotient-module-is-module}, \texttt{quotient-rep}, \texttt{qmod-vadd-computes}, \texttt{descend-computes}, \texttt{qmod-vneg-computes}, \texttt{qmod-act-computes}, \texttt{lzq-inv-r}, \texttt{qmod-class-eq-iff}, \texttt{class-in-quotient}.}
+\vnbprf{\textbf{Lemmas.} \texttt{qmod-setoid-is-setoid}, \texttt{qmod-setoid-pts}, \texttt{qmod-ro-scal}, \texttt{qmod-ro-vec}, \texttt{qmod-ro-vadd}, \texttt{qmod-ro-vzero}, \texttt{qmod-ro-vneg}, \texttt{qmod-ro-act}, \texttt{respects-unfold}, \texttt{qmod-related-out}, \texttt{fun-apply-type-c}, \texttt{frm-v-sub-zero-eq}, \texttt{descend-in-fun}, \texttt{quotient-module-is-module}, \texttt{quotient-rep}, \texttt{qmod-vadd-computes}, \texttt{descend-computes}, \texttt{qmod-vneg-computes}, \texttt{qmod-act-computes}, \texttt{frm-v-right-inv}, \texttt{qmod-class-eq-iff}, \texttt{class-in-quotient}.}
 %
 \vnbprf{\textbf{Oracles.} \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
@@ -3731,11 +3845,21 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \noindent\textbf{Deviation from the notes.} m\_k $>$= 0 and m\_k /= 1 replace the notes' m\_k $>$ 0, which would exclude the free part; uniqueness means equal lengths and equal sequences.
 %
 \renewcommand{\thethm}{3.52}
-\begin{cor}[{The cardinality of E/F is the norm N\_E(F)}]\label{thm:linear-algebra-3.52}
+\begin{cor}[{The cardinality of E/F is the norm N\_E(F)}]\label{thm:quotient-card-norm}
 %
-\textit{If E is a finitely generated free abelian group, F a subgroup and N\_E(F) /= 0, then card(E/F) = N\_E(F).}
-%
-Not in the library.
+\leavevmode
+\vnbpart{\texttt{quotient-card-norm}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, n, u, m. \\ \quad \operatorname{is\text{-}module}(d) \wedge \\ \quad \operatorname{scal}(d) = \operatorname{zz\text{-}ring} \wedge \\ \quad n \in \mathbb{N} \wedge \\ \quad u \in \operatorname{mat}(n, 1, \operatorname{vec}(d)) \wedge \\ \quad \operatorname{generates}(d, n, u) \wedge \\ \quad \operatorname{rel\text{-}free}(d, n, u) \wedge \\ \quad \operatorname{is\text{-}submodule}(d, m) \wedge \\ \quad \neg (\operatorname{submodule\text{-}norm}(d, m) = 0) \Rightarrow \\ \quad \quad |\operatorname{vec}(\operatorname{quotient\text{-}module}(d, m))| = \operatorname{submodule\text{-}norm}(d, m) \end{array}}
+\vnbpart{\texttt{cyclic-dsum-card}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall n, m. \\ \quad ((n \in \mathbb{N}) \wedge ((m \in \operatorname{mat}(n, n, \mathbb{Z})) \wedge \forall i \in \operatorname{interval}(1, n).\; (1 \leq \operatorname{entry}(m, i, i)))) \Rightarrow  \\ \quad \quad \operatorname{vec}(\operatorname{direct\text{-}sum}(\operatorname{zz\text{-}ring}, n, (\lambda \mathit{fmi} \in \operatorname{interval}(1, n).\; \operatorname{zz\text{-}mod}(\operatorname{entry}(m, \mathit{fmi}, \mathit{fmi}))))) \in \mathbf{Set} \wedge \\ \quad \quad |\operatorname{vec}(\operatorname{direct\text{-}sum}(\operatorname{zz\text{-}ring}, n, (\lambda \mathit{fmi} \in \operatorname{interval}(1, n).\; \operatorname{zz\text{-}mod}(\operatorname{entry}(m, \mathit{fmi}, \mathit{fmi})))))| \in \mathbb{N} \wedge \\ \quad \quad |\operatorname{vec}(\operatorname{direct\text{-}sum}(\operatorname{zz\text{-}ring}, n, (\lambda \mathit{fmi} \in \operatorname{interval}(1, n).\; \operatorname{zz\text{-}mod}(\operatorname{entry}(m, \mathit{fmi}, \mathit{fmi})))))| \\ \quad \quad =\; \operatorname{prod\text{-}ring}(\operatorname{zz\text{-}ring}, (\lambda k \in \operatorname{interval}(1, n).\; \operatorname{entry}(m, k, k)), \operatorname{interval}(1, n)) \end{array}}
+\vnbpart{\texttt{principal-sequence-of-presentation}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall d, m, n, u, s, a. \\ \quad (\operatorname{is\text{-}module}(d) \wedge ((\operatorname{scal}(d) = \operatorname{zz\text{-}ring}) \wedge (\operatorname{is\text{-}submodule}(d, m) \wedge \operatorname{is\text{-}norm\text{-}data}(d, m, n, u, s, a)))) \Rightarrow  \\ \quad \quad \exists b, c. \\ \quad \quad \quad \operatorname{is\text{-}principal\text{-}sequence}(d, n, m, b, c) \wedge \operatorname{rel\text{-}free}(d, n, \operatorname{matact}(d, c, b)) \end{array}}
+\vnbpart{\texttt{dsum-card}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall n, f. \\ \quad n \in \mathbb{N} \wedge \\ \quad \forall i \in \operatorname{interval}(1, n).\; (\operatorname{vec}(f(i)) \in \mathbf{Set}) \wedge \\ \quad \forall i \in \operatorname{interval}(1, n).\; (|\operatorname{vec}(f(i))| \in \mathbb{N}) \Rightarrow \\ \quad \quad |\operatorname{dsum\text{-}vec}(n, f)| \in \mathbb{N} \wedge \\ \quad \quad |\operatorname{dsum\text{-}vec}(n, f)| \\ \quad \quad =\; \operatorname{prod\text{-}ring}(\operatorname{zz\text{-}ring}, (\lambda k \in \operatorname{interval}(1, n).\; |\operatorname{vec}(f(k))|), \operatorname{interval}(1, n)) \end{array}}
+\vnbpart{\texttt{zz-mod-card}}
+\vnbstmt{\forall b \in \mathbb{Z}.\; ((1 \leq b) \Rightarrow (|\operatorname{vec}(\operatorname{zz\text{-}mod}(b))| = b))}
+\vnbpart{\texttt{card-cartesian}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b \in \mathbf{Set}. \\ \quad ((|a| \in \mathbb{N}) \wedge (|b| \in \mathbb{N})) \Rightarrow  \\ \quad \quad |(a \times b)| = (|a| \cdot |b|) \end{array}}
 %
 \end{cor}
 %
@@ -3743,11 +3867,57 @@ Not in the library.
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{There is no library statement, and so no proof.}
+\vnbprf{\vnbproofpart{\texttt{quotient-card-norm}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z5-\allowbreak{}card52.scm} --- 250 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{zz-is-commutative-ring}, \texttt{zz-is-ring}, \texttt{zz-is-euclidean-ring}, \texttt{principal-sequence-of-presentation}, \texttt{matact-type}, \texttt{submodule-norm-value}, \texttt{diagonal-det-prod}, \texttt{entry-in-carrier}, \texttt{zz-in-rr}, \texttt{prod-ring-zero-factor}, \texttt{rr-abs-of-nonneg}, \texttt{zz-nonneg-in-nn}, \texttt{nn-zero-in}, \texttt{ladet-nn-lt-of-le-ne}, \texttt{zz-discrete}, \texttt{cyclic-dsum-card}, \texttt{quotient-by-diagonal-subgroup}, \texttt{iso-module-inverse}, \texttt{card-bijection-eq}, \texttt{nn-in-rr}, \texttt{nn-zero-le}, \texttt{submodule-norm-zero}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{cyclic-dsum-card}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z5-\allowbreak{}card52.scm} --- 166 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{zz-is-commutative-ring}, \texttt{zz-is-ring}, \texttt{zz-is-euclidean-ring}, \texttt{interval-in-set}, \texttt{interval-card-in-nn}, \texttt{entry-in-carrier}, \texttt{zz-in-rr}, \texttt{zz-nonneg-in-nn}, \texttt{zz-mod-is-module}, \texttt{zz-mod-scal}, \texttt{zz-mod-vec-set}, \texttt{zz-mod-card}, \texttt{dsum-ro-vec}, \texttt{dsum-vec-set2}, \texttt{dsum-card}, \texttt{prod-ring-congruence-q}, \texttt{prod-ring-type-ptwise}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{principal-sequence-of-presentation}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z5-\allowbreak{}card52.scm} --- 239 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{zz-is-commutative-ring}, \texttt{zz-is-ring}, \texttt{zz-is-euclidean-ring}, \texttt{integer-normal-form-elementary}, \texttt{elem-gen-inverse}, \texttt{elem-gen-mat}, \texttt{elem-gen-invertible}, \texttt{matmul-type}, \texttt{matact-type}, \texttt{generates-transport}, \texttt{free-transport}, \texttt{matmul-assoc}, \texttt{matact-assoc}, \texttt{identmat-right-identity}, \texttt{spans-transport}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{dsum-card}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z5-\allowbreak{}dsumcard.scm} --- 7 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{dsum-card-ind}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{zz-mod-card}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z5-\allowbreak{}zzmod.scm} --- 693 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{zz-is-commutative-ring}, \texttt{zz-is-ring}, \texttt{zz-in-rr}, \texttt{zz-nonneg-in-nn}, \texttt{nn-subset-ord}, \texttt{ord-segment-is-set}, \texttt{card-segment}, \texttt{ring-as-module-is-module}, \texttt{principal-ideal-is-submodule}, \texttt{qmod-vec-set}, \texttt{zz-mod-unfold}, \texttt{ord-segment-nn-subset}, \texttt{nn-subset-zz}, \texttt{nn-in-rr}, \texttt{seg-mem-lt}, \texttt{nn-zero-le}, \texttt{zz-mod-class-in}, \texttt{zz-mod-class-eq-iff}, \texttt{zz-ring-add-neg}, \texttt{zz-principal-ideal-out}, \texttt{rr-mul-closed}, \texttt{rr-leq-antisymmetric}, \texttt{rr-not-le-lt}, \texttt{zz-neg-closed}, \texttt{zz-discrete}, \texttt{zz-add-closed}, \texttt{nn-mul-closed}, \texttt{qmod-setoid-is-setoid}, \texttt{zz-mod-vec}, \texttt{quotient-member-choice}, \texttt{class-of-member}, \texttt{qmod-setoid-pts}, \texttt{ram-ro-vec}, \texttt{rr-zero-in}, \texttt{rr-lt-irrefl}, \texttt{zz-division}, \texttt{rr-abs-of-nonneg}, \texttt{zz-abs-in-nn}, \texttt{nn-succ-plus-one}, \texttt{zz-abs-cases}, \texttt{zz-mul-closed}, \texttt{zz-principal-ideal-in}, \texttt{card-bijection-eq}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{card-cartesian}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/la-\allowbreak{}z5-\allowbreak{}card.scm} --- 391 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{empty-set-is-set}, \texttt{cartesian-decompose}, \texttt{empty-set-has-no-members}, \texttt{class-extensionality}, \texttt{card-empty}, \texttt{nn-in-rr}, \texttt{pairing}, \texttt{union-set-closure}, \texttt{union-membership}, \texttt{pairing-membership}, \texttt{pair-in-cartesian}, \texttt{membership-implies-sethood}, \texttt{intersection-membership}, \texttt{nth2-pair}, \texttt{nth1-pair}, \texttt{card-image-injection-curried}, \texttt{cartesian-set-iff}, \texttt{nn-mul-closed}, \texttt{image-set}, \texttt{card-union-disjoint-curried}, \texttt{card-insert-curried}, \texttt{ord-succ-nn}, \texttt{nn-mul-succ}, \texttt{finite-set-induction}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} Depends on 3.45 (the norm) and 3.49 (the quotient), both absent.  CARD is defined in the library since 2026-09-20, but the quotient E/F it would be applied to does not exist.
+\noindent\textbf{Deviation from the notes.} E is a module md with SCAL(md) = ZZ-RING and a free generating sequence of length n; F = sm is a submodule.  N\_E(F) is SUBMODULE-NORM(md, sm): |det A| when F has rank n, else 0.  card(E/F) is CARD(VEC(QUOTIENT-MODULE(md, sm))).  The proof goes through 3.44, 3.45, 3.49, card(Z/(b)) = b and the product formula for a finite direct sum; the freeness of E is not used beyond its generating sequence.
 %
 \section{Complex analysis}
 %
@@ -4220,11 +4390,19 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 \noindent\textbf{Deviation from the notes.} D is BALL(CC-MS, 0, 1) and CAYLEY is LFT(1, -i, 1, i). The disc statement is proved from the identity |w + i|\textasciicircum{}2 = |w - i|\textasciicircum{}2 + 4 Im w, not by connectedness of H+.
 %
 \renewcommand{\thethm}{1.22}
-\begin{prop}[{The Hopf map is continuous and onto S\textasciicircum{}2}]\label{thm:complex-analysis-1.22}
+\begin{prop}[{The Hopf map is continuous and onto S\textasciicircum{}2}]\label{thm:hopf-maps-sphere}
 %
-\textit{pi(u1, u2) = (2 u1 conj(u2), |u1|\textasciicircum{}2 - |u2|\textasciicircum{}2) is a continuous mapping C\textasciicircum{}2 -$>$ C x R, and maps the sphere S\textasciicircum{}3 of C\textasciicircum{}2 onto the unit sphere S\textasciicircum{}2 of R\textasciicircum{}2 x R.}
-%
-Not in the library.
+\leavevmode
+\vnbpart{\texttt{hopf-maps-sphere}}
+\vnbstmt{\forall w \in \operatorname{cc2\text{-}sphere}.\; (\operatorname{hopf\text{-}map}(w) \in \operatorname{unit\text{-}sphere\text{-}cr})}
+\vnbpart{\texttt{hopf-onto-sphere}}
+\vnbstmt{\forall p \in \operatorname{unit\text{-}sphere\text{-}cr}.\; \exists w \in \operatorname{cc2\text{-}sphere}.\; (\operatorname{hopf\text{-}map}(w) = p)}
+\vnbpart{\texttt{hopf-map-continuous-product}}
+\vnbstmt{\begin{array}{@{}l@{}} \operatorname{is\text{-}continuous}(\operatorname{product2\text{-}ms}(\operatorname{cc\text{-}ms}, \operatorname{cc\text{-}ms}), \operatorname{product2\text{-}ms}(\operatorname{cc\text{-}ms}, \operatorname{rr\text{-}ms}), \\ \quad (\lambda v \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{hopf\text{-}map}(v))) \end{array}}
+\vnbpart{\texttt{hopf-map-continuous}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall s, a, b, x. \\ \quad (\operatorname{is\text{-}continuous\text{-}at}(s, \operatorname{cc\text{-}ms}, a, x) \wedge \operatorname{is\text{-}continuous\text{-}at}(s, \operatorname{cc\text{-}ms}, b, x)) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}continuous\text{-}at}(s, \operatorname{cc\text{-}ms}, (\lambda z \in \operatorname{pts}(s).\; \operatorname{nth}(1, \operatorname{hopf\text{-}map}(\langle a(z), b(z) \rangle))), x) \wedge \\ \quad \quad \operatorname{is\text{-}continuous\text{-}at}(s, \operatorname{rr\text{-}ms}, (\lambda z \in \operatorname{pts}(s).\; \operatorname{nth}(2, \operatorname{hopf\text{-}map}(\langle a(z), b(z) \rangle))), x) \end{array}}
+\vnbpart{\texttt{hopf-norm-identity}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall a, b \in \mathbb{C}. \\ \quad (\operatorname{magnitude}((2 \cdot (a \cdot \operatorname{conjugate}(b)))) \cdot \operatorname{magnitude}((2 \cdot (a \cdot \operatorname{conjugate}(b))))) + (((\operatorname{magnitude}(a) \cdot \operatorname{magnitude}(a)) - (\operatorname{magnitude}(b) \cdot \operatorname{magnitude}(b))) \cdot ((\operatorname{magnitude}(a) \cdot \operatorname{magnitude}(a)) - (\operatorname{magnitude}(b) \cdot \operatorname{magnitude}(b)))) \\ \quad =\; ((\operatorname{magnitude}(a) \cdot \operatorname{magnitude}(a)) + (\operatorname{magnitude}(b) \cdot \operatorname{magnitude}(b))) \cdot ((\operatorname{magnitude}(a) \cdot \operatorname{magnitude}(a)) + (\operatorname{magnitude}(b) \cdot \operatorname{magnitude}(b))) \end{array}}
 %
 \end{prop}
 %
@@ -4232,18 +4410,60 @@ Not in the library.
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{There is no library statement, and so no proof.}
+\vnbprf{\vnbproofpart{\texttt{hopf-maps-sphere}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca-\allowbreak{}hopf-\allowbreak{}fibration.scm} --- 108 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc2-sphere-membership}, \texttt{cartesian-nth}, \texttt{cartesian-pair-eq}, \texttt{cc2-sphere-pair}, \texttt{hopf-map-pair}, \texttt{cc-conjugate-closed}, \texttt{cc-mul-closed}, \texttt{cc-magnitude-closed}, \texttt{rr-mul-closed}, \texttt{rr-sub-in-rr}, \texttt{unit-sphere-cr-pair}, \texttt{hopf-norm-identity}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{hopf-onto-sphere}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca-\allowbreak{}hopf-\allowbreak{}fibration.scm} --- 498 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{unit-sphere-cr-membership}, \texttt{cartesian-nth}, \texttt{cartesian-pair-eq}, \texttt{unit-sphere-cr-pair}, \texttt{cc-magnitude-closed}, \texttt{cc-magnitude-nonneg}, \texttt{rr-mul-closed}, \texttt{rr-zero-in}, \texttt{rr-one-in}, \texttt{cc-zero-in}, \texttt{cc-one-in}, \texttt{rr-add-closed}, \texttt{cc-magnitude-sq-conjugate}, \texttt{cc-conjugate-closed}, \texttt{cc-mul-closed}, \texttt{cc-zero-of-self-conj-zero}, \texttt{cc2-sphere-pair}, \texttt{cc-magnitude-zero}, \texttt{cc-magnitude-one}, \texttt{hopf-map-pair}, \texttt{cc-conjugate-fixes-rr}, \texttt{membership-implies-sethood}, \texttt{pair-in-cartesian}, \texttt{rr-sq-nonneg}, \texttt{rr-neg-closed}, \texttt{rr-le-of-sq-le}, \texttt{sqrt-exists}, \texttt{rr-recip-closed}, \texttt{rr-recip-inverse}, \texttt{rr-subset-cc}, \texttt{rr-magnitude-sq}, \texttt{cc-magnitude-mul}, \texttt{cc-magnitude-conjugate}, \texttt{cc-conjugate-involution}, \texttt{cc-conjugate-mul}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{hopf-map-continuous-product}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/product2-\allowbreak{}hopf.scm} --- 46 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc-is-metric-space}, \texttt{rr-is-metric-space}, \texttt{product2-is-metric-space}, \texttt{product2-cc-cc-pts}, \texttt{product2-cc-rr-pts}, \texttt{cc-is-set}, \texttt{rr-is-set}, \texttt{cartesian-set-iff}, \texttt{hopf-map-in-cr}, \texttt{hopf-map-continuous-at-product}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{hopf-map-continuous}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca-\allowbreak{}hopf-\allowbreak{}fibration.scm} --- 319 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{hopf-coords-continuous}, \texttt{fun-apply-type-c}, \texttt{cc-conjugate-closed}, \texttt{cc-magnitude-closed}, \texttt{cc-magnitude-nonneg}, \texttt{rr-mul-closed}, \texttt{hopf-map-pair}, \texttt{membership-implies-sethood}, \texttt{cc-mul-closed}, \texttt{rr-sub-in-rr}, \texttt{ms-pts-is-set}, \texttt{ms-cont-transfer-ptwise-eq}, \texttt{rr-subset-cc}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{crs}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{hopf-norm-identity}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca-\allowbreak{}hopf-\allowbreak{}fibration.scm} --- 24 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{hopf-magnitude-first}, \texttt{cc-magnitude-closed}, \texttt{cc-magnitude-nonneg}, \texttt{rr-mul-closed}, \texttt{rr-subset-cc}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} Nothing near: no C\textasciicircum{}2, no spheres S\textasciicircum{}3 or S\textasciicircum{}2, no map pi(u1,u2) = (2 u1 conj(u2), |u1|\textasciicircum{}2 - |u2|\textasciicircum{}2). The library does have CONJUGATE and MAGNITUDE on CC (cc-conjugate-mul, cc-magnitude-mul, ...), the ingredients only.
+\noindent\textbf{Deviation from the notes.} C\textasciicircum{}2 is PRODUCT2-MS(CC-MS, CC-MS) and C x R is PRODUCT2-MS(CC-MS, RR-MS), the binary product metric spaces with the max metric (structure-library/product2-vocab); S\textasciicircum{}3 = CC2-SPHERE, S\textasciicircum{}2 = UNIT-SPHERE-CR; pi is the map w |-$>$ HOPF-MAP(w) on CARTESIAN(CC, CC). Continuity is IS-CONTINUOUS(C\textasciicircum{}2, C x R, pi) (hopf-map-continuous-product), assembled from the general form hopf-map-continuous (for u1, u2 : S -$>$ C continuous at x, the two coordinates of z |-$>$ pi(u1(z), u2(z)) are continuous at x) and the pairing property of the product. Onto by an explicit preimage [k (1 + r), k conj(z)], k = 1/sqrt(2 (1 + r)).
 %
 \renewcommand{\thethm}{1.24}
-\begin{cor}[{The Hopf fibration factors through a bijection S\textasciicircum{}2 -$>$ P}]\label{thm:complex-analysis-1.24}
+\begin{cor}[{The Hopf fibration factors through a bijection S\textasciicircum{}2 -$>$ P}]\label{thm:hopf-factors-through-bijection}
 %
-\textit{The mapping pi factors through a bijection S\textasciicircum{}2 -$>$ P.}
-%
-Not in the library.
+\leavevmode
+\vnbpart{\texttt{hopf-factors-through-bijection}}
+\vnbstmt{\begin{array}{@{}l@{}} \exists g \in (\operatorname{unit\text{-}sphere\text{-}cr} \to \operatorname{cc\text{-}hat}). \\ \quad g \in \mathrm{Bij}(\operatorname{unit\text{-}sphere\text{-}cr}, \operatorname{cc\text{-}hat}) \wedge \\ \quad \forall u \in \operatorname{cc2\text{-}sphere}.\; (g(\operatorname{hopf\text{-}map}(u)) = \operatorname{homog\text{-}point}(\operatorname{nth}(1, u), \operatorname{nth}(2, u))) \end{array}}
+\vnbpart{\texttt{hopf-fibre-equiv}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, v \in \operatorname{cc2\text{-}sphere}. \\ \quad (\operatorname{hopf\text{-}map}(u) = \operatorname{hopf\text{-}map}(v)) \Leftrightarrow \operatorname{homog\text{-}equiv}(u, v) \end{array}}
+\vnbpart{\texttt{hopf-fibre-iff}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall u, v \in \operatorname{cc2\text{-}sphere}. \\ \quad \operatorname{hopf\text{-}map}(u) = \operatorname{hopf\text{-}map}(v) \\ \quad \Leftrightarrow\; \exists r \in \mathbb{C}.\; ((\operatorname{magnitude}(r) = 1) \wedge (v = \langle (r \cdot \operatorname{nth}(1, u)), (r \cdot \operatorname{nth}(2, u)) \rangle)) \end{array}}
 %
 \end{cor}
 %
@@ -4251,11 +4471,33 @@ Not in the library.
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{There is no library statement, and so no proof.}
+\vnbprf{\vnbproofpart{\texttt{hopf-factors-through-bijection}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca-\allowbreak{}hopf-\allowbreak{}fibration.scm} --- 13 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{hopf-quotient-map-in-fun}, \texttt{hopf-quotient-map-bijection}, \texttt{hopf-quotient-factor}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{arith}, \texttt{ineq}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{hopf-fibre-equiv}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca-\allowbreak{}hopf-\allowbreak{}fibration.scm} --- 25 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{hopf-fibre-iff}, \texttt{cc2-sphere-equiv-iff}, \texttt{cc2-sphere-membership}, \texttt{hopf-map-in-cr}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{hopf-fibre-iff}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ca-\allowbreak{}hopf-\allowbreak{}fibration.scm} --- 285 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{cc2-sphere-membership}, \texttt{cartesian-nth}, \texttt{cartesian-pair-eq}, \texttt{cc2-sphere-pair}, \texttt{membership-implies-sethood}, \texttt{cc-conjugate-closed}, \texttt{cc-mul-closed}, \texttt{cc-magnitude-closed}, \texttt{rr-mul-closed}, \texttt{rr-sub-in-rr}, \texttt{hopf-map-pair}, \texttt{hopf-fibre-pair}, \texttt{pair-in-cartesian}, \texttt{hopf-map-unimodular-scale}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{arith}, \texttt{ineq}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
 \end{proof}
 %
-\noindent\textbf{Deviation from the notes.} Nothing near: no projective plane, no spheres.
+\noindent\textbf{Deviation from the notes.} P is read through phi = HOMOG-POINT as C u \{oo\} (CA-LFT). The bijection is HOPF-QUOTIENT-MAP, [z, r] |-$>$ phi(z, 1 - r), with g(pi(u)) = phi(u1, u2) on S\textasciicircum{}3. The fibres (pi(u) = pi(v) iff u \textasciitilde{} v on S\textasciicircum{}3) are proved with the witness r = $<$v, u$>$ of (13), not through (18).
 %
 \renewcommand{\thethm}{2.2}
 \begin{prop}[{Differentiable implies continuous}]\label{thm:diff-on-implies-continuous}
@@ -6022,7 +6264,7 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \vnbprf{\vnbproofpart{\texttt{locally-uniform-on-compacta}}}
 %
-\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/weierstrass-\allowbreak{}convergence.scm} --- 301 recorded steps.}
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/weierstrass-\allowbreak{}convergence.scm} --- 361 recorded steps.}
 %
 \vnbprf{\textbf{Lemmas.} \texttt{subset-trans}, \texttt{cc-is-set}, \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-lt-of-pos-rr}, \texttt{choice-axiom}, \texttt{compact-cover-by-balls}, \texttt{card-image-finite}, \texttt{subset-def}, \texttt{nn-finite-subset-bounded}, \texttt{membership-implies-sethood}, \texttt{nn-in-rr}, \texttt{rr-not-le-lt}.}
 %
@@ -7058,7 +7300,7 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
 %
-\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/integral-\allowbreak{}convergence.scm} --- 205 recorded steps.}
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/integral-\allowbreak{}convergence.scm} --- 206 recorded steps.}
 %
 \vnbprf{\textbf{Lemmas.} \texttt{measurable-fn-sup}, \texttt{integral-in}, \texttt{nn-is-set}, \texttt{subset-def}, \texttt{image-subset-codomain}, \texttt{esup-in}, \texttt{integral-unfold}, \texttt{mct-simple-below}, \texttt{esup-least}, \texttt{fun-apply-type-c}, \texttt{membership-implies-sethood}, \texttt{esup-upper}, \texttt{integral-monotone}, \texttt{rr-pos-star-le-antisymm}.}
 %
@@ -7430,7 +7672,7 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/metric-\allowbreak{}outer-\allowbreak{}measure.scm} --- 391 recorded steps.}
 %
-\vnbprf{\textbf{Lemmas.} \texttt{rr-is-metric-space}, \texttt{lebesgue-outer-measure}, \texttt{rr-is-set}, \texttt{subset-def}, \texttt{power-mem-in}, \texttt{set-dist-pos-elim}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-lt-of-pos-rr}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{nn-in-rr}, \texttt{rr-mul-closed}, \texttt{rr-add-closed}, \texttt{lebesgue-right-ray-measurable}, \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{power-mem-intro}, \texttt{sigma-algebra-difference-closed}, \texttt{sigma-algebra-sep-meets}, \texttt{nn-is-set}, \texttt{sigma-algebra-union-closed}, \texttt{rr-neg-closed}, \texttt{lebesgue-left-ray-measurable}, \texttt{sigma-algebra-binary-union}, \texttt{rr-zero-in}, \texttt{rr-leq-total}, \texttt{grid-cell-cover-nonneg}, \texttt{union-membership}, \texttt{grid-cell-cover-nonpos}, \texttt{grid-cell-close-nonneg}, \texttt{rr-ms-dist}, \texttt{rr-sub-in-rr}, \texttt{rr-abs-closed}, \texttt{rr-lt-irrefl}, \texttt{grid-cell-close-nonpos}, \texttt{metric-outer-of-separating-sets}.}
+\vnbprf{\textbf{Lemmas.} \texttt{rr-is-metric-space}, \texttt{lebesgue-outer-measure}, \texttt{rr-is-set}, \texttt{subset-def}, \texttt{power-mem-in}, \texttt{set-dist-pos-elim}, \texttt{rr-pos-rr-in-rr}, \texttt{rr-lt-of-pos-rr}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{nn-in-rr}, \texttt{rr-mul-closed}, \texttt{rr-add-closed}, \texttt{lebesgue-right-ray-measurable}, \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{power-mem-intro}, \texttt{sigma-algebra-difference-closed}, \texttt{sigma-algebra-sep-meets}, \texttt{nn-is-set}, \texttt{sigma-algebra-union-closed}, \texttt{rr-neg-closed}, \texttt{lebesgue-left-ray-measurable}, \texttt{sigma-algebra-union-closed-2}, \texttt{rr-zero-in}, \texttt{rr-leq-total}, \texttt{grid-cell-cover-nonneg}, \texttt{union-membership}, \texttt{grid-cell-cover-nonpos}, \texttt{grid-cell-close-nonneg}, \texttt{rr-ms-dist}, \texttt{rr-sub-in-rr}, \texttt{rr-abs-closed}, \texttt{rr-lt-irrefl}, \texttt{grid-cell-close-nonpos}, \texttt{metric-outer-of-separating-sets}.}
 %
 \vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
@@ -7446,7 +7688,7 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/metric-\allowbreak{}outer-\allowbreak{}measure.scm} --- 244 recorded steps.}
 %
-\vnbprf{\textbf{Lemmas.} \texttt{lebesgue-outer-measure}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{lebesgue-right-ray-measurable}, \texttt{subset-def}, \texttt{rr-is-set}, \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{power-mem-intro}, \texttt{lebesgue-left-ray-measurable}, \texttt{lebesgue-open-right-ray-measurable}, \texttt{lebesgue-open-left-ray-measurable}, \texttt{sigma-algebra-binary-inter}, \texttt{ccint-membership}, \texttt{intersection-membership}, \texttt{class-extensionality}, \texttt{ooint-membership}, \texttt{coint-membership}, \texttt{ocint-membership}.}
+\vnbprf{\textbf{Lemmas.} \texttt{lebesgue-outer-measure}, \texttt{caratheodory-measurable-sigma-algebra}, \texttt{lebesgue-right-ray-measurable}, \texttt{subset-def}, \texttt{rr-is-set}, \texttt{subclass-of-set-is-set}, \texttt{subset-mem-fwd}, \texttt{power-mem-intro}, \texttt{lebesgue-left-ray-measurable}, \texttt{lebesgue-open-right-ray-measurable}, \texttt{lebesgue-open-left-ray-measurable}, \texttt{sigma-algebra-inter-closed-2}, \texttt{ccint-membership}, \texttt{intersection-membership}, \texttt{class-extensionality}, \texttt{ooint-membership}, \texttt{coint-membership}, \texttt{ocint-membership}.}
 %
 \vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{arith}, \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
 %
@@ -8563,11 +8805,11 @@ Calculus & 5.7 & Weierstrass approximation on an arbitrary interval & \texttt{be
 Linear algebra & 3.3 & Action of the matrix unit E\_n[k,l] on the right & \texttt{matunit-\allowbreak{}col-\allowbreak{}shift} & proven \\
 Linear algebra & 3.5 & The elementary column operations & \texttt{elem-\allowbreak{}f-\allowbreak{}action}, \texttt{elem-\allowbreak{}g-\allowbreak{}action}, \texttt{elem-\allowbreak{}h-\allowbreak{}action} & proven \\
 Linear algebra & 3.6 & The elementary column matrices are invertible, with explicit inverses & \texttt{elem-\allowbreak{}f-\allowbreak{}inverse}, \texttt{elem-\allowbreak{}g-\allowbreak{}inverse}, \texttt{elem-\allowbreak{}h-\allowbreak{}inverse}, \texttt{elem-\allowbreak{}f-\allowbreak{}invertible}, \texttt{elem-\allowbreak{}g-\allowbreak{}invertible} & proven \\
-Linear algebra & 3.8 & Column reduction of the first row over a field & \texttt{clear-\allowbreak{}first-\allowbreak{}row}, \texttt{class-\allowbreak{}min-\allowbreak{}pivot} & partial \\
-Linear algebra & 3.10 & Column reduction to a step matrix with zeros above the diagonal & \texttt{smith-\allowbreak{}diagonalization} & partial \\
+Linear algebra & 3.8 & Column reduction of the first row over a field & \texttt{col-\allowbreak{}reduce-\allowbreak{}first-\allowbreak{}row}, \texttt{column-\allowbreak{}step-\allowbreak{}exists}, \texttt{clear-\allowbreak{}first-\allowbreak{}row}, \texttt{class-\allowbreak{}min-\allowbreak{}pivot} & proven \\
+Linear algebra & 3.10 & Column reduction to a step matrix with zeros above the diagonal & \texttt{column-\allowbreak{}step-\allowbreak{}exists}, \texttt{column-\allowbreak{}step-\allowbreak{}reduced}, \texttt{smith-\allowbreak{}diagonalization} & proven \\
 Linear algebra & 3.12 & Over a field, invertible iff column equivalent to the identity & \texttt{invertible-\allowbreak{}iff-\allowbreak{}col-\allowbreak{}equiv-\allowbreak{}identity}, \texttt{column-\allowbreak{}step-\allowbreak{}exists}, \texttt{column-\allowbreak{}step-\allowbreak{}reduced} & proven \\
 Linear algebra & 3.13 & The elementary column matrices generate the group of invertible matrices & \texttt{invertible-\allowbreak{}iff-\allowbreak{}elem-\allowbreak{}gen}, \texttt{elem-\allowbreak{}gen-\allowbreak{}mul}, \texttt{elem-\allowbreak{}gen-\allowbreak{}inverse} & proven \\
-Linear algebra & 3.15 & A permutation of the indeterminates is a ring automorphism of R[x\_1,...,x\_n] & --- & absent \\
+Linear algebra & 3.15 & A permutation of the indeterminates is a ring automorphism of R[x\_1,...,x\_n] & \texttt{var-\allowbreak{}permute-\allowbreak{}is-\allowbreak{}ring-\allowbreak{}iso}, \texttt{multi-\allowbreak{}index-\allowbreak{}reindex-\allowbreak{}is-\allowbreak{}ring-\allowbreak{}iso}, \texttt{monalg-\allowbreak{}pullback-\allowbreak{}iso}, \texttt{mpoly-\allowbreak{}is-\allowbreak{}ring}, \texttt{mpoly-\allowbreak{}is-\allowbreak{}commutative-\allowbreak{}ring}, \texttt{multi-\allowbreak{}index-\allowbreak{}monoid-\allowbreak{}is-\allowbreak{}comm-\allowbreak{}monoid} & proven \\
 Linear algebra & 3.18 & det is multilinear and alternating, and det of the transpose equals det & \texttt{det-\allowbreak{}row-\allowbreak{}linear}, \texttt{det-\allowbreak{}col-\allowbreak{}linear}, \texttt{det-\allowbreak{}swap-\allowbreak{}rows}, \texttt{det-\allowbreak{}swap-\allowbreak{}cols}, \texttt{det-\allowbreak{}alternating-\allowbreak{}rows}, \texttt{det-\allowbreak{}equal-\allowbreak{}cols-\allowbreak{}zero}, \texttt{det-\allowbreak{}transpose} & proven \\
 Linear algebra & 3.19 & Determinant under an elementary column operation & \texttt{det-\allowbreak{}elem-\allowbreak{}f-\allowbreak{}col}, \texttt{det-\allowbreak{}elem-\allowbreak{}g-\allowbreak{}col}, \texttt{det-\allowbreak{}elem-\allowbreak{}h-\allowbreak{}col}, \texttt{det-\allowbreak{}mul-\allowbreak{}elem-\allowbreak{}f-\allowbreak{}col}, \texttt{det-\allowbreak{}mul-\allowbreak{}elem-\allowbreak{}g-\allowbreak{}col}, \texttt{det-\allowbreak{}mul-\allowbreak{}elem-\allowbreak{}h-\allowbreak{}col} & proven \\
 Linear algebra & 3.20 & det(AV) = det A det V for invertible V over a field & \texttt{det-\allowbreak{}mul-\allowbreak{}invertible}, \texttt{det-\allowbreak{}multiplicative} & proven \\
@@ -8582,7 +8824,7 @@ Linear algebra & 3.36 & Integer normal form: existence and uniqueness of the dia
 Linear algebra & 3.37 & The reducing matrices U and V are products of elementary matrices & \texttt{integer-\allowbreak{}normal-\allowbreak{}form-\allowbreak{}elementary} & proven \\
 Linear algebra & 3.38 & An invertible integer matrix is a product of elementary matrices & \texttt{zz-\allowbreak{}invertible-\allowbreak{}iff-\allowbreak{}elementary-\allowbreak{}product}, \texttt{euclidean-\allowbreak{}invertible-\allowbreak{}iff-\allowbreak{}elem-\allowbreak{}gen}, \texttt{euclidean-\allowbreak{}unit-\allowbreak{}det-\allowbreak{}elem-\allowbreak{}gen}, \texttt{elem-\allowbreak{}gen-\allowbreak{}det-\allowbreak{}unit} & proven \\
 Linear algebra & 3.40 & An invertible change of sequence preserves generation and freeness & \texttt{generates-\allowbreak{}transport}, \texttt{free-\allowbreak{}transport}, \texttt{spans-\allowbreak{}transport} & proven \\
-Linear algebra & 3.41 & A relation-free sequence is no longer than a generating sequence & \texttt{free-\allowbreak{}length-\allowbreak{}le-\allowbreak{}generators} & partial \\
+Linear algebra & 3.41 & A relation-free sequence is no longer than a generating sequence & \texttt{free-\allowbreak{}length-\allowbreak{}le-\allowbreak{}generators}, \texttt{free-\allowbreak{}generating-\allowbreak{}length-\allowbreak{}unique} & proven \\
 Linear algebra & 3.43 & GL\_n(Z) acts freely and transitively on the free generating sequences & \texttt{free-\allowbreak{}generating-\allowbreak{}action-\allowbreak{}free}, \texttt{free-\allowbreak{}generating-\allowbreak{}action-\allowbreak{}stabilizer}, \texttt{free-\allowbreak{}generating-\allowbreak{}action-\allowbreak{}transitive}, \texttt{free-\allowbreak{}generating-\allowbreak{}action-\allowbreak{}closed} & proven \\
 Linear algebra & 3.44 & Adapted basis for a subgroup, with the divisibility chain & \texttt{principal-\allowbreak{}sequence-\allowbreak{}exists}, \texttt{principal-\allowbreak{}sequence-\allowbreak{}exists-\allowbreak{}unique} & proven \\
 Linear algebra & 3.45 & The norm N\_F(E): the absolute determinant is basis-independent & \texttt{norm-\allowbreak{}independent}, \texttt{change-\allowbreak{}of-\allowbreak{}basis-\allowbreak{}det-\allowbreak{}unit} & proven \\
@@ -8592,7 +8834,7 @@ Linear algebra & 3.48 & Uniqueness of the principal sequence of a subgroup & \te
 Linear algebra & 3.49 & The quotient E/F for a diagonal subgroup & \texttt{quotient-\allowbreak{}by-\allowbreak{}diagonal-\allowbreak{}subgroup}, \texttt{first-\allowbreak{}isomorphism-\allowbreak{}module} & proven \\
 Linear algebra & 3.50 & Structure of a finitely generated abelian group & \texttt{fg-\allowbreak{}abelian-\allowbreak{}group-\allowbreak{}structure-\allowbreak{}exists}, \texttt{fg-\allowbreak{}abelian-\allowbreak{}group-\allowbreak{}structure-\allowbreak{}unique}, \texttt{cyclic-\allowbreak{}sum-\allowbreak{}iso-\allowbreak{}core} & proven \\
 Linear algebra & 3.51 & Every finitely generated abelian group is a direct sum of cyclic groups & \texttt{fg-\allowbreak{}abelian-\allowbreak{}group-\allowbreak{}cyclic-\allowbreak{}decomposition}, \texttt{cyclic-\allowbreak{}sum-\allowbreak{}iso-\allowbreak{}unique} & proven \\
-Linear algebra & 3.52 & The cardinality of E/F is the norm N\_E(F) & --- & absent \\
+Linear algebra & 3.52 & The cardinality of E/F is the norm N\_E(F) & \texttt{quotient-\allowbreak{}card-\allowbreak{}norm}, \texttt{cyclic-\allowbreak{}dsum-\allowbreak{}card}, \texttt{principal-\allowbreak{}sequence-\allowbreak{}of-\allowbreak{}presentation}, \texttt{dsum-\allowbreak{}card}, \texttt{zz-\allowbreak{}mod-\allowbreak{}card}, \texttt{card-\allowbreak{}cartesian} & proven \\
 Complex analysis & 1.2 & Uniqueness of the least upper bound & \texttt{esup-\allowbreak{}unique} & partial \\
 Complex analysis & 1.3 & C as 2x2 real matrices & \texttt{cc-\allowbreak{}matrix-\allowbreak{}representation}, \texttt{cc-\allowbreak{}matrix-\allowbreak{}rep-\allowbreak{}bijection}, \texttt{cc-\allowbreak{}matrix-\allowbreak{}of-\allowbreak{}mul} & proven \\
 Complex analysis & 1.5 & Unions and finite intersections of open sets & \texttt{union-\allowbreak{}of-\allowbreak{}opens-\allowbreak{}open}, \texttt{inter-\allowbreak{}of-\allowbreak{}opens-\allowbreak{}open} & partial \\
@@ -8605,8 +8847,8 @@ Complex analysis & 1.18 & Linear maps on C\textasciicircum{}2 and linear fractio
 Complex analysis & 1.19 & The linear fractional transformations form a group & \texttt{lft-\allowbreak{}group-\allowbreak{}is-\allowbreak{}group} & proven \\
 Complex analysis & 1.20 & SL(2,C) onto the linear fractional transformations & \texttt{sl2-\allowbreak{}lft-\allowbreak{}hom}, \texttt{sl2-\allowbreak{}lft-\allowbreak{}onto}, \texttt{sl2-\allowbreak{}lft-\allowbreak{}kernel}, \texttt{sl2-\allowbreak{}matmul-\allowbreak{}closed} & proven \\
 Complex analysis & 1.21 & The Cayley transform & \texttt{cayley-\allowbreak{}real-\allowbreak{}circle}, \texttt{cayley-\allowbreak{}upper-\allowbreak{}disc} & proven \\
-Complex analysis & 1.22 & The Hopf map is continuous and onto S\textasciicircum{}2 & --- & absent \\
-Complex analysis & 1.24 & The Hopf fibration factors through a bijection S\textasciicircum{}2 -$>$ P & --- & absent \\
+Complex analysis & 1.22 & The Hopf map is continuous and onto S\textasciicircum{}2 & \texttt{hopf-\allowbreak{}maps-\allowbreak{}sphere}, \texttt{hopf-\allowbreak{}onto-\allowbreak{}sphere}, \texttt{hopf-\allowbreak{}map-\allowbreak{}continuous-\allowbreak{}product}, \texttt{hopf-\allowbreak{}map-\allowbreak{}continuous}, \texttt{hopf-\allowbreak{}norm-\allowbreak{}identity} & proven \\
+Complex analysis & 1.24 & The Hopf fibration factors through a bijection S\textasciicircum{}2 -$>$ P & \texttt{hopf-\allowbreak{}factors-\allowbreak{}through-\allowbreak{}bijection}, \texttt{hopf-\allowbreak{}fibre-\allowbreak{}equiv}, \texttt{hopf-\allowbreak{}fibre-\allowbreak{}iff} & proven \\
 Complex analysis & 2.2 & Differentiable implies continuous & \texttt{diff-\allowbreak{}on-\allowbreak{}implies-\allowbreak{}continuous} & proven \\
 Complex analysis & 2.3 & Sum and product rules & \texttt{diff-\allowbreak{}on-\allowbreak{}sum}, \texttt{diff-\allowbreak{}on-\allowbreak{}product}, \texttt{holomorphic-\allowbreak{}sum}, \texttt{holomorphic-\allowbreak{}product} & proven \\
 Complex analysis & 2.4 & Chain Rule & \texttt{diff-\allowbreak{}on-\allowbreak{}chain} & proven \\
@@ -8709,8 +8951,8 @@ Topological vector spaces (Thayer, notes) & 1.25 & A real pre-Hilbert space with
 document & entries & proven & asserted & partial & absent \\
 \hline
 Calculus & 66 & 49 & 0 & 13 & 4 \\
-Linear algebra & 33 & 28 & 0 & 3 & 2 \\
-Complex analysis & 57 & 47 & 0 & 8 & 2 \\
+Linear algebra & 33 & 33 & 0 & 0 & 0 \\
+Complex analysis & 57 & 49 & 0 & 8 & 0 \\
 Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60) & 10 & 10 & 0 & 0 & 0 \\
 Construction of measures (Thayer, notes) & 28 & 28 & 0 & 0 & 0 \\
 Functional analysis (Thayer, Analise Funcional e Teoria Espectral; Riesz-Markov from notes-63) & 8 & 8 & 0 & 0 & 0 \\

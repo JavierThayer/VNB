@@ -2028,9 +2028,10 @@
         (== (INTEGRAL omega cA mu f)
             (ESUP (SEP iny_ RR-POS-STAR
                     (FORSOME ins_
-                      (AND (IS-SIMPLE-FN omega cA ins_)
-                           (AND (PTWISE-LE omega ins_ f)
-                                (= iny_ (SIMPLE-INTEGRAL omega mu ins_))))))))))))))
+                      (AND (IN ins_ (FUN omega RR-POS-STAR))
+                           (AND (IS-SIMPLE-FN omega cA ins_)
+                                (AND (PTWISE-LE omega ins_ f)
+                                     (= iny_ (SIMPLE-INTEGRAL omega mu ins_)))))))))))))))
 (di)
 (mac 'INTEGRAL)
 (qrfl)
@@ -2795,9 +2796,10 @@
             (= (INTEGRAL omega cA mu f)
                (ESUP (SEP y_ RR-POS-STAR
                        (FORSOME s_
-                         (AND (IS-SIMPLE-FN omega cA s_)
-                              (AND (PTWISE-LE omega s_ f)
-                                   (= y_ (INTEGRAL omega cA mu s_))))))))))))))))
+                         (AND (IN s_ (FUN omega RR-POS-STAR))
+                              (AND (IS-SIMPLE-FN omega cA s_)
+                                   (AND (PTWISE-LE omega s_ f)
+                                        (= y_ (INTEGRAL omega cA mu s_)))))))))))))))))
 (dk-peel!)
 (fact 'integral-in 'omega 'cA 'mu 'f)
 (let* ((gl (dk-goal))

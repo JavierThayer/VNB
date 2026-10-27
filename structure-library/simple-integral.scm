@@ -72,12 +72,17 @@
 (notation! 'SIMPLE-INTEGRAL 'kind 'functoid 'arity 3
            'english "the integral of the simple function $3 over $1 with respect to $2")
 
+;;; NBGSEP (2026-10-25): the simple function ins_ is bounded explicitly by
+;;; ins_ in FUN(omega, RR-POS-STAR), so the separation is predicative (NBG).
+;;; IS-SIMPLE-FN(omega, cA, s) holds IS-MEASURABLE-FN(omega, cA, s), whose second
+;;; conjunct is that membership: the meaning is unchanged.
 (def-functoid 'INTEGRAL '(omega cA mu f)
   '(ESUP (SEP iny_ RR-POS-STAR
            (FORSOME ins_
-             (AND (IS-SIMPLE-FN omega cA ins_)
-                  (AND (PTWISE-LE omega ins_ f)
-                       (= iny_ (SIMPLE-INTEGRAL omega mu ins_))))))))
+             (AND (IN ins_ (FUN omega RR-POS-STAR))
+                  (AND (IS-SIMPLE-FN omega cA ins_)
+                       (AND (PTWISE-LE omega ins_ f)
+                            (= iny_ (SIMPLE-INTEGRAL omega mu ins_)))))))))
 
 (notation! 'INTEGRAL 'kind 'functoid 'arity 4
            'english "the integral of $4 over $1 with respect to the measure $3")

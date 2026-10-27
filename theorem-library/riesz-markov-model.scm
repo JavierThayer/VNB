@@ -790,8 +790,48 @@
        (AND (IN es_ (PTS CANTOR-MS))
             (FORALL rkn_ (IMPLIES (IN rkn_ NN) (FORSOME rky_ (RM-REALIZES s dseq es_ rkn_ rky_)))))))))))
 (dk-peel!)
+;; NBGSEP (2026-10-25): RM-K bounds the realizing point by rky_ in PTS(s); the read-off
+;; keeps its statement.  The two stage universals, bounded and not, are equivalent
+;; (RM-REALIZES's first conjunct is the bound): proved both ways on lanes, then `prop'.
+(define rmm-kb-old '(FORALL rkn_ (IMPLIES (IN rkn_ NN) (FORSOME rky_ (RM-REALIZES s dseq es_ rkn_ rky_)))))
+(define rmm-kb-new '(FORALL rkn_ (IMPLIES (IN rkn_ NN)
+                      (FORSOME rky_ (AND (IN rky_ (PTS s)) (RM-REALIZES s dseq es_ rkn_ rky_))))))
+(dk-have! (list 'IMPLIES rmm-kb-new rmm-kb-old)
+  (lambda ()
+    (di)
+    (let* ((h (dk-ctx-form rmm-kb-new))
+           (n (cadr (car (dk-peel!))))
+           (y (dk-skolem! (dk-apply! h n))))
+      (dk-split-all!)
+      (ew y)
+      (ass))))
+(dk-have! (list 'IMPLIES rmm-kb-old rmm-kb-new)
+  (lambda ()
+    (di)
+    (let* ((h (dk-ctx-form rmm-kb-old))
+           (n (cadr (car (dk-peel!))))
+           (y (dk-skolem! (dk-apply! h n))))
+      (dk-have! (list 'IN y '(PTS s))
+        (lambda ()
+          (dk-split-all! (dk-landed (lambda () (mac-h 'rm-realizes (list 'RM-REALIZES 's 'dseq 'es_ n y)))))
+          (ass)))
+      (ew y)
+      (dk-conj-close! (lambda () (ass))))))
 (mac 'RM-K)
-(rmm-sep-iff!)
+(for-each
+  (lambda (leaf)
+    (dk-focus! leaf)
+    (let ((g (dk-goal)))
+      (if (and (dk-head-is? g 'IN) (dk-head-is? (caddr g) 'SEP))
+          (begin (dk-split-all!)
+                 (in-sep! (lambda () (ass))
+                          (lambda () (detach! (list 'IMPLIES rmm-kb-old rmm-kb-new)) (ass))))
+          (let ((h (dk-pick (lambda (f) (and (dk-head-is? f 'IN) (dk-head-is? (caddr f) 'SEP)))
+                            "the SEP membership")))
+            (dk-split-all! (dk-landed (lambda () (sep-me h))))
+            (detach! (list 'IMPLIES rmm-kb-new rmm-kb-old))
+            (dk-conj-close! (lambda () (ass)))))))
+  (dk-opened (lambda () (di))))
 (qed 'rmm-k-mem)
 
 (sp (make-wff '(FORALL s (FORALL dseq (SUBSET (RM-K s dseq) (PTS CANTOR-MS))))))
@@ -1227,6 +1267,30 @@
         (ass))))
 (qed 'rmm-address-eu)
 
+;;; NBGSEP (2026-10-25): RM-PI's description is bounded by its top-level conjunct
+;;; rpy_ in PTS(s) (structure-library/riesz-markov-model.scm).  The same existence and
+;;; uniqueness, for the bounded body; RM-ADDRESS's first conjunct is the bound.
+(sp (make-wff '(FORALL s (FORALL dseq (IMPLIES (IS-COMPACT s) (IMPLIES (IS-DENSE-SEQ s dseq)
+  (FORALL es_ (IMPLIES (IN es_ (RM-K s dseq))
+    (FORSOME rpy_ (AND (AND (IN rpy_ (PTS s)) (RM-ADDRESS s dseq es_ rpy_))
+      (FORALL rpz_ (IMPLIES (AND (IN rpz_ (PTS s)) (RM-ADDRESS s dseq es_ rpz_)) (= rpy_ rpz_)))))))))))))
+(dk-peel!)
+(define rmm-y1 (dk-skolem! (dk-cite! 'rmm-address-exists 's 'dseq 'es_)))
+(dk-have! (list 'IN rmm-y1 '(PTS s))
+  (lambda ()
+    (dk-split-all! (dk-landed (lambda () (mac-h 'rm-address (list 'RM-ADDRESS 's 'dseq 'es_ rmm-y1)))))
+    (ass)))
+(ew rmm-y1)
+(dk-conj-close!
+  (lambda ()
+    (if (dk-head-is? (dk-goal) 'FORALL)
+        (let ((y2 (cadr (cadr (car (dk-peel!))))))
+          (dk-split-all!)
+          (dk-cite! 'rmm-address-unique 's 'dseq 'es_ rmm-y1 y2)
+          (ass))
+        (ass))))
+(qed 'rmm-address-eu-pts)
+
 ;;; pi(es) is THE point with address es
 (define rmm-pi '(RM-PI s dseq))
 (sp (make-wff '(FORALL s (FORALL dseq (IMPLIES (IS-COMPACT s) (IMPLIES (IS-DENSE-SEQ s dseq)
@@ -1235,8 +1299,16 @@
 (mac 'RM-PI)
 (dk-lam-b!)
 (define rmm-io (car (cddddr (dk-goal))))
-(dk-cite! 'rmm-address-eu 's 'dseq 'es_)
-(dk-close-all! (lambda () (iota-d rmm-io)))
+(dk-cite! 'rmm-address-eu-pts 's 'dseq 'es_)
+;; NBGSEP: the granted property is (AND (IN io (PTS s)) (RM-ADDRESS .. io)): split it
+(for-each
+  (lambda (l)
+    (if (not (sequent-node-grounded? l))
+        (begin
+          (dk-focus! l)
+          (if (not (dk-head-is? (dk-goal) 'FORSOME)) (dk-split-all!))
+          (ass))))
+  (dk-opened (lambda () (iota-d rmm-io))))
 (qed 'rmm-pi-spec)
 
 (sp (make-wff '(FORALL s (FORALL dseq (IMPLIES (IS-COMPACT s) (IMPLIES (IS-DENSE-SEQ s dseq)
@@ -1256,15 +1328,16 @@
 (dk-lam-type!
   (lambda ()
     (let* ((e (dk-di-var!))
-           (io (list 'IOTA 'rpy_ (list 'RM-ADDRESS 's 'dseq e 'rpy_))))
-      (dk-cite! 'rmm-address-eu 's 'dseq e)
+           ;; NBGSEP: the description is bounded by rpy_ in PTS(s), a top-level conjunct
+           (io (list 'IOTA 'rpy_ (list 'AND '(IN rpy_ (PTS s)) (list 'RM-ADDRESS 's 'dseq e 'rpy_)))))
+      (dk-cite! 'rmm-address-eu-pts 's 'dseq e)
       (for-each
         (lambda (l)
           (dk-focus! l)
           (if (dk-head-is? (dk-goal) 'FORSOME)
               (ass)
               (begin
-                (dk-split-all! (dk-landed (lambda () (mac-h 'rm-address (list 'RM-ADDRESS 's 'dseq e io)))))
+                (dk-split-all!)
                 (ass))))
         (dk-opened (lambda () (iota-d io)))))))
 (qed 'rmm-pi-fun)

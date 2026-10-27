@@ -136,8 +136,12 @@
 ;; description is well-defined and INDEPENDENT of representative.
 ;; s is a parameter because DESCEND(f)'s DOMAIN is QUOTIENT(s) (descend-in-fun),
 ;; and a lambda now carries its domain (2026-08-02).
+;; NBGSEP (2026-10-25): the description is bounded by a top-level conjunct z in SET
+;; (a confined IOTA, NBG).  z = f(a) makes f(a) denote, and the value of an application
+;; is a set (`app-graph': f(a) is the IOTA of a pair's second entry): the description is
+;; the same, the meaning unchanged.
 (def-functoid 'DESCEND '(s f)
-  '(VNB-LAMBDA c (QUOTIENT s) (IOTA z (FORSOME a (AND (IN a c) (= z (f a)))))))
+  '(VNB-LAMBDA c (QUOTIENT s) (IOTA z (AND (IN z SET) (FORSOME a (AND (IN a c) (= z (f a))))))))
 
 ;; descend-computes: the descent equation  DESCEND(f)([a]) = f(a)  -- i.e.
 ;; DESCEND(f) o PROJ(s) = f, the factorization, stated pointwise.
@@ -172,10 +176,11 @@
 ;; classes (c,d) it returns the unique z that is f of some members -- IOTA, not
 ;; chosen representatives.  When f RESPECTS2 the relation the value set is a
 ;; singleton, so the description is well-defined and representative-independent.
+;; NBGSEP (2026-10-25): bounded by z in SET, as DESCEND.
 (def-functoid 'DESCEND2 '(s f)
   '(VNB-LAMBDA (LIST c d) (CARTESIAN (QUOTIENT s) (QUOTIENT s))
-     (IOTA z (FORSOME a (AND (IN a c)
-                (FORSOME b (AND (IN b d) (= z (f a b)))))))))
+     (IOTA z (AND (IN z SET) (FORSOME a (AND (IN a c)
+                (FORSOME b (AND (IN b d) (= z (f a b))))))))))
 
 ;; descend2-computes: the descent equation  DESCEND2(f)([a],[b]) = f(a,b).
 

@@ -85,6 +85,14 @@
   (if (null? (cdr fs)) (car fs) `(AND ,(car fs) ,(apply mr--and (cdr fs)))))
 (define (mr--or . fs)
   (if (null? (cdr fs)) (car fs) `(OR ,(car fs) ,(apply mr--or (cdr fs)))))
+;; NBGSEP (2026-10-25): the existential chain of a J set, each witness in SETVARS bounded
+;; by (IN v SET) in front of BODY, so the J set's separation is predicative (NBG).  Each
+;; such witness is, in every disjunct of the body, a component of a literal list (an EAPP /
+;; ENC-* code, or the tuple equated to the J set's variable, a member of RW-UNIV) that the
+;; body makes denote -- a set by the list doctrine (notes-54) -- or equal to one: the bound
+;; is implied and the J set's meaning is unchanged.
+(define (mr--ex-sets vars setvars body)
+  (mr--ex vars (apply mr--and (append (map (lambda (v) `(IN ,v SET)) setvars) (list body)))))
 ;; "for every name y outside a finite set of names": BODY mentions mry_
 (define (mr--cof body)
   `(FORSOME mrfs_ (AND (IN mrfs_ SET) (AND (SUBSET mrfs_ NN) (AND (IN (CARD mrfs_) NN)
@@ -332,7 +340,7 @@
 ;; nth-reduce: NTH(k, [l]) -> l_k, the list denoting in the local context.
 (def-functoid 'J-NTH '(mrt_)
   `(SEP mrx_ RW-UNIV
-     ,(mr--ex '(mrg_ mrl_ mrk_)
+     ,(mr--ex-sets '(mrg_ mrl_ mrk_) '(mrg_ mrl_)
         (mr--and '(= mrx_ (LIST 1 mrg_ (ENC-NTH (ENC-NUM mrk_) (ENC-LIST mrl_)) (NTH mrk_ mrl_)))
                  '(IN mrk_ NN) '(<= 1 mrk_) '(<= mrk_ (LENGTH mrl_))
                  '(IN (ENC-NTH (ENC-NUM mrk_) (ENC-LIST mrl_)) CLT) '(IN (NTH mrk_ mrl_) CLT)
@@ -340,14 +348,14 @@
 ;; length-reduce: LENGTH([l]) -> |l|, the list denoting in the local context.
 (def-functoid 'J-LEN '(mrt_)
   `(SEP mrx_ RW-UNIV
-     ,(mr--ex '(mrg_ mrl_)
+     ,(mr--ex-sets '(mrg_ mrl_) '(mrg_ mrl_)
         (mr--and '(= mrx_ (LIST 1 mrg_ (ENC-LENGTH (ENC-LIST mrl_)) (ENC-NUM (LENGTH mrl_))))
                  '(IN (ENC-LENGTH (ENC-LIST mrl_)) CLT) '(IN (ENC-NUM (LENGTH mrl_)) CLT)
                  '(IN (LIST mrg_ (ENC-EQ (ENC-LIST mrl_) (ENC-LIST mrl_))) (DERIVABLE mrt_))))))
 ;; lambda-beta: (VNB-LAMBDA A b)(u) -> b[u], u in A derivable in the local context.
 (def-functoid 'J-LB '(mrt_)
   `(SEP mrx_ RW-UNIV
-     ,(mr--ex '(mrg_ mra_ mrb_ mre_)
+     ,(mr--ex-sets '(mrg_ mra_ mrb_ mre_) '(mrg_ mra_ mrb_ mre_)
         (mr--and '(= mrx_ (LIST 1 mrg_ (ENC-APPLY (ENC-LAM mra_ mrb_) mre_) (EXPR-OPEN mrb_ 0 mre_)))
                  '(IN (ENC-APPLY (ENC-LAM mra_ mrb_) mre_) CLT) '(IN (EXPR-OPEN mrb_ 0 mre_) CLT)
                  '(IN (LIST mrg_ (ENC-IN mre_ mra_)) (DERIVABLE mrt_))))))
@@ -357,7 +365,7 @@
 ;; derivable there.  A macete with no condition has c = TRUTH.
 (def-functoid 'J-MAC '(mrt_)
   `(SEP mrx_ RW-UNIV
-     ,(mr--ex '(mrg_ mrc_ mra_ mrb_ mre_)
+     ,(mr--ex-sets '(mrg_ mrc_ mra_ mrb_ mre_) '(mrg_ mrc_ mra_ mrb_)
         (mr--and '(IN mre_ CLT)
                  '(IN (LIST mrg_ (EXPR-OPEN mrc_ 0 mre_)) (DERIVABLE mrt_))
                  '(IN (LIST mrg_ (ENC-EQ mre_ mre_)) (DERIVABLE mrt_))
@@ -382,7 +390,7 @@
 ;; other rules read DERIVABLE(T)); it keeps the shape REL-REWRITE-1 and mr-adm! take.
 (def-functoid 'J-FB '(mrt_)
   `(SEP mrx_ RW-UNIV
-     ,(mr--ex '(mrg_ mrh_ mrl_ mrb_)
+     ,(mr--ex-sets '(mrg_ mrh_ mrl_ mrb_) '(mrg_ mrh_ mrl_ mrb_)
         (mr--and '(= mrx_ (LIST 1 mrg_ (EAPP mrh_ mrl_) (OPENL mrb_ mrl_ (LENGTH mrl_))))
                  '(FUN-DEF mrh_ (LENGTH mrl_) mrb_)
                  '(IN (EAPP mrh_ mrl_) CLT) '(IN (OPENL mrb_ mrl_ (LENGTH mrl_)) CLT)))))

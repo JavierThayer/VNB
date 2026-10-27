@@ -1296,12 +1296,30 @@
         thunk))))
 
 ;;; Is this quantifier node confined to sets?
+;;; NBGSEP (2026-10-25, the user's decision (ii) and option (b)): the relation of
+;;; the kernel's two tests, stated a third time -- a DEFERRED guard confines (an
+;;; antecedent on the universal's implicational spine, a leaf of the existential's
+;;; conjunctive spine, the spines read through further binders of the same kind
+;;; that do not rebind v), and an IOTA is confined by a top-level conjunct
+;;; (IN v C) of its body; otherwise an IOTA is reported, as the kernel refuses it.
 (define (comp--confined-quantifier? q)
   (let ((head (car q)) (v (cadr q)) (body (caddr q)))
+    (define (forall-spine b)
+      (cond ((and (pair? b) (eq? (car b) 'FORALL) (= (length b) 3) (not (eq? (cadr b) v)))
+             (forall-spine (caddr b)))
+            ((and (pair? b) (eq? (car b) 'IMPLIES) (= (length b) 3))
+             (or (comp--member-guard? v (cadr b)) (forall-spine (caddr b))))
+            (#t #f)))
+    (define (forsome-spine b)
+      (cond ((and (pair? b) (eq? (car b) 'FORSOME) (= (length b) 3) (not (eq? (cadr b) v)))
+             (forsome-spine (caddr b)))
+            ((and (pair? b) (eq? (car b) 'AND) (= (length b) 3))
+             (or (forsome-spine (cadr b)) (forsome-spine (caddr b))))
+            (#t (comp--member-guard? v b))))
     (case head
-      ((FORALL) (and (pair? body) (eq? (car body) 'IMPLIES) (= (length body) 3)
-                     (comp--member-guard? v (cadr body))))
-      ((FORSOME) (comp--member-guard? v body))
+      ((FORALL) (forall-spine body))
+      ((FORSOME) (forsome-spine body))
+      ((IOTA) (comp--member-guard? v body))
       (else #t))))
 
 ;;; The unconfined quantifiers inside p (nested COMPs included: their own
@@ -1309,7 +1327,7 @@
 (define (comp--unconfined-quantifiers p)
   (let walk ((e p) (acc '()))
     (cond ((not (pair? e)) acc)
-          ((and (memq (car e) '(FORALL FORSOME)) (= (length e) 3) (symbol? (cadr e)))
+          ((and (memq (car e) '(FORALL FORSOME IOTA)) (= (length e) 3) (symbol? (cadr e)))
            (walk (caddr e) (if (comp--confined-quantifier? e) acc (cons e acc))))
           (#t (let loop ((xs e) (acc acc))
                 (if (pair? xs) (loop (cdr xs) (walk (car xs) acc)) acc))))))
@@ -1333,6 +1351,40 @@
               (if (not (member (cons name t) *comp-impredicative-uses*))
                   (set! *comp-impredicative-uses* (cons (cons name t) *comp-impredicative-uses*))))
             (comp-impredicative-subterms script)))
+
+;;; NBGSEP (2026-10-25): the same audit for the SET-BUILDING binders.  Every
+;;; SEP(x, A, p), BIG-UNION(z, A, b) and VNB-LAMBDA(bs, A, b) subterm, of an
+;;; installed formula or a functoid body, whose condition / body holds a binder
+;;; not confined to sets by the relation above.  The kernel refuses such a term
+;;; in every rule that builds or reads a set from it; this audit catches a
+;;; STATEMENT that names one.  ((source . term) ...).  The gate that reads it
+;;; (binder-predicativity-gate!, load.scm) is fatal in a strict load.
+(define (binder-impredicative-subterms e)
+  (let walk ((e e) (acc '()))
+    (cond ((not (pair? e)) acc)
+          ((and (memq (car e) '(SEP BIG-UNION VNB-LAMBDA)) (= (length e) 4))
+           (let ((acc (if (pair? (comp--unconfined-quantifiers (cadddr e))) (cons e acc) acc)))
+             (walk (cadddr e) (walk (caddr e) acc))))
+          (#t (let loop ((xs e) (acc acc))
+                (if (pair? xs) (loop (cdr xs) (walk (car xs) acc)) acc))))))
+
+(define (binder-predicativity-audit)
+  (comp--safe '() binder-predicativity-audit--raw))
+
+(define (binder-predicativity-audit--raw)
+  (let ((found '()))
+    (for-each (lambda (name)
+                (let ((f (hash-table-ref/default *theorem-table* name #f)))
+                  (if f (for-each (lambda (t) (set! found (cons (cons name t) found)))
+                                  (binder-impredicative-subterms f)))))
+              (hash-table-keys *theorem-table*))
+    (for-each (lambda (name)
+                (let ((reg (hash-table-ref/default *functoid-registry* name #f)))
+                  (if (and reg (pair? reg) (pair? (cdr reg)))
+                      (for-each (lambda (t) (set! found (cons (cons name t) found)))
+                                (binder-impredicative-subterms (cadr reg))))))
+              (hash-table-keys *functoid-registry*))
+    found))
 
 ;;; ((source . term) ...): proofs noted so far, then installed formulas, then functoid bodies.
 (define (comp-predicativity-audit)

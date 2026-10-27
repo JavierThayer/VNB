@@ -10,7 +10,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### ae-rel
 
-    ae-rel(omega, ca, mu, sf) := {aep_ in cartesian(sf, sf): forsome([aen_], is-null-set(omega, ca, mu, aen_) and forall([aex_ in omega], not(aex_ in aen_) implies (nth(1, aep_))(aex_) = (nth(2, aep_))(aex_)))}
+    ae-rel(omega, ca, mu, sf) := {aep_ in cartesian(sf, sf): forsome([aen_ in set], is-null-set(omega, ca, mu, aen_) and forall([aex_ in omega], not(aex_ in aen_) implies (nth(1, aep_))(aex_) = (nth(2, aep_))(aex_)))}
 
 ### ae-setoid
 
@@ -38,7 +38,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### c-metric-w
 
-    c-metric-w(s, w) := [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), iota(l, series-converges-to(vnb-lambda(k, nn, w(k) * min(1, ((dists(s))(k))(u, v))), l)))]
+    c-metric-w(s, w) := [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), iota(l, l in rr and series-converges-to(vnb-lambda(k, nn, w(k) * min(1, ((dists(s))(k))(u, v))), l)))]
 
 ### caratheodory-sets
 
@@ -114,7 +114,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### closure
 
-    closure(s, a) := {x in pts(s): forall([u], is-open(s, u) and x in u implies forsome([y in u], y in a))}
+    closure(s, a) := {x in pts(s): forall([u], u in power(pts(s)) and is-open(s, u) and x in u implies forsome([y in u], y in a))}
 
 ### coint
 
@@ -206,7 +206,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### dynkin-generated
 
-    dynkin-generated(omega, ce) := {dga_ in power(omega): forall([dgb_], is-dynkin-system(omega, dgb_) and ce subset dgb_ implies dga_ in dgb_)}
+    dynkin-generated(omega, ce) := {dga_ in power(omega): forall([dgb_], dgb_ in power(power(omega)) and is-dynkin-system(omega, dgb_) and ce subset dgb_ implies dga_ in dgb_)}
 
 ### eapp
 
@@ -230,7 +230,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### elem-gen
 
-    elem-gen(r, n) := intersection-of({egs_ in power(mat(n, n, carr(r))): identmat(r, n) in egs_ and forall([egx_ in egs_, ege_], is-elementary(r, n, ege_) implies matmul(r, egx_, ege_) in egs_)})
+    elem-gen(r, n) := intersection-of({egs_ in power(mat(n, n, carr(r))): identmat(r, n) in egs_ and forall([egx_ in egs_, ege_ in set], is-elementary(r, n, ege_) implies matmul(r, egx_, ege_) in egs_)})
 
 ### elower-bounds
 
@@ -582,7 +582,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### interior
 
-    interior(s, a) := {x in pts(s): forsome([u], is-open(s, u) and x in u and u subset a)}
+    interior(s, a) := {x in pts(s): forsome([u in power(pts(s))], is-open(s, u) and x in u and u subset a)}
 
 ### intersection-of
 
@@ -602,43 +602,43 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### j-cart
 
-    j-cart(mit_) := {mix_ in rw-univ: forsome([mig_, miz_, mia_], mix_ = [2, mig_, enc-in(miz_, enc-cart(mia_)), enc-cch(miz_, mia_, length(mia_), length(mia_))] and mig_ in ctx-set and 1 <= length(mia_))}
+    j-cart(mit_) := {mix_ in rw-univ: forsome([mig_, miz_, mia_], miz_ in set and mia_ in set and mix_ = [2, mig_, enc-in(miz_, enc-cart(mia_)), enc-cch(miz_, mia_, length(mia_), length(mia_))] and mig_ in ctx-set and 1 <= length(mia_))}
 
 ### j-fb
 
-    j-fb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrh_, mrl_, mrb_], mrx_ = [1, mrg_, eapp(mrh_, mrl_), openl(mrb_, mrl_, length(mrl_))] and fun-def(mrh_, length(mrl_), mrb_) and eapp(mrh_, mrl_) in clt and openl(mrb_, mrl_, length(mrl_)) in clt)}
+    j-fb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrh_, mrl_, mrb_], mrg_ in set and mrh_ in set and mrl_ in set and mrb_ in set and mrx_ = [1, mrg_, eapp(mrh_, mrl_), openl(mrb_, mrl_, length(mrl_))] and fun-def(mrh_, length(mrl_), mrb_) and eapp(mrh_, mrl_) in clt and openl(mrb_, mrl_, length(mrl_)) in clt)}
 
 ### j-idec
 
-    j-idec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14y_ = [2, md14g_, enc-in(md14x2_, enc-inter(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(3, md14x2_, md14l2_) and enc-in(md14x2_, enc-inter(md14l2_)) in clf and md14f2_ in clf)}
+    j-idec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14g_ in set and md14x2_ in set and md14l2_ in set and md14y_ = [2, md14g_, enc-in(md14x2_, enc-inter(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(3, md14x2_, md14l2_) and enc-in(md14x2_, enc-inter(md14l2_)) in clf and md14f2_ in clf)}
 
 ### j-lb
 
-    j-lb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mra_, mrb_, mre_], mrx_ = [1, mrg_, enc-apply(enc-lam(mra_, mrb_), mre_), expr-open(mrb_, 0, mre_)] and enc-apply(enc-lam(mra_, mrb_), mre_) in clt and expr-open(mrb_, 0, mre_) in clt and [mrg_, enc-in(mre_, mra_)] in derivable(mrt_))}
+    j-lb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mra_, mrb_, mre_], mrg_ in set and mra_ in set and mrb_ in set and mre_ in set and mrx_ = [1, mrg_, enc-apply(enc-lam(mra_, mrb_), mre_), expr-open(mrb_, 0, mre_)] and enc-apply(enc-lam(mra_, mrb_), mre_) in clt and expr-open(mrb_, 0, mre_) in clt and [mrg_, enc-in(mre_, mra_)] in derivable(mrt_))}
 
 ### j-len
 
-    j-len(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrl_], mrx_ = [1, mrg_, enc-length(enc-list(mrl_)), enc-num(length(mrl_))] and enc-length(enc-list(mrl_)) in clt and enc-num(length(mrl_)) in clt and [mrg_, enc-eq(enc-list(mrl_), enc-list(mrl_))] in derivable(mrt_))}
+    j-len(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrl_], mrg_ in set and mrl_ in set and mrx_ = [1, mrg_, enc-length(enc-list(mrl_)), enc-num(length(mrl_))] and enc-length(enc-list(mrl_)) in clt and enc-num(length(mrl_)) in clt and [mrg_, enc-eq(enc-list(mrl_), enc-list(mrl_))] in derivable(mrt_))}
 
 ### j-mac
 
-    j-mac(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrc_, mra_, mrb_, mre_ in clt], [mrg_, expr-open(mrc_, 0, mre_)] in derivable(mrt_) and [mrg_, enc-eq(mre_, mre_)] in derivable(mrt_) and (mrx_ = [1, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clt and expr-open(mrb_, 0, mre_) in clt or mrx_ = [2, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clf and expr-open(mrb_, 0, mre_) in clf))}
+    j-mac(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrc_, mra_, mrb_, mre_], mrg_ in set and mrc_ in set and mra_ in set and mrb_ in set and mre_ in clt and [mrg_, expr-open(mrc_, 0, mre_)] in derivable(mrt_) and [mrg_, enc-eq(mre_, mre_)] in derivable(mrt_) and (mrx_ = [1, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clt and expr-open(mrb_, 0, mre_) in clt or mrx_ = [2, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clf and expr-open(mrb_, 0, mre_) in clf))}
 
 ### j-macn
 
-    j-macn(md13t_) := {md13x_ in rw-univ: forsome([md13g_, md13m_, md13l_, md13i_, md13r_, md13a_, md13b_], md13m_ in md13t_ and md13m_ in clf and md13i_ in inst-reach(md13m_, md13l_) and forall([md13j_ in nn], 2 <= md13j_ implies md13j_ <= length(md13l_) implies [md13g_, enc-eq(nth(md13j_, md13l_), nth(md13j_, md13l_))] in derivable(md13t_)) and (md13i_ = md13r_ or forsome([md13c_], md13i_ = enc-imp(md13c_, md13r_) and [md13g_, md13c_] in derivable(md13t_))) and (md13r_ = enc-qeq(md13a_, md13b_) and md13x_ = [1, md13g_, md13a_, md13b_] and md13a_ in clt and md13b_ in clt or md13r_ = enc-iff(md13a_, md13b_) and md13x_ = [2, md13g_, md13a_, md13b_] and md13a_ in clf and md13b_ in clf))}
+    j-macn(md13t_) := {md13x_ in rw-univ: forsome([md13g_, md13m_, md13l_, md13i_, md13r_, md13a_, md13b_], md13g_ in set and md13l_ in set and md13r_ in set and md13a_ in set and md13b_ in set and md13m_ in md13t_ and md13m_ in clf and md13i_ in inst-reach(md13m_, md13l_) and forall([md13j_ in nn], 2 <= md13j_ implies md13j_ <= length(md13l_) implies [md13g_, enc-eq(nth(md13j_, md13l_), nth(md13j_, md13l_))] in derivable(md13t_)) and (md13i_ = md13r_ or forsome([md13c_ in set], md13i_ = enc-imp(md13c_, md13r_) and [md13g_, md13c_] in derivable(md13t_))) and (md13r_ = enc-qeq(md13a_, md13b_) and md13x_ = [1, md13g_, md13a_, md13b_] and md13a_ in clt and md13b_ in clt or md13r_ = enc-iff(md13a_, md13b_) and md13x_ = [2, md13g_, md13a_, md13b_] and md13a_ in clf and md13b_ in clf))}
 
 ### j-nth
 
-    j-nth(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrl_, mrk_], mrx_ = [1, mrg_, enc-nth(enc-num(mrk_), enc-list(mrl_)), nth(mrk_, mrl_)] and mrk_ in nn and 1 <= mrk_ and mrk_ <= length(mrl_) and enc-nth(enc-num(mrk_), enc-list(mrl_)) in clt and nth(mrk_, mrl_) in clt and [mrg_, enc-eq(enc-list(mrl_), enc-list(mrl_))] in derivable(mrt_))}
+    j-nth(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrl_, mrk_], mrg_ in set and mrl_ in set and mrx_ = [1, mrg_, enc-nth(enc-num(mrk_), enc-list(mrl_)), nth(mrk_, mrl_)] and mrk_ in nn and 1 <= mrk_ and mrk_ <= length(mrl_) and enc-nth(enc-num(mrk_), enc-list(mrl_)) in clt and nth(mrk_, mrl_) in clt and [mrg_, enc-eq(enc-list(mrl_), enc-list(mrl_))] in derivable(mrt_))}
 
 ### j-teq
 
-    j-teq(mit_) := {mix_ in rw-univ: forsome([mig_, mia_, mib_], mix_ = [2, mig_, enc-eq(enc-list(mia_), enc-list(mib_)), enc-tcj(mia_, mib_, length(mia_), length(mia_))] and mig_ in ctx-set and length(mia_) = length(mib_))}
+    j-teq(mit_) := {mix_ in rw-univ: forsome([mig_, mia_, mib_], mia_ in set and mib_ in set and mix_ = [2, mig_, enc-eq(enc-list(mia_), enc-list(mib_)), enc-tcj(mia_, mib_, length(mia_), length(mia_))] and mig_ in ctx-set and length(mia_) = length(mib_))}
 
 ### j-udec
 
-    j-udec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14y_ = [2, md14g_, enc-in(md14x2_, enc-union(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(4, md14x2_, md14l2_) and enc-in(md14x2_, enc-union(md14l2_)) in clf and md14f2_ in clf)}
+    j-udec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14g_ in set and md14x2_ in set and md14l2_ in set and md14y_ = [2, md14g_, enc-in(md14x2_, enc-union(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(4, md14x2_, md14l2_) and enc-in(md14x2_, enc-union(md14l2_)) in clf and md14f2_ in clf)}
 
 ### keep-set
 
@@ -682,7 +682,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### monotone-class-generated
 
-    monotone-class-generated(omega, ce) := {mca_ in power(omega): forall([mcb_], is-monotone-class(omega, mcb_) and ce subset mcb_ implies mca_ in mcb_)}
+    monotone-class-generated(omega, ce) := {mca_ in power(omega): forall([mcb_], mcb_ in power(power(omega)) and is-monotone-class(omega, mcb_) and ce subset mcb_ implies mca_ in mcb_)}
 
 ### mpoly
 
@@ -762,7 +762,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### product-metric-w
 
-    product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], cartesian(product-carrier(ms), product-carrier(ms)), iota(l, series-converges-to(vnb-lambda(n, nn, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]
+    product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], cartesian(product-carrier(ms), product-carrier(ms)), iota(l, l in rr and series-converges-to(vnb-lambda(n, nn, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]
 
 ### product-sigma
 
@@ -842,7 +842,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### rm-k
 
-    rm-k(s, dseq) := {rke_ in pts(cantor-ms): forall([rkn_ in nn], forsome([rky_], rm-realizes(s, dseq, rke_, rkn_, rky_)))}
+    rm-k(s, dseq) := {rke_ in pts(cantor-ms): forall([rkn_ in nn], forsome([rky_ in pts(s)], rm-realizes(s, dseq, rke_, rkn_, rky_)))}
 
 ### rm-kms
 
@@ -862,7 +862,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### sigma-generated
 
-    sigma-generated(omega, ce) := {a_ in power(omega): forall([cb_], is-sigma-algebra(omega, cb_) and ce subset cb_ implies a_ in cb_)}
+    sigma-generated(omega, ce) := {a_ in power(omega): forall([cb_], cb_ in power(power(omega)) and is-sigma-algebra(omega, cb_) and ce subset cb_ implies a_ in cb_)}
 
 ### singleton
 
@@ -1091,7 +1091,7 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### completion-dist
 
-    completion-dist(m) := vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))
+    completion-dist(m) := vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, dval in rr and forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))
 
 ### compose
 
@@ -1151,11 +1151,11 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### descend
 
-    descend(s, f) := vnb-lambda(c, quotient(s), iota(z, forsome([a in c], z = f(a))))
+    descend(s, f) := vnb-lambda(c, quotient(s), iota(z, z in set and forsome([a in c], z = f(a))))
 
 ### descend2
 
-    descend2(s, f) := vnb-lambda([c, d], cartesian(quotient(s), quotient(s)), iota(z, forsome([a in c, b in d], z = f(a, b))))
+    descend2(s, f) := vnb-lambda([c, d], cartesian(quotient(s), quotient(s)), iota(z, z in set and forsome([a in c, b in d], z = f(a, b))))
 
 ### diag-mat
 
@@ -1375,7 +1375,7 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### integral
 
-    integral(omega, ca, mu, f) := esup({iny_ in rr-pos-star: forsome([ins_], is-simple-fn(omega, ca, ins_) and ptwise-le(omega, ins_, f) and iny_ = simple-integral(omega, mu, ins_))})
+    integral(omega, ca, mu, f) := esup({iny_ in rr-pos-star: forsome([ins_ in fun(omega, rr-pos-star)], is-simple-fn(omega, ca, ins_) and ptwise-le(omega, ins_, f) and iny_ = simple-integral(omega, mu, ins_))})
 
 ### interval-length
 
@@ -1691,7 +1691,7 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### rm-pi
 
-    rm-pi(s, dseq) := vnb-lambda(rpe_, rm-k(s, dseq), iota(rpy_, rm-address(s, dseq, rpe_, rpy_)))
+    rm-pi(s, dseq) := vnb-lambda(rpe_, rm-k(s, dseq), iota(rpy_, rpy_ in pts(s) and rm-address(s, dseq, rpe_, rpy_)))
 
 ### rn-trunc
 
@@ -1747,7 +1747,7 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### series-limit
 
-    series-limit(f) := iota(lm_, series-converges-to(f, lm_))
+    series-limit(f) := iota(lm_, lm_ in rr and series-converges-to(f, lm_))
 
 ### series-partial-sum
 

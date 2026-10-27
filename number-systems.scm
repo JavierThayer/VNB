@@ -808,11 +808,12 @@
 ;;; What follows FROM them -- real-part(z) and imag-part(z) are real, and
 ;;; z = real-part(z) + i*imag-part(z) -- is proved in
 ;;; theorem-library/cc-real-imag.scm.
-(fluid-let ((*current-provenance* 'definitional))
-  (add-axiom! *library* 'real-part-def
-    '(FORALL z (== (real-part z) (* (+ z (conjugate z)) (recip 2)))))
-  (add-axiom! *library* 'imag-part-def
-    '(FORALL z (== (imag-part z) (* (- z (conjugate z)) (recip (* 2 +i)))))))
+;;; By `def-operator' (library.scm, GUARDDEF item 5, 2026-10-24): both heads are registered
+;;; term formers (*wff-term-form-heads*); the command installs under `definitional'.
+(def-operator 'real-part-def
+  '(FORALL z (== (real-part z) (* (+ z (conjugate z)) (recip 2)))))
+(def-operator 'imag-part-def
+  '(FORALL z (== (imag-part z) (* (- z (conjugate z)) (recip (* 2 +i))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; magnitude : CC -> RR  (complex modulus)

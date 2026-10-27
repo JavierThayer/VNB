@@ -101,10 +101,15 @@
 (notation! 'IS-PI-SYSTEM 'kind 'predicate 'arity 1
            'english "$1 is closed under binary intersection")
 
+;;; NBGSEP (2026-10-25): the family quantified over is bounded explicitly,
+;;; dgb_ in POWER(POWER(omega)), so the separation is predicative (NBG).
+;;; IS-DYNKIN-SYSTEM(omega, dgb_) already gives it (omega a set, dgb_ included in
+;;; POWER(omega)): the meaning is unchanged.
 (def-functoid 'DYNKIN-GENERATED '(omega cE)
   '(SEP dga_ (POWER omega)
      (FORALL dgb_
-       (IMPLIES (AND (IS-DYNKIN-SYSTEM omega dgb_) (SUBSET cE dgb_))
+       (IMPLIES (AND (IN dgb_ (POWER (POWER omega)))
+                     (AND (IS-DYNKIN-SYSTEM omega dgb_) (SUBSET cE dgb_)))
                 (IN dga_ dgb_)))))
 
 (notation! 'DYNKIN-GENERATED 'kind 'functoid 'arity 2

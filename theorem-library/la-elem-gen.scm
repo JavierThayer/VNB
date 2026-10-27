@@ -63,12 +63,14 @@
 (define (laeg-mm a b) (list 'MATMUL 'R a b))
 
 ;; the family ELEM-GEN(R, n) intersects, spelled exactly as the vocabulary spells it
+;; (NBGSEP, 2026-10-25: with the bound ege_ in SET)
 (define (laeg-fam rr nn)
   (list 'SEP 'egs_ (list 'POWER (list 'MAT nn nn (list 'CARR rr)))
         (list 'AND (list 'IN (list 'IDENTMAT rr nn) 'egs_)
               (list 'FORALL 'egx_ (list 'IMPLIES '(IN egx_ egs_)
-                (list 'FORALL 'ege_ (list 'IMPLIES (list 'IS-ELEMENTARY rr nn 'ege_)
-                  (list 'IN (list 'MATMUL rr 'egx_ 'ege_) 'egs_))))))))
+                (list 'FORALL 'ege_ (list 'IMPLIES '(IN ege_ SET)
+                  (list 'IMPLIES (list 'IS-ELEMENTARY rr nn 'ege_)
+                    (list 'IN (list 'MATMUL rr 'egx_ 'ege_) 'egs_)))))))))
 (define laeg-F (laeg-fam 'R 'n))
 (define laeg-int (list 'INTERSECTION-OF laeg-F))
 (define (laeg-all-of t)
@@ -326,6 +328,7 @@
 (dk-peel!)
 (laeg-gen-mat! 'P)
 (fact 'elementary-type 'R 'n 'E)
+(fact 'membership-implies-sethood 'E (laeg-mat 'n))     ; NBGSEP: the family's bound on E
 (laeg-typ! (laeg-mm 'P 'E) (laeg-mat 'n))
 (let ((allp (laeg-gen-all! 'P)))
   (laeg-gen-intro! (laeg-mm 'P 'E)

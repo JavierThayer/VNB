@@ -519,7 +519,8 @@
              (dk-peel!)
              ;; read the two points off the GOAL
              (let* ((gl  (dk-goal))
-                    (lam (cadr (caddr (cadr gl))))       ; IOTA -> SCT -> sequence
+                    ;; NBGSEP: IOTA -> (AND (IN L RR) SCT) -> SCT -> sequence
+                    (lam (cadr (caddr (caddr (cadr gl)))))
                     (app (caddr (caddr (cadddr lam))))   ; d_k(x_, y_)
                     (x_  (cadr app))
                     (y_  (caddr app)))
@@ -527,7 +528,7 @@
                (fact 'c-metric-term-seq-in-fun 's 'w x_ y_)
                (fact 'c-metric-summable 's 'w x_ y_)
                (fact 'series-limit-in-rr lam)
-               (subst (list '== (list 'IOTA 'L (list 'SERIES-CONVERGES-TO lam 'L))
+               (subst (list '== (list 'IOTA 'L (list 'AND '(IN L RR) (list 'SERIES-CONVERGES-TO lam 'L)))
                                 (list 'SERIES-LIMIT lam)))
                (ass))))))
    (dk-opened (lambda () (lam-t)))))

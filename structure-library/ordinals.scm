@@ -281,12 +281,24 @@
 ;;;
 ;;; Installs three characterising axioms, each wrapped in FORALL over the
 ;;; parameters p1, p2, ...:
-;;;   {f-name}-zero : forall p1.... (= (f-name p1... 0) base-val)
+;;;   {f-name}-zero : forall p1.... (== (f-name p1... 0) base-val)
 ;;;   {f-name}-succ : forall p1.... FORALL alpha (IMPLIES (IN alpha ORD)
-;;;                     (= (f-name p1... (succ_ORD alpha))
-;;;                        succ-expr[val := (f-name p1... alpha)]))
+;;;                     (== (f-name p1... (succ_ORD alpha))
+;;;                         succ-expr[val := (f-name p1... alpha)]))
 ;;;   {f-name}-limit: forall p1.... FORALL lambda (IMPLIES (LIMIT-ORD lambda)
-;;;                     (= (f-name p1... lambda) lim-expr))
+;;;                     (== (f-name p1... lambda) lim-expr))
+;;;
+;;; QUASI-EQUALITY (GUARDDEF, the user's decision of 2026-10-24).  Until that date the
+;;; three equations were STRICT `=', as `def-by-nn-recursion''s had been before it was
+;;; changed.  The parameters are unguarded, so a strict equation asserted that its
+;;; right-hand side DENOTES for every value of them: `zen-zero' said CHOICE(x) denotes
+;;; for every class x, the empty one included, and `zen-succ' / `zen-limit' the same of
+;;; CHOICE of a possibly empty separation -- a commitment `choice-axiom' does not make,
+;;; carried under a `definitional' stamp that no bill shows (scratchpad/GUARDDEF-REPORT.md
+;;; s.B.1).  A guarded definition is read as a DESCRIPTION: off its guards the head
+;;; denotes nothing, and on them it is the right-hand side, defined or not.  `==' says
+;;; exactly that.  A proof that used a landed equation to certify a term DEFINED now
+;;; types the term first.
 
 (define (def-by-ord-recursion f-name params base-val succ-spec succ-expr lim-spec lim-expr)
   (let* ((alpha     (car  succ-spec))
@@ -296,13 +308,13 @@
          (zero-name (symbol-append f-name '-zero))
          (succ-name (symbol-append f-name '-succ))
          (lim-name  (symbol-append f-name '-limit))
-         (zero-core `(= (,f-name ,@params 0) ,base-val))
+         (zero-core `(== (,f-name ,@params 0) ,base-val))
          (succ-core `(FORALL ,alpha
                        (IMPLIES (IN ,alpha ORD)
-                                (= (,f-name ,@params (succ_ORD ,alpha)) ,succ-body))))
+                                (== (,f-name ,@params (succ_ORD ,alpha)) ,succ-body))))
          (lim-core  `(FORALL ,lam
                        (IMPLIES (LIMIT-ORD ,lam)
-                                (= (,f-name ,@params ,lam) ,lim-expr))))
+                                (== (,f-name ,@params ,lam) ,lim-expr))))
          (wrap      (lambda (f) (fold-right (lambda (p g) `(FORALL ,p ,g)) f params))))
     ;; The three recursion equations ARE the definition of f-name -- exactly
     ;; what `def-constant' installs, and stamped the same way.  Without this

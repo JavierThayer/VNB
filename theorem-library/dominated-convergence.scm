@@ -912,8 +912,13 @@
 ;;; sequence, and the shape the product metric's D_w wants.
 ;;; =====================================================================
 
+;;; NBGSEP (2026-10-25): the description carries the top-level conjunct lm_ in RR, the
+;;; spelling the IOTAs of C-METRIC-W and PRODUCT-METRIC-W now have (a confined IOTA,
+;;; NBG), so that `series-limit-iota' still identifies them with SERIES-LIMIT.
+;;; SERIES-CONVERGES-TO(f, L) is CONVERGES-TO in RR-MS, which puts L in PTS(RR-MS) = RR:
+;;; the description is the same, the meaning unchanged.
 (def-functoid 'SERIES-LIMIT '(f)
-  '(IOTA lm_ (SERIES-CONVERGES-TO f lm_)))
+  '(IOTA lm_ (AND (IN lm_ RR) (SERIES-CONVERGES-TO f lm_))))
 (notation! 'SERIES-LIMIT 'kind 'functoid 'arity 1
            'english "the sum of the series $1"
            'noun "sum of the series $1")
@@ -922,13 +927,13 @@
      series-converges-to(f, series-limit(f)))"))
 (dn-di-landed!) (dn-di-landed!)
 (mac 'series-limit)
-(define sl-iota '(IOTA lm_ (SERIES-CONVERGES-TO f lm_)))
+(define sl-iota '(IOTA lm_ (AND (IN lm_ RR) (SERIES-CONVERGES-TO f lm_))))
 (define sl-psq '(VNB-LAMBDA k NN (SERIES-PARTIAL-SUM f k)))
 (for-each
  (lambda (l)
    (dk-focus! l)
    (if (eq? (car (dk-goal)) 'SERIES-CONVERGES-TO)
-       (ass)                                      ; the defining property, assumed
+       (begin (dk-split-all!) (ass))              ; the defining property, assumed (NBGSEP: split)
        ;; the existence-and-uniqueness obligation
        (begin
          (mac-h 'series-converges '(SERIES-CONVERGES f))
@@ -949,17 +954,13 @@
                 (cond ((eq? (car gl) 'IN) (ass))
                       ((eq? (car gl) 'SERIES-CONVERGES-TO) (mac 'series-converges-to) (ass))
                       (else
-                       (let* ((yt (dn-di-landed-1!))
+                       ;; NBGSEP: the competitor's property is (AND (IN y RR) (SCT f y))
+                       (let* ((yt (let ((cj (dn-di-landed-1!)))
+                                    (dk-split! cj)
+                                    (caddr cj)))
                               (y  (caddr yt)))
-                         (let ((ycv (dk-landed-1
-                                     (lambda () (mac-h 'series-converges-to yt)))))
-                           (have! (list 'IN y 'RR)
-                             (lambda ()
-                               (dk-split! (dk-landed-find
-                                           (lambda () (mac-h 'converges-to ycv))
-                                           (lambda (a) (eq? (car a) 'AND))))
-                               (slot-h 'PTS (list 'IN y '(PTS RR-MS)))
-                               (ass))))
+                         ;; NBGSEP: (IN y RR) came with the competitor's bounded property
+                         (dk-landed-1 (lambda () (mac-h 'series-converges-to yt)))
                          (fact 'rr-limit-unique sl-psq lm y)
                          (ass)))))))))))
  (dk-opened (lambda () (iota-d sl-iota))))

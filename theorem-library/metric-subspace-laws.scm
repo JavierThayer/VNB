@@ -659,12 +659,14 @@
 (define (msub-lt! a b)
   (have! (list '< a b) (lambda () (mac '<) (dk-conj-close! (lambda () (ass))))))
 
+;;; NBGSEP (2026-10-25): the radius ru_ is bounded by ru_ in RR (implied by POS-RR), so
+;;; the separation is predicative (NBG); POS-RR alone is a predicate guard.
 (define msub-trace-set
   '(SEP zu_ (PTS s)
      (FORSOME yu_ (AND (IN yu_ vs_)
-       (FORSOME ru_ (AND (POS-RR ru_)
+       (FORSOME ru_ (AND (IN ru_ RR) (AND (POS-RR ru_)
          (AND (SUBSET (BALL (SUBSPACE-MS s A) yu_ ru_) vs_)
-              (IN zu_ (BALL s yu_ ru_)))))))))
+              (IN zu_ (BALL s yu_ ru_))))))))))
 
 (sp (make-wff (list 'FORALL 's (list 'IMPLIES '(IS-METRIC-SPACE s)
      (list 'FORALL 'A (list 'IMPLIES '(SUBSET A (PTS s))
@@ -737,6 +739,7 @@
                                            (let ((g2 (dk-goal)))
                                              (cond
                                                ((eq? (msub-head g2) 'POS-RR) (ass))
+                                               ((and (eq? (msub-head g2) 'IN) (eq? (caddr g2) 'RR)) (ass))
                                                ((eq? (msub-head g2) 'SUBSET) (ass))
                                                (#t
                                                 (have!
@@ -793,6 +796,7 @@
                         (let ((g2 (dk-goal)))
                           (cond
                             ((eq? (msub-head g2) 'POS-RR) (ass))
+                            ((and (eq? (msub-head g2) 'IN) (eq? (caddr g2) 'RR)) (ass))
                             ((eq? (msub-head g2) 'SUBSET) (ass))
                             (#t
                              (have! (list 'AND (list 'IN r 'RR)

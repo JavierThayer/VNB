@@ -315,7 +315,9 @@
 ;;; goal there being the literal IOTA that PRODUCT-METRIC-W's lambda body is.
 ;;; =====================================================================
 
-(sp (make-wff '(FORALL f (== (IOTA L (SERIES-CONVERGES-TO f L)) (SERIES-LIMIT f)))))
+;;; NBGSEP (2026-10-25): with the conjunct L in RR that SERIES-LIMIT and PRODUCT-METRIC-W's
+;;; description both carry now.
+(sp (make-wff '(FORALL f (== (IOTA L (AND (IN L RR) (SERIES-CONVERGES-TO f L))) (SERIES-LIMIT f)))))
 (di)
 (mac 'SERIES-LIMIT)
 (qrfl)
@@ -498,7 +500,8 @@
              ;; assumption list is not in peel order here, and a swap builds a
              ;; term sequence that is alpha-INEQUIVALENT to the goal's.
              (let* ((gl  (dk-goal))
-                    (lam (cadr (caddr (cadr gl))))       ; IOTA -> SCT -> sequence
+                    ;; NBGSEP: IOTA -> (AND (IN L RR) SCT) -> SCT -> sequence
+                    (lam (cadr (caddr (caddr (cadr gl)))))
                     (app (caddr (cadddr lam)))           ; (rho (x_ n) (y_ n))
                     (x_  (car (cadr app)))
                     (y_  (car (caddr app))))
@@ -506,7 +509,7 @@
                (fact 'product-term-seq-in-fun 'ms 'w x_ y_)
                (fact 'product-weighted-summable 'ms 'w x_ y_)
                (fact 'series-limit-in-rr lam)
-               (subst (list '== (list 'IOTA 'L (list 'SERIES-CONVERGES-TO lam 'L))
+               (subst (list '== (list 'IOTA 'L (list 'AND '(IN L RR) (list 'SERIES-CONVERGES-TO lam 'L)))
                                 (list 'SERIES-LIMIT lam)))
                (ass))))))
    (dk-opened (lambda () (lam-t)))))

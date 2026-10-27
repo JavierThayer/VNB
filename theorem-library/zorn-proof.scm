@@ -217,21 +217,36 @@
 
 ;; (2a-0) DEFINEDNESS of the tower (W2B, 2026-10-10, META round 3).  Every
 ;; `subset-def' macete below is matched at ZKEPT(phi,grd,porel,a) for an
-;; arbitrary ordinal a, and the macete door now owes that term DEFINED.  The three
-;; recursion equations zkept-zero / -succ / -limit are STRICT equations (def-by-
-;; ord-recursion installs `=', definitional), so each certifies its own left side
-;; once landed; tfi3 splits an arbitrary ordinal into exactly those three cases,
-;; and no induction hypothesis is needed.  Stated as `t = t' (definedness), not as
-;; sethood: ZKEPT(..., succ a) is a UNION with KEEP-SET, a separation over grd,
-;; which is a set only when grd is one, and zorn-zkept-monotone has no such guard.
+;; arbitrary ordinal a, and the macete door now owes that term DEFINED.
+;; Stated as `t = t' (definedness), not as sethood: ZKEPT(..., succ a) is a UNION
+;; with KEEP-SET, a separation over grd, which is a set only when grd is one, and
+;; zorn-zkept-monotone has no such guard.
+;;
+;; GUARDDEF item 1 (2026-10-24): the three recursion equations zkept-zero / -succ /
+;; -limit are QUASI-equations (def-by-ord-recursion writes `=='), so a landed one no
+;; longer certifies its left side.  Each case rewrites the goal by its equation and
+;; closes `t = t' on the RIGHT side, which the certificate accepts: EMPTY-SET (an
+;; atomic constant); a BIG-UNION over ORD-SEGMENT(lam) (a certified domain); and in
+;; the successor case UNION(ZKEPT(..,a), KEEP-SET(..)), whose stage ZKEPT(..,a) is
+;; certified by the induction hypothesis instantiated at the parameters -- so this is
+;; now a genuine induction, where it used to be a case analysis.
 (define (zp-zdef-case! eqn)
-  (dk-split-all! (dk-peel!))
-  (let* ((z (cadr (dk-goal)))
+  (let* ((parts (dk-split-all! (dk-peel!)))
+         (z (cadr (dk-goal)))
          (p (cadr z)) (g (caddr z)) (r (cadddr z)) (x (car (cddddr z))))
     (case eqn
-      ((zero)  (fact 'zkept-zero p g r))
-      ((succ)  (fact 'zkept-succ p g r (cadr x)))
-      ((limit) (fact 'zkept-limit p g r x)))
+      ((zero)
+       (let ((eqn0 (dk-cite! 'zkept-zero p g r)))
+         (subst (list '= (cadr eqn0) (caddr eqn0)))))
+      ((succ)
+       (let ((ih (find-first (dk-head? 'FORALL) parts)))
+         (if (not ih) (error "zp-zdef-case!: no induction hypothesis landed" parts))
+         (zp-inst*! ih p g r))
+       (let ((eqns (dk-cite! 'zkept-succ p g r (cadr x))))
+         (subst (list '= (cadr eqns) (caddr eqns)))))
+      ((limit)
+       (let ((eqnl (dk-cite! 'zkept-limit p g r x)))
+         (subst (list '= (cadr eqnl) (caddr eqnl))))))
     (rfl)))
 
 (sp (make-wff
@@ -259,7 +274,10 @@
 (have! '(AND (ORD-LE a 0) (ORD-LE 0 a)))
 (fact 'ord-le-antisymm 'a 0)
 (subst '(= a 0))
-(fact 'zkept-zero 'phi 'grd 'porel)     ; certifies ZKEPT(...,0) for subset-def
+;; GUARDDEF item 1: zkept-zero is `==' and certifies nothing; rewrite the stage to
+;; EMPTY-SET, which subset-def may be matched at.
+(fact 'zkept-zero 'phi 'grd 'porel)
+(subst '(= (ZKEPT phi grd porel 0) EMPTY-SET))
 (zp-refl!)
 
 ;;; SUCCESSOR: either a <= b -- and the induction hypothesis puts ZKEPT(a) inside
@@ -274,7 +292,10 @@
 (di) (di)
 (fact 'zkept-defined 'a 'phi 'grd 'porel)     ; W2B: the subset-def instances
 (fact 'zkept-defined 'b 'phi 'grd 'porel)     ; below are matched at these three
-(fact 'zkept-succ 'phi 'grd 'porel 'b)
+;; GUARDDEF item 1: zkept-succ is `==' and no longer certifies its left side;
+;; type the successor and cite the definedness lemma at it.
+(fact 'ord-succ-in 'b)
+(fact 'zkept-defined '(succ_ORD b) 'phi 'grd 'porel)
 (mac 'subset-def)
 (di)
 (have! '(AND (IN a ORD) (IN b ORD)))
@@ -310,10 +331,12 @@
 (dk-split! (dk-landed-1 (lambda () (di))))
 (di) (di)
 (fact 'zkept-defined 'a 'phi 'grd 'porel)     ; W2B: certify both sides
-(fact 'zkept-limit 'phi 'grd 'porel 'b)
+;; GUARDDEF item 1: zkept-limit is `==' and no longer certifies ZKEPT(..,b);
+;; recover (IN b ORD) first and cite the definedness lemma at b.
+(dk-split! (dk-fact! 'ord-le-closure 'a 'b))       ; recovers (IN b ORD)
+(fact 'zkept-defined 'b 'phi 'grd 'porel)
 (mac 'subset-def)
 (di)
-(dk-split! (dk-fact! 'ord-le-closure 'a 'b))       ; recovers (IN b ORD)
 (use-em '(= a b)
   (lambda () (subst '(= b a)) (ass))
   (lambda ()
@@ -449,11 +472,10 @@
 (zp-inst*! zp-inv-ih 'phi 'grd 'porel)
 ;; 2026-09-18 (LUTINS instantiation): zorn-chain-plus-keepset is cited at the
 ;; stage ZKEPT(phi,grd,porel,alpha), and IS-CHAIN is not one of the strict
-;; relations, so the invariant in context does not certify it.  The recursion
-;; equation does: zkept-succ is a strict `=' whose right side is
-;; UNION(ZKEPT(...,alpha), KEEP-SET(...)), where the stage sits OUTSIDE every
-;; binder in an argument position.
-(fact 'zkept-succ 'phi 'grd 'porel 'alpha)
+;; relations, so the invariant in context does not certify it.  Until 2026-10-24
+;; the strict recursion equation zkept-succ did; it is `==' since GUARDDEF item 1,
+;; so the definedness lemma is cited at the stage instead.
+(fact 'zkept-defined 'alpha 'phi 'grd 'porel)
 (fact 'zorn-chain-plus-keepset 'phi 'grd 'porel '(ZKEPT phi grd porel alpha) 'alpha)
 (ass)
 

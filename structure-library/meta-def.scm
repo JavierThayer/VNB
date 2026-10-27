@@ -534,14 +534,21 @@
 ;;; A RESTVAR schema of the catalog (library.scm: union-decompose, intersection-decompose) is a FAMILY of members of
 ;;; T, one per length of the rest binding: each of its instances is an instance of one member, at n + 1 entries.
 ;;; Binders: md13*_.
+;;; NBGSEP (2026-10-25): the witnesses md13g_ md13l_ md13r_ md13a_ md13b_ (and the inner
+;;; condition md13c_) are bounded by (IN v SET), so the separation is predicative (NBG).
+;;; g, a, b are components of the tuple equated to md13x_ in either disjunct, r is equal to
+;;; an ENC-QEQ / ENC-IFF code, c a component of a member of DERIVABLE: sets by the list
+;;; doctrine.  l is the argument list of the instantiation, a list of terms on the intended
+;;; domain, so a set there.  The meaning is unchanged.
 (def-functoid 'J-MACN '(md13t_)
   `(SEP md13x_ RW-UNIV
      ,(md--ex '(md13g_ md13m_ md13l_ md13i_ md13r_ md13a_ md13b_)
-        (md--and '(IN md13m_ md13t_) '(IN md13m_ CLF) '(IN md13i_ (INST-REACH md13m_ md13l_))
+        (md--and '(IN md13g_ SET) '(IN md13l_ SET) '(IN md13r_ SET) '(IN md13a_ SET) '(IN md13b_ SET)
+                 '(IN md13m_ md13t_) '(IN md13m_ CLF) '(IN md13i_ (INST-REACH md13m_ md13l_))
                  '(FORALL md13j_ (IMPLIES (IN md13j_ NN) (IMPLIES (<= 2 md13j_) (IMPLIES (<= md13j_ (LENGTH md13l_))
                     (IN (LIST md13g_ (ENC-EQ (NTH md13j_ md13l_) (NTH md13j_ md13l_))) (DERIVABLE md13t_))))))
                  '(OR (= md13i_ md13r_)
-                      (FORSOME md13c_ (AND (= md13i_ (ENC-IMP md13c_ md13r_)) (IN (LIST md13g_ md13c_) (DERIVABLE md13t_)))))
+                      (FORSOME md13c_ (AND (IN md13c_ SET) (AND (= md13i_ (ENC-IMP md13c_ md13r_)) (IN (LIST md13g_ md13c_) (DERIVABLE md13t_))))))
                  '(OR (AND (= md13r_ (ENC-QEQ md13a_ md13b_))
                            (AND (= md13x_ (LIST 1 md13g_ md13a_ md13b_)) (AND (IN md13a_ CLT) (IN md13b_ CLT))))
                       (AND (= md13r_ (ENC-IFF md13a_ md13b_))
@@ -580,16 +587,21 @@
       (IMPLIES (RF-CLOSED md14h_ md14x_ md14l_ md14w_) (IN md14p_ md14w_))))))
 (notation! 'RF-SET 'kind 'functoid 'arity 3 'english "the right folds by $1 of the memberships of $2 in the entries of $3 from an index on")
 ;; the local redexes of the two schemas: x in UNION(l) -> the right fold f, x in INTERSECTION(l) -> the right fold f
+;; NBGSEP (2026-10-25): md14g_ md14x2_ md14l2_ bounded by (IN v SET) -- each a component of
+;; the tuple equated to md14y_ (through the ENC-IN / ENC-UNION codes), a set by the list
+;; doctrine; the meaning is unchanged and the separations are predicative.
 (def-functoid 'J-UDEC '(md14t_)
   '(SEP md14y_ RW-UNIV (FORSOME md14g_ (FORSOME md14x2_ (FORSOME md14l2_ (FORSOME md14f2_
+     (AND (IN md14g_ SET) (AND (IN md14x2_ SET) (AND (IN md14l2_ SET)
      (AND (= md14y_ (LIST 2 md14g_ (ENC-IN md14x2_ (ENC-UNION md14l2_)) md14f2_))
           (AND (IN (LIST 0 md14f2_) (RF-SET 4 md14x2_ md14l2_))
-               (AND (IN (ENC-IN md14x2_ (ENC-UNION md14l2_)) CLF) (IN md14f2_ CLF))))))))))
+               (AND (IN (ENC-IN md14x2_ (ENC-UNION md14l2_)) CLF) (IN md14f2_ CLF)))))))))))))
 (def-functoid 'J-IDEC '(md14t_)
   '(SEP md14y_ RW-UNIV (FORSOME md14g_ (FORSOME md14x2_ (FORSOME md14l2_ (FORSOME md14f2_
+     (AND (IN md14g_ SET) (AND (IN md14x2_ SET) (AND (IN md14l2_ SET)
      (AND (= md14y_ (LIST 2 md14g_ (ENC-IN md14x2_ (ENC-INTER md14l2_)) md14f2_))
           (AND (IN (LIST 0 md14f2_) (RF-SET 3 md14x2_ md14l2_))
-               (AND (IN (ENC-IN md14x2_ (ENC-INTER md14l2_)) CLF) (IN md14f2_ CLF))))))))))
+               (AND (IN (ENC-IN md14x2_ (ENC-INTER md14l2_)) CLF) (IN md14f2_ CLF)))))))))))))
 (notation! 'J-UDEC 'kind 'functoid 'arity 1 'english "the local instances over $1 of the catalog's union-decompose")
 (notation! 'J-IDEC 'kind 'functoid 'arity 1 'english "the local instances over $1 of the catalog's intersection-decompose")
 (def-predicate 'REL-UNION-DECOMPOSE-1 '(md14t_ md14hs_ md14c_) '(REL-REWRITE-1 (J-UDEC md14t_) md14hs_ md14c_))

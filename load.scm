@@ -4386,6 +4386,30 @@
               (error "comp-predicativity gate: COMP terms quantify beyond sets; VNB's comprehension is NBG's (predicative)"
                      (length imp)))))))
 
+;;; The SET-BUILDING-binder predicativity gate (NBGSEP, 2026-10-25): every SEP /
+;;; BIG-UNION / VNB-LAMBDA subterm of an installed formula or a functoid body whose
+;;; condition / body has a binder not confined to sets (binder-predicativity-audit,
+;;; proof-debt.scm).  FATAL? #t raises after the list when the audit is not empty.
+(define *binder-predicativity-gate-fatal?* #t)   ; backlog zero since NBGSEP, 2026-10-25
+(define (binder-predicativity-gate! fatal?)
+  (let ((imp (binder-predicativity-audit)))
+    (if (null? imp)
+        (display ";; binder-predicativity-audit: ok (every SEP / BIG-UNION / VNB-LAMBDA condition quantifies over sets only)\n")
+        (begin
+          (display ";; binder-predicativity-audit: ") (display (length imp))
+          (display " set-building term(s) quantify beyond sets (impredicative")
+          (display (if fatal? "; FATAL):\n" "; reported):\n"))
+          (for-each (lambda (e)
+                      (display ";;   ") (display (car e)) (display ": ")
+                      (write (cdr e)) (newline))
+                    (list-head imp (min 40 (length imp))))
+          (if (> (length imp) 40)
+              (begin (display ";;   ... and ") (display (- (length imp) 40))
+                     (display " more: (binder-predicativity-audit) for the list\n")))
+          (if fatal?
+              (error "binder-predicativity gate: SEP / BIG-UNION / VNB-LAMBDA terms quantify beyond sets; NBG separation and replacement are predicative"
+                     (length imp)))))))
+
 ;;; THE END-OF-LOAD BLOCK, as ONE procedure (2026-09-23): the catalog and
 ;;; reference writers, the gates, the page audit, the band record and the
 ;;; session reset.  `vnb-extend-band!' (extend-band.scm) calls the same
@@ -4759,6 +4783,27 @@
           (if (not *vnb-keep-going?*)
               (error "after-qed gate: commands ran on a proof qed had already closed (a statement closed one paren short?)")))))
 
+  ;;; guarded-definition gate (GUARDDEF item 2, 2026-10-24; FATAL in a strict load).  A head
+  ;;; whose defining equations carry guards denotes nothing off them (the user's decision
+  ;;; of 2026-10-24, scratchpad/GUARDDEF.md); no definedness, sethood or value table of the
+  ;;; builder or the checker may list it, and no installed theorem may type it in a FUN(..).
+  ;;; audit.scm, `guarded-def-gate-violations'.
+  (let ((bad (guarded-def-gate-violations)))
+    (if (null? bad)
+        (begin
+          (display ";; guarded-definition gate: ok (")
+          (display (length (guarded-defined-heads)))
+          (display " guarded defined head(s); none in a certificate table, none typed in a FUN)\n"))
+        (begin
+          (display ";; guarded-definition gate: ") (display (length bad))
+          (display " violation(s) -- a guarded defined head treated as total:\n")
+          (for-each (lambda (v)
+                      (display ";;   ") (display (car v)) (display " ")
+                      (display (cadr v)) (display " in ") (display (caddr v)) (newline))
+                    bad)
+          (if (not *vnb-keep-going?*)
+              (error "guarded-definition gate: a head with a guarded definition is in a certificate table or typed in a FUN -- see above")))))
+
   ;; Not a question about the installed formulas, but about the CODE that walks
   ;; them: does every traversal agree with *binder-shapes* on which heads bind?
   ;; See binder-walker-audit in audit.scm for what a disagreement costs.
@@ -4867,6 +4912,9 @@
   ;; under keep-going.  The audit itself cannot raise (proof-debt.scm).  A
   ;; CERTIFIED load sees only the proofs it ran.
   (comp-predicativity-gate! (not *vnb-keep-going?*))
+  ;; NBGSEP (2026-10-25): the same for SEP / BIG-UNION / VNB-LAMBDA in installed
+  ;; formulas and functoid bodies; fatal in a strict load once its backlog is zero.
+  (binder-predicativity-gate! (and *binder-predicativity-gate-fatal?* (not *vnb-keep-going?*)))
   (let ((sh (sethood-audit)))
     (if (null? sh)
         (display ";; sethood-audit: ok (no asserted function membership over an unguarded class)\n")

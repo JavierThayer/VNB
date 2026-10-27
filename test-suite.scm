@@ -45,6 +45,20 @@
 ;; `proven' or `certified' literally.
 (define (suite-proven? nm) (and (memq (provenance-of nm) '(proven certified)) #t))
 
+;;; GUARDDEF item 1 (2026-10-24): def-by-ord-recursion writes `==' (structure-library/ordinals.scm).
+;;; On the tree before gd1-ord-qeq.patch the nine equations end in a strict `='.
+(define (gd1--equation-head f)               ; = or == at the end of the universals and guards
+  (let loop ((e (if (wff? f) (wff-formula f) f)))
+    (cond ((and (pair? e) (memq (car e) '(FORALL)) (= (length e) 3)) (loop (caddr e)))
+          ((and (pair? e) (eq? (car e) 'IMPLIES) (= (length e) 3)) (loop (caddr e)))
+          ((pair? e) (car e))
+          (#t #f))))
+(check "GUARDDEF-1 def-by-ord-recursion: the nine ZEN / ZUP / ZKEPT recursion equations are quasi-equations"
+  (lambda ()
+    (map (lambda (nm) (gd1--equation-head (lookup-theorem nm)))
+         '(zen-zero zen-succ zen-limit zup-zero zup-succ zup-limit zkept-zero zkept-succ zkept-limit)))
+  '(== == == == == == == == ==))
+
 (define (check-error label thunk)
   ;; Pass when thunk returns a <vnb-error> (i.e. input was rejected).
   (let ((result (thunk)))
@@ -11087,11 +11101,14 @@
                     (rcs-chk--sequent '(((IN y_ (COMP x_ (FORALL p_ (IN (CARD (IMAGE p_ x_)) NN))))) (IN y_ ZZ))))))
            (and (string? r) (string-search-forward "unconfined forall p_" r 0) #t)))))
 
-(check-true "comp-mem-intro, NBG: an IOTA in the COMP condition is refused by the checker"
+;; NBGSEP (2026-10-25): an IOTA whose body has (IN w C) as a top-level conjunct is now
+;; CONFINED (clause (b)2), so the refused IOTA here is one without such a conjunct; its
+;; confined twin is accepted in the NBGSEP block below.
+(check-true "comp-mem-intro, NBG: an unconfined IOTA in the COMP condition is refused by the checker"
   (lambda ()
     (rcs-chk--refuses? 'comp-mem-intro
-      '((() (IN y_ SET)) (() (= y_ (IOTA w_ (IN w_ y_)))))
-      '(() (IN y_ (COMP x_ (= x_ (IOTA w_ (IN w_ x_)))))))))
+      '((() (IN y_ SET)) (() (= y_ (IOTA w_ (= w_ y_)))))
+      '(() (IN y_ (COMP x_ (= x_ (IOTA w_ (= w_ x_)))))))))
 
 (check-true "comp-mem-intro, NBG: the builder splits a confined COMP"
   (lambda ()
@@ -11118,6 +11135,227 @@
     (rcs-chk--raises?
       (lambda () (pi-comp-mem-elim! (proof-state-focus *ps*)
                    '(IN 0 (COMP x_ (FORALL p_ (IN (CARD (IMAGE p_ x_)) NN)))))))))
+
+;;; NBGSEP (2026-10-25; the user's decision (ii) of 2026-10-24 and the approval of
+;;; the proposal, option (b)).  The set-building binders SEP / BIG-UNION /
+;;; VNB-LAMBDA get COMP's predicativity test, and the ONE relation gains two
+;;; clauses: a DEFERRED guard confines, and IOTA v B is confined by a top-level
+;;; conjunct (IN v C) of B.  Each check is an accepted / refused pair, on the
+;;; checker (rcs-chk--*) and the builder (pi-*!).  The refused shapes were all
+;;; ACCEPTED by the code before NBGSEP and the (b) shapes all REFUSED (by COMP), so
+;;; every pair below has a half that fails on the old code.
+;;;   predicative:   SEP(x_, NN, forall c_ in NN. x_ in c_)
+;;;   impredicative: SEP(x_, NN, forall c_. x_ in c_)   (c_ ranges over classes)
+
+(define nbs-pred '(SEP x_ NN (FORALL c_ (IMPLIES (IN c_ NN) (IN x_ c_)))))
+(define nbs-impr '(SEP x_ NN (FORALL c_ (IN x_ c_))))
+(define nbs-iota '(SEP x_ NN (= x_ (IOTA w_ (= w_ x_)))))          ; an unconfined IOTA
+(define nbs-giota '(SEP x_ NN (= x_ (IOTA w_ (AND (IN w_ NN) (= w_ x_))))))  ; (b)2
+(define nbs-ppred '(SEP x_ RR (FORALL eps_ (IMPLIES (POS-RR eps_) (< x_ eps_)))))  ; predicate guard
+
+(check-true "NBGSEP sep-sethood: a predicative SEP is accepted by the checker"
+  (lambda () (rcs-chk--accepts? 'sep-sethood '((() (IN NN SET))) `(() (IN ,nbs-pred SET)))))
+(check-true "NBGSEP sep-sethood: an unconfined FORALL in the condition is refused by the checker, naming it"
+  (lambda ()
+    (and (rcs-chk--refuses? 'sep-sethood '((() (IN NN SET))) `(() (IN ,nbs-impr SET)))
+         (let ((r (rcs-sep-sethood 'sep-sethood (map rcs-chk--sequent '((() (IN NN SET))))
+                                   (rcs-chk--sequent `(() (IN ,nbs-impr SET))))))
+           (and (string? r) (string-search-forward "unconfined forall c_" r 0) #t)))))
+(check-true "NBGSEP sep-sethood: an unconfined IOTA in the condition is refused by the checker"
+  (lambda () (rcs-chk--refuses? 'sep-sethood '((() (IN NN SET))) `(() (IN ,nbs-iota SET)))))
+(check-true "NBGSEP sep-sethood, (b)2: an IOTA with a top-level (IN w C) conjunct is accepted by the checker"
+  (lambda () (rcs-chk--accepts? 'sep-sethood '((() (IN NN SET))) `(() (IN ,nbs-giota SET)))))
+(check-true "NBGSEP sep-sethood: a PREDICATE guard (POS-RR) does not confine (checker refuses)"
+  (lambda () (rcs-chk--refuses? 'sep-sethood '((() (IN RR SET))) `(() (IN ,nbs-ppred SET)))))
+(check-true "NBGSEP sep-sethood: the builder splits a predicative SEP"
+  (lambda () (sp (make-wff `(IN ,nbs-pred SET)))
+             (and (pi-sep-sethood! (proof-state-focus *ps*)) #t)))
+(check-true "NBGSEP sep-sethood: the builder refuses an impredicative SEP"
+  (lambda () (sp (make-wff `(IN ,nbs-impr SET)))
+             (rcs-chk--raises? (lambda () (pi-sep-sethood! (proof-state-focus *ps*))))))
+
+(check-true "NBGSEP sep-mem-intro: a predicative SEP is accepted by the checker"
+  (lambda () (rcs-chk--accepts? 'sep-mem-intro
+               '((() (IN 0 NN)) (() (FORALL c_ (IMPLIES (IN c_ NN) (IN 0 c_)))))
+               `(() (IN 0 ,nbs-pred)))))
+(check-true "NBGSEP sep-mem-intro: an impredicative SEP is refused by the checker"
+  (lambda () (rcs-chk--refuses? 'sep-mem-intro
+               '((() (IN 0 NN)) (() (FORALL c_ (IN 0 c_))))
+               `(() (IN 0 ,nbs-impr)))))
+(check-true "NBGSEP sep-mem-intro: the builder splits a predicative SEP"
+  (lambda () (sp (make-wff `(IN 0 ,nbs-pred)))
+             (and (pi-sep-mem-intro! (proof-state-focus *ps*)) #t)))
+(check-true "NBGSEP sep-mem-intro: the builder refuses an impredicative SEP"
+  (lambda () (sp (make-wff `(IN 0 ,nbs-impr)))
+             (rcs-chk--raises? (lambda () (pi-sep-mem-intro! (proof-state-focus *ps*))))))
+
+(check-true "NBGSEP sep-mem-elim: a predicative SEP is accepted by the checker"
+  (lambda () (rcs-chk--accepts? 'sep-mem-elim
+               '((((IN 0 NN) (FORALL c_ (IMPLIES (IN c_ NN) (IN 0 c_)))) TRUTH))
+               `(((IN 0 ,nbs-pred)) TRUTH))))
+(check-true "NBGSEP sep-mem-elim: an impredicative SEP is refused by the checker (elimination refused too)"
+  (lambda () (rcs-chk--refuses? 'sep-mem-elim
+               '((((IN 0 NN) (FORALL c_ (IN 0 c_))) TRUTH))
+               `(((IN 0 ,nbs-impr)) TRUTH))))
+(check-true "NBGSEP sep-mem-elim: the builder opens a predicative SEP"
+  (lambda () (sp (make-wff `(IMPLIES (IN 0 ,nbs-pred) TRUTH))) (di)
+             (and (pi-sep-mem-elim! (proof-state-focus *ps*) `(IN 0 ,nbs-pred)) #t)))
+(check-true "NBGSEP sep-mem-elim: the builder refuses an impredicative SEP"
+  (lambda () (sp (make-wff `(IMPLIES (IN 0 ,nbs-impr) TRUTH))) (di)
+             (rcs-chk--raises? (lambda () (pi-sep-mem-elim! (proof-state-focus *ps*) `(IN 0 ,nbs-impr))))))
+
+;;; BIG-UNION: the body at z_ is a SEP over z_, predicative or not.
+(define nbs-bu-pred '(BIG-UNION z_ NN (SEP y_ z_ (FORALL c_ (IMPLIES (IN c_ NN) (IN y_ c_))))))
+(define nbs-bu-impr '(BIG-UNION z_ NN (SEP y_ z_ (FORALL c_ (IN y_ c_)))))
+(check-true "NBGSEP big-union-sethood: a predicative body is accepted by the checker"
+  (lambda () (rcs-chk--accepts? 'big-union-sethood
+               '((() (IN NN SET))
+                 (() (FORALL v_ (IMPLIES (IN v_ NN) (IN (SEP y_ v_ (FORALL c_ (IMPLIES (IN c_ NN) (IN y_ c_)))) SET)))))
+               `(() (IN ,nbs-bu-pred SET)))))
+(check-true "NBGSEP big-union-sethood: an impredicative body is refused by the checker"
+  (lambda () (rcs-chk--refuses? 'big-union-sethood
+               '((() (IN NN SET))
+                 (() (FORALL v_ (IMPLIES (IN v_ NN) (IN (SEP y_ v_ (FORALL c_ (IN y_ c_))) SET)))))
+               `(() (IN ,nbs-bu-impr SET)))))
+(check-true "NBGSEP big-union-sethood: the builder splits a predicative body"
+  (lambda () (sp (make-wff `(IN ,nbs-bu-pred SET)))
+             (and (pi-big-union-sethood! (proof-state-focus *ps*)) #t)))
+(check-true "NBGSEP big-union-sethood: the builder refuses an impredicative body"
+  (lambda () (sp (make-wff `(IN ,nbs-bu-impr SET)))
+             (rcs-chk--raises? (lambda () (pi-big-union-sethood! (proof-state-focus *ps*))))))
+(check-true "NBGSEP big-union-mem-intro: a predicative body is accepted by the checker"
+  (lambda () (rcs-chk--accepts? 'big-union-mem-intro
+               '((() (IN 0 NN)) (() (IN 0 (SEP y_ 0 (FORALL c_ (IMPLIES (IN c_ NN) (IN y_ c_)))))))
+               `(() (IN 0 ,nbs-bu-pred)))))
+(check-true "NBGSEP big-union-mem-intro: an impredicative body is refused by the checker"
+  (lambda () (rcs-chk--refuses? 'big-union-mem-intro
+               '((() (IN 0 NN)) (() (IN 0 (SEP y_ 0 (FORALL c_ (IN y_ c_))))))
+               `(() (IN 0 ,nbs-bu-impr)))))
+(check-true "NBGSEP big-union-mem-intro: the builder refuses an impredicative body, accepts a predicative one"
+  (lambda ()
+    (and (begin (sp (make-wff `(IN 0 ,nbs-bu-pred)))
+                (and (pi-big-union-mem-intro! (proof-state-focus *ps*) 1) #t))
+         (begin (sp (make-wff `(IN 0 ,nbs-bu-impr)))
+                (rcs-chk--raises? (lambda () (pi-big-union-mem-intro! (proof-state-focus *ps*) 1)))))))
+(check-true "NBGSEP big-union-mem-elim: an impredicative body is refused by the checker, a predicative one accepted"
+  (lambda ()
+    (and (rcs-chk--accepts? 'big-union-mem-elim
+           '((((IN e_ NN) (IN 0 (SEP y_ e_ (FORALL c_ (IMPLIES (IN c_ NN) (IN y_ c_)))))) TRUTH))
+           `(((IN 0 ,nbs-bu-pred)) TRUTH))
+         (rcs-chk--refuses? 'big-union-mem-elim
+           '((((IN e_ NN) (IN 0 (SEP y_ e_ (FORALL c_ (IN y_ c_))))) TRUTH))
+           `(((IN 0 ,nbs-bu-impr)) TRUTH)))))
+(check-true "NBGSEP big-union-mem-elim: the builder refuses an impredicative body, opens a predicative one"
+  (lambda ()
+    (and (begin (sp (make-wff `(IMPLIES (IN 0 ,nbs-bu-pred) TRUTH))) (di)
+                (and (pi-big-union-mem-elim! (proof-state-focus *ps*) `(IN 0 ,nbs-bu-pred)) #t))
+         (begin (sp (make-wff `(IMPLIES (IN 0 ,nbs-bu-impr) TRUTH))) (di)
+                (rcs-chk--raises? (lambda () (pi-big-union-mem-elim! (proof-state-focus *ps*) `(IN 0 ,nbs-bu-impr))))))))
+
+;;; VNB-LAMBDA: the typing rule and beta.
+(define nbs-lam-pred '(VNB-LAMBDA x_ NN (IOTA z_ (AND (IN z_ NN) (= z_ x_)))))
+(define nbs-lam-impr '(VNB-LAMBDA x_ NN (IOTA z_ (= z_ x_))))
+(check-true "NBGSEP lambda-type: a guarded-IOTA body is accepted by the checker"
+  (lambda () (rcs-chk--accepts? 'lambda-type
+               '((() (FORALL v_ (IMPLIES (IN v_ NN) (IN (IOTA z_ (AND (IN z_ NN) (= z_ v_))) NN))))
+                 (() (IN NN SET)))
+               `(() (IN ,nbs-lam-pred (FUN NN NN))))))
+(check-true "NBGSEP lambda-type: an unconfined-IOTA body is refused by the checker"
+  (lambda () (rcs-chk--refuses? 'lambda-type
+               '((() (FORALL v_ (IMPLIES (IN v_ NN) (IN (IOTA z_ (= z_ v_)) NN))))
+                 (() (IN NN SET)))
+               `(() (IN ,nbs-lam-impr (FUN NN NN))))))
+(check-true "NBGSEP lambda-type: the builder types a predicative lambda and refuses an impredicative one"
+  (lambda ()
+    (and (begin (sp (make-wff `(IN ,nbs-lam-pred (FUN NN NN))))
+                (and (pi-lambda-type! (proof-state-focus *ps*)) #t))
+         (begin (sp (make-wff `(IN ,nbs-lam-impr (FUN NN NN))))
+                (rcs-chk--raises? (lambda () (pi-lambda-type! (proof-state-focus *ps*))))))))
+(check-true "NBGSEP lambda-beta: the builder contracts a predicative redex"
+  (lambda ()
+    (sp (make-wff `(IMPLIES (IN 0 NN) (= (,nbs-lam-pred 0) (IOTA z_ (AND (IN z_ NN) (= z_ 0)))))))
+    (di)
+    (and (pi-lambda-beta! (proof-state-focus *ps*)) #t)))
+(check-true "NBGSEP lambda-beta: the builder leaves an impredicative redex standing"
+  (lambda ()
+    (sp (make-wff `(IMPLIES (IN 0 NN) (= (,nbs-lam-impr 0) (IOTA z_ (= z_ 0))))))
+    (di)
+    (not (pi-lambda-beta! (proof-state-focus *ps*)))))
+(check-true "NBGSEP lambda-beta: the checker accepts the predicative contraction, refuses the impredicative one"
+  (lambda ()
+    (and (rcs-chk--accepts? 'lambda-beta
+           '((((IN 0 NN)) (= (IOTA z_ (AND (IN z_ NN) (= z_ 0))) (IOTA z_ (AND (IN z_ NN) (= z_ 0))))))
+           `(((IN 0 NN)) (= (,nbs-lam-pred 0) (IOTA z_ (AND (IN z_ NN) (= z_ 0))))))
+         (rcs-chk--refuses? 'lambda-beta
+           '((((IN 0 NN)) (= (IOTA z_ (= z_ 0)) (IOTA z_ (= z_ 0)))))
+           `(((IN 0 NN)) (= (,nbs-lam-impr 0) (IOTA z_ (= z_ 0))))))))
+
+;;; the certificates
+(check-true "NBGSEP definedness: an impredicative SEP is not certified defined, its predicative partner is"
+  (lambda () (and (pi--defined? '() nbs-pred 0) (not (pi--defined? '() nbs-impr 0))
+                  (term-self-defined? nbs-pred) (not (term-self-defined? nbs-impr)))))
+(check-true "NBGSEP definedness: an impredicative VNB-LAMBDA is not certified defined, its predicative partner is"
+  (lambda () (and (pi--defined? '() nbs-lam-pred 0) (not (pi--defined? '() nbs-lam-impr 0)))))
+(check-true "NBGSEP definedness: rfl refuses the impredicative SEP and closes the predicative one"
+  (lambda ()
+    (and (begin (sp (make-wff `(= ,nbs-pred ,nbs-pred))) (rfl) (proof-done? *ps*))
+         (begin (sp (make-wff `(= ,nbs-impr ,nbs-impr))) (quietly (lambda () (rfl)))
+                (not (proof-done? *ps*))))))
+(check-true "NBGSEP value test (builder): the impredicative SEP may be a class, the predicative one is not"
+  (lambda () (and (pi--value-may-be-class? '() nbs-impr) (not (pi--value-may-be-class? '() nbs-pred)))))
+(check-true "NBGSEP value test (checker): the impredicative SEP may be a class, the predicative one is not"
+  (lambda () (and (chk-value-may-be-class? nbs-impr '()) (not (chk-value-may-be-class? nbs-pred '())))))
+
+;;; the (b) clauses, against COMP too (each REFUSED by the code before NBGSEP)
+(define nbs-def-forall '(FORALL a_ (FORALL b_ (IMPLIES (IN a_ NN) (IMPLIES (IN b_ NN) (IN x_ (+ a_ b_)))))))
+(define nbs-def-forsome '(FORSOME a_ (FORSOME b_ (AND (IN a_ NN) (AND (IN b_ NN) (= x_ (+ a_ b_)))))))
+(define nbs-guarded-iota '(= x_ (IOTA w_ (AND (IN w_ NN) (= w_ 0)))))
+(check-true "NBGSEP (b)1: a deferred FORALL guard confines -- COMP accepted by builder and checker"
+  (lambda ()
+    (and (not (pi--comp-unconfined-binder nbs-def-forall))
+         (not (rcs--comp-unconfined-binder (list 'COMP 'x_ nbs-def-forall)))
+         (rcs-chk--accepts? 'comp-mem-intro
+           `((() (IN 0 SET)) (() ,(subst-free 'x_ 0 nbs-def-forall)))
+           `(() (IN 0 (COMP x_ ,nbs-def-forall)))))))
+(check-true "NBGSEP (b)1: a FORSOME chain whose conjunction holds the guard confines -- COMP and SEP accepted"
+  (lambda ()
+    (and (not (pi--comp-unconfined-binder nbs-def-forsome))
+         (not (rcs--comp-unconfined-binder (list 'COMP 'x_ nbs-def-forsome)))
+         (rcs-chk--accepts? 'sep-sethood '((() (IN NN SET))) `(() (IN (SEP x_ NN ,nbs-def-forsome) SET))))))
+(check-true "NBGSEP (b)1 control: a deferred guard on the WRONG variable does not confine"
+  (lambda ()
+    (let ((bad '(FORALL a_ (FORALL b_ (IMPLIES (IN b_ NN) (IN x_ (+ a_ b_)))))))
+      (and (pi--comp-unconfined-binder bad)
+           (rcs--comp-unconfined-binder (list 'COMP 'x_ bad))
+           (rcs-chk--refuses? 'sep-sethood '((() (IN NN SET))) `(() (IN (SEP x_ NN ,bad) SET)))))))
+(check-true "NBGSEP (b)2: a guarded IOTA is accepted in a COMP condition by builder and checker"
+  (lambda ()
+    (and (not (pi--comp-unconfined-binder nbs-guarded-iota))
+         (rcs-chk--accepts? 'comp-mem-intro
+           `((() (IN 0 SET)) (() ,(subst-free 'x_ 0 nbs-guarded-iota)))
+           `(() (IN 0 (COMP x_ ,nbs-guarded-iota)))))))
+(check-true "NBGSEP (b)2 control: an IOTA whose guard is not top-level (under OR) stays refused"
+  (lambda ()
+    (let ((bad '(= x_ (IOTA w_ (OR (IN w_ NN) (= w_ 0))))))
+      (and (pi--comp-unconfined-binder bad)
+           (rcs-chk--refuses? 'comp-mem-intro
+             `((() (IN 0 SET)) (() ,(subst-free 'x_ 0 bad)))
+             `(() (IN 0 (COMP x_ ,bad))))))))
+
+;;; the statement audit and its gate
+(check-true "NBGSEP binder audit: finds a planted impredicative SEP, passes its predicative partner"
+  (lambda ()
+    (and (pair? (binder-impredicative-subterms `(IN y_ ,nbs-impr)))
+         (null? (binder-impredicative-subterms `(IN y_ ,nbs-pred))))))
+(check-true "NBGSEP binder gate: FATAL on a planted impredicative functoid body, silent when not fatal"
+  (lambda ()
+    (hash-table-set! *functoid-registry* 'nbs-suite-probe (list '(a_) nbs-impr))
+    (let ((r (and (rcs-chk--raises? (lambda () (quietly (lambda () (binder-predicativity-gate! #t)))))
+                  (not (rcs-chk--raises? (lambda () (quietly (lambda () (binder-predicativity-gate! #f)))))))))
+      (hash-table-delete! *functoid-registry* 'nbs-suite-probe)
+      r)))
+(check-true "NBGSEP binder gate: the live library is clean"
+  (lambda () (null? (binder-predicativity-audit))))
 
 ;;; THE ONE-ENTRY LIST BINDER (2026-10-15, the user's decision, option (3)).  A
 ;;; binder (LIST p) destructures a 1-TUPLE: (VNB-LAMBDA (LIST p) (CARTESIAN D) b)
@@ -16748,6 +16986,130 @@
 (check "BVAL reproducer (t10): the kernel does not close FALSITY through DOM(lambda x in ORD. x)"
   (lambda () (bval--reproducer-closes?))
   #f)
+
+;;; =======================================================================
+;;; GUARDDEF-REPAIR (2026-10-24, the user's decision of the same day: a guarded definition
+;;; denotes nothing off its guards; scratchpad/GUARDDEF.md, GUARDDEF-REPAIR-REPORT.md).
+;;; Item 2: the guarded-definition gate.  Item 3: the value row trusts `definitional' only.
+;;; Item 4: DET through def-constant.  Item 5: def-operator, and the value row reads its
+;;; registry instead of building HEAD-def.  (Item 1, def-by-ord-recursion writing `==',
+;;; carries its own check in gd1-ord-qeq.patch.)  Each control marked (OLD) gives the
+;;; other answer on the kernel before this repair.
+;;; =======================================================================
+(define (gd--raises? thunk)
+  (call-with-current-continuation
+    (lambda (k) (with-exception-handler (lambda (e) (k #t)) (lambda () (thunk) #f)))))
+
+;;; item 2: the gate
+(check "GUARDDEF-2 gate (accepted): the library has no guarded defined head in a certificate table or a FUN typing"
+  (lambda () (guarded-def-gate-violations))
+  '())
+(check "GUARDDEF-2 gate: it reads all fourteen builder and checker tables (none unreadable)"
+  (lambda () (list (length (guarded-def-gate-tables))
+                   (length (filter (lambda (e) (not (list? (cdr e)))) (guarded-def-gate-tables)))))
+  '(14 0))
+(check-true "GUARDDEF-2 gate: SUM-AG, DET, ZEN are guarded defined heads; EPLUS (def-operator) is not"
+  (lambda () (let ((hs (guarded-defined-heads)))
+               (and (memq 'SUM-AG hs) (memq 'DET hs) (memq 'ZEN hs) (not (memq 'eplus hs)) #t))))
+(check "GUARDDEF-2 gate (refused): a guarded library head (SUM-AG) put in a table on purpose"
+  (lambda ()
+    (guarded-def-gate-violations (library-definitions *library*)
+                                 (list (cons '*total-term-heads* (cons 'SUM-AG *total-term-heads*)))
+                                 '()))
+  '((table SUM-AG *total-term-heads*)))
+(define gd-toy-defs
+  '((GD-TOY (gd-toy-zero . (== (GD-TOY 0) 0))
+            (gd-toy-succ . (FORALL gd_n (IMPLIES (IN gd_n NN) (== (GD-TOY (succ gd_n)) gd_n)))))
+    (GD-FREE (gd-free-def . (FORALL gd_x (== (GD-FREE gd_x) gd_x))))))
+(check "GUARDDEF-2 gate (accepted): an UNGUARDED toy head in a table, and typed in a FUN"
+  (lambda ()
+    (guarded-def-gate-violations gd-toy-defs
+                                 (list (cons 'gd-toy-table '(GD-FREE)))
+                                 (list (cons 'gd-free-in-fun '(IN GD-FREE (FUN NN NN))))))
+  '())
+(check "GUARDDEF-2 gate (refused): a GUARDED toy head in a table, and typed in a FUN under a universal"
+  (lambda ()
+    (guarded-def-gate-violations gd-toy-defs
+                                 (list (cons 'gd-toy-table '(GD-TOY GD-FREE)))
+                                 (list (cons 'gd-toy-in-fun '(FORALL gd_a (IMPLIES (IN gd_a SET) (IN GD-TOY (FUN NN NN))))))))
+  '((table GD-TOY gd-toy-table) (fun-typed GD-TOY gd-toy-in-fun)))
+(check "GUARDDEF-2 gate (refused): a table the gate cannot read is reported"
+  (lambda () (guarded-def-gate-violations gd-toy-defs (list (cons 'gd-missing 'unreadable)) '()))
+  '((unreadable gd-missing table)))
+
+;;; item 3 (OLD: the primitive entry was read)
+(register-constant! 'GD-PRIM 'operator)
+(fluid-let ((*current-provenance* 'primitive))
+  (library--add-definition! *library* 'GD-PRIM
+    (list (cons 'gd-prim-ax '(FORALL gd_x (== (GD-PRIM gd_x) EMPTY-SET))))))
+(check "GUARDDEF-3 value row (builder, checker): a PRIMITIVE defining axiom is not read"
+  (lambda () (list (pi--defined-fn-values 'GD-PRIM '(0)) (chk-defined-fn-values 'GD-PRIM '(0))))
+  '(#f #f))
+(check "GUARDDEF-3 value certificate (builder, checker): GD-PRIM(0) may be a class, so beta owes its sethood"
+  (lambda () (list (and (pi--value-may-be-class? '() '(GD-PRIM 0)) #t)
+                   (and (chk-value-may-be-class? '(GD-PRIM 0) '()) #t)))
+  '(#t #t))
+(fluid-let ((*current-provenance* 'definitional))
+  (library--add-definition! *library* 'GD-DEFN
+    (list (cons 'gd-defn-ax '(FORALL gd_x (== (GD-DEFN gd_x) EMPTY-SET))))))
+(check "GUARDDEF-3 value row (accepted): the same axiom under `definitional' is read by both"
+  (lambda () (list (pi--defined-fn-values 'GD-DEFN '(0)) (chk-defined-fn-values 'GD-DEFN '(0))))
+  '((EMPTY-SET) (EMPTY-SET)))
+
+;;; item 4
+(check "GUARDDEF-4 DET: one library-definitions entry, det-zero and det-cofactor, both definitional"
+  (lambda () (let ((e (assq 'DET (library-definitions *library*))))
+               (list (map car (cdr e)) (provenance-of 'det-zero) (provenance-of 'det-cofactor))))
+  '((det-zero det-cofactor) definitional definitional))
+
+;;; item 5: def-operator
+(check "GUARDDEF-5 def-operator: the six already-registered operators are in its registry under their axiom names"
+  (lambda () (map defined-operator-axiom '(eplus etimes RPOW real-part imag-part magnitude)))
+  '(eplus-def etimes-def rpow-def real-part-def imag-part-def magnitude-def))
+(check "GUARDDEF-5 def-operator: the six axioms are definitional; eplus-def and etimes-def named-only"
+  (lambda () (list (map provenance-of '(eplus-def etimes-def rpow-def real-part-def imag-part-def magnitude-def))
+                   (and (named-only-macete? 'eplus-def) (named-only-macete? 'etimes-def) #t)
+                   (and (memq 'eplus-def *named-only-late-declarations*) #t)))
+  '((definitional definitional definitional definitional definitional definitional) #t #f))
+(register-constant! 'GD-OPA 'operator)
+(check-true "GUARDDEF-5 def-operator (refused): an implication"
+  (lambda () (gd--raises? (lambda () (def-operator 'gd-opa-def '(FORALL gd_x (IMPLIES (IN gd_x NN) (== (GD-OPA gd_x) gd_x))))))))
+(check-true "GUARDDEF-5 def-operator (refused): an UNREGISTERED head (def-constant's job)"
+  (lambda () (gd--raises? (lambda () (def-operator 'gd-unreg-def '(FORALL gd_x (== (GD-UNREG gd_x) gd_x)))))))
+(check-true "GUARDDEF-5 def-operator (refused): a strict `='"
+  (lambda () (gd--raises? (lambda () (def-operator 'gd-opa-def '(FORALL gd_x (= (GD-OPA gd_x) gd_x)))))))
+(check-true "GUARDDEF-5 def-operator (refused): the head in its own right-hand side"
+  (lambda () (gd--raises? (lambda () (def-operator 'gd-opa-def '(FORALL gd_x (== (GD-OPA gd_x) (GD-OPA gd_x))))))))
+(check "GUARDDEF-5 def-operator: nothing was installed by the four refusals"
+  (lambda () (list (and (hash-table-ref/default *theorem-table* 'gd-opa-def #f) #t)
+                   (and (hash-table-ref/default *theorem-table* 'gd-unreg-def #f) #t)
+                   (defined-operator-axiom 'GD-OPA) (constant-head? 'GD-UNREG)))
+  '(#f #f #f #f))
+(check "GUARDDEF-5 def-operator (accepted): a registered head; installed definitional; the row reads it"
+  (lambda ()
+    (let ((r (def-operator 'gd-opa-def '(FORALL gd_x (== (GD-OPA gd_x) EMPTY-SET)))))
+      (list r (provenance-of 'gd-opa-def) (defined-operator-axiom 'GD-OPA) (constant-head? 'GD-OPA)
+            (pi--defined-fn-values 'GD-OPA '(0)) (chk-defined-fn-values 'GD-OPA '(0)))))
+  '(gd-opa-def definitional gd-opa-def operator (EMPTY-SET) (EMPTY-SET)))
+(check-true "GUARDDEF-5 def-operator (refused): the same head a second time"
+  (lambda () (gd--raises? (lambda () (def-operator 'gd-opa2-def '(FORALL gd_x (== (GD-OPA gd_x) EMPTY-SET)))))))
+(register-constant! 'GD-BARE 'operator)
+(check "GUARDDEF-5 def-operator (accepted): a bare head is declared named-only BEFORE the install"
+  (lambda ()
+    (def-operator 'gd-bare-def '(== GD-BARE EMPTY-SET))
+    (list (and (named-only-macete? 'gd-bare-def) #t)
+          (and (memq 'gd-bare-def *named-only-late-declarations*) #t)
+          (defined-operator-axiom 'GD-BARE)))
+  '(#t #f gd-bare-def))
+;;; (OLD: the theorem named GD-HAND-def was read, EMPTY-SET cleared, nothing owed)
+(register-constant! 'GD-HAND 'operator)
+(fluid-let ((*current-provenance* 'definitional))
+  (add-axiom! *library* 'gd-hand-def '(FORALL gd_x (== (GD-HAND gd_x) EMPTY-SET))))
+(check "GUARDDEF-5 value row: a theorem NAMED gd-hand-def, stamped definitional by hand, is NOT read"
+  (lambda () (list (pi--defined-fn-values 'GD-HAND '(0)) (chk-defined-fn-values 'GD-HAND '(0))
+                   (and (pi--value-may-be-class? '() '(GD-HAND 0)) #t)
+                   (and (chk-value-may-be-class? '(GD-HAND 0) '()) #t)))
+  '(#f #f #t #t))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

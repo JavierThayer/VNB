@@ -77,7 +77,7 @@
 <h3 id="FUNCTORS__set--structure-valued-functoids">Set- &amp; structure-valued functoids</h3>
 <p>Body builds a tuple (<code>list</code>) or a set (<code>sep</code>, <code>image</code>, …).  A few are the object map of a genuine functor — <a class="x" href="DEFINITIONS.html#d-quotient"><code>quotient</code></a> (setoid ↦ quotient set, with <a class="x" href="DEFINITIONS.html#d-descend"><code>descend</code></a> the morphism map), <a class="x" href="DEFINITIONS.html#d-completion"><code>completion</code></a>, <a class="x" href="DEFINITIONS.html#d-ring-prod"><code>ring-prod</code></a>, the <code>*-metric-space</code> bridges; the rest (<a class="x" href="DEFINITIONS.html#d-class"><code>class</code></a>, <a class="x" href="DEFINITIONS.html#d-ball"><code>ball</code></a>, <a class="x" href="DEFINITIONS.html#d-preimage"><code>preimage</code></a>, <a class="x" href="DEFINITIONS.html#d-choose-set"><code>choose-set</code></a>, …) are set-valued <em>constructions</em>, not functors.  <code>class(s,a)</code> in particular is element-indexed: the value <code>proj(s)(a)</code> of the quotient morphism, not a functor.</p>
 <h4 id="FUNCTORS__ae-rel">ae-rel</h4>
-<pre>ae-rel(omega, ca, mu, sf) := {aep_ in cartesian(sf, sf): forsome([aen_], is-null-set(omega, ca, mu, aen_) and forall([aex_ in omega], not(aex_ in aen_) implies (nth(1, aep_))(aex_) = (nth(2, aep_))(aex_)))}</pre>
+<pre>ae-rel(omega, ca, mu, sf) := {aep_ in cartesian(sf, sf): forsome([aen_ in set], is-null-set(omega, ca, mu, aen_) and forall([aex_ in omega], not(aex_ in aen_) implies (nth(1, aep_))(aex_) = (nth(2, aep_))(aex_)))}</pre>
 <h4 id="FUNCTORS__ae-setoid">ae-setoid</h4>
 <pre>ae-setoid(omega, ca, mu, sf) := [sf, ae-rel(omega, ca, mu, sf)]</pre>
 <h4 id="FUNCTORS__ball">ball</h4>
@@ -91,7 +91,7 @@
 <h4 id="FUNCTORS__c-metric">c-metric</h4>
 <pre>c-metric(s) := c-metric-w(s, vnb-lambda(n, nn, (/)(1, 2 ^ (n + 1))))</pre>
 <h4 id="FUNCTORS__c-metric-w">c-metric-w</h4>
-<pre>c-metric-w(s, w) := [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), iota(l, series-converges-to(vnb-lambda(k, nn, w(k) * min(1, ((dists(s))(k))(u, v))), l)))]</pre>
+<pre>c-metric-w(s, w) := [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), iota(l, l in rr and series-converges-to(vnb-lambda(k, nn, w(k) * min(1, ((dists(s))(k))(u, v))), l)))]</pre>
 <h4 id="FUNCTORS__caratheodory-sets">caratheodory-sets</h4>
 <pre>caratheodory-sets(omega, mu) := {es_ in power(omega): is-caratheodory-measurable(omega, mu, es_)}</pre>
 <h4 id="FUNCTORS__cauchy-setoid">cauchy-setoid</h4>
@@ -129,7 +129,7 @@
 <h4 id="FUNCTORS__closed-ball">closed-ball</h4>
 <pre>closed-ball(s, c, r) := {y in pts(s): (dist(s))(c, y) &lt;= r}</pre>
 <h4 id="FUNCTORS__closure">closure</h4>
-<pre>closure(s, a) := {x in pts(s): forall([u], is-open(s, u) and x in u implies forsome([y in u], y in a))}</pre>
+<pre>closure(s, a) := {x in pts(s): forall([u], u in power(pts(s)) and is-open(s, u) and x in u implies forsome([y in u], y in a))}</pre>
 <h4 id="FUNCTORS__coint">coint</h4>
 <pre>coint(a, b) := {osq_ in rr: a &lt;= osq_ and osq_ &lt; b}</pre>
 <h4 id="FUNCTORS__completion">completion</h4>
@@ -175,7 +175,7 @@
 <h4 id="FUNCTORS__dual-vec">dual-vec</h4>
 <pre>dual-vec(m) := {f_ in fun(vec(m), rr): is-bounded-linear-functional(m, f_)}</pre>
 <h4 id="FUNCTORS__dynkin-generated">dynkin-generated</h4>
-<pre>dynkin-generated(omega, ce) := {dga_ in power(omega): forall([dgb_], is-dynkin-system(omega, dgb_) and ce subset dgb_ implies dga_ in dgb_)}</pre>
+<pre>dynkin-generated(omega, ce) := {dga_ in power(omega): forall([dgb_], dgb_ in power(power(omega)) and is-dynkin-system(omega, dgb_) and ce subset dgb_ implies dga_ in dgb_)}</pre>
 <h4 id="FUNCTORS__eapp">eapp</h4>
 <pre>eapp(mxh_, mxl_) := [3, mxh_, mxl_]</pre>
 <h4 id="FUNCTORS__ebind">ebind</h4>
@@ -187,7 +187,7 @@
 <h4 id="FUNCTORS__efvar">efvar</h4>
 <pre>efvar(mxn_) := [0, mxn_]</pre>
 <h4 id="FUNCTORS__elem-gen">elem-gen</h4>
-<pre>elem-gen(r, n) := intersection-of({egs_ in power(mat(n, n, carr(r))): identmat(r, n) in egs_ and forall([egx_ in egs_, ege_], is-elementary(r, n, ege_) implies matmul(r, egx_, ege_) in egs_)})</pre>
+<pre>elem-gen(r, n) := intersection-of({egs_ in power(mat(n, n, carr(r))): identmat(r, n) in egs_ and forall([egx_ in egs_, ege_ in set], is-elementary(r, n, ege_) implies matmul(r, egx_, ege_) in egs_)})</pre>
 <h4 id="FUNCTORS__elower-bounds">elower-bounds</h4>
 <pre>elower-bounds(s) := {b_ in rr-pos-star: forall([x_ in s], b_ &lt;= x_)}</pre>
 <h4 id="FUNCTORS__enc-all">enc-all</h4>
@@ -363,7 +363,7 @@
 <h4 id="FUNCTORS__inst-reach">inst-reach</h4>
 <pre>inst-reach(md12d_, md12l_) := {md12z_ in expr-set: forall([md12w_ in power(expr-set)], md12d_ in md12w_ implies inst-closed(md12l_, md12w_) implies md12z_ in md12w_)}</pre>
 <h4 id="FUNCTORS__interior">interior</h4>
-<pre>interior(s, a) := {x in pts(s): forsome([u], is-open(s, u) and x in u and u subset a)}</pre>
+<pre>interior(s, a) := {x in pts(s): forsome([u in power(pts(s))], is-open(s, u) and x in u and u subset a)}</pre>
 <h4 id="FUNCTORS__intersection-of">intersection-of</h4>
 <pre>intersection-of(c) := {iov_ in big-union(iow_, c, iow_): forall([iou_ in c], iov_ in iou_)}</pre>
 <h4 id="FUNCTORS__interval">interval</h4>
@@ -373,25 +373,25 @@
 <h4 id="FUNCTORS__ip-normed-ag">ip-normed-ag</h4>
 <pre>ip-normed-ag(v) := [vec(v), vadd(v), vzero(v), vneg(v), vnb-lambda(x_, vec(v), ip-norm(v, x_))]</pre>
 <h4 id="FUNCTORS__j-cart">j-cart</h4>
-<pre>j-cart(mit_) := {mix_ in rw-univ: forsome([mig_, miz_, mia_], mix_ = [2, mig_, enc-in(miz_, enc-cart(mia_)), enc-cch(miz_, mia_, length(mia_), length(mia_))] and mig_ in ctx-set and 1 &lt;= length(mia_))}</pre>
+<pre>j-cart(mit_) := {mix_ in rw-univ: forsome([mig_, miz_, mia_], miz_ in set and mia_ in set and mix_ = [2, mig_, enc-in(miz_, enc-cart(mia_)), enc-cch(miz_, mia_, length(mia_), length(mia_))] and mig_ in ctx-set and 1 &lt;= length(mia_))}</pre>
 <h4 id="FUNCTORS__j-fb">j-fb</h4>
-<pre>j-fb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrh_, mrl_, mrb_], mrx_ = [1, mrg_, eapp(mrh_, mrl_), openl(mrb_, mrl_, length(mrl_))] and fun-def(mrh_, length(mrl_), mrb_) and eapp(mrh_, mrl_) in clt and openl(mrb_, mrl_, length(mrl_)) in clt)}</pre>
+<pre>j-fb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrh_, mrl_, mrb_], mrg_ in set and mrh_ in set and mrl_ in set and mrb_ in set and mrx_ = [1, mrg_, eapp(mrh_, mrl_), openl(mrb_, mrl_, length(mrl_))] and fun-def(mrh_, length(mrl_), mrb_) and eapp(mrh_, mrl_) in clt and openl(mrb_, mrl_, length(mrl_)) in clt)}</pre>
 <h4 id="FUNCTORS__j-idec">j-idec</h4>
-<pre>j-idec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14y_ = [2, md14g_, enc-in(md14x2_, enc-inter(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(3, md14x2_, md14l2_) and enc-in(md14x2_, enc-inter(md14l2_)) in clf and md14f2_ in clf)}</pre>
+<pre>j-idec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14g_ in set and md14x2_ in set and md14l2_ in set and md14y_ = [2, md14g_, enc-in(md14x2_, enc-inter(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(3, md14x2_, md14l2_) and enc-in(md14x2_, enc-inter(md14l2_)) in clf and md14f2_ in clf)}</pre>
 <h4 id="FUNCTORS__j-lb">j-lb</h4>
-<pre>j-lb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mra_, mrb_, mre_], mrx_ = [1, mrg_, enc-apply(enc-lam(mra_, mrb_), mre_), expr-open(mrb_, 0, mre_)] and enc-apply(enc-lam(mra_, mrb_), mre_) in clt and expr-open(mrb_, 0, mre_) in clt and [mrg_, enc-in(mre_, mra_)] in derivable(mrt_))}</pre>
+<pre>j-lb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mra_, mrb_, mre_], mrg_ in set and mra_ in set and mrb_ in set and mre_ in set and mrx_ = [1, mrg_, enc-apply(enc-lam(mra_, mrb_), mre_), expr-open(mrb_, 0, mre_)] and enc-apply(enc-lam(mra_, mrb_), mre_) in clt and expr-open(mrb_, 0, mre_) in clt and [mrg_, enc-in(mre_, mra_)] in derivable(mrt_))}</pre>
 <h4 id="FUNCTORS__j-len">j-len</h4>
-<pre>j-len(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrl_], mrx_ = [1, mrg_, enc-length(enc-list(mrl_)), enc-num(length(mrl_))] and enc-length(enc-list(mrl_)) in clt and enc-num(length(mrl_)) in clt and [mrg_, enc-eq(enc-list(mrl_), enc-list(mrl_))] in derivable(mrt_))}</pre>
+<pre>j-len(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrl_], mrg_ in set and mrl_ in set and mrx_ = [1, mrg_, enc-length(enc-list(mrl_)), enc-num(length(mrl_))] and enc-length(enc-list(mrl_)) in clt and enc-num(length(mrl_)) in clt and [mrg_, enc-eq(enc-list(mrl_), enc-list(mrl_))] in derivable(mrt_))}</pre>
 <h4 id="FUNCTORS__j-mac">j-mac</h4>
-<pre>j-mac(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrc_, mra_, mrb_, mre_ in clt], [mrg_, expr-open(mrc_, 0, mre_)] in derivable(mrt_) and [mrg_, enc-eq(mre_, mre_)] in derivable(mrt_) and (mrx_ = [1, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clt and expr-open(mrb_, 0, mre_) in clt or mrx_ = [2, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clf and expr-open(mrb_, 0, mre_) in clf))}</pre>
+<pre>j-mac(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrc_, mra_, mrb_, mre_], mrg_ in set and mrc_ in set and mra_ in set and mrb_ in set and mre_ in clt and [mrg_, expr-open(mrc_, 0, mre_)] in derivable(mrt_) and [mrg_, enc-eq(mre_, mre_)] in derivable(mrt_) and (mrx_ = [1, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clt and expr-open(mrb_, 0, mre_) in clt or mrx_ = [2, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clf and expr-open(mrb_, 0, mre_) in clf))}</pre>
 <h4 id="FUNCTORS__j-macn">j-macn</h4>
-<pre>j-macn(md13t_) := {md13x_ in rw-univ: forsome([md13g_, md13m_, md13l_, md13i_, md13r_, md13a_, md13b_], md13m_ in md13t_ and md13m_ in clf and md13i_ in inst-reach(md13m_, md13l_) and forall([md13j_ in nn], 2 &lt;= md13j_ implies md13j_ &lt;= length(md13l_) implies [md13g_, enc-eq(nth(md13j_, md13l_), nth(md13j_, md13l_))] in derivable(md13t_)) and (md13i_ = md13r_ or forsome([md13c_], md13i_ = enc-imp(md13c_, md13r_) and [md13g_, md13c_] in derivable(md13t_))) and (md13r_ = enc-qeq(md13a_, md13b_) and md13x_ = [1, md13g_, md13a_, md13b_] and md13a_ in clt and md13b_ in clt or md13r_ = enc-iff(md13a_, md13b_) and md13x_ = [2, md13g_, md13a_, md13b_] and md13a_ in clf and md13b_ in clf))}</pre>
+<pre>j-macn(md13t_) := {md13x_ in rw-univ: forsome([md13g_, md13m_, md13l_, md13i_, md13r_, md13a_, md13b_], md13g_ in set and md13l_ in set and md13r_ in set and md13a_ in set and md13b_ in set and md13m_ in md13t_ and md13m_ in clf and md13i_ in inst-reach(md13m_, md13l_) and forall([md13j_ in nn], 2 &lt;= md13j_ implies md13j_ &lt;= length(md13l_) implies [md13g_, enc-eq(nth(md13j_, md13l_), nth(md13j_, md13l_))] in derivable(md13t_)) and (md13i_ = md13r_ or forsome([md13c_ in set], md13i_ = enc-imp(md13c_, md13r_) and [md13g_, md13c_] in derivable(md13t_))) and (md13r_ = enc-qeq(md13a_, md13b_) and md13x_ = [1, md13g_, md13a_, md13b_] and md13a_ in clt and md13b_ in clt or md13r_ = enc-iff(md13a_, md13b_) and md13x_ = [2, md13g_, md13a_, md13b_] and md13a_ in clf and md13b_ in clf))}</pre>
 <h4 id="FUNCTORS__j-nth">j-nth</h4>
-<pre>j-nth(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrl_, mrk_], mrx_ = [1, mrg_, enc-nth(enc-num(mrk_), enc-list(mrl_)), nth(mrk_, mrl_)] and mrk_ in nn and 1 &lt;= mrk_ and mrk_ &lt;= length(mrl_) and enc-nth(enc-num(mrk_), enc-list(mrl_)) in clt and nth(mrk_, mrl_) in clt and [mrg_, enc-eq(enc-list(mrl_), enc-list(mrl_))] in derivable(mrt_))}</pre>
+<pre>j-nth(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrl_, mrk_], mrg_ in set and mrl_ in set and mrx_ = [1, mrg_, enc-nth(enc-num(mrk_), enc-list(mrl_)), nth(mrk_, mrl_)] and mrk_ in nn and 1 &lt;= mrk_ and mrk_ &lt;= length(mrl_) and enc-nth(enc-num(mrk_), enc-list(mrl_)) in clt and nth(mrk_, mrl_) in clt and [mrg_, enc-eq(enc-list(mrl_), enc-list(mrl_))] in derivable(mrt_))}</pre>
 <h4 id="FUNCTORS__j-teq">j-teq</h4>
-<pre>j-teq(mit_) := {mix_ in rw-univ: forsome([mig_, mia_, mib_], mix_ = [2, mig_, enc-eq(enc-list(mia_), enc-list(mib_)), enc-tcj(mia_, mib_, length(mia_), length(mia_))] and mig_ in ctx-set and length(mia_) = length(mib_))}</pre>
+<pre>j-teq(mit_) := {mix_ in rw-univ: forsome([mig_, mia_, mib_], mia_ in set and mib_ in set and mix_ = [2, mig_, enc-eq(enc-list(mia_), enc-list(mib_)), enc-tcj(mia_, mib_, length(mia_), length(mia_))] and mig_ in ctx-set and length(mia_) = length(mib_))}</pre>
 <h4 id="FUNCTORS__j-udec">j-udec</h4>
-<pre>j-udec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14y_ = [2, md14g_, enc-in(md14x2_, enc-union(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(4, md14x2_, md14l2_) and enc-in(md14x2_, enc-union(md14l2_)) in clf and md14f2_ in clf)}</pre>
+<pre>j-udec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14g_ in set and md14x2_ in set and md14l2_ in set and md14y_ = [2, md14g_, enc-in(md14x2_, enc-union(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(4, md14x2_, md14l2_) and enc-in(md14x2_, enc-union(md14l2_)) in clf and md14f2_ in clf)}</pre>
 <h4 id="FUNCTORS__keep-set">keep-set</h4>
 <pre>keep-set(phi, grd, porel, kset, alpha) := {y in grd: y = phi(alpha) and forall([z in kset], [z, y] in porel)}</pre>
 <h4 id="FUNCTORS__l2-set">l2-set</h4>
@@ -413,7 +413,7 @@
 <h4 id="FUNCTORS__monalg">monalg</h4>
 <pre>monalg(a, m) := [finsupp(a, m), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-add(a, m, f, g)), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-mul(a, m, f, g)), vnb-lambda(f, finsupp(a, m), monalg-neg(a, m, f)), monalg-zero(a, m), monalg-one(a, m)]</pre>
 <h4 id="FUNCTORS__monotone-class-generated">monotone-class-generated</h4>
-<pre>monotone-class-generated(omega, ce) := {mca_ in power(omega): forall([mcb_], is-monotone-class(omega, mcb_) and ce subset mcb_ implies mca_ in mcb_)}</pre>
+<pre>monotone-class-generated(omega, ce) := {mca_ in power(omega): forall([mcb_], mcb_ in power(power(omega)) and is-monotone-class(omega, mcb_) and ce subset mcb_ implies mca_ in mcb_)}</pre>
 <h4 id="FUNCTORS__mpoly">mpoly</h4>
 <pre>mpoly(r, n) := monalg(r, multi-index-monoid(interval(1, n)))</pre>
 <h4 id="FUNCTORS__msg-set">msg-set</h4>
@@ -453,7 +453,7 @@
 <h4 id="FUNCTORS__product-metric">product-metric</h4>
 <pre>product-metric(ms) := product-metric-w(ms, vnb-lambda(n, nn, (/)(1, 2 ^ (n + 1))))</pre>
 <h4 id="FUNCTORS__product-metric-w">product-metric-w</h4>
-<pre>product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], cartesian(product-carrier(ms), product-carrier(ms)), iota(l, series-converges-to(vnb-lambda(n, nn, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]</pre>
+<pre>product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], cartesian(product-carrier(ms), product-carrier(ms)), iota(l, l in rr and series-converges-to(vnb-lambda(n, nn, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]</pre>
 <h4 id="FUNCTORS__product-sigma">product-sigma</h4>
 <pre>product-sigma(xs, ca, ys, cb) := sigma-generated(cartesian(xs, ys), rectangles(xs, ca, ys, cb))</pre>
 <h4 id="FUNCTORS__product2-ms">product2-ms</h4>
@@ -493,7 +493,7 @@
 <h4 id="FUNCTORS__rm-cyl">rm-cyl</h4>
 <pre>rm-cyl(s, dseq, a, nb) := {rce_ in rm-k(s, dseq): forall([rci_ in nn], rci_ &lt; nb implies rce_(rci_) = a(rci_))}</pre>
 <h4 id="FUNCTORS__rm-k">rm-k</h4>
-<pre>rm-k(s, dseq) := {rke_ in pts(cantor-ms): forall([rkn_ in nn], forsome([rky_], rm-realizes(s, dseq, rke_, rkn_, rky_)))}</pre>
+<pre>rm-k(s, dseq) := {rke_ in pts(cantor-ms): forall([rkn_ in nn], forsome([rky_ in pts(s)], rm-realizes(s, dseq, rke_, rkn_, rky_)))}</pre>
 <h4 id="FUNCTORS__rm-kms">rm-kms</h4>
 <pre>rm-kms(s, dseq) := subspace-ms(cantor-ms, rm-k(s, dseq))</pre>
 <h4 id="FUNCTORS__rm-shell">rm-shell</h4>
@@ -503,7 +503,7 @@
 <h4 id="FUNCTORS__sdet">sdet</h4>
 <pre>sdet(r, m, n, a, s) := {sdx_ in carr(r): forsome([sdp_, sdq_], sdp_ in injection(interval(1, s), interval(1, m)) and sdq_ in injection(interval(1, s), interval(1, n)) and sdx_ = det(r, s, submatrix(a, s, sdp_, sdq_)))}</pre>
 <h4 id="FUNCTORS__sigma-generated">sigma-generated</h4>
-<pre>sigma-generated(omega, ce) := {a_ in power(omega): forall([cb_], is-sigma-algebra(omega, cb_) and ce subset cb_ implies a_ in cb_)}</pre>
+<pre>sigma-generated(omega, ce) := {a_ in power(omega): forall([cb_], cb_ in power(power(omega)) and is-sigma-algebra(omega, cb_) and ce subset cb_ implies a_ in cb_)}</pre>
 <h4 id="FUNCTORS__singleton">singleton</h4>
 <pre>singleton(y_) := {y_}</pre>
 <h4 id="FUNCTORS__sip-metric-space">sip-metric-space</h4>
@@ -617,7 +617,7 @@
 <h4 id="FUNCTORS__collapse-at">collapse-at</h4>
 <pre>collapse-at(k_) := vnb-lambda(z_, nn, if(k_ &lt; z_, pred(z_), z_))</pre>
 <h4 id="FUNCTORS__completion-dist">completion-dist</h4>
-<pre>completion-dist(m) := vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))</pre>
+<pre>completion-dist(m) := vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, dval in rr and forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))</pre>
 <h4 id="FUNCTORS__compose">compose</h4>
 <pre>compose(f, g) := vnb-lambda(z_, dom(g), f(g(z_)))</pre>
 <h4 id="FUNCTORS__content-of">content-of</h4>
@@ -647,9 +647,9 @@
 <h4 id="FUNCTORS__deriv-v">deriv-v</h4>
 <pre>deriv-v(m, f, a) := iota(l, is-diff-at-v(m, f, a, l))</pre>
 <h4 id="FUNCTORS__descend">descend</h4>
-<pre>descend(s, f) := vnb-lambda(c, quotient(s), iota(z, forsome([a in c], z = f(a))))</pre>
+<pre>descend(s, f) := vnb-lambda(c, quotient(s), iota(z, z in set and forsome([a in c], z = f(a))))</pre>
 <h4 id="FUNCTORS__descend2">descend2</h4>
-<pre>descend2(s, f) := vnb-lambda([c, d], cartesian(quotient(s), quotient(s)), iota(z, forsome([a in c, b in d], z = f(a, b))))</pre>
+<pre>descend2(s, f) := vnb-lambda([c, d], cartesian(quotient(s), quotient(s)), iota(z, z in set and forsome([a in c, b in d], z = f(a, b))))</pre>
 <h4 id="FUNCTORS__diag-mat">diag-mat</h4>
 <pre>diag-mat(n, f) := matof(n, n, vnb-lambda([dga_, dgb_], cartesian(interval(1, n), interval(1, n)), (mul(zz-ring))(f(dga_), entry(identmat(zz-ring, n), dga_, dgb_))))</pre>
 <h4 id="FUNCTORS__dir-deriv">dir-deriv</h4>
@@ -759,7 +759,7 @@
 <h4 id="FUNCTORS__insert-last">insert-last</h4>
 <pre>insert-last(phi, x, n) := vnb-lambda(i, nn, if(i in ord-segment(n), phi(i), x))</pre>
 <h4 id="FUNCTORS__integral">integral</h4>
-<pre>integral(omega, ca, mu, f) := esup({iny_ in rr-pos-star: forsome([ins_], is-simple-fn(omega, ca, ins_) and ptwise-le(omega, ins_, f) and iny_ = simple-integral(omega, mu, ins_))})</pre>
+<pre>integral(omega, ca, mu, f) := esup({iny_ in rr-pos-star: forsome([ins_ in fun(omega, rr-pos-star)], is-simple-fn(omega, ca, ins_) and ptwise-le(omega, ins_, f) and iny_ = simple-integral(omega, mu, ins_))})</pre>
 <h4 id="FUNCTORS__interval-length">interval-length</h4>
 <pre>interval-length(s) := esup({odv_ in rr-pos-star: odv_ = 0 or forsome([odx_ in s, ody_ in s], odx_ &lt;= ody_ and odv_ = ody_ - odx_)})</pre>
 <h4 id="FUNCTORS__inverse-bij">inverse-bij</h4>
@@ -917,7 +917,7 @@
 <h4 id="FUNCTORS__rm-code">rm-code</h4>
 <pre>rm-code(s, dseq, x) := vnb-lambda(rox_, nn, if(x in rm-ball(s, dseq, rox_), 1, 0))</pre>
 <h4 id="FUNCTORS__rm-pi">rm-pi</h4>
-<pre>rm-pi(s, dseq) := vnb-lambda(rpe_, rm-k(s, dseq), iota(rpy_, rm-address(s, dseq, rpe_, rpy_)))</pre>
+<pre>rm-pi(s, dseq) := vnb-lambda(rpe_, rm-k(s, dseq), iota(rpy_, rpy_ in pts(s) and rm-address(s, dseq, rpe_, rpy_)))</pre>
 <h4 id="FUNCTORS__rn-trunc">rn-trunc</h4>
 <pre>rn-trunc(n, x, k) := vnb-lambda(rntj_, interval(1, n), if(rntj_ &lt;= k, x(rntj_), 0))</pre>
 <h4 id="FUNCTORS__rn-unit">rn-unit</h4>
@@ -945,7 +945,7 @@
 <h4 id="FUNCTORS__seq-shift">seq-shift</h4>
 <pre>seq-shift(n, z) := vnb-lambda(sfi_, interval(1, n), z(n + sfi_))</pre>
 <h4 id="FUNCTORS__series-limit">series-limit</h4>
-<pre>series-limit(f) := iota(lm_, series-converges-to(f, lm_))</pre>
+<pre>series-limit(f) := iota(lm_, lm_ in rr and series-converges-to(f, lm_))</pre>
 <h4 id="FUNCTORS__series-partial-sum">series-partial-sum</h4>
 <pre>series-partial-sum(f, k) := sum-ag(normed-field-additive-ag(rr-normed-field), f, k)</pre>
 <h4 id="FUNCTORS__set-dist">set-dist</h4>

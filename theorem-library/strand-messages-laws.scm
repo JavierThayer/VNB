@@ -955,8 +955,31 @@
             (sep-me `(IN ,z ,sepf))
             (ass))))))
 
+;;; NBGSEP (2026-10-25): the components siu_, siv_ are bounded by (IN v SET) (they are the
+;;; components of the pair p, so sets: the bounds are implied), and the separation by a
+;;; COND2 is predicative (NBG) when COND2 bounds its own binders too.
 (define (sml-pair-cond p cond2)          ; exists u, v. p = [u, v] and COND2(u, v)
-  `(FORSOME siu_ (FORSOME siv_ (AND (= ,p (LIST siu_ siv_)) ,(cond2 'siu_ 'siv_)))))
+  `(FORSOME siu_ (FORSOME siv_ (AND (IN siu_ SET) (AND (IN siv_ SET) (AND (= ,p (LIST siu_ siv_)) ,(cond2 'siu_ 'siv_)))))))
+
+;; (IN x SET) in context, from any typing (IN x C) there (a member of a class is a set)
+;; ... or, failing that, from a literal list holding x that is a member of a class
+;; (`tuple-members-are-sets', at x's index, the NTH reduced)
+(define (sml-sethood! x)
+  (if (not (dk-asm? (list 'IN x 'SET)))
+      (let ((m (find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (cadr f) x) (not (eq? (caddr f) 'SET))))
+                           (dk-asms))))
+        (if m
+            (fact 'membership-implies-sethood x (caddr m))
+            (let ((pm (find-first (lambda (f) (and (dk-head-is? f 'IN) (pair? (cadr f)) (eq? (car (cadr f)) 'LIST)
+                                                   (member x (cdr (cadr f)))))
+                                  (dk-asms))))
+              (if (not pm) (error "sml-sethood!: no typing of" x))
+              (let* ((lit (cadr pm))
+                     (k (let find ((l (cdr lit)) (i 1)) (if (equal? (car l) x) i (find (cdr l) (+ i 1))))))
+                (dk-have! (list 'IN k 'NN) (lambda () (arith)))
+                (dk-have! (list 'AND (list '<= 1 k) (list '<= k (list 'LENGTH lit)))
+                          (lambda () (len-r) (dk-conj-close! (lambda () (arith)))))
+                (dk-nth-h! (dk-cite! 'tuple-members-are-sets lit (caddr pm) k))))))))
 
 (define (sml-pair-cond-open! rr a b cond2)
   (sep-me `(IN (LIST ,a ,b) ,rr))
@@ -980,10 +1003,20 @@
   (sml-st-mem! tt kk a b)
   (in-sep! (lambda () (ass))
            (lambda ()
+             (sml-sethood! a) (sml-sethood! b)
              (ew a)
              (ew b)
+             ;; NBGSEP: (AND (IN a SET) (AND (IN b SET) (AND (= p [a, b]) COND)))
              (dk-each-leaf! (lambda () (di))
-               (lambda () (if (dk-head-is? (dk-goal) '=) (rfl) (cond-thunk)))))))
+               (lambda ()
+                 (if (dk-head-is? (dk-goal) 'IN)
+                     (ass)
+                     (dk-each-leaf! (lambda () (di))
+                       (lambda ()
+                         (if (dk-head-is? (dk-goal) 'IN)
+                             (ass)
+                             (dk-each-leaf! (lambda () (di))
+                               (lambda () (if (dk-head-is? (dk-goal) '=) (rfl) (cond-thunk)))))))))))))
 
 ;; The membership (IN (LIST x P) RR') in context, RR' alpha-equivalent to RR.
 (define (sml-find-pair x p rr)
@@ -1078,7 +1111,12 @@
   (FORALL a (FORALL b (FORALL c
     (IMPLIES (IS-SUBTERM T K a b) (IMPLIES (IS-SUBTERM T K b c) (IS-SUBTERM T K a c))))))))))))
 (dk-peel!)
-(let ((cond2 (lambda (u v) `(FORALL sia_ (IMPLIES (IS-SUBTERM T K sia_ ,u) (IS-SUBTERM T K sia_ ,v))))))
+;; NBGSEP: sia_ bounded by sia_ in SET (a subterm is a message, a set), a curried guard;
+;; the final instance at a wants (IN a SET), from IS-SUBTERM(a, b)
+(fact 'subterm-in-msgs 'T 'K 'a 'b)
+(dk-split-all!)
+(sml-sethood! 'a)
+(let ((cond2 (lambda (u v) `(FORALL sia_ (IMPLIES (IN sia_ SET) (IMPLIES (IS-SUBTERM T K sia_ ,u) (IS-SUBTERM T K sia_ ,v)))))))
   (dk-apply!
     (sml-device! 'T 'K 'b 'c cond2
       (lambda (kind x b info)

@@ -136,15 +136,16 @@
 ;;; eplus-pos-inf-right with their statements unchanged, and `eplus-real-defined', which
 ;;; carries the guards 0 <= x, 0 <= y that the old axiom lacked.
 ;;; NOT def-constant: eplus is already registered (EPLUS is in *wff-term-form-heads*).
-(declare-named-only! 'eplus-def
+;;; `def-operator' (library.scm, GUARDDEF item 5, 2026-10-24) is the defining command for
+;;; such a head; it declares the axiom named-only BEFORE the install (the left side is the
+;;; bare constant), as the hand-written form here did.
+(def-operator 'eplus-def
+  '(== eplus
+       (VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR-POS-STAR RR-POS-STAR)
+         (IF (OR (= x_ POS-INF) (= y_ POS-INF))
+             POS-INF
+             (binplus x_ y_))))
   "left-hand side is a bare constant: as a live rewrite it would turn every mention of eplus into its lambda")
-(fluid-let ((*current-provenance* 'definitional))
-  (add-axiom! *library* 'eplus-def
-    '(== eplus
-         (VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR-POS-STAR RR-POS-STAR)
-           (IF (OR (= x_ POS-INF) (= y_ POS-INF))
-               POS-INF
-               (binplus x_ y_))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; RR-POS-STAR as a commutative monoid under eplus, identity 0.

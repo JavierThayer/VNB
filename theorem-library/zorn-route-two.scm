@@ -52,9 +52,11 @@
   '(alpha val)
   '(CHOICE (SEP y_ grd (IS-STRICTLY-BELOW porel val y_)))
   '(lam)
+  ;; NBGSEP (2026-10-25): c_ bounded by the curried guard c_ in ORD (NBG); ORD-LT(c, lam)
+  ;; gives it (ord-lt-iff, ord-le-closure), so the step set is the same
   '(CHOICE (SEP y_ grd
-             (FORALL c_ (IMPLIES (ORD-LT c_ lam)
-                                 (IN (LIST (ZUP grd porel c_) y_) porel))))))
+             (FORALL c_ (IMPLIES (IN c_ ORD) (IMPLIES (ORD-LT c_ lam)
+                                 (IN (LIST (ZUP grd porel c_) y_) porel)))))))
 
 ;;; The four standing hypotheses: a partial order, nonempty, every chain bounded,
 ;;; nothing maximal.
@@ -432,7 +434,9 @@
   ;; peel below introduces is called c_, and reusing it here makes one name both
   ;; bound and free in the same formula (make-wff warns, and it is the capture
   ;; hazard the case-fold convention exists to avoid).
-  `(SEP y_ grd (FORSOME d_ (AND (ORD-LT d_ ,z2l-a) (= y_ (ZUP grd porel d_))))))
+  ;; NBGSEP (2026-10-25): the stage d_ bounded by d_ in ORD (implied by ORD-LT), so the
+  ;; separation is predicative (NBG)
+  `(SEP y_ grd (FORSOME d_ (AND (IN d_ ORD) (AND (ORD-LT d_ ,z2l-a) (= y_ (ZUP grd porel d_)))))))
 
 ;; the induction hypothesis at a stage below lam, as (typing below-clause)
 (define (z2l-ih-at b)
@@ -453,12 +457,15 @@
 
 ;; (IN b ORD) from (ORD-LT b lam), unfolding in a side branch so the main branch
 ;; keeps the strict inequality the induction hypothesis is guarded on.
+;; (NBGSEP: the image's own bound lands (IN b ORD) when b is read off a member; then
+;; there is nothing to do)
 (define (z2l-typ! b)
-  (have! `(IN ,b ORD)
-    (lambda ()
-      (dk-split! (dk-landed-1 (lambda () (mac-h 'ord-lt-iff `(ORD-LT ,b ,z2l-a)))))
-      (dk-split! (dk-fact! 'ord-le-closure b z2l-a))
-      (ass))))
+  (if (not (dk-asm? `(IN ,b ORD)))
+      (have! `(IN ,b ORD)
+        (lambda ()
+          (dk-split! (dk-landed-1 (lambda () (mac-h 'ord-lt-iff `(ORD-LT ,b ,z2l-a)))))
+          (dk-split! (dk-fact! 'ord-le-closure b z2l-a))
+          (ass)))))
 
 ;;; (A) the image is a chain: two members come from stages b1, b2; the ordinals
 ;;; are comparable, and the induction hypothesis at the larger one orders them.
@@ -522,9 +529,9 @@
     (lambda () (mac-h 'is-upper-bound `(IS-UPPER-BOUND grd porel ,z2l-img ,z2l-u))))))
 (define z2l-dom (z2-find z2l-ubp (z2-head? 'FORALL)))
 
-(define z2l-set
-  `(SEP y_ grd (FORALL c_ (IMPLIES (ORD-LT c_ ,z2l-a)
-                                   (IN (LIST (ZUP grd porel c_) y_) porel)))))
+(define z2l-set                         ; NBGSEP: behind the guard c_ in ORD, as zup-limit
+  `(SEP y_ grd (FORALL c_ (IMPLIES (IN c_ ORD) (IMPLIES (ORD-LT c_ ,z2l-a)
+                                   (IN (LIST (ZUP grd porel c_) y_) porel))))))
 (define z2l-c `(CHOICE ,z2l-set))
 
 (mac 'zup-limit)
@@ -541,8 +548,9 @@
             (lambda ()
               (in-sep! (lambda () (ass))
                        (lambda () (witness! 'c_
-                                    (lambda () (both! (lambda () (ass))
-                                                      (lambda () (rfl)))))))))
+                                    ;; NBGSEP: c_ in ORD, ORD-LT, and the equation
+                                    (lambda () (dk-conj-close!
+                                                 (lambda () (if (eq? (car (dk-goal)) '=) (rfl) (ass))))))))))
           (inst*! z2l-dom '(ZUP grd porel c_))
           (ass))))))
 (define z2l-prop (z2-find z2l-ch (z2-head? 'FORALL)))
@@ -559,6 +567,7 @@
         (mac 'is-strictly-below)
         (both!
           (lambda ()
+            (z2l-typ! 'b_)                ; NBGSEP: the chosen bound's clause is bounded by c_ in ORD
             (inst*! z2l-prop 'b_)
             (ass))
           (lambda ()
@@ -569,6 +578,7 @@
             (let ((blw (cadr (z2l-ih-at '(succ_ORD b_)))))
               (dk-split! (inst*! blw 'b_))
               (z2-sb-parts '(ZUP grd porel b_) '(ZUP grd porel (succ_ORD b_)))
+              (z2l-typ! '(succ_ORD b_))   ; NBGSEP: the chosen bound's clause is bounded by c_ in ORD
               (inst*! z2l-prop '(succ_ORD b_))
               (fact 'po-transitive 'grd 'porel
                     '(ZUP grd porel (succ_ORD b_)) z2l-c '(ZUP grd porel b_))

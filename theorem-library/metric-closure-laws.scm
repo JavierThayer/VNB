@@ -116,10 +116,14 @@
 (qed 'closed-ball-sep-unfold)
 (topic! 'closed-ball-sep-unfold 'plumbing)
 
+;;; NBGSEP (2026-10-25): CLOSURE and INTERIOR bound their neighbourhood u by
+;;; u in POWER(PTS s) (structure-library/baire-category.scm), so the two unfold
+;;; equations carry that guard; the membership read-offs of section 2 keep their
+;;; statements, the guard being implied by IS-OPEN(s, u) (`is-open-in-power').
 (sp (make-wff '(FORALL s (FORALL A
    (== (CLOSURE s A)
        (SEP x (PTS s)
-         (FORALL u (IMPLIES (AND (IS-OPEN s u) (IN x u))
+         (FORALL u (IMPLIES (AND (IN u (POWER (PTS s))) (AND (IS-OPEN s u) (IN x u)))
            (FORSOME y (AND (IN y u) (IN y A)))))))))))
 (di) (mac 'CLOSURE) (qrfl)
 (qed 'closure-sep-unfold)
@@ -128,10 +132,33 @@
 (sp (make-wff '(FORALL s (FORALL A
    (== (INTERIOR s A)
        (SEP x (PTS s)
-         (FORSOME u (AND (IS-OPEN s u) (AND (IN x u) (SUBSET u A))))))))))
+         (FORSOME u (AND (IN u (POWER (PTS s)))
+                         (AND (IS-OPEN s u) (AND (IN x u) (SUBSET u A)))))))))))
 (di) (mac 'INTERIOR) (qrfl)
 (qed 'interior-sep-unfold)
 (topic! 'interior-sep-unfold 'plumbing)
+
+;;; is-open-in-power (NBGSEP): an open set of s is a member of POWER(PTS s) --
+;;; IS-OPEN(s, u) holds IS-METRIC-SPACE(s), so PTS(s) is a set, and u included
+;;; in it; a subclass of a set is a set (`subclass-of-set-is-set').
+(sp (make-wff '(FORALL s (FORALL u (IMPLIES (IS-OPEN s u) (IN u (POWER (PTS s))))))))
+(dk-peel!)
+(dk-have! '(IN (PTS s) SET)
+  (lambda ()
+    (dk-split-all! (dk-landed (lambda () (mac-h 'IS-OPEN '(IS-OPEN s u)))))
+    (dk-split-all! (dk-landed (lambda () (mac-h 'IS-METRIC-SPACE '(IS-METRIC-SPACE s)))))
+    (ass)))
+(dk-have! '(SUBSET u (PTS s))
+  (lambda ()
+    (dk-split-all! (dk-landed (lambda () (mac-h 'IS-OPEN '(IS-OPEN s u)))))
+    (ass)))
+(fact 'subclass-of-set-is-set 'u '(PTS s))
+(dk-have! '(FORALL z_ (IMPLIES (IN z_ u) (IN z_ (PTS s))))
+  (lambda () (mac-h 'subset-def '(SUBSET u (PTS s))) (ass)))
+(fact 'power-mem-intro '(PTS s) 'u)
+(ass)
+(qed 'is-open-in-power)
+(topic! 'is-open-in-power 'topology)
 
 ;;; =====================================================================
 ;;; 2.  THE THREE MEMBERSHIP READ-OFFS
@@ -155,6 +182,8 @@
   "y lies in CLOSED-BALL(s,c,r) iff y is a point of s with d(s)(c,y) <= r.")
 (topic! 'closed-ball-membership 'topology)
 
+;;; NBGSEP: the separation's condition carries the guard u in POWER(PTS s), which
+;;; this read-off does not; the two directions go through `is-open-in-power'.
 (sp (make-wff '(FORALL s (FORALL A (FORALL x
    (IFF (IN x (CLOSURE s A))
         (AND (IN x (PTS s))
@@ -165,13 +194,33 @@
   (lambda ()
     (mac-h 'closure-sep-unfold '(IN x (CLOSURE s A)))
     (sep-me '(IN x (SEP x (PTS s)
-                     (FORALL u (IMPLIES (AND (IS-OPEN s u) (IN x u))
+                     (FORALL u (IMPLIES (AND (IN u (POWER (PTS s))) (AND (IS-OPEN s u) (IN x u)))
                        (FORSOME y (AND (IN y u) (IN y A))))))))
-    (prop))
+    (let ((guarded (dk-pick (dk-head? 'FORALL) "the guarded closure condition")))
+      (dk-conj-close!
+        (lambda ()
+          (if (mcl-head? (dk-goal) 'FORALL)
+              (let* ((landed (dk-peel!))
+                     (uv (caddr (cadr (car landed)))))
+                (dk-split-all! landed)
+                (fact 'is-open-in-power 's uv)
+                (have! (list 'AND (list 'IN uv '(POWER (PTS s)))
+                             (list 'AND (list 'IS-OPEN 's uv) (list 'IN 'x uv))))
+                (dk-apply! guarded uv)
+                (ass))
+              (ass))))))
   (lambda ()
     (dk-split-all!)
     (mac 'CLOSURE)
-    (in-sep! (lambda () (ass)) (lambda () (ass)))))
+    (let ((old (dk-pick (dk-head? 'FORALL) "the closure condition")))
+      (in-sep! (lambda () (ass))
+               (lambda ()
+                 (let* ((landed (dk-peel!))
+                        (uv (cadr (cadr (car landed)))))
+                   (dk-split-all! landed)
+                   (have! (list 'AND (list 'IS-OPEN 's uv) (list 'IN 'x uv)))
+                   (dk-apply! old uv)
+                   (ass)))))))
 (qed 'closure-membership)
 (gloss! 'closure-membership
   "x lies in CLOSURE(s,A) iff x is a point of s every open neighbourhood of which
@@ -187,12 +236,23 @@
   (lambda ()
     (mac-h 'interior-sep-unfold '(IN x (INTERIOR s A)))
     (sep-me '(IN x (SEP x (PTS s)
-                     (FORSOME u (AND (IS-OPEN s u) (AND (IN x u) (SUBSET u A)))))))
-    (prop))
+                     (FORSOME u (AND (IN u (POWER (PTS s)))
+                                     (AND (IS-OPEN s u) (AND (IN x u) (SUBSET u A))))))))
+    (let ((uv (dk-skolem! (dk-pick (dk-head? 'FORSOME) "the interior witness"))))
+      (dk-split-all!)
+      (dk-conj-close!
+        (lambda ()
+          (if (mcl-head? (dk-goal) 'FORSOME)
+              (begin (ew uv) (dk-conj-close!))
+              (ass))))))
   (lambda ()
     (dk-split-all!)
-    (mac 'INTERIOR)
-    (in-sep! (lambda () (ass)) (lambda () (ass)))))
+    (let ((uv (dk-skolem! (dk-pick (dk-head? 'FORSOME) "the neighbourhood"))))
+      (dk-split-all!)
+      (fact 'is-open-in-power 's uv)
+      (mac 'INTERIOR)
+      (in-sep! (lambda () (ass))
+               (lambda () (ew uv) (dk-conj-close!))))))
 (qed 'interior-membership)
 (gloss! 'interior-membership
   "x lies in INTERIOR(s,A) iff x is a point of s with an open neighbourhood

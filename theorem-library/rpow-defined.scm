@@ -145,11 +145,13 @@
 ;;; 1.  THE DEFINITION.
 ;;; =====================================================================
 
+;;; By `def-operator' (library.scm, GUARDDEF item 5, 2026-10-24): RPOW is a registered
+;;; operator (structure-library/real-powers.scm).  The left side is applied, so the command
+;;; does not declare it named-only; this file does, before the install, as before.
 (declare-named-only! 'rpow-def
   "left-hand side is the registered operator RPOW: cited by name, never a live rewrite")
-(fluid-let ((*current-provenance* 'definitional))
-  (add-axiom! *library* 'rpow-def
-    '(FORALL a_ (FORALL b_ (== (RPOW a_ b_) (RPOW-STAR a_ b_))))))
+(def-operator 'rpow-def
+  '(FORALL a_ (FORALL b_ (== (RPOW a_ b_) (RPOW-STAR a_ b_)))))
 
 ;;; =====================================================================
 ;;; 2.  THE PROJECTIONS AND THE VALUES AT 0 AND 1.

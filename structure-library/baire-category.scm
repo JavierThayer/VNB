@@ -10,14 +10,20 @@
 ;;; ---- interior / closure of a set --------------------------------------
 
 ;;; INTERIOR(s, A): the points with an open neighbourhood contained in A.
+;;; NBGSEP (2026-10-25): the neighbourhood u is bounded explicitly by
+;;; u in POWER(PTS s), so the separation is predicative (NBG).  IS-OPEN(s, u)
+;;; already gives it (IS-METRIC-SPACE(s), so PTS(s) is a set, and u is a subset
+;;; of PTS(s)): the meaning is unchanged; `is-open-in-power' proves the implication.
 (def-functoid 'INTERIOR '(s A)
   '(SEP x (PTS s)
-     (FORSOME u (AND (IS-OPEN s u) (AND (IN x u) (SUBSET u A))))))
+     (FORSOME u (AND (IN u (POWER (PTS s)))
+                     (AND (IS-OPEN s u) (AND (IN x u) (SUBSET u A)))))))
 
 ;;; CLOSURE(s, A): the points every open neighbourhood of which meets A.
+;;; NBGSEP: the same explicit bound u in POWER(PTS s), implied by IS-OPEN(s, u).
 (def-functoid 'CLOSURE '(s A)
   '(SEP x (PTS s)
-     (FORALL u (IMPLIES (AND (IS-OPEN s u) (IN x u))
+     (FORALL u (IMPLIES (AND (IN u (POWER (PTS s))) (AND (IS-OPEN s u) (IN x u)))
        (FORSOME y (AND (IN y u) (IN y A)))))))
 
 ;;; ---- category vocabulary ----------------------------------------------

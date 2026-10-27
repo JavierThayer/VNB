@@ -87,12 +87,16 @@
 ;;; (c-metric-summable) plus limit uniqueness (rr-limit-unique, PROVEN in
 ;;; theorem-library/dominated-convergence.scm).
 
+;;; NBGSEP (2026-10-25): the description is bounded by a top-level conjunct L in RR
+;;; (a confined IOTA, NBG).  SERIES-CONVERGES-TO(f, L) is CONVERGES-TO in RR-MS, which
+;;; puts L in PTS(RR-MS) = RR: the description is the same, the meaning unchanged.
 (def-functoid 'C-METRIC-W '(s w)
   '(LIST (PTS s)
          (VNB-LAMBDA (LIST u v) (CARTESIAN (PTS s) (PTS s))
-           (IOTA L (SERIES-CONVERGES-TO
-                     (VNB-LAMBDA k NN (* (w k) (min 1 (((DISTS s) k) u v))))
-                     L)))))
+           (IOTA L (AND (IN L RR)
+                        (SERIES-CONVERGES-TO
+                          (VNB-LAMBDA k NN (* (w k) (min 1 (((DISTS s) k) u v))))
+                          L))))))
 (notation! 'C-METRIC-W 'kind 'functoid 'arity 2
            'english "the canonical metric of $1 with weights $2")
 

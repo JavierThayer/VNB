@@ -325,7 +325,10 @@
     (let* ((it2 (cadr (dk-goal)))
            (ls2 (dk-opened (lambda () (iota-d it2)))))
       ;; (1) the defining property, granted: the value IS f of some class member
+      ;; (NBGSEP, 2026-10-25: the description is bounded by z in SET, a top-level
+      ;; conjunct -- split it off first)
       (dk-focus! (any-pred (lambda (n) (rks-goal-head? n 'IN)) ls2))
+      (dk-split-all!)
       (let ((a1 (dk-skolem! (rks-hyp 'FORSOME "the granted defining property"))))
         (rks-class-open!
           (rks-find (lambda (f) (and ((rks-in-head 'CLASS) f) (equal? (cadr f) a1)))
@@ -336,7 +339,16 @@
       ;; (2) existence and uniqueness of the description
       (dk-focus! (any-pred (lambda (n) (rks-goal-head? n 'FORSOME)) ls2))
       (ew (list ff aa))
-      (let ((cs (dk-opened (lambda () (di)))))
+      (let* ((cs0 (dk-opened (lambda () (di))))
+             (ex-leaf (any-pred (lambda (n) (rks-goal-head? n 'AND)) cs0))
+             (un-leaf (any-pred (lambda (n) (rks-goal-head? n 'FORALL)) cs0))
+             ;; NBGSEP: the existence half is (AND (IN (f a) SET) (FORSOME ..)); the
+             ;; value of f at a is in Z, a member of a class, so a set
+             (cs (begin (dk-focus! ex-leaf) (dk-opened (lambda () (di))))))
+        (dk-focus! (any-pred (lambda (n) (rks-goal-head? n 'IN)) cs))
+        (fact 'fun-apply-type-c ff dom cod aa)
+        (fact 'membership-implies-sethood (list ff aa) cod)
+        (ass)
         ;; existence: the representative itself
         (dk-focus! (any-pred (lambda (n) (rks-goal-head? n 'FORSOME)) cs))
         (ew aa)
@@ -347,8 +359,9 @@
           (fact 'fun-apply-type-c ff dom cod aa)
           (rfl))
         ;; uniqueness: RESPECTS pins the value
-        (dk-focus! (any-pred (lambda (n) (rks-goal-head? n 'FORALL)) cs))
+        (dk-focus! un-leaf)
         (dk-peel!)
+        (dk-split-all!)
         (let ((a2 (dk-skolem! (rks-hyp 'FORSOME "the competing description"))))
           (rks-class-open!
             (rks-find (lambda (f) (and ((rks-in-head 'CLASS) f) (equal? (cadr f) a2)))
@@ -392,7 +405,8 @@
   (let* ((g   (dk-goal))
          (it  (cadr g))
          (cod (caddr g))
-         (p   (caddr it))                      ; (FORSOME a (AND (IN a c) (FORSOME b (AND (IN b d) EQ))))
+         ;; NBGSEP: the IOTA body is (AND (IN z SET) (FORSOME a ...)); its second conjunct is
+         (p   (caddr (caddr it)))              ; (FORSOME a (AND (IN a c) (FORSOME b (AND (IN b d) EQ))))
          (q   (caddr p))
          (cc  (caddr (cadr q)))
          (r   (caddr q))
@@ -407,8 +421,9 @@
     (subst (list '= dd (list 'CLASS ss bb)))
     (let* ((it2 (cadr (dk-goal)))
            (ls2 (dk-opened (lambda () (iota-d it2)))))
-      ;; (1) the defining property, granted
+      ;; (1) the defining property, granted (NBGSEP: split off the z in SET conjunct)
       (dk-focus! (any-pred (lambda (n) (rks-goal-head? n 'IN)) ls2))
+      (dk-split-all!)
       (let* ((a1 (dk-skolem! (rks-hyp 'FORSOME "the granted property, outer")))
              (b1 (dk-skolem! (rks-hyp 'FORSOME "the granted property, inner"))))
         (rks-class-open!
@@ -423,7 +438,14 @@
       (dk-focus! (any-pred (lambda (n) (rks-goal-head? n 'FORSOME)) ls2))
       (rks-app2-have! ff aa bb dom cod)        ; the definedness `rfl' will want
       (ew (list ff aa bb))
-      (let ((cs (dk-opened (lambda () (di)))))
+      (let* ((cs0 (dk-opened (lambda () (di))))
+             (ex-leaf (any-pred (lambda (n) (rks-goal-head? n 'AND)) cs0))
+             (un-leaf (any-pred (lambda (n) (rks-goal-head? n 'FORALL)) cs0))
+             ;; NBGSEP: the existence half is (AND (IN (f a b) SET) (FORSOME ..))
+             (cs (begin (dk-focus! ex-leaf) (dk-opened (lambda () (di))))))
+        (dk-focus! (any-pred (lambda (n) (rks-goal-head? n 'IN)) cs))
+        (fact 'membership-implies-sethood (list ff aa bb) cod)
+        (ass)
         ;; existence: the two representatives
         (dk-focus! (any-pred (lambda (n) (rks-goal-head? n 'FORSOME)) cs))
         (ew aa)
@@ -438,8 +460,9 @@
             (dk-focus! (any-pred (lambda (n) (rks-goal-head? n '=)) fs))
             (rfl)))
         ;; uniqueness: RESPECTS2 pins the value in both slots
-        (dk-focus! (any-pred (lambda (n) (rks-goal-head? n 'FORALL)) cs))
+        (dk-focus! un-leaf)
         (dk-peel!)
+        (dk-split-all!)
         (let* ((a2 (dk-skolem! (rks-hyp 'FORSOME "the competitor, outer")))
                (b2 (dk-skolem! (rks-hyp 'FORSOME "the competitor, inner"))))
           (rks-class-open!

@@ -264,11 +264,15 @@
 (def-by-nn-recursion 'ENC-CCH '(mix_ mia_ min_) '(ENC-EQ mix_ (ENC-LIST (IDX-LIST min_))) '(mik_ miv_)
   '(ENC-EX (ENC-AND (ENC-IN (EBVAR 0) (NTH (- min_ mik_) mia_)) miv_)))
 (notation! 'ENC-CCH 'kind 'functoid 'arity 4 'english "the existential chain of $1 in the last $4 of the $3 entries of $2")
+;; NBGSEP (2026-10-25): miz_ and mia_ bounded by (IN v SET) -- components of the tuple
+;; equated to mix_ (through the ENC-IN / ENC-CART codes), sets by the list doctrine; mig_
+;; is bounded by CTX-SET.  The meaning is unchanged and the separation is predicative.
 (def-functoid 'J-CART '(mit_)
   '(SEP mix_ RW-UNIV
      (FORSOME mig_ (FORSOME miz_ (FORSOME mia_
+       (AND (IN miz_ SET) (AND (IN mia_ SET)
        (AND (= mix_ (LIST 2 mig_ (ENC-IN miz_ (ENC-CART mia_)) (ENC-CCH miz_ mia_ (LENGTH mia_) (LENGTH mia_))))
-            (AND (IN mig_ CTX-SET) (<= 1 (LENGTH mia_)))))))))
+            (AND (IN mig_ CTX-SET) (<= 1 (LENGTH mia_)))))))))))
 (notation! 'J-CART 'kind 'functoid 'arity 1 'english "the local instances of cartesian-decompose")
 (def-predicate 'REL-CARTESIAN-DECOMPOSE-1 '(mit_ mihs_ mic_) '(REL-REWRITE-1 (J-CART mit_) mihs_ mic_))
 (notation! 'REL-CARTESIAN-DECOMPOSE-1 'kind 'predicate 'arity 3 'english "the kernel's cartesian-decompose, at one position, relates $2 to $3")
@@ -282,11 +286,13 @@
        (ENC-EQ (NTH min_ mia_) (NTH min_ mib_))
        (ENC-AND (ENC-EQ (NTH (- min_ mik_) mia_) (NTH (- min_ mik_) mib_)) miv_)))
 (notation! 'ENC-TCJ 'kind 'functoid 'arity 4 'english "the conjunction of the last $4 of the $3 component equations of $1 and $2")
+;; NBGSEP (2026-10-25): mia_ and mib_ bounded by (IN v SET), as in J-CART.
 (def-functoid 'J-TEQ '(mit_)
   '(SEP mix_ RW-UNIV
      (FORSOME mig_ (FORSOME mia_ (FORSOME mib_
+       (AND (IN mia_ SET) (AND (IN mib_ SET)
        (AND (= mix_ (LIST 2 mig_ (ENC-EQ (ENC-LIST mia_) (ENC-LIST mib_)) (ENC-TCJ mia_ mib_ (LENGTH mia_) (LENGTH mia_))))
-            (AND (IN mig_ CTX-SET) (= (LENGTH mia_) (LENGTH mib_)))))))))
+            (AND (IN mig_ CTX-SET) (= (LENGTH mia_) (LENGTH mib_)))))))))))
 (notation! 'J-TEQ 'kind 'functoid 'arity 1 'english "the local instances of tuple-equality-decompose")
 (def-predicate 'REL-TUPLE-EQ-DECOMPOSE-1 '(mit_ mihs_ mic_) '(REL-REWRITE-1 (J-TEQ mit_) mihs_ mic_))
 (notation! 'REL-TUPLE-EQ-DECOMPOSE-1 'kind 'predicate 'arity 3 'english "the kernel's tuple-equality-decompose, at one position, relates $2 to $3")

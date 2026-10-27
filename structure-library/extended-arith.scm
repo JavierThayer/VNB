@@ -64,17 +64,17 @@
 ;;; infinite-case equations and etimes-in-fun with statements unchanged, and
 ;;; `etimes-real-defined', which carries the guards 0 <= x, 0 <= y.  The convention
 ;;; 0 * oo = 0 is the one the old equations stated.
-(declare-named-only! 'etimes-def
+;;; By `def-operator' (library.scm, GUARDDEF item 5, 2026-10-24): ETIMES is already
+;;; registered; the command declares the axiom named-only BEFORE the install.
+(def-operator 'etimes-def
+  '(== etimes
+       (VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR-POS-STAR RR-POS-STAR)
+         (IF (OR (= x_ POS-INF) (= y_ POS-INF))
+             (IF (OR (= x_ 0) (= y_ 0))
+                 0
+                 POS-INF)
+             (bintimes x_ y_))))
   "left-hand side is a bare constant: as a live rewrite it would turn every mention of etimes into its lambda")
-(fluid-let ((*current-provenance* 'definitional))
-  (add-axiom! *library* 'etimes-def
-    '(== etimes
-         (VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR-POS-STAR RR-POS-STAR)
-           (IF (OR (= x_ POS-INF) (= y_ POS-INF))
-               (IF (OR (= x_ 0) (= y_ 0))
-                   0
-                   POS-INF)
-               (bintimes x_ y_))))))
 
 
 (gloss! 'etimes-in-fun

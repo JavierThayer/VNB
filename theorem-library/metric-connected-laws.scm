@@ -40,11 +40,13 @@
 ;;; the two sets: SIDE is (= (f mcz_) (f p)) or its negation
 (define (mcn-side-u z) (list '= (list 'f z) '(f mcp_)))
 (define (mcn-side-v z) (list 'NOT (list '= (list 'f z) '(f mcp_))))
+;;; NBGSEP (2026-10-25): the radius mce_ is bounded by mce_ in RR (implied by POS-RR),
+;;; so the separation is predicative (NBG); POS-RR alone is a predicate guard.
 (define (mcn-set side)
   (list 'SEP 'mcw_ '(PTS s)
     (list 'FORSOME 'mcz_ (list 'AND '(IN mcz_ mca_) (list 'AND (side 'mcz_)
-      (list 'FORSOME 'mce_ (list 'AND '(POS-RR mce_) (list 'AND '(IN mcw_ (BALL s mcz_ mce_))
-        (mcn-lcf 'mcz_ 'mce_)))))))))
+      (list 'FORSOME 'mce_ (list 'AND '(IN mce_ RR) (list 'AND '(POS-RR mce_) (list 'AND '(IN mcw_ (BALL s mcz_ mce_))
+        (mcn-lcf 'mcz_ 'mce_))))))))))
 (define mcn-u (mcn-set mcn-side-u))
 (define mcn-v (mcn-set mcn-side-v))
 
@@ -75,7 +77,8 @@
                    (dk-conj-close!
                      (lambda ()
                        (if (eq? (mcn-head (dk-goal)) 'FORSOME)
-                           (begin (ew e) (dk-conj-close! dk-ass!))
+                           (begin (if (not (dk-asm? (list 'IN e 'RR))) (fact 'rr-pos-rr-in-rr e))
+                                  (ew e) (dk-conj-close! dk-ass!))
                            (dk-ass!))))))))))
 
 ;;; (IN t SET-of-SIDE), t in A in context: land (= (f t) (f z)) and (SIDE z) for the

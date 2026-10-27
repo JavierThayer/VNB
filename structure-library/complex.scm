@@ -44,11 +44,12 @@
 ;;; unconditional equation defining a SYMBOL owes no definedness witness and is
 ;;; not a foundational commitment.  Not named-only: `magnitude(z)' is not a shape
 ;;; anything else builds by accident.
-(fluid-let ((*current-provenance* 'definitional))
-  (add-axiom! *library* 'magnitude-def
-    '(FORALL z (== (magnitude z)
-                   (SQRT (+ (* (real-part z) (real-part z))
-                            (* (imag-part z) (imag-part z))))))))
+;;; By `def-operator' (library.scm, GUARDDEF item 5, 2026-10-24): magnitude is a registered
+;;; term former (*wff-term-form-heads*).
+(def-operator 'magnitude-def
+  '(FORALL z (== (magnitude z)
+                 (SQRT (+ (* (real-part z) (real-part z))
+                          (* (imag-part z) (imag-part z)))))))
 (def-comments! 'magnitude-def
   "The right-hand side is defined iff $z$ is a complex number, so $\\operatorname{magnitude}(z)$"
   "is defined iff $z$ is a complex number.")

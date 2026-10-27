@@ -880,7 +880,9 @@
 (define (chk-sep-form S depth)
   (cond ((> depth 8) #f)
         ((not (and (pair? S) (list? S))) #f)
-        ((and (eq? (car S) 'SEP) (= (length S) 4) (symbol? (cadr S))) S)
+        ;; NBGSEP (2026-10-25): an impredicative SEP is not read, as its elimination is refused
+        ((and (eq? (car S) 'SEP) (= (length S) 4) (symbol? (cadr S)))
+         (and (rcs--binder-nbg? S) S))
         ((chk-functoid-entry (car S))
          (let ((b (chk-functoid-unfold S)))
            (and b (chk-sep-form b (+ depth 1)))))
@@ -909,6 +911,10 @@
 ;;; min / max of terms at most RR to the join; succ of an NN term to NN; x ^ n with n in NN to
 ;;; x's class.  Every other term: #f.
 (define *chk-number-chain* '(NN ZZ QQ RR CC))
+;;; The heads `chk-number-class' reads, NAMED (GUARDDEF item 2, 2026-10-24) so that the
+;;; load-end guarded-definition gate (audit.scm) can read them; a head outside this list
+;;; is #f below even if a `case' clause names it.
+(define *chk-number-class-heads* '(+ * - abs min max succ ^))
 (define (chk-class-rank c)
   (let loop ((cs *chk-number-chain*) (i 0))
     (cond ((null? cs) #f) ((eq? (car cs) c) i) (else (loop (cdr cs) (+ i 1))))))
@@ -937,6 +943,7 @@
      (let ((cs (map (lambda (a) (chk-number-class asms a (+ depth 1))) (cdr t)))
            (n  (length (cdr t))))
        (and (not (memq #f cs))
+            (memq (car t) *chk-number-class-heads*)
             (case (car t)
               ((+ *)     (and (>= n 2) (fold-left chk-class-max (car cs) (cdr cs))))
               ((-)       (and (<= n 2) (fold-left chk-class-max 'ZZ cs)))

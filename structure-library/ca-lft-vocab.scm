@@ -62,14 +62,18 @@
 (notation! 'CC-HAT 'kind 'constant 'arity 0
            'english "the extended complex plane C u {oo}")
 
+;;; NBGSEP (2026-10-25): the compact kh_ is bounded explicitly by kh_ in POWER(CC), so
+;;; the separation is predicative (NBG).  SUBSET(kh_, CC) with CC a set gives it: the
+;;; meaning is unchanged.
 (def-constant 'CC-HAT-OPENS
   (list 'cc-hat-opens-def
         '(== CC-HAT-OPENS
              (SEP uh_ (POWER CC-HAT)
                (OR (AND (SUBSET uh_ CC) (IS-OPEN CC-MS uh_))
-                   (FORSOME kh_ (AND (SUBSET kh_ CC)
+                   (FORSOME kh_ (AND (IN kh_ (POWER CC))
+                                (AND (SUBSET kh_ CC)
                                 (AND (IS-COMPACT (SUBSPACE-MS CC-MS kh_))
-                                     (= uh_ (DIFFERENCE CC-HAT kh_))))))))))
+                                     (= uh_ (DIFFERENCE CC-HAT kh_)))))))))))
 (notation! 'CC-HAT-OPENS 'kind 'constant 'arity 0
            'english "the open sets of the extended complex plane")
 

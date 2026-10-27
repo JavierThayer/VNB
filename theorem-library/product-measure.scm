@@ -336,15 +336,37 @@
 ;;; =====================================================================
 
 (define pms-dg '(DYNKIN-GENERATED omega cE))
+;;; NBGSEP (2026-10-25): the body bounds dgb_ by POWER(POWER(omega))
+;;; (structure-library/product-measure.scm); the membership read-off below keeps
+;;; its statement, the bound being implied by IS-DYNKIN-SYSTEM (dynkin-in-power-power).
 (define pms-dg-body
   '(SEP dga_ (POWER omega)
-     (FORALL dgb_ (IMPLIES (AND (IS-DYNKIN-SYSTEM omega dgb_) (SUBSET cE dgb_)) (IN dga_ dgb_)))))
+     (FORALL dgb_ (IMPLIES (AND (IN dgb_ (POWER (POWER omega)))
+                                (AND (IS-DYNKIN-SYSTEM omega dgb_) (SUBSET cE dgb_)))
+                           (IN dga_ dgb_)))))
 (sp (make-wff (list 'FORALL 'omega (list 'FORALL 'cE (list '== pms-dg pms-dg-body)))))
 (di)
 (mac 'DYNKIN-GENERATED)
 (qrfl)
 (qed 'dynkin-generated-unfold)
 (topic! 'dynkin-generated-unfold 'plumbing)
+
+;;; dynkin-in-power-power (NBGSEP): a Dynkin system on omega is a member of
+;;; POWER(POWER(omega)): omega is a set, so POWER(omega) is one, and dd is included in it.
+(sp (make-wff (forall-guarded '(omega dd) '((IS-DYNKIN-SYSTEM omega dd)) '(IN dd (POWER (POWER omega))))))
+(dk-peel!)
+(dk-have! '(IN omega SET)
+  (lambda () (dk-split-all! (dk-landed (lambda () (mac-h 'IS-DYNKIN-SYSTEM '(IS-DYNKIN-SYSTEM omega dd))))) (ass)))
+(dk-have! '(SUBSET dd (POWER omega))
+  (lambda () (dk-split-all! (dk-landed (lambda () (mac-h 'IS-DYNKIN-SYSTEM '(IS-DYNKIN-SYSTEM omega dd))))) (ass)))
+(fact 'power-set 'omega)
+(fact 'subclass-of-set-is-set 'dd '(POWER omega))
+(dk-have! '(FORALL z_ (IMPLIES (IN z_ dd) (IN z_ (POWER omega))))
+  (lambda () (mac-h 'subset-def '(SUBSET dd (POWER omega))) (ass)))
+(fact 'power-mem-intro '(POWER omega) 'dd)
+(ass)
+(qed 'dynkin-in-power-power)
+(topic! 'dynkin-in-power-power 'set-quotient)
 
 (sp (make-wff '(FORALL omega (FORALL cE (FORALL a_
    (IFF (IN a_ (DYNKIN-GENERATED omega cE))
@@ -356,11 +378,34 @@
     (mac-h 'dynkin-generated-unfold '(IN a_ (DYNKIN-GENERATED omega cE)))
     (sep-me (dk-pick (lambda (f) (and (dk-head-is? f 'IN) (eq? (cadr f) 'a_))) "the SEP membership"))
     (dk-split-all!)
-    (dk-conj-close! dk-ass!))
+    ;; NBGSEP: the separation's universal is bounded; the read-off's is not
+    (let ((guarded (dk-pick (lambda (f) (dk-head-is? f 'FORALL)) "the bounded universal")))
+      (dk-conj-close!
+        (lambda ()
+          (if (dk-head-is? (dk-goal) 'FORALL)
+              (let* ((landed (dk-peel!))
+                     (cj (find-first (lambda (f) (dk-head-is? f 'AND)) landed))
+                     (bv (caddr (cadr cj))))
+                (dk-split! cj)
+                (fact 'dynkin-in-power-power 'omega bv)
+                (have! (list 'AND (list 'IN bv '(POWER (POWER omega)))
+                             (list 'AND (list 'IS-DYNKIN-SYSTEM 'omega bv) (list 'SUBSET 'cE bv))))
+                (dk-apply! guarded bv)
+                (ass))
+              (dk-ass!))))))
   (lambda ()
     (dk-split-all!)
-    (mac 'DYNKIN-GENERATED)
-    (in-sep! dk-ass! dk-ass!)))
+    (let ((old (dk-pick (lambda (f) (dk-head-is? f 'FORALL)) "the read-off's universal")))
+      (mac 'DYNKIN-GENERATED)
+      (in-sep! dk-ass!
+        (lambda ()
+          (let* ((landed (dk-peel!))
+                 (cj (find-first (lambda (f) (dk-head-is? f 'AND)) landed))
+                 (bv (cadr (cadr cj))))
+            (dk-split-all! (list cj))
+            (have! (list 'AND (list 'IS-DYNKIN-SYSTEM 'omega bv) (list 'SUBSET 'cE bv)))
+            (dk-apply! old bv)
+            (ass)))))))
 (qed 'dynkin-generated-membership)
 (topic! 'dynkin-generated-membership 'set-quotient)
 

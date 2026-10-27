@@ -88,15 +88,19 @@
 ;; representatives f, g -- representation-independent because ~ is null
 ;; distance, so any other representatives give the same limit.  IOTA (definite
 ;; description), not a chosen representative.
+;; NBGSEP (2026-10-25): the description is bounded by a top-level conjunct dval in RR
+;; (a confined IOTA, NBG; the witnesses f, g are bounded by CSEQ(M) along the existential
+;; chain).  CONVERGES-TO in RR-MS puts dval in PTS(RR-MS) = RR: the meaning is unchanged.
 (def-functoid 'COMPLETION-DIST '(M)
   '(VNB-LAMBDA p (CARTESIAN (QUOTIENT (CAUCHY-SETOID M)) (QUOTIENT (CAUCHY-SETOID M)))
      (IOTA dval
+       (AND (IN dval RR)
        (FORSOME f (FORSOME g
          (AND (IN f (CSEQ M))
          (AND (IN g (CSEQ M))
          (AND (= (NTH 1 p) (CLASS (CAUCHY-SETOID M) f))
          (AND (= (NTH 2 p) (CLASS (CAUCHY-SETOID M) g))
-              (CONVERGES-TO RR-MS (DIST-SEQ M f g) dval))))))))))
+              (CONVERGES-TO RR-MS (DIST-SEQ M f g) dval)))))))))))
 
 ;; COMPLETION(M) = [ PTS(M)/~ , d-hat ] : the completion as a METRIC-SPACE
 ;; instance.  Carrier = QUOTIENT(CAUCHY-SETOID(M)); metric = COMPLETION-DIST(M).

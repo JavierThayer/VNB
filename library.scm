@@ -170,6 +170,78 @@
       (map (lambda (spec) (cons (car spec) (cadr spec)))
            char-axiom-specs))))
 
+;;; -----------------------------------------------------------------------
+;;; def-operator (GUARDDEF item 5, 2026-10-24): the defining command for a head that is
+;;; ALREADY REGISTERED (a term former of *wff-term-form-heads*, or a `register-constant!'
+;;; operator) and is defined later by ONE quasi-equation.  `def-constant' cannot take such
+;;; a head: it re-registers the head as `defined-fn'.  Until this command the six such
+;;; definitions in the tree (eplus-def, etimes-def, rpow-def, real-part-def, imag-part-def,
+;;; magnitude-def) were each a hand-written `definitional' fluid-let around `add-axiom!',
+;;; the shape of the etimes scar (2026-09-18), and the value row of the beta certificate
+;;; (`pi--defined-fn-values', `chk-defined-fn-values') found them by building the name
+;;; HEAD-def, so any theorem so named and so stamped was read as a definition.
+;;;
+;;;   (def-operator 'AXIOM-NAME FORMULA [REASON])
+;;;
+;;; FORMULA is (== HEAD rhs) or (FORALL v1 .. (FORALL vk (== (HEAD v1 .. vk) rhs))), the
+;;; vi distinct.  REFUSED: an IMPLIES anywhere in FORMULA (an unguarded equation determines
+;;; the head everywhere, and is a model whatever rhs is); a strict `='; HEAD occurring in
+;;; rhs; HEAD not already registered (`def-constant''s job); HEAD already defined by
+;;; def-operator or in `library-definitions'.  Installs FORMULA under `definitional' by
+;;; `add-axiom!' (as the six sites did, so statements, macetes and bills are unchanged),
+;;; keeps the head's registration, applies `declare-named-only!' BEFORE the install when
+;;; the left side is the bare head (REASON, or a standard one; a live rewrite of a bare
+;;; constant would turn every mention of it into its definiens), and records
+;;; (HEAD . AXIOM-NAME) in `*defined-operators*', which the value row reads.
+(define *defined-operators* '())
+
+(define (defined-operator-axiom head)
+  (let ((e (and (symbol? head) (assq head *defined-operators*))))
+    (and e (cdr e))))
+
+(define (def-operator axiom-name formula #!optional reason)
+  (define (refuse msg) (error (string-append "def-operator: " msg) axiom-name formula))
+  (define (mentions? x e)
+    (or (eq? x e) (and (pair? e) (or (mentions? x (car e)) (mentions? x (cdr e))))))
+  (if (not (symbol? axiom-name)) (refuse "the axiom name must be a symbol"))
+  (if (mentions? 'IMPLIES formula)
+      (refuse "an implication: def-operator takes one UNGUARDED quasi-equation"))
+  (let peel ((e formula) (vars '()))
+    (cond
+      ((and (pair? e) (eq? (car e) 'FORALL) (= (length e) 3) (symbol? (cadr e)))
+       (peel (caddr e) (cons (cadr e) vars)))
+      ((not (and (pair? e) (memq (car e) '(= ==)) (= (length e) 3)))
+       (refuse "not (FORALL .. (== (HEAD ..) rhs)) or (== HEAD rhs)"))
+      ((eq? (car e) '=)
+       (refuse "a strict `=': a definition by def-operator is a quasi-equation `=='"))
+      (#t
+       (let* ((lhs (cadr e)) (rhs (caddr e))
+              (bare? (symbol? lhs))
+              (head (if bare? lhs (and (pair? lhs) (car lhs))))
+              (args (if bare? '() (and (pair? lhs) (cdr lhs)))))
+         (cond
+           ((not (symbol? head)) (refuse "the left-hand side is not a head"))
+           ((not (and (list? args) (every symbol? args) (every (lambda (a) (memq a vars)) args)
+                      (= (length args) (length (delete-duplicates args eq?)))
+                      (= (length args) (length vars))))
+            (refuse "the left-hand side's arguments must be the distinct quantified variables"))
+           ((mentions? head rhs) (refuse "the head occurs in its own right-hand side"))
+           ((not (constant-head? head))
+            (refuse "the head is not registered: a fresh head is defined by def-constant"))
+           ((defined-operator-axiom head) (refuse "the head is already defined by def-operator"))
+           ((assq head (library-definitions *library*))
+            (refuse "the head already has a library-definitions entry"))
+           (#t
+            (if bare?
+                (declare-named-only! axiom-name
+                  (if (default-object? reason)
+                      "left-hand side is a bare constant: as a live rewrite it would turn every mention of it into its definiens"
+                      reason)))
+            (fluid-let ((*current-provenance* 'definitional))
+              (add-axiom! *library* axiom-name formula))
+            (set! *defined-operators* (cons (cons head axiom-name) *defined-operators*))
+            axiom-name)))))))
+
 ;;; Display all definitions in the current theory.
 (define (display-definitions)
   (let ((defs (library-definitions *library*)))

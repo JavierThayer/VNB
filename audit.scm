@@ -1529,3 +1529,127 @@
 ;;; file, where a call is fine but handing the writer out is not.
 (define (kernel-callers-value-uses)
   (filter (lambda (e) (> (caddr e) 0)) (kernel-callers-census)))
+
+;;; -----------------------------------------------------------------------
+;;; guarded-definition-gate (GUARDDEF, the user's decision of 2026-10-24).
+;;;
+;;; A head introduced by a defining command with a GUARDED defining equation
+;;; (forall x. x in NN => G(x) == ...) is read as a DESCRIPTION: off every guard
+;;; G(t) denotes nothing (scratchpad/GUARDDEF.md).  That reading holds only while no
+;;; kernel certificate treats such a head as total or as set-valued on its own
+;;; terms, and while no installed theorem makes it a member of a FUN(..) -- a
+;;; member of FUN(A, B) is defined exactly on A, and `pi--fun-typed-app?' would then
+;;; certify G(a) defined from the typing alone.  Check A of the GUARDDEF audit found
+;;; no such entry by reading the tables; this gate keeps it so.
+;;;
+;;; A GUARDED HEAD: a `library-definitions' entry one of whose characterising axioms
+;;; is an equation (= or ==, under universals and implications) and contains an
+;;; IMPLIES.  (A def-predicate IFF is not an equation and is not read; a
+;;; `def-operator' head has no entry here and no implication by construction.)
+;;; THE TABLES: every head list a definedness, sethood or value certificate reads,
+;;; the builder's (primitive-inferences.scm) and the checker's own twins
+;;; (rule-checkers-schema.scm, rule-checkers-logic.scm), by NAME, so a renamed or
+;;; removed table is itself reported.  Returns a list of violations, each
+;;; (KIND HEAD WHERE): KIND `table' (WHERE the table's name), `fun-typed' (WHERE the
+;;; theorem's name), or `unreadable' (HEAD the table name; the gate cannot see it).
+;;; Empty is the good case.  The optional arguments replace the library's
+;;; definitions alist, the table alist ((NAME . heads) ...) and the theorem alist
+;;; (the suite's controls); omitted, the gate reads the live ones.
+;;; Each table is read through a thunk naming the variable itself, so the table
+;;; read is the one the certificate reads (same environment), and an unbound name
+;;; is an error the gate reports as `unreadable'.
+(define (guarded-def-gate-tables)
+  (map (lambda (e)
+         (cons (car e)
+               (call-with-current-continuation
+                 (lambda (k) (with-exception-handler (lambda (c) (k 'unreadable)) (cdr e))))))
+       (list (cons '*total-term-heads*         (lambda () *total-term-heads*))
+             (cons '*pi-set-component-heads*   (lambda () *pi-set-component-heads*))
+             (cons '*pi-arith-total-heads*     (lambda () *pi-arith-total-heads*))
+             (cons '*pi-value-set-heads*       (lambda () *pi-value-set-heads*))
+             (cons '*pi-value-arg-heads*       (lambda () *pi-value-arg-heads*))
+             (cons '*pi-value-first-arg-heads* (lambda () *pi-value-first-arg-heads*))
+             (cons '*pi-value-codomain-heads*  (lambda () *pi-value-codomain-heads*))
+             (cons '*pi-set-constants*         (lambda () *pi-set-constants*))
+             (cons '*chk-value-set-heads*      (lambda () *chk-value-set-heads*))
+             (cons '*chk-value-arg-heads*      (lambda () *chk-value-arg-heads*))
+             (cons '*chk-value-first-arg-heads* (lambda () *chk-value-first-arg-heads*))
+             (cons '*chk-value-codomain-heads* (lambda () *chk-value-codomain-heads*))
+             (cons '*chk-set-constants*        (lambda () *chk-set-constants*))
+             (cons '*chk-number-class-heads*   (lambda () *chk-number-class-heads*)))))
+
+(define (gdg--raw f) (if (wff? f) (wff-formula f) f))
+
+(define (gdg--equation-shaped? f)
+  (let walk ((e (gdg--raw f)))
+    (cond ((not (pair? e)) #f)
+          ((and (eq? (car e) 'FORALL) (= (length e) 3)) (walk (caddr e)))
+          ((and (eq? (car e) 'IMPLIES) (= (length e) 3)) (walk (caddr e)))
+          ((and (memq (car e) '(= ==)) (= (length e) 3)) #t)
+          (#t #f))))
+
+(define (gdg--has-implies? e)
+  (and (pair? e)
+       (or (eq? (car e) 'IMPLIES)
+           (let loop ((xs e))
+             (and (pair? xs) (or (gdg--has-implies? (car xs)) (loop (cdr xs))))))))
+
+;;; The guarded heads of a definitions alist ((HEAD (axname . formula) ...) ...).
+;;; The installed statement of an axiom is preferred to the recorded one.
+(define (guarded-defined-heads #!optional defs)
+  (let ((defs (if (default-object? defs) (library-definitions *library*) defs))
+        (out '()))
+    (for-each
+      (lambda (entry)
+        (if (and (pair? entry) (symbol? (car entry)) (not (memq (car entry) out))
+                 (let loop ((axs (cdr entry)))
+                   (and (pair? axs)
+                        (or (and (pair? (car axs))
+                                 (let ((f (or (and (symbol? (caar axs))
+                                                   (hash-table-ref/default *theorem-table* (caar axs) #f))
+                                              (cdar axs))))
+                                   (and (gdg--equation-shaped? f) (gdg--has-implies? (gdg--raw f)))))
+                            (loop (cdr axs))))))
+            (set! out (cons (car entry) out))))
+      defs)
+    (reverse out)))
+
+;;; Every subformula (IN G (FUN ..)) / INJECTION / BIJECTION with G in HEADS.
+(define (gdg--fun-typed-heads f heads)
+  (let ((acc '()))
+    (let walk ((e (gdg--raw f)))
+      (if (pair? e)
+          (begin
+            (if (and (eq? (car e) 'IN) (= (length e) 3)
+                     (symbol? (cadr e)) (memq (cadr e) heads)
+                     (pair? (caddr e)) (memq (car (caddr e)) '(FUN INJECTION BIJECTION))
+                     (not (memq (cadr e) acc)))
+                (set! acc (cons (cadr e) acc)))
+            (let loop ((xs e))
+              (if (pair? xs) (begin (walk (car xs)) (loop (cdr xs))))))))
+    acc))
+
+(define (guarded-def-gate-violations #!optional defs tables theorems)
+  (let* ((heads  (guarded-defined-heads (if (default-object? defs) (library-definitions *library*) defs)))
+         (tables (if (default-object? tables) (guarded-def-gate-tables) tables))
+         (bad    '()))
+    (for-each
+      (lambda (te)
+        (let ((tn (car te)) (tv (cdr te)))
+          (if (not (list? tv))
+              (set! bad (cons (list 'unreadable tn 'table) bad))
+              (for-each (lambda (h)
+                          (if (memq h tv) (set! bad (cons (list 'table h tn) bad))))
+                        heads))))
+      tables)
+    (if (pair? heads)
+        (if (default-object? theorems)
+            (hash-table-walk *theorem-table*
+              (lambda (name f)
+                (for-each (lambda (h) (set! bad (cons (list 'fun-typed h name) bad)))
+                          (gdg--fun-typed-heads f heads))))
+            (for-each (lambda (nf)
+                        (for-each (lambda (h) (set! bad (cons (list 'fun-typed h (car nf)) bad)))
+                                  (gdg--fun-typed-heads (cdr nf) heads)))
+                      theorems)))
+    (reverse bad)))

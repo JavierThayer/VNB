@@ -67,13 +67,17 @@
                                                (= ((MUL R) els_ elr_) (ONE R)))))
                        (AND (IN elk_ (INTERVAL 1 n)) (= E (ELEM-H R n elr_ elk_))))))))))
 
+;;; NBGSEP (2026-10-25): the elementary factor ege_ is bounded explicitly by
+;;; ege_ in SET, so the separation is predicative (NBG).  IS-ELEMENTARY(R, n, E)
+;;; says E is ELEM-F / ELEM-G / ELEM-H at some indices, a matrix (a MATOF): a set
+;;; or nothing, and the strict equation makes it denote.  The meaning is unchanged.
 (def-functoid 'ELEM-GEN '(R n)
   '(INTERSECTION-OF
      (SEP egs_ (POWER (MAT n n (CARR R)))
        (AND (IN (IDENTMAT R n) egs_)
             (FORALL egx_ (IMPLIES (IN egx_ egs_)
-              (FORALL ege_ (IMPLIES (IS-ELEMENTARY R n ege_)
-                (IN (MATMUL R egx_ ege_) egs_)))))))))
+              (FORALL ege_ (IMPLIES (IN ege_ SET) (IMPLIES (IS-ELEMENTARY R n ege_)
+                (IN (MATMUL R egx_ ege_) egs_))))))))))
 
 (def-predicate 'COL-EQUIV '(R n A B)
   '(FORSOME cep_ (AND (IN cep_ (ELEM-GEN R n)) (= B (MATMUL R A cep_)))))

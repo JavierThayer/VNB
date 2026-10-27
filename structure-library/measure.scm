@@ -74,10 +74,15 @@
 ;;; contains cE.  POWER(omega) is itself such a sigma-algebra, so the family
 ;;; quantified over is never empty and the definition is not vacuous.
 
+;;; NBGSEP (2026-10-25): the family quantified over is bounded explicitly,
+;;; cB_ in POWER(POWER(omega)), so the separation is predicative (NBG).
+;;; IS-SIGMA-ALGEBRA(omega, cB_) already gives it (omega a set, cB_ included in
+;;; POWER(omega), itself a set): the meaning is unchanged.
 (def-functoid 'SIGMA-GENERATED '(omega cE)
   '(SEP a_ (POWER omega)
      (FORALL cB_
-       (IMPLIES (AND (IS-SIGMA-ALGEBRA omega cB_) (SUBSET cE cB_))
+       (IMPLIES (AND (IN cB_ (POWER (POWER omega)))
+                     (AND (IS-SIGMA-ALGEBRA omega cB_) (SUBSET cE cB_)))
                 (IN a_ cB_)))))
 
 ;;; The membership law.  `def-functoid' installs only a rewrite macete, so
@@ -88,13 +93,16 @@
 ;;; had this been a predicate -- so it is stamped `definitional' and costs
 ;;; nothing.  Same treatment and same reasoning as span-membership (mod-seq.scm)
 ;;; and principal-ideal-membership (ideal.scm).
+;;; NBGSEP (2026-10-25): with the body's guard cB_ in POWER(POWER(omega)), so that
+;;; the stamp's claim -- the unfold composed with the SEP schema -- stays literal.
 (fluid-let ((*current-provenance* 'definitional))
   (add-axiom! *library* 'sigma-generated-membership
     '(FORALL omega (FORALL cE (FORALL a_
        (IFF (IN a_ (SIGMA-GENERATED omega cE))
             (AND (IN a_ (POWER omega))
                  (FORALL cB_
-                   (IMPLIES (AND (IS-SIGMA-ALGEBRA omega cB_) (SUBSET cE cB_))
+                   (IMPLIES (AND (IN cB_ (POWER (POWER omega)))
+                                 (AND (IS-SIGMA-ALGEBRA omega cB_) (SUBSET cE cB_)))
                             (IN a_ cB_))))))))))
 
 (notation! 'SIGMA-GENERATED 'kind 'functoid 'arity 2

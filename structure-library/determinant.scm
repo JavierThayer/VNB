@@ -13,8 +13,8 @@
 ;;; monoid, the sum is FINSUM over R's additive group, and MINOR(A,1,j,n) deletes
 ;;; row 1 and column j.  1x1 falls out: DET(R,1,A) = (+1)A(1,1)DET(R,0,-) = A(1,1).
 ;;;
-;;; These are installed DEFINITIONAL (add-definition!, like def-by-nn-
-;;; recursion), so they owe no warrant.  They are hand-stated rather than machine-
+;;; These are installed DEFINITIONAL (def-constant, since 2026-10-24; a hand-stamped
+;;; add-definition! before), so they owe no warrant.  They are hand-stated rather than machine-
 ;;; generated because the matrix SHRINKS in the recursive call (to its minor), so
 ;;; the size is not a fixed def-by-nn-recursion parameter; their consistency rests
 ;;; on DET being well-defined by this recursion (the projection of the legitimate
@@ -61,15 +61,18 @@
          ((MUL R) (ENTRY A 1 j) (DET R n (MINOR A 1 j n)))))
      (INTERVAL 1 (succ n))))
 
-(fluid-let ((*current-provenance* 'definitional))
-  (add-definition! *library* 'DET
-    (list (cons 'det-zero
-                (forall-guarded '(R A) '() '(== (DET R 0 A) (ONE R))))
-          (cons 'det-cofactor
-                (forall-guarded '(R n A)
-                  (list '(IS-RING R) '(IN n NN)
-                        '(IN A (MAT (succ n) (succ n) (CARR R))))
-                  (list '== '(DET R (succ n) A) det--cofactor-rhs))))))
+;;; Installed by `def-constant' (GUARDDEF item 4, 2026-10-24): the same two axioms under
+;;; the same names that the hand-stamped `add-definition!' installed here before (a
+;;; `definitional' fluid-let written by hand, which the GUARDDEF audit, check D, listed as
+;;; not coming from a defining command).  `def-constant' makes exactly that call.
+(def-constant 'DET
+  (list 'det-zero
+        (forall-guarded '(R A) '() '(== (DET R 0 A) (ONE R))))
+  (list 'det-cofactor
+        (forall-guarded '(R n A)
+          (list '(IS-RING R) '(IN n NN)
+                '(IN A (MAT (succ n) (succ n) (CARR R))))
+          (list '== '(DET R (succ n) A) det--cofactor-rhs))))
 (gloss! 'det-cofactor
   "Cofactor (Laplace) expansion along row 1: det(A) = sum_j (-1)^(1+j) A(1,j)
    det(minor_{1,j}).  The definition of DET over a ring, recursive on the size.")

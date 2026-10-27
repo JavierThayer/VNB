@@ -297,15 +297,37 @@
 ;;; =====================================================================
 
 (define mcl-mcg '(MONOTONE-CLASS-GENERATED omega cE))
+;;; NBGSEP (2026-10-25): the body bounds mcb_ by POWER(POWER(omega))
+;;; (structure-library/monotone-class.scm); the membership read-off below keeps its
+;;; statement, the bound being implied by IS-MONOTONE-CLASS (monotone-class-in-power-power).
 (define mcl-mcg-body
   '(SEP mca_ (POWER omega)
-     (FORALL mcb_ (IMPLIES (AND (IS-MONOTONE-CLASS omega mcb_) (SUBSET cE mcb_)) (IN mca_ mcb_)))))
+     (FORALL mcb_ (IMPLIES (AND (IN mcb_ (POWER (POWER omega)))
+                                (AND (IS-MONOTONE-CLASS omega mcb_) (SUBSET cE mcb_)))
+                           (IN mca_ mcb_)))))
 (sp (make-wff (list 'FORALL 'omega (list 'FORALL 'cE (list '== mcl-mcg mcl-mcg-body)))))
 (di)
 (mac 'MONOTONE-CLASS-GENERATED)
 (qrfl)
 (qed 'monotone-class-generated-unfold)
 (topic! 'monotone-class-generated-unfold 'plumbing)
+
+;;; monotone-class-in-power-power (NBGSEP): a monotone class on omega is a member of
+;;; POWER(POWER(omega)): omega is a set, so POWER(omega) is one, and mc is included in it.
+(sp (make-wff (forall-guarded '(omega mc) '((IS-MONOTONE-CLASS omega mc)) '(IN mc (POWER (POWER omega))))))
+(dk-peel!)
+(dk-have! '(IN omega SET)
+  (lambda () (dk-split-all! (dk-landed (lambda () (mac-h 'IS-MONOTONE-CLASS '(IS-MONOTONE-CLASS omega mc))))) (ass)))
+(dk-have! '(SUBSET mc (POWER omega))
+  (lambda () (dk-split-all! (dk-landed (lambda () (mac-h 'IS-MONOTONE-CLASS '(IS-MONOTONE-CLASS omega mc))))) (ass)))
+(fact 'power-set 'omega)
+(fact 'subclass-of-set-is-set 'mc '(POWER omega))
+(dk-have! '(FORALL z_ (IMPLIES (IN z_ mc) (IN z_ (POWER omega))))
+  (lambda () (mac-h 'subset-def '(SUBSET mc (POWER omega))) (ass)))
+(fact 'power-mem-intro '(POWER omega) 'mc)
+(ass)
+(qed 'monotone-class-in-power-power)
+(topic! 'monotone-class-in-power-power 'set-quotient)
 
 (sp (make-wff '(FORALL omega (FORALL cE (FORALL a_
    (IFF (IN a_ (MONOTONE-CLASS-GENERATED omega cE))
@@ -317,11 +339,34 @@
     (mac-h 'monotone-class-generated-unfold '(IN a_ (MONOTONE-CLASS-GENERATED omega cE)))
     (sep-me (dk-pick (lambda (f) (and (dk-head-is? f 'IN) (eq? (cadr f) 'a_))) "the SEP membership"))
     (dk-split-all!)
-    (dk-conj-close! dk-ass!))
+    ;; NBGSEP: the separation's universal is bounded; the read-off's is not
+    (let ((guarded (dk-pick (lambda (f) (dk-head-is? f 'FORALL)) "the bounded universal")))
+      (dk-conj-close!
+        (lambda ()
+          (if (dk-head-is? (dk-goal) 'FORALL)
+              (let* ((landed (dk-peel!))
+                     (cj (find-first (lambda (f) (dk-head-is? f 'AND)) landed))
+                     (bv (caddr (cadr cj))))
+                (dk-split! cj)
+                (fact 'monotone-class-in-power-power 'omega bv)
+                (have! (list 'AND (list 'IN bv '(POWER (POWER omega)))
+                             (list 'AND (list 'IS-MONOTONE-CLASS 'omega bv) (list 'SUBSET 'cE bv))))
+                (dk-apply! guarded bv)
+                (ass))
+              (dk-ass!))))))
   (lambda ()
     (dk-split-all!)
-    (mac 'MONOTONE-CLASS-GENERATED)
-    (in-sep! dk-ass! dk-ass!)))
+    (let ((old (dk-pick (lambda (f) (dk-head-is? f 'FORALL)) "the read-off's universal")))
+      (mac 'MONOTONE-CLASS-GENERATED)
+      (in-sep! dk-ass!
+        (lambda ()
+          (let* ((landed (dk-peel!))
+                 (cj (find-first (lambda (f) (dk-head-is? f 'AND)) landed))
+                 (bv (cadr (cadr cj))))
+            (dk-split-all! (list cj))
+            (have! (list 'AND (list 'IS-MONOTONE-CLASS 'omega bv) (list 'SUBSET 'cE bv)))
+            (dk-apply! old bv)
+            (ass)))))))
 (qed 'monotone-class-generated-membership)
 (topic! 'monotone-class-generated-membership 'set-quotient)
 

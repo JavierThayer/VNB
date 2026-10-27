@@ -1123,9 +1123,34 @@
 ;;; the binders of this theorem are wcvg_ (the family) and wcvl_ (the limit), not fam / f:
 ;;; (9) instantiates them at terms that contain fam and f free
 (define (wcv5 e) (wcv-ssym (wcv-ssym e 'fam 'wcvg_) 'f 'wcvl_))
+;;; NBGSEP (2026-10-25): inside the radius separation the uniform clause's eps is bounded by
+;;; eps in RR (a curried guard in front of POS-RR, which implies it), so the separation is
+;;; predicative (NBG).  wcv-to-bnd! / wcv-from-bnd! convert between the bounded clause the
+;;; separation holds and the unbounded one the hypotheses and the rest of the proof use.
+(define (wcv-bnd f)
+  (list 'FORALL (cadr f) (list 'IMPLIES (list 'IN (cadr f) 'RR) (caddr f))))
 (define (wcv-rsep x)
   (list 'SEP 'wcvr_ 'RR (list 'AND '(< 0 wcvr_)
-    (list 'AND (list 'SUBSET (list 'BALL 'CC-MS x 'wcvr_) 'u) (wcv5 (wcv-unif (list 'BALL 'CC-MS x 'wcvr_)))))))
+    (list 'AND (list 'SUBSET (list 'BALL 'CC-MS x 'wcvr_) 'u) (wcv-bnd (wcv5 (wcv-unif (list 'BALL 'CC-MS x 'wcvr_))))))))
+(define (wcv-to-bnd! uf)
+  (let ((bf (wcv-bnd uf)))
+    (if (not (dk-asm? bf))
+        (dk-have! bf
+          (lambda ()
+            (let* ((ls (dk-peel!))
+                   (ev (cadr (car ls))))
+              (dk-apply! (dk-ctx-form uf) ev)
+              (ass)))))))
+(define (wcv-from-bnd! uf)
+  (if (not (dk-asm? uf))
+      (dk-have! uf
+        (lambda ()
+          (let* ((ls (dk-peel!))
+                 (pv (wcv-first-of (filter (lambda (fm) (wcv-op? fm 'POS-RR 2)) ls)))
+                 (ev (cadr pv)))
+            (fact 'rr-pos-rr-in-rr ev)
+            (dk-apply! (dk-ctx-form (wcv-bnd uf)) ev)
+            (ass))))))
 (define (wcv-rad x) (list 'CHOICE (wcv-rsep x)))
 (define wcv-h (list 'VNB-LAMBDA 'wcvt_ 'wcvs_ (wcv-rad 'wcvt_)))
 (define (wcv-nsep x e)
@@ -1140,11 +1165,13 @@
     (if (not (dk-asm? (list 'IN c sv)))
         (let* ((r (dk-skolem! (dk-apply! (dk-ctx-form (wcv5 wcv-LU)) x))))
           (fact 'rr-pos-rr-in-rr r) (fact 'rr-lt-of-pos-rr r)
+          (wcv-to-bnd! (wcv5 (wcv-unif (list 'BALL 'CC-MS x r))))        ; NBGSEP
           (dk-have! (list 'IN r sv) (lambda () (in-sep! (lambda () (wcv-csub-and! (lambda () (ass)))))))
           (dk-have! (list 'FORSOME 'wcvz_ (list 'IN 'wcvz_ sv)) (lambda () (ew r) (ass)))
           (dk-cite! 'choice-axiom sv)
           (sep-me (list 'IN c sv))
-          (dk-split-all!)))
+          (dk-split-all!)
+          (wcv-from-bnd! (wcv5 (wcv-unif (list 'BALL 'CC-MS x c))))))    ; NBGSEP
     c))
 
 (sp (make-wff (list 'FORALL 'u (list 'IMPLIES '(SUBSET u CC)

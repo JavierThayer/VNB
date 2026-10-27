@@ -119,7 +119,7 @@
 <p>&gt; _Reads as:_  the adv-tokens slot of s</p>
 <h4 id="OPERATORS__ae-rel-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-ae-rel"><code>ae-rel</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  equality almost everywhere on sf with respect to mu</p>
-<pre>ae-rel(omega, ca, mu, sf) := {aep_ in cartesian(sf, sf): forsome([aen_], is-null-set(omega, ca, mu, aen_) and forall([aex_ in omega], not(aex_ in aen_) implies (nth(1, aep_))(aex_) = (nth(2, aep_))(aex_)))}</pre>
+<pre>ae-rel(omega, ca, mu, sf) := {aep_ in cartesian(sf, sf): forsome([aen_ in set], is-null-set(omega, ca, mu, aen_) and forall([aex_ in omega], not(aex_ in aen_) implies (nth(1, aep_))(aex_) = (nth(2, aep_))(aex_)))}</pre>
 <h4 id="OPERATORS__ae-setoid-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-ae-setoid"><code>ae-setoid</code></a>  — def-functoid · tuple/structure-valued</h4>
 <p>&gt; _Reads as:_  sf modulo equality almost everywhere with respect to mu</p>
 <pre>ae-setoid(omega, ca, mu, sf) := [sf, ae-rel(omega, ca, mu, sf)]</pre>
@@ -186,7 +186,7 @@
 <pre>c-metric(s) := c-metric-w(s, vnb-lambda(n, nn, (/)(1, 2 ^ (n + 1))))</pre>
 <h4 id="OPERATORS__c-metric-w-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-c-metric-w"><code>c-metric-w</code></a>  — def-functoid · tuple/structure-valued</h4>
 <p>&gt; _Reads as:_  the canonical metric of s with weights w</p>
-<pre>c-metric-w(s, w) := [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), iota(l, series-converges-to(vnb-lambda(k, nn, w(k) * min(1, ((dists(s))(k))(u, v))), l)))]</pre>
+<pre>c-metric-w(s, w) := [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), iota(l, l in rr and series-converges-to(vnb-lambda(k, nn, w(k) * min(1, ((dists(s))(k))(u, v))), l)))]</pre>
 <h4 id="OPERATORS__c-pseudo-family-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-c-pseudo-family"><code>c-pseudo-family</code></a>  — def-functoid · function-valued</h4>
 <p>&gt; _Reads as:_  the family of pseudometric spaces of s</p>
 <pre>c-pseudo-family(s) := vnb-lambda(k, nn, [pts(s), (dists(s))(k)])</pre>
@@ -328,7 +328,7 @@
 <h4 id="OPERATORS__closed-intervals-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-closed-intervals"><code>closed-intervals</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
 <p>&gt; _Reads as:_  the family of the empty set and the closed intervals of the real line</p>
 <h4 id="OPERATORS__closure-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-closure"><code>closure</code></a>  — def-functoid · set-valued</h4>
-<pre>closure(s, a) := {x in pts(s): forall([u], is-open(s, u) and x in u implies forsome([y in u], y in a))}</pre>
+<pre>closure(s, a) := {x in pts(s): forall([u], u in power(pts(s)) and is-open(s, u) and x in u implies forsome([y in u], y in a))}</pre>
 <h4 id="OPERATORS__clt-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-clt"><code>clt</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
 <p>&gt; _Reads as:_  the locally closed well-formed terms</p>
 <h4 id="OPERATORS__coint-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-coint"><code>coint</code></a>  — def-functoid · set-valued</h4>
@@ -344,7 +344,7 @@
 <h4 id="OPERATORS__completion-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-completion"><code>completion</code></a>  — def-functoid · tuple/structure-valued</h4>
 <pre>completion(m) := [quotient(cauchy-setoid(m)), completion-dist(m)]</pre>
 <h4 id="OPERATORS__completion-dist-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-completion-dist"><code>completion-dist</code></a>  — def-functoid · function-valued</h4>
-<pre>completion-dist(m) := vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))</pre>
+<pre>completion-dist(m) := vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, dval in rr and forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))</pre>
 <h4 id="OPERATORS__complexify-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-complexify"><code>complexify</code></a>  — def-functoid · tuple/structure-valued</h4>
 <p>&gt; _Reads as:_  the complexification of v</p>
 <pre>complexify(v) := [scal(v), cartesian(vec(v), vec(v)), cx-vadd(v), [vzero(v), vzero(v)], cx-vneg(v), cx-act(v), cx-rip(v), cx-j(v)]</pre>
@@ -422,9 +422,9 @@
 <p>&gt; _Reads as:_  the sequents derivable in the core over mct_</p>
 <pre>derivable(mct_) := {mcq_ in seq-set: forall([mcs_ in power(seq-set)], core-closed(mct_, mcs_) implies mcq_ in mcs_)}</pre>
 <h4 id="OPERATORS__descend-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-descend"><code>descend</code></a>  — def-functoid · function-valued</h4>
-<pre>descend(s, f) := vnb-lambda(c, quotient(s), iota(z, forsome([a in c], z = f(a))))</pre>
+<pre>descend(s, f) := vnb-lambda(c, quotient(s), iota(z, z in set and forsome([a in c], z = f(a))))</pre>
 <h4 id="OPERATORS__descend2-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-descend2"><code>descend2</code></a>  — def-functoid · function-valued</h4>
-<pre>descend2(s, f) := vnb-lambda([c, d], cartesian(quotient(s), quotient(s)), iota(z, forsome([a in c, b in d], z = f(a, b))))</pre>
+<pre>descend2(s, f) := vnb-lambda([c, d], cartesian(quotient(s), quotient(s)), iota(z, z in set and forsome([a in c, b in d], z = f(a, b))))</pre>
 <h4 id="OPERATORS__det-recursively-defined-def-by-nn-recursion"><a class="x" href="DEFINITIONS.html#d-det"><code>det</code></a>  — recursively defined (def-by-nn-recursion)</h4>
 <p>&gt; _Reads as:_  det()</p>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-det-zero"><code>det-zero</code></a> <a class="x" href="THEOREMS.html#t-det-cofactor"><code>det-cofactor</code></a></p>
@@ -477,7 +477,7 @@
 <pre>dual-vec(m) := {f_ in fun(vec(m), rr): is-bounded-linear-functional(m, f_)}</pre>
 <h4 id="OPERATORS__dynkin-generated-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-dynkin-generated"><code>dynkin-generated</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the Dynkin system of subsets of omega generated by ce</p>
-<pre>dynkin-generated(omega, ce) := {dga_ in power(omega): forall([dgb_], is-dynkin-system(omega, dgb_) and ce subset dgb_ implies dga_ in dgb_)}</pre>
+<pre>dynkin-generated(omega, ce) := {dga_ in power(omega): forall([dgb_], dgb_ in power(power(omega)) and is-dynkin-system(omega, dgb_) and ce subset dgb_ implies dga_ in dgb_)}</pre>
 <h4 id="OPERATORS__eapp-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-eapp"><code>eapp</code></a>  — def-functoid · tuple/structure-valued</h4>
 <p>&gt; _Reads as:_  the application of the head mxh_ to the list mxl_</p>
 <pre>eapp(mxh_, mxl_) := [3, mxh_, mxl_]</pre>
@@ -502,7 +502,7 @@
 <pre>elem-g(a, n, r, k, l) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), if(i = k and j = l, r, zero(a)))))</pre>
 <h4 id="OPERATORS__elem-gen-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-elem-gen"><code>elem-gen</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the set of products of elementary column n-by-n matrices over r</p>
-<pre>elem-gen(r, n) := intersection-of({egs_ in power(mat(n, n, carr(r))): identmat(r, n) in egs_ and forall([egx_ in egs_, ege_], is-elementary(r, n, ege_) implies matmul(r, egx_, ege_) in egs_)})</pre>
+<pre>elem-gen(r, n) := intersection-of({egs_ in power(mat(n, n, carr(r))): identmat(r, n) in egs_ and forall([egx_ in egs_, ege_ in set], is-elementary(r, n, ege_) implies matmul(r, egx_, ege_) in egs_)})</pre>
 <h4 id="OPERATORS__elem-h-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-elem-h"><code>elem-h</code></a>  — def-functoid · element/number-valued</h4>
 <pre>elem-h(a, n, r, k) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, if(i = k, r, one(a)), zero(a))))</pre>
 <h4 id="OPERATORS__eliminf-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-eliminf"><code>eliminf</code></a>  — def-functoid · element/number-valued</h4>
@@ -930,9 +930,9 @@
 <pre>inst-reach(md12d_, md12l_) := {md12z_ in expr-set: forall([md12w_ in power(expr-set)], md12d_ in md12w_ implies inst-closed(md12l_, md12w_) implies md12z_ in md12w_)}</pre>
 <h4 id="OPERATORS__integral-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-integral"><code>integral</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the integral of f over omega with respect to the measure mu</p>
-<pre>integral(omega, ca, mu, f) := esup({iny_ in rr-pos-star: forsome([ins_], is-simple-fn(omega, ca, ins_) and ptwise-le(omega, ins_, f) and iny_ = simple-integral(omega, mu, ins_))})</pre>
+<pre>integral(omega, ca, mu, f) := esup({iny_ in rr-pos-star: forsome([ins_ in fun(omega, rr-pos-star)], is-simple-fn(omega, ca, ins_) and ptwise-le(omega, ins_, f) and iny_ = simple-integral(omega, mu, ins_))})</pre>
 <h4 id="OPERATORS__interior-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-interior"><code>interior</code></a>  — def-functoid · set-valued</h4>
-<pre>interior(s, a) := {x in pts(s): forsome([u], is-open(s, u) and x in u and u subset a)}</pre>
+<pre>interior(s, a) := {x in pts(s): forsome([u in power(pts(s))], is-open(s, u) and x in u and u subset a)}</pre>
 <h4 id="OPERATORS__intersection-kernel-term-former"><code>intersection</code>  — kernel term-former</h4>
 <h4 id="OPERATORS__intersection-of-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-intersection-of"><code>intersection-of</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the intersection of the members of c</p>
@@ -964,34 +964,34 @@
 <p>&gt; _Reads as:_  the ispace slot of s</p>
 <h4 id="OPERATORS__j-cart-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-j-cart"><code>j-cart</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the local instances of cartesian-decompose</p>
-<pre>j-cart(mit_) := {mix_ in rw-univ: forsome([mig_, miz_, mia_], mix_ = [2, mig_, enc-in(miz_, enc-cart(mia_)), enc-cch(miz_, mia_, length(mia_), length(mia_))] and mig_ in ctx-set and 1 &lt;= length(mia_))}</pre>
+<pre>j-cart(mit_) := {mix_ in rw-univ: forsome([mig_, miz_, mia_], miz_ in set and mia_ in set and mix_ = [2, mig_, enc-in(miz_, enc-cart(mia_)), enc-cch(miz_, mia_, length(mia_), length(mia_))] and mig_ in ctx-set and 1 &lt;= length(mia_))}</pre>
 <h4 id="OPERATORS__j-fb-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-j-fb"><code>j-fb</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the local functoid redexes over mrt_, at any arguments</p>
-<pre>j-fb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrh_, mrl_, mrb_], mrx_ = [1, mrg_, eapp(mrh_, mrl_), openl(mrb_, mrl_, length(mrl_))] and fun-def(mrh_, length(mrl_), mrb_) and eapp(mrh_, mrl_) in clt and openl(mrb_, mrl_, length(mrl_)) in clt)}</pre>
+<pre>j-fb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrh_, mrl_, mrb_], mrg_ in set and mrh_ in set and mrl_ in set and mrb_ in set and mrx_ = [1, mrg_, eapp(mrh_, mrl_), openl(mrb_, mrl_, length(mrl_))] and fun-def(mrh_, length(mrl_), mrb_) and eapp(mrh_, mrl_) in clt and openl(mrb_, mrl_, length(mrl_)) in clt)}</pre>
 <h4 id="OPERATORS__j-idec-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-j-idec"><code>j-idec</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the local instances over md14t_ of the catalog&#x27;s intersection-decompose</p>
-<pre>j-idec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14y_ = [2, md14g_, enc-in(md14x2_, enc-inter(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(3, md14x2_, md14l2_) and enc-in(md14x2_, enc-inter(md14l2_)) in clf and md14f2_ in clf)}</pre>
+<pre>j-idec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14g_ in set and md14x2_ in set and md14l2_ in set and md14y_ = [2, md14g_, enc-in(md14x2_, enc-inter(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(3, md14x2_, md14l2_) and enc-in(md14x2_, enc-inter(md14l2_)) in clf and md14f2_ in clf)}</pre>
 <h4 id="OPERATORS__j-lb-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-j-lb"><code>j-lb</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the local lambda redexes over mrt_, the argument in the domain</p>
-<pre>j-lb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mra_, mrb_, mre_], mrx_ = [1, mrg_, enc-apply(enc-lam(mra_, mrb_), mre_), expr-open(mrb_, 0, mre_)] and enc-apply(enc-lam(mra_, mrb_), mre_) in clt and expr-open(mrb_, 0, mre_) in clt and [mrg_, enc-in(mre_, mra_)] in derivable(mrt_))}</pre>
+<pre>j-lb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mra_, mrb_, mre_], mrg_ in set and mra_ in set and mrb_ in set and mre_ in set and mrx_ = [1, mrg_, enc-apply(enc-lam(mra_, mrb_), mre_), expr-open(mrb_, 0, mre_)] and enc-apply(enc-lam(mra_, mrb_), mre_) in clt and expr-open(mrb_, 0, mre_) in clt and [mrg_, enc-in(mre_, mra_)] in derivable(mrt_))}</pre>
 <h4 id="OPERATORS__j-len-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-j-len"><code>j-len</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the local LENGTH-of-a-list redexes over mrt_, the list denoting</p>
-<pre>j-len(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrl_], mrx_ = [1, mrg_, enc-length(enc-list(mrl_)), enc-num(length(mrl_))] and enc-length(enc-list(mrl_)) in clt and enc-num(length(mrl_)) in clt and [mrg_, enc-eq(enc-list(mrl_), enc-list(mrl_))] in derivable(mrt_))}</pre>
+<pre>j-len(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrl_], mrg_ in set and mrl_ in set and mrx_ = [1, mrg_, enc-length(enc-list(mrl_)), enc-num(length(mrl_))] and enc-length(enc-list(mrl_)) in clt and enc-num(length(mrl_)) in clt and [mrg_, enc-eq(enc-list(mrl_), enc-list(mrl_))] in derivable(mrt_))}</pre>
 <h4 id="OPERATORS__j-mac-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-j-mac"><code>j-mac</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the local instances of the one-variable macetes of mrt_, the condition derivable and the instance denoting</p>
-<pre>j-mac(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrc_, mra_, mrb_, mre_ in clt], [mrg_, expr-open(mrc_, 0, mre_)] in derivable(mrt_) and [mrg_, enc-eq(mre_, mre_)] in derivable(mrt_) and (mrx_ = [1, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clt and expr-open(mrb_, 0, mre_) in clt or mrx_ = [2, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clf and expr-open(mrb_, 0, mre_) in clf))}</pre>
+<pre>j-mac(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrc_, mra_, mrb_, mre_], mrg_ in set and mrc_ in set and mra_ in set and mrb_ in set and mre_ in clt and [mrg_, expr-open(mrc_, 0, mre_)] in derivable(mrt_) and [mrg_, enc-eq(mre_, mre_)] in derivable(mrt_) and (mrx_ = [1, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-qeq(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clt and expr-open(mrb_, 0, mre_) in clt or mrx_ = [2, mrg_, expr-open(mra_, 0, mre_), expr-open(mrb_, 0, mre_)] and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in mrt_ and enc-all(enc-imp(mrc_, enc-iff(mra_, mrb_))) in clf and expr-open(mra_, 0, mre_) in clf and expr-open(mrb_, 0, mre_) in clf))}</pre>
 <h4 id="OPERATORS__j-macn-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-j-macn"><code>j-macn</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the local instances of the macetes of md13t_ of any number of schema variables, the condition derivable and every value denoting</p>
-<pre>j-macn(md13t_) := {md13x_ in rw-univ: forsome([md13g_, md13m_, md13l_, md13i_, md13r_, md13a_, md13b_], md13m_ in md13t_ and md13m_ in clf and md13i_ in inst-reach(md13m_, md13l_) and forall([md13j_ in nn], 2 &lt;= md13j_ implies md13j_ &lt;= length(md13l_) implies [md13g_, enc-eq(nth(md13j_, md13l_), nth(md13j_, md13l_))] in derivable(md13t_)) and (md13i_ = md13r_ or forsome([md13c_], md13i_ = enc-imp(md13c_, md13r_) and [md13g_, md13c_] in derivable(md13t_))) and (md13r_ = enc-qeq(md13a_, md13b_) and md13x_ = [1, md13g_, md13a_, md13b_] and md13a_ in clt and md13b_ in clt or md13r_ = enc-iff(md13a_, md13b_) and md13x_ = [2, md13g_, md13a_, md13b_] and md13a_ in clf and md13b_ in clf))}</pre>
+<pre>j-macn(md13t_) := {md13x_ in rw-univ: forsome([md13g_, md13m_, md13l_, md13i_, md13r_, md13a_, md13b_], md13g_ in set and md13l_ in set and md13r_ in set and md13a_ in set and md13b_ in set and md13m_ in md13t_ and md13m_ in clf and md13i_ in inst-reach(md13m_, md13l_) and forall([md13j_ in nn], 2 &lt;= md13j_ implies md13j_ &lt;= length(md13l_) implies [md13g_, enc-eq(nth(md13j_, md13l_), nth(md13j_, md13l_))] in derivable(md13t_)) and (md13i_ = md13r_ or forsome([md13c_ in set], md13i_ = enc-imp(md13c_, md13r_) and [md13g_, md13c_] in derivable(md13t_))) and (md13r_ = enc-qeq(md13a_, md13b_) and md13x_ = [1, md13g_, md13a_, md13b_] and md13a_ in clt and md13b_ in clt or md13r_ = enc-iff(md13a_, md13b_) and md13x_ = [2, md13g_, md13a_, md13b_] and md13a_ in clf and md13b_ in clf))}</pre>
 <h4 id="OPERATORS__j-nth-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-j-nth"><code>j-nth</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the local NTH-of-a-list redexes over mrt_, the list denoting</p>
-<pre>j-nth(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrl_, mrk_], mrx_ = [1, mrg_, enc-nth(enc-num(mrk_), enc-list(mrl_)), nth(mrk_, mrl_)] and mrk_ in nn and 1 &lt;= mrk_ and mrk_ &lt;= length(mrl_) and enc-nth(enc-num(mrk_), enc-list(mrl_)) in clt and nth(mrk_, mrl_) in clt and [mrg_, enc-eq(enc-list(mrl_), enc-list(mrl_))] in derivable(mrt_))}</pre>
+<pre>j-nth(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrl_, mrk_], mrg_ in set and mrl_ in set and mrx_ = [1, mrg_, enc-nth(enc-num(mrk_), enc-list(mrl_)), nth(mrk_, mrl_)] and mrk_ in nn and 1 &lt;= mrk_ and mrk_ &lt;= length(mrl_) and enc-nth(enc-num(mrk_), enc-list(mrl_)) in clt and nth(mrk_, mrl_) in clt and [mrg_, enc-eq(enc-list(mrl_), enc-list(mrl_))] in derivable(mrt_))}</pre>
 <h4 id="OPERATORS__j-teq-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-j-teq"><code>j-teq</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the local instances of tuple-equality-decompose</p>
-<pre>j-teq(mit_) := {mix_ in rw-univ: forsome([mig_, mia_, mib_], mix_ = [2, mig_, enc-eq(enc-list(mia_), enc-list(mib_)), enc-tcj(mia_, mib_, length(mia_), length(mia_))] and mig_ in ctx-set and length(mia_) = length(mib_))}</pre>
+<pre>j-teq(mit_) := {mix_ in rw-univ: forsome([mig_, mia_, mib_], mia_ in set and mib_ in set and mix_ = [2, mig_, enc-eq(enc-list(mia_), enc-list(mib_)), enc-tcj(mia_, mib_, length(mia_), length(mia_))] and mig_ in ctx-set and length(mia_) = length(mib_))}</pre>
 <h4 id="OPERATORS__j-udec-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-j-udec"><code>j-udec</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the local instances over md14t_ of the catalog&#x27;s union-decompose</p>
-<pre>j-udec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14y_ = [2, md14g_, enc-in(md14x2_, enc-union(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(4, md14x2_, md14l2_) and enc-in(md14x2_, enc-union(md14l2_)) in clf and md14f2_ in clf)}</pre>
+<pre>j-udec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14g_ in set and md14x2_ in set and md14l2_ in set and md14y_ = [2, md14g_, enc-in(md14x2_, enc-union(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(4, md14x2_, md14l2_) and enc-in(md14x2_, enc-union(md14l2_)) in clf and md14f2_ in clf)}</pre>
 <h4 id="OPERATORS__jop-structure-accessor-element-slot-value"><code>jop</code>  — structure accessor · element (slot value)</h4>
 <p>&gt; _Reads as:_  the complex structure of s</p>
 <h4 id="OPERATORS__juxta-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-juxta"><code>juxta</code></a>  — def-functoid · function-valued</h4>
@@ -1131,7 +1131,7 @@
 <pre>monomial(a, c, n) := vnb-lambda(x_, nn, if(x_ = n, c, zero(a)))</pre>
 <h4 id="OPERATORS__monotone-class-generated-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-monotone-class-generated"><code>monotone-class-generated</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the monotone class of subsets of omega generated by ce</p>
-<pre>monotone-class-generated(omega, ce) := {mca_ in power(omega): forall([mcb_], is-monotone-class(omega, mcb_) and ce subset mcb_ implies mca_ in mcb_)}</pre>
+<pre>monotone-class-generated(omega, ce) := {mca_ in power(omega): forall([mcb_], mcb_ in power(power(omega)) and is-monotone-class(omega, mcb_) and ce subset mcb_ implies mca_ in mcb_)}</pre>
 <h4 id="OPERATORS__mpoly-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-mpoly"><code>mpoly</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the polynomial ring r[x_1, ..., x_n]</p>
 <pre>mpoly(r, n) := monalg(r, multi-index-monoid(interval(1, n)))</pre>
@@ -1274,7 +1274,7 @@
 <h4 id="OPERATORS__product-metric-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-product-metric"><code>product-metric</code></a>  — def-functoid · element/number-valued</h4>
 <pre>product-metric(ms) := product-metric-w(ms, vnb-lambda(n, nn, (/)(1, 2 ^ (n + 1))))</pre>
 <h4 id="OPERATORS__product-metric-w-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-product-metric-w"><code>product-metric-w</code></a>  — def-functoid · tuple/structure-valued</h4>
-<pre>product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], cartesian(product-carrier(ms), product-carrier(ms)), iota(l, series-converges-to(vnb-lambda(n, nn, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]</pre>
+<pre>product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], cartesian(product-carrier(ms), product-carrier(ms)), iota(l, l in rr and series-converges-to(vnb-lambda(n, nn, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]</pre>
 <h4 id="OPERATORS__product-proj-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-product-proj"><code>product-proj</code></a>  — def-functoid · function-valued</h4>
 <pre>product-proj(ms, n) := vnb-lambda(x, product-carrier(ms), x(n))</pre>
 <h4 id="OPERATORS__product-sigma-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-product-sigma"><code>product-sigma</code></a>  — def-functoid · element/number-valued</h4>
@@ -1414,13 +1414,13 @@
 <pre>rm-cyl(s, dseq, a, nb) := {rce_ in rm-k(s, dseq): forall([rci_ in nn], rci_ &lt; nb implies rce_(rci_) = a(rci_))}</pre>
 <h4 id="OPERATORS__rm-k-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-rm-k"><code>rm-k</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the Cantor model of s built on dseq</p>
-<pre>rm-k(s, dseq) := {rke_ in pts(cantor-ms): forall([rkn_ in nn], forsome([rky_], rm-realizes(s, dseq, rke_, rkn_, rky_)))}</pre>
+<pre>rm-k(s, dseq) := {rke_ in pts(cantor-ms): forall([rkn_ in nn], forsome([rky_ in pts(s)], rm-realizes(s, dseq, rke_, rkn_, rky_)))}</pre>
 <h4 id="OPERATORS__rm-kms-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-rm-kms"><code>rm-kms</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the Cantor model of s built on dseq, as a metric space</p>
 <pre>rm-kms(s, dseq) := subspace-ms(cantor-ms, rm-k(s, dseq))</pre>
 <h4 id="OPERATORS__rm-pi-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-rm-pi"><code>rm-pi</code></a>  — def-functoid · function-valued</h4>
 <p>&gt; _Reads as:_  the projection of the Cantor model of s built on dseq onto s</p>
-<pre>rm-pi(s, dseq) := vnb-lambda(rpe_, rm-k(s, dseq), iota(rpy_, rm-address(s, dseq, rpe_, rpy_)))</pre>
+<pre>rm-pi(s, dseq) := vnb-lambda(rpe_, rm-k(s, dseq), iota(rpy_, rpy_ in pts(s) and rm-address(s, dseq, rpe_, rpy_)))</pre>
 <h4 id="OPERATORS__rm-shell-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-rm-shell"><code>rm-shell</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the outer shell of the n-th ball of the family of s built on dseq</p>
 <pre>rm-shell(s, dseq, n) := {rsy_ in pts(s): recip(nnsnd(n) + 1) &lt;= (dist(s))(dseq(nnfst(n)), rsy_)}</pre>
@@ -1495,7 +1495,7 @@
 <pre>seq-shift(n, z) := vnb-lambda(sfi_, interval(1, n), z(n + sfi_))</pre>
 <h4 id="OPERATORS__series-limit-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-series-limit"><code>series-limit</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the sum of the series f</p>
-<pre>series-limit(f) := iota(lm_, series-converges-to(f, lm_))</pre>
+<pre>series-limit(f) := iota(lm_, lm_ in rr and series-converges-to(f, lm_))</pre>
 <h4 id="OPERATORS__series-partial-sum-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-series-partial-sum"><code>series-partial-sum</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the sum of the first k terms of the series f</p>
 <pre>series-partial-sum(f, k) := sum-ag(normed-field-additive-ag(rr-normed-field), f, k)</pre>
@@ -1506,7 +1506,7 @@
 <p>&gt; _Reads as:_  the sigma-algebra of s</p>
 <h4 id="OPERATORS__sigma-generated-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-sigma-generated"><code>sigma-generated</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the sigma-algebra of subsets of omega generated by ce</p>
-<pre>sigma-generated(omega, ce) := {a_ in power(omega): forall([cb_], is-sigma-algebra(omega, cb_) and ce subset cb_ implies a_ in cb_)}</pre>
+<pre>sigma-generated(omega, ce) := {a_ in power(omega): forall([cb_], cb_ in power(power(omega)) and is-sigma-algebra(omega, cb_) and ce subset cb_ implies a_ in cb_)}</pre>
 <h4 id="OPERATORS__simple-integral-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-simple-integral"><code>simple-integral</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the integral of the simple function s over omega with respect to mu</p>
 <pre>simple-integral(omega, mu, s) := finsum(rr-pos-star-add-monoid, vnb-lambda(siy_, image(s, omega), etimes(siy_, mu({six_ in omega: s(six_) = siy_}))), image(s, omega))</pre>

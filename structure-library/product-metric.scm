@@ -50,12 +50,15 @@
 ;;; weighted per-factor bounded distances, named by IOTA (its limit, which
 ;;; exists by product-weighted-summable, PROVEN in
 ;;; theorem-library/product-summable.scm).
+;;; NBGSEP (2026-10-25): bounded by a top-level conjunct L in RR (a confined IOTA,
+;;; NBG); SERIES-CONVERGES-TO puts L in PTS(RR-MS) = RR, so the meaning is unchanged.
 (def-functoid 'PRODUCT-METRIC-W '(ms w)
   '(LIST (PRODUCT-CARRIER ms)
          (VNB-LAMBDA (LIST x y) (CARTESIAN (PRODUCT-CARRIER ms) (PRODUCT-CARRIER ms))
-           (IOTA L (SERIES-CONVERGES-TO
-                     (VNB-LAMBDA n NN (* (w n) ((DIST (BDD-METRIC (ms n))) (x n) (y n))))
-                     L)))))
+           (IOTA L (AND (IN L RR)
+                        (SERIES-CONVERGES-TO
+                          (VNB-LAMBDA n NN (* (w n) ((DIST (BDD-METRIC (ms n))) (x n) (y n))))
+                          L))))))
 
 ;;; The canonical instance, weights 2^-(n+1)  (diameter <= SUM 2^-(n+1) = 1).
 (def-functoid 'PRODUCT-METRIC '(ms)

@@ -732,7 +732,8 @@
     ((> depth 8) #f)
     ((not (pair? body)) #t)
     ((memq (car body) '(SEP BIG-UNION VNB-LAMBDA))
-     (and (= (length body) 4) (pi--body-shape-total? (caddr body) depth)))
+     (and (= (length body) 4) (pi--binder-predicative? body)      ; NBGSEP
+          (pi--body-shape-total? (caddr body) depth)))
     ((eq? (car body) 'COMP) #t)
     ((memq (car body) *total-term-heads*)
      (every (lambda (a) (pi--body-shape-total? a depth)) (cdr body)))
@@ -773,7 +774,7 @@
           (every term-self-defined? (cdr t))) #t)
     ;; the binder comprehensions denote when their DOMAIN does (4a); COMP always
     ((and (memq (car t) '(SEP BIG-UNION)) (= (length t) 4))
-     (term-self-defined? (caddr t)))
+     (and (pi--binder-predicative? t) (term-self-defined? (caddr t))))     ; NBGSEP
     ((eq? (car t) 'COMP) #t)
     ;; a def-functoid whose body is a class term of that kind, on defined args
     ((and (symbol? (car t)) (pi--functoid-body (car t)))
@@ -810,8 +811,10 @@
     ;;     z in VNB-LAMBDA(x, A, body)  iff  forsome x in A. z = LIST(x, body)
     ;; is the other half and is NOT added here (it wants `declare-named-only!',
     ;; being a bare IN-characterisation that would fire on every goal).
+    ;; NBGSEP (2026-10-25): only a PREDICATIVE body -- the graph of an
+    ;; impredicative one is not an NBG class.
     ((and (eq? (car t) 'VNB-LAMBDA) (= (length t) 4))
-     (term-self-defined? (caddr t)))
+     (and (pi--binder-predicative? t) (term-self-defined? (caddr t))))
     (else #f)))
 
 ;;; Does some assumption WITNESS that t is defined?  (IN t S) gives t in a
@@ -1116,7 +1119,9 @@
 ;;; implication of the condition certifies nothing.  DEPTH bounds the nesting (8).
 (define (pi--sep-form S depth)
   (cond ((> depth 8) #f)
-        ((and (pair? S) (eq? (car S) 'SEP) (= (length S) 4) (symbol? (cadr S))) S)
+        ;; NBGSEP: an impredicative SEP is not read (elimination is refused on it)
+        ((and (pair? S) (eq? (car S) 'SEP) (= (length S) 4) (symbol? (cadr S)))
+         (and (pi--binder-predicative? S) S))
         ((and (pair? S) (symbol? (car S)) (pi--registry-ref (car S)))
          (let ((b (pi--functoid-instance S)))
            (and b (pi--sep-form b (+ depth 1)))))
@@ -1232,7 +1237,11 @@
      (pi--sets-defined? asms t depth))
     ((and (symbol? (car t)) (memq (car t) *total-term-heads*))
      (every (lambda (a) (pi--defined? asms a depth)) (cdr t)))
-    ((and (memq (car t) '(SEP BIG-UNION VNB-LAMBDA)) (= (length t) 4))
+    ;; a set-building binder over a defined domain denotes -- when its condition /
+    ;; body is PREDICATIVE (NBGSEP, 2026-10-25): NBG has the class {x in A | p}
+    ;; only for a p that quantifies over sets
+    ((and (memq (car t) '(SEP BIG-UNION VNB-LAMBDA)) (= (length t) 4)
+          (pi--binder-predicative? t))
      (pi--defined? asms (caddr t) depth))
     ((eq? (car t) 'COMP) #t)
     ;; NTH of a literal list denotes when the LIST does (2026-10-12, R4): NTH is strict, and a
@@ -1909,6 +1918,7 @@
          (let ((subj (cadr g)))
            (and (pair? subj) (eq? (car subj) 'SEP) (= (length subj) 4)
                 (let ((A (caddr subj)))
+                  (pi--refuse-impredicative-binder! "sep-sethood" subj)
                   (dg-apply-rule! dg 'sep-sethood
                     (list (make-sequent asms (wff-child goal `(IN ,A SET))))
                     sqn)))))))
@@ -1922,6 +1932,7 @@
          (let ((y (cadr g)) (subj (caddr g)))
            (and (pair? subj) (eq? (car subj) 'SEP) (= (length subj) 4)
                 (let ((x (cadr subj)) (A (caddr subj)) (p (cadddr subj)))
+                  (pi--refuse-impredicative-binder! "sep-mem-intro" subj)
                   (dg-apply-rule! dg 'sep-mem-intro
                     (list (make-sequent asms (wff-child goal `(IN ,y ,A)))
                           (make-sequent asms (wff-child goal (subst-free x y p))))
@@ -1937,6 +1948,7 @@
            (and (pair? raw-f) (eq? (car raw-f) 'IN)
                 (let ((y (cadr raw-f)) (subj (caddr raw-f)))
                   (and (pair? subj) (eq? (car subj) 'SEP) (= (length subj) 4)
+                       (pi--refuse-impredicative-binder! "sep-mem-elim" subj)
                        (let* ((x (cadr subj)) (A (caddr subj)) (p (cadddr subj))
                               (asms*  (context-remove-assumption asms f))
                               (asms** (context-add-assumption asms* (wff-child f `(IN ,y ,A))))
@@ -1970,6 +1982,32 @@
 ;;; comp-predicativity-audit with IOTA added; the checker (rule-checkers-schema.scm,
 ;;; rcs--comp-unconfined-binder) states it again independently.  A free class
 ;;; PARAMETER of p is fine.
+;;;
+;;; NBGSEP (the user's decision (ii), 2026-10-24: version-X is NBG with global
+;;; choice; the proposal's option (b), approved the same day).  Two clauses are
+;;; added to the ONE relation, so COMP and the set-building binders share it:
+;;;   (b)1 A DEFERRED guard confines.  FORALL v is confined when (IN v C) is a
+;;;        conjunct of SOME antecedent along its implicational spine -- the body
+;;;        read through further FORALLs (not rebinding v) and IMPLIES consequents:
+;;;        `forall a. forall b. (a in P) => (b in Q) => ..'.  FORSOME v is
+;;;        confined when (IN v C) is a leaf of its conjunctive spine -- the body
+;;;        read through further FORSOMEs (not rebinding v) and AND:
+;;;        `forsome a. forsome b. (a in P and b in Q and ..)'.  Sound: if v is a
+;;;        proper class, (IN v C) is false at every value of the other variables,
+;;;        so the universal's instance is vacuously true and the existential's
+;;;        instance false; restricting v to sets changes nothing (the formula is
+;;;        prenex-equivalent to the confined form).
+;;;   (b)2 IOTA v B is confined when (IN v C) is a top-level conjunct of B: then
+;;;        B(w) implies w in C, so the uniqueness clause `forall w. B(w) => w = v'
+;;;        is equivalent to its restriction to sets.  B itself is then walked.
+;;; A PREDICATE guard (POS-RR(eps) => ..) is NOT confining.
+;;;
+;;; The set-building binders SEP(x, A, p), BIG-UNION(z, A, b), VNB-LAMBDA(bs, A, b)
+;;; are tested on their condition / body by the same walk
+;;; (`pi--binder-unconfined-binder', below): sep-sethood, sep-mem-intro and -elim,
+;;; big-union-sethood, -mem-intro and -elim and lambda-type REFUSE an impredicative
+;;; one; lambda-beta leaves its redex standing; the definedness certificates do not
+;;; certify it and the value test reads it as a possible proper class.
 
 ;;; The first binder of P that is not confined to sets, or #f.
 (define (pi--comp-unconfined-binder p)
@@ -1984,13 +2022,33 @@
                (and (pair? c) (eq? (car c) 'IN) (= (length c) 3) (eq? (cadr c) v)))
              #t)
             (#t (loop (cdr cs))))))
+  (define (binder3? head e)
+    (and (pair? e) (eq? (car e) head) (= (length e) 3) (symbol? (cadr e))))
+  ;; (b)1, universal: some antecedent on the spine of B guards v
+  (define (forall-spine-guards? v b)
+    (cond ((and (binder3? 'FORALL b) (not (eq? (cadr b) v)))
+           (forall-spine-guards? v (caddr b)))
+          ((and (pair? b) (eq? (car b) 'IMPLIES) (= (length b) 3))
+           (or (member-guard? v (cadr b))
+               (forall-spine-guards? v (caddr b))))
+          (#t #f)))
+  ;; (b)1, existential: some leaf of the conjunctive spine of B guards v
+  (define (forsome-spine-guards? v b)
+    (cond ((and (binder3? 'FORSOME b) (not (eq? (cadr b) v)))
+           (forsome-spine-guards? v (caddr b)))
+          ((and (pair? b) (eq? (car b) 'AND) (= (length b) 3))
+           (or (forsome-spine-guards? v (cadr b))
+               (forsome-spine-guards? v (caddr b))))
+          ((and (pair? b) (eq? (car b) 'IN) (= (length b) 3)) (eq? (cadr b) v))
+          (#t #f)))
   (define (confined? q)
     (let ((v (cadr q)) (body (caddr q)))
       (and (symbol? v)
-           (if (eq? (car q) 'FORALL)
-               (and (pair? body) (eq? (car body) 'IMPLIES) (= (length body) 3)
-                    (member-guard? v (cadr body)))
-               (member-guard? v body)))))
+           (case (car q)
+             ((FORALL) (forall-spine-guards? v body))
+             ((FORSOME) (forsome-spine-guards? v body))
+             ((IOTA) (member-guard? v body))          ; (b)2
+             (else #f)))))
   (define (walk-list xs)
     (cond ((not (pair? xs)) #f)
           ((walk (car xs)) => (lambda (b) b))
@@ -2000,11 +2058,40 @@
            (or (walk-list (map cdr (functoid-bindings e)))
                (walk (functoid-body e))))
           ((not (pair? e)) #f)
-          ((and (memq (car e) '(FORALL FORSOME)) (= (length e) 3))
+          ((and (memq (car e) '(FORALL FORSOME IOTA)) (= (length e) 3))
            (if (confined? e) (walk (caddr e)) e))
           ((eq? (car e) 'IOTA) e)
           (#t (walk-list e))))
   (walk p))
+
+;;; NBGSEP: the condition / body of a set-building binder term T -- the p of
+;;; (SEP x A p), the b of (BIG-UNION z A b) and of (VNB-LAMBDA bs A b) -- or #f
+;;; when T is not such a term.  The domain A is outside the binder: its own
+;;; existence is what `A in SET' (or the certificate's recursion) establishes.
+(define (pi--set-binder-body t)
+  (and (pair? t) (memq (car t) '(SEP BIG-UNION VNB-LAMBDA)) (= (length t) 4)
+       (cadddr t)))
+
+;;; The first binder of T's condition / body not confined to sets, or #f (also
+;;; #f for a term that is not a set-building binder).
+(define (pi--binder-unconfined-binder t)
+  (let ((b (pi--set-binder-body t)))
+    (and b (pi--comp-unconfined-binder b))))
+
+(define (pi--binder-predicative? t) (not (pi--binder-unconfined-binder t)))
+
+(define (pi--refuse-impredicative-binder! tag t)
+  (let ((b (pi--binder-unconfined-binder t)))
+    (if b
+        (error (string-append tag ": NBG refuses this " (symbol->string (car t))
+                              " -- its " (if (eq? (car t) 'SEP) "condition" "body")
+                              " has a binder not confined to sets, "
+                              (if (and (eq? (car b) 'IOTA) (not (and (= (length b) 3) (symbol? (cadr b)))))
+                                  "an IOTA"
+                                  (string-append "an unconfined " (symbol->string (car b)) " "
+                                                 (expression->string (cadr b)))))
+               b)
+        #t)))
 
 ;; A new binder head must be taught to this walker (binder-walker-audit).
 (declare-binder-walker! 'pi--comp-unconfined-binder
@@ -2090,6 +2177,7 @@
                        (z*    (apply fresh-var z avoids))
                        (body* (subst-free z z* body))
                        (sethood `(FORALL ,z* (IMPLIES (IN ,z* ,A) (IN ,body* SET)))))
+                  (pi--refuse-impredicative-binder! "big-union-sethood" subj)
                   (dg-apply-rule! dg 'big-union-sethood
                     (list (make-sequent asms (wff-child goal `(IN ,A SET)))
                           (make-sequent asms (wff-child goal sethood)))
@@ -2109,6 +2197,7 @@
                        (body-w (subst-free z witness body))
                        (mem-x  `(IN ,x ,body-w)))
                   (validate-wff! mem-x)   ; reject malformed witness early
+                  (pi--refuse-impredicative-binder! "big-union-mem-intro" subj)
                   (dg-apply-rule! dg 'big-union-mem-intro
                     (list (make-sequent asms (wff-child goal `(IN ,witness ,A)))
                           (make-sequent asms (wff-child goal mem-x)))
@@ -2124,6 +2213,7 @@
            (and (pair? raw-f) (eq? (car raw-f) 'IN)
                 (let ((x (cadr raw-f)) (subj (caddr raw-f)))
                   (and (pair? subj) (eq? (car subj) 'BIG-UNION) (= (length subj) 4)
+                       (pi--refuse-impredicative-binder! "big-union-mem-elim" subj)
                        (let* ((z    (cadr subj))
                               (A    (caddr subj))
                               (body (cadddr subj))
@@ -2337,6 +2427,7 @@
                        (avoids (cons body (cons A (cons B (map wff-formula asms)))))
                        (sub-goal (pi--lambda-type-subgoal (cadr subj) A body B avoids))
                        (set-goal `(IN ,A SET)))
+                  (pi--refuse-impredicative-binder! "lambda-type" subj)
                   (and sub-goal
                        (dg-apply-rule! dg 'lambda-type
                          (list (make-sequent asms (wff-child goal sub-goal))
@@ -2546,7 +2637,7 @@
 ;;;   succ_ORD(a): a u {a}.  Decided by a;
 ;;;   a registered functoid applied: by its body with the arguments substituted;
 ;;;   a DEFINED FUNCTION applied (def-constant, def-by-nn/ord-recursion, or an operator
-;;;     with an unguarded definitional NAME-def): by the right-hand sides of its
+;;;     defined by `def-operator'): by the right-hand sides of its
 ;;;     defining equations (`pi--defined-fn-values', above).
 ;;; MAY BE A PROPER CLASS:
 ;;;   SET, ORD; an untyped bare symbol; COMP; FUN, INJECTION, BIJECTION, PARTIAL-FUN
@@ -2571,10 +2662,13 @@
 
 ;;; A DEFINED FUNCTION is decided by its defining equations (BVAL, 2026-10-23).  The
 ;;; equations are the head's characterising axioms in library-definitions (`def-constant',
-;;; `def-by-nn-recursion', `def-by-ord-recursion'), or else the one theorem NAME-def, when
+;;; `def-by-nn-recursion', `def-by-ord-recursion'), or else the one axiom `def-operator'
+;;; recorded for the head in `*defined-operators*' (library.scm; GUARDDEF item 5,
+;;; 2026-10-24: until then the theorem named HEAD-def, found by building the name), when
 ;;; it is UNGUARDED (no implication in it: it determines the head everywhere) -- the shape
 ;;; of an already-registered operator defined later by a quasi-equation (`eplus-def',
-;;; `etimes-def', `rpow-def').  Every axiom read must be `definitional' or `primitive' and
+;;; `etimes-def', `rpow-def').  Every axiom read must be `definitional' (since GUARDDEF,
+;;; 2026-10-24; `primitive' was accepted before) and
 ;;; must be an equation (= or ==), under universals and guards, whose left-hand side is
 ;;; either the head applied to as many arguments as the term, or the bare head.  The value
 ;;; of an applied left-hand side's right-hand side is read with its plain variables bound
@@ -2609,14 +2703,22 @@
   (define (safely thunk)
     (call-with-current-continuation
       (lambda (k) (with-exception-handler (lambda (c) (k #f)) thunk))))
+  ;; DEFINITIONAL ONLY (GUARDDEF item 3, 2026-10-24).  A primitive axiom is a shelf
+  ;; fact, not a definition: the off-guard reading (a guarded head denotes nothing off
+  ;; its guards) is licensed by a defining command, never by the shelf.  The audit
+  ;; (scratchpad/GUARDDEF-REPORT.md s.C) found no primitive axiom the row read.
   (define (trusted? nm)
-    (and *pi-provenance-of* (memq (*pi-provenance-of* nm) '(definitional primitive)) #t))
+    (and *pi-provenance-of* (eq? (*pi-provenance-of* nm) 'definitional)))
   (let* ((defs  (safely (lambda () (library-definitions *library*))))
          (entry (and (symbol? head) (list? defs) (assq head defs)))
          (axs   (cond ((and entry (pair? (cdr entry))) (cdr entry))
                       ((not (symbol? head)) #f)
-                      (#t (let* ((nm (symbol-append head '-def))
-                                 (f  (safely (lambda () (hash-table-ref/default *theorem-table* nm #f)))))
+                      ;; the axiom `def-operator' recorded for HEAD (GUARDDEF item 5,
+                      ;; 2026-10-24); the name HEAD-def is no longer built: a theorem so
+                      ;; named and stamped by hand is not a definition
+                      (#t (let* ((nm (safely (lambda () (defined-operator-axiom head))))
+                                 (f  (and (symbol? nm)
+                                          (safely (lambda () (hash-table-ref/default *theorem-table* nm #f))))))
                             (and f (unguarded? f) (list (cons nm f))))))))
     (and axs
          (let loop ((axs axs) (acc '()))
@@ -2681,6 +2783,9 @@
       ((and (memq (car t) *pi-value-first-arg-heads*) (>= (length t) 2))
        (may? (cadr t) (+ depth 1)))
       ((eq? (car t) 'COMP) #t)
+      ;; NBGSEP: an impredicative SEP / VNB-LAMBDA / BIG-UNION is no NBG class: owe it
+      ((and (memq (car t) '(SEP VNB-LAMBDA BIG-UNION)) (= (length t) 4)
+            (not (pi--binder-predicative? t))) #t)
       ((and (memq (car t) '(SEP VNB-LAMBDA)) (= (length t) 4)) (may? (caddr t) (+ depth 1)))
       ((and (eq? (car t) 'BIG-UNION) (= (length t) 4))   ; the domain, and the body at its points
        (or (may? (caddr t) (+ depth 1))
@@ -2826,6 +2931,10 @@
   (define (reduce-in-body bs A e)
     (reduce-under (pi--bspec-vars bs) (pi--binder-scope bs A) e))
   (define (ok?* args A value) (ok? args A scope bvars value))   ; value: the reduct (2026-10-01)
+  ;; NBGSEP: an impredicative lambda's redex is never contracted (left standing,
+  ;; like an unlicensed one): its graph is not an NBG class.
+  (define (lam-ok?* lam args A value)
+    (and (pi--binder-predicative? lam) (ok?* args A value)))
   (cond
     ;; (FORALL v (IMPLIES (IN v A) body)) -- v's membership holds inside body.
     ((and (pair? expr) (eq? (car expr) 'FORALL) (= (length expr) 3)
@@ -2854,7 +2963,7 @@
                                   (cadddr (car expr))))
             (arg  (reduce-lambda-in-expr (cadr expr))))
        (let ((value (subst-free x arg body)))
-       (if (ok?* (list arg) A value)
+       (if (lam-ok?* (car expr) (list arg) A value)
            value
            ;; not licensed: leave the redex alone, but still normalise inside it
            (list (list 'VNB-LAMBDA x A body) arg)))))
@@ -2884,7 +2993,7 @@
             (body  (reduce-in-body (cadar expr) A (cadddr (car expr))))
             (arg   (reduce-lambda-in-expr (cadr expr)))      ; still (LIST q*)
             (value (subst-free p (cadr arg) body)))
-       (if (ok?* (list arg) A value)
+       (if (lam-ok?* (car expr) (list arg) A value)
            value
            (list (list 'VNB-LAMBDA (cadar expr) A body) arg))))
     ;; ((VNB-LAMBDA (LIST x1 ... xn) body) arg1 ... argn)  — multi-binder, parallel,
@@ -2912,7 +3021,7 @@
                                   (subst-free (car pair) (cdr pair) b))
                                 renamed
                                 (map cons fresh args))))
-       (if (ok?* args (caddr (car expr)) final)
+       (if (lam-ok?* (car expr) args (caddr (car expr)) final)
            final
            (cons (list 'VNB-LAMBDA (cadar expr) (caddr (car expr)) body) args))))
     ;; The domain-carrying binders, all of shape (H v A body) with A OUTSIDE the

@@ -148,6 +148,28 @@
 (qed 'sigma-algebra-union-closed)
 (topic! 'sigma-algebra-union-closed 'set-quotient)
 
+;;; sigma-algebra-in-power-power (NBGSEP, 2026-10-25): a sigma-algebra on omega
+;;; is a member of POWER(POWER(omega)) -- the bound SIGMA-GENERATED's body now
+;;; writes explicitly (structure-library/measure.scm).  omega is a set, so
+;;; POWER(omega) is one, and cA is included in it.
+(sp (make-wff (forall-guarded '(omega cA) '((IS-SIGMA-ALGEBRA omega cA))
+                '(IN cA (POWER (POWER omega))))))
+(dk-peel!)
+(dk-have! '(SUBSET cA (POWER omega))
+  (lambda ()
+    (dk-split! (dk-landed-1
+                (lambda () (mac-h 'IS-SIGMA-ALGEBRA '(IS-SIGMA-ALGEBRA omega cA)))))
+    (ass)))
+(fact 'sigma-algebra-ambient-set 'omega 'cA)
+(fact 'power-set 'omega)
+(fact 'subclass-of-set-is-set 'cA '(POWER omega))
+(dk-have! '(FORALL z_ (IMPLIES (IN z_ cA) (IN z_ (POWER omega))))
+  (lambda () (mac-h 'subset-def '(SUBSET cA (POWER omega))) (ass)))
+(fact 'power-mem-intro '(POWER omega) 'cA)
+(ass)
+(qed 'sigma-algebra-in-power-power)
+(topic! 'sigma-algebra-in-power-power 'set-quotient)
+
 ;;; -----------------------------------------------------------------------
 ;;; 2.  The SIGMA-GENERATED read-offs.
 ;;;
@@ -179,8 +201,12 @@
 (dk-split! (dk-landed-1
             (lambda () (mac-h 'sigma-generated-membership
                               '(IN a_ (SIGMA-GENERATED omega cE))))))
-(have! '(AND (IS-SIGMA-ALGEBRA omega cB_) (SUBSET cE cB_)))
-(dk-apply! (dk-pick (dk-head? 'FORALL) "the sigma-algebra universal") 'cB_)
+;; NBGSEP: the universal is bounded by cB_ in POWER(POWER(omega)), which the
+;; sigma-algebra hypothesis gives
+(let ((r5w-univ (dk-pick (dk-head? 'FORALL) "the sigma-algebra universal")))
+  (fact 'sigma-algebra-in-power-power 'omega 'cB_)
+  (have! '(AND (IN cB_ (POWER (POWER omega))) (AND (IS-SIGMA-ALGEBRA omega cB_) (SUBSET cE cB_))))
+  (dk-apply! r5w-univ 'cB_))
 (ass)
 (qed 'sigma-generated-in-every)
 (topic! 'sigma-generated-in-every 'set-quotient)
@@ -192,8 +218,21 @@
                            (IN a_ cB_)))
                 (IN a_ (SIGMA-GENERATED omega cE)))))))))
 (dk-peel!)
-(mac 'sigma-generated-membership)
-(dk-conj-close! (lambda () (ass)))
+;; NBGSEP: the membership iff's universal is bounded by cB_ in POWER(POWER(omega));
+;; the hypothesis' unbounded one gives it at each such cB_
+(let ((r5w-old (dk-pick (dk-head? 'FORALL) "the hypothesis' universal")))
+  (mac 'sigma-generated-membership)
+  (dk-conj-close!
+    (lambda ()
+      (let ((g (dk-goal)))
+        (if (and (pair? g) (eq? (car g) 'FORALL))
+            (let* ((landed (dk-peel!))
+                   (bb (cadr (cadr (car landed)))))
+              (dk-split-all! landed)
+              (have! (list 'AND (list 'IS-SIGMA-ALGEBRA 'omega bb) (list 'SUBSET 'cE bb)))
+              (dk-apply! r5w-old bb)
+              (ass))
+            (ass))))))
 (qed 'sigma-generated-intro)
 (topic! 'sigma-generated-intro 'set-quotient)
 

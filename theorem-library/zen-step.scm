@@ -9,7 +9,15 @@
 ;;; at EVERY ordinal:
 ;;;
 ;;;   forall alpha in ORD, X.
-;;;     ZEN(X,alpha) = CHOICE { y in X : forall c ORD-LT alpha. ZEN(X,c) /= y }
+;;;     ZEN(X,alpha) == CHOICE { y in X : forall c ORD-LT alpha. ZEN(X,c) /= y }
+;;;
+;;; A QUASI-equation (GUARDDEF item 1, the user's decision of 2026-10-24): the
+;;; three recursion equations are `==' since def-by-ord-recursion writes `==', and
+;;; X is unguarded, so at an X whose avoid-set is empty (X = EMPTY-SET, for one)
+;;; the right side is CHOICE of the empty class, which `choice-axiom' does not
+;;; make denote.  Until that date the statement was the strict `=', which asserted
+;;; it does; it could be proved only because the strict recursion equations
+;;; asserted the same.  The consumers rewrite with it (`subst'), which takes `=='.
 ;;;
 ;;; Alpha is quantified OUTERMOST so that (tfi3) applies to the goal as stated:
 ;;; `di' peels the whole leading FORALL prefix in one step, so a statement
@@ -134,23 +142,28 @@
 ;;; ZEN, and the uniform step law
 ;;; =====================================================================
 (register-constant! 'ZEN 'defined-fn)
+;;; NBGSEP (2026-10-25): the stage variable c_ of each avoid-set is bounded explicitly by
+;;; c_ in ORD, a curried guard in front of the order guard, so the separation is
+;;; predicative (NBG).  ORD-LE(c, a) gives c in ORD (`ord-le-closure'), and ORD-LT(c, a)
+;;; gives ORD-LE(c, a) (`ord-lt-iff'): the avoid-sets are the same, the meaning unchanged.
 (def-by-ord-recursion 'ZEN '(X)
   '(CHOICE X)
   '(alpha val)
-  '(CHOICE (SEP y_ X (FORALL c_ (IMPLIES (ORD-LE c_ alpha) (NOT (= (ZEN X c_) y_))))))
+  '(CHOICE (SEP y_ X (FORALL c_ (IMPLIES (IN c_ ORD) (IMPLIES (ORD-LE c_ alpha) (NOT (= (ZEN X c_) y_)))))))
   '(lam)
-  '(CHOICE (SEP y_ X (FORALL c_ (IMPLIES (ORD-LT c_ lam) (NOT (= (ZEN X c_) y_)))))))
+  '(CHOICE (SEP y_ X (FORALL c_ (IMPLIES (IN c_ ORD) (IMPLIES (ORD-LT c_ lam) (NOT (= (ZEN X c_) y_))))))))
 
-;; the avoid-set at BOUND, over carrier XV; BOUND is a formula in c_
+;; the avoid-set at BOUND, over carrier XV; BOUND is a formula in c_ (NBGSEP: behind the
+;; guard c_ in ORD)
 (define (zs-sep xv bound)
-  (list 'SEP 'y_ xv (list 'FORALL 'c_ (list 'IMPLIES bound
-                                            (list 'NOT (list '= (list 'ZEN xv 'c_) 'y_))))))
+  (list 'SEP 'y_ xv (list 'FORALL 'c_ (list 'IMPLIES '(IN c_ ORD) (list 'IMPLIES bound
+                                            (list 'NOT (list '= (list 'ZEN xv 'c_) 'y_)))))))
 (define (zs-lt a) (list 'ORD-LT 'c_ a))
 (define (zs-le a) (list 'ORD-LE 'c_ a))
 
 ;; the body of that SEP, at element YV -- what sep-me lands and sep-mi owes
 (define (zs-body xv yv bound)
-  (list 'FORALL 'c_ (list 'IMPLIES bound (list 'NOT (list '= (list 'ZEN xv 'c_) yv)))))
+  (list 'FORALL 'c_ (list 'IMPLIES '(IN c_ ORD) (list 'IMPLIES bound (list 'NOT (list '= (list 'ZEN xv 'c_) yv))))))
 
 ;; c_v < 0 is impossible: 0 is least, and antisymmetry then says c_v IS 0.
 (define (zs-nothing-below-zero! cv)
@@ -198,11 +211,11 @@
 
 (sp (make-wff (list 'FORALL 'alpha (list 'IMPLIES '(IN alpha ORD)
       (list 'FORALL 'X
-        (list '= '(ZEN X alpha) (list 'CHOICE (zs-sep 'X (zs-lt 'alpha)))))))))
+        (list '== '(ZEN X alpha) (list 'CHOICE (zs-sep 'X (zs-lt 'alpha)))))))))
 
 (define zs-cases (dk-opened (lambda () (tfi3))))
 (define (zs-case-base? g)  (and (pair? g) (eq? (car g) 'FORALL)
-                                (pair? (caddr g)) (eq? (car (caddr g)) '=)))
+                                (pair? (caddr g)) (eq? (car (caddr g)) '==)))
 (define (zs-case-succ? g)  (and (pair? g) (eq? (car g) 'FORALL)
                                 (pair? (caddr g)) (eq? (car (caddr g)) 'IMPLIES)
                                 (eq? (car (cadr (caddr g))) 'AND)
@@ -215,7 +228,7 @@
 ;;; ---- BASE:  ZEN(X,0) = CHOICE { y in X : nothing below 0 } = CHOICE X ----
 (zs-pick! zs-cases zs-case-base? "base")
 (di)                                                  ; peel X
-(define zs-X0 (cadr (cadr (zs-goal))))                ; goal (= (ZEN X 0) (CHOICE ...))
+(define zs-X0 (cadr (cadr (zs-goal))))                ; goal (== (ZEN X 0) (CHOICE ...))
 (define ZS-S0 (zs-sep zs-X0 (zs-lt 0)))
 
 (zs-class-ext! ZS-S0 zs-X0
@@ -236,27 +249,35 @@
             (di)                                      ; NOT-intro: assume the equation
             (zs-nothing-below-zero! cv)))))))
 
-(fact 'ZEN-zero zs-X0)                                ; (= (ZEN X 0) (CHOICE X))
+(fact 'ZEN-zero zs-X0)                                ; (== (ZEN X 0) (CHOICE X))
 (subst (list '= (list 'ZEN zs-X0 0) (list 'CHOICE zs-X0)))
 (subst (list '= ZS-S0 zs-X0))
-(rfl)
+(qrfl)
 
 ;;; ---- SUCCESSOR:  the two bounds `<= al' and `< succ al' cut out the same set
 (zs-pick! zs-cases zs-case-succ? "succ")
 (di)                                                  ; peel the induction variable
 (dk-split! (dk-landed-1 (lambda () (di))))            ; assume (AND (IN al ORD) IH), split it
 (di)                                                  ; peel X
-(define zs-Xs (cadr (cadr (zs-goal))))                ; goal (= (ZEN X (succ al)) (CHOICE ...))
+(define zs-Xs (cadr (cadr (zs-goal))))                ; goal (== (ZEN X (succ al)) (CHOICE ...))
 (define zs-al (cadr (caddr (cadr (zs-goal)))))
 (define ZS-SAL (list 'succ_ORD zs-al))
 (define ZS-SLE (zs-sep zs-Xs (zs-le zs-al)))          ; what ZEN-succ produces
 (define ZS-SLS (zs-sep zs-Xs (zs-lt ZS-SAL)))         ; what the uniform law wants
 
-;; cv is an ordinal -- read off whichever comparison the branch has
+;; cv is an ordinal -- read off whichever comparison the branch has.  NBGSEP (2026-10-25):
+;; the avoid-set's own guard c_ in ORD now lands (IN cv ORD) with the peel, and al is an
+;; ordinal from the induction step; read off only what is missing.
 (define (zs-ord-from-le! cv)
+  (if (not (and (dk-asm? (list 'IN cv 'ORD)) (dk-asm? (list 'IN zs-al 'ORD))))
+      (zs-ord-from-le-raw! cv)))
+(define (zs-ord-from-lt! cv)
+  (if (not (and (dk-asm? (list 'IN cv 'ORD)) (dk-asm? (list 'IN ZS-SAL 'ORD))))
+      (zs-ord-from-lt-raw! cv)))
+(define (zs-ord-from-le-raw! cv)
   (fact 'ord-le-closure cv zs-al)
   (dk-split! (list 'AND (list 'IN cv 'ORD) (list 'IN zs-al 'ORD))))
-(define (zs-ord-from-lt! cv)
+(define (zs-ord-from-lt-raw! cv)
   (fact 'ord-lt-iff cv ZS-SAL)
   (ai (list 'IFF (list 'ORD-LT cv ZS-SAL)
             (list 'AND (list 'ORD-LE cv ZS-SAL) (list 'NOT (list '= cv ZS-SAL)))))
@@ -305,7 +326,7 @@
               (ass))))))))
 
 (subst (list '= ZS-SLS ZS-SLE))
-(rfl)
+(qrfl)
 
 ;;; ---- LIMIT:  the installed equation IS the uniform one -------------
 (zs-pick! zs-cases zs-case-limit? "limit")

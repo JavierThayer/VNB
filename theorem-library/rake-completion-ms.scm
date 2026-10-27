@@ -510,14 +510,16 @@
 ;;; THE DESCRIPTION, read off the COMPLETION pair.  d-hat(x,y) IS the IOTA of
 ;;; COMPLETION-DIST's body at the pair [x,y]; both orientations, because
 ;;; `subst' rewrites left to right.
+;;; (NBGSEP, 2026-10-25: with the top-level conjunct dval in RR COMPLETION-DIST now carries)
 (define (r7q-iota x y)
   (list 'IOTA 'dval
+   (list 'AND '(IN dval RR)
     (list 'FORSOME 'f (list 'FORSOME 'g
       (list 'AND '(IN f (CSEQ M))
         (list 'AND '(IN g (CSEQ M))
           (list 'AND (list '= x '(CLASS (CAUCHY-SETOID M) f))
             (list 'AND (list '= y '(CLASS (CAUCHY-SETOID M) g))
-              '(CONVERGES-TO RR-MS (DIST-SEQ M f g) dval)))))))))
+              '(CONVERGES-TO RR-MS (DIST-SEQ M f g) dval))))))))))
 
 (define (r7q-nth*!)
   (let lp ((n 0))
@@ -601,8 +603,9 @@
 (subst (list '== (list '(DIST (COMPLETION M)) r7q-cu r7q-cv) (r7q-iota r7q-cu r7q-cv)))
 (let* ((it (cadr (dk-goal)))
        (ls (dk-opened (lambda () (iota-d it)))))
-  ;; (1) the description's property, granted
+  ;; (1) the description's property, granted (NBGSEP: split off dval in RR)
   (dk-focus! (any-pred (lambda (n) (eq? (car (dk-goal-of n)) '=)) ls))
+  (dk-split-all!)
   (let* ((pr (r7q-skolem-pair!))
          (a2 (car pr)) (b2 (cadr pr)))
     (r7q-limit-in-rr-ms!
@@ -613,14 +616,22 @@
   ;; (2) existence and uniqueness
   (dk-focus! (any-pred (lambda (n) (eq? (car (dk-goal-of n)) 'FORSOME)) ls))
   (ew 'lv)
-  (let ((cs (dk-opened (lambda () (di)))))
+  (let* ((cs0 (dk-opened (lambda () (di))))
+         (ex-leaf (any-pred (lambda (n) (eq? (car (dk-goal-of n)) 'AND)) cs0))
+         (un-leaf (any-pred (lambda (n) (eq? (car (dk-goal-of n)) 'FORALL)) cs0))
+         ;; NBGSEP: the existence half is (AND (IN lv RR) (FORSOME ..)); lv is in PTS(RR-MS)
+         (cs (begin (dk-focus! ex-leaf) (dk-opened (lambda () (di))))))
+    (dk-focus! (any-pred (lambda (n) (eq? (car (dk-goal-of n)) 'IN)) cs))
+    (slot-h 'PTS '(IN lv (PTS RR-MS)))
+    (ass)
     ;; existence at lv, with f_ and g_ as the representatives
     (dk-focus! (any-pred (lambda (n) (eq? (car (dk-goal-of n)) 'FORSOME)) cs))
     (ew 'f_)
     (dk-conj-close! r7q-exist-leaf!)
     ;; uniqueness
-    (dk-focus! (any-pred (lambda (n) (eq? (car (dk-goal-of n)) 'FORALL)) cs))
+    (dk-focus! un-leaf)
     (dk-peel!)
+    (dk-split-all!)
     (let* ((pr (r7q-skolem-pair!))
            (a2 (car pr)) (b2 (cadr pr)))
       (r7q-transport! a2 b2)

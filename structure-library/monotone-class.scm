@@ -38,10 +38,15 @@
 (notation! 'IS-MONOTONE-CLASS 'kind 'predicate 'arity 2
            'english "$2 is a monotone class of subsets of $1")
 
+;;; NBGSEP (2026-10-25): the family quantified over is bounded explicitly,
+;;; mcb_ in POWER(POWER(omega)), so the separation is predicative (NBG).
+;;; IS-MONOTONE-CLASS(omega, mcb_) already gives it (omega a set, mcb_ included in
+;;; POWER(omega)): the meaning is unchanged.
 (def-functoid 'MONOTONE-CLASS-GENERATED '(omega cE)
   '(SEP mca_ (POWER omega)
      (FORALL mcb_
-       (IMPLIES (AND (IS-MONOTONE-CLASS omega mcb_) (SUBSET cE mcb_))
+       (IMPLIES (AND (IN mcb_ (POWER (POWER omega)))
+                     (AND (IS-MONOTONE-CLASS omega mcb_) (SUBSET cE mcb_)))
                 (IN mca_ mcb_)))))
 
 (notation! 'MONOTONE-CLASS-GENERATED 'kind 'functoid 'arity 2

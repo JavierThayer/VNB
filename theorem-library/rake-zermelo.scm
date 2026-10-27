@@ -23,7 +23,7 @@
 ;;; "choose from S something that avoids every value chosen earlier".  Three
 ;;; facts about it are already proven there, all `modulo 0':
 ;;;
-;;;   zen-step      ZEN(S,al) = CHOICE { y in S : forall c ORD-LT al. ZEN(S,c) /= y }
+;;;   zen-step      ZEN(S,al) == CHOICE { y in S : forall c ORD-LT al. ZEN(S,c) /= y }
 ;;;   zen-hits      that avoid-set inhabited  =>  ZEN(S,al) IS one of its members
 ;;;   zen-exhausts  S in SET  =>  some ordinal's avoid-set is EMPTY
 ;;;
@@ -71,10 +71,11 @@
 ;;; built by these, so the two files cannot drift in binder spelling.
 
 ;; the avoid-set at bound A over carrier XV: { y in XV : forall c < A. ZEN(XV,c) /= y }
+;; (NBGSEP, 2026-10-25: behind the guard c_ in ORD, as zen-step.scm writes it)
 (define (r6j-avoid xv a)
   (list 'SEP 'y_ xv
-        (list 'FORALL 'c_ (list 'IMPLIES (list 'ORD-LT 'c_ a)
-                                (list 'NOT (list '= (list 'ZEN xv 'c_) 'y_))))))
+        (list 'FORALL 'c_ (list 'IMPLIES '(IN c_ ORD) (list 'IMPLIES (list 'ORD-LT 'c_ a)
+                                (list 'NOT (list '= (list 'ZEN xv 'c_) 'y_)))))))
 
 ;; "the avoid-set at A is inhabited" -- the antecedent zen-hits detaches
 (define (r6j-inhab xv a) (list 'FORSOME 'x (list 'IN 'x (r6j-avoid xv a))))

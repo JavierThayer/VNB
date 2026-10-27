@@ -132,21 +132,37 @@
 
 ;;; ---- the relation, in and out ----------------------------------------------------------
 (define sipl-ae '(AE-REL omega cA mu sf))
+;;; NBGSEP (2026-10-25): AE-REL bounds its null set by aen_ in SET
+;;; (structure-library/sip-l2-vocab.scm); ae-rel-in / ae-rel-out keep their
+;;; statements, the bound being implied (ae-null-is-set).
 (sp (make-wff '(FORALL omega (FORALL cA (FORALL mu (FORALL sf (== (AE-REL omega cA mu sf)
   (SEP aep_ (CARTESIAN sf sf)
-     (FORSOME aen_ (AND (IS-NULL-SET omega cA mu aen_)
+     (FORSOME aen_ (AND (IN aen_ SET) (AND (IS-NULL-SET omega cA mu aen_)
        (FORALL aex_ (IMPLIES (IN aex_ omega)
-         (IMPLIES (NOT (IN aex_ aen_)) (= ((NTH 1 aep_) aex_) ((NTH 2 aep_) aex_)))))))))))))))
+         (IMPLIES (NOT (IN aex_ aen_)) (= ((NTH 1 aep_) aex_) ((NTH 2 aep_) aex_))))))))))))))))
 (dk-peel!)
 (mac 'AE-REL)
 (qrfl)
 (sipl-qed! 'ae-rel-unfold)
+
+;;; ae-null-is-set (NBGSEP): a null set lies inside a member of cA, a set; so it is a set.
+(sp (make-wff '(FORALL omega (FORALL cA (FORALL mu (FORALL ns_
+  (IMPLIES (IS-NULL-SET omega cA mu ns_) (IN ns_ SET))))))))
+(dk-peel!)
+(let* ((ex (dk-landed-1 (lambda () (mac-h 'IS-NULL-SET '(IS-NULL-SET omega cA mu ns_)))))
+       (nv (dk-skolem! ex)))
+  (dk-split-all!)
+  (fact 'membership-implies-sethood nv 'cA)
+  (fact 'subclass-of-set-is-set 'ns_ nv)
+  (ass))
+(sipl-qed! 'ae-null-is-set)
 
 (sp (make-wff '(FORALL omega (FORALL cA (FORALL mu (FORALL sf (FORALL af_ (IMPLIES (IN af_ sf) (FORALL ag_ (IMPLIES (IN ag_ sf)
   (FORALL ns_ (IMPLIES (IS-NULL-SET omega cA mu ns_)
     (IMPLIES (FORALL ax_ (IMPLIES (IN ax_ omega) (IMPLIES (NOT (IN ax_ ns_)) (= (af_ ax_) (ag_ ax_)))))
       (IN (LIST af_ ag_) (AE-REL omega cA mu sf)))))))))))))))
 (dk-peel!)
+(fact 'ae-null-is-set 'omega 'cA 'mu 'ns_)       ; NBGSEP: the relation's bound on the null set
 (mac 'AE-REL)
 (in-sep! (lambda () (fact 'pair-in-cartesian 'sf 'sf 'af_ 'ag_) (ass))
          (lambda () (nth-r) (ew 'ns_) (dk-conj-close! (lambda () (ass)))))
@@ -159,9 +175,14 @@
 (dk-peel!)
 (let* ((h  (dk-landed-1 (lambda () (mac-h 'ae-rel-unfold '(IN (LIST af_ ag_) (AE-REL omega cA mu sf))))))
        (ls (dk-landed (lambda () (sep-me h))))
-       (c  (or (any-pred (lambda (f) (dk-head-is? f 'FORSOME)) ls) (error "ae-rel-out: no condition"))))
-  (dk-nth-h! c))
-(ass)
+       (c  (or (any-pred (lambda (f) (dk-head-is? f 'FORSOME)) ls) (error "ae-rel-out: no condition")))
+       ;; NBGSEP: the separation's existential carries the bound aen_ in SET, the
+       ;; read-off's does not: open it and close the read-off on the same witness
+       (c2 (dk-nth-h! c))
+       (nv (dk-skolem! c2)))
+  (dk-split-all!)
+  (ew nv)
+  (dk-conj-close! (lambda () (ass))))
 (sipl-qed! 'ae-rel-out)
 
 ;;; ---- equality almost everywhere is an equivalence on a set of real functions on omega --------
@@ -1330,8 +1351,16 @@
               (for-each (lambda (t) (dk-have! (list 'IN t '(VEC (L2-SPACE omega cA mu))) (lambda () (subst (list '= '(VEC (L2-SPACE omega cA mu)) sipl-L2)) (ass))))
                         (list a b))
               (let* ((iff (dk-cite! 'l2-null-iff-ae 'omega 'cA 'mu a b))
-                     (nul (cadr iff)))
-                (dk-have! nul (lambda () (if (dk-only! iff cond0) (prop))))
+                     (nul (cadr iff))
+                     (ex (caddr iff)))
+                ;; NBGSEP: the separation's existential carries aen_ in SET; the iff's does not
+                (dk-have! ex
+                  (lambda ()
+                    (let ((nv (dk-skolem! cond0)))
+                      (dk-split-all!)
+                      (ew nv)
+                      (dk-conj-close! (lambda () (ass))))))
+                (dk-have! nul (lambda () (if (dk-only! iff ex) (prop))))
                 (fact 'sip-rel-in (list 'L2-SPACE 'omega 'cA 'mu) a b)
                 (let ((m (dk-pick (lambda (f) (and (dk-head-is? f 'IN) (equal? (cadr f) (list 'LIST a b)) (equal? (caddr f) sipl-sr))) "the pair")))
                   (dk-rewrite-h! m (list 'LIST a b) w)

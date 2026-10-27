@@ -15,11 +15,14 @@
 ;;; LOAD WINDOW: after structure-library/outer-measure-construction (IS-NULL-SET).
 ;;; Library: measure.
 
+;;; NBGSEP (2026-10-25): the null set aen_ is bounded explicitly by aen_ in SET,
+;;; so the separation is predicative (NBG).  IS-NULL-SET(omega, cA, mu, N) puts N
+;;; inside a member of cA, a set: N is a set, and the meaning is unchanged.
 (def-functoid 'AE-REL '(omega cA mu sf)
   '(SEP aep_ (CARTESIAN sf sf)
-     (FORSOME aen_ (AND (IS-NULL-SET omega cA mu aen_)
+     (FORSOME aen_ (AND (IN aen_ SET) (AND (IS-NULL-SET omega cA mu aen_)
        (FORALL aex_ (IMPLIES (IN aex_ omega)
-         (IMPLIES (NOT (IN aex_ aen_)) (= ((NTH 1 aep_) aex_) ((NTH 2 aep_) aex_)))))))))
+         (IMPLIES (NOT (IN aex_ aen_)) (= ((NTH 1 aep_) aex_) ((NTH 2 aep_) aex_))))))))))
 
 (def-functoid 'AE-SETOID '(omega cA mu sf)
   '(LIST sf (AE-REL omega cA mu sf)))

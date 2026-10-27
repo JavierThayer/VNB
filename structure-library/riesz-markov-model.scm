@@ -78,10 +78,13 @@
           (IMPLIES (< rri_ nb)
             (IFF (IN y (RM-BALL s dseq rri_)) (= (es rri_) 1)))))))
 
+;;; NBGSEP (2026-10-25): the realizing point rky_ is bounded explicitly by
+;;; rky_ in PTS(s), so the separation is predicative (NBG).  RM-REALIZES's first
+;;; conjunct is that membership: the condition is equivalent, the meaning unchanged.
 (def-functoid 'RM-K '(s dseq)
   '(SEP rke_ (PTS CANTOR-MS)
         (FORALL rkn_ (IMPLIES (IN rkn_ NN)
-          (FORSOME rky_ (RM-REALIZES s dseq rke_ rkn_ rky_))))))
+          (FORSOME rky_ (AND (IN rky_ (PTS s)) (RM-REALIZES s dseq rke_ rkn_ rky_)))))))
 
 (def-functoid 'RM-KMS '(s dseq)
   '(SUBSPACE-MS CANTOR-MS (RM-K s dseq)))
@@ -100,8 +103,11 @@
           (AND (IMPLIES (= (es rbn_) 1) (IN y (RM-BALL s dseq rbn_)))
                (IMPLIES (NOT (= (es rbn_) 1)) (IN y (RM-SHELL s dseq rbn_)))))))))
 
+;;; NBGSEP (2026-10-25): the description is bounded by a top-level conjunct
+;;; rpy_ in PTS(s) (a confined IOTA, NBG).  RM-ADDRESS's first conjunct is that
+;;; membership: the description is the same, the meaning unchanged.
 (def-functoid 'RM-PI '(s dseq)
-  '(VNB-LAMBDA rpe_ (RM-K s dseq) (IOTA rpy_ (RM-ADDRESS s dseq rpe_ rpy_))))
+  '(VNB-LAMBDA rpe_ (RM-K s dseq) (IOTA rpy_ (AND (IN rpy_ (PTS s)) (RM-ADDRESS s dseq rpe_ rpy_)))))
 
 ;;; ---- the address of a point ----------------------------------------------
 

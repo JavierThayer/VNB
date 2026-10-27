@@ -112,6 +112,7 @@
       ((not (= (length hyps) 1)) "sep-sethood: expects exactly one hypothesis")
       ((not (and (rcs--in? g) (eq? (caddr g) 'SET) (rcs--sep? (cadr g))))
        "sep-sethood: the conclusion is not (IN (SEP x A p) SET)")
+      ((not (rcs--binder-nbg? (cadr g))) (rcs--binder-reason "sep-sethood" (cadr g)))
       ((not (rcs--same-asms? (car hyps) concl))
        "sep-sethood: the hypothesis does not keep the conclusion's assumptions")
       ((not (alpha-equiv? (rcs--goal (car hyps)) (list 'IN (caddr (cadr g)) 'SET)))
@@ -160,14 +161,17 @@
 
 ;;; sep-mem-intro: y in SEP(x,A,p)  from  y in A  and  p[x:=y].
 (define (rcs-sep-mem-intro rule hyps concl)
-  (rcs--mem-intro-check "sep-mem-intro" hyps concl rcs--sep?
-    (lambda (y subj) (list 'IN y (caddr subj)))
-    (lambda (y subj) (subst-free (cadr subj) y (cadddr subj)))))
+  (let ((g (rcs--goal concl)))
+    (if (and (rcs--in? g) (rcs--sep? (caddr g)) (not (rcs--binder-nbg? (caddr g))))
+        (rcs--binder-reason "sep-mem-intro" (caddr g))
+        (rcs--mem-intro-check "sep-mem-intro" hyps concl rcs--sep-nbg?
+          (lambda (y subj) (list 'IN y (caddr subj)))
+          (lambda (y subj) (subst-free (cadr subj) y (cadddr subj)))))))
 
 ;;; sep-mem-elim: the assumption y in SEP(x,A,p) is consumed and the context
 ;;; gains y in A and p[x:=y].
 (define (rcs-sep-mem-elim rule hyps concl)
-  (rcs--mem-elim-check "sep-mem-elim" hyps concl rcs--sep?
+  (rcs--mem-elim-check "sep-mem-elim" hyps concl rcs--sep-nbg?    ; NBGSEP: predicative only
     (lambda (y subj)
       (list (list 'IN y (caddr subj))
             (subst-free (cadr subj) y (cadddr subj))))))
@@ -215,18 +219,60 @@
                                acc))))
               (append here below)))))
 
+;;; NBGSEP (the user's decision (ii), 2026-10-24, option (b) of the proposal):
+;;; the relation gains two clauses, here as in COMP's builder test, stated again
+;;; from their definition --
+;;;   (b)1 a DEFERRED guard confines.  A universal node (FORALL v B) is confined
+;;;        when, reading B down its implicational spine (through universals that do
+;;;        not rebind v and through the consequents of IMPLIES), one of the
+;;;        antecedents met has (IN v C) among its conjuncts.  An existential node
+;;;        (FORSOME v B) is confined when, reading B down its conjunctive spine
+;;;        (through existentials that do not rebind v and through both sides of
+;;;        AND), one leaf met is (IN v C).  A proper class v makes that guard false,
+;;;        so the node's instance at v is vacuous (universal) or false (existential).
+;;;   (b)2 an IOTA node (IOTA v B) is confined when (IN v C) is one of B's
+;;;        top-level conjuncts.
+;;; A predicate guard does not confine.
+(define (rcs--guard-of? v f)
+  (and (rcs--in? f) (eq? (cadr f) v)))
+
+;;; the antecedents met on the implicational spine of B, for the variable V
+(define (rcs--forall-spine-antecedents v b)
+  (let loop ((b b) (out '()))
+    (cond ((and (pair? b) (eq? (car b) 'FORALL) (= (length b) 3) (symbol? (cadr b))
+                (not (eq? (cadr b) v)))
+           (loop (caddr b) out))
+          ((and (pair? b) (eq? (car b) 'IMPLIES) (= (length b) 3))
+           (loop (caddr b) (cons (cadr b) out)))
+          (#t out))))
+
+;;; the leaves met on the conjunctive spine of B, for the variable V
+(define (rcs--forsome-spine-leaves v b)
+  (let loop ((todo (list b)) (out '()))
+    (cond ((null? todo) out)
+          ((let ((g (car todo)))
+             (and (pair? g) (eq? (car g) 'FORSOME) (= (length g) 3) (symbol? (cadr g))
+                  (not (eq? (cadr g) v))))
+           (loop (cons (caddr (car todo)) (cdr todo)) out))
+          ((let ((g (car todo))) (and (pair? g) (eq? (car g) 'AND) (= (length g) 3)))
+           (loop (cons (cadr (car todo)) (cons (caddr (car todo)) (cdr todo))) out))
+          (#t (loop (cdr todo) (cons (car todo) out))))))
+
 (define (rcs--quantifier-confined? q)
   (and (= (length q) 3) (symbol? (cadr q))
-       (let* ((v (cadr q))
-              (scope (case (car q)
-                       ((FORALL) (let ((b (caddr q)))
-                                   (and (pair? b) (eq? (car b) 'IMPLIES) (= (length b) 3) (cadr b))))
-                       ((FORSOME) (caddr q))
-                       (else #f))))
-         (and scope
-              (rcs--first (lambda (c) (and (pair? c) (eq? (car c) 'IN) (= (length c) 3) (eq? (cadr c) v)))
-                        (rcs--and-leaves scope))
-              #t))))
+       (let ((v (cadr q)) (b (caddr q)))
+         (case (car q)
+           ((FORALL)
+            (and (rcs--first (lambda (a) (rcs--first (lambda (c) (rcs--guard-of? v c))
+                                                     (rcs--and-leaves a)))
+                             (rcs--forall-spine-antecedents v b))
+                 #t))
+           ((FORSOME)
+            (and (rcs--first (lambda (c) (rcs--guard-of? v c)) (rcs--forsome-spine-leaves v b))
+                 #t))
+           ((IOTA)
+            (and (rcs--first (lambda (c) (rcs--guard-of? v c)) (rcs--and-leaves b)) #t))
+           (else #f)))))
 
 ;;; The first binder node of the condition of the COMP term T that is not
 ;;; confined to sets, or #f.
@@ -241,6 +287,27 @@
                         '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
 
 (define (rcs--comp-nbg? t) (and (rcs--comp? t) (not (rcs--comp-unconfined-binder t))))
+
+;;; NBGSEP: the set-building binders -- SEP(x, A, p), BIG-UNION(z, A, b),
+;;; VNB-LAMBDA(bs, A, b) -- are admitted only with a PREDICATIVE condition / body,
+;;; by the relation above (each binder node of p / b confined).  The domain A lies
+;;; outside the binder and is not read.
+(define (rcs--binder-unconfined t)
+  (and (pair? t) (memq (car t) '(SEP BIG-UNION VNB-LAMBDA)) (= (length t) 4)
+       (rcs--first (lambda (q) (not (rcs--quantifier-confined? q)))
+                   (rcs--quantifier-nodes (cadddr t)))))
+
+(define (rcs--binder-nbg? t) (not (rcs--binder-unconfined t)))
+(define (rcs--sep-nbg? t) (and (rcs--sep? t) (rcs--binder-nbg? t)))
+(define (rcs--bu-nbg? t)  (and (rcs--bu? t) (rcs--binder-nbg? t)))
+
+(define (rcs--binder-reason tag t)
+  (let ((b (rcs--binder-unconfined t)))
+    (string-append tag ": NBG -- the " (symbol->string (car t))
+                   (if (eq? (car t) 'SEP) " condition" " body")
+                   " has a binder not confined to sets, an unconfined "
+                   (symbol->string (car b)) " "
+                   (if (symbol? (cadr b)) (symbol->string (cadr b)) "?"))))
 
 (define (rcs--nbg-reason tag t)
   (let ((b (rcs--comp-unconfined-binder t)))
@@ -294,6 +361,7 @@
       ((not (= (length hyps) 2)) "big-union-sethood: expects exactly two hypotheses")
       ((not (and (rcs--in? g) (eq? (caddr g) 'SET) (rcs--bu? (cadr g))))
        "big-union-sethood: the conclusion is not (IN (BIG-UNION z A body) SET)")
+      ((not (rcs--binder-nbg? (cadr g))) (rcs--binder-reason "big-union-sethood" (cadr g)))
       ((not (and (rcs--same-asms? (car hyps) concl) (rcs--same-asms? (cadr hyps) concl)))
        "big-union-sethood: a hypothesis does not keep the conclusion's assumptions")
       (#t
@@ -343,6 +411,7 @@
       ((not (= (length hyps) 2)) "big-union-mem-intro: expects exactly two hypotheses")
       ((not (and (rcs--in? g) (rcs--bu? (caddr g))))
        "big-union-mem-intro: the conclusion is not (IN x (BIG-UNION z A body))")
+      ((not (rcs--binder-nbg? (caddr g))) (rcs--binder-reason "big-union-mem-intro" (caddr g)))
       ((not (and (rcs--same-asms? (car hyps) concl) (rcs--same-asms? (cadr hyps) concl)))
        "big-union-mem-intro: a hypothesis does not keep the conclusion's assumptions")
       (#t
@@ -375,7 +444,7 @@
        (let loop ((fs gamma) (why "big-union-mem-elim: no assumption of the eliminated form yields the hypothesis' context"))
          (cond
            ((null? fs) why)
-           ((not (and (rcs--in? (car fs)) (rcs--bu? (caddr (car fs)))))
+           ((not (and (rcs--in? (car fs)) (rcs--bu-nbg? (caddr (car fs)))))   ; NBGSEP: predicative only
             (loop (cdr fs) why))
            (#t
             (let* ((f    (car fs))
@@ -551,6 +620,7 @@
        "lambda-type: the conclusion is not (IN (VNB-LAMBDA bs A body) (FUN A B))")
       ((not (and (rcs--same-asms? (car hyps) concl) (rcs--same-asms? (cadr hyps) concl)))
        "lambda-type: a hypothesis does not keep the conclusion's assumptions")
+      ((not (rcs--binder-nbg? (cadr g))) (rcs--binder-reason "lambda-type" (cadr g)))
       (#t
        (let* ((subj (cadr g))
               (cls  (caddr g))
@@ -839,6 +909,7 @@
     ((alpha-equiv? c h) acc)
     (#t
      (or (and (rcs--redex? c)
+              (rcs--binder-nbg? (car c))          ; NBGSEP: no contraction of an impredicative lambda
               (rcs--fuel-take! fuel)
               (let ((c1 (rcs--contract c)))
                 (and c1
@@ -964,8 +1035,8 @@
 ;;;     double union), MATRIX (inside TUPLES(TUPLES S)), ORD-SEGMENT, SUP-ORD,
 ;;;     succ_ORD.
 ;;;   A registered functoid: by its body at the arguments; a defined function
-;;;     (def-constant, def-by-nn/ord-recursion, an operator with an implication-free
-;;;     definitional HEAD-def): by its defining equations (`chk-defined-fn-values').
+;;;     (def-constant, def-by-nn/ord-recursion, an operator defined by `def-operator'):
+;;;     by its defining equations (`chk-defined-fn-values').
 ;;;   NEVER CLEARED: SET, ORD, an untyped variable, COMP, a one-argument FUN /
 ;;;     INJECTION / BIJECTION / PARTIAL-FUN (free codomain), and any other head.
 ;; the memberships a redex's argument carries, licensed or owed: they type the value
@@ -980,8 +1051,11 @@
 
 ;;; A defined function's values, the checker's own reading (the builder's is
 ;;; `pi--defined-fn-values').  The defining axioms: HEAD's entry in library-definitions,
-;;; else the single theorem HEAD-def provided no implication occurs in it.  Each must be
-;;; definitional or primitive and end, under universals and implications, in an equation
+;;; else the single axiom `def-operator' recorded for HEAD in `*defined-operators*'
+;;; (GUARDDEF item 5, 2026-10-24; the theorem named HEAD-def before) provided no
+;;; implication occurs in it.  Each must be
+;;; definitional (GUARDDEF, 2026-10-24; primitive was accepted before) and end, under
+;;; universals and implications, in an equation
 ;;; (= or ==) whose left-hand side is HEAD itself -- the value is then the application of
 ;;; the right-hand side to ARGS -- or HEAD applied to (length ARGS) arguments -- the
 ;;; value is then the right-hand side read at ARGS: a parameter that is a plain variable
@@ -992,8 +1066,10 @@
   (define (guarded c)
     (call-with-current-continuation
       (lambda (k) (with-exception-handler (lambda (e) (k #f)) c))))
+  ;; DEFINITIONAL ONLY (GUARDDEF item 3, 2026-10-24): a primitive shelf fact is not a
+  ;; definition and does not license the off-guard reading.
   (define (prov-ok? nm)
-    (guarded (lambda () (and (memq (*pi-provenance-of* nm) '(definitional primitive)) #t))))
+    (guarded (lambda () (eq? (*pi-provenance-of* nm) 'definitional))))
   (define (has-implication? e)
     (and (pair? e) (or (eq? (car e) 'IMPLIES) (and (list? e) (chk-any has-implication? (cdr e))))))
   (define (unknownify e)
@@ -1025,8 +1101,16 @@
               (axioms
                (if (and entry (pair? (cdr entry)))
                    (cdr entry)
-                   (let* ((nm (symbol-append head '-def))
-                          (f (guarded (lambda () (hash-table-ref/default *theorem-table* nm #f)))))
+                   ;; the axiom `def-operator' recorded for HEAD (GUARDDEF item 5,
+                   ;; 2026-10-24), read here by the checker's own walk of the registry,
+                   ;; not by the builder's accessor; no name is built from HEAD
+                   (let* ((nm (guarded (lambda ()
+                                         (let find ((l *defined-operators*))
+                                           (cond ((not (pair? l)) #f)
+                                                 ((and (pair? (car l)) (eq? (caar l) head)) (cdar l))
+                                                 (#t (find (cdr l))))))))
+                          (f (and (symbol? nm)
+                                  (guarded (lambda () (hash-table-ref/default *theorem-table* nm #f))))))
                      (if (and f (not (has-implication? f))) (list (cons nm f)) '())))))
          (and (pair? axioms)
               (let collect ((axs axioms) (out '()))
@@ -1036,6 +1120,22 @@
                        (dg-note-read-def! (caar axs))
                        (let ((v (and (prov-ok? (caar axs)) (read-axiom (cdar axs)))))
                          (and v (collect (cdr axs) (cons v out)))))))))))
+
+;;; The checker's own head lists, NAMED (GUARDDEF item 2, 2026-10-24) so that the
+;;; load-end guarded-definition gate (audit.scm) can read them: a head with a guarded
+;;; defining equation must be in none of them.  Written apart from the builder's
+;;; `*pi-value-*-heads*' (primitive-inferences.scm); the same members, by design.
+(define *chk-set-constants* '(NN ZZ QQ RR CC EMPTY-SET RR-STAR RR-POS-STAR POS-INF NEG-INF))
+(define *chk-value-set-heads*             ; set or nothing, whatever the arguments
+  '(LIST PAIR MAKE-SET NTH LENGTH CHOICE IOTA INTERVAL
+    + - * / ^ min max abs succ recip conjugate exp sin cos
+    real-part imag-part magnitude binplus bintimes binneg))
+(define *chk-value-arg-heads*             ; a class exactly when an argument may be one
+  '(POWER TUPLES UNION INTERSECTION DIFFERENCE COMPLEMENT-IN CARTESIAN))
+(define *chk-value-codomain-heads*        ; a class when unary; else by the arguments
+  '(FUN INJECTION BIJECTION PARTIAL-FUN))
+(define *chk-value-first-arg-heads*       ; decided by the first argument
+  '(DOM RES MATRIX ORD-SEGMENT SUP-ORD succ_ORD))
 
 (define (chk-value-may-be-class? t known)
   (define (raw e) (if (wff? e) (wff-formula e) e))
@@ -1077,7 +1177,7 @@
         #t
         (if (not (pair? t))
             (and (symbol? t)
-                 (not (memq t '(NN ZZ QQ RR CC EMPTY-SET RR-STAR RR-POS-STAR POS-INF NEG-INF)))
+                 (not (memq t *chk-set-constants*))
                  (or (memq t '(SET ORD)) (not (typed? t)))
                  #t)
             (let ((h (car t)) (as (cdr t)))
@@ -1085,22 +1185,19 @@
                 ((member-of-something? t) #f)
                 ((pair? h) #f)
                 ((not (symbol? h)) #t)
+                ((memq h *chk-value-set-heads*) #f)
+                ((memq h *chk-value-arg-heads*) (any-may? as (+ d 1)))
+                ((memq h *chk-value-codomain-heads*)
+                 (if (null? as) #t (if (null? (cdr as)) #t (any-may? as (+ d 1)))))
+                ((memq h *chk-value-first-arg-heads*)
+                 (if (pair? as) (may? (car as) (+ d 1)) #t))
                 (#t
                  (case h
-                   ((LIST PAIR MAKE-SET NTH LENGTH CHOICE IOTA INTERVAL
-                     + - * / ^ min max abs succ recip conjugate exp sin cos
-                     real-part imag-part magnitude binplus bintimes binneg) #f)
-                   ((POWER TUPLES UNION INTERSECTION DIFFERENCE COMPLEMENT-IN CARTESIAN)
-                    (any-may? as (+ d 1)))
-                   ((FUN INJECTION BIJECTION PARTIAL-FUN)
-                    (if (null? as) #t (if (null? (cdr as)) #t (any-may? as (+ d 1)))))
-                   ((DOM RES MATRIX ORD-SEGMENT SUP-ORD succ_ORD)
-                    (if (pair? as) (may? (car as) (+ d 1)) #t))
                    ((COMP) #t)
-                   ((SEP VNB-LAMBDA)
-                    (if (= (length as) 3) (may? (cadr as) (+ d 1)) #t))
+                   ((SEP VNB-LAMBDA)            ; NBGSEP: an impredicative one is no class
+                    (if (and (= (length as) 3) (rcs--binder-nbg? t)) (may? (cadr as) (+ d 1)) #t))
                    ((BIG-UNION)                 ; every member of a body value is a member
-                    (if (= (length as) 3)
+                    (if (and (= (length as) 3) (rcs--binder-nbg? t))
                         (if (may? (cadr as) (+ d 1))
                             #t
                             (chk-value-may-be-class? (caddr as) (cons (list 'IN (car as) (cadr as)) known)))
