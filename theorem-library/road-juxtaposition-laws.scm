@@ -414,23 +414,11 @@
                           (subst (list '== (list 'f t) (list 'g t)))
                           (ass)))))))))))))
 
-(sp (make-wff "forall([g, jlv_, f, jlw_, jlx_, jll_, jlr_], is-right-limit-within(g, jlv_, jlx_, jll_) implies
-   jlw_ subset rr implies f in fun(jlw_, rr) implies pos-rr(jlr_) implies
-   forall([jlt_ in jlw_], jlx_ < jlt_ implies jlt_ < jlx_ + jlr_ implies jlt_ in jlv_) implies
-   forall([jlt_ in jlw_], jlx_ < jlt_ implies jlt_ < jlx_ + jlr_ implies f(jlt_) == g(jlt_)) implies
-   is-right-limit-within(f, jlw_, jlx_, jll_))"))
-(jxl-lim-local! #t)
-(qed 'right-limit-within-local)
-(topic! 'right-limit-within-local 'analysis)
+;;; MOVED 2026-10-30 (wave-2 integration): the proof of `right-limit-within-local' is now in
+;;; theorem-library/regulated-on-glue.scm (library analysis).
 
-(sp (make-wff "forall([g, jlv_, f, jlw_, jlx_, jll_, jlr_], is-left-limit-within(g, jlv_, jlx_, jll_) implies
-   jlw_ subset rr implies f in fun(jlw_, rr) implies pos-rr(jlr_) implies
-   forall([jlt_ in jlw_], jlx_ - jlr_ < jlt_ implies jlt_ < jlx_ implies jlt_ in jlv_) implies
-   forall([jlt_ in jlw_], jlx_ - jlr_ < jlt_ implies jlt_ < jlx_ implies f(jlt_) == g(jlt_)) implies
-   is-left-limit-within(f, jlw_, jlx_, jll_))"))
-(jxl-lim-local! #f)
-(qed 'left-limit-within-local)
-(topic! 'left-limit-within-local 'analysis)
+;;; MOVED 2026-10-30 (wave-2 integration): the proof of `left-limit-within-local' is now in
+;;; theorem-library/regulated-on-glue.scm (library analysis).
 
 ;;; =====================================================================
 ;;; (2b) REGULATED FUNCTIONS GLUE.  f1 regulated on [a, c], f2 on [c, b], f on [a, b] equal
@@ -443,99 +431,8 @@
 (define jxl-ac '(CCINT a c))
 (define jxl-cb '(CCINT c b))
 
-(sp (make-wff "forall([a in rr, c in rr, b in rr], a < c implies c < b implies
-   forall([f1, f2, f], is-regulated-on(f1, a, c) implies is-regulated-on(f2, c, b) implies
-     f in fun(ccint(a, b), rr) implies
-     forall([t in ccint(a, c)], t < c implies f(t) == f1(t)) implies
-     forall([t in ccint(c, b)], c < t implies f(t) == f2(t)) implies
-     is-regulated-on(f, a, b)))"))
-(dk-peel!)
-(define (jxl-rg-open! fn)
-  (let ((ps (dk-split-all! (dk-landed* (lambda ()
-              (mac-h 'IS-REGULATED-ON (list 'IS-REGULATED-ON fn
-                                            (if (eq? fn 'f1) 'a 'c) (if (eq? fn 'f1) 'c 'b))))))))
-    (cons (car (filter (lambda (g) (and ((dk-head? 'FORALL) g) (dk-contains? g 'IS-RIGHT-LIMIT-WITHIN))) ps))
-          (car (filter (lambda (g) (and ((dk-head? 'FORALL) g) (dk-contains? g 'IS-LEFT-LIMIT-WITHIN))) ps)))))
-(define jxl-rg-1 (jxl-rg-open! 'f1))
-(define jxl-rg-2 (jxl-rg-open! 'f2))
-(define jxl-rg-ag1 (dk-pick (lambda (g) (and ((dk-head? 'FORALL) g) (dk-contains? g 'f1) (dk-contains? g '==)))
-                            "f agrees with f1"))
-(define jxl-rg-ag2 (dk-pick (lambda (g) (and ((dk-head? 'FORALL) g) (dk-contains? g 'f2) (dk-contains? g '==)))
-                            "f agrees with f2"))
-(fact 'ccint-subset-rr 'a 'b)
-(fact 'rr-one-in)
-(fact 'rr-zero-lt-one)
-(fact 'rr-pos-rr-of-lt 1)
-(define jxl-rg-base '((IN a RR) (IN b RR) (IN c RR) (< a c) (< c b)))
-
-;;; the limit of FN at X (in context: X in DOM and the guard), moved to f by the locality
-;;; lemma at radius R; NEAR-IN proves (for the neighbourhood point t) t in DOM, NEAR-AG the
-;;; agreement's guard.
-(define (jxl-rg-move! right? fn x r dom ag)
-  (let* ((l (dk-skolem! (dk-apply! ((if right? car cdr) (if (eq? fn 'f1) jxl-rg-1 jxl-rg-2)) x))))
-    (ew l)
-    (dk-chain! (dk-cite! (if right? 'right-limit-within-local 'left-limit-within-local)
-                         fn dom 'f jxl-ab x l r)
-      (lambda (ante)
-        (lambda ()
-          (let* ((ls (dk-peel!))
-                 (t (cadr (car (filter (lambda (fm) (and (jxl-op? fm 'IN 3) (equal? (caddr fm) jxl-ab))) ls))))
-                 (prems (append jxl-rg-base
-                                (list (list 'IN x 'RR) (list 'IN t 'RR) (list 'IN r 'RR))
-                                (filter (lambda (fm) (memq (jxl-head fm) '(< <=)))
-                                        (append ls (dk-asms))))))
-            (jxl-cc-parts! t 'a 'b)
-            (let ((prems (append prems (list (list '<= 'a t) (list '<= t 'b)))))
-              (if (eq? fn 'f1)
-                  (jxl-in-ccint! t 'a 'c prems)
-                  (jxl-in-ccint! t 'c 'b prems))
-              (if (dk-contains? (dk-goal) '==)
-                  (let ((g (if (eq? fn 'f1) (list '< t 'c) (list '< 'c t))))
-                    (if (not (dk-asm? g)) (dk-have! g (lambda () (apply dk-ineq! prems))))
-                    (dk-apply! ag t)
-                    (ass))
-                  (ass)))))))
-    (ass)))
-
-(mac 'IS-REGULATED-ON)
-(dk-conj-close!
- (lambda ()
-   (let ((gl (dk-goal)))
-     (if (not (eq? (jxl-head gl) 'FORALL))
-         (if (jxl-op? gl '< 3) (dk-ineq! '(IN a RR) '(IN b RR) '(IN c RR) '(< a c) '(< c b)) (ass))
-         (let* ((right? (dk-contains? gl 'IS-RIGHT-LIMIT-WITHIN))
-                (x (dk-di-var!)))
-           (dk-peel!)
-           (jxl-cc-parts! x 'a 'b)
-           (let ((xp (append jxl-rg-base (list (list 'IN x 'RR) (list '<= 'a x) (list '<= x 'b)
-                                               (if right? (list '< x 'b) (list '< 'a x))))))
-             (if right?
-                 (use-em (list '<= 'c x)
-                   (lambda ()
-                     (jxl-in-ccint! x 'c 'b (append xp (list (list '<= 'c x))))
-                     (jxl-rg-move! #t 'f2 x 1 jxl-cb jxl-rg-ag2))
-                   (lambda ()
-                     (jxl-not-le->lt! 'c x)
-                     (jxl-in-ccint! x 'a 'c (append xp (list (list '< x 'c))))
-                     (fact 'rr-sub-in-rr 'c x)
-                     (dk-have! (list '< 0 (list '- 'c x)) (lambda () (apply dk-ineq! (append xp (list (list '< x 'c))))))
-                     (fact 'rr-pos-rr-of-lt (list '- 'c x))
-                     (jxl-rg-move! #t 'f1 x (list '- 'c x) jxl-ac jxl-rg-ag1)))
-                 (use-em (list '<= x 'c)
-                   (lambda ()
-                     (jxl-in-ccint! x 'a 'c (append xp (list (list '<= x 'c))))
-                     (jxl-rg-move! #f 'f1 x 1 jxl-ac jxl-rg-ag1))
-                   (lambda ()
-                     (jxl-not-le->lt! x 'c)
-                     (jxl-in-ccint! x 'c 'b (append xp (list (list '< 'c x))))
-                     (fact 'rr-sub-in-rr x 'c)
-                     (dk-have! (list '< 0 (list '- x 'c)) (lambda () (apply dk-ineq! (append xp (list (list '< 'c x))))))
-                     (fact 'rr-pos-rr-of-lt (list '- x 'c))
-                     (jxl-rg-move! #f 'f2 x (list '- x 'c) jxl-cb jxl-rg-ag2))))))))))
-(qed 'regulated-on-glue)
-(topic! 'regulated-on-glue 'analysis)
-(alias! 'regulated-on-glue
-        "a function regulated on two adjacent intervals is regulated on their union")
+;;; MOVED 2026-10-30 (wave-2 integration): the proof of `regulated-on-glue' is now in
+;;; theorem-library/regulated-on-glue.scm (library analysis).
 
 ;;; =====================================================================
 ;;; (2c) THE JUXTAPOSITION OF TWO ROADS IS A ROAD (Dieudonne 9.6).  Coordinatewise: the

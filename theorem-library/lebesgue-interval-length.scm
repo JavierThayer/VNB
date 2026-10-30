@@ -949,16 +949,8 @@
            (FORSOME ocb_ (AND (IN ocb_ RR) (AND (<= oca_ ocb_) (= oci_ (CCINT oca_ ocb_))))))))))
 
 ;;; a set of reals is a member of POWER(RR)
-(sp (make-wff (forall-guarded '(es) '((SUBSET es RR)) '(IN es (POWER RR)))))
-(dk-peel!)
-(fact 'rr-is-set)
-(fact 'subclass-of-set-is-set 'es 'RR)
-(dk-have! '(FORALL z_ (IMPLIES (IN z_ es) (IN z_ RR)))
-  (lambda () (let ((zv (dk-di-var!))) (fact 'subset-mem-fwd 'es 'RR zv) (ass))))
-(fact 'power-mem-intro 'RR 'es)
-(ass)
-(qed 'subset-rr-in-power-rr)
-(topic! 'subset-rr-in-power-rr 'plumbing)
+;;; MOVED 2026-10-27 (integration): the proof of `subset-rr-in-power-rr' is now in theorem-library/subset-rr-power.scm
+;;; (library analysis), loaded just before this file.
 
 ;;; the conjuncts of IS-OUTER-MEASURE(RR, lam*), landed
 (define (lil-om-parts!)

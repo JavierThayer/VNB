@@ -1,0 +1,3 @@
+;;; VNB proof certificates for theorem-library/subset-rr-power.scm -- written by a load that proved them; do not edit.
+(vnb-certificate-file "theorem-library/subset-rr-power" (kernel "18762c65be137add8a8e7ece11aaffbc") (count 1))
+(subset-rr-in-power-rr "b6df5f8083d3cd69a6345b70d5d15758" (forall es (implies (subset es rr) (in es (power rr)))) (cites (rr-is-set . "T89a20b3825f5d68751522f35d5de4225") (subclass-of-set-is-set . "T7202e1cc89f56f301b122aa660170f6e") (subset-mem-fwd . "Tadb5626a0bd5dc1969f95bdf4542a245") (power-mem-intro . "T3e1630b02a6de291501381ee09b621ed")) (defs) (uses) (own-oracles) (bill) (oracles) (kernel "18762c65be137add8a8e7ece11aaffbc"))

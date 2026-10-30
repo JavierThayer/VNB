@@ -232,6 +232,17 @@
                 (loop (cdr as) (wff-drop-one/str s bs) acc)
                 (loop (cdr as) bs (cons (wff-formula (car as)) acc))))))))
 
+;;; KIT-9 (2026-10-27; wired 2026-10-27, batch 0): the context without the citation-chain LINKS
+;;; (the link table is in interactive.scm, beside `fact'); a file-local finder filters this instead
+;;; of (dk-asms).  k9--call-noting runs a citation entry point inside the recorder: every formula it
+;;; landed but its result is a link, and the result is unmarked (the driver asked for it).
+(define (dk-asms*) (filter (lambda (f) (not (dk-link? f))) (dk-asms)))
+(define (k9--call-noting orig args)
+  (let* ((r (k9--landed (lambda () (apply orig args)))) (out (car r)))
+    (cond ((pair? (cddr r)) (k9--note! (cddr r) (cadr r) (and (pair? out) out) #f))
+          ((pair? out) (k9--unmark! out)))
+    out))
+
 (define (dk-landed thunk)
   (let ((new (dk-landed* thunk)))
     (if (null? new)
@@ -245,15 +256,25 @@
         (error "dk-landed-1: expected 1 new assumption, got"
                (map expression->string new)))))
 
-(define (dk-landed-find thunk pred)     ; the UNIQUE new assumption satisfying `pred'
+;;; KIT-9 D: citation-chain LINKS are skipped when a non-link also matches; when only links
+;;; match, the old behaviour applies (unique match returned).
+(define (dk-landed-find thunk pred . opt)     ; the UNIQUE new assumption satisfying `pred'
   (let* ((new (dk-landed thunk))
-         (hits (filter pred new)))
-    (cond ((null? hits)
+         (all (filter pred new))
+         (hits (if (k9--links-flag? opt) all (filter (lambda (f) (not (dk-link? f))) all))))
+    (cond ((and (null? hits) (pair? all))
+           ;; only links match: the link IS what the driver asked for (2026-10-28 exam:
+           ;; frechet-metric picks an instance landed by a citation) -- old behaviour
+           (if (pair? (cdr all))
+               (error "dk-landed-find: ambiguous; matched" (map expression->string all))
+               (car all)))
+          ((null? hits)
            (error "dk-landed-find: no new assumption matches; landed"
                   (map expression->string new)))
           ((pair? (cdr hits))
            (error "dk-landed-find: ambiguous; matched" (map expression->string hits)))
           (else (car hits)))))
+(define (k9--links-flag? opt) (and (pair? opt) (eq? (car opt) 'links)))
 
 ;; `fact' lands its WHOLE instantiation chain: the theorem, each partly-peeled
 ;; form, and the fully detached result.  The result is the one no other landed
@@ -273,7 +294,23 @@
 
 (define (dk-deepest thunk) (dk--deepest-of (dk-landed thunk)))
 
-(define (dk-fact! . args) (dk-deepest (lambda () (apply fact args))))
+;;; KIT-7 E5 (2026-10-26; wired 2026-10-27): strict as before, but the error says what happened and
+;;; names the tolerant form (CA-MONTEL finding 3: helpers that can run twice in one branch).
+(define (k9--dkfact-0 . args)            ; dk-fact! before the KIT-9 recorder (KIT-7 E5 body)
+  (call-with-current-continuation
+    (lambda (k)
+      (with-exception-handler
+        (lambda (e)
+          (if (and (condition? e)
+                   (string-search-forward "landed no assumption" (condition/report-string e) 0))
+              (k (error (string-append
+                         "dk-fact!: nothing landed -- the instance of " (expression->string (car args))
+                         " is most likely ALREADY IN CONTEXT.  dk-fact! is strict; dk-cite! is the tolerant"
+                         " form (it returns the instance whether it lands now or was there).  Arguments:")
+                        (cdr args)))
+              (raise e)))
+        (lambda () (dk-deepest (lambda () (apply fact args))))))))
+(define (dk-fact! . args) (k9--call-noting k9--dkfact-0 args))    ; KIT-9 C
 
 ;; `ai' the landed conjunctions until none is left; return every leaf conjunct
 ;; the whole cascade produced.  (`ai' of an AND lands its two conjuncts; a SPANS
@@ -816,11 +853,12 @@
 ;; in turn, detaching each guard that is already in context, and return the
 ;; formula that finally landed.  `inst+' does one binder and stops at the next
 ;; FORALL; three drivers had each rewritten this fold.
-(define (inst*! f . terms)
+(define (k9--inst*-0 f . terms)          ; inst*! before the KIT-9 recorder
   (let loop ((f f) (ts terms))
     (if (null? ts)
         f
         (loop (dk-deepest (lambda () (inst+ f (car ts)))) (cdr ts)))))
+(define (inst*! . args) (k9--call-noting k9--inst*-0 args))      ; KIT-9 C
 
 ;; (choose! S WITNESS BODY) -- "pick an element of S".  Lands
 ;; (IN (CHOICE S) S) in the context, discharging the ONE obligation choice owes:
@@ -1063,8 +1101,10 @@
 ;;; nothing and no-ops.  Note ai takes the RAW S-expression, not a wff: handing
 ;;; it a wff reports "cannot decompose", which reads like a decomposition
 ;;; failure and is really a lookup miss.
+;;; KIT-9 D: prefers an assumption that is not a citation-chain link.
 (define (dk-ai-head! head)
-  (let ((f (any-pred (lambda (a) (and (pair? a) (eq? (car a) head))) (dk-asms))))
+  (let ((f (or (any-pred (lambda (a) (and (pair? a) (eq? (car a) head) (not (dk-link? a)))) (dk-asms))
+               (any-pred (lambda (a) (and (pair? a) (eq? (car a) head))) (dk-asms)))))
     (if (not f) (error "dk-ai-head!: no assumption with head" head))
     (dk-landed (lambda () (ai f)))))
 
@@ -1156,9 +1196,16 @@
 ;;; the English name of what you were looking for, for the error.  Discriminate
 ;;; on a CONSEQUENT or on a context formula unique to the branch, never on a
 ;;; head alone (sibling branches share heads).
-(define (dk-pick pred what)
-  (let ((fs (filter pred (dk-asms))))
-    (if (null? fs) (error "dk-pick: nothing matching" what) (car fs))))
+;;; KIT-9 D: citation-chain LINKS are skipped unless 'links is passed: (dk-pick PRED WHAT 'links).
+;;; When only links match, the first is returned, as before KIT-9.
+(define (dk-pick pred what . opt)
+  (let* ((all (filter pred (dk-asms)))
+         (fs (if (k9--links-flag? opt) all (filter (lambda (f) (not (dk-link? f))) all))))
+    (cond ((pair? fs) (car fs))
+          ;; only links match: fall back to the old pick (the newest match).  Links are
+          ;; skipped only when a non-link also matches (2026-10-28 exam, frechet-metric).
+          ((pair? all) (car all))
+          (#t (error "dk-pick: nothing matching" what)))))
 
 ;;; (dk-only! F1 F2 ...) -- drop every assumption but the ones named.  `prop'
 ;;; has an atom cap (*prop-atom-cap*, 12; the search is 2^n) and `fact' lands
@@ -1217,7 +1264,7 @@
            (let ((have (dk-ctx-form (subst-free (quantifier-var f) (car ts) (quantifier-body f)))))
              (if have (loop have (cdr ts) (cons have (cdr ts))) best)))
           (#t best))))
-(define (dk-apply! f . terms)
+(define (k9--apply-0 f . terms)          ; dk-apply! before the KIT-9 recorder
   (let* ((f0   (or (dk-ctx-form f) f))
          (pre  (dk--reuse-prefix f0 terms))
          (r0   (cond ((not pre) (apply inst*! f terms))
@@ -1227,6 +1274,7 @@
       (if (and (pair? r) (eq? (car r) 'IMPLIES))
           (loop (dk-landed-1 (lambda () (detach! r))))
           r))))
+(define (dk-apply! . args) (k9--call-noting k9--apply-0 args))   ; KIT-9 C
 
 ;;; (dk-di-var!)             -- `di' one GUARDED binder; return its eigenvariable,
 ;;;                             read off the landed typing (IN v A).
@@ -2073,10 +2121,13 @@
 ;;; and the like in place of (lambda () (ass)), which warns "assumption: goal not
 ;;; in context" on every conjunct it cannot close: the load log of 2026-10-04
 ;;; carried 68 such lines from three new files whose proofs were all fine.
+;;; KIT-7 E2 (2026-10-26; wired 2026-10-27): respects the drift marker (interactive.scm) --
+;;; returns #f, and does not report a close it did not make.
 (define (dk-ass!)
-  (if (and *ps* (not (proof-done? *ps*)) (dk-asm? (dk-goal)))
-      (begin (ass) #t)
-      #f))
+  (cond ((not (and *ps* (not (proof-done? *ps*)))) #f)
+        ((vnb--drift-refuse? 'dk-ass!) #f)
+        ((dk-asm? (dk-goal)) (ass) #t)
+        (#t #f)))
 
 ;;; cut F, prove the side goal from context, leave focus on the main branch.
 ;;;
@@ -2120,6 +2171,7 @@
              (length opt)))
   (let ((f (->raw-formula form0))
         (thunk (and (pair? opt) (car opt))))
+    (if (dk-link? f) (k9--unmark! f))       ; KIT-9 D: a claim the driver states is not a link
     (cond
      ((dk-asm? f) #f)
      ((eq? #t (vnb-guard (lambda () (alpha-equiv? (dk-goal) f))))
@@ -2127,6 +2179,9 @@
         (if thunk (thunk) (from-context!))
         (if (not (sequent-node-grounded? leaf))
             (error "dk-have!: the claim is the focus goal, and the lane left it open" f))
+        ;; KIT-7 E1: mark the in-place close, so the closer the caller wrote next is
+        ;; refused instead of firing on a sibling (interactive.scm, the drift marker).
+        (vnb-note-drift! leaf 'dk-have!)
         #t))
      (#t
         (let* ((new  (dk-opened (lambda () (cut f))))
@@ -2893,17 +2948,34 @@
 ;;; further tactic aimed at "the leaf" would then fire there (the focus drift,
 ;;; docs/batch8-2026-09-19.md 4.7).  Leaves the reporting to `dk-have!', which
 ;;; errors when the lane did not establish the claim.
-(define (dk--lane-close!)
-  (let ((lane (proof-state-focus *ps*)))
-    (define (still-open?) (not (sequent-node-grounded? lane)))
-    ;; dk-ass!, not ass: `ass' on a claim not yet in context warned "goal not in
-    ;; context" on EVERY lane whose claim needed the split first -- 68 lines in
-    ;; the load log of 2026-10-04, all from here (dk-project!'s lanes).
-    (if (still-open?) (vnb-guard (lambda () (dk-ass!))))
-    (if (still-open?) (vnb-guard (lambda () (dk-split-all!))))
-    (if (still-open?) (vnb-guard (lambda () (dk-ass!))))
-    (if (still-open?) (vnb-guard (lambda () (prop))))
-    (not (still-open?))))
+;;;
+;;; KIT-7 E3 (2026-10-26; wired 2026-10-27): the lane closer takes ITS LANE.  The old
+;;; dk--lane-close! read the lane off the focus; an opener that closes the lane itself (M-H: an
+;;; opener ending in `(ass)') left the focus on the MAIN leaf, which it then took for the lane and
+;;; ran dk-ass! / dk-split-all! / prop on.  Now: grounded lane -> done; else the one open leaf
+;;; under the lane is focused (dk--open-below) and closed; no open leaf under a lane that is not
+;;; grounded, or several, is an ERROR naming the lane.
+;;; dk-ass!, not ass: `ass' on a claim not yet in context warned "goal not in
+;;; context" on EVERY lane whose claim needed the split first -- 68 lines in
+;;; the load log of 2026-10-04, all from here (dk-project!'s lanes).
+(define (dk--lane-close-at! lane)
+  (define (still-open?) (not (sequent-node-grounded? lane)))
+  (define (on-lane!)
+    (if (still-open?)
+        (let ((below (dk--open-below lane)))
+          (cond ((memq (proof-state-focus *ps*) below) #t)
+                ((and (pair? below) (null? (cdr below))) (dk-focus! (car below)) #t)
+                ((null? below) (error "dk--lane-close!: the lane has no open leaf but is not grounded, node"
+                                      (sequent-node-number lane)))
+                (#t (error "dk--lane-close!: several open leaves under the lane, node"
+                           (sequent-node-number lane)))))
+        #f))
+  (if (on-lane!) (vnb-guard (lambda () (dk-ass!))))
+  (if (on-lane!) (vnb-guard (lambda () (dk-split-all!))))
+  (if (on-lane!) (vnb-guard (lambda () (dk-ass!))))
+  (if (on-lane!) (vnb-guard (lambda () (prop))))
+  (not (still-open?)))
+(define (dk--lane-close!) (dk--lane-close-at! (proof-state-focus *ps*)))
 
 ;;; -----------------------------------------------------------------------
 ;;; (dk-project! CONCL THUNK)     -- read CONCL off a hypothesis THUNK opens
@@ -2930,6 +3002,10 @@
 ;;; Returns the CONTEXT'S OWN copy of CONCL -- not the argument -- so the
 ;;; caller can hand it straight to `mac-h' / `detach!' / `dk-split!'.
 ;;; No-op, returning that same formula, when CONCL is already in context.
+;;; KIT-7 E4 (2026-10-26; wired 2026-10-27): the lane is captured BEFORE the opener runs and
+;;; closed by dk--lane-close-at!; a claim equal to the focus goal is proved in place (dk-have!)
+;;; and returned, where the old code errored "the projection is not in the context after the
+;;; lane" (ISOM, 2026-10-26).
 (define (dk-project! concl0 opener . opt)
   (let* ((concl (->raw-formula concl0))
          (open! (cond ((procedure? opener) opener)
@@ -2940,12 +3016,18 @@
                                              (error "dk-project!: the hypothesis is not in context"
                                                     (expression->string hyp)))))))
                       (#t (error "dk-project!: the opener is neither a THUNK nor a macete NAME with its HYPOTHESIS"
-                                 opener)))))
+                                 opener))))
+         (in-place #f))
     (if (not (dk-asm? concl))
-        (dk-have! concl (lambda () (open!) (dk--lane-close!))))
-    (or (dk-ctx-form concl)
-        (error "dk-project!: the projection is not in the context after the lane"
-               (expression->string concl)))))
+        (set! in-place
+              (eq? #t (dk-have! concl (lambda ()
+                                        (let ((lane (proof-state-focus *ps*)))
+                                          (open!)
+                                          (dk--lane-close-at! lane)))))))
+    (cond (in-place concl)                     ; the focus goal itself: proved in place
+          ((dk-ctx-form concl))
+          (#t (error "dk-project!: the projection is not in the context after the lane"
+                     (expression->string concl))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; (dk-pos-parts! E) -- with (POS-RR E) in context, land
@@ -3093,7 +3175,7 @@
            (loop (caddr f) ts))
           (#t f))))
 
-(define (dk-cite! thm . args)
+(define (k9--cite-0 thm . args)          ; dk-cite! before the KIT-9 recorder
   (let* ((terms (map ->raw-formula args))
          (owed0 (vnb--owed-leaves))
          (new   (dk-landed* (lambda () (apply fact thm terms))))
@@ -3113,6 +3195,7 @@
               (error (string-append "dk-cite!: " (symbol->string thm)
                                     " landed nothing, and its instance is not in context")
                      (expression->string want)))))))
+(define (dk-cite! . args) (k9--call-noting k9--cite-0 args))     ; KIT-9 C
 
 ;;; -----------------------------------------------------------------------
 ;;; THE HYPOTHESIS-SIDE REWRITE (owed since 2026-09-14; built 2026-10-07 from the S-2
@@ -3397,16 +3480,9 @@
 ;;; Errors when the goal is not closed.  MODEL: cpsl-absurd!
 ;;; (cc-power-series-laws.scm); dtr-nn! / daf-nn! did the same through
 ;;; (<= 1 0) and `arith'.
-(define (dk-absurd! . prems)
-  (if (eq? (dk-goal) 'FALSITY)
-      (let ((leaf (proof-state-focus *ps*)))
-        (dk-have! '(< 0 0) (lambda () (apply dk-ineq! prems)))
-        (if (not (dk-asm? '(IN 0 RR))) (fact 'rr-zero-in))
-        (let ((neg (dk-cite! 'rr-lt-irrefl 0)))
-          (ai neg))
-        (if (not (sequent-node-grounded? leaf))
-            (error "dk-absurd!: FALSITY is still open after refuting (< 0 0)")))
-      (apply dk-ineq! prems)))
+;;; SUPERSEDED 2026-10-27 (batch 0): the definition is now KIT-6's, in the KIT-6 section at the
+;;; end of this file -- on a non-FALSITY goal it tries dk-ineq! on a transaction, then EX FALSO,
+;;; and ERRORS when the goal is still open (the old code returned silently: CA-MONTEL finding 2).
 
 ;;; -----------------------------------------------------------------------
 ;;; (dk-nn! PREMISE ...) -- NN LINEAR ARITHMETIC BY LIFTING (item 3).  Close
@@ -6821,3 +6897,1387 @@
            (error "dk-landed-eps: ambiguous -- several positive reals landed"
                   (map expression->string hits)))
           (#t (if (dk-head-is? (car hits) 'POS-RR) (cadr (car hits)) (caddr (car hits)))))))
+
+;;; =======================================================================
+;;; KIT-6 (agent RA-BASICS, 2026-10-26; wired 2026-10-27, batch 0): scratchpad/kit6/kit6.scm,
+;;; verbatim but for the integration fix: the first (chain) dk-vs-eq! is named dk-vs-eq-chain! in its
+;;; own define (the probe file defined dk-vs-eq! twice and aliased the first).  Report:
+;;; scratchpad/triage/KIT-6-REPORT.md.
+;;; =======================================================================
+;;; kit6.scm -- KIT-6: the tactics behind the 2026-10-26 grinds (agent RA-BASICS).
+;;; An ADDITION to driver-kit.scm (paste at its end).  Every helper drives SURFACE tactics only
+;;; (fact / subst / crs / ineq / cut / dk-*), moves focus through dk-focus!, and ERRORS on a miss.
+;;;
+;;;   (dk-undiv!)                 rewrite every `/' of the focus goal by binary-divide-def,
+;;;                               typing each inner quotient first (F3 of RA-BASICS)
+;;;   (dk-absurd! P ...)          FIXED: closes ANY goal from contradictory linear premises, and
+;;;                               ERRORS when it does not close (the CA-MONTEL finding)
+;;;   (dk-use-cases-open! DISJ BODY ...)   use-cases that runs a body only on a branch that is
+;;;                               still OPEN (a branch hash-consing grounded is skipped)
+;;;   (dk-vs-eq!)                 THE MODULE NORMALISER: decides a vector identity
+;;;                               sum c_i . v_i = sum d_j . w_j in a normed vector space m
+;;;   (dk-field-eq! [FIELD])      FIELD SIMPLIFICATION: decides an identity with recip / `/'
+;;;                               over RR (default) or CC, posting missing d /= 0 as OWED leaves
+
+;;; ===========================================================================
+;;; (3) dk-undiv!
+;;; One `mac binary-divide-def' pass rewrites the OUTERMOST quotients only, and under META-10 a
+;;; matched value that is not certified defined (an inner quotient) is owed `t = t'.  So: type
+;;; every quotient, innermost first, on a lane (the lane rewrites it, types the product and
+;;; closes), then rewrite the goal to a fixpoint.  TYPER (optional) types a non-quotient
+;;; subterm in the number class CLS (default RR); a denominator must be typed and nonzero in
+;;; context, else ERROR naming it.
+(define (dk--quotients t)                  ; innermost first
+  (if (not (pair? t)) '()
+      (let ((inner (apply append (map dk--quotients (cdr t)))))
+        (if (and (eq? (car t) '/) (= (length t) 3)) (append inner (list t)) inner))))
+(define (dk--nested-quotients t)           ; quotients that sit inside another quotient, innermost first
+  (let ((all (dk--quotients t)))
+    (filter (lambda (q) (any (lambda (o) (and (not (eq? o q)) (not (equal? o q)) (dk-contains? o q))) all)) all)))
+(define (dk--undiv-term t)
+  (cond ((not (pair? t)) t)
+        ((and (eq? (car t) '/) (= (length t) 3))
+         (list '* (dk--undiv-term (cadr t)) (list 'recip (dk--undiv-term (caddr t)))))
+        (#t (map dk--undiv-term t))))
+(define (dk--num-type! t cls)
+  (let ((goal (list 'IN t cls)))
+    (cond
+     ((dk-asm? goal) #t)
+     ((and (eqv? t 0) (eq? cls 'RR)) (fact 'rr-zero-in) #t)
+     ((and (eqv? t 1) (eq? cls 'RR)) (fact 'rr-one-in) #t)
+     ((number? t) (vnb-guard (lambda () (dk-have! goal))) (dk-asm? goal))
+     ((and (pair? t) (eq? (car t) 'recip) (= (length t) 2))
+      (let ((d (cadr t)))
+        (and (dk--num-type! d cls)
+             (or (dk-asm? (list 'NOT (list '= d 0)))
+                 (error "dk--num-type!: recip of a term not known nonzero:" (expression->string d)))
+             (begin
+               (dk-have! (list 'AND (list 'IN d cls) (list 'NOT (list '= d 0))))
+               (fact (if (eq? cls 'CC) 'cc-recip-closed 'rr-recip-closed) d)
+               (dk-asm? goal)))))
+     (#t
+      (if (and (pair? t) (memq (car t) '(+ * - abs)))
+          (for-each (lambda (a) (dk--num-type! a cls)) (cdr t)))
+      (if (and (eq? cls 'RR) (pair? t) (every (lambda (a) (dk-asm? (list 'IN a 'RR))) (cdr t)))
+          (let ((n (length t)))
+            (cond ((and (eq? (car t) '+) (= n 3))
+                   (dk-have! (list 'AND (list 'IN (cadr t) 'RR) (list 'IN (caddr t) 'RR)))
+                   (fact 'rr-add-closed (cadr t) (caddr t)))
+                  ((and (eq? (car t) '*) (= n 3))
+                   (dk-have! (list 'AND (list 'IN (cadr t) 'RR) (list 'IN (caddr t) 'RR)))
+                   (fact 'rr-mul-closed (cadr t) (caddr t)))
+                  ((and (eq? (car t) '-) (= n 3)) (fact 'rr-sub-in-rr (cadr t) (caddr t)))
+                  ((and (eq? (car t) '-) (= n 2)) (fact 'rr-neg-closed (cadr t)))
+                  ((and (eq? (car t) 'abs) (= n 2)) (fact 'rr-abs-closed (cadr t))))))
+      (if (not (dk-asm? goal)) (vnb-guard (lambda () (dk-type! t cls))))
+      (dk-asm? goal)))))
+(define (dk-undiv! . opt)
+  (let ((cls (if (pair? opt) (car opt) 'RR)))
+    (for-each
+     (lambda (q)
+       (let ((num (cadr q)) (den (caddr q)))
+         (if (not (dk-asm? (list 'IN q cls)))
+             (begin
+               (if (not (dk-asm? (list 'NOT (list '= den 0))))
+                   (if (not (dk-asm? (list 'NOT (list '= (dk--undiv-term den) 0))))
+                       (error "dk-undiv!: the denominator is not known nonzero:" (expression->string den))))
+               (dk-have! (list 'IN q cls)
+                 (lambda ()
+                   (let loop ((n 0))
+                     (if (and (dk-contains? (dk-goal) '/) (< n 8))
+                         (begin (mac 'binary-divide-def) (loop (+ n 1)))))
+                   (let ((g (cadr (dk-goal))))
+                     (if (not (dk--num-type! g cls))
+                         (error "dk-undiv!: cannot type the quotient" (expression->string g))))
+                   (if (dk-asm? (dk-goal)) (ass))))))))
+     (dk--nested-quotients (dk-goal)))
+    (let loop ((n 0))
+      (if (and (dk-contains? (dk-goal) '/) (< n 8))
+          (begin (mac 'binary-divide-def) (loop (+ n 1)))))
+    (if (dk-contains? (dk-goal) '/)
+        (error "dk-undiv!: a quotient survived" (expression->string (dk-goal))))))
+
+;;; ===========================================================================
+;;; (4a) dk-absurd!, fixed.  On FALSITY: as before.  On any other goal: `ineq' first (the old
+;;; behaviour, kept: callers use it as dk-ineq!), on a transaction; if that does not close,
+;;; EX FALSO -- refute (< 0 0) from the premises and close the goal propositionally.  ERRORS
+;;; when the goal is still open (the old code returned silently: CA-MONTEL finding 2).
+(define (dk-absurd! . prems)
+  (let ((leaf (proof-state-focus *ps*)))
+    (define (ex-falso!)
+      (dk-have! '(< 0 0) (lambda () (apply dk-ineq! prems)))
+      (if (not (dk-asm? '(IN 0 RR))) (fact 'rr-zero-in))
+      (let ((neg (dk-cite! 'rr-lt-irrefl 0)))
+        (if (eq? (dk-goal) 'FALSITY)
+            (ai neg)
+            (if (dk-only! '(< 0 0) neg) (prop)))))
+    (cond ((eq? (dk-goal) 'FALSITY) (ex-falso!))
+          ((dk--transaction (lambda () (apply dk-ineq! prems) (sequent-node-grounded? leaf))) #t)
+          (#t (ex-falso!)))
+    (if (not (sequent-node-grounded? leaf))
+        (error "dk-absurd!: the goal is still open -- the premises are not contradictory"
+               (map expression->string (map ->raw-formula prems))))
+    #t))
+
+;;; ===========================================================================
+;;; (4b) dk-use-cases-open!  use-cases, but a branch whose node is ALREADY GROUNDED (hash-
+;;; consing put the case's sequent on a proven node -- a sibling case closed the same sequent)
+;;; is skipped: positional `use-cases' focuses it, `dk-focus!' refuses to move, and the body
+;;; runs on whatever leaf the focus fell back to (RA-BASICS rb2-use-cases!).  Returns the
+;;; obligation node (#f when the disjunction was in context), as use-cases does.
+(define (dk-use-cases-open! disjuncts . bodies)
+  (let* ((result (use-cases disjuncts))
+         (ob     (cases-obligation result))
+         (cs     (cdr (assq 'cases result))))
+    (if (not (= (length cs) (length bodies)))
+        (error "dk-use-cases-open!: the split produced" (length cs) "cases, bodies:" (length bodies)))
+    (for-each (lambda (mc body)
+                (if (not (sequent-node-grounded? (cdr mc)))
+                    (begin (dk-focus! (cdr mc)) (body))))
+              cs bodies)
+    ob))
+
+;;; ===========================================================================
+;;; (1) dk-vs-eq! -- THE MODULE NORMALISER ("crs for modules").
+;;;
+;;; Goal (= L R), L and R built from (VADD m), (ACT m), (VNEG m) over vector ATOMS (any other
+;;; term, typed (IN v (VEC m)) in context), with IS-NORMED-VECTOR-SPACE(m) in context and the
+;;; scalars real.  Each side is brought, by a chain of CITED law instances, to the canonical
+;;; linear combination
+;;;      c1.v1 + (c2.v2 + ( ... + ck.vk))      atoms sorted, each once,
+;;; landing (= side canonical).  An atom present on one side only is padded on the other with
+;;; coefficient 0 (nvs-act-zero).  The coefficients are then matched one by one by `crs' (a
+;;; coefficient pair crs refuses is an ERROR: the identity is not a module identity), the
+;;; canonical forms are joined by congruence, and eq-sym / eq-trans close the goal.
+;;; Laws: nvs-vadd-assoc, nvs-vadd-comm, nvs-act-distrib-vec-rr, nvs-act-scale-assoc,
+;;; nvs-act-add-scalars, nvs-one-act, nvs-neg-one-act, nvs-act-zero, eq-sym, eq-trans; the
+;;; congruences go through dk-congr!.  Each equation is an exact law instance, so no `subst'
+;;; ever rewrites an unintended occurrence.
+;;; Not handled (ERROR): VZERO, scalars outside RR (a general module's carr(scal)).
+(define dkv-m #f)
+(define (dkv-add x y) (list (list 'VADD dkv-m) x y))
+(define (dkv-act c v) (list (list 'ACT dkv-m) c v))
+(define (dkv-op? t op n) (and (pair? t) (pair? (car t)) (eq? (caar t) op) (equal? (cadar t) dkv-m) (= (length t) n)))
+(define (dkv-key v) (expression->string v))
+(define (dkv-term L)                       ; L: list of (coef . atom), non-empty
+  (if (null? (cdr L))
+      (dkv-act (caar L) (cdar L))
+      (dkv-add (dkv-act (caar L) (cdar L)) (dkv-term (cdr L)))))
+(define (dkv-rr! c)
+  (if (not (dk--num-type! c 'RR)) (error "dk-vs-eq!: a scalar is not typed in RR:" (expression->string c))))
+(define (dkv-vec! t)
+  (let ((g (list 'IN t (list 'VEC dkv-m))))
+    (cond ((dk-asm? g) #t)
+          ((dkv-op? t 'VADD 3) (dkv-vec! (cadr t)) (dkv-vec! (caddr t)) (dk-cite! 'nvs-vadd-in-vec dkv-m (cadr t) (caddr t)))
+          ((dkv-op? t 'ACT 3) (dkv-rr! (cadr t)) (dkv-vec! (caddr t)) (dk-cite! 'nvs-act-in-vec dkv-m (cadr t) (caddr t)))
+          ((dkv-op? t 'VNEG 2) (dkv-vec! (cadr t)) (dk-cite! 'nvs-vneg-in-vec dkv-m (cadr t)))
+          (#t (error "dk-vs-eq!: a vector atom is not typed in VEC:" (expression->string t))))))
+;;; a chain from ORIG: (vector orig cur); STEP! moves cur to NEW with PROVER! landing (= cur new)
+(define (dkv-chain t) (vector t t))
+(define (dkv-step! ch new prover!)
+  (let ((orig (vector-ref ch 0)) (cur (vector-ref ch 1)))
+    (if (not (equal? cur new))
+        (begin
+          (dkv-vec! new)
+          (prover!)
+          (if (not (dk-asm? (list '= cur new)))
+              (error "dk-vs-eq!: a step did not land" (expression->string (list '= cur new))))
+          (if (not (equal? orig cur)) (dk-cite! 'eq-trans orig cur new))
+          (vector-set! ch 1 new)))))
+(define (dkv-sym! a b)                     ; (= a b) in context: land (= b a)
+  (if (not (dk-asm? (list '= b a))) (dk-cite! 'eq-sym a b)))
+;;; congruence: (= s s2) in context, TEMPLATE z -> the term with s replaced by z
+(define (dkv-congr! s s2 template)
+  (if (not (equal? s s2)) (dk-congr! (list '= s s2) template)))
+
+;;; t -> canonical list; lands (= t (term L)) unless equal
+(define (dkv-norm! t)
+  (dkv-vec! t)
+  (cond
+   ((dkv-op? t 'VADD 3)
+    (let* ((x (cadr t)) (y (caddr t))
+           (Lx (dkv-norm! x)) (Ly (dkv-norm! y))
+           (Cx (dkv-term Lx)) (Cy (dkv-term Ly))
+           (ch (dkv-chain t)))
+      (dkv-step! ch (dkv-add Cx y) (lambda () (dkv-congr! x Cx (lambda (z) (dkv-add z y)))))
+      (dkv-step! ch (dkv-add Cx Cy) (lambda () (dkv-congr! y Cy (lambda (z) (dkv-add Cx z)))))
+      (let ((M (dkv-merge! Lx Ly)))
+        (dkv-step! ch (dkv-term M) (lambda () #t))
+        M)))
+   ((dkv-op? t 'ACT 3)
+    (let* ((c (cadr t)) (x (caddr t))
+           (Lx (dkv-norm! x)) (Cx (dkv-term Lx))
+           (ch (dkv-chain t)))
+      (dkv-step! ch (dkv-act c Cx) (lambda () (dkv-congr! x Cx (lambda (z) (dkv-act c z)))))
+      (let ((S (dkv-scale! c Lx)))
+        (dkv-step! ch (dkv-term S) (lambda () #t))
+        S)))
+   ((dkv-op? t 'VNEG 2)
+    (let* ((x (cadr t))
+           (inst (dk-cite! 'nvs-neg-one-act dkv-m x))       ; (= (act K x) (vneg x))
+           (a (cadr inst))
+           (ch (dkv-chain t)))
+      (dkv-step! ch a (lambda () (dkv-sym! a t)))
+      (let* ((La (dkv-norm! a)))
+        (dkv-step! ch (dkv-term La) (lambda () #t))
+        La)))
+   (#t
+    (let ((one (dkv-act 1 t)) (ch (dkv-chain t)))
+      (dkv-step! ch one (lambda () (dk-cite! 'nvs-one-act dkv-m t) (dkv-sym! one t)))
+      (list (cons 1 t))))))
+;;; (= (vadd (term A) (term B)) (term M)) landed (unless equal); returns M
+(define (dkv-merge! A B)
+  (if (null? (cdr A))
+      (dkv-insert! (car A) B)
+      (let* ((t1 (dkv-act (caar A) (cdar A))) (Ap (cdr A))
+             (CAp (dkv-term Ap)) (CB (dkv-term B))
+             (cur0 (dkv-add (dkv-add t1 CAp) CB))
+             (ch (dkv-chain cur0)))
+        (dkv-step! ch (dkv-add t1 (dkv-add CAp CB))
+                   (lambda () (dk-cite! 'nvs-vadd-assoc dkv-m t1 CAp CB)))
+        (let* ((Mp (dkv-merge! Ap B)) (CMp (dkv-term Mp)))
+          (dkv-step! ch (dkv-add t1 CMp)
+                     (lambda () (dkv-congr! (dkv-add CAp CB) CMp (lambda (z) (dkv-add t1 z)))))
+          (let ((M (dkv-insert! (car A) Mp)))
+            (dkv-step! ch (dkv-term M) (lambda () #t))
+            M)))))
+;;; p = (a . v): (= (vadd a.v (term M)) (term result)) landed; returns the result
+(define (dkv-insert! p M)
+  (let* ((a (car p)) (v (cdr p)) (tp (dkv-act a v))
+         (q (car M)) (b (car q)) (w (cdr q)) (tq (dkv-act b w))
+         (kv (dkv-key v)) (kw (dkv-key w))
+         (cur0 (dkv-add tp (dkv-term M)))
+         (ch (dkv-chain cur0)))
+    (cond
+     ((string<? kv kw) (cons p M))
+     ((string=? kv kw)
+      (let ((ab (list '+ a b)))
+        (dkv-rr! ab)
+        (if (null? (cdr M))
+            (begin
+              (dkv-step! ch (dkv-act ab v) (lambda () (dk-cite! 'nvs-act-add-scalars dkv-m a b v)))
+              (list (cons ab v)))
+            (let ((CR (dkv-term (cdr M))))
+              (dkv-step! ch (dkv-add (dkv-add tp tq) CR)
+                         (lambda () (dk-cite! 'nvs-vadd-assoc dkv-m tp tq CR)
+                                    (dkv-sym! (dkv-add (dkv-add tp tq) CR) cur0)))
+              (dkv-step! ch (dkv-add (dkv-act ab v) CR)
+                         (lambda () (dk-cite! 'nvs-act-add-scalars dkv-m a b v)
+                                    (dkv-congr! (dkv-add tp tq) (dkv-act ab v) (lambda (z) (dkv-add z CR)))))
+              (cons (cons ab v) (cdr M))))))
+     (#t
+      (if (null? (cdr M))
+          (begin
+            (dkv-step! ch (dkv-add tq tp) (lambda () (dk-cite! 'nvs-vadd-comm dkv-m tp tq)))
+            (list q p))
+          (let* ((R (cdr M)) (CR (dkv-term R)))
+            (dkv-step! ch (dkv-add (dkv-add tp tq) CR)
+                       (lambda () (dk-cite! 'nvs-vadd-assoc dkv-m tp tq CR)
+                                  (dkv-sym! (dkv-add (dkv-add tp tq) CR) cur0)))
+            (dkv-step! ch (dkv-add (dkv-add tq tp) CR)
+                       (lambda () (dk-cite! 'nvs-vadd-comm dkv-m tp tq)
+                                  (dkv-congr! (dkv-add tp tq) (dkv-add tq tp) (lambda (z) (dkv-add z CR)))))
+            (dkv-step! ch (dkv-add tq (dkv-add tp CR))
+                       (lambda () (dk-cite! 'nvs-vadd-assoc dkv-m tq tp CR)))
+            (let* ((R2 (dkv-insert! p R)) (CR2 (dkv-term R2)))
+              (dkv-step! ch (dkv-add tq CR2)
+                         (lambda () (dkv-congr! (dkv-add tp CR) CR2 (lambda (z) (dkv-add tq z)))))
+              (cons q R2))))))))
+;;; (= (act c (term L)) (term S)) landed; returns S
+(define (dkv-scale! c L)
+  (dkv-rr! c)
+  (let* ((a (caar L)) (v (cdar L)) (ca (list '* c a)))
+    (dkv-rr! ca)
+    (if (null? (cdr L))
+        (let ((ch (dkv-chain (dkv-act c (dkv-act a v)))))
+          (dkv-step! ch (dkv-act ca v) (lambda () (dk-cite! 'nvs-act-scale-assoc dkv-m c a v)))
+          (list (cons ca v)))
+        (let* ((t1 (dkv-act a v)) (R (cdr L)) (CR (dkv-term R))
+               (ch (dkv-chain (dkv-act c (dkv-add t1 CR)))))
+          (dkv-step! ch (dkv-add (dkv-act c t1) (dkv-act c CR))
+                     (lambda () (dk-cite! 'nvs-act-distrib-vec-rr dkv-m c t1 CR)))
+          (dkv-step! ch (dkv-add (dkv-act ca v) (dkv-act c CR))
+                     (lambda () (dk-cite! 'nvs-act-scale-assoc dkv-m c a v)
+                                (dkv-congr! (dkv-act c t1) (dkv-act ca v) (lambda (z) (dkv-add z (dkv-act c CR))))))
+          (let* ((S (dkv-scale! c R)) (CS (dkv-term S)))
+            (dkv-step! ch (dkv-add (dkv-act ca v) CS)
+                       (lambda () (dkv-congr! (dkv-act c CR) CS (lambda (z) (dkv-add (dkv-act ca v) z)))))
+            (cons (cons ca v) S))))))
+;;; pad L (chain CH) with atom v at coefficient 0
+(define (dkv-pad! ch L v)
+  (let* ((C (dkv-term L)) (z (dkv-act 0 v)) (padded (dkv-add C z)))
+    (dkv-rr! 0)
+    (dkv-step! ch padded (lambda () (dk-cite! 'nvs-act-zero dkv-m v C) (dkv-sym! padded C)))
+    (let ((M (dkv-merge! L (list (cons 0 v)))))
+      (dkv-step! ch (dkv-term M) (lambda () #t))
+      M)))
+(define (dkv-find-m t)
+  (cond ((not (pair? t)) #f)
+        ((and (pair? (car t)) (memq (caar t) '(VADD ACT VNEG)) (pair? (cdar t))) (cadar t))
+        (#t (let loop ((l t)) (cond ((null? l) #f) ((dkv-find-m (car l)) => (lambda (x) x)) (#t (loop (cdr l))))))))
+(define (dk-vs-eq-chain!)
+  (let* ((g (dk-goal))
+         (ignore (if (not (and (pair? g) (eq? (car g) '=))) (error "dk-vs-eq!: the goal is not an equation" g)))
+         (m (dkv-find-m g))
+         (L (cadr g)) (R (caddr g)))
+    (if (not m) (error "dk-vs-eq!: no VADD / ACT / VNEG in the goal" (expression->string g)))
+    (if (not (dk-asm? (list 'IS-NORMED-VECTOR-SPACE m)))
+        (error "dk-vs-eq!: IS-NORMED-VECTOR-SPACE not in context for" m))
+    (set! dkv-m m)
+    (let* ((chL (dkv-chain L)) (chR (dkv-chain R))
+           (LL (dkv-norm! L)) (LR (dkv-norm! R)))
+      (vector-set! chL 1 (dkv-term LL)) (vector-set! chR 1 (dkv-term LR))
+      ;; pad the atoms missing on either side
+      (for-each (lambda (q) (if (not (assoc-cdr (cdr q) LL)) (set! LL (dkv-pad! chL LL (cdr q))))) LR)
+      (for-each (lambda (q) (if (not (assoc-cdr (cdr q) LR)) (set! LR (dkv-pad! chR LR (cdr q))))) LL)
+      (if (not (equal? (map cdr LL) (map cdr LR)))
+          (error "dk-vs-eq!: the atoms do not line up" (map cdr LL) (map cdr LR)))
+      ;; the coefficients, one by one
+      (let loop ((i 0) (cur LL))
+        (if (< i (length cur))
+            (let* ((a (car (list-ref cur i))) (b (car (list-ref LR i))))
+              (if (equal? a b)
+                  (loop (+ i 1) cur)
+                  (let* ((eq (list '= a b))
+                         (new (list-set-copy cur i (cons b (cdr (list-ref cur i))))))
+                    (dkv-rr! a) (dkv-rr! b)
+                    (dk-have! eq (lambda ()
+                                   (let ((leaf (proof-state-focus *ps*)))
+                                     (crs)
+                                     (if (not (sequent-node-grounded? leaf))
+                                         (error "dk-vs-eq!: the coefficients differ (crs refuses):" (expression->string eq))))))
+                    (dkv-step! chL (dkv-term new)
+                               (lambda () (dkv-congr! a b (lambda (z) (dkv-term (list-set-copy cur i (cons z (cdr (list-ref cur i))))))))) 
+                    (loop (+ i 1) new))))))
+      ;; L = C, R = C  ==>  L = R
+      (let ((C (vector-ref chL 1)))
+        (if (not (equal? C (vector-ref chR 1))) (error "dk-vs-eq!: the canonical forms differ" C (vector-ref chR 1)))
+        (cond ((and (equal? L C) (equal? R C)) (rfl))
+              ((equal? R C) #t)
+              ((equal? L C) (dkv-sym! R C))
+              (#t (dkv-sym! R C) (dk-cite! 'eq-trans L C R)))
+        (if (not (sequent-node-grounded? (proof-state-focus *ps*)))
+            (if (dk-asm? (dk-goal)) (ass)
+                (error "dk-vs-eq!: the equation did not land" (expression->string g))))))))
+(define (assoc-cdr v L) (find-first (lambda (q) (equal? (cdr q) v)) L))
+(define (list-set-copy lst i x)
+  (let loop ((l lst) (k 0)) (if (null? l) '() (cons (if (= k i) x (car l)) (loop (cdr l) (+ k 1))))))
+
+;;; ---------------------------------------------------------------------------
+;;; dk-vs-eq! v2 -- IN-PLACE REWRITING.  The chain version above (kept as dk-vs-eq-chain!)
+;;; lands every intermediate equation and joins them by eq-trans / dk-congr!; this one rewrites
+;;; the GOAL with `subst' of exact law instances, so congruence is free and a step is a citation
+;;; and a rewrite.  A rewrite that also hits the same subterm elsewhere in the goal is sound
+;;; and harmless: the sides are re-read from the goal after every step.
+;; (the chain version is defined above under its own name, dk-vs-eq-chain!; integration fix 2026-10-27)
+(define (dkw-atom? t) (not (or (dkv-op? t 'VADD 3) (dkv-op? t 'ACT 3) (dkv-op? t 'VNEG 2))))
+;;; the first redex of the normalising rules in T, as a thunk that rewrites it; #f if none
+(define (dkw-redex t)
+  (cond
+   ((not (pair? t)) #f)
+   ((dkv-op? t 'VNEG 2)
+    (or (dkw-redex (cadr t))
+        (lambda ()
+          (dkv-vec! t)
+          (let* ((inst (dk-cite! 'nvs-neg-one-act dkv-m (cadr t))))
+            (subst (list '= t (cadr inst)))))))
+   ((dkv-op? t 'ACT 3)
+    (let ((c (cadr t)) (x (caddr t)))
+      (cond ((dkv-op? x 'VADD 3)
+             (lambda () (dkv-vec! t)
+                     (subst (dk-cite! 'nvs-act-distrib-vec-rr dkv-m c (cadr x) (caddr x)))))
+            ((dkv-op? x 'ACT 3)
+             (lambda () (dkv-vec! t) (dkv-rr! (list '* c (cadr x)))
+                     (subst (dk-cite! 'nvs-act-scale-assoc dkv-m c (cadr x) (caddr x)))))
+            (#t (dkw-redex x)))))
+   ((dkv-op? t 'VADD 3)
+    (let ((x (cadr t)) (y (caddr t)))
+      (cond ((dkv-op? x 'VADD 3)
+             (lambda () (dkv-vec! t)
+                     (subst (dk-cite! 'nvs-vadd-assoc dkv-m (cadr x) (caddr x) y))))
+            ((dkw-redex x) => (lambda (r) r))
+            ((dkw-redex y) => (lambda (r) r))
+            (#t (dkw-sort-redex t)))))
+   (#t #f)))
+;;; sorting / collecting on a right-nested sum of acts
+(define (dkw-left-comm! p q r)      ; rewrite p + (q + r) to q + (p + r)
+  (let* ((lhs (dkv-add p (dkv-add q r))) (rhs (dkv-add q (dkv-add p r))) (claim (list '= lhs rhs)))
+    (dkv-vec! lhs) (dkv-vec! rhs) (dkv-vec! (dkv-add p q)) (dkv-vec! (dkv-add q p))
+    (dk-have! claim
+      (lambda ()
+        (let ((leaf (proof-state-focus *ps*)))
+          (dk-cite! 'nvs-vadd-assoc dkv-m p q r)
+          (subst (list '= lhs (dkv-add (dkv-add p q) r)))
+          (subst (dk-cite! 'nvs-vadd-comm dkv-m p q))
+          (subst (dk-cite! 'nvs-vadd-assoc dkv-m q p r))
+          (if (not (sequent-node-grounded? leaf)) (rfl)))))
+    (subst claim)))
+(define (dkw-sort-redex t)
+  (let ((p (cadr t)) (s (caddr t)))
+    (and (dkv-op? p 'ACT 3)
+         (let* ((v (caddr p)) (kv (dkv-key v)))
+           (cond
+            ((dkv-op? s 'ACT 3)
+             (let* ((w (caddr s)) (kw (dkv-key w)))
+               (cond ((string>? kv kw)
+                      (lambda () (dkv-vec! t) (subst (dk-cite! 'nvs-vadd-comm dkv-m p s))))
+                     ((string=? kv kw)
+                      (lambda () (dkv-vec! t) (dkv-rr! (list '+ (cadr p) (cadr s)))
+                              (subst (dk-cite! 'nvs-act-add-scalars dkv-m (cadr p) (cadr s) v))))
+                     (#t #f))))
+            ((and (dkv-op? s 'VADD 3) (dkv-op? (cadr s) 'ACT 3))
+             (let* ((q (cadr s)) (r (caddr s)) (w (caddr q)) (kw (dkv-key w)))
+               (cond ((string>? kv kw) (lambda () (dkv-vec! t) (dkw-left-comm! p q r)))
+                     ((string=? kv kw)
+                      (lambda ()
+                        (dkv-vec! t) (dkv-vec! (dkv-add p q))
+                        (dk-cite! 'nvs-vadd-assoc dkv-m p q r)
+                        (subst (list '= t (dkv-add (dkv-add p q) r)))
+                        (dkv-rr! (list '+ (cadr p) (cadr q)))
+                        (subst (dk-cite! 'nvs-act-add-scalars dkv-m (cadr p) (cadr q) v))))
+                     (#t #f))))
+            (#t #f))))))
+(define (dkw-atoms t)
+  (cond ((dkv-op? t 'VADD 3) (append (dkw-atoms (cadr t)) (dkw-atoms (caddr t))))
+        ((dkv-op? t 'ACT 3) (dkw-atoms (caddr t)))
+        ((dkv-op? t 'VNEG 2) (dkw-atoms (cadr t)))
+        (#t (list t))))
+(define (dkw-canon->list t)          ; canonical sum -> ((coef . atom) ...) or #f
+  (cond ((and (dkv-op? t 'ACT 3) (dkw-atom? (caddr t))) (list (cons (cadr t) (caddr t))))
+        ((and (dkv-op? t 'VADD 3) (dkv-op? (cadr t) 'ACT 3) (dkw-atom? (caddr (cadr t))))
+         (let ((r (dkw-canon->list (caddr t)))) (and r (cons (cons (cadr (cadr t)) (caddr (cadr t))) r))))
+        (#t #f)))
+(define (dk-vs-eq!)
+  (let* ((g (dk-goal))
+         (m (and (pair? g) (eq? (car g) '=) (dkv-find-m g))))
+    (if (not m) (error "dk-vs-eq!: the goal is not a vector equation" (expression->string g)))
+    (if (not (dk-asm? (list 'IS-NORMED-VECTOR-SPACE m)))
+        (error "dk-vs-eq!: IS-NORMED-VECTOR-SPACE not in context for" m))
+    (set! dkv-m m)
+    (dkv-vec! (cadr g)) (dkv-vec! (caddr g))
+    ;; every atom becomes 1.atom (one global rewrite each; scale-assoc then folds 1.(c.v))
+    (for-each
+     (lambda (v)
+       (if (or (dkw-bare-somewhere? (cadr (dk-goal)) v #t) (dkw-bare-somewhere? (caddr (dk-goal)) v #t))
+           (let ((one (dkv-act 1 v)))
+             (dkv-vec! one)
+             (dk-cite! 'nvs-one-act dkv-m v)
+             (subst (list '= v one)))))
+     (delete-duplicates (append (dkw-atoms (cadr g)) (dkw-atoms (caddr g)))))
+    ;; rewrite to the canonical forms
+    (let loop ((n 0))
+      (let* ((g2 (dk-goal))
+             (r (or (dkw-redex (cadr g2)) (dkw-redex (caddr g2)))))
+        (if r
+            (if (> n 400) (error "dk-vs-eq!: no normal form after 400 rewrites")
+                (begin (r) (loop (+ n 1)))))))
+    ;; pad, align the coefficients, close
+    (let* ((g3 (dk-goal)) (LL (dkw-canon->list (cadr g3))) (LR (dkw-canon->list (caddr g3))))
+      (if (not (and LL LR)) (error "dk-vs-eq!: a side is not a canonical combination" (expression->string g3)))
+      (for-each (lambda (q) (if (not (assoc-cdr (cdr q) LL)) (dkw-pad! #t (cdr q)))) LR)
+      (for-each (lambda (q) (if (not (assoc-cdr (cdr q) LR)) (dkw-pad! #f (cdr q)))) LL)
+      (let loop ((n 0))
+        (let* ((g4 (dk-goal)) (r (or (dkw-redex (cadr g4)) (dkw-redex (caddr g4)))))
+          (if r (begin (r) (loop (+ n 1))))))
+      (let* ((g5 (dk-goal)) (LL (dkw-canon->list (cadr g5))) (LR (dkw-canon->list (caddr g5))))
+        (if (not (equal? (map cdr LL) (map cdr LR)))
+            (error "dk-vs-eq!: the atoms do not line up" (expression->string g5)))
+        (for-each
+         (lambda (pl pr)
+           (let ((a (car pl)) (b (car pr)))
+             (if (not (equal? a b))
+                 (let ((eq (list '= a b)))
+                   (dkv-rr! a) (dkv-rr! b)
+                   (dk-have! eq (lambda ()
+                                  (let ((leaf (proof-state-focus *ps*)))
+                                    (crs)
+                                    (if (not (sequent-node-grounded? leaf))
+                                        (error "dk-vs-eq!: the coefficients differ (crs refuses):" (expression->string eq))))))
+                   (subst eq)))))
+         LL LR)
+        (let ((g6 (dk-goal)) (leaf (proof-state-focus *ps*)))
+          (if (not (equal? (cadr g6) (caddr g6)))
+              (error "dk-vs-eq!: the sides differ after normalising" (expression->string g6)))
+          (dkv-vec! (cadr g6))
+          (rfl)
+          (if (not (sequent-node-grounded? leaf)) (error "dk-vs-eq!: rfl did not close" (expression->string g6))))))))
+(define (dkw-bare-somewhere? t v top?)       ; v occurs as a summand or as the whole side
+  (cond ((equal? t v) top?)
+        ((dkv-op? t 'VADD 3) (or (dkw-bare-somewhere? (cadr t) v #t) (dkw-bare-somewhere? (caddr t) v #t)))
+        ((dkv-op? t 'ACT 3) (dkw-bare-somewhere? (caddr t) v #f))
+        ((dkv-op? t 'VNEG 2) (dkw-bare-somewhere? (cadr t) v #t))
+        (#t #f)))
+(define (dkw-pad! left? v)                   ; side := side + 0.v
+  (let* ((g (dk-goal)) (side (if left? (cadr g) (caddr g)))
+         (z (dkv-act 0 v)) (padded (dkv-add side z)))
+    (dkv-vec! padded)
+    (dk-cite! 'nvs-act-zero dkv-m v side)                  ; (= (vadd side 0.v) side)
+    (subst (list '= side padded))))
+
+;;; ===========================================================================
+;;; (2) dk-field-eq! -- FIELD SIMPLIFICATION BY A DENOMINATOR CERTIFICATE.
+;;;
+;;; Goal (= L R) over RR (default) or CC (pass 'CC), with recip and `/' (rewritten first by
+;;; dk-undiv!).  Every (recip d) is a generator r with the relation d.r = 1.  Scheme computes,
+;;; recip by recip (outermost first), the PSEUDO-DIVISION of E = L - R by d.r - 1 in r:
+;;;      E . d^k  =  Q . (d.r - 1)  +  E'          (k = the degree of r in E; E' free of r)
+;;; [E = sum_j c_j r^j gives E' = sum_j c_j d^(k-j) and Q = sum_j c_j d^(k-j) sum_(l<j) (d r)^l],
+;;; until no recip is left; the last E' must be the ZERO polynomial (else ERROR: the identity is
+;;; false).  The proof: each displayed identity is a commutative-ring identity with the recips
+;;; opaque (dk-crs-opaque!); d.r = 1 (rr-/cc-recip-inverse) turns it into E.d^k = E'; from the
+;;; last E' = 0 back up, E.d^k = 0 and d^k /= 0 give E = 0 (rr-no-zero-divisors /
+;;; cc-mul-zero-left); L - R = 0 gives L = R.  A denominator not known nonzero is posted as an
+;;; OWED leaf on the main branch (cut) and announced.  Every inference is a citation, a crs or
+;;; an ineq: nothing new is trusted.
+(define dkf-cls 'RR)
+(define dkf-owed '())
+(define (dkf-recips t)                     ; every (recip d) subterm, all depths
+  (if (not (pair? t)) '()
+      (let ((inner (apply append (map dkf-recips (cdr t)))))
+        (if (and (eq? (car t) 'recip) (= (length t) 2)) (cons t inner) inner))))
+(define (dkf-size t) (string-length (expression->string t)))
+(define (dkf-owe! P)
+  (if (not (dk-asm? P))
+      (let ((g0 (dk-goal)) (home (proof-state-focus *ps*)))
+        (cut P)
+        (let ((main (find-first (lambda (l) (and (not (eq? l home))
+                                                 (alpha-equiv? (dk-goal-of l) g0)
+                                                 (any (lambda (a) (alpha-equiv? a P)) (dk-asms-of l))))
+                                (dk-open-leaves))))
+          (if (not main) (error "dk-field-eq!: cut left no main branch for" (expression->string P)))
+          (dk-focus! main)
+          (set! dkf-owed (cons P dkf-owed))
+          (display ";; dk-field-eq!: OWED, left open for you: ") (display (expression->string P)) (newline)))))
+;;; polynomial helpers over the comm-ring-simplify representation ((sorted-gens . coeff) ...)
+(define (dkf-poly t)
+  (let ((p (cvnb->poly t)))
+    (if (not (list? p)) (error "dk-field-eq!: not a polynomial in its generators:" (expression->string t)))
+    p))
+(define (dkf-pow p k) (if (= k 0) (list (cons '() 1)) (cpoly-mul p (dkf-pow p (- k 1)))))
+(define (dkf-deg-in p r)
+  (fold-left max 0 (map (lambda (tm) (length (filter (lambda (g) (equal? g r)) (car tm)))) p)))
+(define (dkf-coeff-of p r j)                ; the part of p of degree j in r, with r^j removed
+  (cpoly-normalize
+   (map (lambda (tm) (cons (filter (lambda (g) (not (equal? g r))) (car tm)) (cdr tm)))
+        (filter (lambda (tm) (= j (length (filter (lambda (g) (equal? g r)) (car tm))))) p))))
+(define (dkf-sum ps) (fold-left poly-add '() ps))
+(define (dkf-mono->term gens)
+  (cond ((null? gens) 1)
+        ((null? (cdr gens)) (car gens))
+        (#t (list '* (car gens) (dkf-mono->term (cdr gens))))))
+(define (dkf-term->term c gens)
+  (cond ((null? gens) c)
+        ((= c 1) (dkf-mono->term gens))
+        (#t (list '* c (dkf-mono->term gens)))))
+(define (dkf-poly->term p)
+  (let* ((pos (filter (lambda (tm) (> (cdr tm) 0)) p))
+         (neg (filter (lambda (tm) (< (cdr tm) 0)) p))
+         (pt (map (lambda (tm) (dkf-term->term (cdr tm) (car tm))) pos))
+         (nt (map (lambda (tm) (dkf-term->term (- (cdr tm)) (car tm))) neg)))
+    (cond ((and (null? pt) (null? nt)) 0)
+          ((null? pt) (fold-left (lambda (acc x) (list '- acc x)) (list '- (car nt)) (cdr nt)))
+          (#t (fold-left (lambda (acc x) (list '- acc x))
+                         (fold-left (lambda (acc x) (list '+ acc x)) (car pt) (cdr pt))
+                         nt)))))
+(define (dkf-dpow d k) (if (= k 1) d (list '* d (dkf-dpow d (- k 1)))))
+;;; the elimination: a list of steps (r d k Qpoly Epoly-next)
+(define (dkf-eliminate E0)
+  (let loop ((E E0) (steps '()))
+    (let ((rs (sort (delete-duplicates
+                     (filter (lambda (g) (and (pair? g) (eq? (car g) 'recip)))
+                             (apply append (map car E))))
+                    (lambda (a b) (> (dkf-size a) (dkf-size b))))))
+      (if (null? rs)
+          (values (reverse steps) E)
+          (let* ((r (car rs)) (d (cadr r)) (Dp (dkf-poly d)) (k (dkf-deg-in E r))
+                 (Dr (cpoly-mul Dp (list (cons (list r) 1))))
+                 (cj (lambda (j) (dkf-coeff-of E r j)))
+                 (Enext (dkf-sum (map (lambda (j) (cpoly-mul (cj j) (dkf-pow Dp (- k j)))) (iota (+ k 1)))))
+                 (Q (dkf-sum (map (lambda (j)
+                                    (cpoly-mul (cpoly-mul (cj j) (dkf-pow Dp (- k j)))
+                                               (dkf-sum (map (lambda (l) (dkf-pow Dr l)) (iota j)))))
+                                  (iota (+ k 1))))))
+            (loop Enext (cons (list r d k Q Enext) steps)))))))
+(define (dkf-type! t)
+  (if (not (dk--num-type! t dkf-cls)) (error "dk-field-eq!: cannot type" (expression->string t))))
+(define (dkf-nonzero-prod! d k)            ; (NOT (= d^k 0)) landed
+  (let ((Dk (dkf-dpow d k)))
+    (if (and (> k 1) (not (dk-asm? (list 'NOT (list '= Dk 0)))))
+        (begin
+          (dkf-nonzero-prod! d (- k 1))
+          (let ((rest (dkf-dpow d (- k 1))))
+            (dkf-type! Dk)
+            (if (eq? dkf-cls 'CC)
+                (dk-cite! 'cc-mul-nonzero d rest)
+                (dk-have! (list 'NOT (list '= Dk 0))
+                  (lambda ()
+                    (di)
+                    (let ((o (dk-cite! 'rr-no-zero-divisors d rest)))
+                      (if (dk-only! o (list '= Dk 0) (list 'NOT (list '= d 0)) (list 'NOT (list '= rest 0))) (prop)))))))))))
+;;; (NOT (= (f1 * (f2 * ...)) 0)) for the factor list FS (each a d^k)
+(define (dkf-nonzero-all! fs ss)
+  (for-each (lambda (s) (dkf-nonzero-prod! (list-ref s 1) (list-ref s 2))) ss)
+  (let build ((fs fs))
+    (if (pair? (cdr fs))
+        (let* ((rest (fold-right (lambda (f acc) (if (equal? acc 1) f (list '* f acc))) 1 (cdr fs)))
+               (whole (list '* (car fs) rest)))
+          (build (cdr fs))
+          (dkf-type! (car fs)) (dkf-type! rest) (dkf-type! whole)
+          (if (not (dk-asm? (list 'NOT (list '= whole 0))))
+              (if (eq? dkf-cls 'CC)
+                  (dk-cite! 'cc-mul-nonzero (car fs) rest)
+                  (dk-have! (list 'NOT (list '= whole 0))
+                    (lambda ()
+                      (di)
+                      (let ((o (dk-cite! 'rr-no-zero-divisors (car fs) rest)))
+                        (if (dk-only! o (list '= whole 0) (list 'NOT (list '= (car fs) 0)) (list 'NOT (list '= rest 0))) (prop)))))))))))
+(define (dkf-zero-factor! E Dk)            ; (= (* E Dk) 0), Dk /= 0 in context: land (= E 0)
+  (if (eq? dkf-cls 'CC)
+      (dk-cite! 'cc-mul-zero-left E Dk)
+      (dk-have! (list '= E 0)
+        (lambda ()
+          (let ((o (dk-cite! 'rr-no-zero-divisors E Dk)))
+            (if (dk-only! o (list '= (list '* E Dk) 0) (list 'NOT (list '= Dk 0))) (prop)))))))
+;;; crs with EVERY recip subterm generalised (outermost first), proved on a lane and
+;;; instantiated back: dk-crs-opaque! leaves a recip whose argument held another recip.
+(define (dkf-replace t from to)
+  (cond ((equal? t from) to)
+        ((pair? t) (map (lambda (x) (dkf-replace x from to)) t))
+        (#t t)))
+(define (dkf-crs! eqn)
+  (let* ((rs (sort (delete-duplicates (dkf-recips eqn)) (lambda (a b) (> (dkf-size a) (dkf-size b)))))
+         (pool '(dkfa_ dkfb_ dkfc_ dkfd_ dkfe_ dkff_ dkfg_ dkfh_ dkfi_ dkfj_ dkfk_ dkfl_))
+         (vs (let loop ((n (length rs)) (p pool) (acc '()))
+               (if (= n 0) (reverse acc)
+                   (if (null? p) (error "dk-field-eq!: too many recips to generalise" n)
+                       (loop (- n 1) (cdr p) (cons (car p) acc))))))
+         (gen (fold-left (lambda (acc pr) (dkf-replace acc (car pr) (cdr pr))) eqn (map cons rs vs)))
+         (claim (fold-right (lambda (v acc) (list 'FORALL v (list 'IMPLIES (list 'IN v dkf-cls) acc))) gen vs)))
+    (if (null? rs)
+        (dk-have! eqn (lambda () (let ((leaf (proof-state-focus *ps*))) (crs)
+                                   (if (not (sequent-node-grounded? leaf)) (error "dk-field-eq!: crs refused" (expression->string eqn))))))
+        (begin
+          (for-each dkf-type! rs)
+          (dk-have! claim (lambda () (let ((leaf (proof-state-focus *ps*))) (dk-peel!) (crs)
+                                       (if (not (sequent-node-grounded? leaf)) (error "dk-field-eq!: crs refused" (expression->string gen))))))
+          (apply dk-apply! claim rs)
+          (if (not (dk-asm? eqn)) (error "dk-field-eq!: the instance did not land" (expression->string eqn)))
+          (if (eq? #t (vnb-guard (lambda () (alpha-equiv? (dk-goal) eqn)))) (ass))))))
+(define (dk-field-eq! . opt)
+  (set! dkf-cls (if (pair? opt) (car opt) 'RR))
+  (set! dkf-owed '())
+  (if (dk-contains? (dk-goal) '/) (dk-undiv! dkf-cls))
+  (let* ((g (dk-goal))
+         (ignore (if (not (and (pair? g) (eq? (car g) '=))) (error "dk-field-eq!: the goal is not an equation" g)))
+         (L (cadr g)) (R (caddr g))
+         (home (proof-state-focus *ps*)))
+    ;; denominators: typed, nonzero (owed if not in context), and d.r = 1
+    (for-each (lambda (r)
+                (let ((d (cadr r)))
+                  (dkf-type! d)
+                  (dkf-owe! (list 'NOT (list '= d 0)))))
+              (sort (delete-duplicates (dkf-recips g)) (lambda (a b) (< (dkf-size a) (dkf-size b)))))
+    (dkf-type! L) (dkf-type! R)
+    (let ((E1 (list '- L R)))
+      (dkf-type! E1)
+      (call-with-values (lambda () (dkf-eliminate (dkf-poly E1)))
+        (lambda (steps Efinal)
+          (if (not (null? Efinal))
+              (error "dk-field-eq!: not an identity -- after clearing denominators the remainder is"
+                     (expression->string (dkf-poly->term Efinal))))
+          ;; ONE certificate: E1 * PI = sum_i Q'_i (d_i r_i - 1),  PI = prod_i d_i^k_i,
+          ;; Q'_i = Q_i * prod_(j>i) d_j^k_j  (E_(n+1) = 0)
+          (let* ((ss (filter (lambda (s) (> (list-ref s 2) 0)) steps))
+                 (facs (map (lambda (s) (dkf-dpow (list-ref s 1) (list-ref s 2))) ss))
+                 (PI (if (null? facs) 1 (fold-right (lambda (f acc) (if (equal? acc 1) f (list '* f acc))) 1 facs)))
+                 (later (lambda (idx) (fold-left cpoly-mul (list (cons '() 1))
+                                                 (map (lambda (s) (dkf-pow (dkf-poly (list-ref s 1)) (list-ref s 2)))
+                                                      (list-tail ss (+ idx 1))))))
+                 (zs (map (lambda (s) (list '- (list '* (list-ref s 1) (list-ref s 0)) 1)) ss))
+                 (qs (let loop ((k 0) (l ss) (acc '()))
+                       (if (null? l) (reverse acc)
+                           (loop (+ k 1) (cdr l) (cons (dkf-poly->term (cpoly-mul (list-ref (car l) 3) (later k))) acc)))))
+                 (rhs (if (null? ss) 0
+                          (fold-right (lambda (q z acc) (if (equal? acc 0) (list '* q z) (list '+ (list '* q z) acc))) 0 qs zs)))
+                 (lhs (if (equal? PI 1) E1 (list '* E1 PI))))
+            (for-each (lambda (s)
+                        (let ((d (list-ref s 1)) (r (list-ref s 0)))
+                          (if (not (dk-asm? (list '= (list '* d r) 1)))
+                              (begin (dk-have! (list 'AND (list 'IN d dkf-cls) (list 'NOT (list '= d 0))))
+                                     (fact (if (eq? dkf-cls 'CC) 'cc-recip-inverse 'rr-recip-inverse) d)))))
+                      ss)
+            (if (null? ss)
+                (dkf-crs! (list '= E1 0))
+                (let ((C (list '= lhs rhs)))
+                  (dkf-crs! C)
+                  (dk-have! (list '= lhs 0)
+                    (lambda ()
+                      (subst C)
+                      (for-each (lambda (s) (subst (list '= (list '* (list-ref s 1) (list-ref s 0)) 1))) ss)
+                      (dkf-crs! (dk-goal))))
+                  ;; PI /= 0, then E1 = 0
+                  (dkf-type! PI)
+                  (dkf-nonzero-all! facs ss)
+                  (dkf-zero-factor! E1 PI))))
+          ;; L - R = 0  ==>  L = R
+          (if (eq? dkf-cls 'CC)
+              (dk-cite! 'cc-sub-zero-eq L R)
+              (dk-ineq! (list '= E1 0)))
+          (if (not (sequent-node-grounded? (proof-state-focus *ps*)))
+              (if (dk-asm? (dk-goal)) (ass)))
+          (if (pair? dkf-owed)
+              (begin (display ";; dk-field-eq!: ") (display (length dkf-owed)) (display " owed side condition(s)") (newline)))
+          dkf-owed)))))
+
+;;; =======================================================================
+;;; KIT-8 (2026-10-26; wired 2026-10-27, batch 0): scratchpad/kitlem/kit8.scm, verbatim.  The local
+;;; copies each helper retires: scratchpad/triage/KIT-8-REPORT.md.
+;;; =======================================================================
+;;; kit8.scm -- PROPOSED DRIVER-KIT ADDITION (KIT-8): the generic helpers that today's proof agents copied
+;;; into their files under local prefixes.  Agent KIT-8, 2026-10-26.  To adopt: append to driver-kit.scm.
+;;; Until then a probe loads this file INTO *driver-kit-env* (as sb3-helpers.scm is loaded).
+;;; Every helper drives surface tactics only; a helper that cannot do its job ERRORS (no silent #f).
+;;; The local copies each helper would retire are listed in scratchpad/triage/KIT-8-REPORT.md; the
+;;; suite checks (one or more per helper) are scratchpad/kitlem/kit8-check.scm.
+;;;
+;;; FORMULA BUILDERS
+;;;   (dk-and FS)                    right-nested AND of the list FS (one element: itself)
+;;;   (dk-curry FS BODY)             FS1 => (FS2 => ... BODY)
+;;;   (dk-foralls VS BODY)           FORALL v1 ... FORALL vn BODY
+;;; CONTEXT
+;;;   (dk-have-and! . FS)            land (AND F1 ... Fn) from its conjuncts in context; return it (idempotent)
+;;;   (dk-or-each! OR HANDLER)       split a right-nested OR in context; HANDLER runs on each disjunct's leaf
+;;;   (dk-iff-fwd! IFF) (dk-iff-bwd! IFF)   IFF in context, its left (right) side in context: land the other
+;;;   (dk-iff-parts! IFF)            IFF in context, its left side in context: land every conjunct of the
+;;;                                  right side, the one equal to the focus goal LAST (focus-drift safe)
+;;;   (dk-project-safe! CLAIM OPENER) dk-project!, but CLAIM may be the focus goal (then proved in place)
+;;;   (dk-fact-split! THM . ARGS)    cite; split a conjunction that landed; return the citation
+;;;   (dk-chain-ass! CH)             walk an implication chain: detach antecedents in context, prove the
+;;;                                  others (conjunctions of context formulas) by detach-with!; return the end
+;;;   (dk-nn-absurd! . PREMS)        contradictory NN premises close the focus goal (FALSITY or anything)
+;;; GOAL CLOSERS
+;;;   (dk-subst-ass! E) (dk-subst-rfl! E)   rewrite the goal by E, then ass / rfl; ERROR if that fails
+;;;   (dk-and-close! CLOSER)         split AND goals recursively, CLOSER on each atom
+;;;   (dk-close-if-asm!)             `ass' when the focus goal is in context (no warning otherwise)
+;;;   (dk-select! J N)               pick the J-th of N right-nested disjuncts of the goal
+;;;   (dk-index-cases! X N BODY)     X in NN, 1 <= X <= N (numeral): BODY on each j with X = j in context
+;;; LOOKUP
+;;;   (dk-find TAG PRED LST)         find-first that ERRORS with TAG on a miss
+;;;   (dk-map-ordered F L)           map with left-to-right evaluation (recording calls in order)
+;;;   (dk-eq-for LHS)                the context equation LHS = (literal right side), or #f
+;;;   (dk-nth-all!)                  reduce the NTHs of literal lists in every context equation
+;;; SETS
+;;;   (dk-class-ext! LHS RHS FWD BWD) LHS = RHS by class extensionality; FWD/BWD prove the two membership
+;;;                                  directions for the fresh point w
+;;;   (dk-bu-open! W BU)             W in a BIG-UNION over NN in context: return (k . the membership landed)
+;;;   (dk-bu-close! K)               the goal W in a BIG-UNION: witness index K, close the leaves by ass
+;;;   (dk-sep-parts! M)              M = (IN w (SEP v D p)) in context: land w in D and p[v:=w], keep M
+;;; NUMBERS
+;;;   (dk-ne! A B LT)                (NOT (= A B)) from the strict inequality LT in context
+;;;   (dk-recip-succ! K)             K in NN: recip(K + 1) typed in RR and POS-RR (idempotent); return it
+;;;   (dk-rr-mul! P Q)               P, Q in RR in context: land (IN (* P Q) RR)
+;;;   (dk-ni-leaves)                 run `ni'; return (BASE STEP), the step being the leaf with succ
+
+;;; ---- formula builders ----
+(define (dk-and fs) (if (null? (cdr fs)) (car fs) (list 'AND (car fs) (dk-and (cdr fs)))))
+(define (dk-curry fs body) (fold-right (lambda (p acc) (list 'IMPLIES p acc)) body fs))
+(define (dk-foralls vs body) (fold-right (lambda (v acc) (list 'FORALL v acc)) body vs))
+
+;;; ---- context ----
+(define (dk-have-and! . fs)
+  (let ((c (dk-and fs)))
+    (if (not (dk-asm? c)) (dk-have! c (lambda () (dk-conj-close! (lambda () (dk-ass!))))))
+    c))
+
+(define (dk-or-each! o handler)
+  (if (not (dk-head-is? o 'OR))
+      (handler o)
+      (dk-each-leaf! (lambda () (ai o))
+        (lambda ()
+          (cond ((dk-asm? (cadr o)) (handler (cadr o)))
+                ((and (pair? (caddr o)) (eq? (car (caddr o)) 'OR)) (dk-or-each! (caddr o) handler))
+                (#t (handler (caddr o))))))))
+
+(define (dk-iff-fwd! iff) (ai iff) (detach! (list 'IMPLIES (cadr iff) (caddr iff))) (dk-split-all!))
+(define (dk-iff-bwd! iff) (ai iff) (detach! (list 'IMPLIES (caddr iff) (cadr iff))) (dk-split-all!))
+
+(define (dk-project-safe! claim opener)
+  (if (eq? #t (vnb-guard (lambda () (alpha-equiv? (dk-goal) claim))))
+      (let ((leaf (proof-state-focus *ps*)))
+        (opener)
+        (if (not (sequent-node-grounded? leaf)) (vnb-guard (lambda () (dk-split-all!))))
+        (if (not (sequent-node-grounded? leaf)) (ass))
+        claim)
+      (dk-project! claim opener)))
+
+(define (dk-iff-parts! iff)
+  (let* ((rhs (caddr iff))
+         (cs (let loop ((r rhs) (acc '()))
+               (if (and (pair? r) (eq? (car r) 'AND))
+                   (loop (caddr r) (cons (cadr r) acc))
+                   (reverse (cons r acc)))))
+         (goal? (lambda (c) (eq? #t (vnb-guard (lambda () (alpha-equiv? (dk-goal) c))))))
+         (opener (lambda () (ai iff) (detach! (list 'IMPLIES (cadr iff) (caddr iff))) (dk-split-all!)))
+         (rest (filter (lambda (c) (not (goal? c))) cs))
+         (last (filter goal? cs)))
+    (append (dk-map-ordered (lambda (c) (dk-project-safe! c opener)) rest)
+            (dk-map-ordered (lambda (c) (dk-project-safe! c opener)) last))))
+
+(define (dk-fact-split! thm . args)
+  (let ((f (apply dk-cite! thm args)))
+    (if (and (pair? f) (eq? (car f) 'AND)) (dk-split-all!))
+    f))
+
+(define (dk-chain-ass! ch)
+  (let loop ((c ch))
+    (cond ((not (dk-head-is? c 'IMPLIES)) c)
+          ((dk-asm? (cadr c))
+           (let ((new (dk-landed* (lambda () (detach! c)))))
+             (loop (if (pair? new) (car new) (caddr c)))))
+          (#t (loop (detach-with! c (lambda () (dk-conj-close! (lambda () (ass))))))))))
+
+(define (dk-nn-absurd! . prems)
+  (dk-have! '(< 0 0) (lambda () (apply dk-nn! prems)))
+  (if (not (dk-asm? '(IN 0 RR))) (fact 'rr-zero-in))
+  (ai (dk-cite! 'rr-lt-irrefl 0)))
+
+;;; ---- goal closers ----
+(define (dk-subst-ass! e)
+  (let ((leaf (proof-state-focus *ps*)))
+    (subst e)
+    (if (not (sequent-node-grounded? leaf))
+        (if (not (dk-ass!)) (error "dk-subst-ass!: the rewritten goal is not in context" (dk-goal))))))
+
+(define (dk-subst-rfl! e)
+  (let ((leaf (proof-state-focus *ps*)))
+    (subst e)
+    (if (not (sequent-node-grounded? leaf))
+        (let ((g (dk-goal)))
+          (if (and (pair? g) (memq (car g) '(= ==)) (equal? (cadr g) (caddr g)))
+              (rfl)
+              (error "dk-subst-rfl!: not reflexive after the rewrite" g))))))
+
+(define (dk-and-close! closer)
+  (if (dk-head-is? (dk-goal) 'AND)
+      (for-each (lambda (k) (dk-focus! k) (dk-and-close! closer)) (dk-opened (lambda () (di))))
+      (closer)))
+
+(define (dk-close-if-asm!) (if (and (pair? (dk-open-leaves)) (dk-asm? (dk-goal))) (ass)))
+
+(define (dk-select! j n)
+  (cond ((= n 1) #t)
+        ((= j 1) (oi-l))
+        (#t (oi-r) (dk-select! (- j 1) (- n 1)))))
+
+(define (dk-index-cases! x n body)
+  (let loop ((j 1))
+    (if (= j n)
+        (begin
+          (dk-have! (list '= x n) (lambda () (dk-nn! (list '<= n x) (list '<= x n))))
+          (body n))
+        (use-em (list '= x j)
+          (lambda () (body j))
+          (lambda ()
+            (dk-have! (list 'IN j 'NN) (lambda () (arith)))
+            (dk-cite! 'nn-le-ne-succ j x)
+            (dk-have! (list '<= (+ j 1) x) (lambda () (dk-nn! (list '<= (list 'succ j) x))))
+            (loop (+ j 1)))))))
+
+;;; ---- lookup ----
+(define (dk-find tag pred lst)
+  (or (find-first pred lst) (error "dk-find: nothing matches at" tag (map expression->string lst))))
+(define (dk-map-ordered f l)
+  (let loop ((l l) (acc '())) (if (null? l) (reverse acc) (loop (cdr l) (cons (f (car l)) acc)))))
+(define (dk-eq-for lhs)
+  (find-first (lambda (f) (and (pair? f) (memq (car f) '(= ==)) (equal? (cadr f) lhs)
+                               (equal? (reduce-nth-in-expr (caddr f)) (caddr f))))
+              (dk-asms)))
+(define (dk-nth-all!)
+  (for-each (lambda (f) (if (and (pair? f) (memq (car f) '(= ==)) (dk-contains? f 'NTH)) (dk-nth-h! f)))
+            (dk-asms)))
+
+;;; ---- sets ----
+(define (dk-class-ext! lhs rhs fwd bwd)
+  (dk-have! (list 'FORALL 'w_ (list 'IFF (list 'IN 'w_ lhs) (list 'IN 'w_ rhs)))
+    (lambda ()
+      (let ((wv (dk-di-var! (lambda (g) (cadr (cadr g))))))
+        (dk-iff! (lambda (g) (equal? g (list 'IN wv rhs)))
+          (lambda () (fwd wv))
+          (lambda () (bwd wv))))))
+  (fact 'class-extensionality lhs rhs))
+
+(define (dk-bu-open! w bu)
+  (let* ((landed (dk-landed (lambda () (bu-me (list 'IN w bu)))))
+         (ein (find-first (lambda (f) (and (dk-head-is? f 'IN) (eq? (caddr f) 'NN))) landed))
+         (app (find-first (lambda (f) (not (eq? f ein))) landed)))
+    (if (not ein) (error "dk-bu-open!: no index landed" landed))
+    (cons (cadr ein) app)))
+(define (dk-bu-close! k)
+  (for-each (lambda (n) (if (not (sequent-node-grounded? n)) (begin (dk-focus! n) (ass))))
+            (dk-opened (lambda () (bu-mi k)))))
+
+(define (dk-sep-parts! m0)
+  (let* ((m (->raw-formula m0))
+         (w (cadr m)) (s0 (caddr m)) (v (cadr s0)) (dom (caddr s0))
+         (d (list 'IN w dom))
+         (p (subst-free v w (cadddr s0)))
+         (conj (list 'AND d p)))
+    (if (not (dk-asm? m)) (error "dk-sep-parts!: not in context" (expression->string m)))
+    (if (not (and (dk-asm? d) (dk-asm? p)))
+        (begin
+          (if (not (dk-asm? conj))
+              (dk-have! conj (lambda () (sep-me (dk-ctx-form m)) (vnb-guard (lambda () (dk-split-all!)))
+                                        (dk-conj-close! dk-ass!))))
+          (ai (dk-ctx-form conj))))
+    p))
+
+;;; ---- numbers ----
+(define (dk-ne! a b lt)
+  (dk-have! (list 'NOT (list '= a b))
+    (lambda ()
+      (di)
+      (dk-have! '(< 0 0) (lambda () (dk-ineq! lt (list '= a b))))
+      (if (not (dk-asm? '(IN 0 RR))) (fact 'rr-zero-in))
+      (ai (dk-cite! 'rr-lt-irrefl 0)))))
+
+(define (dk-recip-succ! k)
+  (let* ((k1 (list '+ k 1)) (rq (list 'RECIP k1)))
+    (if (dk-asm? (list 'POS-RR rq))
+        rq
+        (begin
+          (dk-cite! 'nn-in-rr k) (dk-type! k1 'RR)
+          (dk-have! (list '< 0 k1) (lambda () (dk-cite! 'nn-zero-le k) (dk-ineq! (list '<= 0 k))))
+          (dk-ne! k1 0 (list '< 0 k1))
+          (dk-chain-ass! (dk-fact! 'rr-recip-closed k1))
+          (dk-cite! 'rr-recip-pos k1)
+          (dk-cite! 'rr-pos-rr-of-lt rq)
+          rq))))
+
+(define (dk-rr-mul! p q)
+  (dk-have-and! (list 'IN p 'RR) (list 'IN q 'RR))
+  (dk-cite! 'rr-mul-closed p q))
+
+(define (dk-ni-leaves)
+  (let ((leaves (dk-opened (lambda () (ni)))))
+    (list (dk-find "dk-ni-leaves base" (lambda (l) (not (dk-contains? (dk-goal-of l) 'succ))) leaves)
+          (dk-find "dk-ni-leaves step" (lambda (l) (dk-contains? (dk-goal-of l) 'succ)) leaves))))
+
+;;; ==================================================================================================
+;;; SB-3 (2026-10-26), wired 2026-10-27: the dks- strand-space kit, scratchpad/sb3/sb3-helpers.scm, appended
+;;; verbatim below.  Used by theorem-library/otway-rees-laws.scm and or-missing-guarantee.scm.
+;;; ==================================================================================================
+
+;;; sb3-helpers.scm -- PROPOSED DRIVER-KIT ADDITION: strand-space trace reading and literal messages.
+;;; Agent SB-3, wave MAP-1026, 2026-10-26.  These are the helpers nsl.scm (S-3), SB-2's honesty and instance
+;;; files and SB-3's Otway-Rees file each needed; SB-2 had copied them three times.  Written here ONCE, over
+;;; a CURRENT SPACE set by (dks-use! SPACE-TERM), so they no longer hard-wire nsp / isp.  To adopt: append to
+;;; driver-kit.scm (prefix dks- = "driver kit, strands"); until then a probe loads this file INTO
+;;; *driver-kit-env* (not a child environment), so every later file sees it as if it were the kit.
+;;; Every helper drives surface tactics only and errors rather than returning #f on a miss.
+;;;
+;;;   (dks-use! SP)                 set the current strand space term; dks-sp, dks-T, dks-K, dks-A
+;;;   (dks-or-each! OR HANDLER)     split a right-nested OR in context; HANDLER gets each disjunct
+;;;   (dks-project! PRED HYP CLAIM) land CLAIM, a projection of the predicate HYP, keeping HYP
+;;;   (dks-fact-split! THM . ARGS)  cite, split a conjunction that landed
+;;;   (dks-subst-ass! E) (dks-subst-rfl! E) (dks-eq-for LHS) (dks-nth-all!)
+;;;   (dks-index-cases! X N BODY)   X in NN, 1 <= X <= N (numeral): BODY on each j with X = j in context
+;;;   (dks-select! J N)             select the J-th of N right-nested disjuncts of the goal
+;;;   (dks-nn-absurd! . PREMS)      contradictory NN premises close the goal
+;;;   (dks-set! T)                  (IN T SET) from a typing, through LST / ENCR
+;;;   (dks-msg! M)                  a literal message typed in A (dk-stl--msg!)
+;;;   (dks-sub-fwd! A M)            land A @ M for a literal M in which A occurs
+;;;   (dks-sub-cases! W M)          W @ M in context, M a literal: land and return the OR over M's subterm
+;;;                                 atoms (W = each LST / ENCR sub-literal, W = each token leaf, W @ each
+;;;                                 message-variable leaf)
+;;;   (dks-lit-neq! A B)            (= A B) in context, A, B literal and known to differ: close the goal
+;;;   (dks-sg N) (dks-lit-facts! M LIT) (dks-entry! N K D M) (dks-earlier! J M . PREMS) (dks-num-index! J M)
+;;;   (dks-recv-absurd! N)          the node-level readers of nsl.scm, over the current space
+;;;   (dks-lit-node-cases! N LIT H) N a node of a strand whose trace is the literal LIT (any length):
+;;;                                 H gets each index j with N's reduced content and direction in context
+;;;   (dks-trace-witnesses! D COUNT) skolemise a predicate's existentials in order
+
+(define dks-sp #f) (define dks-T #f) (define dks-K #f) (define dks-A #f)
+(define (dks-use! sp)
+  (set! dks-sp sp)
+  (set! dks-T `(TOKENS ,sp))
+  (set! dks-K `(KEYS ,sp))
+  (set! dks-A `(MSG-SET (TOKENS ,sp) (KEYS ,sp))))
+
+(define (dks-and fs) (if (null? (cdr fs)) (car fs) `(AND ,(car fs) ,(dks-and (cdr fs)))))
+(define (dks-curry fs body) (fold-right (lambda (p acc) `(IMPLIES ,p ,acc)) body fs))
+(define (dks-foralls vs body) (fold-right (lambda (v acc) `(FORALL ,v ,acc)) body vs))
+
+(define (dks-have-and! . fs)
+  (let ((c (dks-and fs)))
+    (dk-have! c (lambda () (dk-conj-close! (lambda () (dk-ass!)))))
+    c))
+
+(define (dks-or-each! o handler)
+  (if (not (dk-head-is? o 'OR))
+      (handler o)
+      (dk-each-leaf! (lambda () (ai o))
+        (lambda ()
+          (cond ((dk-asm? (cadr o)) (handler (cadr o)))
+                ((and (pair? (caddr o)) (eq? (car (caddr o)) 'OR)) (dks-or-each! (caddr o) handler))
+                (#t (handler (caddr o))))))))
+
+(define (dks-project! pred hyp claim)
+  (dk-have! claim
+    (lambda ()
+      (mac-h pred hyp)
+      (if (not (dk-ass!))
+          (begin
+            (dk-split-all!)
+            (dk-conj-close! (lambda () (if (not (dk-ass!)) (error "dks-project!: not a projection" claim))))))))
+  claim)
+
+(define (dks-fact-split! thm . args)
+  (let ((f (apply dk-cite! thm args)))
+    (if (and (pair? f) (eq? (car f) 'AND)) (dk-split-all!))
+    f))
+
+(define (dks-subst-ass! e)
+  (let ((leaf (proof-state-focus *ps*)))
+    (subst e)
+    (if (not (sequent-node-grounded? leaf))
+        (if (not (dk-ass!)) (error "dks-subst-ass!: the rewritten goal is not in context" (dk-goal))))))
+
+(define (dks-subst-rfl! e)
+  (let ((leaf (proof-state-focus *ps*)))
+    (subst e)
+    (if (not (sequent-node-grounded? leaf))
+        (let ((g (dk-goal)))
+          (if (and (pair? g) (memq (car g) '(= ==)) (equal? (cadr g) (caddr g)))
+              (rfl)
+              (error "dks-subst-rfl!: not reflexive after the rewrite" g))))))
+
+(define (dks-eq-for lhs)
+  (find-first (lambda (f) (and (pair? f) (memq (car f) '(= ==)) (equal? (cadr f) lhs)
+                               (equal? (reduce-nth-in-expr (caddr f)) (caddr f))))
+              (dk-asms)))
+
+(define (dks-nth-all!)
+  (for-each (lambda (f) (if (and (pair? f) (memq (car f) '(= ==)) (dk-contains? f 'NTH)) (dk-nth-h! f)))
+            (dk-asms)))
+
+(define (dks-index-cases! x n body)
+  (let loop ((j 1))
+    (if (= j n)
+        (begin
+          (dk-have! `(= ,x ,n) (lambda () (dk-nn! `(<= ,n ,x) `(<= ,x ,n))))
+          (body n))
+        (use-em `(= ,x ,j)
+          (lambda () (body j))
+          (lambda ()
+            (dk-have! `(IN ,j NN) (lambda () (arith)))
+            (dk-cite! 'nn-le-ne-succ j x)
+            (dk-have! `(<= ,(+ j 1) ,x) (lambda () (dk-nn! `(<= (succ ,j) ,x))))
+            (loop (+ j 1)))))))
+
+(define (dks-select! j n)
+  (cond ((= n 1) #t)
+        ((= j 1) (oi-l))
+        (#t (oi-r) (dks-select! (- j 1) (- n 1)))))
+
+(define (dks-nn-absurd! . prems)
+  (dk-have! '(< 0 0) (lambda () (apply dk-nn! prems)))
+  (if (not (dk-asm? '(IN 0 RR))) (fact 'rr-zero-in))
+  (ai (dk-cite! 'rr-lt-irrefl 0)))
+
+(define (dks-set! t)
+  (let ((goal `(IN ,t SET)))
+    (cond ((dk-asm? goal) goal)
+          ((find-first (lambda (f) (and (dk-head-is? f 'IN) (equal? (cadr f) t) (not (eq? (caddr f) 'SET)))) (dk-asms))
+           => (lambda (ty) (fact 'membership-implies-sethood t (caddr ty)) goal))
+          ((dk-head-is? t 'LST)
+           (dks-set! (cadr t))
+           (fact 'lst-in-tuples-set (cadr t))
+           (fact 'membership-implies-sethood t '(TUPLES SET))
+           goal)
+          ((dk-head-is? t 'ENCR)
+           (dks-set! (cadr t)) (dks-set! (caddr t))
+           (fact 'encr-in-tuples-set (cadr t) (caddr t))
+           (fact 'membership-implies-sethood t '(TUPLES SET))
+           goal)
+          (#t (error "dks-set!: no typing for" t)))))
+
+(define (dks-msg! m) (dk-stl--msg! dks-T dks-K m))
+
+;; a leaf of a literal message: a token (typed in T) or a message variable (typed in A)
+(define (dks-token? x) (dk-asm? `(IN ,x ,dks-T)))
+
+(define (dks-occurs? a m)
+  (cond ((equal? a m) #t)
+        ((dk-stl--encr? m) (dks-occurs? a (cadr m)))
+        ((dk-stl--lst? m) (any-pred (lambda (mi) (dks-occurs? a mi)) (cdr (cadr m))))
+        (#t #f)))
+
+(define (dks-sub-fwd! a m)
+  (let ((goal `(IS-SUBTERM ,dks-T ,dks-K ,a ,m)))
+    (cond ((dk-asm? goal) goal)
+          ((equal? a m)
+           (dks-msg! m)
+           (dk-cite! 'subterm-refl dks-T dks-K m)
+           goal)
+          ((dk-stl--encr? m)
+           (dks-sub-fwd! a (cadr m))
+           (dks-msg! (cadr m))
+           (dk-cite! 'subterm-encr dks-T dks-K a (cadr m) (caddr m))
+           goal)
+          ((dk-stl--lst? m)
+           (let* ((l (cadr m)) (ms (cdr l))
+                  (i (let loop ((ms ms) (i 1))
+                       (cond ((null? ms) (error "dks-sub-fwd!: does not occur" a m))
+                             ((dks-occurs? a (car ms)) i)
+                             (#t (loop (cdr ms) (+ i 1))))))
+                  (mi (list-ref ms (- i 1))))
+             (dks-sub-fwd! a mi)
+             (dk-stl--tuples! dks-T dks-K l)
+             (dk-have! `(IS-SUBTERM ,dks-T ,dks-K ,a (NTH ,i ,l)) (lambda () (nth-r) (dk-ass!)))
+             (dk-have! `(IN ,i NN) (lambda () (arith)))
+             (dk-have! `(<= 1 ,i) (lambda () (dk-nn!)))
+             (dk-have! `(<= ,i (LENGTH ,l)) (lambda () (len-r) (arith)))
+             (dk-cite! 'subterm-component dks-T dks-K a l i)
+             goal))
+          (#t (error "dks-sub-fwd!: not a literal message" m)))))
+
+;;; ---- the subterm inverter for any W ----
+
+(define (dks-sub-atoms w m)
+  (let ((self `(= ,w ,m)))
+    (cond ((dk-stl--encr? m) (cons self (dks-sub-atoms w (cadr m))))
+          ((dk-stl--lst? m) (cons self (append-map (lambda (mi) (dks-sub-atoms w mi)) (cdr (cadr m)))))
+          ((dks-token? m) (list self))
+          (#t (list `(IS-SUBTERM ,dks-T ,dks-K ,w ,m))))))
+
+(define (dks-dedup xs)
+  (let loop ((xs xs) (acc '()))
+    (cond ((null? xs) (reverse acc))
+          ((member (car xs) acc) (loop (cdr xs) acc))
+          (#t (loop (cdr xs) (cons (car xs) acc))))))
+
+;; the goal an OR over ATOMS (right-nested), the disjunct D in context: select it and close
+(define (dks-select-atom! d atoms)
+  (let loop ((as atoms))
+    (cond ((null? as) (error "dks-sub-cases!: not among the atoms" d))
+          ((equal? (car as) d) (if (pair? (cdr as)) (oi-l)) (dk-ass!))
+          (#t (oi-r) (loop (cdr as))))))
+
+(define (dks-sub-drive! w m atoms)
+  (cond
+    ((dk-stl--encr? m)
+     (let ((g (cadr m)) (y (caddr m)))
+       (dks-msg! g)
+       (dks-or-each! (dk-cite! 'subterm-of-encr dks-T dks-K w g y)
+         (lambda (e)
+           (if (dk-head-is? e '=)
+               (dks-select-atom! `(= ,w ,m) atoms)
+               (dks-sub-drive! w g atoms))))))
+    ((dk-stl--lst? m)
+     (let* ((l (cadr m)) (ms (cdr l)) (n (length ms)))
+       (dk-stl--tuples! dks-T dks-K l)
+       (dks-or-each! (dk-cite! 'subterm-of-list dks-T dks-K w l)
+         (lambda (e)
+           (if (dk-head-is? e '=)
+               (dks-select-atom! `(= ,w ,m) atoms)
+               (let* ((i (dk-skolem! e #t))
+                      (len `(LENGTH ,l)))
+                 (dk-have! `(= ,len ,n) (lambda () (len-r) (rfl)))
+                 (dk-rewrite-h! `(<= ,i ,len) len n)
+                 (dks-index-cases! i n
+                   (lambda (j)
+                     (dk-rewrite-h! `(IS-SUBTERM ,dks-T ,dks-K ,w (NTH ,i ,l)) i j)
+                     (dk-nth-h! `(IS-SUBTERM ,dks-T ,dks-K ,w (NTH ,j ,l)))
+                     (dks-sub-drive! w (list-ref ms (- j 1)) atoms)))))))))
+    ((dks-token? m)
+     (dk-cite! 'subterm-of-token dks-T dks-K w m)
+     (dks-select-atom! `(= ,w ,m) atoms))
+    (#t (dks-select-atom! `(IS-SUBTERM ,dks-T ,dks-K ,w ,m) atoms))))
+
+(define (dks-sub-cases! w m)
+  (let* ((hyp `(IS-SUBTERM ,dks-T ,dks-K ,w ,m))
+         (atoms (dks-dedup (dks-sub-atoms w m)))
+         (claim (dk-stl--or atoms)))
+    (if (not (dk-asm? hyp)) (error "dks-sub-cases!: the hypothesis is not in context" hyp))
+    (if (not (dk-asm? claim)) (dk-have! claim (lambda () (dks-sub-drive! w m atoms))))
+    claim))
+
+;;; ---- literal disequalities ----
+
+(define (dks-raw-list? x) (and (pair? x) (eq? (car x) 'LIST)))
+
+(define (dks-distinct? a b)
+  (cond ((and (dks-raw-list? a) (dks-raw-list? b))
+         (or (not (= (length a) (length b)))
+             (let loop ((as (cdr a)) (bs (cdr b)))
+               (and (pair? as) (or (dks-distinct? (car as) (car bs)) (loop (cdr as) (cdr bs)))))))
+        ((and (dk-stl--encr? a) (dk-stl--encr? b))
+         (or (dks-distinct? (cadr a) (cadr b)) (dks-distinct? (caddr a) (caddr b))))
+        ((and (dk-stl--lst? a) (dk-stl--lst? b)) (dks-distinct? (cadr a) (cadr b)))
+        ((and (dk-stl--encr? a) (dk-stl--lst? b)) #t)
+        ((and (dk-stl--lst? a) (dk-stl--encr? b)) #t)
+        ((and (or (dk-stl--encr? a) (dk-stl--lst? a)) (dks-token? b)) #t)
+        ((and (or (dk-stl--encr? b) (dk-stl--lst? b)) (dks-token? a)) #t)
+        (#t (or (dk-asm? `(NOT (= ,a ,b))) (dk-asm? `(NOT (= ,b ,a)))))))
+
+(define (dks-token-eq-absurd! w term)
+  (if (not (dk-asm? `(= ,w ,term))) (dk-have! `(= ,w ,term) (lambda () (dks-subst-rfl! `(= ,term ,w)))))
+  (cond ((dk-head-is? term 'ENCR)
+         (dks-set! (cadr term)) (dks-set! (caddr term))
+         (ai (dk-cite! 'encr-ne-token dks-T w (cadr term) (caddr term))))
+        (#t
+         (dks-set! (cadr term))
+         (ai (dk-cite! 'token-ne-list dks-T w (cadr term))))))
+
+(define (dks-lit-neq! a b)
+  (cond
+    ((dk-asm? `(= ,a ,b)) (dks-lit-neq-1! a b))
+    ((dk-asm? `(= ,b ,a)) (dks-lit-neq-1! b a))
+    ((or (dk-asm? `(== ,a ,b)) (dk-asm? `(== ,b ,a)))
+     (dk-have! `(= ,a ,b) (lambda () (subst `(== ,a ,b)) (rfl)))
+     (dks-lit-neq-1! a b))
+    (#t (error "dks-lit-neq!: no equation in context" a b))))
+
+(define (dks-lit-neq-1! a b)
+  (cond
+    ((and (dks-raw-list? a) (dks-raw-list? b))
+     (if (not (= (length a) (length b)))
+         (let ((na0 (- (length a) 1)) (nb0 (- (length b) 1)))
+           (dk-congr! `(= ,a ,b) (lambda (t) `(LENGTH ,t)) '==)
+           (dk-have! `(= (LENGTH ,b) ,na0) (lambda () (subst `(== (LENGTH ,b) (LENGTH ,a))) (len-r) (rfl)))
+           (dk-have! `(= (LENGTH ,b) ,nb0) (lambda () (len-r) (rfl)))
+           (dk-rewrite-h! `(= (LENGTH ,b) ,na0) `(LENGTH ,b) nb0)
+           (dks-nn-absurd! `(= ,nb0 ,na0)))
+         (let loop ((i 1) (as (cdr a)) (bs (cdr b)))
+           (cond ((null? as) (error "dks-lit-neq!: the lists do not differ" a b))
+                 ((dks-distinct? (car as) (car bs))
+                  (dk-congr! `(= ,a ,b) (lambda (t) `(NTH ,i ,t)) '==)
+                  (dk-nth-h! `(== (NTH ,i ,a) (NTH ,i ,b)))
+                  (dks-lit-neq! (car as) (car bs)))
+                 (#t (loop (+ i 1) (cdr as) (cdr bs)))))))
+    ((and (dk-stl--lst? a) (dk-stl--lst? b))
+     (dk-cite! 'lst-injective (cadr a) (cadr b))
+     (dks-lit-neq! (cadr a) (cadr b)))
+    ((and (dk-stl--encr? a) (dk-stl--encr? b))
+     (dks-fact-split! 'encr-injective (cadr a) (caddr a) (cadr b) (caddr b))
+     (if (dks-distinct? (cadr a) (cadr b))
+         (dks-lit-neq! (cadr a) (cadr b))
+         (dks-lit-neq! (caddr a) (caddr b))))
+    ((and (dk-stl--encr? a) (dk-stl--lst? b)) (ai (dk-cite! 'encr-ne-list (cadr a) (caddr a) (cadr b))))
+    ((and (dk-stl--lst? a) (dk-stl--encr? b)) (ai (dk-cite! 'lst-ne-encr (cadr a) (cadr b) (caddr b))))
+    ((and (dks-token? a) (or (dk-stl--encr? b) (dk-stl--lst? b))) (dks-token-eq-absurd! a b))
+    ((and (dks-token? b) (or (dk-stl--encr? a) (dk-stl--lst? a)))
+     (dk-have! `(= ,b ,a) (lambda () (dks-subst-rfl! `(= ,a ,b))))
+     (dks-token-eq-absurd! b a))
+    ((dk-asm? `(NOT (= ,a ,b))) (ai `(NOT (= ,a ,b))))
+    ((dk-asm? `(NOT (= ,b ,a)))
+     (dk-have! `(= ,b ,a) (lambda () (dks-subst-rfl! `(= ,a ,b))))
+     (ai `(NOT (= ,b ,a))))
+    (#t (error "dks-lit-neq!: cannot tell apart" a b))))
+
+;;; ---- nodes of literal strands ----
+
+(define (dks-sg n) `((STRAND-MAP ,dks-sp) (NTH 2 ,n)))
+
+(define (dks-lit-facts! m lit)
+  (let ((sg (dks-sg m)) (n (length (cdr lit))))
+    (dk-have! `(= (LENGTH ,sg) ,n) (lambda () (subst `(= ,sg ,lit)) (len-r) (rfl)))
+    (let loop ((j 1))
+      (if (<= j n)
+          (begin
+            (dk-have! `(= (NTH ,j ,sg) ,(list-ref lit j)) (lambda () (subst `(= ,sg ,lit)) (nth-r) (rfl)))
+            (loop (+ j 1)))))))
+
+(define (dks-content n) (caddr (dks-eq-for `(NODE-CONTENT ,dks-sp ,n))))
+
+;; with (= (NTH k sigma(NTH 2 m)) d) in context: land N's content and direction (N = M, a literal
+;; [k, NTH 2 m], or N with (= (NTH 2 N) (NTH 2 M)) and (= (NTH 1 N) K) in context); return the content
+(define (dks-entry! n k d m)
+  (let ((mver `(= (NTH ,k ,(dks-sg m)) ,d))
+        (nver `(= (NTH ,k ,(dks-sg n)) ,d)))
+    (if (not (dk-asm? mver)) (error "dks-entry!: the entry is not in context" mver))
+    (cond ((dk-asm? nver) #t)
+          ((and (pair? n) (eq? (car n) 'LIST)) (dk-have! nver (lambda () (nth-r) (dk-ass!))))
+          (#t (dk-rewrite-h! mver `(NTH 2 ,m) `(NTH 2 ,n))))
+    (if (not (dk-asm? `(= (NTH 1 ,n) ,k)))
+        (dk-have! `(= (NTH 1 ,n) ,k) (lambda () (if (not (equal? k `(NTH 1 ,n))) (nth-r)) (rfl))))
+    (fact 'node-content-eq dks-sp n k d)
+    (dk-split-all!)
+    (dks-nth-all!)
+    (dks-content n)))
+
+;; the node [J, NTH(2, M)] and J ==> M, given J < NTH 1 M provable by dk-nn! from PREMS
+(define (dks-earlier! j m . prems)
+  (let ((n `(LIST ,j (NTH 2 ,m))))
+    (fact 'node-intro dks-sp j `(NTH 2 ,m))
+    (dk-have! `(SAME-STRAND-BEFORE ,dks-sp ,n ,m)
+      (lambda ()
+        (mac 'same-strand-before)
+        (nth-r)
+        (dk-conj-close!
+          (lambda ()
+            (cond ((dk-ass!) #t)
+                  ((dk-head-is? (dk-goal) '=) (rfl))
+                  (#t (apply dk-nn! prems)))))))
+    n))
+
+(define (dks-num-index! j m)
+  (let* ((sg (dks-sg m))
+         (leq (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) `(LENGTH ,sg)) (number? (caddr f)))) (dk-asms))))
+    (dk-have! `(IN ,j NN) (lambda () (arith)))
+    (dk-have! `(<= 1 ,j) (lambda () (dk-nn!)))
+    (dk-have! `(<= ,j (LENGTH ,sg)) (lambda () (subst leq) (arith)))))
+
+(define (dks-recv-absurd! n)
+  (dk-have! `(= (NODE-DIR ,dks-sp ,n) SENT) (lambda () (mac-h 'is-sent `(IS-SENT ,dks-sp ,n)) (dk-ass!)))
+  (dk-have! '(= SENT RECEIVED)
+    (lambda () (subst `(= SENT (NODE-DIR ,dks-sp ,n))) (dks-subst-rfl! `(= (NODE-DIR ,dks-sp ,n) RECEIVED))))
+  (ai (dk-cite! 'sent-ne-received)))
+
+;; N in NODES, (= sigma(NTH 2 N) LIT) in context (any length): HANDLER gets each index j, with
+;; (= (NTH 1 N) j) and N's reduced content and direction in context
+(define (dks-lit-node-cases! n lit handler)
+  (let* ((sg (dks-sg n)) (len (length (cdr lit))))
+    (dks-fact-split! 'node-parts dks-sp n)
+    (dks-lit-facts! n lit)
+    (dk-rewrite-h! `(<= (NTH 1 ,n) (LENGTH ,sg)) `(LENGTH ,sg) len)
+    (dks-index-cases! `(NTH 1 ,n) len
+      (lambda (j)
+        (fact 'node-content-eq dks-sp n j (list-ref lit j))
+        (dk-split-all!)
+        (dks-nth-all!)
+        (handler j)))))
+
+(define (dks-trace-witnesses! d count)
+  (let loop ((i 0) (ex d) (acc '()))
+    (if (= i count)
+        (reverse acc)
+        (let* ((v (dk-skolem! ex))
+               (nx (if (< (+ i 1) count)
+                       (dk-pick (lambda (f) (and (dk-head-is? f 'FORSOME) (dk-contains? f v))) "the next witness")
+                       #f)))
+          (loop (+ i 1) nx (cons v acc))))))
+
+;;; (dks-lit-path! EQ PATH) -- EQ = (= A B) or (== A B) in context, A and B literals; PATH a list of
+;;; steps: an integer i (the i-th entry of a raw LIST), LST (unwrap a list message), BODY / KEY (the
+;;; plaintext / key of an encryption).  Land and return the equation between the two sub-literals PATH
+;;; reaches (strict at the end, the last sub-literals typed).
+(define (dks-lit-path! eq path)
+  (let ((a (cadr eq)) (b (caddr eq)))
+    (cond
+      ((null? path)
+       (if (eq? (car eq) '=) eq
+           (let ((e `(= ,a ,b))) (dk-have! e (lambda () (subst eq) (rfl))) e)))
+      ((number? (car path))
+       (let* ((i (car path))
+              (c (dk-congr! eq (lambda (t) `(NTH ,i ,t)) '==))
+              (r (dk-nth-h! (if (eq? c #t) `(== (NTH ,i ,a) (NTH ,i ,b)) c))))
+         (dks-lit-path! r (cdr path))))
+      (#t
+       (let ((se (if (eq? (car eq) '=) eq (let ((e `(= ,a ,b))) (dk-have! e (lambda () (subst eq) (rfl))) e))))
+         (case (car path)
+           ((LST) (dks-lit-path! (dk-cite! 'lst-injective (cadr a) (cadr b)) (cdr path)))
+           ((BODY KEY)
+            (dks-fact-split! 'encr-injective (cadr a) (caddr a) (cadr b) (caddr b))
+            (dks-lit-path! (if (eq? (car path) 'BODY) `(= ,(cadr a) ,(cadr b)) `(= ,(caddr a) ,(caddr b))) (cdr path)))
+           (else (error "dks-lit-path!: unknown step" (car path)))))))))

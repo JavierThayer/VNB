@@ -16,6 +16,12 @@
   (about "Logic and sets; the number systems NN, ZZ, QQ, RR and CC with their arithmetic and order; tuples and lists; functions, bijections and intervals; finite sums; cardinality and ordinals; choice (Zermelo, Zorn); the combinatorial lemmas. Every other book stands on this one.")
   (imports)
   (files
+    "theorem-library/singleton-membership"   ; wave 2026-10-26/27: moved lemmas
+    "theorem-library/card-cartesian-nn"   ; wave 2026-10-26/27: moved lemmas
+    "theorem-library/rr-mul-le-cancel"   ; wave 2026-10-26/27: moved lemmas
+    "theorem-library/rr-zero-mul"   ; wave 2026-10-26/27: moved lemmas
+    "theorem-library/singleton-is-set"   ; wave 2026-10-26/27: moved lemmas
+    "theorem-library/cartesian-nth"   ; wave 2026-10-26/27: moved lemmas
     "theorem-library/nn-cancel"
     "number-systems"           ; the arithmetic base (root file): the primitive shelf of NN, ZZ, QQ, RR, CC
     "structure-library/references"
@@ -173,13 +179,20 @@
     "theorem-library/rake-finsum-typing-nn"
     "structure-library/rr-ineq"
     "theorem-library/axioms"
-  ))
+  
+    "structure-library/rabasics-vocab"   ; wave 2026-10-26/27
+    "theorem-library/rabasics-order"   ; wave 2026-10-26/27
+    ))
 
 (library algebra
   (title "Algebra")
   (about "Semigroups, monoids, groups, rings, integral domains and fields; ideals, Euclidean rings and Bezout; polynomials and monoid algebras; setoids, quotients and ringoids; homomorphisms, categories and views.")
   (imports core)
   (files
+    "theorem-library/prod-ring-succ"   ; wave 2026-10-26/27: moved lemmas
+    "theorem-library/field-one-ne"   ; wave 2026-10-26/27: moved lemmas
+    "theorem-library/zz-divides-basics"   ; wave 2026-10-26/27: moved lemmas
+    "theorem-library/zz-ring-arith"   ; wave 2026-10-26/27: moved lemmas
     "theorem-library/nn-integral"
     "structure-library/semigroup"
     "structure-library/monoid"
@@ -271,7 +284,31 @@
     "theorem-library/rake-ringoid"
     "theorem-library/rake-ringoid-quotient"
     "structure-library/functoriality"
-  ))
+  
+    "structure-library/zz-nt-vocab"   ; wave 2026-10-26/27
+    "theorem-library/zz-number-theory"   ; wave 2026-10-26/27
+    "structure-library/catools-gal-vocab"   ; wave 2026-10-26/27
+    "theorem-library/catools-gal-b1"   ; wave 2026-10-26/27
+    "structure-library/gal-ufd-vocab"   ; wave 2026-10-26/27
+    "theorem-library/gal-ufd"   ; wave 2026-10-26/27
+    "structure-library/gal-poly-vocab"   ; wave 2026-10-26/27
+    "theorem-library/gal-poly"   ; wave 2026-10-26/27
+    "theorem-library/gal-interp"   ; wave 2026-10-26/27
+    "structure-library/gal-gcd-vocab"   ; wave 2026-10-26/27
+    "structure-library/gal-char-vocab"   ; wave 2026-10-26/27
+    "theorem-library/gal-char"   ; wave 2026-10-26/27
+    "theorem-library/tg-group"   ; wave 2026-10-26/27
+    "structure-library/cg2-vocab"   ; wave 2026-10-26/27
+    "theorem-library/cg2-setprod"   ; wave 2026-10-26/27
+    "theorem-library/cg4-gpow"   ; wave 2026-10-26/27
+    "theorem-library/zz-primes"   ; wave 2026-10-26/27
+    "structure-library/group-cosets-vocab"   ; wave 2026-10-26/27
+    "structure-library/group-zpow-vocab"   ; wave 2026-10-26/27
+    "theorem-library/group-zpow"   ; wave 2026-10-26/27
+    "theorem-library/group-cosets"   ; wave 2026-10-26/27
+    "theorem-library/cyclic-product"   ; wave 2026-10-26/27
+    "theorem-library/group-family-product"   ; wave 2026-10-26/27
+    ))
 
 (library linear-algebra
   (title "Linear Algebra")
@@ -374,13 +411,34 @@
     "theorem-library/spans-transport-proof"
     "theorem-library/rake-asm-b4"
     "theorem-library/rank-bound-proof"
-  ))
+  
+    "theorem-library/gal-smith"   ; wave 2026-10-26/27
+    "structure-library/gal-charpoly-vocab"   ; wave 2026-10-26/27
+    "theorem-library/gal-charpoly"   ; wave 2026-10-26/27
+    "structure-library/gal-op-vocab"   ; wave 2026-10-26/27
+    "theorem-library/gal-op"   ; wave 2026-10-26/27
+    "structure-library/gal-ch-vocab"   ; wave 2026-10-26/27
+    "theorem-library/gal-op2"   ; wave 2026-10-26/27
+    "theorem-library/gal-ch"   ; wave 2026-10-26/27
+    
+    "structure-library/qag-vocab"   ; wave-2 2026-10-30
+    "theorem-library/qag-laws"   ; wave-2 2026-10-30
+    ))
 
 (library analysis
   (title "Analysis")
   (about "Metric spaces and their topology, completeness, compactness and continuity; normed fields and normed vector spaces; sequences and series of real and complex numbers; the calculus of one real variable on an interval: derivatives, the mean value theorem, Taylor, antiderivatives, regulated functions and the integral; roads and line integrals; Ascoli, Baire, Hahn-Banach, Bernstein.")
   (imports linear-algebra)
   (files
+    "theorem-library/cvx-alg"   ; wave 2026-10-26/27 (analysis: cites the NVS laws)
+    "structure-library/cvx-vocab"   ; wave 2026-10-26/27 (analysis: cites the NVS laws)
+    "theorem-library/cc-power-add"   ; wave 2026-10-26/27: moved lemmas
+    "theorem-library/nn-power-two-bound"   ; wave 2026-10-26/27: moved lemmas
+    "theorem-library/subseq-fun-typing"   ; wave 2026-10-26/27: moved lemmas
+    "theorem-library/subset-rr-power"   ; wave 2026-10-26/27: moved lemmas
+    "theorem-library/rr-pos-star-order-lemmas"   ; wave 2026-10-26/27: moved lemmas
+    "theorem-library/cg4-extreme"   ; wave 2026-10-26/27 (analysis: IS-CONVEX-SUBSET / IS-EXTREME-POINT are analysis vocabulary)
+    "theorem-library/cvx-hull"   ; wave 2026-10-26/27 (analysis: IS-CONVEX-SUBSET / IS-EXTREME-POINT are analysis vocabulary)
     "theorem-library/normed-field-ring-view"
     "theorem-library/block-family-combinatorial-proof"
     "structure-library/metric-space"
@@ -433,6 +491,7 @@
     "theorem-library/subseq-apply"
     "theorem-library/bdd-metric-carrier"
     "theorem-library/rake-analysis2"
+    "theorem-library/rr-star-order-minimal"   ; EXT-ORDER, wired 2026-10-27 (batch 0)
     "theorem-library/rake-infinity-points"
     "theorem-library/rake-rr-pos-star"
     "theorem-library/rake-eplus-defined"
@@ -738,7 +797,121 @@
     "theorem-library/calc3-uniform"
     "theorem-library/calc3-extension"
     "theorem-library/pw-int-order"
-  ))
+  
+    "structure-library/extended-reals-updown"   ; wave 2026-10-26/27
+    "theorem-library/extinf-points"   ; wave 2026-10-26/27
+    "theorem-library/rr-star-order-thms"   ; wave 2026-10-26/27
+    "theorem-library/extinf-semigroups"   ; wave 2026-10-26/27
+    "theorem-library/rabasics-trunc"   ; wave 2026-10-26/27
+    "theorem-library/rabasics-open"   ; wave 2026-10-26/27
+    "theorem-library/rabasics-closed"   ; wave 2026-10-26/27
+    "theorem-library/ms-compose-continuous"   ; wave 2026-10-26/27
+    "theorem-library/rabasics-monotone"   ; wave 2026-10-26/27
+    "theorem-library/rabasics-extline"   ; wave 2026-10-26/27
+    "theorem-library/rabasics-extline2"   ; wave 2026-10-26/27
+    "theorem-library/extinf-iso"   ; wave 2026-10-26/27
+    "theorem-library/extorder-iso"   ; wave 2026-10-26/27
+    "structure-library/rb2-vocab"   ; wave 2026-10-26/27
+    "theorem-library/rb2-dir"   ; wave 2026-10-26/27
+    "structure-library/ca51-vocab"   ; wave 2026-10-26/27
+    "theorem-library/ca51-compact-laws"   ; wave 2026-10-26/27
+    "theorem-library/ca51-exhaustion"   ; wave 2026-10-26/27
+    "theorem-library/qq-countable"   ; wave 2026-10-26/27
+    "structure-library/mb12-vocab"   ; wave 2026-10-26/27
+    "theorem-library/mb12-snow"   ; wave 2026-10-26/27
+    "theorem-library/mb12-seq"   ; wave 2026-10-26/27
+    "theorem-library/mb12-ultra"   ; wave 2026-10-26/27
+    "structure-library/isom-vocab"   ; wave 2026-10-26/27
+    "theorem-library/isom-uc"   ; wave 2026-10-26/27
+    "theorem-library/isom-equicont"   ; wave 2026-10-26/27
+    "theorem-library/isom-supdist"   ; wave 2026-10-26/27
+    "theorem-library/isom-dense"   ; wave 2026-10-26/27
+    "theorem-library/isom-group"   ; wave 2026-10-26/27
+    "structure-library/isom2-vocab"   ; wave 2026-10-26/27
+    "structure-library/isom2-rrvs-vocab"   ; wave 2026-10-26/27
+    "theorem-library/isom2-group"   ; wave 2026-10-26/27
+    "theorem-library/mg-struct"   ; wave 2026-10-26/27
+    "theorem-library/isom2-dense"   ; wave 2026-10-26/27
+    "theorem-library/isom2-rrfield"   ; wave 2026-10-26/27
+    "theorem-library/isom2-rrvs"   ; wave 2026-10-26/27
+    "theorem-library/mb12b-finsum"   ; wave 2026-10-26/27
+    "theorem-library/mb12b-dim"   ; wave 2026-10-26/27
+    "theorem-library/dual-space-readoffs"   ; wave 2026-10-26/27
+    "theorem-library/dual-nvs"   ; wave 2026-10-26/27
+    "structure-library/bidual"   ; wave 2026-10-26/27
+    "theorem-library/tvs-bidual"   ; wave 2026-10-26/27
+    "theorem-library/norm-attained-general"   ; wave 2026-10-26/27
+    "structure-library/minkowski-functional"   ; wave 2026-10-26/27
+    "theorem-library/tvs-minkowski"   ; wave 2026-10-26/27
+    "structure-library/seminorm-extension"   ; wave 2026-10-26/27
+    "theorem-library/tvs-seminorm-extension"   ; wave 2026-10-26/27
+    "structure-library/tvs-vocab"   ; wave 2026-10-26/27
+    "theorem-library/tvs-seminorm-top"   ; wave 2026-10-26/27
+    "theorem-library/tvs-seminorm-tvs"   ; wave 2026-10-26/27
+    "theorem-library/tvs-rn"   ; wave 2026-10-26/27
+    "theorem-library/tvs-continuity"   ; wave 2026-10-26/27
+    "theorem-library/tvs-functional"   ; wave 2026-10-26/27
+    "theorem-library/tvs-extremal"   ; wave 2026-10-26/27
+    "theorem-library/tvs-hyperplane"   ; wave 2026-10-26/27
+    "structure-library/convex-functional"   ; wave 2026-10-26/27
+    "theorem-library/tvs-hahn-banach-convex"   ; wave 2026-10-26/27
+    "structure-library/top-closed"   ; wave 2026-10-26/27
+    "theorem-library/tvs-kernel-closed"   ; wave 2026-10-26/27
+    "structure-library/line-coefficient"   ; wave 2026-10-26/27
+    "theorem-library/tvs-geometric-hb"   ; wave 2026-10-26/27
+    "structure-library/tvs-product-line"   ; wave 2026-10-26/27
+    "theorem-library/tvs-product-line"   ; wave 2026-10-26/27
+    "structure-library/nets"   ; wave 2026-10-26/27
+    "theorem-library/nets"   ; wave 2026-10-26/27
+    "structure-library/top-product"   ; wave 2026-10-26/27
+    "theorem-library/top-product"   ; wave 2026-10-26/27
+    "structure-library/weak-star"   ; wave 2026-10-26/27
+    "theorem-library/tvs-alaoglu"   ; wave 2026-10-26/27
+    "structure-library/weak-star-separable"   ; wave 2026-10-26/27
+    "theorem-library/tvs-alaoglu-separable"   ; wave 2026-10-26/27
+    "structure-library/tb11-vocab"   ; wave 2026-10-26/27
+    "theorem-library/tb11-a5"   ; wave 2026-10-26/27
+    "structure-library/tg-vocab"   ; wave 2026-10-26/27
+    "theorem-library/tg-struct"   ; wave 2026-10-26/27
+    "theorem-library/top-groups"   ; wave 2026-10-26/27
+    "structure-library/cg1-vocab"   ; wave 2026-10-26/27
+    "theorem-library/cg1-basic"   ; wave 2026-10-26/27
+    "theorem-library/cg1-conn"   ; wave 2026-10-26/27
+    "theorem-library/cg1-group"   ; wave 2026-10-26/27
+    "theorem-library/cg2-top"   ; wave 2026-10-26/27
+    "theorem-library/cg2-compact"   ; wave 2026-10-26/27
+    "theorem-library/cvx-tb"   ; wave 2026-10-26/27
+    "structure-library/cg4-vocab"   ; wave 2026-10-26/27
+    "theorem-library/cg4-cosets"   ; wave 2026-10-26/27
+    "theorem-library/cg4-opg"   ; wave 2026-10-26/27
+    "theorem-library/cg4-seg"   ; wave 2026-10-26/27
+    "theorem-library/cg4-rep"   ; wave 2026-10-26/27
+    "theorem-library/cg4-hom"   ; wave 2026-10-26/27
+    "theorem-library/cg4-ext"   ; wave 2026-10-26/27
+    "theorem-library/cg4-local"   ; wave 2026-10-26/27
+    "theorem-library/catools-evt"   ; wave 2026-10-26/27
+    "theorem-library/product2-compact"   ; wave 2026-10-26/27
+    "theorem-library/inclusion-exclusion"   ; wave 2026-10-26/27
+    "theorem-library/euler-phi-product"   ; wave 2026-10-26/27
+    "theorem-library/phi-growth"   ; wave 2026-10-26/27
+    "theorem-library/group-orders"   ; wave 2026-10-26/27
+    "structure-library/ccr1-vocab"   ; wave 2026-10-26/27
+    "theorem-library/ccr1-ultrametric"   ; wave 2026-10-26/27
+    "structure-library/ccr2-vocab"   ; wave 2026-10-26/27
+    "structure-library/ccr3-vocab"   ; wave 2026-10-26/27
+    "theorem-library/ccr2-nv"   ; wave 2026-10-26/27
+    
+    "theorem-library/regulated-on-glue"   ; wave-2 2026-10-30
+    "theorem-library/rps-lt-le-trans"   ; wave-2 2026-10-30
+    "theorem-library/rr-lt-pos-inf"   ; wave-2 2026-10-30
+    "theorem-library/cc-exhaust-radius-decrease"   ; wave-2 2026-10-30
+    "theorem-library/sip-quotient-complete"   ; wave-2 2026-10-30
+    "theorem-library/calint-regulated-step"   ; wave-2 2026-10-30
+    "structure-library/calint-vocab"   ; wave-2 2026-10-30
+    "theorem-library/calint-deriv-limit"   ; wave-2 2026-10-30
+    "theorem-library/real-riesz"   ; wave-2 2026-10-30
+    "structure-library/nvlocal-vocab"   ; wave-2 2026-10-30
+    ))
 
 (library complex-analysis
   (title "Complex Analysis")
@@ -803,13 +976,103 @@
     "structure-library/ca-hopf-vocab"
     "theorem-library/ca-hopf-fibration"
     "theorem-library/product2-hopf"
-  ))
+  
+    "structure-library/poly-fn-vocab"   ; wave 2026-10-26/27
+    "theorem-library/poly-fn-laws"   ; wave 2026-10-26/27
+    "theorem-library/poly-fn-roots"   ; wave 2026-10-26/27
+    "theorem-library/poly-fn-weierstrass"   ; wave 2026-10-26/27
+    "theorem-library/poly-fn-holomorphic"   ; wave 2026-10-26/27
+    "theorem-library/ca-log-disc"   ; wave 2026-10-26/27
+    "theorem-library/ca-connected"   ; wave 2026-10-26/27
+    "theorem-library/ca-montel-compact"   ; wave 2026-10-26/27
+    "theorem-library/rb2-path"   ; wave 2026-10-26/27
+    "theorem-library/ca51-cc"   ; wave 2026-10-26/27
+    "structure-library/ch3a-vocab"   ; wave 2026-10-26/27
+    "theorem-library/ch3a-maxmod"   ; wave 2026-10-26/27
+    "theorem-library/ch3a-estimates"   ; wave 2026-10-26/27
+    "theorem-library/ch3a-schwarz"   ; wave 2026-10-26/27
+    "theorem-library/ch3a-growth"   ; wave 2026-10-26/27
+    "theorem-library/ch3a-factor"   ; wave 2026-10-26/27
+    "theorem-library/ch3b-const"   ; wave 2026-10-26/27
+    "theorem-library/ch3b-log"   ; wave 2026-10-26/27
+    "theorem-library/catools-nthlocal"   ; wave 2026-10-26/27
+    "theorem-library/catools-hfrechet"   ; wave 2026-10-26/27
+    "theorem-library/compact-margins"   ; wave 2026-10-26/27
+    "structure-library/ca-homotopy-vocab"   ; wave 2026-10-26/27
+    "theorem-library/good-approx"   ; wave 2026-10-26/27
+    "theorem-library/poly-road"   ; wave 2026-10-26/27
+    "theorem-library/homotopy"   ; wave 2026-10-26/27
+    "theorem-library/sc-primitive"   ; wave 2026-10-26/27
+    "theorem-library/sc-log-roots"   ; wave 2026-10-26/27
+    "theorem-library/riemann-reduction"   ; wave 2026-10-26/27
+    "structure-library/algnum-vocab"   ; wave 2026-10-26/27
+    "theorem-library/algnum-countable"   ; wave 2026-10-26/27
+    "theorem-library/algebraic-numbers"   ; wave 2026-10-26/27
+    "structure-library/ccr4-vocab"   ; wave 2026-10-26/27
+    "theorem-library/ccr4-chars"   ; wave 2026-10-26/27
+    "structure-library/padic-vocab"   ; wave 2026-10-26/27
+    "theorem-library/padic-laws"   ; wave 2026-10-26/27
+    
+    "structure-library/ca-angle-vocab"   ; wave-2 2026-10-30
+    "structure-library/ca-line-vocab"   ; wave-2 2026-10-30
+    "theorem-library/removable-singularities"   ; wave-2 2026-10-30
+    "theorem-library/power-series-coef-bound"   ; wave-2 2026-10-30
+    "theorem-library/principal-part"   ; wave-2 2026-10-30
+    "theorem-library/triangle-orientation"   ; wave-2 2026-10-30
+    "theorem-library/triangle-winding"   ; wave-2 2026-10-30
+    "theorem-library/triangle-cauchy-formula"   ; wave-2 2026-10-30
+    "theorem-library/holomorphy-across-line"   ; wave-2 2026-10-30
+    "theorem-library/schwarz-reflection"   ; wave-2 2026-10-30
+    "structure-library/gamma-continuation-vocab"   ; wave-2 2026-10-30
+    "theorem-library/gamma-continuation"   ; wave-2 2026-10-30
+    "theorem-library/calint-poly-integral"   ; wave-2 2026-10-30
+    "structure-library/mvp-vocab"   ; wave-2 2026-10-30
+    "theorem-library/mvp-max"   ; wave-2 2026-10-30
+    "theorem-library/mvp-modulus"   ; wave-2 2026-10-30
+    "theorem-library/mvp-bounded"   ; wave-2 2026-10-30
+    "theorem-library/mvp-holo"   ; wave-2 2026-10-30
+    "structure-library/ch4a-vocab"   ; wave-2 2026-10-30
+    "theorem-library/ch4a-laurent"   ; wave-2 2026-10-30
+    "theorem-library/ch4a-straight"   ; wave-2 2026-10-30
+    "theorem-library/ch4a-annulus"   ; wave-2 2026-10-30
+    "theorem-library/ch4a-termwise"   ; wave-2 2026-10-30
+    "theorem-library/ch4a-outer"   ; wave-2 2026-10-30
+    "theorem-library/ch4a-circle"   ; wave-2 2026-10-30
+    "theorem-library/ch4a-coef"   ; wave-2 2026-10-30
+    "theorem-library/ch4a-expansion"   ; wave-2 2026-10-30
+    "theorem-library/ch4a-punctured"   ; wave-2 2026-10-30
+    "theorem-library/ch4a-coefcont"   ; wave-2 2026-10-30
+    "structure-library/zero-order-vocab"   ; wave-2 2026-10-30
+    "theorem-library/zero-order-laws"   ; wave-2 2026-10-30
+    "structure-library/ch4b-vocab"   ; wave-2 2026-10-30
+    "theorem-library/ch4b-residues"   ; wave-2 2026-10-30
+    "theorem-library/ch4b-mero"   ; wave-2 2026-10-30
+    "theorem-library/ch4c-inverse"   ; wave-2 2026-10-30
+    "structure-library/ch4d-vocab"   ; wave-2 2026-10-30
+    "theorem-library/ch4d-meromorphic"   ; wave-2 2026-10-30
+    "structure-library/infinite-products-vocab"   ; wave-2 2026-10-30
+    "theorem-library/ch6-prod"   ; wave-2 2026-10-30
+    "theorem-library/ch6-fun"   ; wave-2 2026-10-30
+    "theorem-library/ch6-weier"   ; wave-2 2026-10-30
+    "theorem-library/ch6-mult"   ; wave-2 2026-10-30
+    "theorem-library/ch6-quot"   ; wave-2 2026-10-30
+    "theorem-library/ch6-gamma"   ; wave-2 2026-10-30
+    "theorem-library/ch6-euler"   ; wave-2 2026-10-30
+    "theorem-library/ch6-pole"   ; wave-2 2026-10-30
+    "theorem-library/ch6-g629"   ; wave-2 2026-10-30
+    "theorem-library/ch6-g361"   ; wave-2 2026-10-30
+    "structure-library/qp-vocab"   ; wave-2 2026-10-30
+    "theorem-library/qp-laws"   ; wave-2 2026-10-30
+    "structure-library/pruefer-vocab"   ; wave-2 2026-10-30
+    "theorem-library/pruefer-laws"   ; wave-2 2026-10-30
+    ))
 
 (library measure
   (title "Measure")
   (about "Sigma-algebras, outer measures and the Caratheodory construction; measures and measurable maps; the integral of simple and measurable functions; sums over the extended nonnegative reals.")
   (imports analysis)
   (files
+    "theorem-library/mb12-metric"   ; wave 2026-10-26/27 (measure: it states SET-DIST)
     "structure-library/sigma-algebra"
     "structure-library/measure"
     "structure-library/measurable-space"
@@ -850,7 +1113,73 @@
     "theorem-library/push-forward"
     "theorem-library/riesz-markov"
     "theorem-library/riesz-markov-compact"
-  ))
+  
+    "structure-library/hausdorff-vocab"   ; wave 2026-10-26/27
+    "theorem-library/method-ii"   ; wave 2026-10-26/27
+    "theorem-library/hausdorff-measure"   ; wave 2026-10-26/27
+    "theorem-library/hausdorff-dimension"   ; wave 2026-10-26/27
+    "theorem-library/hausdorff-restrict"   ; wave 2026-10-26/27
+    "structure-library/mb-vocab"   ; wave 2026-10-26/27
+    "theorem-library/mb-conull"   ; wave 2026-10-26/27
+    "theorem-library/mb-complete"   ; wave 2026-10-26/27
+    "theorem-library/mb-completion"   ; wave 2026-10-26/27
+    "theorem-library/mb-restrict"   ; wave 2026-10-26/27
+    "theorem-library/mb-outer"   ; wave 2026-10-26/27
+    "structure-library/mb4-vocab"   ; wave 2026-10-26/27
+    "theorem-library/mb4-borel-subspace"   ; wave 2026-10-26/27
+    "theorem-library/mb4-borel-product"   ; wave 2026-10-26/27
+    "theorem-library/mb4-sieve"   ; wave 2026-10-26/27
+    "theorem-library/mb4-polish-open"   ; wave 2026-10-26/27
+    "theorem-library/mb4-sigma-finite"   ; wave 2026-10-26/27
+    "theorem-library/mb4-separable-measure"   ; wave 2026-10-26/27
+    "structure-library/mb35-vocab"   ; wave 2026-10-26/27
+    "theorem-library/mb35-regular"   ; wave 2026-10-26/27
+    "structure-library/mb35-souslin-vocab"   ; wave 2026-10-26/27
+    "theorem-library/mb35-souslin"   ; wave 2026-10-26/27
+    "structure-library/measure-ch1-vocab"   ; wave 2026-10-26/27
+    "theorem-library/measure-ch1-algebras"   ; wave 2026-10-26/27
+    "theorem-library/measure-ch1-pullback"   ; wave 2026-10-26/27
+    "theorem-library/measure-ch1-vitali"   ; wave 2026-10-26/27
+    "theorem-library/measure-ch1-vitali-q"   ; wave 2026-10-26/27
+    "structure-library/mb67-vocab"   ; wave 2026-10-26/27
+    "theorem-library/mb67-baire"   ; wave 2026-10-26/27
+    "theorem-library/mb67-souslin"   ; wave 2026-10-26/27
+    "theorem-library/mb67-lusin"   ; wave 2026-10-26/27
+    "theorem-library/mb67-standard"   ; wave 2026-10-26/27
+    "theorem-library/mb67-prod2"   ; wave 2026-10-26/27
+    "theorem-library/mb67-prod"   ; wave 2026-10-26/27
+    "theorem-library/mb67-sum"   ; wave 2026-10-26/27
+    "theorem-library/mb67-lusin2"   ; wave 2026-10-26/27
+    "theorem-library/mb67-sep"   ; wave 2026-10-26/27
+    "theorem-library/mb67-ls"   ; wave 2026-10-26/27
+    "theorem-library/mb67-s38"   ; wave 2026-10-26/27
+    "theorem-library/mb67-b32"   ; wave 2026-10-26/27
+    "theorem-library/mb67-s35"   ; wave 2026-10-26/27
+    
+    "structure-library/measure-step"   ; wave-2 2026-10-30
+    "theorem-library/integral-unique"   ; wave-2 2026-10-30
+    "theorem-library/lp-convergence"   ; wave-2 2026-10-30
+    "theorem-library/lp-step-dense"   ; wave-2 2026-10-30
+    "theorem-library/lp-measure-isomorphism"   ; wave-2 2026-10-30
+    "theorem-library/lp-complete"   ; wave-2 2026-10-30
+    "theorem-library/l2-hilbert"   ; wave-2 2026-10-30
+    "theorem-library/radon-nikodym"   ; wave-2 2026-10-30
+    "structure-library/l1-dual"   ; wave-2 2026-10-30
+    "theorem-library/l1-dual"   ; wave-2 2026-10-30
+    "structure-library/signed-measure"   ; wave-2 2026-10-30
+    "theorem-library/signed-measure-ext"   ; wave-2 2026-10-30
+    "theorem-library/signed-measure-laws"   ; wave-2 2026-10-30
+    "theorem-library/jordan-decomposition"   ; wave-2 2026-10-30
+    "structure-library/complex-measure"   ; wave-2 2026-10-30
+    "theorem-library/complex-measure-laws"   ; wave-2 2026-10-30
+    "theorem-library/complex-measure-polar"   ; wave-2 2026-10-30
+    "structure-library/step-maps"   ; wave-2 2026-10-30
+    "theorem-library/measurable-maps-metric"   ; wave-2 2026-10-30
+    "structure-library/local-measure"   ; wave-2 2026-10-30
+    "theorem-library/local-measure"   ; wave-2 2026-10-30
+    "structure-library/doubling-functions"   ; wave-2 2026-10-30
+    "theorem-library/doubling-functions"   ; wave-2 2026-10-30
+    ))
 
 (library strand
   (title "Strand Spaces")
@@ -865,7 +1194,21 @@
     "theorem-library/strand-adversary-bound"
     "structure-library/nsl"
     "theorem-library/nsl"
-  ))
+  
+    "structure-library/strand-ideals"   ; wave 2026-10-26/27
+    "theorem-library/strand-ideals-laws"   ; wave 2026-10-26/27
+    "structure-library/nso"   ; wave 2026-10-26/27
+    "structure-library/flat-regular"   ; wave 2026-10-26/27
+    "theorem-library/flat-regular-laws"   ; wave 2026-10-26/27
+    "theorem-library/nso-laws"   ; wave 2026-10-26/27
+    "structure-library/strand-honesty"   ; wave 2026-10-26/27
+    "theorem-library/strand-honesty-laws"   ; wave 2026-10-26/27
+    "structure-library/otway-rees"   ; wave 2026-10-26/27
+    "theorem-library/otway-rees-laws"   ; wave 2026-10-26/27
+    "theorem-library/strand-tokens-nn"   ; wave 2026-10-26/27
+    "structure-library/or-missing-guarantee-instance"   ; wave 2026-10-26/27
+    "theorem-library/or-missing-guarantee"   ; wave 2026-10-26/27
+    ))
 
 (library meta
   (title "The Kernel Encoded")

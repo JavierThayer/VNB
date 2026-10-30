@@ -39,6 +39,31 @@
 ;;; wff-constant-binders (macetes.scm) is defined.
 (define *reject-constant-binders?* #f)
 
+;;; ---------------------------------------------------------------------------
+;;; KIT-7 block D (2026-10-26; wired 2026-10-27): make-wff WARNS on a raw (^ a n).
+;;;
+;;; M-H, 2026-10-26: '(IN (^ 2 n) RR) built `(^)(2, n)', an application of an uninterpreted symbol,
+;;; and nothing said so; power-zero / power-succ (stated with POWER) then "had nothing to rewrite".
+;;; The surface parser reads `x ^ n' as POWER; ring-term / struct-term translate `^' before they
+;;; build a wff; so a `^' head reaching make-wff is always this mistake.  Warn-only: a binder named
+;;; `^' would be legal, and no library formula has the head (grep, 2026-10-26).
+(define *vnb-caret-warnings* 0)
+(define (wff--caret-heads e acc)
+  (cond ((not (pair? e)) acc)
+        ((eq? (car e) 'QUOTE) acc)
+        (#t (let ((acc2 (if (eq? (car e) '^) (cons e acc) acc)))
+              (fold-left (lambda (a x) (wff--caret-heads x a)) acc2 (cdr e))))))
+(define (wff--warn-caret! formula)
+  (if (pair? formula)
+      (let ((hits (wff--caret-heads formula '())))
+        (if (pair? hits)
+            (begin
+              (set! *vnb-caret-warnings* (+ *vnb-caret-warnings* 1))
+              (display ";VNB warning: make-wff: `^' applied as a head in ")
+              (display (expression->string (car hits)))
+              (display " -- it is an UNINTERPRETED function symbol here; the power head is POWER, (POWER a n)")
+              (newline))))))
+
 (define (make-wff formula)
   (vnb-guard
     (lambda ()
@@ -46,6 +71,7 @@
           (make-wff (parse-string formula))
           (let* ((expanded (expand-destructuring-quantifiers formula)))
             (validate-wff! expanded)
+            (wff--warn-caret! expanded)                  ; KIT-7 block D, warn-only
             (when *reject-constant-binders?*
               (let ((hits (wff-constant-binders expanded)))
                 (when (pair? hits)

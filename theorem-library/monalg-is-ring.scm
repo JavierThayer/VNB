@@ -490,22 +490,8 @@
                     (begin (lam-b) (subst (list '= x cu)) (rfl))
                     (ass)))))))))))
 
-(sp (make-wff '(FORALL X (FORALL Y
-      (IMPLIES (IN X SET) (IMPLIES (IN (CARD X) NN)
-        (IMPLIES (IN Y SET) (IMPLIES (IN (CARD Y) NN)
-          (IN (CARD (CARTESIAN X Y)) NN)))))))))
-(have! (list 'IN 'EMPTY-SET ccn-class) ccn-base!)
-(have! ccn-step-formula ccn-step!)
-(have! (list 'AND (list 'IN 'EMPTY-SET ccn-class) ccn-step-formula))
-(let ((ind (dk-fact! 'finite-set-induction ccn-class)))
-  (dk-peel!)
-  (let* ((g (dk-goal)) (X (cadr (cadr (cadr g)))) (Y (caddr (cadr (cadr g)))))
-    (have! (list 'AND (list 'IN X 'SET) (list 'IN (list 'CARD X) 'NN)))
-    (let* ((inx (dk-apply! ind X))
-           (px  (dk-landed-find (lambda () (comp-me inx)) (dk-head? 'forall))))
-      (dk-apply! px Y)
-      (ass))))
-(qed 'card-cartesian-nn)
+;;; MOVED 2026-10-27 (integration): the proof of `card-cartesian-nn' is now in theorem-library/card-cartesian-nn.scm
+;;; (library core), loaded just before this file.
 ;; ---- the additive group of a_, read off the view ----
 (define mir-ag '(RING-ADDITIVE-AG a_))
 ;;; GUARDED by IS-RING(a_) (R4 species (g), approved as drafted 2026-10-13): the

@@ -164,10 +164,8 @@
 (qed 'rr-recip-one)
 (topic! 'rr-recip-one 'analysis)
 
-(sp (make-wff '(FORALL v (IMPLIES (IN v RR) (= (* 0 v) 0)))))
-(di) (crs)
-(qed 'rr-zero-mul)
-(topic! 'rr-zero-mul 'analysis)
+;;; MOVED 2026-10-27 (integration): the proof of `rr-zero-mul' is now in theorem-library/rr-zero-mul.scm
+;;; (library core), loaded just before this file.
 
 ;;; (0 + u = u was proven here as `rr-zero-add'; REMOVED 2026-09-20, batch 11:
 ;;; it duplicated `rr-zero-plus', theorem-library/poly-antiderivative.scm:203,

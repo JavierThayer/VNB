@@ -326,25 +326,8 @@
 (qed 'ep-norm-unfold)
 
 ;;; rr-lt-pos-inf: a real is below +inf.
-(sp (make-wff '(FORALL x (IMPLIES (IN x RR) (< x POS-INF)))))
-(dk-peel!)
-(mac '<)
-(lpi-conj-close!
-  (lambda ()
-    (if (dk-head-is? (dk-goal) '<=)
-        (begin
-          (dk-have! '(IN x RR-STAR)
-            (lambda ()
-              (let ((iff (dk-cite! 'rr-star-membership 'x)))
-                (lpi-keep-prop! iff '(IN x RR)))))
-          (fact 'pos-inf-upper-bound 'x) (ass))
-        (begin
-          (let ((eq (dk-landed (lambda () (di)))))
-            (dk-have! '(IN POS-INF RR) (lambda () (subst (list '= 'POS-INF 'x)) (ass))))
-          (fact 'pos-inf-not-in-rr)
-          (lpi-keep-prop! '(IN POS-INF RR) '(NOT (IN POS-INF RR)))))))
-(lpi-check 'rr-lt-pos-inf)
-(qed 'rr-lt-pos-inf)
+;;; MOVED 2026-10-30 (wave-2 integration): the proof of `rr-lt-pos-inf' is now in
+;;; theorem-library/rr-lt-pos-inf.scm (library analysis).
 
 ;;; epow-pos-inf: (+inf)^p = +inf.
 (sp (make-wff '(FORALL p_ (= (EPOW POS-INF p_) POS-INF))))

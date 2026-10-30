@@ -727,22 +727,8 @@
 ;;; (6) pairs: membership in a product, read off by NTH; the sections.
 ;;; =====================================================================
 
-(sp (make-wff '(FORALL a (FORALL b (FORALL w
-   (IFF (IN w (CARTESIAN a b))
-        (AND (= w (LIST (NTH 1 w) (NTH 2 w))) (AND (IN (NTH 1 w) a) (IN (NTH 2 w) b)))))))))
-(di)
-(dk-iff! (lambda (g) (dk-head-is? g 'AND))
-  (lambda ()
-    (dk-split! (dk-fact! 'cartesian-nth 'w 'a 'b))
-    (fact 'cartesian-pair-eq 'w 'a 'b)
-    (dk-conj-close! dk-ass!))
-  (lambda ()
-    (dk-split-all!)
-    (fact 'pair-in-cartesian 'a 'b '(NTH 1 w) '(NTH 2 w))
-    (subst '(= w (LIST (NTH 1 w) (NTH 2 w))))
-    (ass)))
-(qed 'cartesian-membership-nth)
-(topic! 'cartesian-membership-nth 'plumbing)
+;;; MOVED 2026-10-27 (integration): the proof of `cartesian-membership-nth' is now in theorem-library/cartesian-nth.scm
+;;; (library core), loaded just before this file.
 
 (sp (make-wff '(FORALL a (FORALL b (FORALL u (FORALL v
    (IFF (IN (LIST u v) (CARTESIAN a b)) (AND (IN u a) (IN v b)))))))))

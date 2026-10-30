@@ -427,7 +427,12 @@
   (newline)))
   #f)
 
-(define (prop)
+;;; KIT-7 block B (2026-10-26; wired 2026-10-27): (prop) consults the drift marker of
+;;; interactive.scm (vnb--drift-refuse?): after a step that closed its own focus leaf and moved
+;;; the focus, prop does not run on the sibling the focus drifted to.  prop--run is the old body.
+(define (prop) (if (vnb--drift-refuse? 'prop) #f (prop--run)))
+
+(define (prop--run)
   (if (not *ps*)
       (begin (prop--say (lambda () (display ";; prop: no proof in progress.") (newline)))
              #f)

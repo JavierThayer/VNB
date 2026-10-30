@@ -335,26 +335,8 @@
 ;;; Cauchy estimate in both orders.
 ;;; =====================================================================
 
-(sp (make-wff "forall([pula_ in rr, pulc_ in rr, pulm_ in rr], 0 < pulc_ implies
-   pula_ * pulc_ <= pulm_ * pulc_ implies pula_ <= pulm_)"))
-(dk-peel!)
-(for-each (lambda (pr) (dk-have! (list 'AND (list 'IN (car pr) 'RR) (list 'IN (cadr pr) 'RR)))
-                       (fact 'rr-mul-closed (car pr) (cadr pr)))
-          '((pula_ pulc_) (pulm_ pulc_)))
-(fact 'rr-sub-in-rr 'pulm_ 'pula_)
-(dk-have! '(AND (IN pulc_ RR) (IN (- pulm_ pula_) RR)))
-(fact 'rr-mul-closed 'pulc_ '(- pulm_ pula_))
-(dk-have! '(= (* pulc_ (- pulm_ pula_)) (- (* pulm_ pulc_) (* pula_ pulc_))) (lambda () (crs)))
-(dk-have! '(<= 0 (* pulc_ (- pulm_ pula_)))
-  (lambda ()
-    (dk-ineq! '(<= (* pula_ pulc_) (* pulm_ pulc_))
-              '(= (* pulc_ (- pulm_ pula_)) (- (* pulm_ pulc_) (* pula_ pulc_)))
-              '(IN (* pula_ pulc_) RR) '(IN (* pulm_ pulc_) RR)
-              '(IN (* pulc_ (- pulm_ pula_)) RR))))
-(fact 'rr-nonneg-cancel-pos 'pulc_ '(- pulm_ pula_))
-(dk-ineq! '(<= 0 (- pulm_ pula_)) '(IN pula_ RR) '(IN pulm_ RR))
-(qed 'rr-mul-le-cancel-pos)
-(topic! 'rr-mul-le-cancel-pos 'inequalities)
+;;; MOVED 2026-10-27 (integration): the proof of `rr-mul-le-cancel-pos' is now in theorem-library/rr-mul-le-cancel.scm
+;;; (library core), loaded just before this file.
 
 ;;; the three cases x < y, x = y, y < x of two reals
 (define (pul-trichotomy! x y lt eq gt)

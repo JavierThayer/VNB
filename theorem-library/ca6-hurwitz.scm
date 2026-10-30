@@ -412,13 +412,8 @@
         (let ((iff (dk-cite! 'strictly-mono-nn phi)))
           (dk-have! typ (lambda () (ca6x-only-prop! iff (list 'STRICTLY-MONO-NN phi))))))
     typ))
-(sp (make-wff '(FORALL f (FORALL ssa_ (IMPLIES (IN f (FUN NN ssa_))
-                 (FORALL phi (IMPLIES (STRICTLY-MONO-NN phi) (IN (SUBSEQ f phi) (FUN NN ssa_)))))))))
-(dk-peel!)
-(ca6-mono-fun! 'phi)
-(mac 'SUBSEQ)
-(ca6-lam-goal! (lambda (v) (fact 'fun-apply-type-c 'phi 'NN 'NN v) (fact 'fun-apply-type-c 'f 'NN 'ssa_ (list 'phi v))))
-(qed 'subseq-fun-typing)
+;;; MOVED 2026-10-27 (integration): the proof of `subseq-fun-typing' is now in theorem-library/subseq-fun-typing.scm
+;;; (library analysis), loaded just before this file.
 
 ;;; ======================================================================
 ;;; (3) A SUBSEQUENCE OF A POINTWISE CONVERGENT SEQUENCE OF FUNCTIONS CONVERGES POINTWISE

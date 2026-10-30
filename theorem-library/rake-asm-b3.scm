@@ -6,11 +6,9 @@
 ;;;   metrizable-iff-gauge-countable            (structure-library/pseudometric.scm, T2)
 ;;;   bounded-metrizable-iff-gauge-countable    (structure-library/pseudometric.scm, T3)
 ;;;   gauge-countable-not-metrizable-witness    (structure-library/pseudometric.scm, T4)
-;;; and one support REFUTED:
-;;;   dual-is-normed-vector-space (structure-library/dual-space.scm) is FALSE as stated:
-;;;   rb3-dual-is-normed-vector-space-false proves its negation.  DUAL(m) holds the 7-tuple
-;;;   RR-NORMED-FIELD in its scalar slot, IS-NORMED-VECTOR-SPACE pins the 6-tuple ring view
-;;;   normed-field-as-commutative-ring(rr-normed-field); at m = RR-NVS that is 7 = 6.
+;;; (One support was refuted here on 2026-10-12, dual-is-normed-vector-space, by
+;;; rb3-dual-is-normed-vector-space-false; that theorem was retired on 2026-10-26 when DUAL's
+;;; scalar slot was repaired and the corrected statement proven in dual-nvs.scm.)
 ;;;
 ;;; (I)   Hahn-Banach dominated by a seminorm.  RR: hahn-banach-seminorm-rr.  CC: m is restricted
 ;;;       to a real module mr (rb3-mr-exists), p is sublinear on mr, Re o f is real-linear on s,
@@ -19,7 +17,7 @@
 ;;; (II)  The gauge topology of a countable pseudometric family is a topology.
 ;;; (III) A metrizable space is Hausdorff.
 ;;; (IV)  T4: the zero pseudometric on NN, repeated; its gauge topology is indiscrete.
-;;; (V)   The refutation of dual-is-normed-vector-space.
+;;; (V)   Retired 2026-10-26 (the refutation of the old dual-is-normed-vector-space).
 ;;; (VI)  T2 (=>): a metric is a one-member gauge with the same open sets.
 ;;; (VII) T2 (<=): Hausdorff makes the family separate points, so [PTS s, k |-> DIST(fam k)] is
 ;;;       a C-METRIC-SPACE; its canonical metric (c-metric-is-metric.scm) has the gauge's open
@@ -1521,33 +1519,13 @@
 (rb3-qed! 'gauge-countable-not-metrizable-witness)
 
 ;;; =====================================================================
-;;; (V) dual-is-normed-vector-space IS FALSE AS STATED.  DUAL(m)'s scalar slot holds the
-;;;     7-tuple RR-NORMED-FIELD (dual-space.scm), while IS-NORMED-VECTOR-SPACE pins
-;;;     scal(s) = normed-field-as-commutative-ring(rr-normed-field), a 6-tuple
-;;;     (normed-vector-space.scm, the 2026-08-23 repair).  At m = RR-NVS
-;;;     (rr-nvs-is-normed-vector-space) the support would give 7 = 6.
+;;; (V) RETIRED 2026-10-26: rb3-dual-is-normed-vector-space-false proved the negation of
+;;;     dual-is-normed-vector-space while DUAL(m)'s scalar slot held the 7-tuple RR-NORMED-FIELD.
+;;;     The slot now holds normed-field-as-commutative-ring(rr-normed-field) (structure-library/
+;;;     dual-space.scm, the user's yes of 2026-10-12), the negation is FALSE, and the corrected
+;;;     statement is proven in theorem-library/dual-nvs.scm.  The section is archived beside
+;;;     the patch (scratchpad/dualfix/rake-asm-b3-section-V.scm).
 ;;; =====================================================================
-(sp (make-wff '(NOT (FORALL m (IMPLIES (IS-NORMED-VECTOR-SPACE m) (IS-NORMED-VECTOR-SPACE (DUAL m)))))))
-(di)
-(dk-cite! 'rr-nvs-is-normed-vector-space)
-(rb3-apply! (dk-ctx-form '(FORALL m (IMPLIES (IS-NORMED-VECTOR-SPACE m) (IS-NORMED-VECTOR-SPACE (DUAL m))))) 'RR-NVS)
-(dk-have! (list '= '(SCAL (DUAL RR-NVS)) rb3-R)
-  (lambda () (mac-h 'is-normed-vector-space (dk-ctx-form '(IS-NORMED-VECTOR-SPACE (DUAL RR-NVS)))) (dk-split-all!) (ass)))
-(dk-have! '(== (SCAL (DUAL RR-NVS)) RR-NORMED-FIELD)
-  (lambda () (mac 'DUAL) (slot 'SCAL) (nth-r) (qrfl)))
-(dk-have! '(= (LENGTH RR-NORMED-FIELD) 7)
-  (lambda () (dk-cite! 'rr-is-normed-field) (mac-h 'is-normed-field '(IS-NORMED-FIELD RR-NORMED-FIELD)) (dk-split-all!) (ass)))
-(dk-have! (list '= (list 'LENGTH rb3-R) 6)
-  (lambda () (mac 'NORMED-FIELD-AS-COMMUTATIVE-RING) (len-r) (rfl)))
-(dk-have! '(= (LENGTH (SCAL (DUAL RR-NVS))) 7)
-  (lambda () (subst '(= (SCAL (DUAL RR-NVS)) RR-NORMED-FIELD)) (ass)))
-(dk-have! '(= (LENGTH (SCAL (DUAL RR-NVS))) 6)
-  (lambda () (subst (list '= '(SCAL (DUAL RR-NVS)) rb3-R)) (ass)))
-(dk-have! '(= 7 6)
-  (lambda () (subst '(= 7 (LENGTH (SCAL (DUAL RR-NVS))))) (ass)))
-(dk-have! '(NOT (= 7 6)) (lambda () (arith)))
-(rb3-prop! '(= 7 6) '(NOT (= 7 6)))
-(rb3-qed! 'rb3-dual-is-normed-vector-space-false)
 
 ;;; =====================================================================
 ;;; (VI) metrizable-iff-gauge-countable, (=>): a metric is a one-member gauge.

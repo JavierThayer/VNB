@@ -90,6 +90,9 @@ LINT_LOADS='(let vnbp-walk ((todo (list "/home/ubuntu/probes/'"$BASE"'")) (seen 
                     (if (not (cfl--proof-file? (vnbp-label a))) (case-fold-local-lint! (vnbp-label a) a)))
                   new)
         (vnbp-walk (append (cdr todo) new) (append new seen)))))'
+# casefold preflight (kit10): print SCOPE hits at the top of the digest; never blocks the probe
+CF=$(python3 "$HOME/prover/casefold-preflight.py" "$FILE" 2>/dev/null | grep "  SCOPE" | head -25)
+[ -n "$CF" ] && printf "=== casefold preflight (%s):\n%s\n" "$FILE" "$CF"
 B64=$( { [ "$QUIET" = 1 ] && echo '(set! *vnb-loading* #t)   ; vnb-probe --quiet'; echo "$LINT"; echo "$LINT_LOADS"; cat "$FILE"; } | gzip -9 | base64 -w0)
 if [ ${#B64} -gt 90000 ]; then
   echo "vnb-probe: $FILE is $(( ${#B64} / 1024 )) KB gzipped+base64, over the ~90 KB SSM limit." >&2

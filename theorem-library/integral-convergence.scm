@@ -181,70 +181,16 @@
 ;;; =====================================================================
 
 ;;; rps-le-total
-(sp (make-wff '(FORALL x (IMPLIES (IN x RR-POS-STAR)
-                 (FORALL y (IMPLIES (IN y RR-POS-STAR) (OR (<= x y) (<= y x))))))))
-(dk-peel!)
-(icv-star-cases! 'x
-  (lambda ()
-    (icv-star-cases! 'y
-      (lambda ()
-        (dk-have! '(AND (IN x RR) (IN y RR)))
-        (fact 'rr-leq-total 'x 'y)
-        (ass))
-      (lambda ()
-        (subst '(= y POS-INF))
-        (fact 'rr-pos-star-below-pos-inf 'x)
-        (oi-l) (ass))))
-  (lambda ()
-    (subst '(= x POS-INF))
-    (fact 'rr-pos-star-below-pos-inf 'y)
-    (oi-r) (ass)))
-(qed 'rps-le-total)
-(topic! 'rps-le-total 'inequalities)
+;;; MOVED 2026-10-27 (integration): the proof of `rps-le-total' is now in theorem-library/rr-pos-star-order-lemmas.scm
+;;; (library analysis), loaded just before this file.
 
 ;;; rps-not-lt-le
-(sp (make-wff '(FORALL x (IMPLIES (IN x RR-POS-STAR)
-                 (FORALL y (IMPLIES (IN y RR-POS-STAR)
-                   (IMPLIES (NOT (< x y)) (<= y x))))))))
-(dk-peel!)
-(let ((tot (dk-fact! 'rps-le-total 'x 'y)))
-  (use-cases tot
-    (lambda ()
-      (use-em '(= x y)
-        (lambda () (subst '(= x y)) (fact 'rr-pos-star-le-refl 'y) (ass))
-        (lambda ()
-          (let ((iff (dk-cite! '< 'x 'y)))
-            (icv-keep-prop! iff '(<= x y) '(NOT (= x y)) '(NOT (< x y)))))))
-    (lambda () (ass))))
-(qed 'rps-not-lt-le)
-(topic! 'rps-not-lt-le 'inequalities)
+;;; MOVED 2026-10-27 (integration): the proof of `rps-not-lt-le' is now in theorem-library/rr-pos-star-order-lemmas.scm
+;;; (library analysis), loaded just before this file.
 
 ;;; rps-lt-le-trans
-(sp (make-wff '(FORALL x (IMPLIES (IN x RR-POS-STAR)
-                 (FORALL y (IMPLIES (IN y RR-POS-STAR)
-                   (FORALL z (IMPLIES (IN z RR-POS-STAR)
-                     (IMPLIES (< x y) (IMPLIES (<= y z) (< x z)))))))))))
-(dk-peel!)
-(let ((iff (dk-cite! '< 'x 'y)))
-  (dk-have! '(AND (<= x y) (NOT (= x y))) (lambda () (icv-keep-prop! iff '(< x y))))
-  (dk-split! '(AND (<= x y) (NOT (= x y))))
-  (dk-have! '(AND (IN x RR-POS-STAR) (AND (IN y RR-POS-STAR) (IN z RR-POS-STAR))))
-  (dk-have! '(AND (<= x y) (<= y z)))
-  (fact 'rr-pos-star-le-trans 'x 'y 'z)
-  (mac '<)
-  (icv-conj-close!
-    (lambda ()
-      (if (dk-asm? (dk-goal))
-          (ass)
-          (begin
-            (di)
-            (dk-have! '(<= y x) (lambda () (subst '(= x z)) (ass)))
-            (dk-have! '(AND (IN x RR-POS-STAR) (IN y RR-POS-STAR)))
-            (dk-have! '(AND (<= x y) (<= y x)))
-            (fact 'rr-pos-star-le-antisymm 'x 'y)
-            (icv-keep-prop! '(= x y) '(NOT (= x y))))))))
-(qed 'rps-lt-le-trans)
-(topic! 'rps-lt-le-trans 'inequalities)
+;;; MOVED 2026-10-30 (wave-2 integration): the proof of `rps-lt-le-trans' is now in
+;;; theorem-library/rps-lt-le-trans.scm (library analysis).
 
 ;;; esup-lt-witness: below the supremum there is a member above.
 (sp (make-wff '(FORALL S (IMPLIES (SUBSET S RR-POS-STAR)
@@ -1136,79 +1082,8 @@
         (fact 'rr-mul-closed a b))))
 
 ;;; rr-nn-floor-mul: for c >= 0 and r > 0 there is m in NN with m r <= c < m r + r.
-(sp (make-wff
-     '(FORALL c (IMPLIES (IN c RR) (IMPLIES (<= 0 c)
-        (FORALL r (IMPLIES (POS-RR r)
-          (FORSOME mf_ (AND (IN mf_ NN)
-            (AND (<= (* mf_ r) c) (< c (+ (* mf_ r) r))))))))))))
-(dk-peel!)
-(fact 'rr-pos-rr-in-rr 'r)
-(fact 'rr-lt-of-pos-rr 'r)
-(dk-have! '(AND (IN c RR) (IN r RR)))
-(fact 'rr-add-closed 'c 'r)
-(let* ((tt  '(SEP k_ NN (< c (* k_ r))))
-       (ex  (dk-fact! 'rr-archimedean-multiple 'r '(+ c r)))
-       (k0  (dk-skolem! ex)))
-  (fact 'nn-in-rr k0)
-  (icv-mul-rr! k0 'r)
-  (dk-have! (list 'IN k0 tt)
-    (lambda ()
-      (icv-sep-in!
-        (lambda ()
-          (if (dk-asm? (dk-goal))
-              (ass)
-              (dk-ineq! '(IN c RR) '(IN r RR) (list 'IN (list '* k0 'r) 'RR)
-                        (list '<= '(+ c r) (list '* k0 'r)) '(< 0 r)))))))
-  (dk-have! (list 'SUBSET tt 'NN)
-    (lambda ()
-      (mac 'subset-def)
-      (let ((v (dk-di-var!))) (sep-me (list 'IN v tt)) (ass))))
-  (dk-have! (list 'FORSOME 'n (list 'IN 'n tt)) (lambda () (ew k0) (ass)))
-  (dk-have! (list 'AND (list 'SUBSET tt 'NN) (list 'FORSOME 'n (list 'IN 'n tt))))
-  (let* ((ex2 (dk-fact! 'nn-least-element tt))
-         (m   (dk-skolem! ex2))
-         (minh (dk-pick (lambda (f) (and (eq? (car f) 'forall) (dk-contains? f tt))) "minimality")))
-    (dk-have! (list 'IN m 'NN) (lambda () (sep-me (list 'IN m tt)) (ass)))
-    (dk-have! (list '< 'c (list '* m 'r)) (lambda () (sep-me (list 'IN m tt)) (ass)))
-    (fact 'nn-in-rr m)
-    (icv-mul-rr! m 'r)
-    (dk-have! (list 'NOT (list '= m 0))
-      (lambda ()
-        (di)
-        (dk-have! '(< c (* 0 r)) (lambda () (subst (list '= 0 m)) (ass)))
-        (dk-absurd! '(IN c RR) '(IN r RR) '(<= 0 c) '(< c (* 0 r)))))
-    (let* ((ex3 (dk-fact! 'nn-nonzero-is-succ m))
-           (j   (dk-skolem! ex3))
-           (jr  (list '* j 'r))
-           (j1  (list '+ j 1)))
-      (fact 'nn-succ-plus-one j)
-      (fact 'nn-in-rr j)
-      (icv-mul-rr! j 'r)
-      (dk-have! (list 'NOT (list '< 'c jr))
-        (lambda ()
-          (di)
-          (dk-have! (list 'IN j tt) (lambda () (icv-sep-in! (lambda () (dk-ass!)))))
-          (dk-apply! minh j)
-          (dk-have! (list '= m j1)
-            (lambda () (subst (list '= m (list 'succ j))) (ass)))
-          (dk-absurd! (list 'IN m 'RR) (list 'IN j 'RR) (list '= m j1) (list '<= m j))))
-      (icv-real-not-lt-le! 'c jr)
-      (dk-have! (list '< 'c (list '* j1 'r))
-        (lambda ()
-          (subst (list '= j1 (list 'succ j)))
-          (subst (list '= (list 'succ j) m))
-          (ass)))
-      (dk-have! (list '= (list '* j1 'r) (list '+ jr 'r)) (lambda () (crs)))
-      (ew j)
-      (icv-conj-close!
-        (lambda ()
-          (if (dk-asm? (dk-goal))
-              (ass)
-              (begin
-                (subst (list '= (list '+ jr 'r) (list '* j1 'r)))
-                (ass))))))))
-(qed 'rr-nn-floor-mul)
-(topic! 'rr-nn-floor-mul 'inequalities)
+;;; MOVED 2026-10-27 (integration): the proof of `rr-nn-floor-mul' is now in theorem-library/rr-pos-star-order-lemmas.scm
+;;; (library analysis), loaded just before this file.
 
 ;;; rr-grid-between: between two reals a < b with 0 <= a there is a grid point
 ;;; k/(n+1), written k * recip(n+1).
@@ -1648,39 +1523,8 @@
 (topic! 'rr-lt-div-of-lt-mul 'inequalities)
 
 ;;; rr-recip-swap-lt: al / g < q, 0 < g, 0 < q  =>  al / q < g
-(sp (make-wff
-     '(FORALL al (IMPLIES (IN al RR) (FORALL q (IMPLIES (IN q RR) (FORALL g (IMPLIES (IN g RR)
-        (IMPLIES (< 0 g) (IMPLIES (< 0 q)
-          (IMPLIES (< (* al (recip g)) q) (< (* al (recip q)) g))))))))))))
-(dk-peel!)
-(let* ((ug (icv-recip-facts! 'g))
-       (uq (icv-recip-facts! 'q))
-       (a  (list '* 'al ug))
-       (gq (list '* 'g 'q)))
-  (icv-mul-rr! 'al ug)
-  (icv-mul-rr! 'g 'q)
-  (icv-scale! 'g a 'q)
-  (dk-have! (list '= (list '* 'g a) 'al)
-    (lambda ()
-      (dk-have! (list '= (list '* 'g a) (list '* 'al (list '* 'g ug))) (lambda () (dk-crs-opaque!)))
-      (subst (list '= (list '* 'g a) (list '* 'al (list '* 'g ug))))
-      (subst (list '= (list '* 'g ug) 1))
-      (crs)))
-  (dk-have! (list '< 'al gq)
-    (lambda () (subst (list '= 'al (list '* 'g a))) (ass)))
-  (icv-scale! uq 'al gq)
-  (dk-have! (list '= (list '* uq gq) 'g)
-    (lambda ()
-      (dk-have! (list '= (list '* uq gq) (list '* 'g (list '* 'q uq))) (lambda () (dk-crs-opaque!)))
-      (subst (list '= (list '* uq gq) (list '* 'g (list '* 'q uq))))
-      (subst (list '= (list '* 'q uq) 1))
-      (crs)))
-  (dk-have! (list '= (list '* 'al uq) (list '* uq 'al)) (lambda () (dk-crs-opaque!)))
-  (subst (list '= (list '* 'al uq) (list '* uq 'al)))
-  (subst (list '= 'g (list '* uq gq)))
-  (ass))
-(qed 'rr-recip-swap-lt)
-(topic! 'rr-recip-swap-lt 'inequalities)
+;;; MOVED 2026-10-27 (integration): the proof of `rr-recip-swap-lt' is now in theorem-library/rr-pos-star-order-lemmas.scm
+;;; (library analysis), loaded just before this file.
 
 ;;; rr-lt-mul-of-grid: 0 <= al, 0 < q < f, al / q < g  =>  al < f g
 (sp (make-wff
@@ -2710,26 +2554,8 @@
 ;;; =====================================================================
 
 ;;; rr-lt-mul-of-div-lt: al / g < q, 0 < g  =>  al < q g
-(sp (make-wff
-     '(FORALL al (IMPLIES (IN al RR) (FORALL q (IMPLIES (IN q RR) (FORALL g (IMPLIES (IN g RR)
-        (IMPLIES (< 0 g) (IMPLIES (< (* al (recip g)) q) (< al (* q g))))))))))))
-(dk-peel!)
-(let* ((ug (icv-recip-facts! 'g))
-       (a  (list '* 'al ug)))
-  (icv-mul-rr! 'al ug)
-  (icv-scale! 'g a 'q)
-  (dk-have! (list '= (list '* 'g a) 'al)
-    (lambda ()
-      (dk-have! (list '= (list '* 'g a) (list '* 'al (list '* 'g ug))) (lambda () (dk-crs-opaque!)))
-      (subst (list '= (list '* 'g a) (list '* 'al (list '* 'g ug))))
-      (subst (list '= (list '* 'g ug) 1))
-      (crs)))
-  (dk-have! '(= (* q g) (* g q)) (lambda () (crs)))
-  (subst '(= (* q g) (* g q)))
-  (subst (list '= 'al (list '* 'g a)))
-  (ass))
-(qed 'rr-lt-mul-of-div-lt)
-(topic! 'rr-lt-mul-of-div-lt 'inequalities)
+;;; MOVED 2026-10-27 (integration): the proof of `rr-lt-mul-of-div-lt' is now in theorem-library/rr-pos-star-order-lemmas.scm
+;;; (library analysis), loaded just before this file.
 
 ;;; rps-le-of-scaled: if c u <= L for every real c in (0, 1), then u <= L.
 (sp (make-wff

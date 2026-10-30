@@ -920,6 +920,78 @@
 (define *ps-closed-by-qed* #f)       ; the proof-state object the last qed installed
 (define *ps-closed-by-qed-name* #f)
 (define *vnb-after-qed-steps* '())    ; (THEOREM . COMMAND) per step run on a qed-closed state
+;;; ===========================================================================
+;;; THE DRIFT MARKER (KIT-7, 2026-10-26; wired 2026-10-27, batch 0).
+;;;
+;;; THE TRAP.  A step that is not meant to close anything -- `cut' through dk-have! of a claim equal
+;;; to the focus goal, `keep' reaching an already-proven sequent, `subst' / `fact' / `mac' landing a
+;;; node that hash-consing finds grounded -- CLOSES the focus leaf, and the focus moves to another
+;;; open leaf.  The driver's next line is the closer it wrote for the leaf just closed: `(ass)' or
+;;; `(prop)' then fires on the SIBLING.  It either warns about a goal the driver never meant, or,
+;;; worse, silently closes the sibling, and the driver's later steps run one leaf off.  Met today by
+;;; RA-BASICS, CA-MONTEL, CA-51, M-B, CH3-A, ISOM and M-H; before that LA-Z5, LA-Z6, CA-HOPF.
+;;;
+;;; THE RULE.  The marker records (closed node, the focus it drifted to, the script at that moment,
+;;; the proof state).  It is VALID only until the next recorded step: a `focus' (dk-focus!), any
+;;; command, or a new proof invalidates it, so a driver that re-focuses explicitly is never refused.
+;;; While it is valid, a CLOSER does nothing and says why.  A closer is never itself the cause of the
+;;; marker (`(ass) (ass)' over the two halves of a conjunction is the normal drift and still works).
+;;; Under *replaying?* the marker is neither set nor consulted: a refused closer records nothing, so
+;;; the page never contains it.
+;;; *vnb-drift-guard* #f restores the old behaviour (the A/B control); every refusal is listed in
+;;; *vnb-drift-refusals* (THEOREM-IN-PROGRESS . CLOSER) for the end of a load.
+
+(define *vnb-drift-guard* #t)
+;;; 2026-10-29: WARN-ONLY by default.  The 10-29 exams failed because existing proofs relied on the
+;;; old drift (a closer firing on the sibling WAS the intended close, e.g. metric-outer-measure).
+;;; With *vnb-drift-strict* #f a closer after a drift prints the notice and RUNS AS BEFORE; #t refuses
+;;; (the suite's KIT-7 controls bind it).  Every drift is still listed in *vnb-drift-refusals*.
+(define *vnb-drift-strict* #f)
+(define *vnb-drift* #f)                 ; #f or (vector closed-node new-focus script ps who)
+(define *vnb-drift-refusals* '())
+(define *vnb-closer-syms* '(ass rfl qrfl arith ineq crs sos prop))
+
+(define (vnb-note-drift! node who)
+  ;; NODE was the focus leaf; it is now grounded and the focus is elsewhere.
+  (if (and *vnb-drift-guard* (not *replaying?*) *ps* (proof-state? *ps*)
+           node (sequent-node-grounded? node)
+           (not (eq? node (proof-state-focus *ps*))))
+      (set! *vnb-drift* (vector node (proof-state-focus *ps*) *proof-script* *ps* who))))
+
+(define (vnb--drift-valid?)
+  (and *vnb-drift*
+       (eq? *ps* (vector-ref *vnb-drift* 3))
+       (eq? *proof-script* (vector-ref *vnb-drift* 2))
+       (eq? (proof-state-focus *ps*) (vector-ref *vnb-drift* 1))))
+
+;;; #t when the closer SYM must not act; prints why.
+(define (vnb--drift-refuse? sym)
+  (cond
+   ((or (not *vnb-drift-guard*) *replaying?* (not *ps*) (not (proof-state? *ps*))) #f)
+   ((not (proof-state-focus *ps*))
+    (if (not (proof-done? *ps*))
+        (begin (display ";; ") (display sym) (display ": no focus leaf; nothing done") (newline)))
+    #t)
+   ((sequent-node-grounded? (proof-state-focus *ps*))
+    (unless *vnb-quiet*
+      (display ";; ") (display sym) (display ": the focus node ")
+      (write (sequent-node-number (proof-state-focus *ps*)))
+      (display " is already grounded (closed underneath, e.g. by hash-consing); nothing done") (newline))
+    #t)
+   ((vnb--drift-valid?)
+    (set! *vnb-drift-refusals* (cons (cons *current-goal* sym) *vnb-drift-refusals*))
+    (begin                                       ; printed even when quiet: it explains an open leaf
+      (display ";; ") (display sym) (display (if *vnb-drift-strict* ": NOT run" ": DRIFT"))
+      (display " -- the leaf it was written for (node ")
+      (write (sequent-node-number (vector-ref *vnb-drift* 0)))
+      (display ") was closed by the previous step (") (display (vector-ref *vnb-drift* 4))
+      (display "), and the focus drifted to node ")
+      (write (sequent-node-number (proof-state-focus *ps*)))
+      (display (if *vnb-drift-strict* ". Focus a leaf explicitly to close it." ". (warn-only: run anyway)"))
+      (newline))
+    *vnb-drift-strict*)
+   (#t #f)))
+
 (define (vnb--run! sym args thunk)
   ;; A command on the very proof state the last `qed' closed is almost always a
   ;; swallowed proof (see `sp'): WARN, record it for the end of the load, and run
@@ -933,11 +1005,15 @@
         (display ";VNB warning: `") (display sym)
         (display "' runs on the proof `") (display *ps-closed-by-qed-name*)
         (display "' that qed already closed -- a statement closed one paren short?\n")))
+  ;; KIT-7: a CLOSER after a drift (or on a grounded / absent focus) does nothing and says why.
+  (if (and (memq sym *vnb-closer-syms*) (vnb--drift-refuse? sym))
+      #f
   (let* ((mark   (vnb--take-mark (cons sym args)))
          ;; A graph mark taken whether or not *replaying?* is bound (the undo mark
          ;; is not): the warning branch below needs it to see whether the command
          ;; moved the graph before it warned.
          (dgm    (and *ps* (proof-state? *ps*) (dg-take-mark (proof-state-dg *ps*))))
+         (foc0   (and *ps* (proof-state? *ps*) (proof-state-focus *ps*)))   ; KIT-7
          (owed0  (if (and *owed-leaf-hook* (not *owed-leaf-hook-active?*))
                      (vnb--owed-leaves) '()))
          (result (vnb-guard (lambda () (vnb--require-proof!) (thunk)))))
@@ -947,6 +1023,9 @@
       (set! *ps* new-ps)
       (vnb--capture-step! (cons sym args)    ; live trace for proof-tex
                           (vnb--oracle-certs-since mark))
+      ;; KIT-7: a non-closer that closed its own focus leaf marks the drift
+      (if (and foc0 (not (memq sym *vnb-closer-syms*)))
+          (vnb-note-drift! foc0 sym))
       (if (and *owed-leaf-hook* (not *owed-leaf-hook-active?*))
           (let ((fresh (filter (lambda (l) (not (memq l owed0))) (vnb--owed-leaves))))
             (if (pair? fresh)
@@ -969,7 +1048,7 @@
        #f)
       (else
        (record-step! result)
-       (show)))))
+       (show))))))
 
 (define (di)    (vnb--run! 'di    '()    (lambda () (cmd-direct-inference *ps*))))
 (define (pbc)   (vnb--run! 'pbc   '()    (lambda () (cmd-proof-by-contradiction *ps*))))
@@ -1875,11 +1954,97 @@
                (let ((raw (->raw-formula/idx f)))
                  (if (vnb-warning? raw) raw (cmd-detach *ps* raw))))))
 
+;;; ===========================================================================
+;;; KIT-9 (2026-10-27; wired 2026-10-27, batch 0): SHAPE PICKS MUST NOT GRAB CITATION-CHAIN LINKS.
+;;; A citation -- `fact', `dk-cite!', `dk-fact!', `inst+', `inst*!', `dk-apply!' -- lands its WHOLE
+;;; instantiation chain.  A later shape-based finder then returned one of those LINKS instead of the
+;;; hypothesis the driver meant (CA-TOOLS mpow-succ, TB-11 fun-codomain-superset, M-B67
+;;; product2-fst).  The LINK TABLE below records, per proof, which landed formulas are intermediate
+;;; links; `fact' and `inst+' (here) and inst*! / dk-apply! / dk-fact! / dk-cite! (driver-kit.scm)
+;;; record theirs, and the driver-kit finders dk-pick / dk-landed-find / dk-ai-head! skip them unless
+;;; passed 'links.  The table lives HERE, not beside dk-landed* as the report proposed, because
+;;; `fact' (this file) records through it and this file loads before driver-kit.scm.
+;;; scratchpad/triage/KIT-9-REPORT.md.  No inference changes; no certificate-key file is touched.
+
+;; COST (measured 2026-10-27 on five sample sets): the first version snapshot the context twice per
+;; citation (dk-asms + dk-landed*), compared formulas with `member', and fell back to an alpha scan over
+;; every link of the same head on each lookup; it cost 18-34% of probe wall time.  This version keys
+;; everything on the context's own objects: the landed formulas are found by the display strings the
+;; wffs cache (one string set per call), and a lookup is one `equal?'-hash probe.  The alpha fallback
+;; is dropped: a finder tests the context's own formula objects, which are the objects recorded, so an
+;; alpha-variant can only be a DIFFERENT context formula, which is rightly not a link.
+(define k9--links (make-equal-hash-table))   ; formula -> #t, for the current deduction graph
+(define k9--dg #f)
+
+(define (k9--sync!)
+  (let ((dg (and *ps* (proof-state-dg *ps*))))
+    (if (not (eq? dg k9--dg))
+        (begin (hash-table-clear! k9--links) (set! k9--dg dg)))))
+
+;;; 2026-10-29: OPT-IN.  The 10-29 exams showed existing proofs that pick a citation link ON
+;;; PURPOSE (metric-outer-measure: 56/56 with links visible, fails with them skipped).  So the finders
+;;; skip links only in a file that asks for it: (dk-skip-links!) at its top.  load.scm resets the
+;;; switch to #f before every file, so the choice never leaks into the next file.
+(define *k9-skip-links* #f)
+(define (dk-skip-links!) (set! *k9-skip-links* #t))
+(define (dk-link? f)
+  (and *k9-skip-links*
+       (begin (k9--sync!)
+              (and (pair? f) (hash-table-ref/default k9--links f #f)))))
+
+(define (k9--mark! f) (k9--sync!) (hash-table-set! k9--links f #t))
+(define (k9--unmark! f) (k9--sync!) (if (pair? f) (hash-table-delete! k9--links f)))
+
+;;; run THUNK; return (VALUE OLD . FRESH): OLD = the focus assumptions (wffs) before, FRESH = the
+;;; formulas it added to the focus context, newest first.  A step
+;;; PREPENDS its landings to the focus sequent's assumption list and shares the old list as the tail
+;;; (checked: `eq?' tail), so FRESH is read off the front in O(landings); when the focus moved or the
+;;; list was rebuilt, the display-string comparison of dk-landed* is the fallback.
+;;; INTEGRATION GUARD (2026-10-27, batch 0; not in the probe version): with no proof state or no
+;;; focus leaf (a finished proof), the thunk runs unrecorded, so `fact' there fails as it always did
+;;; (vnb--require-proof!, the after-qed warning) instead of raising inside the recorder.
+(define (k9--landed thunk)
+  (if (not (and *ps* (proof-state? *ps*) (proof-state-focus *ps*)))
+      (cons* (thunk) '() '())
+      (k9--landed/focus thunk)))
+(define (k9--landed/focus thunk)
+  (let* ((old (sequent-node-assumptions (proof-state-focus *ps*)))
+         (n0 (length old))
+         (v (thunk))
+         (new (sequent-node-assumptions (proof-state-focus *ps*)))
+         (k (- (length new) n0)))
+    (cons* v old
+          (cond ((<= k 0) '())
+                ((eq? (list-tail new k) old)
+                 (let loop ((l new) (i 0) (acc '()))
+                   (if (= i k) (reverse acc) (loop (cdr l) (+ i 1) (cons (wff-formula (car l)) acc)))))
+                (#t (let ((seen (make-string-hash-table)))
+                      (for-each (lambda (w) (hash-table-set! seen (wff-display-string w) #t)) old)
+                      (let loop ((ws new) (acc '()))
+                        (cond ((null? ws) (reverse acc))
+                              ((hash-table-ref/default seen (wff-display-string (car ws)) #f) (loop (cdr ws) acc))
+                              (#t (loop (cdr ws) (cons (wff-formula (car ws)) acc)))))))))))
+
+;;; A formula already in context is not landed again by a citation (measured: a hypothesis equal to a
+;;; chain link makes the chain land one formula fewer), so FRESH never contains a copy of a hypothesis
+;;; and needs no `equal?' scan of the old context (that scan cost 8 s of a 37 s probe).  The suite pins
+;;; it: "hyp-equal-to-link-pickable".
+
+;;; FRESH = what a call landed (newest first), OLD = the context before (wffs), RESULT = the formula
+;;; the call returns, or #f: then the NEWEST landing, which is the chain's final detached form (a step
+;;; prepends, and `fact' / `inst+' land the result last; checked on mpow-succ).  THM = the cited
+;;; statement or #f.  Marks every fresh formula but the result and the statement; unmarks the result.
+(define (k9--note! fresh old result thm)
+  (let ((res (or result (and (pair? fresh) (car fresh)))))
+    (for-each (lambda (f) (if (not (or (equal? f res) (and thm (equal? f thm)))) (k9--mark! f))) fresh)
+    (if (pair? res) (k9--unmark! res))
+    res))
+
 ;; fact -- forward application of a theorem.  (fact 'thm term ...) brings the
 ;; theorem in, instantiates its leading universals with the terms, and detaches
 ;; every antecedent already in context, landing the consequent as a hypothesis.
 ;; The forward-assembly workhorse for structure proofs ("apply this law here").
-(define (fact thm . args)
+(define (k9--fact-0 thm . args)        ; the body of `fact' before KIT-9
   ;; Parse each instantiation arg so surface-syntax terms work from any
   ;; interactive surface, e.g. (fact 'thm "x(s)") -- ->raw-formula parses a
   ;; string and passes a symbol / s-expression through unchanged, so existing
@@ -1889,6 +2054,15 @@
     ;; proof script / proof-tex trace reads as you'd type it and replays as
     ;; (apply fact (cons thm parsed)) = (fact thm a b c).
     (vnb--run! 'fact (cons thm parsed) (lambda () (cmd-fact *ps* thm parsed)))))
+;;; KIT-9 block B: `fact' records the links its chain landed (the old body runs inside the recorder).
+(define (fact thm . args)
+    (let* ((r (k9--landed (lambda () (apply k9--fact-0 thm args))))
+           (stmt (hash-table-ref/default *theorem-table* thm #f)))
+      (if (pair? (cddr r))
+          ;; with arguments the statement lands only as a side effect of the chain: it is a link too
+          ;; (coordinator's decision 2026-10-27); a bare (fact 'thm) keeps it, as its result
+          (k9--note! (cddr r) (cadr r) #f (and (null? args) (pair? stmt) stmt)))
+      (car r)))
 
 ;; mac-h -- hypothesis-side `mac`.  Unfold a defined predicate (or apply any
 ;; unconditional IFF/=/== equivalence macete) inside a cited ASSUMPTION,
@@ -5488,12 +5662,17 @@
                (lambda () (cmd-spec *ps* thm-name parsed)))))
 ;; inst+ : instantiate an in-context universal at a term, then forward-detach
 ;; any in-context guards (the witness-choosing move scout's inst lane emits).
-(define (inst+ f t)
+(define (k9--inst+-0 f t)               ; the body of `inst+' before KIT-9
   (vnb--run! 'inst+ (list f t)
              (lambda ()
                (let ((rawf (->raw-formula/idx f))
                      (rawt (->raw-formula t)))
                  (if (vnb-warning? rawf) rawf (cmd-inst+ *ps* rawf rawt))))))
+;;; KIT-9 block B: `inst+' records its links.
+(define (inst+ f t)
+    (let ((r (k9--landed (lambda () (k9--inst+-0 f t)))))
+      (if (pair? (cddr r)) (k9--note! (cddr r) (cadr r) #f #f))
+      (car r)))
 (define (ce f k)
   (vnb--run! 'ce (list f k)
              (lambda ()
@@ -5589,6 +5768,18 @@
   (vnb-guard
     (lambda ()
       (vnb--require-proof!)
+      ;; KIT-7 block C (2026-10-26; wired 2026-10-27): qed REFUSES the proof state an earlier
+      ;; qed installed.  POLY-2: a form one paren short swallowed the next `sp' and its proof; the
+      ;; following qed ran on the PREVIOUS theorem's finished state and installed its statement
+      ;; under the new name, modulo 0.  The after-qed gate watches COMMANDS on the closed state,
+      ;; and qed ran none.  The error is a <vnb-error>, so it lands in *vnb-qed-failures* and the
+      ;; qed-failure gate makes it fatal in a strict load.
+      (if (and *ps-closed-by-qed* (eq? *ps* *ps-closed-by-qed*))
+          (error (string-append
+                  "qed: this proof state was already installed by (qed '"
+                  (symbol->string *ps-closed-by-qed-name*)
+                  "); no `sp' ran since.  The statement of `" (symbol->string name)
+                  "' was never started -- a form closed one paren short swallowed its sp?")))
       (cmd-qed *ps* name)
       (save-proof name)
       (set! *ps-closed-by-qed* *ps*)          ; see vnb--run!

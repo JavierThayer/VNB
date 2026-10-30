@@ -9458,7 +9458,23 @@
  (lambda (nm)
    (check-true (string-append (symbol->string nm) " is PRIMITIVE (the user's decision, 2026-09-18)")
      (lambda () (eq? (provenance-of nm) 'primitive))))
- '(neg-inf-not-in-rr pos-inf-upper-bound neg-inf-lower-bound pos-inf-above-reals))
+ '(pos-inf-upper-bound neg-inf-lower-bound))
+;; 2026-10-27 (EXT-ORDER, batch 0): the 2026-09-18 stamps neg-inf-not-in-rr and
+;; pos-inf-above-reals are RETIRED; both are theorems of rr-star-order-minimal.scm, and
+;; the primitive order facts of RR-STAR are now antisymmetry and the domain axiom.
+(for-each
+ (lambda (nm)
+   (check-true (string-append (symbol->string nm) " is PRIMITIVE (the user's decision, 2026-10-26)")
+     (lambda () (eq? (provenance-of nm) 'primitive))))
+ '(rr-star-leq-antisymmetric rr-star-leq-domain))
+(for-each
+ (lambda (nm)
+   (check-true (string-append (symbol->string nm) " is PROVEN and bills modulo 0 (stamp retired 2026-10-27)")
+     (lambda () (and (lookup-theorem nm)
+                     (suite-proven? nm)
+                     (null? (debt-of nm))))))
+ '(neg-inf-not-in-rr pos-inf-above-reals neg-inf-below-reals
+   rr-star-leq-reflexive rr-star-leq-transitive rr-star-leq-total))
 (check-true "rr-pos-star-add-monoid-def is definitional (a declare-instance!, no longer a bare axiom)"
   (lambda () (eq? (provenance-of 'rr-pos-star-add-monoid-def) 'definitional)))
 
@@ -13411,13 +13427,10 @@
     (cons eqleaf inleaf)))
 
 ;;; ---- (1) the guarded closer -------------------------------------------------
-(check-true "KIT-5 CONTROL (1, must keep passing): dk-have! of the focus goal closes it in place, and a bare ass then fires on the SIBLING"
-  (lambda ()
-    (quietly (lambda ()
-      (let ((ls (k5-and-setup!)))
-        (dk-have! '(= u_ u_) (lambda () (rfl)))
-        (vnb-guard (lambda () (ass)))
-        (and (sequent-node-grounded? (car ls)) (sequent-node-grounded? (cdr ls))))))))
+;;; "KIT-5 CONTROL (1, must keep passing)" -- dk-have! of the focus goal, then a bare ass, closes
+;;; the SIBLING -- was REMOVED 2026-10-27 (batch 0): it pinned the old drift, which KIT-7's drift
+;;; marker (interactive.scm) now refuses.  Its replacement is "KIT-7 CONTROL (1)" in the KIT-7 block
+;;; below (the sibling stays open); scratchpad/triage/KIT-7-REPORT.md, "SUITE CHANGE REQUIRED".
 
 (check-true "KIT-5 (1): dk-by! closes the node it started on and leaves the sibling alone (fails on the old code)"
   (lambda ()
@@ -13623,6 +13636,600 @@
     (case-fold-local-lint-text
       "(define K5-I '(INTERVAL 1 n))\n(define (k5-e! x) (let ((k5-i (car x))) (list 'IN k5-i K5-I)))\n"))
   '(("k5-e! (against a top-level define)" ("k5-i" "K5-I" "k5-i"))))
+
+;;; ===== KIT-6, KIT-7, KIT-8, KIT-9 (wired 2026-10-27, batch 0) =====
+;;; kit6-suite.scm -- KIT-6 suite checks; paste after the KIT-5 block of test-suite.scm.
+;;; Each item has a CONTROL that shows the OLD behaviour (it passes because the old code fails).
+(display "\n=== driver kit (KIT-6): module normaliser, field simplification, undiv, absurd, use-cases ===\n")
+
+(define (k6s-raises? thunk)
+  (call-with-current-continuation
+    (lambda (k) (with-exception-handler (lambda (e) (k #t)) (lambda () (thunk) #f)))))
+
+;;; ---- (1) dk-vs-eq! ------------------------------------------------------
+(define (k6s-vs-setup! eqn)
+  (sp (make-wff (forall-guarded '(m eta xi r1 s1 r2 s2)
+    '((IS-NORMED-VECTOR-SPACE m) (IN eta (VEC m)) (IN xi (VEC m)) (IN r1 RR) (IN s1 RR) (IN r2 RR) (IN s2 RR))
+    eqn)))
+  (dk-peel!))
+(define k6s-span-add
+  '(= ((VADD m) ((VADD m) ((ACT m) r1 eta) ((ACT m) s1 xi)) ((VADD m) ((ACT m) r2 eta) ((ACT m) s2 xi)))
+      ((VADD m) ((ACT m) (+ r1 r2) eta) ((ACT m) (+ s1 s2) xi))))
+(check-false "KIT-6 CONTROL (1): crs does not decide a vector identity"
+  (lambda () (quietly (lambda () (k6s-vs-setup! k6s-span-add) (vnb-guard (lambda () (crs))) (proof-done? *ps*)))))
+(check-true "KIT-6 (1): dk-vs-eq! decides (r1 eta + s1 xi) + (r2 eta + s2 xi) = (r1+r2) eta + (s1+s2) xi"
+  (lambda () (quietly (lambda () (k6s-vs-setup! k6s-span-add) (dk-vs-eq!) (proof-done? *ps*)))))
+(check-true "KIT-6 (1): dk-vs-eq! with vneg and a zero coefficient: eta + (-eta + xi) = 0.eta + xi"
+  (lambda () (quietly (lambda ()
+    (k6s-vs-setup! '(= ((VADD m) eta ((VADD m) ((VNEG m) eta) xi)) ((VADD m) ((ACT m) 0 eta) xi)))
+    (dk-vs-eq!) (proof-done? *ps*)))))
+(check-true "KIT-6 (1): dk-vs-eq! ERRORS on a false identity r1.eta = s1.eta"
+  (lambda () (quietly (lambda () (k6s-vs-setup! '(= ((ACT m) r1 eta) ((ACT m) s1 eta))) (k6s-raises? dk-vs-eq!)))))
+
+;;; ---- (2) dk-field-eq! ---------------------------------------------------
+(define (k6s-field-setup! eqn nonzero?)
+  (sp (make-wff (if nonzero?
+                    (list 'FORALL 's (list 'IMPLIES '(IN s RR) (list 'IMPLIES '(<= 0 s) eqn)))
+                    (list 'FORALL 's (list 'IMPLIES '(IN s RR) eqn)))))
+  (dk-peel!)
+  (if nonzero?
+      (begin (dk--num-type! '(+ 1 s) 'RR)
+             (dk-have! '(< 0 (+ 1 s)) (lambda () (dk-ineq! '(<= 0 s))))
+             (fact 'rr-pos-ne-zero '(+ 1 s)))))
+(define k6s-form '(= (* s (recip (+ 1 s))) (- 1 (recip (+ 1 s)))))
+(check-false "KIT-6 CONTROL (2): crs (with recip opaque) does not decide s/(1+s) = 1 - 1/(1+s)"
+  (lambda () (quietly (lambda () (k6s-field-setup! k6s-form #t) (vnb-guard (lambda () (dk-crs-opaque!))) (proof-done? *ps*)))))
+(check-true "KIT-6 (2): dk-field-eq! decides s/(1+s) = 1 - 1/(1+s) given 1 + s /= 0"
+  (lambda () (quietly (lambda () (k6s-field-setup! k6s-form #t) (dk-field-eq!) (proof-done? *ps*)))))
+(check-true "KIT-6 (2): dk-field-eq! with a NESTED recip: (s/(1+s)) / (1 - s/(1+s)) = s, the inner denominator given"
+  (lambda () (quietly (lambda ()
+    (k6s-field-setup! '(= (* (* s (recip (+ 1 s))) (recip (- 1 (* s (recip (+ 1 s)))))) s) #t)
+    (dk-have! '(= (- 1 (* s (recip (+ 1 s)))) (recip (+ 1 s))) (lambda () (dk-field-eq!)))
+    (dk--num-type! '(recip (+ 1 s)) 'RR)
+    (fact 'rr-recip-pos '(+ 1 s))
+    (fact 'rr-pos-ne-zero '(recip (+ 1 s)))
+    (dk-have! '(NOT (= (- 1 (* s (recip (+ 1 s)))) 0)) (lambda () (subst '(= (- 1 (* s (recip (+ 1 s)))) (recip (+ 1 s)))) (ass)))
+    (dk-field-eq!) (proof-done? *ps*)))))
+(check "KIT-6 (2): a denominator not known nonzero is posted OWED: one open leaf, not(s = 0)"
+  (lambda () (quietly (lambda ()
+    (k6s-field-setup! '(= (* (recip s) s) 1) #f)
+    (dk-field-eq!)
+    (map (lambda (l) (dk-goal-of l)) (dk-open-leaves)))))
+  '((NOT (= s 0))))
+(check-true "KIT-6 (2): dk-field-eq! ERRORS on a false identity s/(1+s) = 1"
+  (lambda () (quietly (lambda () (k6s-field-setup! '(= (* s (recip (+ 1 s))) 1) #t) (k6s-raises? dk-field-eq!)))))
+
+;;; ---- (3) dk-undiv! ------------------------------------------------------
+(define (k6s-undiv-setup!)
+  (sp (make-wff '(FORALL s (IMPLIES (IN s RR) (IMPLIES (<= 0 s)
+     (= (/ (/ s (+ 1 s)) (+ 1 s)) (* s (* (recip (+ 1 s)) (recip (+ 1 s))))))))))
+  (dk-peel!)
+  (dk--num-type! '(+ 1 s) 'RR)
+  (dk-have! '(< 0 (+ 1 s)) (lambda () (dk-ineq! '(<= 0 s))))
+  (fact 'rr-pos-ne-zero '(+ 1 s)))
+(check-true "KIT-6 CONTROL (3): one mac binary-divide-def leaves a `/' in a nested quotient"
+  (lambda () (quietly (lambda () (k6s-undiv-setup!) (mac 'binary-divide-def) (dk-contains? (dk-goal) '/)))))
+(check-true "KIT-6 (3): dk-undiv! rewrites every `/', and the goal then closes by crs, with no owed leaf"
+  (lambda () (quietly (lambda () (k6s-undiv-setup!) (dk-undiv!) (dk-crs-opaque!)
+                                  (and (not (dk-contains? (dk-goal) '/)) (proof-done? *ps*))))))
+
+;;; ---- (4a) dk-absurd! ----------------------------------------------------
+(define (k6s-old-dk-absurd! . prems)          ; the OLD definition, verbatim
+  (if (eq? (dk-goal) 'FALSITY)
+      (let ((leaf (proof-state-focus *ps*)))
+        (dk-have! '(< 0 0) (lambda () (apply dk-ineq! prems)))
+        (if (not (dk-asm? '(IN 0 RR))) (fact 'rr-zero-in))
+        (let ((neg (dk-cite! 'rr-lt-irrefl 0))) (ai neg))
+        (if (not (sequent-node-grounded? leaf))
+            (error "dk-absurd!: FALSITY is still open after refuting (< 0 0)")))
+      (apply dk-ineq! prems)))
+(define (k6s-absurd-setup!)                   ; contradictory premises, a goal they do not imply linearly
+  (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (IMPLIES (< x 0) (IMPLIES (< 0 x) (IN x NN)))))))
+  (dk-peel!))
+(check-false "KIT-6 CONTROL (4a): the OLD dk-absurd! leaves a non-FALSITY goal open, silently"
+  (lambda () (quietly (lambda () (k6s-absurd-setup!) (vnb-guard (lambda () (k6s-old-dk-absurd! '(< x 0) '(< 0 x)))) (proof-done? *ps*)))))
+(check-true "KIT-6 (4a): dk-absurd! closes any goal from contradictory premises"
+  (lambda () (quietly (lambda () (k6s-absurd-setup!) (dk-absurd! '(< x 0) '(< 0 x)) (proof-done? *ps*)))))
+(check-true "KIT-6 (4a): dk-absurd! ERRORS when the premises are not contradictory"
+  (lambda () (quietly (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (IMPLIES (< x 0) (IN x NN))))))
+    (dk-peel!)
+    (k6s-raises? (lambda () (dk-absurd! '(< x 0))))))))
+
+;;; ---- (4b) dk-use-cases-open! --------------------------------------------
+;;; (OR P P): the two cases are ONE sequent, hash-consed onto one node; the first body closes it.
+(define (k6s-uc-setup!)
+  (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (IMPLIES (OR (= x 0) (= x 0)) (= x 0))))))
+  (dk-peel!))
+(check "KIT-6 CONTROL (4b): positional use-cases runs the second body although its branch is closed"
+  (lambda () (quietly (lambda ()
+    (k6s-uc-setup!)
+    (let ((ran 0))
+      (vnb-guard (lambda ()
+        (use-cases '(OR (= x 0) (= x 0))
+          (lambda () (set! ran (+ ran 1)) (if (dk-asm? (dk-goal)) (ass)))
+          (lambda () (set! ran (+ ran 1)) (if (dk-asm? (dk-goal)) (ass))))))
+      ran))))
+  2)
+(check "KIT-6 (4b): dk-use-cases-open! skips the closed branch"
+  (lambda () (quietly (lambda ()
+    (k6s-uc-setup!)
+    (let ((ran 0))
+      (dk-use-cases-open! '(OR (= x 0) (= x 0))
+        (lambda () (set! ran (+ ran 1)) (if (dk-asm? (dk-goal)) (ass)))
+        (lambda () (set! ran (+ ran 1)) (if (dk-asm? (dk-goal)) (ass))))
+      (list ran (proof-done? *ps*))))))
+  '(1 #t))
+
+;;; kit7-suite.scm -- KIT-7 suite checks; paste after the KIT-6 block of test-suite.scm.
+;;; A check marked CONTROL fails on the old code (shown by running this file without kit7.scm:
+;;; p-old.scm); "(must keep passing)" marks the behaviour that has to survive.
+(display "\n=== driver kit (KIT-7): focus drift, grounded focus, qed twice, raw ^, dk-fact! ===\n")
+(set! *vnb-drift-strict* #t)   ; 2026-10-29: the KIT-7 controls test the STRICT refusal
+
+(define (k7s-message thunk)                    ; the condition's report string, or #f
+  (call-with-current-continuation
+    (lambda (k) (with-exception-handler (lambda (e) (k (condition/report-string e))) (lambda () (thunk) #f)))))
+(define (k7s-open-goals) (map dk-goal-of (dk-open-leaves)))
+
+;;; ---- (1) the closer after an in-place close does not fire on the sibling ---------------
+(define (k7s-two-leaves!)                      ; focus (IN x CC); sibling (IN x RR), closable by ass
+  (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (AND (IN x CC) (IN x RR))))))
+  (dk-peel!) (di))
+(check "KIT-7 CONTROL (1): (dk-have! FOCUS-GOAL thunk) (ass) leaves the sibling OPEN (old: ass closed it)"
+  (lambda () (quietly (lambda ()
+    (k7s-two-leaves!)
+    (dk-have! '(IN x CC) (lambda () (fact 'rr-subset-cc 'x) (ass)))
+    (ass)
+    (k7s-open-goals))))
+  '((IN x RR)))
+(check-true "KIT-7 (1): an explicit dk-focus! after the in-place close lifts the refusal"
+  (lambda () (quietly (lambda ()
+    (k7s-two-leaves!)
+    (dk-have! '(IN x CC) (lambda () (fact 'rr-subset-cc 'x) (ass)))
+    (dk-focus! (car (dk-open-leaves)))
+    (ass)
+    (proof-done? *ps*)))))
+(check-true "KIT-7 (1): (ass) (ass) over the two halves of a conjunction still closes both (must keep passing)"
+  (lambda () (quietly (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (AND (IN x RR) (IN x RR))))))
+    (dk-peel!) (di) (ass) (ass)
+    (proof-done? *ps*)))))
+(check "KIT-7 CONTROL (1): dk-project! of a claim EQUAL TO THE FOCUS GOAL returns it (old: error)"
+  (lambda () (quietly (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (AND (IN x RR) (IN x CC)) (AND (IN x RR) (IN x NN))))))
+    (dk-peel!) (di)
+    (k7s-message (lambda () (dk-project! '(IN x RR) (lambda () (dk-split! (car (filter (lambda (f) (dk-head-is? f 'AND)) (dk-asms)))))))))))
+  #f)
+(check "KIT-7 CONTROL (1): an opener that closes its own lane leaves the MAIN leaf alone (old: dk--lane-close! closed it)"
+  (lambda () (quietly (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (IMPLIES (AND (IN x CC) (IN x NN)) (IN x RR))))))
+    (dk-peel!)
+    (dk-project! '(IN x CC) (lambda () (dk-split! '(AND (IN x CC) (IN x NN))) (ass)))
+    (list (dk-goal) (proof-done? *ps*)))))
+  '((IN x RR) #f))
+
+;;; ---- (2) keep onto an already-proven sequent, then prop ---------------------------------
+(define (k7s-keep-setup!)
+  (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
+     (AND (IN x RR) (AND (OR (IN y RR) (IN y CC)) (IMPLIES (IN y CC) (IN x RR))))))))))
+  (dk-peel!)
+  (let ((ls (dk-opened (lambda () (di)))))
+    (dk-focus! (car ls)) (keep '(IN x RR)) (ass))                       ; proves {x in RR} |- x in RR
+  (let ((ls (dk-opened (lambda () (di)))))                               ; the inner AND: OR leaf, IMPLIES leaf
+    (dk-focus! (cadr ls)))
+  (di)                                                                    ; ctx, y in CC |- x in RR
+  (keep '(IN x RR)))                                                      ; lands on the proven node
+(check "KIT-7 CONTROL (2): keep onto a proven sequent, then (prop): prop is refused, the OR leaf stays open (old: prop closed it)"
+  (lambda () (quietly (lambda () (k7s-keep-setup!) (prop) (k7s-open-goals))))
+  '((OR (IN y RR) (IN y CC))))
+
+;;; ---- (3) a closer on a GROUNDED focus is a no-op, not an internal error -----------------
+(check "KIT-7 (3): (ass) with the focus on a grounded node returns without raising and changes nothing"
+  (lambda () (quietly (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (AND (IN x RR) (IN x CC))))))
+    (dk-peel!) (di)
+    (let ((l (proof-state-focus *ps*)) (s0 #f))
+      (ass)
+      (set-proof-state-focus! *ps* l)          ; the state M-B met: focus left on a closed node
+      (set! s0 *proof-script*)
+      (list (k7s-message (lambda () (ass))) (eq? s0 *proof-script*))))))
+  '(#f #t))
+
+;;; ---- (4) qed on a state an earlier qed installed -----------------------------------------
+(check "KIT-7 CONTROL (4): a second qed on the same closed state FAILS and installs nothing (old: installed the old statement)"
+  (lambda () (quietly (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (IN x RR)))))
+    (dk-peel!) (ass) (qed 'k7s-qed-one)
+    (let ((r (qed 'k7s-qed-two)))
+      (list (vnb-error? r)
+            (eq? 'unknown (call-with-current-continuation
+                            (lambda (k) (with-exception-handler (lambda (e) (k 'unknown))
+                                          (lambda () (lookup-theorem 'k7s-qed-two))))))
+            (and (pair? *vnb-qed-failures*) (eq? (caar *vnb-qed-failures*) 'k7s-qed-two)))))))
+  '(#t #t #t))
+
+;;; ---- (5) a raw (^ a n) warns ---------------------------------------------------------------
+(check "KIT-7 CONTROL (5): make-wff of (IN (^ 2 n) RR) warns once (old: silent)"
+  (lambda ()
+    (let ((n0 (call-with-current-continuation
+                (lambda (k) (with-exception-handler (lambda (e) (k 'none)) (lambda () *vnb-caret-warnings*))))))
+      (if (eq? n0 'none) 'no-warning-counter
+          (begin (quietly (lambda () (make-wff '(FORALL n (IMPLIES (IN n NN) (IN (^ 2 n) RR))))))
+                 (- *vnb-caret-warnings* n0)))))
+  1)
+(check "KIT-7 (5): make-wff of (POWER 2 n) does not warn (must keep passing)"
+  (lambda ()
+    (let ((n0 (call-with-current-continuation
+                (lambda (k) (with-exception-handler (lambda (e) (k 0)) (lambda () *vnb-caret-warnings*))))))
+      (make-wff '(FORALL n (IMPLIES (IN n NN) (IN (POWER 2 n) RR))))
+      (- (call-with-current-continuation
+           (lambda (k) (with-exception-handler (lambda (e) (k 0)) (lambda () *vnb-caret-warnings*))))
+         n0)))
+  0)
+
+;;; ---- (6) dk-fact! on an instance already in context --------------------------------------
+(check-true "KIT-7 CONTROL (6): dk-fact! twice errors, and the message names dk-cite! (old: dk-landed's message)"
+  (lambda () ((lambda (th) (th)) (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (IN x CC)))))
+    (dk-peel!) (dk-fact! 'rr-subset-cc 'x)
+    (let ((m (k7s-message (lambda () (dk-fact! 'rr-subset-cc 'x)))))
+      (and (string? m) (string-search-forward "dk-cite!" m 0) #t))))))
+(check-true "KIT-7 (6): dk-cite! on the same instance returns it (must keep passing)"
+  (lambda () (quietly (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (IN x CC)))))
+    (dk-peel!) (dk-fact! 'rr-subset-cc 'x)
+    (equal? (dk-cite! 'rr-subset-cc 'x) '(IN x CC))))))
+(set! *vnb-drift-strict* #f)   ; end of the KIT-7 controls: back to warn-only
+(check "KIT-7 (2026-10-29): by default a closer after a drift WARNS and runs (old behaviour kept)"
+  (lambda () *vnb-drift-strict*) #f)
+
+(display "
+=== driver kit (KIT-8): the generic helpers collected from the 10-26 agents ===
+")
+;;; kit8-check.scm -- suite checks for kit8.scm, in the style of test-suite.scm (check-true / check-false
+;;; with a label; a CONTROL marks a check that the old local copy or a plain tactic fails).  The block is
+;;; Appended to test-suite.scm 2026-10-27 (batch 0); the standalone counters are replaced by k8-check-true /
+;;; k8-check-false, which count into the suite's SUMMARY.
+
+(define (k8-run thunk)
+  ;; as in the standalone file: run quietly, and an ERROR is the value 'error (a check expecting #t /
+  ;; #f then fails instead of stopping the suite)
+  (call-with-current-continuation
+    (lambda (k) (with-exception-handler
+                  (lambda (e) (display ";; k8 error: ") (display (condition/report-string e)) (newline) (k 'error))
+                  (lambda () (quietly thunk))))))
+(define (k8-check-true l t) (check (string-append "KIT-8: " l) (lambda () (k8-run t)) #t))
+(define (k8-check-false l t) (check (string-append "KIT-8: " l) (lambda () (k8-run t)) #f))
+(define (k8-sp! f) (sp (make-wff f)) (dk-peel!))
+(define (k8-done?) (eq? #t (proof-done? *ps*)))
+
+;; formula builders
+(k8-check-true "dk-and: right-nested, a singleton is itself"
+  (lambda () (and (equal? (dk-and '(a b c)) '(AND a (AND b c))) (equal? (dk-and '(a)) 'a))))
+(k8-check-true "dk-curry / dk-foralls build the curried statement"
+  (lambda () (equal? (dk-foralls '(x y) (dk-curry '(p q) 'r)) '(FORALL x (FORALL y (IMPLIES p (IMPLIES q r)))))))
+
+;; dk-have-and!
+(k8-check-true "dk-have-and!: the conjunction of two context atoms, equal to the goal, closes it"
+  (lambda () (k8-sp! '(FORALL kx (IMPLIES (IN kx RR) (IMPLIES (<= 0 kx) (AND (IN kx RR) (<= 0 kx))))))
+             (dk-have-and! '(IN kx RR) '(<= 0 kx)) (k8-done?)))
+(k8-check-true "dk-have-and!: idempotent (a second call adds nothing and does not error)"
+  (lambda () (k8-sp! '(FORALL kx (IMPLIES (IN kx RR) (IMPLIES (<= 0 kx) (IMPLIES (= kx 5) (= kx 5))))))
+             (dk-have-and! '(IN kx RR) '(<= 0 kx)) (dk-have-and! '(IN kx RR) '(<= 0 kx))
+             (and (dk-asm? '(AND (IN kx RR) (<= 0 kx))) (begin (dk-ass!) (k8-done?)))))
+
+;; dk-or-each!
+(define k8-or-stmt '(FORALL kx (IMPLIES (OR (= kx 1) (OR (= kx 2) (= kx 3))) (OR (= kx 3) (OR (= kx 2) (= kx 1))))))
+(k8-check-true "dk-or-each!: three disjuncts, the handler runs three times, the proof closes"
+  (lambda ()
+    (k8-sp! k8-or-stmt)
+    (let ((n 0))
+      (dk-or-each! '(OR (= kx 1) (OR (= kx 2) (= kx 3)))
+        (lambda (d)
+          (set! n (+ n 1))
+          (cond ((equal? d '(= kx 3)) (dk-select! 1 3))
+                ((equal? d '(= kx 2)) (dk-select! 2 3))
+                (#t (dk-select! 3 3)))
+          (dk-ass!)))
+      (and (= n 3) (k8-done?)))))
+(k8-check-true "dk-or-each!: a formula that is not an OR goes to the handler once"
+  (lambda () (k8-sp! '(FORALL kx (IMPLIES (= kx 1) (= kx 1))))
+             (let ((n 0)) (dk-or-each! '(= kx 1) (lambda (d) (set! n (+ n 1)) (dk-ass!))) (and (= n 1) (k8-done?)))))
+
+;; dk-iff-fwd! / dk-iff-bwd!
+(k8-check-true "dk-iff-fwd!: the right side lands"
+  (lambda () (k8-sp! '(FORALL kx (IMPLIES (IFF (= kx 1) (= kx 2)) (IMPLIES (= kx 1) (= kx 2)))))
+             (dk-iff-fwd! '(IFF (= kx 1) (= kx 2))) (dk-ass!) (k8-done?)))
+(k8-check-true "dk-iff-bwd!: the left side lands"
+  (lambda () (k8-sp! '(FORALL kx (IMPLIES (IFF (= kx 1) (= kx 2)) (IMPLIES (= kx 2) (= kx 1)))))
+             (dk-iff-bwd! '(IFF (= kx 1) (= kx 2))) (dk-ass!) (k8-done?)))
+
+;; dk-iff-parts! / dk-project-safe!
+(k8-check-true "dk-iff-parts!: every conjunct of the right side, the one equal to the goal proved last, in place"
+  (lambda () (k8-sp! '(FORALL kx (IMPLIES (IFF (= kx 1) (AND (= kx 2) (= kx 3))) (IMPLIES (= kx 1) (= kx 3)))))
+             (let ((ps (dk-iff-parts! '(IFF (= kx 1) (AND (= kx 2) (= kx 3))))))
+               (and (= (length ps) 2) (k8-done?)))))
+(k8-check-true "dk-project-safe!: the claim is the focus goal; it is proved in place, not cut"
+  (lambda () (k8-sp! '(FORALL kx (IMPLIES (AND (= kx 1) (= kx 2)) (= kx 2))))
+             (dk-project-safe! '(= kx 2) (lambda () (dk-split-all!))) (k8-done?)))
+
+;; dk-fact-split!
+(k8-check-true "dk-fact-split!: a conjunctive theorem lands split"
+  (lambda () (k8-sp! '(FORALL kx (IMPLIES (IN kx RR) (IN kx RR))))
+             (dk-fact-split! 'pi-pos) (and (dk-asm? '(< 0 pi)) (dk-asm? '(IN pi RR)))))
+
+;; dk-chain-ass!
+(k8-check-true "dk-chain-ass!: a conjunctive antecedent is proved from context and the chain detached"
+  (lambda () (k8-sp! '(FORALL ka (IMPLIES (IN ka RR) (FORALL kb (IMPLIES (IN kb RR) (IN (+ ka kb) RR))))))
+             (let ((ch (dk-cite! 'rr-add-closed 'ka 'kb)))
+               (dk-chain-ass! ch) (dk-ass!) (k8-done?))))
+(k8-check-false "dk-chain-ass! CONTROL: the bare citation leaves the conjunctive antecedent undetached"
+  (lambda () (k8-sp! '(FORALL ka (IMPLIES (IN ka RR) (FORALL kb (IMPLIES (IN kb RR) (IN (+ ka kb) RR))))))
+             (dk-cite! 'rr-add-closed 'ka 'kb) (dk-asm? '(IN (+ ka kb) RR))))
+
+;; dk-nn-absurd!
+(k8-check-true "dk-nn-absurd!: n in NN and n < 0 close any goal"
+  (lambda () (k8-sp! '(FORALL kn (IMPLIES (IN kn NN) (IMPLIES (< kn 0) (= kn 7)))))
+             (dk-nn-absurd! '(< kn 0)) (k8-done?)))
+
+;; dk-subst-ass! / dk-subst-rfl!
+(k8-check-true "dk-subst-ass!: rewrite, then the goal is in context"
+  (lambda () (k8-sp! '(FORALL kx (FORALL ky (IMPLIES (= kx ky) (IMPLIES (IN ky NN) (IN kx NN))))))
+             (dk-subst-ass! '(= kx ky)) (k8-done?)))
+(k8-check-true "dk-subst-ass! CONTROL: the rewritten goal is not in context, and it ERRORS (no silent no-op)"
+  (lambda () (k8-sp! '(FORALL kx (FORALL ky (IMPLIES (= kx ky) (IMPLIES (IN ky RR) (IN kx NN))))))
+             (eq? (k8-run (lambda () (dk-subst-ass! '(= kx ky)) #t)) 'error)))
+(k8-check-true "dk-subst-rfl!: rewrite, then reflexivity"
+  (lambda () (k8-sp! '(FORALL kx (FORALL ky (IMPLIES (IN ky RR) (IMPLIES (= kx ky) (= (+ kx 1) (+ ky 1)))))))
+             (fact 'rr-one-in) (dk-have-and! '(IN ky RR) '(IN 1 RR)) (dk-cite! 'rr-add-closed 'ky 1)
+             (dk-subst-rfl! '(= kx ky)) (k8-done?)))
+
+;; dk-and-close!, dk-close-if-asm!, dk-select!, dk-index-cases!
+(k8-check-true "dk-and-close!: a nested AND goal, each atom by the closer"
+  (lambda () (k8-sp! '(FORALL kx (IMPLIES (IN kx RR) (IMPLIES (<= 0 kx) (AND (IN kx RR) (AND (<= 0 kx) (IN kx RR)))))))
+             (dk-and-close! dk-ass!) (k8-done?)))
+(k8-check-true "dk-close-if-asm!: closes a goal in context, does nothing otherwise"
+  (lambda () (k8-sp! '(FORALL kx (IMPLIES (IN kx RR) (AND (IN kx RR) (<= kx kx)))))
+             (dk-and-close! (lambda () (dk-close-if-asm!) (if (not (sequent-node-grounded? (proof-state-focus *ps*))) (dk-ineq!))))
+             (k8-done?)))
+(k8-check-true "dk-index-cases! + dk-select!: 1 <= x <= 3 in NN gives x = 1, 2 or 3"
+  (lambda () (k8-sp! '(FORALL kx (IMPLIES (IN kx NN) (IMPLIES (<= 1 kx) (IMPLIES (<= kx 3) (OR (= kx 1) (OR (= kx 2) (= kx 3))))))))
+             (dk-index-cases! 'kx 3 (lambda (j) (dk-select! j 3) (dk-ass!)))
+             (k8-done?)))
+
+;; lookup
+(k8-check-true "dk-find: the hit" (lambda () (equal? (dk-find "t" even? '(1 3 4 5)) 4)))
+(k8-check-false "dk-find CONTROL: a miss ERRORS" (lambda () (not (eq? (k8-run (lambda () (dk-find "t" even? '(1 3)))) 'error))))
+(k8-check-true "dk-map-ordered: the side effects run left to right"
+  (lambda () (let ((acc '())) (dk-map-ordered (lambda (x) (set! acc (cons x acc)) x) '(1 2 3)) (equal? acc '(3 2 1)))))
+(k8-check-true "dk-nth-all! + dk-eq-for: a literal NTH in a context equation reduced, then found"
+  (lambda () (k8-sp! '(FORALL kz (IMPLIES (= kz (NTH 2 (LIST 5 6 7))) (= kz 6))))
+             (dk-nth-all!)
+             (let ((e (dk-eq-for 'kz))) (and e (equal? (caddr e) 6)))))
+
+;; sets
+(k8-check-true "dk-sep-parts!: both parts of a SEP membership land and the membership survives"
+  (lambda () (k8-sp! '(FORALL kw (IMPLIES (IN kw (SEP kv_ RR (<= 0 kv_))) (<= 0 kw))))
+             (dk-sep-parts! '(IN kw (SEP kv_ RR (<= 0 kv_))))
+             (and (dk-asm? '(IN kw RR)) (dk-asm? '(IN kw (SEP kv_ RR (<= 0 kv_)))) (begin (dk-ass!) (k8-done?)))))
+(k8-check-true "dk-class-ext!: two descriptions of the nonnegative reals are equal"
+  (lambda ()
+    (k8-sp! '(= (SEP kv_ RR (<= 0 kv_)) (SEP ku_ RR (NOT (< ku_ 0)))))
+    (fact 'rr-zero-in)
+    (dk-class-ext! '(SEP kv_ RR (<= 0 kv_)) '(SEP ku_ RR (NOT (< ku_ 0)))
+      (lambda (w)
+        (dk-sep-parts! (list 'IN w '(SEP kv_ RR (<= 0 kv_))))
+        (in-sep! (lambda () (dk-ass!)) (lambda () (di) (dk-absurd! (list '< w 0) (list '<= 0 w)))))
+      (lambda (w)
+        (dk-sep-parts! (list 'IN w '(SEP ku_ RR (NOT (< ku_ 0)))))
+        (in-sep! (lambda () (dk-ass!))
+                 (lambda () (pbc) (dk-cite! 'rr-not-le-lt 0 w) (ai (list 'NOT (list '< w 0)))))))
+    (dk-close-if-asm!)
+    (k8-done?)))
+(k8-check-true "dk-bu-open!: a BIG-UNION membership gives its index and the member membership"
+  (lambda () (k8-sp! '(FORALL kw (IMPLIES (IN kw (BIG-UNION kk_ NN (SEP kv_ RR (<= kv_ kk_)))) (IN kw RR))))
+             (let ((r (dk-bu-open! 'kw '(BIG-UNION kk_ NN (SEP kv_ RR (<= kv_ kk_))))))
+               (and (pair? r) (symbol? (car r)) (dk-asm? (list 'IN (car r) 'NN))))))
+(k8-check-true "dk-bu-close!: the index and the member membership in context close a BIG-UNION goal"
+  (lambda () (k8-sp! '(FORALL kk (IMPLIES (IN kk NN) (FORALL kw (IMPLIES (IN kw (SEP kv_ RR (<= kv_ kk)))
+                         (IN kw (BIG-UNION kk_ NN (SEP kv_ RR (<= kv_ kk_)))))))))
+             (dk-bu-close! 'kk) (k8-done?)))
+
+;; numbers
+(k8-check-true "dk-ne!: a strict inequality gives the disequality"
+  (lambda () (k8-sp! '(FORALL ka (IMPLIES (IN ka RR) (FORALL kb (IMPLIES (IN kb RR) (IMPLIES (< ka kb) (NOT (= ka kb))))))))
+             (dk-ne! 'ka 'kb '(< ka kb)) (k8-done?)))
+(k8-check-true "dk-recip-succ!: recip(k + 1) typed and POS-RR, and a second call is free"
+  (lambda () (k8-sp! '(FORALL kk (IMPLIES (IN kk NN) (IN kk NN))))
+             (let ((r (dk-recip-succ! 'kk))) (dk-recip-succ! 'kk)
+               (and (dk-asm? (list 'POS-RR r)) (dk-asm? (list 'IN r 'RR))))))
+(k8-check-true "dk-rr-mul!: a product of two typed reals is typed"
+  (lambda () (k8-sp! '(FORALL ka (IMPLIES (IN ka RR) (FORALL kb (IMPLIES (IN kb RR) (IN (* ka kb) RR))))))
+             (dk-rr-mul! 'ka 'kb) (dk-ass!) (k8-done?)))
+(k8-check-true "dk-ni-leaves: the base and the step (the step is the leaf with succ)"
+  (lambda () (sp (make-wff '(FORALL kn (IMPLIES (IN kn NN) (<= 0 kn)))))
+             (let ((bs (dk-ni-leaves)))
+               (and (= (length bs) 2) (not (dk-contains? (dk-goal-of (car bs)) 'succ)) (dk-contains? (dk-goal-of (cadr bs)) 'succ)))))
+
+;;; ---------------------------------------------------------------------------------------------
+;;; KIT-9 (2026-10-27; wired 2026-10-27, batch 0): shape picks must not grab citation-chain links.
+;;; From scratchpad/kit9/kit9-suite.scm.  The probe file ran each repro on the OLD code first; here
+;;; the controls run with the recorder OFF (k9--note! bound to a no-op that returns the result), where
+;;; the pick must be a LINK, and the same repros then run with it on, where the pick must be the
+;;; hypothesis.  scratchpad/triage/KIT-9-REPORT.md, integration note 2.
+(display "
+=== driver kit (KIT-9): citation-chain links are recorded; the finders skip them ===
+")
+(dk-skip-links!)   ; 2026-10-29: KIT-9 checks run with link skipping ON (opt-in)
+
+(define (k9t-try thunk) (call-with-current-continuation
+                          (lambda (k) (with-exception-handler (lambda (e) (k (list 'error (condition/report-string e))))
+                                                              thunk))))
+(define (k9t-off thunk)
+  (fluid-let ((k9--note! (lambda (fresh old result thm) (or result (and (pair? fresh) (car fresh))))))
+    (thunk)))
+;;; (PICKED . HYP) from a repro; #t when the pick is the intended hypothesis, #f when it is another
+;;; formula, 'error when the repro raised or returned nothing
+(define (k9t-pick-right repro)
+  (let ((res (k9t-try repro)))
+    (cond ((and (pair? res) (eq? (car res) 'error)) 'error)
+          ((and (pair? res) (cdr res)) (if (equal? (car res) (cdr res)) #t #f))
+          (#t 'error))))
+
+;;; ---------------------------------------------------------------------------
+;;; THE THREE REPROS, minimised.  Each returns (PICKED . HYP): the formula the shape pick returned
+;;; and the hypothesis the driver meant.
+
+;; CA-TOOLS (gal-ch, mpow-cite6.scm): cite mpow-succ; pick "the FORALL mentioning OPR".
+(define k9t-hyp1 '(FORALL gwx_ (IMPLIES (IN gwx_ (CARR m1)) (= ((OPR m1) gwx_ (IDEN m1)) gwx_))))
+(define (k9t-repro1)
+  (sp (make-wff (list 'FORALL 'm1 (list 'IMPLIES '(IS-MONOID m1) (list 'FORALL 'a0 (list 'IMPLIES '(IN a0 (CARR m1))
+        (list 'FORALL 'k (list 'IMPLIES '(IN k NN) (list 'IMPLIES k9t-hyp1
+          '(= (MPOW m1 a0 (succ k)) ((OPR m1) a0 (MPOW m1 a0 k))))))))))))
+  (dk-peel!)
+  (dk-cite! 'mpow-succ 'm1 'a0 'k)
+  (cons (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'OPR))) "a FORALL mentioning OPR")
+        (dk-ctx-form k9t-hyp1)))
+
+;; TB-11 (mb12b-finsum, oddity6.scm): cite fun-codomain-superset; pick "the FORALL mentioning g".
+(define k9t-hyp2 '(FORALL tv_ (IMPLIES (IN tv_ RR) (IN (g tv_) (FUN S RR)))))
+(define (k9t-repro2)
+  (sp (make-wff (list 'FORALL 'g (list 'FORALL 'S (list 'IMPLIES '(IN g (FUN RR (FUN S RR)))
+        (list 'IMPLIES k9t-hyp2 '(IN g (FUN RR (FUN S RR)))))))))
+  (dk-peel!)
+  (dk-cite! 'fun-codomain-superset 'g 'RR '(FUN S RR) 'SET)
+  (cons (dk-pick (lambda (h) (and (dk-head-is? h 'FORALL) (dk-contains? h 'g))) "the pointwise values hypothesis")
+        (dk-ctx-form k9t-hyp2)))
+
+;; M-B67 (prpC.scm): cite product2-fst-continuous-at; pick "the FORALL with p2z_ and =".
+(define k9t-hyp3 '(FORALL p2z_ (IMPLIES (IN p2z_ CS) (= (fh p2z_) (NTH 1 p2z_)))))
+(define (k9t-repro3)
+  (sp (make-wff (list 'FORALL 's (list 'FORALL 't (list 'FORALL 'fh (list 'FORALL 'CS
+        (list 'IMPLIES '(IS-METRIC-SPACE s) (list 'IMPLIES '(IS-METRIC-SPACE t)
+          (list 'IMPLIES k9t-hyp3 '(IS-METRIC-SPACE s))))))))))
+  (dk-peel!)
+  (dk-cite! 'product2-fst-continuous-at 's 't 'fh)
+  (cons (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'p2z_) (dk-contains? f '=))) "the fst value equation")
+        (dk-ctx-form k9t-hyp3)))
+
+(define k9t-repros (list (cons "repro-1-mpow-succ" k9t-repro1)
+                         (cons "repro-2-fun-codomain-superset" k9t-repro2)
+                         (cons "repro-3-product2-fst" k9t-repro3)))
+
+
+(check "KIT-9 CONTROL repro-1 mpow-succ: with the recorder off, dk-pick returns a LINK"
+  (lambda () (k9t-off (lambda () (k9t-pick-right k9t-repro1)))) #f)
+(check "KIT-9 CONTROL repro-2 fun-codomain-superset: with the recorder off, dk-pick returns a LINK"
+  (lambda () (k9t-off (lambda () (k9t-pick-right k9t-repro2)))) #f)
+(check "KIT-9 CONTROL repro-3 product2-fst: with the recorder off, dk-pick returns a LINK"
+  (lambda () (k9t-off (lambda () (k9t-pick-right k9t-repro3)))) #f)
+(check-true "KIT-9 CONTROL landed-find: with the recorder off, dk-landed-find on a mpow-succ chain is ambiguous"
+  (lambda ()
+    (k9t-off (lambda ()
+      (let ((res (k9t-try (lambda ()
+                            (sp (make-wff '(FORALL m1 (IMPLIES (IS-MONOID m1) (FORALL a0 (IMPLIES (IN a0 (CARR m1))
+                                  (FORALL k (IMPLIES (IN k NN) (= (MPOW m1 a0 (succ k)) ((OPR m1) a0 (MPOW m1 a0 k)))))))))))
+                            (dk-peel!)
+                            (dk-landed-find (lambda () (fact 'mpow-succ 'm1 'a0 'k)) (lambda (fm) (and (dk-contains? fm 'OPR) (dk-contains? fm 'a0))))))))
+        (if (and (pair? res) (eq? (car res) 'error)) #t #f))))))
+(check "KIT-9 repro-1 mpow-succ: dk-pick returns the hypothesis" (lambda () (k9t-pick-right k9t-repro1)) #t)
+(check "KIT-9 repro-2 fun-codomain-superset: dk-pick returns the hypothesis" (lambda () (k9t-pick-right k9t-repro2)) #t)
+(check "KIT-9 repro-3 product2-fst: dk-pick returns the hypothesis" (lambda () (k9t-pick-right k9t-repro3)) #t)
+
+;; the 'links flag returns the link; without it the pick is the hypothesis
+(check-true "KIT-9: links-flag-includes"
+  (lambda ()
+    (let ((res (k9t-try (lambda ()
+                      (k9t-repro1)
+                      (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'OPR))) "with links" 'links)))))
+      (if (and (pair? res) (not (eq? (car res) 'error)) (dk-link? res)) #t #f))))
+;; when every match is a link, the error says so
+(check-true "KIT-9: only-links-fall-back (2026-10-28: a pick matching only links returns a link, no error)"
+  (lambda ()
+    (let ((res (k9t-try (lambda ()
+                      (sp (make-wff '(FORALL m1 (IMPLIES (IS-MONOID m1) (FORALL a0 (IMPLIES (IN a0 (CARR m1))
+                            (FORALL k (IMPLIES (IN k NN) (= (MPOW m1 a0 (succ k)) ((OPR m1) a0 (MPOW m1 a0 k)))))))))))
+                      (dk-peel!)
+                      (dk-cite! 'mpow-succ 'm1 'a0 'k)
+                      (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'OPR))) "a FORALL mentioning OPR")))))
+      (if (and (not (and (pair? res) (eq? (car res) 'error))) (dk-link? res)) #t #f))))
+;; a citation's RESULT stays pickable (it is not a link), and is what dk-cite! returned
+(check-true "KIT-9: result-not-a-link"
+  (lambda ()
+    (let ((res (k9t-try (lambda ()
+                      (sp (make-wff '(FORALL m1 (IMPLIES (IS-MONOID m1) (FORALL a0 (IMPLIES (IN a0 (CARR m1))
+                            (FORALL k (IMPLIES (IN k NN) (= (MPOW m1 a0 (succ k)) ((OPR m1) a0 (MPOW m1 a0 k)))))))))))
+                      (dk-peel!)
+                      (let ((r (dk-cite! 'mpow-succ 'm1 'a0 'k)))
+                        (list r (dk-link? r) (dk-pick (lambda (fm) (and (pair? fm) (memq (car fm) '(= ==)) (dk-contains? fm 'MPOW))) "the instance")))))))
+      (if (and (pair? res) (not (eq? (car res) 'error)) (not (cadr res)) (equal? (car res) (caddr res))) #t #f))))
+;; dk-landed-find skips the chain's links: every landed formula mentioning a0 is a link except the
+;; result, so the find is unique (on the old code it is ambiguous)
+(check-true "KIT-9: landed-find-skips-links"
+  (lambda ()
+    (let ((res (k9t-try (lambda ()
+                      (sp (make-wff '(FORALL m1 (IMPLIES (IS-MONOID m1) (FORALL a0 (IMPLIES (IN a0 (CARR m1))
+                            (FORALL k (IMPLIES (IN k NN) (= (MPOW m1 a0 (succ k)) ((OPR m1) a0 (MPOW m1 a0 k)))))))))))
+                      (dk-peel!)
+                      (dk-landed-find (lambda () (fact 'mpow-succ 'm1 'a0 'k)) (lambda (fm) (and (dk-contains? fm 'OPR) (dk-contains? fm 'a0))))))))
+      (if (and (pair? res) (not (eq? (car res) 'error)) (not (dk-head-is? res 'FORALL))) #t #f))))
+;; dk-apply! marks its intermediate instance: apply a two-binder hypothesis; the one-binder instance is a link
+(check-true "KIT-9: apply-marks-intermediate"
+  (lambda ()
+    (let ((res (k9t-try (lambda ()
+                      (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ RR) (FORALL y_ (IMPLIES (IN y_ RR)
+                            (IMPLIES (FORALL ka_ (FORALL kb_ (= (+ ka_ kb_) (+ kb_ ka_)))) (= (+ x_ y_) (+ y_ x_)))))))))
+                      (dk-peel!)
+                      (let* ((h (dk-pick (lambda (f) (dk-head-is? f 'FORALL)) "the hypothesis"))
+                             (r (dk-apply! h 'x_ 'y_))
+                             (mid (dk-ctx-form '(FORALL kb_ (= (+ x_ kb_) (+ kb_ x_))))))
+                        (list r (and mid (dk-link? mid)) (dk-link? r) (dk-link? h)))))))
+      (if (and (pair? res) (not (eq? (car res) 'error)) (cadr res) (not (caddr res)) (not (cadddr res))) #t #f))))
+;; the cited theorem's own statement, landed by a bare `fact', is not a link
+(check-true "KIT-9: theorem-itself-not-a-link"
+  (lambda ()
+    (let ((res (k9t-try (lambda ()
+                      (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ RR) (= x_ x_)))))
+                      (dk-peel!)
+                      (let ((r (dk-fact! 'mpow-succ)))
+                        (list r (dk-link? r)))))))
+      (if (and (pair? res) (not (eq? (car res) 'error)) (not (cadr res))) #t #f))))
+;; dk-have! of a claim equal to a link unmarks it (the driver stated it)
+(check-true "KIT-9: have-unmarks"
+  (lambda ()
+    (let ((res (k9t-try (lambda ()
+                      (k9t-repro1)
+                      (let ((l (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'OPR) (dk-contains? fm 'succ))) "a link" 'links)))
+                        (dk-have! l)
+                        (dk-link? l))))))
+      (if (eq? res #f) #t #f))))
+;; a hypothesis EQUAL to a link of a later citation stays pickable (the chain does not re-land it)
+(check-true "KIT-9: hyp-equal-to-link-pickable"
+  (lambda ()
+    (let ((res (k9t-try (lambda ()
+                      (sp (make-wff '(FORALL m1 (IMPLIES (IS-MONOID m1) (FORALL a0 (IMPLIES (IN a0 (CARR m1)) (FORALL k (IMPLIES (IN k NN)
+                            (IMPLIES (FORALL n (IMPLIES (IN n NN) (== (MPOW m1 a0 (succ n)) ((OPR m1) a0 (MPOW m1 a0 n)))))
+                                     (= (MPOW m1 a0 (succ k)) ((OPR m1) a0 (MPOW m1 a0 k))))))))))))
+                      (dk-peel!)
+                      (dk-cite! 'mpow-succ 'm1 'a0 'k)
+                      (let ((h (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'OPR) (dk-contains? fm 'a0))) "the hypothesis")))
+                        (list h (dk-link? h)))))))
+      (if (and (pair? res) (not (eq? (car res) 'error)) (not (cadr res))) #t #f))))
+;; with arguments, the cited theorem's statement is a link too; without, it is the result
+(check-true "KIT-9: statement-with-args-is-link"
+  (lambda ()
+    (let ((res (k9t-try (lambda ()
+                      (sp (make-wff '(FORALL m1 (IMPLIES (IS-MONOID m1) (FORALL a0 (IMPLIES (IN a0 (CARR m1))
+                            (FORALL k (IMPLIES (IN k NN) (= (MPOW m1 a0 (succ k)) ((OPR m1) a0 (MPOW m1 a0 k)))))))))))
+                      (dk-peel!)
+                      (dk-cite! 'mpow-succ 'm1 'a0 'k)
+                      (let ((st (dk-ctx-form (lookup-theorem 'mpow-succ))))
+                        (list st (and st (dk-link? st))))))))
+      (if (and (pair? res) (not (eq? (car res) 'error)) (car res) (cadr res)) #t #f))))
+(set! *k9-skip-links* #f)   ; end of the KIT-9 checks: link skipping back OFF (the default)
+(check "KIT-9 (2026-10-29): link skipping is OFF by default (opt-in per file)"
+  (lambda () (let ((f '(IN q0 RR))) (k9--mark! f) (dk-link? f))) #f)
 
 ;;; -----------------------------------------------------------------------
 ;;; PROOF CERTIFICATES (batch 28, 2026-09-24; certificates.scm,

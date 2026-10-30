@@ -955,12 +955,8 @@
 (topic! 'matmul-matscale-left 'algebra)
 
 ;; what IS-FIELD-RING gives: one /= zero, and right inverses of nonzero elements
-(sp (make-wff '(FORALL R (IMPLIES (IS-FIELD-RING R) (NOT (= (ONE R) (ZERO R)))))))
-(dk-peel!)
-(dk-project! '(NOT (= (ONE R) (ZERO R))) 'is-field-ring-def '(IS-FIELD-RING R))
-(ass)
-(ladet-done! 'ladet-field-one-ne)
-(topic! 'ladet-field-one-ne 'plumbing)
+;;; MOVED 2026-10-27 (integration): the proof of `ladet-field-one-ne' is now in theorem-library/field-one-ne.scm
+;;; (library algebra), loaded just before this file.
 
 (sp (make-wff
   (list 'FORALL 'R (list 'IMPLIES '(IS-FIELD-RING R)

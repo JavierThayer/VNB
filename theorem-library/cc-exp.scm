@@ -1651,25 +1651,8 @@
   (cex-and! (list 'IN z 'CC) (list 'IN k 'NN))
   (subst (dk-fact! 'power-succ z k)))
 
-(sp (make-wff '(FORALL cexn_ (IMPLIES (IN cexn_ NN) (FORALL cexm_ (IMPLIES (IN cexm_ NN) (FORALL cexz_ (IMPLIES (IN cexz_ CC)
-  (= (power cexz_ (+ cexm_ cexn_)) (* (power cexz_ cexm_) (power cexz_ cexn_)))))))))))
-(cex-ind!
-  (lambda ()
-    (dk-peel!)
-    (subst (dk-fact! 'nn-add-zero 'cexm_))
-    (subst (dk-fact! 'power-zero 'cexz_))
-    (cex-cc-typ! '(power cexz_ cexm_))
-    (crs))
-  (lambda (v ih)
-    (dk-peel!)
-    (subst (dk-fact! 'nn-add-succ 'cexm_ v))
-    (cex-pw! 'cexz_ (list '+ 'cexm_ v))
-    (subst (dk-apply! ih 'cexm_ 'cexz_))
-    (cex-pw! 'cexz_ v)
-    (cex-cc-typ! '(power cexz_ cexm_))
-    (cex-cc-typ! (list 'power 'cexz_ v))
-    (crs)))
-(qed 'cc-power-add)
+;;; MOVED 2026-10-27 (integration): the proof of `cc-power-add' is now in theorem-library/cc-power-add.scm
+;;; (library analysis), loaded just before this file.
 
 (sp (make-wff '(FORALL cexk_ (IMPLIES (IN cexk_ NN) (FORALL cexm_ (IMPLIES (IN cexm_ NN) (FORALL cexz_ (IMPLIES (IN cexz_ CC)
   (= (power cexz_ (* cexm_ cexk_)) (power (power cexz_ cexm_) cexk_))))))))))

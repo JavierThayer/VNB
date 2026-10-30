@@ -59,26 +59,11 @@
   (dk-have! '(== (CARR ZZ-RING) ZZ) (lambda () (slot 'CARR) (qrfl))))
 
 ;;; ---- ring operations of ZZ-RING in the arithmetic of ZZ ----
-(sp (make-wff (forall-guarded '(x y) '((IN x ZZ) (IN y ZZ))
-  '(= ((ADD ZZ-RING) x ((NEG ZZ-RING) y)) (+ x (- y))))))
-(dk-peel!)
-(fact 'zz-neg-closed 'y)
-(dk-have! '(AND (IN x ZZ) (IN (- y) ZZ)) (lambda () (dk-conj-close! (lambda () (ass)))))
-(fact 'zz-add-closed 'x '(- y))
-(slot 'NEG)
-(dk-lam-b!)
-(slot 'ADD)
-(if (not (dk-lam-b!)) (rfl))
-(lz5z-done! 'zz-ring-add-neg)
+;;; MOVED 2026-10-27 (integration): the proof of `zz-ring-add-neg' is now in theorem-library/zz-ring-arith.scm
+;;; (library algebra), loaded just before this file.
 
-(sp (make-wff (forall-guarded '(t b) '((IN t ZZ) (IN b ZZ))
-  '(= ((MUL ZZ-RING) t b) (* t b)))))
-(dk-peel!)
-(dk-have! '(AND (IN t ZZ) (IN b ZZ)) (lambda () (dk-conj-close! (lambda () (ass)))))
-(fact 'zz-mul-closed 't 'b)
-(slot 'MUL)
-(if (not (dk-lam-b!)) (rfl))
-(lz5z-done! 'zz-ring-mul-is-mul)
+;;; MOVED 2026-10-27 (integration): the proof of `zz-ring-mul-is-mul' is now in theorem-library/zz-ring-arith.scm
+;;; (library algebra), loaded just before this file.
 
 (sp (make-wff (forall-guarded '(b x) '((IN b ZZ) (IN x (PRINCIPAL-IDEAL ZZ-RING b)))
   '(AND (IN x ZZ) (FORSOME t (AND (IN t ZZ) (= x (* t b))))))))

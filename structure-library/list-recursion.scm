@@ -152,3 +152,51 @@
 
 (topic! 'tuple-length-zero 'combinatorial)
 (topic! 'tuple-cons-decompose 'combinatorial)
+
+;;; -----------------------------------------------------------------------
+;;; NO NATURAL NUMBER IS A LIST.  One primitive fact (agent SB-5, 2026-10-26; wired 2026-10-27).
+;;;
+;;; THE USER'S DECISION, 2026-10-26 (the token law, option (A) of scratchpad/triage/SB-5-REPORT.md).
+;;;
+;;; WHY THIS AXIOM IS INCLUDED.
+;;;
+;;; (1) No set is provably a non-list without it.  The base theory pins lists down only through their
+;;;     length and their entries: TUPLES has typing, length and entry axioms and the two generation
+;;;     axioms above (a tuple of length 0 is [], a tuple of length succ(n) is a CONS), and CONS has its
+;;;     defining equations.  None of these says WHICH sets [] and CONS(x, m) are, and none says that a
+;;;     given set is NOT a list.  All of them remain true in a model in which every set is a list (under
+;;;     global choice the classes V and V^{<omega} are equinumerous; encode the lists through such a
+;;;     bijection).  Hence, for every particular x, "x is not a list" is independent of the base theory.
+;;;
+;;; (2) Without it the token law is satisfied only by the empty token set.  IS-TOKEN-SET(T)
+;;;     (structure-library/strand-messages.scm) requires that no member of T be in TUPLES(SET).  In the
+;;;     model of (1), TUPLES(SET) contains every set, so the only token set is EMPTY-SET and every strand
+;;;     space has no tokens.  Every strand-space theorem is then a statement about structures the theory
+;;;     cannot exhibit, and may hold vacuously; and no concrete bundle, in particular the counterexample of
+;;;     strand-spaces section 7.3.3, can be constructed, since its names, nonces and keys must be distinct
+;;;     tokens.  With the axiom, every subset of NN is a token set (nn-subset-token-set).
+;;;
+;;; (3) Relative consistency: the Kuratowski-pair model of lists.  Interpret the naturals as the von
+;;;     Neumann naturals, [] as a set that is neither a natural nor a Kuratowski pair (for example
+;;;     {2} = {{0, 1}}), and CONS(x, m) as the Kuratowski pair (x, m) = {{x}, {x, m}}, with LENGTH and NTH
+;;;     defined by recursion on this encoding.  Every TUPLES, CONS, LENGTH and NTH axiom of the tree holds
+;;;     in this interpretation.  No von Neumann natural is a Kuratowski pair: 0 is empty; 1 = {0} would
+;;;     need {x} = 0; 2 = {0, 1} would need {x} = 1, so x = 0, and then {x, m} = 0, which is impossible;
+;;;     every n >= 3 has at least three members, while a pair has at most two.  No natural is [] either.
+;;;     So no natural is a list, and the axiom is consistent relative to NBG with the rest of the base
+;;;     theory.  (The numbers of the tree are otherwise axiomatic, number-systems.scm and ordinals.scm,
+;;;     so this interpretation of NN is compatible with them.)
+;;;
+;;; WHAT THE STAMP CLAIMS.  `primitive' contributes {} to every bill.  The claim is that a natural number
+;;; is a number and not a finite sequence; this is part of what the two notions mean in this tree, in the
+;;; way pos-inf-above-reals is part of what POS-INF means.  The decision is the user's, 2026-10-26 (option
+;;; (A) of scratchpad/triage/SB-5-REPORT.md).
+;;;
+;;; SAFETY SCAN (2026-10-26, on the band 401ea2bd; SB-5-REPORT.md): no primitive, definitional or
+;;; asserted fact, no kernel rule (tuples-intro and tuples-elim act on literal LIST terms only) and no
+;;; oracle (arith decides membership in NN, ZZ, QQ, RR and CC only) places a natural in TUPLES of
+;;; anything or equates [] or a CONS with a number.
+(fluid-let ((*current-provenance* 'primitive))
+  (add-axiom! *library* 'nn-not-a-list
+    '(FORALL n (IMPLIES (IN n NN) (NOT (IN n (TUPLES SET)))))))
+(topic! 'nn-not-a-list 'combinatorial)

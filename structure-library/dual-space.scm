@@ -30,13 +30,10 @@
 ;;; "unknown theorem/macete" and the driver sails on with the hypothesis intact.
 ;;; Every proof about the dual reads a functional OUT of the context ("let f be a
 ;;; vector of DUAL(m)"), so the membership law has to be stated separately:
-;;; `dual-vec-membership' below is that law, and it is stamped `definitional' --
-;;; the functoid unfold composed with the SEP separation schema, both trusted
-;;; base, i.e. exactly the IFF `def-predicate' would have generated had DUAL-VEC
-;;; been a predicate.  Same treatment, same reasoning, as span-membership
-;;; (mod-seq.scm) and principal-ideal-membership (ideal.scm).  The three slot
-;;; readouts below are stamped the same way and for the same reason: each is the
-;;; DUAL functoid unfold composed with an NTH projection.
+;;; `dual-vec-membership' was that law, stamped `definitional' until 2026-10-27 --
+;;; the functoid unfold composed with the SEP separation schema.  It and the three
+;;; slot readouts (the DUAL unfold composed with an NTH projection) are now PROVEN
+;;; in theorem-library/dual-space-readoffs.scm; see the retirement notes below.
 ;;;
 ;;; A DEFECT IT INHERITED, and no longer does (repaired 2026-08-23).  Until that
 ;;; date IS-NORMED-VECTOR-SPACE WAS UNSATISFIABLE, so
@@ -73,20 +70,18 @@
 (def-functoid 'DUAL-VEC '(m)
   '(SEP f_ (FUN (VEC m) RR) (IS-BOUNDED-LINEAR-FUNCTIONAL m f_)))
 
-;;; The membership law -- see THE FUNCTOID TRAP above.  `definitional': the
-;;; DUAL-VEC unfold composed with SEP separation, nothing else.
-(fluid-let ((*current-provenance* 'definitional))
-  (support 'dual-vec-membership
-    '(FORALL m (FORALL f
-       (IFF (IN f (DUAL-VEC m))
-            (AND (IN f (FUN (VEC m) RR))
-                 (IS-BOUNDED-LINEAR-FUNCTIONAL m f)))))))
+;;; The membership law -- see THE FUNCTOID TRAP above.
+;;; dual-vec-membership RETIRED 2026-10-27 (a `definitional' stamp): proven modulo 0, the
+;;; statement character for character, as dual-vec-membership-proven in
+;;; theorem-library/dual-space-readoffs.scm (TVS-NEXT, scratchpad/dualfix2/dual-stamps.scm).
 
 ;;; ====================================================================
 ;;; the dual space itself
 ;;; ====================================================================
 
-;;; DUAL(m) = [ RR-NORMED-FIELD,          scalars (the reals, as m's are)
+;;; DUAL(m) = [ NORMED-FIELD-AS-COMMUTATIVE-RING(RR-NORMED-FIELD),
+;;;                                       scalars: the reals through the RING VIEW,
+;;;                                       the slot IS-NORMED-VECTOR-SPACE pins
 ;;;             DUAL-VEC(m),              vectors: the bounded functionals
 ;;;             (f,g) |-> (x |-> f x + g x),      pointwise sum
 ;;;             x |-> 0,                          the zero functional
@@ -98,42 +93,47 @@
 ;;; itself a VNB-LAMBDA on VEC(m): a vector of DUAL(m) is a function, and the
 ;;; operations of a function space act on values.
 (def-functoid 'DUAL '(m)
-  '(LIST RR-NORMED-FIELD
+  '(LIST (NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)
          (DUAL-VEC m)
-         (VNB-LAMBDA (LIST f_ g_) (CARTESIAN (DUAL-VEC m) (DUAL-VEC m))
-           (VNB-LAMBDA x_ (VEC m) (+ (f_ x_) (g_ x_))))
-         (VNB-LAMBDA x_ (VEC m) 0)
-         (VNB-LAMBDA f_ (DUAL-VEC m)
-           (VNB-LAMBDA x_ (VEC m) (- (f_ x_))))
-         (VNB-LAMBDA (LIST r_ f_) (CARTESIAN RR (DUAL-VEC m))
-           (VNB-LAMBDA x_ (VEC m) (* r_ (f_ x_))))
-         (VNB-LAMBDA f_ (DUAL-VEC m) (DUAL-NORM m f_))))
+         (VNB-LAMBDA (LIST dlaf_ dlag_) (CARTESIAN (DUAL-VEC m) (DUAL-VEC m))
+           (VNB-LAMBDA dlax_ (VEC m) (+ (dlaf_ dlax_) (dlag_ dlax_))))
+         (VNB-LAMBDA dlzx_ (VEC m) 0)
+         (VNB-LAMBDA dlnf_ (DUAL-VEC m)
+           (VNB-LAMBDA dlnx_ (VEC m) (- (dlnf_ dlnx_))))
+         (VNB-LAMBDA (LIST dlsr_ dlsf_) (CARTESIAN RR (DUAL-VEC m))
+           (VNB-LAMBDA dlsx_ (VEC m) (* dlsr_ (dlsf_ dlsx_))))
+         (VNB-LAMBDA dlvf_ (DUAL-VEC m) (DUAL-NORM m dlvf_))))
 
 ;;; ====================================================================
 ;;; slot readouts -- the DUAL unfold composed with an NTH projection.
-;;; `definitional' for the same reason dual-vec-membership is.
 ;;; ====================================================================
 
-(fluid-let ((*current-provenance* 'definitional))
-  (support 'dual-scal
-    '(FORALL m (== (SCAL (DUAL m)) RR-NORMED-FIELD)))
-  (support 'dual-carrier
-    '(FORALL m (== (VEC (DUAL m)) (DUAL-VEC m))))
-  ;; the norm slot APPLIED -- the form a proof wants, so that citing it does not
-  ;; also owe a beta-reduction (and, with it, the `lam-b' typing obligation).
-  (support 'dual-norm-value
-    '(FORALL m (FORALL f (IMPLIES (IN f (DUAL-VEC m))
-       (== ((VNRM (DUAL m)) f) (DUAL-NORM m f)))))))
+;;; dual-scal, dual-carrier, dual-norm-value RETIRED 2026-10-27 (`definitional' stamps).
+;;; Unguarded, the three are not provable under list definedness (the 2026-10-01 decision: a
+;;; list denotes only when every component is a set), and dual-scal / dual-carrier are FALSE at
+;;; an m whose VEC is not a set: the left side of `==' is undefined, the right side defined
+;;; (TVS-NEXT F1, scratchpad/triage/TVS-NEXT-REPORT.md section 1).  They are proven modulo 0,
+;;; each with the one added guard (IN (DUAL-VEC m) SET), as dual-scal-proven,
+;;; dual-carrier-proven and dual-norm-value-proven in theorem-library/dual-space-readoffs.scm;
+;;; every citer has the guard from dual-vec-in-set.
 
 ;;; ====================================================================
 ;;; ... and it is a normed vector space
 ;;; ====================================================================
 
-;;; The one piece of mathematics in the file.  See the DEFECT note in the header
-;;; before leaning on it: while IS-NORMED-VECTOR-SPACE stays unsatisfiable this
-;;; is a vacuous truth, and the warrant below is what it will be worth once the
-;;; scalar slot of normed-vector-space.scm is pinned through the view.
-;;; dual-is-normed-vector-space DELETED 2026-10-12 (the user's decision): FALSE as stated.  DUAL(m) carries the 7-tuple RR-NORMED-FIELD in its scalar slot, while IS-NORMED-VECTOR-SPACE wants the 6-tuple ring view normed-field-as-commutative-ring(rr-normed-field); at m = RR-NVS (a proven normed vector space) it forced 7 = 6, so FALSITY was derivable.  The negation is proven: rb3-dual-is-normed-vector-space-false (theorem-library/rake-asm-b3.scm).  OPEN (the user's yes, 2026-10-12): make DUAL's scalar slot the ring view and prove the corrected statement.
+;;; THE SCALAR SLOT (2026-10-26, carrying out the user's yes of 2026-10-12).  Until
+;;; this date the scalar slot held the 7-tuple RR-NORMED-FIELD, while
+;;; IS-NORMED-VECTOR-SPACE pins scal(s) = normed-field-as-commutative-ring(
+;;; rr-normed-field), a 6-tuple; the statement dual-is-normed-vector-space was then
+;;; FALSE (7 = 6 at m = RR-NVS) and was deleted 2026-10-12, its negation proven as
+;;; rb3-dual-is-normed-vector-space-false (rake-asm-b3.scm).  The slot now holds the
+;;; ring view, exactly as RR-NVS and RN(n) do; the negation is retired, and the
+;;; corrected statement is PROVEN in theorem-library/dual-nvs.scm:
+;;;     forall m. IS-NORMED-VECTOR-SPACE(m) => IS-NORMED-VECTOR-SPACE(DUAL(m)).
+;;; The lambdas' binders were renamed at the same time (dla.._, dlz.._, ...) so that
+;;; no binder of the tuple is spelled like a binder of the IS-NORMED-VECTOR-SPACE
+;;; laws (r_, s_, x_, y_) or of the DUAL-NORM body (c_, d_, x_); the change is an
+;;; alpha-renaming and nothing cited the old spelling.
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).

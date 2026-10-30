@@ -110,21 +110,8 @@
 ;;; ======================================================================
 ;;; (2) the radius 1/(n+1)
 ;;; ======================================================================
-(sp (make-wff '(FORALL n (IMPLIES (IN n NN)
-   (AND (IN (recip (+ n 1)) RR) (< 0 (recip (+ n 1))))))))
-(dk-peel!)
-(fact 'nn-in-rr 'n)
-(fact 'nn-zero-le 'n)
-(fact 'rr-one-in)
-(fact 'rr-add-in-rr 'n 1)
-(dk-have! '(< 0 (+ n 1)) (lambda () (dk-ineq! '(<= 0 n))))
-(dk-have! '(NOT (= (+ n 1) 0)) (lambda () (di) (dk-absurd! '(= (+ n 1) 0) '(< 0 (+ n 1)))))
-(dk-have! '(AND (IN (+ n 1) RR) (NOT (= (+ n 1) 0))) (lambda () (dk-conj-close!)))
-(fact 'rr-recip-closed '(+ n 1))
-(fact 'rr-recip-pos '(+ n 1))
-(dk-conj-close!)
-(qed 'cc-exhaust-radius)
-(topic! 'cc-exhaust-radius 'plumbing)
+;;; MOVED 2026-10-30 (wave-2 integration): the proof of `cc-exhaust-radius' is now in
+;;; theorem-library/cc-exhaust-radius-decrease.scm (library analysis).
 
 ;;; ======================================================================
 ;;; (3) K_n lies in u
@@ -174,45 +161,8 @@
 (qed 'cc-magnitude-sub-chain)
 (topic! 'cc-magnitude-sub-chain 'analysis)
 
-(sp (make-wff '(FORALL n (IMPLIES (IN n NN)
-   (AND (< (recip (+ (+ n 1) 1)) (recip (+ n 1))) (<= (recip (+ n 1)) 1))))))
-(dk-peel!)
-(let ((a '(+ n 1)) (b '(+ (+ n 1) 1)))
-  (fact 'nn-in-rr 'n)
-  (fact 'nn-zero-le 'n)
-  (fact 'rr-one-in)
-  (fact 'rr-add-in-rr 'n 1)
-  (fact 'rr-add-in-rr a 1)
-  (dk-have! (list '< 0 a) (lambda () (dk-ineq! '(<= 0 n))))
-  (dk-have! (list '< 0 b) (lambda () (dk-ineq! '(<= 0 n))))
-  (dk-have! (list '<= a b) (lambda () (dk-ineq!)))
-  (dk-have! (list '<= 1 a) (lambda () (dk-ineq! '(<= 0 n))))
-  (dk-have! '(< 0 1) (lambda () (dk-ineq!)))
-  (dk-cite! 'rr-recip-antitone a b)
-  (dk-cite! 'rr-recip-antitone 1 a)
-  (fact 'rr-recip-one)
-  (dk-split-all! (list (dk-cite! 'cc-exhaust-radius 'n)))
-  (fact 'nn-one-in)
-  (ca5-and! '(IN n NN) '(IN 1 NN))
-  (fact 'nn-add-closed 'n 1)
-  (dk-split-all! (list (dk-cite! 'cc-exhaust-radius a)))
-  (dk-cite! 'rr-recip-recip-pos a)
-  (dk-cite! 'rr-recip-recip-pos b)
-  (dk-rewrite-h! (list '<= (list 'recip a) '(recip 1)) '(recip 1) 1)
-  (dk-have! (list 'NOT (list '= (list 'recip b) (list 'recip a)))
-    (lambda ()
-      (di)
-      (dk-have! (list '= b a)
-        (lambda ()
-          (subst (list '= b (list 'recip (list 'recip b))))
-          (subst (list '= (list 'recip b) (list 'recip a)))
-          (ass)))
-      (dk-absurd! (list '= b a))))
-  (ca5-and! (list '<= (list 'recip b) (list 'recip a)) (list 'NOT (list '= (list 'recip b) (list 'recip a))))
-  (fact 'rr-le-ne-lt (list 'recip b) (list 'recip a))
-  (dk-conj-close!))
-(qed 'cc-exhaust-radius-decrease)
-(topic! 'cc-exhaust-radius-decrease 'plumbing)
+;;; MOVED 2026-10-30 (wave-2 integration): the proof of `cc-exhaust-radius-decrease' is now in
+;;; theorem-library/cc-exhaust-radius-decrease.scm (library analysis).
 ;;; ======================================================================
 ;;; (5) the centre is in its ball; K_n lies in the interior of K_{n+1}
 ;;; ======================================================================

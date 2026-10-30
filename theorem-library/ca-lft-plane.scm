@@ -58,22 +58,8 @@
   (prop))
 (qed 'cc-in-cc-hat)
 
-(sp (make-wff "forall([y in set], singleton(y) in set)"))
-(let ((y (dk-di-var!)))
-  (fact 'power-set y)
-  (dk-have! (list 'SUBSET (list 'SINGLETON y) (list 'POWER y))
-    (lambda ()
-      (let ((x (subset-by-element!)))
-        (fact 'singleton-membership y x)
-        (let* ((pm  (dk-cite! 'power-set-membership y x))
-               (all (caddr (caddr pm))))
-          (dk-have! (list '= x y) (lambda () (prop)))
-          (dk-have! (list 'IN x 'SET) (lambda () (prop)))
-          (dk-have! all (lambda () (dk-peel!) (subst (list '= y x)) (ass)))
-          (prop)))))
-  (dk-cite! 'subclass-of-set-is-set (list 'SINGLETON y) (list 'POWER y))
-  (clp-finish-ass!))
-(qed 'singleton-is-set)
+;;; MOVED 2026-10-27 (integration): the proof of `singleton-is-set' is now in theorem-library/singleton-is-set.scm
+;;; (library core), loaded just before this file.
 
 (sp (make-wff '(IN CC-HAT SET)))
 (mac 'cc-hat-def)
