@@ -1,3 +1,3 @@
 ;;; VNB proof certificates for theorem-library/field-one-ne.scm -- written by a load that proved them; do not edit.
-(vnb-certificate-file "theorem-library/field-one-ne" (kernel "18762c65be137add8a8e7ece11aaffbc") (count 1))
-(ladet-field-one-ne "8df24aa94e8add43b434e9376bf3ea2c" (forall r (implies (is-field-ring r) (not (= (one r) (zero r))))) (cites (is-field-ring-def . "T758de6e7e4ce70da0b1e079c0a58fbe3")) (defs) (uses (is-field-ring-def . "T758de6e7e4ce70da0b1e079c0a58fbe3")) (own-oracles) (bill) (oracles) (kernel "18762c65be137add8a8e7ece11aaffbc"))
+(vnb-certificate-file "theorem-library/field-one-ne" (kernel "ede9b5be668298696a84e1aaa1adcd26") (count 1))
+(ladet-field-one-ne "8df24aa94e8add43b434e9376bf3ea2c" (forall r (implies (is-field-ring r) (not (= (one r) (zero r))))) (cites (is-field-ring-def . "T758de6e7e4ce70da0b1e079c0a58fbe3")) (defs) (uses (is-field-ring-def . "T758de6e7e4ce70da0b1e079c0a58fbe3")) (own-oracles) (bill) (oracles) (kernel "ede9b5be668298696a84e1aaa1adcd26"))

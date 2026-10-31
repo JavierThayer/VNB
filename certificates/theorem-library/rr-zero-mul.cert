@@ -1,3 +1,3 @@
 ;;; VNB proof certificates for theorem-library/rr-zero-mul.scm -- written by a load that proved them; do not edit.
-(vnb-certificate-file "theorem-library/rr-zero-mul" (kernel "18762c65be137add8a8e7ece11aaffbc") (count 1))
-(rr-zero-mul "9115cfb60e7fba805e66895a19af3c0b" (forall v (implies (in v rr) (= (* 0 v) 0))) (cites) (defs) (uses) (own-oracles crs) (bill) (oracles crs) (kernel "18762c65be137add8a8e7ece11aaffbc"))
+(vnb-certificate-file "theorem-library/rr-zero-mul" (kernel "ede9b5be668298696a84e1aaa1adcd26") (count 1))
+(rr-zero-mul "9115cfb60e7fba805e66895a19af3c0b" (forall v (implies (in v rr) (= (* 0 v) 0))) (cites) (defs) (uses) (own-oracles crs) (bill) (oracles crs) (kernel "ede9b5be668298696a84e1aaa1adcd26"))

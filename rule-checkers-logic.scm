@@ -679,6 +679,8 @@
                                    (chk-ctx=? (cadr hyps) concl))))
                     "the second hypothesis is not the owed definedness sequent  Gamma => t = t")
                    ((not t) #t)                                    ; x not in p: vacuous
+                   ((not (chk-object-term? t))                     ; FREF, 2026-10-29
+                    "forsome-intro: the witness is not an OBJECT term (a head-only symbol or a record outside head position)")
                    (side (if (chk-same? (binary-left side) t) #t
                              "the owed definedness sequent is not  t = t  for the witness"))
                    ((chk-instance-certifies? (chk-goal (car hyps)) t) #t)
@@ -987,6 +989,91 @@
         (and (chk-number-class asms t 0) #t)                     ; (d)
         (and (pi--defined? (sequent-assumptions concl) t 0) #t))))  ; builder's word
 
+;;; AN INSTANCE IS AN OBJECT TERM (FREF, 2026-10-29; F-1 / F-2 of meta-report/functoid-argument.tex).
+;;; Written here, independently of the builder's `pi--non-object-witness'
+;;; (primitive-inferences.scm).  RELATION: every symbol at an ARGUMENT position of T (any
+;;; position but the head of an application and the functoid of an apply-functoid, binder
+;;; variables excluded, symbols bound at that position excluded) is not HEAD-ONLY, and no
+;;; lambdoid record sits at an argument position.  HEAD-ONLY: not a class-name constant, and
+;;; a def-functoid name, a structure accessor, or a registered constant head (any kind) that
+;;; no installed PRIMITIVE or DEFINITIONAL statement defines as an object -- an atomic
+;;; statement  (= s u), (== s u), (= u s), (== u s)  or  (IN s C)  with s a whole side.
+;;; The object definition a verdict rests on is noted as read (CERT-KEY-2).
+(define *chk-objdef-index* #f)              ; s -> the defining statement's name
+(define *chk-objdef-size* -1)
+(define (chk-objdef-rebuild!)
+  (let ((t (make-strong-eqv-hash-table)))
+    (hash-table-walk *theorem-table*
+      (lambda (name f)
+        (if (and (pair? f) (pair? (cdr f)) (pair? (cddr f)) (null? (cdddr f))
+                 (memq (provenance-of name) '(primitive definitional)))
+            (let ((rel (car f)) (l (cadr f)) (r (caddr f)))
+              (for-each (lambda (s) (if (and (symbol? s) (not (hash-table-ref/default t s #f)))
+                                        (hash-table-set! t s name)))
+                        (cond ((memq rel '(= ==)) (list l r))
+                              ((eq? rel 'IN) (list l))
+                              (else '())))))))
+    (set! *chk-objdef-index* t)
+    (set! *chk-objdef-size* (hash-table/count *theorem-table*))))
+(define (chk-objdef-of s)
+  (if (not *chk-objdef-index*) (chk-objdef-rebuild!))
+  (or (hash-table-ref/default *chk-objdef-index* s #f)
+      (and (not (= *chk-objdef-size* (hash-table/count *theorem-table*)))
+           (begin (chk-objdef-rebuild!)
+                  (hash-table-ref/default *chk-objdef-index* s #f)))))
+(define (chk-table-has? tbl-thunk s)
+  (call-with-current-continuation
+    (lambda (k) (with-exception-handler (lambda (c) (k #f))
+                  (lambda () (and (hash-table-ref/default (tbl-thunk) s #f) #t))))))
+(define (chk-head-only-symbol? s)
+  (cond ((memq s *class-name-constants*) #f)
+        ((chk-table-has? (lambda () *functoid-registry*) s) #t)
+        ((chk-table-has? (lambda () *accessor-index*) s) #t)
+        ((not (chk-table-has? (lambda () *constant-registry*) s)) #f)
+        (else (let ((d (chk-objdef-of s)))
+                (if d (begin (dg-note-read-def! d) #f) #t)))))
+;;; the argument-position items of T, as a list of (item . bound-symbols), by an explicit stack
+(define (chk-argument-items t)
+  (let loop ((todo (list (cons t '()))) (acc '()))
+    (if (null? todo)
+        acc
+        (let* ((e (caar todo)) (bd (cdar todo)) (rest (cdr todo)))
+          (cond
+            ((or (symbol? e) (functoid? e)) (loop rest (cons (cons e bd) acc)))
+            ((not (and (pair? e) (list? e))) (loop rest acc))
+            (else
+             (let* ((h (car e)) (n (length e))
+                    (push (lambda (es b l) (append (map (lambda (x) (cons x b)) es) l)))
+                    (head-items                ; what a HEAD contributes: a record's parts, a compound head
+                     (lambda (hd l)
+                       (cond ((symbol? hd) l)
+                             ((functoid? hd)
+                              (push (list (functoid-body hd))
+                                    (append (map car (functoid-bindings hd)) bd)
+                                    (push (map cdr (functoid-bindings hd)) bd l)))
+                             (else (cons (cons hd bd) l))))))
+               (cond
+                 ((and (= n 3) (memq h '(FORALL FORSOME IOTA COMP)))
+                  (loop (cons (cons (caddr e) (cons (cadr e) bd)) rest) acc))
+                 ((and (= n 4) (memq h '(SEP BIG-UNION VNB-LAMBDA)))
+                  (let ((vs (let ((b (cadr e)))
+                              (cond ((symbol? b) (list b))
+                                    ((and (pair? b) (eq? (car b) 'LIST)) (cdr b))
+                                    ((list? b) b)
+                                    (else '())))))
+                    (loop (cons (cons (caddr e) bd) (cons (cons (cadddr e) (append vs bd)) rest)) acc)))
+                 ((and (eq? h 'apply-functoid) (>= n 2))
+                  (loop (head-items (cadr e) (push (cddr e) bd rest)) acc))
+                 (else
+                  (loop (head-items h (push (cdr e) bd rest)) acc))))))))))
+(define (chk-object-term? t)
+  (chk-every (lambda (it)
+               (let ((x (car it)))
+                 (cond ((functoid? x) #f)
+                       ((memq x (cdr it)) #t)
+                       (else (not (chk-head-only-symbol? x))))))
+             (chk-argument-items t)))
+
 (register-rule-checker! 'forall-elim
   (lambda (rule hyps concl)
     (cond
@@ -1029,7 +1116,8 @@
                                                     (call-with-current-continuation
                                                       (lambda (k)
                                                         (with-exception-handler (lambda (e) (k #f))
-                                                          (lambda () (hash-table-ref/default *functoid-registry* t #f)))))))
+                                                          (lambda () (hash-table-ref/default *functoid-registry* t #f))))))
+                                               (not (chk-object-term? t)))      ; FREF, 2026-10-29
                                            (begin (set! functoid-seen #t) #f)
                                            (if side
                                                (chk-same? side t)
@@ -1039,7 +1127,7 @@
          (cond
            (ok #t)
            (functoid-seen
-            "forall-elim: the instance is a functoid, which is outside the range of quantification")
+            "forall-elim: the instance is a functoid, or is not an OBJECT term (a head-only symbol or a record outside head position): outside the range of quantification")
            ((not instance-seen)
             "the context gained no INSTANCE of any universal it holds")
            (side

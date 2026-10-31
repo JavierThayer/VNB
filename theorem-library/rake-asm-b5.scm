@@ -90,7 +90,28 @@
 ;;; ---- rb5-nary-plus-N-list-cc / rb5-nary-times-N-list-cc (N = 2..5) ------
 ;;; The CC-guarded content of nary-plus-N-list / nary-times-N-list: REDUCE and
 ;;; FAM-OF-LIST unfolded by their own axioms (reduce-one, reduce-succ,
-;;; fam-of-list-apply, the kernel LENGTH / NTH reductions), then `crs'.
+;;; fam-of-list-apply, the kernel LENGTH / NTH reductions), then beta, then `crs'.
+;;; THE OPERATION IS AN OBJECT (FREF, 2026-10-29).  REDUCE's `op' is a quantified variable,
+;;; so its instance must be an object term; binplus / bintimes are the surface bridge
+;;; symbols, which carry no claim to be sets (numeric-instances.scm), and the kernel refuses
+;;; them as instances.  The operation is therefore the addition (multiplication) of CC as a
+;;; function, (VNB-LAMBDA (LIST p q) (CARTESIAN CC CC) (p + q)) -- the slot value
+;;; CC-NORMED-FIELD and the ring instances use -- and the partial folds are typed in CC
+;;; before the beta (cc-add-closed / cc-mul-closed).
+(define (rb5-op surf)
+  (list 'VNB-LAMBDA '(LIST rbp_ rbq_) '(CARTESIAN CC CC) (list surf 'rbp_ 'rbq_)))
+
+(define (rb5-type-fold! surf vars)     ; (IN (surf .. ) CC) for each partial left fold
+  (let loop ((acc (car vars)) (rest (cdr vars)))
+    (if (pair? rest)
+        (let ((t (list surf acc (car rest))))
+          (dk-have! (list 'IN t 'CC)
+            (lambda ()
+              (dk-have! (list 'AND (list 'IN acc 'CC) (list 'IN (car rest) 'CC))
+                (lambda () (dk-close-all! (lambda () (di)))))
+              (fact (if (eq? surf '+) 'cc-add-closed 'cc-mul-closed) acc (car rest))
+              (if (not (proof-done? *ps*)) (if (dk-asm? (dk-goal)) (ass)))))
+          (loop t (cdr rest))))))
 
 (define (rb5-list-cc! name surf bin vars)
   (let* ((n   (length vars))
@@ -141,18 +162,20 @@
     (let loop ((i 0) (xs vars))
       (if (pair? xs)
           (begin (subst (list '= (list F i) (car xs))) (loop (+ i 1) (cdr xs)))))
+    (rb5-type-fold! surf vars)
+    (dk-lam-b!)
     (crs)
     (rb5-check! name)
     (qed name)))
 
-(rb5-list-cc! 'rb5-nary-plus-2-list-cc  '+ 'binplus  '(x y))
-(rb5-list-cc! 'rb5-nary-plus-3-list-cc  '+ 'binplus  '(x y z))
-(rb5-list-cc! 'rb5-nary-plus-4-list-cc  '+ 'binplus  '(w x y z))
-(rb5-list-cc! 'rb5-nary-plus-5-list-cc  '+ 'binplus  '(v w x y z))
-(rb5-list-cc! 'rb5-nary-times-2-list-cc '* 'bintimes '(x y))
-(rb5-list-cc! 'rb5-nary-times-3-list-cc '* 'bintimes '(x y z))
-(rb5-list-cc! 'rb5-nary-times-4-list-cc '* 'bintimes '(w x y z))
-(rb5-list-cc! 'rb5-nary-times-5-list-cc '* 'bintimes '(v w x y z))
+(rb5-list-cc! 'rb5-nary-plus-2-list-cc '+ (rb5-op '+) '(x y))
+(rb5-list-cc! 'rb5-nary-plus-3-list-cc '+ (rb5-op '+) '(x y z))
+(rb5-list-cc! 'rb5-nary-plus-4-list-cc '+ (rb5-op '+) '(w x y z))
+(rb5-list-cc! 'rb5-nary-plus-5-list-cc '+ (rb5-op '+) '(v w x y z))
+(rb5-list-cc! 'rb5-nary-times-2-list-cc '* (rb5-op '*) '(x y))
+(rb5-list-cc! 'rb5-nary-times-3-list-cc '* (rb5-op '*) '(x y z))
+(rb5-list-cc! 'rb5-nary-times-4-list-cc '* (rb5-op '*) '(w x y z))
+(rb5-list-cc! 'rb5-nary-times-5-list-cc '* (rb5-op '*) '(v w x y z))
 ;;; ===================================================================
 ;;; rb5-fibre-count: a set classified by a map into a FINITE set, every
 ;;; fibre of size m, has m * |g| elements.  finite-set-induction on the value

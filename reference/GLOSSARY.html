@@ -696,7 +696,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-cartesian-set-iff"><code>cartesian-set-iff</code></a>  <em>(primitive)</em>:</p>
 <pre>forall([a, b], cartesian(a, b) in set iff a in set and b in set)</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-cartesian-nth"><code>cartesian-nth</code></a> <a class="x" href="THEOREMS.html#t-card-cartesian"><code>card-cartesian</code></a> <a class="x" href="THEOREMS.html#t-cartesian-mono"><code>cartesian-mono</code></a> <a class="x" href="THEOREMS.html#t-cartesian3-set"><code>cartesian3-set</code></a> <a class="x" href="THEOREMS.html#t-cartesian4-set"><code>cartesian4-set</code></a> <a class="x" href="THEOREMS.html#t-cartesian5-set"><code>cartesian5-set</code></a> <a class="x" href="THEOREMS.html#t-card-cartesian-nn"><code>card-cartesian-nn</code></a> <a class="x" href="THEOREMS.html#t-cartesian-pair-eq"><code>cartesian-pair-eq</code></a> ... (14 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__cartesian-762">mentioned by 762 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__cartesian-778">mentioned by 778 result(s)</a></p>
 <h4 id="GLOSSARY__cauchy-setoid-m-*-functoid-*"><code>cauchy-setoid(m)</code>  <em>(functoid)</em></h4>
 <p>definition:</p>
 <pre>[cseq(m), crel(m)]</pre>
@@ -6950,14 +6950,14 @@
 <p>definition:</p>
 <pre>{glsx_ in vec(gls-md_): forsome([glsc_ in mat(1, gls-n_, carr(scal(gls-md_)))], glsx_ = lincomb(gls-md_, gls-n_, glsc_, gls-u_))}</pre>
 <p>characterized by <a class="x" href="THEOREMS.html#t-lin-span-act-sip-as-module"><code>lin-span-act-sip-as-module</code></a>  <em>(definitional)</em>:</p>
-<pre>forall([r], is-semi-inner-product-space(r) implies forall([n in nn, u in mat(n, 1, vec(r)), r_34994 in carr(scal(r)), x in lin-span(sip-as-module(r), n, u)], (act(r))(r_34994, x) in lin-span(sip-as-module(r), n, u)))</pre>
+<pre>forall([r], is-semi-inner-product-space(r) implies forall([n in nn, u in mat(n, 1, vec(r)), r_35034 in carr(scal(r)), x in lin-span(sip-as-module(r), n, u)], (act(r))(r_35034, x) in lin-span(sip-as-module(r), n, u)))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-lin-span-sum-sip-as-module"><code>lin-span-sum-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lin-span-elim-sip-as-module"><code>lin-span-elim-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lin-span-intro-sip-as-module"><code>lin-span-intro-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lin-span-member-sip-as-module"><code>lin-span-member-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lin-span-unfold-sip-as-module"><code>lin-span-unfold-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lin-span-zero-add-sip-as-module"><code>lin-span-zero-add-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lin-span-act-sip-as-module-csip-as-sip"><code>lin-span-act-sip-as-module-csip-as-sip</code></a> <a class="x" href="THEOREMS.html#t-lin-span-sum-sip-as-module-csip-as-sip"><code>lin-span-sum-sip-as-module-csip-as-sip</code></a> ... (20 in all)</p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__lin-span-36">mentioned by 36 result(s)</a></p>
 <h4 id="GLOSSARY__lincomb-md-n-c-u-*-functoid-*"><code>lincomb(md, n, c, u)</code>  <em>(functoid)</em></h4>
 <p>definition:</p>
 <pre>finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (act(md))(entry(c, 1, j), entry(u, j, 1))), interval(1, n))</pre>
 <p>characterized by <a class="x" href="THEOREMS.html#t-lincomb-snoc-sip-as-module"><code>lincomb-snoc-sip-as-module</code></a>  <em>(definitional)</em>:</p>
-<pre>forall([r], is-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_35004 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(r), succ(n), snoc-row(c, n, r_35004), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(r), n, c, u), (act(r))(r_35004, x))))</pre>
+<pre>forall([r], is-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_35044 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(r), succ(n), snoc-row(c, n, r_35044), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(r), n, c, u), (act(r))(r_35044, x))))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-lincomb-type-sip-as-module"><code>lincomb-type-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lincomb-empty-sip-as-module"><code>lincomb-empty-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-matact-lincomb-sip-as-module"><code>matact-lincomb-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lincomb-row-add-sip-as-module"><code>lincomb-row-add-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lincomb-unitrow-sip-as-module"><code>lincomb-unitrow-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lincomb-zerorow-sip-as-module"><code>lincomb-zerorow-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lincomb-row-peel-sip-as-module"><code>lincomb-row-peel-sip-as-module</code></a> <a class="x" href="THEOREMS.html#t-lincomb-row-scale-sip-as-module"><code>lincomb-row-scale-sip-as-module</code></a> ... (48 in all)</p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__lincomb-250">mentioned by 250 result(s)</a></p>
 <h4 id="GLOSSARY__line-m-v-*-functoid-*"><code>line(m, v)</code>  <em>(functoid)</em></h4>
@@ -10856,7 +10856,7 @@
 <p>declared in <code>tactics-help.scm</code></p>
 <h4 id="GLOSSARY__vnb-lambda-*-operator-*"><code>vnb-lambda</code>  <em>(operator)</em></h4>
 <p>a term-forming head</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__vnb-lambda-2602">mentioned by 2602 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__vnb-lambda-2618">mentioned by 2618 result(s)</a></p>
 <h4 id="GLOSSARY__vneg-s-*-accessor-*"><code>vneg(s)</code>  <em>(accessor)</em></h4>
 <p>reads: the vector negation of $1</p>
 <p>a structure slot</p>

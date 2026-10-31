@@ -3478,11 +3478,13 @@
   (lambda () (and (lookup-theorem 'IS-CLOSED) #t)))
 (check-true "IS-CLOSED unfolds to subset + complement-open"
   (lambda ()
-    (sp (make-wff '(IS-CLOSED s CARR)))
+    ;; the closed set is a plain variable: CARR is a structure accessor, a head-only
+    ;; symbol, at which FREF (2026-10-30) refuses to instantiate a macete
+    (sp (make-wff '(IS-CLOSED s clsa_)))
     (mac 'IS-CLOSED)
     (equal? (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))
             '(AND (IS-METRIC-SPACE s)
-              (AND (SUBSET CARR (PTS s)) (IS-OPEN s (COMPLEMENT-IN (PTS s) CARR)))))))
+              (AND (SUBSET clsa_ (PTS s)) (IS-OPEN s (COMPLEMENT-IN (PTS s) clsa_)))))))
 (check-true "preimage-complement support installed"
   (lambda () (and (lookup-theorem 'preimage-complement) #t)))
 (check-true "continuous-implies-closed-preimage support installed"
@@ -16278,6 +16280,85 @@
              (not (any-pred (lambda (a) (and (pair? a) (dk-contains? a 'IMAGE))) (dk-asms)))
              #t)))))
 
+
+;;; ---------------------------------------------------------------------------
+;;; AN INSTANCE IS AN OBJECT TERM (FREF, 2026-10-29; F-1 / F-2 of
+;;; meta-report/functoid-argument.tex).  Each REFUSED control below is a step of a
+;;; FALSITY that closed modulo 0 on the a320cb6f band (prover-via-repro/repro-f1.scm,
+;;; repro-f2.scm, and their logs): on the old code the checker accepted it and the
+;;; builder built it.  The ACCEPTED controls are instances the rule must keep.
+(def-functoid 'FREF-K '(frk_x) 'ORD)
+;; checker, forall-elim (the fact and the ta + inst routes share it): app-graph's universal at f := POWER
+(check-true "FREF forall-elim (checker): refuses the bare kernel operator POWER as the instance (repro-f1 A/B)"
+  (lambda ()
+    (let ((u '(FORALL fr_f (FORALL fr_a (== (fr_f fr_a) (IOTA fr_v (IN (LIST fr_a fr_v) fr_f)))))))
+      (rcod--refuses? 'forall-elim (list u) 'FALSITY
+        (list (cons (list u '(FORALL fr_a (== (POWER fr_a) (IOTA fr_v (IN (LIST fr_a fr_v) POWER))))) 'FALSITY))))))
+(check-true "FREF forall-elim (checker): refuses the bare operator DOM and the bare accessor CARR (repro-f1 C)"
+  (lambda ()
+    (let ((u '(FORALL fr_f (IN fr_f SET))))
+      (and (rcod--refuses? 'forall-elim (list u) 'FALSITY (list (cons (list u '(IN DOM SET)) 'FALSITY)))
+           (rcod--refuses? 'forall-elim (list u) 'FALSITY (list (cons (list u '(IN CARR SET)) 'FALSITY)))
+           ;; a term HOLDING the operator; the owed  t = t  is supplied, so the old code accepted it
+           (rcod--refuses? 'forall-elim (list u) 'FALSITY
+             (list (cons (list u '(IN (LIST ORD POWER) SET)) 'FALSITY)
+                   (cons (list u) '(= (LIST ORD POWER) (LIST ORD POWER)))))))))
+(check-true "FREF forall-elim (checker): accepts ORD, EMPTY-SET, POWER(ORD), a vnb-lambda, and the object constant EPLUS"
+  (lambda ()
+    (let ((u '(FORALL fr_f (IN fr_f SET))))
+      (every (lambda (t)
+               (rcod--accepts? 'forall-elim (list u) 'FALSITY
+                 (list (cons (list u (list 'IN t 'SET)) 'FALSITY))))
+             '(ORD EMPTY-SET (POWER ORD) (VNB-LAMBDA x_ NN x_) EPLUS)))))
+;; checker, forsome-intro
+(check-true "FREF forsome-intro (checker): refuses a def-functoid name as the witness (repro-f2 A)"
+  (lambda ()
+    (rcod--refuses? 'forsome-intro '() '(FORSOME fr_g (= (fr_g 0) (fr_g 0)))
+      (list (cons '() '(= (FREF-K 0) (FREF-K 0)))))))
+(check-true "FREF forsome-intro (checker): refuses the kernel operator POWER as the witness (repro-f2 C)"
+  (lambda ()
+    (rcod--refuses? 'forsome-intro '() '(FORSOME fr_g (= (fr_g ORD) (fr_g ORD)))
+      (list (cons '() '(= (POWER ORD) (POWER ORD)))))))
+(check-true "FREF forsome-intro (checker): accepts the witnesses ORD and POWER(ORD)"
+  (lambda ()
+    (and (rcod--accepts? 'forsome-intro '() '(FORSOME fr_g (= fr_g fr_g)) (list (cons '() '(= ORD ORD))))
+         (rcod--accepts? 'forsome-intro '() '(FORSOME fr_g (= fr_g fr_g))
+                         (list (cons '() '(= (POWER ORD) (POWER ORD))))))))
+;; builder: the four routes of the reproducers, nothing lands
+(check-true "FREF forall-elim (builder): fact app-graph at POWER lands nothing (repro-f1 A)"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff "set in set"))
+      (let ((n0 (length (dk-asms))))
+        (quietly (lambda () (fact 'app-graph 'POWER 'ORD)))
+        (= (length (dk-asms)) n0)))))
+(check-true "FREF forall-elim (builder): ta app-graph then inst at POWER lands no instance (repro-f1 B)"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff "set in set"))
+      (quietly (lambda () (ta 'app-graph)))
+      (let* ((u (car (filter (lambda (a) (and (pair? a) (eq? (car a) 'FORALL))) (dk-asms))))
+             (n0 (length (dk-asms))))
+        (quietly (lambda () (inst u 'POWER)))
+        (= (length (dk-asms)) n0)))))
+(check-true "FREF forsome-intro (builder): ew at a def-functoid name and at POWER leaves the existential open (repro-f2 A, C)"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORSOME fr_g (= (fr_g ORD) (fr_g ORD)))))
+      (quietly (lambda () (ew 'FREF-K) (ew 'POWER)))
+      (and (equal? (dk-goal) '(FORSOME fr_g (= (fr_g ORD) (fr_g ORD))))
+           (not (proof-done? *ps*))))))
+(check-true "FREF (builder): fact at a vnb-lambda and ew at POWER(ORD) still work"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORSOME fr_g (= fr_g fr_g))))
+      (quietly (lambda () (ew '(POWER ORD)) (rfl)))
+      (and (proof-done? *ps*)
+           (begin
+             (sp (make-wff "set in set"))
+             (let ((n0 (length (dk-asms))))
+               (quietly (lambda () (fact 'app-graph '(VNB-LAMBDA x_ NN x_) 0)))
+               (> (length (dk-asms)) n0)))))))
 
 ;;; ---------------------------------------------------------------------------
 ;;; BETA OWES THE VALUE'S SETHOOD (2026-10-01): (vnb-lambda(x_, nn, SET))(0) used to

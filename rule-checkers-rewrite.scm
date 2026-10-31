@@ -836,6 +836,12 @@
                                 " is neither certified defined in the local context of that position"
                                 " nor owed as a minor premise  L = L"))))
                         ((null? ts) #t)
+                        ;; a theorem's universal ranges over objects (FREF, 2026-10-29)
+                        ((not (chk-object-term? (car ts)))
+                         (string-append
+                          "the macete fired at " (rkw--brief a) " matching the term "
+                          (rkw--brief (car ts)) ", which is not an OBJECT term (a head-only symbol"
+                          " or a record outside head position)"))
                         ((rkw--value-discharged? (car ts) ctx minor-goals) (vloop (cdr ts)))
                         (else
                          (string-append

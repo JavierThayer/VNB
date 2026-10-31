@@ -1484,7 +1484,7 @@ forall([a, b], cartesian(a, b) in set iff a in set and b in set)
 
 also: `cartesian-nth` `card-cartesian` `cartesian-mono` `cartesian3-set` `cartesian4-set` `cartesian5-set` `card-cartesian-nn` `cartesian-pair-eq` ... (14 in all)
 
-[mentioned by 762 result(s)](BY-OPERATOR.md#cartesian)
+[mentioned by 778 result(s)](BY-OPERATOR.md#cartesian)
 
 ### `cauchy-setoid(m)`  *(functoid)*
 
@@ -16394,7 +16394,7 @@ definition:
 characterized by `lin-span-act-sip-as-module`  *(definitional)*:
 
 ```
-forall([r], is-semi-inner-product-space(r) implies forall([n in nn, u in mat(n, 1, vec(r)), r_34994 in carr(scal(r)), x in lin-span(sip-as-module(r), n, u)], (act(r))(r_34994, x) in lin-span(sip-as-module(r), n, u)))
+forall([r], is-semi-inner-product-space(r) implies forall([n in nn, u in mat(n, 1, vec(r)), r_35034 in carr(scal(r)), x in lin-span(sip-as-module(r), n, u)], (act(r))(r_35034, x) in lin-span(sip-as-module(r), n, u)))
 ```
 
 also: `lin-span-sum-sip-as-module` `lin-span-elim-sip-as-module` `lin-span-intro-sip-as-module` `lin-span-member-sip-as-module` `lin-span-unfold-sip-as-module` `lin-span-zero-add-sip-as-module` `lin-span-act-sip-as-module-csip-as-sip` `lin-span-sum-sip-as-module-csip-as-sip` ... (20 in all)
@@ -16412,7 +16412,7 @@ finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (act(md))(entry(c, 1,
 characterized by `lincomb-snoc-sip-as-module`  *(definitional)*:
 
 ```
-forall([r], is-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_35004 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(r), succ(n), snoc-row(c, n, r_35004), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(r), n, c, u), (act(r))(r_35004, x))))
+forall([r], is-semi-inner-product-space(r) implies forall([n in nn, c in mat(1, n, carr(scal(r))), u in mat(n, 1, vec(r)), r_35044 in carr(scal(r)), x in vec(r)], lincomb(sip-as-module(r), succ(n), snoc-row(c, n, r_35044), snoc-col(u, n, x)) = (vadd(r))(lincomb(sip-as-module(r), n, c, u), (act(r))(r_35044, x))))
 ```
 
 also: `lincomb-type-sip-as-module` `lincomb-empty-sip-as-module` `matact-lincomb-sip-as-module` `lincomb-row-add-sip-as-module` `lincomb-unitrow-sip-as-module` `lincomb-zerorow-sip-as-module` `lincomb-row-peel-sip-as-module` `lincomb-row-scale-sip-as-module` ... (48 in all)
@@ -25813,7 +25813,7 @@ declared in `tactics-help.scm`
 
 a term-forming head
 
-[mentioned by 2602 result(s)](BY-OPERATOR.md#vnb-lambda)
+[mentioned by 2618 result(s)](BY-OPERATOR.md#vnb-lambda)
 
 ### `vneg(s)`  *(accessor)*
 

@@ -424,6 +424,8 @@
          (cond
            ((not (and (rcs--in? h1) (alpha-equiv? (caddr h1) A)))
             "big-union-mem-intro: the first hypothesis is not a membership in the union's domain A")
+           ((not (chk-object-term? (cadr h1)))       ; FREF, 2026-10-29 (rule-checkers-logic.scm)
+            "big-union-mem-intro: the witness is not an OBJECT term (a head-only symbol or a record outside head position)")
            ((not (alpha-equiv? (rcs--goal (cadr hyps))
                                (list 'IN x (subst-free z (cadr h1) body))))
             "big-union-mem-intro: the second hypothesis is not (IN x body[z := witness])")

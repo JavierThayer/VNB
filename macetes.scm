@@ -561,8 +561,22 @@
                           acc
                           (cons (list '= t t) acc)))))))))
 
+;;; A THEOREM's macete instantiates its universals at the matched values, so each value must be
+;;; an OBJECT term, as forall-elim demands (FREF, 2026-10-29; primitive-inferences.scm,
+;;; pi--object-term?).  A match that binds a schema variable to a head-only symbol or a record
+;;; standing outside head position is not fired: the position is left unrewritten.  A functoid
+;;; unfolding, an accessor read-off and a functor projection are schematic and are not tested.
+(define (rw--match-non-object? sub)
+  (and *rewrite-owe-definedness?*
+       (any (lambda (b)
+              (let ((v (cdr b)))
+                (any (lambda (t) (not (pi--object-term? t)))
+                     (if (restbound? v) (restbound-exprs v) (list v)))))
+            sub)))
+
 (define (rewrite-expr pattern replacement schema-vars conditions expr local-ctx)
-  (let ((top-match (match-expr pattern expr schema-vars)))
+  (let ((top-match (let ((m (match-expr pattern expr schema-vars)))
+                     (and m (not (rw--match-non-object? m)) m))))
     (if top-match
         (let* ((unmet (filter (lambda (c) (not (condition-holds? c local-ctx)))
                               (map (lambda (c) (apply-subst top-match c)) conditions)))

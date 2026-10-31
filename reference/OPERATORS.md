@@ -258,7 +258,7 @@ Declared by: `binplus-apply` `eplus-def` `eplus-real-defined` `nary-minus-2` `na
 
 ### `bintimes`  — characterized by axiom(s)
 
-Declared by: `bintimes-apply` `etimes-def` `etimes-real-defined` `nary-times-2` `nary-times-3` `nary-times-4` `nary-times-5` `rb5-nary-times-2-list-cc` 
+Declared by: `bintimes-apply` `etimes-def` `etimes-real-defined` `nary-times-2` `nary-times-3` `nary-times-4` `nary-times-5` `rb5-nary-times-3-cc` 
 
 ### `bk-f`  — def-functoid · element/number-valued
 

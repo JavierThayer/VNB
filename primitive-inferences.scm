@@ -307,7 +307,122 @@
 (define (pi--refuse-functoid-instance! t)
   (if (pi--functoid-instance? t)
       (error "forall-elim: a functoid is outside the range of quantification; the instance must be a class term, not"
-             (if (symbol? t) t 'a-lambdoid))))
+             (if (symbol? t) t 'a-lambdoid)))
+  (pi--refuse-non-object! "forall-elim" t))
+
+;;; AN INSTANCE IS AN OBJECT TERM (FREF, 2026-10-29; findings F-1 and F-2 of
+;;; meta-report/functoid-argument.tex, both reproduced as FALSITY modulo 0 on the a320cb6f
+;;; band).  The 2026-10-01 refusal above tested the functoid REGISTRY only.  A bare kernel
+;;; operator (POWER, DOM), a bare structure accessor (CARR), a bare predicate or defined-
+;;; function head is a well-formed term to `validate-wff!' and an atom to the definedness
+;;; certificate, so `app-graph' instantiated at f := POWER gave POWER(ORD) == IOTA v.
+;;; [ORD, v] in POWER, and tuple-members-are-sets with burali-forti gave FALSITY; the same
+;;; at a forsome-intro witness, then at the eigenvariable.  An unguarded variable ranges
+;;; over CLASSES; the head-only symbols name no class.
+;;;
+;;; THE RULE.  A term t is an OBJECT TERM when no symbol of t that stands OUTSIDE head
+;;; position is HEAD-ONLY, and no lambdoid record stands outside head position.  Head
+;;; position: the first element of an application, and the functoid of an
+;;; (apply-functoid F ..).  Binder variables are not occurrences.  A symbol s is HEAD-ONLY
+;;; when it is not bound where it stands, is not a class-name constant (NN ZZ ... ORD SET
+;;; EMPTY-SET ...: *class-name-constants*), and
+;;;   (a) s is a def-functoid name (*functoid-registry*), or
+;;;   (b) s is a structure accessor (*accessor-index*), or
+;;;   (c) s is any other registered constant head (*constant-registry*, any kind: kernel
+;;;       operator, predicate, defined function, notation-only primitive) that the TRUSTED
+;;;       BASE does not define as an object.
+;;; Defined as an object: some installed statement of provenance `primitive' or
+;;; `definitional' is  (= s u), (== s u), (= u s), (== u s)  or  (IN s C)  with s itself
+;;; as that whole side.  This is the shape of every object-valued constant the census of
+;;; the a320cb6f band found used bare (FREF-REPORT s.3): EPLUS, ETIMES, CAYLEY, CC-COORDS,
+;;; CC-OF-PAIR, CC-MATRIX-REP, HOPF-QUOTIENT-MAP (a `==' with a VNB-LAMBDA or an LFT
+;;; value), the def-constants PI, RR-MS, ZZ-RING, ... (an `='), CC-INF (`cc-inf-in-set').
+;;; Numbers, unregistered symbols (variables, eigenvariables) and class names are objects.
+;;; The checker (rule-checkers-logic.scm, chk-object-term?) decides the same relation with
+;;; its own code.
+(define (pi--safe-ref thunk)
+  (call-with-current-continuation
+    (lambda (k) (with-exception-handler (lambda (e) (k #f)) thunk))))
+
+;;; s -> the name of the trusted statement that defines s as an object (memoised: the base
+;;; only grows), or the theorem-table size at which no such statement was found.
+(define *pi--object-def-memo* (make-strong-eqv-hash-table))
+
+(define (pi--object-def-shape? f s)
+  (and (pair? f) (= (length f) 3)
+       (or (and (memq (car f) '(= ==)) (or (eq? (cadr f) s) (eq? (caddr f) s)))
+           (and (eq? (car f) 'IN) (eq? (cadr f) s)))))
+
+(define (pi--object-definition s)
+  (let ((hit (hash-table-ref/default *pi--object-def-memo* s #f))
+        (size (or (pi--safe-ref (lambda () (hash-table-size *theorem-table*))) 0)))
+    (cond
+      ((symbol? hit) hit)
+      ((and (number? hit) (= hit size)) #f)
+      ((not *pi-provenance-of*) #f)
+      (else
+       (let ((found
+              (call-with-current-continuation
+                (lambda (k)
+                  (hash-table-walk *theorem-table*
+                    (lambda (name f)
+                      (if (and (pi--object-def-shape? f s)
+                               (memq (*pi-provenance-of* name) '(primitive definitional)))
+                          (k name))))
+                  #f))))
+         (hash-table-set! *pi--object-def-memo* s (or found size))
+         found)))))
+
+(define (pi--head-only-symbol? s)
+  (and (symbol? s)
+       (not (pi--safe-ref (lambda () (memq s *class-name-constants*))))
+       (or (and (pi--safe-ref (lambda () (hash-table-ref/default *functoid-registry* s #f))) #t)
+           (and (pi--safe-ref (lambda () (hash-table-ref/default *accessor-index* s #f))) #t)
+           (and (constant-head? s)
+                (not (pi--object-definition s))))))
+
+;;; The first offending item of T (a head-only symbol, or the symbol `a-lambdoid'), or #f
+;;; when T is an object term.
+(define (pi--non-object-witness t)
+  (define (bspec-vars b) (cond ((symbol? b) (list b))
+                               ((and (pair? b) (eq? (car b) 'LIST)) (cdr b))
+                               ((pair? b) b)
+                               (else '())))
+  (define (walk e bound)
+    (cond
+      ((functoid? e) 'a-lambdoid)
+      ((symbol? e) (and (not (memq e bound)) (pi--head-only-symbol? e) e))
+      ((not (pair? e)) #f)
+      ((not (list? e)) #f)
+      (else
+       (let ((h (car e)))
+         (cond
+           ((and (memq h '(FORALL FORSOME IOTA COMP)) (= (length e) 3))
+            (walk (caddr e) (cons (cadr e) bound)))
+           ((and (memq h '(SEP BIG-UNION VNB-LAMBDA)) (= (length e) 4))
+            (or (walk (caddr e) bound)
+                (walk (cadddr e) (append (bspec-vars (cadr e)) bound))))
+           ((and (eq? h 'apply-functoid) (pair? (cdr e)))
+            (or (head (cadr e) bound) (walk-all (cddr e) bound)))
+           (else (or (head h bound) (walk-all (cdr e) bound))))))))
+  (define (walk-all es bound)
+    (and (pair? es) (or (walk (car es) bound) (walk-all (cdr es) bound))))
+  (define (head h bound)               ; a head: any symbol; a record, read through
+    (cond ((symbol? h) #f)
+          ((functoid? h)
+           (let ((bv (map car (functoid-bindings h))))
+             (or (walk-all (map cdr (functoid-bindings h)) bound)
+                 (walk (functoid-body h) (append bv bound)))))
+          (else (walk h bound))))
+  (walk t '()))
+
+(define (pi--object-term? t) (not (pi--non-object-witness t)))
+
+(define (pi--refuse-non-object! tag t)
+  (let ((w (pi--non-object-witness t)))
+    (if w
+        (error (string-append tag ": the instance must be an OBJECT term (a class); it holds, outside head position, the head-only symbol")
+               w))))
 
 (define (pi-instantiate! sqn forall-formula term)
   ;; forall-formula: raw S-expression
@@ -406,7 +521,8 @@
     (and (pair? g) (eq? (car g) 'FORSOME)
          (let* ((x    (quantifier-var  g))
                 (body (quantifier-body g))
-                (sub  (subst-free x term body)))
+                (sub  (begin (pi--refuse-non-object! "forsome-intro" term)   ; FREF, 2026-10-29
+                             (subst-free x term body))))
            (validate-wff! sub)  ; reject malformed witness terms early
            ;; LUTINS existential introduction (2026-10-08, the META session's finding, the
            ;; user's decision): p[t] |- forsome x. p needs t DEFINED.  Without it, with u a
@@ -2194,7 +2310,8 @@
                 (let* ((z    (cadr subj))
                        (A    (caddr subj))
                        (body (cadddr subj))
-                       (body-w (subst-free z witness body))
+                       (body-w (begin (pi--refuse-non-object! "big-union-mem-intro" witness)   ; FREF
+                                      (subst-free z witness body)))
                        (mem-x  `(IN ,x ,body-w)))
                   (validate-wff! mem-x)   ; reject malformed witness early
                   (pi--refuse-impredicative-binder! "big-union-mem-intro" subj)
