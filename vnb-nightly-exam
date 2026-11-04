@@ -79,6 +79,24 @@ p, outcome, detail, tree, worker = sys.argv[1:6]
 json.dump({"ts": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "outcome": outcome,
            "detail": detail, "tree": tree, "worker": worker}, open(p, "w"))
 PY
+  report "$1" "$2"
+}
+# The user's morning report (2026-11-04): ~/notes/exam-report.txt, overwritten by every
+# run, whatever the outcome: the outcome line, then this run's own log lines (which carry
+# the job's stderr on a failure).
+REPORT=/home/ubuntu/notes/exam-report.txt
+LOG0=$( [ -f "$LOG" ] && wc -l < "$LOG" || echo 0 )
+report() { # report OUTCOME DETAIL
+  { echo "Nightly exam report -- $(date -u '+%F %H:%M') UTC"
+    echo
+    echo "OUTCOME: $1"
+    echo "DETAIL:  $2"
+    echo "TREE:    ${TREE:-?}    WORKER: $WORKER ($TYPE${HEAP:+, heap $HEAP})"
+    echo
+    echo "This run's log ($LOG):"
+    tail -n +"$((LOG0 + 1))" "$LOG" 2>/dev/null | sed 's/^/  /'
+  } > "$REPORT.tmp" 2>/dev/null && mv "$REPORT.tmp" "$REPORT"
+  return 0
 }
 STARTED=0; STOPPED=0
 stop_worker() { [ "$STARTED" = 1 ] && [ "$STOPPED" = 0 ] && { capataz stop "$WORKER" --yes --json > /dev/null 2>&1 && say "stopped $WORKER"; STOPPED=1; }; return 0; }
@@ -91,6 +109,7 @@ if [ "$FORCE" = 0 ] && [ -f "$LAST" ]; then
   prev=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("tree",""), d.get("outcome",""))' "$LAST")
   if [ "$prev" = "$TREE passed" ]; then
     say "skip: tree $TREE already passed the exam of $(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["ts"])' "$LAST")"
+    report skipped "tree unchanged since the last passed exam"
     exit 0
   fi
 fi
@@ -138,7 +157,14 @@ if ! capataz run "$WORKER" --json --user ubuntu "test -d $PROVER/reference && ec
     || { say "FAIL: push of reference/ to the fresh $WORKER"; record failed "push-ref"; exit 2; }
   say "fresh worker: reference/ pushed once"
 fi
-say "pushed and verified; exam starting"
+# The build refuses unless free disk >= 1.1 x the EXISTING band, since it writes the new
+# band beside the old one.  The band has been ~5 GB since the heap-700000 builds of
+# 2026-10-30, and worker-05's 19 GB disk then fails the check (10-31 .. 11-04: "no ledger
+# row" in 10 s).  The exam re-proves everything and reads no band, and the primary keeps
+# the canonical copy, so the worker's old band is removed before the build.
+capataz run "$WORKER" --json --user ubuntu "rm -f $PROVER/vnb.band $PROVER/vnb.band.new $PROVER/vnb.band.exam; df -k $PROVER | tail -1" > /dev/null 2>&1 \
+  || { say "FAIL: could not clear the old band on $WORKER"; record failed "clear-band"; exit 2; }
+say "pushed and verified; old worker band removed; exam starting"
 
 EXAM_OPT=--exam; [ "$SMOKE" = 1 ] && EXAM_OPT=""
 JOB=$("$PROVER/vnb-band" "$WORKER" --build $EXAM_OPT ${HEAP:+--heap $HEAP} 2>&1 | sed -n 's/.*started \(job-[^ ]*\).*/\1/p')
@@ -151,7 +177,7 @@ done
 if [ $rc != 0 ]; then say "FAIL: exam job $JOB status $rc"; echo "$out" | tail -20 >> "$LOG"; record failed "exam rc=$rc job=$JOB"; exit 1; fi
 row=$(echo "$out" | grep '"job":"build-band"' | tail -1)
 summary=$(python3 -c 'import json,sys; r=json.loads(sys.argv[1]); print("wall %.0f s, gc %.0f s, audit %.0f s, theorems %s, band_replaced %s" % (r.get("wall_s",0), r.get("gc_s",0), r.get("audit_s",0), r.get("theorems"), r.get("band_replaced")))' "$row" 2>/dev/null || echo "no ledger row")
-if ! echo "$row" | grep -q '"band_replaced":true'; then say "FAIL: exam did not replace the band ($summary)"; echo "$out" | grep -E 'error|FAIL|qed' | tail -20 >> "$LOG"; record failed "exam: $summary"; exit 1; fi
+if ! echo "$row" | grep -q '"band_replaced":true'; then say "FAIL: exam did not replace the band ($summary)"; echo "$out" | grep -E 'error|FAIL|qed' | tail -20 >> "$LOG"; capataz cat "$WORKER" "/home/ubuntu/.capataz/jobs/$JOB/stderr" --user ubuntu 2>&1 | tail -10 | sed 's/^/  job stderr: /' >> "$LOG"; record failed "exam: $summary"; exit 1; fi
 say "exam passed: $summary"
 
 SJOB=$("$PROVER/vnb-suite" "$WORKER" --band --detach 2>&1 | sed -n 's/.*\(job-[^ ]*\).*/\1/p' | head -1)

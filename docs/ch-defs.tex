@@ -300,8 +300,10 @@ No quoting is needed.
 \end{VNBcode}
 
 The clauses other than \texttt{property} and \texttt{law} describe the
-structure's \emph{shape} --- its components and the role each plays; each
-declares one component, and contributes one typing conjunct to the
+structure's \emph{shape} --- its components and the role each plays.  Every
+shape clause may be repeated, once per component of that kind (two operations
+are two \texttt{op} clauses); each occurrence declares one component (a
+\texttt{carriers} clause one per name), and contributes one typing conjunct to the
 characteristic law (two for \texttt{derived}: a typing and the equation that
 fixes the component).  The \texttt{property} and \texttt{law} clauses are
 different in kind: each names a \emph{characteristic law} the components must
@@ -311,8 +313,24 @@ below.
 \begin{itemize}
 
 \item \texttt{(carriers C1 C2 ...)}
-  Names the carrier sets.  A structure with $m$ carriers has its $i$-th
-  carrier at \texttt{nth($i$, s)} in any instance~\texttt{s}.
+  Names one or more carrier sets.  It is the only clause that declares
+  several components at once: \texttt{(carriers C1 C2)} declares exactly
+  what \texttt{(carriers C1) (carriers C2)} declares.  Like every other
+  shape clause it may occur any number of times and at any position.
+
+\item \textbf{Slot numbering.}  An instance \texttt{s} of the structure is a
+  list with one entry per component, numbered $1, 2, \ldots, n$ in the order
+  in which the shape clauses declare them, every kind of clause counted
+  (\texttt{carriers} contributes one number per name, left to right;
+  \texttt{property} and \texttt{law} contribute none).  The accessor of the
+  $k$-th component is the macete $\mathtt{ACC}(s) \to \mathtt{nth}(k, s)$.
+  Hence $\mathtt{nth}(i, s)$ is the $i$-th carrier only when the carriers
+  are declared before every other component.  In \texttt{FIELD}
+  (\texttt{structure-library/field.scm}) the carrier \texttt{CARR} is slot~1,
+  the operations and constants occupy slots~2--6, and the derived carrier
+  \texttt{NON-ZERO} is slot~7.  Two structures may share an accessor name only
+  when it occupies the same slot number in both, since the accessor macete is
+  global.
 
 \item \texttt{(op NAME DOMAIN RANGE)}
   Declares a function-valued slot: $\mathtt{NAME}(s) \in

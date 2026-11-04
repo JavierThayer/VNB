@@ -725,7 +725,8 @@
 ;;; declare-structure — user-facing syntax (no quoting required)
 ;;;
 ;;; (declare-structure NAME
-;;;   (carriers C1 C2 ...)
+;;;   (carrier C)                    ; one carrier
+;;;   (carriers C1 C2 ...)           ; shorthand for (carrier C1) (carrier C2) ...
 ;;;   (op OPNAME DOMAIN RANGE)       ; OPNAME(s) ∈ FUN(DOMAIN, RANGE)
 ;;;   (constant CNAME SET)           ; element of SET (uses 2-arg spec internally)
 ;;;   (property PRED ACC ...))       ; characteristic law PRED applied to ACCs
@@ -877,7 +878,7 @@
       (if sh
           (let ((strays (filter (lambda (c)
                                   (and (pair? c)
-                                       (memq (car c) '(carriers op constant substructure
+                                       (memq (car c) '(carrier carriers op constant substructure
                                                        family family-fun relation))))
                                 clauses)))
             (if (pair? strays)
@@ -904,7 +905,11 @@
         (let* ((clause (car rest))
                (kind   (car clause)))
           (cond
-            ((eq? kind 'carriers)
+            ;; (carrier C) declares one carrier; (carriers C1 C2 ...) is shorthand
+            ;; for (carrier C1) (carrier C2) ... (the user, 2026-11-04, notes-69).
+            ((memq kind '(carrier carriers))
+             (if (and (eq? kind 'carrier) (not (= (length clause) 2)))
+                 (error "declare-structure: (carrier C) takes exactly one name; use (carriers C1 C2 ...) for several" clause))
              (loop (cdr rest)
                    (append (map (lambda (c) (list c 'carrier))
                                 (reverse (cdr clause)))

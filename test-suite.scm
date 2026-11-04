@@ -6952,6 +6952,28 @@
               '((same-shape-as RING) (carriers CARR2)))
             #f))))))                                  ; it did not: wrong
 
+;;; (carrier C) is one carrier; (carriers C1 C2) is shorthand for (carrier C1)
+;;; (carrier C2) (the user, notes-69, 2026-11-04).  Same slot list either way; a
+;;; (carrier ...) with more or fewer than one name is an error (control).
+(check-true "declare-structure: (carrier C) (carrier D) = (carriers C D)"
+  (lambda ()
+    (def-structure-from-clauses 'SUITE-CARR-SINGULAR
+      '((carrier SCSG-A) (carrier SCSG-B) (op SCSG-F SCSG-A SCSG-B)))
+    (def-structure-from-clauses 'SUITE-CARR-PLURAL
+      '((carriers SCSP-A SCSP-B) (op SCSP-F SCSP-A SCSP-B)))
+    (equal? (map cadr (structure-def-slots (lookup-structure 'SUITE-CARR-SINGULAR)))
+            (map cadr (structure-def-slots (lookup-structure 'SUITE-CARR-PLURAL))))))
+
+(check-true "declare-structure: (carrier C D) is an error (control)"
+  (lambda ()
+    (call-with-current-continuation
+      (lambda (k)
+        (bind-condition-handler (list condition-type:error)
+          (lambda (c) c (k #t))
+          (lambda ()
+            (def-structure-from-clauses 'SUITE-CARR-BAD '((carrier SCSB-A SCSB-B)))
+            #f))))))
+
 ;;; -----------------------------------------------------------------------
 ;;; The reserved-name gate must not answer "clean" to something it merely fails
 ;;; to understand.  wff-constant-binders walks pairs; handed a wff RECORD it used
