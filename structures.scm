@@ -334,6 +334,41 @@
        (hash-table-delete! *macete-table* name)
        #f))))
 
+;;; ONE NAME, ONE SLOT, REFUSED AT THE DOOR (the user, 2026-11-05).  An accessor
+;;; name already held at slot j by another structure, declared here at slot k /= j,
+;;; is an ERROR before anything is registered: the message names the structure and
+;;; the slot that hold it.  Without this the declaration went through silently,
+;;; register-accessor-index! marked the name ambiguous and WITHDREW its reduction --
+;;; for the older structure too -- and only the load-end accessor-index-audit said
+;;; so; at the REPL nothing said so.  A name repeated inside one declaration is
+;;; refused the same way.  Re-declaring a structure under its own name is allowed.
+(define (def-structure--refuse-slot-clash! name slots)
+  (define (refuse! msg)
+    ;; def-structure-from-clauses recorded the declaration verbatim before
+    ;; expanding it; a refused NEW structure must leave no trace in the browser.
+    (if (not (lookup-structure name))
+        (hash-table-delete! *structure-decl-table* name))
+    (error msg))
+  (let loop ((rest slots) (k 1) (seen '()))
+    (unless (null? rest)
+      (let* ((slot-name (caar rest))
+             (prev (hash-table-ref/default *accessor-index* slot-name #f)))
+        (if (memq slot-name seen)
+            (refuse! (string-append
+                    "declare-structure " (symbol->string name) ": the component name "
+                    (symbol->string slot-name)
+                    " is declared twice; choose another name for one of them")))
+        (if (and prev (not (= (car prev) k)) (not (eq? (cdr prev) name)))
+            (refuse! (string-append
+                    "declare-structure " (symbol->string name) ": the component name "
+                    (symbol->string slot-name) " is already the accessor of slot "
+                    (number->string (car prev)) " of " (symbol->string (cdr prev))
+                    "; here it would be slot " (number->string k)
+                    ".  An accessor name denotes one slot in every structure. "
+                    "Choose another name, or place it at slot "
+                    (number->string (car prev)) ".  Nothing was declared.")))
+        (loop (cdr rest) (+ k 1) (cons slot-name seen))))))
+
 ;;; Install macete: (accessor s) -> (NTH k s) for any s.
 ;;;
 ;;; PROVENANCE: definitional.  (CARR s) = (NTH 1 s) IS the definition of the
@@ -667,6 +702,7 @@
         (set! *derived-structure-nouns* (cons is-name *derived-structure-nouns*))))))
 
 (define (def-structure name slots axiom-names #!optional laws ivar0)
+  (def-structure--refuse-slot-clash! name slots)
   (fluid-let ((*current-provenance* 'definitional))
    (let* ((source (safe-load-pathname))   ; #f when not in a load context (also at the REPL)
          (sd (%make-structure-def name slots axiom-names source)))

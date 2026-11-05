@@ -6974,6 +6974,29 @@
             (def-structure-from-clauses 'SUITE-CARR-BAD '((carrier SCSB-A SCSB-B)))
             #f))))))
 
+;;; An accessor name held at another slot by another structure is refused at the
+;;; declaration, before anything is registered (the user, 2026-11-05): PTS is slot 1
+;;; of METRIC-SPACE.  The control: the declaration errors, and PTS still reduces
+;;; and is not ambiguous.  The accepted case: PTS at slot 1 goes through.
+(check-true "declare-structure: an accessor name at another structure's other slot is refused (control)"
+  (lambda ()
+    (and (call-with-current-continuation
+           (lambda (k)
+             (bind-condition-handler (list condition-type:error)
+               (lambda (c) c (k #t))
+               (lambda ()
+                 (def-structure-from-clauses 'SUITE-PTS-CLASH
+                   '((constant SPC-BASE PTS) (carrier PTS)))
+                 #f))))
+         (not (accessor-ambiguous? 'PTS))
+         (not (lookup-structure 'SUITE-PTS-CLASH))
+         (not (structure-declaration 'SUITE-PTS-CLASH)))))
+
+(check-true "declare-structure: an accessor name at the same slot is accepted"
+  (lambda ()
+    (def-structure-from-clauses 'SUITE-PTS-SAME '((carrier PTS) (constant SPS-BASE PTS)))
+    (not (accessor-ambiguous? 'PTS))))
+
 ;;; -----------------------------------------------------------------------
 ;;; The reserved-name gate must not answer "clean" to something it merely fails
 ;;; to understand.  wff-constant-binders walks pairs; handed a wff RECORD it used

@@ -338,7 +338,12 @@ below.
   (constant BASEPT PSET)
   (carrier PSET))
 \end{VNBcode}
-  \texttt{BASEPT} is slot~1 and \texttt{PSET} is slot~2.  The accessor of the
+  there are two components: the carrier \texttt{PSET}, declared by the second
+  clause, and the constant \texttt{BASEPT}, declared by the first, whose clause
+  says that it is an element of the carrier, $\mathtt{BASEPT}(s) \in
+  \mathtt{PSET}(s)$.  The name \texttt{PSET} occurs in both clauses but denotes
+  one component.  \texttt{BASEPT} is slot~1 and \texttt{PSET} is slot~2,
+  because the constant's clause is written first.  The accessor of the
   $k$-th component is the macete $\mathtt{ACC}(s) \to \mathtt{nth}(k, s)$.
   Hence $\mathtt{nth}(i, s)$ is the $i$-th carrier only when the carriers
   are declared before every other component.  The slot numbers matter only to
@@ -349,7 +354,10 @@ below.
   the operations and constants occupy slots~2--6, and the derived carrier
   \texttt{NON-ZERO} is slot~7.  Two structures may share an accessor name only
   when it occupies the same slot number in both, since the accessor macete is
-  global.
+  global.  A declaration that gives an existing accessor name another slot is
+  refused with an error naming the structure and the slot that already hold it,
+  and nothing is declared; a declaration that names one component twice is
+  refused the same way.
 
 \item \texttt{(op NAME DOMAIN RANGE)}
   Declares a function-valued slot: $\mathtt{NAME}(s) \in
