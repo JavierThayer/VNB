@@ -593,7 +593,7 @@ From a hypothesis that an element lies in a big union, obtain an index whose set
 \subsection*{Conditional terms}
 
 \par\smallskip{\raggedright\noindent\texttt{(if-true t)}\quad\tactkind{rule}\index{if-true@\texttt{if-true} (tactic)}\par}\nobreak
-\noindent Reduce an (IF p a b) term on the p branch: spawns p as a subgoal; the continuation gains (= (IF p a b) a).\par
+\noindent Reduce an (IF p a b) term on the p branch: spawns p as a subgoal; the continuation gains (= (IF p a b) a) when a is certified defined, else (== (IF p a b) a) (since 2026-10-08).\par
 \noindent\textit{Uses:} \texttt{if-true}.\par
 \noindent\textit{When useful:} the goal has an (IF p a b) term to evaluate on the p branch\par
 

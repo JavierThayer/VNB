@@ -287,6 +287,7 @@ No quoting is needed.
 
 \begin{VNBcode}
 (declare-structure NAME
+  (carrier C)
   (carriers C1 C2 ...)
   (op OPNAME DOMAIN RANGE)
   (constant CNAME SET)
@@ -303,7 +304,7 @@ The clauses other than \texttt{property} and \texttt{law} describe the
 structure's \emph{shape} --- its components and the role each plays.  Every
 shape clause may be repeated, once per component of that kind (two operations
 are two \texttt{op} clauses); each occurrence declares one component (a
-\texttt{carriers} clause one per name), and contributes one typing conjunct to the
+\texttt{carriers} clause declares one per name), and contributes one typing conjunct to the
 characteristic law (two for \texttt{derived}: a typing and the equation that
 fixes the component).  The \texttt{property} and \texttt{law} clauses are
 different in kind: each names a \emph{characteristic law} the components must
@@ -312,16 +313,20 @@ below.
 
 \begin{itemize}
 
+\item \texttt{(carrier C)}
+  Declares one carrier set: $\mathtt{C}(s) \in \textsc{set}$.  The clause
+  takes exactly one name; \texttt{(carrier C D)} is an error.  Like every
+  other shape clause it may occur any number of times and at any position.
+
 \item \texttt{(carriers C1 C2 ...)}
-  Names one or more carrier sets.  It is the only clause that declares
-  several components at once: \texttt{(carriers C1 C2)} declares exactly
-  what \texttt{(carriers C1) (carriers C2)} declares.  Like every other
-  shape clause it may occur any number of times and at any position.
+  Shorthand for \texttt{(carrier C1) (carrier C2) \ldots}: it declares
+  exactly the same components, in the same slots.  It is the only clause that
+  declares several components at once.
 
 \item \textbf{Slot numbering.}  An instance \texttt{s} of the structure is a
   list with one entry per component, numbered $1, 2, \ldots, n$ in the order
   in which the shape clauses declare them, every kind of clause counted
-  (\texttt{carriers} contributes one number per name, left to right;
+  (\texttt{carrier} contributes one number, \texttt{carriers} one per name, left to right;
   \texttt{property} and \texttt{law} contribute none).  The accessor of the
   $k$-th component is the macete $\mathtt{ACC}(s) \to \mathtt{nth}(k, s)$.
   Hence $\mathtt{nth}(i, s)$ is the $i$-th carrier only when the carriers
@@ -412,10 +417,8 @@ below.
 
 \end{itemize}
 
-Accessor indices are assigned sequentially: carriers occupy indices
-$1, \ldots, m$ in declaration order; operations and constants follow
-at indices $m+1, m+2, \ldots$.  An accessor is therefore a projection and
-nothing more: $\mathtt{dist}(s)$ is $\mathtt{nth}(2, s)$ for \emph{every}
+An accessor is a projection and nothing more (its index is the slot
+number defined above): $\mathtt{dist}(s)$ is $\mathtt{nth}(2, s)$ for \emph{every}
 object $s$, a ring included, and no contradiction can come of writing it,
 since what the second component of a metric space \emph{is} lives in the
 characteristic law $\mathtt{is\text{-}metric\text{-}space}(s)$ and not in
@@ -437,8 +440,8 @@ property-predicate parameters below (\texttt{op}, \texttt{crr}, \ldots)
 are spelled to avoid the accessor constants they stand in for.
 
 \begin{remark}[What the form permits, and what the idiom favours]
-\texttt{declare-structure} is general.  A \texttt{(carriers \ldots)} clause
-admits any number of carriers, and operations of arbitrary signature over them,
+\texttt{declare-structure} is general.  The \texttt{carrier} clause may be
+repeated, so a structure admits any number of carriers, and operations of arbitrary signature over them,
 so an arbitrary finitary algebraic system --- many-sorted, in the sense of
 Mal'cev's \emph{algebraic systems} --- can be declared.  A module, for instance,
 has a ring of scalars (a \texttt{substructure}) beside its carrier of vectors.

@@ -15,6 +15,9 @@ structure & arrows & defined & laws \\
 \texttt{comm-monoid} & f is a homomorphism from a to b & generated & proven \\
 \texttt{commutative-ring} & f is a homomorphism from a to b & refinement of \texttt{ring} & proven \\
 \texttt{complex-inner-product-space} & f is a homomorphism from a to b & generated & proven \\
+\texttt{complex-pre-hilbert-space} & f is a homomorphism from a to b & refinement of \texttt{complex-semi-inner-product-space} & id: not installed; compose: not installed; in-set: not installed \\
+\texttt{complex-semi-inner-product-space} & f is a homomorphism from a to b & generated & id: not installed; compose: not installed; in-set: not installed \\
+\texttt{directed-set} & f is a homomorphism from a to b & generated & id: not installed; compose: not installed; in-set: not installed \\
 \texttt{euclidean-ring} & f is a homomorphism from a to b & refinement of \texttt{integral-domain} & proven \\
 \texttt{field} & f is a homomorphism from a to b & generated & proven \\
 \texttt{field-ring} & f is a homomorphism from a to b & refinement of \texttt{commutative-ring} & proven \\
@@ -23,6 +26,7 @@ structure & arrows & defined & laws \\
 \texttt{integral-domain} & f is a homomorphism from a to b & refinement of \texttt{commutative-ring} & proven \\
 \texttt{measurable-space} & f is a measurable map from a to b & generated & proven \\
 \texttt{measure-space} & f is a measure-preserving measurable map from a to b & generated & proven \\
+\texttt{metric-group} & f is an isometric homomorphism from a to b & generated & id: not installed; compose: not installed; in-set: not installed \\
 \texttt{metric-space} & f is an isometry from a to b & generated & proven \\
 \texttt{metrizable-top-space} & f is continuous from a to b & \textbackslash\{\}texttt\{declare-hom!\} & proven \\
 \texttt{module} & f is a homomorphism from a to b & generated & proven \\
@@ -32,12 +36,16 @@ structure & arrows & defined & laws \\
 \texttt{normed-vector-space} & f is a homomorphism from a to b & generated & proven \\
 \texttt{pid} & f is a homomorphism from a to b & refinement of \texttt{integral-domain} & proven \\
 \texttt{pk-space} & f is a morphism of public-key strand spaces from a to b & generated & id: not installed; compose: not installed; in-set: not installed \\
+\texttt{pre-hilbert-space} & f is a homomorphism from a to b & refinement of \texttt{semi-inner-product-space} & id: not installed; compose: not installed; in-set: not installed \\
 \texttt{pseudometric-space} & f is a homomorphism from a to b & generated & proven \\
 \texttt{ring} & f is a homomorphism from a to b & generated & proven \\
 \texttt{ringoid} & f is a ringoid homomorphism from a to b & \textbackslash\{\}texttt\{declare-hom!\} & proven \\
+\texttt{semi-inner-product-space} & f is a homomorphism from a to b & generated & id: not installed; compose: not installed; in-set: not installed \\
 \texttt{semigroup} & f is a homomorphism from a to b & generated & proven \\
 \texttt{setoid} & f is a setoid morphism from a to b & generated & proven \\
+\texttt{sk-space} & f is a morphism of shared-key strand spaces from a to b & generated & id: not installed; compose: not installed; in-set: not installed \\
 \texttt{strand-space} & f1 is a morphism of strand spaces from a to b & generated & id: not installed; compose: not installed; in-set: not installed \\
+\texttt{top-group} & f is a continuous homomorphism from a to b & generated & id: not installed; compose: not installed; in-set: not installed \\
 \texttt{top-space} & f is continuous from a to b & generated & proven \\
 \texttt{vector-space} & f is a homomorphism from a to b & refinement of \texttt{module} & proven \\
 \bottomrule
@@ -109,12 +117,8 @@ Laws: \texttt{hom-uniformly-continuous-id} --- proven; \texttt{hom-uniformly-con
 Theorems of the form $P(a, b, f) \Rightarrow Q(a, b, f)$ for two arrow predicates, or $H_1(a, b) \subseteq H_2(a, b)$ for two hom-sets, found by shape.
 
 \begin{itemize}
-\item \texttt{hom-lipschitz-subset-hom-uniformly-continuous} (proven): \texttt{hom-lipschitz(a, b) subset hom-uniformly-continuous(a, b)}
 \item \texttt{hom-metric-space-is-lipschitz-arrow} (proven): \texttt{is-hom-metric-space(a, b, f) implies is-lipschitz-arrow(a, b, f)}
-\item \texttt{hom-metric-space-subset-hom-lipschitz} (proven): \texttt{hom-metric-space(a, b) subset hom-lipschitz(a, b)}
 \item \texttt{hom-normed-vector-space-is-bounded-linear-arrow} (proven): \texttt{is-hom-normed-vector-space(a, b, f) implies is-bounded-linear-arrow(a, b, f)}
-\item \texttt{hom-normed-vector-space-subset-hom-bounded-linear} (proven): \texttt{hom-normed-vector-space(a, b) subset hom-bounded-linear(a, b)}
-\item \texttt{hom-uniformly-continuous-subset-hom-continuous} (proven): \texttt{hom-uniformly-continuous(a, b) subset hom-continuous(a, b)}
 \item \texttt{lipschitz-arrow-is-uniformly-continuous-arrow} (proven): \texttt{is-lipschitz-arrow(a, b, f) implies is-uniformly-continuous-arrow(a, b, f)}
 \item \texttt{uniformly-continuous-arrow-is-continuous-arrow} (proven): \texttt{is-uniformly-continuous-arrow(a, b, f) implies is-continuous-arrow(a, b, f)}
 \end{itemize}
