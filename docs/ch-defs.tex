@@ -324,13 +324,27 @@ below.
   declares several components at once.
 
 \item \textbf{Slot numbering.}  An instance \texttt{s} of the structure is a
-  list with one entry per component, numbered $1, 2, \ldots, n$ in the order
-  in which the shape clauses declare them, every kind of clause counted
-  (\texttt{carrier} contributes one number, \texttt{carriers} one per name, left to right;
-  \texttt{property} and \texttt{law} contribute none).  The accessor of the
+  list with one entry per component.  The components are numbered
+  $1, 2, \ldots, n$ in the order in which their clauses are \emph{written} in
+  the declaration, read left to right, whatever their kinds.  The order in which
+  the clause kinds are listed above plays no role, and the declaration may
+  place the clauses in any order.  A \texttt{carrier}, \texttt{op},
+  \texttt{constant}, \texttt{substructure}, \texttt{derived}, \texttt{family},
+  \texttt{family-fun} or \texttt{relation} clause takes the next number;
+  \texttt{carriers} takes one number per name, left to right;
+  \texttt{property} and \texttt{law} take none.  For example, in
+\begin{VNBcode}
+(declare-structure POINTED-SET
+  (constant BASEPT PSET)
+  (carrier PSET))
+\end{VNBcode}
+  \texttt{BASEPT} is slot~1 and \texttt{PSET} is slot~2.  The accessor of the
   $k$-th component is the macete $\mathtt{ACC}(s) \to \mathtt{nth}(k, s)$.
   Hence $\mathtt{nth}(i, s)$ is the $i$-th carrier only when the carriers
-  are declared before every other component.  In \texttt{FIELD}
+  are declared before every other component.  The slot numbers matter only to
+  the accessor macetes and to an instance written out as a literal list.  A
+  statement or proof refers to a component by its accessor
+  (\texttt{PSET(s)}), never by $\mathtt{nth}(k, s)$.  In \texttt{FIELD}
   (\texttt{structure-library/field.scm}) the carrier \texttt{CARR} is slot~1,
   the operations and constants occupy slots~2--6, and the derived carrier
   \texttt{NON-ZERO} is slot~7.  Two structures may share an accessor name only
