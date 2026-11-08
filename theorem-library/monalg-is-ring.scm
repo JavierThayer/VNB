@@ -2711,6 +2711,7 @@
 (sp (make-wff '(FORALL A (FORALL M (IMPLIES (IS-RING A) (IMPLIES (IS-MONOID M) (IS-RING (MONALG A M))))))))
 (dk-peel!)
 (mac 'IS-RING)
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (let lp () (let ((l (any-pred (lambda (n) ((dk-head? 'AND) (dk-goal-of n))) (proof-leaves))))
              (when l (dk-focus! l) (di) (lp))))
 ;; 1. length

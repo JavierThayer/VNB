@@ -283,7 +283,7 @@
     (list 'FORALL 'f (list 'FORALL 'x (list 'IMPLIES '(IN x RR)
       (list 'IMPLIES (tpc-guard 'f 'x 'n)
         (list '= (list 'SERIES-PARTIAL-SUM (tpc-term 'f 'x) '(succ n)) '(f x))))))))))
-(define tpc-br (use-induction))
+(define tpc-br (dk-use-induction-fixed!))   ; W1C: f fixed; x stays quantified
 (define tpc-n  (cdr (assq 'var tpc-br)))
 (define tpc-ih (cdr (assq 'ih  tpc-br)))
 
@@ -335,7 +335,7 @@
       (inst+ (tpc-guard tpc-s-f tpc-s-x tpc-sn) kv)
       (ass))))
 ;; ... and now the hypothesis applies, at this f and this x
-(define tpc-ih1 (dk-landed-1 (lambda () (inst+ tpc-ih tpc-s-f))))
+(define tpc-ih1 tpc-ih)                        ; W1C: f fixed
 (define tpc-eq  (dk-deepest  (lambda () (inst+ tpc-ih1 tpc-s-x))))  ; SPS(term,succ n) = f(x)
 ;; f(x) in RR, off the guard at k = 0
 (fact 'nn-zero-in)
@@ -593,7 +593,7 @@
       (list 'FORALL 'x (list 'IMPLIES '(IN x RR)
         (list 'IMPLIES (tg-guard 'f 'a 'n)
           (list 'IN (list 'SERIES-PARTIAL-SUM (tg-term 'f 'a 'x) '(succ n)) 'RR)))))))))))
-(define tg-br (use-induction))
+(define tg-br (dk-use-induction-fixed!))   ; W1C: f fixed
 (define tg-n  (cdr (assq 'var tg-br)))
 (define tg-ih (cdr (assq 'ih  tg-br)))
 
@@ -652,7 +652,7 @@
         (have! (list 'AND (list 'IN kv 'NN) (list '<= kv sn)))
         (inst+ (tg-guard f a sn) kv)
         (ass))))
-  (let* ((ih1 (dk-deepest (lambda () (inst+ tg-ih f))))
+  (let* ((ih1 tg-ih)                     ; W1C: f fixed
          (ih2 (dk-deepest (lambda () (inst+ ih1 a)))))
     (dk-deepest (lambda () (inst+ ih2 x))))             ; SPS(term, succ n) in RR
   ;; the term at succ n
@@ -1294,7 +1294,7 @@
       (list 'FORALL 't (list 'IMPLIES '(IN t RR)
         (list 'IMPLIES (tgd-dh 'f 't 'm)
           (list 'IS-DIFF-AT (tgd-sum-lam 'f 'x 'm) 't (tgd-val 'f 'x 't 'm))))))))))))
-(define tgd-br (use-induction))
+(define tgd-br (dk-use-induction-fixed!))   ; W1C: f fixed
 (define tgd-m  (cdr (assq 'var tgd-br)))
 (define tgd-ih (cdr (assq 'ih  tgd-br)))
 
@@ -1375,7 +1375,7 @@
       (inst+ (tgd-dh tgd-sf tgd-st tgd-sm) kv)
       (ass))))
 ;; ... and the hypothesis applies:  IS-DIFF-AT S_m t V_m
-(define tgd-ih1 (dk-landed-1 (lambda () (inst+ tgd-ih tgd-sf))))
+(define tgd-ih1 tgd-ih)                        ; W1C: f fixed
 (define tgd-ih2 (dk-deepest  (lambda () (inst+ tgd-ih1 tgd-sx))))
 (define tgd-hs  (dk-deepest  (lambda () (inst+ tgd-ih2 tgd-st))))
 (if (not (and (pair? tgd-hs) (eq? (car tgd-hs) 'IS-DIFF-AT)))
@@ -1783,7 +1783,7 @@
       (list 'FORALL 't (list 'IMPLIES '(IN t RR)
         (list 'IMPLIES (tgc-ch 'f 't 'm)
           (tgc-cont (tgc-sum-lam 'f 'x 'm) 't)))))))))))
-(define tgc-br (use-induction))
+(define tgc-br (dk-use-induction-fixed!))   ; W1C: f fixed
 (define tgc-m  (cdr (assq 'var tgc-br)))
 (define tgc-ih (cdr (assq 'ih  tgc-br)))
 
@@ -1855,7 +1855,7 @@
       (inst+ (tgc-ch tgc-sf tgc-st tgc-sm) kv)
       (ass))))
 ;; ... and the hypothesis applies:  S_m continuous at t
-(define tgc-ih1 (dk-landed-1 (lambda () (inst+ tgc-ih tgc-sf))))
+(define tgc-ih1 tgc-ih)                        ; W1C: f fixed
 (define tgc-ih2 (dk-deepest  (lambda () (inst+ tgc-ih1 tgc-sx))))
 (define tgc-hs  (dk-deepest  (lambda () (inst+ tgc-ih2 tgc-st))))
 (tgc-check-head! tgc-hs 'IS-CONTINUOUS-AT "the induction hypothesis did not detach")

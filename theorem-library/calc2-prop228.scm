@@ -428,7 +428,7 @@
           '(FORALL i (IMPLIES (IN i (INTERVAL 1 hn_)) (IN (hph_ i) (FUN (PTS hs_) RR))))
           '(FORALL i (IMPLIES (IN i (INTERVAL 1 hn_)) (IS-CONTINUOUS-AT hs_ RR-MS (hph_ i) ha_))))
     (list 'IS-CONTINUOUS-AT 'hs_ 'RR-MS (c28-Gk 'k) 'ha_))))))
-(ni)
+(dk-ni-fixed! '(hs_ hn_ hph_ het_ ha_))   ; W1G-B: hs_ hn_ hph_ het_ ha_ fixed; the guard k <= hn_ stays
 (define (c28-step? l) (dk-contains? (dk-goal-of l) 'succ))
 (define c28-hphT #f) (define c28-hphC #f)
 (define (c28-grab!)
@@ -497,10 +497,10 @@
 (dk-focus! (find-first c28-step? (c28-open)))
 (dk-di-var!)
 (dk-peel!)
-(define c28-ih (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (eq? (cadr f) 'hs_))) "the IH"))
+(define c28-ih (dk-pick (lambda (f) (and (dk-head-is? f 'IMPLIES) (dk-contains? f 'IS-CONTINUOUS-AT))) "the IH"))   ; W1G-B: the IH is  k <= hn_ => ..
 (c28-grab!)
 (dk-have! '(<= k hn_) (lambda () (dk-nn! '(<= (succ k) hn_))))
-(dk-apply! c28-ih 'hs_ 'hn_ 'hph_ 'het_ 'ha_)
+(detach! c28-ih)   ; W1G-B: was (dk-apply! c28-ih 'hs_ 'hn_ 'hph_ 'het_ 'ha_)
 (dk-cite! 'nn-succ-closed 'k)
 (dk-have! '(<= 1 (succ k)) (lambda () (dk-nn!)))
 (dk-cite! 'interval-mem-intro 1 'hn_ '(succ k))

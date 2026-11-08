@@ -300,11 +300,13 @@
 ;;; THE MODULE E x R.
 (sp (make-wff (ptv-stmt '() '() (list 'IS-MODULE ptv-M))))
 (ptv-hdr!)
+(mac 'IS-MODULE)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings; BEFORE the laws land
+                             ; (dk-isx-set!'s split errors when a tail of the conjunction is already in context)
 (for-each (lambda (n) (fact n 'm))
   '(prod-rmod-assoc prod-rmod-comm prod-rmod-identity prod-rmod-inverses
     prod-rmod-act-distrib-vec prod-rmod-act-distrib-scalar prod-rmod-act-mul-compat prod-rmod-act-unital
     pv-vadd-fun pv-vneg-fun pv-act-fun))
-(mac 'IS-MODULE)
 (dk-conj-close!
   (lambda ()
     (if (not (dk-ass!))
@@ -619,6 +621,7 @@
 (dk-cite! 'pt-open-empty 't)
 (dk-cite! 'pt-open-whole 't)
 (mac 'is-top-space)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (subst (list '== (list 'PTS ptv-top) ptv-P))
 (subst (list '== (list 'OPENS ptv-top) ptv-opens))
 (dk-conj-close!

@@ -473,6 +473,7 @@
 (dk-have! (list 'IN (list 'DIST msn-SF) '(FUN (CARTESIAN (PTS s) (PTS s)) RR))
   (lambda () (subst (list '== (list 'DIST msn-SF) msn-SL)) (ass)))
 (mac 'IS-METRIC-SPACE)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (subst (list '== (list 'PTS msn-SF) '(PTS s)))
 (dk-conj-close!
  (lambda ()

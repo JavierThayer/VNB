@@ -639,7 +639,7 @@
 (define (nt4-ptq q n) (list 'FORALL 'ntq_ (list 'IMPLIES (list 'IN 'ntq_ (list 'INTERVAL 1 n)) (list 'IN (list q 'ntq_) 'ZZ))))
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (list 'FORALL 'q (list 'IMPLIES (nt4-ptq 'q 'n)
   (list '= (list 'PROD-RING 'ZZ-RING (nt4-absl 'q) '(INTERVAL 1 n)) (list 'abs '(PROD-RING ZZ-RING q (INTERVAL 1 n))))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed!)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1C: the sequence (and p) fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (nt4-zzr!)
@@ -660,7 +660,7 @@
     (dk-cite! 'zz-is-commutative-ring)
     (fact 'nn-succ-closed v)
     (nt4-restrict! q v)
-    (dk-apply! (dk-ctx-form ih) q)
+    (detach! (dk-ctx-form ih))                ; W1C: q fixed (was (dk-apply! (dk-ctx-form ih) q))
     (let ((typq! (lambda (z) (dk-apply! (dk-ctx-form (nt4-ptq q sv)) z)))
           (typf! (lambda (z) (fact 'interval-elt-in-nn 1 sv z) (dk-apply! (dk-ctx-form (nt4-ptq q sv)) z) (nt4-abs-nn! (list q z))
                    (dk-have! (list '= (list f z) (list 'abs (list q z))) (lambda () (let ((leaf (proof-state-focus *ps*))) (dk-lam-b!) (if (not (sequent-node-grounded? leaf)) (rfl)))))
@@ -694,9 +694,9 @@
 (define (nt4-dvd p a n) (list 'FORSOME 'nti_ (list 'AND (list 'IN 'nti_ (list 'INTERVAL 1 n)) (list 'ZZ-DIVIDES p (list a 'nti_)))))
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (list 'FORALL 'p (list 'IMPLIES '(IS-PRIME-NAT p) (list 'FORALL 'a (list 'IMPLIES (nt4-ptq 'a 'n)
   (list 'IMPLIES '(ZZ-DIVIDES p (PROD-RING ZZ-RING a (INTERVAL 1 n))) (nt4-dvd 'p 'a 'n))))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed!)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1C: the sequence (and p) fixed
   (dk-focus! (cdr (assq 'base ind)))
-  (let* ((ls (dk-peel!)) (pa (cadr (find-first (lambda (f) (dk-head-is? f 'IS-PRIME-NAT)) ls)))
+  (let* ((ls (dk-peel!)) (pa (cadr (find-first (lambda (f) (dk-head-is? f 'IS-PRIME-NAT)) (dk-asms))))   ; W1C: hoisted, in context
          (dv (find-first (lambda (f) (dk-head-is? f 'ZZ-DIVIDES)) ls))
          (a (caddr (caddr dv))))
     (nt4-zzr!)
@@ -712,7 +712,7 @@
       (dk-apply! (dk-cite! 'zz-divides-small) pa 1)
       (ma-prop-with! (list h (list 'NOT h)))))
   (dk-focus! (cdr (assq 'step ind)))
-  (let* ((ls (dk-peel!)) (pa (cadr (find-first (lambda (f) (dk-head-is? f 'IS-PRIME-NAT)) ls)))
+  (let* ((ls (dk-peel!)) (pa (cadr (find-first (lambda (f) (dk-head-is? f 'IS-PRIME-NAT)) (dk-asms))))   ; W1C: hoisted, in context
          (dv (find-first (lambda (f) (dk-head-is? f 'ZZ-DIVIDES)) ls))
          (a (caddr (caddr dv))) (sv (list 'succ v))
          (pv (list 'PROD-RING 'ZZ-RING a (list 'INTERVAL 1 v))))
@@ -733,7 +733,8 @@
         (ma-or-split! (dk-apply! (dk-cite! 'prime-nat-euclid) pa pv (list a sv))
           (list
             (lambda ()
-              (let ((i (dk-skolem! (dk-apply! (dk-ctx-form ih) pa a))))
+              (let ((i (dk-skolem! (let loop ((f (dk-ctx-form ih)))   ; W1C: p, a fixed; detach the two antecedents
+                                     (if (dk-head-is? f 'IMPLIES) (loop (dk-landed-1 (lambda () (detach! f)))) f)))))
                 (fact 'interval-elt-in-nn 1 v i) (fact 'interval-lo 1 v i) (fact 'interval-hi 1 v i)
                 (dk-have! (list '<= i sv) (lambda () (dk-nn! (list '<= i v))))
                 (dk-apply! (dk-cite! 'interval-mem-intro 1 sv i))

@@ -24,7 +24,11 @@
                    (<= (DIAM s (sv (RESTRICT svz_ (ORD-SEGMENT svn_)))) sve_))))))))
                (AND (FORALL svn_ (IMPLIES (IN svn_ NN)
                       (SUBSET (sv (RESTRICT svz_ (ORD-SEGMENT (succ svn_)))) (sv (RESTRICT svz_ (ORD-SEGMENT svn_))))))
-                    (FORSOME svp_ (FORALL svn_ (IMPLIES (IN svn_ NN) (IN svp_ (sv (RESTRICT svz_ (ORD-SEGMENT svn_)))))))))))))
+                    (FORSOME svp_ (AND (IN svp_ SET)
+                      (FORALL svn_ (IMPLIES (IN svn_ NN) (IN svp_ (sv (RESTRICT svz_ (ORD-SEGMENT svn_))))))))))))))
+;;; W1 (2026-11-04): svp_ is bounded by SET (it is a member of a class), so that IS-SIEVE is
+;;; predicative where a comprehension condition names IS-SOUSLIN.  The former definiens is the
+;;; proven `is-sieve-classes' (theorem-library/mb35-souslin.scm).
 (notation! 'IS-SIEVE 'kind 'predicate 'arity 2 'english "$2 is a sieve of subsets of $1")
 (def-functoid 'SOUSLIN-SET '(s sv)
   '(SEP sxp_ (PTS s) (FORSOME sxz_ (AND (IN sxz_ (FUN NN NN))

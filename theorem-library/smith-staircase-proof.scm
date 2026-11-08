@@ -234,15 +234,19 @@
   (list 'FORALL 'n (list 'FORALL 'P
     (list 'IMPLIES (list 'IN 'n 'NN)
       (list 'IMPLIES (list 'IN 'P (list 'MAT K 'n '(CARR A)))
-        (list 'FORSOME 'D (list 'FORSOME 'kk
+        (list 'FORSOME 'D (list 'AND (list 'IN 'D (list 'MAT K 'n '(CARR A)))   ; W1E (2026-11-05)
+         (list 'FORSOME 'kk
           (list 'AND (list 'IN 'kk 'NN)
             (list 'AND (list 'MAT-EQUIV 'A K 'n 'P 'D)
-                       (list 'SMITH-STAIRCASE 'A K 'n 'D 'kk))))))))))
+                       (list 'SMITH-STAIRCASE 'A K 'n 'D 'kk)))))))))))
 
 ;; the shared "kk = 0" conjuncts: (IN 0 NN), (<= 0 rowdim), (<= 0 coldim), and the
 ;; vacuous nonzero-clause over [1,0].  Leaves conj1/conj5 focused for the caller.
 (define (ss-zero-witness! rowdim coldim)
-  (ew 'P) (ew 0) (di)
+  (ew 'P) (di)
+  (ss-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (equal? (cadr g) 'P)))) (ass)   ; W1E: witness typing
+  (ss-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORSOME) (eq? (cadr g) 'kk))))
+  (ew 0) (di)
   (ss-foc-goal! (lambda (g) (equal? g '(IN 0 NN))))
   (fact 'nn-zero-in) (ass)
   (ss-foc-goal! (SH? 'AND)) (di)
@@ -364,9 +368,9 @@
    (let ((b (caddr z))) (and (pair? b) (eq? (car b) 'IMPLIES) (equal? (cadr b) (list 'IN SS-Q 'NN))))))))
 (inst+ SS-IHp SS-SUB)
 (define SS-IHBODY (ss-find (lambda (z) (and (pair? z) (eq? (car z) 'FORSOME) (eq? (cadr z) 'D)))))
-(ai SS-IHBODY)
+(dk-skolem! SS-IHBODY)                      ; W1E: the body is now (AND typing (FORSOME kk ..))
 (define SS-IHKK (ss-find (lambda (z) (and (pair? z) (eq? (car z) 'FORSOME) (eq? (cadr z) 'kk)))))
-(ai SS-IHKK) (ai 1) (ai 1)
+(dk-skolem! SS-IHKK)                        ; W1E: split by the kit, not by index
 (define SS-DP (list-ref (ss-find (lambda (z) (and (pair? z) (eq? (car z) 'MAT-EQUIV) (equal? (list-ref z 4) SS-SUB)))) 5))
 (define SS-KP (list-ref (ss-find (lambda (z) (and (pair? z) (eq? (car z) 'SMITH-STAIRCASE) (equal? (list-ref z 4) SS-DP)))) 5))
 ;; b = C2_11 nonzero, in CARR A ; D' typed by mat-equiv-target-is-mat
@@ -384,7 +388,10 @@
 (fact 'border-type 'A SS-B11 SS-DP 'k SS-Q)
 (fact 'mat-equiv-trans 'A '(succ k) SS-SQN 'P SS-C2 SS-BRD)
 (fact 'border-staircase 'A SS-B11 SS-DP 'k SS-Q SS-KP)
-(ew SS-BRD) (ew (list 'succ SS-KP)) (di)
+(ew SS-BRD) (di)
+(ss-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (equal? (cadr g) SS-BRD)))) (ass)   ; W1E: border-type
+(ss-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORSOME) (eq? (cadr g) 'kk))))
+(ew (list 'succ SS-KP)) (di)
 (ss-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (equal? (caddr g) 'NN)))) (ass)
 (ss-foc-goal! (SH? 'AND)) (di)
 (ss-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'MAT-EQUIV) (equal? (list-ref g 4) 'P)))) (ass)

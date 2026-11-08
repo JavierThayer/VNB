@@ -76,7 +76,8 @@
 (declare-structure PID
   (instance-var s)
   (same-shape-as INTEGRAL-DOMAIN)
-  (law "forall([i], is-ideal(s, i) implies
+  ;; VIAGAP (2026-10-29): i is bounded by SET (an ideal is a subclass of the set CARR(s)).
+  (law "forall([i in set], is-ideal(s, i) implies
           forsome([a in carr(s)], i = principal-ideal(s, a)))"))
 
 ;;; -----------------------------------------------------------------------

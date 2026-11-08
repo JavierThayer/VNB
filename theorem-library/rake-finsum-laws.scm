@@ -516,7 +516,7 @@
                           ((OPR ag) (SUM-AG ag ga_ n) (SUM-AG ag gb_ n))))))))))
 
 (sp (make-wff rkj-add-ind-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (cdr (assq 'cases (dk-ni-fixed! '(ag ga_ gb_ gc_)))))   ; W1G-B: ag ga_ gb_ gc_ fixed
        (base (rkj-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (rkj-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   ;; ---- base ---------------------------------------------------------------
@@ -552,8 +552,8 @@
          (agree (dk-pick (lambda (f) (rkj-guarded-forall-inner? f rkj-seg-dom?
                   (lambda (i) (and (pair? i) (eq? (car i) '==)))))
                          "the pointwise hypothesis"))
-         (ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                        (not (rkj-guarded-forall? f rkj-seg-dom?))))
+         (ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'IMPLIES)
+                                        (dk-contains? f 'SUM-AG)))   ; W1G-B: the IH at the fixed parameters
                        "the IH")))
     (display ";; rkj add-ind step vars: ") (display (list nv agv gav gbv gcv)) (newline)
     (have! (list 'IN nv segS) (lambda () (mac 'ord-segment-nn-succ) (oi-r) (rfl)))
@@ -566,7 +566,7 @@
                                               (O (list gav i) (list gbv i)))))
     (mac 'sum-ag-succ)
     (subst (list '== (list gcv nv) (O (list gav nv) (list gbv nv))))
-    (dk-apply! ih agv gav gbv gcv)
+    (let w1g-dl ((w1g-f ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))   ; W1G-B: was (dk-apply! ih agv gav gbv gcv)
     (subst (list '= (list 'SUM-AG agv gcv nv)
                     (O (list 'SUM-AG agv gav nv) (list 'SUM-AG agv gbv nv))))
     (dk-fact! 'sum-ag-type-ptwise nv agv gav)
@@ -669,7 +669,7 @@
                       '(= (SUM-AG ag g_ n) ((OPR ag) (g_ p_) (g_ q_))))))))))
 
 (sp (make-wff rkj-two-ind-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (cdr (assq 'cases (dk-ni-fixed! '(ag g_)))))   ; W1G-B: ag, g_ fixed; p_, q_ stay inside
        (base (rkj-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (rkj-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   ;; ---- base: ORD-SEGMENT(0) is empty ------------------------------------
@@ -751,7 +751,7 @@
                               (lambda () (mac 'ord-segment-nn-succ) (oi-l) (ass)))
                        (dk-apply! agree iv)
                        (ass))))
-            (dk-apply! ih agv gv pv qv)
+            (dk-apply! ih pv qv)   ; W1G-B: ag, g_ fixed
             (subst (list '= (list 'SUM-AG agv gv nv) (O (list gv pv) (list gv qv))))
             (dk-fact! 'abelian-group-opr-comm agv (O (list gv pv) (list gv qv))
                       (list 'IDEN agv))

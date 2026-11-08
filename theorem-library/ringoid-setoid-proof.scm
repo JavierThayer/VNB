@@ -159,6 +159,7 @@
 (di)(di)
 (fact 'ringoid-carr-in-set 'r)                ; carr(r) in set
 (mac 'IS-SETOID)                              ; length=2, pts in set, rel in power(pts x pts), is-equivalence
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (slot 'pts)                                   ; pts(RINGOID-SETOID r) -> nth(1, RINGOID-SETOID r)
 (slot 'rel)                                   ; rel(RINGOID-SETOID r) -> nth(2, RINGOID-SETOID r)
 (mac 'RINGOID-SETOID)                         ; RINGOID-SETOID r -> [carr(r), RINGOID-REL r]

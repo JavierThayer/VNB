@@ -145,6 +145,7 @@
 
 (sp (make-wff '(IS-METRIC-SPACE CC-MS)))
 (mac 'IS-METRIC-SPACE)                        ; the generated definitional IFF
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (quietly (lambda () (surface-goal! 'CC-MS)))  ; PTS -> CC, DIST -> the lambda
 (mac 'is-metric)                              ; the five laws, spelled out
 

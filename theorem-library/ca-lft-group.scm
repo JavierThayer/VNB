@@ -328,6 +328,7 @@
 
 (sp (make-wff '(IS-GROUP LFT-GROUP)))
 (mac 'is-group)
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (slot 'CARR)
 (slot 'OPR)
 (slot 'IDEN)

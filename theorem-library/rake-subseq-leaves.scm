@@ -92,7 +92,8 @@
                  (IMPLIES (< m_ n_) (< (g m_) (g n_)))))))))))
 
 (sp (make-wff rsq-aux-stmt))
-(define rsq-aux-cases (dk-opened (lambda () (ni))))
+(define rsq-fixed (dk-ni-fixed!))   ; W1B: g and its two hypotheses fixed
+(define rsq-aux-cases (list (cdr (assq 'base rsq-fixed)) (cdr (assq 'step rsq-fixed))))
 
 ;; The STEP case is the one `ni' re-quantified over the induction variable:
 ;; its body is an IMPLIES guarded on (IN _ NN).  The BASE case's body is the
@@ -103,9 +104,8 @@
        (pair? (cadr (caddr g))) (eq? (car (cadr (caddr g))) 'IN)
        (eq? (caddr (cadr (caddr g))) 'NN)))
 
-(define (rsq-case what pred)
-  (dk-focus! (or (any-pred (lambda (l) (pred (dk-goal-of l))) rsq-aux-cases)
-                 (error "nn-step-mono-ptwise: no case" what))))
+(define (rsq-case what pred)        ; W1B: the cases as dk-ni-fixed! names them (the base has the step's outer shape)
+  (dk-focus! (cdr (assq (if (string=? what "base") 'base 'step) rsq-fixed))))
 
 ;; The goal of both cases, after the peel, is (< (g m_) (g <stage>)).
 (define (rsq-goal-parts)
@@ -144,18 +144,18 @@
                                  (pair? (caddr f)) (eq? (car (caddr f)) 'IMPLIES)
                                  (pair? (caddr (caddr f)))
                                  (eq? (car (caddr (caddr f))) 'IN)))
-                          landed)
+                          (dk-asms))                ; W1B: hoisted, in context
                 (error "nn-step-mono-ptwise: no pointwise typing")))
        (stp (or (any-pred (lambda (f)
                             (and (pair? f) (eq? (car f) 'FORALL)
                                  (pair? (caddr f)) (eq? (car (caddr f)) 'IMPLIES)
                                  (pair? (caddr (caddr f)))
                                  (eq? (car (caddr (caddr f))) '<)))
-                          landed)
+                          (dk-asms))                ; W1B: hoisted, in context
                 (error "nn-step-mono-ptwise: no step hypothesis")))
        (ih  (or (any-pred (lambda (f)
                             (and (pair? f) (eq? (car f) 'FORALL)
-                                 (eq? (cadr f) gv)))
+                                 (eq? (cadr f) 'm_)))   ; W1B: the IH at the fixed g
                           landed)
                 (error "nn-step-mono-ptwise: no induction hypothesis"))))
   ;; g(n_) < g(succ n_) -- the step hypothesis at n_
@@ -170,11 +170,7 @@
           (ass))
         (lambda ()                              ; m_ < n_: the induction hypothesis
           (have! (list '< mv nv) (lambda () (mac '<) (from-context!)))
-          (dk-apply! ih gv)
-          (dk-apply! (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                               (eq? (cadr f) 'm_)))
-                              "the induction hypothesis at g")
-                     mv)
+          (dk-apply! ih mv)                     ; W1B: g fixed
           (fact 'nn-succ-closed nv)
           (dk-apply! typ mv) (dk-apply! typ nv) (dk-apply! typ sn)
           (fact 'nn-in-rr (list gv mv))

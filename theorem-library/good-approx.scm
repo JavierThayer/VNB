@@ -328,7 +328,7 @@
     (dk-cite! 'line-int-in-cc 'u 'f rp (list 'RESTRICT d (list 'CCINT lo hi)) lo hi)))
 (sp (make-wff (list 'FORALL 'k (list 'IMPLIES '(IN k NN)
   (forall-guarded '(u f pgam dgam prho drho a b n tq bs) cg-inv-hyps (cg-inv-concl '(tq k)))))))
-(define cg3-br (use-induction))
+(define cg3-br (dk-use-induction-fixed! '(u f pgam dgam prho drho a b n tq bs)))   ; W1G-A: the eleven parameters fixed
 (dk-focus! (cdr (assq 'base cg3-br)))
 (dk-peel!)
 (cg-absurd!)
@@ -393,7 +393,7 @@
           (dk-have! '(<= 0 k) (lambda () (dk-nn!)))
           (fact 'nn-le-ne-succ 0 k)
           (dk-have! (list '<= 1 k) (lambda () (dk-nn!)))
-          (let ((inv (dk-apply! ih 'u 'f 'pgam 'dgam 'prho 'drho 'a 'b 'n 'tq 'bs)))
+          (let ((inv (let w1g-dl ((w1g-f (dk-ctx-form ih))) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))))   ; W1G-A: parameters fixed; the IH is (<= 1 k) => (<= k n) => ...
             (detach! (list 'IMPLIES (list '<= 1 k) (list '< '(tq 0) tk)))
             (dk-rewrite-h! (list '< '(tq 0) tk) '(tq 0) 'a)
             (cg-li-cc! 'pgam 'dgam 'a tk) (cg-li-cc! 'prho 'drho 'a tk)

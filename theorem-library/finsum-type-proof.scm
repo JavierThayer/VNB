@@ -153,7 +153,7 @@
        (IN (SUM-AG ag f n) (CARR ag)))))))))
 
 (sp (make-wff ftp-ind-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (dk-opened (lambda () (dk-ni-fixed!))))
        (base (ftp-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (ftp-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   ;; ---- base: the empty sum is the identity -------------------------------
@@ -173,7 +173,7 @@
          (fv  (caddr (cadr gl)))
          (ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL))) "the IH")))
     (mac 'sum-ag-succ)                                  ; (IN ((OPR ag) (SUM-AG ag f n) (f n)) ...)
-    (dk-apply! ih agv fv)                               ; (IN (SUM-AG ag f n) (CARR ag))
+    (dk-apply! ih fv)                               ; (IN (SUM-AG ag f n) (CARR ag))
     (dk-fact! 'fun-apply-type-c fv 'NN (list 'CARR agv) nv)   ; (IN (f n) (CARR ag))
     (dk-fact! 'abelian-group-is-group agv)
     (dk-fact! 'group-carrier-closed-opr agv (list 'SUM-AG agv fv nv) (list fv nv))
@@ -351,7 +351,7 @@
        (eq? (car (caddr (cadr (caddr f)))) 'ORD-SEGMENT)))
 
 (sp (make-wff ftp-allid-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (cdr (assq 'cases (dk-ni-fixed! '(ag g_)))))   ; W1D: ag, g_ fixed
        (base (ftp-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (ftp-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   ;; ---- base: the empty fold is the seed ----------------------------------
@@ -370,8 +370,8 @@
          (agv   (cadr (cadr gl)))
          (gv    (caddr (cadr gl)))
          (agree (dk-pick ftp-agreement? "the agreement hypothesis on OS(succ n)"))
-         (ih    (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                          (not (ftp-agreement? f))))
+         (ih    (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'IMPLIES)
+                                          (dk-contains? f 'SUM-AG)))   ; W1D: agree(n) => .. at the fixed ag, g_
                          "the IH")))
     (mac 'sum-ag-succ)                                  ; (= ((OPR ag) (SUM-AG ag g_ n) (g_ n)) (IDEN ag))
     (dk-fact! 'abelian-group-is-group agv)
@@ -389,7 +389,7 @@
                       (lambda () (mac 'ord-segment-nn-succ) (oi-l) (ass)))
                (dk-apply! agree iv)
                (ass))))
-    (dk-apply! ih agv gv)
+    (detach! ih)   ; W1D: was (dk-apply! ih agv gv)
     (subst `(= (SUM-AG ,agv ,gv ,nv) (IDEN ,agv)))      ; (= ((OPR ag) (IDEN ag) (IDEN ag)) (IDEN ag))
     (dk-fact! 'group-left-id agv (list 'IDEN agv))
     (ass)))

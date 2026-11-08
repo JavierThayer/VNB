@@ -250,8 +250,7 @@
 
 ;; ---- Smith: D = U.cm.V diagonal ------------------------------------------
 (fact 'smith-diagonalization '(SCAL md) 'm 'n RB-CM)
-(rb-ai! (rH? 'FORSOME))
-(rb-ai! (rH? 'AND))
+(dk-skolem! (rb-find (rH? 'FORSOME)))      ; W1E: the body now has a typing conjunct
 (define RB-MEQ (rb-find (rH? 'MAT-EQUIV)))
 (define RB-D   (list-ref RB-MEQ 5))
 (fact 'mat-equiv-target-is-mat '(SCAL md) 'm 'n RB-CM RB-D)

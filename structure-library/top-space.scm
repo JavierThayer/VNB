@@ -48,8 +48,10 @@
            (IN (INTERSECTION u v) (OPENS s)))))))
   ;; closed under ARBITRARY union: any subfamily of the topology unions to an
   ;; open set.  (BIG-UNION u fam u) is the union of the members of fam.
-  (law (FORALL fam (IMPLIES (SUBSET fam (OPENS s))
-         (IN (BIG-UNION u fam u) (OPENS s))))))
+  ;; VIAGAP (2026-10-29): fam is bounded by SET (a subclass of the set OPENS(s) is a set),
+  ;; so that the law is predicative where a comprehension condition names IS-TOP-SPACE.
+  (law (FORALL fam (IMPLIES (IN fam SET) (IMPLIES (SUBSET fam (OPENS s))
+         (IN (BIG-UNION u fam u) (OPENS s)))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; The morphisms: f is continuous iff the preimage of every open set is open.
@@ -72,12 +74,17 @@
 ;;; where continuity is the morphism; METRIC-SPACE's own morphisms are its isometries
 ;;; (metric-continuity.scm).  The law names the induced-topology tuple directly (it is
 ;;; METRIC-TOP(md) unfolded -- the functoid is declared just below, so cannot be named
-;;; here yet).
+;;; here yet).  The existential is CONFINED to SET (W1F, 2026-11-05, the user's decision):
+;;; `forsome md' over all classes made the law impredicative wherever a comprehension
+;;; condition names IS-METRIZABLE-TOP-SPACE (the hom-set SEP of hom-laws.scm), since a
+;;; structure predicate does not prove its argument a set.  A witness that is a metric
+;;; space but not known to be a set is replaced by its repackaging [PTS md, DIST md]
+;;; (metric-space-repack, theorem-library/metric-top-proof.scm).
 (declare-structure METRIZABLE-TOP-SPACE
   (instance-var s)
   (same-shape-as TOP-SPACE)
-  (law (FORSOME md (AND (IS-METRIC-SPACE md)
-                    (== s (LIST (PTS md) (SEP u (POWER (PTS md)) (IS-OPEN md u))))))))
+  (law (FORSOME md (AND (IN md SET) (AND (IS-METRIC-SPACE md)
+                    (== s (LIST (PTS md) (SEP u (POWER (PTS md)) (IS-OPEN md u)))))))))
 
 ;;; Its morphisms are TOP-SPACE's -- continuity.  (same-shape-as inherits the shape,
 ;;; not the hom override, so it is stated here.)  KEPT after batch 39: a refinement's

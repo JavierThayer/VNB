@@ -459,7 +459,7 @@
       (rkt-imps (list '(IS-NORMED-VECTOR-SPACE m) '(IN f (FUN RR (VEC m)))
                       '(IN a RR) '(IN x RR) (rkt-dfun-v 'm 'f 'n))
                 '(IN (TAYLOR-POLY-V m f a x n) (VEC m))))))))
-(define rkt-br (use-induction))
+(define rkt-br (dk-use-induction-fixed! '(m f a x)))   ; W1D: m f a x fixed
 (define rkt-n  (cdr (assq 'var rkt-br)))
 (define rkt-ih (cdr (assq 'ih  rkt-br)))
 
@@ -479,10 +479,7 @@
   (fact 'nn-succ-closed rkt-n)
   (fact 'nn-le-succ rkt-n)
   (fact 'dfun-v-mono 'm 'f rkt-sn rkt-n)        ; DFUN-V(m,f,succ n) => DFUN-V(m,f,n)
-  (let* ((i1 (dk-deepest (lambda () (inst+ rkt-ih 'm))))
-         (i2 (dk-deepest (lambda () (inst+ i1 'f))))
-         (i3 (dk-deepest (lambda () (inst+ i2 'a)))))
-    (dk-deepest (lambda () (inst+ i3 'x))))     ; TAYLOR-POLY-V(m,f,a,x,n) in VEC(m)
+  (detach! rkt-ih)   ; W1D: m f a x fixed; TAYLOR-POLY-V(m,f,a,x,n) in VEC(m)
   (rkt-term-in-vec! rkt-sn)
   (fact 'nvs-vadd-in-vec 'm (list 'TAYLOR-POLY-V 'm 'f 'a 'x rkt-n)
         (list (list 'ACT 'm) (rkt-coef rkt-sn) (list (list 'NTH-DERIV-V 'm 'f rkt-sn) 'a)))
@@ -1106,7 +1103,7 @@
          (list 'IMPLIES (r8e-dfun-v 'm 'f 'k)
            '(= (NTH-DERIV (COMPOSE g f) k)
                (COMPOSE g (NTH-DERIV-V m f k)))))))))))))
-(let* ((r8e-lv (dk-opened (lambda () (ni))))
+(let* ((r8e-lv (cdr (assq 'cases (dk-ni-fixed! '(m f g)))))   ; W1D: m f g fixed
        (r8e-base (r8e-leaf r8e-lv (lambda (g) (not (dk-contains? g 'succ))) "the base"))
        (r8e-step (r8e-leaf r8e-lv (lambda (g) (dk-contains? g 'succ)) "the step")))
   ;; ---- base: (g o f)^(0) = g o f ------------------------------------
@@ -1130,8 +1127,8 @@
          (r8e-hs  (caddr r8e-rhs))
          (r8e-m   (cadr r8e-hs))
          (r8e-hk  (list 'NTH-DERIV-V r8e-m r8e-f r8e-k))
-         (r8e-ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                            (dk-contains? f 'NTH-DERIV)))
+         (r8e-ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'IMPLIES)
+                                            (dk-contains? f 'NTH-DERIV)))   ; W1D: DFUN-V(m,f,k) => .. at the fixed m f g
                            "the induction hypothesis"))
          (r8e-df  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
                                             (dk-contains? f 'NTH-DERIV-V)
@@ -1147,7 +1144,7 @@
     (dk-apply! r8e-df r8e-sk)
     ;; the induction hypothesis, at DFUN-V(m,f,k)
     (fact 'dfun-v-mono r8e-m r8e-f r8e-sk r8e-k)
-    (let* ((r8e-ek (dk-apply! r8e-ih r8e-m r8e-f r8e-g))
+    (let* ((r8e-ek (dk-landed-1 (lambda () (detach! r8e-ih))))   ; W1D: was (dk-apply! r8e-ih r8e-m r8e-f r8e-g)
            (r8e-p3 (list 'FORALL 'x_ (list 'IMPLIES '(IN x_ RR)
                      (list '= (list 'DERIV (list 'COMPOSE r8e-g r8e-hk) 'x_)
                            (list r8e-g (list r8e-hs 'x_)))))))
@@ -1464,7 +1461,7 @@
            (list 'IMPLIES (r8e-dfun-v 'm 'f 'n)
              '(= (g (TAYLOR-POLY-V m f a x n))
                  (TAYLOR-POLY (COMPOSE g f) a n x)))))))))))))))))
-(define r8e-br (use-induction))
+(define r8e-br (dk-use-induction-fixed! '(m f g a x)))   ; W1D: m f g a x fixed
 (define r8e-nv (cdr (assq 'var r8e-br)))
 (define r8e-ih (cdr (assq 'ih  r8e-br)))
 
@@ -1542,7 +1539,7 @@
   (fact 'gof-in-fun 'm 'f 'g)
   (fact 'dfun-v-mono 'm 'f r8e-sn r8e-nv)
   ;; the induction hypothesis at this m f g a x
-  (let ((r8e-ihi (dk-apply! r8e-ih 'm 'f 'g 'a 'x)))
+  (let ((r8e-ihi (dk-landed-1 (lambda () (detach! r8e-ih)))))   ; W1D: was (dk-apply! r8e-ih 'm 'f 'g 'a 'x)
     ;; typings: the polynomial, the (n+1)-st derivative value, the coefficient
     (fact 'vtaylor-poly-in-vec 'm 'f 'a 'x r8e-nv)
     (fact 'nth-deriv-v-in-vec 'm 'f r8e-sn 'a)

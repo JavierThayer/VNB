@@ -1276,9 +1276,197 @@
       (append (comp--conjuncts (cadr f)) (comp--conjuncts (caddr f)))
       (list f)))
 
+;;; VIAGAP (2026-10-29; VIAGAP-REPORT.md s.1): the audit's own statement of the
+;;; widened guard and of the defined-head reading (the kernel's two copies are in
+;;; primitive-inferences.scm and rule-checkers-schema.scm).  A guard of v: (IN v C);
+;;; (P .. v ..) at a confining position of P; (IN s C) with v a list component of s;
+;;; (= s t) with v a list component of s or t, or v = s / t with the other side a
+;;; list term.  A defined head passes when every definiens passes.
 (define (comp--member-guard? v f)
-  (comp--any? (lambda (c) (and (pair? c) (eq? (car c) 'IN) (= (length c) 3) (eq? (cadr c) v)))
-        (comp--conjuncts f)))
+  (comp--any? (lambda (c) (cpa--guard? v c)) (comp--conjuncts f)))
+
+(define cpa--defs (make-strong-eqv-hash-table))      ; head -> ((name kind params body) ..)
+(define cpa--closures (make-strong-eqv-hash-table))  ; head -> ((arity . positions) ..)
+(define cpa--stamp #f)
+(define cpa--mstamp #f)
+(define cpa--verdict (make-strong-eqv-hash-table))
+(define cpa--conf (make-strong-eqv-hash-table))
+(define cpa--lpos (make-strong-eqv-hash-table))
+(define cpa--lterm (make-strong-eqv-hash-table))
+(define cpa--logic '(AND OR NOT IMPLIES IFF FORALL FORSOME IOTA IN = == < <= SEP COMP BIG-UNION VNB-LAMBDA
+                     LIST IF TRUTH FALSITY))
+
+(define (cpa--refresh!)
+  (let ((k (list *pi-via-generation* (hash-table-size *functoid-registry*))))
+    (if (not (equal? k cpa--stamp))
+        (begin
+          (set! cpa--defs (make-strong-eqv-hash-table))
+          (set! cpa--closures (make-strong-eqv-hash-table))
+          (hash-table-walk *theorem-table*
+            (lambda (name f)
+              (let ((prov (provenance-of name)))
+                ;; a `-rev' companion defines nothing (F-W1-1)
+                (if (and (memq prov '(definitional primitive)) (not (rev-companion-source name)))
+                    (let strip ((m f) (vs '()))
+                      (cond ((and (pair? m) (eq? (car m) 'FORALL) (= (length m) 3) (symbol? (cadr m)))
+                             (strip (caddr m) (cons (cadr m) vs)))
+                            ((and (pair? m) (= (length m) 3) (memq (car m) '(IFF IMPLIES))
+                                  (pair? (cadr m)) (symbol? (car (cadr m)))
+                                  (not (memq (car (cadr m)) cpa--logic))
+                                  (cpa--distinct-of? (cdr (cadr m)) vs))
+                             (if (eq? (car m) 'IFF)
+                                 (hash-table-update!/default cpa--defs (car (cadr m))
+                                   (lambda (l) (cons (list name 'pred (cdr (cadr m)) (caddr m)) l)) '())
+                                 (if (eq? prov 'primitive)
+                                     (let ((pos (cpa--in-positions (cdr (cadr m)) (comp--conjuncts (caddr m)))))
+                                       (if (pair? pos)
+                                           (hash-table-update!/default cpa--closures (car (cadr m))
+                                             (lambda (l) (cons (cons (length (cdr (cadr m))) pos) l)) '()))))))
+                            (#t #f)))))))
+          ;; constants: def-constant's recorded equations only
+          (for-each
+           (lambda (entry)
+             (if (and (pair? entry) (symbol? (car entry)) (not (memq (car entry) cpa--logic)))
+                 (for-each
+                  (lambda (ax)
+                    (let ((f (and (pair? ax) (symbol? (car ax)) (hash-table-ref/default *theorem-table* (car ax) #f))))
+                      (if (and (pair? f) (memq (car f) '(= ==)) (= (length f) 3) (eq? (cadr f) (car entry))
+                               (memq (provenance-of (car ax)) '(definitional primitive)))
+                          (hash-table-update!/default cpa--defs (car entry)
+                            (lambda (l) (cons (list (car ax) 'const '() (caddr f)) l)) '()))))
+                  (cdr entry))))
+           (let ((d (library-definitions *library*))) (if (list? d) d '())))
+          (set! cpa--stamp k)))
+    (let ((mk (list k (hash-table-size *theorem-table*))))
+      (if (not (equal? mk cpa--mstamp))
+          (begin (set! cpa--verdict (make-strong-eqv-hash-table))
+                 (set! cpa--conf (make-strong-eqv-hash-table))
+                 (set! cpa--lpos (make-strong-eqv-hash-table))
+                 (set! cpa--lterm (make-strong-eqv-hash-table))
+                 (set! cpa--mstamp mk))))))
+
+(define (cpa--distinct-of? args vs)
+  (and (= (length args) (length vs))
+       (let loop ((as args))
+         (or (null? as)
+             (and (symbol? (car as)) (memq (car as) vs) (not (memq (car as) (cdr as))) (loop (cdr as)))))))
+
+(define (cpa--in-positions args leaves)
+  (let loop ((i 1) (as args) (out '()))
+    (if (null? as) out
+        (loop (+ i 1) (cdr as)
+              (if (comp--any? (lambda (c) (and (pair? c) (eq? (car c) 'IN) (= (length c) 3) (eq? (cadr c) (car as))))
+                              leaves)
+                  (cons i out) out)))))
+
+(define (cpa--fun h)
+  (let ((e (hash-table-ref/default *functoid-registry* h #f)))
+    (and (pair? e) (list? (car e)) (pair? (cdr e)) e)))
+
+(define (cpa--definientia h)
+  (let ((e (cpa--fun h)))
+    (append (if e (list (list 'term (car e) (cadr e))) '())
+            (let loop ((rs (hash-table-ref/default cpa--defs h '())) (out '()))
+              (cond ((null? rs) out)
+                    ((hash-table-ref/default *theorem-table* (car (car rs)) #f)
+                     (loop (cdr rs) (cons (cdr (car rs)) out)))
+                    (#t (loop (cdr rs) out)))))))
+
+(define (cpa--head? h)
+  (and (symbol? h) (not (memq h cpa--logic))
+       (or (cpa--fun h) (pair? (hash-table-ref/default cpa--defs h '())))))
+
+(define (cpa--list-term? t)
+  (and (pair? t)
+       (or (eq? (car t) 'LIST)
+           (and (symbol? (car t))
+                (let ((m (hash-table-ref/default cpa--lterm (car t) 'unk)))
+                  (if (eq? m 'unk)
+                      (begin (hash-table-set! cpa--lterm (car t) #f)
+                             (let ((r (let ((e (cpa--fun (car t)))) (and e (cpa--list-term? (cadr e)) #t))))
+                               (hash-table-set! cpa--lterm (car t) r) r))
+                      m))))))
+
+(define (cpa--listed f)
+  (let ((m (hash-table-ref/default cpa--lpos f 'unk)))
+    (if (not (eq? m 'unk)) m
+        (begin (hash-table-set! cpa--lpos f '())
+               (let ((r (let ((e (cpa--fun f)))
+                          (if e
+                              (let loop ((i 1) (ps (car e)) (out '()))
+                                (if (null? ps) out
+                                    (loop (+ i 1) (cdr ps) (if (cpa--component? (car ps) (cadr e)) (cons i out) out))))
+                              '()))))
+                 (hash-table-set! cpa--lpos f r) r)))))
+
+(define (cpa--component? v t)
+  (and (pair? t) (list? t)
+       (cond ((eq? (car t) 'LIST)
+              (comp--any? (lambda (a) (or (eq? a v) (cpa--component? v a))) (cdr t)))
+             ((and (symbol? (car t)) (cpa--fun (car t)))
+              (let ((pos (cpa--listed (car t))))
+                (let loop ((i 1) (as (cdr t)))
+                  (and (pair? as)
+                       (or (and (memv i pos) (or (eq? (car as) v) (cpa--component? v (car as))))
+                           (loop (+ i 1) (cdr as)))))))
+             (#t #f))))
+
+(define (cpa--confining p)
+  (let ((m (hash-table-ref/default cpa--conf p 'unk)))
+    (if (not (eq? m 'unk)) m
+        (begin
+          (hash-table-set! cpa--conf p '())
+          (let ((r (append (hash-table-ref/default cpa--closures p '())
+                           (let loop ((ds (cpa--definientia p)) (out '()))
+                             (if (null? ds) out
+                                 (let ((d (car ds)))
+                                   (loop (cdr ds)
+                                         (if (eq? (car d) 'pred)
+                                             (let pl ((i 1) (ps (cadr d)) (pos '()))
+                                               (if (null? ps)
+                                                   (if (pair? pos) (cons (cons (length (cadr d)) pos) out) out)
+                                                   (pl (+ i 1) (cdr ps)
+                                                       (if (cpa--spine? (car ps) (caddr d)) (cons i pos) pos))))
+                                             out))))))))
+            (hash-table-set! cpa--conf p r)
+            r)))))
+
+(define (cpa--spine? v b)
+  (cond ((and (pair? b) (eq? (car b) 'FORSOME) (= (length b) 3) (not (eq? (cadr b) v))) (cpa--spine? v (caddr b)))
+        ((and (pair? b) (eq? (car b) 'AND) (= (length b) 3)) (or (cpa--spine? v (cadr b)) (cpa--spine? v (caddr b))))
+        ((and (pair? b) (eq? (car b) 'OR) (= (length b) 3)) (and (cpa--spine? v (cadr b)) (cpa--spine? v (caddr b))))
+        (#t (cpa--guard? v b))))
+
+(define (cpa--guard? v c)
+  (and (pair? c) (list? c)
+       (cond ((eq? (car c) 'IN)
+              (and (= (length c) 3) (or (eq? (cadr c) v) (cpa--component? v (cadr c)))))
+             ((eq? (car c) '=)
+              (and (= (length c) 3)
+                   (or (cpa--component? v (cadr c)) (cpa--component? v (caddr c))
+                       (and (eq? (cadr c) v) (cpa--list-term? (caddr c)))
+                       (and (eq? (caddr c) v) (cpa--list-term? (cadr c))))))
+             ((and (symbol? (car c)) (not (memq (car c) cpa--logic)))
+              (let ((n (length (cdr c))) (confs (cpa--confining (car c))))
+                (let loop ((i 1) (as (cdr c)))
+                  (and (pair? as)
+                       (or (and (eq? (car as) v) (comp--any? (lambda (x) (and (= (car x) n) (memv i (cdr x)) #t)) confs))
+                           (loop (+ i 1) (cdr as)))))))
+             (#t #f))))
+
+;;; #f when every definiens of H passes the audit's relation, else an offender.
+(define (cpa--verdict-of h)
+  (let ((m (hash-table-ref/default cpa--verdict h 'unk)))
+    (if (not (eq? m 'unk)) m
+        (begin
+          (hash-table-set! cpa--verdict h (list 'CYCLE h))
+          (let ((r (let loop ((ds (cpa--definientia h)))
+                     (cond ((null? ds) #f)
+                           ((let ((u (comp--unconfined-quantifiers (caddr (car ds))))) (and (pair? u) (car u)))
+                            => (lambda (o) o))
+                           (#t (loop (cdr ds)))))))
+            (hash-table-set! cpa--verdict h r)
+            r)))))
 
 (define (comp--any? pred l)
   (let loop ((l l)) (cond ((null? l) #f) ((pred (car l)) #t) (#t (loop (cdr l))))))
@@ -1309,13 +1497,10 @@
              (forall-spine (caddr b)))
             ((and (pair? b) (eq? (car b) 'IMPLIES) (= (length b) 3))
              (or (comp--member-guard? v (cadr b)) (forall-spine (caddr b))))
+            ((and (pair? b) (eq? (car b) 'NOT) (= (length b) 2))      ; VIAGAP
+             (comp--member-guard? v (cadr b)))
             (#t #f)))
-    (define (forsome-spine b)
-      (cond ((and (pair? b) (eq? (car b) 'FORSOME) (= (length b) 3) (not (eq? (cadr b) v)))
-             (forsome-spine (caddr b)))
-            ((and (pair? b) (eq? (car b) 'AND) (= (length b) 3))
-             (or (forsome-spine (cadr b)) (forsome-spine (caddr b))))
-            (#t (comp--member-guard? v b))))
+    (define (forsome-spine b) (cpa--spine? v b))      ; VIAGAP: AND, FORSOME, OR (both sides)
     (case head
       ((FORALL) (forall-spine body))
       ((FORSOME) (forsome-spine body))
@@ -1323,10 +1508,18 @@
       (else #t))))
 
 ;;; The unconfined quantifiers inside p (nested COMPs included: their own
-;;; conditions are walked as part of p).
+;;; conditions are walked as part of p).  VIAGAP: and (VIA h inner) for each defined
+;;; head of p, application or bare constant, whose definientia do not all pass.
 (define (comp--unconfined-quantifiers p)
+  (cpa--refresh!)
   (let walk ((e p) (acc '()))
-    (cond ((not (pair? e)) acc)
+    (cond ((symbol? e)
+           (if (cpa--head? e)
+               (let ((o (cpa--verdict-of e))) (if o (cons (list 'VIA e o) acc) acc))
+               acc))
+          ((functoid? e)
+           (walk (functoid-body e) (walk (map cdr (functoid-bindings e)) acc)))
+          ((not (pair? e)) acc)
           ((and (memq (car e) '(FORALL FORSOME IOTA)) (= (length e) 3) (symbol? (cadr e)))
            (walk (caddr e) (if (comp--confined-quantifier? e) acc (cons e acc))))
           (#t (let loop ((xs e) (acc acc))

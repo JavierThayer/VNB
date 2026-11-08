@@ -623,6 +623,7 @@
 (fact 'r7n-rq-neg-lam-type 'r)
 (fact 'r7n-neg-respects 'r)
 (mac 'IS-RING)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 ;; split the right-nested 14-conjunct AND into one leaf per conjunct
 (let lp ()
   (let ((l (any-pred (lambda (nd) (let ((g (dk-goal-of nd)))

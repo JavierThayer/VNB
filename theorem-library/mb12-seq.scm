@@ -161,6 +161,7 @@
 (dk-have! (list 'IN (list 'DIST msq-D) '(FUN (CARTESIAN X X) RR))
   (lambda () (subst (list '== (list 'DIST msq-D) msq-lam)) (ass)))
 (mac 'IS-METRIC-SPACE)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (subst (list '== (list 'PTS msq-D) 'X))
 (dk-conj-close!
  (lambda ()

@@ -509,6 +509,10 @@
   '(dsum-length dsum-scal-ring dsum-vec-set2 dsum-vadd-fun dsum-vzero-in dsum-vneg-fun dsum-act-fun
     dsum-assoc dsum-comm dsum-identity dsum-inverses
     dsum-act-distrib-vec dsum-act-distrib-scalar dsum-act-mul-compat dsum-act-unital))
+;; W1J-B: every conjunct but the last is in context already, so dk-isx-set!'s split of G' lands
+;; nothing (dk-landed errors); the last conjunct t in SET is landed first, from the same typings.
+(dk-have! '(IN (DIRECT-SUM S n F) SET)
+  (lambda () (dk-isx--sethood! '(DIRECT-SUM S n F) (map car (structure-def-slots (lookup-structure 'MODULE))) '())))
 (mac 'IS-MODULE)
 (dk-conj-close! (lambda () (ass)))
 (lzs-done! 'direct-sum-is-module)

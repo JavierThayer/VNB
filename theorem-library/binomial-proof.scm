@@ -50,19 +50,19 @@
 (sp (make-wff (list 'FORALL 'N (list 'IMPLIES '(IN N NN)
      (tf 'R '(IS-COMMUTATIVE-RING R)(tf 'x '(IN x (CARR R))(tf 'y '(IN y (CARR R))(tf 'g '(IN g (FUN ZZ (CARR R)))
        (list '= (list 'SUM 'R bnm-dffg '(succ N))(bnm-rhs 'N))))))))))
-(ni)
+(dk-ni-fixed! '(R))   ; W1D: the ring fixed
 (bnm-focus (lambda (s)(substring? "succ(0)" s)))
 (quietly (lambda ()
-  (di)(di)(di)
+  (di)
   (fact 'nn-zero-in)(fact 'zz-zero-in)(fact 'bt-neg1-in-zz)(bnm-gmem 0)(bnm-gmem '(- 0 1))
   (macm 'sum-succ)(mac 'sum-zero)(lam-b)(crs)))
 (bnm-focus (lambda (s)(and (substring? "implies" s)(not (substring? "succ(0)" s)))))
-(di)(di)(set! the-ih (find-forall-hyp "is-commutative-ring"))(di)(di)(di)
+(di)(di)(set! the-ih (find-forall-hyp "g in fun(zz"))(di)   ; W1D: r fixed
 (quietly (lambda ()
   (fact 'bt-nn-in-zz 'n)(fact 'bt-succ-in-nn 'n)(fact 'bt-nn-in-zz '(succ n))(fact 'bt-neg1-in-zz)
   (bnm-gmem '(- 0 1))(bnm-gmem 'n)(bnm-gmem '(succ n))(fact 'bt-sum-in-carr-zz 'r 'g 'n)
   (macm 'sum-succ)
-  (inst+ the-ih 'r)(inst+ (find-forall-hyp "in carr(r), y in carr(r), g in fun") 'x)
+  (inst+ the-ih 'x)   ; W1D: r fixed
   (inst+ (find-forall-hyp "y in carr(r), g in fun") 'y)(inst+ (find-forall-hyp "g in fun(zz") 'g)
   (subst (list '= (list 'SUM 'r bnm-dffg '(succ n)) (bnm-rhs 'n)))
   (lam-b)(macm 'bt-succ-minus-1)(macm 'sum-succ)(crs)))
@@ -73,10 +73,10 @@
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN)
      (tf 'R '(IS-COMMUTATIVE-RING R)(tf 'x '(IN x (CARR R))(tf 'y '(IN y (CARR R))
        (list '= '(RING-POWER R ((ADD R) x y) n) '(SUM R (COMB-KK R x y n)(succ n))))))))))
-(ni)
+(dk-ni-fixed! '(R))   ; W1D: the ring fixed
 (bnm-focus (lambda (s)(substring? ", 0) = " s)))
 (quietly (lambda ()
-  (di)(di)(di)
+  (di)
   (fact 'nn-zero-in)(fact 'commutative-ring-is-ring 'r)(fact 'ring-one-in 'r)
   ;; RM2 2026-10-09: type COMB-KK(r,x,y,0) before `sum-succ' matches at it (the
   ;; macete door owes definedness of the matched summand).
@@ -86,14 +86,14 @@
   (macm 'ring-add-left-id)(crs)))
 (set! the-ih #f)
 (bnm-focus (lambda (s)(and (substring? "implies" s)(not (substring? ", 0) = " s)))))
-(di)(di)(set! the-ih (find-forall-hyp "ring-power(r, (add(r))(x, y), n)"))(di)(di)(di)
+(di)(di)(set! the-ih (find-forall-hyp "ring-power(r, (add(r))(x, y), n)"))(di)   ; W1D: r fixed
 (quietly (lambda ()
   (fact 'comb-kk-in-fun 'r 'x 'y 'n)(fact 'bt-succ-in-nn 'n)(fact 'bt-neg1-in-zz)
   (fact 'bt-nn-in-zz 'n)(fact 'bt-nn-in-zz '(succ n))
   (fact 'commutative-ring-is-ring 'r)(fact 'bt-add-in-carr 'r 'x 'y)
   (fact 'bt-sum-in-carr-zz 'r '(COMB-KK r x y n) '(succ n))(fact 'bt-neg1-neg)(fact 'bt-lt-succ 'n)
   (macm 'ring-power-succ)
-  (inst+ the-ih 'r)(inst+ (find-forall-hyp "in carr(r), y in carr(r)], ring-power") 'x)
+  (inst+ the-ih 'x)   ; W1D: r fixed
   (inst+ (find-forall-hyp "y in carr(r)], ring-power") 'y)
   (subst '(= (RING-POWER r ((ADD r) x y) n)(SUM r (COMB-KK r x y n)(succ n))))
   (subst (list '= (list '(MUL r) '(SUM r (COMB-KK r x y n)(succ n)) '((ADD r) x y))

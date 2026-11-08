@@ -243,6 +243,55 @@
 (define (mr-iff-back! iff)           ; the right side of an IFF in context (proved by the caller): land the left side
   (ai iff)
   (detach! (list 'IMPLIES (caddr iff) (cadr iff))))
+;;; =====================================================================
+;;; W1 (2026-11-04): IS-SIEVE read with its point unbounded
+;;; =====================================================================
+;;; IS-SIEVE (structure-library/mb35-souslin-vocab.scm) now bounds the point svp_ by SET, so
+;;; that IS-SOUSLIN is predicative where a comprehension condition names it.  The bound
+;;; changes nothing: svp_ is a member of a class (membership-implies-sethood at n = 0).
+;;; is-sieve-classes states the former definiens; the proofs cite it for the definition.
+(define (w1sv-law parts) (find-first (lambda (f) (dk-head-is? f 'FORALL)) parts))
+(define (w1sv-inner! law bound?)       ; goal: the FORALL svz_ conjunct; law: the context's
+  (let* ((z (dk-di-var!))
+         (conj (dk-apply! law z)))
+    (dk-split-all! (list conj))
+    (dk-conj-close!
+      (lambda ()
+        (if (dk-head-is? (dk-goal) 'FORSOME)
+            (let* ((ex (find-first (lambda (f) (and (dk-head-is? f 'FORSOME) (dk-contains? f z))) (dk-asms)))
+                   (p (dk-skolem! ex #t)))
+              (if (not bound?)
+                  (let ((fa (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f p))) (dk-asms))))
+                    (fact 'nn-zero-in)
+                    (let ((m (dk-apply! fa 0)))
+                      (dk-cite! 'membership-implies-sethood p (caddr m)))))
+              (ew p)
+              (dk-conj-close! (lambda () (ass))))
+            (ass))))))
+(define (w1sv-fwd!)                    ; IS-SIEVE in context, the class form the goal
+  (let* ((hyp (or (find-first (lambda (f) (dk-head-is? f 'IS-SIEVE)) (dk-asms)) (error "w1sv-fwd!: no IS-SIEVE")))
+         (law (w1sv-law (dk-split! (car (dk-landed (lambda () (mac-h 'is-sieve hyp))))))))
+    (dk-conj-close!
+      (lambda () (if (dk-head-is? (dk-goal) 'FORALL) (w1sv-inner! law #t) (ass))))))
+(define (w1sv-bwd!)                    ; the class form in context, IS-SIEVE the goal
+  (let ((law (w1sv-law (dk-split! (or (find-first (lambda (f) (and (dk-head-is? f 'AND) (dk-contains? f 'NSTAR))) (dk-asms))
+                                      (error "w1sv-bwd!: no class-form hypothesis"))))))
+    (mac 'is-sieve)
+    (dk-conj-close!
+      (lambda () (if (dk-head-is? (dk-goal) 'FORALL) (w1sv-inner! law #f) (ass))))))
+(sp (make-wff '(FORALL s (FORALL sv (IFF (IS-SIEVE s sv)
+  (AND (IN sv (FUN NSTAR (POWER (PTS s))))
+        (FORALL svz_ (IMPLIES (IN svz_ (FUN NN NN))
+          (AND (FORALL sve_ (IMPLIES (POS-RR sve_) (FORSOME svb_ (AND (IN svb_ NN)
+                 (FORALL svn_ (IMPLIES (IN svn_ NN) (IMPLIES (<= svb_ svn_)
+                   (<= (DIAM s (sv (RESTRICT svz_ (ORD-SEGMENT svn_)))) sve_))))))))
+               (AND (FORALL svn_ (IMPLIES (IN svn_ NN)
+                      (SUBSET (sv (RESTRICT svz_ (ORD-SEGMENT (succ svn_)))) (sv (RESTRICT svz_ (ORD-SEGMENT svn_))))))
+                    (FORSOME svp_ (FORALL svn_ (IMPLIES (IN svn_ NN) (IN svp_ (sv (RESTRICT svz_ (ORD-SEGMENT svn_)))))))))))))))))
+(di)
+(dk-iff! (lambda (g) (dk-head-is? g 'AND)) w1sv-fwd! w1sv-bwd!)
+(qed 'is-sieve-classes)
+
 (sp (make-wff '(IN NSTAR SET)))
 (subst (dk-cite! 'nstar-def))
 (for-each (lambda (l) (dk-focus! l)
@@ -409,7 +458,7 @@
       (cond
         ((dk-asm? g0) (ass))
         ((dk-head-is? g0 'IS-SIEVE)
-         (mac 'is-sieve)
+         (mac 'is-sieve-classes)          ; W1
          (mr-and-close!
            (lambda ()
              (let ((g1 (dk-goal)))
@@ -1297,7 +1346,7 @@
 (dk-split-all!)
 (set! msf-f (subst-free 'sv msf-sv msf-f))
 (define (msf-int2 z) (subst-free 'sv msf-sv (msf-int z)))
-(define msf-sp (mr-iff-parts! (dk-cite! 'is-sieve 's msf-sv)))
+(define msf-sp (mr-iff-parts! (dk-cite! 'is-sieve-classes 's msf-sv)))
 (define msf-cl (cadr msf-sp))
 (dk-cite! 'nstar-is-set)
 (dk-cite! 'nn-is-set)

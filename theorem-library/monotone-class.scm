@@ -189,11 +189,11 @@
                (bk (list 'BIG-UNION (cadr bu) (list 'ORD-SEGMENT kv) (cadddr bu))))
           (fact 'bu-seg-succ kv 'cA fv)
           (subst (list '= bu (list 'UNION bk (list fv kv))))
-          (dk-apply! ih 'omega 'cA fv)
+          (dk-apply! ih fv)   ; W1D: omega, cA fixed
           (fact 'fun-apply-type-c fv 'NN 'cA kv)
           (fact 'algebra-union-closed 'omega 'cA bk (list fv kv))
           (ass))))
-  (dk-opened (lambda () (ni))))
+  (cdr (assq 'cases (dk-ni-fixed! '(omega cA)))))   ; W1D: omega, cA fixed
 (qed 'algebra-seg-union-in)
 (topic! 'algebra-seg-union-in 'set-quotient)
 

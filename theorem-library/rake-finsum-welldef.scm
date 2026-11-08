@@ -282,7 +282,7 @@
        (list 'FORALL 's (rkn-laws 's
          (list 'FORALL 'g (list 'IMPLIES '(IN g (FUN NN (CARR s)))
            (rkn-in-carr 's '(SUM-AG s g n))))))))))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (dk-opened (lambda () (dk-ni-fixed!))))   ; W1C: the structure (and its laws) fixed
        (base (rkn-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "base"))
        (step (rkn-leaf leaves (lambda (g) (dk-contains? g 'succ)) "step")))
   (dk-focus! base)
@@ -301,7 +301,7 @@
                                         (dk-contains? f 'SUM-AG)))
                        "the IH")))
     (mac 'sum-ag-succ)
-    (rkn-apply! ih sv gv)
+    (rkn-apply! ih gv)                        ; W1C: s fixed
     (dk-fact! 'fun-apply-type-c gv 'NN (list 'CARR sv) nv)
     (rkn-apply! clo (list 'SUM-AG sv gv nv) (list gv nv))
     (ass)))
@@ -317,7 +317,7 @@
        (IMPLIES (FORALL i (IMPLIES (IN i (ORD-SEGMENT n)) (== (g i) (h i))))
                 (== (SUM-AG ag g n) (SUM-AG ag h n)))))))))
 (sp (make-wff rkn-congruence-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (dk-opened (lambda () (dk-ni-fixed!))))   ; W1C: the structure (and its laws) fixed
        (base (rkn-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "base"))
        (step (rkn-leaf leaves (lambda (g) (dk-contains? g 'succ)) "step")))
   (dk-focus! base)
@@ -333,7 +333,7 @@
                                   (pair? (caddr (cadr (caddr f))))
                                   (eq? (car (caddr (cadr (caddr f)))) 'ORD-SEGMENT))))
          (hh (dk-pick agree? "the agreement on OS(succ n)"))
-         (ih (dk-pick (lambda (f) (and (rkn-head? f 'FORALL) (not (agree? f)))) "the IH"))
+         (ih (dk-pick (lambda (f) (and (rkn-head? f 'IMPLIES) (dk-contains? f 'SUM-AG))) "the IH"))   ; W1C: ag g h fixed
          (gl (dk-goal))
          (agv (cadr (cadr gl))) (gv (caddr (cadr gl))) (hv (caddr (caddr gl))))
     (mac 'sum-ag-succ)
@@ -349,7 +349,7 @@
                       (lambda () (mac 'ord-segment-nn-succ) (oi-l) (ass)))
                (rkn-apply! hh iv)
                (ass))))
-    (rkn-apply! ih agv gv hv)
+    (rkn-apply! ih)                           ; W1C: ag g h fixed; detach the agreement below n
     (subst (list '== (list 'SUM-AG agv gv nv) (list 'SUM-AG agv hv nv)))
     (qrfl)))
 (rkn-check! 'sum-ag-segment-congruence)
@@ -402,7 +402,7 @@
                    (rkn-o 's '(SUM-AG s gp n) '(g k)))))))))))))))
 
 (sp (make-wff rkn-replace-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (dk-opened (lambda () (dk-ni-fixed!))))   ; W1C: the structure (and its laws) fixed
        (base (rkn-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "base"))
        (step (rkn-leaf leaves (lambda (g) (dk-contains? g 'succ)) "step")))
   ;; ---- base n = 0: ORD-SEGMENT(0) has no members, so the hypothesis is absurd
@@ -466,7 +466,7 @@
                           (lambda () (mac 'ord-segment-nn-succ) (oi-l) (ass)))
                    (rkn-apply! agree iv)
                    (ass))))
-        (subst (rkn-apply! ih sv gv gpv kv))
+        (subst (rkn-apply! ih gv gpv kv))   ; W1C: s fixed
         (rkn-apply! clo (SG gpv nv) (list gv kv))
         (subst (dk-fact! 'opr-rearrange-laws sv (SG gpv nv) (list gpv nv) (list gv kv)))
         (rfl))
@@ -758,7 +758,7 @@
     (ai neg)))
 
 (sp (make-wff rkn-pi-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (dk-opened (lambda () (dk-ni-fixed!))))   ; W1C: the structure (and its laws) fixed
        (base (rkn-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "base"))
        (step (rkn-leaf leaves (lambda (g) (dk-contains? g 'succ)) "step")))
   ;; ---- base n = 0:  both folds are IDEN(s)
@@ -859,7 +859,7 @@
 
     (gp-at-n!)
     ;; ------------------------------------------------- the IH along rho
-    (let* ((partial (rkn-apply-soft! ih sv gp hv rho))
+    (let* ((partial (rkn-apply-soft! ih gp hv rho))   ; W1C: s fixed
            (need    (cadr partial)))
       (display ";; IH wants: ") (display (expression->string need)) (newline)
       (have! need

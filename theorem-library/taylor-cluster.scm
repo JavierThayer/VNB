@@ -161,12 +161,12 @@
 (define tcl-dlam (lambda (f) (list 'VNB-LAMBDA 'x 'RR (list 'DERIV f 'x))))
 (sp (make-wff '(FORALL tck_ (IMPLIES (IN tck_ NN)
    (FORALL f (== (NTH-DERIV f (succ tck_)) (NTH-DERIV (VNB-LAMBDA x RR (DERIV f x)) tck_)))))))
-(define tcl-si-br (use-induction))
+(define tcl-si-br (dk-use-induction-fixed!))   ; W1C: f fixed -- the IH is used at the same f
 (define tcl-si-k  (cdr (assq 'var tcl-si-br)))
 (define tcl-si-ih (cdr (assq 'ih tcl-si-br)))
 ;; base
 (dk-focus! (cdr (assq 'base tcl-si-br)))
-(let ((f (dk-di-var! (lambda (g) (cadr (cadr g))))))
+(let ((f (cadr (cadr (dk-goal)))))           ; W1C: f is fixed, read it off the goal (was dk-di-var!)
   (subst (dk-fact! 'nth-deriv-zero (tcl-dlam f)))
   (tcl-nat! 0)
   (subst (dk-fact! 'nth-deriv-succ f 0))
@@ -174,12 +174,12 @@
   (qrfl))
 ;; step
 (dk-focus! (cdr (assq 'step tcl-si-br)))
-(let ((f (dk-di-var! (lambda (g) (cadr (cadr g)))))
+(let ((f (cadr (cadr (dk-goal))))            ; W1C: f is fixed (was dk-di-var!)
       (k tcl-si-k))
   (tcl-nat! (list 'succ k))
   (subst (dk-fact! 'nth-deriv-succ f (list 'succ k)))
   (subst (dk-fact! 'nth-deriv-succ (tcl-dlam f) k))
-  (subst (inst*! tcl-si-ih f))
+  (subst tcl-si-ih)                         ; W1C: the IH is at the fixed f
   (qrfl))
 (qed 'nth-deriv-succ-inner)
 
@@ -1236,7 +1236,7 @@
    (IMPLIES (FORALL tck_ (IMPLIES (IN tck_ NN) (IMPLIES (< tck_ n) (IN (tcg_ tck_) RR))))
      (IMPLIES (FORALL tck_ (IMPLIES (IN tck_ NN) (IMPLIES (< tck_ n) (= (tcu_ tck_) (tcg_ tck_)))))
        (= (SERIES-PARTIAL-SUM tcu_ n) (SERIES-PARTIAL-SUM tcg_ n))))))))))
-(define tcl-ab-br (use-induction))
+(define tcl-ab-br (dk-use-induction-fixed!))   ; W1C: tcu_, tcg_ fixed
 (define tcl-ab-n  (cdr (assq 'var tcl-ab-br)))
 (define tcl-ab-ih (cdr (assq 'ih tcl-ab-br)))
 (dk-focus! (cdr (assq 'base tcl-ab-br)))
@@ -1267,7 +1267,8 @@
                          (ass))))))))
   (tcl-nat! sn)
   (below! hty) (below! heq)
-  (let ((e (dk-apply! tcl-ab-ih u g)))
+  (let ((e (let loop ((f tcl-ab-ih))         ; W1C: u, g fixed; detach the two hypotheses below n
+             (if (dk-head-is? f 'IMPLIES) (loop (dk-landed-1 (lambda () (detach! f)))) f))))
     (fact 'series-partial-sum-in-rr-below n g)
     (tcl-real! n) (tcl-real! sn)
     (fact 'bt-lt-succ n)
@@ -1551,7 +1552,7 @@
 (sp (make-wff (list 'FORALL 'tcj_ (list 'IMPLIES '(IN tcj_ NN) (list 'FORALL 'tcf_ (list 'FORALL 'a (list 'IMPLIES '(IN a RR)
    (list 'IMPLIES (tcl-guard-le 'tcj_ (lambda (k) (list 'IN (list (list 'tcf_ k) 'a) 'RR)))
      (list '= (list 'SERIES-PARTIAL-SUM (tcl-tterm 'tcf_ 'a 'a) '(succ tcj_)) '((tcf_ 0) a))))))))))
-(define tcl-tb-br (use-induction))
+(define tcl-tb-br (dk-use-induction-fixed!))   ; W1C: tcf_ fixed; a stays quantified
 (define tcl-tb-j  (cdr (assq 'var tcl-tb-br)))
 (define tcl-tb-ih (cdr (assq 'ih tcl-tb-br)))
 (define (tcl-aa-zero! a)          ; lands (= (- a a) 0)
@@ -1595,7 +1596,7 @@
         (fact 'nn-le-trans-guarded k j sj)
         (dk-apply! hyp k)
         (ass))))
-  (let ((e (dk-apply! tcl-tb-ih d a)))
+  (let ((e (dk-apply! tcl-tb-ih a)))        ; W1C: tcf_ fixed
     (dk-have! (list 'IN (list 'SERIES-PARTIAL-SUM u sj) 'RR)
       (lambda () (subst e) (fact 'nn-zero-le sj) (tcl-nat! 0) (dk-apply! hyp 0) (ass)))
     (fact 'nn-le-refl sj)

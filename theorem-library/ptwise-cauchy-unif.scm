@@ -442,7 +442,7 @@
 
 (sp (make-wff pcu-stmt))
 (dk-peel!)
-(dk-split! (dk-landed-1 (lambda () (mac-h 'is-compact '(IS-COMPACT s)))))
+(dk-split! (dk-landed-1 (lambda () (mac-h 'is-compact-classes '(IS-COMPACT s)))))
 (dk-split! (dk-landed-1 (lambda () (mac-h 'is-equicontinuous '(IS-EQUICONTINUOUS s RR-MS fam)))))
 (dk-split! (dk-landed-1 (lambda () (mac-h 'is-ptwise-cauchy '(IS-PTWISE-CAUCHY s fam)))))
 (define pcu-CPT

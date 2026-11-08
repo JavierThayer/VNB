@@ -411,6 +411,7 @@
 (dk-have! (list 'IN (list 'DISTS frm-frc) '(FUN NN (FUN (CARTESIAN (VEC m) (VEC m)) RR)))
           frm-dists-type!)
 (mac 'is-c-metric-space)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (subst '(= (PTS (FR-C-SPACE m fam)) (VEC m)))
 (for-each
  (lambda (leaf)
@@ -913,13 +914,13 @@
 (sp (make-wff (list 'FORALL 'nb (list 'IMPLIES '(IN nb NN)
                 (list 'FORALL 'u (list 'FORALL 'dl
                   (list 'IMPLIES (frm-hyp-u) (frm-concl-u 'nb))))))))
-(let* ((ind (use-induction))
+(let* ((ind (dk-use-induction-fixed! '(u dl)))   ; W1G-A: u, dl and the hypothesis fixed
        (base (cdr (assq 'base ind))) (step (cdr (assq 'step ind)))
        (ih (cdr (assq 'ih ind))) (nb (cdr (assq 'var ind))))
   ;; base: prefix {0}
   (dk-focus! base)
   (let* ((landed (dk-peel!))
-         (hyp (find-first (dk-head? 'FORALL) landed)))
+         (hyp (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'cap))) (dk-asms))))   ; W1G-A: the hypothesis is in context
     (dk-cite! 'nn-zero-in)
     (let* ((c0 (dk-skolem! (dk-apply! hyp 0)))
            (cu (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL) (dk-contains? f c0)))
@@ -942,14 +943,14 @@
   ;; step: prefix {0..nb} -> {0..nb+1}, the threshold max(c1, c2)
   (dk-focus! step)
   (let* ((g0 (dk-goal))
-         (uv (cadr g0)) (dv (cadr (caddr g0)))       ; the binders u, dl (not free anywhere)
+         (uv (cdr (assq 'u (cdr (assq 'params ind))))) (dv (cdr (assq 'dl (cdr (assq 'params ind)))))   ; W1G-A: u, dl fixed
          (landed (dk-peel!))
-         (hyp (find-first (dk-head? 'FORALL) landed))
+         (hyp (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'cap))) (dk-asms)))   ; W1G-A: the hypothesis is in context
          (sn (list 'succ nb)))
     (if (not (and (dk-contains? (dk-goal) uv) (dk-contains? (dk-goal) dv)))
         (error "frm: the step's eigenvariables were renamed" uv dv))
     (dk-cite! 'nn-succ-closed nb)
-    (let* ((c1 (dk-skolem! (dk-apply! ih uv dv)))
+    (let* ((c1 (dk-skolem! (dk-ctx-form ih)))   ; W1G-A: u, dl fixed; the IH is the conclusion itself
            (cu1 (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL) (dk-contains? f c1)))
                          "the threshold up to nb"))
            (c2 (dk-skolem! (dk-apply! hyp sn)))
@@ -2248,12 +2249,12 @@
     (list (cadr (car (cadr eq))) (cadr (caddr lt)) (caddr (cadr eq)))))
 
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (frm-field-hyps (frm-ladder-at 'n))))))
-(let* ((ind (use-induction))
+(let* ((ind (dk-use-induction-fixed! '(fld c b)))   ; W1G-A: fld, c, b and the hypotheses fixed
        (base (cdr (assq 'base ind))) (step (cdr (assq 'step ind)))
        (ih (cdr (assq 'ih ind))) (nv (cdr (assq 'var ind))))
   ;; ---- base: sc = sb = 1
   (dk-focus! base)
-  (let* ((fcb (frm-field-peel!))
+  (let* ((fcb (begin (dk-peel!) (map (lambda (x) (cdr (assq x (cdr (assq 'params ind))))) '(fld c b))))   ; W1G-A: fld, c, b fixed
          (_ (if (not (equal? fcb '(fld c b))) (error "frm-nf-ladder: base binders renamed" fcb)))
          (one '(ONE fld)) (o (frm-nfn one)))
     (dk-cite! 'nf-one-in-carr 'fld)
@@ -2285,10 +2286,10 @@
      (dk-opened (lambda () (di)))))
   ;; ---- step: sc' = c sc, sb' = b sb
   (dk-focus! step)
-  (let* ((fcb (frm-field-peel!))
+  (let* ((fcb (begin (dk-peel!) (map (lambda (x) (cdr (assq x (cdr (assq 'params ind))))) '(fld c b))))   ; W1G-A: fld, c, b fixed
          (_ (if (not (equal? fcb '(fld c b))) (error "frm-nf-ladder: step binders renamed" fcb)))
          (g frm-g) (be (frm-nfn 'b))
-         (sc (dk-skolem! (dk-apply! ih 'fld 'c 'b)))
+         (sc (dk-skolem! (dk-ctx-form ih)))   ; W1G-A: fld, c, b fixed; the IH is the ladder itself
          (sb (dk-skolem! (dk-pick (lambda (f) (and (dk-head-is? f 'FORSOME) (dk-contains? f sc)))
                                   "the sb existential")))
          (s (frm-nfn sc)) (t (frm-nfn sb))

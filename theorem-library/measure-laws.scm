@@ -1062,11 +1062,11 @@
                (bk (list 'BIG-UNION (cadr bu) (mlw-seg kv) (cadddr bu))))
           (fact 'bu-seg-succ kv 'cA fv)
           (subst (list '= bu (list 'UNION bk (list fv kv))))
-          (dk-apply! ih 'omega 'cA fv)
+          (dk-apply! ih fv)   ; W1G-B: omega, cA fixed
           (fact 'fun-apply-type-c fv 'NN 'cA kv)
           (fact 'sigma-algebra-union-closed-2 'omega 'cA bk (list fv kv))
           (ass))))
-  (dk-opened (lambda () (ni))))
+  (cdr (assq 'cases (dk-ni-fixed! '(omega cA)))))   ; W1G-B: omega, cA fixed
 (qed 'sigma-algebra-seg-union-in)
 (topic! 'sigma-algebra-seg-union-in 'set-quotient)
 
@@ -1330,7 +1330,7 @@
           (fact 'disjointify-type 'omega 'cA fv)
           (mlw-mu-seq-type! b)
           (fact 'rps-prefix-succ ms nv)
-          (dk-apply! ih 'omega 'cA 'mu fv)
+          (dk-apply! ih fv)   ; W1G-B: omega, cA, mu fixed
           (mlw-bterm-facts! fv nv)
           (fact 'fun-apply-type-c 'mu 'cA 'RR-POS-STAR bn)
           (fact 'fun-apply-type-c 'mu 'cA 'RR-POS-STAR un)
@@ -1348,7 +1348,7 @@
           (subst (list '= (list 'mu (list 'UNION un bn)) (list 'eplus (list 'mu un) (list 'mu bn))))
           (mlw-eplus-typed! (list 'mu un) (list 'mu bn))
           (rfl))))
-  (dk-opened (lambda () (ni))))
+  (cdr (assq 'cases (dk-ni-fixed! '(omega cA mu)))))   ; W1G-B: omega, cA, mu fixed
 (qed 'disjointify-prefix)
 (topic! 'disjointify-prefix 'set-quotient)
 
@@ -1380,10 +1380,7 @@
               (if (dk-asm? (list '= jv nv))
                   (begin (subst (list '= jv nv)) (ass))
                   (begin
-                    (dk-apply! ih (caddr (caddr (dk-pick (lambda (f) (and (eq? (car f) 'IN) (eq? (cadr f) fv)
-                                                                          (pair? (caddr f)) (eq? (car (caddr f)) 'FUN)))
-                                                        "f typing")))
-                               fv jv)
+                    (dk-apply! ih jv)   ; W1G-B: C, f fixed (was the IH at the C of f's typing, f, j)
                     (let ((cv (caddr (caddr (dk-pick (lambda (f) (and (eq? (car f) 'IN) (eq? (cadr f) fv)
                                                                       (pair? (caddr f)) (eq? (car (caddr f)) 'FUN)))
                                                     "f typing")))))
@@ -1395,7 +1392,7 @@
                     (fact 'subset-trans (list fv jv) (list fv nv) (list fv (list 'succ nv)))
                     (ass))))
             (dk-opened (lambda () (ai orf)))))))
-  (dk-opened (lambda () (ni))))
+  (cdr (assq 'cases (dk-ni-fixed! '(C f)))))   ; W1G-B: C, f fixed
 (qed 'nondecreasing-seg-subset)
 (topic! 'nondecreasing-seg-subset 'set-quotient)
 

@@ -301,7 +301,7 @@
                (FORSOME i (AND (IN i NN) (AND (<= i n) (IN (sq j) (fy i))))))))))
       (FORSOME i (AND (IN i NN) (AND (<= i n)
         (FORALL k (IMPLIES (IN k NN) (FORSOME j (AND (IN j NN) (AND (<= k j) (IN (sq j) (fy i)))))))))))))))))
-(ni)
+(dk-ni-fixed! '(fy sq))   ; W1G-A: fy, sq fixed
 (fact 'nn-zero-in)
 (for-each
  (lambda (leaf)
@@ -335,7 +335,7 @@
        (let* ((landed (dk-peel!))
               (k (dk-landed-var landed 'NN))
               (sk (list 'succ k))
-              (ih (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (not (dk-contains? fm 'succ)))) landed)))
+              (ih (car (filter (lambda (fm) (and (dk-head-is? fm 'IMPLIES) (not (dk-contains? fm 'succ)))) landed)))   ; W1G-A: fy, sq fixed; the IH is hyp(n) => concl(n)
               (hh (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'succ))) landed)))
               (goal (dk-goal))
               (iv (cadr goal))
@@ -355,7 +355,7 @@
                     (k0 (dk-skolem! ex))
                     (ne (dk-pick (lambda (fm) (and (dk-head-is? fm 'NOT) (dk-contains? fm k0))) "no term past k0"))
                     (c0 (car (dk-landed (lambda () (push-not-h ne)))))
-                    (ch (inst*! ih fy sq))
+                    (ch ih)   ; W1G-A: fy, sq fixed (was (inst*! ih fy sq))
                     (b (dk-chain! ch
                          (lambda (ante)
                            (lambda ()

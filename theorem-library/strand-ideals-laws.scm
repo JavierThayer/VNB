@@ -345,7 +345,7 @@
    (IMPLIES (IN T SET) (IMPLIES (IN K SET)
      (IMPLIES (FORALL z (IMPLIES (IN z S) (IN z (MSG-SET T K))))
       (IN (IDEAL-STAGE T K ks S i) (POWER (MSG-SET T K))))))))))))))
-(define sbi-cases0 (dk-opened (lambda () (ni))))
+(define sbi-cases0 (dk-opened (lambda () (dk-ni-fixed!))))   ; W1C: ks, S fixed; T, K (sets) stay quantified
 (define (sbi-step-case? g)
   (and (dk-head-is? g 'FORALL) (dk-head-is? (caddr g) 'IMPLIES)
        (dk-head-is? (cadr (caddr g)) 'IN) (eq? (caddr (cadr (caddr g))) 'NN)))
@@ -367,7 +367,7 @@
        (tt (cadr stg)) (kk (caddr stg)) (ks (cadddr stg)) (ss (car (cddddr stg)))
        (sn (car (cddddr (cdr stg))))
        (a (sbi-msgs tt kk)))
-  (dk-apply! ih tt kk ks ss)
+  (dk-apply! ih tt kk)                      ; W1C: ks, S fixed
   (fact 'msg-set-is-set tt kk)
   (sbi-stage-goal! tt kk ks ss sn)
   (let ((body (cadr (dk-goal))))
@@ -387,7 +387,7 @@
     (IMPLIES (FORALL y (IMPLIES (IN y ks) (IN y K)))
      (IMPLIES (FORALL z (IMPLIES (IN z S) (IN z (MSG-SET T K))))
       (FORALL z (IMPLIES (IN z (IDEAL-STAGE T K ks S i)) (IN z (KEY-IDEAL-GEN T K ks S))))))))))))))))
-(define sbi-cases (dk-opened (lambda () (ni))))
+(define sbi-cases (dk-opened (lambda () (dk-ni-fixed!))))   ; W1C: ks, S fixed; T, K (sets) stay quantified
 (dk-focus! (find-first (lambda (l) (not (sbi-step-case? (dk-goal-of l)))) sbi-cases))
 (let* ((landed (dk-peel!))
        (g (dk-goal))
@@ -409,7 +409,7 @@
                          landed))
        (sn (car (cddddr (cdr (caddr smem)))))
        (n (cadr sn)))
-  (dk-apply! ih tt kk ks ss)
+  (dk-apply! ih tt kk)                      ; W1C: ks, S fixed
   (dk-cite! 'ideal-stage-in-power n tt kk ks ss)
   (dk-have! `(IS-KEY-IDEAL ,tt ,kk ,ks ,gen) (lambda () (fact 'key-ideal-gen-is-ideal tt kk ks ss) (ass)))
   (fact 'key-ideal-empty-keys tt kk ks gen)

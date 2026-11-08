@@ -850,7 +850,9 @@
     ((memq (car body) '(SEP BIG-UNION VNB-LAMBDA))
      (and (= (length body) 4) (pi--binder-predicative? body)      ; NBGSEP
           (pi--body-shape-total? (caddr body) depth)))
-    ((eq? (car body) 'COMP) #t)
+    ;; W1 (METACORE finding 1): a COMP body is total only with a PREDICATIVE condition (NBG)
+    ((eq? (car body) 'COMP)
+     (and (= (length body) 3) (not (pi--comp-unconfined-binder (caddr body)))))
     ((memq (car body) *total-term-heads*)
      (every (lambda (a) (pi--body-shape-total? a depth)) (cdr body)))
     ((and (symbol? (car body)) (pi--functoid-body (car body)))
@@ -888,10 +890,12 @@
     ((pi--arith-number? t) #t)
     ((and (memq (car t) *total-term-heads*)
           (every term-self-defined? (cdr t))) #t)
-    ;; the binder comprehensions denote when their DOMAIN does (4a); COMP always
+    ;; the binder comprehensions denote when their DOMAIN does (4a); COMP when its condition is predicative
     ((and (memq (car t) '(SEP BIG-UNION)) (= (length t) 4))
      (and (pi--binder-predicative? t) (term-self-defined? (caddr t))))     ; NBGSEP
-    ((eq? (car t) 'COMP) #t)
+    ;; W1 (METACORE finding 1): COMP denotes only with a PREDICATIVE condition (NBG), as SEP above
+    ((eq? (car t) 'COMP)
+     (and (= (length t) 3) (not (pi--comp-unconfined-binder (caddr t)))))
     ;; a def-functoid whose body is a class term of that kind, on defined args
     ((and (symbol? (car t)) (pi--functoid-body (car t)))
      => (lambda (b)
@@ -1047,7 +1051,9 @@
 ;;;   abs                           RR for a CC argument, else the argument's class;
 ;;;   min , max                     the join, only when every argument is at most RR;
 ;;;   succ                          NN, only for an NN argument;
-;;;   x ^ n                         x's class, only for n in NN.
+;;;   x ^ n                         x's class, only for n in NN (the head `^'; see POWER);
+;;;   POWER(x, n)  (parsed x ^ n)   RR for x at most RR, CC for x in CC, only for n in NN
+;;;                                 (power-closed-at / power-typing-nonneg; W1P 2026-11-07).
 ;;; Every case returns a class the term is a MEMBER of, so the term denotes.  Nothing else
 ;;; (no recip, no /, no application) is a number by this test.
 (define *pi-number-chain* '(NN ZZ QQ RR CC))
@@ -1097,6 +1103,14 @@
                                     (pi--class-join (car cs) (cadr cs))))
                     ((succ)    (and (= n 1) (eq? (car cs) 'NN) 'NN))
                     ((^)       (and (= n 2) (eq? (cadr cs) 'NN) (car cs)))
+                    ;; W1P (2026-11-07, the user's decision): the parser stores x ^ n as
+                    ;; (POWER x n), so the `^' row above never met a parsed term.  A
+                    ;; TWO-argument POWER with n in NN: RR for x at most RR (licence:
+                    ;; power-closed-at, x in RR and n in NN => x ^ n in RR, proven), CC for
+                    ;; x in CC (licence: power-typing-nonneg, primitive).  The one-argument
+                    ;; POWER(A), the power set, is no number: n = 1 falls to #f.
+                    ((POWER)   (and (= n 2) (eq? (cadr cs) 'NN)
+                                    (if (eq? (car cs) 'CC) 'CC 'RR)))
                     (else #f)))))
       (and (pair? t) (pi--numeral-class t))))
 
@@ -1359,7 +1373,9 @@
     ((and (memq (car t) '(SEP BIG-UNION VNB-LAMBDA)) (= (length t) 4)
           (pi--binder-predicative? t))
      (pi--defined? asms (caddr t) depth))
-    ((eq? (car t) 'COMP) #t)
+    ;; W1 (METACORE finding 1): a COMP is certified only with a PREDICATIVE condition (an impredicative {x | p} is no NBG class)
+    ((eq? (car t) 'COMP)
+     (and (= (length t) 3) (not (pi--comp-unconfined-binder (caddr t)))))
     ;; NTH of a literal list denotes when the LIST does (2026-10-12, R4): NTH is strict, and a
     ;; list denotes only when every component is a set (the list doctrine, 2026-10-01).  The
     ;; clause used to certify the selected component alone, so `rfl' proved
@@ -2125,60 +2141,340 @@
 ;;; one; lambda-beta leaves its redex standing; the definedness certificates do not
 ;;; certify it and the value test reads it as a possible proper class.
 
+;;; VIAGAP (2026-10-29; the brief VIAGAP.md, item 1 of the user's approval of the
+;;; same day).  The relation reads through DEFINED HEADS and widens the notion of a
+;;; GUARD.  The design and its soundness argument: VIAGAP-REPORT.md s.1.
+;;;   (H) A defined head -- a def-functoid, a symbol with a definitional / primitive
+;;;       defining IFF `forall p1..pn. H(p1..pn) <=> D' (any name), a constant with a
+;;;       definitional / primitive equation `H = t' / `H == t' -- is predicative when
+;;;       EVERY definiens is (memoised; a head met while its own verdict is computed
+;;;       is an offender, CYCLE).  A condition naming a head that is not predicative
+;;;       is not predicative; the offender is (VIA H inner).
+;;;   (G) A formula g is a GUARD of v when
+;;;       G1 g = (IN v C);
+;;;       G2 g = (P .. v ..) with v at a CONFINING position of P: one whose definiens
+;;;          has a guard of the parameter on its conjunctive spine (AND, FORSOME not
+;;;          rebinding it, OR when both disjuncts do), or one a PRIMITIVE axiom
+;;;          forall x. P(x) => .. (IN x_i C) .. puts in a class (least fixed point);
+;;;       G3 g = (IN s C) with v a LIST COMPONENT of s;
+;;;       G4 g = (= s t) with v a list component of s or t, or v = s and t a LIST
+;;;          TERM, or v = t and s a list term.
+;;;       A list term is (LIST ..) or F(..) with F a def-functoid whose body is a
+;;;       list term; v is a list component of (LIST a..) when some a_i is v or has
+;;;       v as a list component, and of F(a..) when it is so of some a_j at a
+;;;       position whose parameter is a list component of F's body.
+;;;   FORALL v B is confined by a guard among the antecedents of B's implicational
+;;;   spine, or among the AND-leaves of A when the spine ends in (NOT A); FORSOME v B
+;;;   by a guard among the leaves of B's conjunctive spine (OR when both disjuncts
+;;;   give one); IOTA v B by a guard among B's AND-leaves.
+;;; Sound because each guard forces v to be a set (members are sets; IN and = are
+;;; strict; a denoting LIST has set components and is a set; definitions are
+;;; abbreviations), so every confined quantifier relativises to sets and the
+;;; expanded condition is predicative.  Proven and asserted formulas are never read.
+
+;;; ---- the definientia index (rebuilt when the definitions change) -----------
+;;; macetes.scm's register-provenance! calls pi-note-definition-change! when a
+;;; formula enters or leaves the definitional / primitive tiers.
+(define *pi-via-generation* 0)
+(define (pi-note-definition-change!) (set! *pi-via-generation* (+ *pi-via-generation* 1)))
+(define pi--via-index (make-strong-eqv-hash-table))     ; head -> ((name kind params . D) ..)
+(define pi--via-closure (make-strong-eqv-hash-table))   ; head -> ((name arity . positions) ..)
+(define pi--via-index-key #f)
+(define pi--via-memo-key #f)
+(define pi--via-head-memo (make-strong-eqv-hash-table))
+(define pi--via-conf-memo (make-strong-eqv-hash-table))
+(define pi--via-lpos-memo (make-strong-eqv-hash-table))
+(define pi--via-lterm-memo (make-strong-eqv-hash-table))
+
+(define *pi-via-logical*
+  '(AND OR NOT IMPLIES IFF FORALL FORSOME IOTA IN = == < <= SEP COMP BIG-UNION VNB-LAMBDA
+    LIST IF TRUTH FALSITY))
+
+(define (pi--via-strip-foralls f)
+  (let loop ((f f) (vs '()))
+    (if (and (pair? f) (eq? (car f) 'FORALL) (= (length f) 3) (symbol? (cadr f)))
+        (loop (caddr f) (cons (cadr f) vs))
+        (cons vs f))))
+
+(define (pi--via-distinct-vars? ps vs)
+  (let loop ((ps ps) (seen '()))
+    (cond ((null? ps) (= (length seen) (length vs)))
+          ((not (and (symbol? (car ps)) (memq (car ps) vs) (not (memq (car ps) seen)))) #f)
+          (#t (loop (cdr ps) (cons (car ps) seen))))))
+
+(define (pi--via-trusted? name)
+  (and *pi-provenance-of* (memq (*pi-provenance-of* name) '(definitional primitive)) #t))
+
+(define (pi--via-rebuild-index!)
+  (set! pi--via-index (make-strong-eqv-hash-table))
+  (set! pi--via-closure (make-strong-eqv-hash-table))
+  (if *pi-provenance-of*
+      (hash-table-walk *theorem-table*
+        (lambda (name f)
+          ;; a `-rev' companion restates its forward definition backwards; it is not a
+          ;; definition of its left-hand head (F-W1-1: is-subspace-rev made a cycle
+          ;; IS-SUBMODULE -> IS-SUBSPACE -> IS-SUBMODULE)
+          (if (and (pair? f) (pi--via-trusted? name) (not (rev-companion-source name)))
+              (let* ((sv (pi--via-strip-foralls f)) (vs (car sv)) (m (cdr sv)))
+                (cond
+                 ;; a defining IFF  forall p.. (IFF (H p..) D)
+                 ((and (pair? m) (eq? (car m) 'IFF) (= (length m) 3)
+                       (pair? (cadr m)) (symbol? (car (cadr m)))
+                       (not (memq (car (cadr m)) *pi-via-logical*))
+                       (pi--via-distinct-vars? (cdr (cadr m)) vs))
+                  (hash-table-update!/default pi--via-index (car (cadr m))
+                    (lambda (l) (cons (cons name (cons 'pred (cons (cdr (cadr m)) (caddr m)))) l)) '()))
+                 ;; a PRIMITIVE closure axiom  forall x.. (IMPLIES (P x..) G), (IN x_i C) in G
+                 ((and (eq? (*pi-provenance-of* name) 'primitive)
+                       (pair? m) (eq? (car m) 'IMPLIES) (= (length m) 3)
+                       (pair? (cadr m)) (symbol? (car (cadr m)))
+                       (not (memq (car (cadr m)) *pi-via-logical*))
+                       (pi--via-distinct-vars? (cdr (cadr m)) vs))
+                  (let ((leaves (pi--and-conjuncts (caddr m))))
+                    (let loop ((i 1) (ps (cdr (cadr m))) (pos '()))
+                      (if (pair? ps)
+                          (loop (+ i 1) (cdr ps)
+                                (if (pi--via-some (lambda (c) (and (pair? c) (eq? (car c) 'IN) (= (length c) 3)
+                                                                   (eq? (cadr c) (car ps))))
+                                                  leaves)
+                                    (cons i pos) pos))
+                          (if (pair? pos)
+                              (hash-table-update!/default pi--via-closure (car (cadr m))
+                                (lambda (l) (cons (cons name (cons (length (cdr (cadr m))) pos)) l)) '()))))))
+                 (#t #f)))))))
+  ;; a constant's defining equation  (= H t) / (== H t), as def-constant records it in
+  ;; library-definitions (an equation merely stamped definitional, such as
+  ;; RR = PTS(RR-MS), is a fact about a primitive constant, not its definition)
+  (let ((defs (call-with-current-continuation
+                (lambda (k) (with-exception-handler (lambda (c) (k '()))
+                              (lambda () (library-definitions *library*)))))))
+    (if (list? defs)
+        (for-each
+         (lambda (entry)
+           (if (and (pair? entry) (symbol? (car entry)) (not (memq (car entry) *pi-via-logical*)))
+               (for-each
+                (lambda (ax)
+                  (if (and (pair? ax) (symbol? (car ax)))
+                      (let ((f (hash-table-ref/default *theorem-table* (car ax) #f)))
+                        (if (and (pair? f) (memq (car f) '(= ==)) (= (length f) 3) (eq? (cadr f) (car entry))
+                                 (pi--via-trusted? (car ax)))
+                            (hash-table-update!/default pi--via-index (car entry)
+                              (lambda (l) (cons (cons (car ax) (cons 'const (cons '() (caddr f)))) l)) '())))))
+                (cdr entry))))
+         defs))))
+
+(define (pi--via-some p xs)
+  (cond ((not (pair? xs)) #f) ((p (car xs)) #t) (#t (pi--via-some p (cdr xs)))))
+
+;;; Bring the index and the memos up to date (called once per walk).
+(define (pi--via-refresh!)
+  (let ((ikey (list *pi-via-generation* (hash-table-size *functoid-registry*) (and *pi-provenance-of* #t))))
+    (if (not (equal? ikey pi--via-index-key))
+        (begin (pi--via-rebuild-index!) (set! pi--via-index-key ikey)))
+    (let ((mkey (cons ikey (hash-table-size *theorem-table*))))
+      (if (not (equal? mkey pi--via-memo-key))
+          (begin (set! pi--via-head-memo (make-strong-eqv-hash-table))
+                 (set! pi--via-conf-memo (make-strong-eqv-hash-table))
+                 (set! pi--via-lpos-memo (make-strong-eqv-hash-table))
+                 (set! pi--via-lterm-memo (make-strong-eqv-hash-table))
+                 (set! pi--via-memo-key mkey))))))
+
+;;; The definientia of H: ((kind params . D) ..).  An index entry counts only while
+;;; the theorem table still holds that very formula under its name.
+(define (pi--via-functoid-entry h)
+  (let ((e (hash-table-ref/default *functoid-registry* h #f)))
+    (and e (pair? e) (list? (car e)) (pair? (cdr e)) e)))
+(define (pi--via-definientia h)
+  (append
+   (let ((e (pi--via-functoid-entry h)))
+     (if e (list (cons 'term (cons (car e) (cadr e)))) '()))
+   (let loop ((es (hash-table-ref/default pi--via-index h '())) (acc '()))
+     (if (null? es) acc
+         (loop (cdr es)
+               (if (hash-table-ref/default *theorem-table* (car (car es)) #f)
+                   (cons (cdr (car es)) acc)
+                   acc))))))
+
+(define (pi--via-defined-head? h)
+  (and (symbol? h) (not (memq h *pi-via-logical*))
+       (or (pi--via-functoid-entry h) (pair? (hash-table-ref/default pi--via-index h '())))
+       #t))
+
+;;; LIST terms and components (G3, G4).
+(define (pi--via-list-term? t)
+  (and (pair? t)
+       (or (eq? (car t) 'LIST)
+           (and (symbol? (car t))
+                (let ((m (hash-table-ref/default pi--via-lterm-memo (car t) 'none)))
+                  (if (not (eq? m 'none)) m
+                      (begin (hash-table-set! pi--via-lterm-memo (car t) #f)
+                             (let* ((e (pi--via-functoid-entry (car t)))
+                                    (r (and e (pi--via-list-term? (cadr e)) #t)))
+                               (hash-table-set! pi--via-lterm-memo (car t) r)
+                               r))))))))
+(define (pi--via-lpos f)                 ; positions of def-functoid F listed in its body
+  (let ((m (hash-table-ref/default pi--via-lpos-memo f 'none)))
+    (if (not (eq? m 'none)) m
+        (begin (hash-table-set! pi--via-lpos-memo f '())
+               (let* ((e (pi--via-functoid-entry f))
+                      (r (if e
+                             (let loop ((i 1) (ps (car e)) (acc '()))
+                               (if (null? ps) acc
+                                   (loop (+ i 1) (cdr ps)
+                                         (if (pi--via-list-component? (car ps) (cadr e)) (cons i acc) acc))))
+                             '())))
+                 (hash-table-set! pi--via-lpos-memo f r)
+                 r)))))
+(define (pi--via-list-component? v t)
+  (and (pair? t) (list? t)
+       (cond ((eq? (car t) 'LIST)
+              (pi--via-some (lambda (a) (or (eq? a v) (pi--via-list-component? v a))) (cdr t)))
+             ((and (symbol? (car t)) (pi--via-functoid-entry (car t)))
+              (let ((pos (pi--via-lpos (car t))))
+                (let loop ((i 1) (as (cdr t)))
+                  (and (pair? as)
+                       (or (and (memv i pos) (or (eq? (car as) v) (pi--via-list-component? v (car as))))
+                           (loop (+ i 1) (cdr as)))))))
+             (#t #f))))
+
+;;; CONF(P): the confining positions of P, as (arity . positions) pairs.
+(define (pi--via-conf p)
+  (let ((m (hash-table-ref/default pi--via-conf-memo p 'none)))
+    (if (not (eq? m 'none)) m
+        (begin
+          (hash-table-set! pi--via-conf-memo p '())       ; in progress: confines nothing
+          (let ((acc (map cdr (hash-table-ref/default pi--via-closure p '()))))
+            (for-each
+             (lambda (d)
+               (if (eq? (car d) 'pred)
+                   (let ((ps (cadr d)) (body (cddr d)))
+                     (let loop ((i 1) (qs ps) (pos '()))
+                       (if (pair? qs)
+                           (loop (+ i 1) (cdr qs)
+                                 (if (pi--via-spine-guards? (car qs) body) (cons i pos) pos))
+                           (if (pair? pos) (set! acc (cons (cons (length ps) pos) acc))))))))
+             (pi--via-definientia p))
+            (hash-table-set! pi--via-conf-memo p acc)
+            acc)))))
+
+;;; Is the formula C a guard of the variable V (G1-G4)?
+(define (pi--via-guard-of? v c)
+  (and (pair? c) (list? c)
+       (cond ((eq? (car c) 'IN)
+              (and (= (length c) 3)
+                   (or (eq? (cadr c) v) (pi--via-list-component? v (cadr c)))))
+             ((eq? (car c) '=)
+              (and (= (length c) 3)
+                   (or (pi--via-list-component? v (cadr c)) (pi--via-list-component? v (caddr c))
+                       (and (eq? (cadr c) v) (pi--via-list-term? (caddr c)))
+                       (and (eq? (caddr c) v) (pi--via-list-term? (cadr c))))))
+             ((and (symbol? (car c)) (not (memq (car c) *pi-via-logical*)))
+              (let ((n (length (cdr c))) (confs (pi--via-conf (car c))))
+                (let loop ((i 1) (as (cdr c)))
+                  (and (pair? as)
+                       (or (and (eq? (car as) v)
+                                (pi--via-some (lambda (ap) (and (= (car ap) n) (memv i (cdr ap)) #t)) confs))
+                           (loop (+ i 1) (cdr as)))))))
+             (#t #f))))
+
+;;; The conjunctive spine of B for V: AND, FORSOME not rebinding V, OR when both sides qualify.
+(define (pi--via-spine-guards? v b)
+  (cond ((and (pair? b) (eq? (car b) 'FORSOME) (= (length b) 3) (symbol? (cadr b)) (not (eq? (cadr b) v)))
+         (pi--via-spine-guards? v (caddr b)))
+        ((and (pair? b) (eq? (car b) 'AND) (= (length b) 3))
+         (or (pi--via-spine-guards? v (cadr b)) (pi--via-spine-guards? v (caddr b))))
+        ((and (pair? b) (eq? (car b) 'OR) (= (length b) 3))
+         (and (pi--via-spine-guards? v (cadr b)) (pi--via-spine-guards? v (caddr b))))
+        (#t (pi--via-guard-of? v b))))
+
+;;; The head verdict: #f when H is predicative, else its offender.
+(define (pi--via-head-offender h)
+  (let ((m (hash-table-ref/default pi--via-head-memo h 'none)))
+    (if (not (eq? m 'none)) m
+        (begin
+          (hash-table-set! pi--via-head-memo h (list 'CYCLE h))
+          (let ((r (let loop ((ds (pi--via-definientia h)))
+                     (cond ((null? ds) #f)
+                           ((pi--comp-walk (cddr (car ds))) => (lambda (b) b))
+                           (#t (loop (cdr ds)))))))
+            (hash-table-set! pi--via-head-memo h r)
+            r)))))
+
 ;;; The first binder of P that is not confined to sets, or #f.
+;;; The verdict on a condition object is cached by eq? (weakly) until the definitions
+;;; or the theorem table change: the kernel asks again and again about the same term.
+(define pi--via-term-cache (make-key-weak-eqv-hash-table))
+(define pi--via-term-cache-key #f)
 (define (pi--comp-unconfined-binder p)
-  (define (conjuncts f)
-    (if (and (pair? f) (eq? (car f) 'AND) (= (length f) 3))
-        (append (conjuncts (cadr f)) (conjuncts (caddr f)))
-        (list f)))
-  (define (member-guard? v f)
-    (let loop ((cs (conjuncts f)))
-      (cond ((null? cs) #f)
-            ((let ((c (car cs)))
-               (and (pair? c) (eq? (car c) 'IN) (= (length c) 3) (eq? (cadr c) v)))
-             #t)
-            (#t (loop (cdr cs))))))
+  (pi--via-refresh!)
+  (if (not (eq? pi--via-term-cache-key pi--via-memo-key))
+      (begin (set! pi--via-term-cache (make-key-weak-eqv-hash-table))
+             (set! pi--via-term-cache-key pi--via-memo-key)))
+  (if (pair? p)
+      (let ((hit (hash-table-ref/default pi--via-term-cache p 'none)))
+        (if (not (eq? hit 'none))
+            hit
+            (let ((r (pi--comp-walk p)))
+              (hash-table-set! pi--via-term-cache p r)
+              r)))
+      (pi--comp-walk p)))
+
+(define (pi--comp-walk p)
+  (define (guard-leaf? v f)
+    (pi--via-some (lambda (c) (pi--via-guard-of? v c)) (pi--and-conjuncts f)))
   (define (binder3? head e)
     (and (pair? e) (eq? (car e) head) (= (length e) 3) (symbol? (cadr e))))
-  ;; (b)1, universal: some antecedent on the spine of B guards v
+  ;; (b)1, universal: some antecedent on the spine of B guards v; or the spine ends in (NOT A)
   (define (forall-spine-guards? v b)
     (cond ((and (binder3? 'FORALL b) (not (eq? (cadr b) v)))
            (forall-spine-guards? v (caddr b)))
           ((and (pair? b) (eq? (car b) 'IMPLIES) (= (length b) 3))
-           (or (member-guard? v (cadr b))
+           (or (guard-leaf? v (cadr b))
                (forall-spine-guards? v (caddr b))))
-          (#t #f)))
-  ;; (b)1, existential: some leaf of the conjunctive spine of B guards v
-  (define (forsome-spine-guards? v b)
-    (cond ((and (binder3? 'FORSOME b) (not (eq? (cadr b) v)))
-           (forsome-spine-guards? v (caddr b)))
-          ((and (pair? b) (eq? (car b) 'AND) (= (length b) 3))
-           (or (forsome-spine-guards? v (cadr b))
-               (forsome-spine-guards? v (caddr b))))
-          ((and (pair? b) (eq? (car b) 'IN) (= (length b) 3)) (eq? (cadr b) v))
+          ((and (pair? b) (eq? (car b) 'NOT) (= (length b) 2))
+           (guard-leaf? v (cadr b)))
           (#t #f)))
   (define (confined? q)
     (let ((v (cadr q)) (body (caddr q)))
       (and (symbol? v)
            (case (car q)
              ((FORALL) (forall-spine-guards? v body))
-             ((FORSOME) (forsome-spine-guards? v body))
-             ((IOTA) (member-guard? v body))          ; (b)2
+             ((FORSOME) (pi--via-spine-guards? v body))     ; (b)1, existential
+             ((IOTA) (guard-leaf? v body))                  ; (b)2
              (else #f)))))
   (define (walk-list xs)
     (cond ((not (pair? xs)) #f)
           ((walk (car xs)) => (lambda (b) b))
           (#t (walk-list (cdr xs)))))
+  (define (via h)
+    (let ((b (pi--via-head-offender h)))
+      (and b (list 'VIA h b))))
   (define (walk e)
     (cond ((functoid? e)
            (or (walk-list (map cdr (functoid-bindings e)))
                (walk (functoid-body e))))
+          ((symbol? e) (and (pi--via-defined-head? e) (via e)))
           ((not (pair? e)) #f)
           ((and (memq (car e) '(FORALL FORSOME IOTA)) (= (length e) 3))
            (if (confined? e) (walk (caddr e)) e))
           ((eq? (car e) 'IOTA) e)
+          ((and (symbol? (car e)) (pi--via-defined-head? (car e)))
+           (or (via (car e)) (walk-list (cdr e))))
           (#t (walk-list e))))
   (walk p))
+
+;;; A readable description of an offender returned by the walk.
+(define (pi--offender-description b)
+  (cond ((and (pair? b) (eq? (car b) 'VIA))
+         (string-append "the defined head " (symbol->string (cadr b))
+                        ", whose definition has " (pi--offender-description (caddr b))))
+        ((and (pair? b) (eq? (car b) 'CYCLE))
+         (string-append "a definitional cycle through " (symbol->string (cadr b))))
+        ((and (pair? b) (eq? (car b) 'IOTA) (not (and (= (length b) 3) (symbol? (cadr b)))))
+         "an IOTA")
+        ((and (pair? b) (memq (car b) '(FORALL FORSOME IOTA)))
+         (string-append "an unconfined " (symbol->string (car b)) " " (expression->string (cadr b))))
+        (#t (expression->string b))))
 
 ;;; NBGSEP: the condition / body of a set-building binder term T -- the p of
 ;;; (SEP x A p), the b of (BIG-UNION z A b) and of (VNB-LAMBDA bs A b) -- or #f
@@ -2202,10 +2498,7 @@
         (error (string-append tag ": NBG refuses this " (symbol->string (car t))
                               " -- its " (if (eq? (car t) 'SEP) "condition" "body")
                               " has a binder not confined to sets, "
-                              (if (and (eq? (car b) 'IOTA) (not (and (= (length b) 3) (symbol? (cadr b)))))
-                                  "an IOTA"
-                                  (string-append "an unconfined " (symbol->string (car b)) " "
-                                                 (expression->string (cadr b)))))
+                              (pi--offender-description b))
                b)
         #t)))
 
@@ -2217,10 +2510,7 @@
   (let ((b (pi--comp-unconfined-binder (caddr subj))))
     (if b
         (error (string-append tag ": NBG comprehension refuses this COMP -- its condition has a binder not confined to sets, "
-                              (if (eq? (car b) 'IOTA)
-                                  "an IOTA"
-                                  (string-append "an unconfined " (symbol->string (car b)) " "
-                                                 (expression->string (cadr b)))))
+                              (pi--offender-description b))
                b)
         #t)))
 
@@ -2865,13 +3155,6 @@
       (cond ((null? es) #f) ((pred (raw (car es))) #t) (else (loop (cdr es))))))
   (define (typed? u)
     (holds? (lambda (f) (and (pair? f) (eq? (car f) 'IN) (= (length f) 3) (equal? (cadr f) u)))))
-  (define (structure-known? s)
-    (holds? (lambda (f) (and (pair? f) (= (length f) 2) (symbol? (car f)) (equal? (cadr f) s)
-                             (let ((nm (string-downcase (symbol->string (car f)))))
-                               (and (> (string-length nm) 3) (string=? (substring nm 0 3) "is-")
-                                    (environment-bound? system-global-environment 'find-shape-structure)
-                                    (find-shape-structure (string->symbol (substring nm 3 (string-length nm))))
-                                    #t))))))
   (define (functoid-body-of t)            ; the registered functoid's body, arguments in
     (and (pair? t) (symbol? (car t))
          (let ((reg (pi--registry-ref (car t))))
@@ -2910,7 +3193,11 @@
       ((and (eq? (car t) 'IMAGE) (= (length t) 3)) (may? (caddr t) (+ depth 1)))
       ((and (eq? (car t) 'IF) (= (length t) 4))
        (or (may? (caddr t) (+ depth 1)) (may? (cadddr t) (+ depth 1))))
-      ((and (= (length t) 2) (structure-known? (cadr t))) #f)
+      ;; DEFHEAD dh1: the clause `((and (= (length t) 2) (structure-known? (cadr t))) #f)'
+      ;; stood here.  It never fired (`find-shape-structure' is not bound in
+      ;; system-global-environment), and had it fired it would have read ANY unary head at a known
+      ;; structure as a set or nothing -- a def-functoid whose body is ORD among them.  An accessor
+      ;; of a structure is the clause `(eq? (constant-head? (car t)) 'accessor)' above.
       ((functoid-body-of t) => (lambda (b) (may? b (+ depth 1))))
       ((pi--defined-fn-values (car t) (cdr t))          ; by its defining equations
        => (lambda (vs) (any-may? vs)))

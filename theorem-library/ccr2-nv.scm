@@ -431,14 +431,14 @@
             '(normed-field-ring-view-carr normed-field-ring-view-mul normed-field-ring-view-one)))
 (define (cw-in-view! x)
   (dk-have! `(IN ,x (CARR ,cw-view)) (lambda () (subst `(= (CARR ,cw-view) (CARR K))) (dk-ass!))))
-(define (cw-ni-leaves)
-  (let ((leaves (dk-opened (lambda () (ni)))))
+(define (cw-ni-leaves hoist)             ; W1G-A: the parameters in HOIST fixed (dk-ni-fixed!)
+  (let ((leaves (dk-opened (lambda () (dk-ni-fixed! hoist)))))
     (list (find-first (lambda (l) (not (dk-contains? (dk-goal-of l) 'succ))) leaves)
           (find-first (lambda (l) (dk-contains? (dk-goal-of l) 'succ)) leaves))))
 
 (sp (make-wff `(FORALL cwn (IMPLIES (IN cwn NN) (FORALL K (FORALL A (IMPLIES (IS-NV-DOMAIN K A)
   (FORALL x (IMPLIES (IN x A) (IN ,(cw-pw 'x 'cwn) A))))))))))
-(let* ((bs (cw-ni-leaves)) (base (car bs)) (step (cadr bs)))
+(let* ((bs (cw-ni-leaves '(K A x))) (base (car bs)) (step (cadr bs)))   ; W1G-A: K, A, x fixed
   (dk-focus! base)
   (dk-peel!)
   (dk-cite! 'nv-domain-normed 'K 'A)
@@ -450,7 +450,7 @@
   (dk-ass!)
   (dk-focus! step)
   (dk-peel!)
-  (let ((ih (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'IS-NV-DOMAIN))) "the IH")))
+  (let ((ih #f))   ; W1G-A: K, A, x fixed; the IH is IN(x^n, A) itself, in context
     (let ((nv (cadr (cadddr (cadr (dk-goal))))))
       (dk-cite! 'nv-domain-normed 'K 'A)
       (cw-view!)
@@ -459,7 +459,7 @@
       (dk-cite! 'ring-power-succ cw-view 'x nv)
       (subst `(= ,(cw-pw 'x `(succ ,nv)) ((MUL ,cw-view) ,(cw-pw 'x nv) x)))
       (subst `(= (MUL ,cw-view) (MUL K)))
-      (dk-apply! ih 'K 'A 'x)
+      ; W1G-A: K, A, x fixed (was (dk-apply! ih 'K 'A 'x))
       (dk-cite! 'nv-domain-mul 'K 'A (cw-pw 'x nv) 'x)
       (dk-ass!))))
 (qed 'nv-pow-in-domain-ind)
@@ -473,7 +473,7 @@
 
 (sp (make-wff `(FORALL cwn (IMPLIES (IN cwn NN) (FORALL K (IMPLIES (IS-NORMED-FIELD K)
   (FORALL x (IMPLIES (IN x (CARR K)) (IMPLIES (= ((FNRM K) x) 1) (= ((FNRM K) ,(cw-pw 'x 'cwn)) 1))))))))))
-(let* ((bs (cw-ni-leaves)) (base (car bs)) (step (cadr bs)))
+(let* ((bs (cw-ni-leaves '(K x))) (base (car bs)) (step (cadr bs)))   ; W1G-A: K, x and |x| = 1 fixed
   (dk-focus! base)
   (dk-peel!)
   (cw-view!)
@@ -484,7 +484,7 @@
   (dk-ass!)
   (dk-focus! step)
   (dk-peel!)
-  (let ((ih (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'IS-NORMED-FIELD))) "the IH")))
+  (let ((ih #f))   ; W1G-A: K, x fixed; the IH is |x^n| = 1 itself, in context
     (let* ((nv (cadr (cadddr (cadr (cadr (dk-goal))))))
            (pn (cw-pw 'x nv)))
       (fact 'rr-one-in)
@@ -497,7 +497,7 @@
       (subst `(= (MUL ,cw-view) (MUL K)))
       (dk-cite! 'nf-norm-mult 'K pn 'x)
       (subst `(= ,(cw-n (cw-mul pn 'x)) (* ,(cw-n pn) ,(cw-n 'x))))
-      (dk-apply! ih 'K 'x)
+      ; W1G-A: K, x fixed (was (dk-apply! ih 'K 'x))
       (subst `(= ,(cw-n pn) 1))
       (subst `(= ,(cw-n 'x) 1))
       (dk-cite! 'rr-one-mul 1)
@@ -1372,7 +1372,7 @@
 ;; |x^n| = |x|^n
 (sp (make-wff `(FORALL cwn (IMPLIES (IN cwn NN) (FORALL K (IMPLIES (IS-NORMED-FIELD K)
   (FORALL x (IMPLIES (IN x (CARR K)) (= ((FNRM K) ,(cw-pw 'x 'cwn)) (power ((FNRM K) x) cwn))))))))))
-(let* ((bs (cw-ni-leaves)) (base (car bs)) (step (cadr bs)))
+(let* ((bs (cw-ni-leaves '(K x))) (base (car bs)) (step (cadr bs)))   ; W1G-A: K, x fixed
   (dk-focus! base)
   (dk-peel!)
   (cw-view!)
@@ -1386,7 +1386,7 @@
   (dk-ass!)
   (dk-focus! step)
   (dk-peel!)
-  (let* ((ih (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'IS-NORMED-FIELD))) "the IH"))
+  (let* ((ih #f)   ; W1G-A: K, x fixed; the IH is |x^n| = |x|^n itself, in context
          (nv (cadr (caddr (caddr (dk-goal)))))
          (pn (cw-pw 'x nv)))
     (cw-view!)
@@ -1401,7 +1401,7 @@
     (subst `(= (MUL ,cw-view) (MUL K)))
     (dk-cite! 'nf-norm-mult 'K pn 'x)
     (subst `(= ,(cw-n (cw-mul pn 'x)) (* ,(cw-n pn) ,(cw-n 'x))))
-    (dk-apply! ih 'K 'x)
+    ; W1G-A: K, x fixed (was (dk-apply! ih 'K 'x))
     (subst `(= ,(cw-n pn) (power ,(cw-n 'x) ,nv)))
     (cw-and! `(IN ,(cw-n 'x) CC) `(IN ,nv NN))
     (subst (dk-cite! 'power-succ (cw-n 'x) nv))

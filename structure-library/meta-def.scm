@@ -168,16 +168,20 @@
              '(= (LENGTH mdhs_) (LENGTH mdl_))
              '(FORALL mdi_ (IMPLIES (IN mdi_ NN) (IMPLIES (<= 1 mdi_) (IMPLIES (<= mdi_ (LENGTH mdl_))
                 (= (NTH mdi_ mdhs_) (LIST mdg_ (ENC-EQ (NTH mdi_ mdl_) (NTH mdi_ mdl_)))))))))))
-;; 1178: SEP / BIG-UNION / VNB-LAMBDA over a defined domain.
+;; 1178: SEP / BIG-UNION / VNB-LAMBDA over a defined domain, the condition / body PREDICATIVE (NBG-OK,
+;; meta-core.scm 4.3a; the kernel's clause tests pi--binder-predicative? since NBGSEP; agent METACORE, 2026-10-29).
 (md--rel! 'DEF-BINDER "the definedness rule binder-domain relates $2 to $3"
   (md--ex '(mdg_ mdh_ mda_ mdb_)
     (md--and '(= mdc_ (LIST mdg_ (ENC-EQ (EBIND mdh_ 1 (LIST mda_) mdb_) (EBIND mdh_ 1 (LIST mda_) mdb_))))
              '(OR (= mdh_ 22) (OR (= mdh_ 24) (= mdh_ 26)))
+             '(NBG-OK mdb_)
              '(= mdhs_ (LIST (LIST mdg_ (ENC-EQ mda_ mda_)))))))
-;; 1180: COMP, unconditionally.
+;; 1180: COMP.  The kernel's clause certifies every COMP, unconditionally; the relation, as CR-DEF-COMP since
+;; 2026-10-29 (agent METACORE), a PREDICATIVE one only (NBG-OK, meta-core.scm 4.3a).  The kernel's clause is
+;; wider than the relation: METACORE report, finding 1.
 (md--rel! 'DEF-COMP "the definedness rule comprehension relates $2 to $3"
   (md--ex '(mdg_ mdp_)
-    (md--and '(= mdc_ (LIST mdg_ (ENC-EQ (ENC-COMP mdp_) (ENC-COMP mdp_)))) '(= mdhs_ (LIST)))))
+    (md--and '(= mdc_ (LIST mdg_ (ENC-EQ (ENC-COMP mdp_) (ENC-COMP mdp_)))) '(NBG-OK mdp_) '(= mdhs_ (LIST)))))
 ;; 1174 (pi--sets-defined?): a list every entry of which is a set (one premise per entry).
 (md--rel! 'DEF-LIST "the definedness rule list relates $2 to $3"
   (md--ex '(mdg_ mdl_)
@@ -244,8 +248,10 @@
          (AND (OR (= md7k_ 22) (OR (= md7k_ 24) (= md7k_ 26)))
               (AND (= md7s_ (EBIND md7k_ 1 (LIST md7a_) md7b_)) (= md7t_ md7a_))))))))
 (notation! 'STRICT-STEP 'kind 'predicate 'arity 2 'english "$2 is one strict step below $1")
+;; VIAGAP (2026-10-29): the step's target is bounded by SET (STRICT-STEP's target is an entry
+;; of a list that denotes), so that STRICT-REACH's condition is predicative.
 (def-predicate 'STRICT-CLOSED '(md7x_)
-  '(FORALL md7p_ (FORALL md7q_ (IMPLIES (IN md7p_ md7x_) (IMPLIES (STRICT-STEP md7p_ md7q_) (IN md7q_ md7x_))))))
+  '(FORALL md7p_ (FORALL md7q_ (IMPLIES (IN md7p_ md7x_) (IMPLIES (IN md7q_ SET) (IMPLIES (STRICT-STEP md7p_ md7q_) (IN md7q_ md7x_)))))))
 (notation! 'STRICT-CLOSED 'kind 'predicate 'arity 1 'english "$1 is closed under strict steps")
 ;; the expressions reached from e by strict steps (e included): the least closed subset of EXPR-SET with e
 (def-functoid 'STRICT-REACH '(md7e_)
@@ -255,15 +261,17 @@
 
 ;; THE SENTENCES A TRUE SENTENCE MAKES TRUE, as the kernel reads them (pi--atom-certifies?, 1101-1112, the
 ;; SEP-membership clause of R4, and pi--and-conjuncts): a conjunct of a conjunction, and P[x := y] from a
-;; membership y in SEP x D. P.  (The kernel starts from an atom and splits only P[x := y]; reading every
+;; membership y in SEP x D. P, P PREDICATIVE (NBG-OK; the kernel's chk-sep-form / pi--sep-form read an
+;; impredicative SEP no more since NBGSEP; agent METACORE, 2026-10-29).  (The kernel starts from an atom and splits only P[x := y]; reading every
 ;; conjunction is a superset, sound by and-elim.)
 (def-predicate 'TRUE-STEP '(md7f_ md7g_)
   '(OR (FORSOME md7c_ (FORSOME md7d_ (AND (= md7f_ (ENC-AND md7c_ md7d_)) (OR (= md7g_ md7c_) (= md7g_ md7d_)))))
        (FORSOME md7y_ (FORSOME md7o_ (FORSOME md7r_
-         (AND (= md7f_ (ENC-IN md7y_ (ENC-SEP md7o_ md7r_))) (= md7g_ (EXPR-OPEN md7r_ 0 md7y_))))))))
+         (AND (= md7f_ (ENC-IN md7y_ (ENC-SEP md7o_ md7r_))) (AND (NBG-OK md7r_) (= md7g_ (EXPR-OPEN md7r_ 0 md7y_)))))))))
 (notation! 'TRUE-STEP 'kind 'predicate 'arity 2 'english "$2 is one step of truth below $1")
+;; VIAGAP (2026-10-29): the step's target is bounded by SET, as in STRICT-CLOSED.
 (def-predicate 'TRUE-CLOSED '(md7v_)
-  '(FORALL md7m_ (FORALL md7n_ (IMPLIES (IN md7m_ md7v_) (IMPLIES (TRUE-STEP md7m_ md7n_) (IN md7n_ md7v_))))))
+  '(FORALL md7m_ (FORALL md7n_ (IMPLIES (IN md7m_ md7v_) (IMPLIES (IN md7n_ SET) (IMPLIES (TRUE-STEP md7m_ md7n_) (IN md7n_ md7v_)))))))
 (notation! 'TRUE-CLOSED 'kind 'predicate 'arity 1 'english "$1 is closed under steps of truth")
 (def-functoid 'TRUE-REACH '(md7j_)
   '(SEP md7zz_ EXPR-SET (FORALL md7ww_ (IMPLIES (IN md7ww_ (POWER EXPR-SET))
@@ -449,8 +457,9 @@
           (AND (IN md12i_ NN) (AND (<= 2 md12i_) (AND (<= md12i_ (LENGTH md12l_))
                (= md12g_ (EXPR-OPEN md12b_ 0 (NTH md12i_ md12l_))))))))))
 (notation! 'INST-STEP 'kind 'predicate 'arity 3 'english "$3 is $2 instantiated at an argument of $1")
+;; VIAGAP (2026-10-29): the step's target is bounded by SET, as in STRICT-CLOSED.
 (def-predicate 'INST-CLOSED '(md12l_ md12x_)
-  '(FORALL md12p_ (FORALL md12q_ (IMPLIES (IN md12p_ md12x_) (IMPLIES (INST-STEP md12l_ md12p_ md12q_) (IN md12q_ md12x_))))))
+  '(FORALL md12p_ (FORALL md12q_ (IMPLIES (IN md12p_ md12x_) (IMPLIES (IN md12q_ SET) (IMPLIES (INST-STEP md12l_ md12p_ md12q_) (IN md12q_ md12x_)))))))
 (notation! 'INST-CLOSED 'kind 'predicate 'arity 2 'english "$2 is closed under instantiations at the arguments of $1")
 ;; the instances of d at arguments of l, d included: the least closed subset of EXPR-SET holding d
 (def-functoid 'INST-REACH '(md12d_ md12l_)

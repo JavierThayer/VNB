@@ -1265,6 +1265,7 @@
 (fact 'qq-is-set)
 (dk-cite! 'pz-abs-type 'p)
 (mac 'IS-NORMED-FIELD)
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (for-each (lambda (r) (mac r)) '(pq-carr pq-add pq-mul pq-neg pq-zero pq-one pq-fnrm))
 (let split ((fuel 40))
   (let ((andl (find-first (lambda (s) (dk-head-is? (dk-goal-of s) 'AND)) (pq-open))))

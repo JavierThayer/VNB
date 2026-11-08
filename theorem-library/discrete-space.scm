@@ -340,6 +340,7 @@
                 '(IS-TOP-SPACE (DISCRETE-SPACE a_))))
 (ds-peel!)
 (mac 'IS-TOP-SPACE)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 ;; rewrite both accessors ONCE, on the whole conjunction, before splitting
 (mac 'ds-pts)
 (mac 'ds-opens)
@@ -393,6 +394,7 @@
                 '(IS-MEASURABLE-SPACE (DISCRETE-SPACE a_))))
 (ds-peel!)
 (mac 'IS-MEASURABLE-SPACE)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (mac 'ds-pts)
 (mac 'ds-sigma)
 (ds-split-ands!)

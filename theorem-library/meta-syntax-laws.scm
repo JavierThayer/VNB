@@ -1255,7 +1255,7 @@
    (IN (SUBST-STAGE m u n) (FUN (EXPR-STAGE n) EXPR-SET)))))))))
 (define (mx-stage-set-closer! n)
   (lambda () (dk-meta-type-stages! `(EXPR-STAGE ,n)) (ass)))
-(let ((cs (dk-meta-ni-cases!)))
+(let ((cs (dk-meta-ni-cases-fixed! '(m u))))   ; W1G-B: m, u fixed
   (dk-focus! (car cs))
   (dk-peel!)
   (subst (dk-cite! 'subst-stage-zero 'm 'u))
@@ -1269,10 +1269,10 @@
     (mx-stage-set-closer! 0))
   (dk-focus! (cadr cs))
   (let* ((landed (dk-peel!))
-         (ih (or (find-first (lambda (f) (dk-head-is? f 'FORALL)) landed) (error "subst-stage-fun: no IH")))
+         (ih (or (find-first (lambda (f) (and (dk-head-is? f 'IN) (dk-contains? f 'SUBST-STAGE))) landed) (error "subst-stage-fun: no IH")))   ; W1G-B: m, u fixed, the IH is the typing at n
          (g (dk-goal)) (st (cadr g)) (m (cadr st)) (u (caddr st)) (n (cadr (cadddr st)))
          (fn `(SUBST-STAGE ,m ,u ,n)) (sn `(EXPR-STAGE ,n)))
-    (dk-apply! ih m u)
+    ih   ; W1G-B: was (dk-apply! ih m u)
     (subst (dk-cite! 'subst-stage-succ m u n))
     (dk-lam-type!
       (lambda ()

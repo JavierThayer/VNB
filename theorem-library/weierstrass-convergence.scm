@@ -1043,7 +1043,7 @@
                        (let ((bi (dk-cite! 'ball-membership wcv-KS x (list 'wcvh_ x) z)))
                          (prop))))))))))))))
 ;; a finite subcover, and the finite set of its centres
-(let* ((ci (dk-cite! 'is-compact wcv-KS))
+(let* ((ci (dk-cite! 'is-compact-classes wcv-KS))
        (cl (let loop ((r (caddr ci))) (if (eq? (car r) 'AND) (loop (caddr r)) r))))
   (dk-have! cl (lambda () (prop)))
   (let* ((fv (dk-skolem! (dk-apply! (dk-ctx-form cl) wcv-Cv) 'top))

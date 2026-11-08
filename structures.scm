@@ -613,9 +613,17 @@
                      (else
                       (error "build-is-axiom: unknown slot kind" kind slot)))))
                slots))
+         ;; THE SETHOOD CONJUNCT (W1I, 2026-11-06, the user's decision "Go with the
+         ;; s in SET sweep"): a structure is a SET, said by its definition, LAST so
+         ;; that a consumer reading the conjuncts by position is untouched.  A
+         ;; same-shape refinement inherits it through its parent conjunct.  With the
+         ;; NBG confining relation it makes position 1 of every IS-X confining, so an
+         ;; IS-X(v) guard confines v.  The citable form is the generated theorem
+         ;; is-X-is-set (driver-kit.scm, dk-is-set-theorem!; isx-set--declared! below).
          (conjuncts
           (cons `(= (LENGTH ,ivar) ,n)
-                (append slot-conjuncts property-conjuncts law-conjuncts)))
+                (append slot-conjuncts property-conjuncts law-conjuncts
+                        (list `(IN ,ivar SET)))))
          (body (conjuncts->and conjuncts)))
     `(FORALL ,ivar (IFF (,is-name ,ivar) ,body))))
 
@@ -755,7 +763,25 @@
           (class-axiom-name  (symbol-append name '-class)))
       (add-axiom! *library* class-axiom-name
         `(FORALL s (IFF (IN s ,name) (,is-name s)))))
+    (isx-set--declared! name)
     name)))
+
+;;; THE GENERATED SETHOOD THEOREMS (W1I, 2026-11-06).  Every declared structure X,
+;;; shape or same-shape refinement, gets the PROVEN theorem
+;;;     is-X-is-set :  forall s. IS-X(s) => s in SET
+;;; (a projection of the last conjunct build-is-axiom writes; for a refinement, the
+;;; parent's theorem).  The proof needs the tactics, which load after this file:
+;;; a declaration made before structure-library/is-set-laws.scm is queued here and
+;;; proved there (the catch-up), and that file installs `*isx-set-hook*', after
+;;; which a declaration proves its theorem at once.  So is-X-is-set exists as soon
+;;; as X does, for every structure declared after the catch-up, and before the
+;;; first proof file for those declared earlier.
+(define *isx-set-pending* '())
+(define *isx-set-hook* #f)
+(define (isx-set--declared! name)
+  (if *isx-set-hook*
+      (*isx-set-hook* name)
+      (set! *isx-set-pending* (append *isx-set-pending* (list name)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; declare-structure — user-facing syntax (no quoting required)
@@ -875,6 +901,7 @@
     ;; a hom of X's is a hom of PARENTs between X's -- same shape, same maps
     (install-refinement-hom-axiom! name parent)
     (install-hom-set! name)                  ; HOM-NAME(a, b), see install-hom-set!
+    (isx-set--declared! name)                ; is-NAME-is-set, from the parent's (W1I)
     name))
 
 ;;; A (property NAME accessor ...) clause names a characteristic law from

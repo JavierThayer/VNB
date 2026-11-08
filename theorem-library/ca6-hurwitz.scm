@@ -1295,8 +1295,9 @@
 (ca6-slots-of! 'v)
 (let* ((iff (dk-cite! 'is-module (ca6-mv 'v)))
        (rhs (caddr iff)))
-  (dk-have! rhs
-    (lambda ()
+  (mac 'IS-MODULE)
+  (dk-isx-set!)                ; W1J-A: the conjunct t in SET; the old driver proves the rest in place
+  ((lambda ()                  ; W1J-A: was (dk-have! rhs (lambda () ..)) then (mac 'IS-MODULE) (ass)
       (ca6-subst-slots! 'v)
       (for-each (lambda (m) (vnb-guard (lambda () (mac m))))
                 '(cc-scalar-ring-carr cc-scalar-ring-add cc-scalar-ring-mul cc-scalar-ring-one))
@@ -1327,8 +1328,7 @@
                (let ((vss (ca6-peel-vars! 'v)))
                  (ca6-law-inline! 'v (car vss) (cdr vss))))
               (#t (error "ca6: unexpected conjunct" (expression->string g)))))))))
-  (mac 'IS-MODULE)
-  (ass))
+  #t)
 (qed 'cc-fn-module-is-module-of)
 ;;; ======================================================================
 ;;; (15) THE SEMINORM OF A DIFFERENCE, read pointwise, for any closed class v

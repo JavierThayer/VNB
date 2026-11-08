@@ -659,7 +659,7 @@
     (FORALL c (IMPLIES (IN c (CARR gq)) (= (lb (GPOW gq c n)) (power (lb c) n))))))))))))))
 (define PR-CCTY '(FORALL c (IMPLIES (IN c (CARR gq)) (IN (lb c) CC))))
 (define PR-GHOM '(FORALL c (IMPLIES (IN c (CARR gq)) (FORALL d (IMPLIES (IN d (CARR gq)) (= (lb ((OPR gq) c d)) (* (lb c) (lb d))))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(gq lb))) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-B: gq, lb fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (dk-apply! (dk-ctx-form PR-CCTY) 'c)
@@ -668,7 +668,7 @@
   (dk-close-if-asm!)
   (dk-focus! (cdr (assq 'step ind)))
   (dk-peel!)
-  (let ((ihc (dk-apply! ih 'gq 'lb 'c)))
+  (let ((ihc (dk-apply! ih 'c)))   ; W1G-B: gq, lb fixed
     (dk-cite! 'gpow-type n 'gq 'c)
     (dk-apply! (dk-ctx-form PR-CCTY) 'c)
     (dk-have-and! '(IN (lb c) CC) (list 'IN n 'NN))

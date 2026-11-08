@@ -82,7 +82,7 @@
   (FORALL p (IMPLIES (IS-PRIME-ELEMENT s p) (FORALL q (IMPLIES (IS-PRIME-SEQ s q n)
     (IMPLIES (DIVIDES s p (PROD-RING s q (INTERVAL 1 n)))
       (FORSOME k (AND (IN k (INTERVAL 1 n)) (ASSOCIATED s p (q k)))))))))))))))
-(ni)
+(dk-ni-fixed! '(s p q))   ; W1D: s, p, q fixed
 (dk-focus! (car (filter (lambda (l) (not (gu-step-goal? (dk-goal-of l)))) (dk-open-leaves))))
 ;; n = 0: p divides 1, so p is a unit
 (define gu1-ls (dk-peel!))
@@ -122,7 +122,7 @@
 (define gu1-ls2 (dk-peel!))
 (define gu1-t (dk-landed-var gu1-ls2 'NN))
 (define gu1-st (list 'succ gu1-t))
-(define gu1-ih (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'ASSOCIATED))) gu1-ls2)))
+(define gu1-ih (car (filter (lambda (fm) (and (dk-head-is? fm 'IMPLIES) (dk-contains? fm 'ASSOCIATED))) gu1-ls2)))   ; W1D: s p q fixed
 
 (gu-open! 'is-euclidean-domain 's)
 (gu-ring!)
@@ -151,7 +151,7 @@
 (use-em (list 'DIVIDES 's 'p gu1-A)
   (lambda ()
     
-    (let ((ex (dk-apply! gu1-ih 's 'p 'q)))
+    (let ((ex (let gu1-dl ((r gu1-ih)) (if (dk-head-is? r 'IMPLIES) (gu1-dl (dk-landed-1 (lambda () (detach! r)))) r))))   ; W1D: was (dk-apply! gu1-ih 's 'p 'q)
             (let ((k (dk-skolem! ex)))
         
         (dk-split-all!)
@@ -215,7 +215,7 @@
 (sp (make-wff '(FORALL nb_ (IMPLIES (IN nb_ NN) (FORALL s (FORALL dfn (IMPLIES (IS-DEGREE-FUNCTION s dfn)
   (FORALL a (IMPLIES (IN a (CARR s)) (IMPLIES (< (dfn a) nb_) (IMPLIES (NOT (= a (ZERO s))) (IMPLIES (NOT (IS-UNIT s a))
     (FORSOME p (AND (IS-PRIME-ELEMENT s p) (FORSOME d (AND (IN d (CARR s)) (= a ((MUL s) p d))))))))))))))))))
-(ni)
+(dk-ni-fixed! '(s dfn))   ; W1D: s, dfn fixed
 (dk-focus! (car (filter (lambda (l) (not (gu-step-goal? (dk-goal-of l)))) (dk-open-leaves))))
 (dk-peel!)
 (gu-deg! 'dfn)
@@ -276,7 +276,7 @@
           (fact 'nn-lt-succ-le (list 'dfn b) '(dfn a))
           (dk-have! (list '< (list 'dfn b) gu2-t) (lambda () (dk-nn!)))
           
-          (let* ((ex (dk-apply! gu2-ih 's 'dfn b))
+          (let* ((ex (dk-apply! gu2-ih b))   ; W1D: s, dfn fixed
                  (p (dk-skolem! ex)))
             (dk-split-all!)
             (let ((d (dk-skolem! (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORSOME) (dk-contains? fm p))) "the cofactor d"))))
@@ -316,7 +316,9 @@
           (dk-cite! 'interval-mem-intro 1 hi i)
           (ass)))))
 ;; the sequence q with p appended at place succ(n)
-(define (gu-app q p n) (list 'VNB-LAMBDA 'gx_ 'NN (list 'IF (list '= 'gx_ (list 'succ n)) p (list q 'gx_))))
+;; W1E (2026-11-05): on INTERVAL(1, succ n), not NN, so that it is a member of
+;; FUN(INTERVAL(1, succ n), CARR s) -- the witness typing of factorization-exists-bounded.
+(define (gu-app q p n) (list 'VNB-LAMBDA 'gx_ (gu-int (list 'succ n)) (list 'IF (list '= 'gx_ (list 'succ n)) p (list q 'gx_))))
 (define (gu-unfold-seq! q n thunk)
   ;; goal IS-PRIME-SEQ(s, q, n): prove its defining universal by THUNK
   (let ((pi (dk-cite! 'is-prime-seq 's q n)))
@@ -345,6 +347,31 @@
          (dq (dk-pick (lambda (fm) (and (dk-head-is? fm '=) (equal? (cadr fm) d) (dk-contains? fm 'PROD-RING))) "d = u PROD")))
     (fact 'nn-succ-closed n)
     (gu-open! 'is-unit 's u)
+    (gu-int! sn)
+    (gu-int-in! sn sn)
+    (gu-seq-typ! q n)
+    ;; W1E: the witness typing qq in FUN(INTERVAL(1, succ n), CARR s)
+    (dk-have! (list 'IN qq (list 'FUN (gu-int sn) '(CARR s)))
+      (lambda ()
+        (dk-lam-type!
+          (lambda ()
+            (let ((i (dk-di-var!)))
+              (gu-int-mem! i sn)
+              (dk-case-if! (list 'IF (list '= i sn) p (list q i))
+                (lambda (tr v)
+                  (if tr (begin (gu-in! p) (ass))
+                      (begin
+                        (dk-have! (list 'NOT (list '= sn i))
+                          (lambda ()
+                            (di)
+                            (let ((h (dk-rewrite-h! (list 'NOT (list '= i sn)) sn i)))
+                              (dk-have! (list '= i i) (lambda () (rfl)))
+                              (dk-close-if! (lambda () (dk-only! h (list '= i i))) prop))))
+                        (fact 'nn-le-ne-succ i sn)
+                        (gu-int-in! i n)
+                        (dk-apply! (gu-seq-typ q n) i)
+                        (ass)))))))
+          (lambda () (ass)))))
     
     ;; the appended sequence is a prime sequence
     (dk-have! (list 'IS-PRIME-SEQ 's qq sn)
@@ -384,6 +411,8 @@
           (let* ((ls (dk-peel!))
                  (z (cadr (car (filter (lambda (fm) (and (dk-head-is? fm 'IN) (equal? (caddr fm) (gu-int n)))) ls)))))
             (gu-int-mem! z n)
+            (dk-have! (list '<= n sn) (lambda () (dk-nn!)))   ; W1E: z typed in qq's domain
+            (dk-cite! 'interval-widen n sn 1 z)
             (dk-lam-b!)
             (dk-apply! (gu-seq-typ q n) z)
             (dk-if-branch! #f (list 'IF (list '= z sn) p (list q z)) (lambda () (dk-nn!)) (lambda () (rfl))))))
@@ -408,15 +437,17 @@
                                       (subst ps1) (subst e2) (subst e3) (subst apd) (subst dq)
                                       (crs)))))))))))))))))
 
+;; W1E (2026-11-05): the witnesses typed, guu_ in CARR s and gup_ in FUN(INTERVAL(1, gun_),
+;; CARR s) (the statement guard that confines the existentials of the induction body).
 (define gu-exist-body
-  '(FORSOME guu_ (AND (IS-UNIT s guu_)
+  '(FORSOME guu_ (AND (IN guu_ (CARR s)) (AND (IS-UNIT s guu_)
      (FORSOME gun_ (AND (IN gun_ NN)
-       (FORSOME gup_ (AND (IS-PRIME-SEQ s gup_ gun_)
-         (= a ((MUL s) guu_ (PROD-RING s gup_ (INTERVAL 1 gun_)))))))))))
+       (FORSOME gup_ (AND (IN gup_ (FUN (INTERVAL 1 gun_) (CARR s))) (AND (IS-PRIME-SEQ s gup_ gun_)
+         (= a ((MUL s) guu_ (PROD-RING s gup_ (INTERVAL 1 gun_)))))))))))))
 (sp (make-wff (list 'FORALL 'nb_ (list 'IMPLIES '(IN nb_ NN) (list 'FORALL 's (list 'FORALL 'dfn (list 'IMPLIES '(IS-DEGREE-FUNCTION s dfn)
   (list 'FORALL 'a (list 'IMPLIES '(IN a (CARR s)) (list 'IMPLIES '(< (dfn a) nb_) (list 'IMPLIES '(NOT (= a (ZERO s)))
     gu-exist-body)))))))))))
-(ni)
+(dk-ni-fixed! '(s dfn))   ; W1E: s, dfn fixed (W1D's verified pattern)
 (dk-focus! (car (filter (lambda (l) (not (gu-step-goal? (dk-goal-of l)))) (dk-open-leaves))))
 (dk-peel!)
 (gu-deg! 'dfn)
@@ -429,12 +460,16 @@
 (dk-focus! (car (dk-open-leaves)))
 (define gu3-ls (dk-peel!))
 (define gu3-t (dk-landed-var gu3-ls 'NN))
-(define gu3-ih (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'IS-PRIME-SEQ))) gu3-ls)))
+(define gu3-ih (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'IS-PRIME-SEQ))) gu3-ls)))   ; W1E: s dfn fixed
 (gu-deg! 'dfn)
 (gu-nu! 'dfn 'a)
+(define gu3-z0 '(VNB-LAMBDA gz0_ (INTERVAL 1 0) (ZERO s)))   ; W1E: the empty prime sequence
 (use-em '(IS-UNIT s a)
   (lambda ()
     ;; a = a . (empty product)
+    (fact 'interval-in-set 1 0)
+    (dk-have! (list 'IN gu3-z0 '(FUN (INTERVAL 1 0) (CARR s)))
+      (lambda () (dk-lam-type! (lambda () (dk-di-var!) (ass)) (lambda () (ass)))))
     (ew 'a)
     (dk-conj-close!
       (lambda ()
@@ -446,15 +481,16 @@
                   (cond ((dk-asm? (dk-goal)) (ass))
                         ((dk-head-is? (dk-goal) 'IN) (arith))
                         (#t
-                         (ew 'a)
+                         (ew gu3-z0)
                          (dk-conj-close!
                            (lambda ()
                              (cond ((dk-asm? (dk-goal)) (ass))
                                    ((dk-head-is? (dk-goal) 'IS-PRIME-SEQ)
-                                    (gu-unfold-seq! 'a 0 gu-vacuous!))
+                                    (gu-unfold-seq! gu3-z0 0 gu-vacuous!))
                                    (#t
                                     (subst (dk-cite! 'interval-1-0-empty))
-                                    (subst (dk-cite! 'prod-ring-empty 's 'a))
+                                    ;; W1E: interval-1-0-empty also rewrote the lambda's domain
+                                    (subst (dk-cite! 'prod-ring-empty 's '(VNB-LAMBDA gz0_ EMPTY-SET (ZERO s))))
                                     (subst (dk-cite! 'ring-mul-right-id 's 'a))
                                     (rfl)))))))))))))
     )
@@ -481,7 +517,7 @@
         (fact 'nn-lt-succ-le (list 'dfn d) '(dfn a))
         (dk-have! (list '< (list 'dfn d) gu3-t) (lambda () (dk-nn!)))
         
-        (let* ((ex2 (dk-apply! gu3-ih 's 'dfn d))
+        (let* ((ex2 (dk-apply! gu3-ih d))   ; W1E: s, dfn fixed
                (u (dk-skolem! ex2)))
           (dk-split-all!)
           (let ((n (dk-skolem! (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORSOME) (dk-contains? fm u))) "n"))))
@@ -780,11 +816,13 @@
       (FORALL gui_ (IMPLIES (IN gui_ (INTERVAL 1 n)) (ASSOCIATED s (p gui_) (q (gus2_ gui_)))))))))
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (list 'FORALL 's (list 'IMPLIES '(IS-EUCLIDEAN-DOMAIN s)
   (list 'FORALL 'p (list 'IMPLIES '(IS-PRIME-SEQ s p n) (list 'FORALL 'm (list 'IMPLIES '(IN m NN)
-  (list 'FORALL 'q (list 'IMPLIES '(IS-PRIME-SEQ s q m)
-  (list 'FORALL 'u (list 'IMPLIES '(IS-UNIT s u) (list 'FORALL 'v (list 'IMPLIES '(IS-UNIT s v)
+;; W1E (2026-11-05): the statement guards q in FUN(INTERVAL(1, m), CARR s) and v in CARR s (the
+;; induction hypothesis is used at another q and v); s, p, u are fixed by dk-ni-fixed!.
+  (list 'FORALL 'q (list 'IMPLIES '(IN q (FUN (INTERVAL 1 m) (CARR s))) (list 'IMPLIES '(IS-PRIME-SEQ s q m)
+  (list 'FORALL 'u (list 'IMPLIES '(IS-UNIT s u) (list 'FORALL 'v (list 'IMPLIES '(IN v (CARR s)) (list 'IMPLIES '(IS-UNIT s v)
     (list 'IMPLIES '(= ((MUL s) u (PROD-RING s p (INTERVAL 1 n))) ((MUL s) v (PROD-RING s q (INTERVAL 1 m))))
-      gu-uniq-concl)))))))))))))))))
-(ni)
+      gu-uniq-concl)))))))))))))))))))
+(dk-ni-fixed! '(s p u))   ; W1E: s, p, u fixed
 (dk-focus! (car (filter (lambda (l) (not (gu-step-goal? (dk-goal-of l)))) (dk-open-leaves))))
 ;; ---- n = 0: u = v PROD(q, [1, m]) forces m = 0
 (dk-peel!)
@@ -861,7 +899,7 @@
 (define gu9-ls (dk-peel!))
 (define gu9-n 'n)
 (define gu9-sn (list 'succ gu9-n))
-(define gu9-ih (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'ASSOCIATED))) gu9-ls)))
+(define gu9-ih (car (filter (lambda (fm) (and (dk-head-is? fm 'IMPLIES) (dk-contains? fm 'ASSOCIATED))) gu9-ls)))   ; W1E: s p u fixed
 (gu-open! 'is-euclidean-domain 's)
 (gu-ring!)
 (define gu9-wu (gu-unit-open! 'u))
@@ -930,6 +968,7 @@
 (define gu9-phi (dk-skolem! (dk-cite! 'interval-transposition-exists gu9-M gu9-k)))
 (dk-split-all!)
 (define gu9-SM (gu-int gu9-M))
+(define gu9-S1-int (gu-int gu9-m1))   ; W1E
 (define gu9-QS (list 'VNB-LAMBDA 'gy_ gu9-SM (list 'q (list gu9-phi 'gy_))))
 (gu-int! gu9-M)
 (gu-seq-typ! 'q gu9-M)
@@ -964,7 +1003,6 @@
           (gu-seq-at! 'q gu9-M (list gu9-phi z))
           (dk-close-if! (lambda () (dk-lam-b!)) gu-rfl-or-ass!))))))
 
-(define gu9-PQS1 (gu-prod gu9-QS gu9-m1))
 (gu-int! gu9-m1)
 (dk-have! (gu-seq-typ gu9-QS gu9-m1)
   (lambda ()
@@ -974,6 +1012,47 @@
       (dk-apply! (gu-seq-typ gu9-QS gu9-M) z)
       (ass))))
 (dk-cite! 'prod-ring-type-ptwise 's (gu-int gu9-m1) gu9-QS)
+;; W1E: the induction hypothesis wants a member of FUN(INTERVAL(1, m1), CARR s): QS1, the
+;; restriction of QS to [1, m1], with the same values, product and primes there.
+(define gu9-QS1 (list 'VNB-LAMBDA 'gy1_ gu9-S1-int (list 'q (list gu9-phi 'gy1_))))
+(define (gu9-qs1-val! z)   ; z in [1, m1] in context: land QS1(z) = QS(z)
+  (dk-have! (list '<= gu9-m1 gu9-M) (lambda () (dk-nn!)))
+  (dk-cite! 'interval-widen gu9-m1 gu9-M 1 z)
+  (dk-cite! 'fun-apply-type-c gu9-phi gu9-SM gu9-SM z)
+  (dk-apply! (gu-seq-typ 'q gu9-M) (list gu9-phi z))
+  (dk-have! (list '= (list gu9-QS1 z) (list gu9-QS z))
+    (lambda () (dk-lam-b!) (dk-close-if! (lambda () #t) gu-rfl-or-ass!))))
+(dk-have! (list 'IN gu9-QS1 (list 'FUN gu9-S1-int '(CARR s)))
+  (lambda ()
+    (dk-lam-type!
+      (lambda ()
+        (let ((z (dk-di-var!)))
+          (dk-have! (list '<= gu9-m1 gu9-M) (lambda () (dk-nn!)))
+          (dk-cite! 'interval-widen gu9-m1 gu9-M 1 z)
+          (dk-cite! 'fun-apply-type-c gu9-phi gu9-SM gu9-SM z)
+          (dk-apply! (gu-seq-typ 'q gu9-M) (list gu9-phi z))
+          (ass)))
+      (lambda () (ass)))))
+(dk-have! (gu-seq-typ gu9-QS1 gu9-m1)
+  (lambda ()
+    (let ((z (dk-di-var!)))
+      (dk-cite! 'fun-apply-type-c gu9-QS1 gu9-S1-int '(CARR s) z)
+      (ass))))
+(dk-cite! 'prod-ring-type-ptwise 's (gu-int gu9-m1) gu9-QS1)
+(dk-have! (list 'IS-PRIME-SEQ 's gu9-QS1 gu9-m1)
+  (lambda ()
+    (gu-unfold-seq! gu9-QS1 gu9-m1
+      (lambda ()
+        (let* ((ls (dk-peel!))
+               (z (cadr (car (filter (lambda (fm) (and (dk-head-is? fm 'IN) (equal? (caddr fm) (gu-int gu9-m1)))) ls)))))
+          (gu-seq-at! gu9-QS gu9-m1 z)
+          (gu9-qs1-val! z)
+          (subst (list '= (list gu9-QS1 z) (list gu9-QS z)))
+          (ass))))))
+(define gu9-qs1-ptw (list 'FORALL 'gz1_ (list 'IMPLIES (list 'IN 'gz1_ gu9-S1-int) (list '= (list gu9-QS1 'gz1_) (list gu9-QS 'gz1_)))))
+(dk-have! gu9-qs1-ptw (lambda () (let ((z (dk-di-var!))) (gu9-qs1-val! z) (ass))))
+(define gu9-qs1-prod (dk-cite! 'prod-ring-congruence-q 's gu9-S1-int gu9-QS1 gu9-QS))
+(define gu9-PQS1 (gu-prod gu9-QS1 gu9-m1))
 (define gu9-vw (gu-mul 'v gu9-w))
 (gu-unit-mul! 'v gu9-w gu9-wv gu9-ww)
 
@@ -989,6 +1068,7 @@
 (dk-have! (list '= (gu-mul gu9-a gu9-P) (gu-mul gu9-b gu9-P))
   (lambda ()
     (subst (list '= (gu-mul gu9-a gu9-P) (gu-mul 'v gu9-PQM)))
+    (subst gu9-qs1-prod)   ; W1E: PROD(QS1, [1, m1]) -> PROD(QS, [1, m1])
     (subst gu9-pm)
     (subst gu9-lzq)
     (subst (list '= gu9-QSM (list 'q gu9-k)))
@@ -997,12 +1077,16 @@
 (dk-cite! 'integral-domain-cancel-right 's gu9-a gu9-b gu9-P)
 
 ;; the induction hypothesis
-(define gu9-ihr (dk-apply! gu9-ih 's 'p gu9-m1 gu9-QS 'u gu9-vw))
+(gu-in! gu9-vw)
+(define gu9-ihr   ; W1E: s p u fixed; detach IS-PRIME-SEQ(s, p, n), then m1, QS1, vw
+  (let gu9-dl ((r gu9-ih))
+    (if (dk-head-is? r 'IMPLIES) (gu9-dl (dk-landed-1 (lambda () (detach! r))))
+        (dk-apply! r gu9-m1 gu9-QS1 gu9-vw))))
 (dk-split-all! (list gu9-ihr))
-(define gu9-sg (dk-skolem! (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORSOME) (dk-contains? fm 'gus2_) (dk-contains? fm gu9-QS))) "the bijection")))
+(define gu9-sg (dk-skolem! (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORSOME) (dk-contains? fm 'gus2_) (dk-contains? fm gu9-QS1))) "the bijection")))
 (dk-split-all!)
 
-(define gu9-S1 (gu-int gu9-m1))
+(define gu9-S1 gu9-S1-int)
 (define gu9-nint (gu-int gu9-n))
 (define gu9-sgb (list 'IN gu9-sg (list 'BIJECTION gu9-nint gu9-S1)))
 (define gu9-sgbi (dk-cite! 'bijection-membership-iff gu9-nint gu9-S1 gu9-sg))
@@ -1049,7 +1133,7 @@
                          (dk-cite! 'fun-apply-type-c gu9-phi gu9-SM gu9-SM (list gu9-sg i))
                          (dk-apply! (gu-seq-typ 'q gu9-M) (list gu9-phi (list gu9-sg i)))
                          (let* ((a1 (dk-apply! gu9-assoc i))
-                                (qv (list gu9-QS (list gu9-sg i)))
+                                (qv (list gu9-QS1 (list gu9-sg i)))
                                 (rv (list 'q (list gu9-phi (list gu9-sg i)))))
                            (dk-have! (list '= qv rv) (lambda () (dk-close-if! (lambda () (dk-lam-b!)) gu-rfl-or-ass!)))
                            (dk-rewrite-h! a1 qv rv))
@@ -1079,8 +1163,55 @@
                       (lhs (cadr eq)) (rhs (caddr eq))
                       (u (cadr lhs)) (p (caddr (caddr lhs))) (n (caddr (cadddr (caddr lhs))))
                       (v (cadr rhs)) (q (caddr (caddr rhs))) (m (caddr (cadddr (caddr rhs)))))
-                 (dk-cite! 'factorization-unique n 's p m q u v)
-                 (ass)))
+                 ;; W1E: factorization-unique wants q in FUN(INTERVAL(1, m), CARR s) and v in
+                 ;; CARR s.  IS-UFD gives q only through IS-PRIME-SEQ, so the theorem is cited
+                 ;; at q1 = (lambda i in [1, m]. q(i)), which has the same values, product and
+                 ;; primes on [1, m]; the conclusion is carried back to q.
+                 (gu-open! 'is-unit 's v)
+                 (gu-int! m)
+                 (gu-seq-typ! q m)
+                 (let* ((q1 (list 'VNB-LAMBDA 'gq1_ (gu-int m) (list q 'gq1_)))
+                        (val! (lambda (z)    ; z in [1, m] in context: land q1(z) = q(z)
+                                (dk-apply! (gu-seq-typ q m) z)
+                                (dk-have! (list '= (list q1 z) (list q z))
+                                  (lambda () (dk-lam-b!) (dk-close-if! (lambda () #t) gu-rfl-or-ass!)))))
+                        (ptw (list 'FORALL 'gz2_ (list 'IMPLIES (list 'IN 'gz2_ (gu-int m)) (list '= (list q1 'gz2_) (list q 'gz2_))))))
+                   (dk-have! (list 'IN q1 (list 'FUN (gu-int m) '(CARR s)))
+                     (lambda () (dk-lam-type! (lambda () (let ((z (dk-di-var!))) (dk-apply! (gu-seq-typ q m) z) (ass)))
+                                              (lambda () (ass)))))
+                   (dk-have! (list 'IS-PRIME-SEQ 's q1 m)
+                     (lambda ()
+                       (gu-unfold-seq! q1 m
+                         (lambda ()
+                           (let* ((ls2 (dk-peel!))
+                                  (z (cadr (car (filter (lambda (fm) (and (dk-head-is? fm 'IN) (equal? (caddr fm) (gu-int m)))) ls2)))))
+                             (gu-seq-at! q m z)
+                             (val! z)
+                             (subst (list '= (list q1 z) (list q z)))
+                             (ass))))))
+                   (dk-have! ptw (lambda () (let ((z (dk-di-var!))) (val! z) (ass))))
+                   (let* ((pe (dk-cite! 'prod-ring-congruence-q 's (gu-int m) q1 q))
+                          (eq1 (dk-rewrite-h! eq (gu-prod q m) (gu-prod q1 m)))
+                          (res (dk-cite! 'factorization-unique n 's p m q1 u v))
+                          (sg (dk-skolem! (find-first (lambda (fm) (and (dk-head-is? fm 'FORSOME) (dk-contains? fm 'gus2_) (dk-contains? fm q1)))
+                                                      (dk-split-all! (list res))))))
+                     (dk-split-all!)
+                     (let ((asc (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'ASSOCIATED) (dk-contains? fm sg))) "the associates"))
+                           (sgf (dk-cite! 'bijection-in-fun (gu-int n) (gu-int m) sg)))
+                       (dk-conj-close!
+                         (lambda ()
+                           (if (dk-asm? (dk-goal)) (ass)
+                               (begin
+                                 (ew sg)
+                                 (dk-conj-close!
+                                   (lambda ()
+                                     (if (dk-asm? (dk-goal)) (ass)
+                                         (let* ((i (dk-di-var!)))
+                                           (dk-cite! 'fun-apply-type-c sg (gu-int n) (gu-int m) i)
+                                           (val! (list sg i))
+                                           (let ((a1 (dk-apply! asc i)))
+                                             (dk-rewrite-h! a1 (list q1 (list sg i)) (list q (list sg i)))
+                                             (ass)))))))))))))))
               (#t
                (let* ((ls (dk-peel!))
                       (nz (car (filter (lambda (fm) (and (dk-head-is? fm 'NOT) (dk-contains? fm '(ZERO s)))) ls)))
@@ -1089,8 +1220,25 @@
                  (gu-nu! gu10-dfn a)
                  (fact 'nn-succ-closed (list gu10-dfn a))
                  (dk-have! (list '< (list gu10-dfn a) bd) (lambda () (dk-nn!)))
-                 (dk-cite! 'factorization-exists-bounded bd 's gu10-dfn a)
-                 (ass))))))))
+                 ;; W1E: factorization-exists-bounded now also types its witnesses; IS-UFD's
+                 ;; existential does not, so the witnesses are read off and re-supplied.
+                 (let* ((ex (dk-cite! 'factorization-exists-bounded bd 's gu10-dfn a))
+                        (u (dk-skolem! ex)))
+                   (dk-split-all!)
+                   (let* ((n (dk-skolem! (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORSOME) (dk-contains? fm u))) "n"))))
+                     (dk-split-all!)
+                     (let ((q (dk-skolem! (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORSOME) (dk-contains? fm n))) "q"))))
+                       (dk-split-all!)
+                       (ew u)
+                       (dk-conj-close!
+                         (lambda ()
+                           (if (dk-asm? (dk-goal)) (ass)
+                               (begin
+                                 (ew n)
+                                 (dk-conj-close!
+                                   (lambda ()
+                                     (if (dk-asm? (dk-goal)) (ass)
+                                         (begin (ew q) (dk-conj-close! (lambda () (ass)))))))))))))))))))))
 (dk-close-if! (lambda () (dk-only! gu10-ui (caddr gu10-ui))) prop)
 (qed 'euclidean-domain-is-ufd)
 (topic! 'euclidean-domain-is-ufd 'algebra)

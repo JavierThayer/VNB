@@ -294,7 +294,7 @@
                         "the entry-membership hypothesis")))
     (fact 'nn-succ-closed k0)
     (have! (tb-hyp iv nv ep aa) (lambda () (tb-shift-hyp! hyp k0 nv)))
-    (let* ((ihres (apply dk-apply! ih (append (list aa) args (list sk))))
+    (let* ((ihres (dk-apply! ih sk))          ; W1C: A and the family fixed (was at aa, args, sk)
            (m0    (dk-skolem! ihres))
            (entu  (dk-pick (lambda (f)
                              (and (pair? f) (eq? (car f) 'FORALL)
@@ -369,7 +369,7 @@
    (dk-focus! lf)
    (dk-peel!)
    (if (equal? (caddr (tb-goal-parts)) 0) (tb-base!) (tb-step!)))
- (dk-opened (lambda () (ni))))
+ (dk-opened (lambda () (dk-ni-fixed!))))   ; W1C: A and the family fixed; k (and n) stay quantified
 (qed 'tuple-tabulation-offset)
 (topic! 'tuple-tabulation-offset 'combinatorial)
 
@@ -389,7 +389,7 @@
    (dk-focus! lf)
    (dk-peel!)
    (if (equal? (caddr (tb-goal-parts)) 0) (tb-base!) (tb-step!)))
- (dk-opened (lambda () (ni))))
+ (dk-opened (lambda () (dk-ni-fixed!))))   ; W1C: A and the family fixed; k (and n) stay quantified
 (qed 'row-tabulation-offset)
 (topic! 'row-tabulation-offset 'combinatorial)
 
@@ -605,7 +605,7 @@
           (subst (list '= (list 'succ (list '+ k0 i)) (list '+ k0 (list 'succ i))))
           (ass))))
     ;; the tail of the matrix, from the induction hypothesis
-    (let* ((ihres  (dk-apply! ih aa gg nt sk))
+    (let* ((ihres  (dk-apply! ih nt sk))     ; W1C: A, g fixed
            (m0     (dk-skolem! ihres))
            (rowlen (dk-pick (lambda (f)
                               (and (pair? f) (eq? (car f) 'FORALL)
@@ -703,7 +703,7 @@
    (dk-focus! lf)
    (dk-peel!)
    (if (equal? (caddr (mtb-parts)) 0) (mtb-base!) (mtb-step!)))
- (dk-opened (lambda () (ni))))
+ (dk-opened (lambda () (dk-ni-fixed!))))   ; W1C: A and the family fixed; k (and n) stay quantified
 (qed 'matrix-tabulation)
 (topic! 'matrix-tabulation 'combinatorial)
 

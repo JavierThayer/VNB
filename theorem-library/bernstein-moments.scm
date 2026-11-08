@@ -290,10 +290,26 @@
 
 (define (bmo-nn-ind inner) (list 'FORALL 'n_ (list 'IMPLIES '(IN n_ NN) inner)))
 
+;;; W1K (the user's decision 2026-11-06): the transfer sequence h_ of the two moment
+;;; inductions is typed, (IN h_ (FUN NN RR)), so that the induction hypothesis, which
+;;; is used at another family, quantifies over a set.  A citer (and the step, at the
+;;; family S) supplies the typing of a VNB-LAMBDA family f over NN from its pointwise
+;;; realness (bmo-pw-real f), which every such site already holds: lam-t, then the
+;;; pointwise instance beta-reduced in context.
+(define (bmo-fun-type! f)
+  (dk-have! (list 'IN f '(FUN NN RR))
+    (lambda ()
+      (dk-lam-type!
+        (lambda ()
+          (let* ((v (cadr (car (dk-peel!))))
+                 (inst (dk-deepest (lambda () (inst+ (bmo-pw-real f) v)))))
+            (dk-lam-b-h! inst)
+            (ass)))))))
+
 (define bmo-m1-stmt
   (bmo-nn-ind
     (forall-guarded '(x_ h_)
-      (list '(IN x_ RR)
+      (list '(IN x_ RR) '(IN h_ (FUN NN RR))
             (bmo-pw-eq 'h_ (lambda (k) (list '* k (list (bmo-basis 'n_) k)))))
       '(= (SERIES-PARTIAL-SUM h_ (succ n_)) (* n_ x_)))))
 
@@ -377,6 +393,7 @@
       (fact 'bernstein-basis-in-fun n 'x_)
       (subst (dk-fact! 'series-partial-sum-add-ptwise (list 'succ n) ss bb qq))
       (subst (dk-fact! 'bernstein-partition n 'x_))
+      (bmo-fun-type! ss)
       (subst (dk-deepest (lambda ()
                (inst+ (dk-deepest (lambda () (inst+ ih 'x_))) ss))))
       (fact 'nn-succ-plus-one n)
@@ -426,7 +443,7 @@
                                    (list (bmo-basis n) k)))))
 (define bmo-m2-stmt
   (bmo-nn-ind
-    (forall-guarded '(x_ h_) (list '(IN x_ RR) (bmo-m2-heq 'n_))
+    (forall-guarded '(x_ h_) (list '(IN x_ RR) '(IN h_ (FUN NN RR)) (bmo-m2-heq 'n_))
       '(= (SERIES-PARTIAL-SUM h_ (succ n_)) (* (* n_ (- n_ 1)) (* x_ x_))))))
 
 (quietly (lambda ()
@@ -521,7 +538,9 @@
     (subst (dk-fact! 'bernstein-weighted-step n 'x_ bmo-w-kk 'h_ qq ss))
     (subst (dk-fact! 'series-partial-sum-add-ptwise (list 'succ n) ss uu qq))
     (subst (dk-fact! 'series-partial-sum-add-ptwise (list 'succ n) s1 s1 uu))
+    (bmo-fun-type! s1)
     (subst (dk-fact! 'bernstein-moment-1 n 'x_ s1))
+    (bmo-fun-type! ss)
     (subst (dk-deepest (lambda ()
              (inst+ (dk-deepest (lambda () (inst+ ih 'x_))) ss))))
     (fact 'nn-succ-plus-one n)
@@ -643,7 +662,9 @@
   ;; LUTINS instantiation: scale-ptwise is instantiated at the basis family.
   (fact 'bernstein-basis-in-fun 'n_ 'x_)
   (subst (dk-fact! 'series-partial-sum-scale-ptwise '(succ n_) bmo-c2 bmo-vB bmo-vC))
+  (bmo-fun-type! bmo-vA)
   (subst (dk-fact! 'bernstein-moment-2 'n_ 'x_ bmo-vA))
+  (bmo-fun-type! bmo-vS1)
   (subst (dk-fact! 'bernstein-moment-1 'n_ 'x_ bmo-vS1))
   (subst (dk-fact! 'bernstein-partition 'n_ 'x_))
   (crs)))

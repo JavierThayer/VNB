@@ -196,7 +196,7 @@
          (IMPLIES (IN f (BIJECTION (PTS s) (PTS t)))
            (IS-HOMEOMORPHISM s t f)))))))))
 (dk-peel!)
-(c3k-iff-rhs! (dk-cite! 'is-compact 's))
+(c3k-iff-rhs! (dk-cite! 'is-compact-classes 's))
 (c3k-iff-rhs! (dk-cite! 'is-continuous 's 't 'f))
 (define c3k-g '(INVERSE-BIJ f (PTS s) (PTS t)))
 (fact 'inverse-bij-in-fun '(PTS s) '(PTS t) 'f)

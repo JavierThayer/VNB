@@ -123,17 +123,15 @@
   (sp (make-wff '(FORALL n_ (IMPLIES (IN n_ NN)
      (FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
        (= (RING-POWER R (ONE R) n_) (ONE R))))))))
-  (ni)
+  (dk-ni-fixed! '(R))   ; W1D: the ring fixed
   (bn-focus (lambda (s) (substring? ", 0) = " s)))
-  (di) (di)
   (fact 'commutative-ring-is-ring 'r) (fact 'ring-one-in 'r)
   (mac 'ring-power-zero) (crs)
   (bn-focus (lambda (s) (substring? "succ(n_)" s)))
-  (di) (di) (di) (di)
+  (di) (di)   ; W1D: R fixed
   (fact 'commutative-ring-is-ring 'r) (fact 'ring-one-in 'r)
   (macm 'ring-power-succ)
-  (inst+ '(forall r (implies (is-commutative-ring r)
-                             (= (ring-power r (one r) n_) (one r)))) 'r)
+  ; W1D: R fixed; the IH is the equation itself
   (subst '(= (RING-POWER r (ONE r) n_) (ONE r)))
   (crs)))
 (bn-check 'ring-power-of-one)
@@ -162,13 +160,12 @@
   ;; RM2 2026-10-09: the macete door owes definedness of the matched ring view
   ;; bn-r and group view; IS-NORMED-FIELD(RR-NORMED-FIELD) certifies both slot lists.
   (fact 'rr-is-normed-field)
-  (ni)
+  (dk-ni-fixed! '(f_))   ; W1D: f_ fixed
   (bn-focus (lambda (s) (substring? ", 0) ==" s)))
-  (di)
   (mac 'series-partial-sum-zero) (mac 'sum-zero) (mac 'rr-scalar-ring-zero)
   (qrfl)
   (bn-focus (lambda (s) (substring? "succ(n_)" s)))
-  (di) (di) (di)
+  (di) (di)   ; W1D: f_ fixed
   ;; 2026-08-29.  This used to go SERIES-PARTIAL-SUM -> surface `+' via
   ;; series-partial-sum-succ and binplus-apply.  Neither is available now: the
   ;; recurrence is guarded on its arguments being real (and this theorem
@@ -187,8 +184,7 @@
   (fact 'series-partial-sum-unfold 'f_ 'n_)
   (subst (list '== (list 'SUM-AG '(NORMED-FIELD-ADDITIVE-AG RR-NORMED-FIELD) 'f_ 'n_)
                    '(SERIES-PARTIAL-SUM f_ n_)))
-  (inst+ (list 'FORALL 'f_ (list '== '(SERIES-PARTIAL-SUM f_ n_)
-                                    (list 'SUM bn-r 'f_ 'n_))) 'f_)
+  ; W1D: f_ fixed; the IH is the equation itself
   (subst (list '== '(SERIES-PARTIAL-SUM f_ n_) (list 'SUM bn-r 'f_ 'n_)))
   (qrfl)))
 (bn-check 'series-partial-sum-is-ring-sum)

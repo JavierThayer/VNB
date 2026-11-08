@@ -307,7 +307,7 @@
   (list 'FORALL 'd (list 'IMPLIES '(IN d (MAT m n (CARR s))) (list 'IMPLIES (gs-ch 'd)
     (list 'IMPLIES '(<= (succ k_) m) (list 'IMPLIES '(<= (succ k_) n)
       (list 'IMPLIES (list '= (gs-P 'd 'k_) '(ZERO s)) (list '= (gs-e 'd '(succ k_)) '(ZERO s))))))))))))))))))
-(ni)
+(dk-ni-fixed! '(s m n d))   ; W1G-B: s, m, n, d fixed
 (dk-focus! (car (filter (lambda (l) (not (gs-step-goal? (dk-goal-of l)))) (dk-open-leaves))))
 (dk-peel!)
 (dk-cite! 'integral-domain-is-commutative-ring 's)
@@ -319,7 +319,7 @@
 (dk-close-if! (lambda () (dk-only! (dk-rewrite-h! gs4-h gs4-pe '(ONE s)) '(NOT (= (ONE s) (ZERO s))))) prop)
 (dk-focus! (car (dk-open-leaves)))
 (define gs4-ls (dk-peel!))
-(define gs4-ih (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'IS-INTEGRAL-DOMAIN))) gs4-ls)))
+(define gs4-ih (car (filter (lambda (fm) (and (dk-head-is? fm 'IMPLIES) (dk-contains? fm 'ENTRY))) gs4-ls)))   ; W1G-B: the IH is  succ k_ <= m => .. => entry = 0
 (define gs4-k 'k_)
 (define gs4-sk '(succ k_))
 (define gs4-ssk '(succ (succ k_)))
@@ -358,7 +358,7 @@
   (lambda ()
     (use-em (list '= (gs-P 'd gs4-k) '(ZERO s))
       (lambda ()
-        (dk-apply! gs4-ih 's 'm 'n 'd)
+        (let w1g-dl ((w1g-f gs4-ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))   ; W1G-B: was (dk-apply! gs4-ih 's 'm 'n 'd)
         (ass))
       (lambda ()
         (dk-close-if! (lambda () (dk-only! (list 'OR (list '= (gs-P 'd gs4-k) '(ZERO s)) gs4-ez) (list 'NOT (list '= (gs-P 'd gs4-k) '(ZERO s))))) prop)))))

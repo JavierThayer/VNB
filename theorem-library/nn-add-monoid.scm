@@ -141,6 +141,7 @@
 
 (sp (make-wff '(IS-COMM-MONOID NN-ADD-MONOID)))
 (mac 'IS-COMM-MONOID)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (quietly (lambda () (surface-goal! 'NN-ADD-MONOID)))
 
 ;;; Split the conjunction to leaves.  Filtering on in-arrows is what stops the

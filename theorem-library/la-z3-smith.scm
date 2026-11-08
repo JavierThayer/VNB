@@ -738,8 +738,10 @@
   (list 'FORALL 'n (list 'FORALL 'P
     (list 'IMPLIES '(IN n NN)
       (list 'IMPLIES (list 'IN 'P (list 'MAT k 'n '(CARR ZZ-RING)))
+        ;; W1K (the user's decision 2026-11-06): the witness typed inside the existential
         (list 'FORSOME 'D
-          (lz3-and (cons (list 'MAT-EQUIV 'ZZ-RING k 'n 'P 'D) (lz3-nf 'D k 'n)))))))))
+          (lz3-and (cons (list 'IN 'D (list 'MAT k 'n '(CARR ZZ-RING)))
+                         (cons (list 'MAT-EQUIV 'ZZ-RING k 'n 'P 'D) (lz3-nf 'D k 'n))))))))))
 (define (lz3-zmul-eq! a b)                 ; (= ((MUL ZZ-RING) a b) (* a b)), a, b in ZZ
   (let ((eq (list '= (list '(MUL ZZ-RING) a b) (list '* a b))))
     (if (not (dk-asm? eq))
@@ -791,7 +793,8 @@
     (dk-conj-close!
       (lambda ()
         (let ((g (dk-goal)))
-          (cond ((dk-head-is? g 'MAT-EQUIV) (fact 'mat-equiv-refl 'ZZ-RING sk sq P) (ass))
+          (cond ((dk-asm? g) (ass))                  ; W1K: the witness typing
+                ((dk-head-is? g 'MAT-EQUIV) (fact 'mat-equiv-refl 'ZZ-RING sk sq P) (ass))
                 ((dk-head-is? g 'IS-DIAGONAL)
                  (mac 'IS-DIAGONAL)
                  (let* ((ld (dk-peel!))
@@ -905,7 +908,8 @@
   (dk-conj-close!
     (lambda ()
       (let ((g (dk-goal)))
-        (cond ((dk-head-is? g 'MAT-EQUIV) (fact 'mat-equiv-refl 'ZZ-RING 0 n P) (ass))
+        (cond ((dk-asm? g) (ass))                    ; W1K: the witness typing
+              ((dk-head-is? g 'MAT-EQUIV) (fact 'mat-equiv-refl 'ZZ-RING 0 n P) (ass))
               ((dk-head-is? g 'IS-DIAGONAL) (mac 'IS-DIAGONAL) (lz3-vacuous! 0 (lambda (x) '())))
               (#t (lz3-vacuous! 0 (lambda (x) '()))))))))
 ;; ---- step ----
@@ -941,7 +945,8 @@
         (dk-conj-close!
           (lambda ()
             (let ((g (dk-goal)))
-              (cond ((dk-head-is? g 'MAT-EQUIV) (fact 'mat-equiv-refl 'ZZ-RING sk n P) (ass))
+              (cond ((dk-asm? g) (ass))              ; W1K: the witness typing
+                    ((dk-head-is? g 'MAT-EQUIV) (fact 'mat-equiv-refl 'ZZ-RING sk n P) (ass))
                     ((dk-head-is? g 'IS-DIAGONAL) (mac 'IS-DIAGONAL) (lz3-vacuous! n (lambda (x) (list sn))))
                     ((dk-head-is? g 'FORALL)
                      (if (eq? (cadr g) 'i_)
@@ -1103,7 +1108,7 @@
           (list '<= 'k j))
     (list 'FORSOME 'w2 (list 'AND (list 'IN 'w2 (list 'MAT j 1 '(VEC md))) (list 'SPANS 'md j 'w2 'sm)))))
 (sp (make-wff (list 'FORALL 'j (list 'IMPLIES '(IN j NN) (lz3-pad-body 'j)))))
-(define LZ3-PAD (use-induction))
+(define LZ3-PAD (dk-use-induction-fixed! '(md sm)))   ; W1G-B: md, sm fixed; k, w stay inside
 (dk-focus! (cdr (assq 'base LZ3-PAD)))
 (dk-peel!)
 (fact 'nn-zero-le 'k)
@@ -1121,7 +1126,7 @@
   (fact 'nn-succ-closed jv)
   (use-em (list '<= 'k jv)
     (lambda ()
-      (let* ((w2 (lz3-skolem-split! (dk-apply! ih 'md 'sm 'k 'w)))
+      (let* ((w2 (lz3-skolem-split! (dk-apply! ih 'k 'w)))
              (vz '(VZERO md))
              (w3 (list 'SNOC-COL w2 jv vz))
              (sub (lz3-open! 'IS-SUBMODULE 'md 'sm))

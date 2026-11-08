@@ -171,6 +171,7 @@
   (let ((name (car ring)) (result (list-ref ring 4)))
     (sp (make-wff (list 'IS-RING name)))
     (mac 'IS-RING)                                    ; the definitional IFF
+    (dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
     (quietly (lambda () (surface-goal! name)))        ; carr(r) -> ZZ, add(r) -> binplus, ...
     ;; Split the conjunction to leaves, then close each by its shape.
     (let split ((fuel 40))

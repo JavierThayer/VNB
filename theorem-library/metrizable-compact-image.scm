@@ -185,7 +185,7 @@
     (mac-h 'is-compact-t '(IS-COMPACT-T (METRIC-TOP md)))
     (dk-split-all!)
     (let ((cl (dk-pick (dk-head? 'FORALL) "the compactness clause")))
-      (mac 'is-compact)
+      (mac 'is-compact-classes)
       (dk-conj-close!
        (lambda ()
          (if (dk-head-is? (dk-goal) 'IS-METRIC-SPACE)
@@ -246,7 +246,7 @@
                            (subst (list '= '(PTS md) '(PTS (METRIC-TOP md))))
                            (ass))
                           (#t (ass)))))))
-             (mac-h 'is-compact '(IS-COMPACT md))
+             (mac-h 'is-compact-classes '(IS-COMPACT md))
              (dk-split-all!)
              (let* ((cl (dk-pick (lambda (h) (and (dk-head-is? h 'FORALL)
                                                   (dk-contains? h 'IS-OPEN-COVER)))
@@ -688,6 +688,7 @@
     (fact 'membership-implies-sethood u1 '(OPENS t))
     u1))
 (mac 'is-top-space)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (mac 'subspace-top-pts)
 (mac 'subspace-top-opens)
 (dk-conj-close!
@@ -811,6 +812,9 @@
                (sep-me (list 'IN w up))
                (dk-split-all!)
                (ass))))
+         ;; VIAGAP (2026-10-29): the union law takes a SET family (structure-library/top-space.scm)
+         (fact 'membership-implies-sethood '(OPENS t) '(POWER (POWER (PTS t))))
+         (dk-have! (list 'IN up 'SET) (lambda () (sep-set) (ass)))
          (dk-apply! mci-s1-union up)
          (fact 'membership-implies-sethood bup '(OPENS t))
          (mci-inter-set! bup 'A)

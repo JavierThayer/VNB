@@ -650,7 +650,7 @@
         (di)
         (subst (list '= rr2 rm))
         (dk-nn! lt gle)))
-    (let* ((qv (dk-skolem! (dk-apply! ih 'R 'n 't bgf 'j) #t))
+    (let* ((qv (dk-skolem! (dk-apply! ih bgf 'j) #t))   ; W1G-A: R, n, t fixed
            (gf (lze-mm gmat fm))
            (w (lze-mm gf qv)))
       (let loop () (let ((cj (find-first (lambda (f) (and (dk-head-is? f 'AND) (dk-contains? f qv))) (dk-asms))))
@@ -678,7 +678,7 @@
               (lze-if-all! (lambda () (bg-row! cc) (ass))))))))))
 
 (sp (make-wff (list 'FORALL 'lpn_ (list 'IMPLIES '(IN lpn_ NN) (lze-pair-body 'lpn_)))))
-(define lze-pair-ind (use-induction))
+(define lze-pair-ind (dk-use-induction-fixed! '(R n t)))   ; W1G-A: R, n, t fixed (B and j vary, confined)
 (dk-focus! (cdr (assq 'base lze-pair-ind)))
 (lze-pair-drive! 0 #f)
 (dk-focus! (cdr (assq 'step lze-pair-ind)))
@@ -717,7 +717,7 @@
               (#t (error "lze-row-close!: conjunct not in context" (expression->string g))))))))
 
 (sp (make-wff (list 'FORALL 'lrk_ (list 'IMPLIES '(IN lrk_ NN) (lze-row-body 'lrk_)))))
-(define lze-row-ind* (use-induction))
+(define lze-row-ind* (dk-use-induction-fixed! '(R n t B)))   ; W1G-A: R, n, t, B fixed
 (dk-focus! (cdr (assq 'base lze-row-ind*)))
 (dk-peel!)
 (lze-euc-setup!)
@@ -736,7 +736,7 @@
   (fact 'nn-succ-closed 't)
   (fact 'nn-succ-closed v)
   (dk-have! '(<= t n) (lambda () (dk-nn! '(<= (succ t) n))))
-  (let* ((qv (dk-skolem! (dk-apply! ih 'R 'n 't 'B) #t))
+  (let* ((qv (dk-skolem! (dk-ctx-form ih) #t))   ; W1G-A: R, n, t, B fixed; the IH is the conclusion itself
          (x (lze-mm 'B qv)))
     (let loop () (let ((cj (find-first (lambda (f) (and (dk-head-is? f 'AND) (dk-contains? f qv))) (dk-asms))))
                    (if cj (begin (dk-split! cj) (loop)))))
@@ -865,7 +865,7 @@
               (#t (error "lze-col-close!: conjunct not in context" (expression->string g))))))))
 
 (sp (make-wff (list 'FORALL 'lck_ (list 'IMPLIES '(IN lck_ NN) (lze-col-body 'lck_)))))
-(define lze-col-ind* (use-induction))
+(define lze-col-ind* (dk-use-induction-fixed! '(R n t C)))   ; W1G-A: R, n, t, C fixed
 (dk-focus! (cdr (assq 'base lze-col-ind*)))
 (dk-peel!)
 (fact 'commutative-ring-is-ring 'R)
@@ -886,7 +886,7 @@
   (fact 'nn-succ-closed v)
   (dk-have! '(<= t n) (lambda () (dk-nn! '(<= (succ t) n))))
   (lze-in-iv! lze-r 1 'n '(<= (succ t) n))
-  (let* ((pv (dk-skolem! (dk-apply! ih 'R 'n 't 'C) #t))
+  (let* ((pv (dk-skolem! (dk-ctx-form ih) #t))   ; W1G-A: R, n, t, C fixed; the IH is the conclusion itself
          (y (lze-mm pv 'C)))
     (let loop () (let ((cj (find-first (lambda (f) (and (dk-head-is? f 'AND) (dk-contains? f pv))) (dk-asms))))
                    (if cj (begin (dk-split! cj) (loop)))))
@@ -1224,7 +1224,7 @@
           (ass)))))
 
 (sp (make-wff (list 'FORALL 'lmt_ (list 'IMPLIES '(IN lmt_ NN) (lze-main-body 'lmt_)))))
-(define lze-main-ind* (use-induction))
+(define lze-main-ind* (dk-use-induction-fixed! '(R n U)))   ; W1G-A: R, n, U fixed
 (dk-focus! (cdr (assq 'base lze-main-ind*)))
 (dk-peel!)
 (lze-euc-setup!)
@@ -1249,7 +1249,7 @@
   (lze-euc-setup!)
   (fact 'nn-succ-closed v)
   (dk-have! (list '<= v 'n) (lambda () (dk-nn! (list '<= sv 'n))))
-  (let* ((p (dk-skolem! (dk-apply! ih 'R 'n 'U) #t))
+  (let* ((p (dk-skolem! (let w1g-dl ((w1g-f (dk-ctx-form ih))) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f)) #t))   ; W1G-A: R, n, U fixed; the IH is (<= v n) => the conclusion
          (q (begin (lze-split-with! p)
                    (dk-skolem! (find-first (lambda (f) (and (dk-head-is? f 'FORSOME) (dk-contains? f p))) (dk-asms)) #t)))
          (x (lze-mm (lze-mm p 'U) q)))

@@ -287,6 +287,7 @@
 (sp (functor-obligation 'trunc-metric-is-metric-space))
 (di) (di)                                  ; intro s; IS-METRIC-SPACE(s) to ctx
 (mac 'IS-METRIC-SPACE)                     ; the GOAL only
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (slot 'PTS)                                ; PTS(TRUNC-METRIC s) -> PTS(s)
 (slot 'DIST)                               ; DIST(TRUNC-METRIC s) -> the lambda
 (trm-and!

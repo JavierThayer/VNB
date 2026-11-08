@@ -439,7 +439,7 @@
 (define r8g-sq (cadr (caddr r8g-conj)))           ; f, off (IN f (FUN NN (PTS s)))
 (define r8g-amsp (list 'IS-METRIC-SPACE r8g-sv))
 (dk-split-all! r8g-top)
-(dk-split! (dk-landed-1 (lambda () (mac-h 'is-compact (list 'IS-COMPACT r8g-sv)))))
+(dk-split! (dk-landed-1 (lambda () (mac-h 'is-compact-classes (list 'IS-COMPACT r8g-sv)))))
 (define r8g-CPT
   (dk-pick (lambda (fm) (and (r8g-head? fm 'FORALL) (r8g-mentions? fm 'IS-OPEN-COVER)))
            "the finite-subcover law"))

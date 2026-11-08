@@ -310,6 +310,7 @@
 (dk-cite! 'nn-directed-pts)
 (dk-cite! 'nn-directed-dleq)
 (mac 'is-directed-set)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (subst (list '== '(PTS NN-DIRECTED) 'NN))
 (dk-conj-close!
   (lambda ()
@@ -779,6 +780,7 @@
   (dk-have! (list 'IS-DIRECTED-SET nt-D)
     (lambda ()
       (mac 'is-directed-set)
+      (dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
       (subst (list '== (list 'PTS nt-D) nt-P))
       (subst (list '== (list 'DLEQ nt-D) nt-R))
       (dk-conj-close!

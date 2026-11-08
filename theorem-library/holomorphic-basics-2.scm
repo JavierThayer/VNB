@@ -391,7 +391,7 @@
             (IMPLIES (FORALL hbz_ (IMPLIES (IN hbz_ U)
                        (== (pw_ hbz_) (power hbz_ hbn_))))
                      (HOLOMORPHIC-ON U pw_))))))))))
-(define hbp-br (use-induction))
+(define hbp-br (dk-use-induction-fixed! '(U)))   ; W1G-B: U fixed; pw_ (in FUN(U, CC)) varies
 
 ;;; ---- base: n = 0.  z^0 = 1 on U, so pw_ agrees pointwise with the constant 1.
 (dk-focus! (cdr (assq 'base hbp-br)))
@@ -448,7 +448,7 @@
     (dk-lam-b!)
     (qrfl)))
 ;;; ... so the induction hypothesis applies to it ...
-(dk-apply! hbp-ih 'U hbp-lam)
+(dk-apply! hbp-ih hbp-lam)   ; W1G-B: U fixed
 ;;; ... and so does the identity.
 (fact 'holomorphic-identity 'U)
 

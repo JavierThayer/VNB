@@ -1076,6 +1076,7 @@
 (qp-setup!)
 (for-each (lambda (n) (dk-cite! n 'p)) '(qp-cs-set qp-sadd-fun qp-smul-fun qp-sneg-fun qp-zero-cs qp-one-cs qp-null-power))
 (mac 'IS-RINGOID)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (for-each mac '(qp-csr-carr qp-csr-add qp-csr-mul qp-csr-neg qp-csr-zero qp-csr-one qp-csr-idl))
 (let split ((fuel 40))
   (let ((andl (find-first (lambda (s) (dk-head-is? (dk-goal-of s) 'AND)) (dk-open-leaves))))
@@ -1930,6 +1931,7 @@
 (dk-cite! 'qp-ring-is-commutative 'p)
 (dk-split-all! (list (dk-landed-1 (lambda () (mac-h 'is-commutative-ring-def `(IS-COMMUTATIVE-RING ,qr))))))
 (mac 'IS-NORMED-FIELD)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (for-each mac '(qp-field-carr qp-field-add qp-field-mul qp-field-neg qp-field-zero qp-field-one qp-field-fnrm))
 (let split ((fuel 40))
   (let ((andl (find-first (lambda (s) (dk-head-is? (dk-goal-of s) 'AND)) (dk-open-leaves))))
@@ -3762,6 +3764,7 @@
 (rs-setup!)
 (for-each (lambda (n) (dk-cite! n 'K 'A)) '(rs-add-fun rs-mul-fun rs-neg-fun rs-maximal-power))
 (mac 'IS-RINGOID)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (for-each (lambda (n) (dk-cite! n 'K 'A)) '(rs-carr rs-add rs-mul rs-neg rs-zero rs-one rs-idl))
 (for-each (lambda (r) (subst `(== (,(car r) ,rs-r) ,(cadr r))))
           (list (list 'CARR 'A) (list 'ADD rs-ladd) (list 'MUL rs-lmul) (list 'NEG rs-lneg) (list 'ZERO '(ZERO K)) (list 'ONE '(ONE K)) (list 'IDL rs-m)))
@@ -4383,6 +4386,7 @@
 (fp-setup!)
 (dk-cite! 'fp-pz-power 'p)
 (mac 'IS-RINGOID)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (for-each (lambda (n) (dk-cite! n 'p)) '(fp-carr fp-add fp-mul fp-neg fp-zero fp-one fp-idl))
 (for-each (lambda (r) (subst `(== (,(car r) ,fp-r) ,(cadr r))))
           (list (list 'CARR 'ZZ) (list 'ADD fp-ladd) (list 'MUL fp-lmul) (list 'NEG fp-lneg) (list 'ZERO 0) (list 'ONE 1) (list 'IDL fp-pz)))
@@ -5269,7 +5273,10 @@
 ;; integer multiples stay in an additive subgroup (n in NN, by induction)
 (sp (make-wff `(FORALL n (IMPLIES (IN n NN) (FORALL p (IMPLIES (ZZ-PRIME p) (FORALL U (IMPLIES (IS-ADD-SUBGROUP ,qf U)
   (FORALL x (IMPLIES (IN x U) (IN ((MUL ,qf) ,(qp-em 'n) x) U)))))))))))
-(let* ((bs (dk-ni-leaves)) (base (car bs)) (step (cadr bs)))
+(let* ((bs (let ((leaves (dk-opened (lambda () (dk-ni-fixed! '(p U x))))))   ; W1G-A: p, U, x fixed (dk-ni-leaves with dk-ni-fixed!)
+              (list (dk-find "dk-ni-leaves base" (lambda (l) (not (dk-contains? (dk-goal-of l) 'succ))) leaves)
+                    (dk-find "dk-ni-leaves step" (lambda (l) (dk-contains? (dk-goal-of l) 'succ)) leaves))))
+       (base (car bs)) (step (cadr bs)))
   (dk-focus! base)
   (dk-peel!)
   (qo-field-setup!)
@@ -5286,10 +5293,10 @@
   (dk-peel!)
   (qo-field-setup!)
   (let* ((k (pc-succ-var-qp (dk-goal)))
-         (ih (qp-pick (lambda (h) (and (dk-head-is? h 'FORALL) (dk-contains? h 'EMBED) (dk-contains? h k))) "the IH")))
+         (ih (qp-pick (lambda (h) (and (dk-head-is? h 'IN) (dk-contains? h 'EMBED) (dk-contains? h k))) "the IH")))   ; W1G-A: p, U, x fixed; the IH is the membership itself
     (qsg-laws! 'U)
     (dk-chain-ass! (dk-apply! (qsg-law 'U 'CARR) 'x))
-    (dk-chain-ass! (dk-apply! ih 'p 'U 'x))
+    ; W1G-A: p, U, x fixed; the IH is in context (was (dk-chain-ass! (dk-apply! ih 'p 'U 'x)))
     (dk-cite! 'nn-succ-plus-one k)
     (subst `(= (succ ,k) (+ ,k 1)))
     (dk-cite! 'nn-subset-zz k) (dk-cite! 'zz-subset-qq k) (fact 'qq-one-in)

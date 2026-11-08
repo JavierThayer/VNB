@@ -726,7 +726,7 @@
     (dk-split-all!
      (dk-landed (lambda () (mac-h 'is-metric-space (list 'IS-METRIC-SPACE r8k2-sv)))))
     (ass)))
-(mac 'IS-COMPACT)
+(mac 'is-compact-classes)
 (dk-conj-close!
  (lambda ()
    (if (r8k-head? (dk-goal) 'IS-METRIC-SPACE)

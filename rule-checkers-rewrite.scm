@@ -465,7 +465,8 @@
            ctx)
       (any (lambda (f) (chk-atom-certifies? f t 0)) ctx)   ; strict atoms + membership (R4-F)
       (and (chk-number-class ctx t 0) #t)          ; nested arithmetic (rule-checkers-logic.scm)
-      (and (pi--defined? (map (lambda (f) (%%make-concrete-wff f #f #f)) ctx) t 0) #t))))
+      (and (not (chk-impredicative-comp-certified? ctx t))   ; W1: COMP predicative (rule-checkers-logic.scm)
+           (pi--defined? (map (lambda (f) (%%make-concrete-wff f #f #f)) ctx) t 0) #t))))
 
 (define (rkw--value-discharged? t ctx minor-goals)
   (or (rkw--value-certified? t ctx)

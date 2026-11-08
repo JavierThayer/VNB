@@ -80,14 +80,15 @@
     (IMPLIES (FORALL i (IMPLIES (IN i NN) (IN ((fam i) x) RR)))
       (FORSOME cap (AND (IN cap NN)
         (FORALL i (IMPLIES (IN i NN) (IMPLIES (<= i nb) (< ((fam i) x) cap)))))))))))))
-(let* ((ind (use-induction))
+(let* ((ind (dk-use-induction-fixed!))   ; W1C: the parameters fixed (the field / family)
        (base (cdr (assq 'base ind))) (step (cdr (assq 'step ind)))
        (ih (cdr (assq 'ih ind))) (nb (cdr (assq 'var ind))))
   ;; base
   (dk-focus! base)
-  (let* ((g0 (dk-goal)) (fv (cadr g0)) (xv (cadr (caddr g0)))
+  (let* ((pr (cdr (assq 'params ind)))     ; W1C: fam, x fixed, read off the parameter map
+         (fv (cdr (assq 'fam pr))) (xv (cdr (assq 'x pr)))
          (landed (dk-peel!))
-         (hyp (find-first (dk-head? 'FORALL) landed))
+         (hyp (find-first (dk-head? 'FORALL) (dk-asms)))
          (t0 (list (list fv 0) xv)))
     (dk-cite! 'nn-zero-in)
     (dk-apply! hyp 0)
@@ -104,12 +105,13 @@
                 (ass)))))))
   ;; step
   (dk-focus! step)
-  (let* ((g0 (dk-goal)) (fv (cadr g0)) (xv (cadr (caddr g0)))
+  (let* ((pr (cdr (assq 'params ind)))     ; W1C: fam, x fixed, read off the parameter map
+         (fv (cdr (assq 'fam pr))) (xv (cdr (assq 'x pr)))
          (landed (dk-peel!))
-         (hyp (find-first (dk-head? 'FORALL) landed))
+         (hyp (find-first (dk-head? 'FORALL) (dk-asms)))
          (sn (list 'succ nb)))
     (dk-cite! 'nn-succ-closed nb)
-    (let* ((c1 (dk-skolem! (dk-apply! ih fv xv)))
+    (let* ((c1 (dk-skolem! ih))   ; W1C: fam, x fixed
            (cu1 (fom-pick-forall-with c1 "the bound up to nb"))
            (t2 (list (list fv sn) xv))
            (_ (dk-apply! hyp sn))
@@ -173,15 +175,15 @@
         (dk-cite! 'frm-metric-space-is-metric-space fld m fam)
         (dk-cite! 'metric-dist-real fms x y)))
     ty))
-(let* ((ind (use-induction))
+(let* ((ind (dk-use-induction-fixed!))   ; W1C: the parameters fixed (the field / family)
        (base (cdr (assq 'base ind))) (step (cdr (assq 'step ind)))
        (ih (cdr (assq 'ih ind))) (kv (cdr (assq 'var ind))))
   ;; base: one seminorm
   (dk-focus! base)
   (let* ((ls (dk-peel!))
-         (sf (find-first (dk-head? 'IS-SEMINORM-FAMILY) ls))
+         (sf (find-first (dk-head? 'IS-SEMINORM-FAMILY) (dk-asms)))   ; W1C: hoisted
          (fld (cadr sf)) (m (caddr sf)) (fam (cadddr sf))
-         (ev (cadr (find-first (dk-head? 'POS-RR) ls))))
+         (ev (cadr (find-first (dk-head? 'POS-RR) (dk-asms)))))   ; W1C: eps hoisted
     (dk-cite! 'nn-zero-in)
     (let* ((d0 (dk-skolem! (dk-cite! 'frm-ball-seminorm fld m fam 0 ev)))
            (u0 (fom-pick-forall-with d0 "the ball universal at 0")))
@@ -201,12 +203,12 @@
   ;; step: min of the IH's radius and frm-ball-seminorm's at succ k
   (dk-focus! step)
   (let* ((ls (dk-peel!))
-         (sf (find-first (dk-head? 'IS-SEMINORM-FAMILY) ls))
+         (sf (find-first (dk-head? 'IS-SEMINORM-FAMILY) (dk-asms)))   ; W1C: hoisted
          (fld (cadr sf)) (m (caddr sf)) (fam (cadddr sf))
-         (ev (cadr (find-first (dk-head? 'POS-RR) ls)))
+         (ev (cadr (find-first (dk-head? 'POS-RR) (dk-asms))))   ; W1C: eps hoisted
          (sk (list 'succ kv)))
     (dk-cite! 'nn-succ-closed kv)
-    (let* ((d1 (dk-skolem! (dk-apply! ih fld m fam ev)))
+    (let* ((d1 (dk-skolem! ih))   ; W1C: fld m fam eps fixed
            (u1 (fom-pick-forall-with d1 "the IH universal"))
            (d2 (dk-skolem! (dk-cite! 'frm-ball-seminorm fld m fam sk ev)))
            (u2 (fom-pick-forall-with d2 "the ball universal at succ k")))
@@ -304,7 +306,7 @@
                                           (eq? (car (car (cadr f))) 'MUL))) ls)))
     (if (not (and lt eq)) (error "fom-field-peel!: hypotheses not found"))
     (list (cadr (car (cadr eq))) (cadr (caddr lt)) (caddr (cadr eq)))))
-(let* ((ind (use-induction))
+(let* ((ind (dk-use-induction-fixed!))   ; W1C: the parameters fixed (the field / family)
        (base (cdr (assq 'base ind))) (step (cdr (assq 'step ind)))
        (ih (cdr (assq 'ih ind))) (nv (cdr (assq 'var ind))))
   ;; base: sc = sb = 1
@@ -336,7 +338,7 @@
   (let* ((fcb (fom-field-peel!))
          (fld (car fcb)) (c (cadr fcb)) (b (caddr fcb))
          (g (fom-nfn fld c))
-         (sc (dk-skolem! (dk-apply! ih fld c b)))
+         (sc (dk-skolem! (dk-apply! ih c b)))   ; W1C: fld fixed
          (sb (dk-skolem! (dk-pick (lambda (f) (and (dk-head-is? f 'FORSOME) (dk-contains? f sc)))
                                   "the sb existential")))
          (s (fom-nfn fld sc))
@@ -1278,12 +1280,12 @@
         (dk-cite! 'fun-apply-type-c fm 'NN (list 'FUN (list 'VEC md) 'RR) k)
         (dk-cite! 'fun-apply-type-c (list fm k) (list 'VEC md) 'RR v)))
     ty))
-(let* ((ind (use-induction))
+(let* ((ind (dk-use-induction-fixed!))   ; W1C: the parameters fixed (the field / family)
        (base (cdr (assq 'base ind))) (step (cdr (assq 'step ind)))
        (ih (cdr (assq 'ih ind))) (lv (cdr (assq 'var ind))))
   (dk-focus! base)
   (let* ((ls (dk-peel!))
-         (sf (find-first (dk-head? 'IS-SEMINORM-FAMILY) ls))
+         (sf (find-first (dk-head? 'IS-SEMINORM-FAMILY) (dk-asms)))   ; W1C: hoisted
          (fld (cadr sf)) (m (caddr sf)) (fam (cadddr sf))
          (le (find-first (lambda (f) (and (dk-head-is? f '<=) (equal? (caddr f) 0))) ls))
          (k (cadr le))
@@ -1296,7 +1298,7 @@
     (fom-tel-diag! fld m fam fv n0 0 jv))
   (dk-focus! step)
   (let* ((ls (dk-peel!))
-         (sf (find-first (dk-head? 'IS-SEMINORM-FAMILY) ls))
+         (sf (find-first (dk-head? 'IS-SEMINORM-FAMILY) (dk-asms)))   ; W1C: hoisted
          (fld (cadr sf)) (m (caddr sf)) (fam (cadddr sf))
          (fv (cadr (find-first (lambda (f) (and (dk-head-is? f 'IN) (dk-head-is? (caddr f) 'FUN))) ls)))
          (hst (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'succ))) ls))
@@ -1311,7 +1313,7 @@
     (dk-cite! 'nn-le-succ-cases lv k)
     (use-cases (list (list '<= k lv) (list '= k sl))
       (lambda ()
-        (let* ((ihc (dk-apply! ih fld m fam fv nv n0))
+        (let* ((ihc (dk-apply! ih fv nv n0))   ; W1C: fld m fam fixed
                (_ (begin (for-each (lambda (t) (dk-cite! 'nn-in-rr t)) (list jv nv k lv))
                          (fom-nn-sum! nv k) (fom-nn-sum! nv lv)
                          (dk-have! (list '<= jv (list '+ nv lv)) (lambda () (dk-ineq! jle (list '<= k lv))))))

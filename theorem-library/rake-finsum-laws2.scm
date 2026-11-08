@@ -208,7 +208,7 @@
          (lambda () (subst (list '= to from)) (ass))))
 
 (sp (make-wff rkj-rl-ind-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (cdr (assq 'cases (dk-ni-fixed! '(rng r ga_ gb_)))))   ; W1D: rng r ga_ gb_ fixed
        (base (rkj-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (rkj-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   ;; ---- base --------------------------------------------------------------
@@ -247,8 +247,8 @@
          (agree (dk-pick (lambda (f) (rkj-guarded-forall-inner? f rkj-seg-dom?
                   (lambda (i) (and (pair? i) (eq? (car i) '==)))))
                          "the pointwise hypothesis"))
-         (ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                        (not (rkj-guarded-forall? f rkj-seg-dom?))))
+         (ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'IMPLIES)
+                                        (dk-contains? f 'SUM-AG)))   ; W1D: the IH at the fixed parameters
                        "the IH")))
     (display ";; rkj rl-ind step: ") (display (list nv rngv rv gav gbv)) (newline)
     (rkj-ras-prep! rngv rag)
@@ -276,7 +276,7 @@
     (rkj-carr-bridge! sa ca cr)                ; (IN sa (CARR rng))
     (mac 'sum-ag-succ)
     (subst (list '== (list gbv nv) (list (list 'MUL rngv) rv (list gav nv))))
-    (dk-apply! ih rngv rv gav gbv)
+    (let w1d-dl ((w1d-f ih)) (if (dk-head-is? w1d-f 'IMPLIES) (w1d-dl (dk-landed-1 (lambda () (detach! w1d-f)))) w1d-f))   ; W1D: was (dk-apply! ih rngv rv gav gbv)
     (subst (list '= (list 'SUM-AG rag gbv nv) (list (list 'MUL rngv) rv sa)))
     (mac 'ras-op)
     (dk-fact! 'ring-left-dist rngv rv sa (list gav nv))
@@ -386,7 +386,7 @@
                               ((MUL rng) (SUM-AG (RING-ADDITIVE-AG rng) ga_ n) r)))))))))))
 
 (sp (make-wff rkj-rr-ind-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (cdr (assq 'cases (dk-ni-fixed! '(rng r ga_ gb_)))))   ; W1D: rng r ga_ gb_ fixed
        (base (rkj-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (rkj-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   ;; ---- base --------------------------------------------------------------
@@ -425,8 +425,8 @@
          (agree (dk-pick (lambda (f) (rkj-guarded-forall-inner? f rkj-seg-dom?
                   (lambda (i) (and (pair? i) (eq? (car i) '==)))))
                          "the pointwise hypothesis"))
-         (ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                        (not (rkj-guarded-forall? f rkj-seg-dom?))))
+         (ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'IMPLIES)
+                                        (dk-contains? f 'SUM-AG)))   ; W1D: the IH at the fixed parameters
                        "the IH")))
     (display ";; rkj rr-ind step: ") (display (list nv rngv rv gav gbv)) (newline)
     (rkj-ras-prep! rngv rag)
@@ -453,7 +453,7 @@
     (rkj-carr-bridge! sa ca cr)
     (mac 'sum-ag-succ)
     (subst (list '== (list gbv nv) (list (list 'MUL rngv) (list gav nv) rv)))
-    (dk-apply! ih rngv rv gav gbv)
+    (let w1d-dl ((w1d-f ih)) (if (dk-head-is? w1d-f 'IMPLIES) (w1d-dl (dk-landed-1 (lambda () (detach! w1d-f)))) w1d-f))   ; W1D: was (dk-apply! ih rngv rv gav gbv)
     (subst (list '= (list 'SUM-AG rag gbv nv) (list (list 'MUL rngv) sa rv)))
     (mac 'ras-op)
     (dk-fact! 'ring-right-dist rngv sa (list gav nv) rv)
@@ -543,7 +543,7 @@
                               ((ACT md) r (SUM-AG (MODULE-VECTOR-AG md) ga_ n))))))))))))
 
 (sp (make-wff rkj-ac-ind-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (cdr (assq 'cases (dk-ni-fixed! '(md r ga_ gb_)))))   ; W1D: md r ga_ gb_ fixed
        (base (rkj-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (rkj-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   ;; ---- base --------------------------------------------------------------
@@ -582,8 +582,8 @@
          (agree (dk-pick (lambda (f) (rkj-guarded-forall-inner? f rkj-seg-dom?
                   (lambda (i) (and (pair? i) (eq? (car i) '==)))))
                          "the pointwise hypothesis"))
-         (ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                        (not (rkj-guarded-forall? f rkj-seg-dom?))))
+         (ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'IMPLIES)
+                                        (dk-contains? f 'SUM-AG)))   ; W1D: the IH at the fixed parameters
                        "the IH")))
     (display ";; rkj ac-ind step: ") (display (list nv mdv rv gav gbv)) (newline)
     (rkj-mvag-prep! mdv mvag)
@@ -598,7 +598,7 @@
     (rkj-carr-bridge! (list gav nv) ca vm)
     (mac 'sum-ag-succ)
     (subst (list '== (list gbv nv) (list (list 'ACT mdv) rv (list gav nv))))
-    (dk-apply! ih mdv rv gav gbv)
+    (let w1d-dl ((w1d-f ih)) (if (dk-head-is? w1d-f 'IMPLIES) (w1d-dl (dk-landed-1 (lambda () (detach! w1d-f)))) w1d-f))   ; W1D: was (dk-apply! ih mdv rv gav gbv)
     (subst (list '= (list 'SUM-AG mvag gbv nv) (list (list 'ACT mdv) rv sa)))
     (mac 'mvag-op)
     (dk-fact! 'module-act-distrib-vec mdv rv sa (list gav nv))

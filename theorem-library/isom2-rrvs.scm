@@ -228,6 +228,7 @@
    (if (eq? (rvs-head (dk-goal)) 'IS-MODULE)
        (begin
          (mac 'is-module)
+         (dk-isx-set!)                ; W1I: the conjunct RR-FN-SPACE(v) in SET, from the typings
          (rvs-subst-all!)
          (dk-conj-close!
           (lambda ()

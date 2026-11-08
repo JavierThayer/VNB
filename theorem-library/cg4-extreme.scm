@@ -33,7 +33,7 @@
 (sp (make-wff (list 'FORALL 'k (list 'IMPLIES '(IN k NN) (list 'FORALL 'm (list 'FORALL 'E (list 'FORALL 'x
    (list 'IMPLIES '(IS-NORMED-VECTOR-SPACE m) (list 'IMPLIES '(SUBSET E (VEC m))
      (list 'IMPLIES (list 'IS-EXTREME-POINT 'm ce4-H 'x) (list 'IMPLIES (list 'IN 'x (ce4-L 'k)) '(IN x E))))))))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(m E))) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: m, E fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (dk-cite! 'conv-level-zero 'm 'E)
@@ -57,7 +57,7 @@
         (dk-cite! 'convex-combination-at-zero 'm u y)
         (dk-rewrite-h! (list '= 'x (ce4-cvx u y 0)) (ce4-cvx u y 0) u)
         (dk-rewrite-h! (list 'IN u (ce4-L n)) u 'x)
-        (dk-apply! ih 'm 'E 'x)
+        (dk-apply! ih 'x)   ; W1D: m, E fixed
         (ce4-ass!))
       (lambda ()
         (use-em (list '= t 1)

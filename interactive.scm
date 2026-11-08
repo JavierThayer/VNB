@@ -564,6 +564,8 @@
   (if (pair? extra)
       (error "sp: takes ONE statement; got extra arguments -- the statement is closed one paren short and swallowed the following forms, which have ALREADY RUN against the previous proof state (right-to-left evaluation)"
              (length extra)))
+  ;; W1B: an NBG induction-census record left unnamed by the previous proof had no qed.
+  (nbg-induction-census-close!)
   (vnb-guard
     (lambda ()
       ;; CLEAR THE CURRENT PROOF FIRST.  `vnb-guard' catches the coercion
@@ -5781,6 +5783,7 @@
                   "); no `sp' ran since.  The statement of `" (symbol->string name)
                   "' was never started -- a form closed one paren short swallowed its sp?")))
       (cmd-qed *ps* name)
+      (nbg-induction-census-name! name)         ; W1B: name this proof's NBG census records
       (save-proof name)
       (set! *ps-closed-by-qed* *ps*)          ; see vnb--run!
       (set! *ps-closed-by-qed-name* name)

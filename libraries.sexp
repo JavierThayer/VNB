@@ -226,6 +226,7 @@
     "theorem-library/rake-asm-2"
     "theorem-library/bt-shims"
     "structure-library/subtype-laws"
+    "structure-library/is-set-laws"   ; W1I 2026-11-06: the generated is-X-is-set (cross-cutting)
     "theorem-library/finsum-type-proof"
     "theorem-library/finsum-single-support"
     "structure-library/integral-domain-laws"
@@ -1225,6 +1226,8 @@
     "structure-library/meta-def"
     "theorem-library/meta-ind-laws"
     "theorem-library/meta-def-laws"
+    "structure-library/meta-nbg"
+    "theorem-library/meta-nbg-laws"
   ))
 
 ;;; files whose theorems belong to several books: each proven or asserted theorem is placed by
@@ -1239,6 +1242,7 @@
   "theorem-library/rake-analysis2"
   "theorem-library/discrete-space"
   "structure-library/subtype-laws"
+  "structure-library/is-set-laws"
   "theorem-library/op-typing"
   "theorem-library/cancellation"
   "theorem-library/rake-algebra"

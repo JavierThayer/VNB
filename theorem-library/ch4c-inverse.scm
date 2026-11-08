@@ -2089,13 +2089,15 @@
 ;;;      a removable singularity when m = 0).  Induction on m: f = (z - c) f1 with f1 of order m - 1.
 (define (iv15-body m)
   (list 'FORALL 'u (list 'IMPLIES (list 'IS-OPEN iv-nf 'u) (list 'FORALL 'c (list 'IMPLIES '(IN c u)
-    (list 'FORALL 'f (list 'IMPLIES (list 'HAS-ZERO-OF-ORDER 'u 'f 'c m)
+    ;; W1K (the user's decision 2026-11-06): f typed (IN f (FUN u CC)) beside the zero, and the
+    ;; witness ivh15_ typed (IN ivh15_ (FUN (BALL CC-MS c ivr15_) CC)) inside its existential.
+    (list 'FORALL 'f (list 'IMPLIES '(IN f (FUN u CC)) (list 'IMPLIES (list 'HAS-ZERO-OF-ORDER 'u 'f 'c m)
       (list 'FORSOME 'ivr15_ (list 'AND '(IN ivr15_ RR) (list 'AND '(< 0 ivr15_) (list 'AND '(SUBSET (BALL CC-MS c ivr15_) u)
-        (list 'FORSOME 'ivh15_ (list 'AND '(HOLOMORPHIC-ON (BALL CC-MS c ivr15_) ivh15_)
+        (list 'FORSOME 'ivh15_ (list 'AND '(IN ivh15_ (FUN (BALL CC-MS c ivr15_) CC)) (list 'AND '(HOLOMORPHIC-ON (BALL CC-MS c ivr15_) ivh15_)
           (list 'FORALL 'ivz15_ (list 'IMPLIES '(IN ivz15_ (DIFFERENCE (BALL CC-MS c ivr15_) (SINGLETON c)))
             (list 'AND '(NOT (= (f ivz15_) 0))
               (list '= '(* (DERIV-ON CC-NORMED-FIELD u f ivz15_) (recip (f ivz15_)))
-                       (list '+ '(ivh15_ ivz15_) (list '* m '(recip (- ivz15_ c)))))))))))))))))))))
+                       (list '+ '(ivh15_ ivz15_) (list '* m '(recip (- ivz15_ c)))))))))))))))))))))))
 (define (iv15-dz! f z)                 ; HOLOMORPHIC-ON u f, z in u: IS-DIFF-ON(CC-NF, u, f, z, DERIV-ON(CC-NF, u, f, z))
   (let* ((D (list 'DERIV-ON 'CC-NORMED-FIELD 'u f z)) (goal (list 'IS-DIFF-ON 'CC-NORMED-FIELD 'u f z D)))
     (if (not (dk-asm? goal))
@@ -2184,6 +2186,7 @@
                      (if (not (sequent-node-grounded? (proof-state-focus *ps*))) (ass)))))
       (let* ((h (list 'VNB-LAMBDA 'ivw15_ B (list '* (list gdB 'ivw15_) (list 'recip (list gB 'ivw15_))))))
         (dk-have! (list 'HOLOMORPHIC-ON B h) (lambda () (dk-holomorphic! B h)))
+        (dk-cite! 'holomorphic-on-in-fun B h)      ; W1K: the witness typing
         ;; f = g on u
         (define (fg-at! x)              ; x in u: f x = g x
           (let ((A (list '- x 'c)))
@@ -2249,8 +2252,12 @@
 (define (iv15-step!)
   (if (dk-head-is? (dk-goal) 'FORALL) (di))
   (if (dk-head-is? (dk-goal) 'IMPLIES) (di))
-  (let* ((IH (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (eq? (cadr fm) 'u) (dk-contains? fm 'HAS-ZERO-OF-ORDER))) "the induction hypothesis"))
-         (n (list-ref (cadr (caddr (caddr (caddr (caddr (caddr IH)))))) 4))
+  ;; W1K: u and c are fixed (dk-ni-fixed!), so the IH quantifies over f only; n is read off its zero.
+  (let* ((IH (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'HAS-ZERO-OF-ORDER))) "the induction hypothesis"))
+         (n (let find ((t IH))
+              (cond ((and (pair? t) (eq? (car t) 'HAS-ZERO-OF-ORDER) (= (length t) 5)) (list-ref t 4))
+                    ((pair? t) (or (find (car t)) (find (cdr t))))
+                    (#t #f))))
          (sn (list 'succ n)))
     (dk-peel!)
     (iv-unfold! 'has-zero-of-order (list 'u 'f 'c sn) (list 'HAS-ZERO-OF-ORDER 'u 'f 'c sn))
@@ -2307,7 +2314,7 @@
                            (if (dk-asm? (dk-goal)) (ass)
                                (let* ((x (dk-di-var!))) (f1-at! x) (if (not (sequent-node-grounded? (proof-state-focus *ps*))) (ass)))))))
                       (#t (error "iv15-step: open HZO conjunct" (dk-goal))))))))
-        (let* ((r1 (dk-skolem! (iv4-inst! IH 'u 'c f1s)))
+        (let* ((r1 (dk-skolem! (iv4-inst! IH f1s)))   ; W1K: (IN f1s (FUN u CC)) is in context (dk-name!)
                (h1 (dk-skolem! (dk-pick (dk-head? 'FORSOME) "h1")))
                (_ (dk-split-all!))
                (B (iv-B 'c r1))
@@ -2383,7 +2390,7 @@
                                            (crs)))))))))))
                     (#t (error "iv15-step: open conjunct" (dk-goal)))))))))))
 (sp (make-wff (list 'FORALL 'ivn15_ (list 'IMPLIES '(IN ivn15_ NN) (iv15-body 'ivn15_)))))
-(let ((leaves (dk-opened (lambda () (ni)))))
+(let ((leaves (cdr (assq 'cases (dk-ni-fixed! '(u c))))))   ; W1K: u, c fixed; the IH varies f
   (for-each
     (lambda (l)
       (dk-focus! l)
@@ -2484,6 +2491,9 @@
          (hzo (list 'HAS-ZERO-OF-ORDER 'u 'f e m)))
     (dk-project! (list 'IN m 'NN) 'has-zero-of-order hzo)
     (fact 'subset-mem-fwd 'mse_ 'u e) (fact 'subset-mem-fwd 'u 'CC e)
+    ;; W1K: log-derivative-at-zero wants (IN f (FUN u CC)): from the zero's HOLOMORPHIC-ON conjunct.
+    (if (not (dk-asm? '(HOLOMORPHIC-ON u f))) (dk-project! '(HOLOMORPHIC-ON u f) 'has-zero-of-order hzo))
+    (dk-cite! 'holomorphic-on-in-fun 'u 'f)
     (let* ((r (dk-skolem! (iv4-inst! (dk-cite! 'log-derivative-at-zero m) 'u e 'f)))
            (h (dk-skolem! (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORSOME) (dk-contains? fm r))) "h")))
            (_ (dk-split-all!))

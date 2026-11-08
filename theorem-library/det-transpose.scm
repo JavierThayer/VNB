@@ -571,7 +571,7 @@
   (ass))
 
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (dtt-c1-body 'n)))))
-(define dtt-c1-ind (use-induction))
+(define dtt-c1-ind (dk-use-induction-fixed! '(R)))   ; W1G-A: R fixed
 ;; ---- base: [1, 0] is empty
 (dk-focus! (cdr (assq 'base dtt-c1-ind)))
 (dk-peel!)
@@ -659,7 +659,7 @@
           (dtt-nn-have! (list '< 'p v) (list '(= p 1) (list '= v (list 'succ q)) (list '<= 1 q)))
           (let* ((MA (list 'MINOR 'A 1 v 'n)) (MB (list 'MINOR 'B 1 v 'n))
                  (MC (list 'MINOR 'C 1 v 'n))
-                 (res (dk-chain! (inst*! dtt-c1-ih 'R MA MB MC 'p 'dsc_)
+                 (res (dk-chain! (inst*! dtt-c1-ih MA MB MC 'p 'dsc_)   ; W1G-A: R fixed
                         (lambda (ante)
                           (if (eq? (cadr ante) 'dcj_)
                               (lambda () (dtt-c1-colagree! v))

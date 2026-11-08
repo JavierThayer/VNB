@@ -348,7 +348,7 @@
     (FORALL m (IMPLIES (IS-MONOID m)
     (FORALL x (IMPLIES (IN x (CARR m))
       (IN (MPOW m x n) (CARR m))))))))))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (cdr (assq 'cases (dk-ni-fixed! '(m)))))   ; W1D: m fixed
        (base (rki-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (rki-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   (dk-focus! base)
@@ -368,7 +368,7 @@
                       (list 'AND (list 'IN xv (list 'CARR mv))
                             (list 'IN (list 'MPOW mv xv nv) (list 'CARR mv))))))
     (mac 'mpow-succ)
-    (dk-apply! ih mv xv)
+    (dk-apply! ih xv)   ; W1D: m fixed
     ;; monoid-carrier-closed-opr's antecedent is ONE conjunction, which `fact'
     ;; will not split -- assemble it first (CLAUDE.md, "Writing proof drivers").
     (have! guard (lambda () (prop)))

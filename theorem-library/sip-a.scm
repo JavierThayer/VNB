@@ -564,6 +564,7 @@
 (fact 'sip-vec-set 'v)
 (fact 'sip-rel-is-equivalence 'v)
 (mac 'IS-SETOID)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (slot 'pts)
 (slot 'rel)
 (mac 'SIP-SETOID)
@@ -1307,14 +1308,23 @@
 ;;; ==========================================================================================
 (sp (make-wff '(FORALL v (IMPLIES (IS-SEMI-INNER-PRODUCT-SPACE v) (IS-PRE-HILBERT-SPACE (SIP-QUOTIENT v))))))
 (dk-peel!)
-(for-each (lambda (n) (fact n 'v))
-  '(sipq-length sipq-scal-ring sipq-vec-set sipq-vadd-fun sipq-vzero-in sipq-vneg-fun sipq-act-fun sipq-rip-fun
-    sipq-assoc sipq-comm sipq-identity sipq-inverses sipq-scal-pin sipq-scal-carr
-    sipq-act-distrib-vec sipq-act-distrib-scalar sipq-act-mul-compat sipq-act-unital
-    sipq-rip-sym sipq-rip-add-left sipq-rip-homog-left sipq-rip-self-nonneg sipq-definite))
+(fact 'sipq-length 'v)   ; W1J-C: first, so the term is certified defined before dk-isx-set!
+;; W1J-C: the component facts land AFTER dk-isx-set! (it splits G' in context, and a conjunct
+;; already there lands nothing), so they are a thunk run on each leaf of the definition
+(define (sipa-w1jc-facts!)
+  (for-each (lambda (n) (fact n 'v))
+    '(sipq-scal-ring sipq-vec-set sipq-vadd-fun sipq-vzero-in sipq-vneg-fun sipq-act-fun sipq-rip-fun
+      sipq-assoc sipq-comm sipq-identity sipq-inverses sipq-scal-pin sipq-scal-carr
+      sipq-act-distrib-vec sipq-act-distrib-scalar sipq-act-mul-compat sipq-act-unital
+      sipq-rip-sym sipq-rip-add-left sipq-rip-homog-left sipq-rip-self-nonneg sipq-definite)))
 (mac 'is-pre-hilbert-space-def)
-(mac 'IS-SEMI-INNER-PRODUCT-SPACE)
-(dk-conj-close! (lambda () (ass)))
+;; W1J-C: the parent IS-SEMI-INNER-PRODUCT-SPACE is unfolded where it stands, so that dk-isx-set! meets
+;; its definiens alone (the conjunct t in SET, from the typings)
+(dk-conj-close!
+  (lambda ()
+    (if (dk-head-is? (dk-goal) 'IS-SEMI-INNER-PRODUCT-SPACE)
+        (begin (mac 'IS-SEMI-INNER-PRODUCT-SPACE) (dk-isx-set!) (sipa-w1jc-facts!) (dk-conj-close! (lambda () (ass))))
+        (begin (sipa-w1jc-facts!) (ass)))))
 (sipa-qed! 'sip-quotient-is-pre-hilbert)
 (alias! 'sip-quotient-is-pre-hilbert "the quotient by the null vectors is a pre-Hilbert space")
 

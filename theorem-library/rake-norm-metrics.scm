@@ -354,6 +354,7 @@
                                      (list 'INV r5r-g) (list 'IDEN r5r-g)
                                      (list 'CARR r5r-g))))))
 (mac 'IS-METRIC-SPACE)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (slot 'PTS)
 (slot 'DIST)
 (let loop ((n 0))

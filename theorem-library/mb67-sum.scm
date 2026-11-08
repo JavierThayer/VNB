@@ -403,6 +403,7 @@
 (let ((iff (dk-cite! 'is-metric-space msm-S)))
   (dk-have! (caddr iff)
     (lambda ()
+      (dk-isx-set!)                ; W1Q: the conjunct t in SET, from the typings
       (mr-and-close!
         (lambda ()
           (let ((g (dk-goal)))

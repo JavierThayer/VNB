@@ -127,7 +127,7 @@
            (= (SUM-AG ag g_ n) (g_ p_))))))))))))
 
 (sp (make-wff fss-ind-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (cdr (assq 'cases (dk-ni-fixed! '(ag g_)))))   ; W1D: ag, g_ fixed
        (base (fss-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (fss-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   ;; ---- base: ORD-SEGMENT(0) is empty, so the index hypothesis is absurd ----
@@ -148,7 +148,7 @@
          (pv    (cadr (caddr gl)))
          (agree (dk-pick fss-agreement? "the agreement hypothesis on OS(succ n)"))
          (ih    (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                          (not (fss-agreement? f))))
+                                          (dk-contains? f 'SUM-AG)))   ; W1D: with ag, g_ fixed the IH is a guarded forall p_ too
                          "the IH")))
     (mac 'sum-ag-succ)                        ; (= ((OPR ag) (SUM-AG ag g_ n) (g_ n)) (g_ p_))
     (dk-fact! 'abelian-group-is-group agv)
@@ -179,7 +179,7 @@
                           (lambda () (mac 'ord-segment-nn-succ) (oi-l) (ass)))
                    (dk-apply! agree iv)
                    (ass))))
-        (dk-apply! ih agv gv pv)                            ; (= (SUM-AG ag g_ n) (g_ p_))
+        (dk-apply! ih pv)                            ; (= (SUM-AG ag g_ n) (g_ p_))   ; W1D: ag, g_ fixed
         (subst (list '= (list 'SUM-AG agv gv nv) (list gv pv)))
         ;; g_(p_) * IDEN = IDEN * g_(p_) = g_(p_)
         (dk-fact! 'abelian-group-opr-comm agv (list gv pv) (list 'IDEN agv))

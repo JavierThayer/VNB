@@ -24,7 +24,7 @@
   (list 'FORALL 'vv (list 'IMPLIES (list 'IS-OPEN nlc-nf 'vv) (list 'IMPLIES '(SUBSET vv u)
     (list 'FORALL 'z (list 'IMPLIES '(IN z vv)
       (list '= (list (nlc-nth 'vv '(RESTRICT f vv) 'k) 'z) (list (nlc-nth 'u 'f 'k) 'z))))))))))))))
-(ni)
+(dk-ni-fixed! '(u f vv))   ; W1D: u, f, vv fixed
 (for-each
  (lambda (leaf)
    (dk-focus! leaf)
@@ -61,7 +61,7 @@
            (dk-have! (list 'FORALL 'hbx_ (list 'IMPLIES (list 'IN 'hbx_ vv) (list '== (list g1 'hbx_) (list rG 'hbx_))))
              (lambda ()
                (let ((w (dk-di-var!)))
-                 (dk-apply! ih u f vv w)
+                 (dk-apply! ih w)   ; W1D: u, f, vv fixed
                  (subst (dk-cite! 'restrict-apply G vv w))
                  (subst (list '= (list g1 w) (list G w)))
                  (qrfl))))

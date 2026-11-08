@@ -498,7 +498,7 @@
      (FORALL m (IMPLIES (IS-COMM-MONOID m)
      (FORALL g_ (IMPLIES (FORALL i_ (IMPLIES (IN i_ (ORD-SEGMENT n)) (IN (g_ i_) (CARR m))))
        (IN (SUM-AG m g_ n) (CARR m))))))))))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (cdr (assq 'cases (dk-ni-fixed! '(m g_)))))   ; W1G-B: m, g_ fixed
        (base (rkq-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (rkq-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   (dk-focus! base)
@@ -514,15 +514,15 @@
          (mv (cadr (cadr gl)))
          (gv (caddr (cadr gl)))
          (typ (dk-pick (lambda (f) (rkq-guarded-forall? f rkq-seg-dom?)) "the typing"))
-         (ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                        (not (rkq-guarded-forall? f rkq-seg-dom?))))
+         (ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'IMPLIES)
+                                        (dk-contains? f 'SUM-AG)))   ; W1G-B: the IH at the fixed parameters
                        "the IH")))
     (have! (list 'IN nv (list 'ORD-SEGMENT (list 'succ nv)))
            (lambda () (mac 'ord-segment-nn-succ) (oi-r) (rfl)))
     (dk-apply! typ nv)
     (rkq-restrict! typ nv (lambda (i) (list 'IN (list gv i) (list 'CARR mv))))
     (mac 'sum-ag-succ)
-    (dk-apply! ih mv gv)
+    (let w1g-dl ((w1g-f ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))   ; W1G-B: was (dk-apply! ih mv gv)
     (dk-fact! 'comm-monoid-carrier-closed-opr mv (list 'SUM-AG mv gv nv) (list gv nv))
     (ass)))
 (rkq-check! 'sum-ag-comm-monoid-type-ptwise)
@@ -543,7 +543,7 @@
                       '(= (SUM-AG m gc_ n)
                           ((OPR m) (SUM-AG m ga_ n) (SUM-AG m gb_ n))))))))))
 (sp (make-wff rkq-cmadd-ind-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (cdr (assq 'cases (dk-ni-fixed! '(m ga_ gb_ gc_)))))   ; W1G-B: m, ga_, gb_, gc_ fixed
        (base (rkq-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (rkq-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   (dk-focus! base)
@@ -573,8 +573,8 @@
                                    (eq? (car (cadr i)) gbv))))) "the typing of gb_"))
          (agree (dk-pick (lambda (f) (rkq-guarded-forall-inner? f rkq-seg-dom?
                   (lambda (i) (and (pair? i) (eq? (car i) '==))))) "the pointwise hypothesis"))
-         (ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                        (not (rkq-guarded-forall? f rkq-seg-dom?))))
+         (ih  (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'IMPLIES)
+                                        (dk-contains? f 'SUM-AG)))   ; W1G-B: the IH at the fixed parameters
                        "the IH")))
     (display ";; rkq cm-add step: ") (display (list nv mv gav gbv gcv)) (newline)
     (have! (list 'IN nv segS) (lambda () (mac 'ord-segment-nn-succ) (oi-r) (rfl)))
@@ -587,7 +587,7 @@
                                               (O (list gav i) (list gbv i)))))
     (mac 'sum-ag-succ)
     (subst (list '== (list gcv nv) (O (list gav nv) (list gbv nv))))
-    (dk-apply! ih mv gav gbv gcv)
+    (let w1g-dl ((w1g-f ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))   ; W1G-B: was (dk-apply! ih mv gav gbv gcv)
     (subst (list '= (list 'SUM-AG mv gcv nv)
                     (O (list 'SUM-AG mv gav nv) (list 'SUM-AG mv gbv nv))))
     (dk-fact! 'sum-ag-comm-monoid-type-ptwise nv mv gav)
@@ -699,7 +699,7 @@
                               ((ACT md) (SUM-AG (RING-ADDITIVE-AG (SCAL md)) gc_ n) x)))))))))))
 
 (sp (make-wff rkq-acc-ind-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (cdr (assq 'cases (dk-ni-fixed! '(md x gc_ gv_)))))   ; W1G-B: md, x, gc_, gv_ fixed
        (base (rkq-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (rkq-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   ;; ---- base ---------------------------------------------------------------
@@ -741,8 +741,8 @@
                   (lambda (i) (and (pair? i) (eq? (car i) 'IN))))) "typing of gc_"))
          (agree (dk-pick (lambda (f) (rkq-guarded-forall-inner? f rkq-seg-dom?
                   (lambda (i) (and (pair? i) (eq? (car i) '==))))) "pointwise hypothesis"))
-         (ih   (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                         (not (rkq-guarded-forall? f rkq-seg-dom?))))
+         (ih   (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'IMPLIES)
+                                         (dk-contains? f 'SUM-AG)))   ; W1G-B: the IH at the fixed parameters
                         "the IH")))
     (display ";; rkq acc step: ") (display (list nv mdv xv gcv gvv)) (newline)
     (rkq-mod-prep! mdv)
@@ -770,7 +770,7 @@
     (rkq-carr-bridge! sc crag csr)
     (mac 'sum-ag-succ)
     (subst (list '== (list gvv nv) (list (list 'ACT mdv) (list gcv nv) xv)))
-    (dk-apply! ih mdv xv gcv gvv)
+    (let w1g-dl ((w1g-f ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))   ; W1G-B: was (dk-apply! ih mdv xv gcv gvv)
     (subst (list '= (list 'SUM-AG mvag gvv nv) (list (list 'ACT mdv) sc xv)))
     (mac 'mvag-op)
     (mac 'ras-op)
@@ -1001,6 +1001,10 @@
                        (== ((gg_ j_) i_) ((ff_ i_) j_))))))
                   '(FORALL i_ (IMPLIES (IN i_ (ORD-SEGMENT m))
                      (== (rs_ i_) (SUM-AG ag (ff_ i_) n))))
+                  ;; W1K (the user's decision 2026-11-06): the column sums typed as a
+                  ;; function on OS(n), so that the induction hypothesis, used at the
+                  ;; truncated column sums, quantifies over a set.
+                  '(IN cs_ (FUN (ORD-SEGMENT n) (CARR ag)))
                   '(FORALL j_ (IMPLIES (IN j_ (ORD-SEGMENT n))
                      (== (cs_ j_) (SUM-AG ag (gg_ j_) m))))
                   ;; W2A 2026-10-10 (the user's approval, REPAIR-W2 item 3): the
@@ -1012,8 +1016,26 @@
                      (IN (cs_ fbj_) (CARR ag))))
                   '(= (SUM-AG ag rs_ m) (SUM-AG ag cs_ n)))))))))))
 
+;;; W1K: (IN FAM (FUN (ORD-SEGMENT NV) CA)) for a VNB-LAMBDA family FAM over OS(NV), from
+;;; its pointwise typing PTW = forall b in OS(NV). FAM(b) in CA, which is in context:
+;;; lam-t, the instance of PTW beta-reduced in context, the segment's sethood.
+(define (rkq-w1k-fun-type! fam nv ca ptw)
+  (dk-have! (list 'IN fam (list 'FUN (rkq-seg nv) ca))
+    (lambda ()
+      (dk-lam-type!
+        (lambda ()
+          (let* ((v (cadr (car (dk-peel!))))
+                 (inst (dk-deepest (lambda () (inst+ ptw v)))))
+            (if (not (alpha-equiv? inst (dk-goal))) (dk-lam-b-h! inst))
+            (ass)))
+        (lambda ()
+          (dk-cite! 'nn-subset-ord nv)
+          (dk-cite! 'ord-segment-is-set nv)
+          (ass))))))
+
 (sp (make-wff rkq-fub-ind-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+;; W1K: ag, n, ff_, gg_, rs_ fixed; the IH varies the column sums cs_ only (typed by the guard).
+(let* ((leaves (cdr (assq 'cases (dk-ni-fixed! '(ag n ff_ gg_ rs_)))))
        (base (rkq-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (rkq-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   ;; ---- base: m = 0.  Every column sum is the empty fold. -------------------
@@ -1172,7 +1194,8 @@
                  (dk-apply! (rkq-sumag-type-inline! agv (list ggv jv) ca) mv)
                  (ass))))
       ;; --- the IH at the truncated column sums -----------------------------
-      (dk-apply! ih agv nv ffv ggv rsv csp)
+      (rkq-w1k-fun-type! csp nv ca (rkq-gf 'fbj_ segN (rkq-in (list csp 'fbj_) ca)))
+      (dk-apply! ih csp)                ; W1K: ag n ff_ gg_ rs_ fixed
       (have! (rkq-gf 'j_ segN (rkq-in (list (list ffv mv) 'j_) ca))
              (lambda ()
                (let ((jv (dk-di-var!)))
@@ -1359,8 +1382,36 @@
                (ass)))))
   (rkq-fub-sum-type! 'fbi_ rsT lami phiX segM mm liP yv (lambda (a z) (list a z)))
   (rkq-fub-sum-type! 'fbj_ csT lamj phiY segN nn ljP xv (lambda (a z) (list z a)))
-  (dk-fact! 'sum-ag-fubini-ind mm agv nn ffT ggT rsT csT)
-  (ass))
+  ;; W1K: sum-ag-fubini-ind now wants the column sums in FUN(OS(n), CARR ag).  csT is an
+  ;; ENUM-FAM, a function on NN, so it is cited at the RESTRICTION csR = csT on OS(n),
+  ;; and SUM-AG(ag, csR, n) == SUM-AG(ag, csT, n) by sum-ag-segment-congruence.
+  (let* ((csR  (list 'VNB-LAMBDA 'wkcj_ segN (list csT 'wkcj_)))
+         (ctyp (rkq-gf 'fbj_ segN (rkq-in (list csT 'fbj_) ca)))
+         (ccol (rkq-gf 'j_ segN (list '== (list csT 'j_) (list 'SUM-AG agv (list ggT 'j_) mm)))))
+    (rkq-w1k-fun-type! csR nn ca ctyp)
+    (define rkq-w1k-agree (rkq-gf 'j_ segN (list '== (list csR 'j_) (list csT 'j_))))
+    (have! rkq-w1k-agree
+           (lambda () (dk-di-var!) (lam-b) (qrfl)))
+    ;; the two hypotheses at csR, by rewriting csR(j) to csT(j) (no `lam-b' on the goal:
+    ;; it would also contract the (ggT j) redex of the column sum)
+    (have! (rkq-gf 'j_ segN (list '== (list csR 'j_) (list 'SUM-AG agv (list ggT 'j_) mm)))
+           (lambda ()
+             (let ((jv (dk-di-var!)))
+               (dk-apply! rkq-w1k-agree jv)
+               (subst (list '= (list csR jv) (list csT jv)))
+               (dk-apply! ccol jv)
+               (ass))))
+    (have! (rkq-gf 'fbj_ segN (rkq-in (list csR 'fbj_) ca))
+           (lambda ()
+             (let ((jv (dk-di-var!)))
+               (dk-apply! rkq-w1k-agree jv)
+               (subst (list '= (list csR jv) (list csT jv)))
+               (dk-apply! ctyp jv)
+               (ass))))
+    (dk-fact! 'sum-ag-fubini-ind mm agv nn ffT ggT rsT csR)
+    (dk-fact! 'sum-ag-segment-congruence nn agv csR csT)
+    (subst (list '= (list 'SUM-AG agv csT nn) (list 'SUM-AG agv csR nn)))
+    (ass)))
 (rkq-check! 'finsum-fubini)
 (qed 'finsum-fubini)
 (topic! 'finsum-fubini 'algebra)
@@ -1417,7 +1468,7 @@
        (= ((MUL rng) r (ZZ-ACT (RING-ADDITIVE-AG rng) k a))
           (ZZ-ACT (RING-ADDITIVE-AG rng) k ((MUL rng) r a))))))))))))
 (sp (make-wff rkq-szn-stmt))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (cdr (assq 'cases (dk-ni-fixed! '(rng)))))   ; W1G-B: rng; r, a (in CARR(rng)) stay inside fixed
        (base (rkq-leaf leaves (lambda (g) (not (dk-contains? g 'succ))) "induction base"))
        (step (rkq-leaf leaves (lambda (g) (dk-contains? g 'succ))       "induction step")))
   ;; ---- base --------------------------------------------------------------
@@ -1483,7 +1534,7 @@
     (subst (list '= (list (list 'MUL rngv) rv (A (Z kv av) av))
                     (A (list (list 'MUL rngv) rv (Z kv av))
                        (list (list 'MUL rngv) rv av))))
-    (dk-apply! ih rngv rv av)
+    (dk-apply! ih rv av)   ; W1G-B: rng fixed
     (subst (list '= (list (list 'MUL rngv) rv (Z kv av)) (Z kv ra)))
     (dk-fact! 'zz-act-type rag kv ra)
     (have! (rkq-in (Z kv ra) (list 'CARR rngv))

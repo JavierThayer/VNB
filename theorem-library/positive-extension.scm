@@ -247,6 +247,7 @@
 (fact 'rr-is-normed-field)
 (fact 'normed-field-as-commutative-ring-is-commutative-ring 'RR-NORMED-FIELD)
 (mac 'is-module)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (for-each (lambda (nm) (dk-cite! nm 's))
           '(pex-cf-scal pex-cf-vec pex-cf-vadd pex-cf-vzero pex-cf-vneg pex-cf-act))
 (subst (list '== (pex-acc 'SCAL) pex-R))

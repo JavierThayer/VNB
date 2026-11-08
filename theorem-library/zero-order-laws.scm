@@ -561,12 +561,12 @@
                        (lambda () (dk-ass!))))))))
 (define (zol-setu! u) (dk-cite! 'cc-open-subset-cc u) (fact 'cc-is-set) (fact 'subclass-of-set-is-set u 'CC) (fact 'cc-one-in) (fact 'cc-zero-in) (fact 'nn-zero-in))
 (let* ((ls (dk-open-leaves)))
-  (ni)
+  (dk-ni-fixed! '(zlu_))   ; W1G-B: zlu_ fixed; zlc_ (in CC) stays inside
   (let* ((leaves (dk-open-leaves))
          (st (find-first (lambda (l) (dk-contains? (dk-goal-of l) 'zld_)) leaves))
          (b (find-first (lambda (l) (not (eq? l st))) leaves)))
     (dk-focus! b)
-    (let* ((new (zol-steps!)) (u (caddr (find-first (lambda (q) (dk-head-is? q 'IS-OPEN)) new))) (c (zol-var new 'CC))
+    (let* ((new (zol-steps!)) (u (caddr (find-first (lambda (q) (dk-head-is? q 'IS-OPEN)) (dk-asms)))) (c (zol-var new 'CC))   ; W1G-B: u is hoisted
            (l0 (zol-pw u c 0)) (one (list 'VNB-LAMBDA 'zlx_ u 1)))
       (zol-setu! u)
       (dk-have! (list 'HOLOMORPHIC-ON u one) (lambda () (dk-holomorphic! u one)))
@@ -577,12 +577,12 @@
       (dk-cite! 'holomorphic-transfer-ptwise-eq u l0 one)
       (dk-ass!))
     (dk-focus! st)
-    (let* ((new (zol-steps!)) (u (caddr (find-first (lambda (q) (dk-head-is? q 'IS-OPEN)) new))) (c (zol-var new 'CC))
+    (let* ((new (zol-steps!)) (u (caddr (find-first (lambda (q) (dk-head-is? q 'IS-OPEN)) (dk-asms)))) (c (zol-var new 'CC))   ; W1G-B: u is hoisted
            (d (find-first (lambda (v) (dk-contains? (dk-goal) (list 'succ v))) (map cadr (filter (lambda (q) (and (zol-op? q 'IN 3) (eq? (caddr q) 'NN))) new))))
            (ih (find-first (lambda (q) (and (zol-op? q 'FORALL 3) (dk-contains? q 'HOLOMORPHIC-ON))) new))
            (l0 (zol-pw u c d)) (l1 (zol-pw u c (list 'succ d))))
       (zol-setu! u) (fact 'nn-succ-closed d)
-      (let ((hp (dk-apply! ih u c)))
+      (let ((hp (dk-apply! ih c)))
         (zol-pw-typ! u c d) (zol-pw-typ! u c (list 'succ d))
         (let* ((pv (dk-name! l0 (list 'FUN u 'CC)))
                (tg (list 'VNB-LAMBDA 'zlx_ u (list '* (list '- 'zlx_ c) (list pv 'zlx_)))))
@@ -844,19 +844,19 @@
 
 ;;; COUNT-HITS is a natural number
 (sp (make-wff '(FORALL zln_ (IMPLIES (IN zln_ NN) (FORALL zls_ (FORALL zlz_ (IN (COUNT-HITS zls_ zlz_ zln_) NN)))))))
-(ni)
+(dk-ni-fixed! '(zls_ zlz_))   ; W1G-B: zls_, zlz_ fixed
 (let* ((leaves (dk-open-leaves))
        (st (find-first (lambda (l) (dk-contains? (dk-goal-of l) 'zln_)) leaves))
        (b (find-first (lambda (l) (not (eq? l st))) leaves)))
   (dk-focus! b)
-  (begin (di)
+  (begin   ; W1G-B: zls_, zlz_ fixed, nothing to peel
     (fact 'nn-zero-in)
     (subst (dk-fact! 'count-hits-zero (cadr (cadr (dk-goal))) (caddr (cadr (dk-goal)))))
     (dk-ass!))
   (dk-focus! st)
   (let* ((new (zol-steps!)) (ih (find-first (lambda (q) (zol-op? q 'FORALL 3)) new))
          (g (cadr (dk-goal))) (s (cadr g)) (z (caddr g)) (n (cadr (cadddr g))) (c (list 'COUNT-HITS s z n)))
-    (dk-apply! ih s z)
+    ih   ; W1G-B: zls_, zlz_ fixed, the IH is the typing itself
     (subst (dk-fact! 'count-hits-succ s z n))
     (fact 'nn-succ-closed c)
     (dk-case-if! (list 'IF (list '= (list s n) z) (list 'succ c) c) (lambda (tv val) (dk-close-if! (lambda () #t) (lambda () (dk-ass!)))))))

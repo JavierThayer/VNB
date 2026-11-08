@@ -260,6 +260,7 @@
 
 (sp (make-wff '(IS-NORMED-FIELD RR-NORMED-FIELD)))
 (mac 'IS-NORMED-FIELD)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (quietly (lambda () (surface-goal! 'RR-NORMED-FIELD)))
 ;; split the top conjunction to leaves
 (let split ((fuel 40))

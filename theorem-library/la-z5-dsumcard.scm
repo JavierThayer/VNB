@@ -331,10 +331,15 @@
   (lz5d-cite! 'nn-subset-zz t)
   (dk-have! (list 'IN t '(CARR ZZ-RING)) (lambda () (subst '(== (CARR ZZ-RING) ZZ)) (ass))))
 
+;; the claim at the family F itself (W1M, variant A): the induction holds F FIXED, so the step
+;; carries the induction hypothesis at its own F and no universal over families is formed
+(define (lz5d-claim-at m)
+  (list 'IMPLIES (lz5d-sets-hyp m) (list 'IMPLIES (lz5d-fin-hyp m) (lz5d-body-claim m))))
+
 ;; the step, n -> succ n
 (sp (make-wff (forall-guarded '(n F)
   (list '(IN n NN) (lz5d-sets-hyp '(succ n)) (lz5d-fin-hyp '(succ n))
-        (lz5d-claim 'n))
+        (lz5d-claim-at 'n))
   (lz5d-body-claim '(succ n)))))
 (dk-peel!)
 (fact 'nn-succ-closed 'n)
@@ -346,8 +351,7 @@
   (lambda () (let* ((ld (dk-peel!)) (j (cadr (car ld)))) (lz5d-widen! j) (lz5d-by! (lambda () (dk-apply! (lz5d-sets-hyp '(succ n)) j))))))
 (dk-have! (lz5d-fin-hyp 'n)
   (lambda () (let* ((ld (dk-peel!)) (j (cadr (car ld)))) (lz5d-widen! j) (lz5d-by! (lambda () (dk-apply! (lz5d-fin-hyp '(succ n)) j))))))
-(define LZ5D-IHI (list 'IMPLIES (lz5d-sets-hyp 'n) (list 'IMPLIES (lz5d-fin-hyp 'n) (lz5d-body-claim 'n))))
-(dk-apply! (lz5d-claim 'n) 'F)
+(define LZ5D-IHI (lz5d-claim-at 'n))
 (lz5d-split! (lz5d-detach-all! (dk-ctx-form LZ5D-IHI)))
 (dk-have! '(IN (succ n) (INTERVAL 1 (succ n)))
   (lambda () (dk-have! '(<= 1 (succ n)) (lambda () (dk-nn!))) (dk-have! '(<= (succ n) (succ n)) (lambda () (dk-nn!)))
@@ -483,11 +487,15 @@
 (lz5d-done! 'dsum-card-zero)
 
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (lz5d-claim 'n)))))
-(let* ((opened (dk-opened (lambda () (ni))))
-       (step (find-first (lambda (l) (dk-contains? (dk-goal-of l) 'succ)) opened))
-       (base (find-first (lambda (l) (not (eq? l step))) opened)))
+;; W1M (variant A): the family is FIXED by dk-ni-fixed! (the induction runs on
+;; forall n in NN. lz5d-claim-at(n) at the family's eigenvariable), so the induction body
+;; quantifies over no class; the statement is unchanged.
+(let* ((r (dk-ni-fixed! '(dcfam_)))
+       (fam (cdr (or (assq 'dcfam_ (cdr (assq 'params r))) (error "dsum-card-ind: no fixed family"))))
+       (base (cdr (assq 'base r)))
+       (step (cdr (assq 'step r))))
   (dk-focus! base)
-  (fact 'dsum-card-zero)
+  (dk-cite! 'dsum-card-zero fam)
   (if (not (sequent-node-grounded? base)) (ass))
   (dk-focus! step)
   (let* ((ld (dk-peel!))
@@ -495,11 +503,9 @@
          (k (let find ((e g)) (cond ((and (pair? e) (eq? (car e) 'succ) (symbol? (cadr e))) (cadr e))
                                     ((pair? e) (or (find (car e)) (find (cdr e))))
                                     (#t #f))))
-         (ih (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'DSUM-VEC))) ld))
-         (fv (car (cadr (cadr (caddr (caddr (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'SET)
-                                                                (not (dk-contains? f 'DSUM-VEC)))) ld))))))))
+         (ih (find-first (lambda (f) (and (dk-head-is? f 'IMPLIES) (dk-contains? f 'DSUM-VEC))) ld)))
     (if (not ih) (error "dsum-card: no induction hypothesis"))
-    (lz5d-by! (lambda () (lz5d-cite! 'dsum-card-step k fv)))))
+    (lz5d-by! (lambda () (lz5d-cite! 'dsum-card-step k fam)))))
 (lz5d-done! 'dsum-card-ind)
 
 (sp (make-wff (forall-guarded '(n F) (list '(IN n NN) (lz5d-sets-hyp 'n) (lz5d-fin-hyp 'n)) (lz5d-body-claim 'n))))

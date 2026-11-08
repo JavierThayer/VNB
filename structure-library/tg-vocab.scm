@@ -119,8 +119,11 @@
   (law (FORALL u (IMPLIES (IN u (TOPOLOGY s))
          (FORALL v (IMPLIES (IN v (TOPOLOGY s))
            (IN (INTERSECTION u v) (TOPOLOGY s)))))))
-  (law (FORALL fam (IMPLIES (SUBSET fam (TOPOLOGY s))
-         (IN (BIG-UNION u fam u) (TOPOLOGY s)))))
+;; W1 (2026-11-04), as VIAGAP bounded TOP-SPACE's union law: fam is bounded by SET (a
+  ;; subclass of the set TOPOLOGY(s) is a set), so that the law is predicative where a
+  ;; comprehension condition names IS-TOP-GROUP (the generated IS-HOM-TOP-GROUP among them).
+  (law (FORALL fam (IMPLIES (IN fam SET) (IMPLIES (SUBSET fam (TOPOLOGY s))
+         (IN (BIG-UNION u fam u) (TOPOLOGY s))))))
   (law (FORALL tga_ (IMPLIES (IN tga_ (CARR s)) (FORALL tgb_ (IMPLIES (IN tgb_ (CARR s))
          (FORALL tgw_ (IMPLIES (IN tgw_ (TOPOLOGY s)) (IMPLIES (IN ((OPR s) tga_ ((INV s) tgb_)) tgw_)
            (FORSOME tgu_ (AND (IN tgu_ (TOPOLOGY s)) (AND (IN tga_ tgu_)

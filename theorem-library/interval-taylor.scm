@@ -312,7 +312,7 @@
         (list 'FORALL 'itk_ (list 'IMPLIES '(IN itk_ NN)
               (list 'IMPLIES '(< itk_ itn_) '(IN (itf_ itk_) RR))))
         '(IN (SERIES-PARTIAL-SUM itf_ itn_) RR)))))))
-(let* ((br (use-induction)) (nv (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))
+(let* ((br (dk-use-induction-fixed!)) (nv (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))   ; W1B: itf_ fixed
   (dk-focus! (cdr (assq 'base br)))
   (dk-peel!)
   (mac 'series-partial-sum-zero)
@@ -338,7 +338,7 @@
                                  (list 'IN (list 'succ nv) 'RR))))
           (dk-apply! pw z)
           (ass))))
-    (dk-apply! ih fv)
+    (detach! ih)                              ; W1B: was (dk-apply! ih fv); itf_ fixed
     (dk-apply! pw nv)
     (mac 'series-partial-sum-succ)
     (have! (list 'AND (list 'IN (list 'SERIES-PARTIAL-SUM fv nv) 'RR)
@@ -531,7 +531,7 @@
       (list 'IMPLIES (it-below-typing 'itd_ 'b 'itm_)
         (list '= (list 'TAYLOR-SUM 'itd_ '(succ itm_) 'b 'b)
                  '((itd_ 0) b))))))))))
-(let* ((br (use-induction)) (nv (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))
+(let* ((br (dk-use-induction-fixed!)) (nv (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))   ; W1C: the family fixed
   ;; ---- base:  the sum of ONE summand at b is d(0)(b) ----
   (dk-focus! (cdr (assq 'base br)))
   (let* ((lnd (dk-peel!))
@@ -575,7 +575,7 @@
           (fact 'nn-le-trans-guarded kv nv sm)
           (dk-apply! ty kv)
           (ass))))
-    (dk-apply! ih dv bv)
+    (dk-apply! ih bv)                         ; W1C: itd_ fixed
     (dk-have! (list '= (sps sm) d0)
       (lambda ()
         (fact 'taylor-sum-unfold dv sm bv bv)
@@ -968,7 +968,7 @@
         (list 'IMPLIES '(<= (succ itm_) itn_)
           '(IS-CONTINUOUS-ON (TAYLOR-AUX itd_ (succ itm_) a b)
                              (CCINT a b))))))))))))
-(let* ((br (use-induction)) (nv (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))
+(let* ((br (dk-use-induction-fixed!)) (nv (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))   ; W1C: the family fixed
   ;; ---- base:  F_1 = d(0) on [a, b] ----
   (dk-focus! (cdr (assq 'base br)))
   (dk-peel!)
@@ -1047,7 +1047,7 @@
     (dk-have! (list '< sn ov)
       (lambda () (dk-ineq! (list '< sn ssn) (list '<= ssn ov)
                            (list 'IN sn 'RR) (list 'IN ssn 'RR) (list 'IN ov 'RR))))
-    (dk-apply! ih dv ov av bv)
+    (detach! ih)                              ; W1C: was (dk-apply! ih dv ov av bv); the family fixed
     (fact 'taylor-family-continuous dv ov av bv sn)
     (fact 'cont-on-in-fun lo cc)
     (fact 'cont-on-in-fun dsn cc)
@@ -1240,7 +1240,7 @@
              (HAS-DERIV-AT (TAYLOR-AUX itd_ (succ itm_) a b) itx_
                (* (* ((itd_ (succ itm_)) itx_) (power (- b itx_) itm_))
                   (recip (FACTORIAL itm_))))))))))))))))
-(let* ((br (use-induction)) (nv (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))
+(let* ((br (dk-use-induction-fixed!)) (nv (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))   ; W1C: the family fixed
   ;; ---- base:  F_1 = d(0) near x, so F_1'(x) = d(1)(x) ----
   (dk-focus! (cdr (assq 'base br)))
   (dk-peel!)
@@ -1372,7 +1372,7 @@
     (it-mul-real! (list '* sn pnv) '(- 1))
     (fact 'taylor-aux-in-fun dv ov av bv sn)
     (fact 'taylor-aux-in-fun dv ov av bv ssn)
-    (dk-apply! (dk-apply! ih dv ov av bv) xv)
+    (dk-apply! (dk-landed-1 (lambda () (detach! ih))) xv)   ; W1C: the family fixed
     (fact 'ooint-subset-ccint av bv)
     ;; The two lambdas of the step are functions on [a, b].  Each closure lands
     ;; EXACTLY the typings its own body needs and stops: a landing that closes

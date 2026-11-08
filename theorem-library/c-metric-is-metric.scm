@@ -555,6 +555,7 @@
        (IS-METRIC-SPACE (C-METRIC-W s w))))))))
 (dk-peel-to! 'IS-METRIC-SPACE)
 (mac 'IS-METRIC-SPACE)                       ; the GOAL only
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (mac 'c-metric-carrier)                      ; PTS(C-METRIC-W s w) -> PTS(s)
 (define cmim-conjuncts (cmim-split-goal!))
 (for-each

@@ -6389,7 +6389,7 @@
       hits)))
 
 (define (fwd-lane--setup-base)
-  (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+  (sp "forall([n in nn, a in set, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
   (ni)
   (let loop ((ls (proof-open-leaves *ps*)))
     (cond ((null? ls) (error "fwd-lane: no base leaf"))
@@ -6475,7 +6475,7 @@
   ;; the live-fire lane reports it; two lanes naming the same move is noise
   (lambda ()
     (null? (ind-lane--moves
-            (lambda () (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)"))))))
+            (lambda () (sp "forall([n in nn, a in set, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)"))))))
 
 (check-true "what-now induction: an NN EIGENVARIABLE in the context is reported"
   ;; two greedy di's and the binder is gone -- this is the case that prompted
@@ -6535,7 +6535,7 @@
     (let ((saved *ps*))
       (quietly
        (lambda ()
-         (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+         (sp "forall([n in nn, a in set, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
          (ni)
          (let loop ((ls (proof-open-leaves *ps*)))
            (cond ((null? ls) (error "proof-map test: no base leaf"))
@@ -6569,7 +6569,7 @@
 ;;; perturbs what it inspects is worse than none.
 
 (define (wne--setup)
-  (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+  (sp "forall([n in nn, a in set, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
   (ni) (di) (di))
 
 (check-true "what-now-explain: reports the goal a backchain would leave"
@@ -6726,7 +6726,7 @@
   (lambda ()
     (null? (ind-lane--moves
             (lambda ()
-              (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+              (sp "forall([n in nn, a in set, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
               (ni)
               (let loop ((ls (proof-open-leaves *ps*)))
                 (cond ((null? ls) (error "no step leaf"))
@@ -10104,6 +10104,46 @@
   'RR)
 (check-false "checker: chk-number-class refuses a nested term with one untyped leaf (control)"
   (lambda () (chk-number-class '((IN a NN)) '(+ (* a a) (recip a)) 0)))
+;; W1P (2026-11-07, the user's decision): the parser stores x ^ n as (POWER x n), and the
+;; certificate's row was for the head `^', which no parsed term carries: `rfl' declined
+;; x ^ 2 + y ^ 2 = x ^ 2 + y ^ 2 with x, y in RR.  A two-argument POWER with n in NN now has
+;; a number class (RR for x at most RR: power-closed-at; CC for x in CC: power-typing-nonneg);
+;; the one-argument POWER(A), the power set, is no number.  The first check is the CONTROL
+;; that fails on the old code.
+(check "W1P: the parser stores x ^ 2 as POWER(x, 2), not as the head ^"
+  (lambda () (wff-formula (make-wff-from-string "x ^ 2 = x ^ 2")))
+  '(= (POWER x 2) (POWER x 2)))
+(check-true "W1P CONTROL: rfl closes x ^ 2 + y ^ 2 = x ^ 2 + y ^ 2 with x, y in RR (old: declined)"
+  (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR) (= (+ (POWER x 2) (POWER y 2)) (+ (POWER x 2) (POWER y 2)))))))))
+             (di) (rfl) (proof-done? *ps*)))
+(check-true "W1P: rfl still declines x ^ 2 + y ^ 2 = x ^ 2 + y ^ 2 with y UNTYPED (control)"
+  (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (= (+ (POWER x 2) (POWER y 2)) (+ (POWER x 2) (POWER y 2)))))))
+             (di) (rfl) (not (proof-done? *ps*))))
+(check "W1P: builder and checker agree: POWER(x, 2) + POWER(z, n) is RR, resp. CC"
+  (lambda () (list (pi--number-class (list (make-wff '(IN x RR)) (make-wff '(IN n NN)))
+                                     '(+ (POWER x 2) (POWER x n)) 0)
+                   (chk-number-class '((IN x RR) (IN n NN)) '(+ (POWER x 2) (POWER x n)) 0)
+                   (pi--number-class (list (make-wff '(IN z CC)) (make-wff '(IN n NN)))
+                                     '(+ (POWER z 2) (POWER z n)) 0)
+                   (chk-number-class '((IN z CC) (IN n NN)) '(+ (POWER z 2) (POWER z n)) 0)))
+  '(RR RR CC CC))
+(check "W1P REFUSED: POWER(A), the power set, is no number (builder and checker); x ^ r, r in RR, neither"
+  (lambda () (list (pi--number-class (list (make-wff '(IN a RR))) '(POWER a) 0)
+                   (chk-number-class '((IN a RR)) '(POWER a) 0)
+                   (chk-number-class '((IN a RR)) '(+ (POWER a) 1) 0)
+                   (pi--defined? (list (make-wff '(IN a RR))) '(+ (POWER a) 1) 0)
+                   (pi--number-class (list (make-wff '(IN x RR)) (make-wff '(IN r RR))) '(POWER x r) 0)
+                   (chk-number-class '((IN x RR) (IN r RR)) '(POWER x r) 0)))
+  '(#f #f #f #f #f #f))
+;; Regression only, NOT a control: it passes on the old kernel too (worker-08, 2026-11-07),
+;; where no open owed leaf remained after the instance either.
+(check-true "W1P: forall-elim at x ^ 2 + 1 (x in RR) leaves one open leaf after the instance (regression)"
+  (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (IMPLIES (FORALL w1pu_ (= w1pu_ w1pu_)) (= (+ (POWER x 2) 1) (+ (POWER x 2) 1)))))))
+             (let loop ((k 0)) (if (and (< k 4) (not (eq? (dk-head (dk-goal)) '=))) (begin (di) (loop (+ k 1)))))
+             (let ((h (find (lambda (f) (and (pair? f) (eq? (car f) 'FORALL))) (dk-asms)))
+                   (v (cadr (find (lambda (f) (and (pair? f) (eq? (car f) 'IN) (eq? (caddr f) 'RR))) (dk-asms)))))
+               (inst+ h (list '+ (list 'POWER v 2) 1))
+               (= 1 (length (dk-open-leaves))))))
 
 ;;; --- macete-hyp ---
 
@@ -11228,8 +11268,10 @@
   (lambda () (rcs-chk--refuses? 'sep-sethood '((() (IN NN SET))) `(() (IN ,nbs-iota SET)))))
 (check-true "NBGSEP sep-sethood, (b)2: an IOTA with a top-level (IN w C) conjunct is accepted by the checker"
   (lambda () (rcs-chk--accepts? 'sep-sethood '((() (IN NN SET))) `(() (IN ,nbs-giota SET)))))
-(check-true "NBGSEP sep-sethood: a PREDICATE guard (POS-RR) does not confine (checker refuses)"
-  (lambda () (rcs-chk--refuses? 'sep-sethood '((() (IN RR SET))) `(() (IN ,nbs-ppred SET)))))
+;; VIAGAP (2026-10-29): a predicate guard whose definition types its argument now
+;; confines it (POS-RR(r) iff r in RR and ...): this check was a refusal under NBGSEP.
+(check-true "NBGSEP sep-sethood: a PREDICATE guard (POS-RR) confines since VIAGAP (checker accepts)"
+  (lambda () (rcs-chk--accepts? 'sep-sethood '((() (IN RR SET))) `(() (IN ,nbs-ppred SET)))))
 (check-true "NBGSEP sep-sethood: the builder splits a predicative SEP"
   (lambda () (sp (make-wff `(IN ,nbs-pred SET)))
              (and (pi-sep-sethood! (proof-state-focus *ps*)) #t)))
@@ -11419,6 +11461,147 @@
       r)))
 (check-true "NBGSEP binder gate: the live library is clean"
   (lambda () (null? (binder-predicativity-audit))))
+
+;;; VIAGAP (2026-10-29; VIAGAP-REPORT.md s.1).  The ONE relation reads through
+;;; DEFINED HEADS (a condition naming a head is predicative only if every definiens
+;;; of the head is) and its guards are widened (a predicate whose definition puts its
+;;; argument in a class confines it; so do (IN s C) and (= s t) with v a LIST
+;;; component, an OR whose both sides guard, and forall v. not A).  Each check is an
+;;; accepted / refused pair on the builder, the checker and the audit.  The REFUSED
+;;; halves through a defined head, and the ACCEPTED predicate-guard, list, OR and NOT
+;;; halves, FAIL on the code before VIAGAP (a320cb6f): the old relation passed every
+;;; head unread and read only (IN v C) as a guard.
+(def-predicate 'VGS-OPEN '(vgx_) '(FORALL vgc_ (IN vgx_ vgc_)))                       ; impredicative definiens
+(def-predicate 'VGS-OK '(vgx_) '(FORALL vgc_ (IMPLIES (IN vgc_ NN) (IN vgx_ vgc_))))   ; predicative partner
+(def-predicate 'VGS-POSN '(vgx_) '(AND (IN vgx_ NN) (< 0 vgx_)))                      ; confines its argument
+(def-predicate 'VGS-SUBNN '(vgx_) '(SUBSET vgx_ NN))                                  ; does not confine
+(def-functoid 'VGS-F '(vga_) '(IOTA vgz_ (= vgz_ vga_)))                              ; unconfined IOTA body
+(def-functoid 'VGS-G '(vga_) '(IOTA vgz_ (AND (IN vgz_ NN) (= vgz_ vga_))))           ; guarded IOTA body
+(def-functoid 'VGS-PAIR '(vga_ vgb_) '(LIST vga_ vgb_))                               ; a list term
+(def-constant 'VGS-K '(vgs-k-def (== VGS-K (IOTA vgz_ (= vgz_ 0)))))
+(def-constant 'VGS-KOK '(vgs-kok-def (== VGS-KOK (IOTA vgz_ (AND (IN vgz_ NN) (= vgz_ 0))))))
+;; a head with a predicative def-predicate AND a second, impredicative, definitional IFF
+(def-predicate 'VGS-TWO '(vgx_) '(IN vgx_ NN))
+(fluid-let ((*current-provenance* 'definitional))
+  (add-axiom! *library* 'vgs-two-alt '(FORALL vgx_ (IFF (VGS-TWO vgx_) (FORALL vgc_ (IN vgx_ vgc_))))))
+
+(define vgs-via-sep '(SEP x_ NN (VGS-OPEN x_)))
+(define vgs-ok-sep  '(SEP x_ NN (VGS-OK x_)))
+
+(check-true "VIAGAP builder: a COMP naming a head with an impredicative definiens is refused, naming the head"
+  (lambda ()
+    (sp (make-wff '(IN 0 (COMP x_ (VGS-OPEN x_)))))
+    (let ((msg (call-with-current-continuation
+                 (lambda (k) (with-exception-handler (lambda (e) (k (condition/report-string e)))
+                               (lambda () (pi-comp-mem-intro! (proof-state-focus *ps*)) #f))))))
+      (and (string? msg) (string-search-forward "defined head vgs-open" msg 0) #t))))
+(check-true "VIAGAP builder: the COMP naming the predicative partner is split"
+  (lambda ()
+    (sp (make-wff '(IN 0 (COMP x_ (VGS-OK x_)))))
+    (and (pi-comp-mem-intro! (proof-state-focus *ps*)) #t)))
+(check-true "VIAGAP checker: comp-mem-intro through an impredicative head is refused, the reason names it"
+  (lambda ()
+    (and (rcs-chk--refuses? 'comp-mem-intro
+           '((() (IN 0 SET)) (() (VGS-OPEN 0)))
+           '(() (IN 0 (COMP x_ (VGS-OPEN x_)))))
+         (let ((r (rcs-comp-mem-intro 'comp-mem-intro
+                    (map rcs-chk--sequent '((() (IN 0 SET)) (() (VGS-OPEN 0))))
+                    (rcs-chk--sequent '(() (IN 0 (COMP x_ (VGS-OPEN x_))))))))
+           (and (string? r) (string-search-forward "defined head vgs-open" r 0) #t)))))
+(check-true "VIAGAP checker: comp-mem-intro through the predicative partner is accepted"
+  (lambda ()
+    (rcs-chk--accepts? 'comp-mem-intro
+      '((() (IN 0 SET)) (() (VGS-OK 0)))
+      '(() (IN 0 (COMP x_ (VGS-OK x_)))))))
+(check-true "VIAGAP sep-sethood: through an impredicative head refused (builder, checker), predicative accepted"
+  (lambda ()
+    (and (begin (sp (make-wff `(IN ,vgs-via-sep SET)))
+                (rcs-chk--raises? (lambda () (pi-sep-sethood! (proof-state-focus *ps*)))))
+         (rcs-chk--refuses? 'sep-sethood '((() (IN NN SET))) `(() (IN ,vgs-via-sep SET)))
+         (begin (sp (make-wff `(IN ,vgs-ok-sep SET)))
+                (and (pi-sep-sethood! (proof-state-focus *ps*)) #t))
+         (rcs-chk--accepts? 'sep-sethood '((() (IN NN SET))) `(() (IN ,vgs-ok-sep SET))))))
+(check-true "VIAGAP def-functoid head: an unconfined IOTA body condemns the SEP; the guarded body passes"
+  (lambda ()
+    (and (rcs-chk--refuses? 'sep-sethood '((() (IN NN SET))) '(() (IN (SEP x_ NN (= x_ (VGS-F x_))) SET)))
+         (pi--binder-unconfined-binder '(SEP x_ NN (= x_ (VGS-F x_))))
+         (rcs-chk--accepts? 'sep-sethood '((() (IN NN SET))) '(() (IN (SEP x_ NN (= x_ (VGS-G x_))) SET)))
+         (not (pi--binder-unconfined-binder '(SEP x_ NN (= x_ (VGS-G x_))))))))
+(check-true "VIAGAP def-constant: a bare constant with an unconfined IOTA condemns the SEP; the guarded one passes"
+  (lambda ()
+    (and (pi--binder-unconfined-binder '(SEP x_ NN (= x_ VGS-K)))
+         (rcs--binder-unconfined '(SEP x_ NN (= x_ VGS-K)))
+         (not (pi--binder-unconfined-binder '(SEP x_ NN (= x_ VGS-KOK))))
+         (not (rcs--binder-unconfined '(SEP x_ NN (= x_ VGS-KOK)))))))
+(check-true "VIAGAP every definiens: a second, impredicative, definitional IFF condemns the head"
+  (lambda ()
+    (and (pi--binder-unconfined-binder '(SEP x_ NN (VGS-TWO x_)))
+         (rcs--binder-unconfined '(SEP x_ NN (VGS-TWO x_)))
+         (pair? (binder-impredicative-subterms '(SEP x_ NN (VGS-TWO x_)))))))
+(check-true "VIAGAP cycle: a head met again while its verdict is computed is an offender (planted functoids)"
+  (lambda ()
+    (hash-table-set! *functoid-registry* 'vgs-cyc-a (list '(vga_) '(VGS-CYC-B vga_)))
+    (hash-table-set! *functoid-registry* 'vgs-cyc-b (list '(vga_) '(VGS-CYC-A vga_)))
+    (let ((r (and (pi--binder-unconfined-binder '(SEP x_ NN (= x_ (VGS-CYC-A x_))))
+                  (rcs--binder-unconfined '(SEP x_ NN (= x_ (VGS-CYC-A x_))))
+                  (pair? (binder-impredicative-subterms '(SEP x_ NN (= x_ (VGS-CYC-A x_)))))
+                  (not (pi--binder-unconfined-binder '(SEP x_ NN (= x_ (VGS-G x_))))))))
+      (hash-table-delete! *functoid-registry* 'vgs-cyc-a)
+      (hash-table-delete! *functoid-registry* 'vgs-cyc-b)
+      r)))
+
+;; the widened guards (each ACCEPTED half refused by the code before VIAGAP)
+(define (vgs-all-accept? c)
+  (and (not (pi--comp-unconfined-binder c))
+       (not (rcs--comp-unconfined-binder (list 'COMP 'x_ c)))
+       (null? (comp-impredicative-subterms (list 'COMP 'x_ c)))
+       (rcs-chk--accepts? 'sep-sethood '((() (IN NN SET))) `(() (IN (SEP x_ NN ,c) SET)))))
+(define (vgs-all-refuse? c)
+  (and (pi--comp-unconfined-binder c)
+       (rcs--comp-unconfined-binder (list 'COMP 'x_ c))
+       (pair? (comp-impredicative-subterms (list 'COMP 'x_ c)))
+       (rcs-chk--refuses? 'sep-sethood '((() (IN NN SET))) `(() (IN (SEP x_ NN ,c) SET)))))
+(check-true "VIAGAP G2: a predicate whose definiens types its argument confines it (POS-RR, VGS-POSN)"
+  (lambda () (and (vgs-all-accept? '(FORALL eps_ (IMPLIES (POS-RR eps_) (< x_ eps_))))
+                  (vgs-all-accept? '(FORSOME w_ (AND (VGS-POSN w_) (= x_ w_)))))))
+(check-true "VIAGAP G2 control: a predicate that only says SUBSET does not confine"
+  (lambda () (vgs-all-refuse? '(FORSOME w_ (AND (VGS-SUBNN w_) (IN x_ w_))))))
+(check-true "VIAGAP G2 (c2): ORD-LT confines through ord-lt-iff and the primitive ord-le-closure"
+  (lambda () (vgs-all-accept? '(FORALL b_ (IMPLIES (ORD-LT b_ x_) (IN b_ x_))))))
+(check-true "VIAGAP G3/G4: a witness that is a LIST component in an IN or a strict = is confined"
+  (lambda () (and (vgs-all-accept? '(FORSOME w_ (IN (LIST w_ 0) (CARTESIAN NN NN))))
+                  (vgs-all-accept? '(FORSOME w_ (= x_ (LIST w_ w_))))
+                  (vgs-all-accept? '(FORSOME w_ (= x_ (VGS-PAIR 0 w_))))
+                  (vgs-all-accept? '(FORSOME w_ (= w_ (LIST 0)))))))
+(check-true "VIAGAP G4 controls: UNION is not a list, and == does not confine"
+  (lambda () (and (vgs-all-refuse? '(FORSOME w_ (= x_ (UNION w_ w_))))
+                  (vgs-all-refuse? '(FORSOME w_ (== x_ (LIST w_ w_)))))))
+(check-true "VIAGAP OR: an existential confined in both disjuncts is accepted; in one only, refused"
+  (lambda () (and (vgs-all-accept? '(FORSOME w_ (OR (AND (IN w_ NN) (= x_ w_)) (AND (IN w_ RR) (= x_ w_)))))
+                  (vgs-all-refuse? '(FORSOME w_ (OR (AND (IN w_ NN) (= x_ w_)) (= x_ w_)))))))
+(check-true "VIAGAP NOT: forall w. not (a guard) is confined; forall w. not (no guard) is refused"
+  (lambda () (and (vgs-all-accept? '(FORALL w_ (NOT (IN (LIST w_ w_) x_))))
+                  (vgs-all-refuse? '(FORALL w_ (NOT (SUBSET w_ x_)))))))
+(check-true "VIAGAP certificates: a SEP through an impredicative head is not certified defined and may be a class"
+  (lambda ()
+    (and (not (pi--defined? '() vgs-via-sep 0)) (pi--defined? '() vgs-ok-sep 0)
+         (pi--value-may-be-class? '() vgs-via-sep) (not (pi--value-may-be-class? '() vgs-ok-sep))
+         (chk-value-may-be-class? vgs-via-sep '()) (not (chk-value-may-be-class? vgs-ok-sep '())))))
+(check-true "VIAGAP lambda-beta: a redex whose body names an impredicative head is left standing; its partner contracts"
+  (lambda ()
+    (and (begin (sp (make-wff '(IMPLIES (IN 0 NN) (= ((VNB-LAMBDA x_ NN (VGS-F x_)) 0) (VGS-F 0))))) (di)
+                (not (pi-lambda-beta! (proof-state-focus *ps*))))
+         (begin (sp (make-wff '(IMPLIES (IN 0 NN) (= ((VNB-LAMBDA x_ NN (VGS-G x_)) 0) (VGS-G 0))))) (di)
+                (and (pi-lambda-beta! (proof-state-focus *ps*)) #t)))))
+(check-true "VIAGAP audit: binder-impredicative-subterms flags the head, passes the partner"
+  (lambda () (and (pair? (binder-impredicative-subterms `(IN y_ ,vgs-via-sep)))
+                  (null? (binder-impredicative-subterms `(IN y_ ,vgs-ok-sep))))))
+(check-true "VIAGAP index: a head defined after the load is read at once (the definitions counter)"
+  (lambda ()
+    (def-predicate 'VGS-LATE '(vgx_) '(FORALL vgc_ (IN vgx_ vgc_)))
+    (and (pi--binder-unconfined-binder '(SEP x_ NN (VGS-LATE x_)))
+         (rcs--binder-unconfined '(SEP x_ NN (VGS-LATE x_)))
+         (pair? (binder-impredicative-subterms '(SEP x_ NN (VGS-LATE x_)))))))
 
 ;;; THE ONE-ENTRY LIST BINDER (2026-10-15, the user's decision, option (3)).  A
 ;;; binder (LIST p) destructures a 1-TUPLE: (VNB-LAMBDA (LIST p) (CARTESIAN D) b)
@@ -15764,7 +15947,8 @@
                (AND (= (LENGTH s) 2)
                  (AND (IN (PTS s) SET)
                    (AND (IN (REL s) (POWER (CARTESIAN (PTS s) (PTS s))))
-                        (IS-EQUIVALENCE (REL s) (PTS s))))))))))
+                     (AND (IS-EQUIVALENCE (REL s) (PTS s))
+                          (IN s SET)))))))))) ; W1Q: patch 27's last conjunct, as build-is-axiom emits it
 
 (check-true "the relation kind's hom clause: ONE map of points, related points go to related points"
   (lambda ()
@@ -17843,6 +18027,317 @@
                    (and (pi--value-may-be-class? '() '(GD-HAND 0)) #t)
                    (and (chk-value-may-be-class? '(GD-HAND 0) '()) #t)))
   '(#f #f #t #t))
+
+;;; ---------------------------------------------------------------------------
+;;; W1 (2026-11-04; W1-REPORT.md s.3).  METACORE findings 1 and 2, and DEFHEAD dh1.
+;;; Finding 1: a COMP is certified DEFINED only when its condition is predicative (builder:
+;;; pi--defined?, term-self-defined?, pi--body-shape-total?; checker: its own walk,
+;;; chk-impredicative-comp-certified?, before the builder's word).  Finding 2: the three
+;;; induction checkers refuse an impredicative body.  Each REFUSED control below FAILS on
+;;; the code before W1 (9f2c0788 + VIAGAP): there the impredicative COMP was certified and
+;;; the impredicative induction accepted.  The ACCEPTED controls pass on both.
+(define w1s-pcomp '(COMP w1x_ (IN w1x_ RR)))                       ; predicative
+(define w1s-icomp '(COMP w1x_ (FORALL w1y_ (IN w1y_ w1y_))))       ; impredicative
+(check-true "W1 COMP builder (accepted): pi--defined? certifies a predicative COMP"
+  (lambda () (and (pi--defined? '() w1s-pcomp 0) (term-self-defined? w1s-pcomp) #t)))
+(check-true "W1 COMP builder (refused): pi--defined? / term-self-defined? decline an impredicative COMP"
+  (lambda () (not (or (pi--defined? '() w1s-icomp 0) (term-self-defined? w1s-icomp)))))
+(check-true "W1 COMP builder (refused): nor under a total constructor (POWER of it)"
+  (lambda () (not (pi--defined? '() (list 'POWER w1s-icomp) 0))))
+(rcl--accept "W1 reflexivity at a predicative COMP" 'reflexivity
+  (rcl--h '() (list '= w1s-pcomp w1s-pcomp)) '())
+(rcl--refuse "W1 reflexivity at an impredicative COMP" 'reflexivity
+  (rcl--h '() (list '= w1s-icomp w1s-icomp)) '())
+(check-true "W1 COMP checker (accepted): the context's own typing of the term is not second-guessed"
+  (lambda () (not (chk-impredicative-comp-certified? (list (list 'IN w1s-icomp 'SET)) w1s-icomp))))
+(check-true "W1 COMP checker (refused): its own walk finds the impredicative COMP under POWER"
+  (lambda () (chk-impredicative-comp-certified? '() (list 'POWER w1s-icomp))))
+(check-true "W1 COMP checker: a COMP inside a SEP CONDITION is not a definedness obligation"
+  (lambda () (not (chk-impredicative-comp-certified? '() (list 'SEP 'w1z_ 'NN (list 'IN 'w1z_ w1s-icomp))))))
+;;; finding 2: the body  forall y. n in y  (unguarded) against  forall y in SET. n in y
+(define w1s-ib '(FORALL w1y_ (IN w1n_ w1y_)))
+(define w1s-pb '(FORALL w1y_ (IMPLIES (IN w1y_ SET) (IN w1n_ w1y_))))
+(define (w1s-nn-case body)
+  (list (rcl--h '() (list 'FORALL 'w1n_ (list 'IMPLIES '(IN w1n_ NN) body)))
+        (list (rcl--h '() (subst-free 'w1n_ 0 body))
+              (rcl--h '() (list 'FORALL 'w1n_ (list 'IMPLIES '(IN w1n_ NN)
+                                (list 'IMPLIES body (subst-free 'w1n_ '(succ w1n_) body))))))))
+(let ((g (w1s-nn-case w1s-pb))) (rcl--accept "W1 nn-induction at a predicative body" 'nn-induction (car g) (cadr g)))
+(fluid-let ((*nbg-induction-fatal?* #t)) (let ((g (w1s-nn-case w1s-ib))) (rcl--refuse "W1 nn-induction at an impredicative body, the fatal switch on (W1B)" 'nn-induction (car g) (cadr g))))
+(define (w1s-ih body) (list 'FORALL 'w1b_ (list 'IMPLIES '(ORD-LT w1b_ w1n_) (subst-free 'w1n_ 'w1b_ body))))
+(define (w1s-tfi-case body)
+  (list (rcl--h '() (list 'FORALL 'w1n_ (list 'IMPLIES '(IN w1n_ ORD) body)))
+        (list (rcl--h '() (list 'FORALL 'w1n_ (list 'IMPLIES (list 'AND '(IN w1n_ ORD) (w1s-ih body)) body))))))
+(let ((g (w1s-tfi-case w1s-pb))) (rcl--accept "W1 transfinite-induction at a predicative body" 'transfinite-induction (car g) (cadr g)))
+(fluid-let ((*nbg-induction-fatal?* #t)) (let ((g (w1s-tfi-case w1s-ib))) (rcl--refuse "W1 transfinite-induction at an impredicative body, the fatal switch on (W1B)" 'transfinite-induction (car g) (cadr g))))
+(define (w1s-tfi3-case body)
+  (list (rcl--h '() (list 'FORALL 'w1n_ (list 'IMPLIES '(IN w1n_ ORD) body)))
+        (list (rcl--h '() (subst-free 'w1n_ 0 body))
+              (rcl--h '() (list 'FORALL 'w1n_ (list 'IMPLIES (list 'AND '(IN w1n_ ORD) body)
+                                                     (subst-free 'w1n_ '(succ_ORD w1n_) body))))
+              (rcl--h '() (list 'FORALL 'w1n_ (list 'IMPLIES (list 'AND '(LIMIT-ORD w1n_) (w1s-ih body)) body))))))
+(let ((g (w1s-tfi3-case w1s-pb))) (rcl--accept "W1 transfinite-induction-3cases at a predicative body" 'transfinite-induction-3cases (car g) (cadr g)))
+(fluid-let ((*nbg-induction-fatal?* #t)) (let ((g (w1s-tfi3-case w1s-ib))) (rcl--refuse "W1 transfinite-induction-3cases at an impredicative body, the fatal switch on (W1B)" 'transfinite-induction-3cases (car g) (cadr g))))
+;;; DEFHEAD dh1: the deleted "known structure" clause; regression guards (they pass on the old
+;;; code too, where the clause never fired: DEFHEAD-REPORT.md s.5)
+(def-functoid 'W1K-SEP '(w1k_a) '(SEP w1k_x w1k_a (= w1k_x w1k_x)))
+(def-functoid 'W1R-BIG '(w1r_s) 'ORD)
+(check-true "W1 dh1: a SEP-bodied defined head at ORD may be a class (builder and checker)"
+  (lambda () (and (pi--value-may-be-class? '() '(W1K-SEP ORD)) (chk-value-may-be-class? '(W1K-SEP ORD) '()))))
+(check-true "W1 dh1: at an argument typed in a class the head is certified a set"
+  (lambda () (not (pi--value-may-be-class? '((IN w1k_u (POWER RR))) '(W1K-SEP w1k_u)))))
+(check-true "W1 dh1: a unary head valued ORD at a known structure may still be a class (builder and checker)"
+  (lambda () (and (pi--value-may-be-class? '((IS-METRIC-SPACE RR-MS)) '(W1R-BIG RR-MS))
+                  (chk-value-may-be-class? '(W1R-BIG RR-MS) '((IS-METRIC-SPACE RR-MS))))))
+
+;;; F-W1-1 (the user's decision, 2026-11-05): a `-rev' companion is not a definition of its
+;;; left-hand head.  is-subspace-rev had made IS-SUBMODULE -> IS-SUBSPACE -> IS-SUBMODULE a cycle
+;;; in the definientia indexes, and every condition naming IS-SUBMODULE was refused.  The three
+;;; indexes (builder, checker, audit) hold no companion; the control: companions exist and are
+;;; trusted, so the test is not vacuous.
+(define (w1f-rev-free? tbl)
+  (call-with-current-continuation
+    (lambda (k)
+      (hash-table-walk tbl
+        (lambda (h es) (for-each (lambda (e) (if (and (pair? e) (rev-companion-source (car e))) (k #f))) es)))
+      #t)))
+(check-true "W1 F-W1-1 control: some -rev companion of a trusted definition is installed"
+  (lambda ()
+    (call-with-current-continuation
+      (lambda (k)
+        (hash-table-walk *rev-companion-source*
+          (lambda (rev fwd) (if (and (hash-table-ref/default *theorem-table* rev #f)
+                                     (memq (provenance-of rev) '(definitional primitive)))
+                                (k #t))))
+        #f))))
+(check-true "W1 F-W1-1 builder: pi--via-index holds no -rev companion"
+  (lambda () (pi--via-rebuild-index!) (w1f-rev-free? pi--via-index)))
+(check-true "W1 F-W1-1 checker: rcs--df-table holds no -rev companion"
+  (lambda () (rcs--index-definitions!) (w1f-rev-free? rcs--df-table)))
+(check-true "W1 F-W1-1 audit: cpa--defs holds no -rev companion"
+  (lambda () (set! cpa--stamp #f) (cpa--refresh!) (w1f-rev-free? cpa--defs)))
+(check-true "W1 F-W1-1: IS-SUBMODULE's definientia do not name is-subspace-rev"
+  (lambda () (not (assq 'is-subspace-rev (hash-table-ref/default pi--via-index 'IS-SUBMODULE '())))))
+
+;;; ---------------------------------------------------------------------------
+;;; W1B (2026-11-05; W1B-REPORT.md).  Finding 2 WARN-ONLY, and the fixed-parameter induction.
+;;; (a) With `*nbg-induction-fatal?*' off (the default until patch 36) an impredicative induction is ACCEPTED and
+;;;     listed in `*nbg-induction-census*'; on the code of patch 11 the same inference is REFUSED,
+;;;     so the first check below fails there.  (b) The switch on restores the refusal (the three
+;;;     W1 checks above).  (c) `dk-ni-fixed!' proves a theorem whose induction body has an
+;;;     unconfined parameter by a PREDICATIVE induction: it succeeds with the switch on, where
+;;;     plain `ni' is refused, and adds nothing to the census.
+(define w1b-goal '(FORALL w1bn_ (IMPLIES (IN w1bn_ NN) (FORALL w1by_ (IMPLIES (= w1by_ w1by_) (IN w1bn_ NN))))))
+(define (w1b-close-cases! r)
+  (let ((b (cdr (assq 'base r))) (st (cdr (assq 'step r))))
+    (dk-focus! b) (fact 'nn-zero-in)
+    (if (not (sequent-node-grounded? b)) (ass))
+    (dk-focus! st) (dk-peel!)
+    (let ((l (proof-state-focus *ps*)))
+      (fact 'nn-succ-closed 'w1bn_)
+      (if (not (sequent-node-grounded? l)) (ass)))))
+;; W1N (2026-11-07, patch 36): the switch is ON by default; the warn-only checks bind it OFF.
+(fluid-let ((*nbg-induction-fatal?* #f))
+ (let ((g (w1s-nn-case w1s-ib)))
+  (rcl--accept "W1B nn-induction at an impredicative body is ACCEPTED warn-only (fails on patch 11)"
+               'nn-induction (car g) (cadr g))))
+(check-true "W1B the accepted impredicative induction is LISTED in the NBG induction census"
+  (lambda ()
+   (fluid-let ((*nbg-induction-fatal?* #f))
+    (let ((n0 (length *nbg-induction-census*)))
+      (let ((g (w1s-nn-case w1s-ib))) (rcl--verdict 'nn-induction (car g) (cadr g)))
+      (and (= (length *nbg-induction-census*) (+ n0 1))
+           (eq? (vector-ref (car *nbg-induction-census*) 0) 'nn-induction)
+           (eq? (vector-ref (car *nbg-induction-census*) 1) 'w1n_))))))
+(check-true "W1B the switch on: plain ni on an unconfined parameter is REFUSED"
+  (lambda ()
+    (fluid-let ((*nbg-induction-fatal?* #t))
+      (sp (make-wff w1b-goal))
+      (quietly (lambda () (vnb-guard (lambda () (ni)))))
+      (not (proof-done? *ps*)))))
+(check-true "W1B dk-ni-fixed!: the parameter fixed, the induction predicative, accepted with the switch on"
+  (lambda ()
+    (fluid-let ((*nbg-induction-fatal?* #t))
+      (let ((n0 (length *nbg-induction-census*)))
+        (sp (make-wff w1b-goal))
+        (let ((r (quietly (lambda () (dk-ni-fixed!)))))
+          (quietly (lambda () (w1b-close-cases! r)))
+          (and (proof-done? *ps*) (= (length *nbg-induction-census*) n0)
+               (equal? (map car (cdr (assq 'params r))) '(w1by_))))))))
+(check-true "W1B dk-ni-fixed!: a binder guarded by (IN m NN) stays quantified inside the lemma"
+  (lambda ()
+    (sp (make-wff '(FORALL w1bn_ (IMPLIES (IN w1bn_ NN)
+                     (FORALL w1by_ (FORALL w1bm_ (IMPLIES (IN w1bm_ NN) (IMPLIES (= w1by_ w1by_) (IN w1bn_ NN)))))))))
+    (let ((r (quietly (lambda () (dk-ni-fixed!)))))
+      (equal? (cdr (assq 'lemma r))
+              '(FORALL w1bn_ (IMPLIES (IN w1bn_ NN) (FORALL w1bm_ (IMPLIES (IN w1bm_ NN) (IN w1bn_ NN)))))))))
+(check-true "W1B dk-ni-fixed!: an explicit empty HOIST list is an error (nothing to fix)"
+  (lambda ()
+    (sp (make-wff w1b-goal))
+    (call-with-current-continuation
+      (lambda (k) (with-exception-handler (lambda (e) (k #t))
+                    (lambda () (quietly (lambda () (dk-ni-fixed! '()))) #f))))))
+(check-true "W1B the load-end report prints the census line"
+  (lambda ()
+    (let ((s (with-output-to-string (lambda () (report-nbg-induction-census!)))))
+      (and (string-search-forward ";; NBG induction census: " s 0) #t))))
+
+;;; W1N (2026-11-07): dk-meta-ni-cases-fixed!, the kit's fixed-parameter dk-meta-ni-cases!
+;;; (it replaces the file-local twins of meta-core-laws and meta-ind-laws).  Accepted: with the
+;;; parameter w1by_ fixed, the case induction closes and adds nothing to the NBG induction census.
+;;; Control: the same body by the non-fixed driver dk-meta-ni-cases! (plain ni) is LISTED.  Both
+;;; bind the switch OFF explicitly, so that their meaning does not depend on its default.
+(define (w1n-close-cs! cs)
+  (w1b-close-cases! (list (cons 'base (car cs)) (cons 'step (cadr cs)))))
+(check-true "W1N dk-meta-ni-cases-fixed!: a fixed-parameter case induction closes, no census line"
+  (lambda ()
+    (fluid-let ((*nbg-induction-fatal?* #f))
+      (let ((n0 (length *nbg-induction-census*)))
+        (sp (make-wff w1b-goal))
+        (let ((cs (quietly (lambda () (dk-meta-ni-cases-fixed! '(w1by_))))))
+          (quietly (lambda () (w1n-close-cs! cs)))
+          (and (= (length cs) 2) (dk-meta-step-case? (dk-goal-of (cadr cs)))
+               (proof-done? *ps*) (= (length *nbg-induction-census*) n0)))))))
+(check-true "W1N control: the same body by the non-fixed dk-meta-ni-cases! is LISTED in the census"
+  (lambda ()
+    (fluid-let ((*nbg-induction-fatal?* #f))
+      (let ((n0 (length *nbg-induction-census*)))
+        (sp (make-wff w1b-goal))
+        (quietly (lambda () (dk-meta-ni-cases!)))
+        (and (= (length *nbg-induction-census*) (+ n0 1))
+             (eq? (vector-ref (car *nbg-induction-census*) 0) 'nn-induction))))))
+
+;;; W1C (2026-11-05; META item 1, third pass): dk-tfi3-fixed!, the ordinal twin of dk-ni-fixed!.
+;;; (a) With the fatal switch on, plain `tfi3' on a body with an unconfined parameter is REFUSED.
+;;; (b) `dk-tfi3-fixed!' proves the same theorem by a PREDICATIVE transfinite induction (the
+;;;     parameter fixed first), with the switch on, and adds nothing to the census.
+(define w1c-goal '(FORALL w1ca_ (IMPLIES (IN w1ca_ ORD) (FORALL w1cy_ (IMPLIES (= w1cy_ w1cy_) (= w1cy_ w1cy_))))))
+(check-true "W1C the switch on: plain tfi3 on an unconfined parameter is REFUSED"
+  (lambda ()
+    (fluid-let ((*nbg-induction-fatal?* #t))
+      (sp (make-wff w1c-goal))
+      (quietly (lambda () (vnb-guard (lambda () (tfi3)))))
+      (not (proof-done? *ps*)))))
+(check-true "W1C dk-tfi3-fixed!: the parameter fixed, the induction predicative, accepted with the switch on"
+  (lambda ()
+    (fluid-let ((*nbg-induction-fatal?* #t))
+      (let ((n0 (length *nbg-induction-census*)))
+        (sp (make-wff w1c-goal))
+        (let ((r (quietly (lambda () (dk-tfi3-fixed!)))))
+          (quietly (lambda ()
+                     (for-each (lambda (l)
+                                 (if (not (sequent-node-grounded? l))
+                                     (begin (dk-focus! l) (dk-peel!) (ass))))
+                               (cdr (assq 'cases r)))))
+          (and (proof-done? *ps*) (= (length *nbg-induction-census*) n0)
+               (= (length (cdr (assq 'cases r))) 3)
+               (equal? (map car (cdr (assq 'params r))) '(w1cy_))))))))
+
+;;; ---------------------------------------------------------------------------
+;;; ISSET (W1I, 2026-11-06; W1I-REPORT.md).  `s in SET' as the LAST conjunct of every
+;;; generated IS-X; the kit helpers dk-list-in-set! / dk-isx-set!; the generated
+;;; is-X-is-set theorems; the conjunct as a CONFINING guard of the NBG induction check.
+(define (w1i-spine f)
+  (if (and (pair? f) (eq? (car f) 'AND)) (cons (cadr f) (w1i-spine (caddr f))) (list f)))
+(define (w1i-last-conjunct thm)
+  (let ((f (lookup-theorem thm)))
+    (list (cadr f) (car (last-pair (w1i-spine (caddr (caddr f))))))))
+(define (w1i-raises? thunk)
+  (call-with-current-continuation
+    (lambda (k) (with-exception-handler
+                  (lambda (e) (k (if (condition? e) (condition/report-string e) "raised")))
+                  (lambda () (thunk) #f)))))
+(check-true "ISSET IS-METRIC-SPACE ends with (IN s SET)"
+  (lambda () (let ((r (w1i-last-conjunct 'is-metric-space))) (equal? (cadr r) (list 'IN (car r) 'SET)))))
+(check-true "ISSET IS-GROUP ends with (IN s SET)"
+  (lambda () (let ((r (w1i-last-conjunct 'is-group))) (equal? (cadr r) (list 'IN (car r) 'SET)))))
+(check-true "ISSET dk-list-in-set! closes a 3-tuple of typed components"
+  (lambda ()
+    (sp (make-wff '(FORALL w1ia_ (IMPLIES (IN w1ia_ RR) (FORALL w1ib_ (IMPLIES (IN w1ib_ NN)
+                     (FORALL w1ic_ (IMPLIES (IN w1ic_ SET) (IN (LIST w1ia_ w1ib_ w1ic_) SET)))))))))
+    (quietly (lambda () (dk-peel!) (dk-list-in-set!)))
+    (proof-done? *ps*)))
+(check-true "ISSET dk-list-in-set! closes a 5-tuple (a function, a pair, a structure)"
+  (lambda ()
+    (sp (make-wff '(FORALL w1ia_ (IMPLIES (IN w1ia_ RR) (FORALL w1ib_ (IMPLIES (IN w1ib_ (FUN RR RR))
+                     (FORALL w1ic_ (IMPLIES (IN w1ic_ SET) (FORALL w1id_ (IMPLIES (IS-GROUP w1id_)
+                       (IN (LIST w1ia_ w1ib_ (LIST w1ic_ w1ia_) w1id_ w1ic_) SET)))))))))))
+    (quietly (lambda () (dk-peel!) (dk-list-in-set!)))
+    (proof-done? *ps*)))
+(check-true "ISSET dk-list-in-set! REFUSES an untyped component, naming it (control)"
+  (lambda ()
+    (sp (make-wff '(FORALL w1ia_ (IMPLIES (IN w1ia_ RR) (FORALL w1ib_ (IN (LIST w1ia_ w1ib_ w1ia_) SET))))))
+    (let ((msg (w1i-raises? (lambda () (quietly (lambda () (dk-peel!) (dk-list-in-set!)))))))
+      (and (string? msg) (string-search-forward "component 2" msg 0)
+           (string-search-forward "w1ib_" msg 0) (not (proof-done? *ps*)) #t))))
+(check-true "ISSET is-X-is-set: generated and proven for a shape structure and a refinement"
+  (lambda ()
+    (and (equal? (lookup-theorem 'is-ring-is-set) '(FORALL s (IMPLIES (IS-RING s) (IN s SET))))
+         (equal? (lookup-theorem 'is-commutative-ring-is-set)
+                 '(FORALL s (IMPLIES (IS-COMMUTATIVE-RING s) (IN s SET))))
+         (eq? (provenance-of 'is-ring-is-set) 'proven)
+         (eq? (provenance-of 'is-commutative-ring-is-set) 'proven))))
+(check-true "ISSET no is-X-is-set generation failed (is-set-laws.scm)"
+  (lambda () (null? *isx-set-failures*)))
+(check-true "ISSET is-X-is-set cited at a structure term"
+  (lambda ()
+    (sp (make-wff '(FORALL w1im_ (IMPLIES (IS-METRIC-SPACE w1im_) (IN (BDD-METRIC w1im_) SET)))))
+    (quietly (lambda ()
+               (dk-peel!)
+               (fact 'bdd-metric-is-metric-space 'w1im_)       ; a producer repaired by W1I
+               (fact 'is-metric-space-is-set '(BDD-METRIC w1im_))
+               (ass)))
+    (proof-done? *ps*)))
+(check-true "ISSET dk-isx-set! at an unfolded IS-METRIC-SPACE of a literal LIST: the conjunct closed, the focus on the old goal"
+  (lambda ()
+    (sp (make-wff '(FORALL w1ia_ (IMPLIES (IN w1ia_ SET)
+                     (FORALL w1ib_ (IMPLIES (IN w1ib_ (FUN (CARTESIAN w1ia_ w1ia_) RR))
+                       (IS-METRIC-SPACE (LIST w1ia_ w1ib_))))))))
+    (quietly (lambda () (dk-peel!) (mac 'IS-METRIC-SPACE)))
+    (let* ((g0 (dk-goal)) (leaf (quietly (lambda () (dk-isx-set!)))))
+      (and (eq? leaf (proof-state-focus *ps*))
+           (equal? (w1i-spine (dk-goal)) (reverse (cdr (reverse (w1i-spine g0)))))
+           (= (length (dk-open-leaves)) 1)))))
+;; W1K (patch 31): every conjunct but `t in SET' is ALREADY in context when dk-isx-set!
+;; runs (a driver that cites the component facts before the unfold, W1J-B s.3).  The
+;; patch-27 code split G' with `dk-split!', which landed nothing at the last level and
+;; errored "landed no assumption" (the control: this check fails on that code).
+(check-true "ISSET dk-isx-set! when every conjunct but (IN t SET) is already in context"
+  (lambda ()
+    (let* ((def (lookup-theorem 'is-metric-space))
+           (tl  '(LIST w1ka_ w1kb_))
+           (g   (subst-free (cadr def) tl (caddr (caddr def))))
+           (g1  (dk-isx--drop-last g)))
+      (sp (make-wff `(FORALL w1ka_ (IMPLIES (IN w1ka_ SET)
+                       (FORALL w1kb_ (IMPLIES (IN w1kb_ (FUN (CARTESIAN w1ka_ w1ka_) RR))
+                         (IMPLIES ,g1 (IS-METRIC-SPACE ,tl))))))))
+      (quietly (lambda ()
+                 (dk-peel!)
+                 (dk-split! g1)
+                 (mac 'IS-METRIC-SPACE)))
+      (let ((leaf (quietly (lambda () (dk-isx-set!)))))
+        (and (eq? leaf (proof-state-focus *ps*))
+             (alpha-equiv? (dk-goal) g1)
+             (begin (quietly (lambda () (dk-conj-close! (lambda () (ass))))) (proof-done? *ps*)))))))
+;; with the bundle's VIAGAP relation (patches 01/02): IS-MONOID(m) confines m, so an
+;; induction body whose only guard on m is IS-MONOID is predicative; unguarded, it is not.
+(define w1i-gb '(FORALL w1y_ (IMPLIES (IS-MONOID w1y_) (IN w1n_ w1y_))))
+(check-true "ISSET an induction body guarded only by IS-MONOID passes, no census line"
+  (lambda ()
+    (fluid-let ((*nbg-induction-fatal?* #t))
+      (let ((n0 (length *nbg-induction-census*)) (g (w1s-nn-case w1i-gb)))
+        (and (eq? (rcl--verdict 'nn-induction (car g) (cadr g)) 'accepted)
+             (= (length *nbg-induction-census*) n0))))))
+(check-true "ISSET the unguarded body is still LISTED in the census (control)"
+  (lambda ()
+   (fluid-let ((*nbg-induction-fatal?* #f))     ; W1N, patch 36: warn-only bound explicitly
+    (let ((n0 (length *nbg-induction-census*)) (g (w1s-nn-case w1s-ib)))
+      (rcl--verdict 'nn-induction (car g) (cadr g))
+      (= (length *nbg-induction-census*) (+ n0 1))))))
+(check-true "W1N patch 36: the switch is ON by default; plain ni on an unconfined parameter is REFUSED"
+  (lambda ()
+    (and (eq? *nbg-induction-fatal?* #t)
+         (let ((g (w1s-nn-case w1s-ib))) (eq? (rcl--verdict 'nn-induction (car g) (cadr g)) 'refused)))))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

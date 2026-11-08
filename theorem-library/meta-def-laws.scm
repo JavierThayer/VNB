@@ -252,6 +252,8 @@
 
 ;; The four phase-4 / phase-5 admissibility theorems that carried them, with the hypotheses discharged:
 ;; each induction is now admissible over the core and the encoded catalog axioms it names, nothing else.
+;; Since 2026-10-29 (agent METACORE) the inductions are the -NBG relations of meta-ind.scm: at a PREDICATIVE
+;; body, the only one whose comprehension the NBG core forms.
 (sp (make-wff '(FORALL tt (FORALL hs (FORALL c (IMPLIES (REL-BIG-UNION-MEM-INTRO tt hs c)
    (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt)))))))))
 (dk-peel!)
@@ -261,7 +263,7 @@
 (qed 'adm-big-union-mem-intro-core)
 
 (sp (make-wff '(FORALL tt (FORALL hs (FORALL c (IMPLIES (SUBSET tt CLF) (IMPLIES (IN AX-TFI tt) (IMPLIES (IN AX-MEM-SET tt)
-   (IMPLIES (REL-TRANSFINITE-INDUCTION tt hs c) (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt))))))))))))
+   (IMPLIES (REL-TRANSFINITE-INDUCTION-NBG tt hs c) (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt))))))))))))
 (dk-peel!)
 (dk-cite! 'def-comp-closed-holds 'tt)
 (dk-cite! 'adm-transfinite-induction 'tt 'hs 'c)
@@ -270,7 +272,7 @@
 
 (sp (make-wff '(FORALL tt (FORALL hs (FORALL c (IMPLIES (SUBSET tt CLF) (IMPLIES (IN AX-NN-IND tt) (IMPLIES (IN AX-MEM-SET tt)
    (IMPLIES (IN AX-ZERO-NN tt) (IMPLIES (IN AX-SUCC-NN tt)
-   (IMPLIES (REL-NN-INDUCTION tt hs c) (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt))))))))))))))
+   (IMPLIES (REL-NN-INDUCTION-NBG tt hs c) (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt))))))))))))))
 (dk-peel!)
 (dk-cite! 'def-comp-closed-holds 'tt)
 (dk-cite! 'def-in-closed-holds 'tt)
@@ -280,7 +282,7 @@
 
 (sp (make-wff '(FORALL tt (FORALL hs (FORALL c (IMPLIES (SUBSET tt CLF) (IMPLIES (IN AX-TFI tt) (IMPLIES (IN AX-MEM-SET tt)
    (IMPLIES (IN AX-LIMIT-IFF tt) (IMPLIES (IN AX-ORD-SUCC-ABOVE tt)
-   (IMPLIES (REL-TFI-3CASES tt hs c) (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt))))))))))))))
+   (IMPLIES (REL-TFI-3CASES-NBG tt hs c) (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt))))))))))))))
 (dk-peel!)
 (dk-cite! 'def-comp-closed-holds 'tt)
 (dk-cite! 'adm-tfi-3cases 'tt 'hs 'c)
@@ -641,9 +643,8 @@
 ;;; 5.5 THE R4 NTH CLAUSE (DEF-NTH-LIST) is DERIVED: the list denotes (CR-DEF-LIST, with the same
 ;;; premises), so NTH(k, [l]) == l_k (CR-NTH-EQ); l_k denotes (its premise, CR-DEF-STRICT-IN-L); and
 ;;; eq-subst carries l_k = l_k to NTH(k, [l]) = NTH(k, [l]) along the quasi-equation (P = (z = z), z := 0).
-(sp (make-wff '(FORALL mdp7_ (FORALL mdq7_ (== (ENC-NTH mdp7_ mdq7_) (EAPP 15 (LIST mdp7_ mdq7_)))))))
-(dk-peel!) (mac 'ENC-NTH) (qrfl)
-(qed 'enc-nth-unfold)
+;; (enc-nth-unfold, the unfolding of ENC-NTH, is proven in meta-ind-laws.scm section N2 since 2026-10-29: the
+;; cartesian rules there read it first.)
 (sp (make-wff '(FORALL tt (FORALL hs (FORALL c (IMPLIES (DEF-NTH-LIST tt hs c)
    (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt)))))))))
 (dk-peel!)
@@ -674,7 +675,7 @@
     (md-rel-close! 'DEF-LIST 'hs cl (list g l))
     (dk-cite! 'def-list-admitted 'tt 'hs cl))
   ;; (2) [g, l_k in SET], the k-th premise
-  (let* ((u (dk-meta-iff-r! (dk-meta-iff! 'hyps-in 'hs '(DERIVABLE tt))))
+  (let* ((u (dk-cite! 'hyps-in-all 'hs '(DERIVABLE tt)))          ; VIAGAP
          (ents (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'ENC-SETC))) (dk-asms)))
          (prem `(LIST ,g (ENC-IN ,e ENC-SETC))))
     (dk-have! `(<= ,k (LENGTH hs)) (lambda () (subst `(= (LENGTH hs) (LENGTH ,l))) (ass)))

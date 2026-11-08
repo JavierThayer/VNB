@@ -105,6 +105,7 @@
 (fact 'power-set '(PTS md))   ; lands POWER(PTS md) in SET -- sep-set will want it
 
 (mac 'is-top-space)           ; the seven conjuncts
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (slot 'pts)                   ; pts(METRIC-TOP md)   -> pts(md)
 (slot 'opens)                 ; opens(METRIC-TOP md) -> the separation
 
@@ -321,25 +322,137 @@
 (qed 'metric-top-is-top-space)
 
 ;;; -----------------------------------------------------------------------
+;;; metric-space-repack (W1F, 2026-11-05): the REPACKAGING of a metric space.
+;;;
+;;;   IS-METRIC-SPACE(md) =>  md' in SET  and  IS-METRIC-SPACE(md')
+;;;                           and  METRIC-TOP(md') == METRIC-TOP(md),
+;;;   where md' = [PTS md, DIST md].
+;;;
+;;; METRIC-SPACE has exactly the two slots PTS and DIST, so md' repackages all of
+;;; them.  md' is a set by pair-tuple-is-set (PTS md in SET, DIST md in FUN(..));
+;;; it is a metric space because its accessors read those of md; and its open sets
+;;; are those of md, since IS-OPEN and BALL read a metric space only through PTS
+;;; and DIST.  It is how a witness of IS-METRIZABLE-TOP-SPACE -- whose existential
+;;; is confined to SET (top-space.scm) -- is supplied from a metric space that is
+;;; not known to be a set: IS-X(s) does not prove s in SET.
+(define mt-rp '(LIST (PTS md) (DIST md)))
+(define mt-rp-dtype '(FUN (CARTESIAN (PTS md) (PTS md)) RR))
+
+(define (mt-rp-ass!) (if (not (sequent-node-grounded? (proof-state-focus *ps*))) (ass)))
+
+;; ACC(md') == ACC(md), on its own lane; returns the equation
+(define (mt-rp-acc! acc)
+  (let ((e (list '== (list acc mt-rp) (list acc 'md))))
+    ;; `slot' on a variable structure is the accessor's NTH form, and it reaches the
+    ;; outer and the inner occurrence in turn: iterate slot / nth-r to the fixpoint
+    (dk-have! e
+      (lambda ()
+        (let loop ((k 0))
+          (let ((g (dk-goal)))
+            (cond ((equal? (cadr g) (caddr g)) (qrfl))
+                  ((> k 3) (error "mt-rp-acc!: no fixpoint" acc g))
+                  (#t (slot acc)
+                      (let ((g1 (dk-goal)))
+                        (if (not (equal? (cadr g1) (caddr g1))) (nth-r)))
+                      (loop (+ k 1))))))))
+    e))
+
+;; IS-OPEN(m1, x) => IS-OPEN(m2, x) for {m1, m2} = {md', md}, on its own lane:
+;; both IS-OPENs and their BALLs unfolded goal-side (ball-sep-unfold), the accessors of md' read off,
+;; then the two unfoldings agree conjunct by conjunct (ass is alpha-aware).
+(define (mt-rp-open-imp! m1 m2 x pe de)
+  (let ((imp (list 'IMPLIES (list 'IS-OPEN m1 x) (list 'IS-OPEN m2 x))))
+    (dk-have! imp
+      (lambda ()
+        (mac 'is-open)
+        (mac 'ball-sep-unfold)        ; the functoid's own macete does not reach under the binders
+        (subst pe)
+        (subst de)
+        (di)
+        (dk-split-all!)
+        (dk-conj-close! (lambda () (mt-rp-ass!)))))
+    imp))
+
+(sp (make-wff `(FORALL md (IMPLIES (IS-METRIC-SPACE md)
+     (AND (IN ,mt-rp SET)
+          (AND (IS-METRIC-SPACE ,mt-rp)
+               (== (METRIC-TOP ,mt-rp) (METRIC-TOP md))))))))
+(dk-peel!)
+(dk-project! '(IN (PTS md) SET) 'is-metric-space '(IS-METRIC-SPACE md))
+(dk-project! `(IN (DIST md) ,mt-rp-dtype) 'is-metric-space '(IS-METRIC-SPACE md))
+(define mt-rp-pe (mt-rp-acc! 'PTS))
+(define mt-rp-de (mt-rp-acc! 'DIST))
+;; md' is a set
+(dk-have! `(IN ,mt-rp SET)
+  (lambda () (dk-cite! 'pair-tuple-is-set 'SET mt-rp-dtype '(PTS md) '(DIST md)) (mt-rp-ass!)))
+;; md' is a metric space
+(dk-have! `(IS-METRIC-SPACE ,mt-rp)
+  (lambda ()
+    (dk-split-all! (dk-landed (lambda () (mac-h 'is-metric-space '(IS-METRIC-SPACE md)))))
+    (mac 'is-metric-space)
+    (subst mt-rp-pe)
+    (subst mt-rp-de)
+    (dk-conj-close!
+      (lambda ()
+        (let ((g (dk-goal)))
+          (if (and (dk-head-is? g '=) (dk-head-is? (cadr g) 'LENGTH))
+              (begin (len-r) (if (not (sequent-node-grounded? (proof-state-focus *ps*))) (rfl)))
+              (mt-rp-ass!)))))))
+;; the same metric topology: the carriers agree, the two separations by class-extensionality
+(dk-have! `(== (METRIC-TOP ,mt-rp) (METRIC-TOP md))
+  (lambda ()
+    (mac 'metric-top)
+    (subst mt-rp-pe)
+    (let* ((g (dk-goal))
+           (s1 (caddr (cadr g)))
+           (s2 (caddr (caddr g)))
+           (ext (list 'FORALL 'rpx_ (list 'IFF (list 'IN 'rpx_ s1) (list 'IN 'rpx_ s2)))))
+      (dk-have! ext
+        (lambda ()
+          (let ((x (begin (di) (cadr (cadr (dk-goal))))))
+            (define (side! from m1 m2)
+              (let ((imp (mt-rp-open-imp! m1 m2 x mt-rp-pe mt-rp-de)))
+                (for-each (lambda (f) (if (dk-head-is? f 'AND) (dk-split! f)))
+                          (dk-landed (lambda () (sep-me (list 'IN x from)))))
+                (detach! imp)
+                (for-each (lambda (k) (dk-focus! k) (mt-rp-ass!))
+                          (dk-opened (lambda () (sep-mi))))))
+            (dk-iff! (lambda (g0) (equal? g0 (list 'IN x s2)))
+              (lambda () (side! s1 mt-rp 'md))
+              (lambda () (side! s2 'md mt-rp))))))
+      (dk-cite! 'class-extensionality s1 s2)
+      (subst (list '= s1 s2))
+      (qrfl))))
+(dk-conj-close! (lambda () (mt-rp-ass!)))
+(qed 'metric-space-repack)
+(topic! 'metric-space-repack 'topology)
+
+;;; -----------------------------------------------------------------------
 ;;; The functor's TYPING obligation: METRIC-TOP(md) is a METRIZABLE-TOP-SPACE.
 ;;; IS-METRIZABLE-TOP-SPACE folds (same-shape-as TOP-SPACE) to
-;;;   IS-TOP-SPACE(s) AND (exists md_. is-metric-space(md_) and s == metric-top(md_)).
-;;; The first conjunct is the theorem above; the second holds with md itself the
-;;; witness -- METRIC-TOP(md) is on the nose the metric topology of md.
+;;;   IS-TOP-SPACE(s) AND (exists md_. md_ in SET and is-metric-space(md_)
+;;;                                    and s == [pts(md_), {u : is-open(md_,u)}]).
+;;; The first conjunct is the theorem above.  The existential is confined to SET
+;;; (W1F, 2026-11-05), and md itself is not known to be a set, so the witness is its
+;;; repackaging md' = [PTS md, DIST md] (metric-space-repack): a set, a metric space,
+;;; and METRIC-TOP(md') == METRIC-TOP(md), whose unfolding is the tuple of the law.
 (sp (functor-obligation 'metric-top-is-metrizable-top-space))
 (di)                                  ; forall md
 (di)                                  ; is-metric-space(md)
+(dk-split-all! (list (dk-cite! 'metric-space-repack 'md)))
 (mac 'is-metrizable-top-space-def)    ; refinement: the macete is the -def axiom name
 (di)                                  ; split the AND
 (mt-focus! "is-top-space(metric-top")
 (fact 'metric-top-is-top-space 'md)
 (ass)
 (mt-focus! "forsome")
-(ew 'md)                              ; witness: md
-(di)                                  ; split  is-metric-space(md)  AND  == 
-(mt-focus! "is-metric-space(md)")
-(ass)
-(mt-focus! "metric-top(md) ==")
-(mac 'metric-top)                     ; both sides become [pts(md), {u : is-open(md,u)}]
-(qrfl)
+(ew mt-rp)                            ; witness: the repackaging md'
+(dk-conj-close!
+  (lambda ()
+    (if (dk-head-is? (dk-goal) '==)
+        (begin
+          (subst (list '= '(METRIC-TOP md) (list 'METRIC-TOP mt-rp)))
+          (mac 'metric-top)           ; both sides become [pts(md'), {u : is-open(md',u)}]
+          (qrfl))
+        (mt-rp-ass!))))
 (qed 'metric-top-is-metrizable-top-space)

@@ -956,6 +956,7 @@
 (dk-have! (list 'IN (list 'CARTESIAN r7q-q r7q-q) 'SET)
   (lambda () (mac 'cartesian-set-iff) (dk-conj-close! (lambda () (ass)))))
 (mac 'IS-METRIC-SPACE)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (mac 'rkt-completion-pts)
 (define r7q-cs (r7q-split-goal!))
 (for-each

@@ -131,6 +131,7 @@
 ;; every leaf below inherits it.
 (fact 'qq-field-is-field)
 (mac 'IS-MODULE)
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (let loop ((n 0))
   (let ((any #f))
     (for-each (lambda (l)

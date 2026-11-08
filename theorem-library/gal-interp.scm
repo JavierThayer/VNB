@@ -162,7 +162,7 @@
             '(NOT (= (POLY-EVAL fk gnn_ t_) (ZERO fk)))))))))))
 (sp (make-wff (list 'FORALL 'n_ (list 'IMPLIES '(IN n_ NN) (list 'FORALL 'fk (list 'IMPLIES '(IS-FIELD-RING fk)
   (list 'FORALL 'th_ (list 'IMPLIES (gi-thtyp 'n_) (gi-null-concl 'n_)))))))))
-(ni)
+(dk-ni-fixed! '(fk th_))   ; W1G-A: fk, th_ fixed
 (dk-focus! (car (filter (lambda (l) (not (gi-step-goal? (dk-goal-of l)))) (dk-open-leaves))))
 (dk-peel!)
 (gi-fk!)
@@ -190,7 +190,7 @@
              (dk-close-if! (lambda () (dk-only! h (list 'NOT h))) prop))))))
 (dk-focus! (car (dk-open-leaves)))
 (define gi3-ls (dk-peel!))
-(define gi3-ih (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'IS-FIELD-RING))) gi3-ls)))
+(define gi3-ih (car (filter (lambda (fm) (and (dk-head-is? fm 'IMPLIES) (dk-contains? fm 'gnn_))) gi3-ls)))   ; W1G-A: fk, th_ fixed; the IH is thtyp(n) => ...
 (define gi3-n 'n_)
 (define gi3-sn '(succ n_))
 (gi-fk!)
@@ -204,7 +204,7 @@
       (dk-cite! 'interval-widen gi3-n gi3-sn 1 i)
       (dk-apply! (gi-thtyp gi3-sn) i)
       (ass))))
-(define gi3-nul (dk-skolem! (dk-apply! gi3-ih 'fk 'th_)))
+(define gi3-nul (dk-skolem! (let w1g-dl ((w1g-f gi3-ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))))   ; W1G-A: fk, th_ fixed
 (dk-split-all!)
 (define gi3-th '(th_ (succ n_)))
 (gi-int-in! gi3-sn gi3-sn)
@@ -291,7 +291,7 @@
 (sp (make-wff (list 'FORALL 'm_ (list 'IMPLIES '(IN m_ NN) (list 'FORALL 'fk (list 'IMPLIES '(IS-FIELD-RING fk)
   (list 'FORALL 'th_ (list 'IMPLIES (gi-thtyp '(succ m_)) (list 'IMPLIES (gi-dist '(succ m_))
     (list 'FORALL 'v_ (list 'IMPLIES (gi-vtyp '(succ m_)) (gi-interp-concl 'm_))))))))))))
-(ni)
+(dk-ni-fixed! '(fk th_ v_))   ; W1G-A: fk, th_, v_ fixed
 (dk-focus! (car (filter (lambda (l) (not (gi-step-goal? (dk-goal-of l)))) (dk-open-leaves))))
 (dk-peel!)
 (gi-fk!)
@@ -319,7 +319,7 @@
           (rfl)))))
 (dk-focus! (car (dk-open-leaves)))
 (define gi5-ls (dk-peel!))
-(define gi5-ih (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'IS-FIELD-RING))) gi5-ls)))
+(define gi5-ih (car (filter (lambda (fm) (and (dk-head-is? fm 'IMPLIES) (dk-contains? fm 'gip_))) gi5-ls)))   ; W1G-A: fk, th_, v_ fixed; the IH is an implication chain
 (define gi5-m 'm_)
 (define gi5-sm '(succ m_))
 (define gi5-ssm '(succ (succ m_)))
@@ -339,7 +339,7 @@
       (gi5-widen! (car ins)) (gi5-widen! (cadr ins))
       (dk-apply! (gi-dist gi5-ssm) (car ins) (cadr ins))
       (dk-close-if! (lambda () #t) gi-rfl-or-ass!))))
-(define gi5-p (dk-skolem! (dk-apply! gi5-ih 'fk 'th_ 'v_)))
+(define gi5-p (dk-skolem! (let w1g-dl ((w1g-f gi5-ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))))   ; W1G-A: fk, th_, v_ fixed
 (dk-split-all!)
 (define gi5-pvals (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm gi5-p) (dk-contains? fm 'v_))) "values of p"))
 ;; the null polynomial of the first succ m points, nonzero at the last

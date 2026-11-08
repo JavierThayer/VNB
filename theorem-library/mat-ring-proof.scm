@@ -110,6 +110,7 @@
 (fact 'zeromat-type 'a 'n 'n)
 (fact 'identmat-type 'a 'n)
 (mac 'IS-RING)                  ; -> the 14-conjunct AND
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 
 ;; split the top-level (right-nested) AND into 14 conjunct leaves
 (let lp ()

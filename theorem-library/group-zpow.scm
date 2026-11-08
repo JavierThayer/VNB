@@ -418,7 +418,7 @@
 
 ;;; x^(m+n) = x^m x^n for n a natural
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (list 'FORALL 'm (list 'IMPLIES '(IN m ZZ) (z2-gx (list '= (z2-z '(+ m n)) (z2-op (z2-z 'm) (z2-z 'n))))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(g x))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-B: g, x fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (fact 'nn-zero-in) (fact 'group-identity-in 'g)
@@ -439,7 +439,7 @@
     (dk-type! mv 'ZZ)
     (dk-cite! 'zpow-succ mv 'g 'x)
     (dk-cite! 'zpow-succ v 'g 'x)
-    (dk-apply! (dk-ctx-form ih) 'm 'g 'x)
+    (dk-apply! (dk-ctx-form ih) 'm)   ; W1G-B: g, x fixed
     (dk-cite! 'zpow-type 'm 'g 'x) (dk-cite! 'zpow-type v 'g 'x)
     (dk-cite! 'group-assoc 'g (z2-z 'm) (z2-z v) 'x)
     (subst (list '= (list 'succ v) v1))
@@ -454,7 +454,7 @@
 
 ;;; x^(m-n) = x^m x^(-n) for n a natural
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (list 'FORALL 'm (list 'IMPLIES '(IN m ZZ) (z2-gx (list '= (z2-z '(- m n)) (z2-op (z2-z 'm) (z2-z '(- 0 n)))))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(g x))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-B: g, x fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (fact 'nn-zero-in) (fact 'group-identity-in 'g)
@@ -485,7 +485,7 @@
            (h2 (dk-rewrite-h! (list '= (z2-z (list '+ nsv 1)) (z2-op (z2-z nsv) 'x)) (list '+ nsv 1) nv)))
       (dk-apply! (dk-cite! 'group-right-cancel) 'g (z2-z mv) (z2-z k) 'x)
       (dk-apply! (dk-cite! 'group-right-cancel) 'g (z2-z nv) (z2-z nsv) 'x)
-      (dk-apply! (dk-ctx-form ih) 'm 'g 'x)
+      (dk-apply! (dk-ctx-form ih) 'm)   ; W1G-B: g, x fixed
       (z2-cl! (z2-z 'm) (z2-z nv))
       (dk-cite! 'group-assoc 'g (z2-z 'm) (z2-z nv) ix)
       (subst (list '= (z2-z k) (z2-op (z2-z mv) ix)))
@@ -581,7 +581,7 @@
 ;;; a homomorphism q : Z -> G with q(1) = x agrees with the powers of x on the naturals
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (z2-gx (list 'FORALL 'q (list 'IMPLIES (list 'IS-HOM-GROUP z2-za 'g 'q)
   (list 'IMPLIES '(= (q 1) x) (list '= '(q n) (z2-z 'n))))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(g x q))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-B: g, x, q fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (z2-za!)
@@ -600,7 +600,7 @@
   (z2-open! 'is-hom-group-def (list z2-za 'g 'q) (list 'IS-HOM-GROUP z2-za 'g 'q))
   (fact 'nn-succ-plus-one v) (dk-type! v 'ZZ)
   (z2-in-za! v) (z2-in-za! 1)
-  (dk-apply! (dk-ctx-form ih) 'g 'x 'q)
+  (dk-ctx-form ih)   ; W1G-B: g, x, q fixed; the IH is the equation
   (dk-apply! (dk-ctx-form z2-hom-opr) v 1)
   (dk-cite! 'zz-ring-add-is-add v 1)
   (let ((h (dk-rewrite-h! (dk-rewrite-h! (list '= (list 'q (list '(OPR (RING-ADDITIVE-AG ZZ-RING)) v 1)) (list '(OPR g) (list 'q v) '(q 1)))
@@ -865,7 +865,7 @@
 
 ;;; K2b: x^d = e gives x^(d c) = e for every integer c
 (sp (make-wff (list 'FORALL 'c (list 'IMPLIES '(IN c NN) (z2-gx (list 'FORALL 'd (list 'IMPLIES '(IN d NN) (list 'IMPLIES (list '= (z2-pw 'd) z2-e) (list '= (z2-z '(* d c)) z2-e)))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(g x))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-B: g, x fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (fact 'nn-zero-in) (fact 'group-identity-in 'g)
@@ -877,7 +877,7 @@
   (dk-peel!)
   (fact 'group-identity-in 'g) (fact 'nn-succ-plus-one v)
   (dk-type! 'd 'ZZ) (dk-type! v 'ZZ) (dk-type! (list '* 'd v) 'ZZ)
-  (dk-apply! (dk-ctx-form ih) 'g 'x 'd)
+  (dk-apply! (dk-ctx-form ih) 'd)   ; W1G-B: g, x fixed
   (dk-cite! 'zpow-add (list '* 'd v) 'd 'g 'x)
   (dk-apply! (dk-cite! 'zpow-nat 'd) 'g 'x)
   (fact 'group-left-id 'g z2-e)
@@ -1225,6 +1225,7 @@
        (LIST ((INV X) (NTH 1 gpp_))
              ((INV Y) (NTH 2 gpp_)))))))
 (mac 'IS-GROUP)
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (for-each
   (lambda (acc val)
     (let ((eq (list '== (list acc z4-p) val)))
@@ -1328,7 +1329,7 @@
 (define z5-u '(LIST a1 a2))
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (z5-gx2 (forall-guarded '(a1 a2) '((IN a1 (CARR X)) (IN a2 (CARR Y)))
   (list '= (z5-pw z5-p z5-u 'n) (list 'LIST (z5-pw 'X 'a1 'n) (z5-pw 'Y 'a2 'n)))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(x y))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-B: X, Y fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!) (z5-xy!)
   (dk-cite! 'gpow-zero z5-p z5-u) (dk-cite! 'gpow-zero 'X 'a1) (dk-cite! 'gpow-zero 'Y 'a2)
@@ -1342,7 +1343,7 @@
   (dk-focus! (cdr (assq 'step ind)))
   (dk-peel!) (z5-xy!)
   (let ((p1 (z5-pw 'X 'a1 v)) (p2 (z5-pw 'Y 'a2 v)))
-    (dk-apply! (dk-ctx-form ih) 'X 'Y 'a1 'a2)
+    (dk-apply! (dk-ctx-form ih) 'a1 'a2)   ; W1G-B: X, Y fixed
     (dk-cite! 'gpow-type v 'X 'a1) (dk-cite! 'gpow-type v 'Y 'a2)
     (dk-cite! 'gpow-succ z5-p z5-u v) (dk-cite! 'gpow-succ 'X 'a1 v) (dk-cite! 'gpow-succ 'Y 'a2 v)
     (dk-apply! (dk-cite! 'group-prod-opr-pair 'X 'Y) 'a1 'a2 p1 p2)

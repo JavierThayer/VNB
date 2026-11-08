@@ -380,7 +380,7 @@
 (sp (make-wff '(FORALL d (IMPLIES (IN d NN)
    (FORALL T (FORALL K (FORALL j (FORALL m
      (IMPLIES (IN j NN) (IMPLIES (IN m (MSG-STAGE T K j)) (IN m (MSG-STAGE T K (+ j d)))))))))))))
-(define sml-cases (dk-opened (lambda () (ni))))
+(define sml-cases (dk-opened (lambda () (dk-ni-fixed!))))   ; W1C: T, K fixed; j, m stay quantified
 (define (sml-case! pred)
   (dk-focus! (or (find-first (lambda (l) (pred (dk-goal-of l))) sml-cases)
                  (error "sml-case!: no such case"))))
@@ -401,7 +401,7 @@
   (subst (dk-cite! 'nn-add-succ j n))
   (dk-have! `(AND (IN ,j NN) (IN ,n NN)) (lambda () (dk-conj-close! (lambda () (ass)))))
   (fact 'nn-add-closed j n)
-  (dk-apply! ih tt kk j m)
+  (dk-apply! ih j m)                        ; W1C: T, K fixed
   (fact 'msg-stage-keep tt kk `(+ ,j ,n) m)
   (ass))
 (qed 'msg-stage-add)
@@ -1336,7 +1336,7 @@
 (sp (make-wff '(FORALL n (IMPLIES (IN n NN) (FORALL T (FORALL K (IMPLIES (IS-TOKEN-SET T) (FORALL l
    (IMPLIES (IN l SET) (IMPLIES (IN (LST l) (MSG-STAGE T K n))
      (FORSOME j (AND (IN j NN) (AND (<= (succ j) n) (IN l (TUPLES (MSG-STAGE T K j))))))))))))))))
-(define sml-cases3 (dk-opened (lambda () (ni))))
+(define sml-cases3 (dk-opened (lambda () (dk-ni-fixed!))))   ; W1C: T, K and IS-TOKEN-SET fixed
 (dk-focus! (find-first (lambda (l) (not (sml-step-case? (dk-goal-of l)))) sml-cases3))
 (dk-peel!)
 (fact 'msg-stage-zero-elim 'T 'K '(LST l))
@@ -1353,7 +1353,7 @@
     (lambda (d)
       (cond
         ((dk-head-is? d 'IN)
-         (let ((j (dk-skolem! (dk-apply! ih tt kk l))))
+         (let ((j (dk-skolem! (dk-apply! ih l))))   ; W1C: T, K fixed
            (ew j)
            (dk-conj-close!
              (lambda () (if (dk-head-is? (dk-goal) '<=) (dk-nn! `(<= (succ ,j) ,n)) (ass))))))
@@ -1374,7 +1374,7 @@
 (sp (make-wff '(FORALL n (IMPLIES (IN n NN) (FORALL T (FORALL K (IMPLIES (IS-TOKEN-SET T) (FORALL g (FORALL y
    (IMPLIES (IN g SET) (IMPLIES (IN y SET) (IMPLIES (IN (ENCR g y) (MSG-STAGE T K n))
      (FORSOME j (AND (IN j NN) (AND (<= (succ j) n) (IN g (MSG-STAGE T K j)))))))))))))))))
-(define sml-cases4 (dk-opened (lambda () (ni))))
+(define sml-cases4 (dk-opened (lambda () (dk-ni-fixed!))))   ; W1C: T, K and IS-TOKEN-SET fixed
 (dk-focus! (find-first (lambda (l) (not (sml-step-case? (dk-goal-of l)))) sml-cases4))
 (dk-peel!)
 (fact 'msg-stage-zero-elim 'T 'K '(ENCR g y))
@@ -1391,7 +1391,7 @@
     (lambda (d)
       (cond
         ((dk-head-is? d 'IN)
-         (let ((j (dk-skolem! (dk-apply! ih tt kk g y))))
+         (let ((j (dk-skolem! (dk-apply! ih g y))))   ; W1C: T, K fixed
            (ew j)
            (dk-conj-close!
              (lambda () (if (dk-head-is? (dk-goal) '<=) (dk-nn! `(<= (succ ,j) ,n)) (ass))))))

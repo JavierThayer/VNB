@@ -2198,12 +2198,12 @@
           (pms-parts! 'is-measure '(omega cA mu))
           (fact 'bu-seg-succ kv 'cA 'f)
           (subst (list '= (list 'BIG-UNION 'uj_ (list 'ORD-SEGMENT (list 'succ kv)) '(f uj_)) (list 'UNION bk (list 'f kv))))
-          (dk-apply! ih 'omega 'cA 'mu 'f)
+          ; W1G-A: omega, cA, mu, f fixed; the IH is the membership itself (was (dk-apply! ih 'omega 'cA 'mu 'f))
           (fact 'sigma-algebra-seg-union-in kv 'omega 'cA 'f)
           (fact 'fun-apply-type-c 'f 'NN 'cA kv)
           (dk-apply! fin kv)
           (pms-then-ass! (lambda () (fact 'measure-union-finite 'omega 'cA 'mu bk (list 'f kv)))))))
-  (dk-opened (lambda () (ni))))
+  (dk-opened (lambda () (dk-ni-fixed! '(omega cA mu f)))))   ; W1G-A: omega, cA, mu, f and the hypotheses fixed
 (qed 'measure-seg-union-finite)
 (topic! 'measure-seg-union-finite 'set-quotient)
 

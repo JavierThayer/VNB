@@ -546,6 +546,7 @@
 
 (sp (make-wff '(IS-RING ZERO-RING)))
 (mac 'IS-RING)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (mac 'zero-ring-def)
 (for-each (lambda (acc) (slot acc)) '(CARR ADD MUL NEG ZERO ONE))
 (let loop ((k 0)) (if (and (< k 10) (dk-contains? (dk-goal) 'NTH)) (begin (nth-r) (loop (+ k 1)))))
@@ -710,6 +711,7 @@
      (LIST (ZERO X) (ZERO Y))
      (LIST (ONE X) (ONE Y)))))
 (mac 'IS-RING)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (for-each
   (lambda (acc val)
     (let ((eq (list '== (list acc ra1p-p) val)))
@@ -758,7 +760,7 @@
 
 ;; the three parts of use-induction's answer (RA-2's ra2-ind!, renamed)
 (define (ra1-ind!)
-  (let ((br (use-induction)))
+  (let ((br (dk-use-induction-fixed!)))      ; W1B: f fixed, the induction predicative
     (list (cdr (assq 'base br)) (cdr (assq 'step br))
           (cdr (assq 'ih br)) (cdr (assq 'var br)))))
 
@@ -779,11 +781,11 @@
   (fact 'zero-ring-is-ring)
   (ass)
   (dk-focus! step)
-  (let* ((hyp (car (dk-peel!)))
+  (let* ((hyp #f)                           ; W1B: the ring hypothesis is hoisted, in context
          (pn (list 'RING-PROD-N 'f v)) (fv (list 'f v)))
     (fact 'ring-prod-n-succ 'f v)
     (subst (list '== (list 'RING-PROD-N 'f (list 'succ v)) (list 'RING-PROD pn fv)))
-    (dk-apply! ih 'f)
+    ;; W1B: f is fixed, so the IH is already IS-RING(RING-PROD-N f v)
     (dk-apply! (dk-pick (lambda (h) (and (pair? h) (eq? (car h) 'FORALL)
                                          (equal? (caddr (caddr h)) (list 'IS-RING (list 'f (cadr h))))))
                         "the ring hypothesis")

@@ -66,7 +66,7 @@
 
 (sp (make-wff (list 'FORALL 'd (list 'IMPLIES '(IN d NN) (dk-foralls '(x m)
   (dk-curry (list '(IN m NN) mfa-ptw mfa-zeros) '(= (EXT-PARTIAL-SUM x (+ m d)) (EXT-PARTIAL-SUM x m))))))))
-(let ((legs (dk-opened (lambda () (ni)))))
+(let ((legs (dk-opened (lambda () (dk-ni-fixed!)))))   ; W1B: x and its typing fixed; m stays quantified
   (for-each
     (lambda (l)
       (dk-focus! l)
@@ -90,7 +90,7 @@
               (dk-have! (list '= (list '+ 'm (list 'succ dv)) (list 'succ md)) (lambda () (dk-nn!)))
               (subst (list '= (list '+ 'm (list 'succ dv)) (list 'succ md)))
               (subst (dk-cite! 'ext-psum-succ 'x md))
-              (subst (dk-apply! ih 'x 'm))
+              (subst (dk-apply! ih 'm))             ; W1B: x fixed
               (dk-cite! 'nn-le-add-right dv 'm)
               (subst (dk-apply! mfa-zeros md))
               (dk-cite! 'ext-psum-in 'x 'm)
@@ -847,7 +847,7 @@
 (define (mfq-pre y n) (list 'FINSUM 'RR-POS-STAR-ADD-MONOID y (list 'ORD-SEGMENT n)))
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (dk-foralls '(x y)
   (dk-curry (list mfq-ptw '(IN y (FUN NN RR-POS-STAR)) mfq-tle) (list '<= '(EXT-PARTIAL-SUM x n) (mfq-pre 'y 'n))))))))
-(let ((legs (dk-opened (lambda () (ni)))))
+(let ((legs (dk-opened (lambda () (dk-ni-fixed! '(x y))))))   ; W1C: x, y and their hypotheses fixed
   (for-each
     (lambda (l)
       (dk-focus! l)
@@ -864,7 +864,7 @@
             (fact 'nn-succ-closed nv)
             (subst (dk-cite! 'ext-psum-succ 'x nv))
             (subst (dk-cite! 'rps-prefix-succ 'y nv))
-            (dk-apply! ih 'x 'y)
+            ;; W1C: the IH is at the fixed x, y (was (dk-apply! ih 'x 'y))
             (dk-cite! 'ext-psum-in 'x nv)
             (dk-apply! mfq-ptw nv)
             (dk-apply! mfq-tle nv)
@@ -1047,7 +1047,7 @@
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (dk-foralls '(omega ca nu f)
   (dk-curry (list '(IS-SIGNED-MEASURE omega ca nu) '(IN f (FUN NN ca)) (mfq-disj 'f))
     (list '<= (mfq-pre mfq-Y 'n) (mfq-pv (mfq-seg 'n)))))))))
-(let ((legs (dk-opened (lambda () (ni)))))
+(let ((legs (dk-opened (lambda () (dk-ni-fixed! '(omega ca nu f))))))   ; W1C: the measure and f fixed
   (for-each
     (lambda (l)
       (dk-focus! l)
@@ -1070,7 +1070,7 @@
                    (pre (mfq-pre mfq-Y nv)))
               (mfq-Y-type!)
               (fact 'nn-succ-closed nv)
-              (dk-apply! ih 'omega 'ca 'nu 'f)
+              ;; W1C: the IH is at the fixed omega, ca, nu, f (was (dk-apply! ih 'omega 'ca 'nu 'f))
               (subst (dk-cite! 'bu-seg-succ nv 'ca 'f))
               (let ((e (dk-cite! 'rps-prefix-succ mfq-Y nv)))
                 (dk-lam-b-h! e)
@@ -1396,7 +1396,7 @@
 ;; partial sums of the negated series
 (define mfn-yeq '(FORALL k_ (IMPLIES (IN k_ NN) (= (y k_) (EXT-NEG (x k_))))))
 (define (mfn-negate-proof! c add-law not-law)
-  (let ((legs (dk-opened (lambda () (ni)))))
+  (let ((legs (dk-opened (lambda () (dk-ni-fixed!)))))   ; W1C: x, y and their hypotheses fixed
     (for-each
       (lambda (l)
         (dk-focus! l)
@@ -1420,7 +1420,7 @@
                              (dk-ass!))))
               (let ((p (list 'EXT-PARTIAL-SUM 'x nv)) (xn (list 'x nv)))
                 (subst (dk-cite! 'ext-psum-succ 'y nv))
-                (subst (dk-apply! ih 'x 'y))
+                (subst ih)                          ; W1C: x, y fixed
                 (subst (dk-apply! mfn-yeq nv))
                 (subst (dk-cite! 'ext-psum-succ 'x nv))
                 (dk-cite! 'ext-psum-in 'x nv)
@@ -1744,7 +1744,7 @@
 (define mfg-nonneg '(FORALL k_ (IMPLIES (IN k_ NN) (<= 0 (x k_)))))
 (sp (make-wff (list 'FORALL 'd (list 'IMPLIES '(IN d NN) (dk-foralls '(x m)
   (dk-curry (list '(IN m NN) mfg-ptw mfg-nonneg) '(<= (EXT-PARTIAL-SUM x m) (EXT-PARTIAL-SUM x (+ m d)))))))))
-(let ((legs (dk-opened (lambda () (ni)))))
+(let ((legs (dk-opened (lambda () (dk-ni-fixed!)))))   ; W1C: x and its hypotheses fixed; m stays quantified
   (for-each
     (lambda (l)
       (dk-focus! l)
@@ -1767,7 +1767,7 @@
               (dk-have! (list '= (list '+ 'm (list 'succ dv)) (list 'succ md)) (lambda () (dk-nn!)))
               (subst (list '= (list '+ 'm (list 'succ dv)) (list 'succ md)))
               (subst (dk-cite! 'ext-psum-succ 'x md))
-              (dk-apply! ih 'x 'm)
+              (dk-apply! ih 'm)                    ; W1C: x fixed
               (dk-apply! mfg-ptw md) (dk-apply! mfg-nonneg md)
               (dk-cite! 'ext-psum-in 'x md) (dk-cite! 'ext-psum-in 'x 'm)
               (let ((p (list 'EXT-PARTIAL-SUM 'x md)))
@@ -1997,7 +1997,7 @@
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (dk-foralls '(omega ca nu bq c) (dk-curry (mfh-tel-hyps)
   (list 'AND (list 'IN (list 'EXT-PARTIAL-SUM mfh-X 'n) 'RR)
              (list '= (list 'EXT-PARTIAL-SUM mfh-X 'n) '(- (nu (bq 0)) (nu (bq n)))))))))))
-(let ((legs (dk-opened (lambda () (ni)))))
+(let ((legs (dk-opened (lambda () (dk-ni-fixed! '(omega ca nu bq c))))))   ; W1C: all five fixed
   (for-each
     (lambda (l)
       (dk-focus! l)
@@ -2023,7 +2023,7 @@
                    (p (list 'EXT-PARTIAL-SUM mfh-X nv)))
               (fact 'nn-zero-in)
               (dk-cite! 'nn-succ-closed nv)
-              (dk-split-all! (list (dk-apply! ih 'omega 'ca 'nu 'bq 'c)))
+              (dk-split-all! (list ih))   ; W1C: the IH is at the fixed parameters
               (mfh-breal! 0) (mfh-breal! nv) (mfh-breal! sn)
               (dk-cite! 'fun-apply-type-c 'c 'NN 'ca nv)
               (dk-cite! 'fun-apply-type-c 'nu 'ca 'RR-STAR cn)

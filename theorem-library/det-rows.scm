@@ -470,7 +470,7 @@
   (subst (list '= (list 'ENTRY 'B 1 v) (list 'ENTRY 'A 1 v)))
   (let* ((MA (list 'MINOR 'A 1 v 'n)) (MB (list 'MINOR 'B 1 v 'n))
          (MC (list 'MINOR 'C 1 v 'n))
-         (res (dk-chain! (inst*! dtr-rl-ih 'R MA MB MC q 'dsc_) (lambda (ante)
+         (res (dk-chain! (inst*! dtr-rl-ih MA MB MC q 'dsc_) (lambda (ante)   ; W1G-A: R fixed
                   (if (eq? (car (caddr (caddr ante))) 'IMPLIES)
                       (lambda () (dtr-rl-rowagree! v q))
                       (lambda () (dtr-rl-comb! v q)))))))
@@ -480,7 +480,7 @@
     (ass)))
 
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (dtr-rl-body 'n)))))
-(define dtr-rl-ind (use-induction))
+(define dtr-rl-ind (dk-use-induction-fixed! '(R)))   ; W1G-A: R fixed
 ;; ---- base: [1, 0] is empty
 (dk-focus! (cdr (assq 'base dtr-rl-ind)))
 (dk-peel!)
@@ -726,7 +726,7 @@
 (topic! 'dtr-ring-zero-add 'plumbing)
 
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (dtr-ds-body 'n)))))
-(define dtr-ds-ind (use-induction))
+(define dtr-ds-ind (dk-use-induction-fixed! '(R ff)))   ; W1G-A: R, ff fixed
 ;; ---- base: the inner sums are over [1,0], empty
 (dk-focus! (cdr (assq 'base dtr-ds-ind)))
 (dk-peel!)
@@ -856,7 +856,7 @@
 (subst dtr-ds-add)
 ;; (4) the induction hypothesis kills the sum of the G's
 (define dtr-ds-ihres
-  (dk-chain! (inst*! dtr-ds-ih 'R 'ff) (lambda (ante)
+  (dk-chain! dtr-ds-ih (lambda (ante)   ; W1G-A: R, ff fixed; was (inst*! dtr-ds-ih 'R 'ff)
       (if (not (eq? (caddr (cadr (caddr ante))) 'NN))
           ;; typing at n
           (lambda ()
@@ -2075,7 +2075,7 @@
   (dtr-cof-type! 'A v 'n))
 
 (sp (make-wff dtr-rx-ind-stmt))
-(define dtr-rx-ind (use-induction))
+(define dtr-rx-ind (dk-use-induction-fixed! '(n R)))   ; W1G-A: n, R fixed
 (dk-focus! (cdr (assq 'base dtr-rx-ind)))
 (dk-peel!)
 (dtr-absurd! '((<= 1 0)))
@@ -2138,7 +2138,7 @@
           (dtr-rx-close! #f))))
     ;; det A' = its row-i expansion (the induction hypothesis)
     (dk-have! '(<= i (succ n)) (lambda () (apply dk-nn! dtr-rx-prs)))
-    (dk-chain! (inst*! dtr-rx-ih 'n 'R dtr-rx-A2) (lambda (ante) (lambda () (ass))))
+    (dk-chain! (inst*! dtr-rx-ih dtr-rx-A2) (lambda (ante) (lambda () (ass))))   ; W1G-A: n, R fixed
     ;; the row-(succ i) expansion of A is (-1) (row-i expansion of A') + 0
     (let* ((h  (dtr-rx-lam 'A '(succ i)))
            (f  (dtr-rx-lam dtr-rx-A2 'i))

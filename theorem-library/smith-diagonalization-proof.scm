@@ -41,8 +41,9 @@
     (list 'IMPLIES (list 'IN 'n 'NN)
       (list 'IMPLIES (list 'IN 'P (list 'MAT K 'n '(CARR A)))
         (list 'FORSOME 'D
-          (list 'AND (list 'MAT-EQUIV 'A K 'n 'P 'D)
-                     (list 'IS-DIAGONAL 'A K 'n 'D))))))))
+          (list 'AND (list 'IN 'D (list 'MAT K 'n '(CARR A)))     ; W1E (2026-11-05): the witness typed
+            (list 'AND (list 'MAT-EQUIV 'A K 'n 'P 'D)
+                       (list 'IS-DIAGONAL 'A K 'n 'D)))))))))
 
 (sp (make-wff
   (list 'FORALL 'A (list 'IMPLIES '(IS-EUCLIDEAN-RING A)
@@ -60,6 +61,8 @@
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'n))))
 (cc-di*)
 (ew 'P) (di)
+(cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (equal? (cadr g) 'P)))) (ass)   ; W1E: witness typing
+(cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'AND) (pair? (cadr g)) (eq? (car (cadr g)) 'MAT-EQUIV)))) (di)
 (cc-foc-goal! (H? 'MAT-EQUIV)) (fact 'mat-equiv-refl 'A 0 'n 'P) (ass)
 (cc-foc-goal! (H? 'IS-DIAGONAL))
 (mac 'IS-DIAGONAL) (cc-di*)                  ; goal (= (ENTRY P i j)(ZERO A)); ctx IN i (INTERVAL 1 0)
@@ -77,6 +80,8 @@
 ;; --- NOT(1<=n): empty column range on the j side ; D=P ---
 (cc-foc! NLE1)
 (ew 'P) (di)
+(cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (equal? (cadr g) 'P)))) (ass)   ; W1E: witness typing
+(cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'AND) (pair? (cadr g)) (eq? (car (cadr g)) 'MAT-EQUIV)))) (di)
 (cc-foc-goal! (H? 'MAT-EQUIV)) (fact 'mat-equiv-refl 'A '(succ k) 'n 'P) (ass)
 (cc-foc-goal! (H? 'IS-DIAGONAL))
 (mac 'IS-DIAGONAL) (cc-di*)
@@ -125,7 +130,7 @@
    (let ((b (caddr z))) (and (pair? b) (eq? (car b) 'IMPLIES) (equal? (cadr b) (list 'IN Q 'NN))))))))
 (inst+ IHp SUB)
 (define IHBODY (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORSOME) (eq? (cadr z) 'D)))))
-(ai IHBODY) (ai 1)
+(dk-skolem! IHBODY)                           ; W1E: split by the kit, not by index
 (define DP (list-ref (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'MAT-EQUIV) (equal? (list-ref z 4) SUB)))) 5))
 ;; b = C2_11 in CARR A (bordering's IN b guard)
 (fact 'one-in-interval 'k) (fact 'one-in-interval Q)
@@ -143,12 +148,16 @@
 (fact 'border-type 'A B11 DP 'k Q)
 (fact 'mat-equiv-trans 'A '(succ k) SQN 'P C2 BRD)   ; P ~ BORDER(b, D')
 (ew BRD) (di)
+(cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (equal? (cadr g) BRD)))) (ass)   ; W1E: border-type
+(cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'AND) (pair? (cadr g)) (eq? (car (cadr g)) 'MAT-EQUIV)))) (di)
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'MAT-EQUIV) (equal? (list-ref g 4) 'P)))) (ass)
 (cc-foc-goal! (H? 'IS-DIAGONAL)) (ass)
 
 ;; ===== zero: no nonzero entry => P already diagonal =====
 (cc-foc! NNZ)
 (ew 'P) (di)
+(cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (equal? (cadr g) 'P)))) (ass)   ; W1E: witness typing
+(cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'AND) (pair? (cadr g)) (eq? (car (cadr g)) 'MAT-EQUIV)))) (di)
 (cc-foc-goal! (H? 'MAT-EQUIV)) (fact 'mat-equiv-refl 'A '(succ k) SQN 'P) (ass)
 (cc-foc-goal! (H? 'IS-DIAGONAL))
 (mac 'IS-DIAGONAL) (cc-di*)                   ; goal (= P_ij 0)

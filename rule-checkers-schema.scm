@@ -232,11 +232,216 @@
 ;;;        so the node's instance at v is vacuous (universal) or false (existential).
 ;;;   (b)2 an IOTA node (IOTA v B) is confined when (IN v C) is one of B's
 ;;;        top-level conjuncts.
-;;; A predicate guard does not confine.
-(define (rcs--guard-of? v f)
-  (and (rcs--in? f) (eq? (cadr f) v)))
+;;; VIAGAP (2026-10-29): a predicate guard confines when the predicate's definition
+;;; forces its argument into a class; the guards are listed below.
 
-;;; the antecedents met on the implicational spine of B, for the variable V
+;;; VIAGAP (2026-10-29; VIAGAP-REPORT.md s.1), stated here again from the definition
+;;; and sharing no procedure with the builder.  A GUARD of v is
+;;;   G1 (IN v C);  G2 (P .. v ..) at a confining position of P;
+;;;   G3 (IN s C) with v a list component of s;
+;;;   G4 (= s t) with v a list component of s or t, or v = s with t a list term,
+;;;      or v = t with s a list term.
+;;; A confining position of P: P's definiens (a definitional / primitive defining IFF)
+;;; has a guard of that parameter among the leaves of its conjunctive spine (through
+;;; AND, FORSOME not rebinding it, and OR when both disjuncts have one), or a primitive
+;;; axiom  forall x. P(x) => G  has (IN x_i C) among G's conjuncts.  The relation also
+;;; reads every DEFINED HEAD of the condition: each of its definientia (def-functoid
+;;; body; defining IFF; defining equation of a constant) must pass in turn.
+
+;;; -- the checker's own index of definientia, rebuilt when the definitions change
+;;; (the counter is the one macetes.scm's register-provenance! bumps).
+(define rcs--df-table (make-strong-eqv-hash-table))     ; head -> ((name kind params body) ..)
+(define rcs--cl-table (make-strong-eqv-hash-table))     ; head -> ((arity pos ..) ..)
+(define rcs--df-stamp 'none)
+(define rcs--memo-stamp 'none)
+(define rcs--verdicts (make-strong-eqv-hash-table))
+(define rcs--confs (make-strong-eqv-hash-table))
+(define rcs--lists (make-strong-eqv-hash-table))
+(define rcs--lterms (make-strong-eqv-hash-table))
+(define rcs--not-heads '(AND OR NOT IMPLIES IFF FORALL FORSOME IOTA IN = == < <= SEP COMP
+                         BIG-UNION VNB-LAMBDA LIST IF TRUTH FALSITY))
+
+(define (rcs--prov name) (hash-table-ref/default *provenance* name 'asserted))
+
+;;; F as FORALL-prefix and matrix: (vars . matrix), vars outermost first.
+(define (rcs--prefix f)
+  (if (and (pair? f) (eq? (car f) 'FORALL) (= (length f) 3) (symbol? (cadr f)))
+      (let ((r (rcs--prefix (caddr f)))) (cons (cons (cadr f) (car r)) (cdr r)))
+      (cons '() f)))
+
+;;; ARGS are distinct variables, and exactly the variables VS.
+(define (rcs--params-ok? args vs)
+  (and (= (length args) (length vs))
+       (let ok ((as args))
+         (or (null? as)
+             (and (symbol? (car as)) (memq (car as) vs) (not (memq (car as) (cdr as))) (ok (cdr as)))))))
+
+(define (rcs--index-definitions!)
+  (set! rcs--df-table (make-strong-eqv-hash-table))
+  (set! rcs--cl-table (make-strong-eqv-hash-table))
+  (hash-table-walk *theorem-table*
+    (lambda (name f)
+      (let ((prov (rcs--prov name)))
+        ;; a `-rev' companion defines nothing (F-W1-1)
+        (if (and (memq prov '(definitional primitive)) (pair? f) (not (rev-companion-source name)))
+            (let* ((pm (rcs--prefix f)) (vs (car pm)) (m (cdr pm)))
+              (define (lhs-head) (and (pair? m) (= (length m) 3) (pair? (cadr m)) (car (cadr m))))
+              (cond ((and (eq? (car m) 'IFF) (symbol? (lhs-head)) (not (memq (lhs-head) rcs--not-heads))
+                          (rcs--params-ok? (cdr (cadr m)) vs))
+                     (hash-table-set! rcs--df-table (lhs-head)
+                       (cons (list name 'pred (cdr (cadr m)) (caddr m))
+                             (hash-table-ref/default rcs--df-table (lhs-head) '()))))
+                    ((and (eq? prov 'primitive) (eq? (car m) 'IMPLIES) (symbol? (lhs-head))
+                          (not (memq (lhs-head) rcs--not-heads)) (rcs--params-ok? (cdr (cadr m)) vs))
+                     (let* ((args (cdr (cadr m)))
+                            (cs (rcs--and-leaves (caddr m)))
+                            (pos (let count ((i 1) (as args))
+                                   (cond ((null? as) '())
+                                         ((rcs--first (lambda (c) (and (rcs--in? c) (eq? (cadr c) (car as)))) cs)
+                                          (cons i (count (+ i 1) (cdr as))))
+                                         (#t (count (+ i 1) (cdr as)))))))
+                       (if (pair? pos)
+                           (hash-table-set! rcs--cl-table (lhs-head)
+                             (cons (cons (length args) pos) (hash-table-ref/default rcs--cl-table (lhs-head) '()))))))
+                    (#t 'skip)))))))
+  ;; constants: the defining equation def-constant recorded (library-definitions)
+  (for-each
+   (lambda (entry)
+     (if (and (pair? entry) (symbol? (car entry)) (not (memq (car entry) rcs--not-heads)))
+         (for-each
+          (lambda (ax)
+            (let ((f (and (pair? ax) (symbol? (car ax)) (hash-table-ref/default *theorem-table* (car ax) #f))))
+              (if (and (pair? f) (memq (car f) '(= ==)) (= (length f) 3) (eq? (cadr f) (car entry))
+                       (memq (rcs--prov (car ax)) '(definitional primitive)))
+                  (hash-table-set! rcs--df-table (car entry)
+                    (cons (list (car ax) 'const '() (caddr f))
+                          (hash-table-ref/default rcs--df-table (car entry) '()))))))
+          (cdr entry))))
+   (let ((d (library-definitions *library*))) (if (list? d) d '()))))
+
+(define (rcs--sync!)
+  (let ((d (list *pi-via-generation* (hash-table-size *functoid-registry*))))
+    (if (not (equal? d rcs--df-stamp))
+        (begin (rcs--index-definitions!) (set! rcs--df-stamp d)))
+    (let ((m (list d (hash-table-size *theorem-table*))))
+      (if (not (equal? m rcs--memo-stamp))
+          (begin (set! rcs--verdicts (make-strong-eqv-hash-table))
+                 (set! rcs--confs (make-strong-eqv-hash-table))
+                 (set! rcs--lists (make-strong-eqv-hash-table))
+                 (set! rcs--lterms (make-strong-eqv-hash-table))
+                 (set! rcs--memo-stamp m))))))
+
+(define (rcs--functoid-def h)                 ; (params body) of a def-functoid, or #f
+  (let ((e (hash-table-ref/default *functoid-registry* h #f)))
+    (and (pair? e) (list? (car e)) (pair? (cdr e)) (list (car e) (cadr e)))))
+
+;;; Every definiens of H, as (kind params body); table rows whose formula is no
+;;; longer installed under that name are dropped.
+(define (rcs--definientia h)
+  (let ((fd (rcs--functoid-def h))
+        (rows (rcs--keep (lambda (row) (hash-table-ref/default *theorem-table* (car row) #f))
+                         (hash-table-ref/default rcs--df-table h '()))))
+    (append (if fd (list (cons 'term fd)) '()) (map cdr rows))))
+
+(define (rcs--keep pred l)
+  (cond ((null? l) '()) ((pred (car l)) (cons (car l) (rcs--keep pred (cdr l)))) (#t (rcs--keep pred (cdr l)))))
+
+(define (rcs--head? x)
+  (and (symbol? x) (not (memq x rcs--not-heads))
+       (or (rcs--functoid-def x) (pair? (hash-table-ref/default rcs--df-table x '())))
+       #t))
+
+;;; list terms (G4) and list components (G3, G4)
+(define (rcs--list-term? t)
+  (cond ((not (pair? t)) #f)
+        ((eq? (car t) 'LIST) #t)
+        ((not (symbol? (car t))) #f)
+        (#t (let ((m (hash-table-ref/default rcs--lterms (car t) '?)))
+              (if (boolean? m) m
+                  (begin (hash-table-set! rcs--lterms (car t) #f)
+                         (let ((v (let ((fd (rcs--functoid-def (car t))))
+                                    (if (and fd (rcs--list-term? (cadr fd))) #t #f))))
+                           (hash-table-set! rcs--lterms (car t) v)
+                           v)))))))
+
+(define (rcs--listed-positions f)        ; parameters of def-functoid F that its body lists
+  (let ((m (hash-table-ref/default rcs--lists f '?)))
+    (if (not (eq? m '?)) m
+        (begin (hash-table-set! rcs--lists f '())
+               (let ((v (let ((fd (rcs--functoid-def f)))
+                          (if fd
+                              (let count ((i 1) (ps (car fd)))
+                                (cond ((null? ps) '())
+                                      ((rcs--component? (car ps) (cadr fd)) (cons i (count (+ i 1) (cdr ps))))
+                                      (#t (count (+ i 1) (cdr ps)))))
+                              '()))))
+                 (hash-table-set! rcs--lists f v)
+                 v)))))
+
+(define (rcs--component? v t)
+  (and (pair? t) (list? t)
+       (if (eq? (car t) 'LIST)
+           (and (rcs--first (lambda (a) (or (eq? a v) (rcs--component? v a))) (cdr t)) #t)
+           (and (symbol? (car t)) (rcs--functoid-def (car t))
+                (let ((pos (rcs--listed-positions (car t))))
+                  (let scan ((i 1) (as (cdr t)))
+                    (cond ((null? as) #f)
+                          ((and (memv i pos) (or (eq? (car as) v) (rcs--component? v (car as)))) #t)
+                          (#t (scan (+ i 1) (cdr as))))))))))
+
+;;; the confining positions of P: ((arity pos ..) ..)
+(define (rcs--confining p)
+  (let ((m (hash-table-ref/default rcs--confs p '?)))
+    (if (not (eq? m '?)) m
+        (begin
+          (hash-table-set! rcs--confs p '())
+          (let ((v (append
+                    (hash-table-ref/default rcs--cl-table p '())
+                    (rcs--keep pair?
+                      (map (lambda (d)
+                             (if (eq? (car d) 'pred)
+                                 (let ((pos (let count ((i 1) (ps (cadr d)))
+                                              (cond ((null? ps) '())
+                                                    ((rcs--exists-spine-guards? (car ps) (caddr d))
+                                                     (cons i (count (+ i 1) (cdr ps))))
+                                                    (#t (count (+ i 1) (cdr ps)))))))
+                                   (if (pair? pos) (cons (length (cadr d)) pos) '()))
+                                 '()))
+                           (rcs--definientia p))))))
+            (hash-table-set! rcs--confs p v)
+            v)))))
+
+(define (rcs--guard-of? v f)
+  (and (pair? f) (list? f)
+       (case (car f)
+         ((IN) (and (= (length f) 3) (or (eq? (cadr f) v) (rcs--component? v (cadr f)))))
+         ((=)  (and (= (length f) 3)
+                    (or (rcs--component? v (cadr f)) (rcs--component? v (caddr f))
+                        (and (eq? (cadr f) v) (rcs--list-term? (caddr f)))
+                        (and (eq? (caddr f) v) (rcs--list-term? (cadr f))))))
+         (else
+          (and (symbol? (car f)) (not (memq (car f) rcs--not-heads))
+               (let ((k (length (cdr f))))
+                 (let scan ((i 1) (as (cdr f)))
+                   (cond ((null? as) #f)
+                         ((and (eq? (car as) v)
+                               (rcs--first (lambda (c) (and (= (car c) k) (memv i (cdr c))))
+                                           (rcs--confining (car f))))
+                          #t)
+                         (#t (scan (+ i 1) (cdr as)))))))))))
+
+;;; the existential / definiens spine: AND, FORSOME not rebinding v, OR with both sides
+(define (rcs--exists-spine-guards? v b)
+  (cond ((and (pair? b) (eq? (car b) 'FORSOME) (= (length b) 3) (symbol? (cadr b)) (not (eq? (cadr b) v)))
+         (rcs--exists-spine-guards? v (caddr b)))
+        ((and (pair? b) (eq? (car b) 'AND) (= (length b) 3))
+         (or (rcs--exists-spine-guards? v (cadr b)) (rcs--exists-spine-guards? v (caddr b))))
+        ((and (pair? b) (eq? (car b) 'OR) (= (length b) 3))
+         (and (rcs--exists-spine-guards? v (cadr b)) (rcs--exists-spine-guards? v (caddr b))))
+        (#t (rcs--guard-of? v b))))
+
+;;; the antecedents met on the implicational spine of B, for the variable V; a
+;;; final (NOT A) contributes A (forall v. not A  is  forall v. A => FALSITY)
 (define (rcs--forall-spine-antecedents v b)
   (let loop ((b b) (out '()))
     (cond ((and (pair? b) (eq? (car b) 'FORALL) (= (length b) 3) (symbol? (cadr b))
@@ -244,19 +449,9 @@
            (loop (caddr b) out))
           ((and (pair? b) (eq? (car b) 'IMPLIES) (= (length b) 3))
            (loop (caddr b) (cons (cadr b) out)))
+          ((and (pair? b) (eq? (car b) 'NOT) (= (length b) 2))
+           (cons (cadr b) out))
           (#t out))))
-
-;;; the leaves met on the conjunctive spine of B, for the variable V
-(define (rcs--forsome-spine-leaves v b)
-  (let loop ((todo (list b)) (out '()))
-    (cond ((null? todo) out)
-          ((let ((g (car todo)))
-             (and (pair? g) (eq? (car g) 'FORSOME) (= (length g) 3) (symbol? (cadr g))
-                  (not (eq? (cadr g) v))))
-           (loop (cons (caddr (car todo)) (cdr todo)) out))
-          ((let ((g (car todo))) (and (pair? g) (eq? (car g) 'AND) (= (length g) 3)))
-           (loop (cons (cadr (car todo)) (cons (caddr (car todo)) (cdr todo))) out))
-          (#t (loop (cdr todo) (cons (car todo) out))))))
 
 (define (rcs--quantifier-confined? q)
   (and (= (length q) 3) (symbol? (cadr q))
@@ -267,20 +462,60 @@
                                                      (rcs--and-leaves a)))
                              (rcs--forall-spine-antecedents v b))
                  #t))
-           ((FORSOME)
-            (and (rcs--first (lambda (c) (rcs--guard-of? v c)) (rcs--forsome-spine-leaves v b))
-                 #t))
+           ((FORSOME) (and (rcs--exists-spine-guards? v b) #t))
            ((IOTA)
             (and (rcs--first (lambda (c) (rcs--guard-of? v c)) (rcs--and-leaves b)) #t))
            (else #f)))))
 
+;;; every symbol occurring in E (functoid records through bindings and body)
+(define (rcs--symbols-of e)
+  (let collect ((e e) (acc '()))
+    (cond ((symbol? e) (if (memq e acc) acc (cons e acc)))
+          ((functoid? e)
+           (collect (functoid-body e) (collect (map cdr (functoid-bindings e)) acc)))
+          ((pair? e) (collect (cdr e) (collect (car e) acc)))
+          (#t acc))))
+
+;;; The first offender of E: an unconfined binder node, or (VIA h inner) for a
+;;; defined head of E whose definientia do not all pass; #f when E passes.
+(define (rcs--offender e)
+  (or (rcs--first (lambda (q) (not (rcs--quantifier-confined? q))) (rcs--quantifier-nodes e))
+      (let scan ((hs (reverse (rcs--symbols-of e))))
+        (cond ((null? hs) #f)
+              ((and (rcs--head? (car hs)) (rcs--head-verdict (car hs)))
+               => (lambda (inner) (list 'VIA (car hs) inner)))
+              (#t (scan (cdr hs)))))))
+
+;;; #f when every definiens of the head H passes, else the offender; a head met
+;;; again while its verdict is being computed is (CYCLE h).
+(define (rcs--head-verdict h)
+  (let ((m (hash-table-ref/default rcs--verdicts h '?)))
+    (if (not (eq? m '?)) m
+        (begin
+          (hash-table-set! rcs--verdicts h (list 'CYCLE h))
+          (let ((v (let each ((ds (rcs--definientia h)))
+                     (cond ((null? ds) #f)
+                           ((rcs--offender (caddr (car ds))) => (lambda (o) o))
+                           (#t (each (cdr ds)))))))
+            (hash-table-set! rcs--verdicts h v)
+            v)))))
+
 ;;; The first binder node of the condition of the COMP term T that is not
-;;; confined to sets, or #f.
+;;; confined to sets (or (VIA h ..) for a defined head that fails), or #f.
+;;; Verdicts on condition objects are remembered (weakly, by eq?) while the memo stamp holds.
+(define rcs--seen (make-key-weak-eqv-hash-table))
+(define rcs--seen-stamp #f)
+(define (rcs--offender-cached e)
+  (rcs--sync!)
+  (if (not (eq? rcs--seen-stamp rcs--memo-stamp))
+      (begin (set! rcs--seen (make-key-weak-eqv-hash-table)) (set! rcs--seen-stamp rcs--memo-stamp)))
+  (if (not (pair? e))
+      (rcs--offender e)
+      (let ((m (hash-table-ref/default rcs--seen e '?)))
+        (if (not (eq? m '?)) m
+            (let ((v (rcs--offender e))) (hash-table-set! rcs--seen e v) v)))))
 (define (rcs--comp-unconfined-binder t)
-  (let loop ((qs (rcs--quantifier-nodes (caddr t))))
-    (cond ((null? qs) #f)
-          ((rcs--quantifier-confined? (car qs)) (loop (cdr qs)))
-          (#t (car qs)))))
+  (rcs--offender-cached (caddr t)))
 
 ;; A new binder head must be taught to rcs--quantifier-nodes (binder-walker-audit).
 (declare-binder-walker! 'rcs--quantifier-nodes
@@ -294,29 +529,34 @@
 ;;; outside the binder and is not read.
 (define (rcs--binder-unconfined t)
   (and (pair? t) (memq (car t) '(SEP BIG-UNION VNB-LAMBDA)) (= (length t) 4)
-       (rcs--first (lambda (q) (not (rcs--quantifier-confined? q)))
-                   (rcs--quantifier-nodes (cadddr t)))))
+       (rcs--offender-cached (cadddr t))))
 
 (define (rcs--binder-nbg? t) (not (rcs--binder-unconfined t)))
 (define (rcs--sep-nbg? t) (and (rcs--sep? t) (rcs--binder-nbg? t)))
 (define (rcs--bu-nbg? t)  (and (rcs--bu? t) (rcs--binder-nbg? t)))
 
+(define (rcs--offender-text b)
+  (case (car b)
+    ((VIA) (string-append "the defined head " (symbol->string (cadr b))
+                          ", whose definition has " (rcs--offender-text (caddr b))))
+    ((CYCLE) (string-append "a definitional cycle through " (symbol->string (cadr b))))
+    (else (if (and (eq? (car b) 'IOTA) (not (symbol? (cadr b))))
+              "an IOTA"
+              (string-append "an unconfined " (symbol->string (car b)) " "
+                             (if (symbol? (cadr b)) (symbol->string (cadr b)) "?"))))))
+
 (define (rcs--binder-reason tag t)
   (let ((b (rcs--binder-unconfined t)))
     (string-append tag ": NBG -- the " (symbol->string (car t))
                    (if (eq? (car t) 'SEP) " condition" " body")
-                   " has a binder not confined to sets, an unconfined "
-                   (symbol->string (car b)) " "
-                   (if (symbol? (cadr b)) (symbol->string (cadr b)) "?"))))
+                   " has a binder not confined to sets, " (rcs--offender-text b))))
 
 (define (rcs--nbg-reason tag t)
   (let ((b (rcs--comp-unconfined-binder t)))
     (string-append tag ": NBG comprehension -- the COMP condition has a binder not confined to sets, "
-                   (if (eq? (car b) 'IOTA)
+                   (if (and (eq? (car b) 'IOTA) (= (length b) 3))
                        "an IOTA"
-                       (string-append "an unconfined "
-                                      (symbol->string (car b)) " "
-                                      (if (symbol? (cadr b)) (symbol->string (cadr b)) "?"))))))
+                       (rcs--offender-text b)))))
 
 (define (rcs-comp-mem-intro rule hyps concl)
   (let ((g (rcs--goal concl)))
@@ -1146,13 +1386,6 @@
       (cond ((null? es) #f) ((pred (raw (car es))) #t) (else (loop (cdr es))))))
   (define (typed? u)
     (holds? (lambda (f) (and (pair? f) (eq? (car f) 'IN) (= (length f) 3) (chk-same? (cadr f) u)))))
-  (define (struct-pred? s)
-    (holds? (lambda (f) (and (pair? f) (= (length f) 2) (symbol? (car f)) (chk-same? (cadr f) s)
-                             (let ((nm (string-downcase (symbol->string (car f)))))
-                               (and (> (string-length nm) 3) (string=? (substring nm 0 3) "is-")
-                                    (environment-bound? system-global-environment 'find-shape-structure)
-                                    (find-shape-structure (string->symbol (substring nm 3 (string-length nm))))
-                                    #t))))))
   (define (registry-ref name)             ; see pi--registry-ref: the registry lives in the
     (let ((e (call-with-current-continuation ; load's environment, not system-global
                (lambda (k)
@@ -1210,7 +1443,8 @@
                     (let ((kind (registered-kind h)))
                       (cond
                         ((eq? kind 'accessor) #f)
-                        ((and (= (length as) 1) (struct-pred? (car as))) #f)
+                        ;; DEFHEAD dh1: a `struct-pred?' clause stood here, dead for the reason
+                        ;; given beside the builder's (primitive-inferences.scm, `pi--value-may-be-class?')
                         ((unfold t) => (lambda (b) (may? b (+ d 1))))
                         ((chk-defined-fn-values h as)
                          => (lambda (vs) (any-may? vs (+ d 1))))

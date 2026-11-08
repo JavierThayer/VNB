@@ -385,6 +385,7 @@
     sip-vadd-inverses-prop sip-vadd-comm-prop))
 (mac 'SIP-NORMED-AG)
 (mac 'IS-NORMED-AG)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (slot 'CARR)
 (slot 'OPR)
 (slot 'IDEN)

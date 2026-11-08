@@ -552,7 +552,7 @@
 
 (sp (make-wff (list 'FORALL 'pzn_ (list 'IMPLIES '(IN pzn_ NN)
                 (forall-guarded '(R) '((IS-COMMUTATIVE-RING R)) (laeg-pz-body 'pzn_))))))
-(define laeg-pz-ind (use-induction))
+(define laeg-pz-ind (dk-use-induction-fixed! '(R pzf_)))   ; W1G-A: R, pzf_ fixed
 (dk-focus! (cdr (assq 'base laeg-pz-ind)))
 (let* ((landed (dk-peel!))
        (km (find-first (lambda (f) (and (eq? (car f) 'IN) (equal? (caddr f) (laeg-iv 0)))) landed))
@@ -616,7 +616,7 @@
       (fact 'interval-elt-in-nn 1 sv k)
       (dk-have! (list '<= k v) (lambda () (fact 'nn-le-succ-cases v k) (dk-have! (list 'OR (list '<= k v) (list '= k sv)) (lambda () (ass))) (prop)))
       (fact 'interval-mem-intro 1 v k)
-      (subst (dk-apply! ih 'R fv k))
+      (subst (dk-apply! (let w1g-dl ((w1g-f (dk-ctx-form ih))) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f)) k))   ; W1G-A: R, pzf_ fixed; the IH is ptw(f, [1, n]) => ...
       (subst (dk-fact! 'ring-mul-zero-left 'R (list fv sv)))
       (rfl))))
 (laeg-done! 'laeg-prod-zero-ind)
@@ -1101,10 +1101,11 @@
     (append laeg-fr-guards
       (list (list 'IN 'cx laeg-mmn) (laeg-agree 'bx 'cx 't)
             '(= (ENTRY cx (succ t) (succ t)) (ONE R)) (list '<= s 'n)))
-    (list 'FORSOME 'clc_ (list 'AND (laeg-ce 'cx 'clc_) (list 'AND (laeg-agree 'bx 'clc_ 't)
-      (list 'AND (laeg-colsame 'cx 'clc_) (laeg-cleared 'clc_ s)))))))
+    ;; W1K (the user's decision 2026-11-06): the witness typed inside the existential
+    (list 'FORSOME 'clc_ (list 'AND (list 'IN 'clc_ laeg-mmn) (list 'AND (laeg-ce 'cx 'clc_) (list 'AND (laeg-agree 'bx 'clc_ 't)
+      (list 'AND (laeg-colsame 'cx 'clc_) (laeg-cleared 'clc_ s))))))))
 (sp (make-wff (list 'FORALL 's (list 'IMPLIES '(IN s NN) (laeg-clear-body 's)))))
-(define laeg-cl-ind (use-induction))
+(define laeg-cl-ind (dk-use-induction-fixed! '(R m n t bx cx)))   ; W1K: the parameters fixed
 (dk-focus! (cdr (assq 'base laeg-cl-ind)))
 (dk-peel!)
 (laeg-fr-setup!)
@@ -1132,7 +1133,7 @@
   (laeg-fr-setup!)
   (fact 'nn-succ-closed v)
   (dk-have! (list '<= v 'n) (lambda () (dk-nn! (list '<= sv 'n))))
-  (let ((D (dk-skolem! (laeg-app! ih 'R 'm 'n 't 'bx 'cx))))
+  (let ((D (dk-skolem! (laeg-app! ih))))   ; W1K: R m n t bx cx fixed
     (fact 'col-equiv-mat 'R 'm 'n 'cx D)
     (use-em (list '= sv laeg-r)
       (lambda ()                            ; column s+1 is the pivot column: nothing to do
@@ -1344,8 +1345,9 @@
 ;;; =====================================================================
 (sp (make-wff (list 'FORALL 't (list 'IMPLIES '(IN t NN)
   (forall-guarded '(R m n A) (list '(IS-FIELD-RING R) '(IN m NN) '(IN n NN) '(<= t m) (list 'IN 'A laeg-mmn))
-    (list 'FORSOME 'mnc_ (list 'AND (laeg-ce 'A 'mnc_) (laeg-rows 'mnc_ 't))))))))
-(define laeg-cs-ind (use-induction))
+    ;; W1K (the user's decision 2026-11-06): the witness typed inside the existential
+    (list 'FORSOME 'mnc_ (list 'AND (list 'IN 'mnc_ laeg-mmn) (list 'AND (laeg-ce 'A 'mnc_) (laeg-rows 'mnc_ 't)))))))))
+(define laeg-cs-ind (dk-use-induction-fixed! '(R m n A)))   ; W1K: the parameters fixed
 (dk-focus! (cdr (assq 'base laeg-cs-ind)))
 (dk-peel!)
 (laeg-field!)
@@ -1368,7 +1370,7 @@
   (laeg-field!)
   (fact 'nn-succ-closed v)
   (dk-have! (list '<= v 'm) (lambda () (dk-nn! (list '<= sv 'm))))
-  (let ((c1 (dk-skolem! (laeg-app! ih 'R 'm 'n 'A))))
+  (let ((c1 (dk-skolem! (laeg-app! ih))))   ; W1K: R m n A fixed
     (fact 'col-equiv-mat 'R 'm 'n 'A c1)
     (let ((c2 (dk-skolem! (dk-cite! 'laeg-row-step 'R 'm 'n v c1))))
       (fact 'col-equiv-mat 'R 'm 'n c1 c2)
@@ -1384,8 +1386,10 @@
   (list 'FORSOME 'csc_ (list 'AND (laeg-ce 'A 'csc_) (laeg-rows 'csc_ 'm))))))
 (dk-peel!)
 (dk-have! '(<= m m) (lambda () (dk-nn!)))
-(laeg-app! (dk-cite! 'laeg-colstep-ind 'm) 'R 'm 'n 'A)
-(ass)
+;; W1K: the cited existential carries the witness typing; re-supply the witness.
+(let ((c (dk-skolem! (laeg-app! (dk-cite! 'laeg-colstep-ind 'm) 'R 'm 'n 'A))))
+  (ew c)
+  (dk-conj-close! (lambda () (ass))))
 (laeg-done! 'column-step-reduced)
 (topic! 'column-step-reduced 'algebra)
 (gloss! 'column-step-reduced

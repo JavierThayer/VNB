@@ -285,6 +285,7 @@
 (fact 'frm-module-vec-set 'md)
 (fact 'qmod-rel-is-equivalence 'md 'sm)
 (mac 'IS-SETOID)
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (slot 'pts)
 (slot 'rel)
 (mac 'QMOD-SETOID)
@@ -789,6 +790,10 @@
   '(qmod-length qmod-scal-ring qmod-vec-set qmod-vadd-fun qmod-vzero-in qmod-vneg-fun qmod-act-fun
     qmod-assoc qmod-comm qmod-identity qmod-inverses
     qmod-act-distrib-vec qmod-act-distrib-scalar qmod-act-mul-compat qmod-act-unital))
+;; W1J-B: every conjunct but the last is in context already, so dk-isx-set!'s split of G' lands
+;; nothing (dk-landed errors); the last conjunct t in SET is landed first, from the same typings.
+(dk-have! '(IN (QUOTIENT-MODULE md sm) SET)
+  (lambda () (dk-isx--sethood! '(QUOTIENT-MODULE md sm) (map car (structure-def-slots (lookup-structure 'MODULE))) '())))
 (mac 'IS-MODULE)
 (dk-conj-close! (lambda () (ass)))
 (lzq-done! 'quotient-module-is-module)
@@ -818,6 +823,7 @@
 (lzq-ring-open!)
 (for-each (lambda (n) (fact n 'R)) '(ring-left-dist ring-right-dist ring-mul-assoc ring-mul-left-id))
 (mac 'IS-MODULE)
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (lzq-rm-reduce!)
 (dk-conj-close!
   (lambda ()

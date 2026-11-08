@@ -1638,6 +1638,9 @@
                 (length-c (find (lambda (c) (and (pair? c) (memq (car c) '(= ==)) (= (length c) 3)
                                                  (equal? (cadr c) (list 'length v))))
                                 conjs))
+                ;; the SETHOOD conjunct build-is-axiom writes last (W1I, 2026-11-06): the
+                ;; structure itself is a set.  Neither a component typing nor a law.
+                (set-c (find (lambda (c) (equal? c (list 'in v 'set))) conjs))
                 (slots (structure-def-slots sd))
                 ;; what build-is-axiom (structures.scm) writes for a slot: its FIRST
                 ;; membership (or, for a substructure, the one-argument IS-Y of it),
@@ -1659,6 +1662,7 @@
                                 (filter (lambda (c) c) (list typing fix))))
                             slots))
                 (laws (filter (lambda (c) (and (not (eq? c length-c))
+                                               (not (eq? c set-c))
                                                (not (proof-reader--any (lambda (l) (memq c l)) owned))))
                               conjs))
                 (tm (lambda (e) (string-append "$" (expr->tex-top e) "$")))
@@ -1702,7 +1706,9 @@
             "}): " (tm is-x) " holds if and only if "
             (if length-c (string-append (tm length-c) ", ") "")
             "every component has the typing listed with it"
-            (if (pair? laws) ", and every law holds" "")
+            (if (pair? laws) (if set-c ", every law holds" ", and every law holds") "")
+            (if set-c (string-append (if (pair? laws) ", and " " and ") (tm set-c)
+                                     " (the structure is a set)") "")
             ".\n")))))
 
 ;; "a 2-tuple", "an 8-tuple", "a tuple of length $n$", "a tuple" (the user prefers

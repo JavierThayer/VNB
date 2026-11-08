@@ -209,6 +209,7 @@
 (fact 'fin-subsets-is-set 'a_)
 (fact 'fin-subsets-has-empty 'a_)
 (mac 'IS-COMM-MONOID)
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (fm-split-ands!)
 
 ;; ---- 1. length(FIN-SUBSET-MONOID(a)) = 3 ----

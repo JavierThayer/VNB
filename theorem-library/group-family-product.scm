@@ -622,6 +622,7 @@
 
 (sp (make-wff '(IS-GROUP TRIV-GROUP)))
 (mac 'IS-GROUP)
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (mac 'triv-group-def)
 (for-each (lambda (acc) (slot acc)) '(CARR OPR IDEN INV))
 (let loop ((k 0)) (if (and (< k 10) (dk-contains? (dk-goal) 'NTH)) (begin (nth-r) (loop (+ k 1)))))
@@ -690,7 +691,7 @@
 ;;; F3: the product is a finite group holding the tuple
 (define (z10-f3 m) (list 'AND (list 'IS-GROUP (z10-p m)) (list 'AND (list 'IN (list 'CARD (list 'CARR (z10-p m))) 'NN) (list 'IN (z10-t m) (list 'CARR (z10-p m))))))
 (sp (make-wff (list 'FORALL 'm (list 'IMPLIES '(IN m NN) (list 'FORALL 'gf (list 'FORALL 'xf (list 'IMPLIES (z10-gh 'm) (z10-f3 'm))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(gf xf))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-A: gf, xf fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (dk-cite! 'group-famprod-zero 'gf) (dk-cite! 'group-famtuple-zero 'xf)
@@ -705,7 +706,7 @@
   (dk-focus! (cdr (assq 'step ind)))
   (dk-peel!)
   (z10-gh-step! v)
-  (dk-split-all! (list (dk-apply! (dk-ctx-form ih) 'gf 'xf)))
+  (dk-split-all! (list (let w1g-dl ((w1g-f (dk-ctx-form ih))) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))))   ; W1G-A: gf, xf fixed
   (let* ((sv (list 'succ v)) (pv (z10-p v)) (gs (list 'gf sv)) (cp (list 'CARR pv)) (cg (list 'CARR gs)))
     (dk-cite! 'group-famprod-succ 'gf v) (dk-cite! 'group-famtuple-succ 'xf v)
     (subst (list '== (z10-p sv) (list 'GROUP-PROD pv gs)))
@@ -758,7 +759,7 @@
 (define (z10-cp m) (list 'CARD (list 'CARR (z10-p m))))
 (sp (make-wff (list 'FORALL 'm (list 'IMPLIES '(IN m NN) (list 'FORALL 'gf (list 'FORALL 'xf (list 'IMPLIES (z10-gh 'm)
   (list 'FORALL 'i (list 'IMPLIES '(IN i NN) (list 'IMPLIES '(<= 1 i) (list 'IMPLIES '(<= i m) (list 'ZZ-DIVIDES (z10-n 'i) (z10-cp 'm)))))))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(gf xf))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-A: gf, xf fixed
   (dk-focus! (cdr (assq 'base ind)))
   (let ((i (begin (dk-peel!) (cadr (cadr (cadr (cadr (dk-goal))))))))
     (fact 'nn-in-rr i) (z2-absurd! (list '<= 1 i) (list '<= i 0)))
@@ -779,7 +780,7 @@
     (subst (list '= (z10-cp sv) (list '* (list 'CARD cp) (list 'CARD cg))))
     (ma-or-split! (dk-apply! (dk-cite! 'nn-le-succ-cases v) i)
       (list (lambda ()
-              (dk-apply! (dk-ctx-form ih) 'gf 'xf i)
+              (dk-apply! (let w1g-dl ((w1g-f (dk-ctx-form ih))) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f)) i)   ; W1G-A: gf, xf fixed
               (dk-apply! (dk-cite! 'zz-divides-mul-right) (z10-n i) (list 'CARD cp) (list 'CARD cg))
               (ass))
             (lambda ()
@@ -792,7 +793,7 @@
 (sp (make-wff (list 'FORALL 'm (list 'IMPLIES '(IN m NN) (list 'FORALL 'gf (list 'FORALL 'xf (list 'IMPLIES (z10-gh 'm)
   (list 'FORALL 'nb (list 'IMPLIES '(IN nb ZZ) (list 'IMPLIES (list 'FORALL 'ci_ (list 'IMPLIES '(IN ci_ NN) (list 'IMPLIES '(<= 1 ci_) (list 'IMPLIES '(<= ci_ m) (list 'ZZ-COPRIME (z10-n 'ci_) 'nb)))))
     (list 'ZZ-COPRIME (z10-cp 'm) 'nb)))))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(gf xf))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-A: gf, xf fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (dk-cite! 'group-famprod-zero 'gf) (fact 'triv-group-card) (fact 'zz-one-in) (fact 'zz-zero-in)
@@ -811,7 +812,7 @@
     (dk-have! (allc v) (lambda () (let ((i (begin (dk-peel!) (cadr (cadr (cadr (cadr (dk-goal))))))))
                                     (dk-have! (list '<= i sv) (lambda () (dk-nn! (list '<= i v))))
                                     (dk-apply! (dk-ctx-form (allc sv)) i) (ass))))
-    (dk-apply! (dk-ctx-form ih) 'gf 'xf 'nb)
+    (dk-apply! (let w1g-dl ((w1g-f (dk-ctx-form ih))) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f)) 'nb)   ; W1G-A: gf, xf fixed
     (dk-apply! (dk-ctx-form (allc sv)) sv)
     (dk-cite! 'group-famprod-succ 'gf v)
     (dk-apply! (dk-cite! 'group-prod-carr pv) gs)
@@ -835,7 +836,7 @@
 (define (z10-ij) (let* ((g (dk-goal)) (i (cadr (cadr (cadr (cadr g))))) (j (cadr (cadr (cadr (caddr g)))))) (list i j)))
 (sp (make-wff (list 'FORALL 'm (list 'IMPLIES '(IN m NN) (list 'FORALL 'gf (list 'FORALL 'xf (list 'IMPLIES (z10-gh 'm)
   (list 'IFF (list 'IS-GENERATOR (z10-p 'm) (z10-t 'm)) (z10-pw 'm)))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(gf xf))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-A: gf, xf fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (dk-cite! 'group-famprod-zero 'gf) (dk-cite! 'group-famtuple-zero 'xf)
@@ -855,7 +856,7 @@
     (subst (list '== (z10-p sv) pp))
     (subst (list '== (z10-t sv) tt))
     (dk-type! cp 'ZZ) (dk-type! ns 'ZZ)
-    (let ((ihi (dk-apply! (dk-ctx-form ih) 'gf 'xf))
+    (let ((ihi (let w1g-dl ((w1g-f (dk-ctx-form ih))) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f)))   ; W1G-A: gf, xf fixed
           (cpg! (lambda () (dk-apply! (dk-cite! 'cyclic-product-generator) pv gs tv xs))))
       (dk-iff! (lambda (g) (dk-head-is? g 'FORALL))
         ;; a generator: the cards are pairwise prime

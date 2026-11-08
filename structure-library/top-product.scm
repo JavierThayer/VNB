@@ -29,14 +29,19 @@
 (def-predicate 'IS-TPROD-OPEN '(ix tf u)
   '(AND (SUBSET u (TPROD-PTS ix tf))
         (FORALL tpw_ (IMPLIES (IN tpw_ u)
-          (FORSOME tpf_ (AND (SUBSET tpf_ (TPROD-CONSTR ix tf)) (AND (IN (CARD tpf_) NN)
-            (AND (IN tpw_ (TPROD-BOX ix tf tpf_)) (SUBSET (TPROD-BOX ix tf tpf_) u)))))))))
+          (FORSOME tpf_ (AND (IN tpf_ SET) (AND (SUBSET tpf_ (TPROD-CONSTR ix tf)) (AND (IN (CARD tpf_) NN)
+            (AND (IN tpw_ (TPROD-BOX ix tf tpf_)) (SUBSET (TPROD-BOX ix tf tpf_) u))))))))))
+;;; W1 (2026-11-04): tpf_ is bounded by SET (a family with a finite cardinal is a set:
+;;; `card-nn-is-set'), so that IS-TPROD-OPEN is predicative where TPRODUCT-TOP's SEP names it.
+;;; The former definiens is the proven `is-tprod-open-classes' (theorem-library/top-product.scm).
 (def-functoid 'TPRODUCT-TOP '(ix tf)
   '(LIST (TPROD-PTS ix tf) (SEP tpu_ (POWER (TPROD-PTS ix tf)) (IS-TPROD-OPEN ix tf tpu_))))
 (def-functoid 'TPROJ '(ix tf i)
   '(VNB-LAMBDA tpz_ (TPROD-PTS ix tf) (tpz_ i)))
 (def-predicate 'HAS-FINITE-SUBCOVER '(s c)
-  '(FORSOME tpg_ (AND (SUBSET tpg_ c) (AND (IN (CARD tpg_) NN) (== (BIG-UNION tpv_ tpg_ tpv_) (PTS s))))))
+  '(FORSOME tpg_ (AND (IN tpg_ SET) (AND (SUBSET tpg_ c) (AND (IN (CARD tpg_) NN) (== (BIG-UNION tpv_ tpg_ tpv_) (PTS s)))))))
+;;; W1 (2026-11-04): tpg_ is bounded by SET (card-nn-is-set), as in IS-TPROD-OPEN above; the former
+;;; definiens is the proven `has-finite-subcover-classes' (theorem-library/top-product.scm).
 
 (notation! 'IS-TOP-FAMILY 'kind 'predicate 'arity 2 'english "$2 is a family of topological spaces indexed by $1")
 (notation! 'TPROD-PTS 'kind 'functoid 'arity 2 'english "the product of the points of the family $2")

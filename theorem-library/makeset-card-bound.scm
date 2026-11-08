@@ -219,12 +219,12 @@
 
 ;; The base leaf is identified by its GOAL, built by hand: it is the body with
 ;; n := 0, and both leaves of `ni' are FORALL/FORALL/IMPLIES/IMPLIES otherwise.
-(define mcb-base-goal
-  '(forall a (forall l (implies (in l (tuples a))
+(define mcb-base-goal              ; W1B: `a' is fixed by dk-ni-fixed!, so the base case starts at l
+  '(forall l (implies (in l (tuples a))
       (implies (= (length l) 0)
         (and (in (make-set l) set)
              (and (in (card (make-set l)) nn)
-                  (<= (card (make-set l)) 0))))))))
+                  (<= (card (make-set l)) 0)))))))
 
 (sp (make-wff '(FORALL n (IMPLIES (IN n NN)
    (FORALL a (FORALL l (IMPLIES (IN l (TUPLES a))
@@ -267,7 +267,7 @@
                 (x0 (cadr (caddr leq)))
                 (m0 (caddr (caddr leq))))
            ;; the three conjuncts at the tail
-           (dk-apply! ih 'a m0)
+           (dk-apply! ih m0)                         ; W1B: a fixed
            (dk-split-all!)
            ;; MAKE-SET(l) = {x0} u MAKE-SET(m0)
            (subst leq)
@@ -293,7 +293,7 @@
                  (list 'succ (list 'CARD (list 'MAKE-SET m0)))
                  (list 'succ 'n))
            (dk-conj-close! ass))))))
-  (dk-opened (lambda () (ni))))))
+  (dk-opened (lambda () (dk-ni-fixed!))))))   ; W1B: a fixed; l stays quantified
 (qed 'makeset-card-bound-strong)
 (topic! 'makeset-card-bound-strong 'combinatorial)
 

@@ -42,6 +42,37 @@
 ;;; ---- two shift identities ----
 ;;;   (1-t) z + t a  =  ((1-t) x + t a) + (1-t)(z - x)
 ;;;   (1-tau) f + tau a  =  ((1-t) f + t a) + (tau - t)(a - f)
+;;; =====================================================================
+;;; W1 (2026-11-04): total boundedness read over CLASSES of centres
+;;; =====================================================================
+;;; IS-TOTALLY-BOUNDED-IN (structure-library/cvx-vocab.scm) now bounds the finite family of
+;;; centres tbf_ by SET, so that it is predicative in a comprehension condition.  The bound
+;;; changes nothing: a class with a finite cardinal is a set (card-nn-is-set,
+;;; theorem-library/top-product.scm).  The proofs below cite the class form.
+(define (w1tb-step! law)               ; goal: forall r. POS-RR r => FORSOME ...; law: the context's
+  (let* ((r (cadr (car (filter (lambda (q) (dk-head-is? q 'POS-RR)) (dk-peel!)))))
+         (w (dk-skolem! (dk-apply! law r) #t)))
+    (if (not (dk-asm? (list 'IN w 'SET))) (dk-cite! 'card-nn-is-set w))
+    (ew w)
+    (dk-conj-close! (lambda () (ass)))))
+(define (w1tb-fwd!)
+  (let* ((hyp (or (find-first (lambda (f) (dk-head-is? f 'IS-TOTALLY-BOUNDED-IN)) (dk-asms)) (error "w1tb-fwd!: no hypothesis")))
+         (law (dk-landed-1 (lambda () (mac-h 'is-totally-bounded-in hyp)))))
+    (w1tb-step! law)))
+(define (w1tb-bwd!)
+  (let ((law (or (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'POS-RR))) (dk-asms))
+                 (error "w1tb-bwd!: no class-form hypothesis"))))
+    (mac 'is-totally-bounded-in)
+    (w1tb-step! law)))
+(sp (make-wff '(FORALL tbm_ (FORALL tba_ (IFF (IS-TOTALLY-BOUNDED-IN tbm_ tba_)
+  (FORALL tbr_ (IMPLIES (POS-RR tbr_)
+     (FORSOME tbf_ (AND (IN (CARD tbf_) NN) (AND (SUBSET tbf_ (PTS tbm_))
+       (FORALL tbp_ (IMPLIES (IN tbp_ tba_)
+         (FORSOME tbc_ (AND (IN tbc_ tbf_) (< ((DIST tbm_) tbc_ tbp_) tbr_)))))))))))))))
+(di)
+(dk-iff! (lambda (g) (dk-head-is? g 'FORALL)) w1tb-fwd! w1tb-bwd!)
+(qed 'is-totally-bounded-in-classes)
+
 (sp (make-wff (list 'FORALL 'm (list 'IMPLIES '(IS-NORMED-VECTOR-SPACE m) (cvt-forall '(x z a t)
    (cvt-implies (list '(IN x (VEC m)) '(IN z (VEC m)) '(IN a (VEC m)) '(IN t RR))
      (list '= (cvt-cvx 'z 'a 't) (cvt-add (cvt-cvx 'x 'a 't) (cvt-act '(- 1 t) (cvt-add 'z (cvt-neg 'x)))))))))))
@@ -355,8 +386,8 @@
 (dk-peel!)
 (cvt-msetup!)
 (cvt-vecset!)
-(define cvt-tbc (dk-meta-iff-r! (dk-cite! 'is-totally-bounded-in cvt-ms 'C)))
-(mac 'IS-TOTALLY-BOUNDED-IN)
+(define cvt-tbc (dk-meta-iff-r! (dk-cite! 'is-totally-bounded-in-classes cvt-ms 'C)))
+(mac 'is-totally-bounded-in-classes)
 (define cvt-r (cadr (car (filter (lambda (q) (dk-head-is? q 'POS-RR)) (dk-peel!)))))
 (define cvt-rho (dk-halve! cvt-r))
 (dk-cite! 'rr-pos-rr-in-rr cvt-r)
@@ -488,7 +519,7 @@
 ;;; ---- total boundedness: subsets, the empty set, one more point ----
 (define (cvt-tb A) (list 'IS-TOTALLY-BOUNDED-IN cvt-ms A))
 (define (cvt-tb-open! A r)                ; TB(A) in context, POS-RR r: returns F with its parts landed
-  (let* ((cl (dk-meta-iff-r! (dk-cite! 'is-totally-bounded-in cvt-ms A)))
+  (let* ((cl (dk-meta-iff-r! (dk-cite! 'is-totally-bounded-in-classes cvt-ms A)))
          (F (dk-skolem! (dk-apply! cl r))))
     (cvt-split-if! (lambda (h) (dk-contains? h F)))
     (cvt-split-if! (lambda (h) (dk-contains? h F)))
@@ -498,7 +529,7 @@
 (sp (make-wff (list 'FORALL 'm (list 'IMPLIES '(IS-NORMED-VECTOR-SPACE m) (cvt-forall '(A B)
    (cvt-implies (list (cvt-tb 'B) '(SUBSET A B)) (cvt-tb 'A)))))))
 (dk-peel!)
-(mac 'IS-TOTALLY-BOUNDED-IN)
+(mac 'is-totally-bounded-in-classes)
 (let* ((r (cadr (car (filter (lambda (q) (dk-head-is? q 'POS-RR)) (dk-peel!)))))
        (F (cvt-tb-open! 'B r)))
   (ew F)
@@ -516,7 +547,7 @@
 (sp (make-wff (list 'FORALL 'm (list 'IMPLIES '(IS-NORMED-VECTOR-SPACE m) (cvt-tb 'EMPTY-SET)))))
 (dk-peel!)
 (cvt-msetup!)
-(mac 'IS-TOTALLY-BOUNDED-IN)
+(mac 'is-totally-bounded-in-classes)
 (dk-peel!)
 (fact 'card-empty)
 (fact 'nn-zero-in)
@@ -544,7 +575,7 @@
 (dk-cite! 'card-singleton 'a)
 (dk-cite! 'pair-self-member 'a)
 (dk-cite! 'nn-zero-in) (dk-cite! 'nn-succ-closed 0)
-(mac 'IS-TOTALLY-BOUNDED-IN)
+(mac 'is-totally-bounded-in-classes)
 (let* ((r (cadr (car (filter (lambda (q) (dk-head-is? q 'POS-RR)) (dk-peel!)))))
        (F (cvt-tb-open! 'TBS r))
        (F2 (list 'UNION F cvt-Pa)))
@@ -836,7 +867,7 @@
 (dk-peel!)
 (cvt-msetup!)
 (cvt-vecset!)
-(mac 'IS-TOTALLY-BOUNDED-IN)
+(mac 'is-totally-bounded-in-classes)
 (define cvt-r2 (cadr (car (filter (lambda (q) (dk-head-is? q 'POS-RR)) (dk-peel!)))))
 (dk-cite! 'rr-pos-rr-in-rr cvt-r2)
 (define cvt-sg (dk-halve! cvt-r2))

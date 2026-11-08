@@ -194,7 +194,7 @@
                   '(SERIES-PARTIAL-SUM rad m)))))))))
 
 (sp (make-wff (list 'FORALL 'n_ (list 'IMPLIES '(IN n_ NN) (r7r-cb-stmt 'n_)))))
-(define r7r-cb-br (use-induction))
+(define r7r-cb-br (dk-use-induction-fixed! '(s f rad)))   ; W1D: s, f, rad fixed
 
 ;;; ---- BASE: n_ = 0, so m = 0 and both sides are 0. --------------------
 (dk-focus! (cdr (assq 'base r7r-cb-br)))
@@ -234,7 +234,7 @@
   (lambda ()
     (dk-apply! (list-ref r7r-cb-hyps 3) r7r-cb-n)
     (have! (r7r-and (append r7r-cb-hyps (list (list '<= 'm r7r-cb-n)))))
-    (dk-apply! r7r-cb-ih 's 'f 'rad 'm)
+    (dk-apply! r7r-cb-ih 'm)   ; W1D: s, f, rad fixed
     (fact 'metric-triangle 's '(f m) (list 'f r7r-cb-n) (list 'f (list 'succ r7r-cb-n)))
     ;; the recurrence, written out: `dk-sps-succ!' lands its two typing
     ;; prerequisites under `quietly', so a miss there is silent and the `subst'

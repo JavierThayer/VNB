@@ -50,6 +50,9 @@
   (lambda () (mac 'subset-def)
              (let ((v (cadr (car (filter (lambda (q) (dk-head-is? q 'IN)) (dk-peel!))))))
                (sep-me (list 'IN v tgt-fam)) (tgt-ass!))))
+;; W1 (2026-11-04): the union law takes a SET family since VIAGAP (structure-library/top-space.scm)
+(fact 'membership-implies-sethood '(OPENS s) '(POWER (POWER (PTS s))))
+(dk-have! (list 'IN tgt-fam 'SET) (lambda () (sep-set) (ass)))
 (dk-apply! (dk-pick (lambda (h) (and (dk-head-is? h 'FORALL) (dk-contains? h 'BIG-UNION))) "the union law") tgt-fam)
 (dk-have! (list 'FORALL 'x (list 'IFF '(IN x U) (list 'IN 'x tgt-bu)))
   (lambda ()
@@ -1198,6 +1201,7 @@
 (dk-cite! 'bk-metric-pts 's 'g 'vs)
 (dk-cite! 'bk-metric-dist-fun 's 'g 'vs)
 (mac 'IS-METRIC-SPACE)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (subst (list '== (list 'PTS tgk-BKM) tgk-C))
 (subst (list '== (list 'DIST tgk-BKM) tgk-lam))
 (dk-conj-close!
@@ -1547,6 +1551,7 @@
 (dk-cite! 'bk-metric-pts 's 'g 'vs)
 (dk-cite! 'bk-metric-dist-fun 's 'g 'vs)
 (mac 'IS-PSEUDOMETRIC-SPACE)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (subst (list '== (list 'PTS tgk-BKM) tgk-C))
 (subst (list '== (list 'DIST tgk-BKM) tgk-lam))
 (dk-conj-close!

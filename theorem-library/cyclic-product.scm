@@ -680,7 +680,7 @@
 ;;; (x^k)^m = x^(k m)
 (sp (make-wff (list 'FORALL 'm (list 'IMPLIES '(IN m NN) (list 'FORALL 'k (list 'IMPLIES '(IN k ZZ)
   (z2-gx (list '= (z7-z 'g (z2-z 'k) 'm) (z2-z '(* k m))))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(g x))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-B: g, x fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (let ((y (z2-z 'k)))
@@ -700,7 +700,7 @@
   (let* ((y (z2-z 'k)) (kv (list '* 'k v)))
     (fact 'nn-succ-plus-one v) (dk-type! v 'ZZ) (dk-type! kv 'ZZ)
     (dk-cite! 'zpow-type 'k 'g 'x)
-    (dk-apply! (dk-ctx-form ih) 'k 'g 'x)
+    (dk-apply! (dk-ctx-form ih) 'k)   ; W1G-B: g, x fixed
     (dk-cite! 'zpow-succ v 'g y)
     (dk-cite! 'zpow-add kv 'k 'g 'x)
     (subst (list '= (list 'succ v) (list '+ v 1)))

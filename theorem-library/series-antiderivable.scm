@@ -419,7 +419,7 @@
 
 (quietly (lambda ()
   (sp (make-wff (list 'FORALL 'n_ (list 'IMPLIES '(IN n_ NN) (sa-inner 'n_)))))
-  (let* ((br (use-induction))
+  (let* ((br (dk-use-induction-fixed!))     ; W1B: s_ fixed; ph_, a, b stay quantified
          (n  (cdr (assq 'var br)))
          (ih (cdr (assq 'ih  br))))
 
@@ -464,7 +464,7 @@
                    (list '== (list phi0 'x_) (sa-sps 's_ 'x_ n))))
         (lambda () (sa-di-var!) (lam-b) (qrfl)))
       ;; (3) the IH at (s_, phi0, a, b)
-      (sa-inst-chain! ih (list 's_ phi0 'a 'b))
+      (sa-inst-chain! ih (list phi0 'a 'b))     ; W1B: s_ fixed
       ;; (4) the last term is antiderivable, and Prop 4.8 adds it
       (inst+ sa-terms-ad n)
       ;; LUTINS: antiderivable-add is instantiated AT (s_ n), so type it first.

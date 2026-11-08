@@ -61,7 +61,7 @@
 ;;; ---- V^k inside V^(k+d) when e is in V (induction on d) ----
 (sp (make-wff '(FORALL d (IMPLIES (IN d NN) (FORALL g (FORALL V (FORALL k (IMPLIES (IS-GROUP g) (IMPLIES (SUBSET V (CARR g))
    (IMPLIES (IN (IDEN g) V) (IMPLIES (IN k NN) (SUBSET (SET-POWER g V k) (SET-POWER g V (+ k d))))))))))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(g V))) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: g, V fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (dk-cite! 'nn-add-zero 'k)
@@ -78,7 +78,7 @@
     (cc2-nn-add! 'k n)
     (dk-cite! 'nn-succ-closed kn)
     (cc2-pset! 'k) (cc2-pset! kn) (cc2-pset! skn)
-    (dk-apply! ih 'g 'V 'k)
+    (dk-apply! ih 'k)   ; W1D: g, V fixed
     (mac 'subset-def)
     (let ((z (cc2-peel-var!)))
       (dk-cite! 'subset-mem-fwd (cc2-pow 'k) (cc2-pow kn) z)

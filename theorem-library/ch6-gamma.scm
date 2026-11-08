@@ -510,7 +510,7 @@
 (sp (make-wff '(FORALL egj_ (IMPLIES (IN egj_ NN) (FORALL egs_ (FORALL egz_
   (IMPLIES (FORALL egq_ (IMPLIES (IN egq_ NN) (IMPLIES (< egq_ egj_) (NOT (= (egs_ egq_) egz_)))))
            (= (COUNT-HITS egs_ egz_ egj_) 0))))))))
-(ni)
+(dk-ni-fixed! '(egs_ egz_))   ; W1G-A: egs_, egz_ fixed
 (c6w-induct-on! 'egj_
   (lambda ()
     (let* ((new (c6-steps!)) (g (dk-goal)) (sq (cadr (cadr g))) (z (caddr (cadr g))))
@@ -520,7 +520,7 @@
   (lambda ()
     (let* ((new (c6-steps!)) (g (dk-goal)) (sq (cadr (cadr g))) (z (caddr (cadr g))) (n (cadr (cadddr (cadr g))))
            (hq (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (not (dk-contains? q 'COUNT-HITS)))) new))
-           (ih (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'COUNT-HITS))) new))
+           (ih (find-first (lambda (q) (and (c6-op? q 'IMPLIES 3) (dk-contains? q 'COUNT-HITS))) new))   ; W1G-A: the IH is H(n) => ...
            (c (list 'COUNT-HITS sq z n)))
       (fact 'nn-succ-closed n) (c6-nn! n) (c6-nn! (list 'succ n)) (fact 'nn-succ-plus-one n)
       (dk-have! (list 'FORALL 'egq_ (list 'IMPLIES '(IN egq_ NN) (list 'IMPLIES (list '< 'egq_ n) (list 'NOT (list '= (list sq 'egq_) z)))))
@@ -529,7 +529,7 @@
                      (dk-have! (list '< q (list 'succ n)) (lambda () (dk-ineq! (list '< q n) (list '= (list 'succ n) (list '+ n 1)))))
                      (dk-apply! hq q)
                      (dk-close-if! (lambda () #t) (lambda () (dk-ass!))))))
-      (let ((e0 (dk-apply! ih sq z)))
+      (let ((e0 (let w1g-dl ((w1g-f ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))))   ; W1G-A: egs_, egz_ fixed
         (dk-have! (list '< n (list 'succ n)) (lambda () (dk-ineq! (list '= (list 'succ n) (list '+ n 1)))))
         (dk-apply! hq n)
         (dk-cite! 'count-hits-in-nn n sq z)

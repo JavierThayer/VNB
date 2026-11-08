@@ -579,6 +579,7 @@
                  (IS-METRIC-SPACE (BDD-METRIC s))))))
 (di) (di)
 (mac 'IS-METRIC-SPACE)                       ; the GOAL only
+(dk-isx-set!)                                ; W1I: the conjunct BDD-METRIC(s) in SET, from the typings
 (mac 'bdd-metric-carrier)                    ; PTS(BDD-METRIC s) -> PTS(s)
 (define bmb-conjuncts (bmb-split-goal!))
 

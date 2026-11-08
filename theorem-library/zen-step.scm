@@ -213,9 +213,8 @@
       (list 'FORALL 'X
         (list '== '(ZEN X alpha) (list 'CHOICE (zs-sep 'X (zs-lt 'alpha)))))))))
 
-(define zs-cases (dk-opened (lambda () (tfi3))))
-(define (zs-case-base? g)  (and (pair? g) (eq? (car g) 'FORALL)
-                                (pair? (caddr g)) (eq? (car (caddr g)) '==)))
+(define zs-cases (dk-opened (lambda () (dk-tfi3-fixed!))))   ; W1C: X fixed; the induction on alpha is predicative
+(define (zs-case-base? g)  (and (pair? g) (eq? (car g) '==)))   ; W1C: X is fixed, the base is the equation
 (define (zs-case-succ? g)  (and (pair? g) (eq? (car g) 'FORALL)
                                 (pair? (caddr g)) (eq? (car (caddr g)) 'IMPLIES)
                                 (eq? (car (cadr (caddr g))) 'AND)
@@ -227,7 +226,7 @@
 
 ;;; ---- BASE:  ZEN(X,0) = CHOICE { y in X : nothing below 0 } = CHOICE X ----
 (zs-pick! zs-cases zs-case-base? "base")
-(di)                                                  ; peel X
+;; W1C: X is fixed by dk-tfi3-fixed! (was (di), peel X)
 (define zs-X0 (cadr (cadr (zs-goal))))                ; goal (== (ZEN X 0) (CHOICE ...))
 (define ZS-S0 (zs-sep zs-X0 (zs-lt 0)))
 
@@ -258,7 +257,7 @@
 (zs-pick! zs-cases zs-case-succ? "succ")
 (di)                                                  ; peel the induction variable
 (dk-split! (dk-landed-1 (lambda () (di))))            ; assume (AND (IN al ORD) IH), split it
-(di)                                                  ; peel X
+;; W1C: X is fixed by dk-tfi3-fixed! (was (di), peel X)
 (define zs-Xs (cadr (cadr (zs-goal))))                ; goal (== (ZEN X (succ al)) (CHOICE ...))
 (define zs-al (cadr (caddr (cadr (zs-goal)))))
 (define ZS-SAL (list 'succ_ORD zs-al))
@@ -332,7 +331,7 @@
 (zs-pick! zs-cases zs-case-limit? "limit")
 (di)
 (dk-split! (dk-landed-1 (lambda () (di))))            ; (AND (LIMIT-ORD lam) IH)
-(di)
+;; W1C: X is fixed (was (di), peel X)
 (define zs-Xl (cadr (cadr (zs-goal))))
 (define zs-lm (caddr (cadr (zs-goal))))
 (fact 'ZEN-limit zs-Xl zs-lm)

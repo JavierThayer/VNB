@@ -89,6 +89,7 @@
 ;;; ---- the proof -------------------------------------------------------
 (sp (make-wff '(IS-METRIC-SPACE RR-MS)))
 (mac 'IS-METRIC-SPACE)                       ; the generated definitional IFF
+(dk-isx-set!)                                ; W1I: the conjunct RR-MS in SET, from the typings
 (quietly (lambda () (surface-goal! 'RR-MS))) ; PTS(RR-MS) -> RR, DIST(RR-MS) -> the lambda
 (mac 'is-metric)                             ; and the five laws, spelled out
 

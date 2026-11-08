@@ -658,6 +658,7 @@
                (FUN (CARTESIAN (PRODUCT-CARRIER ms) (PRODUCT-CARRIER ms)) RR))
           (lambda () (pim-dist-typing!)))
 (mac 'IS-METRIC-SPACE)                       ; the GOAL only
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (mac 'product-metric-carrier)                ; PTS(PRODUCT-METRIC-W ms w) -> PRODUCT-CARRIER ms
 (define pim-conjuncts (pim-split-goal!))
 

@@ -582,7 +582,7 @@
 (dk-cite! 'ms-pts-is-set 's)
 (define m38-sv (dk-skolem! (car (mr-iff-parts! (dk-cite! 'is-souslin 's 'e)))))
 (dk-split-all!)
-(define m38-sp (mr-iff-parts! (dk-cite! 'is-sieve 's m38-sv)))
+(define m38-sp (mr-iff-parts! (dk-cite! 'is-sieve-classes 's m38-sv)))
 (define m38-scl (cadr m38-sp))
 (define m38-Tc (subst-free 'sv m38-sv m38-T))
 (define (m38-svp2! p)                ; as m38-svp! for the chosen sieve
@@ -698,7 +698,7 @@
     (dk-cite! 'souslin-closed-family 's 'e)
     (let* ((sv (dk-skolem! (car (mr-iff-parts! (dk-cite! 'is-souslin 's 'e)))))
            (_0 (dk-split-all!))
-           (cl (cadr (mr-iff-parts! (dk-cite! 'is-sieve 's sv))))
+           (cl (cadr (mr-iff-parts! (dk-cite! 'is-sieve-classes 's sv))))
            (z0 '(VNB-LAMBDA cz_ NN 0)))
       (m38-lam-type! (list 'IN z0 m38-F) (lambda (v) (mr-close-open!)))
       (dk-split-all! (list (dk-apply! cl z0)))

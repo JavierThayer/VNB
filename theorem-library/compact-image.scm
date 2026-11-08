@@ -294,7 +294,7 @@
                             (list 'IN '(fqf_ zqp_) cim-bb))))
 ;; IS-CONTINUOUS is NOT unfolded on the main branch: `preimage-subspace-open'
 ;; wants it whole.  Its three typing conjuncts come out on have! LANES.
-(mac-h 'IS-COMPACT '(IS-COMPACT s))
+(mac-h 'is-compact-classes '(IS-COMPACT s))
 (dk-split-all!)
 (dk-have! '(IS-METRIC-SPACE t)
   (lambda () (mac-h 'IS-CONTINUOUS '(IS-CONTINUOUS s t fqf_)) (dk-split-all!) (ass)))
@@ -323,7 +323,7 @@
         (ass)))))
 (fact 'subspace-is-metric-space 't cim-bb)
 (fact 'image-set 'fqf_ '(PTS s))
-(mac 'IS-COMPACT)
+(mac 'is-compact-classes)
 (cim-and!
  (lambda ()
    (if (eq? (cim-head (dk-goal)) 'IS-METRIC-SPACE)
@@ -607,7 +607,7 @@
             ((eq? (cim-head g) 'IS-METRIC-SPACE)
              (if (equal? (cadr g) cim-ssub)
                  (begin
-                   (mac-h 'IS-COMPACT (list 'IS-COMPACT cim-ssub))
+                   (mac-h 'is-compact-classes (list 'IS-COMPACT cim-ssub))
                    (dk-split-all!)
                    (ass))
                  (begin

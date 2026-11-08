@@ -166,7 +166,7 @@
         ((pair? e) (or (lzf-find-succ (car e)) (lzf-find-succ (cdr e))))
         (#t #f)))
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (lzf-hl-claim 'n)))))
-(let* ((opened (dk-opened (lambda () (ni))))
+(let* ((opened (cdr (assq 'cases (dk-ni-fixed! '(A B h)))))   ; W1D: A, B, h fixed
        (step (find-first (lambda (l) (dk-contains? (dk-goal-of l) 'succ)) opened))
        (base (find-first (lambda (l) (not (eq? l step))) opened)))
   ;; ---- base ----
@@ -187,7 +187,7 @@
   (dk-focus! step)
   (let* ((k (lzf-find-succ (dk-goal)))
          (sk (list 'succ k))
-         (ih (lzf-hl-claim k))
+         (ih (caddr (caddr (caddr (caddr (lzf-hl-claim k))))))   ; W1D: the claim at the fixed A, B, h
          (ld (dk-peel!))
          (g (dk-goal))
          (lhs (cadr g)) (rhs (caddr g))
@@ -218,7 +218,7 @@
     (subst (dk-cite! 'lincomb-row-peel a k c u))
     (subst (dk-apply! (lzf-hcl-add a b h) (list 'LINCOMB a k bc bu) (list (list 'ACT a) r x)))
     (subst (dk-apply! (lzf-hcl-act a b h) r x))
-    (subst (dk-apply! ih a b h bc bu))
+    (subst (dk-apply! ih bc bu))   ; W1D: A, B, h fixed
     ;; the right side
     (fact 'map-seq-type h va vb sk u)
     (let ((cb (dk-rewrite-h! (list 'IN c (list 'MAT 1 sk sa)) (list 'SCAL a) (list 'SCAL b))))

@@ -162,7 +162,7 @@
 ;;; =====================================================================
 
 (sp (make-wff (rdc-stmt rdc-concl-in)))
-(define rdc-a-cases (dk-opened (lambda () (ni))))
+(define rdc-a-cases (dk-opened (lambda () (dk-ni-fixed!))))   ; W1B: s_, nx_ fixed; a_ stays quantified
 
 ;; The STEP case is the one `ni' re-quantified over the induction variable:
 ;; its body is an IMPLIES guarded on (IN _ NN).  The BASE case's body is the
@@ -196,7 +196,7 @@
                                               (not (equal? f tot))))
                              landed)
                    (error "dc-iter-in: no induction hypothesis"))))
-  (dk-apply! ih s a nx)                       ; (IN (DC-ITER s a nx n) s)
+  (dk-apply! ih a)                            ; (IN (DC-ITER s a nx n) s)  -- W1B: s, nx fixed
   (rdc-succ-close! s a nx n tot))
 
 (rdc-qed! 'dc-iter-in)

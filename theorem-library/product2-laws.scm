@@ -269,6 +269,7 @@
 (dk-peel!)
 (p2-sets! 's 't)
 (mac 'IS-METRIC-SPACE)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (mac 'product2-pts)
 (mac 'product2-dist-slot)
 (dk-conj-close!

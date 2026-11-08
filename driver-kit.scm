@@ -4642,6 +4642,17 @@
       ;; a typing in context: membership-implies-sethood
       ((typing-of t)
        => (lambda (typ) (fact 'membership-implies-sethood t (caddr typ)) (ass)))
+      ;; a structure predicate IS-Y(t) in context: the generated is-Y-is-set (W1I)
+      ((find-first (lambda (thm) (hash-table-ref/default *theorem-table* thm #f))
+                   (filter-map (lambda (a)
+                                 (and (pair? a) (= (length a) 2) (symbol? (car a))
+                                      (equal? (cadr a) t)
+                                      (symbol-append (car a) '-is-set)))
+                               (dk-asms)))
+       => (lambda (thm) (fact thm t) (ass)))
+      ;; a literal LIST (W1I): tuples-intro over its components
+      ((and (pair? t) (eq? (car t) 'LIST))
+       (dk-list-in-set!))
       ;; a SUBCLASS (R4-W2, 2026-10-13): t a symbol with (SUBSET t X) in context -- the
       ;; sethood of X on a lane, then subclass-of-set-is-set.  What a citer of a read-off
       ;; guarded by `A in SET' (subspace-pts, subspace-dist, ...) holds: an open set or an
@@ -4762,6 +4773,265 @@
                       (else (loop (cdr ps)))))))
       (if (not ex) (error "dk-image-hyp!: no existential among the conjuncts of" (expression->string conj)))
       ex)))
+
+;;; =======================================================================
+;;; THE SETHOOD OF A TUPLE AND OF A STRUCTURE (W1I, 2026-11-06; the user's
+;;; decision "Go with the s in SET sweep").  build-is-axiom (structures.scm) ends
+;;; every IS-X with the conjunct (IN s SET), so a proof that ESTABLISHES IS-X(t) by
+;;; unfolding the definition owes t in SET.  t is, or unfolds to, a literal LIST,
+;;; and a LIST of sets is a set: (IN L (TUPLES SET)) by tuples-intro, one leaf per
+;;; component, then membership-implies-sethood.  `pair-tuple-is-set' is the n = 2
+;;; case as a theorem; these are the n-ary route, as tactics.
+;;;
+;;; (dk-list-in-set! [UNFOLD ...])
+;;;     Closes the focus goal (IN t SET).  t is a literal (LIST c1 .. cn), or is
+;;;     unfolded to one first: by `mac' of each UNFOLD named, in order; else by the
+;;;     def-functoid head of t; else, t a constant, by its defining theorem
+;;;     (= t (LIST ..)) (declare-instance! / def-constant).  Each component
+;;;     (IN ci SET) is closed by `dk-sethood!': `ass'; a typing (IN ci C) in context,
+;;;     through membership-implies-sethood; a structure predicate IS-Y(ci) in
+;;;     context, through the generated is-Y-is-set; an accessor of a structure in
+;;;     context, an application f(a), a nested LIST, a SEP, an IMAGE, ...
+;;;     ERRORS, naming the component and its position, when one stays open: TYPE
+;;;     IT IN CONTEXT FIRST.  Surface tactics only (cut, ti, mac, fact, ass), so the
+;;;     steps are recorded and the page replays.  Works inside a have! lane.
+;;;     Returns #t.  Example, at the goal [a, f, z] in SET with a in RR,
+;;;     f in FUN(RR, RR) and z in SET in context:   (dk-list-in-set!)
+;;;
+;;; (dk-isx-set! [UNFOLD ...])
+;;;     THE PRODUCER FORM.  The focus goal is IS-X(t) just unfolded by its
+;;;     definition -- `(mac 'IS-X)' and nothing else yet -- i.e. the conjunction
+;;;     G = (AND (= (LENGTH t) n) ... (IN t SET)).  It cuts G', G without its last
+;;;     conjunct, and on the main branch proves G from G' and t in SET, the latter
+;;;     from the COMPONENT TYPINGS G' holds: t == [ACC1(t), .., ACCn(t)] (UNFOLD as
+;;;     above, then `slot' / `nth-r' to the fixpoint, `qrfl'), `subst', and
+;;;     dk-list-in-set! on the accessor tuple.  The focus is left on G' -- exactly
+;;;     the goal the driver's next step met before the conjunct existed -- and that
+;;;     leaf is returned.  So a producer gains ONE line after its unfold:
+;;;         (mac 'IS-METRIC-SPACE)
+;;;         (dk-isx-set!)            ; then the old driver, unchanged
+;;;     ERRORS when the focus goal is not an unfolded IS-X of a declared shape
+;;;     structure, or when t does not unfold to a literal LIST.
+;;;
+;;; (dk-is-set-theorem! NAME)
+;;;     proves and installs is-NAME-is-set : forall s. IS-NAME(s) => s in SET
+;;;     (a shape structure: projection of the last conjunct; a same-shape
+;;;     refinement: its parent's theorem), unless it exists.  Called for every
+;;;     declared structure through `isx-set--declared!' (structures.scm) and
+;;;     structure-library/is-set-laws.scm.  Returns the theorem name.
+
+(define (dk-list--const-def t)
+  ;; the name of a theorem (= t (LIST ..)) or (== t (LIST ..)), t a constant
+  (let ((hit #f))
+    (hash-table-walk *theorem-table*
+      (lambda (name f)
+        (if (and (not hit) (pair? f) (memq (car f) '(= ==)) (= (length f) 3)
+                 (eq? (cadr f) t) (dk-head-is? (caddr f) 'LIST))
+            (set! hit name))))
+    hit))
+
+(define (dk-list--unfold-name t)
+  (cond ((and (pair? t) (symbol? (car t))
+              (hash-table-ref/default *functoid-registry* (car t) #f))
+         (car t))
+        ((symbol? t) (dk-list--const-def t))
+        (#t #f)))
+
+(define (dk-list--unfold-names t unfolds who)
+  (cond ((pair? unfolds) unfolds)
+        ((dk-head-is? t 'LIST) '())
+        ((dk-list--unfold-name t) => list)
+        (#t (error (string-append who ": the term is not a literal LIST and no unfolding of it is known"
+                                  " (name the macete):")
+                   (expression->string t)))))
+
+(define (dk-list--component! leaf lst)
+  (let* ((c (cadr (dk-goal-of leaf)))
+         (i (let loop ((cs (cdr lst)) (k 1))
+              (cond ((null? cs) #f) ((equal? (car cs) c) k) (#t (loop (cdr cs) (+ k 1)))))))
+    (dk-focus! leaf)
+    (let ((why (call-with-current-continuation
+                (lambda (k)
+                  (with-exception-handler
+                   (lambda (e) (k (if (condition? e) (condition/report-string e) e)))
+                   (lambda () (dk-sethood! c) #f))))))
+      (if (not (sequent-node-grounded? leaf))
+          (error (string-append
+                  "dk-list-in-set!: component " (if i (number->string i) "?")
+                  " of the LIST is not closed: " (expression->string (list 'IN c 'SET))
+                  (if (string? why) (string-append " -- " why) "")
+                  " -- type it in context first"))))))
+
+(define (dk-list-in-set! . unfolds)
+  (let ((g0 (dk-goal)))
+    (if (not (and (dk-head-is? g0 'IN) (= (length g0) 3) (eq? (caddr g0) 'SET)))
+        (error "dk-list-in-set!: the focus goal is not (IN t SET):" (expression->string g0)))
+    (let ((t0 (cadr g0)))
+      (if (not (dk-head-is? t0 'LIST))
+          (let ((names (dk-list--unfold-names t0 unfolds "dk-list-in-set!")))
+            (for-each (lambda (m) (mac m)) names)
+            (if (not (and (dk-head-is? (dk-goal) 'IN) (dk-head-is? (cadr (dk-goal)) 'LIST)))
+                (error "dk-list-in-set!: after unfolding by" names
+                       "the goal is not a literal LIST in SET:" (expression->string (dk-goal))))))
+      ;; NB the name: `L' and a leaf binder `l' are ONE folded symbol (CLAUDE.md, case folding)
+      (let* ((lst (cadr (dk-goal)))
+             (tup (list 'IN lst '(TUPLES SET))))
+        (dk-have! tup
+          (lambda ()
+            ;; the component leaves are found by GOAL and CONTEXT, not by a leaf diff:
+            ;; tuples-intro's (IN ci SET) may hash-cons onto a leaf that is already open
+            ;; (a nested LIST whose components are also components of the outer one)
+            (let* ((leaf0 (proof-state-focus *ps*))
+                   (ctx   (dk-asms-of leaf0)))
+              (ti)
+              (if (not (dk-fired? leaf0))
+                  (error "dk-list-in-set!: tuples-intro did not apply to" (expression->string tup)))
+              (for-each
+               (lambda (c)
+                 (let ((lf (find-first (lambda (l) (and (not (sequent-node-grounded? l))
+                                                        (equal? (dk-goal-of l) (list 'IN c 'SET))
+                                                        (equal? (dk-asms-of l) ctx)))
+                                       (proof-leaves))))
+                   (if lf (dk-list--component! lf lst))))
+               (cdr lst)))))
+        (let ((leaf (proof-state-focus *ps*)))
+          (fact 'membership-implies-sethood lst '(TUPLES SET))
+          (if (not (sequent-node-grounded? leaf)) (ass))
+          (if (not (sequent-node-grounded? leaf))
+              (error "dk-list-in-set!: membership-implies-sethood did not close" (expression->string g0))))
+        #t))))
+
+;; the right spine of a conjunction, and the conjunction without its last conjunct
+(define (dk-isx--spine g)
+  (if (dk-head-is? g 'AND) (cons (cadr g) (dk-isx--spine (caddr g))) (list g)))
+(define (dk-isx--drop-last g)
+  (if (dk-head-is? (caddr g) 'AND)
+      (list 'AND (cadr g) (dk-isx--drop-last (caddr g)))
+      (cadr g)))
+
+;; W1K: the conjuncts of a conjunction, every AND flattened
+(define (dk-isx--conj-leaves f)
+  (if (dk-head-is? f 'AND)
+      (append (dk-isx--conj-leaves (cadr f)) (dk-isx--conj-leaves (caddr f)))
+      (list f)))
+;; W1K: split the conjunction F (in context) only where a conjunct is missing: `ai' an
+;; AND only when one of its two conjuncts is not in context (up to alpha), then descend
+;; into each conjunct that is itself an AND (in context now, landed or already there).
+(define (dk-isx--split-missing! f)
+  (if (dk-head-is? f 'AND)
+      (begin
+        (if (not (and (dk-asm? (cadr f)) (dk-asm? (caddr f))))
+            (dk-landed (lambda () (ai f))))
+        (dk-isx--split-missing! (cadr f))
+        (dk-isx--split-missing! (caddr f)))))
+
+;; the declared SHAPE structure whose IS-X definiens, instantiated at t, is g
+(define (dk-isx--structure-of g t)
+  (let ((hit #f))
+    (hash-table-walk *structure-table*
+      (lambda (name sd)
+        (if (not hit)
+            (let ((f (hash-table-ref/default *theorem-table* (symbol-append 'IS- name) #f)))
+              (if (and (dk-head-is? f 'FORALL) (dk-head-is? (quantifier-body f) 'IFF)
+                       (alpha-equiv? (subst-free (quantifier-var f) t (caddr (quantifier-body f))) g))
+                  (set! hit sd))))))
+    hit))
+
+(define (dk-isx--nth-redex? e)
+  (and (pair? e)
+       (or (and (eq? (car e) 'NTH) (= (length e) 3) (dk-head-is? (caddr e) 'LIST))
+           (any-pred dk-isx--nth-redex? e))))
+
+;; on the focus goal (IN t SET), the component typings in context
+(define (dk-isx--sethood! t accs unfolds)
+  ;; ACC_i(t) are read off while t is still FOLDED (an instance or functor projection
+  ;; gives the slot value; otherwise the outermost (ACC_i t) -> (NTH i t)), then t is
+  ;; unfolded and the NTHs of the literal LIST reduced; accessors met inside the
+  ;; components are read off on both sides alike, to the fixpoint.
+  (let* ((tl (cons 'LIST (map (lambda (a) (list a t)) accs)))
+         (e  (list '== t tl)))
+    (dk-have! e
+      (lambda ()
+        (let ((leaf (proof-state-focus *ps*))
+              (names (dk-list--unfold-names t unfolds "dk-isx-set!")))
+          (define (slots!) (for-each (lambda (a) (if (dk-contains? (dk-goal) a) (slot a))) accs))
+          (slots!)
+          (for-each (lambda (m) (mac m)) names)
+          (let loop ((k 0))
+            (if (not (sequent-node-grounded? leaf))
+                (let ((g (dk-goal)))
+                  (cond ((alpha-equiv? (cadr g) (caddr g))
+                         (qrfl)
+                         (if (not (sequent-node-grounded? leaf))
+                             (error "dk-isx-set!: the tuple read-off left owed leaves (a component that is itself an accessor application of t's structure mixes the read-off: name the unfolding, or prove t in SET by dk-list-in-set! on a lane):"
+                                    (map (lambda (l) (expression->string (dk-goal-of l))) (dk-open-leaves)))))
+                        ((> k 8) (error "dk-isx-set!: the tuple read-off reached no fixpoint:"
+                                        (expression->string g)))
+                        ((dk-isx--nth-redex? g) (nth-r) (loop (+ k 1)))
+                        (#t (slots!) (loop (+ k 1))))))))))
+    (subst (list '= t tl))
+    (dk-list-in-set!)))
+
+(define (dk-isx-set! . unfolds)
+  (let* ((g  (dk-goal))
+         (cs (dk-isx--spine g))
+         (sc (car (last-pair cs))))
+    (if (not (and (dk-head-is? g 'AND) (dk-head-is? sc 'IN) (= (length sc) 3) (eq? (caddr sc) 'SET)))
+        (error "dk-isx-set!: the focus goal is not an unfolded IS-X ending in (IN t SET):"
+               (expression->string g)))
+    (let* ((t    (cadr sc))
+           (sd   (or (dk-isx--structure-of g t)
+                     (error "dk-isx-set!: the focus goal is not the definiens of a declared IS-X at"
+                            (expression->string t))))
+           (accs (map car (structure-def-slots sd)))
+           (g1   (dk-isx--drop-last g))
+           (new  (dk-opened (lambda () (cut g1))))
+           (side (any-pred (lambda (l) (alpha-equiv? (dk-goal-of l) g1)) new))
+           (main (any-pred (lambda (l) (not (eq? l side))) new)))
+      (if (not (and side main))
+          (error "dk-isx-set!: the cut did not open a main and a side leaf for" (expression->string g1)))
+      (dk-focus! main)
+      ;; W1K: a driver may have landed some or all conjuncts of G' BEFORE the unfold
+      ;; (W1J-B s.3, W1J-C s.2a); `dk-split!' then lands nothing at some level and
+      ;; errors.  When no conjunct is in context the old split runs unchanged.
+      (if (dk-head-is? g1 'AND)
+          (if (any-pred dk-asm? (dk-isx--conj-leaves g1))
+              (dk-isx--split-missing! g1)
+              (dk-split! g1)))
+      (dk-have! sc (lambda () (dk-isx--sethood! t accs unfolds)))
+      (dk-conj-close!)
+      (if (not (sequent-node-grounded? main))
+          (error "dk-isx-set!: the conjunction did not close from its parts" (expression->string g)))
+      (dk-focus! side)
+      side)))
+
+(define (dk-is-set-theorem! name)
+  (let* ((is-x   (symbol-append 'IS- name))
+         (thm    (symbol-append 'is- name '-is-set))
+         (shape? (and (lookup-structure name) #t))
+         (parent (and (not shape?)
+                      (let ((d (lookup-definitional-structure name)))
+                        (and d (definitional-structure-parent d)))))
+         (def    (if shape? is-x (symbol-append 'is- name '-def))))
+    (cond
+      ((hash-table-ref/default *theorem-table* thm #f) thm)
+      ((not (or shape? parent))
+       (error "dk-is-set-theorem!: not a declared structure" name))
+      (#t
+       (dk-sp-qed!
+        (make-wff `(FORALL s (IMPLIES (,is-x s) (IN s SET))))
+        (lambda ()
+          (let* ((landed (dk-peel!))
+                 (h (or (find-first (lambda (f) (dk-head-is? f is-x)) landed)
+                        (error "dk-is-set-theorem!: the peel landed no" is-x)))
+                 (v (cadr h))
+                 (d (dk-landed-1 (lambda () (mac-h def h)))))
+            (if (dk-head-is? d 'AND) (dk-split! d))
+            (if (not shape?) (fact (symbol-append 'is- parent '-is-set) v))
+            (ass)))
+        thm)
+       (topic! thm 'plumbing)
+       thm))))
 
 ;;; =======================================================================
 ;;; dk-diff! -- IS-DIFF-ON of an EXPLICIT complex expression, with its
@@ -5845,7 +6115,18 @@
        (dk-head-is? (cadr (caddr g)) 'IN) (eq? (caddr (cadr (caddr g))) 'NN)))
 
 (define (dk-meta-ni-cases!)
-  (let ((cases (dk-opened (lambda () (ni)))))
+  (dk-meta-ni-cases--pick (dk-opened (lambda () (ni)))))
+;; W1G-B (2026-11-06; META item 1): the same, with the parameters HOIST fixed by dk-ni-fixed!
+;; (defined further down), so that the induction body is predicative (NBG) when a parameter
+;; ranges over classes.  Used by dk-meta-struct-laws! when its PARAMS are not empty, and (W1N,
+;; 2026-11-07) by meta-core-laws and meta-ind-laws, whose file-local twins it replaces.
+;; (dk-meta-ni-cases-fixed! HOIST) -> (BASE-LEAF STEP-LEAF), the leaves of the induction that
+;; dk-ni-fixed! opens on its lemma branch; the step leaf is the one of shape
+;; forall n. n in NN => ...; HOIST is the list of prefix binders to fix (non-empty).
+(define (dk-meta-ni-cases-fixed! hoist)
+  (dk-meta-ni-cases--pick (cdr (assq 'cases (dk-ni-fixed! hoist)))))
+(define (dk-meta-ni-cases--pick cases)
+  (let ()
     (list (or (find-first (lambda (l) (not (dk-meta-step-case? (dk-goal-of l)))) cases)
               (error "dk-meta-ni-cases!: no base case"))
           (or (find-first (lambda (l) (dk-meta-step-case? (dk-goal-of l))) cases)
@@ -6041,7 +6322,8 @@
        ,(dk-meta-wrap params `(FORALL j (FORALL e ,(dk-meta-wrap ex `(IMPLIES (IN j NN) (IMPLIES (IN e (EXPR-STAGE j))
            ,(guard `(== (,(F-of '(+ j d)) e ,@ex) (,(F-of 'j) e ,@ex))))))))))))
      (lambda ()
-       (let ((cs (dk-meta-ni-cases!)))
+       ;; W1G-B: the parameters are fixed (dk-ni-fixed!), so the IH is used at the same ones.
+       (let ((cs (if (null? params) (dk-meta-ni-cases!) (dk-meta-ni-cases-fixed! params))))
          (dk-focus! (car cs))
          (dk-peel!)
          (let ((j (last (cdr (car (caddr (dk-goal)))))))
@@ -6060,7 +6342,7 @@
            (fact 'expr-stage-add n j e)
            ;; let*, s2 FIRST: the order the interpreter took when these two recording calls
            ;; shared one let (operands right to left); never bind two recording calls in one let.
-           (let* ((s2 (apply dk-apply! ih (append pv (list j e) (cddr lhs))))
+           (let* ((s2 (apply dk-apply! ih (append (if (null? params) pv '()) (list j e) (cddr lhs))))   ; W1G-B: params fixed
                   (s1 (apply dk-cite! step-name (append pv (list `(+ ,j ,n) e) (cddr lhs)))))
              (subst s1)
              (subst s2)
@@ -8281,3 +8563,207 @@
             (dks-fact-split! 'encr-injective (cadr a) (caddr a) (cadr b) (caddr b))
             (dks-lit-path! (if (eq? (car path) 'BODY) `(= ,(cadr a) ,(cadr b)) `(= ,(caddr a) ,(caddr b))) (cdr path)))
            (else (error "dks-lit-path!: unknown step" (car path)))))))))
+
+;;; ===========================================================================
+;;; W1B (2026-11-05; META item 1, W1-CENSUS-REPORT.md s.3b): INDUCTION WITH THE PARAMETERS FIXED.
+;;;
+;;;   (dk-ni-fixed! [HOIST])    on a focus goal   forall n in NN. B
+;;;   (dk-tfi3-fixed! [HOIST])  on a focus goal   forall n in ORD. B
+;;;
+;;; B = forall p1. ... A1 => ... R  has PARAMETERS in its prefix.  Since METACORE finding 2 the
+;;; induction checkers test the body for predicativity (NBG has {n | B} only when every quantifier
+;;; of B is confined to sets), and a parameter that ranges over classes -- a "function" typed only
+;;; pointwise, a carrier, an unguarded universal -- makes B impredicative.  The theorem itself is
+;;; still provable by a PREDICATIVE induction when the proof uses the induction hypothesis only at
+;;; the same parameters: fix them first, and induct on  forall n. R  with the parameters FREE.
+;;;
+;;; What it does, as surface steps (so the page replays them):
+;;;   1. `di' on the goal until the prefix is peeled through the last HOISTED item (n, its typing,
+;;;      every item before and including the last hoisted one; `di' is greedy and may peel further,
+;;;      which is tolerated).  The eigenvariables are read off the result and VERIFIED: the goal
+;;;      must be the peeled subformula of the old goal under them, up to alpha, or it errors.
+;;;   2. `cut' the lemma  T = forall n in CLS. B'  where B' is B with the hoisted items removed and
+;;;      the hoisted parameters replaced by their eigenvariables (the kept binders stay quantified,
+;;;      so the induction hypothesis may still vary them).
+;;;   3. Close the main branch from T: `inst' at the eigenvariables, `detach!' the antecedents the
+;;;      peel landed, `ass'.
+;;;   4. On T's branch: `keep' the context without the formulas that mention the eigenvariables of
+;;;      n and of the kept binders (their names are then free again for the step's `di'), and run
+;;;      `ni' / `tfi3'.
+;;; HOIST: a list of the binder names to fix; default every prefix binder of B that NO later
+;;; prefix guard confines by an (IN p _), alone or as a conjunct (a binder so guarded ranges over
+;;; a set and may stay inside, where the induction hypothesis may vary it).  A guard is hoisted with its binders when it mentions neither n nor a kept binder.
+;;; Returns an alist: (base . NODE) (step . NODE) for `ni'; (cases . NODES) for both (the leaves
+;;; the induction opened); (params . ((p . eigenvariable) ...)); (lemma . T).  Focus is left on the
+;;; base case (for tfi3, the first case opened).  A proof that used the induction hypothesis at
+;;; OTHER values of a hoisted parameter fails afterwards in its own step: such a theorem needs a
+;;; guard confining that parameter, which is a statement change and not this helper's to make.
+(define (dkf--spine f)                 ; (ITEMS . REM), items (forall x) / (implies A), top first
+  (let loop ((f f) (acc '()))
+    (cond ((and (pair? f) (eq? (car f) 'FORALL) (= (length f) 3) (symbol? (cadr f)))
+           (loop (caddr f) (cons (list 'forall (cadr f)) acc)))
+          ((and (pair? f) (eq? (car f) 'IMPLIES) (= (length f) 3))
+           (loop (caddr f) (cons (list 'implies (cadr f)) acc)))
+          (#t (cons (reverse acc) f)))))
+(define (dkf--build items rem)
+  (fold-right (lambda (it b) (if (eq? (car it) 'forall)
+                                 (list 'FORALL (cadr it) b)
+                                 (list 'IMPLIES (cadr it) b)))
+              rem items))
+(define (dkf--drop k lst) (if (or (= k 0) (null? lst)) lst (dkf--drop (- k 1) (cdr lst))))
+(define (dkf--subst-all sigma f)
+  (fold-left (lambda (acc p) (if (eq? (car p) (cdr p)) acc (subst-free (car p) (cdr p) acc))) f sigma))
+(define (dkf--eigen-candidates x new)
+  (let ((pre (string-append (symbol->string x) "_")))
+    (filter (lambda (s)
+              (let ((str (symbol->string s)))
+                (and (> (string-length str) (string-length pre))
+                     (string=? (substring str 0 (string-length pre)) pre)
+                     (string->number (substring str (string-length pre) (string-length str))))))
+            new)))
+
+(define (dkf--induct-fixed! who cls induct! hoist)
+  (let* ((leaf0 (proof-state-focus *ps*))
+         (g     (dk-goal)))
+    (if (not (and (dk-head-is? g 'FORALL) (symbol? (cadr g)) (dk-head-is? (caddr g) 'IMPLIES)
+                  (equal? (cadr (caddr g)) (list 'IN (cadr g) cls))))
+        (error (string-append who ": goal is not  forall n in " (symbol->string cls) ". B")
+               (expression->string g)))
+    (let* ((n      (cadr g))
+           (spB    (dkf--spine (caddr (caddr g))))
+           (items  (car spB))
+           (R      (cdr spB))
+           ;; a binder is CONFINED when a later prefix guard has (IN x _) as itself or as a conjunct
+           (guarded-in? (lambda (x rest)
+                          (let ((in-x? (lambda (a) (and (dk-head-is? a 'IN) (eq? (cadr a) x)))))
+                            (any (lambda (it)
+                                   (and (eq? (car it) 'implies)
+                                        (let conj ((a (cadr it)))
+                                          (if (dk-head-is? a 'AND) (or (conj (cadr a)) (conj (caddr a))) (in-x? a)))))
+                                 rest))))
+           ;; classify the prefix items: hoisted (#t) or kept (#f), in order
+           (marks
+            (let loop ((its items) (kept '()) (acc '()))
+              (if (null? its) (reverse acc)
+                  (let ((it (car its)))
+                    (if (eq? (car it) 'forall)
+                        (let ((h (if (eq? hoist 'default)
+                                     (not (guarded-in? (cadr it) (cdr its)))
+                                     (and (memq (cadr it) hoist) #t))))
+                          (loop (cdr its) (if h kept (cons (cadr it) kept)) (cons h acc)))
+                        (let* ((fv (free-vars (cadr it)))
+                               (h  (and (not (memq n fv))
+                                        (not (any (lambda (k) (memq k fv)) kept)))))
+                          (loop (cdr its) kept (cons h acc))))))))
+           (hoisted-binders (let loop ((its items) (ms marks) (acc '()))
+                              (if (null? its) (reverse acc)
+                                  (loop (cdr its) (cdr ms)
+                                        (if (and (car ms) (eq? (car (car its)) 'forall))
+                                            (cons (cadr (car its)) acc) acc)))))
+           (last-h (let loop ((ms marks) (i 0) (last #f))
+                     (if (null? ms) last (loop (cdr ms) (+ i 1) (if (car ms) i last)))))
+           (kept-items (let loop ((its items) (ms marks) (acc '()))
+                         (if (null? its) (reverse acc)
+                             (loop (cdr its) (cdr ms) (if (car ms) acc (cons (car its) acc))))))
+           (spG    (dkf--spine g))
+           (lenG   (length (car spG)))
+           (d      (+ 2 (+ last-h 1)))
+           (ctx0   (dk-asms)))
+      (if (null? hoisted-binders)
+          (error (string-append who ": no parameter to fix in") (expression->string g)))
+      ;; 1. peel through the last hoisted item
+      (let loop ()
+        (let ((e (- lenG (length (car (dkf--spine (dk-goal)))))))
+          (if (< e d)
+              (let ((before (dk-goal)))
+                (di)
+                (if (equal? (dk-goal) before)
+                    (error (string-append who ": di made no progress on") (expression->string before)))
+                (loop)))))
+      (let* ((gc     (dk-goal))
+             (main   (proof-state-focus *ps*))
+             (e      (- lenG (length (car (dkf--spine gc)))))
+             (peeled (list-head (car spG) e))
+             (pbind  (filter-map (lambda (it) (and (eq? (car it) 'forall) (cadr it))) peeled))
+             (old-fv (apply append (map free-vars (cons g ctx0))))
+             (landed (filter (lambda (a) (not (any (lambda (b) (alpha-equiv? a b)) ctx0))) (dk-asms)))
+             (new    (filter (lambda (s) (not (memq s old-fv)))
+                             (delete-duplicates (apply append (map free-vars (cons gc landed))))))
+             (sigma  (map (lambda (x)
+                            (cond ((memq x new) (cons x x))
+                                  (#t (let ((c (dkf--eigen-candidates x new)))
+                                        (if (and (pair? c) (null? (cdr c))) (cons x (car c))
+                                            (cons x x))))))
+                          pbind))
+             (pat    (dkf--build (dkf--drop e (car spG)) (cdr spG))))
+        (if (not (alpha-equiv? (dkf--subst-all sigma pat) gc))
+            (error (string-append who ": could not read the eigenvariables off the peeled goal")
+                   (expression->string gc)))
+        (let* ((hsig   (filter (lambda (p) (memq (car p) hoisted-binders)) sigma))
+               (drop-vars (map cdr (filter (lambda (p) (not (memq (car p) hoisted-binders))) sigma)))
+               (lemma  (list 'FORALL n (list 'IMPLIES (list 'IN n cls)
+                                             (dkf--subst-all hsig (dkf--build kept-items R)))))
+               (opened (dk-opened (lambda () (cut lemma))))
+               (tleaf  (or (find-first (lambda (l) (alpha-equiv? (dk-goal-of l) lemma)) opened)
+                           (error (string-append who ": cut opened no branch for the lemma"))))
+               (mleaf  (or (find-first (lambda (l) (not (eq? l tleaf))) opened)
+                           (error (string-append who ": cut opened no main branch")))))
+          ;; 3. the main branch from the lemma
+          (dk-focus! mleaf)
+          (let loop ((f (or (dk-ctx-form lemma) lemma)))
+            (cond ((alpha-equiv? f (dk-goal)) (ass))
+                  ((dk-head-is? f 'FORALL)
+                   (let* ((x (cadr f))
+                          (t (cond ((assq x sigma) => cdr) (#t x)))
+                          (f1 (subst-free x t (caddr f))))
+                     (if (not (dk-asm? f1)) (inst f t))
+                     (loop (or (dk-ctx-form f1)
+                               (error (string-append who ": inst landed nothing for") (expression->string f1))))))
+                  ((dk-head-is? f 'IMPLIES)
+                   (if (not (dk-asm? (caddr f))) (detach! f))
+                   (loop (or (dk-ctx-form (caddr f))
+                             (error (string-append who ": detach! landed nothing for")
+                                    (expression->string f)))))
+                  (#t (error (string-append who ": cannot reach the peeled goal from the lemma")
+                             (expression->string f)))))
+          (if (not (sequent-node-grounded? mleaf))
+              (error (string-append who ": the main branch was not closed from the lemma")))
+          ;; 4. the induction, on the lemma's branch
+          (dk-focus! tleaf)
+          (let* ((ctx (dk-asms))
+                 (keepers (filter (lambda (a) (not (any (lambda (v) (memq v (free-vars a))) drop-vars)))
+                                  ctx)))
+            (if (< (length keepers) (length ctx)) (apply keep keepers)))
+          (let* ((cases (dk-opened induct!))
+                 ;; the step is the leaf whose goal IS the step formula of the lemma (up to alpha):
+                 ;; a base case may have the same outer shape (a kept binder guarded in NN)
+                 (bodyT (caddr (caddr lemma)))
+                 (step-goal (list 'FORALL n (list 'IMPLIES (list 'IN n 'NN)
+                                                  (list 'IMPLIES bodyT (subst-free n (list 'succ n) bodyT)))))
+                 (step  (and (eq? cls 'NN)
+                             (find-first (lambda (l) (alpha-equiv? (dk-goal-of l) step-goal)) cases)))
+                 (base  (and (eq? cls 'NN) (find-first (lambda (l) (not (eq? l step))) cases))))
+            (if (null? cases) (error (string-append who ": the induction opened no case")))
+            (if (and (eq? cls 'NN) (not (and step base)))
+                (error (string-append who ": ni did not open a base and a step case")))
+            (dk-focus! (or base (car cases)))
+            (list (cons 'base base) (cons 'step step) (cons 'cases cases)
+                  (cons 'params hsig) (cons 'lemma lemma))))))))
+
+(define (dk-ni-fixed! . opt)
+  (dkf--induct-fixed! "dk-ni-fixed!" 'NN (lambda () (ni)) (if (pair? opt) (car opt) 'default)))
+;;; (dk-use-induction-fixed! [HOIST]) -- `use-induction' (above) on top of dk-ni-fixed!: the same
+;;; alist (base step ih var), the step peeled and the IH captured, plus (params . ...).
+(define (dk-use-induction-fixed! . opt)
+  (let* ((r (apply dk-ni-fixed! opt))
+         (step (cdr (assq 'step r)))
+         (v (cadr (dk-goal-of step))))
+    (dk-focus! step)
+    (di)
+    (let ((ih (dk-landed-1 (lambda () (di)))))
+      (list (cons 'base (cdr (assq 'base r)))
+            (cons 'step (proof-state-focus *ps*))
+            (cons 'ih ih) (cons 'var v)
+            (cons 'params (cdr (assq 'params r)))))))
+(define (dk-tfi3-fixed! . opt)
+  (dkf--induct-fixed! "dk-tfi3-fixed!" 'ORD (lambda () (tfi3)) (if (pair? opt) (car opt) 'default)))

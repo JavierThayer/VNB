@@ -919,7 +919,7 @@
       (list 'FORALL 'a (list 'IMPLIES '(IN a (CLOPEN-SETS s))
         (list 'IMPLIES (rmc-cover-below 'a 'csq 'nq_)
           (list '<= '(lam (INDICATOR (PTS s) a)) (rmc-prefix 's 'lam 'csq 'nq_)))))))))))))))
-(define rmc-lv (dk-opened (lambda () (ni))))
+(define rmc-lv (dk-opened (lambda () (dk-ni-fixed! '(s lam csq)))))   ; W1G-A: s, lam, csq fixed (a varies, confined)
 ;; base: nothing lies below 0, so a is empty
 (dk-focus! (car rmc-lv))
 (dk-peel!)
@@ -945,7 +945,7 @@
 (dk-focus! (cadr rmc-lv))
 (define rmc-n (dk-di-var!))
 (di)
-(define rmc-ih (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (eq? (cadr f) 's))) "the induction hypothesis"))
+(define rmc-ih (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (eq? (cadr f) 'a))) "the induction hypothesis"))   ; W1G-A: s, lam, csq fixed
 (dk-peel!)
 (define rmc-c (list 'csq rmc-n))
 (define rmc-a1 (list 'DIFFERENCE 'a rmc-c))
@@ -978,7 +978,7 @@
             (rmc-antisym! m rmc-n)
             (dk-rewrite-h! (list 'IN 'x (list 'csq m)) m rmc-n)
             (rmc-prop! (list 'IN 'x rmc-c) (list 'NOT (list 'IN 'x rmc-c)))))))))
-(define rmc-ih2 (dk-apply! rmc-ih 's 'lam 'csq))
+(define rmc-ih2 rmc-ih)   ; W1G-A: s, lam, csq fixed
 (define rmc-x1 (list 'lam (rmc-ind 's rmc-a1)))
 (define rmc-y1 (list 'lam (rmc-ind 's rmc-c)))
 (define rmc-la (list 'lam (rmc-ind 's 'a)))
@@ -1035,7 +1035,7 @@
     (list 'IMPLIES '(SUBSET a (BIG-UNION cvn_ NN (csq cvn_)))
       (list '<= '(lam (INDICATOR (PTS s) a)) (list 'ESUM (rmc-fseq 's 'lam 'csq))))))))))))))
 (dk-peel!)
-(define rmc-kc (dk-cite! 'is-compact 's))
+(define rmc-kc (dk-cite! 'is-compact-classes 's))
 (dk-have! '(IS-METRIC-SPACE s) (lambda () (rmc-prop! rmc-kc '(IS-COMPACT s))))
 (dk-split-all! (list (dk-cite! 'rmc-clopen-parts 's 'a)))
 (dk-have! '(FORALL n (IMPLIES (IN n NN) (IS-OPEN s (csq n))))
@@ -1131,7 +1131,7 @@
   (list 'IMPLIES '(IN a (CLOPEN-SETS s))
     (list '= (list (rmc-out 's 'lam) 'a) '(lam (INDICATOR (PTS s) a)))))))))))
 (dk-peel!)
-(define rmc-kc (dk-cite! 'is-compact 's))
+(define rmc-kc (dk-cite! 'is-compact-classes 's))
 (dk-have! '(IS-METRIC-SPACE s) (lambda () (rmc-prop! rmc-kc '(IS-COMPACT s))))
 (rmc-basics! 's 'lam)
 (dk-split-all! (list (dk-cite! 'rmc-clopen-parts 's 'a)))
@@ -1312,7 +1312,7 @@
         (list 'FORALL 'u (list 'IMPLIES '(IN u (CLOPEN-SETS s))
           (list '= (list (rmc-mu 's 'lam) 'u) '(lam (INDICATOR (PTS s) u)))))))))))))
 (dk-peel!)
-(define rmc-kc (dk-cite! 'is-compact 's))
+(define rmc-kc (dk-cite! 'is-compact-classes 's))
 (dk-have! '(IS-METRIC-SPACE s) (lambda () (rmc-prop! rmc-kc '(IS-COMPACT s))))
 (rmc-basics! 's 'lam)
 (define rmc-o (rmc-out 's 'lam))
@@ -1716,7 +1716,7 @@
   (FORSOME bd_ (AND (IN bd_ RR) (AND (<= 0 bd_)
     (FORALL x (IMPLIES (IN x (PTS m)) (<= (abs (g x)) bd_))))))))))))
 (dk-peel!)
-(define rmc-kc (dk-cite! 'is-compact 'm))
+(define rmc-kc (dk-cite! 'is-compact-classes 'm))
 (dk-have! '(IS-METRIC-SPACE m) (lambda () (rmc-prop! rmc-kc '(IS-COMPACT m))))
 (dk-split-all! (list (dk-cite! 'rmc-cont-fns-parts 'm 'g)))
 (dk-have! '(SUBSET (PTS m) (PTS m)) (lambda () (mac 'subset-def) (dk-di-var!) (ass)))
@@ -2165,7 +2165,7 @@
     (list 'IMPLIES '(POS-RR eps) (list 'IMPLIES (list 'IN 'f (list 'FUN rmc-kp 'RR))
     (list 'IMPLIES (rmc-local 'f 'nl_) (list 'IMPLIES (rmc-range 'f 'c 'eps 'n)
       (list 'FORSOME 'lh_ (list 'AND (rmc-good 'lh_) (rmc-close 'f 'lh_ 'eps)))))))))))))))))))))
-(define rmc-lv (dk-opened (lambda () (ni))))
+(define rmc-lv (dk-opened (lambda () (dk-ni-fixed! '(s dseq lam nl_ c eps)))))   ; W1G-A: s dseq lam nl_ c eps fixed (f varies, confined)
 
 ;;; ---- base: the constant c ----
 (dk-focus! (car rmc-lv))
@@ -2196,7 +2196,7 @@
 (dk-focus! (cadr rmc-lv))
 (define rmc-n (dk-di-var!))
 (di)
-(define rmc-ih (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (eq? (cadr f) 's))) "the induction hypothesis"))
+(define rmc-ih (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (eq? (cadr f) 'f))) "the induction hypothesis"))   ; W1G-A: s dseq lam nl_ c eps fixed
 (dk-peel!)
 (rmc-kpts!)
 (rmc-pos! 'eps)
@@ -2356,7 +2356,7 @@
             (dk-conj-close! (lambda () (dk-ineq! (list '<= fx rmc-t0) (list '<= 'c fx) (list 'IN fx 'RR) '(IN c RR) (list 'IN rmc-A 'RR))))))
         ))))
 ;; the induction hypothesis at f'
-(define rmc-hp (dk-skolem! (dk-apply! rmc-ih 's 'dseq 'lam 'nl_ 'c 'eps rmc-fp)))
+(define rmc-hp (dk-skolem! (dk-apply! rmc-ih rmc-fp)))   ; W1G-A: s dseq lam nl_ c eps fixed
 (define rmc-hclose (dk-ctx-form (rmc-close rmc-fp rmc-hp 'eps)))
 (dk-cite! 'rmc-good-ind 's 'dseq 'lam rmc-b)
 (dk-have! '(IN eps RR) (lambda () (ass)))

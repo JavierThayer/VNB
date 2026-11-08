@@ -25,6 +25,7 @@
 (dk-peel!)
 (mgs-rhs! (dk-cite! 'is-metric-group 'G))
 (mac 'is-metric-space)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (slot 'PTS)
 (slot 'DIST)
 (mgs-close-conjuncts! 'METRIC-GROUP-MS)
@@ -35,6 +36,7 @@
 (dk-peel!)
 (mgs-rhs! (dk-cite! 'is-metric-group 'G))
 (mac 'is-group)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (slot 'CARR)
 (slot 'OPR)
 (slot 'IDEN)
@@ -182,6 +184,7 @@
 (define mgs-cparts (dk-meta-iff-r! (dk-cite! 'is-continuous 'ms 'ms '(INV g))))
 (dk-split-all! (list mgs-cparts))
 (mac 'is-metric-group)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (for-each (lambda (acc val) (subst (list '= (list acc mgs-M) val)))
           '(GDIST CARR OPR IDEN INV)
           '((DIST ms) (CARR g) (OPR g) (IDEN g) (INV g)))

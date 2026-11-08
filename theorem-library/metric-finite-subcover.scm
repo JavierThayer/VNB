@@ -85,7 +85,7 @@
     (FORSOME nf_ (AND (IN nf_ NN) (FORALL x (IMPLIES (IN x a)
       (FORSOME n (AND (IN n NN) (AND (< n nf_) (IN x (csq n))))))))))))))))))
 (dk-peel!)
-(define mfs-kc (dk-cite! 'is-compact 'm))
+(define mfs-kc (dk-cite! 'is-compact-classes 'm))
 (dk-have! '(IS-METRIC-SPACE m) (lambda () (mfs-prop! mfs-kc '(IS-COMPACT m))))
 (define mfs-clc (dk-cite! 'is-closed 'm 'a))
 (dk-have! '(SUBSET a (PTS m)) (lambda () (mfs-prop! mfs-clc '(IS-CLOSED m a))))

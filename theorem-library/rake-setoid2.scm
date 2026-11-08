@@ -982,6 +982,7 @@
 (fact 'rko2-crel-is-set 'M)
 (fact 'rko2-cauchy-setoid-length 'M)
 (mac 'IS-SETOID)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (mac 'rkt-cauchy-setoid-pts)
 (mac 'rko2-cauchy-setoid-rel)
 (dk-conj-close!

@@ -349,6 +349,7 @@
 (dk-cite! 'sn-open-empty 'm 'ix 'pf)
 (dk-cite! 'sn-open-whole 'm 'ix 'pf)
 (mac 'is-top-space)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (subst (list '== (list 'PTS tbt-top) '(VEC m)))
 (subst (list '== (list 'OPENS tbt-top) tbt-opens))
 (dk-conj-close!

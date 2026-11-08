@@ -103,17 +103,17 @@
   (sp (make-wff (sl-nn-induction
         (list 'FORALL 'f_ (list 'IMPLIES (sl-ptwise-real 'f_)
               '(IN (SERIES-PARTIAL-SUM f_ n_) RR))))))
-  (let* ((br (use-induction)) (n (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))
+  (let* ((br (dk-use-induction-fixed!)) (n (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))   ; W1B: f_ fixed
     (dk-focus! (cdr (assq 'base br)))
     (sl-peel!) (mac 'series-partial-sum-zero) (fact 'rr-zero-in) (ass)
     (dk-focus! (cdr (assq 'step br)))
-    (let ((pw (dk-landed-1 (lambda () (sl-peel!)))))
+    (let ((pw (dk-ctx-form (sl-ptwise-real 'f_))))   ; W1B: hoisted, in context; the IH is at f_
       ;; series-partial-sum-succ is guarded on its two ARGUMENTS being real
       ;; (2026-08-29), and those two are exactly the IH and the pointwise
       ;; hypothesis at n -- so instantiate them BEFORE the rewrite.  The guard is
       ;; stated on the arguments rather than on `f_ in FUN(NN,RR)' precisely so
       ;; that this POINTWISE file can still cite it.
-      (dk-deepest (lambda () (inst+ ih 'f_)))
+      #t   ; W1B: the IH is already at f_ (f_ fixed)
       (dk-deepest (lambda () (inst+ pw n)))
       (mac 'series-partial-sum-succ)
       (have! (list 'AND (list 'IN (list 'SERIES-PARTIAL-SUM 'f_ n) 'RR)
@@ -137,14 +137,12 @@
             (sl-ptwise-eq 'h_ (lambda (k) (list '+ (list 'f_ k) (list 'g_ k)))))
       '(= (SERIES-PARTIAL-SUM h_ n_)
           (+ (SERIES-PARTIAL-SUM f_ n_) (SERIES-PARTIAL-SUM g_ n_)))))))
-  (let* ((br (use-induction)) (n (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))
+  (let* ((br (dk-use-induction-fixed!)) (n (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))   ; W1C: f_ g_ h_ fixed
     (dk-focus! (cdr (assq 'base br)))
     (sl-peel!) (mac 'series-partial-sum-zero) (arith)
     (dk-focus! (cdr (assq 'step br)))
-    (let ((hyps (dk-landed* (lambda () (sl-peel!)))))
-      (let* ((i1  (dk-deepest (lambda () (inst+ ih 'f_))))
-             (i2  (dk-deepest (lambda () (inst+ i1 'g_))))
-             (ihc (dk-deepest (lambda () (inst+ i2 'h_)))))
+    (let ((hyps (filter (lambda (a) (dk-head-is? a 'FORALL)) (dk-asms))))   ; W1C: hoisted, in context
+      (let* ((ihc ih))                                                    ; W1C: the IH is at f_ g_ h_
         (sl-inst-all! hyps n)
         (fact 'series-partial-sum-in-rr-ptwise n 'f_)
         (fact 'series-partial-sum-in-rr-ptwise n 'g_)
@@ -193,14 +191,12 @@
       (list '(IN c_ RR) (sl-ptwise-real 'f_)
             (sl-ptwise-eq 'h_ (lambda (k) (list '* 'c_ (list 'f_ k)))))
       '(= (SERIES-PARTIAL-SUM h_ n_) (* c_ (SERIES-PARTIAL-SUM f_ n_)))))))
-  (let* ((br (use-induction)) (n (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))
+  (let* ((br (dk-use-induction-fixed! '(c_ f_ h_))) (n (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))   ; W1C: c_ f_ h_ fixed
     (dk-focus! (cdr (assq 'base br)))
     (sl-peel!) (mac 'series-partial-sum-zero) (crs)
     (dk-focus! (cdr (assq 'step br)))
-    (let ((hyps (dk-landed* (lambda () (sl-peel!)))))
-      (let* ((j1  (dk-deepest (lambda () (inst+ ih 'c_))))
-             (j2  (dk-deepest (lambda () (inst+ j1 'f_))))
-             (ihc (dk-deepest (lambda () (inst+ j2 'h_)))))
+    (let ((hyps (filter (lambda (a) (dk-head-is? a 'FORALL)) (dk-asms))))   ; W1C: hoisted, in context
+      (let* ((ihc ih))                                                    ; W1C: the IH is at c_ f_ h_
         (sl-inst-all! hyps n)
         (fact 'series-partial-sum-in-rr-ptwise n 'f_)
         (sl-h-real! 'h_
@@ -306,7 +302,7 @@
 
 (quietly (lambda ()
   (sp (make-wff sl-weighted-stmt))
-  (let* ((br (use-induction)) (n (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))
+  (let* ((br (dk-use-induction-fixed! '(x_ y_ g_ w_ p_ q_ s_))) (n (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))   ; W1C: all seven fixed
 
     ;; ---- BASE.  Both partial sums on the right are empty; the left has the
     ;; single term p(0), which the transfer equation opens.
@@ -388,11 +384,7 @@
     (dk-sps-succ! 'p_ (list 'succ n))
     (dk-sps-succ! 'q_ n)
     (dk-sps-succ! 's_ n)
-    (let ((ihc (let loop ((f ih) (vs '(x_ y_ g_ w_ p_ q_ s_)))
-                 (if (null? vs) f
-                     (loop (dk-deepest (lambda () (inst+ f (car vs))))
-                           (cdr vs))))))
-      (subst ihc))
+    (subst ih)                                  ; W1C: the IH is at the fixed x_ .. s_
     (dk-deepest (lambda () (inst+ (sl-hyp sl-p-eq) (list 'succ n))))
     (subst (list '= (list 'p_ (list 'succ n))
                  (list '* (list 'w_ (list 'succ n))
@@ -442,13 +434,11 @@
               (list 'FORALL 'k_ (list 'IMPLIES '(IN k_ NN)
                                       (list '<= (list 'f_ 'k_) (list 'g_ 'k_)))))
         '(<= (SERIES-PARTIAL-SUM f_ n_) (SERIES-PARTIAL-SUM g_ n_))))))
-  (let* ((br (use-induction)) (n (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))
+  (let* ((br (dk-use-induction-fixed!)) (n (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))   ; W1C: f_ g_ fixed
     (dk-focus! (cdr (assq 'base br)))
     (sl-peel!) (mac 'series-partial-sum-zero) (arith)
     (dk-focus! (cdr (assq 'step br)))
-    (let ((hyps (dk-landed* (lambda () (sl-peel!)))))
-      (let ((j1 (dk-deepest (lambda () (inst+ ih 'f_)))))
-        (dk-deepest (lambda () (inst+ j1 'g_))))
+    (let ((hyps (filter (lambda (a) (dk-head-is? a 'FORALL)) (dk-asms))))   ; W1C: hoisted; the IH is at f_ g_
       (sl-inst-all! hyps n)
       (fact 'series-partial-sum-in-rr-ptwise n 'f_)
       (fact 'series-partial-sum-in-rr-ptwise n 'g_)

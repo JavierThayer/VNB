@@ -465,11 +465,11 @@
   forall([hd in fun(nn,rr)],
     forall([j_ in nn], hd(j_) = series-partial-sum(u(j_), n_)) implies
     converges-to(rr-ms, hd, 0))))"))
-(define hn-br (use-induction))
+(define hn-br (dk-use-induction-fixed!))   ; W1C: u and its two hypotheses fixed; hd stays quantified
 
 ;;; BASE.  hd(j) = S(u(j),0) = 0: the constant zero sequence, threshold 0.
 (dk-focus! (cdr (assq 'base hn-br)))
-(dn-di-landed!) (dn-di-landed!) (dn-di-landed!)
+(dn-di-landed!)                                   ; W1C: u is fixed; this lands the hd typing
 (define hn0-pw (dn-di-landed-1!))
 (fact 'rr-zero-in)
 (dn-converges-to!
@@ -497,12 +497,16 @@
 ;;; succ n_ is the head of length n_ plus the n_-th coordinate, so it is the
 ;;; sum of a sequence the IH kills and one the hypothesis kills.
 (dk-focus! (cdr (assq 'step hn-br)))
-(define hn-ih (dn-find 'ih (lambda (a) (and (pair? a) (eq? (car a) 'FORALL)))))
+;; W1C: u is fixed, so its two hypotheses are in context and the IH is at u
+(define hn-ih (dn-find 'ih (lambda (a) (and (pair? a) (eq? (car a) 'FORALL)
+                                            (dk-contains? a 'SERIES-PARTIAL-SUM)))))
 (define hn-n  (cadr (dn-find 'n (dk-head? 'IN))))
-(dn-di-landed!)
 (define hn-ut (dn-find 'utyping (lambda (a) (and (pair? a) (eq? (car a) 'FORALL)
-                                                 (dk-contains? a 'FUN)))))
-(define hn-co (dk-landed-1 (lambda () (di))))     ; the coordinate hypothesis
+                                                 (dk-contains? a 'FUN)
+                                                 (not (dk-contains? a 'SERIES-PARTIAL-SUM))))))
+(define hn-co (dn-find 'coordinate (lambda (a) (and (pair? a) (eq? (car a) 'FORALL)
+                                                    (dk-contains? a 'CONVERGES-TO)
+                                                    (not (dk-contains? a 'SERIES-PARTIAL-SUM))))))
 (dn-di-landed!)                                   ; hd typing
 (define hn-pw (dn-di-landed-1!))                  ; pointwise, at succ n_
 
@@ -524,7 +528,7 @@
       (fact 'fun-apply-type-c (list 'u j) 'NN 'RR hn-n)
       (ass))))
 (inst+ hn-co hn-n)                                ; the n_-th coordinate is null
-(define hn-ih1 (dk-deepest (lambda () (inst+ hn-ih 'u))))
+(define hn-ih1 hn-ih)                             ; W1C: u fixed
 (define hn-ih2 (dk-deepest (lambda () (inst+ hn-ih1 hn-f))))
 (have! (list 'FORALL 'j_ (list 'IMPLIES '(IN j_ NN)
          (list '= (list hn-f 'j_) (list 'SERIES-PARTIAL-SUM '(u j_) hn-n))))

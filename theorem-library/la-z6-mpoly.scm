@@ -239,6 +239,7 @@
 (sp (make-wff (forall-guarded '(ixs_) (list lz6m-HX) (list 'IS-COMM-MONOID lz6m-MIM))))
 (lz6m-setup!)
 (mac 'IS-COMM-MONOID)
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (mac 'multi-index-monoid-carr) (mac 'multi-index-monoid-opr) (mac 'multi-index-monoid-iden)
 (dk-conj-close! lz6m-cm-clause!)
 (lz6m-done! 'multi-index-monoid-is-comm-monoid)

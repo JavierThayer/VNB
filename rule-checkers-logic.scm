@@ -911,12 +911,13 @@
 ;;; t in X  (X in the chain) or  POS-RR t  in the context is in X, resp. RR; + and * go to the
 ;;; join; - (unary or binary) to the join with ZZ; abs of a CC term to RR, else its class;
 ;;; min / max of terms at most RR to the join; succ of an NN term to NN; x ^ n with n in NN to
-;;; x's class.  Every other term: #f.
+;;; x's class; POWER(x, n) -- the parsed x ^ n -- with n in NN to RR for x at most RR, CC for x
+;;; in CC (W1P, 2026-11-07); the one-argument POWER(A) is no number.  Every other term: #f.
 (define *chk-number-chain* '(NN ZZ QQ RR CC))
 ;;; The heads `chk-number-class' reads, NAMED (GUARDDEF item 2, 2026-10-24) so that the
 ;;; load-end guarded-definition gate (audit.scm) can read them; a head outside this list
 ;;; is #f below even if a `case' clause names it.
-(define *chk-number-class-heads* '(+ * - abs min max succ ^))
+(define *chk-number-class-heads* '(+ * - abs min max succ ^ POWER))   ; POWER: W1P 2026-11-07
 (define (chk-class-rank c)
   (let loop ((cs *chk-number-chain*) (i 0))
     (cond ((null? cs) #f) ((eq? (car cs) c) i) (else (loop (cdr cs) (+ i 1))))))
@@ -954,6 +955,11 @@
                               (chk-class-max (car cs) (cadr cs))))
               ((succ)    (and (= n 1) (eq? (car cs) 'NN) 'NN))
               ((^)       (and (= n 2) (eq? (cadr cs) 'NN) (car cs)))
+              ;; W1P (2026-11-07): the parsed x ^ n is (POWER x n).  Two arguments, n in NN:
+              ;; RR for x at most RR (power-closed-at), CC for x in CC (power-typing-nonneg).
+              ;; POWER(A), one argument, the power set: #f.
+              ((POWER)   (and (= n 2) (eq? (cadr cs) 'NN)
+                              (if (eq? (car cs) 'CC) 'CC 'RR)))
               (else #f)))))))
 
 ;;; Is T certified defined in the context of CONCL?  The cases, in order:
@@ -975,6 +981,37 @@
 ;;;   conclusion's context: it re-runs the decision rather than trusting that it
 ;;;   was made, so an instantiation that skipped it is still refused, but the
 ;;;   decision procedure itself is shared with the builder and is trusted.
+;;; W1 (METACORE finding 1, 2026-11-04).  A COMP denotes only when its condition is
+;;; PREDICATIVE: NBG has the class {x | p} for p with every quantifier confined to sets, and
+;;; for no other p.  Written here, independently of the builder's COMP clauses in
+;;; `pi--defined?' / `term-self-defined?' / `pi--body-shape-total?': where the checker
+;;; accepts a certificate on the builder's word, it first walks T through the positions in
+;;; which definedness is STRUCTURAL -- the arguments of an application, the DOMAIN of a
+;;; SEP / BIG-UNION / VNB-LAMBDA -- and refuses when it meets a COMP whose condition the
+;;; checker's own relation (`rcs--comp-unconfined-binder', rule-checkers-schema.scm) finds
+;;; impredicative.  A subterm the context itself certifies (typed, equated, or outside
+;;; binders in a strict atom) is not read further: its definedness is the context's.
+(define (chk-impredicative-comp-certified? asms t)
+  (let walk ((u t))
+    (cond ((not (pair? u)) #f)
+          ((chk-any (lambda (f)
+                      (or (and (pair? f) (= (length f) 3)
+                               (or (and (eq? (car f) 'IN) (chk-same? (cadr f) u))
+                                   (and (eq? (car f) '=)
+                                        (or (chk-same? (cadr f) u) (chk-same? (caddr f) u)))))
+                          (chk-atom-certifies? f u 0)))
+                    asms)
+           #f)
+          ((and (eq? (car u) 'COMP) (= (length u) 3))
+           (and (rcs--comp-unconfined-binder u) #t))
+          ((and (memq (car u) '(SEP BIG-UNION VNB-LAMBDA)) (= (length u) 4))
+           (walk (caddr u)))
+          ((memq (car u) '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA)) #f)
+          (#t (let loop ((xs (cdr u)))
+                (cond ((not (pair? xs)) #f)
+                      ((walk (car xs)) #t)
+                      (#t (loop (cdr xs)))))))))
+
 (define (chk-elim-certified? concl t)
   (let ((asms (chk-asms concl)))
     (or (not (pair? t))                                          ; (a)
@@ -987,7 +1024,8 @@
         (chk-any (lambda (f) (chk-atom-certifies? f t 0))       ; (c) + membership
                  asms)
         (and (chk-number-class asms t 0) #t)                     ; (d)
-        (and (pi--defined? (sequent-assumptions concl) t 0) #t))))  ; builder's word
+        (and (not (chk-impredicative-comp-certified? asms t))     ; W1: COMP predicative
+             (pi--defined? (sequent-assumptions concl) t 0) #t))))  ; builder's word
 
 ;;; AN INSTANCE IS AN OBJECT TERM (FREF, 2026-10-29; F-1 / F-2 of meta-report/functoid-argument.tex).
 ;;; Written here, independently of the builder's `pi--non-object-witness'
@@ -1273,6 +1311,8 @@
             ((not (and (pair? g) (eq? (car g) '=) (= (length g) 3)
                        (chk-same? (binary-left g) (binary-right g))))
              "the goal is not  t = t  for one and the same t")
+            ((chk-impredicative-comp-certified? (chk-asms concl) (binary-left g))   ; W1
+             "t = t  for a term with an IMPREDICATIVE COMP, which NBG does not let denote")
             ((pi--defined? (sequent-assumptions concl) (binary-left g) 0) #t)
             (else "t = t  for a term the context does not certify DEFINED")))))
 
@@ -1628,6 +1668,86 @@
 ;;; instances of the schema, and the checker states them from the expression
 ;;; layer and compares.
 
+;;; W1 (METACORE finding 2, 2026-11-04): THE INDUCTION BODY MUST BE PREDICATIVE.  Each of
+;;; the three schemata below is derived in NBG through the class {n | body} (the least
+;;; element of its complement in NN, resp. ORD), which NBG has only when every quantifier
+;;; of the body is confined to sets.  Induction at an arbitrary class formula is a known
+;;; strengthening of NBG, which VNB does not assume.  The test is the checker's own
+;;; comprehension relation (`rcs--comp-unconfined-binder', rule-checkers-schema.scm),
+;;; applied to COMP(n, body); the builder is not consulted.
+(define (chk-induction-body-impredicative v body)
+  (rcs--comp-unconfined-binder (list 'COMP v body)))
+
+;;; W1B (2026-11-05; the user's decision 3 of W1-CENSUS-REPORT.md s.6): finding 2 is enforced
+;;; WARN-ONLY until the census is empty.  An impredicative induction body is ACCEPTED and
+;;; recorded in `*nbg-induction-census*'; the end of the load prints the list
+;;; (`;; NBG induction census: N impredicative induction(s)', with file and theorem) and a strict
+;;; load stays green.  THE SWITCH: set `*nbg-induction-fatal?*' to #t (the one line below) and
+;;; the three checkers refuse again, as patch 11 had them.  A record is the vector
+;;; #(RULE VAR OFFENDER-TEXT FILE THEOREM); THEOREM is filled by the `qed' that closes the proof
+;;; (`nbg-induction-census-name!', interactive.scm) and stays #f when no qed closed it.
+;;; THE SWITCH IS ON (W1N, 2026-11-07; prepared; lands when the census is empty): the census of
+;;; the bundle reached 0, so an impredicative induction body is now REFUSED by the three checkers
+;;; (nn-induction, transfinite-induction, transfinite-induction-3cases), as patch 11 had them, and
+;;; nothing is recorded.  `(fluid-let ((*nbg-induction-fatal?* #f)) ...)' restores the warn-only
+;;; mode locally (the suite's warn-only checks bind it so).
+(define *nbg-induction-fatal?* #t)
+(define *nbg-induction-census* '())
+
+(define (nbg--current-file)
+  (call-with-current-continuation
+    (lambda (k)
+      (with-exception-handler
+        (lambda (e) (k #f))
+        (lambda () (->namestring (current-load-pathname)))))))
+
+;;; Returns the refusal string when the induction must be refused, else #f (accepted; an
+;;; impredicative body is then recorded).
+(define (chk-induction-nbg-verdict rule v body)
+  (let ((o (chk-induction-body-impredicative v body)))
+    (cond ((not o) #f)
+          (*nbg-induction-fatal?*
+           (string-append (symbol->string rule)
+                          ": NBG refuses this induction -- its body has a binder not confined to sets"))
+          (#t
+           (set! *nbg-induction-census*
+                 (cons (vector rule v (rcs--offender-text o) (nbg--current-file) #f)
+                       *nbg-induction-census*))
+           #f))))
+
+(define (nbg-induction-census-name! name)
+  (for-each (lambda (r) (if (not (vector-ref r 4)) (vector-set! r 4 name)))
+            *nbg-induction-census*))
+
+(define (nbg-induction-census-close!)
+  (nbg-induction-census-name! '|(no qed)|))
+
+;;; One line per distinct (rule, variable, file, theorem): a step tried on a scratch copy
+;;; (a probe, a preamble attempt) and then retried records the same site twice.
+(define (nbg-induction-census-sites)
+  (let loop ((rs (reverse *nbg-induction-census*)) (seen '()) (out '()))
+    (if (null? rs) (reverse out)
+        (let* ((r (car rs))
+               (key (list (vector-ref r 0) (vector-ref r 1) (vector-ref r 3) (vector-ref r 4))))
+          (if (member key seen) (loop (cdr rs) seen out)
+              (loop (cdr rs) (cons key seen) (cons r out)))))))
+
+(define (report-nbg-induction-census!)
+  (let ((rs (nbg-induction-census-sites)))
+    (display ";; NBG induction census: ") (display (length rs))
+    (display " impredicative induction(s)")
+    (if *nbg-induction-fatal?* (display " [fatal: such an induction is REFUSED]")
+        (display " [warn-only: accepted and listed]"))
+    (newline)
+    (for-each (lambda (r)
+                (display ";;   ") (display (vector-ref r 0))
+                (display " on ") (display (vector-ref r 1))
+                (display "  file ") (display (or (vector-ref r 3) "?"))
+                (display "  theorem ") (display (or (vector-ref r 4) "(no qed)"))
+                (display "  -- ") (display (vector-ref r 2)) (newline))
+              rs)
+    (length rs)))
+
 ;;; nn-induction: goal (FORALL n (IMPLIES (IN n NN) body));
 ;;;   base  body[n := 0]
 ;;;   step  (FORALL n (IMPLIES (IN n NN) (IMPLIES body body[n := (succ n)])))
@@ -1648,6 +1768,7 @@
                                     (list 'IMPLIES inner
                                           (subst-free n (list 'succ n) inner))))))
             (cond
+              ((chk-induction-nbg-verdict 'nn-induction n inner) => (lambda (why) why))   ; W1B: warn-only
               ((not (chk-arity? hyps 2)) "nn-induction takes exactly two hypotheses")
               ((not (and (chk-ctx=? (car hyps) concl) (chk-ctx=? (cadr hyps) concl)))
                "nn-induction may not change the context")
@@ -1692,6 +1813,7 @@
     (let ((parts (chk-tfi-goal-parts (chk-goal concl))))
       (cond
         ((not parts) "the goal is not  forall var in ORD. P  with var outermost")
+        ((chk-induction-nbg-verdict 'transfinite-induction (car parts) (cdr parts)) => (lambda (why) why))   ; W1B: warn-only
         ((not (chk-arity? hyps 1)) "transfinite-induction takes one hypothesis")
         ((not (chk-ctx=? (car hyps) concl)) "the context changed")
         (else
@@ -1719,6 +1841,7 @@
     (let ((parts (chk-tfi-goal-parts (chk-goal concl))))
       (cond
         ((not parts) "the goal is not  forall var in ORD. P  with var outermost")
+        ((chk-induction-nbg-verdict 'transfinite-induction-3cases (car parts) (cdr parts)) => (lambda (why) why))   ; W1B: warn-only
         ((not (chk-arity? hyps 3))
          "transfinite-induction-3cases takes exactly three hypotheses")
         ((not (chk-every (lambda (h) (chk-ctx=? h concl)) hyps))

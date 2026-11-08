@@ -1851,6 +1851,11 @@
 (define *provenance* (make-equal-hash-table))    ; name -> kind
 
 (define (register-provenance! name kind)
+  ;; VIAGAP (2026-10-29): the NBG relation's definientia index (primitive-inferences.scm)
+  ;; is rebuilt when a formula enters or leaves the definitional / primitive tiers.
+  (if (or (memq kind '(definitional primitive))
+          (memq (hash-table-ref/default *provenance* name #f) '(definitional primitive)))
+      (pi-note-definition-change!))
   (hash-table-set! *provenance* name kind)
   ;; Propagate to the auto-generated -rev companion -- the SAME FACT flipped,
   ;; installed by install-theorem! rather than written by an author, so it has

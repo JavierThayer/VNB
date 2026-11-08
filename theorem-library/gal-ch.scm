@@ -412,7 +412,7 @@
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (list 'FORALL 'a1 (list 'FORALL 'a2 (list 'FORALL 'h (list 'IMPLIES '(IS-HOM-ABELIAN-GROUP a1 a2 h)
   (list 'FORALL 'g (list 'IMPLIES (gw-gtyp 'n)
     (list '= '(h (SUM-AG a1 g n)) (list 'SUM-AG 'a2 gw-hg 'n))))))))))))
-(ni)
+(dk-ni-fixed! '(a1 a2 h g))   ; W1D: a1, a2, h, g fixed
 (define gw1-l (go-ind-leaves!))
 (dk-focus! (car gw1-l))
 (dk-peel!)
@@ -421,7 +421,7 @@
 (subst (dk-cite! 'sum-ag-zero 'a2 gw-hg))
 (go-rfl-or-ass!)
 (dk-focus! (cdr gw1-l))
-(define gw1-ih (find-first (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'SUM-AG))) (dk-peel!)))
+(define gw1-ih (find-first (lambda (fm) (and (dk-head-is? fm 'IMPLIES) (dk-contains? fm 'SUM-AG))) (dk-peel!)))   ; W1D: gtyp(n) => .. at the fixed g
 (define gw1-add (gw-hom-ag! 'a1 'a2 'h))
 (dk-have! (gw-gtyp 'n)
   (lambda ()
@@ -437,7 +437,7 @@
 (subst (dk-cite! 'sum-ag-succ 'a1 'g 'n))
 (subst (dk-cite! 'sum-ag-succ 'a2 gw-hg 'n))
 (subst (dk-apply! gw1-add '(SUM-AG a1 g n) '(g n)))
-(subst (dk-apply! gw1-ih 'a1 'a2 'h 'g))
+(subst (dk-landed-1 (lambda () (detach! gw1-ih))))   ; W1D: was (dk-apply! gw1-ih 'a1 'a2 'h 'g)
 (gw-app-type! 'h '(CARR a1) '(CARR a2) '(g n))
 (dk-have! (list 'FORALL 'gwi_ (list 'IMPLIES '(IN gwi_ (ORD-SEGMENT n)) (list 'IN (list gw-hg 'gwi_) '(CARR a2))))
   (lambda () (dk-peel!) (let ((i (cadr (cadr (dk-goal)))))
@@ -524,7 +524,7 @@
 ;; a monoid homomorphism preserves powers
 (sp (make-wff '(FORALL k (IMPLIES (IN k NN) (FORALL m1 (FORALL m2 (FORALL h (IMPLIES (IS-HOM-MONOID m1 m2 h)
   (FORALL gwx_ (IMPLIES (IN gwx_ (CARR m1)) (= (h (MPOW m1 gwx_ k)) (MPOW m2 (h gwx_) k))))))))))))
-(ni)
+(dk-ni-fixed! '(m1 m2 h))   ; W1D: m1, m2, h fixed
 (define gw3-l (go-ind-leaves!))
 (define (gw3-open!)
   (go-open! 'is-hom-monoid-def '(m1 m2 h) '(IS-HOM-MONOID m1 m2 h))
@@ -552,7 +552,7 @@
 (subst (list '= '(h gwx_) gw3-y))
 (subst gw3-e2)
 (subst (dk-apply! (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'OPR))) "multiplicativity") 'gwx_ (list 'MPOW 'm1 'gwx_ gw3-k0)))
-(let ((e (dk-apply! gw3-ih 'm1 'm2 'h 'gwx_)))
+(let ((e (dk-apply! gw3-ih 'gwx_)))   ; W1D: m1, m2, h fixed
   (dk-rewrite-h! e '(h gwx_) gw3-y)
   (subst (list '= (list 'h (list 'MPOW 'm1 'gwx_ gw3-k0)) (list 'MPOW 'm2 gw3-y gw3-k0))))
 (subst (list '= '(h gwx_) gw3-y))
@@ -617,7 +617,7 @@
   (list (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm '(MUL ra)))) "multiplicativity")
         (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm '(NEG ra)))) "negation")))
 (sp (make-wff (gw-dh-pre '(= (h (DET ra n A)) (DET rb n (MAT-MAP h n n A))))))
-(ni)
+(dk-ni-fixed! '(ra rb h))   ; W1D: ra, rb, h fixed
 (define gw4-l (go-ind-leaves!))
 (dk-focus! (car gw4-l))
 (dk-peel!)
@@ -705,7 +705,7 @@
       (let ((e (dk-cite! 'mat-map-entry gw4-sn gw4-sn '(CARR ra) '(CARR rb) 'h 'A 1 j)))
         (subst (list '= (caddr e) (cadr e))))
       (dk-cite! 'minor-type 'ra 'A 1 j gw4-n)
-      (subst (dk-apply! gw4-ih 'ra 'rb 'h (list 'MINOR 'A 1 j gw4-n)))
+      (subst (dk-apply! gw4-ih (list 'MINOR 'A 1 j gw4-n)))   ; W1D: ra, rb, h fixed
       (let ((e (dk-cite! 'minor-mat-map 'ra 'rb 'h gw4-n 'A 1 j)))
         (subst (list '= (caddr e) (cadr e))))
       (go-rfl-or-ass!))))
@@ -1131,7 +1131,7 @@
 (dk-have! '(IS-RING (OP-ALG md tt))
   (lambda ()
     (let* ((iff (dk-cite! 'is-ring '(OP-ALG md tt))))
-      (dk-have! (caddr iff) (lambda () (dk-conj-close! gw-ring-conj!)))
+      (dk-have! (caddr iff) (lambda () (dk-isx-set!) (dk-conj-close! gw-ring-conj!)))   ; W1J-B: dk-isx-set!, the conjunct t in SET
       (mac 'is-ring)
       (ass))))
 (go-close! 'is-commutative-ring-def '((OP-ALG md tt)) (lambda () (dk-conj-close! gw-ring-conj!)))

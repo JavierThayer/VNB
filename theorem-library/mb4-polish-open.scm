@@ -169,6 +169,7 @@
 (dk-cite! 'ms-pts-is-set 's)
 (dk-cite! 'subclass-of-set-is-set 'A '(PTS s))
 (mac 'IS-METRIC-SPACE)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (mac 'graph-ms-pts)
 (mac 'graph-ms-dist-slot)
 (mpo-and!

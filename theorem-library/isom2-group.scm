@@ -324,6 +324,7 @@
 (fact 'isometry-group-grp-iden 's)
 (fact 'isometry-group-grp-inv 's)
 (mac 'is-group)
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (dk-conj-close! igr-group-leaf!)
 (qed 'isometry-group-grp-is-group)
 (topic! 'isometry-group-grp-is-group 'analysis)

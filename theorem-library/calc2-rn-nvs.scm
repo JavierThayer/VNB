@@ -294,6 +294,7 @@
 (fact 'rn-vec 'n)
 (fact 'rn-scal 'n)
 (mac 'IS-NORMED-VECTOR-SPACE)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (subst (list '= '(VEC (RN n)) c2v-V))
 (subst '(= (SCAL (RN n)) (NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)))
 (for-each (lambda (m) (vnb-guard (lambda () (mac m))))

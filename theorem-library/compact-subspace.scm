@@ -131,7 +131,7 @@
 (dk-peel!)
 (mac-h 'IS-CLOSED '(IS-CLOSED s A))
 (dk-split-all!)                    ; IS-METRIC-SPACE s, SUBSET A (PTS s), the complement open
-(mac-h 'IS-COMPACT '(IS-COMPACT s))
+(mac-h 'is-compact-classes '(IS-COMPACT s))
 (dk-split-all!)                    ; ... and the cover universal of s
 (fact 'subspace-is-metric-space 's 'A)
 (have! '(IN (PTS s) SET)
@@ -139,7 +139,7 @@
 (dk-have! '(IN A SET)                ; R4-W2: subspace-pts is guarded by A in SET
   (lambda () (fact 'subclass-of-set-is-set 'A '(PTS s)) (ass)))
 (fact 'complement-in-set-closure '(PTS s) 'A)
-(mac 'IS-COMPACT)
+(mac 'is-compact-classes)
 (csub-and!
  (lambda ()
    (if (eq? (csub-head (dk-goal)) 'IS-METRIC-SPACE)

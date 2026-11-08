@@ -280,6 +280,7 @@
 (dk-peel!)
 (fact 'ae-rel-is-equivalence 'omega 'cA 'mu 'sf)
 (mac 'IS-SETOID)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (slot 'pts)
 (slot 'rel)
 (mac 'AE-SETOID)
@@ -1162,12 +1163,16 @@
 (sp (make-wff '(FORALL omega (FORALL cA (FORALL mu (IMPLIES (IS-MEASURE omega cA mu)
   (IS-SEMI-INNER-PRODUCT-SPACE (L2-SPACE omega cA mu))))))))
 (dk-peel!)
+(fact 'l2-space-length 'omega 'cA 'mu)   ; W1J-C: first, so the term is certified defined before dk-isx-set!
+;; W1J-C: unfolded BEFORE the component facts land: dk-isx-set! splits G' in context, and a
+;; conjunct already there lands nothing (dk-split! errors)
+(mac 'IS-SEMI-INNER-PRODUCT-SPACE)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (for-each (lambda (n) (fact n 'omega 'cA 'mu))
-  '(l2-space-length l2-space-scal-ring l2-space-vec-set l2-space-vadd-fun l2-space-vzero-in l2-space-vneg-fun
+  '(l2-space-scal-ring l2-space-vec-set l2-space-vadd-fun l2-space-vzero-in l2-space-vneg-fun
     l2-space-act-fun l2-space-rip-fun l2-space-assoc l2-space-comm l2-space-identity l2-space-inverses
     l2-space-scal-pin l2-space-scal-carr l2-space-act-vadd l2-space-act-add l2-space-act-mul l2-space-act-one
     l2-space-rip-sym l2-space-rip-add-left l2-space-rip-homog-left l2-space-rip-self-nonneg))
-(mac 'IS-SEMI-INNER-PRODUCT-SPACE)
 (dk-conj-close! (lambda () (ass)))
 (sipl-qed! 'l2-space-is-sip)
 (alias! 'l2-space-is-sip "real L^2 is a semi-inner-product space")

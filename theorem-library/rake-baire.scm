@@ -50,7 +50,7 @@
        (FORALL n (IMPLIES (IN n NN)
          (IMPLIES (<= n m) (SUBSET (gg m) (gg n)))))))))))))
 
-(let ((ls (dk-opened (lambda () (ni)))))
+(let ((ls (dk-opened (lambda () (dk-ni-fixed!)))))   ; W1B: w fixed, the induction predicative
   ;; ---- BASE: m = 0.  n <= 0 makes n zero, and the inclusion is reflexivity.
   ;; The two leaves are told apart by `gg(0)', NOT by `succ': the NESTING
   ;; hypothesis carries a succ in BOTH goals.
@@ -64,8 +64,9 @@
   ;; transitivity through gg(k)) and n = succ k (reflexivity again).
   (dk-focus! (car (filter (lambda (nd) (not (eq? nd (rbr-leaf-with "gg(0)" ls)))) ls)))
   (let* ((landed (dk-peel!))
-         (ih (dk-pick (lambda (f)
-                        (and (rbr-head? f 'FORALL) (rbr-head? (caddr f) 'FORALL)))
+         (ih (dk-pick (lambda (f)                 ; W1B: forall gg in FUN(NN, w). ...
+                        (and (rbr-head? f 'FORALL) (rbr-head? (caddr f) 'IMPLIES)
+                             (rbr-head? (cadr (caddr f)) 'IN) (rbr-head? (caddr (cadr (caddr f))) 'FUN)))
                       "the induction hypothesis"))
          (hyp (dk-pick (lambda (f)
                          (and (rbr-head? f 'FORALL) (rbr-head? (caddr f) 'IMPLIES)
@@ -79,7 +80,7 @@
     (dk-fact! 'nn-le-succ-cases kv 'n)
     (use-cases (list (list '<= 'n kv) (list '= 'n (list 'succ kv)))
       (lambda ()
-        (dk-apply! (dk-apply! ih 'w 'gg) 'n)     ; (SUBSET (gg k) (gg n))
+        (dk-apply! (dk-apply! ih 'gg) 'n)     ; (SUBSET (gg k) (gg n))
         (dk-apply! hyp kv)                       ; (SUBSET (gg (succ k)) (gg k))
         (fact 'subset-trans (list 'gg (list 'succ kv)) (list 'gg kv) '(gg n))
         (ass))

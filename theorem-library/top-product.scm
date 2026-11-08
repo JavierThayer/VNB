@@ -169,12 +169,79 @@
       (ty-box-intro! y 'b1 (lambda () (let ((c (dk-di-var!))) (dk-cite! 'subset-mem-fwd 'b1 'b2 c) (dk-apply! cl c) (dk-ass!)))))))
 (ty-qed! 'tprod-box-anti)
 
+;;; =====================================================================
+;;; W1 (2026-11-04): IS-TPROD-OPEN read over CLASSES of constraints
+;;; =====================================================================
+;;; IS-TPROD-OPEN (structure-library/top-product.scm) now bounds the constraint family
+;;; tpf_ by SET, so that TPRODUCT-TOP's SEP over it is predicative (the NBG relation reads
+;;; through defined heads since VIAGAP).  The bound changes nothing: a class with a finite
+;;; cardinal is a set (card-nn-is-set: its cardinal is the description of CARD, which
+;;; denotes only when the class bijects with an ordinal segment, and the domain of a
+;;; function in FUN(A, B) is a set).  is-tprod-open-classes states the former definiens,
+;;; and the proofs below cite it where they cited the definition.
+(define w1cn-io '(IOTA alpha
+     (AND (IN alpha ORD)
+          (AND (FORSOME phi (IN phi (BIJECTION w1cnx_ (ORD-SEGMENT alpha))))
+               (FORALL beta
+                 (IMPLIES (ORD-LT beta alpha)
+                   (NOT (FORSOME psi (IN psi (BIJECTION w1cnx_ (ORD-SEGMENT beta)))))))))))
+(sp (make-wff '(FORALL w1cnx_ (IMPLIES (IN (CARD w1cnx_) NN) (IN w1cnx_ SET)))))
+(dk-peel!)
+(dk-have! (list '== '(CARD w1cnx_) w1cn-io) (lambda () (mac 'card) (qrfl)))
+(dk-have! (list 'IN w1cn-io 'NN) (lambda () (subst (list '= w1cn-io '(CARD w1cnx_))) (ass)))
+(let* ((body (dk-landed-1 (lambda () (iota-e w1cn-io))))
+       (parts (dk-split-all! (list body)))
+       (ex (find-first (lambda (f) (dk-head-is? f 'FORSOME)) (dk-asms)))
+       (phi (dk-skolem! ex))
+       (bij (find-first (lambda (f) (and (dk-head-is? f 'IN) (eq? (cadr f) phi))) (dk-asms)))
+       (seg (caddr (caddr bij))))
+  (dk-split-all! (list (dk-landed-1 (lambda () (mac-h 'bijection-membership-iff bij)))))
+  (fact 'fun-domain-in-set 'w1cnx_ seg phi)
+  (ass))
+(qed 'card-nn-is-set)
+
+(define (w1tp-fwd!)                    ; IS-TPROD-OPEN in context, the class form the goal
+  (let* ((hyp (or (find-first (lambda (f) (dk-head-is? f 'IS-TPROD-OPEN)) (dk-asms))
+                  (error "w1tp-fwd!: no IS-TPROD-OPEN hypothesis")))
+         (parts (dk-split! (car (dk-landed (lambda () (mac-h 'is-tprod-open hyp))))))
+         (law (find-first (lambda (f) (dk-head-is? f 'FORALL)) parts)))
+    (dk-conj-close!
+      (lambda ()
+        (if (dk-head-is? (dk-goal) 'SUBSET)
+            (ass)
+            (let* ((x (dk-di-var!))
+                   (w (dk-skolem! (dk-apply! law x) #t)))
+              (ew w)
+              (dk-conj-close! (lambda () (ass)))))))))
+(define (w1tp-bwd!)                    ; the class form in context, IS-TPROD-OPEN the goal
+  (let* ((parts (dk-split! (or (find-first (lambda (f) (and (dk-head-is? f 'AND) (dk-contains? f 'TPROD-BOX))) (dk-asms))
+                               (error "w1tp-bwd!: no class-form hypothesis"))))
+         (law (find-first (lambda (f) (dk-head-is? f 'FORALL)) parts)))
+    (mac 'is-tprod-open)
+    (dk-conj-close!
+      (lambda ()
+        (if (dk-head-is? (dk-goal) 'SUBSET)
+            (ass)
+            (let* ((x (dk-di-var!))
+                   (w (dk-skolem! (dk-apply! law x) #t)))
+              (dk-cite! 'card-nn-is-set w)
+              (ew w)
+              (dk-conj-close! (lambda () (ass)))))))))
+(sp (make-wff '(FORALL ix (FORALL tf (FORALL u (IFF (IS-TPROD-OPEN ix tf u)
+   (AND (SUBSET u (TPROD-PTS ix tf))
+        (FORALL tpw_ (IMPLIES (IN tpw_ u)
+          (FORSOME tpf_ (AND (SUBSET tpf_ (TPROD-CONSTR ix tf)) (AND (IN (CARD tpf_) NN)
+            (AND (IN tpw_ (TPROD-BOX ix tf tpf_)) (SUBSET (TPROD-BOX ix tf tpf_) u))))))))))))))
+(di)
+(dk-iff! (lambda (g) (dk-head-is? g 'AND)) w1tp-fwd! w1tp-bwd!)
+(qed 'is-tprod-open-classes)
+
 (define (ty-open-parts! u)            ; IS-TPROD-OPEN(u) in context: its universal part
   (let* ((h (list 'IS-TPROD-OPEN 'ix 'tf u))
-         (iff (dk-cite! 'is-tprod-open 'ix 'tf u))
+         (iff (dk-cite! 'is-tprod-open-classes 'ix 'tf u))       ; W1
          (rhs (caddr iff)))
-    (dk-have! (cadr rhs) (lambda () (mac-h 'IS-TPROD-OPEN (dk-ctx-form h)) (dk-split-all!) (ass)))
-    (dk-have! (caddr rhs) (lambda () (mac-h 'IS-TPROD-OPEN (dk-ctx-form h)) (dk-split-all!) (ass)))
+    (dk-have! (cadr rhs) (lambda () (mac-h 'is-tprod-open-classes (dk-ctx-form h)) (dk-split-all!) (ass)))
+    (dk-have! (caddr rhs) (lambda () (mac-h 'is-tprod-open-classes (dk-ctx-form h)) (dk-split-all!) (ass)))
     (caddr rhs)))
 (define (ty-basic! all x)             ; the finite constraint set bb at x: lands its facts, returns bb
   (dk-skolem! (dk-apply! all x) #t))
@@ -183,7 +250,7 @@
 
 (sp (make-wff (ty-alls '(ix tf) (ty-imps (list ty-fam) '(IS-TPROD-OPEN ix tf EMPTY-SET)))))
 (dk-peel!)
-(mac 'is-tprod-open)
+(mac 'is-tprod-open-classes)
 (dk-conj-close!
   (lambda ()
     (if (dk-head-is? (dk-goal) 'SUBSET)
@@ -198,7 +265,7 @@
 (fact 'card-empty)
 (fact 'nn-zero-in)
 (dk-have! '(IN (CARD EMPTY-SET) NN) (lambda () (subst '(= (CARD EMPTY-SET) 0)) (ass)))
-(mac 'is-tprod-open)
+(mac 'is-tprod-open-classes)
 (dk-conj-close!
   (lambda ()
     (if (dk-head-is? (dk-goal) 'SUBSET)
@@ -218,7 +285,7 @@
 (dk-peel!)
 (ty-sets!)
 (let ((au (ty-open-parts! 'u)) (av (ty-open-parts! 'v)))
-  (mac 'is-tprod-open)
+  (mac 'is-tprod-open-classes)
   (dk-conj-close!
     (lambda ()
       (if (dk-head-is? (dk-goal) 'SUBSET)
@@ -270,7 +337,7 @@
 (dk-peel!)
 (let ((hall (dk-ctx-form '(FORALL tpo_ (IMPLIES (IN tpo_ fam) (IS-TPROD-OPEN ix tf tpo_)))))
       (bu '(BIG-UNION u fam u)))
-  (mac 'is-tprod-open)
+  (mac 'is-tprod-open-classes)
   (dk-conj-close!
     (lambda ()
       (if (dk-head-is? (dk-goal) 'SUBSET)
@@ -318,6 +385,7 @@
 (dk-cite! 'tprod-open-empty 'ix 'tf)
 (dk-cite! 'tprod-open-whole 'ix 'tf)
 (mac 'is-top-space)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (subst (list '== (list 'PTS ty-T) ty-P))
 (subst (list '== (list 'OPENS ty-T) ty-opens))
 (dk-conj-close!
@@ -362,7 +430,7 @@
 (subst (list '== (list 'OPENS ty-T) ty-opens))
 (dk-have! (list 'IS-TPROD-OPEN 'ix 'tf (ty-box 'bb))
   (lambda ()
-    (mac 'is-tprod-open)
+    (mac 'is-tprod-open-classes)
     (dk-conj-close!
       (lambda ()
         (if (dk-head-is? (dk-goal) 'SUBSET)
@@ -963,6 +1031,28 @@
 ;; ALEXANDER: an open cover of a topological space with no finite subcover is contained in a MAXIMAL one, and
 ;; adding any open set outside the maximal cover produces a finite subcover (zorn-lemma)
 (define ty-O '(OPENS s))
+;;; W1 (2026-11-04): HAS-FINITE-SUBCOVER read over CLASSES (its subcover bounded by SET in the
+;;; definition, so that the SEP ty-GRD below is predicative); the proofs cite the class form.
+(define (w1hf-fwd!)
+  (let* ((hyp (or (find-first (lambda (f) (dk-head-is? f 'HAS-FINITE-SUBCOVER)) (dk-asms)) (error "w1hf-fwd!: no hypothesis")))
+         (ex (dk-landed-1 (lambda () (mac-h 'has-finite-subcover hyp))))
+         (w (dk-skolem! ex #t)))
+    (ew w)
+    (dk-conj-close! (lambda () (ass)))))
+(define (w1hf-bwd!)
+  (let* ((ex (or (find-first (lambda (f) (and (dk-head-is? f 'FORSOME) (dk-contains? f 'BIG-UNION))) (dk-asms))
+                 (error "w1hf-bwd!: no class-form hypothesis")))
+         (w (dk-skolem! ex #t)))
+    (dk-cite! 'card-nn-is-set w)
+    (mac 'has-finite-subcover)
+    (ew w)
+    (dk-conj-close! (lambda () (ass)))))
+(sp (make-wff '(FORALL s (FORALL c (IFF (HAS-FINITE-SUBCOVER s c)
+   (FORSOME tpg_ (AND (SUBSET tpg_ c) (AND (IN (CARD tpg_) NN) (== (BIG-UNION tpv_ tpg_ tpv_) (PTS s))))))))))
+(di)
+(dk-iff! (lambda (g) (dk-head-is? g 'FORSOME)) w1hf-fwd! w1hf-bwd!)
+(qed 'has-finite-subcover-classes)
+
 (define ty-GRD '(SEP tpm_ (POWER (OPENS s)) (AND (SUBSET c0 tpm_) (NOT (HAS-FINITE-SUBCOVER s tpm_)))))
 (define ty-POR (list 'SEP 'tpr_ (list 'CARTESIAN ty-GRD ty-GRD) '(SUBSET (NTH 1 tpr_) (NTH 2 tpr_))))
 (define (ty-pow-in! m)                 ; (IN m (POWER O)) from (SUBSET m O)
@@ -1006,7 +1096,7 @@
                    (lambda () (dk-cite! 'subset-mem-fwd b a z) (dk-ass!))))))
   (dk-cite! 'class-extensionality a b))
 (define (ty-hasfin! m g)               ; HAS-FINITE-SUBCOVER(s, m) from g subset m, CARD g in NN, BIG-UNION g == PTS s
-  (dk-have! (list 'HAS-FINITE-SUBCOVER 's m) (lambda () (mac 'has-finite-subcover) (ew g) (dk-conj-close! dk-ass!))))
+  (dk-have! (list 'HAS-FINITE-SUBCOVER 's m) (lambda () (mac 'has-finite-subcover-classes) (ew g) (dk-conj-close! dk-ass!))))
 
 (sp (make-wff (ty-alls '(s c0)
   (ty-imps '((IS-TOP-SPACE s) (FORALL tpu_ (IMPLIES (IN tpu_ c0) (IN tpu_ (OPENS s)))) (NOT (HAS-FINITE-SUBCOVER s c0)))
@@ -1088,8 +1178,8 @@
             (di)
             (dk-cite! 'subclass-of-set-is-set ub ty-O)
             (let* ((hf (list 'HAS-FINITE-SUBCOVER 's ub))
-                   (ex (dk-have! (caddr (dk-cite! 'has-finite-subcover 's ub)) (lambda () (mac-h 'HAS-FINITE-SUBCOVER (dk-ctx-form hf)) (ass))))
-                   (g (dk-skolem! (caddr (dk-cite! 'has-finite-subcover 's ub)) #t)))
+                   (ex (dk-have! (caddr (dk-cite! 'has-finite-subcover-classes 's ub)) (lambda () (mac-h 'has-finite-subcover-classes (dk-ctx-form hf)) (ass))))
+                   (g (dk-skolem! (caddr (dk-cite! 'has-finite-subcover-classes 's ub)) #t)))
               (dk-cite! 'subclass-of-set-is-set g ub)
               ;; CH' is a nonempty chain of sets
               (dk-have! (list 'FORSOME 'tph_ (list 'IN 'tph_ chp)) (lambda () (ew 'c0) (dk-ass!)))
@@ -1186,8 +1276,8 @@
 (dk-peel!)
 (let* ((pw '(PAIR w w)) (mw (list 'UNION 'mm pw))
        (hf (list 'HAS-FINITE-SUBCOVER 's mw))
-       (ex (dk-have! (caddr (dk-cite! 'has-finite-subcover 's mw)) (lambda () (mac-h 'HAS-FINITE-SUBCOVER (dk-ctx-form hf)) (ass))))
-       (g (dk-skolem! (caddr (dk-cite! 'has-finite-subcover 's mw)) #t))
+       (ex (dk-have! (caddr (dk-cite! 'has-finite-subcover-classes 's mw)) (lambda () (mac-h 'has-finite-subcover-classes (dk-ctx-form hf)) (ass))))
+       (g (dk-skolem! (caddr (dk-cite! 'has-finite-subcover-classes 's mw)) #t))
        (bg (list 'BIG-UNION 'tpv_ g 'tpv_))
        (g2 (list 'SEP 'tpq2_ g '(IN tpq2_ mm))))
   (dk-project! '(IN (OPENS s) (POWER (POWER (PTS s)))) 'is-top-space '(IS-TOP-SPACE s))
@@ -1356,7 +1446,7 @@
                     (for-each (lambda (l) (dk-focus! l) (dk-ass!)) (dk-opened (lambda () (bu-mi sbx)))))))))))
       (dk-cite! 'class-extensionality bfb (list 'PTS ty-T))
       (dk-have! (list '== bfb (list 'PTS ty-T)) (lambda () (subst (list '= bfb (list 'PTS ty-T))) (qrfl)))
-      (dk-have! (list 'HAS-FINITE-SUBCOVER ty-T 'mm) (lambda () (mac 'has-finite-subcover) (ew fb) (dk-conj-close! dk-ass!)))
+      (dk-have! (list 'HAS-FINITE-SUBCOVER ty-T 'mm) (lambda () (mac 'has-finite-subcover-classes) (ew fb) (dk-conj-close! dk-ass!)))
       (ai (list 'NOT (list 'HAS-FINITE-SUBCOVER ty-T 'mm))))))
 (ty-qed! 'tychonoff-factor-point)
 
@@ -1649,9 +1739,9 @@
                                   (prop))))))
                         (dk-cite! 'class-extensionality bgs (list 'PTS ty-T))
                         (dk-have! (list '== bgs (list 'PTS ty-T)) (lambda () (subst (list '= bgs (list 'PTS ty-T))) (qrfl)))
-                        (dk-have! (list 'HAS-FINITE-SUBCOVER ty-T mm) (lambda () (mac 'has-finite-subcover) (ew gs) (dk-conj-close! dk-ass!)))
+                        (dk-have! (list 'HAS-FINITE-SUBCOVER ty-T mm) (lambda () (mac 'has-finite-subcover-classes) (ew gs) (dk-conj-close! dk-ass!)))
                         (ai (list 'NOT (list 'HAS-FINITE-SUBCOVER ty-T mm))))))))))
-          (mac-h 'HAS-FINITE-SUBCOVER (dk-ctx-form hf0))
+          (mac-h 'has-finite-subcover-classes (dk-ctx-form hf0))
           (dk-ass!)))))
 (ty-qed! 'tychonoff)
 

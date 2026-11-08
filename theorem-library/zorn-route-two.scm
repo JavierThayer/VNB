@@ -324,7 +324,7 @@
 (qed 'ord-succ-lt-limit)
 
 (sp (make-wff `(FORALL a_ (IMPLIES (IN a_ ORD) ,(z2-P 'a_)))))
-(define z2-cases (dk-opened (lambda () (tfi3))))
+(define z2-cases (cdr (assq 'cases (dk-tfi3-fixed! '(grd porel)))))   ; W1D: grd, porel and the hypothesis block fixed
 
 ;;; ====================================================================
 ;;; BASE: ZUP(...,0) = CHOICE(grd), and nothing precedes stage 0.
@@ -362,14 +362,14 @@
                      (pair? (cadr f)) (eq? (car (cadr f)) 'IN)
                      (eq? (caddr (cadr f)) 'ORD)))))
 (define z2s-pp   (dk-split! z2s-pair))
-(define z2s-aord (z2-find z2s-pp (z2-head? 'IN)))
+(define z2s-aord (z2-find z2s-pp (lambda (f) (and ((z2-head? 'IN) f) (eq? (caddr f) 'ORD)))))   ; W1D: the IH's typing is an IN too
 (define z2s-a    (cadr z2s-aord))
-(define z2s-ih   (z2-find z2s-pp (z2-head? 'FORALL)))
+; W1D: grd, porel fixed: the IH is P(a) itself, split into z2s-pp
 (define z2s-za   `(ZUP grd porel ,z2s-a))
 ;; instantiate the induction hypothesis BEFORE splitting the hypothesis block:
 ;; it is guarded on the whole conjunction.
-(define z2s-ihres  (dk-split! (inst*! z2s-ih 'grd 'porel)))
-(define z2s-ztyp   (z2-find z2s-ihres (z2-head? 'IN)))
+(define z2s-ihres  z2s-pp)   ; W1D: was (dk-split! (inst*! z2s-ih 'grd 'porel))
+(define z2s-ztyp   (z2-find z2s-ihres (lambda (f) (and ((z2-head? 'IN) f) (eq? (caddr f) 'grd)))))   ; W1D
 (define z2s-ibelow (z2-find z2s-ihres (z2-head? 'FORALL)))
 (define z2s-hs     (z2-hyp-parts!))
 ;; something strictly above ZUP(a)
@@ -440,7 +440,7 @@
 
 ;; the induction hypothesis at a stage below lam, as (typing below-clause)
 (define (z2l-ih-at b)
-  (let ((parts (dk-split! (inst*! z2l-ih b 'grd 'porel))))
+  (let ((parts (dk-split! (inst*! z2l-ih b))))   ; W1D: grd, porel fixed
     (list (z2-find parts (z2-head? 'IN)) (z2-find parts (z2-head? 'FORALL)))))
 
 ;; open (IN v z2l-img); returns the stage it came from, leaving (IN v grd),
@@ -543,7 +543,7 @@
         (lambda ()
           (z2-peel!)
           ;; the stage's value is in the image, so the upper bound dominates it
-          (dk-split! (inst*! z2l-ih 'c_ 'grd 'porel))
+          (dk-split! (inst*! z2l-ih 'c_))   ; W1D: grd, porel fixed
           (have! `(IN (ZUP grd porel c_) ,z2l-img)
             (lambda ()
               (in-sep! (lambda () (ass))
@@ -560,7 +560,7 @@
   (lambda () (ass))
   (lambda ()
     (z2-peel!)
-    (dk-split! (inst*! z2l-ih 'b_ 'grd 'porel))
+    (dk-split! (inst*! z2l-ih 'b_))   ; W1D: grd, porel fixed
     (both!
       (lambda () (ass))
       (lambda ()

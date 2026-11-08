@@ -838,6 +838,7 @@
 (begin (dk-cite! 'dual-vec-in-set 'm) (dk-cite! 'dual-carrier-proven 'm))
 (begin (dk-cite! 'dual-vec-in-set 'm) (dk-cite! 'dual-scal-proven 'm))
 (mac 'IS-NORMED-VECTOR-SPACE)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (subst (list '= '(VEC (DUAL m)) dnv-DV))
 (subst (list '= '(SCAL (DUAL m)) dnv-ring))
 (for-each (lambda (mc) (vnb-guard (lambda () (mac mc))))

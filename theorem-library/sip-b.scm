@@ -889,13 +889,17 @@
 ;;; THE BRIDGE: (37)-(38) make a complex pre-Hilbert space a complex inner product space.
 (sp (make-wff '(FORALL v (IMPLIES (IS-COMPLEX-PRE-HILBERT-SPACE v) (IS-COMPLEX-INNER-PRODUCT-SPACE (CSIP-CIPS v))))))
 (dk-peel!)
+(fact 'csip-cips-length 'v)   ; W1J-C: first, so the term is certified defined before dk-isx-set!
+;; W1J-C: unfolded BEFORE the component facts land: dk-isx-set! splits G' in context, and a
+;; conjunct already there lands nothing (dk-split! errors)
+(mac 'IS-COMPLEX-INNER-PRODUCT-SPACE)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (for-each (lambda (n) (fact n 'v))
-  '(csip-cips-length csip-cips-scal-ring csip-cips-vec-set csip-cips-vadd-fun csip-cips-vzero-in csip-cips-vneg-fun
+  '(csip-cips-scal-ring csip-cips-vec-set csip-cips-vadd-fun csip-cips-vzero-in csip-cips-vneg-fun
     csip-cips-act-fun csip-cips-ip-fun csip-cips-assoc csip-cips-comm csip-cips-identity csip-cips-inverses
     csip-cips-scal-pin csip-cips-scal-carr csip-cips-act-vadd csip-cips-act-add csip-cips-act-mul csip-cips-act-one
     csip-cips-ip-add-left csip-cips-ip-homog-left csip-cips-ip-conj-sym csip-cips-ip-self-real
     csip-cips-ip-self-nonneg csip-cips-ip-definite))
-(mac 'IS-COMPLEX-INNER-PRODUCT-SPACE)
 (dk-conj-close! (lambda () (ass)))
 (sipb-qed! 'cphs-is-complex-inner-product-space)
 (alias! 'cphs-is-complex-inner-product-space "a complex pre-Hilbert space is a complex inner product space (37)-(38)")
@@ -1439,12 +1443,16 @@
 ;;; the underlying real space of a complex inner product space is a semi-inner-product space
 (sp (make-wff '(FORALL w (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE w) (IS-SEMI-INNER-PRODUCT-SPACE (CIPS-RSIP w))))))
 (dk-peel!)
+(fact 'cips-rsip-length 'w)   ; W1J-C: first, so the term is certified defined before dk-isx-set!
+;; W1J-C: unfolded BEFORE the component facts land: dk-isx-set! splits G' in context, and a
+;; conjunct already there lands nothing (dk-split! errors)
+(mac 'IS-SEMI-INNER-PRODUCT-SPACE)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (for-each (lambda (n) (fact n 'w))
-  '(cips-rsip-length cips-rsip-scal-ring cips-rsip-vec-set cips-rsip-vadd-fun cips-rsip-vzero-in cips-rsip-vneg-fun
+  '(cips-rsip-scal-ring cips-rsip-vec-set cips-rsip-vadd-fun cips-rsip-vzero-in cips-rsip-vneg-fun
     cips-rsip-act-fun cips-rsip-rip-fun cips-rsip-assoc cips-rsip-comm cips-rsip-identity cips-rsip-inverses
     cips-rsip-scal-pin cips-rsip-scal-carr cips-rsip-act-vadd cips-rsip-act-add cips-rsip-act-mul cips-rsip-act-one
     cips-rsip-rip-sym cips-rsip-rip-add-left cips-rsip-rip-homog-left cips-rsip-rip-self-nonneg))
-(mac 'IS-SEMI-INNER-PRODUCT-SPACE)
 (dk-conj-close! (lambda () (ass)))
 (sipb-qed! 'cips-rsip-is-sip)
 
@@ -1513,13 +1521,22 @@
 ;;; THE BRIDGE: (29)-(30) make a complex inner product space a complex pre-Hilbert space.
 (sp (make-wff '(FORALL w (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE w) (IS-COMPLEX-PRE-HILBERT-SPACE (CIPS-REAL w))))))
 (dk-peel!)
-(for-each (lambda (n) (fact n 'w))
-  '(cips-real-length cips-real-scal-ring cips-real-vec-set cips-real-vadd-fun cips-real-vzero-in cips-real-vneg-fun
-    cips-real-act-fun cips-real-rip-fun cips-real-jop-fun cips-real-sip cips-real-linear cips-real-square
-    cips-real-antisym cips-real-definite))
+(fact 'cips-real-length 'w)   ; W1J-C: first, so the term is certified defined before dk-isx-set!
+;; W1J-C: the component facts land AFTER dk-isx-set! (it splits G' in context, and a conjunct
+;; already there lands nothing), so they are a thunk run on each leaf of the definition
+(define (sipb-w1jc-real-facts!)
+  (for-each (lambda (n) (fact n 'w))
+    '(cips-real-scal-ring cips-real-vec-set cips-real-vadd-fun cips-real-vzero-in cips-real-vneg-fun
+      cips-real-act-fun cips-real-rip-fun cips-real-jop-fun cips-real-sip cips-real-linear cips-real-square
+      cips-real-antisym cips-real-definite)))
 (mac 'is-complex-pre-hilbert-space-def)
-(mac 'IS-COMPLEX-SEMI-INNER-PRODUCT-SPACE)
-(dk-conj-close! (lambda () (ass)))
+;; W1J-C: the parent IS-COMPLEX-SEMI-INNER-PRODUCT-SPACE is unfolded where it stands, so that dk-isx-set! meets
+;; its definiens alone (the conjunct t in SET, from the typings)
+(dk-conj-close!
+  (lambda ()
+    (if (dk-head-is? (dk-goal) 'IS-COMPLEX-SEMI-INNER-PRODUCT-SPACE)
+        (begin (mac 'IS-COMPLEX-SEMI-INNER-PRODUCT-SPACE) (dk-isx-set!) (sipb-w1jc-real-facts!) (dk-conj-close! (lambda () (ass))))
+        (begin (sipb-w1jc-real-facts!) (ass)))))
 (sipb-qed! 'cips-real-is-cphs)
 (alias! 'cips-real-is-cphs "a complex inner product space is a real pre-Hilbert space with J = i (29)-(30)")
 
@@ -1862,13 +1879,22 @@
 ;;; J DESCENDS: the quotient of a complex semi-inner-product space is a complex pre-Hilbert space.
 (sp (make-wff '(FORALL v (IMPLIES (IS-COMPLEX-SEMI-INNER-PRODUCT-SPACE v) (IS-COMPLEX-PRE-HILBERT-SPACE (CSIP-QUOTIENT v))))))
 (dk-peel!)
-(for-each (lambda (n) (fact n 'v))
-  '(csip-quotient-length csip-quotient-scal-ring csip-quotient-vec-set csip-quotient-vadd-fun csip-quotient-vzero-in
-    csip-quotient-vneg-fun csip-quotient-act-fun csip-quotient-rip-fun csip-quotient-jop-fun csip-quotient-sip
-    csip-quotient-linear csip-quotient-square csip-quotient-antisym csip-quotient-definite))
+(fact 'csip-quotient-length 'v)   ; W1J-C: first, so the term is certified defined before dk-isx-set!
+;; W1J-C: the component facts land AFTER dk-isx-set! (it splits G' in context, and a conjunct
+;; already there lands nothing), so they are a thunk run on each leaf of the definition
+(define (sipb-w1jc-quot-facts!)
+  (for-each (lambda (n) (fact n 'v))
+    '(csip-quotient-scal-ring csip-quotient-vec-set csip-quotient-vadd-fun csip-quotient-vzero-in
+      csip-quotient-vneg-fun csip-quotient-act-fun csip-quotient-rip-fun csip-quotient-jop-fun csip-quotient-sip
+      csip-quotient-linear csip-quotient-square csip-quotient-antisym csip-quotient-definite)))
 (mac 'is-complex-pre-hilbert-space-def)
-(mac 'IS-COMPLEX-SEMI-INNER-PRODUCT-SPACE)
-(dk-conj-close! (lambda () (ass)))
+;; W1J-C: the parent IS-COMPLEX-SEMI-INNER-PRODUCT-SPACE is unfolded where it stands, so that dk-isx-set! meets
+;; its definiens alone (the conjunct t in SET, from the typings)
+(dk-conj-close!
+  (lambda ()
+    (if (dk-head-is? (dk-goal) 'IS-COMPLEX-SEMI-INNER-PRODUCT-SPACE)
+        (begin (mac 'IS-COMPLEX-SEMI-INNER-PRODUCT-SPACE) (dk-isx-set!) (sipb-w1jc-quot-facts!) (dk-conj-close! (lambda () (ass))))
+        (begin (sipb-w1jc-quot-facts!) (ass)))))
 (sipb-qed! 'csip-quotient-is-cphs)
 (alias! 'csip-quotient-is-cphs "the quotient of a complex semi-inner-product space is a complex pre-Hilbert space")
 
@@ -2498,12 +2524,16 @@
 
 (sp (make-wff '(FORALL v (IMPLIES (IS-SEMI-INNER-PRODUCT-SPACE v) (IS-SEMI-INNER-PRODUCT-SPACE (CX-SIP v))))))
 (dk-peel!)
+(fact 'cx-sip-length 'v)   ; W1J-C: first, so the term is certified defined before dk-isx-set!
+;; W1J-C: unfolded BEFORE the component facts land: dk-isx-set! splits G' in context, and a
+;; conjunct already there lands nothing (dk-split! errors)
+(mac 'IS-SEMI-INNER-PRODUCT-SPACE)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (for-each (lambda (n) (fact n 'v))
-  '(cx-sip-length cx-sip-scal-ring cx-sip-vec-set cx-sip-vadd-fun cx-sip-vzero-in cx-sip-vneg-fun
+  '(cx-sip-scal-ring cx-sip-vec-set cx-sip-vadd-fun cx-sip-vzero-in cx-sip-vneg-fun
     cx-sip-act-fun cx-sip-rip-fun cx-sip-assoc cx-sip-comm cx-sip-identity cx-sip-inverses
     cx-sip-scal-pin cx-sip-scal-carr cx-sip-act-vadd cx-sip-act-add cx-sip-act-mul cx-sip-act-one
     cx-sip-rip-sym cx-sip-rip-add-left cx-sip-rip-homog-left cx-sip-rip-self-nonneg))
-(mac 'IS-SEMI-INNER-PRODUCT-SPACE)
 (dk-conj-close! (lambda () (ass)))
 (sipb-qed! 'cx-sip-is-sip)
 
@@ -2569,10 +2599,14 @@
 ;;; THE COMPLEXIFICATION OF A SEMI-INNER-PRODUCT SPACE IS A COMPLEX SEMI-INNER-PRODUCT SPACE
 (sp (make-wff '(FORALL v (IMPLIES (IS-SEMI-INNER-PRODUCT-SPACE v) (IS-COMPLEX-SEMI-INNER-PRODUCT-SPACE (COMPLEXIFY v))))))
 (dk-peel!)
-(for-each (lambda (n) (fact n 'v))
-  '(complexify-length complexify-scal-ring complexify-vec-set complexify-vadd-fun complexify-vzero-in complexify-vneg-fun
-    complexify-act-fun complexify-rip-fun complexify-jop-fun complexify-sip complexify-linear complexify-square complexify-antisym))
+(fact 'complexify-length 'v)   ; W1J-C: first, so the term is certified defined before dk-isx-set!
+;; W1J-C: unfolded BEFORE the component facts land: dk-isx-set! splits G' in context, and a
+;; conjunct already there lands nothing (dk-split! errors)
 (mac 'IS-COMPLEX-SEMI-INNER-PRODUCT-SPACE)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
+(for-each (lambda (n) (fact n 'v))
+  '(complexify-scal-ring complexify-vec-set complexify-vadd-fun complexify-vzero-in complexify-vneg-fun
+    complexify-act-fun complexify-rip-fun complexify-jop-fun complexify-sip complexify-linear complexify-square complexify-antisym))
 (dk-conj-close! (lambda () (ass)))
 (sipb-qed! 'complexify-is-csip)
 (alias! 'complexify-is-csip "the complexification of a semi-inner-product space is a complex semi-inner-product space")

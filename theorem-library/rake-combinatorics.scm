@@ -423,7 +423,7 @@
         (FORALL j (IMPLIES (IN j NN)
           (= (RING-POWER R x (+ j k))
              ((MUL R) (RING-POWER R x j) (RING-POWER R x k)))))))))))))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (dk-opened (lambda () (dk-ni-fixed! '(R x)))))   ; W1G-A: R, x fixed
        (base (rkp-base-s leaves))
        (step (rkp-step-s leaves)))
   ;; ---- base k = 0
@@ -449,10 +449,8 @@
          (jv (cadr e)) (kv (cadr (caddr e)))
          (mu (lambda (a b) (list (list 'MUL rv) a b)))
          (pw (lambda (n) (list 'RING-POWER rv xv n)))
-         (ih (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                       (pair? (caddr f)) (eq? (car (caddr f)) 'IMPLIES)
-                                       (equal? (cadr (caddr f)) (list 'IS-COMMUTATIVE-RING (cadr f)))))
-                      "the IH")))
+         (ih (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL) (dk-contains? f 'RING-POWER)))
+                      "the IH")))   ; W1G-A: R, x fixed; the IH is  forall j in NN. x^(j+k) = x^j * x^k
     (fact 'commutative-ring-is-ring rv)
     (have! (list 'AND (list 'IN jv 'NN) (list 'IN kv 'NN)))
     (fact 'nn-add-closed jv kv)
@@ -468,7 +466,7 @@
     (fact 'ring-power-succ-left rv xv (list '+ jv kv))
     (subst (list '= (pw (list 'succ (list '+ jv kv))) (mu xv (pw (list '+ jv kv)))))
     ;; IH: x^(j+k) = x^j * x^k
-    (dk-apply! ih rv xv jv)
+    (dk-apply! ih jv)   ; W1G-A: R, x fixed
     (subst (list '= (pw (list '+ jv kv)) (mu (pw jv) (pw kv))))
     ;; x^(succ k) = x * x^k
     (fact 'ring-power-succ-left rv xv kv)
@@ -514,7 +512,7 @@
         (FORALL y (IMPLIES (IN y (CARR R))
           (= (RING-POWER R ((MUL R) x y) n)
              ((MUL R) (RING-POWER R x n) (RING-POWER R y n)))))))))))))
-(let* ((leaves (dk-opened (lambda () (ni))))
+(let* ((leaves (dk-opened (lambda () (dk-ni-fixed! '(R x y)))))   ; W1G-A: R, x, y fixed
        (base (rkp-base-s leaves))
        (step (rkp-step-s leaves)))
   ;; ---- base n = 0:  (xy)^0 = 1 = 1*1 = x^0*y^0
@@ -548,10 +546,7 @@
          (mu (lambda (a b) (list (list 'MUL rv) a b)))
          (pwx (list 'RING-POWER rv xv nv))
          (pwy (list 'RING-POWER rv yv nv))
-         (ih (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                       (pair? (caddr f)) (eq? (car (caddr f)) 'IMPLIES)
-                                       (equal? (cadr (caddr f)) (list 'IS-COMMUTATIVE-RING (cadr f)))))
-                      "the IH")))
+         (ih #f))   ; W1G-A: R, x, y fixed; the IH is the equation itself, in context
     (fact 'commutative-ring-is-ring rv)
     (fact 'ring-carrier-closed-mul rv xv yv)
     (fact 'ring-power-type rv xv nv)
@@ -563,7 +558,7 @@
     (fact 'ring-power-succ-left rv pr nv)
     (subst (list '= (list 'RING-POWER rv pr (list 'succ nv)) (mu pr (list 'RING-POWER rv pr nv))))
     ;; IH: (xy)^n = x^n * y^n
-    (dk-apply! ih rv xv yv)
+    ; W1G-A: R, x, y fixed; the IH is the equation itself (was (dk-apply! ih rv xv yv))
     (subst (list '= (list 'RING-POWER rv pr nv) (mu pwx pwy)))
     ;; x^(succ n) = x * x^n  and  y^(succ n) = y * y^n
     (fact 'ring-power-succ-left rv xv nv)

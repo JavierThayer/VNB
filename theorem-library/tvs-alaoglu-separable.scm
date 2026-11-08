@@ -97,6 +97,7 @@
 (sp (make-wff (b6s-alls '(mt ss jj) (b6s-imps b6s-pbhyps (list 'IS-METRIC-SPACE b6s-PB)))))
 (dk-peel!)
 (mac 'IS-METRIC-SPACE)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (dk-cite! 'pullback-pts 'mt 'ss 'jj)
 (dk-cite! 'pullback-dist-slot 'mt 'ss 'jj)
 (subst (list '== (list 'PTS b6s-PB) 'ss))
@@ -1629,8 +1630,11 @@
     (dk-conj-close!
       (lambda ()
         (if (dk-head-is? (dk-goal) 'IS-METRIZABLE-TOP-SPACE)
-            (begin (mac 'is-metrizable-top-space-def)
-                   (dk-conj-close! (lambda () (if (not (dk-ass!)) (begin (ew Dm) (dk-conj-close! (lambda () (dk-ass!)))))))))
+            ;; W1F (2026-11-05): the law's existential is confined to SET and Dm is not known
+            ;; to be a set: cite the functor's typing theorem (witness: the repackaged metric).
+            (begin (dk-cite! 'metric-top-is-metrizable-top-space Dm)
+                   (subst (list '== b6s-TW0 (list 'METRIC-TOP Dm)))
+                   (dk-ass!)))
             (begin (subst (list '== b6s-TW0 (list 'METRIC-TOP Dm)))
                    (let ((mc (dk-cite! 'metric-top-compact Dm)))
                      (if (dk-only! mc (list 'IS-COMPACT Dm)) (prop))))))))

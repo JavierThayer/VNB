@@ -31,6 +31,82 @@
 ;;; bound is the citer compact-tb-proof (calculus/), which must follow this file
 ;;; together with calculus/finite-ball-subcover-proof.  Helper prefix `bcl-'.
 
+;;; =====================================================================
+;;; VIAGAP (2026-10-29): compactness read over CLASSES of open sets
+;;; =====================================================================
+;;; IS-COMPACT (structure-library/compactness.scm) now bounds the cover C and the
+;;; subcover F by SET, so that the definition is predicative where a comprehension
+;;; condition names it (VIAGAP-REPORT.md s.1).  The bound changes nothing: an open
+;;; cover is a family of subsets of PTS(s), hence a set (family-of-subsets-is-set),
+;;; and a subclass of a set is a set (subclass-of-set-is-set).  This theorem states
+;;; the definition's former shape, so that the proofs which read compactness cite it
+;;; in place of the definition.
+
+(define (bcl-cover-set! s c)              ; (IS-OPEN-COVER s c), (IS-METRIC-SPACE s) in context: land (IN c SET)
+  (dk-have! `(IN ,c SET)
+    (lambda ()
+      (let* ((parts (dk-split! (car (dk-landed (lambda () (mac-h 'is-open-cover `(IS-OPEN-COVER ,s ,c)))))))
+             (all (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'IS-OPEN))) parts)))
+        (dk-have! `(IN (PTS ,s) SET)
+          (lambda () (dk-split! (car (dk-landed (lambda () (mac-h 'is-metric-space `(IS-METRIC-SPACE ,s)))))) (ass)))
+        (dk-have! `(FORALL bclu_ (IMPLIES (IN bclu_ ,c) (SUBSET bclu_ (PTS ,s))))
+          (lambda ()
+            (let ((u (dk-di-var!)))
+              (dk-apply! all u)
+              (dk-split! (car (dk-landed (lambda () (mac-h 'is-open `(IS-OPEN ,s ,u))))))
+              (ass))))
+        (dk-cite! 'family-of-subsets-is-set `(PTS ,s) c)
+        (ass)))))
+
+(define (bcl-cpt-fwd!)                    ; IS-COMPACT(s) in context, the class form the goal
+  (let* ((hyp (or (find-first (lambda (f) (dk-head-is? f 'IS-COMPACT)) (dk-asms))
+                  (error "bcl-cpt-fwd!: no IS-COMPACT hypothesis")))
+         (parts (dk-split! (car (dk-landed (lambda () (mac-h 'is-compact hyp))))))
+         (law (find-first (lambda (f) (dk-head-is? f 'FORALL)) parts)))
+    (dk-conj-close!
+      (lambda ()
+        (if (dk-head-is? (dk-goal) 'IS-METRIC-SPACE)
+            (ass)
+            (let* ((landed (dk-peel!))
+                   (cov (find-first (lambda (f) (dk-head-is? f 'IS-OPEN-COVER)) landed))
+                   (c (caddr cov)))
+              (bcl-cover-set! 's c)
+              (let ((w (dk-skolem! (dk-apply! law c) #t)))
+                (ew w)
+                (dk-conj-close! (lambda () (ass))))))))))
+
+(define (bcl-cpt-bwd!)                    ; the class form in context, IS-COMPACT(s) the goal
+  (let* ((parts (dk-split! (or (find-first (lambda (f) (and (dk-head-is? f 'AND) (dk-contains? f 'IS-OPEN-COVER)))
+                                           (dk-asms))
+                               (error "bcl-cpt-bwd!: no class-form hypothesis"))))
+         (law (find-first (lambda (f) (dk-head-is? f 'FORALL)) parts)))
+    (mac 'is-compact)
+    (dk-conj-close!
+      (lambda ()
+        (if (dk-head-is? (dk-goal) 'IS-METRIC-SPACE)
+            (ass)
+            (let* ((landed (dk-peel!))
+                   (cov (find-first (lambda (f) (dk-head-is? f 'IS-OPEN-COVER)) landed))
+                   (c (caddr cov))
+                   (w (dk-skolem! (dk-apply! law c) #t)))
+              (dk-cite! 'subclass-of-set-is-set w c)
+              (ew w)
+              (dk-conj-close! (lambda () (ass)))))))))
+
+(sp (make-wff '(FORALL s (IFF (IS-COMPACT s)
+   (AND (IS-METRIC-SPACE s)
+        (FORALL C (IMPLIES (IS-OPEN-COVER s C)
+          (FORSOME F (AND (SUBSET F C) (AND (IN (CARD F) NN) (IS-OPEN-COVER s F)))))))))))
+(di)
+(dk-iff! (lambda (g) (dk-head-is? g 'AND)) bcl-cpt-fwd! bcl-cpt-bwd!)
+(qed 'is-compact-classes)
+(topic! 'is-compact-classes 'topology)
+(gloss! 'is-compact-classes
+  "Compactness read over arbitrary classes of open sets: every open cover, set or
+   class, has a finite subcover.  The definition quantifies over sets only; an open
+   cover is a family of subsets of the points, hence a set, so the two agree.")
+
+
 (define (bcl-close-all!)                     ; every leaf a branching step opened
   (for-each (lambda (l) (dk-focus! l) (ass)) (proof-leaves)))
 

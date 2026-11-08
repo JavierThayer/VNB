@@ -208,7 +208,7 @@
   (dk-have! (list 'FORALL 'k_ (list 'IMPLIES '(IN k_ NN) (list 'IN (list (pfw-h z) 'k_) 'RR)))
     (lambda () (let ((k (dk-di-var!))) (pfw-h-at! z k) (pfw-close-open!))))
   (pfw-chain! (dk-fact! 'series-partial-sum-in-rr-ptwise m (pfw-h z))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(pwg_))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-B: pwg_ fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (pfw-rr-setting!)
@@ -231,7 +231,7 @@
   (let* ((gk (list 'pwg_ (list '/ v 'pwn_)))
          (sc (list 'VNB-LAMBDA 'pfx_ 'RR (list '* gk (list (pfw-T v) 'pfx_))))
          (sm (list 'VNB-LAMBDA 'pfx_ 'RR (list '+ (list (pfw-S v) 'pfx_) (list sc 'pfx_)))))
-    (dk-apply! ih 'pwg_ 'pwn_ 'a 'b)
+    (dk-apply! ih 'pwn_ 'a 'b)   ; W1G-B: pwg_ fixed
     (fact 'nn-subset-zz v)
     (pfw-T-poly! v)
     (pfw-gk! v)

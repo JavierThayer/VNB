@@ -53,7 +53,7 @@
 ;; T^k w is a vector
 (sp (make-wff '(FORALL k (IMPLIES (IN k NN) (FORALL md (FORALL tt (IMPLIES (IS-HOM-MODULE md md tt)
   (FORALL w (IMPLIES (IN w (VEC md)) (IN (OP-ITER md tt w k) (VEC md)))))))))))
-(ni)
+(dk-ni-fixed!)   ; W1C: the module and the operator fixed
 (define go1-l (go-ind-leaves!))
 (dk-focus! (car go1-l))
 (dk-peel!)
@@ -62,7 +62,7 @@
 (dk-focus! (cdr go1-l))
 (define go1-ih (find-first (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'OP-ITER))) (dk-peel!)))
 (go-hom!)
-(dk-apply! go1-ih 'md 'tt 'w)
+(dk-apply! go1-ih 'w)   ; W1C: md, tt fixed
 (subst (dk-cite! 'op-iter-succ 'md 'tt 'w 'k))
 (go-tt-type! (go-it 'w 'k))
 (ass)
@@ -72,14 +72,14 @@
 ;; T^k is additive, homogeneous, and commutes with T
 (define (go-iter-law! name stmt base! step!)
   (sp (make-wff stmt))
-  (ni)
+  (dk-ni-fixed!)   ; W1C: md, tt fixed
   (let ((l (go-ind-leaves!)))
     (dk-focus! (car l))
     (dk-peel!)
     (go-hom!)
     (base!)
     (dk-focus! (cdr l))
-    (let ((ih (find-first (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'OP-ITER))) (dk-peel!))))
+    (let ((ih (find-first (lambda (fm) (dk-contains? fm 'OP-ITER)) (dk-peel!))))   ; W1C: the IH at the fixed md, tt
       (go-hom!)
       (step! ih)))
   (qed name)
@@ -97,7 +97,7 @@
     (dk-cite! 'module-vadd-type 'md 'a 'b)
     (go-it-type! 'a 'k) (go-it-type! 'b 'k) (go-it-type! (go-vadd 'a 'b) 'k)
     (go-s! (go-vadd 'a 'b) 'k) (go-s! 'a 'k) (go-s! 'b 'k)
-    (subst (dk-apply! ih 'md 'tt 'a 'b))
+    (subst (dk-apply! ih 'a 'b))
     (subst (dk-apply! go-hom-add (go-it 'a 'k) (go-it 'b 'k)))
     (go-rfl-or-ass!)))
 
@@ -109,7 +109,7 @@
     (dk-cite! 'module-act-type 'md 'c 'a)
     (go-it-type! 'a 'k) (go-it-type! (go-act 'c 'a) 'k)
     (go-s! (go-act 'c 'a) 'k) (go-s! 'a 'k)
-    (subst (dk-apply! ih 'md 'tt 'c 'a))
+    (subst (dk-apply! ih 'c 'a))
     (subst (dk-apply! go-hom-act 'c (go-it 'a 'k)))
     (go-rfl-or-ass!)))
 
@@ -120,7 +120,7 @@
     (go-tt-type! 'w)
     (go-it-type! 'w 'k) (go-it-type! '(tt w) 'k)
     (go-s! '(tt w) 'k) (go-s! 'w 'k)
-    (subst (dk-apply! ih 'md 'tt 'w))
+    (subst (dk-apply! ih 'w))
     (go-tt-type! (go-it 'w 'k)) (go-tt-type! (list 'tt (go-it 'w 'k)))
     (go-rfl-or-ass!)))
 
@@ -129,7 +129,7 @@
   (lambda () (go-z! '(VZERO md)) (go-rfl-or-ass!))
   (lambda (ih)
     (go-s! '(VZERO md) 'k)
-    (subst (dk-apply! ih 'md 'tt))
+    (subst ih)
     (go-rfl-or-ass!)))
 
 ;; a finite sum over 1..n is the SUM-AG of the shifted sequence
@@ -137,7 +137,7 @@
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (list 'FORALL 'ag (list 'IMPLIES '(IS-ABELIAN-GROUP ag)
   (list 'FORALL 'h (list 'IMPLIES '(IN h (FUN (INTERVAL 1 n) (CARR ag)))
     (list '= '(FINSUM ag h (INTERVAL 1 n)) (list 'SUM-AG 'ag (go-sh 'h) 'n))))))))))
-(ni)
+(dk-ni-fixed!)   ; W1C: the module and the operator fixed
 (define go2-l (go-ind-leaves!))
 (dk-focus! (car go2-l))
 (dk-peel!)
@@ -190,7 +190,7 @@
     (dk-lam-type!
       (lambda () (let ((z (dk-di-var!))) (go2-pt! z) (ass)))
       (lambda () (ass)))))
-(subst (dk-apply! go2-ih 'ag go2-h2))
+(subst (dk-apply! go2-ih go2-h2))   ; W1C: ag fixed
 (dk-have! (list 'FORALL 'gbi_ (list 'IMPLIES '(IN gbi_ (ORD-SEGMENT n)) (list '== (list (go-sh go2-h2) 'gbi_) (list (go-sh 'h) 'gbi_))))
   (lambda ()
     (dk-peel!)
@@ -402,7 +402,7 @@
 
 (sp (make-wff (list 'FORALL 'j (list 'IMPLIES '(IN j NN)
   (go-poly-stmt (list '= (go-S 'p 'w '(succ (+ (DEG (SCAL md) p) j))) (go-S 'p 'w '(succ (DEG (SCAL md) p)))))))))
-(ni)
+(dk-ni-fixed!)   ; W1C: the module and the operator fixed
 (define go4-l (go-ind-leaves!))
 (dk-focus! (car go4-l))
 (dk-peel!)
@@ -422,7 +422,7 @@
 (fact 'nn-succ-closed go4-Dj)
 (subst (dk-cite! 'nn-add-succ '(DEG (SCAL md) p) 'j))
 (subst (dk-cite! 'sum-ag-succ go-mv (go-ps 'p 'w) (list 'succ go4-Dj)))
-(subst (dk-apply! go4-ih 'md 'tt 'p 'w))
+(subst (dk-apply! go4-ih 'p 'w))   ; W1C: md, tt fixed
 (let ((val (go-ps-at! 'p 'w (list 'succ go4-Dj))))
   (subst (list '= (list (go-ps 'p 'w) (list 'succ go4-Dj)) val)))
 (dk-have! (list '< '(DEG (SCAL md) p) (list 'succ go4-Dj)) (lambda () (dk-nn!)))
@@ -586,7 +586,7 @@
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (list 'FORALL 'md (list 'FORALL 'tt (list 'IMPLIES '(IS-HOM-MODULE md md tt)
   (list 'FORALL 'g (list 'IMPLIES (go-gtyp 'n)
     (list '= (list 'tt (list 'SUM-AG go-mv 'g 'n)) (list 'SUM-AG go-mv go-tg 'n)))))))))))
-(ni)
+(dk-ni-fixed!)   ; W1C: the module and the operator fixed
 (define go6-l (go-ind-leaves!))
 (dk-focus! (car go6-l))
 (dk-peel!)
@@ -598,7 +598,7 @@
 (dk-type! '(tt (VZERO md)) '(VEC md))
 (go-rfl-or-ass!)
 (dk-focus! (cdr go6-l))
-(define go6-ih (find-first (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'SUM-AG))) (dk-peel!)))
+(define go6-ih (find-first (lambda (fm) (and (dk-head-is? fm 'IMPLIES) (dk-contains? fm 'SUM-AG))) (dk-peel!)))   ; W1C: md tt g fixed
 (go-hom!)
 (go-seg-down! 'n)
 (define (go6-styp! n)
@@ -615,7 +615,7 @@
 (subst (dk-cite! 'sum-ag-succ go-mv go-tg 'n))
 (subst (list '= (list 'OPR go-mv) '(VADD md)))
 (subst (dk-apply! go-hom-add (list 'SUM-AG go-mv 'g 'n) '(g n)))
-(subst (dk-apply! go6-ih 'md 'tt 'g))
+(subst (dk-landed-1 (lambda () (detach! go6-ih))))   ; W1C: was (dk-apply! go6-ih 'md 'tt 'g)
 (go-tt-type! '(g n))
 (dk-have! (list 'FORALL 'gbi_ (list 'IMPLIES (list 'IN 'gbi_ '(ORD-SEGMENT n)) (list 'IN (list go-tg 'gbi_) (list 'CARR go-mv))))
   (lambda () (dk-peel!) (let ((i (cadr (cadr (dk-goal)))))
@@ -664,7 +664,7 @@
 
 (sp (make-wff (list 'FORALL 'j (list 'IMPLIES '(IN j NN)
   (go-poly-stmt (list '= (go-pop 'p (go-it 'w 'j)) (go-it (go-pop 'p 'w) 'j)))))))
-(ni)
+(dk-ni-fixed!)   ; W1C: the module and the operator fixed
 (define go8-l (go-ind-leaves!))
 (dk-focus! (car go8-l))
 (dk-peel!)
@@ -681,7 +681,7 @@
 (go-s! 'w 'j)
 (go-s! (go-pop 'p 'w) 'j)
 (subst (dk-cite! 'poly-op-commutes 'md 'tt 'p (go-it 'w 'j)))
-(subst (dk-apply! go8-ih 'md 'tt 'p 'w))
+(subst (dk-apply! go8-ih 'p 'w))   ; W1C: md, tt fixed
 (go-it-type! (go-pop 'p 'w) 'j)
 (go-tt-type! (go-it (go-pop 'p 'w) 'j))
 (go-rfl-or-ass!)
@@ -694,7 +694,7 @@
   (list 'FORALL 'p (list 'IMPLIES '(IN p (CARR (POLY (SCAL md))))
     (list 'FORALL 'g (list 'IMPLIES (go-gtyp 'n) (list 'IMPLIES (go-gker 'n)
       (list '= (go-pop 'p (list 'SUM-AG go-mv 'g 'n)) '(VZERO md))))))))))))))
-(ni)
+(dk-ni-fixed!)   ; W1C: the module and the operator fixed
 (define go9-l (go-ind-leaves!))
 (dk-focus! (car go9-l))
 (dk-peel!)
@@ -724,7 +724,7 @@
 (subst (dk-cite! 'sum-ag-succ go-mv 'g 'n))
 (subst (list '= (list 'OPR go-mv) '(VADD md)))
 (subst (dk-cite! 'poly-op-add 'md 'tt 'p (list 'SUM-AG go-mv 'g 'n) '(g n)))
-(subst (dk-apply! go9-ih 'md 'tt 'p 'g))
+(subst (dk-apply! go9-ih 'p))   ; W1C: md, tt, g fixed
 (subst (list '= (go-pop 'p '(g n)) '(VZERO md)))
 (dk-cite! 'module-vzero-in 'md)
 (subst (dk-cite! 'abelian-group-right-id-module-vector-ag 'md '(VZERO md)))
@@ -1175,7 +1175,7 @@
 (topic! 'krylov-span-invariant 'algebra)
 
 (sp (make-wff (list 'FORALL 'j (list 'IMPLIES '(IN j NN) (go-kh (list 'IN (go-it 'v 'j) go-SP))))))
-(ni)
+(dk-ni-fixed!)   ; W1C: the module and the operator fixed
 (define go16-l (go-ind-leaves!))
 (dk-focus! (car go16-l))
 (dk-peel!)
@@ -1187,7 +1187,7 @@
 (dk-focus! (cdr go16-l))
 (define go16-ih (find-first (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'LIN-SPAN))) (dk-peel!)))
 (go-kh-setup!)
-(dk-apply! go16-ih 'md 'tt 'v 'k)
+(dk-apply! go16-ih 'v 'k)   ; W1C: md, tt fixed
 (go-it-type! 'v 'j)
 (dk-cite! 'krylov-span-invariant 'md 'tt 'v 'k (go-it 'v 'j))
 (go-s! 'v 'j)

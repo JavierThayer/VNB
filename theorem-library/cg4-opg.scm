@@ -60,7 +60,7 @@
 (define (co4-type! p x) (dk-real! x) (dk-cite! 'fun-apply-type-c p 'RR '(CARR g) x))
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (co4-forall '(g al psia psib) (co4-implies co4-hyps
    '(FORALL r (IMPLIES (IN r RR) (IMPLIES (<= 0 r) (IMPLIES (<= r al) (= (psia (+ (* n al) r)) (psib (+ (* n al) r)))))))))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(g al psia psib))) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: g al psia psib fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (dk-cite! 'rr-pos-rr-in-rr 'al)
@@ -80,7 +80,7 @@
     (dk-real! (list '* n 'al)) (dk-real! x) (dk-real! xa) (dk-real! (list '+ n 1)) (dk-real! (list '* (list '+ n 1) 'al)) (dk-real! lhs)
     (dk-have! (list '= lhs xa) (lambda () (crs)))
     (subst (list '= lhs xa))
-    (dk-apply! ih 'g 'al 'psia 'psib)
+    ; W1D: g al psia psib fixed; the IH is the universal at r below
     (dk-apply! (dk-pick (lambda (h) (and (dk-head-is? h 'FORALL) (eq? (cadr h) 'r) (dk-contains? h n))) "the induction hypothesis at r") 'r)
     (dk-have! '(<= 0 al) (lambda () (dk-ineq! '(< 0 al))))
     (dk-have! '(<= al al) (lambda () (dk-ineq!)))

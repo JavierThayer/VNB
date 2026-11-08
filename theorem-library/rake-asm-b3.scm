@@ -230,6 +230,14 @@
 (dk-cite! 'membership-implies-sethood rb3-lact '(FUN (CARTESIAN RR (VEC m)) (VEC m)))
 (dk-split-all! (list (dk-cite! 'rb3-tuple6 '(VEC m) '(VADD m) '(VZERO m) '(VNEG m) rb3-lact)))
 (define rb3-vs (dk-project! '(IN (VEC m) SET) 'is-module '(IS-MODULE m)))
+;; W1J-C: the witness's sethood (IS-MODULE's conjunct L in SET), on a lane before `ew': its
+;; components are accessors of m, which mixes dk-isx-set!'s tuple read-off (W1I's known limit),
+;; so dk-list-in-set! types the literal LIST directly; the closer below takes the leaf by `ass'
+(dk-have! (list 'IN rb3-L 'SET)
+  (lambda ()
+    (dk-cite! 'rr-is-normed-field)
+    (dk-cite! 'normed-field-as-commutative-ring-is-commutative-ring 'RR-NORMED-FIELD)
+    (dk-list-in-set!)))
 (ew rb3-L)
 (define (rb3-slot-subst!)
   (for-each (lambda (acc val) (if (dk-contains? (dk-goal) (list acc rb3-L)) (subst (list '= (list acc rb3-L) val))))
@@ -1201,6 +1209,7 @@
 (dk-have! (list 'IN rb3-gsep 'SET) (lambda () (sep-set) (rb3-close!)))
 (dk-cite! 'empty-set-is-set)
 (mac 'is-top-space)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (subst '(= (PTS (PSEUDO-GAUGE-TOP fam g)) g))
 (subst (list '= '(OPENS (PSEUDO-GAUGE-TOP fam g)) rb3-gsep))
 (dk-conj-close!
@@ -1439,6 +1448,7 @@
         (begin (slot 'PTS) (nth-r) (qrfl))
         (begin
           (mac 'is-pseudometric-space)
+          (dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
           (slot 'PTS) (slot 'DIST) (nth-r)
           (dk-conj-close!
             (lambda ()
@@ -1551,6 +1561,7 @@
    (IMPLIES (IS-PSEUDOMETRIC dq_ pq_) (IS-PSEUDOMETRIC-SPACE (LIST pq_ dq_)))))))))
 (dk-peel!)
 (mac 'is-pseudometric-space)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (slot 'PTS) (slot 'DIST) (nth-r)
 (dk-conj-close! (lambda () (if (dk-asm? (dk-goal)) (ass) (begin (len-r) (arith)))))
 (rb3-qed! 'rb3-pms-of)
@@ -1956,6 +1967,7 @@
 (rb3-lam-set!)                          ; R4-G: rb3-tuple2d's guards
 (dk-split-all! (list (dk-cite! 'rb3-tuple2d 'g rb3-lam)))
 (mac 'is-c-metric-space)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (subst (list '= (list 'PTS rb3-cs) 'g))
 (subst (list '= (list 'DISTS rb3-cs) rb3-lam))
 (dk-conj-close!
@@ -2292,17 +2304,20 @@
               (lambda () (side! rb3-sepg))))))
       (dk-cite! 'class-extensionality rb3-sepc rb3-sepg)
       (rb3-close!))))
-(mac 'is-metrizable-top-space-def)
-(dk-conj-close!
+;; W1F (2026-11-05): the law's existential is confined to SET and C-METRIC-W(cs, dy) is not
+;; known to be a set, so the space is shown to be METRIC-TOP of the metric and the functor's
+;; typing theorem (whose witness is the repackaged metric) is cited.
+(dk-have! (list '== 's (list 'METRIC-TOP rb3-mdc))
   (lambda ()
-    (if (dk-asm? (dk-goal)) (ass)
-      (rb3-ew-close! rb3-mdc
-        (lambda ()
-          (subst (list '= (list 'PTS rb3-mdc) 'g))
-          (subst (list '= rb3-sepc rb3-sepg))
-          (subst (list '= 's rb3-pgt))
-          (mac 'PSEUDO-GAUGE-TOP)
-          (qrfl))))))
+    (mac 'METRIC-TOP)
+    (subst (list '= (list 'PTS rb3-mdc) 'g))
+    (subst (list '= rb3-sepc rb3-sepg))
+    (subst (list '= 's rb3-pgt))
+    (mac 'PSEUDO-GAUGE-TOP)
+    (qrfl)))
+(dk-cite! 'metric-top-is-metrizable-top-space rb3-mdc)
+(subst (list '== 's (list 'METRIC-TOP rb3-mdc)))
+(rb3-close!)
 (rb3-qed! 'rb3-mgc-bwd)
 
 ;;; =====================================================================

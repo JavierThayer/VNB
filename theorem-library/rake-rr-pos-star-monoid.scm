@@ -130,6 +130,7 @@
 
 (sp (make-wff '(IS-COMM-MONOID RR-POS-STAR-ADD-MONOID)))
 (mac 'IS-COMM-MONOID)
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 ;;; `quietly' silences the STATE DUMP only -- surface-goal! prints one line per
 ;;; rewrite and the log drowns in it.  It does not rely on a guard (the same
 ;;; note zz-ring-is-ring.scm:136 carries).

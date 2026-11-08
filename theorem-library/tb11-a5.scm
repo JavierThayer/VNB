@@ -16,7 +16,7 @@
 ;;; ---- the finite product is in the carrier ----
 (sp (make-wff '(FORALL n (IMPLIES (IN n NN) (FORALL m (IMPLIES (IS-MONOID m)
    (FORALL u (IMPLIES (IN u (FUN NN (CARR m))) (IN (MPROD m u n) (CARR m))))))))))
-(define ta5-br (use-induction))
+(define ta5-br (dk-use-induction-fixed! '(m)))   ; W1D: m fixed
 (dk-focus! (cdr (assq 'base ta5-br)))
 (dk-peel!)
 (mac 'mprod-zero)
@@ -25,7 +25,7 @@
 (dk-focus! (cdr (assq 'step ta5-br)))
 (let ((k (cdr (assq 'var ta5-br))) (ih (cdr (assq 'ih ta5-br))))
   (dk-peel!)
-  (dk-apply! (dk-apply! ih 'm) 'u)
+  (dk-apply! ih 'u)   ; W1D: m fixed
   (dk-cite! 'fun-apply-type-c 'u 'NN ta5-C k)
   (fact 'mprod-succ 'm 'u k)
   (subst (list '== (ta5-P 'u (list 'succ k)) (ta5-op (ta5-P 'u k) (list 'u k))))
@@ -66,7 +66,7 @@
 (sp (make-wff (list 'FORALL 'k (list 'IMPLIES '(IN k NN) (list 'FORALL 'm (list 'IMPLIES '(IS-MONOID m)
    (list 'FORALL 'u (list 'IMPLIES '(IN u (FUN NN (CARR m))) (list 'FORALL 'a (list 'IMPLIES '(IN a NN)
      (list '= (ta5-P 'u '(+ a k)) (ta5-op (ta5-P 'u 'a) (ta5-P (ta5-shift 'u 'a) 'k)))))))))))))
-(define ta5-br2 (use-induction))
+(define ta5-br2 (dk-use-induction-fixed! '(m)))   ; W1D: m fixed
 (dk-focus! (cdr (assq 'base ta5-br2)))
 (dk-peel!)
 (let ((v (ta5-shift-typed! 'u 'a)))
@@ -84,7 +84,7 @@
   (let* ((v (ta5-shift-typed! 'u 'a))
          (ak (list '+ 'a k))
          (pa (ta5-P 'u 'a)) (qk (ta5-P v k)) (vk (list v k)) (uak (list 'u ak)))
-    (dk-apply! (dk-apply! (dk-apply! ih 'm) 'u) 'a)
+    (dk-apply! (dk-apply! ih 'u) 'a)   ; W1D: m fixed
     (ta5-and! '(IN a NN) (list 'IN k 'NN))
     (fact 'nn-add-closed 'a k)
     (dk-cite! 'nn-add-succ 'a k)
@@ -318,7 +318,7 @@
 
 (sp (make-wff (list 'FORALL 'nb_ (list 'IMPLIES '(IN nb_ NN)
    (ta5-gauge (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (list 'IMPLIES '(<= n nb_) (ta5-claim 'n)))))))))
-(define ta5-br4 (use-induction))
+(define ta5-br4 (dk-use-induction-fixed! '(m g)))   ; W1D: m, g and the gauge hypotheses fixed
 ;; ---- base: n = 0 ----
 (dk-focus! (cdr (assq 'base ta5-br4)))
 (let* ((pl (dk-peel!))
@@ -336,7 +336,7 @@
 (define ta5-N (cdr (assq 'var ta5-br4)))
 (define ta5-ih (cdr (assq 'ih ta5-br4)))
 (define (ta5-ih-at! j u)                ; j <= N in context: land g(P(u, j)) <= 2 S(gu(u), j)
-  (dk-apply! (dk-apply! (dk-apply! (dk-apply! (dk-apply! ta5-ih 'm) 'g) j) u)))
+  (dk-apply! (dk-apply! (dk-apply! ta5-ih j) u)))   ; W1D: m, g fixed
 (define (ta5-step-claim! u)
   ;; g(P(u, succ N)) <= 2 S(gu(u), succ N), for u in FUN(NN, CARR m) in context
   (let* ((N ta5-N) (sN (list 'succ N))
@@ -603,7 +603,7 @@
    (list 'FORALL 'u (list 'IMPLIES '(IN u (FUN NN (CARR m))) (list 'FORALL 'w (list 'IMPLIES '(IN w (FUN NN (CARR m)))
      (list 'IMPLIES '(FORALL i (IMPLIES (IN i NN) (IMPLIES (< i k) (= (u i) (w i)))))
        (list '= (ta5-P 'u 'k) (ta5-P 'w 'k)))))))))))))
-(define ta5-br5 (use-induction))
+(define ta5-br5 (dk-use-induction-fixed! '(m)))   ; W1D: m fixed
 (dk-focus! (cdr (assq 'base ta5-br5)))
 (dk-peel!)
 (fact 'monoid-identity-in 'm)
@@ -622,7 +622,7 @@
           (ta5-ass!))))
     (dk-have! (list '< k (list 'succ k)) (lambda () (dk-nn!)))
     (dk-apply! agr k)
-    (dk-apply! (dk-apply! (dk-apply! ih 'm) 'u) 'w)
+    (dk-apply! (dk-apply! ih 'u) 'w)   ; W1D: m fixed
     (ta5-P-typed! 'u k) (ta5-P-typed! 'w k)
     (dk-cite! 'fun-apply-type-c 'u 'NN ta5-C k)
     (dk-cite! 'fun-apply-type-c 'w 'NN ta5-C k)

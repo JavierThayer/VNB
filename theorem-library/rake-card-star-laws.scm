@@ -895,7 +895,7 @@
          ;; the peeled class below.  It is the FORALL that mentions EMPTY-SET;
          ;; the insert-closure hypothesis is the one that does not.
          (ih   (dk-pick (lambda (f) (and (r7x-head? f 'FORALL)
-                                         (dk-contains? f 'EMPTY-SET)))
+                                         (dk-contains? f 'CARD) (not (dk-contains? f 'UNION))))   ; W1G-B: c_ fixed, the IH is forall s_. .. CARD(s_) = n ..
                         "the induction hypothesis"))
          (stp  (dk-pick (lambda (f) (and (r7x-head? f 'FORALL)
                                          (dk-contains? f 'UNION)
@@ -921,7 +921,7 @@
              (lambda () (subst (list '= (list 'CARD im) nv)) (ass)))
       (dk-fact! 'seg-image-insert nv sv gv)
       (dk-fact! 'seg-image-omits-top nv sv gv)
-      (r7x-apply! ih cv im)                           ; (IN IM c)
+      (r7x-apply! ih im)                           ; (IN IM c)   ; W1G-B: c_ fixed
       (have! (list 'AND (list 'IN im 'SET)
                    (list 'AND (list 'IN (list 'CARD im) 'NN) (list 'IN im cv))))
       (have! (list 'AND (list 'IN pt 'SET) (list 'NOT (list 'IN pt im))))
@@ -929,7 +929,7 @@
       (subst (list '= sv (list 'UNION im (list 'PAIR pt pt))))
       (ass))))
 
-(let* ((br   (use-induction))
+(let* ((br   (dk-use-induction-fixed! '(c_)))   ; W1G-B: c_ fixed
        (base (cdr (assq 'base br)))
        (step (cdr (assq 'step br))))
   (dk-focus! base)

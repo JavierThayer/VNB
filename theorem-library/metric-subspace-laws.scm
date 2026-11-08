@@ -225,6 +225,7 @@
 ;; first (on a lane: msub-a-set! consumes the folded hypothesis).
 (dk-have! '(IN A SET) (lambda () (msub-a-set!)))
 (mac 'IS-METRIC-SPACE)      ; the GOAL only; the hypothesis stays folded
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (mac 'subspace-pts)         ; PTS(SUBSPACE-MS s A) -> A
 (mac 'subspace-dist-slot)   ; DIST(SUBSPACE-MS s A) -> the lambda
 (msub-and!

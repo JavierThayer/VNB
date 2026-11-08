@@ -76,7 +76,7 @@
 ;;; ---- V^k is a set ----
 (define (sp2-set! k) (dk-cite! 'set-power-is-set k 'g 'V))
 (sp (make-wff '(FORALL k (IMPLIES (IN k NN) (FORALL g (FORALL V (IMPLIES (IS-GROUP g) (IN (SET-POWER g V k) SET))))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(g V))) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: g, V fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (dk-cite! 'set-power-zero 'g 'V)
@@ -87,7 +87,7 @@
   (sp2-ass!)
   (dk-focus! (cdr (assq 'step ind)))
   (dk-peel!)
-  (dk-apply! ih 'g 'V)
+  ; W1D: the IH is the step's own claim at the fixed g, V
   (dk-cite! 'set-power-succ 'g 'V n)
   (dk-cite! 'group-carr-set 'g)
   (subst (list '= (list 'SET-POWER 'g 'V (list 'succ n)) (list 'SET-PROD 'g (sp2-pow n) 'V)))
@@ -131,7 +131,7 @@
       (list y1 y2))))
 (sp (make-wff '(FORALL k (IMPLIES (IN k NN) (FORALL g (FORALL V (IMPLIES (IS-GROUP g) (IMPLIES (SUBSET V (CARR g))
    (SUBSET (SET-POWER g V k) (CARR g))))))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))))
+(let* ((ind (dk-use-induction-fixed! '(g V))) (n (cdr (assq 'var ind))))   ; W1D: g, V fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (fact 'nn-zero-in)
@@ -268,7 +268,7 @@
 (sp (make-wff '(FORALL m (IMPLIES (IN m NN) (FORALL g (FORALL V (IMPLIES (IS-GROUP g) (IMPLIES (SUBSET V (CARR g))
    (FORALL x (IMPLIES (IN x (POWERS-UNION g V)) (FORALL y (IMPLIES (IN y (SET-POWER g V m))
      (IN ((OPR g) x y) (POWERS-UNION g V))))))))))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(g V))) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: g, V fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (dk-cite! 'set-power-zero-elim 'g 'V 'y)
@@ -288,7 +288,7 @@
     (dk-cite! 'set-power-sub-carr n 'g 'V)
     (dk-cite! 'subset-mem-fwd (sp2-pow n) '(CARR g) y1)
     (dk-cite! 'subset-mem-fwd 'V '(CARR g) y2)
-    (dk-apply! ih 'g 'V 'x y1)
+    (dk-apply! ih 'x y1)   ; W1D: g, V fixed
     (dk-cite! 'group-carrier-closed-opr 'g 'x y1)
     (dk-cite! 'powers-union-right-mult 'g 'V (sp2-op 'x y1) y2)
     (dk-cite! 'group-assoc 'g 'x y1 y2)
@@ -302,7 +302,7 @@
 (define sp2-sym '(FORALL p (IMPLIES (IN p V) (IN ((INV g) p) V))))
 (sp (make-wff (list 'FORALL 'k (list 'IMPLIES '(IN k NN) (list 'FORALL 'g (list 'FORALL 'V (list 'IMPLIES '(IS-GROUP g) (list 'IMPLIES '(SUBSET V (CARR g))
    (list 'IMPLIES sp2-sym '(FORALL y (IMPLIES (IN y (SET-POWER g V k)) (IN ((INV g) y) (POWERS-UNION g V)))))))))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(g V))) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: g, V fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (dk-cite! 'set-power-zero-elim 'g 'V 'y)
@@ -317,7 +317,7 @@
     (dk-cite! 'set-power-sub-carr n 'g 'V)
     (dk-cite! 'subset-mem-fwd (sp2-pow n) '(CARR g) y1)
     (dk-cite! 'subset-mem-fwd 'V '(CARR g) y2)
-    (dk-apply! ih 'g 'V y1)
+    (dk-apply! ih y1)   ; W1D: g, V fixed
     (dk-apply! (dk-ctx-form sp2-sym) y2)
     (sp2-hset!)
     (dk-cite! 'powers-union-contains 'g 'V)

@@ -1324,7 +1324,7 @@
         (list 'AND (list 'IN (aif-SL 'k) '(FUN u CC))
           (list 'AND (aif-cont 'u (aif-SL 'k))
                      (list '= (aif-LI (aif-SL 'k)) (list 'CC-SERIES-PARTIAL-SUM aif-T 'k))))))))))
-(define aif-pi-br (use-induction))
+(define aif-pi-br (dk-use-induction-fixed! '(u c r phi pgam dgam a b z)))   ; W1G-A: the nine parameters and the hypotheses fixed
 (dk-focus! (cdr (assq 'base aif-pi-br)))
 (dk-peel!)
 (aif-setting!)
@@ -1380,7 +1380,7 @@
        (qlam (list 'VNB-LAMBDA 'aiw_ 'u qk))
        (SLk (aif-SL k)) (SLk1 (aif-SL k1)) (TLk (aif-TL k)) (Hk (aif-H k)))
   (fact 'nn-succ-closed k)
-  (dk-split-all! (list (dk-apply! aif-pi-ih 'u 'c 'r 'phi 'pgam 'dgam 'a 'b 'z)))
+  (dk-split-all! (list (dk-ctx-form aif-pi-ih)))   ; W1G-A: parameters fixed; the IH is the conjunction itself
   (aif-H! k)
   (aif-cc! qk)
   (aif-lam-typ! TLk)

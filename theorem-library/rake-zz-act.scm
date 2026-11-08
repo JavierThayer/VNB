@@ -379,7 +379,7 @@
         (FORALL k (IMPLIES (IN k NN)
           (= (MPOW m x (+ j k))
              ((OPR m) (MPOW m x j) (MPOW m x k)))))))))))))
-(let* ((rza-leaves (dk-opened (lambda () (ni))))
+(let* ((rza-leaves (cdr (assq 'cases (dk-ni-fixed! '(m)))))   ; W1D: m fixed
        (rza-base (rza-leaf rza-leaves (lambda (g) (not (dk-contains? g 'succ))) "base"))
        (rza-step (rza-leaf rza-leaves (lambda (g) (dk-contains? g 'succ)) "step")))
   ;; ---- base j = 0
@@ -408,9 +408,8 @@
          (pw (lambda (e) (list 'MPOW mv xv e)))
          (op (lambda (u v) (list (list 'OPR mv) u v)))
          (ih (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)
-                                       (pair? (caddr f)) (eq? (car (caddr f)) 'IMPLIES)
-                                       (equal? (cadr (caddr f)) (list 'IS-MONOID (cadr f)))))
-                      "the IH")))
+                                       (dk-contains? f 'MPOW)))
+                      "the IH")))   ; W1D: m fixed, the IH is forall x in CARR(m). ...
     (fact 'nn-succ-closed jv)
     (rza-nn2! 'nn-add-closed jv kv)
     (fact 'mpow-type mv xv jv)
@@ -426,7 +425,7 @@
     (fact 'mpow-succ mv xv (list '+ jv kv))
     (subst (list '== (pw (list 'succ (list '+ jv kv))) (op xv (pw (list '+ jv kv)))))
     ;; IH at (m, x, k)
-    (dk-apply! ih mv xv kv)
+    (dk-apply! ih xv kv)   ; W1D: m fixed
     (subst (list '= (pw (list '+ jv kv)) (op (pw jv) (pw kv))))
     ;; x^(succ j) = x * x^j
     (fact 'mpow-succ mv xv jv)

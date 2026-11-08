@@ -35,7 +35,10 @@
 (notation! 'CONV-JOIN 'kind 'functoid 'arity 3 'english "the join of $2 to the point $3 in $1")
 (def-predicate 'IS-TOTALLY-BOUNDED-IN '(tbm_ tba_)
   '(FORALL tbr_ (IMPLIES (POS-RR tbr_)
-     (FORSOME tbf_ (AND (IN (CARD tbf_) NN) (AND (SUBSET tbf_ (PTS tbm_))
+     (FORSOME tbf_ (AND (IN tbf_ SET) (AND (IN (CARD tbf_) NN) (AND (SUBSET tbf_ (PTS tbm_))
        (FORALL tbp_ (IMPLIES (IN tbp_ tba_)
-         (FORSOME tbc_ (AND (IN tbc_ tbf_) (< ((DIST tbm_) tbc_ tbp_) tbr_)))))))))))
+         (FORSOME tbc_ (AND (IN tbc_ tbf_) (< ((DIST tbm_) tbc_ tbp_) tbr_))))))))))))
+;;; W1 (2026-11-04): tbf_ is bounded by SET (a class with a finite cardinal is a set:
+;;; `card-nn-is-set'), so that the predicate is predicative in a comprehension condition.
+;;; The former definiens is the proven `is-totally-bounded-in-classes' (theorem-library/cvx-tb.scm).
 (notation! 'IS-TOTALLY-BOUNDED-IN 'kind 'predicate 'arity 2 'english "$2 is totally bounded in $1")

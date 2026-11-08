@@ -166,6 +166,7 @@
 (dk-cite! 'cx-strand-list-typed)
 (let ((ro (map (lambda (r) (dk-cite! r)) '(cx-sp@tokens cx-sp@ids cx-sp@keys cx-sp@strand-map cx-sp@kinv))))
   (mac 'is-strand-space)
+  (dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
   (for-each (lambda (e) (if (dk-contains? (dk-goal) (cadr e)) (subst e))) ro))
 (dk-conj-close!
   (lambda ()
@@ -252,6 +253,7 @@
 (dk-cite! 'cx-sp-is-strand-space)
 (let ((ro (cxl-read-offs! '(cx-isp@ispace cx-isp@adv-ids cx-isp@adv-tokens cx-sp@tokens cx-sp@ids cx-sp@keys))))
   (mac 'is-infiltrated-space)
+  (dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
   (cxl-subst-all! ro)
   (dk-conj-close!
     (lambda ()
@@ -349,6 +351,7 @@
 (dk-cite! 'cx-isp-is-infiltrated-space)
 (let ((ro (cxl-read-offs! cxl-ro-names)))
   (mac 'is-sk-space)
+  (dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
   (cxl-subst-all! ro)
   (dk-conj-close!
     (lambda ()
@@ -715,6 +718,7 @@
 (for-each (lambda (i) (dk-cite! (cxl-sym "cx-edge-" i))) '(1 2 3 4 5 6 7 8 9 10))
 (let ((ro (cxl-read-offs! '(cx-c@bspace cx-c@bnodes cx-c@bsend))))
   (mac 'is-bundle)
+  (dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
   (cxl-subst-all! ro)
   (dk-conj-close!
     (lambda ()

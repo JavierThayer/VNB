@@ -118,6 +118,7 @@
 (let ((iff (dk-cite! 'is-monoid '(GRP-MONOID s))))
   (dk-have! (caddr iff)
     (lambda ()
+      (dk-isx-set!)                ; W1Q: the conjunct t in SET, from the typings
       (subst '(== (CARR (GRP-MONOID s)) (CARR s)))
       (subst '(== (OPR (GRP-MONOID s)) (OPR s)))
       (subst '(== (IDEN (GRP-MONOID s)) (IDEN s)))

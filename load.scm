@@ -709,6 +709,7 @@
     ;; warrant that named no file.  Needs interactive + driver-kit + proof-debt,
     ;; all directly above, and must precede nn-least-element and every use of
     ;; minimize!, which appeal to it.
+    "structure-library/is-set-laws"    ; W1I 2026-11-06: is-X-is-set for every structure declared so far; later ones at declaration
     "theorem-library/ord-well-ordered-proof"
     ;; eq-sym / eq-trans / neq-sym, PROVEN.  eq-sym was an asserted DUPLICATE of
     ;; the primitive `equality-symmetry' and was cited by 52 bills; eq-trans is
@@ -1814,6 +1815,10 @@
     "structure-library/meta-def"
     "theorem-library/meta-ind-laws"
     "theorem-library/meta-def-laws"
+    ;; METACORE (2026-10-29): the kernel forms of the ten C+ rows and their bridges, the NBG controls,
+    ;; tuple-equality-decompose (meta-ind.scm re-transcribed).  Library: meta (libraries.sexp).
+    "structure-library/meta-nbg"
+    "theorem-library/meta-nbg-laws"
     ;; DEG / LEADCOEF / MONOMIAL for A[x].  The definitions (structure-library/
     ;; poly-degree) and their proofs (theorem-library/poly-degree-laws), split
     ;; the usual way.  DEG(A,p) is the LARGEST exponent with a nonzero
@@ -5081,6 +5086,13 @@
               (if (not *vnb-keep-going?*)
                   (error
                    "inference checking: this load recorded rule-checker REFUSALS; the library is NOT verified"))))))
+
+  ;;; NBG induction census (W1B, 2026-11-05; rule-checkers-logic.scm).  METACORE finding 2 was
+  ;;; enforced WARN-ONLY: an induction whose body has a binder not confined to sets was accepted
+  ;;; and listed here.  The switch `*nbg-induction-fatal?*' is ON since the census reached 0
+  ;;; (W1N, 2026-11-07; prepared; lands when the census is empty): the checkers refuse such an
+  ;;; induction where it happens, so this report reads 0 [fatal] in a load that completes.
+  (report-nbg-induction-census!)
 
   ;;; qed-failure gate (2026-09-20).  A `qed' that fails inside a proof file prints one
   ;;; line and returns; the load goes on, and when no later file cites the theorem

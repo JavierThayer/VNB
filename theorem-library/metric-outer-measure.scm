@@ -537,7 +537,7 @@
                  (sephyp (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'SET-DIST)
                                                    (dk-contains? f 'mol_))) "the separation hypothesis")))
             (mom-lam-type!)
-            (let* ((ihc (dk-apply! ih 'm 'mu 'fs))
+            (let* ((ihc ih)   ; W1D: m, mu, fs fixed; was (dk-apply! ih 'm 'mu 'fs)
                    (ihs (dk-split! ihc))
                    (eqih (find-first (lambda (f) (dk-head-is? f '=)) ihs))
                    (sepih (find-first (lambda (f) (dk-head-is? f 'FORALL)) ihs)))
@@ -570,7 +570,7 @@
                         (mom-fs-pow! 'fs jv)
                         (fact 'set-dist-union-pos 'm un fn fj)
                         (ass))))))))))
-  (dk-opened (lambda () (ni))))
+  (cdr (assq 'cases (dk-ni-fixed! '(m mu fs)))))   ; W1D: m, mu, fs fixed
 (qed 'metric-outer-measure-prefix-separated)
 
 ;;; (93): the finite form
@@ -2364,7 +2364,7 @@
                         (let* ((mv (dk-di-var!)) (pm (mom-pre 'g mv)))
                           (fact 'rps-prefix-type 'g mv)
                           (let* ((part (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f pn)
-                                                                 (dk-contains? f hh))) "s1 at n"))
+                                                                 (dk-contains? f hh) (memq nv (free-vars f)))) "s1 at n"))   ; W1D: nv FREE, so never s1 itself (its bound n prints as nv)
                                  (le (dk-apply! part mv)))
                             (mom-ep! pn pm)
                             (mom-and2! (list 'IN pm 'RR-POS-STAR) (list 'IN pn 'RR-POS-STAR))

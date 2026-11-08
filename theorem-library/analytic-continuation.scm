@@ -677,16 +677,16 @@
 (define (acn-sub-ne! x a) (acn-sub-nz! x a))
 
 (sp (make-wff acn-fac-stmt))
-(let* ((ind (use-induction))
+(let* ((ind (dk-use-induction-fixed! '(acnv_ acnh_ acna_)))   ; W1G-B: acnv_, acnh_, acna_ fixed
        (n (cdr (assq 'var ind)))
        (ih (cdr (assq 'ih ind))))
   ;; ---- step: from q with h = (x - a)^n q to dq with h = (x - a)^(n+1) dq
   (let* ((ls (dk-peel!))
          (hh (dk-pick (lambda (f) (acn-op? f 'HOLOMORPHIC-ON 3)) "the holomorphy"))
          (v (cadr hh)) (h (caddr hh))
-         (a (cadr (car (filter (lambda (f) (and (acn-op? f 'IN 3) (eq? (caddr f) v))) ls))))
+         (a (cadr (car (filter (lambda (f) (and (acn-op? f 'IN 3) (eq? (caddr f) v))) (dk-asms)))))   ; W1G-B: a is hoisted
          (_0 (begin (dk-cite! 'holomorphic-on-open v h) (dk-cite! 'cc-open-subset-cc v) (acn-pt! v a)))
-         (q (dk-skolem! (dk-apply! ih v h a) 'top))
+         (q (dk-skolem! ih 'top))
          (fq (acn-need (acn-fac-body n v h a q) "the factorisation at n")))
     (dk-cite! 'holomorphic-on-in-fun v q)
     (dk-cite! 'holomorphic-on-continuous v q)
@@ -749,7 +749,7 @@
   (let* ((ls (dk-peel!))
          (hh (dk-pick (lambda (f) (acn-op? f 'HOLOMORPHIC-ON 3)) "the holomorphy"))
          (v (cadr hh)) (h (caddr hh))
-         (a (cadr (car (filter (lambda (f) (and (acn-op? f 'IN 3) (eq? (caddr f) v))) ls)))))
+         (a (cadr (car (filter (lambda (f) (and (acn-op? f 'IN 3) (eq? (caddr f) v))) (dk-asms))))))   ; W1G-B: a is hoisted
     (dk-cite! 'holomorphic-on-open v h)
     (dk-cite! 'cc-open-subset-cc v)
     (dk-cite! 'holomorphic-on-in-fun v h)

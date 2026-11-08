@@ -576,6 +576,7 @@
                        (ass))))))))
      (dk-opened (lambda () (lam-t))))))
 (mac 'IS-METRIC-SPACE)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (subst (list '== (list 'PTS isd-M) isd-G))
 (dk-conj-close!
  (lambda ()

@@ -179,6 +179,23 @@
 (fact 'whole-module-is-submodule 'md)
 (fact 'generates-implies-spans-vec 'md 'n 'u)
 (fact 'submodule-subset 'md 'sm)
+;; W1E (2026-11-05): spans-submodule-fg's guards VEC md, sm in POWER(VEC md), from
+;; the library axiom power-set-membership, on lanes.
+(fact 'frm-module-vec-set 'md)
+(fact 'submodule-subset 'md '(VEC md))
+(for-each
+  (lambda (xx)
+    (dk-have! (list 'IN xx '(POWER (VEC md)))
+      (lambda ()
+        (mac 'power-set-membership)
+        (for-each (lambda (l)
+                    (dk-focus! l)
+                    (if (dk-head-is? (dk-goal) 'IN)
+                        (begin (fact 'subclass-of-set-is-set xx '(VEC md)) (ass))
+                        (let ((z (dk-di-var!)))
+                          (fact 'subset-mem-fwd xx '(VEC md) z) (ass))))
+                  (dk-opened di)))))
+  (list '(VEC md) 'sm))
 (fact 'spans-submodule-fg 'md 'n 'u '(VEC md) 'sm)
 (ass)
 

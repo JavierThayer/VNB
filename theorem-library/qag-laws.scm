@@ -180,6 +180,7 @@
 (qg-zzring!)
 (dk-cite! 'agm-act-fun 'g)
 (mac 'IS-MODULE)
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (for-each (lambda (n) (subst (dk-cite! n 'g))) '(agm-scal agm-vec agm-vadd agm-vzero agm-vneg))
 (subst '(== (CARR ZZ-RING) ZZ))
 (dk-conj-close!
@@ -210,7 +211,7 @@
 (define (qg-sub-inv! a) (qg-or-asm (list 'IN (qg-inv a) 'h) (lambda () (dk-apply! (dk-ctx-form QG-SUB-INV) a))))
 
 (sp (make-wff `(FORALL n (IMPLIES (IN n NN) ,(qg-agh '(FORALL a (IMPLIES (IN a h) (IN (ZZ-ACT g n a) h))))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(g h))) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-B: g, h fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (qg-ag-open!) (qg-sub-open!) (qg-sub-carr! 'a)
@@ -219,7 +220,7 @@
   (dk-focus! (cdr (assq 'step ind)))
   (dk-peel!)
   (qg-ag-open!) (qg-sub-open!) (qg-sub-carr! 'a)
-  (dk-apply! ih 'g 'h 'a)
+  (dk-apply! ih 'a)   ; W1G-B: g, h fixed
   (dk-cite! 'nn-subset-zz n)
   (qg-zz! 1)
   (subst (dk-cite! 'nn-succ-plus-one n))
@@ -402,7 +403,7 @@
 ;;; =====================================================================
 (sp (make-wff `(FORALL n (IMPLIES (IN n NN) ,(qg-agh `(FORALL a (IMPLIES (IN a (CARR g))
   (= (GPOW ,QG-Q ,(qg-cl 'a) n) ,(qg-cl '(GPOW g a n))))))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(g h))) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-B: g, h fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (qg-qsetup!)
@@ -416,7 +417,7 @@
   (let ((p (list 'GPOW 'g 'a n)))
     (dk-cite! 'gpow-type n 'g 'a)
     (subst (dk-cite! 'gpow-succ QG-Q (qg-cl 'a) n))
-    (subst (dk-apply! ih 'g 'h 'a))
+    (subst (dk-apply! ih 'a))
     (subst (dk-cite! 'gpow-succ 'g 'a n))
     (subst (dk-cite! 'qag-opr-class 'g 'h 'a p))
     (qg-rfl-classes!)))

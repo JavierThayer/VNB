@@ -321,7 +321,7 @@
 ;;; the sign (-1)^j over R lies in every subring of C, and in CC
 (sp (make-wff (list 'FORALL 'j (list 'IMPLIES '(IN j NN) (list 'FORALL 'kk (list 'IMPLIES '(IS-SUBRING-OF-CC kk)
   (list 'AND (list 'IN (cp-sign 'j) 'kk) (list 'IN (cp-sign 'j) 'CC))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(kk))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: kk fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (cp-ring!)
@@ -341,7 +341,7 @@
   (cp-neg-in! 'kk 1)
   (let* ((s0 (cp-sign v)) (s1 (cp-sign (list 'succ v)))
          (nr1 (list (list 'NEG cp-r) (list 'ONE cp-r))))
-    (dk-split! (dk-apply! (dk-ctx-form ih) 'kk))
+    (dk-split! (dk-ctx-form ih))   ; W1D: kk fixed
     (let* ((w (dk-name! s0 'CC))
            (e1 (dk-cite! 'dtr-sign-succ cp-r v)))
       (cp-nr1!)
@@ -777,7 +777,7 @@
   (subst (dk-cite! 'finsum-empty cp-ag f))
   (subst (dk-cite! 'ras-id cp-r))
   (subst (dk-cite! 'cc-scalar-ring-zero)))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(n kk b e))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: n kk b e fixed
   ;; no term: the zero polynomial
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
@@ -818,7 +818,7 @@
          (mb (list 'MINOR 'b 1 j0 'n)) (me (list 'MINOR 'e 1 j0 'n))
          (gb (dk-ctx-form (cp-gbody 'n 'kk))))
     (dk-have! (list '<= v sn) (lambda () (dk-nn! (list '<= j0 sn))))
-    (let* ((dq (dk-apply! (dk-ctx-form ih) 'n 'kk 'b 'e))
+    (let* ((dq (let w1d-dl ((w1d-f (dk-ctx-form ih))) (if (dk-head-is? w1d-f 'IMPLIES) (w1d-dl (dk-landed-1 (lambda () (detach! w1d-f)))) w1d-f)))   ; W1D: was (dk-apply! (dk-ctx-form ih) 'n 'kk 'b 'e)
            (d (dk-skolem! dq)))
       (dk-have! (list '<= 1 j0) (lambda () (dk-nn!)))
       (dk-apply! (dk-cite! 'interval-mem-intro 1 sn j0))
@@ -893,7 +893,7 @@
 
 ;;; (10) DET(b + z e) is a polynomial in z with coefficients in K, of length n + 1, with z^n-coefficient DET(e)
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (list 'FORALL 'kk (list 'IMPLIES '(IS-SUBRING-OF-CC kk) (cp-gbody 'n 'kk)))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(kk))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: kk fixed
   ;; n = 0: the constant 1
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
@@ -946,7 +946,7 @@
   (cp-sub-parts! 'kk)
   (fact 'nn-succ-closed v)
   (let* ((sv (list 'succ v)) (ssv (list 'succ sv)))
-    (dk-apply! (dk-ctx-form ih) 'kk)
+    ; W1D: kk fixed; the IH is cp-gbody(n, kk) itself
     (dk-have! (list '<= sv sv) (lambda () (dk-nn!)))
     (let ((d (dk-skolem! (dk-apply! (dk-apply! (dk-cite! 'cp-cofactor-partial-sums) sv v 'kk) 'cpb_ 'cpe_))))
       (dk-have! '(FORALL cpw_ (IMPLIES (IN cpw_ kk) (IN cpw_ CC))) (lambda () (let ((w (dk-di-var!))) (fact 'subset-mem-fwd 'kk 'CC w) (ass))))
@@ -2481,7 +2481,7 @@
 (sp (make-wff (list 'FORALL 'k (list 'IMPLIES '(IN k NN)
   (forall-guarded '(aa n m g h) '((IS-SUBRING-OF-CC aa) (IN n NN) (IN m NN) (IN g (FUN (INTERVAL 1 n) CC)) (IN h (FUN (INTERVAL 1 m) CC)) (<= k n))
     (ap-body 'k))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(aa n m g h))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: aa n m g h fixed
   ;; k = 0: the empty list
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
@@ -2510,7 +2510,7 @@
   (let* ((sk (list 'succ v)))
     (fact 'nn-succ-closed v)
     (dk-have! (list '<= v 'n) (lambda () (dk-nn! (list '<= sk 'n))))
-    (let* ((ex (dk-apply! (dk-ctx-form ih) 'aa 'n 'm 'g 'h))
+    (let* ((ex (let w1d-dl ((w1d-f (dk-ctx-form ih))) (if (dk-head-is? w1d-f 'IMPLIES) (w1d-dl (dk-landed-1 (lambda () (detach! w1d-f)))) w1d-f)))   ; W1D: was (dk-apply! (dk-ctx-form ih) 'aa 'n 'm 'g 'h)
            (nn (dk-skolem! ex))
            (uu (dk-skolem! (find-first (lambda (f) (and (dk-head-is? f 'FORSOME) (dk-contains? f 'apu_))) (dk-asms))))
            (n2 (list '+ nn 'm))
@@ -3159,7 +3159,7 @@
 (sp (make-wff (list 'FORALL 'k (list 'IMPLIES '(IN k NN)
   (forall-guarded '(aa c) (list '(IS-SUBRING-OF-CC aa) (list 'IN 'c (list 'FUN 'NN (am11-frac 'aa))))
     (list 'FORSOME 'cdd_ (list 'AND '(IN cdd_ aa) (list 'AND '(NOT (= cdd_ 0)) (am11-cleared 'cdd_ 'c 'k)))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))) (fr (am11-frac 'aa)))
+(let* ((ind (dk-use-induction-fixed! '(aa c))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))) (fr (am11-frac 'aa)))   ; W1D: aa c fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (cp-sub-parts! 'aa)
@@ -3179,7 +3179,7 @@
   (ma-sep-subset! fr)
   (fact 'fun-codomain-superset 'c 'NN fr 'CC)
   (fact 'nn-succ-closed v)
-  (let* ((d (dk-skolem! (dk-apply! (dk-ctx-form ih) 'aa 'c))))
+  (let* ((d (dk-skolem! (dk-ctx-form ih))))   ; W1D: aa, c fixed
     (fact 'fun-apply-type-c 'c 'NN fr v)
     (let* ((al (dk-skolem! (ma-sep-parts! (list 'IN (list 'c v) fr))))
            (be (dk-skolem! (find-first (lambda (f) (and (dk-head-is? f 'FORSOME) (dk-contains? f 'anfb_) (dk-contains? f al))) (dk-asms))))
@@ -3713,7 +3713,7 @@
       (ass))))
 
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (am14-inv-body 'n)))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(kk))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: kk fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (let ((p (am14-setup! 0)))
@@ -3757,7 +3757,7 @@
                 (if (not (sequent-node-grounded? (proof-state-focus *ps*))) (ass)))))
           (dk-have! (list '= (list sc v) 1)
             (lambda () (fact 'fun-apply-type-c 'c 'NN 'CC sv) (dk-lam-b!) (if (not (sequent-node-grounded? (proof-state-focus *ps*))) (ass))))
-          (dk-apply! (dk-ctx-form ih) 'kk sc 'b)
+          (dk-apply! (dk-ctx-form ih) sc 'b)   ; W1D: kk fixed
           (ass)))
       (lambda () (am14-nonzero-const! sv p)))))
 (qed 'recip-algebraic)
@@ -4062,7 +4062,7 @@
 (sp (make-wff (list 'FORALL 'k (list 'IMPLIES '(IN k NN)
   (forall-guarded '(aa vv f) '((IS-CC-MODULE-OVER aa vv) (IN f (FUN NN CC)) (FORALL amj_ (IMPLIES (IN amj_ NN) (IMPLIES (< amj_ k) (IN (f amj_) vv)))))
     '(IN (CC-SERIES-PARTIAL-SUM f k) vv))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(aa vv f))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: aa vv f fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (am8-mod-parts! 'aa 'vv)
@@ -4080,7 +4080,7 @@
           (dk-have! (list '< j (list 'succ v)) (lambda () (dk-nn! (list '< j v))))
           (dk-apply! (dk-ctx-form hk) j)
           (ass))))
-    (dk-apply! (dk-ctx-form ih) 'aa 'vv 'f)
+    (let w1d-dl ((w1d-f (dk-ctx-form ih))) (if (dk-head-is? w1d-f 'IMPLIES) (w1d-dl (dk-landed-1 (lambda () (detach! w1d-f)))) w1d-f))   ; W1D: was (dk-apply! (dk-ctx-form ih) 'aa 'vv 'f)
     (dk-have! (list '< v (list 'succ v)) (lambda () (dk-nn!)))
     (dk-apply! (dk-ctx-form hk) v))
   (fact 'fun-apply-type-c 'f 'NN 'CC v)
@@ -4114,7 +4114,7 @@
 
 (sp (make-wff (list 'FORALL 'j (list 'IMPLIES '(IN j NN)
   (forall-guarded '(aa c) (list '(IS-SUBRING-OF-CC aa) '(IN c (FUN NN CC)) (am19-alg-below 'j)) (am19-body 'j))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(aa c))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: aa c fixed
   ;; j = 0: the span of the number 1
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
@@ -4166,7 +4166,7 @@
           (ass))))
     (dk-have! (list '< v (list 'succ v)) (lambda () (dk-nn!)))
     (dk-apply! (dk-ctx-form hb) v))
-  (let* ((nw (dk-skolem! (dk-apply! (dk-ctx-form ih) 'aa 'c)))
+  (let* ((nw (dk-skolem! (let w1d-dl ((w1d-f (dk-ctx-form ih))) (if (dk-head-is? w1d-f 'IMPLIES) (w1d-dl (dk-landed-1 (lambda () (detach! w1d-f)))) w1d-f))))   ; W1D: was (dk-apply! (dk-ctx-form ih) 'aa 'c)
          (u (dk-skolem! (find-first (lambda (f) (and (dk-head-is? f 'FORSOME) (dk-contains? f 'atu_) (dk-contains? f nw))) (dk-asms))))
          (ws (am19-span nw u))
          (x0 (dk-skolem! (dk-ctx-form (am19-nontriv nw u))))
@@ -4594,7 +4594,7 @@
 ;;; a finite product with a zero factor is zero
 (sp (make-wff '(FORALL n (IMPLIES (IN n NN) (FORALL g (IMPLIES (FORALL atk_ (IMPLIES (IN atk_ NN) (IN (g atk_) CC)))
   (FORALL atq_ (IMPLIES (IN atq_ NN) (IMPLIES (< atq_ n) (IMPLIES (= (g atq_) 0) (= (CC-PARTIAL-PROD g n) 0)))))))))))
-(let* ((ind (use-induction)) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(g))) (v (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: g fixed
   (dk-focus! (cdr (assq 'base ind)))
   (let* ((ls (dk-peel!)) (q (cadr (find-first (lambda (f) (and (dk-head-is? f '<) (eqv? (caddr f) 0))) ls))))
     (dk-have! '(< 0 0) (lambda () (dk-nn! (list '< q 0))))
@@ -4603,13 +4603,13 @@
   (let* ((ls (dk-peel!))
          (g (cadr (cadr (dk-goal))))
          (q (cadr (find-first (lambda (f) (and (dk-head-is? f '<) (equal? (caddr f) (list 'succ v)))) ls)))
-         (typ (find-first (lambda (f) (dk-head-is? f 'FORALL)) ls)))
+         (typ (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'atk_))) (dk-asms))))   ; W1D: g fixed, its typing is in the context
     (dk-apply! (dk-ctx-form typ) v)
     (dk-apply! (dk-cite! 'cc-partial-prod-in-cc v) g)
     (subst (dk-cite! 'cc-partial-prod-succ g v))
     (use-em (list '< q v)
       (lambda ()
-        (dk-apply! (dk-apply! (dk-ctx-form ih) g) q)
+        (dk-apply! (dk-ctx-form ih) q)   ; W1D: g fixed
         (subst (list '= (list 'CC-PARTIAL-PROD g v) 0))
         (crs))
       (lambda ()

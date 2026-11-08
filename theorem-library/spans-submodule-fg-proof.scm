@@ -60,13 +60,13 @@
 ;; the body REST[ntm] of the statement (u, bm, sm, conclusion) at length ntm
 (define (sd-rest ntm)
   `(FORALL u (IMPLIES (IN u (MAT ,ntm 1 (VEC md)))
-    (FORALL bm (IMPLIES (IS-SUBMODULE md bm)
+    (FORALL bm (IMPLIES (IN bm (POWER (VEC md))) (IMPLIES (IS-SUBMODULE md bm)
      (IMPLIES (SPANS md ,ntm u bm)
-      (FORALL sm (IMPLIES (IS-SUBMODULE md sm)
+      (FORALL sm (IMPLIES (IN sm (POWER (VEC md))) (IMPLIES (IS-SUBMODULE md sm)
        (IMPLIES (SUBSET sm bm)
         (FORSOME k (AND (AND (IN k NN) (<= k ,ntm))
          (FORSOME w (AND (IN w (MAT k 1 (VEC md)))
-                         (SPANS md k w sm))))))))))))))
+                         (SPANS md k w sm))))))))))))))))
 (define sd-w0  '(LIST))                                                                                          ; the empty sequence
 (define sd-ce0 '(MATOF 1 0 (VNB-LAMBDA (LIST i_ j_) (CARTESIAN (INTERVAL 1 1) (INTERVAL 1 0)) (ZERO (SCAL md))))) ; empty coeff row
 (define (sd-empty-in!)       ; prove (IN (MATOF 1 0 g) typ): dk-matof!, vacuous entry leaf
@@ -77,6 +77,21 @@
 
 
 ;;; ================= spans-fg-base : n = 0 =================
+;; W1E (2026-11-05): the statement guards bm, sm in POWER(VEC md).  Land
+;; (IN X (POWER (VEC md))) from (SUBSET X (VEC md)) and (IN (VEC md) SET) in context,
+;; by the library axiom power-set-membership, on a lane.
+(define (sd-in-power! xx)
+  (dk-have! (list 'IN xx '(POWER (VEC md)))
+    (lambda ()
+      (mac 'power-set-membership)
+      (for-each (lambda (l)
+                  (dk-focus! l)
+                  (if (dk-head-is? (dk-goal) 'IN)
+                      (begin (fact 'subclass-of-set-is-set xx '(VEC md)) (ass))
+                      (let ((z (dk-di-var!)))
+                        (fact 'subset-mem-fwd xx '(VEC md) z) (ass))))
+                (dk-opened di)))))
+
 (sp (make-wff `(FORALL md (IMPLIES (AND (IS-MODULE md) (IS-EUCLIDEAN-RING (SCAL md)))
                                    ,(sd-rest 0)))))
 (di) (di) (ai '(AND (IS-MODULE md) (IS-EUCLIDEAN-RING (SCAL md))))
@@ -208,6 +223,11 @@
 (fact 'span-is-submodule 'md 'n sd-u2)                ; IS-SUBMODULE md bm'
 (fact 'spans-span 'md 'n sd-u2)                       ; SPANS md n u' bm'
 (fact 'submodule-intersection 'md sd-sm sd-bm2)       ; IS-SUBMODULE md sm'
+(fact 'frm-module-vec-set 'md)                        ; W1E: VEC md in SET
+(fact 'submodule-subset 'md sd-bm2)                   ; SUBSET bm' (VEC md)
+(fact 'submodule-subset 'md sd-sm2)                   ; SUBSET sm' (VEC md)
+(sd-in-power! sd-bm2)                                 ; the guards of the IH at bm', sm'
+(sd-in-power! sd-sm2)
 (sd-cut! (list 'SUBSET sd-sm2 sd-bm2)                 ; SUBSET sm' bm'
   (lambda ()
     (mac 'subset-def) (di)

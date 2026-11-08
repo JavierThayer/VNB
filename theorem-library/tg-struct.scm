@@ -24,6 +24,7 @@
 (dk-peel!)
 (tgs-rhs! (dk-cite! 'is-top-group 'G))
 (mac 'is-top-space)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (slot 'PTS)
 (slot 'OPENS)
 (tgs-close-conjuncts! 'TOP-GROUP-SPACE)
@@ -34,6 +35,7 @@
 (dk-peel!)
 (tgs-rhs! (dk-cite! 'is-top-group 'G))
 (mac 'is-group)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (slot 'CARR)
 (slot 'OPR)
 (slot 'IDEN)
@@ -120,6 +122,7 @@
 (for-each (lambda (nm) (dk-cite! nm 's 'g))
           '(make-top-group-carr make-top-group-opr make-top-group-iden make-top-group-inv make-top-group-topology))
 (mac 'is-top-group)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (for-each (lambda (acc val) (subst (list '= (list acc tgs-M) val)))
           '(TOPOLOGY CARR OPR IDEN INV)
           '((OPENS s) (CARR g) (OPR g) (IDEN g) (INV g)))

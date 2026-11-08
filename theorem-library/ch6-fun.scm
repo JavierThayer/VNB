@@ -210,10 +210,10 @@
   (c6f-typ-on! (c6-ppx u f n) u
     (lambda (x) (c6-lam-typ! (c6-opx f x) 'CC (lambda (k) (c6-fv! f u k x) (fact 'cc-one-in) (c6-cc! (list '+ 1 (list (list f k) x)))))
                 (dk-cite! 'pprod-in-cc n (c6-opx f x)))))
-(ni)
+(dk-ni-fixed! '(c6u_ c6f_))   ; W1D: c6u_, c6f_ fixed; the cases read them from the context
 (c6-induct!
   (lambda ()
-    (let* ((new (c6-steps!)) (u (cadr (find-first (lambda (q) (dk-head-is? q 'SUBSET)) new)))
+    (let* ((new (append (if (memq (car (dk-goal)) '(FORALL IMPLIES)) (c6-steps!) '()) (dk-asms))) (u (cadr (find-first (lambda (q) (dk-head-is? q 'SUBSET)) new)))   ; W1D: u, f in the context; the base has nothing to peel
            (f (cadr (find-first (lambda (q) (and (c6-op? q 'IN 3) (c6-op? (caddr q) 'FUN 3) (eq? (cadr (caddr q)) 'NN))) new)))
            (pp (c6-ppx u f 0)))
       (c6f-setu! u) (fact 'cc-one-in) (fact 'nn-zero-in)
@@ -223,7 +223,7 @@
       (c6-cite! 'aif-cont-const u 1 pp)
       (c6f-cont-close! pp u)))
   (lambda ()
-    (let* ((new (c6-steps!)) (n (c6-succ-var new)) (u (cadr (find-first (lambda (q) (dk-head-is? q 'SUBSET)) new)))
+    (let* ((new (append (c6-steps!) (dk-asms))) (n (c6-succ-var new)) (u (cadr (find-first (lambda (q) (dk-head-is? q 'SUBSET)) new)))   ; W1D: u, f in the context
            (f (cadr (find-first (lambda (q) (and (c6-op? q 'IN 3) (c6-op? (caddr q) 'FUN 3) (eq? (cadr (caddr q)) 'NN))) new)))
            (ih (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'PPROD))) new))
            (fh (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'CC-CONT-FNS) (not (dk-contains? q 'PPROD)))) new))
@@ -232,7 +232,7 @@
            (one (list 'VNB-LAMBDA 'c6x_ u 1))
            (g1 (list 'VNB-LAMBDA 'c6x_ u (list '+ 1 (list fn 'c6x_)))))
       (c6f-setu! u) (fact 'cc-one-in) (fact 'nn-succ-closed n)
-      (dk-apply! ih u f) (dk-apply! fh n)
+      (dk-apply! fh n)   ; W1D: u, f fixed; the IH is IN(PPX(u,f,n), CC-CONT-FNS(u)) in context
       (fact 'fun-apply-type-c f 'NN (list 'FUN u 'CC) n)
       (c6f-cont-of! p0 u) (c6f-cont-of! fn u)
       ;; the constant 1
@@ -879,14 +879,14 @@
 (define (c6f-ld-setup! new)
   (let* ((u (caddr (find-first (lambda (q) (dk-head-is? q 'IS-OPEN)) new)))
          (f (c6f-pick-f new))
-         (fh (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'HOLOMORPHIC-ON))) new))
-         (nzh (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'c6q_) (dk-contains? q 'NOT))) new))
+         (fh (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'HOLOMORPHIC-ON) (not (dk-contains? q 'DERIV-ON)))) new))
+         (nzh (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'c6q_) (dk-contains? q 'NOT) (not (dk-contains? q 'DERIV-ON)))) new))   ; W1D: never the IH
          (z (c6-var new u)))
     (list u f fh nzh z)))
-(ni)
+(dk-ni-fixed! '(c6u_ c6f_))   ; W1D: c6u_, c6f_ fixed; the cases read them from the context
 (c6-induct!
   (lambda ()
-    (let* ((new (c6-steps!)) (st (c6f-ld-setup! new)) (u (car st)) (f (cadr st)) (fh (caddr st)) (nzh (cadddr st)) (z (list-ref st 4))
+    (let* ((new (append (c6-steps!) (dk-asms))) (st (c6f-ld-setup! new)) (u (car st)) (f (cadr st)) (fh (caddr st)) (nzh (cadddr st)) (z (list-ref st 4))   ; W1D
            (p0 (c6-ppx u f 0)) (one (list 'VNB-LAMBDA 'c6x_ u 1)) (ox (c6-opx f z)) (ld (c6f-ld u f z)))
       (c6-setu! u) (fact 'cc-one-in) (fact 'cc-zero-in) (fact 'nn-zero-in)
       (c6f-ppx-typ! u f 0)
@@ -902,13 +902,13 @@
         (subst (dk-cite! 'cc-series-partial-sum-zero ld))
         (crs))))
   (lambda ()
-    (let* ((new (c6-steps!)) (n (c6-succ-var new)) (st (c6f-ld-setup! new)) (u (car st)) (f (cadr st)) (fh (caddr st)) (nzh (cadddr st)) (z (list-ref st 4))
+    (let* ((new (append (c6-steps!) (dk-asms))) (n (c6-succ-var new)) (st (c6f-ld-setup! new)) (u (car st)) (f (cadr st)) (fh (caddr st)) (nzh (cadddr st)) (z (list-ref st 4))   ; W1D
            (ih (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'DERIV-ON))) new))
            (p0 (c6-ppx u f n)) (p1 (c6-ppx u f (list 'succ n))) (gn (c6f-gk u f n))
            (ox (c6-opx f z)) (ld (c6f-ld u f z))
            (fnz (list (list f n) z)) (opn (list '+ 1 fnz)) (pp (list 'PPROD ox n)) (sn (list 'CC-SERIES-PARTIAL-SUM ld n)))
       (c6-setu! u) (fact 'cc-one-in) (fact 'nn-succ-closed n)
-      (let ((ihe (dk-apply! ih u f z)))
+      (let ((ihe (dk-apply! ih z)))   ; W1D: u, f fixed
         (c6-cite! 'ppx-holomorphic n u f)
         (c6f-gk-hol! u f n fh)
         (c6f-ppx-typ! u f (list 'succ n))

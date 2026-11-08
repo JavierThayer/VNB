@@ -309,7 +309,7 @@
   (dk-have! (list 'IS-OPEN-COVER rcf1-sv rcf1-K) rcf1-cover!)
   ;; compactness at K
   (dk-split-all!
-   (dk-landed (lambda () (mac-h 'is-compact (list 'IS-COMPACT rcf1-sv)))))
+   (dk-landed (lambda () (mac-h 'is-compact-classes (list 'IS-COMPACT rcf1-sv)))))
   (dk-split-all!)
   (let* ((law (dk-pick (lambda (f) (and (rcf-head? f 'FORALL) (dk-contains? f 'IS-OPEN-COVER)))
                        "the finite-subcover law"))
@@ -664,7 +664,7 @@
             (dk-only! (list 'NOT (list 'IN pv vv)) (list 'IN pv vv))
             (prop)))))))
 
-(mac 'IS-COMPACT)
+(mac 'is-compact-classes)
 (dk-conj-close!
  (lambda ()
    (if (rcf-head? (dk-goal) 'IS-METRIC-SPACE)

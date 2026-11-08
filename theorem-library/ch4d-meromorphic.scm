@@ -1107,6 +1107,9 @@
   (dk-project! (list 'IN m 'NN) 'has-zero-of-order hzo)
   (dk-cite! 'cc-open-subset-cc 'u)
   (fact 'subset-mem-fwd 'u 'CC 'c)
+  ;; W1K: log-derivative-at-zero wants (IN f (FUN u CC)): from the zero's HOLOMORPHIC-ON conjunct.
+  (if (not (dk-asm? '(HOLOMORPHIC-ON u f))) (dk-project! '(HOLOMORPHIC-ON u f) 'has-zero-of-order hzo))
+  (dk-cite! 'holomorphic-on-in-fun 'u 'f)
   (let* ((r (dk-skolem! (c4-inst! (dk-cite! 'log-derivative-at-zero m) 'u 'c 'f)))
          (_ (dk-split-all!))
          (h (c4-sk! 'ivh15))
@@ -1386,6 +1389,10 @@
          (hzo (list 'HAS-ZERO-OF-ORDER c4a-U 'f e m)))
     (dk-project! (list 'IN m 'NN) 'has-zero-of-order hzo)
     (fact 'subset-mem-fwd 'mzs_ c4a-U e) (fact 'subset-mem-fwd c4a-U 'CC e)
+    ;; W1K: log-derivative-at-zero wants (IN f (FUN c4a-U CC)): from the zero's HOLOMORPHIC-ON conjunct.
+    (if (not (dk-asm? (list 'HOLOMORPHIC-ON c4a-U 'f)))
+        (dk-project! (list 'HOLOMORPHIC-ON c4a-U 'f) 'has-zero-of-order hzo))
+    (dk-cite! 'holomorphic-on-in-fun c4a-U 'f)
     (let* ((r (dk-skolem! (c4-inst! (dk-cite! 'log-derivative-at-zero m) c4a-U e 'f)))
            (_ (dk-split-all!))
            (h (c4-sk! 'ivh15 r))

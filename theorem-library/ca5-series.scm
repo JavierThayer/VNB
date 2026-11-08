@@ -764,7 +764,7 @@
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN)
   (list 'FORALL 'u (list 'IMPLIES (list 'IS-OPEN ca5-nfm 'u)
     (list 'FORALL 'g (list 'IMPLIES '(IN g (FUN NN (CC-HOL-FNS u))) (ca5-psd-body 'n)))))))))
-(ni)
+(dk-ni-fixed! '(u g))   ; W1G-B: u, g fixed
 (for-each
  (lambda (l)
    (dk-focus! l)
@@ -782,7 +782,7 @@
            (fact 'cc-is-set) (fact 'subclass-of-set-is-set 'u 'CC)
            (fact 'cc-is-normed-field)
            (ca5x-nn! sk)
-           (ca5-apply! ih 'u 'g z)
+           (ca5-apply! ih z)   ; W1G-B: u, g fixed
            (ca5-gi-hol! k)
            (ca5-dser-typ! z)
            (fact 'cc-series-partial-sum-in-cc k dz)

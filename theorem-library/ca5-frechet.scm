@@ -416,8 +416,9 @@
           '(cc-fn-module-scal cc-fn-module-vec cc-fn-module-vadd cc-fn-module-vzero cc-fn-module-vneg cc-fn-module-act))
 (let* ((iff (dk-cite! 'is-module ca5-MV))
        (rhs (caddr iff)))
-  (dk-have! rhs
-    (lambda ()
+  (mac 'IS-MODULE)
+  (dk-isx-set!)                ; W1J-A: the conjunct t in SET; the old driver proves the rest in place
+  ((lambda ()                  ; W1J-A: was (dk-have! rhs (lambda () ..)) then (mac 'IS-MODULE) (ass)
       (for-each (lambda (acc val) (subst (list '== (list acc ca5-MV) val)))
                 '(SCAL VEC VADD VZERO VNEG ACT)
                 (list ca5-ccr ca5-V ca5-opadd ca5-opzero ca5-opneg ca5-opact))
@@ -449,8 +450,7 @@
                (let ((vss (ca5-peel-vars!)))
                  (ca5-law-close! (car vss) (cdr vss))))
               (#t (error "ca5: unexpected conjunct" (expression->string g)))))))))
-  (mac 'IS-MODULE)
-  (ass))
+  #t)
 (qed 'cc-fn-module-is-module)
 (topic! 'cc-fn-module-is-module 'analysis)
 ;;; ======================================================================

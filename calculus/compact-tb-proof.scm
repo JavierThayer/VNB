@@ -24,7 +24,7 @@
 (sp (make-wff '(FORALL s (IMPLIES (IS-COMPACT s) (TOTALLY-BOUNDED s)))))
 
 (di) (di)                       ; peel forall s; move IS-COMPACT(s) to a hyp
-(mac-h 'IS-COMPACT 1)           ; unfold compactness: metric-space + subcover law
+(mac-h 'is-compact-classes 1)           ; unfold compactness: metric-space + subcover law
 (ai 1)                          ; split that conjunction into two assumptions
 (mac 'TOTALLY-BOUNDED)          ; unfold the goal's TOTALLY-BOUNDED (IFF axiom)
 (di)                            ; split the goal AND

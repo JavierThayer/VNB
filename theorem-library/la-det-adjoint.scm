@@ -195,7 +195,7 @@
   (list 'FORALL 'dga_ (list 'IMPLIES '(IN dga_ NN)
     (list 'FORALL 'R (list 'IMPLIES '(IS-COMMUTATIVE-RING R)
       (list '= (ladet-sign '(+ dga_ dga_)) '(ONE R))))))))
-(define ladet-se-ind (use-induction))
+(define ladet-se-ind (dk-use-induction-fixed! '(R)))   ; W1D: the ring fixed
 (dk-focus! (cdr (assq 'base ladet-se-ind)))
 (dk-peel!)
 (fact 'commutative-ring-is-ring 'R)
@@ -222,7 +222,7 @@
                (list '(MUL R) ladet-neg1 (ladet-sign (list 'succ vv)))))
   (fact 'dtr-sign-succ 'R vv)
   (subst (list '= (ladet-sign (list 'succ vv)) (list '(MUL R) ladet-neg1 (ladet-sign vv))))
-  (dk-apply! ladet-se-ih 'R)
+  ; W1D: R fixed; the IH is the equation itself
   (subst (list '= (ladet-sign vv) '(ONE R)))
   (crs))
 (ladet-done! 'ladet-sign-even)
@@ -321,7 +321,7 @@
 
 (define (ladet-tri-ind! kind)
   (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (ladet-tri-body kind 'n)))))
-  (let ((ind (use-induction)))
+  (let ((ind (dk-use-induction-fixed! '(R))))   ; W1D: the ring fixed
     ;; ---- base: DET(R, 0, D) = 1 = the empty product
     (dk-focus! (cdr (assq 'base ind)))
     (dk-peel!)
@@ -378,7 +378,7 @@
             (subst (dk-fact! 'ring-mul-left-id 'R x)))
           ;; the induction hypothesis at the minor
           (fact (if (eq? kind 'lower) 'ladet-minor-lower 'ladet-minor-upper) 'R 'n 'D)
-          (subst (dk-apply! ih 'R Mn))
+          (subst (dk-apply! ih Mn))   ; W1D: R fixed
           ;; the product over [1, n+1] peels its last factor
           (let* ((lamD (list 'VNB-LAMBDA 'dgk_ I1 '(ENTRY D dgk_ dgk_)))
                  (lamM (list 'VNB-LAMBDA 'dgk_ I0 (list 'ENTRY Mn 'dgk_ 'dgk_)))

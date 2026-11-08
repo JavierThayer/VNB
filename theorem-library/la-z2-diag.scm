@@ -287,6 +287,10 @@
 (define (lzd-minor-claim s)
   (forall-guarded '(R m n D p q) (append (lzd-diag-hyps 'D) (lzd-inj-hyps s))
     (lzd-div (lzd-ps 'D s) (list 'DET 'R s (list 'SUBMATRIX 'D s 'p 'q)))))
+;; W1G-B: the claim with R, m, n, D fixed -- the induction hypothesis of the fixed induction below
+(define (lzd-minor-claim-pq s)
+  (forall-guarded '(p q) (lzd-inj-hyps s)
+    (lzd-div (lzd-ps 'D s) (list 'DET 'R s (list 'SUBMATRIX 'D s 'p 'q)))))
 
 ;; the product of the first s diagonal entries is a ring element (s <= m, s <= n)
 (define (lzd-ps-type! d s . dims)
@@ -323,7 +327,7 @@
         (fact 'nn-add-closed a b))))
 
 (sp (make-wff (list 'FORALL 's (list 'IMPLIES '(IN s NN) (lzd-minor-claim 's)))))
-(let* ((opened (dk-opened (lambda () (ni))))
+(let* ((opened (cdr (assq 'cases (dk-ni-fixed! '(R m n D)))))   ; W1G-B: R, m, n, D fixed; p, q vary
        (step (find-first (lambda (l) (dk-contains? (dk-goal-of l) 'succ)) opened))
        (base (find-first (lambda (l) (not (eq? l step))) opened)))
   ;; ---- base: s = 0 ----
@@ -350,7 +354,7 @@
   (dk-focus! step)
   (let* ((sv (lzd-find-succ (dk-goal)))
          (s1 (list 'succ sv))
-         (ih (lzd-minor-claim sv))
+         (ih (lzd-minor-claim-pq sv))   ; W1G-B: R, m, n, D fixed
          (ld (dk-peel!)))
     (if (not (dk-asm? ih)) (error "lzd: no induction hypothesis" (expression->string ih)))
     (fact 'commutative-ring-is-ring 'R)
@@ -478,7 +482,7 @@
                       (fact 'interval-elt-in-nn 1 s1 j0)
                       (dk-cite! 'lzd-skp-inj sv 'm 'p i0)
                       (dk-cite! 'lzd-skp-inj sv 'n 'q j0)
-                      (let* ((y (dk-skolem! (dk-apply! ih 'R 'm 'n 'D pp qq)))
+                      (let* ((y (dk-skolem! (dk-apply! ih pp qq)))
                              (bs (list 'ENTRY 'D s1 s1))
                              (bp (list 'ENTRY 'D pi0 pi0)))
                         ;; the chain: b_{s+1} | b_{p(i0)}

@@ -3533,11 +3533,11 @@
     (list 'HOLOMORPHIC-ON 'c6u_ (c6-ppx 'c6u_ 'c6f_ 'c6n_)))))))))))
 (define (c6-setu! u)
   (fact 'cc-is-set) (c6-cite! 'cc-open-subset-cc u) (fact 'subclass-of-set-is-set u 'CC))
-(ni)
+(dk-ni-fixed! '(c6u_ c6f_))   ; W1G-B: c6u_, c6f_ fixed
 (c6-induct!
   (lambda ()
-    (let* ((new (c6-steps!)) (u (caddr (find-first (lambda (q) (dk-head-is? q 'IS-OPEN)) new)))
-           (f (cadr (find-first (lambda (q) (and (c6-op? q 'IN 3) (c6-op? (caddr q) 'FUN 3) (eq? (cadr (caddr q)) 'NN))) new)))
+    (let* ((new '()) (u (caddr (find-first (lambda (q) (dk-head-is? q 'IS-OPEN)) (dk-asms))))   ; W1G-B: u, f hoisted; the base goal is the HOLOMORPHIC-ON atom, nothing to peel
+           (f (cadr (find-first (lambda (q) (and (c6-op? q 'IN 3) (c6-op? (caddr q) 'FUN 3) (eq? (cadr (caddr q)) 'NN))) (dk-asms))))   ; W1G-B: u, f hoisted
            (g1 (list 'VNB-LAMBDA 'c6x_ u 1)) (pp (c6-ppx u f 0)))
       (c6-setu! u) (fact 'cc-one-in) (fact 'nn-zero-in)
       (dk-have! (list 'HOLOMORPHIC-ON u g1) (lambda () (dk-holomorphic! u g1)))
@@ -3547,13 +3547,13 @@
       (c6-cite! 'holomorphic-transfer-ptwise-eq u pp g1)
       (dk-ass!)))
   (lambda ()
-    (let* ((new (c6-steps!)) (n (c6-succ-var new)) (u (caddr (find-first (lambda (q) (dk-head-is? q 'IS-OPEN)) new)))
-           (f (cadr (find-first (lambda (q) (and (c6-op? q 'IN 3) (c6-op? (caddr q) 'FUN 3) (eq? (cadr (caddr q)) 'NN))) new)))
-           (ih (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'PPROD))) new))
-           (fh (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'HOLOMORPHIC-ON) (not (dk-contains? q 'PPROD)))) new))
+    (let* ((new (c6-steps!)) (n (c6-succ-var new)) (u (caddr (find-first (lambda (q) (dk-head-is? q 'IS-OPEN)) (dk-asms))))   ; W1G-B: u, f hoisted
+           (f (cadr (find-first (lambda (q) (and (c6-op? q 'IN 3) (c6-op? (caddr q) 'FUN 3) (eq? (cadr (caddr q)) 'NN))) (dk-asms))))   ; W1G-B: u, f hoisted
+           (ih (find-first (lambda (q) (and (c6-op? q 'HOLOMORPHIC-ON 3) (dk-contains? q 'PPROD))) new))   ; W1G-B: the IH is HOLOMORPHIC-ON(u, ppx(n))
+           (fh (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'HOLOMORPHIC-ON) (not (dk-contains? q 'PPROD)))) (dk-asms)))   ; W1G-B: u, f hoisted
            (p0 (c6-ppx u f n)) (p1 (c6-ppx u f (list 'succ n))))
       (c6-setu! u) (fact 'cc-one-in) (fact 'nn-succ-closed n)
-      (let* ((hp (dk-apply! ih u f)) (hf (dk-apply! fh n)))
+      (let* ((hp ih) (hf (dk-apply! fh n)))
         (dk-project! (list 'IN p0 (list 'FUN u 'CC)) 'HOLOMORPHIC-ON hp)
         (fact 'fun-apply-type-c f 'NN (list 'FUN u 'CC) n)
         (let* ((pv (dk-name! p0 (list 'FUN u 'CC))) (gv (dk-name! (list f n) (list 'FUN u 'CC)))
@@ -3675,10 +3675,10 @@
     (list 'FORALL 'c6c_ (list 'IMPLIES '(IN c6c_ c6u_) (list 'FORALL 'c6r_ (list 'IMPLIES '(POS-RR c6r_)
       (list 'IMPLIES '(SUBSET (BALL CC-MS c6c_ c6r_) c6u_) (list 'IMPLIES (c6-zcov 'c6u_ 'c6f_ 'c6c_ 'c6r_ 'c6n_)
         (c6-zconc 'c6u_ 'c6f_ 'c6n_)))))))))))))))))
-(ni)
+(dk-ni-fixed! '(c6u_ c6f_))   ; W1G-B: c6u_, c6f_ fixed; c6c_ and c6r_ vary
 (c6-induct!
   (lambda ()
-    (let* ((new (c6-steps!)) (u (caddr (find-first (lambda (q) (dk-head-is? q 'IS-OPEN)) new)))
+    (let* ((new (c6-steps!)) (u (caddr (find-first (lambda (q) (dk-head-is? q 'IS-OPEN)) (dk-asms))))   ; W1G-B: u, f hoisted
            (c (cadr (find-first (lambda (q) (and (c6-op? q 'IN 3) (equal? (caddr q) u))) new)))
            (r (cadr (find-first (lambda (q) (dk-head-is? q 'POS-RR)) new)))
            (zc (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'BALL))) new)))
@@ -3686,12 +3686,12 @@
       (c6-cite! 'cc-ms-ball-centre c r)
       (let ((k (c6-sk! (dk-apply! zc c)))) (c6-nn! k) (fact 'nn-zero-le k) (dk-absurd! (list '< k 0) (list '<= 0 k)))))
   (lambda ()
-    (let* ((new (c6-steps!)) (nn (c6-succ-var new)) (u (caddr (find-first (lambda (q) (dk-head-is? q 'IS-OPEN)) new)))
-           (f (cadr (find-first (lambda (q) (and (c6-op? q 'IN 3) (c6-op? (caddr q) 'FUN 3) (eq? (cadr (caddr q)) 'NN))) new)))
+    (let* ((new (c6-steps!)) (nn (c6-succ-var new)) (u (caddr (find-first (lambda (q) (dk-head-is? q 'IS-OPEN)) (dk-asms))))   ; W1G-B: u, f hoisted
+           (f (cadr (find-first (lambda (q) (and (c6-op? q 'IN 3) (c6-op? (caddr q) 'FUN 3) (eq? (cadr (caddr q)) 'NN))) (dk-asms))))   ; W1G-B: u, f hoisted
            (c (cadr (find-first (lambda (q) (and (c6-op? q 'IN 3) (equal? (caddr q) u))) new)))
            (r (cadr (find-first (lambda (q) (dk-head-is? q 'POS-RR)) new)))
-           (ih (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'IS-CONNECTED))) new))
-           (zc (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'BALL) (not (dk-contains? q 'IS-CONNECTED)))) new))
+           (ih (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'POS-RR))) new))   ; W1G-B: the IH is forall c. .. forall r. POS-RR(r) => ..
+           (zc (find-first (lambda (q) (and (c6-op? q 'FORALL 3) (dk-contains? q 'BALL) (not (dk-contains? q 'POS-RR)))) new))
            (gn (c6-gk u f nn)) (az (c6-allz u f nn)) (n1 (list 'succ nn)))
       (c6-setu! u) (fact 'subset-mem-fwd u 'CC c) (fact 'rr-pos-rr-in-rr r) (fact 'rr-lt-of-pos-rr r) (c6-nn! nn) (c6-lt-succ-n! nn)
       (fact 'nn-succ-closed nn)
@@ -3771,7 +3771,7 @@
                                       (lambda ()
                                         (c6-lt-from-le! k nn)
                                         (ew k) (dk-conj-close! (lambda () (dk-ass!)))))))))
-                            (let ((k (c6-sk! (dk-apply! ih u f c2 e))))
+                            (let ((k (c6-sk! (dk-apply! ih c2 e))))   ; W1G-B: u, f hoisted
                               (c6-nn! k)
                               (c6-lt-succ! k nn)
                               (ew k) (dk-conj-close! (lambda () (dk-ass!))))))))))

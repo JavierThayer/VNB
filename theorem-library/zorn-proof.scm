@@ -239,9 +239,10 @@
        (let ((eqn0 (dk-cite! 'zkept-zero p g r)))
          (subst (list '= (cadr eqn0) (caddr eqn0)))))
       ((succ)
-       (let ((ih (find-first (dk-head? 'FORALL) parts)))
-         (if (not ih) (error "zp-zdef-case!: no induction hypothesis landed" parts))
-         (zp-inst*! ih p g r))
+       ;; W1C: phi, grd, porel are fixed (dk-tfi3-fixed!), so the IH landed is the
+       ;; equation at the stage itself and needs no instantiation
+       (if (not (find-first (lambda (f) (dk-head-is? f '=)) parts))
+           (error "zp-zdef-case!: no induction hypothesis landed" parts))
        (let ((eqns (dk-cite! 'zkept-succ p g r (cadr x))))
          (subst (list '= (cadr eqns) (caddr eqns)))))
       ((limit)
@@ -253,7 +254,7 @@
       (forall-guarded '(a) '((IN a ORD))
         (nest-quantifiers 'FORALL '(phi grd porel)
           '(= (ZKEPT phi grd porel a) (ZKEPT phi grd porel a))))))
-(let ((zp-zcases (dk-opened (lambda () (tfi3)))))
+(let ((zp-zcases (dk-opened (lambda () (dk-tfi3-fixed!)))))   ; W1C: phi grd porel fixed
   (dk-focus! (car zp-zcases))   (zp-zdef-case! 'zero)
   (dk-focus! (cadr zp-zcases))  (zp-zdef-case! 'succ)
   (dk-focus! (caddr zp-zcases)) (zp-zdef-case! 'limit))
@@ -265,7 +266,7 @@
         (nest-quantifiers 'FORALL '(phi grd porel)
           (forall-guarded '(a) '((IN a ORD) (ORD-LE a b))
             '(SUBSET (ZKEPT phi grd porel a) (ZKEPT phi grd porel b)))))))
-(define zp-mono-cases (dk-opened (lambda () (tfi3))))
+(define zp-mono-cases (dk-opened (lambda () (dk-tfi3-fixed!))))   ; W1C: phi grd porel fixed; a stays quantified
 
 ;;; BASE b = 0: a <= 0 and 0 <= a force a = 0, and inclusion is reflexive.
 (dk-focus! (car zp-mono-cases))
@@ -302,7 +303,7 @@
 (fact 'ord-le-total 'a 'b)
 
 (define (zp-succ-below!)                ; the a <= b argument, used twice
-  (zp-mem! (zp-inst*! zp-mono-ih 'phi 'grd 'porel 'a) 'x)
+  (zp-mem! (zp-inst*! zp-mono-ih 'a) 'x)   ; W1C: phi grd porel fixed
   (mac 'zkept-succ)
   (ui 1)
   (ass))
@@ -452,11 +453,11 @@
         (nest-quantifiers 'FORALL '(phi grd porel)
           '(IMPLIES (IS-PARTIAL-ORDER grd porel)
                     (IS-CHAIN grd porel (ZKEPT phi grd porel alpha)))))))
-(define zp-inv-cases (dk-opened (lambda () (tfi3))))
+(define zp-inv-cases (dk-opened (lambda () (dk-tfi3-fixed!))))   ; W1C: phi grd porel and the order fixed
 
 ;;; BASE: ZKEPT(...,0) is the empty set.
 (dk-focus! (car zp-inv-cases))
-(di) (di)
+;; W1C: nothing to peel (was (di) (di)); the parameters and IS-PARTIAL-ORDER are fixed
 (mac 'zkept-zero)
 (dk-split! (dk-landed-1 (lambda () (mac-h 'is-partial-order '(IS-PARTIAL-ORDER grd porel)))))
 (fact 'zorn-empty-is-chain 'grd 'porel)
@@ -465,11 +466,9 @@
 ;;; SUCCESSOR: ZKEPT(...,succ alpha) is the previous stage adjoined with KEEP-SET.
 (dk-focus! (cadr zp-inv-cases))
 (di)
-(define zp-inv-ih
-  (car (filter (dk-head? 'FORALL) (dk-split! (dk-landed-1 (lambda () (di)))))))
-(di) (di)
+(define zp-inv-ih                       ; W1C: the IH is IS-CHAIN at the stage itself
+  (car (filter (lambda (f) (not (dk-head-is? f 'IN))) (dk-split! (dk-landed-1 (lambda () (di)))))))
 (mac 'zkept-succ)
-(zp-inst*! zp-inv-ih 'phi 'grd 'porel)
 ;; 2026-09-18 (LUTINS instantiation): zorn-chain-plus-keepset is cited at the
 ;; stage ZKEPT(phi,grd,porel,alpha), and IS-CHAIN is not one of the strict
 ;; relations, so the invariant in context does not certify it.  Until 2026-10-24
@@ -486,7 +485,7 @@
 (di)
 (define zp-inv-ihl
   (car (filter (dk-head? 'FORALL) (dk-split! (dk-landed-1 (lambda () (di)))))))
-(di) (di)
+;; W1C: nothing more to peel (was (di) (di)); the parameters are fixed
 (mac 'zkept-limit)
 (have! '(IN alpha ORD)
        (lambda ()
@@ -497,7 +496,7 @@
        (lambda ()
          (di)
          (mac-h 'ord-segment-membership '(IN beta (ORD-SEGMENT alpha)))
-         (zp-inst*! zp-inv-ihl 'beta 'phi 'grd 'porel)
+         (zp-inst*! zp-inv-ihl 'beta)   ; W1C: phi grd porel fixed
          (ass)))
 (fact 'zorn-zkept-limit-is-chain 'phi 'grd 'porel 'alpha)
 (ass)

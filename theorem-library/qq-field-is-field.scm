@@ -311,6 +311,7 @@
 
 (sp (make-wff '(IS-FIELD QQ-FIELD)))
 (mac 'IS-FIELD)                                    ; the definitional IFF
+(dk-isx-set!)   ; W1J-B: the conjunct t in SET, from the typings
 (quietly (lambda () (surface-goal! 'QQ-FIELD)))    ; carr(s) -> QQ, add(s) -> the lambda, ...
 ;; split the conjunction to leaves
 (let split ((fuel 40))

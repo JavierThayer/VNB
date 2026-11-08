@@ -372,16 +372,193 @@
 ;;; IF(p, a, b) == a.  The kernel's if-true gains the STRICT (= (IF p a b) a), which asserts that a
 ;;; denotes, and proves FALSITY modulo 0 with a = IOTA x. (x in NN and FALSITY)
 ;;; (scratchpad/meta2/ifprobe-falsity.scm, 2026-10-08).
+;; VIAGAP (2026-10-29): the branches a, b are closed terms (IN CLT) in both IF rules, as the
+;; instantiation term of CR-FORALL-ELIM is.  They are entries of ENC-IF inside a sentence of a
+;; hypothesis' context, so well-formed hypotheses already make them closed terms; the conjunct
+;; bounds them for the predicativity relation, which does not read CTX-ADD (a UNION) for list
+;; components.
 (mc--cr! 'CR-IF-TRUE "the core if-true relates $2 to $3"
   (mc--ex '(mcg_ mcf_ mcp_ mca_ mcb_)
     (mc--and '(= mcc_ (LIST mcg_ mcf_))
              '(= mchs_ (LIST (LIST mcg_ mcp_)
-                             (LIST (CTX-ADD mcg_ (ENC-QEQ (ENC-IF mcp_ mca_ mcb_) mca_)) mcf_))))))
+                             (LIST (CTX-ADD mcg_ (ENC-QEQ (ENC-IF mcp_ mca_ mcb_) mca_)) mcf_)))
+             '(IN mca_ CLT) '(IN mcb_ CLT))))
 (mc--cr! 'CR-IF-FALSE "the core if-false relates $2 to $3"
   (mc--ex '(mcg_ mcf_ mcp_ mca_ mcb_)
     (mc--and '(= mcc_ (LIST mcg_ mcf_))
              '(= mchs_ (LIST (LIST mcg_ (ENC-NOT mcp_))
-                             (LIST (CTX-ADD mcg_ (ENC-QEQ (ENC-IF mcp_ mca_ mcb_) mcb_)) mcf_))))))
+                             (LIST (CTX-ADD mcg_ (ENC-QEQ (ENC-IF mcp_ mca_ mcb_) mcb_)) mcf_)))
+             '(IN mca_ CLT) '(IN mcb_ CLT))))
+
+;; THE FUNCTOID TABLE FUN-DEF (its claim and its one illustrative row are described at 4.10 below).  Defined
+;; here, ahead of 4.10 (agent METACORE, 2026-10-29), because the predicativity walk of 4.3a reads it.
+(def-predicate 'FUN-DEF '(mcfh_ mcfn_ mcfb_)
+  '(AND (= mcfh_ 32) (AND (= mcfn_ 2) (= mcfb_ (ENC-SEP (EBVAR 0) (ENC-IN (EBVAR 0) (EBVAR 2)))))))
+(notation! 'FUN-DEF 'kind 'predicate 'arity 3 'english "the functoid code $1 has arity $2 and body $3")
+
+;;; -----------------------------------------------------------------------
+;;; 4.3a NBG PREDICATIVITY (agent METACORE, 2026-10-29; item 2 of the user's approval of that day).
+;;; Since NBGSEP (the user's decisions (i) of 2026-10-15 and (ii) of 2026-10-24) the kernel admits a
+;;; COMP, a SEP, a BIG-UNION and a VNB-LAMBDA only with a PREDICATIVE condition or body.  Until this
+;;; section the encoded schemas of 4.4 and 4.7 (CR-SEP-SETHOOD, CR-SEP-MEM, CR-COMP-MEM,
+;;; CR-BIG-UNION-SETHOOD, CR-BIG-UNION-MEM, CR-LAMBDA-TYPE, CR-LAMBDA-BETA-EQ, CR-DEF-BINDER, CR-DEF-COMP)
+;;; carried no such condition, so that the encoded core had the comprehension of Morse-Kelley.  Each of
+;;; them now carries the premise NBG-OK(p) on the condition or body p.
+;;; THE RELATION.  NBG-OK(p): every quantifier node of p, at any depth, is CONFINED to sets.  It is the
+;;; relation that `pi--comp-unconfined-binder' (primitive-inferences.scm, the builder) and
+;;; `rcs--quantifier-nodes' / `rcs--quantifier-confined?' (rule-checkers-schema.scm, the checker) decide,
+;;; each stated there independently:
+;;;   FORALL v B   is confined when, reading B down its implicational spine (through universals and
+;;;                through the consequents of IMPLIES), some antecedent met has (IN v C) among its
+;;;                conjuncts;
+;;;   FORSOME v B  is confined when, reading B down its conjunctive spine (through existentials and
+;;;                through both sides of AND), some node met is (IN v C);
+;;;   IOTA v B     is confined when (IN v C) is a conjunct of B;
+;;;   SEP, BIG-UNION, VNB-LAMBDA, COMP, IF: no condition on the node itself; their parts are walked.
+;;; In the locally nameless encoding the variable of a node is the index 0 of its body, and the index d
+;;; under d further binders of the spine; the kernel's "a universal that does not rebind v" is every
+;;; universal of the spine, and its guard (IN v C) is ENC-IN(EBVAR(d), C) at the depth d where it is
+;;; met.  The spines are least sets of pairs [e, d] (ALL-SPINE, EX-SPINE), the conjuncts of a formula
+;;; the least set CONJ-REACH.
+;;; THE WALK.  NBG-WALK(p) is the least set of expressions holding p and closed under NBG-STEP: an entry
+;;; of an application's argument list; an entry of a binder's outside list; a binder's body; and two
+;;; DEFINED-HEAD clauses:
+;;;   (d1) the body b of the row (h, |l|, b) of the functoid table FUN-DEF (4.10), at an application
+;;;        EAPP(h, l).  The kernel's walk reads an anonymous record's bindings and body (a record is
+;;;        lambda-lifted into a row, 4.10); the clause reads every row, the def-functoids' included.
+;;;   (d2) the body b of the row (k, |l|, b) of the predicate table PRED-DEF below, at a predicate atom
+;;;        EAPP(10, l) whose first entry is ECONST(k).
+;;; The kernel relation of a320cb6f reads through neither a def-functoid head nor a def-predicate head
+;;; (agent VIAGAP is extending it to do so).  The encoded core cannot do without (d1): with
+;;; F(x) := IF(phi(x), 0, 1), phi impredicative, the condition F(x) = 0 has no quantifier node of its
+;;; own, CR-SEP-MEM would read the members of SEP x A. F(x) = 0, and CR-FUNCTOID-BETA-EQ would unfold F:
+;;; the separation of Morse-Kelley again.  Clause (d2) is the same for a defined predicate, whose
+;;; definition is in the encoding a member of T: the table PRED-DEF holds NO row here, and its rows are
+;;; the K3 translator's (one per def-predicate and structure predicate whose code is in PRED-CODE, the
+;;; body the defining IFF's right side over the parameters as indices).  THE OBLIGATION ON T that
+;;; follows: a member of T that defines a predicate whose code has no PRED-DEF row must have a
+;;; predicative body, or the core over T is not predicative.
+;;; A row's body is walked as it stands, its parameters dangling indices: the confinement of a node is
+;;; decided at the node, and the arguments of the application are walked as entries of its list.
+;;; THE GUARDS.  Every quantifier of the definitions below is confined by a membership (in EXPR-SET, NN,
+;;; SET, POWER(..) or CARTESIAN(EXPR-SET, NN)), so that the relation is itself predicative when it is
+;;; read through its own defined heads.
+
+;; The predicate table: NO ROW (the translator's; see (d2) above).
+(def-predicate 'PRED-DEF '(mcdk_ mcdn_ mcdb_)
+  '(AND (IN mcdk_ NN) (AND (IN mcdn_ NN) (AND (IN mcdb_ EXPR-SET) (= 0 1)))))
+(notation! 'PRED-DEF 'kind 'predicate 'arity 3
+           'english "the predicate code $1 at an atom of list length $2 has the definition body $3")
+
+;; One step of the walk, from e to f.
+(def-predicate 'NBG-STEP '(mnbe_ mnbf_)
+  '(OR (FORSOME mnb1h_ (FORSOME mnb1l_ (FORSOME mnb1i_
+         (AND (IN mnb1h_ NN) (AND (IN mnb1l_ SET) (AND (IN mnb1i_ NN)
+              (AND (= mnbe_ (EAPP mnb1h_ mnb1l_))
+                   (AND (<= 1 mnb1i_) (AND (<= mnb1i_ (LENGTH mnb1l_)) (= mnbf_ (NTH mnb1i_ mnb1l_)))))))))))
+   (OR (FORSOME mnb2h_ (FORSOME mnb2n_ (FORSOME mnb2a_ (FORSOME mnb2b_ (FORSOME mnb2i_
+         (AND (IN mnb2h_ NN) (AND (IN mnb2n_ NN) (AND (IN mnb2a_ SET) (AND (IN mnb2b_ EXPR-SET) (AND (IN mnb2i_ NN)
+              (AND (= mnbe_ (EBIND mnb2h_ mnb2n_ mnb2a_ mnb2b_))
+                   (AND (<= 1 mnb2i_) (AND (<= mnb2i_ (LENGTH mnb2a_)) (= mnbf_ (NTH mnb2i_ mnb2a_)))))))))))))))
+   (OR (FORSOME mnb3h_ (FORSOME mnb3n_ (FORSOME mnb3a_
+         (AND (IN mnb3h_ NN) (AND (IN mnb3n_ NN) (AND (IN mnb3a_ SET) (= mnbe_ (EBIND mnb3h_ mnb3n_ mnb3a_ mnbf_))))))))
+   (OR (FORSOME mnb4h_ (FORSOME mnb4l_
+         (AND (IN mnb4h_ NN) (AND (IN mnb4l_ SET)
+              (AND (= mnbe_ (EAPP mnb4h_ mnb4l_)) (FUN-DEF mnb4h_ (LENGTH mnb4l_) mnbf_))))))
+       (FORSOME mnb5l_ (FORSOME mnb5k_
+         (AND (IN mnb5l_ SET) (AND (IN mnb5k_ NN)
+              (AND (= mnbe_ (EAPP 10 mnb5l_))
+                   (AND (= (NTH 1 mnb5l_) (ECONST mnb5k_)) (PRED-DEF mnb5k_ (LENGTH mnb5l_) mnbf_))))))))))))
+(notation! 'NBG-STEP 'kind 'predicate 'arity 2 'english "$2 is one step of the predicativity walk below $1")
+(def-predicate 'NBG-CLOSED '(mnbw_)
+  '(FORALL mnbce_ (IMPLIES (IN mnbce_ mnbw_)
+     (FORALL mnbcf_ (IMPLIES (IN mnbcf_ EXPR-SET) (IMPLIES (NBG-STEP mnbce_ mnbcf_) (IN mnbcf_ mnbw_)))))))
+(notation! 'NBG-CLOSED 'kind 'predicate 'arity 1 'english "$1 is closed under the steps of the predicativity walk")
+(def-functoid 'NBG-WALK '(mnbp_)
+  '(SEP mnbz_ EXPR-SET (FORALL mnbv_ (IMPLIES (IN mnbv_ (POWER EXPR-SET))
+      (IMPLIES (IN mnbp_ mnbv_) (IMPLIES (NBG-CLOSED mnbv_) (IN mnbz_ mnbv_)))))))
+(notation! 'NBG-WALK 'kind 'functoid 'arity 1 'english "the expressions the predicativity walk reaches from $1")
+
+;; The conjuncts of a formula (x itself included).
+(def-predicate 'CONJ-STEP '(mnbx_ mnby_)
+  '(FORSOME mnbcp_ (FORSOME mnbcq_
+     (AND (IN mnbcp_ EXPR-SET) (AND (IN mnbcq_ EXPR-SET)
+          (AND (= mnbx_ (ENC-AND mnbcp_ mnbcq_)) (OR (= mnby_ mnbcp_) (= mnby_ mnbcq_))))))))
+(notation! 'CONJ-STEP 'kind 'predicate 'arity 2 'english "$2 is a side of the conjunction $1")
+(def-predicate 'CONJ-CLOSED '(mnbw_)
+  '(FORALL mnbce_ (IMPLIES (IN mnbce_ mnbw_)
+     (FORALL mnbcf_ (IMPLIES (IN mnbcf_ EXPR-SET) (IMPLIES (CONJ-STEP mnbce_ mnbcf_) (IN mnbcf_ mnbw_)))))))
+(notation! 'CONJ-CLOSED 'kind 'predicate 'arity 1 'english "$1 is closed under the sides of conjunctions")
+(def-functoid 'CONJ-REACH '(mnbx_)
+  '(SEP mnbz_ EXPR-SET (FORALL mnbv_ (IMPLIES (IN mnbv_ (POWER EXPR-SET))
+      (IMPLIES (IN mnbx_ mnbv_) (IMPLIES (CONJ-CLOSED mnbv_) (IN mnbz_ mnbv_)))))))
+(notation! 'CONJ-REACH 'kind 'functoid 'arity 1 'english "the conjuncts of $1")
+
+;; The implicational spine of a universal's body: pairs [e, d], d the number of universals passed.
+(def-predicate 'ALL-SPINE-STEP '(mnbu_ mnbt_)
+  '(OR (FORSOME mnbsc_ (FORSOME mnbsd_
+         (AND (IN mnbsc_ EXPR-SET) (AND (IN mnbsd_ NN)
+              (AND (= mnbu_ (LIST (ENC-ALL mnbsc_) mnbsd_)) (= mnbt_ (LIST mnbsc_ (+ mnbsd_ 1))))))))
+       (FORSOME mnbsx_ (FORSOME mnbsy_ (FORSOME mnbse_
+         (AND (IN mnbsx_ EXPR-SET) (AND (IN mnbsy_ EXPR-SET) (AND (IN mnbse_ NN)
+              (AND (= mnbu_ (LIST (ENC-IMP mnbsx_ mnbsy_) mnbse_)) (= mnbt_ (LIST mnbsy_ mnbse_)))))))))))
+(notation! 'ALL-SPINE-STEP 'kind 'predicate 'arity 2 'english "$2 is one step down the implicational spine from $1")
+(def-predicate 'ALL-SPINE-CLOSED '(mnbw_)
+  '(FORALL mnbce_ (IMPLIES (IN mnbce_ mnbw_)
+     (FORALL mnbcf_ (IMPLIES (IN mnbcf_ (CARTESIAN EXPR-SET NN)) (IMPLIES (ALL-SPINE-STEP mnbce_ mnbcf_) (IN mnbcf_ mnbw_)))))))
+(notation! 'ALL-SPINE-CLOSED 'kind 'predicate 'arity 1 'english "$1 is closed under steps down implicational spines")
+(def-functoid 'ALL-SPINE '(mnbb_)
+  '(SEP mnbz_ (CARTESIAN EXPR-SET NN) (FORALL mnbv_ (IMPLIES (IN mnbv_ (POWER (CARTESIAN EXPR-SET NN)))
+      (IMPLIES (IN (LIST mnbb_ 0) mnbv_) (IMPLIES (ALL-SPINE-CLOSED mnbv_) (IN mnbz_ mnbv_)))))))
+(notation! 'ALL-SPINE 'kind 'functoid 'arity 1 'english "the implicational spine of the body $1, with depths")
+
+;; The conjunctive spine of an existential's body.
+(def-predicate 'EX-SPINE-STEP '(mnbu_ mnbt_)
+  '(OR (FORSOME mnbsc_ (FORSOME mnbsd_
+         (AND (IN mnbsc_ EXPR-SET) (AND (IN mnbsd_ NN)
+              (AND (= mnbu_ (LIST (ENC-EX mnbsc_) mnbsd_)) (= mnbt_ (LIST mnbsc_ (+ mnbsd_ 1))))))))
+       (FORSOME mnbsx_ (FORSOME mnbsy_ (FORSOME mnbse_
+         (AND (IN mnbsx_ EXPR-SET) (AND (IN mnbsy_ EXPR-SET) (AND (IN mnbse_ NN)
+              (AND (= mnbu_ (LIST (ENC-AND mnbsx_ mnbsy_) mnbse_))
+                   (OR (= mnbt_ (LIST mnbsx_ mnbse_)) (= mnbt_ (LIST mnbsy_ mnbse_))))))))))))
+(notation! 'EX-SPINE-STEP 'kind 'predicate 'arity 2 'english "$2 is one step down the conjunctive spine from $1")
+(def-predicate 'EX-SPINE-CLOSED '(mnbw_)
+  '(FORALL mnbce_ (IMPLIES (IN mnbce_ mnbw_)
+     (FORALL mnbcf_ (IMPLIES (IN mnbcf_ (CARTESIAN EXPR-SET NN)) (IMPLIES (EX-SPINE-STEP mnbce_ mnbcf_) (IN mnbcf_ mnbw_)))))))
+(notation! 'EX-SPINE-CLOSED 'kind 'predicate 'arity 1 'english "$1 is closed under steps down conjunctive spines")
+(def-functoid 'EX-SPINE '(mnbb_)
+  '(SEP mnbz_ (CARTESIAN EXPR-SET NN) (FORALL mnbv_ (IMPLIES (IN mnbv_ (POWER (CARTESIAN EXPR-SET NN)))
+      (IMPLIES (IN (LIST mnbb_ 0) mnbv_) (IMPLIES (EX-SPINE-CLOSED mnbv_) (IN mnbz_ mnbv_)))))))
+(notation! 'EX-SPINE 'kind 'functoid 'arity 1 'english "the conjunctive spine of the body $1, with depths")
+
+;; The three confinements, of a node's BODY b (the node's variable is the index 0 of b).
+(def-predicate 'ALL-CONFINED '(mnbb_)
+  '(FORSOME mnbqx_ (FORSOME mnbqy_ (FORSOME mnbqd_ (FORSOME mnbqc_
+     (AND (IN mnbqx_ EXPR-SET) (AND (IN mnbqy_ EXPR-SET) (AND (IN mnbqd_ NN) (AND (IN mnbqc_ EXPR-SET)
+          (AND (IN (LIST (ENC-IMP mnbqx_ mnbqy_) mnbqd_) (ALL-SPINE mnbb_))
+               (IN (ENC-IN (EBVAR mnbqd_) mnbqc_) (CONJ-REACH mnbqx_))))))))))))
+(notation! 'ALL-CONFINED 'kind 'predicate 'arity 1 'english "the universal with body $1 is confined to sets")
+(def-predicate 'EX-CONFINED '(mnbb_)
+  '(FORSOME mnbqd_ (FORSOME mnbqc_
+     (AND (IN mnbqd_ NN) (AND (IN mnbqc_ EXPR-SET)
+          (IN (LIST (ENC-IN (EBVAR mnbqd_) mnbqc_) mnbqd_) (EX-SPINE mnbb_)))))))
+(notation! 'EX-CONFINED 'kind 'predicate 'arity 1 'english "the existential with body $1 is confined to sets")
+(def-predicate 'IOTA-CONFINED '(mnbb_)
+  '(FORSOME mnbqc_ (AND (IN mnbqc_ EXPR-SET) (IN (ENC-IN (EBVAR 0) mnbqc_) (CONJ-REACH mnbb_)))))
+(notation! 'IOTA-CONFINED 'kind 'predicate 'arity 1 'english "the description with body $1 is confined to sets")
+
+;; A node is admissible when it is not an unconfined quantifier.
+(def-predicate 'QNODE-OK '(mnbe_)
+  '(FORALL mnbqb_ (IMPLIES (IN mnbqb_ EXPR-SET)
+     (AND (IMPLIES (= mnbe_ (ENC-ALL mnbqb_)) (ALL-CONFINED mnbqb_))
+          (AND (IMPLIES (= mnbe_ (ENC-EX mnbqb_)) (EX-CONFINED mnbqb_))
+               (IMPLIES (= mnbe_ (ENC-IOTA mnbqb_)) (IOTA-CONFINED mnbqb_)))))))
+(notation! 'QNODE-OK 'kind 'predicate 'arity 1 'english "the node $1 is not an unconfined quantifier")
+
+;; THE RELATION.
+(def-predicate 'NBG-OK '(mnbp_)
+  '(FORALL mnboe_ (IMPLIES (IN mnboe_ (NBG-WALK mnbp_)) (QNODE-OK mnboe_))))
+(notation! 'NBG-OK 'kind 'predicate 'arity 1 'english "$1 is predicative: every quantifier node in it is confined to sets")
 
 ;;; 4.4 SET FORMATION, DESCRIPTIONS, FUNCTIONS (9 of the note's 10: functoid-beta-eq had no
 ;;; encoding, the encoding having no functoid records -- META-2's finding; since 2026-10-21 it is 4.10,
@@ -391,26 +568,31 @@
 (mc--cr! 'CR-SEP-SETHOOD "the core sep-sethood relates $2 to $3"
   (mc--ex '(mcg_ mca_ mcp_)
     (mc--and '(= mcc_ (LIST mcg_ (ENC-IN (ENC-SEP mca_ mcp_) ENC-SETC)))
+             '(NBG-OK mcp_)
              '(= mchs_ (LIST (LIST mcg_ (ENC-IN mca_ ENC-SETC)))))))
 (mc--cr! 'CR-SEP-MEM "the core sep-mem relates $2 to $3"
   (mc--ex '(mcg_ mca_ mcp_ mctm_)
     (mc--and '(= mcc_ (LIST mcg_ (ENC-IFF (ENC-IN mctm_ (ENC-SEP mca_ mcp_))
                                           (ENC-AND (ENC-IN mctm_ mca_) (EXPR-OPEN mcp_ 0 mctm_)))))
+             '(NBG-OK mcp_)
              '(= mchs_ (LIST)))))
 (mc--cr! 'CR-COMP-MEM "the core comp-mem relates $2 to $3"
   (mc--ex '(mcg_ mcp_ mctm_)
     (mc--and '(= mcc_ (LIST mcg_ (ENC-IFF (ENC-IN mctm_ (ENC-COMP mcp_))
                                           (ENC-AND (ENC-IN mctm_ ENC-SETC) (EXPR-OPEN mcp_ 0 mctm_)))))
+             '(NBG-OK mcp_)
              '(= mchs_ (LIST)))))
 (mc--cr! 'CR-BIG-UNION-SETHOOD "the core big-union-sethood relates $2 to $3"
   (mc--ex '(mcg_ mca_ mcb_)
     (mc--and '(= mcc_ (LIST mcg_ (ENC-IN (ENC-BU mca_ mcb_) ENC-SETC)))
+             '(NBG-OK mcb_)
              '(= mchs_ (LIST (LIST mcg_ (ENC-IN mca_ ENC-SETC))
                              (LIST mcg_ (ENC-ALL (ENC-IMP (ENC-IN (EBVAR 0) mca_) (ENC-IN mcb_ ENC-SETC)))))))))
 (mc--cr! 'CR-BIG-UNION-MEM "the core big-union-mem relates $2 to $3"
   (mc--ex '(mcg_ mca_ mcb_ mcx_)
     (mc--and '(= mcc_ (LIST mcg_ (ENC-IFF (ENC-IN mcx_ (ENC-BU mca_ mcb_))
                                           (ENC-EX (ENC-AND (ENC-IN (EBVAR 0) mca_) (ENC-IN mcx_ mcb_))))))
+             '(NBG-OK mcb_)
              '(= mchs_ (LIST)))))
 ;; iota-def: exists-unique x. p, written  EX(p AND ALL(p => BVAR 1 = BVAR 0)): under the inner
 ;; binder the index 0 of p is the inner variable, so p itself is p[x := y].
@@ -429,12 +611,14 @@
 (mc--cr! 'CR-LAMBDA-TYPE "the core lambda-type relates $2 to $3"
   (mc--ex '(mcg_ mca_ mcb_ mcd_)
     (mc--and '(= mcc_ (LIST mcg_ (ENC-IN (ENC-LAM mca_ mcb_) (ENC-FUN mca_ mcd_))))
+             '(NBG-OK mcb_)
              '(= mchs_ (LIST (LIST mcg_ (ENC-ALL (ENC-IMP (ENC-IN (EBVAR 0) mca_) (ENC-IN mcb_ mcd_))))
                              (LIST mcg_ (ENC-IN mca_ ENC-SETC)))))))
 ;; DEPARTS: a QUASI-equation.  The note's strict  lambda(u) = b[u]  asserts that b[u] denotes.
 (mc--cr! 'CR-LAMBDA-BETA-EQ "the core lambda-beta-eq relates $2 to $3"
   (mc--ex '(mcg_ mca_ mcb_ mctm_)
     (mc--and '(= mcc_ (LIST mcg_ (ENC-QEQ (ENC-APPLY (ENC-LAM mca_ mcb_) mctm_) (EXPR-OPEN mcb_ 0 mctm_))))
+             '(NBG-OK mcb_)
              '(= mchs_ (LIST (LIST mcg_ (ENC-IN mctm_ mca_)))))))
 
 ;;; 4.7 DEFINEDNESS: THE SCHEMAS ADMITTED BY THE USER'S DECISIONS OF 2026-10-13 AND 2026-10-14.
@@ -495,21 +679,28 @@
 ;; (3) BINDER TERMS OVER A DENOTING DOMAIN.  THE CLAIM: SEP x A. p, BIG-UNION x A. b and
 ;; VNB-LAMBDA x A. b denote when A denotes: separation (the subclass of A cut out by p), the union of the
 ;; values b[x] that are sets as x ranges over A, and the class of the pairs [x, b[x]] for x in A with
-;; b[x] denoting -- each a class by comprehension, whatever the body.  The kernel's binder-domain
-;; clause (META-5 row 9).
+;; b[x] denoting -- each a class by comprehension, for a PREDICATIVE body (NBG-OK, 4.3a; until 2026-10-29
+;; this read "whatever the body", the comprehension of Morse-Kelley).  The kernel's binder-domain clause
+;; (META-5 row 9), which since NBGSEP certifies the binder term only when pi--binder-predicative? holds.
 (mc--cr! 'CR-DEF-BINDER "the core definedness rule binder-domain relates $2 to $3"
   (mc--ex '(mcg_ mchd_ mca_ mcb_)
     (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ (EBIND mchd_ 1 (LIST mca_) mcb_) (EBIND mchd_ 1 (LIST mca_) mcb_))))
              '(OR (= mchd_ 22) (OR (= mchd_ 24) (= mchd_ 26)))
+             '(NBG-OK mcb_)
              '(= mchs_ (LIST (LIST mcg_ (ENC-EQ mca_ mca_)))))))
-;; (4) COMPREHENSION.  THE CLAIM: COMP x. p denotes, for every formula p: the class of the sets
-;; satisfying p.  Note the strength: the encoded quantifiers range over CLASSES, so for a p that
-;; quantifies over classes this is the impredicative comprehension of Morse-Kelley, not the predicative
-;; comprehension of NBG.  The kernel already accepts every COMP unconditionally (META-5 row 10); the
-;; schema describes it, it does not extend it.
+;; (4) COMPREHENSION.  THE CLAIM: COMP x. p denotes, for every PREDICATIVE formula p (NBG-OK, 4.3a): the
+;; class of the sets satisfying p.  This is the class comprehension of NBG: the encoded quantifiers range
+;; over classes, and the premise NBG-OK(p) confines every quantifier of p to sets.  (Until 2026-10-29 the
+;; schema had no premise, and this comment read: "for a p that quantifies over classes this is the
+;; impredicative comprehension of Morse-Kelley ... The kernel already accepts every COMP unconditionally
+;; (META-5 row 10)".  Since 2026-10-15 (decision (i)) the kernel refuses the MEMBERSHIP rules at an
+;; impredicative COMP (pi--refuse-impredicative-comp!, rcs--comp-nbg?), and the premise transcribes that
+;; relation.  THE KERNEL'S CERTIFICATE DOES NOT: the clause ((eq? (car t) 'COMP) #t) of pi--defined?
+;; (primitive-inferences.scm, a320cb6f) still certifies EVERY comprehension as defined, so `rfl' and an
+;; unowed forall-elim accept an impredicative COMP that this schema does not.  METACORE report, finding 1.)
 (mc--cr! 'CR-DEF-COMP "the core definedness rule comprehension relates $2 to $3"
   (mc--ex '(mcg_ mcp_)
-    (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ (ENC-COMP mcp_) (ENC-COMP mcp_)))) '(= mchs_ (LIST)))))
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ (ENC-COMP mcp_) (ENC-COMP mcp_)))) '(NBG-OK mcp_) '(= mchs_ (LIST)))))
 ;; (5) LISTS.  THE CLAIM: a literal list [e1 .. en] every entry of which is a SET denotes (the list
 ;; doctrine of 2026-10-01: such a list denotes iff every entry is a set; this is the "if" half, one
 ;; premise per entry).  The kernel's pi--sets-defined? clause (META-5 row 7).
@@ -680,9 +871,7 @@
 ;;; fun-def-heads, for the rows present), its body is a well-formed term closed at depth n, and the rows
 ;;; are ACYCLIC (a row's body applies only codes of earlier rows), as a def-functoid's body names only
 ;;; functoids already registered.
-(def-predicate 'FUN-DEF '(mcfh_ mcfn_ mcfb_)
-  '(AND (= mcfh_ 32) (AND (= mcfn_ 2) (= mcfb_ (ENC-SEP (EBVAR 0) (ENC-IN (EBVAR 0) (EBVAR 2)))))))
-(notation! 'FUN-DEF 'kind 'predicate 'arity 3 'english "the functoid code $1 has arity $2 and body $3")
+;; (FUN-DEF itself is defined in section 4.3a, before the first relation that names it: NBG-STEP.)
 ;; The body opened at the first n entries of a list, index i - 1 at the i-th entry, by recursion on n.
 (def-by-nn-recursion 'OPENL '(mcob_ mcol_) 'mcob_ '(mcon_ mcov_) '(EXPR-OPEN mcov_ mcon_ (NTH (succ mcon_) mcol_)))
 (notation! 'OPENL 'kind 'functoid 'arity 3 'english "$1 opened at the first $3 entries of $2")
@@ -708,9 +897,13 @@
 ;;; -----------------------------------------------------------------------
 ;;; 5. CORE-RULE, CORE-CLOSED, DERIVABLE.
 
+;; VIAGAP (2026-10-29): the list of hypotheses is a SET.  Without the conjunct the variable
+;; mchs_ of CORE-CLOSED ranged over classes (CR-DEF-LIST and CR-DEF-TOTAL fix it only through
+;; LENGTH and NTH), and DERIVABLE's condition was impredicative once definitions are read.
 (def-predicate 'HYPS-IN '(mchs_ mcs_)
-  '(FORALL mci_ (IMPLIES (IN mci_ NN) (IMPLIES (<= 1 mci_) (IMPLIES (<= mci_ (LENGTH mchs_))
-                                                                    (IN (NTH mci_ mchs_) mcs_))))))
+  '(AND (IN mchs_ SET)
+        (FORALL mci_ (IMPLIES (IN mci_ NN) (IMPLIES (<= 1 mci_) (IMPLIES (<= mci_ (LENGTH mchs_))
+                                                                    (IN (NTH mci_ mchs_) mcs_)))))))
 (notation! 'HYPS-IN 'kind 'predicate 'arity 2 'english "every entry of the list $1 is in $2")
 
 (def-predicate 'CORE-RULE '(mct_ mchs_ mcc_)
@@ -745,15 +938,9 @@
                '(= mchs_ (LIST (LIST (CTX-ADD mcg_ mcq_) mcf_)))))))
 (notation! 'REL-DETACH 'kind 'predicate 'arity 3 'english "the kernel's detach relates $2 to $3")
 
-;; rule-checkers-logic.scm 988-1004 (contraposition; UNREACHABLE, pi-contraposit! has no caller):
-;; one hypothesis; the same context; the goal (NOT p); some (IMPLIES p q) in the context; the
-;; hypothesis goal (NOT q).
-(def-predicate 'REL-CONTRAPOSITION '(mct_ mchs_ mcc_)
-  (mc--and '(IN mcc_ SEQ-SET)
-    (mc--ex '(mcg_ mcp_ mcq_)
-      (mc--and '(= mcc_ (LIST mcg_ (ENC-NOT mcp_))) '(IN (ENC-IMP mcp_ mcq_) mcg_)
-               '(= mchs_ (LIST (LIST mcg_ (ENC-NOT mcq_))))))))
-(notation! 'REL-CONTRAPOSITION 'kind 'predicate 'arity 3 'english "the kernel's contraposition relates $2 to $3")
+;; REL-CONTRAPOSITION, the relation of the kernel rule contraposition, was RETIRED 2026-10-29 (agent METACORE): the rule
+;; was retired on 2026-10-08 (rule-checkers-logic.scm, primitive-inferences.scm 516) and nothing cited the relation or
+;; its law adm-contraposition.  The text is in the base tree a320cb6f.
 
 ;; rule-checkers-logic.scm 1191-1211 (union-intro k): the rule tag carries the index k, 1 <= k <= n;
 ;; the goal (IN x (UNION S1 .. Sn)); one hypothesis, the same context, goal (IN x S_k).

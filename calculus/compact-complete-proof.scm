@@ -37,7 +37,7 @@
 (di)                            ; split: [a] is-metric-space  [b] forall f ...
 
 ;; ----- [a] is-metric-space(s): the first conjunct of IS-COMPACT(s) -----
-(mac-h 'IS-COMPACT 1)           ; unfold IS-COMPACT in the assumption
+(mac-h 'is-compact-classes 1)           ; unfold IS-COMPACT in the assumption
 (ai 1)                          ; decompose the conjunction; is-metric-space(s) lands
 (ass)
 

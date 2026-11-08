@@ -488,6 +488,7 @@
     ((ENC-UNION) `(EAPP 11 ,(cadr t)))
     ((ENC-INTER) `(EAPP 12 ,(cadr t))) ((ENC-TUPLES) `(EAPP 14 (LIST ,@(cdr t))))   ; META-KIT
     ((ENC-LIST) `(EAPP 17 ,(cadr t)))
+    ((ENC-CART) `(EAPP 13 ,(cadr t)))                                                        ; METACORE
     (else t)))
 (define (mc-enc-unfold-name t) (symbol-append (car t) '-unfold))
 
@@ -745,6 +746,24 @@
 (ass)
 (qed 'core-closed-apply)
 
+;;; VIAGAP (2026-10-29): HYPS-IN(hs, S) now says that hs is a SET as well
+;;; (structure-library/meta-core.scm).  Its two halves, for the proofs that read them.
+(sp (make-wff '(FORALL hs (FORALL mczS_ (IMPLIES (HYPS-IN hs mczS_) (IN hs SET))))))
+(dk-peel!)
+(dk-split! (dk-landed-1 (lambda () (mac-h 'hyps-in '(HYPS-IN hs mczS_)))))
+(ass)
+(qed 'hyps-in-set)
+
+(sp (make-wff '(FORALL hs (FORALL mczS_ (IMPLIES (HYPS-IN hs mczS_)
+   (FORALL mci_ (IMPLIES (IN mci_ NN) (IMPLIES (<= 1 mci_) (IMPLIES (<= mci_ (LENGTH hs)) (IN (NTH mci_ hs) mczS_))))))))))
+(dk-peel!)
+(let* ((parts (dk-split! (dk-landed-1 (lambda () (mac-h 'hyps-in '(HYPS-IN hs mczS_))))))
+       (u (find-first (lambda (f) (dk-head-is? f 'FORALL)) parts))
+       (i (cadr (cadr (dk-goal)))))
+  (dk-apply! u i)
+  (ass))
+(qed 'hyps-in-all)
+
 (sp (make-wff '(FORALL tt (FORALL hs (FORALL c (IMPLIES (CORE-RULE tt hs c) (IMPLIES (HYPS-IN hs (DERIVABLE tt))
    (IMPLIES (IN c SEQ-SET) (IN c (DERIVABLE tt))))))))))
 (dk-peel!)
@@ -755,30 +774,54 @@
            (ss (cadr (find-first (lambda (f) (and (dk-head-is? f 'IN) (dk-head-is? (caddr f) 'POWER))) landed))))
       (dk-have! `(HYPS-IN hs ,ss)
         (lambda ()
+          (dk-cite! 'hyps-in-set 'hs '(DERIVABLE tt))
           (mac 'HYPS-IN)
-          (dk-peel!)
-          (let* ((i (cadr (cadr (dk-goal))))
-                 (u (dk-meta-iff-r! (dk-meta-iff! 'hyps-in 'hs '(DERIVABLE tt)))))
-            (dk-apply! u i)
-            (dk-cite! 'derivable-induction 'tt ss `(NTH ,i hs))
-            (ass))))
+          (dk-conj-close!
+            (lambda ()
+              (if (dk-head-is? (dk-goal) 'IN)
+                  (ass)
+                  (begin
+                    (dk-peel!)
+                    (let* ((i (cadr (cadr (dk-goal))))
+                           (u (dk-cite! 'hyps-in-all 'hs '(DERIVABLE tt))))
+                      (dk-apply! u i)
+                      (dk-cite! 'derivable-induction 'tt ss `(NTH ,i hs))
+                      (ass))))))))
       (dk-cite! 'core-closed-apply 'tt ss 'hs 'c)
       (ass))))
 (qed 'derivable-closed)
 
 ;;; HYPS-IN of a literal list of 0, 1, 2 sequents, and its elimination at an entry.
 (sp (make-wff '(FORALL mczS_ (HYPS-IN (LIST) mczS_))))
-(di) (mac 'HYPS-IN) (dk-peel!)
-(let ((i (cadr (cadr (dk-goal)))))
-  (fact 'length-of-empty)
-  (dk-rewrite-h! `(<= ,i (LENGTH (LIST))) '(LENGTH (LIST)) 0)
-  (dk-have! '(<= 1 0) (lambda () (dk-nn! `(<= 1 ,i) `(<= ,i 0))))
-  (dk-have! '(NOT (<= 1 0)) (lambda () (arith)))
-  (ai '(NOT (<= 1 0))))
+(di)
+;; VIAGAP: the empty list is a set (a member of TUPLES(S))
+(dk-cite! 'empty-in-tuples 'mczS_)
+(dk-cite! 'membership-implies-sethood '(LIST) '(TUPLES mczS_))
+(mac 'HYPS-IN)
+(dk-conj-close!
+  (lambda ()
+    (if (dk-head-is? (dk-goal) 'IN)
+        (ass)
+        (begin
+          (dk-peel!)
+          (let ((i (cadr (cadr (dk-goal)))))
+            (fact 'length-of-empty)
+            (dk-rewrite-h! `(<= ,i (LENGTH (LIST))) '(LENGTH (LIST)) 0)
+            (dk-have! '(<= 1 0) (lambda () (dk-nn! `(<= 1 ,i) `(<= ,i 0))))
+            (dk-have! '(NOT (<= 1 0)) (lambda () (arith)))
+            (ai '(NOT (<= 1 0))))))))
 (qed 'hyps-in-0)
 
 (define (mc-hyps-in-lit! l)              ; goal (HYPS-IN L S), L literal, every entry in S in context
-  (mac 'HYPS-IN) (dk-peel!)
+  ;; VIAGAP: the literal list is a set (a member of TUPLES(S), its entries being in S)
+  (let ((ss (caddr (dk-goal))))
+    (dk-have! `(IN ,l (TUPLES ,ss)) (lambda () (dk-close-all! (lambda () (ti)))))
+    (dk-cite! 'membership-implies-sethood l `(TUPLES ,ss)))
+  (mac 'HYPS-IN)
+  (dk-conj-close!
+    (lambda ()
+      (if (dk-head-is? (dk-goal) 'IN) (ass) (begin (dk-peel!) (mc-hyps-in-lit-entries! l))))))
+(define (mc-hyps-in-lit-entries! l)      ; goal (IN (NTH i L) S) after the peel
   (let* ((i (cadr (cadr (dk-goal)))) (n (- (length l) 1)) (len `(LENGTH ,l)))
     (dk-have! `(= ,len ,n) (lambda () (len-r) (rfl)))
     (dk-rewrite-h! `(<= ,i ,len) len n)
@@ -806,7 +849,8 @@
 ;; antecedent.  Every citer holds hs = (LIST s1), which certifies it.
 (sp (make-wff '(FORALL s1 (FORALL mczS_ (IMPLIES (= (LIST s1) (LIST s1)) (IMPLIES (HYPS-IN (LIST s1) mczS_) (IN s1 mczS_)))))))
 (dk-peel!)
-(let ((u (dk-landed-1 (lambda () (mac-h 'hyps-in '(HYPS-IN (LIST s1) mczS_))))))
+(let ((u (find-first (lambda (f) (dk-head-is? f 'FORALL))          ; VIAGAP: HYPS-IN is a conjunction
+                     (dk-split! (dk-landed-1 (lambda () (mac-h 'hyps-in '(HYPS-IN (LIST s1) mczS_))))))))
   (dk-have! '(IN 1 NN) (lambda () (arith)))
   (dk-have! '(<= 1 1) (lambda () (arith)))
   (dk-have! '(<= 1 (LENGTH (LIST s1))) (lambda () (len-r) (arith)))
@@ -1063,23 +1107,7 @@
   (ass))
 (qed 'adm-detach)
 
-(sp (make-wff '(FORALL tt (FORALL hs (FORALL c (IMPLIES (REL-CONTRAPOSITION tt hs c)
-   (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt)))))))))
-(dk-peel!)
-(let* ((vs (mc-rel-open! 'rel-contraposition))
-       (g (car vs)) (p (cadr vs)) (q (caddr vs))
-       (g1 `(CTX-ADD ,g ,p)) (g2 `(CTX-ADD ,g1 ,q)) (g3 `(CTX-ADD ,g2 (ENC-NOT ,q))))
-  (dk-derive! 'tt
-    `(not-intro (,g ==> (ENC-NOT ,p))
-       (cut (,g1 ==> ENC-FALSITY)
-         (backchain (,g1 ==> ,q)
-           (assumption (,g1 ==> ,p)))
-         (cut (,g2 ==> ENC-FALSITY)
-           (weakening (,g2 ==> (ENC-NOT ,q))
-             (given (,g ==> (ENC-NOT ,q))))
-           (not-elim (,g3 ==> ENC-FALSITY) (a := ,q))))))
-  (ass))
-(qed 'adm-contraposition)
+;; adm-contraposition (the law of REL-CONTRAPOSITION) RETIRED 2026-10-29 with its relation (meta-core.scm, section 6).
 
 ;;; union-intro: the n-ary UNION meets the binary OR through union-mem, whose right side is
 ;;; ENC-ORL(x, l, n), the left-nested disjunction over the first n entries; it is reached from the
@@ -1114,23 +1142,29 @@
     (ass)))
 (qed 'orl-clf)
 
+;; W1G-A (2026-11-06): the induction hypothesis of an induction by the kit's dk-meta-ni-cases-fixed!
+;; (an implication: the parameters are free, not quantified).  W1N (2026-11-07): the file-local twin
+;; mc-meta-ni-cases-fixed! was replaced by the kit's dk-meta-ni-cases-fixed! (driver-kit.scm).
+(define (mc-nary-ih-fixed landed rec)
+  (or (find-first (lambda (f) (and (dk-head-is? f 'IMPLIES) (dk-contains? f rec))) landed)
+      (error "mc-nary: no induction hypothesis")))
 (sp (make-wff '(FORALL n (IMPLIES (IN n NN) (FORALL tt (FORALL g (FORALL x (FORALL l (FORALL k
    (IMPLIES (IN (LIST g (ENC-IN x (NTH k l))) (DERIVABLE tt)) (IMPLIES (IN g CTX-SET) (IMPLIES (IN x CLT)
    (IMPLIES (IN l (TUPLES EXPR-SET))
    (IMPLIES (FORALL mczu_ (IMPLIES (IN mczu_ (MAKE-SET l)) (IN mczu_ CLT)))
    (IMPLIES (IN k NN) (IMPLIES (<= 1 k) (IMPLIES (<= k n) (IMPLIES (<= n (LENGTH l))
      (IN (LIST g (ENC-ORL x l n)) (DERIVABLE tt))))))))))))))))))))
-(let ((cs (dk-meta-ni-cases!)))
+(let ((cs (dk-meta-ni-cases-fixed! '(tt g x l k))))   ; W1G-A: tt g x l k fixed
   (dk-focus! (car cs))
-  (let* ((landed (dk-peel!))
+  (let* ((landed (append (dk-peel!) (dk-asms)))   ; W1G-A: the fixed hypotheses are in context
          (kf (find-first (lambda (f) (and (dk-head-is? f '<=) (equal? (cadr f) 1))) landed))
          (k (caddr kf)))
     (dk-have! '(<= 1 0) (lambda () (dk-nn! `(<= 1 ,k) `(<= ,k 0))))
     (dk-have! '(NOT (<= 1 0)) (lambda () (arith)))
     (ai '(NOT (<= 1 0))))
   (dk-focus! (cadr cs))
-  (let* ((landed (dk-peel!))
-         (ih (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'ENC-ORL))) landed))
+  (let* ((landed (append (dk-peel!) (dk-asms)))   ; W1G-A: the fixed hypotheses are in context
+         (ih (mc-nary-ih-fixed landed 'ENC-ORL))
          (gl (dk-goal)) (seqt (cadr gl)) (tt (cadr (caddr gl)))
          (g (cadr seqt)) (o (caddr seqt)) (x (cadr o)) (l (caddr o)) (sn (cadddr o)) (n (cadr sn))
          (dh (find-first (lambda (f) (and (dk-head-is? f 'IN) (dk-head-is? (caddr f) 'DERIVABLE))) landed))
@@ -1152,7 +1186,7 @@
         (dk-cite! 'nn-le-ne-succ k sn)
         (dk-have! `(<= ,k ,n) (lambda () (dk-nn! `(<= (succ ,k) ,sn))))
         (dk-have! `(<= ,n (LENGTH ,l)) (lambda () (dk-nn! `(<= ,sn (LENGTH ,l)))))
-        (dk-apply! ih tt g x l k)
+        (let w1g-dl ((w1g-f ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))   ; W1G-A: tt g x l k fixed
         (dk-cite! 'derivable-or-intro-left-c tt g on e)
         (ass)))))
 (qed 'orl-der)
@@ -1668,6 +1702,16 @@
    (AND (IN l (TUPLES EXPR-SET)) (FORALL mczu_ (IMPLIES (IN mczu_ (MAKE-SET l)) (IN mczu_ CLT))))))))
 (mc-clt-list-elim! 'ENC-LIST 17 'clt-list)
 (qed 'clt-list-elim)
+;; the n-ary product (agent METACORE, 2026-10-29: the cartesian rules, meta-ind-laws.scm section N2)
+(mc-unfold-law! 'ENC-CART '(l) '(EAPP 13 l))
+(sp (make-wff '(FORALL l (IMPLIES (IN l (TUPLES EXPR-SET))
+   (IFF (IN (EAPP 13 l) CLT) (FORALL mczu_ (IMPLIES (IN mczu_ (MAKE-SET l)) (IN mczu_ CLT))))))))
+(mc-clt-list-law! 13)
+(qed 'clt-cart)
+(sp (make-wff '(FORALL l (IMPLIES (IN (ENC-CART l) CLT)
+   (AND (IN l (TUPLES EXPR-SET)) (FORALL mczu_ (IMPLIES (IN mczu_ (MAKE-SET l)) (IN mczu_ CLT))))))))
+(mc-clt-list-elim! 'ENC-CART 13 'clt-cart)
+(qed 'clt-cart-elim)
 (sp (make-wff '(FORALL p (IMPLIES (IN (ENC-TUPLES p) CLT) (IN p CLT)))))
 (dk-peel!) (mc-enc-elim! 'clt-tuples1)
 (qed 'clt-tuples-elim)
@@ -1771,7 +1815,7 @@
           ,(mc-nary-typing ty
              `(IMPLIES ,(mc-nary-all rec 'n (lambda (i) `(LIST g ,(entry i al0))))
                (IMPLIES (<= n (LENGTH l)) (IN (LIST g (,rec ,@ps n)) (DERIVABLE tt))))))))))))))
-    (let ((cs (dk-meta-ni-cases!)))
+    (let ((cs (dk-meta-ni-cases-fixed! (append '(tt g) ps))))   ; W1G-A: tt, g and the two parameters fixed
       (dk-focus! (car cs))
       (dk-peel!)
       (let* ((gl (dk-goal)) (sq (cadr gl)) (tt (cadr (caddr gl))) (g (cadr sq)) (o (caddr sq)))
@@ -1779,7 +1823,7 @@
         (dk-derive! tt `(truth-intro (,g ==> ENC-TRUTH)))
         (ass))
       (dk-focus! (cadr cs))
-      (let* ((landed (dk-peel!)) (ih (mc-nary-ih landed rec)) (u (mc-nary-msu landed))
+      (let* ((landed (append (dk-peel!) (dk-asms))) (ih (mc-nary-ih-fixed landed rec)) (u (mc-nary-msu landed))   ; W1G-A: the fixed hypotheses are in context
              (hk (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'DERIVABLE)
                                               (not (dk-contains? f rec)))) landed))
              (gl (dk-goal)) (sq (cadr gl)) (tt (cadr (caddr gl))) (g (cadr sq)) (o (caddr sq))
@@ -1791,7 +1835,7 @@
         (dk-apply! (dk-cite! (mc-nary-law rec '-clf) n) (cadr o) (caddr o))
         (mc-nary-entry! e sn l u)
         (mc-nary-restrict! hk n sn)
-        (dk-apply! ih tt g (cadr o) (caddr o))
+        (let w1g-dl ((w1g-f ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))   ; W1G-A: parameters fixed
         (dk-apply! hk sn)
         (dk-derive! tt
           `(and-intro (,g ==> (ENC-AND ,aa ,e))
@@ -1811,16 +1855,16 @@
           ,(mc-nary-typing ty
              `(IMPLIES (IN k NN) (IMPLIES (<= 1 k) (IMPLIES (<= k n) (IMPLIES (<= n (LENGTH l))
                 (IN (LIST g ,(entry 'k al0)) (DERIVABLE tt))))))))))))))))))
-    (let ((cs (dk-meta-ni-cases!)))
+    (let ((cs (dk-meta-ni-cases-fixed! (append '(tt g) ps '(k)))))   ; W1G-A: tt, g, the two parameters and k fixed
       (dk-focus! (car cs))
-      (let* ((landed (dk-peel!))
+      (let* ((landed (append (dk-peel!) (dk-asms)))   ; W1G-A: the fixed hypotheses are in context
              (kf (find-first (lambda (f) (and (dk-head-is? f '<=) (equal? (cadr f) 1))) landed))
              (k (caddr kf)))
         (dk-have! '(<= 1 0) (lambda () (dk-nn! `(<= 1 ,k) `(<= ,k 0))))
         (dk-have! '(NOT (<= 1 0)) (lambda () (arith)))
         (ai '(NOT (<= 1 0))))
       (dk-focus! (cadr cs))
-      (let* ((landed (dk-peel!)) (ih (mc-nary-ih landed rec)) (u (mc-nary-msu landed))
+      (let* ((landed (append (dk-peel!) (dk-asms))) (ih (mc-nary-ih-fixed landed rec)) (u (mc-nary-msu landed))   ; W1G-A: the fixed hypotheses are in context
              (dh (find-first (lambda (f) (and (dk-head-is? f 'IN) (dk-head-is? (caddr f) 'DERIVABLE))) landed))
              (k (caddr (find-first (lambda (f) (and (dk-head-is? f '<=) (equal? (cadr f) 1))) landed)))
              (tt (cadr (caddr dh))) (g (cadr (cadr dh))) (o (caddr (cadr dh)))
@@ -1847,7 +1891,7 @@
           (lambda ()
             (dk-cite! 'nn-le-ne-succ k sn)
             (dk-have! `(<= ,k ,n) (lambda () (dk-nn! `(<= (succ ,k) ,sn))))
-            (dk-apply! ih tt g (cadr o) (caddr o) k)
+            (let w1g-dl ((w1g-f ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))   ; W1G-A: parameters fixed
             (ass)))))
     (qed (mc-nary-law rec '-elim-der))))
 (mc-nary-elim-der! 'ENC-ANDL)
@@ -1859,7 +1903,7 @@
    ,(mc-nary-typing 'x
       `(IMPLIES ,(mc-nary-all 'ENC-ORL 'n (lambda (i) `(LIST (CTX-ADD g (ENC-IN x (NTH ,i l))) f)))
         (IMPLIES (<= n (LENGTH l)) (IN (LIST (CTX-ADD g (ENC-ORL x l n)) f) (DERIVABLE tt))))))))))))))))
-(let ((cs (dk-meta-ni-cases!)))
+(let ((cs (dk-meta-ni-cases-fixed! '(tt g f x l))))   ; W1G-A: tt g f x l fixed
   (dk-focus! (car cs))
   (dk-peel!)
   (let* ((gl (dk-goal)) (sq (cadr gl)) (tt (cadr (caddr gl))) (g (cadr (cadr sq))) (f (caddr sq))
@@ -1870,7 +1914,7 @@
          (assumption ((CTX-ADD ,g0 (ENC-NOT ,f)) ==> ENC-FALSITY))))
     (ass))
   (dk-focus! (cadr cs))
-  (let* ((landed (dk-peel!)) (ih (mc-nary-ih landed 'ENC-ORL)) (u (mc-nary-msu landed))
+  (let* ((landed (append (dk-peel!) (dk-asms))) (ih (mc-nary-ih-fixed landed 'ENC-ORL)) (u (mc-nary-msu landed))   ; W1G-A: the fixed hypotheses are in context
          (hk (find-first (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'DERIVABLE)
                                           (not (dk-contains? f 'ENC-ORL)))) landed))
          (gl (dk-goal)) (sq (cadr gl)) (tt (cadr (caddr gl))) (g (cadr (cadr sq))) (f (caddr sq))
@@ -1882,7 +1926,7 @@
     (dk-apply! (dk-cite! 'orl-clf n) x l)
     (mc-nary-entry! e sn l u)
     (mc-nary-restrict! hk n sn)
-    (dk-apply! ih tt g f x l)
+    (let w1g-dl ((w1g-f ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))   ; W1G-A: tt g f x l fixed
     (dk-apply! hk sn)
     (dk-derive! tt
       `(or-elim (,g1 ==> ,f)
@@ -1912,7 +1956,7 @@
                            `(IN ,(caddr f) (DERIVABLE tt)))
                           ((pair? f) (map walk f))
                           (#t f))))
-           (hu (dk-meta-iff-r! (dk-meta-iff! 'hyps-in 'hs '(DERIVABLE tt)))))
+           (hu (dk-cite! 'hyps-in-all 'hs '(DERIVABLE tt))))          ; VIAGAP
       (dk-have! claim
         (lambda ()
           (let* ((landed (dk-peel!))

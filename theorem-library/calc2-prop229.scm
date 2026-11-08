@@ -71,7 +71,7 @@
         '(<= k n)))
 (sp (make-wff (list 'FORALL 'k (list 'IMPLIES '(IN k NN)
    (forall-guarded '(n qu_ qf_ qp_ qa_ qc_ qr_) c29-hyps (c29-S-of 'k))))))
-(ni)
+(dk-ni-fixed! '(n qu_ qf_ qp_ qa_ qc_ qr_))   ; W1D: the seven parameters fixed
 (define (c29-step? l) (dk-contains? (dk-goal-of l) 'succ))
 ;;; the facts both cases need, landed after the peel
 (define c29-hD #f) (define c29-hC #f)
@@ -172,12 +172,12 @@
 (dk-focus! (find-first c29-step? (c29-open)))
 (dk-di-var!)
 (dk-peel!)
-(define c29-ih (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (dk-contains? f 'qd_))) "the IH"))
+(define c29-ih (dk-pick (lambda (f) (and (dk-head-is? f 'IMPLIES) (dk-contains? f 'qd_))) "the IH"))   ; W1D: (<= k n) => S(k)
 (c29-common!)
 (c29-sets!)
 (dk-have! '(<= k n) (lambda () (dk-nn! '(<= (succ k) n))))
 (dk-cite! 'nn-in-rr 'k)
-(define c29-ihd (dk-skolem! (dk-apply! c29-ih 'n 'qu_ 'qf_ 'qp_ 'qa_ 'qc_ 'qr_) #t))
+(define c29-ihd (dk-skolem! (dk-landed-1 (lambda () (detach! c29-ih))) #t))   ; W1D: was (dk-apply! c29-ih 'n 'qu_ 'qf_ 'qp_ 'qa_ 'qc_ 'qr_)
 (set! c29-dk c29-ihd)
 (define c29-ihb (dk-pick (lambda (f) (and (dk-head-is? f 'FORALL) (eq? (cadr f) 'qe_) (dk-contains? f c29-ihd))) "the IH bound"))
 (dk-cite! 'rr-pos-rr-in-rr c29-dk) (dk-cite! 'rr-lt-of-pos-rr c29-dk)

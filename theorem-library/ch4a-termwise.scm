@@ -78,7 +78,7 @@
         (list 'AND (list 'IN (tw-TS 'k) '(FUN u CC))
           (list 'AND (tw-cont 'u (tw-TS 'k))
                      (list '= (tw-LI (tw-TS 'k)) (list 'CC-SERIES-PARTIAL-SUM tw-LIF 'k))))))))))
-(define tw-br (use-induction))
+(define tw-br (dk-use-induction-fixed! '(u pgam dgam a b hf)))   ; W1D: the road and the family fixed
 (dk-focus! (cdr (assq 'base tw-br)))
 (dk-peel!)
 (tw-ms!)
@@ -117,7 +117,7 @@
 (tw-ms!)
 (let* ((k tw-n) (k1 (list 'succ k)) (TSk (tw-TS k)) (TSk1 (tw-TS k1)) (Hk (list 'hf k)))
   (fact 'nn-succ-closed k)
-  (dk-split-all! (list (dk-apply! tw-ih 'u 'pgam 'dgam 'a 'b 'hf)))
+  (dk-split-all! (list tw-ih))   ; W1D: u pgam dgam a b hf fixed
   (tw-hf! k)
   (tw-TS-typ! k1)
   (dk-have! (tw-ptw 'u TSk1 (lambda (x) (list '+ (list TSk x) (list Hk x))))

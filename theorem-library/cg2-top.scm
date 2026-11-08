@@ -215,7 +215,7 @@
                     (list 'IN '((OPR g) sga_ sgb_) ct2-C))))))
 (sp (make-wff (list 'FORALL 'k (list 'IMPLIES '(IN k NN) (list 'FORALL 's (list 'FORALL 'g (list 'IMPLIES '(IS-GROUP-TOPOLOGY s g)
    (list 'FORALL 'V (list 'IMPLIES (list 'SUBSET 'V ct2-C) (list 'SUBSET '(SET-POWER g V k) ct2-C))))))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(s g V))) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1G-A: s, g, V fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (ct2-parts!)
@@ -238,7 +238,7 @@
   (ct2-rhs! (dk-cite! 'is-subgroup 'g ct2-C))
   (mac 'subset-def)
   (let* ((z (ct2-peel-var!)) (yy (ct2-succ-parts! n z)) (y1 (car yy)) (y2 (cadr yy)))
-    (dk-apply! ih 's 'g 'V)
+    ; W1G-A: s, g, V fixed; the IH is SET-POWER(g, V, n) subset C itself (was (dk-apply! ih 's 'g 'V))
     (dk-cite! 'subset-mem-fwd (ct2-pow n) ct2-C y1)
     (dk-cite! 'subset-mem-fwd 'V ct2-C y2)
     (dk-apply! (dk-ctx-form ct2-Cprod) y1 y2)

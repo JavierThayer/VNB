@@ -39,7 +39,7 @@
 ;;; ---- 1 <= PREFIX-PROD(a, x, n), by induction on n ----
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN)
    (mul-hyps (list 'AND (list 'IN (mul-P 'n) 'RR) (list '<= 1 (mul-P 'n))))))))
-(define mul-br (use-induction))
+(define mul-br (dk-use-induction-fixed! '(sx_ a xs)))   ; W1C: the weight and the sequence fixed
 (dk-focus! (cdr (assq 'base mul-br)))
 (dk-peel!)
 (mac 'prefix-prod-zero)
@@ -48,7 +48,7 @@
 (let* ((k (cdr (assq 'var mul-br)))
        (ih (cdr (assq 'ih mul-br))))
   (dk-peel!)
-  (dk-split-all! (list (dk-apply! ih 'sx_ 'a 'xs)))
+  (dk-split-all! (list ih))                ; W1C: the IH is at the fixed sx_ a xs
   (let* ((q (mul-weight! k))
          (P (mul-P k)))
     (fact 'prefix-prod-succ 'a 'xs k)
@@ -134,7 +134,7 @@
       (list 'IMPLIES '(IN ys (FUN NN sx_)) body)))))))))
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN)
    (mul-hyps2 (list 'IMPLIES (mul-agree 'n) (list '= (mul-P 'n) '(PREFIX-PROD a ys n))))))))
-(define mul-br2 (use-induction))
+(define mul-br2 (dk-use-induction-fixed! '(sx_ a xs ys)))   ; W1C: the weight and both sequences fixed
 (dk-focus! (cdr (assq 'base mul-br2)))
 (dk-peel!)
 (mac 'prefix-prod-zero)
@@ -155,7 +155,7 @@
           (ass))))
     (dk-have! (list '< k sk) (lambda () (dk-nn!)))
     (dk-apply! agr k)
-    (dk-apply! ih 'sx_ 'a 'xs 'ys)
+    (detach! ih)                              ; W1C: was (dk-apply! ih 'sx_ 'a 'xs 'ys)
     (mul-P-facts! 'xs k)
     (mul-P-facts! 'ys k)
     (let ((qx (mul-weight! k)))
@@ -584,6 +584,7 @@
 (dk-cite! 'ultra-seq-pts 'sx_ 'a)
 (dk-cite! 'ultra-seq-dist-fun 'sx_ 'a)
 (mac 'IS-METRIC-SPACE)
+(dk-isx-set!)   ; W1J-C: the conjunct t in SET, from the typings
 (subst (list '== (list 'PTS mul-S) mul-FS))
 (subst (list '== (list 'DIST mul-S) mul-lam))
 (dk-conj-close!
@@ -641,7 +642,7 @@
 ;;; a finite prefix is eventually common (induction on its length)
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN)
    (mul-zs-hyps (list 'IMPLIES mul-ev (mul-pre-agree 'n)))))))
-(define mul-br3 (use-induction))
+(define mul-br3 (dk-use-induction-fixed! '(sx_ zs u)))   ; W1C: the sequences and the coordinate hypothesis fixed
 (dk-focus! (cdr (assq 'base mul-br3)))
 (dk-peel!)
 (dk-have! '(IN 0 NN) (lambda () (from-context!)))
@@ -660,7 +661,7 @@
        (sk (list 'succ k)))
   (dk-peel!)
   (let* ((evh (dk-pick (lambda (h) (alpha-equiv? h mul-ev)) "the coordinate hypothesis"))
-         (n1 (dk-skolem! (dk-apply! ih 'sx_ 'zs 'u)))
+         (n1 (dk-skolem! ih))                   ; W1C: the IH is at the fixed sx_ zs u
          (c1 (dk-pick (lambda (h) (and (eq? (mul-head h) 'FORALL) (dk-contains? h n1))) "prefix clause"))
          (n2 (dk-skolem! (dk-apply! evh k)))
          (c2 (dk-pick (lambda (h) (and (eq? (mul-head h) 'FORALL) (dk-contains? h n2))) "coordinate clause"))

@@ -85,6 +85,7 @@
 (fact 'normed-field-as-commutative-ring-is-commutative-ring 'RR-NORMED-FIELD)
 (fact 'rr-is-set)
 (mac 'IS-NORMED-VECTOR-SPACE)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (let loop ((n 0))
   (let ((any #f))
     (for-each (lambda (l)

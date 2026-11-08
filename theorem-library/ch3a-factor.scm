@@ -25,7 +25,7 @@
 (sp (make-wff '(FORALL n (IMPLIES (IN n NN) (FORALL g (FORALL h
   (IMPLIES (FORALL i (IMPLIES (IN i NN) (IMPLIES (< i n) (= (g i) (h i)))))
     (== (CC-PARTIAL-PROD g n) (CC-PARTIAL-PROD h n)))))))))
-(ni)
+(dk-ni-fixed!)   ; W1B: g, h fixed; the induction on n is predicative
 (for-each
  (lambda (leaf)
    (dk-focus! leaf)
@@ -41,7 +41,7 @@
            (qrfl))
          (let* ((landed (dk-peel!))
                 (k (dk-landed-var landed 'NN))
-                (ih (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'CC-PARTIAL-PROD))) landed)))
+                (ih (car (filter (lambda (fm) (and (dk-head-is? fm 'IMPLIES) (dk-contains? fm 'CC-PARTIAL-PROD))) landed)))   ; W1B: the IH at the fixed g, h
                 (hyp (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (not (dk-contains? fm 'CC-PARTIAL-PROD)))) landed)))
                 (eq (dk-goal))
                 (g (cadr (cadr eq))) (h (cadr (caddr eq))))
@@ -53,7 +53,7 @@
                  (dk-have! (list '< i (list 'succ k)) (lambda () (dk-nn! (list '< i k))))
                  (dk-apply! hyp i)
                  (ass))))
-           (dk-apply! ih g h)
+           (detach! ih)                              ; W1B: was (dk-apply! ih g h)
            (fact 'nn-succ-closed k)
            (dk-have! (list '< k (list 'succ k)) (lambda () (dk-nn!)))
            (dk-apply! hyp k)
@@ -69,7 +69,7 @@
 ;;; products of complex numbers are complex
 (sp (make-wff '(FORALL n (IMPLIES (IN n NN) (FORALL g
   (IMPLIES (FORALL i (IMPLIES (IN i NN) (IN (g i) CC))) (IN (CC-PARTIAL-PROD g n) CC)))))))
-(ni)
+(dk-ni-fixed!)   ; W1B: g and its typing fixed
 (for-each
  (lambda (leaf)
    (dk-focus! leaf)
@@ -84,10 +84,9 @@
            (ass))
          (let* ((landed (dk-peel!))
                 (k (dk-landed-var landed 'NN))
-                (ih (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'CC-PARTIAL-PROD))) landed)))
-                (hyp (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (not (dk-contains? fm 'CC-PARTIAL-PROD)))) landed)))
+                (ih (car (filter (lambda (fm) (dk-contains? fm 'CC-PARTIAL-PROD)) landed)))   ; W1B: the IH itself
+                (hyp (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (not (dk-contains? fm 'CC-PARTIAL-PROD)))) (dk-asms))))
                 (g (cadr (cadr (dk-goal)))))
-           (dk-apply! ih g)
            (dk-apply! hyp k)
            (subst (dk-cite! 'cc-partial-prod-succ g k))
            (dk-type! (list '* (list 'CC-PARTIAL-PROD g k) (list g k)) 'CC)))))

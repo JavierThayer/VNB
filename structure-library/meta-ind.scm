@@ -36,19 +36,23 @@
 
 ;;; -----------------------------------------------------------------------
 ;;; 1. SET FORMATION (rule-checkers-schema.scm 1026-1033 register; the procedures 107-307).
+;;; NBGSEP (agent METACORE, 2026-10-29): every relation of this section carries the conjunct NBG-OK(p) on the
+;;; SEP / COMP condition or the BIG-UNION body (meta-core.scm 4.3a): since 2026-10-24 each of these checkers
+;;; refuses an impredicative binder term (rcs--binder-nbg?, rcs--comp-nbg?, rule-checkers-schema.scm of
+;;; a320cb6f).
 
 ;; 107-118 (rcs-sep-sethood): goal (IN (SEP x A p) SET); one hypothesis, the same context, (IN A SET).
 ;; In the encoding this IS the core relation CR-SEP-SETHOOD.
 (mi--rel! 'REL-SEP-SETHOOD "the kernel's sep-sethood relates $2 to $3"
   (mi--ex '(mig_ mia_ mip_)
-    (mi--and '(= mic_ (LIST mig_ (ENC-IN (ENC-SEP mia_ mip_) ENC-SETC)))
+    (mi--and '(= mic_ (LIST mig_ (ENC-IN (ENC-SEP mia_ mip_) ENC-SETC))) '(NBG-OK mip_)
              '(= mihs_ (LIST (LIST mig_ (ENC-IN mia_ ENC-SETC)))))))
 
 ;; 160-164 (rcs-sep-mem-intro, through rcs--mem-intro-check 120-136): goal (IN y (SEP x A p)); two
 ;; hypotheses, the same context: (IN y A) and p[x := y].
 (mi--rel! 'REL-SEP-MEM-INTRO "the kernel's sep-mem-intro relates $2 to $3"
   (mi--ex '(mig_ mia_ mip_ miy_)
-    (mi--and '(= mic_ (LIST mig_ (ENC-IN miy_ (ENC-SEP mia_ mip_))))
+    (mi--and '(= mic_ (LIST mig_ (ENC-IN miy_ (ENC-SEP mia_ mip_)))) '(NBG-OK mip_)
              '(= mihs_ (LIST (LIST mig_ (ENC-IN miy_ mia_)) (LIST mig_ (EXPR-OPEN mip_ 0 miy_)))))))
 
 ;; 167-172 (rcs-sep-mem-elim, through rcs--mem-elim-check 140-157): some (IN y (SEP x A p)) in the
@@ -56,7 +60,7 @@
 ;; (IN y A), p[x := y] added.
 (mi--rel! 'REL-SEP-MEM-ELIM "the kernel's sep-mem-elim relates $2 to $3"
   (mi--ex '(mig_ mif_ mia_ mip_ miy_)
-    (mi--and '(= mic_ (LIST mig_ mif_)) '(IN (ENC-IN miy_ (ENC-SEP mia_ mip_)) mig_)
+    (mi--and '(= mic_ (LIST mig_ mif_)) '(IN (ENC-IN miy_ (ENC-SEP mia_ mip_)) mig_) '(NBG-OK mip_)
              '(= mihs_ (LIST (LIST (CTX-ADD (CTX-ADD (DIFFERENCE mig_ (PAIR (ENC-IN miy_ (ENC-SEP mia_ mip_))
                                                                         (ENC-IN miy_ (ENC-SEP mia_ mip_))))
                                                      (ENC-IN miy_ mia_))
@@ -67,14 +71,14 @@
 ;; (IN y SET) and p[x := y].
 (mi--rel! 'REL-COMP-MEM-INTRO "the kernel's comp-mem-intro relates $2 to $3"
   (mi--ex '(mig_ mip_ miy_)
-    (mi--and '(= mic_ (LIST mig_ (ENC-IN miy_ (ENC-COMP mip_))))
+    (mi--and '(= mic_ (LIST mig_ (ENC-IN miy_ (ENC-COMP mip_)))) '(NBG-OK mip_)
              '(= mihs_ (LIST (LIST mig_ (ENC-IN miy_ ENC-SETC)) (LIST mig_ (EXPR-OPEN mip_ 0 miy_)))))))
 
 ;; 182-186 (rcs-comp-mem-elim): some (IN y (COMP x p)) in the conclusion context; one hypothesis, the
 ;; same goal, the membership removed, (IN y SET) and p[x := y] added.
 (mi--rel! 'REL-COMP-MEM-ELIM "the kernel's comp-mem-elim relates $2 to $3"
   (mi--ex '(mig_ mif_ mip_ miy_)
-    (mi--and '(= mic_ (LIST mig_ mif_)) '(IN (ENC-IN miy_ (ENC-COMP mip_)) mig_)
+    (mi--and '(= mic_ (LIST mig_ mif_)) '(IN (ENC-IN miy_ (ENC-COMP mip_)) mig_) '(NBG-OK mip_)
              '(= mihs_ (LIST (LIST (CTX-ADD (CTX-ADD (DIFFERENCE mig_ (PAIR (ENC-IN miy_ (ENC-COMP mip_))
                                                                         (ENC-IN miy_ (ENC-COMP mip_))))
                                                      (ENC-IN miy_ ENC-SETC))
@@ -88,7 +92,7 @@
 ;; and the two capture conditions are vacuous.  So this IS the core relation CR-BIG-UNION-SETHOOD.
 (mi--rel! 'REL-BIG-UNION-SETHOOD "the kernel's big-union-sethood relates $2 to $3"
   (mi--ex '(mig_ mia_ mib_)
-    (mi--and '(= mic_ (LIST mig_ (ENC-IN (ENC-BU mia_ mib_) ENC-SETC)))
+    (mi--and '(= mic_ (LIST mig_ (ENC-IN (ENC-BU mia_ mib_) ENC-SETC))) '(NBG-OK mib_)
              '(= mihs_ (LIST (LIST mig_ (ENC-IN mia_ ENC-SETC))
                              (LIST mig_ (ENC-ALL (ENC-IMP (ENC-IN (EBVAR 0) mia_) (ENC-IN mib_ ENC-SETC)))))))))
 
@@ -96,7 +100,7 @@
 ;; (IN w A) for a witness w read off it, and (IN x b[z := w]).
 (mi--rel! 'REL-BIG-UNION-MEM-INTRO "the kernel's big-union-mem-intro relates $2 to $3"
   (mi--ex '(mig_ mia_ mib_ mix_ miw_)
-    (mi--and '(= mic_ (LIST mig_ (ENC-IN mix_ (ENC-BU mia_ mib_))))
+    (mi--and '(= mic_ (LIST mig_ (ENC-IN mix_ (ENC-BU mia_ mib_)))) '(NBG-OK mib_)
              '(= mihs_ (LIST (LIST mig_ (ENC-IN miw_ mia_)) (LIST mig_ (ENC-IN mix_ (EXPR-OPEN mib_ 0 miw_))))))))
 
 ;; 269-307 (rcs-big-union-mem-elim): some (IN x (BIG-UNION z A b)) in the conclusion context; one
@@ -106,7 +110,7 @@
 ;; conclusion's context nor in its goal -- the core forsome-elim's condition.
 (mi--rel! 'REL-BIG-UNION-MEM-ELIM "the kernel's big-union-mem-elim relates $2 to $3"
   (mi--ex '(mig_ mif_ mia_ mib_ mix_ mie_)
-    (mi--and '(= mic_ (LIST mig_ mif_)) '(IN (ENC-IN mix_ (ENC-BU mia_ mib_)) mig_)
+    (mi--and '(= mic_ (LIST mig_ mif_)) '(IN (ENC-IN mix_ (ENC-BU mia_ mib_)) mig_) '(NBG-OK mib_)
              '(IN mie_ NN) '(NOT (IN mie_ (UNION (CTX-FV mig_) (EXPR-FV mif_))))
              '(= mihs_ (LIST (LIST (CTX-ADD (CTX-ADD (DIFFERENCE mig_ (PAIR (ENC-IN mix_ (ENC-BU mia_ mib_))
                                                                         (ENC-IN mix_ (ENC-BU mia_ mib_))))
@@ -216,6 +220,43 @@
                     (ENC-IMP (ENC-AND (ENC-IN (EFVAR miy_) ENC-ORDC) (EXPR-OPEN mip_ 0 (EFVAR miy_)))
                              (EXPR-OPEN mip_ 0 (ENC-SUCCO (EFVAR miy_)))))))))))
 
+;;; THE PREDICATIVE INDUCTIONS (agent METACORE, 2026-10-29).  The three kernel relations above transcribe
+;;; checkers that accept ANY body P: rule-checkers-logic.scm (a320cb6f) puts no predicativity condition on
+;;; nn-induction, transfinite-induction or transfinite-induction-3cases.  Over the NBG core (meta-core.scm
+;;; 4.3a) an induction is derived through the comprehension of its body (CR-DEF-COMP, CR-COMP-MEM), so it is
+;;; admissible for a PREDICATIVE body only.  The three relations below are the kernel's with the conjunct
+;;; NBG-OK(P) added; the admissibility theorems (meta-ind-laws.scm F, K; meta-def-laws.scm s.4) are stated
+;;; for them.  The induction steps the kernel takes at an impredicative body are outside the encoded core:
+;;; METACORE report, finding 2.
+(mi--rel! 'REL-NN-INDUCTION-NBG "the kernel's nn-induction at a predicative body relates $2 to $3"
+  (mi--ex '(mig_ mip_ mis_ mifs_)
+    (mi--and '(= mic_ (LIST mig_ (ENC-ALL (ENC-IMP (ENC-IN (EBVAR 0) ENC-NNC) mip_)))) '(NBG-OK mip_)
+             '(= mihs_ (LIST (LIST mig_ (EXPR-OPEN mip_ 0 (ENC-NUM 0))) (LIST mig_ (ENC-ALL mis_))))
+             '(IN mifs_ SET) '(SUBSET mifs_ NN) '(IN (CARD mifs_) NN)
+             '(FORALL miy_ (IMPLIES (IN miy_ NN) (IMPLIES (NOT (IN miy_ mifs_))
+                 (= (EXPR-OPEN mis_ 0 (EFVAR miy_))
+                    (ENC-IMP (ENC-IN (EFVAR miy_) ENC-NNC)
+                             (ENC-IMP (EXPR-OPEN mip_ 0 (EFVAR miy_)) (EXPR-OPEN mip_ 0 (ENC-SUCC (EFVAR miy_))))))))))))
+(mi--rel! 'REL-TRANSFINITE-INDUCTION-NBG "the kernel's transfinite-induction at a predicative body relates $2 to $3"
+  (mi--ex '(mig_ mip_)
+    (mi--and '(= mic_ (LIST mig_ (ENC-ALL (ENC-IMP (ENC-IN (EBVAR 0) ENC-ORDC) mip_)))) '(NBG-OK mip_)
+             '(= mihs_ (LIST (LIST mig_ (ENC-ALL (ENC-IMP (ENC-AND (ENC-IN (EBVAR 0) ENC-ORDC)
+                                                                  (ENC-ALL (ENC-IMP (ENC-ORDLT (EBVAR 0) (EBVAR 1)) mip_)))
+                                                         mip_))))))))
+(mi--rel! 'REL-TFI-3CASES-NBG "the kernel's transfinite-induction-3cases at a predicative body relates $2 to $3"
+  (mi--ex '(mig_ mip_ mis_ mifs_)
+    (mi--and '(= mic_ (LIST mig_ (ENC-ALL (ENC-IMP (ENC-IN (EBVAR 0) ENC-ORDC) mip_)))) '(NBG-OK mip_)
+             '(= mihs_ (LIST (LIST mig_ (EXPR-OPEN mip_ 0 (ENC-NUM 0)))
+                             (LIST mig_ (ENC-ALL mis_))
+                             (LIST mig_ (ENC-ALL (ENC-IMP (ENC-AND (ENC-LIMIT (EBVAR 0))
+                                                                  (ENC-ALL (ENC-IMP (ENC-ORDLT (EBVAR 0) (EBVAR 1)) mip_)))
+                                                         mip_)))))
+             '(IN mifs_ SET) '(SUBSET mifs_ NN) '(IN (CARD mifs_) NN)
+             '(FORALL miy_ (IMPLIES (IN miy_ NN) (IMPLIES (NOT (IN miy_ mifs_))
+                 (= (EXPR-OPEN mis_ 0 (EFVAR miy_))
+                    (ENC-IMP (ENC-AND (ENC-IN (EFVAR miy_) ENC-ORDC) (EXPR-OPEN mip_ 0 (EFVAR miy_)))
+                             (EXPR-OPEN mip_ 0 (ENC-SUCCO (EFVAR miy_)))))))))))
+
 ;;; -----------------------------------------------------------------------
 ;;; 3. THE STRUCTURAL RULES NOT YET TRANSCRIBED (union, intersection and tuples intro / elim are
 ;;; meta-core.scm's, section 6, with their admissibility theorems in meta-core-laws.scm, section J).
@@ -277,25 +318,43 @@
 (def-predicate 'REL-CARTESIAN-DECOMPOSE-1 '(mit_ mihs_ mic_) '(REL-REWRITE-1 (J-CART mit_) mihs_ mic_))
 (notation! 'REL-CARTESIAN-DECOMPOSE-1 'kind 'predicate 'arity 3 'english "the kernel's cartesian-decompose, at one position, relates $2 to $3")
 
-;; tuple-equality-decompose (984-1013): A = (= (LIST a1 .. an) (LIST b1 .. bn)) (both LIST forms, one
-;; length), B = the RIGHT-nested conjunction of the a_i = b_i (n = 0: TRUTH; n = 1: (= a1 b1)).
-;; NO definedness condition on either list (the list doctrine of 2026-10-01: see the report).
-;; ENC-TCJ(a, b, n, k): the conjunction of the LAST k of the n component equations.
-(def-by-nn-recursion 'ENC-TCJ '(mia_ mib_ min_) 'ENC-TRUTH '(mik_ miv_)
-  '(IF (= mik_ 0)
-       (ENC-EQ (NTH min_ mia_) (NTH min_ mib_))
-       (ENC-AND (ENC-EQ (NTH (- min_ mik_) mia_) (NTH (- min_ mik_) mib_)) miv_)))
-(notation! 'ENC-TCJ 'kind 'functoid 'arity 4 'english "the conjunction of the last $4 of the $3 component equations of $1 and $2")
-;; NBGSEP (2026-10-25): mia_ and mib_ bounded by (IN v SET), as in J-CART.
+;; tuple-equality-decompose, RE-TRANSCRIBED 2026-10-29 (agent METACORE) against rule-checkers-rewrite.scm of a320cb6f
+;; (rkw--tuple-explainer, the LIST DEFINEDNESS paragraph above it; repair R4 of 2026-10-12): A = (= (LIST a1 .. an)
+;; (LIST b1 .. bn)), both LIST forms of one length; B = the RIGHT-nested conjunction of the a_i = b_i (n = 0: TRUTH;
+;; n = 1: (= a1 b1)); and BOTH LISTS DENOTE in the local context -- certified there, or owed as a hypothesis
+;; Gamma => L = L.  (The two sides are sentences: the kernel's formulas are well formed by construction, make-wff,
+;; the conjuncts CLF as in J-UDEC.)  The transcription of 2026-10-12 (META-4) read "NO definedness condition on either list" and was
+;; FALSE (META-4 report s.5.4): [SET] = [SET] is false while SET = SET is true.  The two premises are the two
+;; DERIVABLE conjuncts of J-TEQ (the local context's sequents, as J-NTH reads its list's definedness).  The right
+;; fold is the least set TF-SET(a, b) of pairs [j, f], f the right fold of the equations a_(j+1) = b_(j+1) ..
+;; a_n = b_n (the base [n - 1, a_n = b_n], the step from [j + 1, f] to [j, (a_(j+1) = b_(j+1)) and f]), as RF-SET
+;; (meta-def.scm 10) folds memberships; the kernel's B is the f of [0, f], or TRUTH when n = 0.  (It replaces the
+;; recursion ENC-TCJ of 2026-10-12, which counted from the end by subtraction; nothing cited either.)
+(def-predicate 'TF-CLOSED '(mitfa_ mitfb_ mitfs_)
+  '(AND (FORALL mitfj_ (IMPLIES (IN mitfj_ NN) (IMPLIES (= (succ mitfj_) (LENGTH mitfa_))
+           (IN (LIST mitfj_ (ENC-EQ (NTH (succ mitfj_) mitfa_) (NTH (succ mitfj_) mitfb_))) mitfs_))))
+        (FORALL mitfk_ (FORALL mitff_ (IMPLIES (IN mitfk_ NN) (IMPLIES (IN (LIST (succ mitfk_) mitff_) mitfs_)
+           (IN (LIST mitfk_ (ENC-AND (ENC-EQ (NTH (succ mitfk_) mitfa_) (NTH (succ mitfk_) mitfb_)) mitff_)) mitfs_)))))))
+(notation! 'TF-CLOSED 'kind 'predicate 'arity 3 'english "$3 is closed under the right folds of the component equations of $1 and $2")
+(def-functoid 'TF-SET '(mitfa_ mitfb_)
+  '(SEP mitfp_ (CARTESIAN NN EXPR-SET) (FORALL mitfw_ (IMPLIES (IN mitfw_ (POWER (CARTESIAN NN EXPR-SET)))
+      (IMPLIES (TF-CLOSED mitfa_ mitfb_ mitfw_) (IN mitfp_ mitfw_))))))
+(notation! 'TF-SET 'kind 'functoid 'arity 2 'english "the right folds of the component equations of $1 and $2 from an index on")
 (def-functoid 'J-TEQ '(mit_)
   '(SEP mix_ RW-UNIV
-     (FORSOME mig_ (FORSOME mia_ (FORSOME mib_
-       (AND (IN mia_ SET) (AND (IN mib_ SET)
-       (AND (= mix_ (LIST 2 mig_ (ENC-EQ (ENC-LIST mia_) (ENC-LIST mib_)) (ENC-TCJ mia_ mib_ (LENGTH mia_) (LENGTH mia_))))
-            (AND (IN mig_ CTX-SET) (= (LENGTH mia_) (LENGTH mib_)))))))))))
-(notation! 'J-TEQ 'kind 'functoid 'arity 1 'english "the local instances of tuple-equality-decompose")
+     (FORSOME mig_ (FORSOME mia_ (FORSOME mib_ (FORSOME mif_
+       (AND (IN mia_ SET) (AND (IN mib_ SET) (AND (IN mif_ SET)
+       (AND (= mix_ (LIST 2 mig_ (ENC-EQ (ENC-LIST mia_) (ENC-LIST mib_)) mif_))
+            (AND (IN mig_ CTX-SET) (AND (= (LENGTH mia_) (LENGTH mib_))
+            (AND (IN (ENC-EQ (ENC-LIST mia_) (ENC-LIST mib_)) CLF) (AND (IN mif_ CLF)
+            (AND (OR (AND (= (LENGTH mia_) 0) (= mif_ ENC-TRUTH)) (IN (LIST 0 mif_) (TF-SET mia_ mib_)))
+            (AND (IN (LIST mig_ (ENC-EQ (ENC-LIST mia_) (ENC-LIST mia_))) (DERIVABLE mit_))
+                 (IN (LIST mig_ (ENC-EQ (ENC-LIST mib_) (ENC-LIST mib_))) (DERIVABLE mit_))))))))))))))))))
+(notation! 'J-TEQ 'kind 'functoid 'arity 1 'english "the local instances of tuple-equality-decompose, both lists denoting")
 (def-predicate 'REL-TUPLE-EQ-DECOMPOSE-1 '(mit_ mihs_ mic_) '(REL-REWRITE-1 (J-TEQ mit_) mihs_ mic_))
 (notation! 'REL-TUPLE-EQ-DECOMPOSE-1 'kind 'predicate 'arity 3 'english "the kernel's tuple-equality-decompose, at one position, relates $2 to $3")
+(def-predicate 'REL-TUPLE-EQ-DECOMPOSE-7 '(mit_ mihs_ mic_) '(REL-REWRITE-7 (J-TEQ mit_) mihs_ mic_))
+(notation! 'REL-TUPLE-EQ-DECOMPOSE-7 'kind 'predicate 'arity 3 'english "the kernel's tuple-equality-decompose, at one position at any stage, relates $2 to $3")
 
 ;;; -----------------------------------------------------------------------
 ;;; 4. TWO DEFINEDNESS CLAUSES (design note 4.7, phase 5), stated as closure properties of DERIVABLE.
@@ -307,10 +366,12 @@
 ;;; hypothesis on T, by name:
 ;;;   DEF-COMP-CLOSED(T):  every comprehension that is a closed term is derivably defined, in every context;
 ;;;   DEF-IN-CLOSED(T):    a term derivably a member of something is derivably defined (strictness of IN).
+;;   (2026-10-29, agent METACORE: DEF-COMP-CLOSED speaks of a PREDICATIVE comprehension only, NBG-OK(q),
+;;   as CR-DEF-COMP does since that day.)
 (def-predicate 'DEF-COMP-CLOSED '(mit_)
-  '(FORALL mig_ (FORALL miq_ (IMPLIES (IN mig_ CTX-SET) (IMPLIES (IN (ENC-COMP miq_) CLT)
-     (IN (LIST mig_ (ENC-EQ (ENC-COMP miq_) (ENC-COMP miq_))) (DERIVABLE mit_)))))))
-(notation! 'DEF-COMP-CLOSED 'kind 'predicate 'arity 1 'english "every closed comprehension is derivably defined over $1")
+  '(FORALL mig_ (FORALL miq_ (IMPLIES (IN mig_ CTX-SET) (IMPLIES (IN (ENC-COMP miq_) CLT) (IMPLIES (NBG-OK miq_)
+     (IN (LIST mig_ (ENC-EQ (ENC-COMP miq_) (ENC-COMP miq_))) (DERIVABLE mit_))))))))
+(notation! 'DEF-COMP-CLOSED 'kind 'predicate 'arity 1 'english "every closed predicative comprehension is derivably defined over $1")
 (def-predicate 'DEF-IN-CLOSED '(mit_)
   '(FORALL mig_ (FORALL miw_ (FORALL mia_ (IMPLIES (IN (LIST mig_ (ENC-IN miw_ mia_)) (DERIVABLE mit_))
      (IN (LIST mig_ (ENC-EQ miw_ miw_)) (DERIVABLE mit_)))))))

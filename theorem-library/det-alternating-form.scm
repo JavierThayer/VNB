@@ -900,7 +900,7 @@
   (have! '(= 1 1) (lambda () (rfl))))
 
 (sp (make-wff (list 'FORALL 'm (list 'IMPLIES '(IN m NN) (daf-clr-body 'm)))))
-(define daf-clr-ind (use-induction))
+(define daf-clr-ind (dk-use-induction-fixed! '(R)))   ; W1G-B: R fixed
 ;; ---- base: H_0 = Y
 (dk-focus! (cdr (assq 'base daf-clr-ind)))
 (dk-peel!)
@@ -934,7 +934,7 @@
 (fact 'nn-succ-closed 'm)
 (fact 'nn-succ-closed '(succ m))
 (dk-have! '(<= m n) (lambda () (apply dk-nn! '((<= (succ m) n)))))
-(define daf-clr-r1 (dk-apply! daf-clr-ih 'R 'n 'D 'Y))
+(define daf-clr-r1 (dk-apply! daf-clr-ih 'n 'D 'Y))   ; W1G-B: R fixed
 (define daf-clr-p '(succ (succ m)))
 
 (define (daf-clr-rowlane!)
@@ -1235,7 +1235,7 @@
     (daf-concl '(succ n) (daf-S 'A m))))
 
 (sp (make-wff (list 'FORALL 'm (list 'IMPLIES '(IN m NN) (daf-ps-body 'm)))))
-(define daf-ps-ind (use-induction))
+(define daf-ps-ind (dk-use-induction-fixed! '(R)))   ; W1G-B: R fixed
 ;; ---- base: row 1 of S_0 is zero
 (dk-focus! (cdr (assq 'base daf-ps-ind)))
 (dk-peel!)
@@ -1294,7 +1294,7 @@
   (daf-in-iv! '(succ m) 1 '(succ n) '(m (succ m) n (succ n)) '((<= (succ m) (succ n))))
   (for-each daf-mk-type! (list Sm S1 X))
   (daf-type-entry! a '(succ n))
-  (let* ((r1 (dk-apply! daf-ps-ih 'R 'n 'D 'A))
+  (let* ((r1 (dk-apply! daf-ps-ih 'n 'D 'A))   ; W1G-B: R fixed
          (r2 (dk-apply! (daf-ctx (daf-perj 'A)) '(succ m)))
          (rD (dk-chain! (inst*! (daf-ctx (daf-lin '(succ n) 'D)) X Sm S1 1 a) lane))
          (rT (dk-chain! (dk-fact! 'det-row-linear 'R '(succ n) X Sm S1 1 a) lane)))

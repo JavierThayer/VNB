@@ -532,7 +532,7 @@
     (list 'FORALL 'y (list 'IMPLIES '(IN y (CARR r)) (list 'FORALL 'j (list 'IMPLIES '(IN j NN)
       (list 'FORALL 'k (list 'IMPLIES '(IN k NN) (list 'IMPLIES '(= (+ j k) m)
         (list '= (list (gf-comb 'm) 'k) (gf-closed 'm 'j 'k)))))))))))))))))
-(ni)
+(dk-ni-fixed! '(r x y))   ; W1G-A: r, x, y fixed
 (define gf3-leaves (dk-open-leaves))
 (dk-focus! (find-first (lambda (n) (dk-contains? (dk-goal-of n) (gf-comb 0))) gf3-leaves))
 (dk-peel!)
@@ -571,7 +571,7 @@
              (list 'VNB-LAMBDA 'k 'ZZ (list '(ADD r) (gf-mul 'x (list (gf-comb 'm) '(- k 1))) (gf-mul 'y (list (gf-comb 'm) 'k))))))
 (dk-lam-b!)
 (define (gf3-ih! jj kk)                 ; the IH at (jj, kk), with jj + kk = m established from PREMS
-  (dk-apply! gf3-ih 'r 'x 'y jj kk)
+  (dk-apply! gf3-ih jj kk)   ; W1G-A: r, x, y fixed
   (list '= (list (gf-comb 'm) kk) (gf-closed 'm jj kk)))
 (define (gf3-k0!)
   (let* ((h1 (dk-rewrite-h! gf3-hyp 'k 0)))
@@ -684,7 +684,7 @@
   (FORALL f (IMPLIES (IN f (FUN ZZ (CARR r)))
     (IMPLIES (FORALL gsi_ (IMPLIES (IN gsi_ ZZ) (IMPLIES (< 0 gsi_) (IMPLIES (<= gsi_ n) (= (f gsi_) (ZERO r))))))
       (= (SUM r f (succ n)) (f 0)))))))))))
-(ni)
+(dk-ni-fixed! '(r f))   ; W1G-A: r, f fixed
 (define gf4-leaves (dk-open-leaves))
 (dk-focus! (find-first (lambda (nd) (dk-contains? (dk-goal-of nd) '(succ 0))) gf4-leaves))
 (dk-peel!)
@@ -698,7 +698,7 @@
 (subst '(= (SUM r f 0) (ZERO r)))
 (crs)
 (dk-focus! (find-first (lambda (nd) (not (sequent-node-grounded? nd))) gf4-leaves))
-(define gf4-ih (find-first (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'SUM))) (dk-peel!)))
+(define gf4-ih (find-first (lambda (fm) (and (dk-head-is? fm 'IMPLIES) (dk-contains? fm 'SUM))) (dk-peel!)))   ; W1G-A: r, f fixed; the IH is H(n) => ...
 (let* ((g (dk-goal)) (sn (cadddr (cadr g))) (n (cadr (cadr sn)))
        (H (find-first (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'gsi_) (not (dk-contains? fm 'SUM)))) (dk-asms))))
   (gf-ring!)
@@ -718,7 +718,7 @@
           (lambda () (dk-ineq! (list '<= i n) (list '= (list 'succ n) (list '+ n 1)))))
         (dk-apply! H i)
         (ass))))
-  (dk-apply! gf4-ih 'r 'f)
+  (let w1g-dl ((w1g-f gf4-ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))   ; W1G-A: r, f fixed
   (gx-zz! (list 'succ n))
   (dk-have! (list '< 0 (list 'succ n)) (lambda () (dk-nn!)))
   (dk-have! (list '<= (list 'succ n) (list 'succ n)) (lambda () (dk-nn!)))
@@ -805,7 +805,7 @@
 ;; F7: in an integral domain, a^(n+1) = 0 forces a = 0
 (sp (make-wff '(FORALL n (IMPLIES (IN n NN) (FORALL r (IMPLIES (IS-INTEGRAL-DOMAIN r) (FORALL a (IMPLIES (IN a (CARR r))
   (IMPLIES (= (RING-POWER r a (succ n)) (ZERO r)) (= a (ZERO r)))))))))))
-(ni)
+(dk-ni-fixed! '(r a))   ; W1G-A: r, a fixed
 (define gf7-leaves (dk-open-leaves))
 (dk-focus! (find-first (lambda (nd) (dk-contains? (dk-goal-of nd) '(succ 0))) gf7-leaves))
 (dk-peel!)
@@ -816,7 +816,7 @@
   (dk-rewrite-h! h1 '(RING-POWER r a 1) 'a))
 (ass)
 (dk-focus! (find-first (lambda (nd) (not (sequent-node-grounded? nd))) gf7-leaves))
-(define gf7-ih (find-first (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'RING-POWER))) (dk-peel!)))
+(define gf7-ih (find-first (lambda (fm) (and (dk-head-is? fm 'IMPLIES) (dk-contains? fm 'RING-POWER))) (dk-peel!)))   ; W1G-A: r, a fixed; the IH is an implication
 (let* ((hyp (find-first (lambda (fm) (and (dk-head-is? fm '=) (dk-contains? fm 'RING-POWER))) (dk-asms)))
        (sn (cadr (cadddr (cadr hyp)))) (n (cadr sn)))
   (dk-cite! 'integral-domain-is-commutative-ring 'r)
@@ -828,7 +828,7 @@
     (lambda () (ass))
     (lambda ()
       (dk-cite! 'integral-domain-cancel-zero 'r (list 'RING-POWER 'r 'a sn) 'a)
-      (dk-apply! gf7-ih 'r 'a)
+      (let w1g-dl ((w1g-f gf7-ih)) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))   ; W1G-A: r, a fixed
       (ass))))
 (qed 'ring-power-nilpotent-zero)
 (topic! 'ring-power-nilpotent-zero 'algebra)

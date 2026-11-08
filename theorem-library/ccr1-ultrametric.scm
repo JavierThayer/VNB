@@ -557,6 +557,7 @@
 (cu-pts-set!)
 (fact 'eps-rel-equivalence 's 'e)
 (mac 'IS-SETOID)
+(dk-isx-set!)                ; W1J-A: the conjunct t in SET, from the typings
 (slot 'pts)
 (slot 'rel)
 (mac 'EPS-SETOID)

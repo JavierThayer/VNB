@@ -133,7 +133,7 @@
 (define (cvh-lset! n) (dk-cite! 'conv-level-is-set n 'm 'E))
 
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (cvh-forall '(m E) (cvh-implies cvh-hyps (list 'IN (cvh-L 'n) 'SET)))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(m E))) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: m, E fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (cvh-vecset!)
@@ -144,7 +144,7 @@
   (dk-focus! (cdr (assq 'step ind)))
   (dk-peel!)
   (cvh-vecset!)
-  (dk-apply! ih 'm 'E)
+  ; W1D: m, E fixed; the IH is (IN L(n) SET) itself
   (dk-cite! 'conv-level-succ 'm 'E n)
   (subst (list '= (cvh-L (list 'succ n)) (cvh-Lsep n)))
   (dk-close-all! (lambda () (sep-set))))
@@ -184,7 +184,7 @@
 (topic! 'conv-level-succ-intro 'algebra)
 
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN) (cvh-forall '(m E) (cvh-implies cvh-hyps (list 'SUBSET (cvh-L 'n) '(VEC m))))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))))
+(let* ((ind (dk-use-induction-fixed! '(m E))) (n (cdr (assq 'var ind))))   ; W1D: m, E fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (dk-cite! 'conv-level-zero 'm 'E)
@@ -283,7 +283,7 @@
 (define (cvh-u-vec!)
   (dk-cite! 'conv-hull-sub-vec 'm 'E)
   (dk-cite! 'subset-mem-fwd cvh-H '(VEC m) 'u))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(m E))) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))   ; W1D: m, E fixed
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (fact 'nn-zero-in)
@@ -320,7 +320,7 @@
       (dk-cite! 'convex-combination-regroup 'm 'u x y 's 0 t lam)
       (dk-cite! 'convex-combination-at-zero 'm 'u y)
       (dk-rewrite-h! eqn (cvh-cvx 'u y 0) 'u)
-      (dk-apply! ih 'm 'E 'u x lam)
+      (dk-apply! ih 'u x lam)   ; W1D: m, E fixed
       (let ((j (cvh-helim! ux)))
         (cvh-cvx-in! 'u x lam)
         (dk-real! cTT)
@@ -358,7 +358,8 @@
 ;;; ---- and the smallest convex set containing E ----
 (sp (make-wff (list 'FORALL 'k (list 'IMPLIES '(IN k NN) (cvh-forall '(m E CK) (cvh-implies (append cvh-hyps (list '(IS-CONVEX-SUBSET m CK) '(SUBSET E CK)))
    (list 'SUBSET (cvh-L 'k) 'CK)))))))
-(let* ((ind (use-induction)) (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
+(let* ((ind (dk-use-induction-fixed! '(m E CK)))   ; W1D: m, E, CK fixed
+ (n (cdr (assq 'var ind))) (ih (cdr (assq 'ih ind))))
   (dk-focus! (cdr (assq 'base ind)))
   (dk-peel!)
   (dk-cite! 'conv-level-zero 'm 'E)
@@ -369,7 +370,7 @@
   (dk-cite! 'nn-succ-closed n)
   (cvh-lset! (list 'succ n))
   (cvh-lset! n)
-  (dk-apply! ih 'm 'E 'CK)
+  ; W1D: m, E, CK fixed; the IH is SUBSET(L(n), CK) itself
   (cvh-rhs! (dk-cite! 'is-convex-subset 'm 'CK))
   (mac 'subset-def)
   (let* ((z (cvh-peel-var!)))

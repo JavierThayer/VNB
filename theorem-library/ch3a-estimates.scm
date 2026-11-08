@@ -17,7 +17,7 @@
 ;;; ======================================================================
 (sp (make-wff '(FORALL k (IMPLIES (IN k NN) (FORALL u (FORALL f (IMPLIES (HOLOMORPHIC-ON u f)
   (HOLOMORPHIC-ON u (NTH-DERIV-ON CC-NORMED-FIELD u f k)))))))))
-(ni)
+(dk-ni-fixed! '(u f))   ; W1D: u, f fixed
 (for-each
  (lambda (leaf)
    (dk-focus! leaf)
@@ -29,12 +29,11 @@
            (ass)))
        (let* ((landed (dk-peel!))
               (k (dk-landed-var landed 'NN))
-              (ih (car (filter (lambda (fm) (and (dk-head-is? fm 'FORALL) (not (dk-contains? fm 'succ)))) landed)))
+              (ih #f)   ; W1D: u, f fixed; the IH is HOLOMORPHIC-ON(u, NTH-DERIV-ON(.., k)) in context
               (g (dk-goal))
               (u (cadr g))
               (f (cadddr (caddr g)))
               (nk (list 'NTH-DERIV-ON 'CC-NORMED-FIELD u f k)))
-         (dk-apply! ih u f)
          (dk-cite! 'holomorphic-deriv-holomorphic u nk)
          (subst (dk-cite! 'nth-deriv-on-succ 'CC-NORMED-FIELD u f k))
          (ass))))

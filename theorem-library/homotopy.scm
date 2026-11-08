@@ -1389,13 +1389,13 @@
   (forall-guarded '(u f pgam dgam a b chm_ chn_ chtq_ chxq_)
     (list '(HOLOMORPHIC-ON u f) '(IS-ROAD pgam dgam a b) '(IN chn_ NN) ch-chain-R ch-chain-G0 ch-chain-S '(<= chq_ (succ chn_)))
     (list '= (ch-lint 'chq_) '(LINE-INT f pgam dgam a b)))))))
-(define ch18-br (use-induction))
+(define ch18-br (dk-use-induction-fixed! '(u f pgam dgam a b chm_ chn_ chtq_ chxq_)))   ; W1G-A: the ten parameters and their hypotheses fixed
 (define (ch18-parts)                           ; read the peeled names off the goal
   (let* ((g (dk-goal)) (lhs (cadr g)) (rhs (caddr g)) (sg (caddr lhs)))
     (list (cadr lhs) (caddr rhs) (cadddr rhs) (list-ref rhs 4) (list-ref rhs 5)
           (cadr sg) (car (caddr sg)) (cadddr sg) lhs rhs)))
 (dk-focus! (cdr (assq 'base ch18-br)))
-(let* ((pl (dk-peel!)) (ps (ch18-parts))
+(let* ((pl (append (dk-peel!) (dk-asms))) (ps (ch18-parts))   ; W1G-A: the fixed hypotheses are in context
        (u (cadr (car (filter (lambda (z) (dk-head-is? z 'HOLOMORPHIC-ON)) pl))))
        (f (list-ref ps 0)) (pg (list-ref ps 1)) (dg (list-ref ps 2)) (a (list-ref ps 3)) (b (list-ref ps 4))
        (tq (list-ref ps 5)) (xq (list-ref ps 6)) (m (list-ref ps 7)) (lhs (list-ref ps 8)) (rhs (list-ref ps 9))
@@ -1409,7 +1409,7 @@
     (if (not (proof-done? *ps*)) (if (dk-asm? (dk-goal)) (ass) (rfl)))))
 (dk-focus! (cdr (assq 'step ch18-br)))
 (let* ((v (cdr (assq 'var ch18-br))) (ih (cdr (assq 'ih ch18-br)))
-       (pl (dk-peel!)) (ps (ch18-parts))
+       (pl (append (dk-peel!) (dk-asms))) (ps (ch18-parts))   ; W1G-A: the fixed hypotheses are in context
        (u (cadr (car (filter (lambda (z) (dk-head-is? z 'HOLOMORPHIC-ON)) pl))))
        (f (list-ref ps 0)) (pg (list-ref ps 1)) (dg (list-ref ps 2)) (a (list-ref ps 3)) (b (list-ref ps 4))
        (tq (list-ref ps 5)) (xq (list-ref ps 6)) (m (list-ref ps 7)) (lhs (list-ref ps 8)) (rhs (list-ref ps 9))
@@ -1425,7 +1425,7 @@
   (let ((pr (list le (list '= sv (list '+ v 1)) (list '= sn (list '+ n 1)))))
     (dk-have! (list '<= v n) (lambda () (apply dk-ineq! pr)))
     (dk-have! (list '<= v sn) (lambda () (apply dk-ineq! pr))))
-  (inst*! ih u f pg dg a b m n tq xq)
+  (let w1g-dl ((w1g-f (dk-ctx-form ih))) (if (dk-head-is? w1g-f 'IMPLIES) (w1g-dl (dk-landed-1 (lambda () (detach! w1g-f)))) w1g-f))   ; W1G-A: parameters fixed (was (inst*! ih u f pg dg a b m n tq xq))
   (inst*! R v) (inst*! R sv) (inst*! S v)
   (dk-fact! 'good-approx-integral u f (sg v) (sd v) (sg sv) (sd sv) a b)
   (subst (list '= lhs lj))

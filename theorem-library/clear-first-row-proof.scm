@@ -92,9 +92,11 @@
 (define (RU-CLEARED Q kk)
   (list 'FORALL 'j (cr-impl* (list '(IN j (INTERVAL 1 n)) '(NOT (= j 1)) (list '<= 'j kk))
                              (list '= (list 'ENTRY Q 1 'j) '(ZERO A)))))
+;; W1E (2026-11-05): the witness Q is typed in MAT(m, n, CARR A) inside the FORSOME (the
+;; statement guard that confines the existential of the induction body).
 (define (RU-BODY kk)
-  (list 'FORSOME 'Q (list 'AND '(MAT-EQUIV A m n P Q)
-    (list 'AND '(= (ENTRY Q 1 1) (ENTRY P 1 1)) (RU-CLEARED 'Q kk)))))
+  (list 'FORSOME 'Q (list 'AND '(IN Q (MAT m n (CARR A))) (list 'AND '(MAT-EQUIV A m n P Q)
+    (list 'AND '(= (ENTRY Q 1 1) (ENTRY P 1 1)) (RU-CLEARED 'Q kk))))))
 (sp (make-wff
   (list 'FORALL 'A (list 'IMPLIES '(IS-EUCLIDEAN-RING A)
     (cr-fa* '(m n P)
@@ -113,6 +115,8 @@
 ;; --- BASE : RU-BODY(0), witness Q = P ---
 (cc-foc-goal! (H? 'FORSOME))
 (ew 'P) (di)
+(cc-foc-goal! (H? 'IN)) (ass)                          ; W1E: the witness typing
+(cc-foc-goal! (H? 'AND)) (di)
 (cc-foc-goal! (H? 'MAT-EQUIV)) (fact 'mat-equiv-refl 'A 'm 'n 'P) (ass)
 (cc-foc-goal! (H? 'AND)) (di)
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) '=) (equal? (cadr g) '(ENTRY P 1 1)))))
@@ -129,7 +133,7 @@
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'k))))
 (di) (di) (cc-di*)                                     ; k ; IN k NN ; IH
 (define RU-IH (cc-find (H? 'FORSOME)))
-(ai RU-IH) (ai 1) (ai 1)
+(dk-skolem! RU-IH)                                     ; W1E: split by the kit, not by index
 (define RU-QwEQ (cc-find (lambda (z) (and (pair? z) (eq? (car z) '=) (pair? (cadr z))
                 (eq? (car (cadr z)) 'ENTRY) (equal? (caddr z) '(ENTRY P 1 1))))))
 (define RU-Qw (cadr (cadr RU-QwEQ)))
@@ -154,6 +158,8 @@
 (define RU-COLS (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'ii)
                 (let ((b (caddr z))) (and (pair? b) (eq? (car b) 'FORALL)))))))
 (ew RU-Qp) (di)
+(cc-foc-goal! (H? 'IN)) (fact 'mat-equiv-target-is-mat 'A 'm 'n RU-Qw RU-Qp) (ass)   ; W1E
+(cc-foc-goal! (H? 'AND)) (di)
 (cc-foc-goal! (H? 'MAT-EQUIV)) (fact 'mat-equiv-trans 'A 'm 'n 'P RU-Qw RU-Qp) (ass)
 (cc-foc-goal! (H? 'AND)) (di)
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) '=) (equal? (cadr g) (list 'ENTRY RU-Qp 1 1)))))
@@ -181,6 +187,8 @@
 ;; VALIDCOL FALSE : keep Q = Qw
 (cc-foc! RU-NOTV)
 (ew RU-Qw) (di)
+(cc-foc-goal! (H? 'IN)) (ass)                          ; W1E: the witness typing, from the IH
+(cc-foc-goal! (H? 'AND)) (di)
 (cc-foc-by-asm! (list 'NOT RU-VALID))
 (cc-foc-goal! (H? 'MAT-EQUIV)) (ass)
 (cc-foc-goal! (H? 'AND)) (di)
@@ -224,7 +232,7 @@
 (define FR-UP (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'k)))))
 (inst+ FR-UP 'n)
 (define FR-BODY (cc-find (H? 'FORSOME)))
-(ai FR-BODY) (ai 1) (ai 1)
+(dk-skolem! FR-BODY)                                   ; W1E: the body now has a typing conjunct
 (define FR-QEQ (cc-find (lambda (z) (and (pair? z) (eq? (car z) '=) (pair? (cadr z))
                (eq? (car (cadr z)) 'ENTRY) (equal? (caddr z) '(ENTRY P 1 1))))))
 (define FR-Q (cadr (cadr FR-QEQ)))

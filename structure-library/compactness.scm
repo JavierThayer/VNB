@@ -34,10 +34,13 @@
 ;;; s is compact: every open cover has a finite subcover.
 (def-predicate 'IS-COMPACT '(s)
   '(AND (IS-METRIC-SPACE s)
-        (FORALL C (IMPLIES (IS-OPEN-COVER s C)
-          (FORSOME F (AND (SUBSET F C)
+        ;; VIAGAP (2026-10-29): C and F are bounded by SET (an open cover is a subclass of
+        ;; POWER(PTS s), a set, so a set; F is a subclass of C), so that the definition is
+        ;; predicative where a comprehension condition names it (CC-HAT-OPENS).
+        (FORALL C (IMPLIES (IN C SET) (IMPLIES (IS-OPEN-COVER s C)
+          (FORSOME F (AND (IN F SET) (AND (SUBSET F C)
                      (AND (IN (CARD F) NN)
-                          (IS-OPEN-COVER s F))))))))
+                          (IS-OPEN-COVER s F))))))))))
 
 ;;; x is a cluster point of the sequence f: every ball around x meets f at
 ;;; arbitrarily large indices (the sequence is frequently near x).
