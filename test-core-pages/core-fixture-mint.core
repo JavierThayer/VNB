@@ -1,0 +1,12 @@
+;;; core page FIXTURE (hand-chosen proof, core-only script), written by
+;;; test-core-pages/make-fixtures.scm.  Format: docs/core-page-format.md.
+(core-page core-fixture-mint
+  (statement (forall a (implies (forsome x (in x a)) (forsome y (in y a)))))
+  (kernel-hash "*")
+  (mints v1)
+  (step 1 (at-node 1) (di) (sequent () (forall a (implies (forsome x (in x a)) (forsome y (in y a))))) (hyps (sequent () (implies (forsome x (in x a)) (forsome y (in y a))))))
+  (step 2 (at-node 2) (di) (sequent () (implies (forsome x (in x a)) (forsome y (in y a)))) (hyps (sequent ((forsome x (in x a))) (forsome y (in y a)))))
+  (step 3 (at-node 3) (ai (forsome x (in x a))) (sequent ((forsome x (in x a))) (forsome y (in y a))) (hyps (sequent ((in v1 a)) (forsome y (in y a)))))
+  (step 4 (at-node 4) (ew v1) (sequent ((in v1 a)) (forsome y (in y a))) (hyps (sequent ((in v1 a)) (in v1 a))))
+  (step 5 (at-node 5) (ass) (sequent ((in v1 a)) (in v1 a)) (hyps))
+)

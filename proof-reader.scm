@@ -1875,15 +1875,31 @@
 ;; died there).
 (define (proof-reader--body* name)
   (string-append (proof-reader--definitions-block name) (proof-reader--body** name)))
+;;; A CERTIFIED theorem has no trace in this image.  Its proof is run here, by
+;;; display-proof's route (`display-proof--run-source!': the theorem's file through
+;;; the certified loader with this theorem's record withheld, under the fluid-let that
+;;; gives the workspace back), and then printed.  Only when no proof script can be
+;;; found does the printout say "certified, no proof in this image" (2026-11-07: the
+;;; old advice, an exam run, was two hours away).  Returns #t when there is a trace
+;;; to print.  Used by proof-tex (proof-tex.scm) and by the reader below.
+(define (proof--ensure-trace! name)
+  (cond ((hash-table-ref/default *proof-live-trace* name #f) #t)
+        ((not (certified-theorem? name)) #t)       ; the printer says what is missing
+        ((display-proof--source name) (display-proof--run-source! name) #t)
+        (else #f)))
+
+(define proof--no-script-text
+  (string-append
+   "Certified, no proof in this image, and no proof script for it was found under "
+   "\\texttt{theorem-library/}: the theorem was installed from its certificate, "
+   "written by an exam that ran and checked its proof "
+   "(the last exam: mailbox/metrics/last-exam.json).\n\n"))
+
 (define (proof-reader--body** name)
-  (if (and (certified-theorem? name)
-           (not (hash-table-ref/default *proof-live-trace* name #f)))
+  (if (not (proof--ensure-trace! name))
       (string-append
        "\\section*{Proof of \\texttt{" (proof-tex--escape-tt (symbol->string name)) "}}\n"
-       "Certified, no proof in this image: the theorem was installed from its "
-       "certificate, written by an exam that ran and checked its proof "
-       "(the last exam: mailbox/metrics/last-exam.json).  Read it from the exam's image "
-       "(\\texttt{VNB\\_CERTIFIED=off ./prover --build-band}).\n\n")
+       proof--no-script-text)
       (proof-reader--body name)))
 
 (define (write-proof-reader name path)

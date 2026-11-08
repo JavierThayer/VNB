@@ -109,6 +109,51 @@
                  (when (get-text-property pos 'help-echo) (setq hits (1+ hits))))
                (> hits 0))))
 
+
+;; ----- (c) a paste into a COMPOUND_TEXT application (notes-68, 2026-11-01) -----
+;; The user's paste of the panel into his notes read "$A)$)$)...(B" and
+;; "%G<turnstile>%@": the COMPOUND_TEXT encoding of the rule line and of the
+;; turnstile, shown raw by an application that does not decode it.  Ask the
+;; selection converter what it would hand such an application for the panel's
+;; own text.  CONTROL: the stock converter returns ESC $ ( A ... ESC ( B.
+(with-current-buffer vnb-proof-buffer-name
+  (let* ((text (buffer-substring (point-min) (point-max)))
+         (conv (cdr (assq 'COMPOUND_TEXT selection-converter-alist)))
+         (out  (and conv (funcall conv 'PRIMARY 'COMPOUND_TEXT text)))
+         (data (if (consp out) (cdr out) out)))
+    (vpc-check "COMPOUND_TEXT copy of the panel carries no ESC charset sequence"
+               (and (stringp data) (not (string-match-p "\e" data))
+                    (string-match-p "|-" data))
+               (and (stringp data)
+                    (let ((i (string-match "\e" data)))
+                      (and i (format "%S at %d" (substring data i (min (length data) (+ i 8))) i)))))
+    (vpc-check "UTF8_STRING copy of the panel keeps the turnstile"
+               (let* ((u (xselect-convert-to-string 'PRIMARY 'UTF8_STRING text))
+                      (b (if (consp u) (cdr u) u)))
+                 (and (stringp b)
+                      (string-match-p (regexp-quote (encode-coding-string "\u22a2" 'utf-8)) b))))))
+
+;; ----- (b) a Scratch Workspace form that moves the proof and RETURNS A VALUE -----
+;; The [65] mismatch (2026-11-01): the panel showed a leaf that was not the
+;; prover's focus.  A form evaluated by C-j runs under *vnb-quiet*, so its state
+;; blocks are suppressed, and a form that returned a value got no repaint after
+;; it.  CONTROL: on the old vnb.el the panel stays on [0] while the prover is on [1].
+(defun vpc--prover-focus-num ()
+  (string-to-number (vnb-eval-string "(sequent-node-number (proof-state-focus *ps*))")))
+(defun vpc--panel-focus-num ()
+  (plist-get (plist-get (vnb-launch--parse-state vnb-proof--last-state) :focus) :num))
+(with-temp-buffer
+  (scheme-mode)
+  (insert "(begin (di) 7)")
+  (vnb-command-eval-print))
+(vpc--pump 10)
+(vpc-check "after a value-returning Scratch form, the panel's focus is the prover's focus"
+           (equal (vpc--panel-focus-num) (vpc--prover-focus-num))
+           (format "panel [%s], prover [%s]" (vpc--panel-focus-num) (vpc--prover-focus-num)))
+(vnb-launch--send "(undo)") (vpc--pump 15)
+(vpc-check "and (undo) brings both back to [0]"
+           (and (eql 0 (vpc--panel-focus-num)) (eql 0 (vpc--prover-focus-num))))
+
 ;; ----- TeX mode must not repaint itself in a loop (the user, 2026-10-06) -----
 ;; "The pdf view of the Focus sequent (key T) does not scroll down to the
 ;; bottom; the string view is fine."  The TeX fetch repainted through
@@ -224,6 +269,106 @@ the :enable form that is on trial here."
 (vpc-check "Save Script is enabled with the proof COMPLETE"
            (eq t (and (vpc--toolbar-enabled-p 'vnb-tb-save-script) t))
            "greyed out after qed -- but the script outlives the proof")
+
+;; ----- (a) rfl's refusal says WHICH subterm to type (notes-68, the [65] goal) -----
+;; With x, y in RR in context, rfl refuses  x^2 + y^2 - abs(x)*abs(y) = (same):
+;; the definedness certificate does not reach `x ^ 2 + y ^ 2' (the parser's head
+;; for ^ is POWER; the certificate's number-class walk knows only ^).  The refusal
+;; reached the panel, but named the whole goal.  CONTROL: the old message does not
+;; contain "smallest subterm".
+;; Since W1 (2026-11-08) the certificate reaches the [65] term itself and rfl CLOSES it,
+;; so the check uses a goal rfl still refuses: an untyped application g(x) inside it.
+(vnb-launch--send
+ "(sp (make-wff-from-string \"forall([x in rr, g], g(x) * x + x = g(x) * x + x)\"))")
+(vpc--pump 20)
+(vnb-launch--send "(begin (di) (di))") (vpc--pump 20)
+(vnb-launch--send "(rfl)") (vpc--pump 20)
+(vpc-check "rfl's refusal on the [65] goal names the subterm to type"
+           (and vnb--last-note
+                (string-match-p "smallest subterm not certified is g(x)" vnb--last-note))
+           vnb--last-note)
+(with-current-buffer vnb-proof-buffer-name
+  (vpc-check "and the refusal is on the Focus panel"
+             (> (vpc--count "smallest subterm not certified") 0)))
+
+;; ----- the core page: show it, replay it (core-replay design s.5a) -----
+;; Against the REAL commands (core-replay.scm, in the band) and a REAL page: the
+;; prover proves `vpc-core-demo' here with the capture installed, the lowering
+;; writes its page to core-pages/ and it is gzipped, as the exam does it.  The stub
+;; (emacs/core-replay-stub.scm) is kept for one case only, "no core page", below.
+(vpc-check "core page: the prover lowers and writes a real page (capture, qed, gzip)"
+           (string-match-p
+            "page-written"
+            (or (vnb-eval-string
+                 (concat "(begin (core-capture-install!)"
+                         " (fluid-let ((*cc-write-pages?* #t))"
+                         "  (sp (make-wff-from-string \"forall([x in nn], x in nn)\")) (di) (ass) (qed 'vpc-core-demo))"
+                         " (core-capture-uninstall!) (core-capture-gzip-pages!)"
+                         " (if (core-page-path 'vpc-core-demo) 'page-written 'no-page))")
+                 60)
+                "")))
+(vpc--pump 5)
+(let ((buf (vnb-show-core-proof "vpc-core-demo")))
+  (with-current-buffer buf
+    (vpc-check "core page: shown read-only, one line per step, with its verdict"
+               (and (derived-mode-p 'vnb-core-mode) buffer-read-only
+                    (= 2 (vpc--count "step "))
+                    (= 1 (vpc--count "step 1: (di)")) (= 1 (vpc--count "step 2: (ass)"))
+                    (= 1 (vpc--count "verdict: core-replayed 2")))
+               (buffer-string))
+    (vpc-check "core page: the goal of a step (the prover's goal K: line) is on hover, and printed on the toggle"
+               (let ((hover (save-excursion (goto-char (point-min))
+                                            (search-forward "step 2:")
+                                            (get-text-property (point) 'help-echo))))
+                 (vnb-core-toggle-goals)
+                 (prog1 (and (stringp hover) (string-match-p "in nn" hover)
+                             (not (string-match-p "carries no goal" hover))
+                             (= 2 (vpc--count "goal: ")))
+                   (vnb-core-toggle-goals)))
+               (buffer-string))
+    (vnb-core-replay-start) (vpc--pump 10)
+    (vpc-check "core replay: begin starts the proof, 2 steps, none run"
+               (and (eql vnb-core--count 2) (eql vnb-core--at 0)
+                    (eql 0 (vpc--panel-focus-num)))
+               (format "count %S at %S" vnb-core--count vnb-core--at))
+    (vnb-core-forward) (vpc--pump 10)
+    (vnb-core-forward) (vpc--pump 10)
+    (vpc-check "core replay: two Forwards run both steps and the Focus panel says complete"
+               (and (eql vnb-core--at 2)
+                    (with-current-buffer vnb-proof-buffer-name
+                      (> (vpc--count "Proof complete.") 0)))
+               (format "at %S" vnb-core--at))
+    (vnb-core-forward) (vpc--pump 5)
+    (vpc-check "core replay: a third Forward answers done"
+               (and (eql vnb-core--at 2) (> (vpc--count "-- done") 0)))
+    (vnb-core-back) (vpc--pump 10)
+    (vpc-check "core replay: Back takes one step back and the panel shows the open goal"
+               (and (eql vnb-core--at 1)
+                    (> (vpc--count "> step 2: (ass)") 0)
+                    (with-current-buffer vnb-proof-buffer-name
+                      (> (vpc--count "1 open goal") 0)))
+               (format "at %S" vnb-core--at))))
+(vnb-eval-string "(begin (let ((p (core-page-path 'vpc-core-demo))) (if p (delete-file p))) 'ok)")
+(with-current-buffer (vnb-show-core-proof "vpc-no-such-theorem")
+  (vpc-check "core page (real commands): a theorem without one says \"no core page\" and offers no replay"
+             (and (> (vpc--count "no core page for vpc-no-such-theorem") 0)
+                  (= 0 (vpc--count "[Forward]")))))
+;; the stub, for the "no core page" case only
+(vnb-eval-string (format "(load %S)" (expand-file-name "core-replay-stub.scm"
+                                                       (file-name-directory load-file-name))))
+(with-current-buffer (vnb-show-core-proof "vpc-no-such-theorem")
+  (vpc-check "core page (stub): a theorem without one says \"no core page\" and offers no replay"
+             (and (> (vpc--count "no core page for vpc-no-such-theorem") 0)
+                  (= 0 (vpc--count "[Forward]")))))
+(vpc-check "View Proof as PDF (write-proof-tex) gets the long command budget: a certified theorem's file is run first"
+           (and (= (vnb--budget-for "(write-proof-tex 'foo \"/tmp/x.tex\")") vnb-long-command-budget)
+                (= (vnb--budget-for "(write-proof-reader 'foo \"/tmp/x.tex\")") vnb-long-command-budget)
+                (string-match-p "vnb--budgeted" (format "%S" (symbol-function 'vnb-view-proof-pdf)))))
+(vpc-check "Show / Replay Core Proof are on the VNB menu and the right-click menu"
+           (and (cl-some (lambda (e) (and (vectorp e) (eq (aref e 1) 'vnb-show-core-proof))) vnb-launch--menu)
+                (cl-some (lambda (e) (and (vectorp e) (eq (aref e 1) 'vnb-replay-core-proof))) vnb-launch--menu)
+                (string-match-p "vnb-thm-core-proof-at-point"
+                                (format "%S" (symbol-function 'vnb-thm-context-menu)))))
 
 (message "=== PANEL CHECK: %d passed, %d failed ===" vpc--passed vpc--failed)
 (kill-emacs (if (> vpc--failed 0) 1 0))

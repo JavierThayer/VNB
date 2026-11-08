@@ -516,17 +516,15 @@
 
 (define (proof-tex name)
   ;; A theorem installed from its certificate (certificates.scm) has no proof in
-  ;; this image: say so, instead of dying on the missing trace and script.
-  (if (and (certified-theorem? name)
-           (not (hash-table-ref/default *proof-live-trace* name #f)))
+  ;; this image: its proof is run here first by display-proof's route
+  ;; (`proof--ensure-trace!', proof-reader.scm); only when no proof script exists
+  ;; does the printout say so.
+  (if (not (proof--ensure-trace! name))
       (string-append
        proof-tex--preamble
        "\\section*{Proof of \\texttt{" (proof-tex--escape-tt (symbol->string name)) "}}\n"
-       "Certified, no proof in this image: the theorem was installed from its "
-       "certificate, written by an exam that ran and checked its proof "
-       "(the last exam: mailbox/metrics/last-exam.json).  Run the exam "
-       "(\\texttt{VNB\\_CERTIFIED=off ./prover --build-band}) and print the proof "
-       "from that image.\n\n\\end{document}\n")
+       proof--no-script-text
+       "\\end{document}\n")
       (proof-tex--full name)))
 
 (define (proof-tex--full name)

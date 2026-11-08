@@ -598,6 +598,14 @@
 ;;; with the same vnb-library-mode machinery as the other indexes).
 ;;; --------------------------------------------------------------------
 
+;;; The 56 core names (core-capture.scm), or '() in an image without it.
+(define (tactics--core-names)
+  (if (environment-bound? user-initial-environment '*core-command-names*)
+      (environment-lookup user-initial-environment '*core-command-names*)
+      '()))
+(define (tactics--entry-named n)
+  (any (lambda (cat) (assq n (cdr cat))) *tactic-help*))
+
 (define (write-tactics-md)
   (let ((path (string-append *reference-dir* "TACTICS.md")))
     (with-output-to-file path
@@ -631,6 +639,26 @@
         (display "its `rule` steps plus whichever `oracle`s and asserted premises it cites.  ")
         (display "You can read any finished proof's actual rule inventory off its deduction ")
         (display "graph (each node records its justifying rule).\n\n")
+        ;; THE CORE (core replay, docs/core-page-format.md s.3): the closed vocabulary a
+        ;; core page is written in.  An entry below whose name is a core name says so.
+        (let ((core (tactics--core-names)))
+          (when (pair? core)
+            (display "## The core commands (core replay)\n\n")
+            (display "A CORE PAGE (`docs/core-page-format.md`) records a finished proof in ")
+            (display (length core))
+            (display " names only: one name per kernel entry point (48 rules), the five oracles ")
+            (display "(`arith`, `crs`, `rs`, `ineq`, `sos`), and the structural `sp`, `qed`, `at-node`.  ")
+            (display "The exam lowers every proof to its core page and replays it with these names ")
+            (display "alone.  Each step is ONE call of its entry point; the surface command of the ")
+            (display "same name may do more (accept an assumption number, close owed leaves).  The ")
+            (display "names: ")
+            (for-each (lambda (n) (display "`") (display n) (display "` ")) core)
+            (display "\n\nAn entry below carries the line *Core:* when its name is one of them; ")
+            (display "the core names with no entry here: ")
+            (for-each (lambda (n)
+                        (if (not (tactics--entry-named n)) (begin (display "`") (display n) (display "` "))))
+                      core)
+            (display "\n\n")))
         (when (pair? *tactic-uses*)
           (display "Each entry below also carries a **Uses** line: every kernel operation the ")
           (display "command's own code can cause to be recorded, those recorded by the ")
@@ -655,6 +683,10 @@
                     (when (and em (not (eq? em #f)))
                       (display " (emits `") (write em) (display "`)"))
                     (newline) (newline)))
+                (when (memq (car e) (tactics--core-names))
+                  (display "*Core:* `") (display (car e))
+                  (display "` is a core command (one call of its kernel entry point on a core page).")
+                  (newline) (newline))
                 (let ((u (tactic-uses-line (car e))))
                   (when u
                     (display "*Uses:* ") (display u) (newline) (newline)))

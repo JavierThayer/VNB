@@ -1,0 +1,8 @@
+;;; core page FIXTURE (hand-chosen proof, core-only script), written by
+;;; test-core-pages/make-fixtures.scm.  Format: docs/core-page-format.md.
+(core-page core-fixture-arith
+  (statement (= (+ 2 2) 4))
+  (kernel-hash "*")
+  (mints)
+  (step 1 (at-node 1) (arith) (sequent () (= (+ 2 2) 4)) (hyps))
+)

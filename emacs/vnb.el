@@ -131,6 +131,14 @@ chunks is still recognised once the trailing newline arrives."
          (tail     (car (last parts))))
     (setq vnb--error-line-buf tail)
     (dolist (line complete)
+      ;; The REPL prompt and the FIRST line a command prints share one line of
+      ;; output: comint echoes the input locally, so the process writes
+      ;; "1 ]=> ;VNB warning: ...".  Matched at line start, every warning that
+      ;; was a command's first output -- a declining `rfl', `ass', `prop' sent
+      ;; from the panel -- was never seen, and the panel showed nothing at all
+      ;; (the user's "(rfl) on [65] did nothing", 2026-11-01).  Strip the prompt.
+      (when (string-match "\\`\\(?:[0-9]+ \\(?:\\]=>\\|error>\\) \\)+" line)
+        (setq line (substring line (match-end 0))))
       (when (string-match "\\`;; VNB error: \\(.*\\)\\'" line)
         (let ((msg (match-string 1 line)))
           (setq vnb--last-error msg)
@@ -503,7 +511,7 @@ display-proof of a certified theorem runs the theorem's whole proof file (the
 user's run of cauchy-convex-closed was stopped at 90 s, 2026-10-05)."
   :type 'integer :group 'vnb)
 
-(defcustom vnb-long-commands '("display-proof" "view-proof-reader-pdf" "proof-tex" "proof-reader")
+(defcustom vnb-long-commands '("display-proof" "view-proof-reader-pdf" "proof-tex" "proof-reader" "write-proof-tex" "write-proof-reader" "core-page-text")
   "Heads of the forms that get `vnb-long-command-budget' instead of `vnb-command-budget'."
   :type '(repeat string) :group 'vnb)
 
@@ -966,7 +974,8 @@ Point is left after the inserted text."
         ;; The form errored: the prover has already been climbed back to top
         ;; level by `vnb-eval-string'; just show the error, do not touch state.
         ((and (stringp result) (string-prefix-p ";; error:" result))
-         (insert result "\n"))
+         (insert result "\n")
+         (vnb--command-resync-state))
         ;; Side-effecting command: refresh the State pane and annotate with a
         ;; one-line summary instead of the irrelevant Scheme value.
         ((vnb--no-value-p result)
@@ -984,7 +993,21 @@ Point is left after the inserted text."
                      (vnb--unquote (vnb-eval-string "(refresh-status)"))
                    (error "done"))
                  "\n"))
-        (t (insert result "\n"))))))
+        (t (insert result "\n")
+           (vnb--command-resync-state))))))
+
+(defun vnb--command-resync-state ()
+  "Have the prover print its state block once, so the Focus panel repaints.
+A form evaluated here runs under *vnb-quiet*, which suppresses every state
+block it would print.  The two branches above that print a summary also
+repaint (through `(refresh-status)'); the other two did not, so a form that
+moved the proof and then RETURNED A VALUE (a kit helper: `have!', `dk-cite!',
+`(begin (di) 7)') or ERRORED part way through a composite left the panel on a
+leaf that was no longer the prover's focus.  That is the [65] mismatch of
+2026-11-01: the panel showed the reflexive leaf while the prover's focus was
+`0 <= ...', and `rfl' was refused on the leaf the user could not see.
+`(show)' records nothing and changes nothing."
+  (condition-case nil (vnb-eval-string "(show)" 10) (error nil)))
 
 ;;; Read in English: the highlighted formula (or term) rendered by the
 ;;; prover's `wff->english' (wff-english.scm), inserted as a ;; comment line

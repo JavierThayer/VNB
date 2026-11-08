@@ -614,6 +614,9 @@
 (define *cert-sp-hook* #f)
 (define *cert-qed-hook* #f)
 (define *cert-record-hook* #f)
+;;; core-capture.scm sets this under VNB_CORE_REPLAY=on (the kernel bill and the
+;;; core page, docs/core-replay-design-2026-11-05.md); #f otherwise.
+(define *core-capture-qed-hook* #f)
 
 ;;; (wff "...") -- short alias for make-wff-from-string, so a goal can be
 ;;; started from the scratch sheet as (sp (wff "forall([x in nn], x in zz)")).
@@ -5810,7 +5813,10 @@
             (announce-proof-debt name bill)
             ;; the certificate record (certificates.scm), written at the end of
             ;; the file's load when this is a load of the tree
-            (if *cert-record-hook* (*cert-record-hook* name bill))))
+            (if *cert-record-hook* (*cert-record-hook* name bill))
+            ;; CORE REPLAY capture (core-capture.scm, VNB_CORE_REPLAY=on only): the
+            ;; surviving inferences, the kernel bill and the core page.  Never raises.
+            (if *core-capture-qed-hook* (*core-capture-qed-hook* name bill))))
       name)))
 
 ;;; -----------------------------------------------------------------------

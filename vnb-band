@@ -1,7 +1,7 @@
 #!/bin/bash
 # vnb-band -- build or extend the band on a capataz WORKER, from the primary, with metrics.
 #
-#   vnb-band WORKER --build  [--heap BLOCKS]
+#   vnb-band WORKER --build  [--exam [--no-core-replay]] [--heap BLOCKS]
 #   vnb-band WORKER --extend [--dry-run] [--retire NAME ...] [--heap BLOCKS]
 #   vnb-band WORKER --wait JOB [--timeout SECONDS]
 #   vnb-band WORKER --pull
@@ -34,7 +34,7 @@
 # Needs capataz 0.2.4+ on the primary (--detach).
 set -u
 [ $# -ge 2 ] || {
-  echo "usage: vnb-band WORKER --build [--exam] [--heap N] | WORKER --extend [--dry-run] [--retire NAME ...] [--heap N] | WORKER --wait JOB [--timeout SECONDS] | WORKER --pull" >&2
+  echo "usage: vnb-band WORKER --build [--exam [--no-core-replay]] [--heap N] | WORKER --extend [--dry-run] [--retire NAME ...] [--heap N] | WORKER --wait JOB [--timeout SECONDS] | WORKER --pull" >&2
   exit 2
 }
 WORKER=$1; shift
@@ -117,11 +117,12 @@ case "$1" in
   --extend) MODE=extend; shift ;;
   *) echo "vnb-band: unknown mode $1 (want --build, --extend, --wait, or --pull)" >&2; exit 2 ;;
 esac
-DRY=0; RETIRE=""; HEAP=; CERT=on
+DRY=0; RETIRE=""; HEAP=; CERT=on; CORE=
 while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) DRY=1; shift ;;
-    --exam) CERT=off; shift ;;
+    --exam) CERT=off; [ -z "$CORE" ] && CORE=on; shift ;;
+    --no-core-replay) CORE=off; shift ;;
     --retire) shift
               while [ $# -gt 0 ] && [ "${1#--}" = "$1" ]; do RETIRE="$RETIRE $1"; shift; done ;;
     --heap) HEAP=$2; shift 2 ;;
@@ -144,6 +145,12 @@ if [ "$MODE" = build ]; then
   # 48 hours before this line, ~2 h each; one of the four integrations had touched a
   # key file.
   ENVV="VNB_HOST=$WORKER VNB_CERTIFIED=$CERT"
+  # THE CORE REPLAY (docs/core-replay-design-2026-11-05.md s.5 step 5): the exam runs with
+  # VNB_CORE_REPLAY=on -- every qed lowers its proof to a core page (core-pages/, gzipped at
+  # load end), replays it in the image, and computes its kernel bill; the load prints
+  # `;; core-replay: core-replayed N of M' and `;; kernel-bill: ...' and writes them to
+  # core-pages/SUMMARY.txt.  Warn-only.  --no-core-replay turns it off for one exam.
+  [ "$CORE" = on ] && ENVV="$ENVV VNB_CORE_REPLAY=on"
   [ -n "$HEAP" ] && ENVV="$ENVV VNB_BUILD_HEAP=$HEAP"
   # VNB_WRITE_BOOK=1 in the caller's environment is passed on: a certified build then
   # writes reference/library-book.tex too (load.scm; the exam writes it regardless).
@@ -161,4 +168,4 @@ fi
 SCRIPT="cd /home/ubuntu/prover && VNB_TIME_LOAD=1 $ENVV ./prover $ARGS"
 JOB=$(capataz run "$WORKER" --detach --json --user ubuntu --job-name band "$SCRIPT" | python3 -c 'import json,sys; print(json.load(sys.stdin)["job"])')
 [ -n "$JOB" ] || { echo "vnb-band: capataz run --detach returned no job id" >&2; exit 1; }
-echo "=== vnb-band: started $JOB on $WORKER (prover $ARGS, VNB_CERTIFIED=${CERT:-n/a}); collect with:  vnb-band $WORKER --wait $JOB"
+echo "=== vnb-band: started $JOB on $WORKER (prover $ARGS, VNB_CERTIFIED=${CERT:-n/a}${CORE:+, VNB_CORE_REPLAY=$CORE}); collect with:  vnb-band $WORKER --wait $JOB"

@@ -14541,6 +14541,7 @@
           (- *dg-checked-count* i0) out)))
 
 (define (cfx-has? str sub) (and (string-search-forward sub str 0) #t))
+(define *cfx-ptex* #f)
 
 ;; ---- the exam: off mode proves everything and writes the store
 (cfx-retract-all!)
@@ -14582,10 +14583,29 @@
 (check "certificates: debt-of and oracles-of accept a certified theorem as proven"
   (lambda () (list (debt-of 'cert-fx-b) (oracles-of 'cert-fx-b)))
   '(() ()))
-(check-true "certificates: proof-tex says `no proof in this image' instead of dying"
-  (lambda () (cfx-has? (proof-tex 'cert-fx-b) "no proof in this image")))
 (check-true "certificates: find-theorem tags a certified theorem CERTIFIED"
   (lambda () (string=? (ft--status-tag 'cert-fx-b #f) "[CERTIFIED -- modulo 0]")))
+;; proof-tex / the reader of a CERTIFIED theorem (2026-11-07, the user's View Proof as PDF):
+;; its file is run by display-proof's route and the proof printed; the message
+;; `no proof in this image' is kept for a theorem whose proof script cannot be found.
+(check-true "certificates (control): proof-tex of a certified theorem with NO proof script found says `no proof in this image'"
+  (lambda ()
+    (let ((src (hash-table-ref/default *theorem-source* 'cert-fx-b #f)))
+      (hash-table-delete! *theorem-source* 'cert-fx-b)
+      (let ((txt (proof-tex 'cert-fx-b)))
+        (if src (hash-table-set! *theorem-source* 'cert-fx-b src))
+        (and (cfx-has? txt "no proof in this image")
+             (not (hash-table-ref/default *proof-live-trace* 'cert-fx-b #f)))))))
+(check "certificates (accepted): proof-tex of a certified theorem runs its file and prints the trace, not the message"
+  (lambda ()
+    (let ((txt (with-output-to-string (lambda () (set! *cfx-ptex* (proof-tex 'cert-fx-b))))))
+      (list (and (hash-table-ref/default *proof-live-trace* 'cert-fx-b #f) #t)
+            (cfx-has? *cfx-ptex* "no proof in this image")
+            (cfx-has? *cfx-ptex* "\\subsection*{Derivation}")
+            (cfx-has? txt "display-proof: no trace of cert-fx-b"))))
+  '(#t #f #t #t))
+(check-true "certificates (accepted): the reader of the same theorem prints its proof too"
+  (lambda () (not (cfx-has? (proof-reader 'cert-fx-b) "no proof in this image"))))
 ;; refused: the same file with NO store proves everything
 (cfx-retract-all!)
 (define cfx-r-nostore
@@ -18338,6 +18358,146 @@
   (lambda ()
     (and (eq? *nbg-induction-fatal?* #t)
          (let ((g (w1s-nn-case w1s-ib))) (eq? (rcl--verdict 'nn-induction (car g) (cadr g)) 'refused)))))
+
+;;; CORE REPLAY (CR-B, 2026-11-07): the replayer's checks live in their own file.
+(load (string-append *prover-dir* "core-replay-checks.scm"))
+
+;;; -----------------------------------------------------------------------
+;;; CORE CAPTURE (core-capture.scm, 2026-11-07; docs/core-replay-design-2026-11-05.md s.5,
+;;; checks 7 and 9, plus the lowering check).  The suite runs with VNB_CORE_REPLAY unset, so
+;;; the wrappers are installed and removed by the checks themselves.
+
+;;; check 9: with the flag off every wrapped entry point is its original
+(check "CORE-CAPTURE 9 (accepted): flag off -- all 54 entry points (and start-proof) are eq? to their originals"
+  (lambda () (list (length (core-capture-wrapped-names)) (core-capture-originals-intact?)))
+  '(54 #t))
+(check "CORE-CAPTURE 9 (control): installed, none is its original; removed, all are again"
+  (lambda ()
+    (core-capture-install!)
+    (let ((during (core-capture-originals-intact?)))
+      (core-capture-uninstall!)
+      (list (and (list? during) (length during)) (core-capture-originals-intact?))))
+  '(54 #t))
+
+;;; check 7: the kernel bill against the ledger bill
+(add-axiom! *library* 'cc7-ax '(IN cc7zz NN))
+(define (cc7--diff name)
+  (let ((r (assq name (cadr (assq 'differ (core-capture-report))))))
+    (and r (cdr r))))
+(check "CORE-CAPTURE 7 (refused): a citation of an asserted support inside a recording-suppressed step -- the ledger misses it, the kernel bill lists it"
+  (lambda ()
+    (core-capture-install!)
+    (sp (make-wff '(IN cc7zz NN)))
+    (fluid-let ((*replaying?* #t)) (ta 'cc7-ax))
+    (ass)
+    (qed 'cc7-hidden)
+    (core-capture-uninstall!)
+    (list (debt-of 'cc7-hidden) (cc7--diff 'cc7-hidden)))
+  '(() ((cc7-ax) ())))
+(check "CORE-CAPTURE 7 (accepted): the same citation recorded -- kernel bill = ledger bill, no difference listed"
+  (lambda ()
+    (core-capture-install!)
+    (let ((agree0 (cadr (assq 'agree (core-capture-report)))))
+      (sp (make-wff '(IN cc7zz NN)))
+      (ta 'cc7-ax)
+      (ass)
+      (qed 'cc7-plain)
+      (core-capture-uninstall!)
+      (list (debt-of 'cc7-plain) (cc7--diff 'cc7-plain)
+            (- (cadr (assq 'agree (core-capture-report))) agree0)
+            (hash-table-ref/default *cc-kernel-bill* 'cc7-plain #f))))
+  '((cc7-ax) #f 1 (cc7-ax)))
+
+;;; the lowering: fact, keep and a bc* handler lower to core names only; the page reads back
+(define *cc-lw-page* #f)
+(check "CORE-CAPTURE lowering (accepted): fact + keep + bc* handler lower to core commands only; ta for fact; no index"
+  (lambda ()
+    (core-capture-install!)
+    (sp (make-wff '(IMPLIES (AND (IS-ABELIAN-GROUP cc7gg) (IN cc7zz ZZ)) (IS-GROUP cc7gg))))
+    (di)
+    (ai '(AND (IS-ABELIAN-GROUP cc7gg) (IN cc7zz ZZ)))
+    (fact 'cc7-ax)
+    (keep '(IS-ABELIAN-GROUP cc7gg))
+    (bc* 'abelian-group-is-group () (ass))
+    (qed 'cc7-lowered)
+    (core-capture-uninstall!)
+    (set! *cc-lw-page* *cc-last-page*)
+    (let ((cmds (core-page-commands *cc-lw-page*)))
+      (list (car *cc-lw-page*) (cadr *cc-lw-page*)
+            (core-page-core-only? *cc-lw-page*)
+            (and (memq 'ta cmds) #t) (and (memq 'wk cmds) #t)
+            (and (member '(ta . abelian-group-is-group) (hash-table-ref/default *cc-kernel-citations* 'cc7-lowered '())) #t)
+            (any (lambda (st) (any exact-nonnegative-integer? (cdr (list-ref st 3))))
+                 (filter (lambda (f) (and (pair? f) (eq? (car f) 'step))) *cc-lw-page*)))))
+  '(core-page cc7-lowered #t #t #t #t #f))
+(check "CORE-CAPTURE lowering (control): the SURFACE script of the same proof is not core-only (fact, keep, bc*)"
+  (lambda ()
+    (let ((script (hash-table-ref/default *proof-script-table* 'cc7-lowered '())))
+      (list (script-core-only? script)
+            (and (assq 'fact script) #t) (and (assq 'keep script) #t) (and (assq 'bc* script) #t))))
+  '(#f #t #t #t))
+(check "CORE-CAPTURE lowering: the written page reads back with `read' to the same datum; root is node 1; ids dense"
+  (lambda ()
+    (let* ((txt (core-page->string *cc-lw-page*))
+           (back (read (open-input-string txt)))
+           (steps (filter (lambda (f) (and (pair? f) (eq? (car f) 'step))) back))
+           (ats (map (lambda (st) (cadr (caddr st))) steps))
+           (ids (delete-duplicates ats)))
+      (list (equal? (core-page-expand back) *cc-lw-page*)
+            (car ats)
+            (equal? (sort ids <) (iota (length ids) 1)))))
+  '(#t 1 #t))
+(check "CORE-CAPTURE lowering (control): a page with a surface command in it is refused by core-page-core-only?"
+  (lambda ()
+    (core-page-core-only?
+     (append *cc-lw-page*
+             (list '(step 99 (at-node 99) (fact cc7-ax) (sequent () (IN cc7zz NN)) (hyps))))))
+  #f)
+
+;;; CORE PAGES, COMPACT AND GZIPPED (CR-M, 2026-11-07; docs/core-page-format.md s.1a): a
+;;; step's sequent is a reference to the hypothesis of an earlier step, a hypothesis a
+;;; difference from its step's sequent; the expansion is exact; the replayer reads both.
+(define *cc-lw-text* (core-page->string *cc-lw-page*))
+(check "CORE-PAGE compact (accepted): the written page shares sequents (sequent-ref, sequent-delta), is smaller than the full form, and replays from its text"
+  (lambda ()
+    (let ((full (with-output-to-string (lambda () (write *cc-lw-page*))))
+          (back (read (open-input-string *cc-lw-text*))))
+      (list (and (string-search-forward "(sequent-ref " *cc-lw-text* 0) #t)
+            (and (string-search-forward "(sequent-delta " *cc-lw-text* 0) #t)
+            (< (string-length *cc-lw-text*) (string-length full))
+            (car (core-replay-page back)))))
+  '(#t #t #t core-replayed))
+(check "CORE-PAGE compact (control): a reference to a sequent number the page never wrote is refused at that step"
+  (lambda ()
+    (let* ((back (read (open-input-string *cc-lw-text*)))
+           (bad (map (lambda (f)
+                       (if (and (pair? f) (eq? (car f) 'step) (eqv? (cadr f) 2))
+                           (map (lambda (x) (if (and (pair? x) (memq (car x) '(sequent sequent-ref sequent-delta)))
+                                                '(sequent-ref 999) x))
+                                f)
+                           f))
+                     back))
+           (v (core-replay-page bad)))
+      (list (car v) (cadr v) (and (string-search-forward "does not resolve" (cadddr v) 0) #t))))
+  '(refused 2 #t))
+(check "CORE-PAGE compact (control): a difference whose drop position is out of range does not expand to a sequent"
+  (lambda ()
+    (let ((p (core-page-expand '(core-page cc-x (statement (IN cc7zz NN)) (kernel-hash "*") (mints)
+                                 (step 1 (at-node 1) (ass) (sequent () (IN cc7zz NN)) (hyps (sequent-delta 1 (drop 0) (add))))))))
+      (car (list-ref (cps-hyp-forms (car (cp-steps p))) 0))))
+  'sequent-invalid)
+(check "CORE-PAGE gzip (accepted): a page written by the lowering and gzipped is read back by core-page-read, equal to the datum; core-page-text has its goal lines"
+  (lambda ()
+    (let* ((path (cc--write-page! 'cc7-lowered *cc-lw-page*)))
+      (core-capture-gzip-pages!)
+      (let* ((gz? (and (not (file-exists? path)) (file-exists? (string-append path ".gz"))))
+             (same (equal? (core-page-read 'cc7-lowered) *cc-lw-page*))
+             (txt (core-page-text 'cc7-lowered)))
+        (for-each (lambda (f) (if (file-exists? f) (delete-file f))) (list path (string-append path ".gz")))
+        (list gz? same
+              (and (string-search-forward "goal 1: " txt 0) #t)
+              (and (string-search-forward "verdict: core-replayed" txt 0) #t)))))
+  '(#t #t #t #t))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

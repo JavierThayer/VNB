@@ -403,6 +403,21 @@
         (vnb--warn "arith: goal is not a true closed arithmetic sentence"
                    (vnb--goal-str sqn)))))
 
+;;; The subterm to type when `rfl' refuses t = t on definedness (the user's [65],
+;;; 2026-11-01: "rfl does nothing" on  x ^ 2 + y ^ 2 - abs(x) * abs(y)  with x, y in
+;;; RR in context).  The refusal named the whole term, which says nothing about what
+;;; to land.  This walks T top-down and returns the first subterm that is not
+;;; certified although every argument of it is -- the place the certificate stops --
+;;; or #f when no such subterm is found.  It READS the kernel's `pi--defined?' and
+;;; certifies nothing itself.
+(define (rfl--first-uncertified asms t)
+  (cond ((pi--defined? asms t 0) #f)
+        ((not (pair? t)) t)
+        (else (let loop ((as (cdr t)))
+                (cond ((null? as) t)
+                      ((rfl--first-uncertified asms (car as)) => (lambda (x) x))
+                      (else (loop (cdr as))))))))
+
 (define (cmd-reflexivity ps)
   (let* ((sqn (proof-state-focus ps))
          (r   (pi-reflexivity! sqn)))
@@ -415,12 +430,18 @@
         (let ((g (wff-formula (sequent-node-assertion sqn))))
           (if (and (pair? g) (eq? (car g) '=) (pair? (cdr g)) (pair? (cddr g))
                    (alpha-equiv? (cadr g) (caddr g)))
-              (vnb--warn (string-append
-                          "reflexivity: the two sides are the same term, but it is not "
-                          "certified DEFINED -- `=' is strict.  Land its typing first "
-                          "(a `fact'/`have!' of (IN t _) or an equation t = _), or use "
-                          "`qrfl' if the goal may be stated with ==")
-                         (vnb--goal-str sqn))
+              (let ((sub (rfl--first-uncertified (sequent-node-assumptions sqn) (cadr g))))
+                (vnb--warn (string-append
+                            "reflexivity: the two sides are the same term, but it is not "
+                            "certified DEFINED -- `=' is strict."
+                            (if sub
+                                (string-append "  The smallest subterm not certified is "
+                                               (expression->string sub)
+                                               ": land ITS typing first")
+                                "  Land its typing first")
+                            " (a `fact'/`have!' of (IN t _) or an equation t = _), or use "
+                            "`qrfl' if the goal may be stated with ==")
+                           (vnb--goal-str sqn)))
               (vnb--warn "reflexivity: goal is not (= a a)" (vnb--goal-str sqn)))))))
 
 (define (cmd-quasi-reflexivity ps)

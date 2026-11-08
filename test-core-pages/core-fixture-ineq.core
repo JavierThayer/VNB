@@ -1,0 +1,10 @@
+;;; core page FIXTURE (hand-chosen proof, core-only script), written by
+;;; test-core-pages/make-fixtures.scm.  Format: docs/core-page-format.md.
+(core-page core-fixture-ineq
+  (statement (forall x (implies (in x rr) (implies (<= x 0) (<= x 1)))))
+  (kernel-hash "*")
+  (mints)
+  (step 1 (at-node 1) (di) (sequent () (forall x (implies (in x rr) (implies (<= x 0) (<= x 1))))) (hyps (sequent ((in x rr)) (implies (<= x 0) (<= x 1)))))
+  (step 2 (at-node 2) (di) (sequent ((in x rr)) (implies (<= x 0) (<= x 1))) (hyps (sequent ((<= x 0) (in x rr)) (<= x 1))))
+  (step 3 (at-node 3) (ineq (<= x 0) (in x rr)) (sequent ((<= x 0) (in x rr)) (<= x 1)) (hyps))
+)

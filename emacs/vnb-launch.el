@@ -42,6 +42,67 @@ load.  Nothing in docs/ is generated, so nothing in it is refreshed for you;
 (load (expand-file-name "vnb-cmd-gen.el" vnb-launch--el-dir) nil t)
 
 ;;; -----------------------------------------------------------------------
+;;; Copying panel text into a LEGACY-TEXT application (the user, notes-68, 2026-11-01)
+;;;
+;;; The [65] panel the user pasted into his notes read
+;;;     $A)$)$)$) ... $)(B
+;;;     %G<turnstile>%@  x ^ 2 + ...
+;;; where the panel had the 60-column rule line (U+2500) and the turnstile
+;;; (U+22A2).  Those are the escape sequences of COMPOUND_TEXT: GNU Emacs answers
+;;; a COMPOUND_TEXT selection request with `compound-text-with-extensions'
+;;; (select.el, `xselect--encode-string'), which writes U+2500 as GB 2312 between
+;;; ESC $ ( A and ESC ( B and an un-mapped character as UTF-8 between ESC % G and
+;;; ESC % @.  An application that asks for COMPOUND_TEXT and does not decode it
+;;; (the user's XEmacs, where the notes are written) shows the escapes raw.  The
+;;; same text pasted into the terminal (which asks for UTF8_STRING) was clean.
+;;;
+;;; The cure is at the SOURCE of the selection: for the targets that cannot carry
+;;; these characters as themselves -- COMPOUND_TEXT and STRING (Latin-1, which
+;;; turns them into `?') -- the panel's own glyphs are spelled in ASCII first.
+;;; UTF8_STRING, and TEXT (which Emacs 29+ answers as UTF-8 when the text is not
+;;; Latin-1), are untouched, so an application that reads UTF-8 still gets the
+;;; glyphs.  Only the characters in the table change; anything else is left to
+;;; the encoder as before.
+
+(defvar vnb-launch-selection-ascii
+  '((#x2500 . "-") (#x22a2 . "|-") (#x25b8 . ">") (#x2713 . "ok") (#x21d2 . "=>")
+    (#x2014 . "--") (#x2026 . "...") (#x2192 . "->") (#x2190 . "<-") (#x2191 . "^")
+    (#x2605 . "*") (#x25c0 . "<") (#x25b6 . ">") (#x2208 . " in "))
+  "VNB panel glyphs and their ASCII spelling for a COMPOUND_TEXT or STRING paste.")
+
+(defun vnb-launch--selection-ascii (str)
+  "STR with every character of `vnb-launch-selection-ascii' replaced by its ASCII."
+  (if (not (cl-some (lambda (c) (assq c vnb-launch-selection-ascii)) str))
+      str
+    (mapconcat (lambda (c) (let ((a (assq c vnb-launch-selection-ascii)))
+                             (if a (cdr a) (string c))))
+               str "")))
+
+(defun vnb-launch--convert-legacy-text (selection type value)
+  "Selection converter for COMPOUND_TEXT and STRING: VNB glyphs in ASCII, then encode."
+  (let ((str (cond ((stringp value) value)
+                   ((and (fboundp 'xselect--selection-bounds)
+                         (setq value (xselect--selection-bounds value)))
+                    (with-current-buffer (nth 2 value)
+                      (when (and (>= (nth 0 value) (point-min))
+                                 (<= (nth 1 value) (point-max)))
+                        (buffer-substring (nth 0 value) (nth 1 value))))))))
+    (when str
+      (xselect-convert-to-string selection type (vnb-launch--selection-ascii str)))))
+
+(defun vnb-launch--install-selection-converters ()
+  "Route COMPOUND_TEXT and STRING requests through `vnb-launch--convert-legacy-text'."
+  (when (boundp 'selection-converter-alist)
+    (dolist (target '(COMPOUND_TEXT STRING))
+      (let ((cell (assq target selection-converter-alist)))
+        (if cell
+            (setcdr cell #'vnb-launch--convert-legacy-text)
+          (push (cons target #'vnb-launch--convert-legacy-text)
+                selection-converter-alist))))))
+
+(vnb-launch--install-selection-converters)
+
+;;; -----------------------------------------------------------------------
 ;;; Faces -- white-on-black with highlights.
 ;;;
 ;;; Defined as named faces so the user can later customize them with
@@ -1551,8 +1612,11 @@ only.  With a prefix argument, open in the desktop viewer instead of
     ;; "did the prover write it?" test pass for a render that just failed.
     (dolist (f (list tex pdf)) (when (file-exists-p f) (ignore-errors (delete-file f))))
     (message "VNB: typesetting the proof of %s ..." name)
-    (let* ((res  (vnb-eval-string (format "(write-proof-tex '%s %S)" name tex)
-                                  vnb-thm-proof-timeout))
+    ;; A certified theorem's proof is run first (its file, through the certified
+    ;; loader): the long command budget, as display-proof has.
+    (let* ((form (format "(write-proof-tex '%s %S)" name tex))
+           (res  (vnb-eval-string (vnb--budgeted form)
+                                  (max vnb-thm-proof-timeout (+ (vnb--budget-for form) 20))))
            (res  (string-trim (or res "")))
            (size (or (file-attribute-size (file-attributes tex)) 0)))
       ;; A prover-side error must be reported as ITSELF.  `write-proof-tex'
@@ -1653,6 +1717,253 @@ is what to paste into a mail or a bug report."
         (setq-local default-directory vnb-launch--dir))
       (switch-to-buffer buf))))
 
+;;; --- the CORE page of a proof: show it, replay it ------------------------
+;;;
+;;; docs/core-replay-design-2026-11-05.md s.5a (the user, 2026-11-06): the core
+;;; page of a theorem -- its proof in core commands only -- is reachable from the
+;;; interface, mouse first: a menu entry and a right-click item on a theorem name.
+;;;
+;;; The prover side is four commands (core-replay.scm; for the panel check, the
+;;; stand-in emacs/core-replay-stub.scm), whose CONTRACT this surface relies on:
+;;;   (core-page-text 'NAME)    a string: "step K: (CMD ...)" per core step, an
+;;;                             optional "goal K: TEXT" (the focus goal before step
+;;;                             K), then "verdict: ..."; or "no core page for NAME"
+;;;   (core-replay-begin 'NAME) the step count (the replay's proof is started)
+;;;   (core-replay-next)        the number of the step just run, or `done'
+;;;   (core-replay-back)        the number of the step the replay now stands after
+;;; Each replay step is a surface command that prints its state block, so the
+;;; Focus workspace repaints from it exactly as for a command typed by hand.
+
+(defvar vnb-core-buffer-prefix "*VNB core: "
+  "Buffer names for core pages are this prefix, the theorem name and `*'.")
+
+(defvar-local vnb-core--name nil "The theorem whose core page this buffer shows.")
+(defvar-local vnb-core--steps nil "The page's steps: a list of plists (:n K :cmd STR :goal STR).")
+(defvar-local vnb-core--verdict nil "The page's verdict line, or nil.")
+(defvar-local vnb-core--missing nil "The prover's answer when it has no core page, else nil.")
+(defvar-local vnb-core--show-goals nil "Non-nil: each step's goal is printed under it.")
+(defvar-local vnb-core--at nil "Steps the replay has run (0 after Replay), or nil: no replay.")
+(defvar-local vnb-core--count nil "The step count `core-replay-begin' returned.")
+
+(defvar vnb-core-mode-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m "r" 'vnb-core-replay-start)
+    (define-key m "n" 'vnb-core-forward)
+    (define-key m "f" 'vnb-core-forward)
+    (define-key m "p" 'vnb-core-back)
+    (define-key m "b" 'vnb-core-back)
+    (define-key m "t" 'vnb-core-toggle-goals)
+    (define-key m [down-mouse-3] 'vnb-core-context-menu)
+    (define-key m [mouse-3] 'ignore)
+    m)
+  "Keys of a core-page buffer; every one is also a button and a right-click item.")
+
+(define-derived-mode vnb-core-mode special-mode "VNB-Core"
+  "A theorem's core page: one core command per line, its replay buttons on top.")
+
+(defun vnb-core--buffer-name (name) (concat vnb-core-buffer-prefix name "*"))
+
+(defun vnb-core--fetch (name)
+  "The prover's `(core-page-text 'NAME)' as a string; user-error on a failure."
+  (vnb-launch--ensure-prover)
+  (let* ((form (format "(core-page-text '%s)" name))
+         (raw  (string-trim (or (vnb-eval-string (vnb--budgeted form)
+                                                 (+ (vnb--budget-for form) 20))
+                                "")))
+         (text (condition-case nil
+                   (let ((v (car (read-from-string raw)))) (and (stringp v) v))
+                 (error nil))))
+    (cond (text text)
+          ((string-prefix-p ";; error" raw)
+           (user-error "core-page-text of `%s' failed: %s" name raw))
+          (t (user-error "core-page-text of `%s': no page came back (prover: %s)" name raw)))))
+
+(defun vnb-core--parse (text)
+  "TEXT of a core page -> (STEPS VERDICT MISSING), see `vnb-core--steps'."
+  (if (string-match-p "\\`\\s-*no core page for" text)
+      (list nil nil (string-trim text))
+    (let ((goals (make-hash-table)) (steps '()) (verdict nil))
+      (dolist (line (split-string text "\n"))
+        (cond ((string-match "\\`\\s-*step \\([0-9]+\\): \\(.*\\)\\'" line)
+               (push (list :n (string-to-number (match-string 1 line))
+                           :cmd (match-string 2 line))
+                     steps))
+              ((string-match "\\`\\s-*goal \\([0-9]+\\): \\(.*\\)\\'" line)
+               (puthash (string-to-number (match-string 1 line)) (match-string 2 line) goals))
+              ((string-match "\\`\\s-*verdict: \\(.*\\)\\'" line)
+               (setq verdict (match-string 1 line)))))
+      (list (mapcar (lambda (s) (append s (list :goal (gethash (plist-get s :n) goals))))
+                    (nreverse steps))
+            verdict nil))))
+
+(defun vnb-core--button (label action help)
+  (insert-text-button label 'action (lambda (_) (funcall action))
+                      'follow-link t 'help-echo help 'face 'vnb-accent))
+
+(defun vnb-core--paint ()
+  "Paint the current core-page buffer from its buffer-local state."
+  (let ((inhibit-read-only t) (pt (point)))
+    (erase-buffer)
+    (insert (propertize (format "VNB core proof: %s\n" vnb-core--name) 'face 'vnb-title))
+    (if vnb-core--missing
+        (insert "\n  " vnb-core--missing "\n"
+                "\n  (the core page is written at the exam; a theorem the last exam did not\n"
+                "   reach, or one proven outside sp / qed, has none)\n")
+      (insert "\n  ")
+      (vnb-core--button "[Replay from the start]" #'vnb-core-replay-start
+                        "Start the replay: the statement in the Focus workspace, no step run (r)")
+      (insert " ")
+      (vnb-core--button "[Forward]" #'vnb-core-forward "Run the next core step (n)")
+      (insert " ")
+      (vnb-core--button "[Back]" #'vnb-core-back "Take the last core step back (p)")
+      (insert " ")
+      (vnb-core--button (if vnb-core--show-goals "[Hide goals]" "[Show goals]")
+                        #'vnb-core-toggle-goals
+                        "Print the focus goal before each step under the step (t); hover shows it too")
+      (insert "\n")
+      (insert (propertize
+               (if vnb-core--at
+                   (format "  replay: %d of %d step(s) run%s\n" vnb-core--at
+                           (or vnb-core--count (length vnb-core--steps))
+                           (if (and vnb-core--count (>= vnb-core--at vnb-core--count))
+                               " -- done" ""))
+                 "  replay: not started\n")
+               'face 'vnb-dim))
+      (insert "\n")
+      (dolist (s vnb-core--steps)
+        (let* ((n (plist-get s :n)) (goal (plist-get s :goal))
+               (next (and vnb-core--at (= n (1+ vnb-core--at))))
+               (beg (point)))
+          (insert (if next "> " "  ")
+                  (format "step %d: %s\n" n (plist-get s :cmd)))
+          (put-text-property beg (point) 'help-echo
+                             (if goal (concat "goal before this step:  " goal)
+                               "(the page carries no goal for this step)"))
+          (put-text-property beg (point) 'vnb-core-step n)
+          (when (and vnb-core--show-goals goal)
+            (insert (propertize (format "        goal: %s\n" goal) 'face 'vnb-dim)))))
+      (insert "\n" (propertize (format "  verdict: %s\n" (or vnb-core--verdict "(none given)"))
+                               'face 'vnb-goal))
+      (insert (propertize "\n  keys: r replay  n forward  p back  t goals  q quit  (mouse-3: the same)\n"
+                          'face 'vnb-dim)))
+    (goto-char (min pt (point-max)))))
+
+;;;###autoload
+(defun vnb-show-core-proof (name)
+  "Show the CORE page of NAME: its proof in core commands, one per line.
+The page is the prover's `(core-page-text 'NAME)', fetched under the long
+command budget (`vnb-long-commands'), since a certified theorem's page may
+need its proof file run first.  The buffer is read-only; its buttons replay
+the page step by step in the Focus workspace."
+  (interactive (list (vnb-thm--read-name "Core proof of" (vnb-thm--proved-names) 'confirm)))
+  (when (string-empty-p name) (user-error "No theorem name given"))
+  (let* ((parsed (vnb-core--parse (vnb-core--fetch name)))
+         (buf (get-buffer-create (vnb-core--buffer-name name))))
+    (with-current-buffer buf
+      (vnb-core-mode)
+      (setq vnb-core--name name
+            vnb-core--steps (nth 0 parsed)
+            vnb-core--verdict (nth 1 parsed)
+            vnb-core--missing (nth 2 parsed)
+            vnb-core--at nil vnb-core--count nil)
+      (vnb-core--paint)
+      (goto-char (point-min)))
+    (pop-to-buffer buf)
+    (when (nth 2 parsed) (message "%s" (nth 2 parsed)))
+    buf))
+
+;;;###autoload
+(defun vnb-replay-core-proof (name)
+  "Show NAME's core page and start its replay in the Focus workspace."
+  (interactive (list (vnb-thm--read-name "Replay core proof of" (vnb-thm--proved-names) 'confirm)))
+  (with-current-buffer (vnb-show-core-proof name)
+    (if vnb-core--missing
+        (user-error "%s" vnb-core--missing)
+      (vnb-core-replay-start))))
+
+(defun vnb-core--need-buffer ()
+  (unless (derived-mode-p 'vnb-core-mode)
+    (user-error "Not in a core-page buffer (VNB > Show Core Proof...)")))
+
+(defun vnb-core--ask (form)
+  "Send FORM, return its value as a string (the state block repaints on the way)."
+  (string-trim (or (vnb-eval-string form 60) "")))
+
+(defun vnb-core--show-focus ()
+  "Show the Focus workspace beside the core page without leaving the page."
+  (let ((fb (get-buffer-create vnb-proof-buffer-name)))
+    (with-current-buffer fb
+      (unless (eq major-mode 'vnb-proof-mode) (vnb-proof-mode))
+      (vnb-launch--paint-proof))
+    (unless noninteractive (display-buffer fb))))
+
+(defun vnb-core-replay-start ()
+  "Start (or restart) the replay of this page: `(core-replay-begin 'NAME)'."
+  (interactive)
+  (vnb-core--need-buffer)
+  (when vnb-core--missing (user-error "%s" vnb-core--missing))
+  (let* ((res (vnb-core--ask (format "(core-replay-begin '%s)" vnb-core--name)))
+         (n   (and (string-match-p "\\`[0-9]+\\'" res) (string-to-number res))))
+    (unless n (user-error "core-replay-begin of `%s' failed: %s" vnb-core--name res))
+    (setq vnb-core--count n vnb-core--at 0)
+    (vnb-core--paint)
+    (vnb-core--show-focus)
+    (message "Core replay of %s: %d step(s); Forward runs the first" vnb-core--name n)))
+
+(defun vnb-core-forward ()
+  "Run the next core step: `(core-replay-next)'."
+  (interactive)
+  (vnb-core--need-buffer)
+  (unless vnb-core--at (vnb-core-replay-start))
+  (let ((res (vnb-core--ask "(core-replay-next)")))
+    (cond ((string= res "done")
+           (setq vnb-core--at (or vnb-core--count vnb-core--at))
+           (message "Core replay of %s: every step has run" vnb-core--name))
+          ((string-match-p "\\`[0-9]+\\'" res)
+           (setq vnb-core--at (string-to-number res)))
+          (t (user-error "core-replay-next failed: %s" res)))
+    (vnb-core--paint)))
+
+(defun vnb-core-back ()
+  "Take the last core step back: `(core-replay-back)'."
+  (interactive)
+  (vnb-core--need-buffer)
+  (unless vnb-core--at (user-error "The replay has not started: Replay first"))
+  (let ((res (vnb-core--ask "(core-replay-back)")))
+    (if (string-match-p "\\`[0-9]+\\'" res)
+        (setq vnb-core--at (string-to-number res))
+      (user-error "core-replay-back failed: %s" res))
+    (vnb-core--paint)))
+
+(defun vnb-core-toggle-goals ()
+  "Print, or stop printing, the goal before each step under the step."
+  (interactive)
+  (vnb-core--need-buffer)
+  (setq vnb-core--show-goals (not vnb-core--show-goals))
+  (vnb-core--paint))
+
+(defun vnb-core-context-menu (event)
+  "Right-click menu of a core-page buffer."
+  (interactive "e")
+  (mouse-set-point event)
+  (popup-menu (easy-menu-create-menu
+               "Core proof"
+               '(["Replay from the start" vnb-core-replay-start t]
+                 ["Forward"               vnb-core-forward       t]
+                 ["Back"                  vnb-core-back          t]
+                 ["Show / hide goals"     vnb-core-toggle-goals  t]))
+              event))
+
+(defun vnb-thm-core-proof-at-point ()
+  "Show the core page of the theorem at point."
+  (interactive)
+  (vnb-show-core-proof (vnb-thm--name-here "show its core proof")))
+
+(defun vnb-thm-core-replay-at-point ()
+  "Replay the core page of the theorem at point."
+  (interactive)
+  (vnb-replay-core-proof (vnb-thm--name-here "replay its core proof")))
+
 ;;; --- point/click wrappers ----------------------------------------------
 
 (defun vnb-thm--name-here (what)
@@ -1707,6 +2018,8 @@ is what to paste into a mail or a bug report."
                   ["Statement as PDF"    vnb-thm-statement-pdf-at-point ,have]
                   ["Proof as PDF"        vnb-thm-proof-pdf-at-point     ,have]
                   ["Proof script"        vnb-thm-proof-script-at-point  ,have]
+                  ["Show core proof"     vnb-thm-core-proof-at-point    ,have]
+                  ["Replay core proof"   vnb-thm-core-replay-at-point   ,have]
                   ["Copy name"           vnb-thm-copy-name-at-point     ,have]
                   "---"
                   ["What is..."          vnb-what-is             t]
@@ -3608,6 +3921,8 @@ monospace font is installed.")
     ["View Proof as PDF..." vnb-view-proof-pdf  t]
     ["Display Proof..."   vnb-display-proof     t]
     ["View Proof Script..." vnb-show-proof-script t]
+    ["Show Core Proof..." vnb-show-core-proof   t]
+    ["Replay Core Proof..." vnb-replay-core-proof t]
     ["Save Proof Script..." vnb-pf-save-proof-script t]
     ["Save Session Script..." vnb-ws-save-session t]
     "---"

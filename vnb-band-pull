@@ -45,6 +45,11 @@ rc=0
 if [ "$REST" = 1 ]; then
   rsync -az --delete -e "$SSH" "$SRC/reference/" ~/prover/reference/ || rc=$?
   rsync -az --delete -e "$SSH" "$SRC/certificates/" ~/prover/certificates/ || rc=$?
+  # core-pages/ (the exam's core pages, gzipped, and SUMMARY.txt): what the Emacs "Show
+  # core proof" reads.  Only when the worker has them (an exam with VNB_CORE_REPLAY=on).
+  if $SSH ubuntu@127.0.0.1 test -d /home/ubuntu/prover/core-pages; then
+    rsync -az --delete -e "$SSH" "$SRC/core-pages/" ~/prover/core-pages/ || rc=$?
+  fi
 fi
 if [ "$BAND" = 1 ]; then
   # to a temporary name, renamed only when complete: a start during the copy
@@ -57,7 +62,7 @@ if [ "$BAND" = 1 ]; then
   fi
 fi
 if [ "$rc" = 0 ]; then
-  echo "=== vnb-band-pull: $WORKER -> primary:$([ "$REST" = 1 ] && echo ' reference/, certificates/')$([ "$BAND" = 1 ] && echo ' vnb.band')"
+  echo "=== vnb-band-pull: $WORKER -> primary:$([ "$REST" = 1 ] && echo ' reference/, certificates/, core-pages/')$([ "$BAND" = 1 ] && echo ' vnb.band')"
   [ "$BAND" = 1 ] && ls -l --time-style=+%FT%TZ ~/prover/vnb.band | awk '{print "    band " $5 " bytes, built " $6}'
   echo "    certificates: $(ls ~/prover/certificates | wc -l) files; band md5 $(md5sum ~/prover/vnb.band 2>/dev/null | cut -c1-12)"
 else

@@ -26,7 +26,10 @@
 #      arm the idle stop, add swap when missing.
 #   2. push the tree (rsync; scratchpad/, scratch/, .git, vnb.band, reference/
 #      excluded), verify load.scm and certificates.scm by md5.
-#   3. vnb-band WORKER --build --exam [--heap H]; poll --wait until it ends (cap 8 h:
+#   3. vnb-band WORKER --build --exam [--heap H] (VNB_CORE_REPLAY=on: every proof is also
+#      lowered to its core page, replayed, and given its kernel bill; the core-replay and
+#      kernel-bill lines go into last-exam.json and ~/notes/exam-report.txt, warn-only);
+#      poll --wait until it ends (cap 8 h:
 #      the exam of 2026-10-05 ran 14037 s against a 4 h cap, 363 s inside it, and
 #      six exams of one unchanged tree had spread +-5%; Ignacio's note of 2026-10-05).
 #   4. vnb-suite WORKER --band --detach; poll --wait (cap 40 min).
@@ -72,12 +75,25 @@ while [ $# -gt 0 ]; do
 done
 mkdir -p "$METRICS"
 say() { echo "$(date -u +%FT%TZ) nightly-exam: $*" | tee -a "$LOG"; }
+# CORE: the core-replay summary lines of the exam (core-pages/SUMMARY.txt on the worker), set
+# once the exam has run; empty before that or when the exam ran without VNB_CORE_REPLAY.
+CORE=""
 record() { # record OUTCOME DETAIL
-  python3 - "$LAST" "$1" "$2" "$TREE" "$WORKER" <<'PY'
+  python3 - "$LAST" "$1" "$2" "$TREE" "$WORKER" "$CORE" <<'PY'
 import json, sys, datetime
-p, outcome, detail, tree, worker = sys.argv[1:6]
-json.dump({"ts": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "outcome": outcome,
-           "detail": detail, "tree": tree, "worker": worker}, open(p, "w"))
+p, outcome, detail, tree, worker, core = sys.argv[1:7]
+d = {"ts": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "outcome": outcome,
+     "detail": detail, "tree": tree, "worker": worker}
+# the core replay (docs/core-replay-design-2026-11-05.md s.5 step 5): the head line of each
+# kind, and the refusal lines, as the exam printed them
+for line in core.splitlines():
+    for key, field in ((";; core-replay:", "core_replay"), (";; kernel-bill:", "kernel_bill"),
+                       (";; kernel-oracles:", "kernel_oracles"), (";; core-lowering:", "core_lowering")):
+        if line.startswith(key):
+            d[field] = line[len(key):].strip()
+    if line.startswith(";;   core-replay refused:") or line.startswith(";;   core-replay raised:"):
+        d.setdefault("core_replay_refusals", []).append(line[5:].strip())
+json.dump(d, open(p, "w"))
 PY
   report "$1" "$2"
 }
@@ -93,6 +109,11 @@ report() { # report OUTCOME DETAIL
     echo "DETAIL:  $2"
     echo "TREE:    ${TREE:-?}    WORKER: $WORKER ($TYPE${HEAP:+, heap $HEAP})"
     echo
+    if [ -n "$CORE" ]; then
+      echo "Core replay (warn-only; core-pages/SUMMARY.txt of the exam):"
+      echo "$CORE" | grep -E '^;; (core-replay|kernel-bill|kernel-oracles):|^;;   (core-replay refused|core-replay raised|kernel-bill differs|kernel-oracles differ):' | head -60 | sed 's/^/  /'
+      echo
+    fi
     echo "This run's log ($LOG):"
     tail -n +"$((LOG0 + 1))" "$LOG" 2>/dev/null | sed 's/^/  /'
   } > "$REPORT.tmp" 2>/dev/null && mv "$REPORT.tmp" "$REPORT"
@@ -179,6 +200,15 @@ row=$(echo "$out" | grep '"job":"build-band"' | tail -1)
 summary=$(python3 -c 'import json,sys; r=json.loads(sys.argv[1]); print("wall %.0f s, gc %.0f s, audit %.0f s, theorems %s, band_replaced %s" % (r.get("wall_s",0), r.get("gc_s",0), r.get("audit_s",0), r.get("theorems"), r.get("band_replaced")))' "$row" 2>/dev/null || echo "no ledger row")
 if ! echo "$row" | grep -q '"band_replaced":true'; then say "FAIL: exam did not replace the band ($summary)"; echo "$out" | grep -E 'error|FAIL|qed' | tail -20 >> "$LOG"; capataz cat "$WORKER" "/home/ubuntu/.capataz/jobs/$JOB/stderr" --user ubuntu 2>&1 | tail -10 | sed 's/^/  job stderr: /' >> "$LOG"; record failed "exam: $summary"; exit 1; fi
 say "exam passed: $summary"
+# The core replay's lines (the exam ran with VNB_CORE_REPLAY=on: vnb-band --exam sets it).
+CORE=$(capataz run "$WORKER" --json --user ubuntu "cat $PROVER/core-pages/SUMMARY.txt 2>/dev/null" 2>/dev/null \
+       | python3 -c 'import json,sys; print(json.load(sys.stdin).get("stdout",""))' 2>/dev/null)
+if [ -n "$CORE" ]; then
+  say "core replay: $(echo "$CORE" | grep -E '^;; core-replay:' | head -1 | sed 's/^;; //')"
+  say "kernel bill: $(echo "$CORE" | grep -E '^;; kernel-bill:' | head -1 | sed 's/^;; //'); $(echo "$CORE" | grep -E '^;; kernel-oracles:' | head -1 | sed 's/^;; //')"
+else
+  say "WARN: no core-pages/SUMMARY.txt on $WORKER (the exam ran without the core replay?)"
+fi
 
 SJOB=$("$PROVER/vnb-suite" "$WORKER" --band --detach 2>&1 | sed -n 's/.*\(job-[^ ]*\).*/\1/p' | head -1)
 [ -n "$SJOB" ] || { say "FAIL: vnb-suite --band --detach returned no job"; record failed "suite-start"; exit 2; }

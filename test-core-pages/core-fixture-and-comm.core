@@ -1,0 +1,13 @@
+;;; core page FIXTURE (hand-chosen proof, core-only script), written by
+;;; test-core-pages/make-fixtures.scm.  Format: docs/core-page-format.md.
+(core-page core-fixture-and-comm
+  (statement (forall p (forall q (implies (and (in p set) (in q set)) (and (in q set) (in p set))))))
+  (kernel-hash "*")
+  (mints)
+  (step 1 (at-node 1) (di) (sequent () (forall p (forall q (implies (and (in p set) (in q set)) (and (in q set) (in p set)))))) (hyps (sequent () (implies (and (in p set) (in q set)) (and (in q set) (in p set))))))
+  (step 2 (at-node 2) (di) (sequent () (implies (and (in p set) (in q set)) (and (in q set) (in p set)))) (hyps (sequent ((and (in p set) (in q set))) (and (in q set) (in p set)))))
+  (step 3 (at-node 3) (ai (and (in p set) (in q set))) (sequent ((and (in p set) (in q set))) (and (in q set) (in p set))) (hyps (sequent ((in q set) (in p set)) (and (in q set) (in p set)))))
+  (step 4 (at-node 4) (di) (sequent ((in q set) (in p set)) (and (in q set) (in p set))) (hyps (sequent ((in q set) (in p set)) (in q set)) (sequent ((in q set) (in p set)) (in p set))))
+  (step 5 (at-node 5) (ass) (sequent ((in q set) (in p set)) (in q set)) (hyps))
+  (step 6 (at-node 6) (ass) (sequent ((in q set) (in p set)) (in p set)) (hyps))
+)

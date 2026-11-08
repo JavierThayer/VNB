@@ -659,6 +659,17 @@
     ;; Right after proof-debt (qed's record hook reads the ledger), before the
     ;; first contained proof file.
     "certificates"
+    ;; core-capture -- CORE REPLAY steps 1-3 (docs/core-replay-design-2026-11-05.md):
+    ;; under VNB_CORE_REPLAY=on the kernel entry points are wrapped, each qed lowers
+    ;; its surviving inferences to a core page and computes the KERNEL BILL; off, it
+    ;; changes no binding.  After certificates (cert-kernel-hash) and proof-debt
+    ;; (debt-of), after every entry point, before the first proof file.
+    "core-capture"
+    ;; core-replay -- the CORE REPLAYER and the Emacs API (core-page-text, core-replay-begin /
+    ;; -next / -back; docs/core-page-format.md).  Defines procedures only; calls entry points,
+    ;; never dg-apply-rule!, and is in no kernel-hash file.  Right after core-capture: under
+    ;; VNB_CORE_REPLAY=on every qed replays the page it just wrote (design Q2).
+    "core-replay"
     ;; extend-band -- `vnb-extend-band!', `retract-theorem!' and the band record
     ;; (docs/extend-band-2026-09-23.md).  After proof-debt (it reads the ledger),
     ;; before the first contained proof file: its position is the boundary before
@@ -4764,6 +4775,9 @@
   (display "VNB proof checker loaded.  Theory: ")
   (display (library-name *library*))
   (newline)
+  ;; core replay (core-capture.scm): the kernel-bill line, the lowering counts, the
+  ;; page corpus; removes the wrappers.  Nothing unless VNB_CORE_REPLAY=on.
+  (core-capture-load-end!)
   (if (not (null? *inert-macetes*))
       (begin
         (display ";; ")

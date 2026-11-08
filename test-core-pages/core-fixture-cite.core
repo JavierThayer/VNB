@@ -1,0 +1,12 @@
+;;; core page FIXTURE (hand-chosen proof, core-only script), written by
+;;; test-core-pages/make-fixtures.scm.  Format: docs/core-page-format.md.
+(core-page core-fixture-cite
+  (statement (forall k (implies (in k nn) (in k rr))))
+  (kernel-hash "*")
+  (mints)
+  (step 1 (at-node 1) (di) (sequent () (forall k (implies (in k nn) (in k rr)))) (hyps (sequent ((in k nn)) (in k rr))))
+  (step 2 (at-node 2) (ta nn-in-rr) (sequent ((in k nn)) (in k rr)) (hyps (sequent ((forall k (implies (in k nn) (in k rr))) (in k nn)) (in k rr))))
+  (step 3 (at-node 3) (inst (forall k (implies (in k nn) (in k rr))) k) (sequent ((forall k (implies (in k nn) (in k rr))) (in k nn)) (in k rr)) (hyps (sequent ((implies (in k nn) (in k rr)) (forall k (implies (in k nn) (in k rr))) (in k nn)) (in k rr))))
+  (step 4 (at-node 4) (detach! (implies (in k nn) (in k rr))) (sequent ((implies (in k nn) (in k rr)) (forall k (implies (in k nn) (in k rr))) (in k nn)) (in k rr)) (hyps (sequent ((in k rr) (implies (in k nn) (in k rr)) (forall k (implies (in k nn) (in k rr))) (in k nn)) (in k rr))))
+  (step 5 (at-node 5) (ass) (sequent ((in k rr) (implies (in k nn) (in k rr)) (forall k (implies (in k nn) (in k rr))) (in k nn)) (in k rr)) (hyps))
+)
