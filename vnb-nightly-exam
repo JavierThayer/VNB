@@ -239,6 +239,13 @@ say "pulled reference/ and certificates/ from the exam"
 # The primary's band is what the user's pull-prover.sh rsyncs to his laptop: with the
 # certified band there his start is a band restore, 0.1 s, no load and no test (the
 # user, 2026-09-30: "why does it have to run a test on every reload").
+# The exam's band is no longer needed once reference/ and certificates/ are pulled, and the
+# certified build loads from source.  Free it first: --build-band refuses unless the free
+# disk covers the OLD band's size, and the exam band reached 5.8 GB (2026-11-11: refused with
+# 4.6 GB free, the exam passed, no certified band came back).
+capataz run "$WORKER" --json --user ubuntu "rm -f $PROVER/vnb.band $PROVER/vnb.band.new" > /dev/null 2>&1 \
+  && say "removed the exam band on $WORKER before the certified build" \
+  || say "WARN: could not remove the exam band on $WORKER"
 CJOB=$("$PROVER/vnb-band" "$WORKER" --build 2>&1 | sed -n 's/.*started \(job-[^ ]*\).*/\1/p')
 [ -n "$CJOB" ] || { say "FAIL: certified build after the exam returned no job"; record failed "certified-start"; exit 2; }
 deadline=$(( $(date +%s) + 30*60 )); rc=124

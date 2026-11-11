@@ -951,6 +951,18 @@
                         "cannot declare slots.  A different shape is a different "
                         "structure -- relate it with def-functor.")
                        strays))
+            ;; A (property ...) clause names a law folded in by build-is-axiom, which a
+            ;; refinement never reaches: def-substructure takes only the (law ...) clauses,
+            ;; so the property was DROPPED, silently (BA-1 F1, 2026-11-09: commutativity of
+            ;; COMMUTATIVE-BANACH-ALGEBRA never reached its IFF).  Refused since 2026-11-11
+            ;; (the user's decision): state it as a (law ...).
+            (let ((props (filter (lambda (c) (and (pair? c) (eq? (car c) 'property))) clauses)))
+              (if (pair? props)
+                  (error (string-append
+                          "declare-structure " (symbol->string name)
+                          ": a (same-shape-as ...) refinement takes (law ...) clauses only; "
+                          "a (property ...) clause would be dropped.  State it as a (law ...).")
+                         props)))
             (def-substructure name (cadr sh)
               (map cadr (filter (lambda (c) (and (pair? c) (eq? (car c) 'law))) clauses))
               ivar))

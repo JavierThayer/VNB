@@ -18750,6 +18750,145 @@
            '(h1 h2 h3 h4 h6))))
   '((h1) (h2 dual) (h3) (h4 ptwise-net-limits) (h6)))
 
+;;; KIT-ALG self-test (2026-11-10, agent KIT-ALG; moved into the suite 2026-11-11 on the user's word):
+;;; dk-alg-norm! (driver-kit.scm) on the law sets of theorem-library/kal-laws.  Each accepted
+;;; identity is proved and closed by qed (kalt-NN, suite-only names); each CONTROL is a false
+;;; identity the helper must REFUSE with the goal unchanged.  Source:
+;;; scratchpad/triage/KIT-ALG-REPORT.md, kal-selftest.scm.
+(define (kalt-guard thunk)                ; #t, or the condition report string
+  (call-with-current-continuation
+    (lambda (k) (with-exception-handler (lambda (e) (k (if (condition? e) (condition/report-string e) e)))
+                  (lambda () (thunk) #t)))))
+(define (kalt-fa v cls body) (list 'FORALL v (list 'IMPLIES (list 'IN v cls) body)))
+(define (kalt-stmt pred vs cs eqn)        ; forall a. PRED(a) => forall vs in VEC a, cs in CC. eqn
+  (list 'FORALL 'a (list 'IMPLIES (list pred 'a)
+    (let wrap ((vs vs))
+      (if (null? vs)
+          (let wrapc ((cs cs)) (if (null? cs) eqn (kalt-fa (car (car cs)) (cadr (car cs)) (wrapc (cdr cs)))))
+          (kalt-fa (car vs) '(VEC a) (wrap (cdr vs))))))))
+(define (kalt-accept! name prefix pred vs cs eqn . opts)   ; #t, or what went wrong
+  (sp (make-wff (kalt-stmt pred vs cs eqn)))
+  (dk-peel!)
+  (let ((r (kalt-guard (lambda () (apply dk-alg-norm! prefix 'a opts)))))
+    (if (and (eq? r #t) (proof-done? *ps*))
+        (begin (qed name) (or (not (memq name *vnb-qed-failures*)) (list 'qed-failed name)))
+        (list name r))))
+(define (kalt-refuse! label prefix pred vs cs eqn)
+  (sp (make-wff (kalt-stmt pred vs cs eqn)))
+  (dk-peel!)
+  (let* ((g0 (dk-goal))
+         (r (kalt-guard (lambda () (dk-alg-norm! prefix 'a)))))
+    (or (and (string? r) (equal? g0 (dk-goal)) (not (proof-done? *ps*)))
+        (list 'not-refused label r))))
+
+;;; term builders
+(define (kt-ad x y) (list '(VADD a) x y))
+(define (kt-ng x) (list '(VNEG a) x))
+(define (kt-sb x y) (kt-ad x (kt-ng y)))
+(define (kt-mu x y) (list '(VMUL a) x y))
+(define (kt-ac c x) (list '(ACT a) c x))
+(define (kt-st x) (list '(VSTAR a) x))
+(define kt-z '(VZERO a))
+(define kt-o '(VONE a))
+(define KT-CNA 'IS-COMPLEX-NORMED-ALGEBRA)
+(define KT-UBA 'IS-UNITAL-BANACH-ALGEBRA)
+(define KT-UIBA 'IS-UNITAL-INVOLUTIVE-BANACH-ALGEBRA)
+
+(check "KALT kalt-01 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-01 'kal-cna KT-CNA '(x y) '() (list '= (kt-ad 'x 'y) (kt-ad 'y 'x))))
+  #t)
+(check "KALT kalt-02 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-02 'kal-cna KT-CNA '(x y) '()
+  (list '= (kt-mu (kt-ad 'x 'y) (kt-ad 'x 'y)) (kt-ad (kt-ad (kt-mu 'x 'x) (kt-mu 'x 'y)) (kt-ad (kt-mu 'y 'x) (kt-mu 'y 'y))))))
+  #t)
+(check "KALT kalt-03 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-03 'kal-cna KT-CNA '(x y) '((c CC) (d CC))
+  (list '= (kt-ad (kt-ac 'c (kt-mu 'x 'y)) (kt-mu (kt-ac 'd 'x) 'y)) (kt-ac '(+ c d) (kt-mu 'x 'y)))))
+  #t)
+(check "KALT kalt-04 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-04 'kal-cna KT-CNA '(x y) '() (list '= (kt-ng (kt-sb 'x 'y)) (kt-sb 'y 'x))))
+  #t)
+(check "KALT kalt-05 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-05 'kal-cna KT-CNA '(x) '() (list '= (kt-ad (kt-ad 'x kt-z) (kt-ng 'x)) kt-z)))
+  #t)
+(check "KALT kalt-06 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-06 'kal-cna KT-CNA '(x y z) '() (list '= (kt-ad (kt-mu (kt-mu 'x 'y) 'z) kt-z) (kt-mu 'x (kt-mu 'y 'z)))))
+  #t)
+(check "KALT kalt-07 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-07 'kal-cna KT-CNA '(x y) '((c CC) (d CC))
+  (list '= (kt-ac 'c (kt-ac 'd (kt-ad 'x 'y))) (kt-ad (kt-ac '(* c d) 'x) (kt-ac '(* d c) 'y)))))
+  #t)
+(check "KALT kalt-08 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-08 'kal-cna KT-CNA '(x y) '()
+  (list '= (kt-mu (kt-sb 'x 'y) (kt-ad 'x 'y)) (kt-ad (kt-sb (kt-mu 'x 'x) (kt-mu 'y 'y)) (kt-sb (kt-mu 'x 'y) (kt-mu 'y 'x))))))
+  #t)
+(check "KALT kalt-09 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-09 'kal-cna KT-CNA '(x y) '()
+  (list '= (kt-mu (kt-ac +i 'x) (kt-ac +i 'y)) (kt-ng (kt-mu 'x 'y)))))
+  #t)
+(check "KALT kalt-10 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-10 'kal-uba KT-UBA '(x) '()
+  (list '= (kt-mu (kt-ad kt-o 'x) (kt-sb kt-o 'x)) (kt-sb kt-o (kt-mu 'x 'x)))))
+  #t)
+(check "KALT kalt-11 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-11 'kal-uba KT-UBA '(x) '((c CC)) (list '= (kt-mu (kt-ac 'c kt-o) 'x) (kt-ac 'c 'x))))
+  #t)
+(check "KALT kalt-12 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-12 'kal-uiba KT-UIBA '(x) '() (list '= (kt-st (kt-ad 'x (kt-st 'x))) (kt-ad 'x (kt-st 'x)))))
+  #t)
+(check "KALT kalt-13 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-13 'kal-uiba KT-UIBA '(x) '()
+  (list '= (kt-st (kt-ac +i (kt-sb 'x (kt-st 'x)))) (kt-ac +i (kt-sb 'x (kt-st 'x))))))
+  #t)
+(check "KALT kalt-14 (accepted): dk-alg-norm! closes the identity, qed"
+  (lambda () (kalt-accept! 'kalt-14 'kal-uiba KT-UIBA '(x y) '() (list '= (kt-st (kt-mu 'x (kt-st 'y))) (kt-mu 'y (kt-st 'x)))))
+  #t)
+(check "KALT kalt-15 (accepted): dk-alg-norm! closes regression, BA-2 bcp-quad-expand, qed"
+  (lambda () (kalt-accept! 'kalt-15 'kal-uiba KT-UIBA '(x) '((t RR))
+  (list '= (kt-mu (kt-ad 'x (kt-ac '(* (- +i) t) kt-o)) (kt-ad 'x (kt-ac '(* +i t) kt-o))) (kt-ad (kt-mu 'x 'x) (kt-ac '(* t t) kt-o)))))
+  #t)
+(check "KALT kalt-16 (accepted): dk-alg-norm! closes regression, the adjoint step of BA-2 bcp-sa-noninvertible-real, by a hint, qed"
+  (lambda () (sp (make-wff (list 'FORALL 'a (list 'IMPLIES (list KT-UIBA 'a) (kalt-fa 'h '(VEC a) (kalt-fa 't 'RR
+  (list 'IMPLIES (list '= (kt-st 'h) 'h)
+        (list '= (kt-st (kt-ad 'h (kt-ac '(* +i t) kt-o))) (kt-ad 'h (kt-ac '(* (- +i) t) kt-o))))))))))
+    (dk-peel!)
+    (let ((r (kalt-guard (lambda () (dk-alg-norm! 'kal-uiba 'a 'hints (list (list '= (kt-st 'h) 'h)))))))
+  (if (and (eq? r #t) (proof-done? *ps*)) (begin (qed 'kalt-16) (or (not (memq 'kalt-16 *vnb-qed-failures*)) '(qed-failed kalt-16)))
+      (list 'kalt-16 r))))
+  #t)
+(check "KALT control (refused, goal unchanged): xy = yx (no commutativity)"
+  (lambda () (kalt-refuse! "xy = yx (no commutativity)" 'kal-cna KT-CNA '(x y) '() (list '= (kt-mu 'x 'y) (kt-mu 'y 'x))))
+  #t)
+(check "KALT control (refused, goal unchanged): x + x = x"
+  (lambda () (kalt-refuse! "x + x = x" 'kal-cna KT-CNA '(x) '() (list '= (kt-ad 'x 'x) 'x)))
+  #t)
+(check "KALT control (refused, goal unchanged): 2x = 3x"
+  (lambda () (kalt-refuse! "2x = 3x" 'kal-cna KT-CNA '(x) '() (list '= (kt-ac 2 'x) (kt-ac 3 'x))))
+  #t)
+(check "KALT control (refused, goal unchanged): (xy)* = x* y*"
+  (lambda () (kalt-refuse! "(xy)* = x* y*" 'kal-uiba KT-UIBA '(x y) '() (list '= (kt-st (kt-mu 'x 'y)) (kt-mu (kt-st 'x) (kt-st 'y)))))
+  #t)
+
+;;; declare-structure refuses a (property ...) clause in a (same-shape-as ...) refinement
+;;; (BA-1 F1, 2026-11-09: def-substructure takes only the (law ...) clauses, so the property was
+;;; dropped silently; the user's decision 2026-11-11).  The accepted side is every refinement
+;;; in the library, which states its laws as (law ...).
+(check "STRUCT same-shape-as with a (property ...) clause is REFUSED, naming the clause"
+  (lambda ()
+    (call-with-current-continuation
+      (lambda (k)
+        (with-exception-handler
+          (lambda (e) (k (and (condition? e)
+                              (string-search-forward "a (property ...) clause would be dropped"
+                                                     (condition/report-string e) 0)
+                              #t)))
+          (lambda ()
+            (def-structure-from-clauses 'sstest-prop-refinement
+              '((same-shape-as COMMUTATIVE-RING) (instance-var s)
+                (property commutative MUL)))
+            'accepted)))))
+  #t)
+
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")
 (display *fail-count*) (display " failed ===\n")
