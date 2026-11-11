@@ -383,12 +383,29 @@ $\mathtt{fun}(\cdots)$.
 A related discipline: when we add axioms about a constructor we state
 them at the abstract level---how \texttt{fun}, \texttt{pair},
 \texttt{tuples}, \texttt{list}, etc.\ \emph{behave}---never in terms
-of how they might be concretely encoded as sets at the vanilla VNB
-level.  So even if some particular encoding happened to make the list
-\texttt{[2,3]} literally equal to the integer \texttt{23}, no theorem
-of VNB+ may distinguish such coincidences.  The user should never
-have to know whether ordered pairs are Kuratowski or Wiener, or
-whether \texttt{nn} is built from von Neumann or Zermelo numerals.
+of how they might be concretely encoded as sets in the underlying
+set theory.  The user should never have to know whether ordered pairs
+are Kuratowski or Wiener, or whether \texttt{nn} is built from von
+Neumann or Zermelo numerals.
+
+The axioms on lists fix a list by its length and its entries, and say
+nothing about whether a list may coincide with an object of another
+kind.  One such coincidence is excluded explicitly: the primitive
+\texttt{nn-not-a-list} (\texttt{structure-library/list-recursion.scm})
+states that no natural number is a list,
+\[ \forall n.\; n \in \mathtt{nn} \Rightarrow
+   \neg\,(n \in \mathtt{tuples}(\mathtt{set})). \]
+It is stated in the same abstract terms, as a fact about $\mathtt{nn}$
+and $\mathtt{tuples}$ and not about an encoding.  With it, a natural
+number and a list are provably distinct; for example
+$[2,3] \neq 23$.  It is on the primitive shelf by an explicit decision
+(2026-10-26): it records that a natural number is a number and not a
+finite sequence, which is part of what the two notions mean here.  The
+strand-space theory, which uses naturals as atomic message tokens,
+relies on it (\texttt{strand-tokens-nn.scm}).  It is consistent relative
+to NBG with the rest of the base theory: with von~Neumann naturals and
+lists encoded as Kuratowski pairs, every list axiom holds and no natural
+is a list (the argument is in the comment above the axiom).
 \end{remark}
 
 \begin{remark}[Variadic functoids]
@@ -564,8 +581,13 @@ Section~\ref{sec:nary-proof-commands}.
    eigenvariable $e$ with $e \in A$ and $x \in \mathit{body}[z := e]$).
 
   \begin{remark}
-  In the diverse VNB+ universe a set may contain non-sets (lists,
-  numbers, functions).  The binder form $\mathit{big\text{-}union}(z, A,
+  Lists, numbers and functions are objects of the single-sorted
+  universe: a list that is defined is a set (all its components are
+  sets, and so is any component of a list belonging to a class,
+  axiom \texttt{tuple-members-are-sets}), and the number classes
+  \texttt{nn}, \texttt{zz}, \texttt{qq}, \texttt{rr}, \texttt{cc} are
+  primitive constants (Section~\ref{sec:primitives}), whose elements are
+  characterised by axioms and not by a set-theoretic construction.  The binder form $\mathit{big\text{-}union}(z, A,
   \mathit{body})$ makes the family structure explicit: $A$ is the
   index, $z \mapsto \mathit{body}$ is intended to be set-valued.
   The ZF-style $\bigcup S$ over a loose ``set of sets'' is the special
@@ -851,7 +873,7 @@ $f \in \textsc{fun}(\textsc{cartesian}(A_1,\ldots,A_n),\,B)$ and the
 memberships $a_i \in A_i$ — close the tupled apply by
 \texttt{fun-apply-type}, lift $\mathrel{==}$ to $=$ via the
 resulting definedness, then substitute — making the per-structure
-``carrier-closed'' axioms (\texttt{monoid-carrier-closed-mul},
+``carrier-closed'' axioms (\texttt{monoid-carrier-closed-opr},
 \texttt{ring-carrier-closed-add}, etc.) derivable rather than
 primitive.
 \end{remark}

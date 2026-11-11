@@ -245,7 +245,7 @@ is unobservable from inside a proof; it is visible only in a
   \texttt{(+ a b)}.  An application form would have to be unfolded before
   any of them could see it.
 \item \emph{The function typing was tried and was unsound.}  Until
-  2026-08-29 \texttt{numeric-instances.scm} carried fourteen axioms of the
+  2026-08-29 \texttt{numeric-instances.scm} carried axioms of the
   form \texttt{binplus in fun(cartesian(zz, zz), zz)}, one per operation and
   domain, described in their comment as closure facts.  They were not.
   Membership in \texttt{fun($A$, $B$)} pins the domain \emph{exactly}
@@ -700,6 +700,14 @@ tuples are finite.
 
 \subsection*{Still pending}
 
+Four items once listed here are installed kernel rules and not pending:
+\texttt{equality-substitution} is the rule \texttt{eq-subst}
+(\texttt{pi-eq-subst!}), \texttt{lambda-type} is \texttt{pi-lambda-type!},
+\texttt{lambda-beta} is \texttt{pi-lambda-beta!} (with
+\texttt{lambda-beta-hyp} for an assumption), and \texttt{iota-def} is
+\texttt{pi-iota-def!}, all in \texttt{primitive-inferences.scm}
+(Section~\ref{sec:kernel-boundary}).
+
 The remaining items require schema-level infrastructure --- a primitive
 inference rather than a first-order axiom.  (An earlier edition also listed
 \texttt{separation}, \texttt{union-set}, \texttt{comp} and \texttt{prepend}
@@ -709,11 +717,6 @@ as missing expression primitives.  They are not missing: \texttt{sep},
 and they are documented in \texttt{reference/KERNEL-RULES.md}.)
 
 \begin{itemize}
-
-\item \texttt{equality-substitution}
-  $a = b \land P(a) \Rightarrow P(b)$ (for any formula $P$).
-  Requires a substitution schema; cannot be stated as a single
-  first-order sentence.
 
 \item \texttt{separation}
   $A \in \mathtt{set} \Rightarrow \{x \in A \mid p\} \in \mathtt{set}$.
@@ -727,26 +730,14 @@ and they are documented in \texttt{reference/KERNEL-RULES.md}.)
 
 \item \texttt{cartesian-n-ary-sethood}
   All $A_i \in \mathtt{set} \Rightarrow A_1 \times \cdots \times A_n \in \mathtt{set}$.
-  The binary case is installed (\texttt{cartesian-set-iff}); the $n$-ary
-  case reduces to binary by associativity but requires explicit axioms.
+  The binary case is installed (\texttt{cartesian-set-iff}); no fact of this
+  name exists in the code, and the $n$-ary case is not installed under any name.
+  %% TODO(docrot): item 12b -- whether the n-ary case follows from
+  %% cartesian-set-iff by the tupling convention was not settled; no theorem found.
 
 \item \texttt{comp-membership}
   $x \in \{y \mid p\} \Leftrightarrow p[y \mapsto x]$.
   Requires the \texttt{comp} (class comprehension) expression primitive.
-
-\item \texttt{lambda-type}
-  $(\forall x_i \in A_i.\;\mathit{body} \in B) \Rightarrow
-   \lambda([x_1,\ldots], \mathit{body}) \in \mathtt{fun}(A_1{\times}\cdots{\times}A_n, B)$.
-  Requires a schema-level primitive inference (\texttt{pi-lambda-type}).
-
-\item \texttt{lambda-beta}
-  $\lambda([x_1,\ldots], \mathit{body})(v_1,\ldots,v_n)
-   = \mathit{body}[x_i \mapsto v_i]$.
-  Requires a beta-reduction primitive inference.
-
-\item \texttt{iota-def}
-  $(\exists!\, x.\;p(x)) \Rightarrow p(\texttt{iota}(x,p))$.
-  Requires a schema-level primitive inference.
 
 \item \texttt{infinity}
   There exists an inductive set:

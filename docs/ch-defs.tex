@@ -125,7 +125,7 @@ predicate; ground reasoning still unfolds through the iff (arith-eval
 has not been extended to dispatch on \texttt{<} directly).
 
 \begin{remark}
-Opt-in.  Existing axioms (\texttt{cc-complete}, the metric-topology
+Opt-in.  Existing statements (the metric-topology
 vocabulary) retain the verbose forms for backward consistency; new
 axioms going forward should prefer \texttt{<} and \texttt{pos-rr}.
 \end{remark}
@@ -188,11 +188,13 @@ $p_1, \ldots, p_k$:
                     ;   (val stands for F(p1,p2,...,n))
 \end{VNBcode}
 
-Two axioms are installed:
+Two definitional axioms are installed, as quasi-equations (\texttt{==}:
+both sides undefined, or both defined and equal), with the step guarded by
+$n \in \mathtt{nn}$:
 \begin{VNBsnip}
-F-zero: forall([p1,p2,...], F(p1,p2,...,0) = base-val)
+F-zero: forall([p1,p2,...], F(p1,p2,...,0) == base-val)
 F-succ: forall([p1,p2,..., n in NN],
-          F(p1,p2,...,succ(n)) = succ-expr[val:=F(p1,p2,...,n)])
+          F(p1,p2,...,succ(n)) == succ-expr[val:=F(p1,p2,...,n)])
 \end{VNBsnip}
 
 \paragraph{Example: factorial (no parameters).}
@@ -235,24 +237,27 @@ For functions on all ordinals, use the three-clause schema
 
 \begin{VNBcode}
 (def-by-ord-recursion 'F
-  base-val            ; F(0) = base-val
-  '(alpha val)        ; successor: F(succ_ORD(alpha)) = succ-expr
-  succ-expr           ;   where val stands for F(alpha)
-  '(lambda)           ; limit: F(lambda) = lim-expr
-  lim-expr)           ;   where lambda is the limit ordinal
+  '(p1 p2 ...)        ; extra parameters ('() for none)
+  base-val            ; F(p1,p2,..., 0) = base-val
+  '(alpha val)        ; successor: F(p..., succ_ORD(alpha)) = succ-expr
+  succ-expr           ;   where val stands for F(p..., alpha)
+  '(lam)              ; limit: F(p..., lam) = lim-expr
+  lim-expr)           ;   where lam is the limit ordinal
 \end{VNBcode}
 
-Three axioms are installed:
+Three definitional axioms are installed, as quasi-equations (\texttt{==}),
+guarded by \texttt{ord} and \texttt{limit-ord}, with the parameters
+universally quantified outside (\texttt{structure-library/ordinals.scm}):
 \begin{VNBsnip}
-F-zero:  F(0) = base-val
+F-zero:  F(0) == base-val
 F-succ:  forall([alpha in ORD],
-           F(succ_ORD(alpha)) = succ-expr[val:=F(alpha)])
-F-limit: forall([lambda], LIMIT-ORD(lambda) implies F(lambda) = lim-expr)
+           F(succ_ORD(alpha)) == succ-expr[val:=F(alpha)])
+F-limit: forall([lambda], LIMIT-ORD(lambda) implies F(lambda) == lim-expr)
 \end{VNBsnip}
 
 \paragraph{Example: identity function on ordinals.}
 \begin{VNBcode}
-(def-by-ord-recursion 'COPY-ORD
+(def-by-ord-recursion 'COPY-ORD '()
   0                                         ; COPY-ORD(0) = 0
   '(alpha val) '(succ_ORD val)              ; COPY-ORD(succ(a)) = succ(COPY-ORD(a))
   '(lam) '(SUP-ORD (ORD-SEGMENT lam)))      ; COPY-ORD(lam) = sup of predecessors
@@ -262,8 +267,8 @@ F-limit: forall([lambda], LIMIT-ORD(lambda) implies F(lambda) = lim-expr)
 
 Defining $A_\alpha(\beta) = \alpha + \beta$ as a function of $\beta$:
 \begin{VNBcode}
-(def-by-ord-recursion 'ORD-ADD
-  'alpha-fixed                              ; ORD-ADD(0) = alpha-fixed
+(def-by-ord-recursion 'ORD-ADD '(a_fix)     ; the fixed addend is a parameter
+  'a_fix                                    ; ORD-ADD(a_fix, 0) = a_fix
   '(beta val) '(succ_ORD val)              ; ORD-ADD(succ(b)) = succ(ORD-ADD(b))
   '(lam) '(SUP-ORD (ORD-SEGMENT lam)))     ; ORD-ADD(lam) = sup of ORD-ADD on lam
 \end{VNBcode}
@@ -824,7 +829,7 @@ followed by modus ponens, yielding the concrete statement $P[h]$.
 
 \begin{VNBcode}
 (specialize-structure 'HARP 'RING 'harp-is-ring)
-; => 17 theorems specialized for HARP.
+; => N theorems specialized for HARP.
 \end{VNBcode}
 
 The interactive short form is \texttt{(spec instance struct is-thm)}.
@@ -950,21 +955,21 @@ of all ordinals, so the result cannot live in $\mathtt{fun}(\mathtt{ord}, B)$
 for any set-valued $B$.  A typical pattern is to define the step
 functor $\mathcal{E}$ as a functoid via \texttt{def-functoid} and
 then invoke \texttt{def-by-ord-recursion}:\end{sloppypar}
-The actual signature has six arguments: the new functoid name, the
-base value, plus a binding spec and body for both the successor and
-limit cases.  The successor body is evaluated with the bound name
+The signature has seven arguments: the new functoid name, the list of
+parameters (\texttt{'()} for none), the base value, plus a binding spec
+and body for both the successor and limit cases.  The successor body is evaluated with the bound name
 referring to the recursive value at the predecessor; the limit body
 is evaluated with the bound name referring to the partial functoid
 restricted to all earlier ordinals.
 \begin{VNBcode}
-(def-by-ord-recursion 'MySeq
+(def-by-ord-recursion 'MySeq '()
   'a0                                 ; base value at 0
   '(prev) '(succ_ORD prev)            ; successor: MySeq(succ alpha) = succ_ORD(prev)
   '(part) '(SUP-ORD (image part)))    ; limit:    MySeq(lambda) = sup of partial seq
-; => installs axioms
-;      MySeq(0) = a0
-;      IN alpha ORD => MySeq(succ_ORD alpha) = succ_ORD(MySeq alpha)
-;      LIMIT-ORD lambda => MySeq(lambda) = SUP-ORD(image-of MySeq below lambda)
+; => installs definitional axioms
+;      MySeq(0) == a0
+;      IN alpha ORD => MySeq(succ_ORD alpha) == succ_ORD(MySeq alpha)
+;      LIMIT-ORD lambda => MySeq(lambda) == SUP-ORD(image-of MySeq below lambda)
 \end{VNBcode}
 
 %%% -----------------------------------------------------------------------
@@ -1021,11 +1026,16 @@ cards, and the generated \texttt{OPERATORS.md}.  A head with no
 \section{Cardinality: \texttt{card}}
 \label{sec:cardinality}
 
-\texttt{card} is a functoid mapping every set $A$ to its cardinality
-$\mathtt{card}(A) \in \mathtt{ord}$.  Under the axiom of choice,
-$\mathtt{card}(A)$ is the least ordinal $\alpha$ that bijects with $A$
-(the Hartogs--Scott construction).  We axiomatise the key properties
-directly in \texttt{cardinality.scm}.
+\texttt{card} is a functoid (\texttt{structure-library/cardinality.scm}) defined by
+a description: $\mathtt{card}(A)$ is the least ordinal $\alpha$ such that
+$A$ bijects onto $\mathit{ord\text{-}segment}(\alpha)$, with $A$ first in
+\texttt{bijection}.  No axiom is asserted about it.  The eight facts that
+once stood on the primitive shelf are theorems under their old names and
+in their old shapes: \texttt{card-segment} (\texttt{card-defined.scm}),
+\texttt{card-empty} (\texttt{card-finite.scm}), \texttt{finite-set-induction}
+(\texttt{rake-card-star-laws.scm}), and \texttt{card-in-ord},
+\texttt{card-insert}, \texttt{card-finite-bij}, \texttt{card-union-disjoint},
+\texttt{card-image-injection} (\texttt{card-laws.scm}).
 
 \begin{remark}
 Because the domain of $\mathtt{card}$ is the proper class $\mathtt{set}$,
@@ -1035,18 +1045,17 @@ footing as $\mathit{ord\text{-}segment}$.
 \end{remark}
 
 \begin{remark}
-$\mathtt{card}$ is total over all classes, but characterised only when
-its argument is a set.  The kernel does not define $\mathtt{card}(A)$
-for a proper class $A$: the term $\mathtt{card}(\mathtt{ord})$, for
-instance, is syntactically well-formed but no axiom constrains its
-value.  This is consistent with the totality framing (every functoid
-returns \emph{some} value), but means that any equational use of
-$\mathtt{card}(A)$ outside the established sethood-conditioned axioms
-will not discharge.  Convention: only invoke $\mathtt{card}$ on a
-class you have proven to be a set.
+The definition is a description, and the library proves nothing about
+$\mathtt{card}(A)$ for a proper class $A$: the term $\mathtt{card}(\mathtt{ord})$
+is syntactically well-formed, but no ordinal is exhibited that satisfies the
+description, and a description is never certified as denoting without a
+proof (Section~\ref{sec:kernel-ops-detail}).  Any equational use of
+$\mathtt{card}(A)$ outside the sethood-conditioned theorems below will
+not discharge.  Convention: only invoke $\mathtt{card}$ on a class you
+have proven to be a set.
 \end{remark}
 
-\subsection*{Axioms}
+\subsection*{Theorems}
 
 \begin{description}
 \item[\texttt{card-in-ord}]
@@ -1056,9 +1065,11 @@ class you have proven to be a set.
   $\mathtt{card}(\emptyset) = 0$.
 
 \item[\texttt{card-insert}]
-  $A \in \mathtt{set} \wedge x \notin A \;\Rightarrow\;
+  $A \in \mathtt{set} \wedge \mathtt{card}(A) \in \mathtt{nn} \wedge x \notin A \;\Rightarrow\;
    \mathtt{card}(A \cup \{x\}) = \mathit{succ_{ord}}(\mathtt{card}(A))$.\\
-  Here $\{x\} = \mathtt{pair}(x,x)$ (by the pairing axiom with $a = b = x$).
+  Here $\{x\} = \mathtt{pair}(x,x)$.  The finiteness guard is needed:
+  for $A = x = \omega$ the set $A \cup \{x\}$ is $\omega + 1$, which
+  bijects with $\omega$, so its cardinality is $\omega$ and not $\omega + 1$.
 
 \item[\texttt{card-segment}]
   $n \in \mathtt{nn} \;\Rightarrow\; \mathtt{card}(\mathit{ord\text{-}segment}(n)) = n$.\\
@@ -1067,15 +1078,15 @@ class you have proven to be a set.
 \item[\texttt{card-finite-bij}]
   $A \in \mathtt{set} \wedge \mathtt{card}(A) \in \mathtt{nn} \;\Rightarrow\;$
   there exists a bijection
-  $\varphi : \mathit{ord\text{-}segment}(\mathtt{card}(A)) \to A$.\\
-  (Existence follows from AC; stated as an axiom here.)
+  $\varphi : \mathit{ord\text{-}segment}(\mathtt{card}(A)) \to A$.
 
 \item[\texttt{card-union-disjoint}]
   $A, B \in \mathtt{set},\;
    \mathtt{card}(A), \mathtt{card}(B) \in \mathtt{nn},\;
    A \cap B = \emptyset \;\Rightarrow\;
    \mathtt{card}(A \cup B) = \mathtt{card}(A) + \mathtt{card}(B)$.\\
-  Finite additivity; the $+$ on the right is $\mathtt{nn}$ addition.
+  Finite additivity, with the same finiteness guard; the $+$ on the right is
+  $\mathtt{nn}$ addition.
 \end{description}
 
 \subsection*{Finiteness criterion}
@@ -1084,7 +1095,7 @@ A set $A$ is \emph{finite} iff $\mathtt{card}(A) \in \mathtt{nn}$.
 For finite sets, \texttt{card-segment} says
 $\mathtt{card}(\mathit{ord\text{-}segment}(n)) = n$, so the initial
 segment $\{0, 1, \ldots, n-1\}$ has cardinality exactly $n$.  The
-axiom \texttt{card-finite-bij} supplies an enumeration bijection for
+theorem \texttt{card-finite-bij} supplies an enumeration bijection for
 any finite set, which is the key ingredient for defining unordered
 finite sums in Section~\ref{sec:sequences}.
 
@@ -1410,13 +1421,13 @@ Installed by \texttt{def-by-nn-recursion} as two named axioms:
 
 where $*$ denotes $\mathtt{mul}(m)$.
 
-\paragraph{Additional axioms.}
+\paragraph{Additional theorems.}
 \begin{description}
 \item[\texttt{prod-ord-type}]
   $\mathit{is\text{-}monoid}(m) \wedge f \in \mathtt{fun}(\mathtt{nn}, \mathtt{carr}(m))
   \wedge n \in \mathtt{nn} \;\Rightarrow\;
   \mathit{prod\text{-}ord}(m, f, n) \in \mathtt{carr}(m)$.
-  Installed as an axiom for convenience; formally derivable from
+  A theorem (\texttt{theorem-library/rake-asm-2.scm}), proved from
   \texttt{prod-ord-zero}, \texttt{prod-ord-succ}, \texttt{monoid-identity-in},
   and \texttt{monoid-carrier-closed-opr} by $\mathtt{nn}$-induction
   (see Section~\ref{sec:ex-ni-type}).
@@ -1449,12 +1460,12 @@ $f \in \mathtt{fun}(\mathtt{nn}, \mathtt{carr}(r))$, $n \in \mathtt{nn}$.
   = \mathtt{sum}(r, f, n) + f(n)
 \end{align*}
 
-\paragraph{Additional axioms.}
+\paragraph{Additional theorems.}
 \begin{description}
 \item[\texttt{sum-type}]
   $\mathit{is\text{-}ring}(r) \wedge f \in \mathtt{fun}(\mathtt{nn}, \mathtt{carr}(r))
   \wedge n \in \mathtt{nn} \;\Rightarrow\; \mathtt{sum}(r, f, n) \in \mathtt{carr}(r)$.
-  Installed as an axiom for convenience; formally derivable from
+  A theorem (\texttt{theorem-library/rake-asm-2.scm}), proved from
   \texttt{sum-zero}, \texttt{sum-succ}, \texttt{ring-zero-in},
   and \texttt{ring-carrier-closed-add} by $\mathtt{nn}$-induction
   (Section~\ref{sec:ex-ni-type}).
@@ -1520,7 +1531,14 @@ is commutative, the value depends only on the \emph{set} of indices.
 \]
 The additive monoid of a ring is commutative
 (\texttt{ring-add-comm}), so the value depends only on $S$, not on any
-enumeration.  Four axioms:
+enumeration.  \texttt{sum-set} is a \texttt{def-functoid}:
+$\mathit{sum\text{-}set}(r, S, f) = \mathit{finsum}(\mathit{ring\text{-}additive\text{-}ag}(r), f, S)$
+(\texttt{structure-library/finsum.scm}).  Its four laws are theorems, not axioms
+(\texttt{sum-set-empty}, \texttt{sum-set-singleton-defined},
+\texttt{sum-set-disjoint-union-defined}, \texttt{sum-set-type-defined}, in
+\texttt{theorem-library/rake-sum-set-defined.scm}), each in its strongest true
+form: the statements below omit the typing and finiteness hypotheses on the
+index sets that the theorems carry.
 \begin{description}
 \item[\texttt{sum-set-empty}]
   $\mathit{sum\text{-}set}(r,\, \emptyset,\, f) = \mathtt{zero}(r)$.
@@ -1552,8 +1570,13 @@ enumeration.  Four axioms:
 \[
    \mathit{prod\text{-}set}(\mathit{cm},\, S,\, f) \;=\; \prod_{x \in S} f(x)
 \]
-Mirrors \texttt{sum-set} but in a commutative monoid; well-definedness
-rests on \texttt{comm-monoid-opr-comm}.
+Mirrors \texttt{sum-set} but in a commutative monoid: it is the
+\texttt{def-functoid} $\mathit{prod\text{-}set}(\mathit{cm}, S, f) =
+\mathit{finsum}(\mathit{cm}, f, S)$ (\texttt{structure-library/finprod.scm}), and
+its four laws are theorems (\texttt{prod-set-empty},
+\texttt{prod-set-singleton-defined}, \texttt{prod-set-disjoint-union-defined},
+\texttt{prod-set-type-defined}, in \texttt{theorem-library/rake-prod-set-defined.scm}),
+with the same hypotheses omitted below.
 \begin{description}
 \item[\texttt{prod-set-empty}]
   $\mathit{prod\text{-}set}(\mathit{cm},\, \emptyset,\, f) = \mathtt{id}(\mathit{cm})$.
@@ -1590,9 +1613,8 @@ derived theorem.
 \end{remark}
 
 \begin{remark}
-Either of the three recursive axioms (\texttt{*-empty},
-\texttt{*-singleton}, \texttt{*-disjoint-union}) could be derived from
-the others plus the type axiom; we install all three so direct
+The three recursive laws (\texttt{*-empty},
+\texttt{*-singleton}, \texttt{*-disjoint-union}) are stated separately so that direct
 unfolding is available in proofs.  The disjointness condition
 $S_1 \cap S_2 = \emptyset$ is essential: without it the right-hand side
 double-counts $S_1 \cap S_2$.
@@ -1628,8 +1650,7 @@ ZERO-RING = [{0},
    \lambda(p,q).\,0,\; \lambda(p,q).\,0,\; \lambda(p).\,0,\; 0,\; 0]$.
 \item[\texttt{zero-ring-is-ring}]
   $\mathit{is\text{-}ring}(\mathit{zero\text{-}ring})$.
-  (Asserted; the proof would verify the nine ring properties for
-  the trivial one-element ring.)
+  (A theorem, proved in \texttt{theorem-library/rake-asm-1.scm}.)
 \end{description}
 
 \begin{remark}
@@ -1676,13 +1697,12 @@ and similarly for \texttt{add}, \texttt{mul}, \texttt{neg}, \texttt{zero},
 \texttt{one}: each expands by first applying the \texttt{ring-prod}
 rewrite and then the accessor macete.
 
-\paragraph{Typing axiom.}
+\paragraph{Typing theorem.}
 \begin{description}
 \item[\texttt{ring-prod-is-ring}]
   $\mathit{is\text{-}ring}(X) \wedge \mathit{is\text{-}ring}(Y)
   \;\Rightarrow\; \mathit{is\text{-}ring}(\mathit{ring\text{-}prod}(X,Y))$.
-  (Asserted.  The proof would verify that the componentwise
-  operations satisfy each ring property, given that $X$ and $Y$ do.)
+  (A theorem, proved in \texttt{theorem-library/rake-asm-1.scm}.)
 \end{description}
 
 \begin{remark}[Totality]
@@ -1717,14 +1737,14 @@ Installed by \texttt{def-by-nn-recursion}:
   = \mathit{ring\text{-}prod}(\mathit{ring\text{-}prod\text{-}n}(f, n),\; f(n))
 \end{align*}
 
-\paragraph{Typing axiom.}
+\paragraph{Typing theorem.}
 \begin{description}
 \item[\texttt{ring-prod-n-is-ring}]
   $(\forall i \in \mathtt{nn}.\;\mathit{is\text{-}ring}(f(i)))
   \;\wedge\; n \in \mathtt{nn}
   \;\Rightarrow\; \mathit{is\text{-}ring}(\mathit{ring\text{-}prod\text{-}n}(f,n))$.\\
-  (Derivable by $\mathtt{nn}$-induction using \texttt{zero-ring-is-ring}
-  and \texttt{ring-prod-is-ring}; installed as an axiom for direct use.)
+  (A theorem, proved by $\mathtt{nn}$-induction from \texttt{zero-ring-is-ring}
+  and \texttt{ring-prod-is-ring}, in \texttt{theorem-library/rake-asm-1.scm}.)
 \end{description}
 
 \begin{remark}
@@ -1775,19 +1795,11 @@ negation).  They are polymorphic in the sense that the \emph{same}
   $\forall x.\;\mathtt{binneg}(x) = -x$.
 \end{description}
 
-Typing axioms attach to each domain:
-\begin{center}
-\begin{tabular}{l|ccccc}
-                 & $\mathtt{nn}$ & $\mathtt{zz}$ & $\mathtt{qq}$ & $\mathtt{rr}$ & $\mathtt{cc}$ \\
-\hline
-\texttt{binplus} & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
-\texttt{bintimes}& \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
-\texttt{binneg}  & ---        & \checkmark & \checkmark & \checkmark & \checkmark \\
-\end{tabular}
-\end{center}
-Names follow the pattern \texttt{binplus-in-fun-zz}, etc.
-\texttt{binneg} is absent on $\mathtt{nn}$ because $\mathtt{nn}$ is
-not closed under negation.
+There are no per-domain typing axioms for them.  The axioms
+\texttt{binplus-in-fun-}$d$ that once gave them a \texttt{fun} typing
+were deleted on 2026-08-29 (Section~\ref{sec:nums}, where the reason is given);
+the \texttt{fun} typing that a structure instance needs is obtained inside
+the instance proof by \texttt{lam-t}.
 
 \subsection{Ring instances: $\mathtt{zz}, \mathtt{qq}, \mathtt{rr}, \mathtt{cc}$ as rings}
 
@@ -1885,27 +1897,13 @@ metric-space theorem can be transported to \texttt{cc-ms}:
 \end{VNBcode}
 
 \paragraph{Completeness.}
-The axiom \texttt{cc-complete} asserts that every Cauchy sequence in
-$\mathtt{cc}$ converges, but is currently stated directly in terms of
-\texttt{magnitude} rather than through the metric-space structure:
-\begin{VNBsnip}
-forall([f in fun(NN, CC)],
-  (forall([eps in RR], 0 < eps implies
-     forsome([N in NN], forall([m, n in NN], N <= m and N <= n implies
-       magnitude(f(m) - f(n)) <= eps))))
-  implies
-  forsome([L in CC],
-    forall([eps in RR], 0 < eps implies
-      forsome([N in NN], forall([n in NN], N <= n implies
-        magnitude(f(n) - L) <= eps)))))
-\end{VNBsnip}
-A future refactor will introduce generic \texttt{is-cauchy-seq},
-\texttt{converges-to}, and \texttt{is-complete} predicates at the
-\texttt{metric-space} level (the
-\texttt{def-predicate} example in Section~\ref{sec:def-predicate}
-sketches one of these), at which point \texttt{cc-complete} can be
-restated as $\mathit{is\text{-}complete}(\mathit{cc\text{-}ms})$ and the
-explicit-magnitude form becomes a derived equivalent.
+The predicates \texttt{is-cauchy-seq}, \texttt{converges-to} and
+\texttt{is-complete} are defined at the \texttt{metric-space} level
+(\texttt{structure-library/metric-completeness.scm}).  Completeness of
+$\mathtt{cc}$ is the theorem \texttt{cc-complete},
+$\mathit{is\text{-}complete}(\mathit{cc\text{-}ms})$
+(\texttt{theorem-library/cc-complete-proof.scm}), proved from the
+completeness of $\mathtt{rr}$ through the real and imaginary parts.
 
 %% =========================================================
 \section{Extended reals: $\mathtt{rr}^{*}$}
@@ -2127,29 +2125,16 @@ dimensions, carries a pair of such conditions (G1, G2 in the design
 note).  The guards are premises placed after the binders, so a citation
 of the law reads exactly as it did before the guard.
 
-The laws are \emph{not} axioms of the library; they are members of the
-Proof Support Set, installed by \texttt{support} in
-\texttt{structure-library/matrix.scm} and warranted there.  One of the
-eleven is a machine-checked theorem.  A proof that cites any of the
-other ten pays for it in its \texttt{qed} bill, so the distinction is
-not bookkeeping:
-
-\begin{itemize}
-\item \emph{proved}: \texttt{matmul-assoc}
-      (\texttt{theorem-library/matmul-assoc-proof.scm});
-\item \emph{asserted, warrant \texttt{reference}}: \texttt{matadd-assoc},
-      \texttt{matadd-comm}, \texttt{matadd-zero-left},
-      \texttt{matadd-zero-right}, \texttt{matadd-neg-left},
-      \texttt{matadd-neg-right}, \texttt{matmul-left-dist},
-      \texttt{matmul-right-dist};
-\item \emph{asserted, warrant \texttt{proof}} (a rigorous paper argument
-      exists; it has not been mechanised):
-      \texttt{identmat-left-identity}, \texttt{identmat-right-identity}.
-\end{itemize}
-
-\noindent
-The live status of each is what \texttt{reference/PROOF-DEBT.md} and the
-browser reference report; this list is a snapshot and the generated
+The whole-matrix laws (addition: associativity, commutativity, the zero and
+negation laws; multiplication: associativity, the guarded distributive laws
+\texttt{matmul-left-dist-guarded} and \texttt{matmul-right-dist-guarded}; the
+identity laws \texttt{identmat-left-identity} and \texttt{identmat-right-identity})
+are theorems of the library, proved in \texttt{theorem-library/}
+(\texttt{rake-matrix-laws.scm}, \texttt{rake-identmat.scm},
+\texttt{matmul-assoc-proof.scm}); \texttt{structure-library/matrix.scm} no
+longer installs any support.  Whether a particular law is proved or still
+rests on an asserted fact is reported, with its bill, by
+\texttt{reference/PROOF-DEBT.md} and the browser reference; the generated
 pages are the authority.
 
 \subsection{The matrix ring: \texttt{mat-ring}}
@@ -2275,12 +2260,13 @@ size-indexed recursion $\mathtt{mat}(n,n) \to \mathtt{carr}$.
 \subsection{Properties}
 
 \begin{remark}
-Every statement in this subsection is \textbf{asserted, not proved}.
-Each carries a \texttt{reference} warrant citing Hoffman \&
-Kunze~Ch.~5, so a \texttt{qed} that leans on one bills
-\texttt{[trust: reference]}.  They are the first menu of determinant
-facts, stated so that proofs can be written against them; discharging
-them is open work.
+The statements in this subsection are theorems of the library
+(\texttt{det-in-carrier} in \texttt{rake-mat-typing.scm}; \texttt{det-1x1},
+\texttt{det-2x2}, \texttt{det-identity} in \texttt{rake-det-small.scm};
+\texttt{det-alternating-rows} and \texttt{det-expand-row} in \texttt{det-rows.scm};
+\texttt{det-multiplicative} in \texttt{det-multiplicative.scm};
+\texttt{det-transpose} and \texttt{det-expand-col} in \texttt{det-transpose.scm}).
+The bill of a proof that cites one is reported by \texttt{reference/PROOF-DEBT.md}.
 \end{remark}
 
 \begin{description}
@@ -2310,13 +2296,10 @@ them is open work.
 \end{description}
 
 \begin{remark}
-Four further facts are not even stated, for want of machinery:
-$\det(A^{T}) = \det(A)$ needs a $\mathtt{transpose}$ functoid, which the
-tree does not have; expansion along an arbitrary row or column---the
-fact that would justify the asymmetric row-1 definition---needs the
-permutation bookkeeping the pedestrian route was chosen to avoid; and
-Cramer's rule, the adjugate, and
-$\det(A) \ne 0 \Leftrightarrow A$ invertible follow those.
+The following facts are deferred: Cramer's rule, the adjugate, and
+$\det(A) \ne 0 \Leftrightarrow A$ invertible.  Transposition
+(\texttt{structure-library/transpose.scm}), $\det(A^{T}) = \det(A)$ and
+expansion along an arbitrary row or column are proved.
 \end{remark}
 
 \paragraph{Computing with the recursion.}

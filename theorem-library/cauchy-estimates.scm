@@ -500,20 +500,8 @@
     (subst eq)
     (if (not (sequent-node-grounded? leaf)) (rfl))))
 ;;; (E0) |i| = 1
-(sp (make-wff '(= (magnitude +i) 1)))
-(let* ((m '(magnitude +i)))
-  (fact 'cc-i-in)
-  (fact 'rr-one-in)
-  (cie-rr! m)
-  (fact 'cc-magnitude-nonneg '+i)
-  (dk-have! '(<= 0 1) (lambda () (dk-ineq!)))
-  (cie-and! '(IN +i CC) '(IN +i CC))
-  (dk-have! (list '= (list '* m m) '(* 1 1)) (lambda () (crs)))
-  (cie-and! (list 'IN m 'RR) '(IN 1 RR))
-  (cie-and! (list '<= 0 m) '(<= 0 1))
-  (dk-cite! 'sqrt-unique m 1)
-  (ass))
-(qed 'cc-magnitude-i)
+;;; MOVED 2026-11-10 (integration): the proof of `cc-magnitude-i' is now in
+;;; theorem-library/cc-magnitude-i.scm (library analysis).
 
 ;;; (E1) the length of the circle of radius r: 2 pi r
 (sp (make-wff (list 'FORALL 'c (list 'IMPLIES '(IN c CC) (list 'FORALL 'r (list 'IMPLIES '(IN r RR) (list 'IMPLIES '(<= 0 r)

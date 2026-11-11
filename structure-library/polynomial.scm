@@ -110,7 +110,7 @@
    Polynomials are the case M = NN-ADD-MONOID; see POLY.")
 
 ;;; ---- POLY: one-variable polynomials A[NN] ----------------------------
-;;; NN-ADD-MONOID = [NN, binplus, 0] is the exponent monoid; a polynomial is a
+;;; NN-ADD-MONOID = [NN, (VNB-LAMBDA (LIST x_ y_) (CARTESIAN NN NN) (+ x_ y_)), 0] is the exponent monoid; a polynomial is a
 ;;; finitely-supported NN -> CARR(A) (its coefficient sequence), and convolution
 ;;; over NN is the Cauchy product SUM_{i+j=n} a_i b_j.
 (def-functoid 'POLY '(A)

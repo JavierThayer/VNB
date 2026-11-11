@@ -193,38 +193,8 @@
 ;;; theorem-library/rps-lt-le-trans.scm (library analysis).
 
 ;;; esup-lt-witness: below the supremum there is a member above.
-(sp (make-wff '(FORALL S (IMPLIES (SUBSET S RR-POS-STAR)
-                 (FORALL a (IMPLIES (IN a RR-POS-STAR)
-                   (IMPLIES (< a (ESUP S)) (FORSOME y (AND (IN y S) (< a y))))))))))
-(dk-peel!)
-(fact 'esup-in 's)
-(let ((p '(FORSOME y (AND (IN y s) (< a y))))
-      (e '(ESUP s))
-      (ub '(FORALL x (IMPLIES (IN x s) (<= x a)))))
-  (use-em p
-    (lambda () (ass))
-    (lambda ()
-      (dk-have! ub
-        (lambda ()
-          (let ((yv (dk-di-var!)))
-            (fact 'subset-mem-fwd 's 'RR-POS-STAR yv)
-            (use-em (list '< 'a yv)
-              (lambda ()
-                (dk-have! p (lambda () (ew yv) (icv-conj-close! (lambda () (ass)))))
-                (icv-keep-prop! p (list 'NOT p)))
-              (lambda () (fact 'rps-not-lt-le 'a yv) (ass))))))
-      (dk-have! (list 'AND '(IN a RR-POS-STAR) ub))
-      (fact 'esup-least 's 'a)
-      (let ((iff (dk-cite! '< 'a e)))
-        (dk-have! (list 'AND (list '<= 'a e) (list 'NOT (list '= 'a e)))
-          (lambda () (icv-keep-prop! iff (list '< 'a e))))
-        (dk-split! (list 'AND (list '<= 'a e) (list 'NOT (list '= 'a e))))
-        (dk-have! (list 'AND '(IN a RR-POS-STAR) (list 'IN e 'RR-POS-STAR)))
-        (dk-have! (list 'AND (list '<= 'a e) (list '<= e 'a)))
-        (fact 'rr-pos-star-le-antisymm 'a e)
-        (icv-keep-prop! (list '= 'a e) (list 'NOT (list '= 'a e)))))))
-(qed 'esup-lt-witness)
-(topic! 'esup-lt-witness 'inequalities)
+;;; MOVED 2026-11-10 (integration): the proof of `esup-lt-witness' is now in
+;;; theorem-library/esup-lt-witness.scm (library analysis).
 
 ;;; esup-gt-of-member: a point below a member is below the supremum.
 (sp (make-wff '(FORALL S (IMPLIES (SUBSET S RR-POS-STAR)

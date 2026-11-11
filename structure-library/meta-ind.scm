@@ -315,6 +315,12 @@
        (AND (= mix_ (LIST 2 mig_ (ENC-IN miz_ (ENC-CART mia_)) (ENC-CCH miz_ mia_ (LENGTH mia_) (LENGTH mia_))))
             (AND (IN mig_ CTX-SET) (<= 1 (LENGTH mia_)))))))))))
 (notation! 'J-CART 'kind 'functoid 'arity 1 'english "the local instances of cartesian-decompose")
+;; ROW 57, STATUS (agent W2B, 2026-11-10; the user's decision of 2026-11-10, the core-schema route).  The fact the
+;; core lacked for the forward direction, tuple eta, is admitted as the core schema CR-TUPLE-ETA
+;; (structure-library/meta-core.scm 4.11).  The admissibility of this relation -- J-CART(T) inside EQV(T), as
+;; j-teq-sub for row 58 -- is NOT yet proven: both directions read the chain ENC-CCH under its binders, and the
+;; core-side calculus for that (EXPR-OPEN of ENC-CCH and of IDX-LIST, the denotation of IDX-LIST, the n-fold
+;; forsome-intro at the projections and the n-fold forsome-elim at fresh names) is not written.  W2B report.
 (def-predicate 'REL-CARTESIAN-DECOMPOSE-1 '(mit_ mihs_ mic_) '(REL-REWRITE-1 (J-CART mit_) mihs_ mic_))
 (notation! 'REL-CARTESIAN-DECOMPOSE-1 'kind 'predicate 'arity 3 'english "the kernel's cartesian-decompose, at one position, relates $2 to $3")
 

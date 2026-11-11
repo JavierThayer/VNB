@@ -1,0 +1,158 @@
+;;; cc-product.scm -- wave of 2026-11-09/10 (agent BA-1D), wired 2026-11-10 from scratchpad/ba1d-1109/cc-product.scm.
+;;; Library: analysis.
+
+;;; cc-product.scm -- THE PRODUCT OF COPIES OF THE COMPLEX PLANE: TPRODUCT-TOP(ff, i |-> METRIC-TOP(CC-MS)),
+;;; the topology of pointwise convergence of complex functions on ff.  Its points include every function
+;;; ff -> CC, and the evaluation at a point of ff, restricted to any set of such functions, is continuous.
+;;; The complex twin of the line product of tvs-alaoglu.scm (fun-in-line-product, line-product-coord-ball-open).
+;;; Agent BA-1D, wave 2026-11-09.  Destination: theorem-library/cc-product.scm.  Library: analysis.
+;;; All proofs modulo 0.  Helper prefix: ccp-.
+;;;
+;;; LOAD WINDOW: after theorem-library/top-product.scm (tproj-continuous, tprod-*), tvs-alaoglu.scm
+;;; (subspace-inclusion-continuous), compose-apply-proof.scm (compose-apply), hom-top-space-ptwise-eq and
+;;; hom-top-space-compose (top-space files), metric-top-pts / metric-top-is-top-space.
+
+(define (ccp-qed! name)
+  (if (proof-done? *ps*)
+      (begin (qed name) (topic! name 'analysis))
+      (begin
+        (display "\n*** cc-product: ") (display name) (display " did NOT close.  Open goals:\n")
+        (for-each (lambda (l)
+                    (display "   GOAL: ") (display (expression->string (dk-goal-of l))) (newline)
+                    (for-each (lambda (h) (display "      asm: ") (display (expression->string h)) (newline))
+                              (dk-asms-of l)))
+                  (dk-open-leaves))
+        (error "cc-product: unfinished" name))))
+
+(define (ccp-cite! . args)
+  (let loop ((r (apply dk-cite! args)))
+    (if (and (pair? r) (eq? (car r) 'IMPLIES) (= (length r) 3))
+        (let ((ante (cadr r)) (conseq (caddr r)))
+          (if (dk-asm? ante)
+              (begin (detach! r)
+                     (loop (or (dk-ctx-form conseq) (error "ccp-cite!: detach landed nothing" conseq))))
+              (loop (detach-with! r (lambda () (dk-conj-close! (lambda () (dk-ass!))))))))
+        r)))
+
+(define ccp-MT '(METRIC-TOP CC-MS))
+(define ccp-CF (list 'VNB-LAMBDA 'bgx_ 'ff ccp-MT))
+(define ccp-PR (list 'TPRODUCT-TOP 'ff ccp-CF))
+(define ccp-PRP (list 'TPROD-PTS 'ff ccp-CF))
+(define ccp-BU (list 'BIG-UNION 'tpj_ 'ff (list 'PTS (list ccp-CF 'tpj_))))
+
+;;; the points of the complex plane as a topological space
+(sp (make-wff (list '== (list 'PTS ccp-MT) 'CC)))
+(dk-cite! 'cc-is-metric-space)
+(dk-cite! 'metric-top-pts 'CC-MS)
+(subst (list '= (list 'PTS ccp-MT) '(PTS CC-MS)))
+(dk-close-if! (lambda () (slot 'PTS)) qrfl)
+(ccp-qed! 'cc-metric-top-pts)
+
+(define (ccp-mt!)
+  (if (not (dk-asm? (list 'IS-TOP-SPACE ccp-MT)))
+      (begin (dk-cite! 'cc-is-metric-space) (dk-cite! 'metric-top-is-top-space 'CC-MS)
+             (dk-cite! 'cc-metric-top-pts) (dk-cite! 'cc-is-set))))
+(define (ccp-cfy! y)                    ; y in ff: (= (CF y) MT)
+  (let ((e (list '= (list ccp-CF y) ccp-MT)))
+    (if (not (dk-asm? e))
+        (dk-have! e (lambda () (if (not (dk-lam-b!)) (rfl)))))
+    e))
+
+(sp (make-wff '(FORALL ff (IMPLIES (IN ff SET) (IS-TOP-FAMILY ff (VNB-LAMBDA bgx_ ff (METRIC-TOP CC-MS)))))))
+(dk-peel!)
+(ccp-mt!)
+(mac 'is-top-family)
+(dk-conj-close! (lambda () (if (not (dk-ass!)) (let ((y (dk-di-var!))) (subst (ccp-cfy! y)) (dk-ass!)))))
+(ccp-qed! 'cc-product-family)
+
+(define (ccp-setup!)
+  (ccp-mt!)
+  (dk-cite! 'cc-product-family 'ff)
+  (dk-split! (dk-cite! 'tprod-sets 'ff ccp-CF))
+  (dk-cite! 'tprod-top-pts 'ff ccp-CF)
+  (dk-cite! 'tprod-top-is-top-space 'ff ccp-CF))
+
+;;; a point of the product: its coordinate y lies in CC
+(define (ccp-coord! h y)                ; (IN h PRP), (IN y ff) in context: land (IN (h y) CC)
+  (let ((g (list 'IN (list h y) 'CC)))
+    (if (not (dk-asm? g))
+        (let* ((im (dk-cite! 'tprod-pts-mem 'ff ccp-CF h)) (r (caddr im)))
+          (if (not (dk-asm? (caddr r)))
+              (begin (dk-have! r (lambda () (if (dk-only! im (list 'IN h ccp-PRP)) (prop)))) (dk-split! r)))
+          (dk-apply! (caddr r) y)
+          (ccp-cfy! y)
+          (let ((h1 (dk-rewrite-h! (list 'IN (list h y) (list 'PTS (list ccp-CF y))) (list ccp-CF y) ccp-MT)))
+            (dk-rewrite-h! h1 (list 'PTS ccp-MT) 'CC))))
+    g))
+
+;;; every function ff -> CC is a point of the product
+(sp (make-wff (list 'FORALL 'ff (list 'FORALL 'f (list 'IMPLIES '(IN ff SET) (list 'IMPLIES '(IN f (FUN ff CC))
+  (list 'IN 'f ccp-PRP)))))))
+(dk-peel!)
+(ccp-setup!)
+(let* ((fi (dk-cite! 'fun-codomain-iff 'ff 'CC 'f))
+       (fj (dk-cite! 'fun-codomain-iff 'ff ccp-BU 'f))
+       (im (dk-cite! 'tprod-pts-mem 'ff ccp-CF 'f)))
+  (dk-have! (caddr fi) (lambda () (if (dk-only! fi '(IN f (FUN ff CC))) (prop))))
+  (dk-split! (caddr fi))
+  (let ((ptw (caddr (caddr fi))))
+    (dk-have! (caddr (caddr fj))
+      (lambda ()
+        (let ((y (dk-di-var!)))
+          (dk-apply! ptw y)
+          (ccp-cfy! y)
+          (for-each (lambda (l) (dk-focus! l)
+                      (if (not (dk-ass!)) (begin (subst (ccp-cfy! y)) (subst (list '== (list 'PTS ccp-MT) 'CC)) (dk-ass!))))
+                    (dk-opened (lambda () (bu-mi y)))))))
+    (dk-have! (list 'IN 'f (list 'FUN 'ff ccp-BU)) (lambda () (if (dk-only! fj '(IN f (FUN ff)) (caddr (caddr fj))) (prop))))
+    (dk-have! (caddr (caddr im))
+      (lambda () (let ((y (dk-di-var!))) (dk-apply! ptw y) (subst (ccp-cfy! y)) (subst (list '== (list 'PTS ccp-MT) 'CC)) (dk-ass!))))
+    (if (dk-only! im (list 'IN 'f (list 'FUN 'ff ccp-BU)) (caddr (caddr im))) (prop))))
+(ccp-qed! 'fun-in-cc-product)
+
+;;; evaluation at x, on any set aa of points of the product with the subspace topology, is continuous
+(define ccp-SUB (list 'SUBSPACE-TOP ccp-PR 'aa))
+(define ccp-INC '(VNB-LAMBDA b6q_ aa b6q_))
+(define ccp-PJ (list 'TPROJ 'ff ccp-CF 'x))
+(define ccp-EV '(VNB-LAMBDA bgc_ aa (bgc_ x)))
+(sp (make-wff (list 'FORALL 'ff (list 'FORALL 'aa (list 'FORALL 'x
+  (list 'IMPLIES '(IN ff SET) (list 'IMPLIES (list 'SUBSET 'aa ccp-PRP) (list 'IMPLIES '(IN x ff)
+    (list 'IS-HOM-TOP-SPACE ccp-SUB ccp-MT ccp-EV)))))))))
+(dk-peel!)
+(ccp-setup!)
+(dk-cite! 'subclass-of-set-is-set 'aa ccp-PRP)
+(dk-cite! 'subspace-top-pts ccp-PR 'aa)
+(dk-have! (list 'SUBSET 'aa (list 'PTS ccp-PR)) (lambda () (subst (list '== (list 'PTS ccp-PR) ccp-PRP)) (dk-ass!)))
+(let* ((hinc (dk-cite! 'subspace-inclusion-continuous ccp-PR 'aa))
+       (hpj0 (dk-cite! 'tproj-continuous 'ff ccp-CF 'x))
+       (hpj (begin (ccp-cfy! 'x) (dk-rewrite-h! hpj0 (list ccp-CF 'x) ccp-MT)))
+       (cmp (list 'COMPOSE ccp-PJ ccp-INC))
+       (hc (dk-cite! 'hom-top-space-compose ccp-SUB ccp-PR ccp-MT ccp-INC ccp-PJ))
+       (finc (dk-project! (list 'IN ccp-INC (list 'FUN (list 'PTS ccp-SUB) (list 'PTS ccp-PR))) 'is-hom-top-space-def hinc))
+       (fpj (dk-project! (list 'IN ccp-PJ (list 'FUN (list 'PTS ccp-PR) (list 'PTS ccp-MT))) 'is-hom-top-space-def hpj)))
+  (dk-rewrite-h! finc (list 'PTS ccp-SUB) 'aa)
+  (dk-have! (list 'IN ccp-EV (list 'FUN (list 'PTS ccp-SUB) (list 'PTS ccp-MT)))
+    (lambda ()
+      (subst (list '== (list 'PTS ccp-SUB) 'aa))
+      (subst (list '== (list 'PTS ccp-MT) 'CC))
+      (dk-lam-type!
+        (lambda () (let ((q (dk-di-var!))) (dk-cite! 'subset-mem-fwd 'aa ccp-PRP q) (ccp-coord! q 'x) (dk-ass!)))
+        (lambda () (dk-ass!)))))
+  (dk-have! (list 'FORALL 'tpq_ (list 'IMPLIES (list 'IN 'tpq_ (list 'PTS ccp-SUB)) (list '= (list ccp-EV 'tpq_) (list cmp 'tpq_))))
+    (lambda ()
+      (let ((q (dk-di-var!)))
+        (dk-rewrite-h! (list 'IN q (list 'PTS ccp-SUB)) (list 'PTS ccp-SUB) 'aa)
+        (dk-cite! 'subset-mem-fwd 'aa ccp-PRP q)
+        (dk-have! (list 'IN q (list 'PTS ccp-PR)) (lambda () (subst (list '== (list 'PTS ccp-PR) ccp-PRP)) (dk-ass!)))
+        (ccp-coord! q 'x)
+        (let ((ca (dk-apply! (ccp-cite! 'compose-apply 'aa (list 'PTS ccp-PR) (list 'PTS ccp-MT) ccp-PJ ccp-INC) q)))
+          (dk-have! (list '= (list ccp-INC q) q) (lambda () (if (not (dk-lam-b!)) (rfl))))
+          (dk-have! (list '= (list ccp-PJ q) (list q 'x))
+            (lambda () (mac 'TPROJ) (if (not (dk-lam-b!)) (rfl))))
+          (subst (list '= (list cmp q) (list ccp-PJ (list ccp-INC q))))
+          (subst (list '= (list ccp-INC q) q))
+          (subst (list '= (list ccp-PJ q) (list q 'x)))
+          (if (not (dk-lam-b!)) (rfl))))))
+  (dk-cite! 'hom-top-space-ptwise-eq ccp-SUB ccp-MT cmp ccp-EV)
+  (dk-ass!))
+(ccp-qed! 'cc-product-eval-continuous)

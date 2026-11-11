@@ -6,14 +6,13 @@ the VNB proof checker.  It exercises every major subsystem in order:
 ground arithmetic, axiom installation, the parser, wff validation,
 macetes with local context, proof commands, the number-system chain,
 and arithmetic over~$\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{R}$,
-$\mathbb{C}$.  Running it requires only \texttt{load.scm}; each test
+$\mathbb{C}$.  Running it requires only the command below; each test
 prints \texttt{PASS} or \texttt{FAIL} and the final line gives the
 aggregate count.
 
 \begin{VNBcode}
-;;; Load the system, then load this file:
-;;;   mit-scheme --quiet --load load.scm < test-suite.scm
-(load "load.scm")
+;;; Run the suite (it loads the system itself):
+;;;   mit-scheme --heap 200000 --quiet --load test-suite.scm < /dev/null
 \end{VNBcode}
 
 \section{Test harness}
@@ -384,10 +383,10 @@ Each sub-test proves a simple theorem using one or two rules.
     (di) (ta 'nn-add-zero) (ui "n") (ass)
     (di) (ass)))
 
-;;; Functoid (lambda) beta reduction (beta)
-(check-proof "beta: lambda([x in nn], x+1)(3) = 3+1"
+;;; Functoid (lambdoid) beta reduction (beta)
+(check-proof "beta: lambdoid([x in nn], x+1)(3) = 3+1"
   (lambda ()
-    (sp (make-wff-from-string "lambda([x in nn], x + 1)(3) = 3 + 1"))
+    (sp (make-wff-from-string "lambdoid([x in nn], x + 1)(3) = 3 + 1"))
     (beta) (rfl)))
 \end{VNBcode}
 
@@ -434,6 +433,6 @@ Each sub-test proves a simple theorem using one or two rules.
 (display *fail-count*) (display " failed ===\n")
 \end{VNBcode}
 
-\noindent A clean run prints \verb|165 passed, 0 failed|.
+\noindent A clean run ends with a line of the form \verb|=== SUMMARY: N passed, 0 failed ===|.
 
 %% =========================================================

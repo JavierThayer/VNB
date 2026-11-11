@@ -1,0 +1,215 @@
+;;; complete-criterion.scm -- wave of 2026-11-09/10 (agent BA-1E), wired 2026-11-10 from scratchpad/ba1e-1109/complete-criterion.scm.
+;;; Library: analysis.
+
+;;; complete-criterion.scm -- THE COMPLETENESS CRITERION (the converse of summable-bound-converges).
+;;; A metric space in which every sequence with summable increments converges is complete.
+;;; In a normed space this is the classical criterion "if every absolutely summable series
+;;; converges, the space is complete": the partial sums of a series are a sequence whose
+;;; increments are the terms, and every sequence is the sequence of partial sums of its
+;;; increments.  The normed form is the corollary nag-complete-of-summable-increments.
+;;;
+;;; THE ROUTE.  Let f be Cauchy.  cauchy-rapid-subsequence at rad(k) = (1/2)^k gives a strictly
+;;; increasing phi with d(f(phi k), f(phi(k+1))) <= (1/2)^k; the geometric series converges
+;;; (geometric-series-converges), so by the hypothesis the subsequence g(k) = f(phi k)
+;;; converges, to x say.  Then x is a cluster point of f (for eps and m, take k = m + N with N
+;;; the threshold of g at eps/2: phi(k) >= k >= m), and a Cauchy sequence with a cluster point
+;;; converges (cauchy-cluster-converges).
+;;;
+;;; Agent BA-1E, wave 2026-11-09.  Destination: theorem-library/complete-criterion.scm.
+;;; Library: analysis.  All proofs modulo 0.  Helper prefix: cmc-.
+;;; LOAD WINDOW: after theorem-library/rake-compact-complete (cauchy-cluster-converges),
+;;; the file of cauchy-rapid-subsequence, geometric-series-converges, strictly-mono-ge-id,
+;;; nag-metric-distance; see the report for the load.scm lines.
+
+(define (cmc-qed! name)
+  (if (proof-done? *ps*)
+      (begin (qed name) (topic! name 'analysis))
+      (begin
+        (display "\n*** complete-criterion: ") (display name) (display " did NOT close.  Open goals:\n")
+        (for-each (lambda (l)
+                    (display "   GOAL: ") (display (expression->string (dk-goal-of l))) (newline)
+                    (for-each (lambda (a) (display "      asm: ") (display (expression->string a)) (newline))
+                              (dk-asms-of l)))
+                  (dk-open-leaves))
+        (error "complete-criterion: unfinished" name))))
+(define (cmc-pick pred what) (dk-pick pred what))
+
+;;; the hypothesis of the criterion, for a metric space s
+(define (cmc-hyp s)
+  (list 'FORALL 'f (list 'IMPLIES (list 'IN 'f (list 'FUN 'NN (list 'PTS s)))
+    (list 'FORALL 'rad (list 'IMPLIES '(IN rad (FUN NN RR))
+      (list 'IMPLIES '(SERIES-CONVERGES rad)
+        (list 'IMPLIES (list 'FORALL 'k (list 'IMPLIES '(IN k NN)
+                          (list '<= (list (list 'DIST s) '(f k) '(f (succ k))) '(rad k))))
+              (list 'CONVERGES s 'f))))))))
+
+;;; the cluster clause: for eps > 0 and m, an n >= m with d(f n, x) < eps
+(define (cmc-cluster! f phi g x cvu)
+  (let* ((landed (dk-peel!))
+         (eps (cadr (car (filter (lambda (h) (dk-head-is? h 'POS-RR)) landed))))
+         (m (cadr (car (filter (lambda (h) (and (dk-head-is? h 'IN) (eq? (caddr h) 'NN))) landed)))))
+    (dk-cite! 'rr-pos-rr-in-rr eps)
+    (let* ((d (dk-halve! eps))
+           (ex (dk-apply! cvu d))
+           (nb (dk-skolem! ex)))
+      (dk-split-all!)
+      (let* ((inner (cmc-pick (lambda (h) (and (dk-head-is? h 'FORALL) (dk-contains? h nb) (dk-contains? h x)))
+                              "the threshold clause"))
+             (k (list '+ m nb)))
+        (dk-have! (list 'AND (list 'IN m 'NN) (list 'IN nb 'NN)) (lambda () (dk-conj-close! (lambda () (dk-ass!)))))
+        (dk-cite! 'nn-add-closed m nb)
+        (dk-have! (list '<= nb k) (lambda () (dk-nn!)))
+        (let* ((b0 (dk-apply! inner k)))
+          (dk-lam-b-h! b0)
+          (let ((pk (list phi k)))
+            (dk-cite! 'fun-apply-type-c phi 'NN 'NN k)
+            (dk-cite! 'fun-apply-type-c f 'NN '(PTS s) pk)
+            (dk-cite! 'strictly-mono-ge-id phi k)
+            (dk-cite! 'metric-dist-real 's (list f pk) x)
+            (ew pk)
+            (dk-conj-close!
+              (lambda ()
+                (let ((gl (dk-goal)))
+                  (cond ((dk-asm? gl) (ass))
+                        ((dk-head-is? gl '<=) (dk-nn!))
+                        (#t (dk-ineq! (list '<= (cmc-dist (list f pk) x) d) (list '= (list '+ d d) eps)
+                                      (list '< 0 d)))))))))))))
+
+(sp (make-wff (list 'FORALL 's (list 'IMPLIES '(IS-METRIC-SPACE s)
+                (list 'IMPLIES (cmc-hyp 's) '(IS-COMPLETE s))))))
+(dk-peel!)
+(define cmc-H (cmc-pick (lambda (h) (and (dk-head-is? h 'FORALL) (dk-contains? h 'SERIES-CONVERGES))) "the hypothesis"))
+(mac 'IS-COMPLETE)
+(define cmc-half 1/2)
+(define cmc-rad (list 'VNB-LAMBDA 'n (quote NN) (list 'POWER cmc-half 'n)))
+(define (cmc-dist a b) (list '(DIST s) a b))
+(dk-conj-close!
+  (lambda ()
+    (if (dk-asm? (dk-goal))
+        (ass)
+        (let* ((landed (dk-peel!))
+               (cy (car (filter (lambda (h) (dk-head-is? h 'IS-CAUCHY-SEQ)) landed)))
+               (f (caddr cy)))
+          (dk-cite! 'cauchy-seq-is-fun 's f)
+          (dk-have! (list 'IN cmc-half 'RR) (lambda () (arith)))
+          (dk-have! (list '<= 0 cmc-half) (lambda () (dk-ineq!)))
+          (dk-have! (list '< cmc-half 1) (lambda () (dk-ineq!)))
+          (dk-have! (list '< 0 cmc-half) (lambda () (dk-ineq!)))
+          (dk-cite! 'geometric-series-converges cmc-half)
+          ;; rad in FUN(NN, RR) and every rad(k) positive
+          (dk-have! (list 'IN cmc-rad '(FUN NN RR))
+            (lambda ()
+              (dk-lam-type! (lambda ()
+                (let ((k (cadr (car (dk-peel!)))))
+                  (dk-cite! 'power-real-closed cmc-half k)
+                  (dk-ass!))))))
+          (dk-have! (list 'FORALL 'k (list 'IMPLIES '(IN k NN) (list 'POS-RR (list cmc-rad 'k))))
+            (lambda ()
+              (let ((k (cadr (car (dk-peel!)))))
+                (dk-lam-b!)
+                (dk-cite! 'power-real-closed cmc-half k)
+                (dk-cite! 'rr-power-pos cmc-half k)
+                (dk-cite! 'rr-pos-rr-of-lt (list 'POWER cmc-half k))
+                (dk-ass!))))
+          (dk-have! (list 'AND cy (list 'AND (list 'IN cmc-rad '(FUN NN RR))
+                                        (list 'FORALL 'k (list 'IMPLIES '(IN k NN) (list 'POS-RR (list cmc-rad 'k)))))))
+          (let* ((ex (dk-cite! 'cauchy-rapid-subsequence 's f cmc-rad))
+                 (ex2 (if (dk-head-is? ex 'IMPLIES) (detach! ex) ex))
+                 (phi (dk-skolem! (cmc-pick (lambda (h) (and (dk-head-is? h 'FORSOME) (dk-contains? h cmc-rad))) "the subsequence"))))
+            (dk-split-all!)
+            (let* ((mono (cmc-pick (lambda (h) (and (dk-head-is? h 'FORALL) (dk-contains? h '<) (not (dk-contains? h 'DIST))
+                                                   (dk-contains? h phi)))
+                                   "the monotonicity"))
+                   (bnd (cmc-pick (lambda (h) (and (dk-head-is? h 'FORALL) (dk-contains? h 'DIST) (dk-contains? h phi)))
+                                  "the rapid bound"))
+                   (g (list 'VNB-LAMBDA 'cmj_ 'NN (list f (list phi 'cmj_)))))
+              (dk-have! (list 'STRICTLY-MONO-NN phi)
+                (lambda () (mac 'STRICTLY-MONO-NN) (dk-conj-close! (lambda () (dk-ass!)))))
+              ;; g in FUN(NN, PTS s)
+              (dk-have! (list 'IN g '(FUN NN (PTS s)))
+                (lambda ()
+                  (dk-lam-type! (lambda ()
+                    (let ((j (cadr (car (dk-peel!)))))
+                      (dk-cite! 'fun-apply-type-c phi 'NN 'NN j)
+                      (dk-cite! 'fun-apply-type-c f 'NN '(PTS s) (list phi j))
+                      (dk-ass!))))))
+              ;; its increments are bounded by rad
+              (dk-have! (list 'FORALL 'k (list 'IMPLIES '(IN k NN)
+                              (list '<= (cmc-dist (list g 'k) (list g '(succ k))) (list cmc-rad 'k))))
+                (lambda ()
+                  (let ((k (cadr (car (dk-peel!)))))
+                    (dk-cite! 'nn-succ-closed k)
+                    (let ((b (dk-apply! bnd k)))
+                      (dk-cite! 'fun-apply-type-c phi 'NN 'NN k)
+                      (dk-cite! 'power-real-closed cmc-half k)
+                      (dk-lam-b-h! b)
+                      (dk-lam-b!)
+                      (dk-ass!)))))
+              ;; the hypothesis at g: g converges, to x
+              (let* ((cv (dk-apply! cmc-H g cmc-rad))
+                     (cvt (dk-landed-1 (lambda () (mac-h 'CONVERGES cv))))
+                     (x (dk-skolem! cvt)))
+                (dk-split-all! (list (dk-landed-1 (lambda () (mac-h 'CONVERGES-TO (list 'CONVERGES-TO 's g x))))))
+                (let ((cvu (cmc-pick (lambda (h) (and (dk-head-is? h 'FORALL) (dk-contains? h 'POS-RR) (dk-contains? h x)))
+                                     "the convergence clause"))
+                      (ch (dk-cite! 'cauchy-cluster-converges 's f)))
+                  (detach-with! ch
+                    (lambda ()
+                      (dk-conj-close!
+                        (lambda ()
+                          (if (dk-asm? (dk-goal))
+                              (ass)
+                              (begin
+                                (ew x)
+                                (mac 'CLUSTER-POINT)
+                                (dk-conj-close!
+                                  (lambda ()
+                                    (if (dk-asm? (dk-goal))
+                                        (ass)
+                                        (cmc-cluster! f phi g x cvu))))))))))
+                  (dk-ass!)))))))))
+(cmc-qed! 'complete-of-summable-increments)
+
+;;; ---- the normed form: a normed abelian group in which every sequence whose increments
+;;; ||f(k) - f(k+1)|| are dominated by a convergent real series converges, is complete.
+(define (cmc-nag-hyp)
+  '(FORALL f (IMPLIES (IN f (FUN NN (CARR grp)))
+     (FORALL rad (IMPLIES (IN rad (FUN NN RR))
+       (IMPLIES (SERIES-CONVERGES rad)
+         (IMPLIES (FORALL k (IMPLIES (IN k NN)
+                    (<= ((NRM grp) ((OPR grp) (f k) ((INV grp) (f (succ k))))) (rad k))))
+                  (CONVERGES (NAG-METRIC-SPACE grp) f))))))))
+(sp (make-wff (list 'FORALL 'grp (list 'IMPLIES '(IS-NORMED-AG grp)
+                (list 'IMPLIES (cmc-nag-hyp) '(IS-COMPLETE (NAG-METRIC-SPACE grp)))))))
+(dk-peel!)
+(define cmc-HN (cmc-pick (lambda (h) (and (dk-head-is? h 'FORALL) (dk-contains? h 'SERIES-CONVERGES))) "the hypothesis"))
+(define cmc-M '(NAG-METRIC-SPACE grp))
+(dk-cite! 'nag-metric-space-is-metric-space 'grp)
+(dk-cite! 'nag-metric-carrier 'grp)
+(let ((ch (dk-cite! 'complete-of-summable-increments cmc-M)))
+  (detach-with! ch
+    (lambda ()
+      (let* ((landed (dk-peel!))
+             (fty (car (filter (lambda (h) (dk-head-is? h 'IN) ) landed)))
+             (f (cadr fty))
+             (rty (car (filter (lambda (h) (and (dk-head-is? h 'IN) (equal? (caddr h) '(FUN NN RR)))) landed)))
+             (rad (cadr rty))
+             (bnd (car (filter (lambda (h) (dk-head-is? h 'FORALL)) landed)))
+             (fty2 (dk-rewrite-h! fty (list 'PTS cmc-M) '(CARR grp))))
+        (dk-have! (list 'FORALL 'k (list 'IMPLIES '(IN k NN)
+                    (list '<= (list '(NRM grp) (list '(OPR grp) (list f 'k) (list '(INV grp) (list f '(succ k))))) (list rad 'k))))
+          (lambda ()
+            (let ((k (cadr (car (dk-peel!)))))
+              (dk-cite! 'nn-succ-closed k)
+              (dk-cite! 'fun-apply-type-c f 'NN '(CARR grp) k)
+              (dk-cite! 'fun-apply-type-c f 'NN '(CARR grp) (list 'succ k))
+              (let ((b (dk-apply! bnd k))
+                    (e (dk-cite! 'nag-metric-distance 'grp (list f k) (list f (list 'succ k)))))
+                (subst (list '= (caddr e) (cadr e)))
+                (dk-ass!)))))
+        (dk-apply! cmc-HN f rad)
+        (dk-ass!))))
+  (dk-ass!))
+(cmc-qed! 'nag-complete-of-summable-increments)
+
+(display "\n;; CMC qed failures: ")  

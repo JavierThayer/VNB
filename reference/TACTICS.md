@@ -38,6 +38,12 @@ Every tactic is tagged with a **kind**, grounded in the `dg-apply-rule!` tag it 
 
 The `rule` set is the fixed kernel; a proof's trust surface is exactly its `rule` steps plus whichever `oracle`s and asserted premises it cites.  You can read any finished proof's actual rule inventory off its deduction graph (each node records its justifying rule).
 
+## The core commands (core replay)
+
+A CORE PAGE (`docs/core-page-format.md`) records a finished proof in 56 names only: one name per kernel entry point (48 rules), the five oracles (`arith`, `crs`, `rs`, `ineq`, `sos`), and the structural `sp`, `qed`, `at-node`.  The exam lowers every proof to its core page and replays it with these names alone.  Each step is ONE call of its entry point; the surface command of the same name may do more (accept an assumption number, close owed leaves).  The names: `di` `ai` `pbc` `oi-l` `oi-r` `ew` `ci` `ti` `ii` `ui` `ni` `tfi` `tfi3` `ass` `ta` `inst` `detach!` `bc` `cut` `wk` `ce` `te` `ie` `ue` `mac` `macm` `mac-h` `subst` `rfl` `qrfl` `beta` `lam-t` `lam-b` `lam-b-h` `nth-r` `len-r` `if-true` `if-false` `sep-set` `sep-mi` `sep-me` `comp-mi` `comp-me` `iota-d` `iota-e` `bu-set` `bu-mi` `bu-me` `arith` `crs` `rs` `ineq` `sos` `sp` `qed` `at-node` 
+
+An entry below carries the line *Core:* when its name is one of them; the core names with no entry here: `tfi` `tfi3` `iota-e` `at-node` 
+
 Each entry below also carries a **Uses** line: every kernel operation the command's own code can cause to be recorded, those recorded by the procedures it calls included.  It is the bound on what the command can do, whether or not any proof in the library exercises it, and it is measured from the source rather than declared.  One further set is common to every command and is stated once instead: the hook that runs after any command which changed the proof, to close the definedness sequents an instantiation left owed.  *Kernel map* has that set, the method, and the per-command table.
 
 ## Starting & finishing a proof
@@ -49,6 +55,8 @@ Each entry below also carries a **Uses** line: every kernel operation the comman
 Start a proof of `goal' (a "string", a raw S-expr, or a wff); clears the script.
 
 *Kind:* `meta`
+
+*Core:* `sp` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* no kernel operation: it records no inference
 
@@ -63,6 +71,8 @@ Begin a new proof: state what you want to prove.  The goal may be a "string" in 
 Install the finished proof as theorem `name' and save its replayable script.
 
 *Kind:* `meta`
+
+*Core:* `qed` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* no kernel operation: it records no inference
 
@@ -104,6 +114,8 @@ Direct inference: split an AND goal, move an IMPLIES antecedent into the assumpt
 
 *Kind:* `rule` (emits `(forall-intro implies-intro and-intro)`)
 
+*Core:* `di` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `and-intro` `forall-intro` `iff-intro` `implies-intro` `not-intro` 
 
 *When useful:* the goal head is AND / IMPLIES / FORALL -- decompose before deciding
@@ -117,6 +129,8 @@ Break the goal into its pieces.  A conjunction `A and B' splits into two goals, 
 Proof by contradiction: assume the goal's negation, prove FALSITY.
 
 *Kind:* `rule` (emits `proof-by-contradiction`)
+
+*Core:* `pbc` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `proof-by-contradiction` 
 
@@ -132,6 +146,8 @@ OR-intro left: reduce an (OR a b) goal to a.
 
 *Kind:* `rule` (emits `or-intro-left`)
 
+*Core:* `oi-l` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `or-intro-left` 
 
 *When useful:* the goal is (OR a b) and the LEFT alternative is provable
@@ -145,6 +161,8 @@ Prove a disjunction `A or B' by proving the LEFT alternative, A.  (Technically: 
 OR-intro right: reduce an (OR a b) goal to b.
 
 *Kind:* `rule` (emits `or-intro-right`)
+
+*Core:* `oi-r` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `or-intro-right` 
 
@@ -160,6 +178,8 @@ Existential witness: discharge a FORSOME goal by supplying the witness term.
 
 *Kind:* `rule` (emits `forsome-intro`)
 
+*Core:* `ew` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `forsome-intro` 
 
 *When useful:* the goal is FORSOME and you have a witness term in mind
@@ -173,6 +193,8 @@ Prove `there exists an x with property P' by exhibiting a specific witness: you 
 Cartesian intro: prove a CARTESIAN-product membership component-wise.
 
 *Kind:* `rule` (emits `cartesian-intro`)
+
+*Core:* `ci` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `cartesian-intro` 
 
@@ -188,6 +210,8 @@ Tuple intro: prove a tuple/LIST membership component-wise.
 
 *Kind:* `rule` (emits `tuples-intro`)
 
+*Core:* `ti` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `tuples-intro` 
 
 *When useful:* the goal is membership in a set of tuples / LIST
@@ -201,6 +225,8 @@ Prove that a list belongs to the set of tuples over A by proving each entry lies
 Intersection intro: prove (IN x (INTERSECTION ...)) for each branch.
 
 *Kind:* `rule` (emits `intersection-intro`)
+
+*Core:* `ii` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `intersection-intro` 
 
@@ -216,6 +242,8 @@ Union intro: reduce a goal (IN x (UNION ...)) to membership of x in the k-th set
 
 *Kind:* `rule` (emits `union-intro`)
 
+*Core:* `ui` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `union-intro` 
 
 *When useful:* the goal is membership in a UNION and you know which branch
@@ -229,6 +257,8 @@ Prove that x lies in a union of sets by proving it lies in the k-th one (you cho
 Natural-number induction on the goal's leading FORALL over NN.
 
 *Kind:* `rule` (emits `nn-induction`)
+
+*Core:* `ni` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `nn-induction` 
 
@@ -246,6 +276,8 @@ Antecedent inference: decompose a cited assumption -- AND-split, OR-into-cases, 
 
 *Kind:* `rule` (emits `(and-elim or-elim forsome-elim)`)
 
+*Core:* `ai` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `and-elim` `forsome-elim` `iff-elim` `not-elim` `or-elim` 
 
 *When useful:* a hypothesis is an AND / OR / FORSOME to break apart
@@ -260,6 +292,8 @@ Close the goal by an assumption alpha-equivalent to it.
 
 *Kind:* `rule` (emits `assumption`)
 
+*Core:* `ass` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `assumption` 
 
 *When useful:* the goal already appears (up to bound-var renaming) among the hypotheses
@@ -273,6 +307,8 @@ Finish the goal because it is already one of your hypotheses -- the `that is exa
 Instantiate a universally-quantified assumption at `term', adding the instance to context.
 
 *Kind:* `rule` (emits `forall-elim`)
+
+*Core:* `inst` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `forall-elim` 
 
@@ -330,6 +366,8 @@ Forward modus ponens: from an in-context (IMPLIES A B) whose A is also in contex
 
 *Kind:* `rule` (emits `detach`)
 
+*Core:* `detach!` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `detach` 
 
 *When useful:* you have both P and (P => Q) in context and want Q
@@ -358,6 +396,8 @@ Cartesian elim: project the k-th component out of a CARTESIAN-membership assumpt
 
 *Kind:* `rule` (emits `cartesian-elim`)
 
+*Core:* `ce` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `cartesian-elim` 
 
 *When useful:* a hypothesis is CARTESIAN-product membership
@@ -371,6 +411,8 @@ From a hypothesis that a tuple lies in a Cartesian product, extract that its k-t
 Tuple elim: project the k-th component out of a tuple-membership assumption.
 
 *Kind:* `rule` (emits `tuples-elim`)
+
+*Core:* `te` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `tuples-elim` 
 
@@ -386,6 +428,8 @@ Intersection elim: extract the k-th branch of an INTERSECTION-membership assumpt
 
 *Kind:* `rule` (emits `intersection-elim`)
 
+*Core:* `ie` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `intersection-elim` 
 
 *When useful:* a hypothesis is INTERSECTION membership
@@ -399,6 +443,8 @@ From a hypothesis that x lies in an intersection, extract that x lies in the k-t
 Union elim: split a cited (IN x (UNION ...)) membership assumption into one subgoal per set -- union-side case analysis, the dual of `ui'.
 
 *Kind:* `rule` (emits `union-elim`)
+
+*Core:* `ue` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `union-elim` 
 
@@ -414,6 +460,8 @@ Cut: prove `formula' as a side subgoal, then continue the main goal with `formul
 
 *Kind:* `rule` (emits `cut`)
 
+*Core:* `cut` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `cut` 
 
 *When useful:* you want to prove a lemma on the spot, then use it
@@ -427,6 +475,8 @@ Introduce a lemma you prove on the spot.  You state a formula; it becomes a side
 Weaken: drop a cited assumption from the context to tidy the hypothesis list.  `hyp' may be a formula, a "string", or a 1-based assumption index.
 
 *Kind:* `rule` (emits `weakening`)
+
+*Core:* `wk` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `weakening` 
 
@@ -453,6 +503,8 @@ Prune the context down to what the next step needs -- what a driver does before 
 Rewrite the GOAL with an equivalence macete (unfold a definition, apply an iff/=/== law).  Fires only where the macete's side-conditions already hold in context.
 
 *Kind:* `rule` (emits `macete`)
+
+*Core:* `mac` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `cartesian-decompose` `macete` `tuple-equality-decompose` 
 
@@ -488,6 +540,8 @@ Like mac, but a CONDITIONAL macete fires even when its side-conditions are not y
 
 *Kind:* `rule` (emits `macete`)
 
+*Core:* `macm` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `cartesian-decompose` `macete` `tuple-equality-decompose` 
 
 *When useful:* the GOAL has a CONDITIONAL identity/definition to apply whose side-conditions you are willing to leave as subgoals
@@ -501,6 +555,8 @@ The minor-premises variant of mac.  mac only rewrites where the law's side-condi
 Rewrite a cited ASSUMPTION in place with an equivalence macete; any side-condition not already in context is spawned as a new subgoal.
 
 *Kind:* `rule` (emits `macete-hyp`)
+
+*Core:* `mac-h` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `macete-hyp` 
 
@@ -596,6 +652,8 @@ Rewrite s -> t throughout the goal, using an equation s = t -- or a quasi-equati
 
 *Kind:* `rule` (emits `eq-subst`)
 
+*Core:* `subst` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `eq-subst` 
 
 *When useful:* you have an equation s = t (or a quasi-equation s == t) in context and want to rewrite the goal by it -- wherever the term occurs, operator position included
@@ -609,6 +667,8 @@ Use an equation among your hypotheses to replace s by t everywhere in the goal. 
 Beta-reduce a functoid application in the goal.
 
 *Kind:* `rule` (emits `functoid-beta`)
+
+*Core:* `beta` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `functoid-beta` 
 
@@ -624,6 +684,8 @@ Reduce an NTH applied to a literal LIST in the goal.
 
 *Kind:* `rule` (emits `nth-reduce`)
 
+*Core:* `nth-r` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `nth-reduce` 
 
 *When useful:* the goal has NTH of a literal LIST
@@ -637,6 +699,8 @@ Simplify `the k-th entry of an explicit list [a1, a2, ...]' to that entry.  (Tec
 Reduce a LENGTH applied to a literal LIST in the goal.
 
 *Kind:* `rule` (emits `length-reduce`)
+
+*Core:* `len-r` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `length-reduce` 
 
@@ -652,6 +716,8 @@ Close a reflexive equality goal (t = t).
 
 *Kind:* `rule` (emits `reflexivity`)
 
+*Core:* `rfl` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `reflexivity` 
 
 *When useful:* the goal is `t = t' with t manifestly defined
@@ -665,6 +731,8 @@ Close a goal `t = t' -- a thing equals itself.  (Technically: reflexivity of equ
 Quasi-reflexivity: close t = t under the partial-equality definedness reading.
 
 *Kind:* `rule` (emits `quasi-reflexivity`)
+
+*Core:* `qrfl` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `quasi-reflexivity` 
 
@@ -696,6 +764,8 @@ Discharge a ground arithmetic goal by evaluation.
 
 *Kind:* `oracle` (emits `(arith-ground arith-forsome arith-simplify)`)
 
+*Core:* `arith` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `arith-forsome` `arith-ground` `arith-simplify` `cartesian-decompose` `eq-subst` `macete` `tuple-equality-decompose` 
 
 *When useful:* the goal is ground arithmetic -- no variables
@@ -710,6 +780,8 @@ Ring-simplify the goal (normal form over the ambient ring).
 
 *Kind:* `oracle` (emits `ring-simplify`)
 
+*Core:* `rs` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `ring-simplify` 
 
 *When useful:* the goal is a (possibly non-commutative) ring-word identity
@@ -723,6 +795,8 @@ Simplify the goal to a normal form in the ambient ring (which need not be commut
 Commutative-ring decision procedure: prove a polynomial identity over ZZ[generators].  Expands literal powers, so (x+y)^2 = ... closes directly.
 
 *Kind:* `oracle` (emits `comm-ring-simplify`)
+
+*Core:* `crs` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `comm-ring-simplify` 
 
@@ -816,6 +890,8 @@ Close a linear-inequality goal over RR (<= < > >= = between RR terms) as a conse
 
 *Kind:* `oracle` (emits `ineq`)
 
+*Core:* `ineq` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `ineq` 
 
 *When useful:* a LINEAR <= / < over RR that follows from inequalities you can cite
@@ -829,6 +905,8 @@ Close a LINEAR inequality over the reals that follows from inequalities you cite
 Sum-of-squares closer for a nonstrict polynomial inequality a <= b over RR (the nonlinear companion of (ineq)).  You supply the terms to be SQUARED; it finds the nonnegative coefficients.  (tactics 'sos) for the worked example.
 
 *Kind:* `oracle` (emits `sos`)
+
+*Core:* `sos` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `sos` 
 
@@ -919,6 +997,8 @@ Theorem-assumption: bring the named installed theorem into context as an assumpt
 
 *Kind:* `rule` (emits `theorem-assumption`)
 
+*Core:* `ta` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `theorem-assumption` 
 
 *When useful:* you want a library theorem available as a hypothesis
@@ -946,6 +1026,8 @@ The discovery move for existence proofs.  Faced with `there exists phi with ...'
 Backchain the goal through an (IMPLIES A B) already in context: if the goal matches B, the new goal is A.
 
 *Kind:* `rule` (emits `backchain`)
+
+*Core:* `bc` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `backchain` 
 
@@ -977,6 +1059,8 @@ VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to TWO obligations -- 
 
 *Kind:* `rule` (emits `lambda-type`)
 
+*Core:* `lam-t` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `lambda-type` 
 
 *When useful:* the goal types a VNB-LAMBDA into FUN(A,B)
@@ -990,6 +1074,8 @@ Show that a function defined by a formula (`x |-> ...') maps A into B -- reduces
 VNB-LAMBDA beta: reduce an applied lambda to its substituted body.
 
 *Kind:* `rule` (emits `lambda-beta`)
+
+*Core:* `lam-b` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `lambda-beta` 
 
@@ -1005,6 +1091,8 @@ VNB-LAMBDA beta in a cited ASSUMPTION -- what mac-h is to mac.
 
 *Kind:* `rule` (emits `lambda-beta-hyp`)
 
+*Core:* `lam-b-h` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `lambda-beta-hyp` 
 
 Beta-reduce an applied lambda inside a hypothesis, in place.  Needed because a `fact' that instantiates a theorem's function variable at a lambda lands the APPLIED lambda in the CONTEXT, where the goal-side `lam-b' cannot reach it: union-of-opens-open at the identity family g := x |-> x lands is-open(md, big-union(i, fam, (x |-> x)(i))).  Without this the proof must detour through a cut beta-equation and a subst.  Cites nothing, so it adds no debt.
@@ -1016,6 +1104,8 @@ Beta-reduce an applied lambda inside a hypothesis, in place.  Needed because a `
 Separation sethood: the separation set {x in A | p} is a set.
 
 *Kind:* `rule` (emits `sep-sethood`)
+
+*Core:* `sep-set` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `sep-sethood` 
 
@@ -1031,6 +1121,8 @@ Separation membership intro: prove (IN t {x in A | p}).
 
 *Kind:* `rule` (emits `sep-mem-intro`)
 
+*Core:* `sep-mi` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `sep-mem-intro` 
 
 *When useful:* the goal is membership in a separation set { x in A | p }
@@ -1044,6 +1136,8 @@ Prove that a term t belongs to {x in A | p(x)} by showing t lies in A and satisf
 Separation membership elim: split a separation-membership assumption into A-membership and the predicate.
 
 *Kind:* `rule` (emits `sep-mem-elim`)
+
+*Core:* `sep-me` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `sep-mem-elim` 
 
@@ -1059,6 +1153,8 @@ Comprehension membership intro.
 
 *Kind:* `rule` (emits `comp-mem-intro`)
 
+*Core:* `comp-mi` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `comp-mem-intro` 
 
 *When useful:* the goal is comprehension-set membership
@@ -1072,6 +1168,8 @@ Prove that something belongs to a comprehension set by establishing the set's de
 Comprehension membership elim.
 
 *Kind:* `rule` (emits `comp-mem-elim`)
+
+*Core:* `comp-me` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `comp-mem-elim` 
 
@@ -1087,6 +1185,8 @@ Definite-description: discharge the IOTA uniqueness obligation for `term'.
 
 *Kind:* `rule` (emits `iota-def`)
 
+*Core:* `iota-d` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `iota-def` 
 
 *When useful:* the goal involves IOTA and you must discharge its uniqueness obligation
@@ -1100,6 +1200,8 @@ Justify `the unique x such that p(x)' (a definite description) by proving that e
 Big-union sethood.
 
 *Kind:* `rule` (emits `big-union-sethood`)
+
+*Core:* `bu-set` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `big-union-sethood` 
 
@@ -1115,6 +1217,8 @@ Big-union membership intro via the index witness w.
 
 *Kind:* `rule` (emits `big-union-mem-intro`)
 
+*Core:* `bu-mi` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `big-union-mem-intro` 
 
 *When useful:* the goal is BIG-UNION membership -- you have the index witness
@@ -1128,6 +1232,8 @@ Prove that an element lies in a big union by exhibiting one index w whose set al
 Big-union membership elim.
 
 *Kind:* `rule` (emits `big-union-mem-elim`)
+
+*Core:* `bu-me` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `big-union-mem-elim` 
 
@@ -1145,6 +1251,8 @@ Reduce an (IF p a b) term on the p branch: spawns p as a subgoal; the continuati
 
 *Kind:* `rule` (emits `if-true`)
 
+*Core:* `if-true` is a core command (one call of its kernel entry point on a core page).
+
 *Uses:* `if-true` 
 
 *When useful:* the goal has an (IF p a b) term to evaluate on the p branch
@@ -1158,6 +1266,8 @@ Evaluate a conditional term `if p then a else b' on the assumption that p holds:
 Reduce an (IF p a b) term on the not-p branch: spawns (NOT p); the continuation gains (= (IF p a b) b).
 
 *Kind:* `rule` (emits `if-false`)
+
+*Core:* `if-false` is a core command (one call of its kernel entry point on a core page).
 
 *Uses:* `if-false` 
 

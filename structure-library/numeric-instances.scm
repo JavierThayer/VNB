@@ -12,15 +12,17 @@
 ;;; each domain D in {NN, ZZ, QQ, RR, CC} (binneg only for the rings, not
 ;;; for NN, since NN is not closed under negation).
 ;;;
-;;; The instances ZZ-RING, QQ-RING, RR-NORMED-FIELD, CC-NORMED-FIELD are 6-element VNB
-;;; lists [D, binplus, bintimes, binneg, 0, 1] -- the standard ring shape.
+;;; The instances ZZ-RING, QQ-RING (6-element VNB lists) and RR-NORMED-FIELD, CC-NORMED-FIELD
+;;; (7-element lists) have the shape [D, ADD, MUL, NEG, 0, 1 (, norm)].  Their ADD / MUL / NEG
+;;; slots hold VNB-LAMBDAs over D x D (resp. D) built from + * -, NOT the bare symbols binplus /
+;;; bintimes / binneg (see the declare-instance! forms below and the note of 2026-08-29).
 ;;; IS-RING(ZZ-RING) and IS-RING(QQ-RING) used to be taken as axioms here, on
 ;;; the grounds that "proof would unfold IS-RING via the def-structure IFF and
 ;;; discharge each conjunct from typing axioms".  That is exactly what
 ;;; theorem-library/zz-ring-is-ring.scm now does, for both, from one
 ;;; parameterised driver -- so they are PROVEN and are not asserted below.
 ;;;
-;;; NN-ADD-MONOID = [NN, binplus, 0] gives NN its commutative-monoid status
+;;; NN-ADD-MONOID = [NN, (VNB-LAMBDA (LIST x_ y_) (CARTESIAN NN NN) (+ x_ y_)), 0] gives NN its commutative-monoid status
 ;;; under addition.  NN as a multiplicative comm-monoid is left for later.
 ;;;
 ;;; After loading this file, `specialize-structure` can transport every
@@ -224,15 +226,15 @@
 ;;;
 ;;; Each is a 6-element VNB list [A, ADD, MUL, NEG, ZERO, ONE]:
 ;;;   A    = the carrier (NN/ZZ/QQ/RR/CC)
-;;;   ADD  = binplus
-;;;   MUL  = bintimes
-;;;   NEG  = binneg
+;;;   ADD  = the VNB-LAMBDA of + over A x A   (not the bare symbol binplus)
+;;;   MUL  = the VNB-LAMBDA of * over A x A   (not bintimes)
+;;;   NEG  = the VNB-LAMBDA of unary - over A (not binneg)
 ;;;   ZERO = 0
 ;;;   ONE  = 1
 ;;;
 ;;; Accessor reductions (e.g. (ADD ZZ-RING) -> (NTH 2 ZZ-RING)) are
 ;;; available via the def-structure machinery; combined with the LIST
-;;; constructor + nth-reduce, (ADD ZZ-RING) computes down to binplus.
+;;; constructor + nth-reduce, (ADD ZZ-RING) computes down to that VNB-LAMBDA.
 
 ;;; declare-instance! installs the tuple equation under the SAME name it always
 ;;; had (zz-ring-def), and additionally the per-slot value macetes that let
@@ -410,7 +412,7 @@
 ;;; -----------------------------------------------------------------------
 ;;; NN as a commutative monoid under addition
 ;;;
-;;; NN-ADD-MONOID = [NN, binplus, 0]
+;;; NN-ADD-MONOID = [NN, (VNB-LAMBDA (LIST x_ y_) (CARTESIAN NN NN) (+ x_ y_)), 0]
 ;;;
 ;;; NN is not a ring (no negation), but it is a commutative monoid under
 ;;; +, with identity 0.

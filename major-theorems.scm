@@ -156,7 +156,8 @@
     ("strand-spaces"    . "Strand spaces (Thayer, Herzog, Guttman; the user's model of notes-60)")
     ("construction-of-measures" . "Construction of measures (Thayer, notes)")
     ("functional-analysis" . "Functional analysis (Thayer, Analise Funcional e Teoria Espectral; Riesz-Markov from notes-63)")
-    ("topological-vector-spaces" . "Topological vector spaces (Thayer, notes)")))
+    ("topological-vector-spaces" . "Topological vector spaces (Thayer, notes)")
+    ("banach-algebras" . "Banach algebras and applications (Thayer, notes), chapters 1-6")))
 
 (define (mt--doc-title doc)
   (let ((hit (assoc doc *mt-doc-titles*)))

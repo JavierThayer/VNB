@@ -41,7 +41,7 @@
 ;;; stated over that predicate -- was VACUOUSLY true.  normed-vector-space.scm
 ;;; declared `(substructure SCAL RING)', whose IS-RING conjunct pins
 ;;; length(SCAL s) = 6, and then pinned `scal(s) = rr-normed-field', where
-;;; RR-NORMED-FIELD is the SEVEN-tuple [RR binplus bintimes binneg 0 1 abs]
+;;; RR-NORMED-FIELD is the SEVEN-tuple [RR add mul neg 0 1 abs] (VNB-LAMBDA operations, not the bare symbols binplus ...)
 ;;; (numeric-instances.scm:250).  Six equals seven.  The one-line repair recorded
 ;;; here -- pin the scalars through the view that exists for exactly this
 ;;; purpose,

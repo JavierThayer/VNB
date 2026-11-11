@@ -336,16 +336,8 @@
 ;;; ---------------------------------------------------------------------------
 ;;; (4) small facts on reals inside [0, +inf]
 ;;; ---------------------------------------------------------------------------
-(sp (make-wff '(FORALL x (FORALL y (IMPLIES (IN x RR) (IMPLIES (<= 0 x) (IMPLIES (IN y RR) (IMPLIES (<= 0 y) (AND (IN (etimes x y) RR) (<= 0 (etimes x y)))))))))))
-(dk-peel!)
-(let ((e (dk-cite! 'etimes-real-defined 'x 'y)))
-  (subst e)
-  (dk-cite! 'bintimes-apply 'x 'y)
-  (subst '(== (bintimes x y) (* x y)))
-  (mdl-and! '(IN x RR) '(IN y RR))
-  (dk-cite! 'rr-mul-closed 'x 'y)
-  (dk-conj-close! (lambda () (if (not (dk-ass!)) (begin (mdl-and! '(<= 0 x) '(<= 0 y)) (dk-cite! 'rr-leq-mul-nonneg 'x 'y) (dk-ass!))))))
-(mdl-qed! 'etimes-real-in)
+;;; MOVED 2026-11-10 (integration): the proof of `etimes-real-in' is now in
+;;; theorem-library/etimes-real-in.scm (library analysis).
 ;; a point of [0, +inf] below a real is real
 (sp (make-wff '(FORALL x (FORALL y (IMPLIES (IN x RR-POS-STAR) (IMPLIES (IN y RR) (IMPLIES (<= x y) (IN x RR))))))))
 (dk-peel!)

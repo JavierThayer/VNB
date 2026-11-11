@@ -2415,21 +2415,8 @@
 (dk-ineq! '(<= (* cra crb) (* 1 crb)) '(= (* 1 crb) crb) '(<= crb 1))
 (qed 'rr-prod-le-one)
 
-(sp (make-wff '(FORALL cra (IMPLIES (IN cra RR) (FORALL crb (IMPLIES (IN crb RR) (IMPLIES (NOT (< cra crb)) (<= crb cra))))))))
-(dk-peel!)
-(cw-and! '(IN crb RR) '(IN cra RR))
-(cw-or-each! (dk-cite! 'rr-leq-total 'crb 'cra)
-  (lambda (o)
-    (if (equal? o '(<= crb cra))
-        (dk-ass!)
-        (use-em '(= cra crb)
-          (lambda () (dk-ineq! '(= cra crb)))
-          (lambda ()
-            (pbc)
-            (cw-and! '(<= cra crb) '(NOT (= cra crb)))
-            (dk-cite! 'rr-le-ne-lt 'cra 'crb)
-            (ai '(NOT (< cra crb))))))))
-(qed 'rr-not-lt-ge)
+;;; MOVED 2026-11-10 (integration): the proof of `rr-not-lt-ge' is now in
+;;; theorem-library/rr-not-lt-ge.scm (library core).
 
 (define cw3-nnm 'NN-ADD-MONOID)
 ;; nth-r on the focus, closing the reflexive definedness leaves it owes; focus back on the reduced goal

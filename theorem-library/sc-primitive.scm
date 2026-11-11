@@ -51,16 +51,8 @@
 
 ;;; ---------------------------------------------------------------------------
 ;;; the union of two subsets of c is a subset of c
-(sp (make-wff '(FORALL sda (FORALL sdb (FORALL sdc (IMPLIES (SUBSET sda sdc) (IMPLIES (SUBSET sdb sdc) (SUBSET (UNION sda sdb) sdc))))))))
-(dk-peel!)
-(mac 'subset-def)
-(let* ((pl (dk-peel!)) (x (cadr (car pl))))
-  (let ((iff (dk-cite! 'union-membership 'sda 'sdb x)))
-    (dk-have! (list 'OR (list 'IN x 'sda) (list 'IN x 'sdb)) (lambda () (prop)))
-    (use-cases (list (list 'IN x 'sda) (list 'IN x 'sdb))
-      (lambda () (fact 'subset-mem-fwd 'sda 'sdc x) (ass))
-      (lambda () (fact 'subset-mem-fwd 'sdb 'sdc x) (ass)))))
-(qed 'union-subset-both)
+;;; MOVED 2026-11-10 (integration): the proof of `union-subset-both' is now in
+;;; theorem-library/union-subset-both.scm (library core).
 
 ;;; ---------------------------------------------------------------------------
 ;;; PATH INDEPENDENCE: on a simply connected u, two roads in u with the same ends give the same integral

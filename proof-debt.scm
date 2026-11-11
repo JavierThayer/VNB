@@ -1561,6 +1561,39 @@
           (#t (let loop ((xs e) (acc acc))
                 (if (pair? xs) (loop (cdr xs) (walk (car xs) acc)) acc))))))
 
+;;; VIAGAP F2 (2026-10-29; W2D, 2026-11-10).  A definitional or primitive MEMBERSHIP IFF
+;;;      forall .. [guard =>] ( x IN T(..) <=> phi )
+;;; (the NAME-class axioms `s in PID <=> IS-PID(s)', the constructor memberships) asserts the
+;;; class { x | phi } exactly as a COMP would, and no audit above read it.  This returns the
+;;; condition phi of such a formula (x bound by one of the leading FORALLs), else #f; the
+;;; audit applies the one relation (comp--unconfined-quantifiers) to it.  The -rev companion
+;;; (phi <=> x IN T) is not of this shape and is not read twice.
+(define (membership-iff-condition f)
+  (let loop ((m f) (vs '()))
+    (cond ((and (pair? m) (eq? (car m) 'FORALL) (= (length m) 3) (symbol? (cadr m)))
+           (loop (caddr m) (cons (cadr m) vs)))
+          ((and (pair? m) (eq? (car m) 'IMPLIES) (= (length m) 3)) (loop (caddr m) vs))
+          ((and (pair? m) (eq? (car m) 'IFF) (= (length m) 3)
+                (pair? (cadr m)) (eq? (car (cadr m)) 'IN) (= (length (cadr m)) 3)
+                (symbol? (cadr (cadr m))) (memq (cadr (cadr m)) vs))
+           (caddr m))
+          (#t #f))))
+
+;;; ((name . iff-formula) ...) for the definitional / primitive membership IFFs whose
+;;; condition quantifies beyond sets.
+(define (impredicative-membership-iffs)
+  (comp--safe '()
+    (lambda ()
+      (let ((found '()))
+        (for-each (lambda (name)
+                    (if (memq (provenance-of name) '(definitional primitive))
+                        (let* ((f (hash-table-ref/default *theorem-table* name #f))
+                               (phi (and f (membership-iff-condition f))))
+                          (if (and phi (pair? (comp--unconfined-quantifiers phi)))
+                              (set! found (cons (cons name f) found))))))
+                  (hash-table-keys *theorem-table*))
+        found))))
+
 (define (binder-predicativity-audit)
   (comp--safe '() binder-predicativity-audit--raw))
 
@@ -1577,7 +1610,7 @@
                       (for-each (lambda (t) (set! found (cons (cons name t) found)))
                                 (binder-impredicative-subterms (cadr reg))))))
               (hash-table-keys *functoid-registry*))
-    found))
+    (append (impredicative-membership-iffs) found)))        ; VIAGAP F2
 
 ;;; ((source . term) ...): proofs noted so far, then installed formulas, then functoid bodies.
 (define (comp-predicativity-audit)

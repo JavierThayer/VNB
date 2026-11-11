@@ -74,7 +74,7 @@
 ;;; known inconsistency.  `(substructure SCAL RING)' becomes the conjunct
 ;;; (IS-RING (SCAL s)) (build-is-axiom, structures.scm:484), and IS-RING pins
 ;;; (= (LENGTH (SCAL s)) 6); CC-NORMED-FIELD is a SEVEN-tuple
-;;; [CC binplus bintimes binneg 0 1 magnitude].  Pinning the raw instance would
+;;; [CC add mul neg 0 1 magnitude], the operations being VNB-LAMBDAs (not the bare symbols binplus ...).  Pinning the raw instance would
 ;;; make IS-COMPLEX-INNER-PRODUCT-SPACE assert 6 = 7, i.e. make it unsatisfiable
 ;;; and every theorem about it vacuous.  numeric-instances.scm:243-249 describes
 ;;; this exact trap and fixed it for itself on 2026-05-30; NORMED-FIELD-AS-

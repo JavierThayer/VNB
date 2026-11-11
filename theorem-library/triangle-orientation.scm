@@ -392,15 +392,8 @@
 
 ;;; ---------------------------------------------------------------------------
 ;;; Im(i z) = Re z
-(sp (make-wff '(FORALL aoz_ (IMPLIES (IN aoz_ CC) (= (imag-part (* +i aoz_)) (real-part aoz_))))))
-(dk-peel!)
-(fact 'cc-i-in)
-(dk-split-all! (list (dk-cite! 'rb3-re-im-i)))
-(fact 'real-part-in-rr 'aoz_) (fact 'imag-part-in-rr 'aoz_)
-(subst (dk-cite! 'cc-im-mul '+i 'aoz_))
-(subst '(= (real-part +i) 0)) (subst '(= (imag-part +i) 1))
-(crs)
-(qed 'cc-im-i-mul)
+;;; MOVED 2026-11-10 (integration): the proof of `cc-im-i-mul' is now in
+;;; theorem-library/cc-im-i-mul.scm (library analysis).
 
 ;;; ---------------------------------------------------------------------------
 ;;; at an interior point the cross product has the sign the hull forces

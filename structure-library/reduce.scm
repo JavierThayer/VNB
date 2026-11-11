@@ -7,18 +7,23 @@
 ;;; for n >= 1; undefined for n = 0 (no identity argument).  The left-fold
 ;;; matches the bracketing the parser uses for chained n-ary infix:
 ;;;   x + y + z   ==   (binplus (binplus x y) z)
-;;; with f(0)=x, f(1)=y, f(2)=z this is exactly (REDUCE binplus f 3).
+;;; with f(0)=x, f(1)=y, f(2)=z this is exactly (REDUCE OP f 3) for OP the binary addition.
+;;; NOTE (FREF, 2026-10-29): OP is a quantified variable, so its instance must be an OBJECT
+;;; term, and the surface bridge symbols binplus / bintimes are head-only (they carry no claim
+;;; to be sets): the kernel refuses an instance AT them.  OP is the addition of CC as a
+;;; function, (VNB-LAMBDA (LIST p q) (CARTESIAN CC CC) (+ p q)); see rake-asm-b5.scm.
 ;;;
 ;;; The kiddie surface (+ x_1 ... x_n) bridges to
-;;;   (REDUCE binplus (FAM-OF-LIST (LIST x_1 ... x_n)) n)
-;;; via the nary-plus-N-list axioms in numeric-instances.scm; the adult
+;;;   (REDUCE OP (FAM-OF-LIST (LIST x_1 ... x_n)) n)
+;;; via the nary-plus-N-list THEOREMS of rake-asm-b5.scm (OP the CC addition as a function; the
+;;; axioms of that name in numeric-instances.scm were deleted 2026-10-12); the adult
 ;;; finite-sum SUM-AG bridges to (REDUCE (OPR ag) f n) for n >= 1 via
 ;;; sum-ag-as-reduce in sequences.scm.  The n = 0 case is purely SUM-AG's
 ;;; (SUM-AG(ag,f,0) = IDEN(ag)); REDUCE has no counterpart there.
 ;;;
 ;;; Why both bridges live (rather than replacing nary-plus-N with the list
 ;;; form): nary-plus-N -> nested binplus stays the natural rewrite when a
-;;; proof is using the structure-library RING operators ((ADD R) = binplus);
+;;; proof is using the structure-library RING operators ((ADD R) applied is +);
 ;;; nary-plus-N-list -> REDUCE is the natural rewrite when a proof is
 ;;; reaching for SUM-AG-style finite-sum machinery.  Same kiddie surface,
 ;;; two downstream paths.

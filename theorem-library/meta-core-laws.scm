@@ -887,7 +887,10 @@
     CR-TBIND-CR
     ;; META-FUN, 2026-10-21 (the user's decision of 2026-10-21, B1): functoid-beta-eq over the functoid table
     ;; FUN-DEF (structure-library/meta-core.scm 4.10), the last disjunct of CORE-RULE.
-    CR-FUNCTOID-BETA-EQ))
+    CR-FUNCTOID-BETA-EQ
+    ;; W2B, 2026-11-10 (the user's decision of 2026-11-10): tuple eta (structure-library/meta-core.scm 4.11), the
+    ;; core-schema route for cartesian-decompose (row 57); the last disjunct of CORE-RULE.
+    CR-TUPLE-ETA))
 (define (mc-or-pick! target)
   (let loop ()
     (let ((g (dk-goal)))
@@ -952,6 +955,28 @@
   (dk-have! '(NOT (= 8 9)) (lambda () (arith)))
   (ai '(NOT (= 8 9))))
 (qed 'tbind-cr-refuses-eq)
+
+;;; THE CONTROL OF TBIND-CR AT COMP (head 23, no outside argument; agent W2B, 2026-11-10): no instance concludes the
+;;; STRICT equation of two comprehensions, which would assert that they denote (false for an impredicative body).
+(sp (make-wff '(FORALL tt (FORALL hs (FORALL g (FORALL a (FORALL b (IMPLIES (IN g CTX-SET)
+   (IMPLIES (IN (EBIND 23 1 (LIST) a) CLT) (IMPLIES (IN (EBIND 23 1 (LIST) b) CLT)
+     (NOT (CR-TBIND-CR tt hs (LIST g (ENC-EQ (EBIND 23 1 (LIST) a) (EBIND 23 1 (LIST) b)))))))))))))))
+(dk-peel!)
+(if (dk-head-is? (dk-goal) 'NOT) (di))
+(let* ((c '(LIST g (ENC-EQ (EBIND 23 1 (LIST) a) (EBIND 23 1 (LIST) b))))
+       (ex (dk-meta-iff-r! (dk-meta-iff! 'cr-tbind-cr 'tt 'hs c)))
+       (vs (dk-meta-unpack! ex))
+       (ceq (find-first (lambda (f) (and (dk-head-is? f '=) (equal? (cadr f) c))) (dk-asms)))
+       (c2 (caddr ceq)) (lhs (caddr c)) (rhs (caddr c2)))
+  (dk-have! `(= ,lhs ,rhs) (lambda () (dk-meta-component! c c2 2)))
+  (let* ((u1 (dk-cite! 'enc-eq-unfold (cadr lhs) (caddr lhs))) (e1 (caddr u1))
+         (f1 (dk-rewrite-h! `(= ,lhs ,rhs) lhs e1))
+         (u2 (dk-cite! 'enc-qeq-unfold (cadr rhs) (caddr rhs))) (e2 (caddr u2))
+         (f2 (dk-rewrite-h! f1 rhs e2)))
+    (dk-split! (dk-cite! 'eapp-injective 8 (caddr e1) 9 (caddr e2))))
+  (dk-have! '(NOT (= 8 9)) (lambda () (arith)))
+  (ai '(NOT (= 8 9))))
+(qed 'tbind-cr-comp-refuses-eq)
 
 ;;; THE CONTROL OF FUNCTOID-BETA-EQ (structure-library/meta-core.scm 4.10): no instance concludes the STRICT
 ;;; equation F(l) = b[l]; the strict form would assert that both sides denote.

@@ -804,8 +804,9 @@ for the variables of $\sigma$.  Write $o_1, \ldots, o_m$ for the
   case those inner redexes count as contracted and need their own
   licence.
 \item[Obligations] Every $o_j$ is owed by some redex.
-\item[Bound] The checker's search takes at most 400 contractions, and
-  refuses when that runs out.
+\item[Bound] The checker's search takes at most
+  \texttt{rcs--beta-fuel-limit} contractions (\texttt{rule-checkers-schema.scm}),
+  and refuses when that runs out.
 \end{VNBcond}
 \texttt{lambda-beta} takes no argument; \texttt{lambda-beta-hyp} takes
 the assumption $F$.  Each reduces every redex it can license or owe, in
@@ -1133,7 +1134,7 @@ source of every loaded file with the Scheme reader.  One thing is left
 out of every row: after any command that changes a proof, the system tries
 to close the definedness obligations that instantiation has left
 (Section~\ref{sec:kernel-ops-detail}, \texttt{forall-elim}), and that step
-can reach twenty kernel procedures of its own.  It is the same for every
+can reach kernel procedures of its own.  It is the same for every
 command and is stated once in \texttt{reference/KERNEL-MAP.md}.
 
 A command listed as \texttt{none} records nothing.  Those are the
@@ -1153,7 +1154,7 @@ inference (below); then it posts each hypothesis sequent as a node,
 reusing a node the graph already has for the same sequent; then it
 creates the inference node and writes the arrows.  No other procedure
 writes to the graph.
-%% dg-apply-rule!, deduction-graphs.scm:375; make-inference-node :59
+%% dg-apply-rule!, deduction-graphs.scm:424; make-inference-node :59
 The inference node records exactly three things: the rule, the list of
 hypothesis nodes, and the conclusion node $N$.  The rule is the name of
 the operation, or a list headed by that name when the operation carries
@@ -1335,10 +1336,10 @@ suppressed (\texttt{zero-it} on a numeral difference) is recorded as the
 composite alone: its certificate is on the node and in the printout, not on
 the page.  The command \texttt{(proof-rules)} reads the graph of the
 current proof and lists the rules its inferences recorded.
-%% vnb--capture-step!, interactive.scm:178 (the sixth field, `certs');
+%% vnb--capture-step!, interactive.scm:189 (the sixth field, `certs');
 %% proof-tex.scm:184; zi--run-step!, zero-it.scm (recording suppressed)
 %% ineq-report, ineq-oracle.scm:215; sos-report, sos-oracle.scm:49;
-%% proof-tex--steps-from-live, proof-tex.scm:94; proof-rules, suggest.scm:5795
+%% proof-tex--steps-from-live, proof-tex.scm:94; proof-rules, suggest.scm:6006
 
 \subsubsection*{Controls}
 
@@ -1349,16 +1350,16 @@ would pass the first and fail the second.
 
 \begin{remark}
 Checking is on by default.  Setting the environment variable
-\texttt{VNB\_NO\_RULE\_CHECK} turns it off.  On the library as loaded on
-2026-09-20, 197{,}677 inferences were verified and none refused, and the
-load took 30\% longer with checking than without.
+\texttt{VNB\_NO\_RULE\_CHECK} turns it off.  Every inference of a load is
+verified, and the load summary reports how many were verified and how many
+refused; checking makes the load slower.
 \end{remark}
 
 \subsection{The boundary is checked, not merely documented}\label{sec:kernel-checked}
 
-The restriction would be worth little if it were a convention.  The eight
+The restriction would be worth little if it were a convention.  The
 files permitted to record inferences are named in a list in the source
-(\texttt{*kernel-caller-files*}).  Every time the system starts, it reads
+(\texttt{*kernel-caller-files*}, \texttt{audit.scm}).  Every time the system starts, it reads
 all of its own source with the Scheme reader and counts, in each file,
 the calls to \texttt{dg-apply-rule!}\ and any use of that procedure as a
 value --- the second being the way a file could otherwise hand the
@@ -1371,8 +1372,8 @@ string or quoted data is not mistaken for code.
 On a clean tree the check prints one line:
 
 \begin{VNBcode}
-;; kernel-callers-audit: ok (69 call site(s) to dg-apply-rule!
-;;   in 8 file(s), all allowed; 0 value use(s))
+;; kernel-callers-audit: ok (N call site(s) to dg-apply-rule!
+;;   in M file(s), all allowed; 0 value use(s))
 \end{VNBcode}
 
 A companion check, \texttt{kernel-rules-audit}, compares the rules
@@ -1386,6 +1387,110 @@ must be added to the list by hand, which is a deliberate act that leaves
 a record.  The complete inventory (every entry point, the rules it may
 record, and which proof commands reach it) is
 \texttt{reference/KERNEL-MAP.md}.
+
+%% =========================================================
+\section{Self-verification of the kernel (META)}\label{sec:meta}
+\index{META}\index{self-verification}
+
+This section collects what the tree does to check its own kernel.  The
+operations and their checkers are described in
+Sections~\ref{sec:kernel-boundary} and~\ref{sec:inference-checked}, the
+closed list of files that may record an inference in
+Section~\ref{sec:kernel-checked}, the proof certificate in
+Section~\ref{sec:certificates}; they are not repeated here.  Consistency
+of the whole is relative to NBG.
+
+%% TODO(meta-ledger): report the K2 coverage ledger and the open findings here once the ledger is regenerated.
+\subsection{Checking at the point of writing}
+
+Every inference passes \texttt{dg-apply-rule!}, which asks the checker
+registered for the operation's name to accept the pair (hypotheses,
+conclusion) before anything is written to the graph
+(Section~\ref{sec:inference-checked}).  The checkers are in
+\texttt{rule-checkers-logic.scm}, \texttt{-schema.scm}, \texttt{-rewrite.scm}
+and \texttt{-oracle.scm}.  A missing checker, or a refusal, raises an error;
+the refusal is printed as a line beginning \texttt{;VNB RULE CHECKER REFUSED},
+and the load summary reports the number of inferences verified and the number
+refused.  In a strict load a nonzero number of refusals is an error.  The
+builders (\texttt{pi-\ldots!}) and the tactics are therefore not part of what
+must be trusted for a graph to be sound: a wrong builder can only fail to
+prove.  What decides whether a false sequent can be grounded is the relation
+each checker enforces, together with the expression layer the checkers use
+(substitution, free variables, equality up to renaming, matching), the write
+point and the propagation of grounding in \texttt{deduction-graphs.scm}, the
+installation by \texttt{qed}, and the axioms.
+
+\subsection{Predicativity: staying within NBG}
+
+NBG allows class comprehension only over formulas whose quantifiers range over
+sets.  The tree enforces this at four places.
+\begin{itemize}
+\item The kernel's membership rules for \texttt{comp} refuse a \texttt{comp}
+  whose condition quantifies beyond sets, and the definedness certificate
+  (\texttt{pi--body-shape-total?}, \texttt{primitive-inferences.scm}) treats
+  a \texttt{comp} body as total only when its condition is predicative, and
+  likewise a \texttt{sep}, \texttt{big-union} or \texttt{vnb-lambda} body.
+\item \texttt{comp-predicativity-audit} lists every \texttt{comp} term named by
+  a proof's commands, by an installed formula or by a functoid body whose
+  condition quantifies beyond sets; \texttt{binder-predicativity-audit} does
+  the same for \texttt{sep}, \texttt{big-union} and \texttt{vnb-lambda}
+  (\texttt{proof-debt.scm}).  Both gates are fatal in a strict load and are
+  reported under keep-going.  A certified load sees only the proofs it ran.
+\item The \emph{NBG induction census}: an induction whose body has a binder not
+  confined to sets.  The switch \texttt{*nbg-induction-fatal?*}
+  (\texttt{rule-checkers-logic.scm}) is on, so the checkers of the induction
+  operations refuse such a body, and the load prints one line,
+  \texttt{;; NBG induction census: $n$ impredicative induction(s)}, with $n=0$
+  in a load that completes.
+\end{itemize}
+
+\subsection{The core, written in VNB}
+
+The library \texttt{meta} (\texttt{libraries.sexp}) encodes the kernel in the
+kernel's own language.  \texttt{structure-library/meta-syntax.scm} encodes
+expressions as sets (every node is a list whose first entry is a numeral tag);
+\texttt{meta-core.scm} defines well-formedness, sequents, a set of core rule
+relations and \texttt{DERIVABLE}$(T)$, the least set of sequents closed under
+them, and transcribes the kernel's own rule relations;
+\texttt{meta-cr.scm}, \texttt{meta-ind.scm} and \texttt{meta-def.scm} treat
+contextual rewriting, the induction rules and the definedness clauses;
+\texttt{meta-nbg.scm} transcribes the kernel forms of further rules, with the bridges that show each admissible over the core.  The laws proved of these
+definitions are in the files of the same names in \texttt{theorem-library/}.
+The aim, recorded in \texttt{docs/meta-k2-admissibility-2026-10-08.md}, is
+that each non-oracle kernel rule is \emph{admissible} in the core: whenever
+the hypotheses of an instance are derivable, so is its conclusion.  This is a
+theorem about derivations regarded as data.  It does not give a semantics, and
+it reduces what has to be trusted without removing it.
+
+\subsection{Regression: the key and the exam}
+
+The certificate of a theorem (Section~\ref{sec:certificates}) is valid only
+for the kernel that issued it.  The kernel hash covers the files listed in
+\texttt{*cert-kernel-files*} (\texttt{certificates.scm}): the files that may
+record an inference, \texttt{deduction-graphs}, \texttt{expressions},
+\texttt{sequents} and the four checker files; a change to any of them
+invalidates every certificate.  The script \texttt{vnb-nightly-exam} runs the
+exam each night from cron: every proof is run, the page of every proof is typed back, and the
+certificates are rewritten (Section~\ref{sec:certificates}).
+
+\subsection{What is not covered}
+
+\begin{itemize}
+\item The oracles are trusted code.  Their checkers verify a certificate
+  (\texttt{ineq}, \texttt{sos}) or repeat the decision with a second
+  implementation (Section~\ref{sec:inference-checked}); that adds no proving
+  power and is not a proof of the oracle.
+\item Tactics are untrusted; they act only through kernel operations.
+\item That the Scheme code of a checker computes the relation written for it
+  in the core is not a theorem: the transcription is made by hand, and the
+  design note states that this faithfulness is not provable in VNB without a
+  model of Scheme.
+\item The expression layer, MIT Scheme, the certificate store and its hash,
+  the undo journal and \texttt{qed} are assumed.
+\item The axioms are assumed, and consistency is relative to NBG.  A
+  statement or axiom stamped as definitional or primitive is invisible in the
+  bill; the shelf of primitives is a list kept in the tree.
+\end{itemize}
 
 %% =========================================================
 \section{Certificates}\label{sec:certificates}
@@ -1532,8 +1637,8 @@ running its proof.
 
 \begin{description}
 \item[Certifies] that the proof of a named theorem ran to \texttt{qed} and
-  passed the inference check, on a stated kernel, on a stated date and
-  host, and what that proof depended on.  It is the mechanism by which the
+  passed the inference check, on a stated kernel, and what that proof
+  depended on.  It is the mechanism by which the
   everyday load installs a theorem without running its proof.
 \item[Issued by] a load that ran the proof: the \emph{exam},
   \texttt{VNB\_CERTIFIED=off ./prover --build-band}, which runs every proof
@@ -1544,16 +1649,22 @@ running its proof.
   order.  A record holds the theorem's name, the hash of its statement and
   the statement itself; \texttt{cites}, the names the ledger read off the
   script, each with the hash of its installed statement; \texttt{defs},
-  the defined heads the statement mentions, with their hashes;
-  \texttt{uses}, every macete the kernel saw fire in the proof, with the
-  hash of its rewrite rule, the kernel's own list kept independent of the
-  ledger's; the oracles the script called and the bill and oracles
-  \texttt{qed} announced; and the kernel hash, date and host.  A hash is
+  the closure of the statement's defined heads through their definitions
+  (the bodies of \texttt{def-functoid}s, the axioms of \texttt{def-predicate}s
+  and \texttt{def-constant}s; proven theorems are not followed), with their hashes;
+  \texttt{uses}, every macete the kernel saw fire in the proof (an accessor
+  read by \texttt{slot} among them), and every \texttt{def-functoid} body and
+  predicate defining iff a checker read while accepting an inference, with
+  the hash of the rewrite rule or definition, the kernel's own list kept
+  independent of the ledger's; the oracles the script called and the bill and oracles
+  \texttt{qed} announced; and the kernel hash.  A record carries no date and no host.  A hash is
   the MD5 of the canonical text of a formula, with counter-minted names
   relabelled in order of first occurrence so that it does not depend on
   how much was proved before.  The \emph{kernel hash} is the MD5 of the
-  source of the files that may call \texttt{dg-apply-rule!}, of the
-  deduction-graph file and of the four checker files; tactics, the kit and
+  source of the files in \texttt{*cert-kernel-files*}
+  (\texttt{certificates.scm}): the files that may call
+  \texttt{dg-apply-rule!}, the deduction-graph file, \texttt{expressions},
+  \texttt{sequents} and the four checker files; tactics, the kit and
   the drivers are not in it, because every inference they produce is
   checked.
 \item[Read by] \texttt{sp}, at load, under \texttt{VNB\_CERTIFIED=on}
@@ -1576,9 +1687,11 @@ running its proof.
   record without a \texttt{uses} field, written before 2026-09-26, is not
   valid.
 \item[Does not] certify what the record cannot see: a functoid reduced by
-  \texttt{beta} or an accessor read by \texttt{slot} is not in the key,
-  and the exam is the backstop for those.  A certificate is not a proof:
-  it says a proof ran and was checked, and where.  The design is
+  \texttt{beta} needs no entry (a \texttt{beta} contracts only a lambda record
+  that reached the goal through the statement, a cited theorem or a named
+  unfold, each of which is keyed), and the exam is the backstop for what
+  the kernel hash does not cover: the tactics and the kit.  A certificate is not a proof:
+  it says a proof ran and was checked.  The design is
   \texttt{docs/certificates-2026-09-24.md}.
 \end{description}
 

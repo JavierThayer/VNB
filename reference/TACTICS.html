@@ -98,12 +98,16 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <p>Every tactic is tagged with a <strong>kind</strong>, grounded in the <code>dg-apply-rule!</code> tag it emits (not editorial), so the trusted base is legible at a glance:</p>
 <ul><li><strong>rule</strong> -- a single primitive KERNEL inference rule (the fixed trusted base): <code>di</code> <code>ai</code> <code>pbc</code> <code>oi-l</code> <code>oi-r</code> <code>ew</code> <code>ci</code> <code>ti</code> <code>ii</code> <code>ui</code> <code>ni</code> <code>tfi</code> <code>tfi3</code> <code>ass</code> <code>ta</code> <code>inst</code> <code>detach!</code> <code>bc</code> <code>cut</code> <code>wk</code> <code>ce</code> <code>te</code> <code>ie</code> <code>ue</code> <code>mac</code> <code>macm</code> <code>mac-h</code> <code>subst</code> <code>rfl</code> <code>qrfl</code> <code>beta</code> <code>lam-b</code> <code>lam-b-h</code> <code>lam-t</code> <code>nth-r</code> <code>len-r</code> <code>if-true</code> <code>if-false</code> <code>sep-set</code> <code>sep-mi</code> <code>sep-me</code> <code>comp-mi</code> <code>comp-me</code> <code>iota-d</code> <code>iota-e</code> <code>bu-set</code> <code>bu-mi</code> <code>bu-me</code> </li><li><strong>oracle</strong> -- a trusted DECISION PROCEDURE run as a black box, sound+complete on its domain but trusted: <code>arith</code> <code>rs</code> <code>crs</code> <code>simp</code> <code>ineq</code> <code>sos</code> </li><li><strong>composite</strong> -- a Scheme procedure that only CHAINS kernel rules, adding no new inference rule: <code>type-term</code> <code>ew-poly</code> <code>expand</code> <code>zero-it</code> <code>preamble</code> <code>inst+</code> <code>mp</code> <code>grind-and-mp</code> <code>fact</code> <code>bc*</code> <code>mac-h*</code> <code>grind</code> <code>wbc</code> <code>calc</code> <code>scout-run</code> <code>minimize!</code> <code>obtain</code> <code>have!</code> <code>vlet</code> </li><li><strong>meta</strong> -- no deduction: session / search / navigation: <code>sp</code> <code>qed</code> <code>save-proof</code> <code>replay-proof</code> <code>scout</code> <code>scout-show</code> <code>backup-one</code> <code>undo</code> </li></ul>
 <p>The <code>rule</code> set is the fixed kernel; a proof&#x27;s trust surface is exactly its <code>rule</code> steps plus whichever <code>oracle</code>s and asserted premises it cites.  You can read any finished proof&#x27;s actual rule inventory off its deduction graph (each node records its justifying rule).</p>
+<h3 id="TACTICS__the-core-commands-core-replay">The core commands (core replay)</h3>
+<p>A CORE PAGE (<code>docs/core-page-format.md</code>) records a finished proof in 56 names only: one name per kernel entry point (48 rules), the five oracles (<code>arith</code>, <code>crs</code>, <code>rs</code>, <code>ineq</code>, <code>sos</code>), and the structural <code>sp</code>, <code>qed</code>, <code>at-node</code>.  The exam lowers every proof to its core page and replays it with these names alone.  Each step is ONE call of its entry point; the surface command of the same name may do more (accept an assumption number, close owed leaves).  The names: <code>di</code> <code>ai</code> <code>pbc</code> <code>oi-l</code> <code>oi-r</code> <code>ew</code> <code>ci</code> <code>ti</code> <code>ii</code> <code>ui</code> <code>ni</code> <code>tfi</code> <code>tfi3</code> <code>ass</code> <code>ta</code> <code>inst</code> <code>detach!</code> <code>bc</code> <code>cut</code> <code>wk</code> <code>ce</code> <code>te</code> <code>ie</code> <code>ue</code> <code>mac</code> <code>macm</code> <code>mac-h</code> <code>subst</code> <code>rfl</code> <code>qrfl</code> <code>beta</code> <code>lam-t</code> <code>lam-b</code> <code>lam-b-h</code> <code>nth-r</code> <code>len-r</code> <code>if-true</code> <code>if-false</code> <code>sep-set</code> <code>sep-mi</code> <code>sep-me</code> <code>comp-mi</code> <code>comp-me</code> <code>iota-d</code> <code>iota-e</code> <code>bu-set</code> <code>bu-mi</code> <code>bu-me</code> <code>arith</code> <code>crs</code> <code>rs</code> <code>ineq</code> <code>sos</code> <code>sp</code> <code>qed</code> <code>at-node</code></p>
+<p>An entry below carries the line <em>Core:</em> when its name is one of them; the core names with no entry here: <code>tfi</code> <code>tfi3</code> <code>iota-e</code> <code>at-node</code></p>
 <p>Each entry below also carries a <strong>Uses</strong> line: every kernel operation the command&#x27;s own code can cause to be recorded, those recorded by the procedures it calls included.  It is the bound on what the command can do, whether or not any proof in the library exercises it, and it is measured from the source rather than declared.  One further set is common to every command and is stated once instead: the hook that runs after any command which changed the proof, to close the definedness sequents an instantiation left owed.  <em>Kernel map</em> has that set, the method, and the per-command table.</p>
 <h3 id="TACTICS__starting-finishing-a-proof">Starting &amp; finishing a proof</h3>
 <h4 id="TACTICS__sp">sp</h4>
 <pre>(sp goal)</pre>
 <p>Start a proof of `goal&#x27; (a &quot;string&quot;, a raw S-expr, or a wff); clears the script.</p>
 <p><em>Kind:</em> <code>meta</code></p>
+<p><em>Core:</em> <code>sp</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> no kernel operation: it records no inference</p>
 <p><em>When useful:</em> starting a new proof</p>
 <p>Begin a new proof: state what you want to prove.  The goal may be a &quot;string&quot; in surface syntax, a raw S-expr, or an already-built wff (e.g. (wff &quot;...&quot;) or (make-wff &#x27;(...)));  sp coerces a string/S-expr for you.  This becomes your one open goal and clears any previous script.  (Technically: set the proof goal.)</p>
@@ -111,6 +115,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(qed &#x27;name)</pre>
 <p>Install the finished proof as theorem `name&#x27; and save its replayable script.</p>
 <p><em>Kind:</em> <code>meta</code></p>
+<p><em>Core:</em> <code>qed</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> no kernel operation: it records no inference</p>
 <p><em>When useful:</em> no open goals remain -- record the result</p>
 <p>Finish: once there are no open goals, this records the result as a named theorem you can cite later, and saves the replayable script.  (Technically: install-theorem! plus script capture; reports the asserted facts the proof still rests on, `proven modulo {...}&#x27;.)</p>
@@ -131,6 +136,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(di)</pre>
 <p>Direct inference: split an AND goal, move an IMPLIES antecedent into the assumptions, or introduce a fresh eigenvariable for a leading FORALL.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>(forall-intro implies-intro and-intro)</code>)</p>
+<p><em>Core:</em> <code>di</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>and-intro</code> <code>forall-intro</code> <code>iff-intro</code> <code>implies-intro</code> <code>not-intro</code></p>
 <p><em>When useful:</em> the goal head is AND / IMPLIES / FORALL -- decompose before deciding</p>
 <p>Break the goal into its pieces.  A conjunction <code>A and B&#x27; splits into two goals, A and B.  An implication </code>P implies Q&#x27; assumes P (P becomes a hypothesis you may use) and leaves you to prove Q.  A universal <code>for all x, ...&#x27; fixes an arbitrary x (a new constant standing for </code>any x&#x27;) and asks for the statement at that x.  Apply it repeatedly until the goal is a single atomic statement.  (Technically: the goal-side introduction rules for AND / IMPLIES / FORALL; the constant introduced for a FORALL is an eigenvariable.  Pairs with mac, which unfolds a definition in the goal.)</p>
@@ -138,6 +144,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(pbc)</pre>
 <p>Proof by contradiction: assume the goal&#x27;s negation, prove FALSITY.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>proof-by-contradiction</code>)</p>
+<p><em>Core:</em> <code>pbc</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>proof-by-contradiction</code></p>
 <p><em>When useful:</em> a direct argument stalls and assuming the negation gives something concrete to work with</p>
 <p>Argue by contradiction: assume the goal is false and derive an absurdity.  (Technically: classical reductio -- adds the negation of the goal as a hypothesis and changes the goal to FALSITY.)</p>
@@ -145,6 +152,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(oi-l)</pre>
 <p>OR-intro left: reduce an (OR a b) goal to a.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>or-intro-left</code>)</p>
+<p><em>Core:</em> <code>oi-l</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>or-intro-left</code></p>
 <p><em>When useful:</em> the goal is (OR a b) and the LEFT alternative is provable</p>
 <p>Prove a disjunction `A or B&#x27; by proving the LEFT alternative, A.  (Technically: or-introduction, left.)</p>
@@ -152,6 +160,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(oi-r)</pre>
 <p>OR-intro right: reduce an (OR a b) goal to b.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>or-intro-right</code>)</p>
+<p><em>Core:</em> <code>oi-r</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>or-intro-right</code></p>
 <p><em>When useful:</em> the goal is (OR a b) and the RIGHT alternative is provable</p>
 <p>Prove a disjunction `A or B&#x27; by proving the RIGHT alternative, B.  (Technically: or-introduction, right.)</p>
@@ -159,6 +168,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(ew term)</pre>
 <p>Existential witness: discharge a FORSOME goal by supplying the witness term.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>forsome-intro</code>)</p>
+<p><em>Core:</em> <code>ew</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>forsome-intro</code></p>
 <p><em>When useful:</em> the goal is FORSOME and you have a witness term in mind</p>
 <p>Prove <code>there exists an x with property P&#x27; by exhibiting a specific witness: you supply the term, and the goal becomes </code>P holds of that term&#x27;.  The everyday `take x = ...&#x27; step.  (Technically: existential introduction for a FORSOME goal.)</p>
@@ -166,6 +176,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(ci)</pre>
 <p>Cartesian intro: prove a CARTESIAN-product membership component-wise.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>cartesian-intro</code>)</p>
+<p><em>Core:</em> <code>ci</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>cartesian-intro</code></p>
 <p><em>When useful:</em> the goal is membership in a CARTESIAN product</p>
 <p>Prove that a pair (or tuple) belongs to a Cartesian product A x B by proving each coordinate lies in its factor.  (Technically: Cartesian-membership introduction, component-wise.)</p>
@@ -173,6 +184,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(ti)</pre>
 <p>Tuple intro: prove a tuple/LIST membership component-wise.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>tuples-intro</code>)</p>
+<p><em>Core:</em> <code>ti</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>tuples-intro</code></p>
 <p><em>When useful:</em> the goal is membership in a set of tuples / LIST</p>
 <p>Prove that a list belongs to the set of tuples over A by proving each entry lies in A.  (Technically: tuple-membership introduction, component-wise.)</p>
@@ -180,6 +192,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(ii)</pre>
 <p>Intersection intro: prove (IN x (INTERSECTION ...)) for each branch.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>intersection-intro</code>)</p>
+<p><em>Core:</em> <code>ii</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>intersection-intro</code></p>
 <p><em>When useful:</em> the goal is membership in an INTERSECTION</p>
 <p>Prove that x lies in an intersection of sets by proving it lies in each of them.  (Technically: intersection-membership introduction.)</p>
@@ -187,6 +200,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(ui k)</pre>
 <p>Union intro: reduce a goal (IN x (UNION ...)) to membership of x in the k-th set (1-based).</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>union-intro</code>)</p>
+<p><em>Core:</em> <code>ui</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>union-intro</code></p>
 <p><em>When useful:</em> the goal is membership in a UNION and you know which branch</p>
 <p>Prove that x lies in a union of sets by proving it lies in the k-th one (you choose which).  (Technically: union-membership introduction at branch k.)</p>
@@ -194,6 +208,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(ni)</pre>
 <p>Natural-number induction on the goal&#x27;s leading FORALL over NN.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <a class="x" href="THEOREMS.html#t-nn-induction"><code>nn-induction</code></a>)</p>
+<p><em>Core:</em> <code>ni</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <a class="x" href="THEOREMS.html#t-nn-induction"><code>nn-induction</code></a></p>
 <p><em>When useful:</em> the goal is `forall n in NN, P(n)&#x27;</p>
 <p>Prove `for all natural numbers n, P(n)&#x27; by induction: show P(0), and that P(n) implies P(n+1).  (Technically: natural-number induction on the goal&#x27;s leading FORALL over NN.)</p>
@@ -202,6 +217,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(ai hyp)</pre>
 <p>Antecedent inference: decompose a cited assumption -- AND-split, OR-into-cases, or FORSOME-elimination to a fresh eigenvariable.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>(and-elim or-elim forsome-elim)</code>)</p>
+<p><em>Core:</em> <code>ai</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>and-elim</code> <code>forsome-elim</code> <code>iff-elim</code> <code>not-elim</code> <code>or-elim</code></p>
 <p><em>When useful:</em> a hypothesis is an AND / OR / FORSOME to break apart</p>
 <p>Break a hypothesis into its pieces -- the mirror image of di, but on the assumptions instead of the goal.  From a hypothesis <code>A and B&#x27; you get both A and B; from </code>A or B&#x27; you split into two cases (prove the goal in each); from `there exists x, P(x)&#x27; you get a fresh name for such an x together with P(x).  Cite the hypothesis by its number in the display, its formula, or a &quot;string&quot;.  (Technically: the hypothesis-side elimination rules for AND / OR / FORSOME; the fresh name is an eigenvariable.)</p>
@@ -209,6 +225,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(ass)</pre>
 <p>Close the goal by an assumption alpha-equivalent to it.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>assumption</code>)</p>
+<p><em>Core:</em> <code>ass</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>assumption</code></p>
 <p><em>When useful:</em> the goal already appears (up to bound-var renaming) among the hypotheses</p>
 <p>Finish the goal because it is already one of your hypotheses -- the <code>that is exactly what we assumed&#x27; step.  Renaming of dummy/bound variables doesn&#x27;t matter (</code>there exists x, P(x)&#x27; closes `there exists y, P(y)&#x27;).  (Technically: the assumption rule, matching up to alpha-equivalence.)</p>
@@ -216,6 +233,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(inst forall-hyp term)</pre>
 <p>Instantiate a universally-quantified assumption at `term&#x27;, adding the instance to context.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>forall-elim</code>)</p>
+<p><em>Core:</em> <code>inst</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>forall-elim</code></p>
 <p><em>When useful:</em> you have a forall-hypothesis and a specific value to use it at</p>
 <p>Use a `for all x, ...&#x27; hypothesis at a particular value: you supply the term, and the statement with x replaced by that term is added to your hypotheses.  (Technically: universal instantiation of an assumption.)</p>
@@ -244,6 +262,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(detach! impl)</pre>
 <p>Forward modus ponens: from an in-context (IMPLIES A B) whose A is also in context, leave B in context.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>detach</code>)</p>
+<p><em>Core:</em> <code>detach!</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>detach</code></p>
 <p><em>When useful:</em> you have both P and (P =&gt; Q) in context and want Q</p>
 <p>If you have both <code>P&#x27; and </code>P implies Q&#x27; among your hypotheses, this adds `Q&#x27; to them.  It grows what you KNOW (the hypotheses) rather than changing the goal -- the forward counterpart of bc.  (Technically: forward modus ponens, the kernel rule pi-detach!; sound since P and P=&gt;Q give Q.)</p>
@@ -258,6 +277,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(ce hyp k)</pre>
 <p>Cartesian elim: project the k-th component out of a CARTESIAN-membership assumption.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>cartesian-elim</code>)</p>
+<p><em>Core:</em> <code>ce</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>cartesian-elim</code></p>
 <p><em>When useful:</em> a hypothesis is CARTESIAN-product membership</p>
 <p>From a hypothesis that a tuple lies in a Cartesian product, extract that its k-th coordinate lies in the k-th factor.  (Technically: Cartesian-membership elimination, k-th projection.)</p>
@@ -265,6 +285,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(te hyp k)</pre>
 <p>Tuple elim: project the k-th component out of a tuple-membership assumption.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>tuples-elim</code>)</p>
+<p><em>Core:</em> <code>te</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>tuples-elim</code></p>
 <p><em>When useful:</em> a hypothesis is tuple membership</p>
 <p>From a hypothesis that something is a tuple over A, extract that its k-th entry lies in A.  (Technically: tuple-membership elimination, k-th projection.)</p>
@@ -272,6 +293,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(ie hyp k)</pre>
 <p>Intersection elim: extract the k-th branch of an INTERSECTION-membership assumption.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>intersection-elim</code>)</p>
+<p><em>Core:</em> <code>ie</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>intersection-elim</code></p>
 <p><em>When useful:</em> a hypothesis is INTERSECTION membership</p>
 <p>From a hypothesis that x lies in an intersection, extract that x lies in the k-th set.  (Technically: intersection-membership elimination.)</p>
@@ -279,6 +301,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(ue hyp)</pre>
 <p>Union elim: split a cited (IN x (UNION ...)) membership assumption into one subgoal per set -- union-side case analysis, the dual of `ui&#x27;.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>union-elim</code>)</p>
+<p><em>Core:</em> <code>ue</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>union-elim</code></p>
 <p><em>When useful:</em> a hypothesis is UNION membership -- case-split on it</p>
 <p>From a hypothesis that x lies in a union, split into cases -- one for each set x might belong to -- and prove the goal in each.  (Technically: union-membership elimination, case analysis; the dual of ui.)</p>
@@ -286,6 +309,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(cut formula)</pre>
 <p>Cut: prove <code>formula&#x27; as a side subgoal, then continue the main goal with </code>formula&#x27; added as an assumption (Gentzen cut).</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>cut</code>)</p>
+<p><em>Core:</em> <code>cut</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>cut</code></p>
 <p><em>When useful:</em> you want to prove a lemma on the spot, then use it</p>
 <p>Introduce a lemma you prove on the spot.  You state a formula; it becomes a side goal to prove, and on the main line you may then use it as a hypothesis.  The standard `we first show that ..., and now using it ...&#x27; move.  (Technically: Gentzen&#x27;s cut -- nothing is left assumed-but-unproved, the side goal discharges it.)</p>
@@ -293,6 +317,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(wk hyp)</pre>
 <p>Weaken: drop a cited assumption from the context to tidy the hypothesis list.  `hyp&#x27; may be a formula, a &quot;string&quot;, or a 1-based assumption index.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>weakening</code>)</p>
+<p><em>Core:</em> <code>wk</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>weakening</code></p>
 <p><em>When useful:</em> the hypothesis list is cluttered with something no longer needed</p>
 <p>Discard a hypothesis you no longer need, to keep the assumption list readable.  (Technically: weakening -- removing a hypothesis is always sound.)</p>
@@ -306,6 +331,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(mac &#x27;name)</pre>
 <p>Rewrite the GOAL with an equivalence macete (unfold a definition, apply an iff/=/== law).  Fires only where the macete&#x27;s side-conditions already hold in context.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>macete</code>)</p>
+<p><em>Core:</em> <code>mac</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>cartesian-decompose</code> <code>macete</code> <code>tuple-equality-decompose</code></p>
 <p><em>When useful:</em> the GOAL has a defined predicate to unfold / an identity to apply, side-conditions already met</p>
 <p>Rewrite the goal using a definition or a known equivalence/equality (a `macete&#x27;).  For instance, replace a defined predicate by what it stands for, or apply an identity.  It fires only where the law&#x27;s side-conditions already hold in your hypotheses; where they don&#x27;t, it leaves that spot untouched and looks deeper inside.  (Technically: goal-side rewriting by an equivalence/equality macete; all-or-nothing -- it does NOT spawn unmet side-conditions as goals.  Its hypothesis-side cousin is mac-h; the minor-premise-spawning variant is macm.)</p>
@@ -323,6 +349,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(macm &#x27;name)</pre>
 <p>Like mac, but a CONDITIONAL macete fires even when its side-conditions are not yet in context: each unmet condition is left as a new subgoal.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>macete</code>)</p>
+<p><em>Core:</em> <code>macm</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>cartesian-decompose</code> <code>macete</code> <code>tuple-equality-decompose</code></p>
 <p><em>When useful:</em> the GOAL has a CONDITIONAL identity/definition to apply whose side-conditions you are willing to leave as subgoals</p>
 <p>The minor-premises variant of mac.  mac only rewrites where the law&#x27;s side-conditions ALREADY hold; macm rewrites regardless, spawning each unmet condition as a fresh goal to discharge -- the goal-side mirror of what mac-h already does on hypotheses.  This is what makes conditional finite-sum lemmas (finsum-<em>, sum-</em>, ...) usable as goal rewrites instead of only forward via fact.  (Technically: goal-side rewriting by a conditional macete; it emits the SAME single `macete&#x27; kernel rule as mac -- the unmet conditions become that one step&#x27;s minor-premise subgoals.  It introduces NO new inference rule.)</p>
@@ -330,6 +357,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(mac-h &#x27;name hyp)</pre>
 <p>Rewrite a cited ASSUMPTION in place with an equivalence macete; any side-condition not already in context is spawned as a new subgoal.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>macete-hyp</code>)</p>
+<p><em>Core:</em> <code>mac-h</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>macete-hyp</code></p>
 <p><em>When useful:</em> a HYPOTHESIS has a definition to unfold / an equivalence to apply</p>
 <p>Like mac, but rewrites inside one of your HYPOTHESES instead of the goal -- replacing it by an equivalent statement (e.g. unfolding a definition in a hypothesis).  If the rewrite law has a side-condition you haven&#x27;t established, that side-condition becomes a new goal to prove.  (Technically: hypothesis-side rewriting by Leibniz substitution of equivalents; sound because the macete is a genuine equivalence under its side-conditions, which are spawned as goals.)</p>
@@ -377,6 +405,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(subst &#x27;(= s t))  |  (subst &#x27;(== s t))</pre>
 <p>Rewrite s -&gt; t throughout the goal, using an equation s = t -- or a quasi-equation s == t -- that is in context, in EITHER orientation (Leibniz substitution).  Reaches every position, operator (head) position included; a binder whose variable the equation mentions is not entered.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>eq-subst</code>)</p>
+<p><em>Core:</em> <code>subst</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>eq-subst</code></p>
 <p><em>When useful:</em> you have an equation s = t (or a quasi-equation s == t) in context and want to rewrite the goal by it -- wherever the term occurs, operator position included</p>
 <p>Use an equation among your hypotheses to replace s by t everywhere in the goal.  BOTH equalities license it: <code>=&#x27; is VNB&#x27;s partial equality, and </code>s = t&#x27; already entails s = s and t = t, so t is defined wherever s was and the rewrite never replaces a defined term by an undefined one; <code>==&#x27; is quasi-equality (same definedness, equal where defined), which is a congruence and so substitutes exactly as </code>=&#x27; does -- which you need, since the partial-op recursion and bridge facts are stated with `==&#x27;.  The head you pass need not match the head in context, and neither need the orientation: all four of (= s t), (= t s), (== s t), (== t s) are searched for, and the goal is always rewritten s -&gt; t.  LIMIT: the rewrite walk reaches argument positions only, so it is a silent no-op on a term in OPERATOR position -- (subst &#x27;(= (VADD md) ...)) will not touch the goal ((VADD md) x y).  Structure accessors are almost always in operator position; use the equation as a macete there (mac on the goal, mac-h on a hypothesis).  (Technically: Leibniz substitution from an in-context equality or quasi-equality.)</p>
@@ -384,6 +413,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(beta)</pre>
 <p>Beta-reduce a functoid application in the goal.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>functoid-beta</code>)</p>
+<p><em>Core:</em> <code>beta</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>functoid-beta</code></p>
 <p><em>When useful:</em> the goal has a functoid applied to an argument</p>
 <p>Simplify a function-expression applied to an argument by substituting the argument into its body.  (Technically: beta-reduction of a functoid application in the goal.)</p>
@@ -391,6 +421,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(nth-r)</pre>
 <p>Reduce an NTH applied to a literal LIST in the goal.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>nth-reduce</code>)</p>
+<p><em>Core:</em> <code>nth-r</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>nth-reduce</code></p>
 <p><em>When useful:</em> the goal has NTH of a literal LIST</p>
 <p>Simplify `the k-th entry of an explicit list [a1, a2, ...]&#x27; to that entry.  (Technically: reduce NTH applied to a literal LIST.)</p>
@@ -398,6 +429,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(len-r)</pre>
 <p>Reduce a LENGTH applied to a literal LIST in the goal.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>length-reduce</code>)</p>
+<p><em>Core:</em> <code>len-r</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>length-reduce</code></p>
 <p><em>When useful:</em> the goal has LENGTH of a literal LIST</p>
 <p>Simplify `the length of an explicit list [a1, ..., an]&#x27; to the count n.  Structural (the dual of nth-r): the spine of a list literal is total, so its length is n regardless of whether the entries are defined.</p>
@@ -405,6 +437,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(rfl)</pre>
 <p>Close a reflexive equality goal (t = t).</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>reflexivity</code>)</p>
+<p><em>Core:</em> <code>rfl</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>reflexivity</code></p>
 <p><em>When useful:</em> the goal is `t = t&#x27; with t manifestly defined</p>
 <p>Close a goal `t = t&#x27; -- a thing equals itself.  (Technically: reflexivity of equality.)</p>
@@ -412,6 +445,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(qrfl)</pre>
 <p>Quasi-reflexivity: close t = t under the partial-equality definedness reading.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>quasi-reflexivity</code>)</p>
+<p><em>Core:</em> <code>qrfl</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>quasi-reflexivity</code></p>
 <p><em>When useful:</em> the goal is `t = t&#x27; but t might be UNDEFINED (partial =)</p>
 <p>Close <code>t = t&#x27; under the partial-equality reading, where asserting t = t also asserts that t is DEFINED.  Use this rather than rfl when t might be undefined.  (Technically: quasi-reflexivity; see the partial-equality convention, where </code>t = t&#x27; is the definedness predicate.)</p>
@@ -427,6 +461,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(arith)</pre>
 <p>Discharge a ground arithmetic goal by evaluation.</p>
 <p><em>Kind:</em> <code>oracle</code> (emits <code>(arith-ground arith-forsome arith-simplify)</code>)</p>
+<p><em>Core:</em> <code>arith</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>arith-forsome</code> <code>arith-ground</code> <code>arith-simplify</code> <code>cartesian-decompose</code> <code>eq-subst</code> <code>macete</code> <code>tuple-equality-decompose</code></p>
 <p><em>When useful:</em> the goal is ground arithmetic -- no variables</p>
 <p>Close a goal that is a concrete numerical fact with no variables -- e.g. 2 + 3 = 5, or 7 in NN -- by just computing it.  (Technically: decision by ground arithmetic evaluation.)</p>
@@ -434,6 +469,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(rs)</pre>
 <p>Ring-simplify the goal (normal form over the ambient ring).</p>
 <p><em>Kind:</em> <code>oracle</code> (emits <code>ring-simplify</code>)</p>
+<p><em>Core:</em> <code>rs</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>ring-simplify</code></p>
 <p><em>When useful:</em> the goal is a (possibly non-commutative) ring-word identity</p>
 <p>Simplify the goal to a normal form in the ambient ring (which need not be commutative).  The non-commutative companion of crs.  (Technically: ring-simplify to a canonical word form.)</p>
@@ -441,6 +477,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(crs)</pre>
 <p>Commutative-ring decision procedure: prove a polynomial identity over ZZ[generators].  Expands literal powers, so (x+y)^2 = ... closes directly.</p>
 <p><em>Kind:</em> <code>oracle</code> (emits <code>comm-ring-simplify</code>)</p>
+<p><em>Core:</em> <code>crs</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>comm-ring-simplify</code></p>
 <p><em>When useful:</em> the goal is a commutative-ring identity, e.g. (x+y)^2 = x^2+2xy+y^2</p>
 <p>Prove a polynomial identity that holds in EVERY commutative ring -- e.g. (x+y)^2 = x^2 + 2xy + y^2 -- by reducing both sides to a canonical sum-of-monomials form and checking they agree.  A genuine decision procedure: a true commutative-ring identity closes, a non-identity is refused.  Literal powers are expanded for you.  (Technically: normal form over the free commutative ring ZZ[generators].)</p>
@@ -487,6 +524,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(ineq i1 i2 ...)</pre>
 <p>Close a linear-inequality goal over RR (&lt;= &lt; &gt; &gt;= = between RR terms) as a consequence of the named assumptions (1-based indices), via the Fourier-Motzkin/Farkas oracle.  Linearizes over + - * and the binplus/binneg/bintimes aliases; every MAXIMAL non-arithmetic subterm is an atom that must be certified in RR.  (Does NOT see through a generic ring&#x27;s (ADD s)/(MUL s) -- those become opaque atoms.)</p>
 <p><em>Kind:</em> <code>oracle</code> (emits <code>ineq</code>)</p>
+<p><em>Core:</em> <code>ineq</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>ineq</code></p>
 <p><em>When useful:</em> a LINEAR &lt;= / &lt; over RR that follows from inequalities you can cite</p>
 <p>Close a LINEAR inequality over the reals that follows from inequalities you cite (by their hypothesis numbers) -- by chaining them, adding them, and scaling by positive constants.  Anything that is not built from + - and multiplication-by-constants is treated as an opaque quantity, so it handles e.g. the triangle inequality where the distances are unknowns.  For NONLINEAR (polynomial) inequalities use sos instead.  (Technically: Fourier-Motzkin / Farkas over the ordered field RR; every atom must be certified real.)</p>
@@ -494,6 +532,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(sos &quot;c1&quot; &quot;c2&quot; ...)</pre>
 <p>Sum-of-squares closer for a nonstrict polynomial inequality a &lt;= b over RR (the nonlinear companion of (ineq)).  You supply the terms to be SQUARED; it finds the nonnegative coefficients.  (tactics &#x27;sos) for the worked example.</p>
 <p><em>Kind:</em> <code>oracle</code> (emits <code>sos</code>)</p>
+<p><em>Core:</em> <code>sos</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>sos</code></p>
 <p><em>When useful:</em> a NONSTRICT POLYNOMIAL &lt;= over RR (the nonlinear cousin of ineq)</p>
 <p>A sum-of-squares closer.  To prove  a &lt;= b  it is enough to exhibit b - a  as a sum of squares (each obviously &gt;= 0), reducing the inequality to an algebraic identity.  You hand sos the terms to be SQUARED -- the c_i, NOT the squares -- and it solves for nonnegative rationals lambda_i with</p>
@@ -533,6 +572,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(ta &#x27;name)</pre>
 <p>Theorem-assumption: bring the named installed theorem into context as an assumption.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>theorem-assumption</code>)</p>
+<p><em>Core:</em> <code>ta</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>theorem-assumption</code></p>
 <p><em>When useful:</em> you want a library theorem available as a hypothesis</p>
 <p>Bring an already-proved theorem into your current hypotheses so you can use it (instantiate it, detach from it, ...).  (Technically: adds the named installed theorem as an assumption.)</p>
@@ -547,6 +587,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(bc impl)</pre>
 <p>Backchain the goal through an (IMPLIES A B) already in context: if the goal matches B, the new goal is A.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>backchain</code>)</p>
+<p><em>Core:</em> <code>bc</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>backchain</code></p>
 <p><em>When useful:</em> you have (P =&gt; Q) in context and the goal is Q</p>
 <p>Work backwards through an implication you already have.  If <code>P implies Q&#x27; is among your hypotheses and your goal is Q, this reduces the goal to proving P.  The everyday </code>to get Q it&#x27;s enough to show P&#x27;.  (Technically: backchaining the goal through an in-context implication whose conclusion matches.)</p>
@@ -562,6 +603,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(lam-t)</pre>
 <p>VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to TWO obligations -- the body, and that the domain is a set.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>lambda-type</code>)</p>
+<p><em>Core:</em> <code>lam-t</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>lambda-type</code></p>
 <p><em>When useful:</em> the goal types a VNB-LAMBDA into FUN(A,B)</p>
 <p>Show that a function defined by a formula (`x |-&gt; ...&#x27;) maps A into B -- reduces to showing that, for an arbitrary input in A, the value lies in B, AND that A is a set.  The second is not a formality: carrying the domain in the term stops one lambda from typing into FUN(A,B) for every A, but says nothing about A being a set, and a lambda over a proper class is not a function.  The lambda&#x27;s declared domain must also be the FUN&#x27;s, or the rule does not apply at all.  (Technically: VNB-LAMBDA typing into FUN A B.)</p>
@@ -569,6 +611,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(lam-b)</pre>
 <p>VNB-LAMBDA beta: reduce an applied lambda to its substituted body.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>lambda-beta</code>)</p>
+<p><em>Core:</em> <code>lam-b</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>lambda-beta</code></p>
 <p><em>When useful:</em> the goal has a VNB-LAMBDA applied to an argument</p>
 <p>Simplify a function `x |-&gt; e(x)&#x27; applied to an argument a to e(a) -- the body with the argument substituted in.  A lambda carries its DOMAIN, and it is only defined on that domain, so the reduction is licensed only where a is known to be in it: if the membership is neither in the context nor supplied by an enclosing binder, the step still fires but leaves (IN a A) as an extra subgoal.  Land the typing fact BEFORE the lam-b and no subgoal appears.  (Technically: VNB-LAMBDA beta-reduction.)</p>
@@ -576,12 +619,14 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(lam-b-h hyp)</pre>
 <p>VNB-LAMBDA beta in a cited ASSUMPTION -- what mac-h is to mac.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>lambda-beta-hyp</code>)</p>
+<p><em>Core:</em> <code>lam-b-h</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>lambda-beta-hyp</code></p>
 <p>Beta-reduce an applied lambda inside a hypothesis, in place.  Needed because a <code>fact&#x27; that instantiates a theorem&#x27;s function variable at a lambda lands the APPLIED lambda in the CONTEXT, where the goal-side </code>lam-b&#x27; cannot reach it: union-of-opens-open at the identity family g := x |-&gt; x lands is-open(md, big-union(i, fam, (x |-&gt; x)(i))).  Without this the proof must detour through a cut beta-equation and a subst.  Cites nothing, so it adds no debt.</p>
 <h4 id="TACTICS__sep-set">sep-set</h4>
 <pre>(sep-set)</pre>
 <p>Separation sethood: the separation set {x in A | p} is a set.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>sep-sethood</code>)</p>
+<p><em>Core:</em> <code>sep-set</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>sep-sethood</code></p>
 <p><em>When useful:</em> the goal asserts a separation set { x in A | p } is a set</p>
 <p>Show that a set-builder set {x in A | p(x)} is genuinely a set.  (Technically: separation sethood -- a subclass of a set is a set.)</p>
@@ -589,6 +634,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(sep-mi)</pre>
 <p>Separation membership intro: prove (IN t {x in A | p}).</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>sep-mem-intro</code>)</p>
+<p><em>Core:</em> <code>sep-mi</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>sep-mem-intro</code></p>
 <p><em>When useful:</em> the goal is membership in a separation set { x in A | p }</p>
 <p>Prove that a term t belongs to {x in A | p(x)} by showing t lies in A and satisfies the condition p.  (Technically: separation-membership introduction.)</p>
@@ -596,6 +642,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(sep-me hyp)</pre>
 <p>Separation membership elim: split a separation-membership assumption into A-membership and the predicate.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>sep-mem-elim</code>)</p>
+<p><em>Core:</em> <code>sep-me</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>sep-mem-elim</code></p>
 <p><em>When useful:</em> a hypothesis is separation-set membership -- unpack it</p>
 <p>From a hypothesis that t belongs to {x in A | p(x)}, extract the two facts it packs: t lies in A, and p(t) holds.  (Technically: separation-membership elimination.)</p>
@@ -603,6 +650,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(comp-mi)</pre>
 <p>Comprehension membership intro.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>comp-mem-intro</code>)</p>
+<p><em>Core:</em> <code>comp-mi</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>comp-mem-intro</code></p>
 <p><em>When useful:</em> the goal is comprehension-set membership</p>
 <p>Prove that something belongs to a comprehension set by establishing the set&#x27;s defining condition for it.  (Technically: comprehension-membership introduction.)</p>
@@ -610,6 +658,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(comp-me hyp)</pre>
 <p>Comprehension membership elim.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>comp-mem-elim</code>)</p>
+<p><em>Core:</em> <code>comp-me</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>comp-mem-elim</code></p>
 <p><em>When useful:</em> a hypothesis is comprehension-set membership</p>
 <p>From a comprehension-membership hypothesis, extract its defining condition.  (Technically: comprehension-membership elimination.)</p>
@@ -617,6 +666,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(iota-d term)</pre>
 <p>Definite-description: discharge the IOTA uniqueness obligation for `term&#x27;.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>iota-def</code>)</p>
+<p><em>Core:</em> <code>iota-d</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>iota-def</code></p>
 <p><em>When useful:</em> the goal involves IOTA and you must discharge its uniqueness obligation</p>
 <p>Justify `the unique x such that p(x)&#x27; (a definite description) by proving that exactly one such x exists.  (Technically: IOTA -- discharge the uniqueness obligation for the described term.)</p>
@@ -624,6 +674,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(bu-set)</pre>
 <p>Big-union sethood.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>big-union-sethood</code>)</p>
+<p><em>Core:</em> <code>bu-set</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>big-union-sethood</code></p>
 <p><em>When useful:</em> the goal asserts a BIG-UNION is a set</p>
 <p>Show that a big union (the union of an indexed family of sets) is itself a set.  (Technically: big-union sethood.)</p>
@@ -631,6 +682,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(bu-mi w)</pre>
 <p>Big-union membership intro via the index witness w.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>big-union-mem-intro</code>)</p>
+<p><em>Core:</em> <code>bu-mi</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>big-union-mem-intro</code></p>
 <p><em>When useful:</em> the goal is BIG-UNION membership -- you have the index witness</p>
 <p>Prove that an element lies in a big union by exhibiting one index w whose set already contains it.  (Technically: big-union-membership introduction via the index witness.)</p>
@@ -638,6 +690,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(bu-me hyp)</pre>
 <p>Big-union membership elim.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>big-union-mem-elim</code>)</p>
+<p><em>Core:</em> <code>bu-me</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>big-union-mem-elim</code></p>
 <p><em>When useful:</em> a hypothesis is BIG-UNION membership -- obtain its index</p>
 <p>From a hypothesis that an element lies in a big union, obtain an index whose set contains it (a fresh name for that index).  (Technically: big-union-membership elimination.)</p>
@@ -646,6 +699,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(if-true t)</pre>
 <p>Reduce an (IF p a b) term on the p branch: spawns p as a subgoal; the continuation gains (= (IF p a b) a) when a is certified defined, else (== (IF p a b) a) (since 2026-10-08).</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>if-true</code>)</p>
+<p><em>Core:</em> <code>if-true</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>if-true</code></p>
 <p><em>When useful:</em> the goal has an (IF p a b) term to evaluate on the p branch</p>
 <p>Evaluate a conditional term `if p then a else b&#x27; on the assumption that p holds: you take on p as a side goal, and may then use that the conditional equals a.  (Technically: if-true reduction, spawning p.)</p>
@@ -653,6 +707,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <pre>(if-false t)</pre>
 <p>Reduce an (IF p a b) term on the not-p branch: spawns (NOT p); the continuation gains (= (IF p a b) b).</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>if-false</code>)</p>
+<p><em>Core:</em> <code>if-false</code> is a core command (one call of its kernel entry point on a core page).</p>
 <p><em>Uses:</em> <code>if-false</code></p>
 <p><em>When useful:</em> the goal has an (IF p a b) term to evaluate on the not-p branch</p>
 <p>Evaluate a conditional term <code>if p then a else b&#x27; on the assumption that p fails: you take on </code>not p&#x27; as a side goal, and may then use that the conditional equals b.  (Technically: if-false reduction, spawning not p.)</p>

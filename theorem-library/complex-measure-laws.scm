@@ -31,43 +31,8 @@
 
 ;; ---------------------------------------------------------------------------
 ;; for 0 <= al and 0 <= t:  al < sqrt(t)  iff  al * al < t
-(sp (make-wff (dk-foralls '(al t) (dk-curry '((IN al RR) (<= 0 al) (IN t RR) (<= 0 t))
-  '(IFF (< al (SQRT t)) (< (* al al) t))))))
-(dk-peel!)
-(dk-have-and! '(IN t RR) '(<= 0 t))
-(dk-split-all! (list (dk-cite! 'sqrt-prop 't)))
-(let ((s '(SQRT t)))
-  (dk-have-and! '(IN al RR) '(IN al RR)) (dk-cite! 'rr-mul-closed 'al 'al)
-  (dk-have-and! (list 'IN s 'RR) (list 'IN s 'RR)) (dk-cite! 'rr-mul-closed s s)
-  (dk-iff! (lambda (g) (equal? g '(< (* al al) t)))
-    (lambda ()
-      (dk-have! (list '<= 'al s) (lambda () (dk-ineq! (list '< 'al s) '(IN al RR) (list 'IN s 'RR))))
-      (dk-have! (list '< 0 s) (lambda () (dk-ineq! (list '< 'al s) '(<= 0 al) '(IN al RR) (list 'IN s 'RR))))
-      (dk-cite! 'rr-mul-le-right 'al s 'al)
-      (dk-have-and! (list '< 0 s) (list '< 'al s))
-      (dk-cite! 'rr-lt-scale-pos s 'al s)
-      (dk-have-and! (list 'IN s 'RR) '(IN al RR)) (dk-cite! 'rr-mul-closed s 'al)
-      (dk-have-and! '(IN al RR) (list 'IN s 'RR)) (dk-cite! 'rr-mul-closed 'al s)
-      (dk-cite! 'rr-mul-comm 'al s)
-      (dk-ineq! (list '<= '(* al al) (list '* s 'al)) (list '< (list '* s 'al) (list '* s s)) (list '= (list '* s s) 't)
-                (list 'IN (list '* s s) 'RR) (list 'IN (list '* s 'al) 'RR) '(IN (* al al) RR) '(IN t RR)))
-    (lambda ()
-      (use-em (list '< 'al s)
-        (lambda () (dk-ass!))
-        (lambda ()
-         (use-em (list '<= s 'al)
-          (lambda ()
-          (dk-cite! 'rr-mul-le-right s 'al s)
-          (dk-cite! 'rr-mul-le-right s 'al 'al)
-          (dk-have-and! (list 'IN s 'RR) '(IN al RR)) (dk-cite! 'rr-mul-closed s 'al)
-          (dk-have-and! '(IN al RR) (list 'IN s 'RR)) (dk-cite! 'rr-mul-closed 'al s)
-          (dk-cite! 'rr-mul-comm 'al s)
-          (dk-absurd! '(< (* al al) t) (list '= (list '* s s) 't) (list '<= (list '* s s) (list '* 'al s))
-                      (list '<= (list '* s 'al) '(* al al)) (list '= (list '* 'al s) (list '* s 'al))
-                      (list 'IN (list '* s s) 'RR) (list 'IN (list '* 'al s) 'RR) (list 'IN (list '* s 'al) 'RR)
-                      '(IN (* al al) RR) '(IN t RR)))
-          (lambda () (dk-cite! 'rr-not-le-lt s 'al) (ai (list 'NOT (list '< 'al s))))))))))
-(mfk-qed! 'sqrt-gt-iff)
+;;; MOVED 2026-11-10 (integration): the proof of `sqrt-gt-iff' is now in
+;;; theorem-library/rr-square-facts.scm (library analysis).
 
 ;; a nonnegative real measurable function is a measurable [0, +inf] function
 (sp (make-wff (dk-foralls '(omega ca f) (dk-curry '((IS-REAL-MEASURABLE-FN omega ca f) (FORALL x_ (IMPLIES (IN x_ omega) (<= 0 (f x_)))))
@@ -182,17 +147,8 @@
 (define (mfl-real! . ts) (for-each (lambda (t) (dk-type! t 'RR)) ts))
 
 ;; x * x = 0 gives x = 0
-(sp (make-wff '(FORALL x (IMPLIES (IN x RR) (IMPLIES (= (* x x) 0) (= x 0))))))
-(dk-peel!)
-(let ((e (dk-cite! 'sqrt-of-sq 'x)))
-  (dk-rewrite-h! e '(* x x) 0)
-  #t)
-(fact 'sqrt-zero)
-(dk-rewrite-h! '(= (SQRT 0) (abs x)) '(SQRT 0) 0)
-(dk-have! '(= (abs x) 0) (lambda () (subst '(= 0 (abs x))) (rfl)))
-(dk-iff-fwd! (dk-cite! 'rr-abs-zero 'x))
-(dk-ass!)
-(mfl-qed! 'rr-square-zero)
+;;; MOVED 2026-11-10 (integration): the proof of `rr-square-zero' is now in
+;;; theorem-library/rr-square-facts.scm (library analysis).
 
 ;; (a q)^2 + (b q)^2 = 1 when p^2 = a^2 + b^2 and p q = 1
 (sp (make-wff (dk-foralls '(a b p q) (dk-curry '((IN a RR) (IN b RR) (IN p RR) (IN q RR) (= (* p p) (+ (* a a) (* b b))) (= (* p q) 1))
@@ -584,32 +540,11 @@
 (mfo-qed! 'rintegral-congruence)
 
 ;; 0 <= a <= b gives a a <= b b;  0 <= a, 0 <= b, a a <= b b gives a <= b
-(sp (make-wff (dk-foralls '(a b) (dk-curry '((IN a RR) (IN b RR) (<= 0 a) (<= a b)) '(<= (* a a) (* b b))))))
-(dk-peel!)
-(mfo-real! '(* a a) '(* a b) '(* b a) '(* b b))
-(dk-have! '(<= 0 b) (lambda () (dk-ineq! '(<= 0 a) '(<= a b) '(IN a RR) '(IN b RR))))
-(dk-cite! 'rr-mul-le-right 'a 'b 'a)
-(dk-cite! 'rr-mul-le-right 'a 'b 'b)
-(dk-have! '(= (* a b) (* b a)) (lambda () (crs)))
-(dk-ineq! '(<= (* a a) (* b a)) '(<= (* a b) (* b b)) '(= (* a b) (* b a)) '(IN (* a a) RR) '(IN (* a b) RR) '(IN (* b a) RR) '(IN (* b b) RR))
-(mfo-qed! 'rr-square-mono)
+;;; MOVED 2026-11-10 (integration): the proof of `rr-square-mono' is now in
+;;; theorem-library/rr-square-facts.scm (library analysis).
 
-(sp (make-wff (dk-foralls '(a b) (dk-curry '((IN a RR) (IN b RR) (<= 0 a) (<= 0 b) (<= (* a a) (* b b))) '(<= a b)))))
-(dk-peel!)
-(use-em '(<= a b)
-  (lambda () (dk-ass!))
-  (lambda ()
-    (dk-cite! 'rr-not-le-lt 'a 'b)
-    (mfo-real! '(* a a) '(* a b) '(* b a) '(* b b))
-    (dk-have! '(< 0 a) (lambda () (dk-ineq! '(< b a) '(<= 0 b) '(IN a RR) '(IN b RR))))
-    (dk-have-and! '(< 0 a) '(< b a))
-    (dk-cite! 'rr-lt-scale-pos 'a 'b 'a)
-    (dk-have! '(<= b a) (lambda () (dk-ineq! '(< b a) '(IN a RR) '(IN b RR))))
-    (dk-cite! 'rr-mul-le-right 'b 'a 'b)
-    (dk-have! '(= (* a b) (* b a)) (lambda () (crs)))
-    (dk-absurd! '(< (* a b) (* a a)) '(<= (* b b) (* a b)) '(<= (* a a) (* b b)) '(= (* a b) (* b a))
-                '(IN (* a a) RR) '(IN (* a b) RR) '(IN (* b a) RR) '(IN (* b b) RR))))
-(mfo-qed! 'rr-square-le-imp-le)
+;;; MOVED 2026-11-10 (integration): the proof of `rr-square-le-imp-le' is now in
+;;; theorem-library/rr-square-facts.scm (library analysis).
 
 ;; 0 <= x, 0 <= y: 0 <= x y
 (define (mfo-pn! x y)

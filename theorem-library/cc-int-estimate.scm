@@ -80,40 +80,8 @@
 ;;;     removed by `sqrt-sq', whose nonnegativity side condition is two
 ;;;     `rr-sq-nonneg'.
 ;;; =====================================================================
-(sp (make-wff '(FORALL cqz_ (IMPLIES (IN cqz_ CC)
-     (= (* (magnitude cqz_) (magnitude cqz_))
-        (+ (* (real-part cqz_) (real-part cqz_))
-           (* (imag-part cqz_) (imag-part cqz_))))))))
-(dk-peel!)
-(fact 'real-part-in-rr 'cqz_)
-(fact 'imag-part-in-rr 'cqz_)
-(fact 'rr-sq-nonneg '(real-part cqz_))
-(fact 'rr-sq-nonneg '(imag-part cqz_))
-(have! (list 'AND '(IN (real-part cqz_) RR) '(IN (real-part cqz_) RR)))
-(fact 'rr-mul-closed '(real-part cqz_) '(real-part cqz_))
-(have! (list 'AND '(IN (imag-part cqz_) RR) '(IN (imag-part cqz_) RR)))
-(fact 'rr-mul-closed '(imag-part cqz_) '(imag-part cqz_))
-(define cie-sq '(+ (* (real-part cqz_) (real-part cqz_))
-                   (* (imag-part cqz_) (imag-part cqz_))))
-(dk-have! (list '<= 0 cie-sq)
-  (lambda ()
-    (dk-ineq! '(<= 0 (* (real-part cqz_) (real-part cqz_)))
-              '(<= 0 (* (imag-part cqz_) (imag-part cqz_)))
-              '(IN (* (real-part cqz_) (real-part cqz_)) RR)
-              '(IN (* (imag-part cqz_) (imag-part cqz_)) RR))))
-(have! (list 'AND '(IN (* (real-part cqz_) (real-part cqz_)) RR)
-                  '(IN (* (imag-part cqz_) (imag-part cqz_)) RR)))
-(fact 'rr-add-closed '(* (real-part cqz_) (real-part cqz_))
-                     '(* (imag-part cqz_) (imag-part cqz_)))
-(mac 'magnitude-def)
-;; `sqrt-sq' has a CONJUNCTIVE antecedent (a in rr and 0 <= a), which `fact'
-;; will not split.
-(have! (list 'AND (list 'IN cie-sq 'RR) (list '<= 0 cie-sq)))
-(fact 'sqrt-sq cie-sq)
-(ass)
-(qed 'cc-magnitude-sq)
-(topic! 'cc-magnitude-sq 'analysis)
-(alias! 'cc-magnitude-sq "the square of the modulus is the sum of the squares of the coordinates")
+;;; MOVED 2026-11-10 (integration): the proof of `cc-magnitude-sq' is now in
+;;; theorem-library/cc-magnitude-sq.scm (library analysis).
 
 ;;; =====================================================================
 ;;; (2) THE REAL INNER PRODUCT OF TWO COMPLEX NUMBERS IS AT MOST THE

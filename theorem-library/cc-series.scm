@@ -251,14 +251,8 @@
 ;;; one appears.
 ;;; =======================================================================
 
-(sp (make-wff '(= (magnitude 0) 0)))
-(fact 'cc-zero-in)
-(fact 'cc-magnitude-zero-iff 0)
-(have! '(= 0 0) (lambda () (rfl)))
-(prop)
-(qed 'cc-magnitude-zero)
-(topic! 'cc-magnitude-zero 'analysis)
-(alias! 'cc-magnitude-zero "the magnitude of 0 is 0")
+;;; MOVED 2026-11-10 (integration): the proof of `cc-magnitude-zero' is now in
+;;; theorem-library/cc-magnitude-zero.scm (library analysis).
 
 (define (ccs-idx form)
   (let loop ((l (dk-asms)) (i 1))

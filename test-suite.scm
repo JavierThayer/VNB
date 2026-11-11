@@ -6837,7 +6837,10 @@
          (sp (make-wff '(FORALL a (IMPLIES (IN a SET) (FORALL b (IMPLIES (IN b SET)
                           (IMPLIES (SUBSET a b)
                                    (= b (UNION a (COMPLEMENT-IN b a))))))))))))
-      (let* ((moves (quietly (lambda () (what-now--show-rewrite (dk-goal) '()))))
+      ;; the probe cap is raised: the check is the reorientation filter, not the cap (the 11-09/10
+      ;; waves took this goal's candidates from 25 to 47 and subset-def fell past the default cap)
+      (let* ((moves (fluid-let ((*what-now-probe-cap* 200))
+                      (quietly (lambda () (what-now--show-rewrite (dk-goal) '())))))
              (forms (map wn--move-form moves))
              (has?  (lambda (nm) (any-pred (lambda (f) (equal? f (list 'mac (list 'quote nm))))
                                            forms))))
@@ -11461,6 +11464,39 @@
       r)))
 (check-true "NBGSEP binder gate: the live library is clean"
   (lambda () (null? (binder-predicativity-audit))))
+
+;; W2D (2026-11-10; VIAGAP F2): the membership IFFs of definitional / primitive provenance are read
+;; by the binder audit.  A planted impredicative one is reported (and the gate raises); a
+;; predicative one beside it is not; both are removed again.
+(define (w2d-plant-memiff! name f)
+  (hash-table-set! *theorem-table* name f)
+  (hash-table-set! *provenance* name 'definitional))
+(define (w2d-unplant-memiff! name)
+  (hash-table-delete! *theorem-table* name)
+  (hash-table-delete! *provenance* name))
+(check-true "VIAGAP F2: a planted impredicative definitional membership IFF is reported by the audit and makes the gate FATAL"
+  (lambda ()
+    (let ((f '(FORALL w2d_x (IFF (IN w2d_x W2D-IMPR-CLASS) (FORALL w2d_c (IN w2d_x w2d_c))))))
+      (w2d-plant-memiff! 'w2d-impr-class-iff f)
+      (let ((r (and (assq 'w2d-impr-class-iff (binder-predicativity-audit))
+                    (rcs-chk--raises? (lambda () (quietly (lambda () (binder-predicativity-gate! #t)))))
+                    (not (rcs-chk--raises? (lambda () (quietly (lambda () (binder-predicativity-gate! #f)))))))))
+        (w2d-unplant-memiff! 'w2d-impr-class-iff)
+        (and r #t)))))
+(check-true "VIAGAP F2: a predicative membership IFF (quantifier confined to NN) and a proven one are not reported (control)"
+  (lambda ()
+    (let ((f '(FORALL w2d_x (IFF (IN w2d_x W2D-OK-CLASS)
+                                 (FORALL w2d_c (IMPLIES (IN w2d_c NN) (IN w2d_x w2d_c)))))))
+      (w2d-plant-memiff! 'w2d-ok-class-iff f)
+      (let ((r (not (assq 'w2d-ok-class-iff (binder-predicativity-audit)))))
+        (hash-table-set! *provenance* 'w2d-ok-class-iff 'proven)
+        (hash-table-set! *theorem-table* 'w2d-ok-class-iff
+                         '(FORALL w2d_x (IFF (IN w2d_x W2D-OK-CLASS) (FORALL w2d_c (IN w2d_x w2d_c)))))
+        (let ((r2 (not (assq 'w2d-ok-class-iff (binder-predicativity-audit)))))   ; proven: not read
+          (w2d-unplant-memiff! 'w2d-ok-class-iff)
+          (and r r2 #t))))))
+(check-true "VIAGAP F2: the live library has no impredicative membership IFF (the audit is empty, the planted ones are gone)"
+  (lambda () (and (null? (impredicative-membership-iffs)) (null? (binder-predicativity-audit)))))
 
 ;;; VIAGAP (2026-10-29; VIAGAP-REPORT.md s.1).  The ONE relation reads through
 ;;; DEFINED HEADS (a condition naming a head is predicative only if every definiens
@@ -16609,6 +16645,53 @@
                (quietly (lambda () (fact 'app-graph '(VNB-LAMBDA x_ NN x_) 0)))
                (> (length (dk-asms)) n0)))))))
 
+;; W2D (2026-11-10), the two controls FREF-REPORT s.4 left owed.  The fixture law rkwn-plain-law
+;; (rkwn-f zqv) = (rkwn-g zqv) is a THEOREM macete with a schema variable in ARGUMENT position;
+;; the bare operator POWER is head-only, so a match that binds zqv to it must not fire.
+(check-true "FREF theorem macete (checker): refuses a match that binds a schema variable to the bare operator POWER"
+  (lambda ()
+    (rkwn--raises?
+      (lambda () (rkwn--apply '(macete rkwn-plain-law (rkwn-f zqv) (rkwn-g zqv))
+                              '() '(IN (rkwn-f POWER) NN)
+                              '((() . (IN (rkwn-g POWER) NN))))))))
+(check-true "FREF theorem macete (checker): the same law at the object 0 is accepted (control)"
+  (lambda ()
+    (not (rkwn--raises?
+           (lambda () (rkwn--apply '(macete rkwn-plain-law (rkwn-f zqv) (rkwn-g zqv))
+                                   '() '(IN (rkwn-f 0) NN)
+                                   '((() . (IN (rkwn-g 0) NN)))))))))
+(check-true "FREF theorem macete (builder): mac leaves (rkwn-f POWER) unrewritten, and rewrites (rkwn-f 0)"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (quietly (lambda () (sp (make-wff '(IN (rkwn-f POWER) NN)))))     ; (patch 05, if applied, refuses to start it: *ps* stays #f)
+      (and (or (not *ps*)
+               (begin (quietly (lambda () (mac 'rkwn-plain-law)))
+                      (equal? (dk-goal) '(IN (rkwn-f POWER) NN))))
+           (begin
+             (sp (make-wff '(IN (rkwn-f 0) NN)))
+             (quietly (lambda () (mac 'rkwn-plain-law)))
+             (equal? (dk-goal) '(IN (rkwn-g 0) NN)))))))
+;; bu-mi: the witness is read off the user's argument (rule-checkers-schema.scm, rcs-big-union-mem-intro)
+(check-true "FREF big-union-mem-intro (checker): refuses the bare operator POWER as the witness"
+  (lambda ()
+    (rcod--refuses? 'big-union-mem-intro '() '(IN fr_x (BIG-UNION fr_z fr_a fr_z))
+      (list (cons '() '(IN POWER fr_a))
+            (cons '() '(IN fr_x POWER))))))
+(check-true "FREF big-union-mem-intro (checker): accepts an object witness (control)"
+  (lambda ()
+    (rcod--accepts? 'big-union-mem-intro '() '(IN fr_x (BIG-UNION fr_z fr_a fr_z))
+      (list (cons '() '(IN ORD fr_a))
+            (cons '() '(IN fr_x ORD))))))
+(check-true "FREF big-union-mem-intro (builder): bu-mi at POWER opens nothing; at an object it opens the two obligations"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(IN fr_x (BIG-UNION fr_z fr_a fr_z))))
+      (quietly (lambda () (bu-mi 'POWER)))
+      (and (equal? (dk-goal) '(IN fr_x (BIG-UNION fr_z fr_a fr_z)))
+           (begin
+             (quietly (lambda () (bu-mi 'fr_w)))
+             (= (length (dk-open-leaves)) 2))))))
+
 ;;; ---------------------------------------------------------------------------
 ;;; BETA OWES THE VALUE'S SETHOOD (2026-10-01): (vnb-lambda(x_, nn, SET))(0) used to
 ;;; reduce to SET with nothing owed -- a false equation of an undefined term.
@@ -17089,7 +17172,8 @@
 ;;; definition, the closure law derivable-tbind-cr puts it in DERIVABLE through CORE-RULE's last disjunct); on the old
 ;;; core the rule name does not resolve and they error.  The controls: the premise of the wrong kind for the head (an
 ;;; == for SEP), a premise whose bodies are not the conclusion's, a name not known to be fresh, the STRICT equation.
-(define (tbc-bind h b) `(EBIND ,h 1 (LIST d) ,b))
+;; W2B, 2026-11-10: TBIND-CR covers COMP (head 23, no outside argument): the comprehension has the outside list [].
+(define (tbc-bind h b) (if (= h 23) `(EBIND 23 1 (LIST) ,b) `(EBIND ,h 1 (LIST d) ,b)))
 (define (tbc-goal h concl prem fresh?)
   (make-wff `(FORALL tt (FORALL g (FORALL d (FORALL p (FORALL q (FORALL tbcr_ (FORALL y
      (IMPLIES (IN g CTX-SET) (IMPLIES (IN ,(tbc-bind h 'p) CLT) (IMPLIES (IN ,(tbc-bind h 'q) CLT) (IMPLIES (IN y NN)
@@ -17106,11 +17190,11 @@
     (dk-cite! 'clf-qeq-intro (tbc-bind h 'p) (tbc-bind h 'q))
     ;; the relation's shape condition, landed when it holds (dk-derive! reads a disjunction off the context; when
     ;; it does not hold, dk-derive! refuses the node on the unclosed side condition)
-    (if (equal? prem (if (= h 22) `(ENC-IFF ,tbc-op ,tbc-oq) `(ENC-QEQ ,tbc-op ,tbc-oq)))
-        (dk-have! `(OR (AND (= ,h 22) (= ,prem (ENC-IFF ,tbc-op ,tbc-oq)))
+    (if (equal? prem (if (memv h '(22 23)) `(ENC-IFF ,tbc-op ,tbc-oq) `(ENC-QEQ ,tbc-op ,tbc-oq)))
+        (dk-have! `(OR (AND (OR (= ,h 22) (= ,h 23)) (= ,prem (ENC-IFF ,tbc-op ,tbc-oq)))
                        (AND (OR (= ,h 24) (= ,h 26)) (= ,prem (ENC-QEQ ,tbc-op ,tbc-oq))))
-          (lambda () (if (= h 22) (oi-l) (oi-r))
-                     (dk-conj-close! (lambda () (cond ((dk-head-is? (dk-goal) 'OR) (if (= h 24) (oi-l) (oi-r)) (rfl)) (#t (rfl))))))))
+          (lambda () (if (memv h '(22 23)) (oi-l) (oi-r))
+                     (dk-conj-close! (lambda () (cond ((dk-head-is? (dk-goal) 'OR) (if (memv h '(22 24)) (oi-l) (oi-r)) (rfl)) (#t (rfl))))))))
     (dk-derive! 'tt `(tbind-cr (g ==> ,concl) (given (g ==> ,prem)) (y := y)))
     (ass)
     (proof-done? *ps*)))
@@ -17132,6 +17216,50 @@
     (vnb-guard (lambda () (tbc-run! 24 `(ENC-EQ ,(tbc-bind 24 'p) ,(tbc-bind 24 'q)) `(ENC-QEQ ,tbc-op ,tbc-oq) #t)))))))
 (check-true "TBIND-CR: the META control tbind-cr-refuses-eq is a proven theorem"
   (lambda () (suite-proven? 'tbind-cr-refuses-eq)))
+;;; 2026-11-10, W2B (the METACORE report's finding 3, the user's decision of 2026-11-10): TBIND-CR EXTENDED TO COMP
+;;; (head 23).  From [g, p(y) iff q(y)], y fresh, the core derives [g, COMP p == COMP q] for ANY bodies, predicative
+;;; or not (before: only der-comp-cr, for predicative bodies with the encoded class-extensionality in T; on the old
+;;; core the node does not match the rule's conclusion, (LIST d), and the check errors).  The controls: a COMP whose
+;;; premise is a quasi-equation (the body of a COMP is a formula), the STRICT equation of two comprehensions.
+(check-true "TBIND-CR at COMP: the core derives [g, COMP p == COMP q] from [g, p(y) iff q(y)], y fresh (fails on the old core: the rule's conclusion had one outside argument)"
+  (lambda () (quietly (lambda () (tbc-run! 23 (tbc-qeq 23) `(ENC-IFF ,tbc-op ,tbc-oq) #t)))))
+(check-error "TBIND-CR at COMP CONTROL: the rule refuses a COMP whose premise is a quasi-equation"
+  (lambda () (quietly (lambda ()
+    (vnb-guard (lambda () (tbc-run! 23 (tbc-qeq 23) `(ENC-QEQ ,tbc-op ,tbc-oq) #t)))))))
+(check-error "TBIND-CR at COMP CONTROL: the rule refuses the STRICT equation of two comprehensions"
+  (lambda () (quietly (lambda ()
+    (vnb-guard (lambda () (tbc-run! 23 `(ENC-EQ ,(tbc-bind 23 'p) ,(tbc-bind 23 'q)) `(ENC-IFF ,tbc-op ,tbc-oq) #t)))))))
+(check-true "TBIND-CR at COMP: the META control tbind-cr-comp-refuses-eq is a proven theorem"
+  (lambda () (suite-proven? 'tbind-cr-comp-refuses-eq)))
+;;; 2026-11-10, W2B: TUPLE-ETA in the META core (structure-library/meta-core.scm 4.11; the core-schema route for row
+;;; 57, cartesian-decompose).  From [g, x in CARTESIAN(a)] the core derives [g, x = [l]] for the list l of length
+;;; |a| >= 1 whose i-th entry is NTH(i, x).  On the old core the rule name does not resolve and the check errors.
+;;; The controls: a list not known to be x's projections (the entry universal withheld), a premise other than the
+;;; membership in the product (x a tuple of sets).
+(define (teta-goal entries? prem)
+  (make-wff `(FORALL tt (FORALL g (FORALL x (FORALL a (FORALL l
+     (IMPLIES (IN g CTX-SET) (IMPLIES (IN x CLT) (IMPLIES (IN (ENC-LIST l) CLT)
+     (IMPLIES (<= 1 (LENGTH a)) (IMPLIES (= (LENGTH l) (LENGTH a))
+       ,(let ((tail `(IMPLIES (IN (LIST g ,prem) (DERIVABLE tt)) (IN (LIST g (ENC-EQ x (ENC-LIST l))) (DERIVABLE tt)))))
+          (if entries?
+              `(IMPLIES (FORALL mci_ (IMPLIES (IN mci_ NN) (IMPLIES (<= 1 mci_) (IMPLIES (<= mci_ (LENGTH a))
+                           (= (NTH mci_ l) (ENC-NTH (ENC-NUM mci_) x))))))
+                        ,tail)
+              tail))))))))))))))
+(define (teta-run! entries? prem)
+  (fluid-let ((*ps* #f))
+    (sp (teta-goal entries? prem))
+    (dk-peel!)
+    (dk-cite! 'clf-eq-intro 'x '(ENC-LIST l))
+    (dk-derive! 'tt `(tuple-eta (g ==> (ENC-EQ x (ENC-LIST l))) (given (g ==> ,prem)) (a := a)))
+    (ass)
+    (proof-done? *ps*)))
+(check-true "TUPLE-ETA: the core derives [g, x = [NTH(1, x) .. NTH(n, x)]] from [g, x in CARTESIAN(a)] (fails on the old core: no such rule)"
+  (lambda () (quietly (lambda () (teta-run! #t '(ENC-IN x (ENC-CART a)))))))
+(check-error "TUPLE-ETA CONTROL: the rule refuses a list not known to be the list of x's projections"
+  (lambda () (quietly (lambda () (vnb-guard (lambda () (teta-run! #f '(ENC-IN x (ENC-CART a)))))))))
+(check-error "TUPLE-ETA CONTROL: the rule refuses a premise other than the membership in the product (x a tuple of sets)"
+  (lambda () (quietly (lambda () (vnb-guard (lambda () (teta-run! #t '(ENC-IN x (ENC-TUPLES ENC-SETC)))))))))
 (check-true "META-FUN: CR is closed at stage 6 (cr-closed-6) and, with the encoded class-extensionality in T, at stage 7 (cr-closed-7, der-comp-cr, eqv-desc-body)"
   (lambda () (and (suite-proven? 'cr-closed-6) (suite-proven? 'cr-goal-6) (suite-proven? 'der-comp-cr)
                   (suite-proven? 'eqv-desc-body) (suite-proven? 'cr-closed-7) (suite-proven? 'cr-goal-7))))
@@ -18498,6 +18626,129 @@
               (and (string-search-forward "goal 1: " txt 0) #t)
               (and (string-search-forward "verdict: core-replayed" txt 0) #t)))))
   '(#t #t #t #t))
+
+;;; =======================================================================
+;;; W2C (2026-11-10) -- the functoid hypotheses gate (functoid-gate.scm): H1 distinct
+;;; parameters, H2 no recursion / forward reference, H3 no redefinition and no
+;;; survivor of one, H4 no free variable in a body, H6 no head in both tables.  One
+;;; planted violation per hypothesis (refused), a clean toy (accepted), the real
+;;; definition log on a fresh head, and the live library against its documented
+;;; backlog.  Over a band built before the gate the file is loaded here first.
+;;; =======================================================================
+(if (not (environment-bound? (the-environment) 'functoid-hypotheses-audit))
+    (load (string-append *prover-dir* "functoid-gate.scm")))
+(define (w2c-gate reg #!optional log defs)
+  (functoid-hypotheses-audit reg (if (default-object? log) '() log) (if (default-object? defs) '() defs)))
+(check "FGATE (accepted): a clean toy registry has no violation"
+  (lambda () (w2c-gate '((w2c-ok (x_ y_) (+ x_ (FORALL w2c_z (IN w2c_z (SEP w2c_u SET (IN w2c_u y_))))) #f))))
+  '())
+(check "FGATE H1 (refused): a repeated parameter"
+  (lambda () (w2c-gate '((w2c-dup (x_ x_) (+ x_ 1) #f))))
+  '((h1 repeated w2c-dup (x_ x_))))
+(check "FGATE H1 (refused): a parameter that is not a symbol"
+  (lambda () (w2c-gate '((w2c-num (x_ 3) (+ x_ 1) #f))))
+  '((h1 not-symbols w2c-num (x_ 3))))
+(check "FGATE H2 (refused): a directly recursive body"
+  (lambda () (w2c-gate '((w2c-rec (x_) (+ (w2c-rec x_) 1) #f))))
+  '((h2 recursion w2c-rec w2c-rec)))
+(check "FGATE H2 (refused): mutual recursion through two functoids"
+  (lambda () (map (lambda (v) (list (car v) (cadr v) (caddr v)))
+                  (w2c-gate '((w2c-ma (x_) (w2c-mb x_) #f) (w2c-mb (x_) (w2c-ma x_) #f)))))
+  '((h2 mutual w2c-ma) (h2 mutual w2c-mb)))
+(check "FGATE H2 (refused): mutual recursion through a library definition"
+  (lambda () (map (lambda (v) (list (car v) (cadr v) (caddr v)))
+                  (w2c-gate '((w2c-mc (x_) (w2c-pd x_) #f)) '()
+                            '((w2c-pd (w2c-pd-def . (FORALL w2c_a (IFF (w2c-pd w2c_a) (= (w2c-mc w2c_a) 0)))))))))
+  '((h2 mutual w2c-mc)))
+(check "FGATE H2 (refused): a forward reference recorded by the definition log"
+  (lambda () (w2c-gate '((w2c-early (x_) (w2c-later x_) #f) (w2c-later (x_) x_ #f))
+                       (list (list 2 'w2c-later '(x_) 'x_ #f '() #f #f '())
+                             (list 1 'w2c-early '(x_) '(w2c-later x_) #f '(w2c-later) #f #f '()))))
+  '((h2 forward w2c-early w2c-later)))
+(check "FGATE H2 (refused): without a log, a forward reference by the files' load order"
+  (lambda () (w2c-gate (list (list 'w2c-early '(x_) '(w2c-later x_) (string-append *prover-dir* "structures.scm"))
+                             (list 'w2c-later '(x_) 'x_ (string-append *prover-dir* "structure-library/nets.scm")))))
+  '((h2 forward-by-file w2c-early w2c-later)))
+(check "FGATE H2 (accepted): without a log, a reference to an EARLIER file"
+  (lambda () (w2c-gate (list (list 'w2c-early '(x_) 'x_ (string-append *prover-dir* "structures.scm"))
+                             (list 'w2c-later '(x_) '(w2c-early x_) (string-append *prover-dir* "structure-library/nets.scm")))))
+  '())
+(define w2c-thm (car (hash-table-keys *theorem-table*)))
+(check "FGATE H3 (refused): a changed redefinition, and a theorem stated under the old entry that survives"
+  (lambda () (w2c-gate '((w2c-re (x_) (+ x_ 2) #f))
+                       (list (list 2 'w2c-re '(x_) '(+ x_ 2) #f '() 'changed '((x_) (+ x_ 1) #f)
+                                   (list (cons w2c-thm (hash-table-ref/default *theorem-table* w2c-thm #f))))
+                             (list 1 'w2c-re '(x_) '(+ x_ 1) #f '() #f #f '()))))
+  (list '(h3 redefined w2c-re #f) (list 'h3 'survivor 'w2c-re w2c-thm)))
+(check "FGATE H3 (accepted): a theorem re-installed after the redefinition is not a survivor; an identical redefinition is not reported"
+  (lambda () (w2c-gate '((w2c-re (x_) (+ x_ 2) #f))
+                       (list (list 3 'w2c-re '(x_) '(+ x_ 2) #f '() 'identical '((x_) (+ x_ 2) #f) '())
+                             (list 2 'w2c-re '(x_) '(+ x_ 2) #f '() 'changed '((x_) (+ x_ 1) #f)
+                                   (list (cons w2c-thm (list 'a-different-formula-object))))
+                             (list 1 'w2c-re '(x_) '(+ x_ 1) #f '() #f #f '()))))
+  '((h3 redefined w2c-re #f)))
+(check "FGATE H3 (refused, the real log): def-functoid twice on a fresh head records `changed' and snapshots the theorem stated with it; the gate names the survivor"
+  (lambda ()
+    (fluid-let ((*functoid-def-log* '()))
+      (hash-table-set! *theorem-table* 'w2c-toy-thm '(= (w2c-redef 0) 1))
+      (def-functoid 'w2c-redef '(x_) '(+ x_ 1))
+      (def-functoid 'w2c-redef '(x_) '(+ x_ 1))
+      (def-functoid 'w2c-redef '(x_) '(+ x_ 2))
+      (let* ((log *functoid-def-log*)
+             (vs (functoid-hypotheses-audit (list (cons 'w2c-redef (hash-table-ref/default *functoid-registry* 'w2c-redef #f)))
+                                            log '())))
+        (hash-table-delete! *theorem-table* 'w2c-toy-thm)
+        (hash-table-delete! *functoid-registry* 'w2c-redef)
+        (list (map (lambda (r) (list-ref r 6)) (reverse log))
+              (map car (list-ref (car log) 8))
+              (map (lambda (v) (list (car v) (cadr v) (caddr v))) vs)))))
+  '((#f identical changed) (w2c-toy-thm) ((h3 redefined w2c-redef) (h3 survivor w2c-redef))))
+(check "FGATE H2 (refused, the real log): a body naming a head defined only afterwards"
+  (lambda ()
+    (fluid-let ((*functoid-def-log* '()))
+      (def-functoid 'w2c-fwd-a '(x_) '(w2c-fwd-b x_))
+      (def-functoid 'w2c-fwd-b '(x_) '(+ x_ 1))
+      (let* ((log *functoid-def-log*)
+             (reg (map (lambda (n) (cons n (hash-table-ref/default *functoid-registry* n #f))) '(w2c-fwd-a w2c-fwd-b)))
+             (vs (functoid-hypotheses-audit reg log '())))
+        (hash-table-delete! *functoid-registry* 'w2c-fwd-a)
+        (hash-table-delete! *functoid-registry* 'w2c-fwd-b)
+        vs)))
+  '((h2 forward w2c-fwd-a w2c-fwd-b)))
+(check "FGATE H2 (refused, the real log): a body naming a symbol registered as a constant only afterwards (an accessor declared later)"
+  (lambda ()
+    (fluid-let ((*functoid-def-log* '()))
+      (def-functoid 'w2c-acc-user '(x_) '(w2c-late-acc x_))
+      (register-constant! 'w2c-late-acc 'accessor)
+      (let ((vs (functoid-hypotheses-audit
+                  (list (cons 'w2c-acc-user (hash-table-ref/default *functoid-registry* 'w2c-acc-user #f)))
+                  *functoid-def-log* '())))
+        (hash-table-delete! *functoid-registry* 'w2c-acc-user)
+        (hash-table-delete! *constant-registry* 'w2c-late-acc)
+        vs)))
+  '((h2 forward w2c-acc-user w2c-late-acc)))
+(check "FGATE H4 (refused): a free variable in a body; a bound one, a constant and a class name are not"
+  (lambda () (w2c-gate '((w2c-free (x_) (+ x_ (+ w2c_y (+ RR (FORALL w2c_b (= w2c_b x_))))) #f))))
+  '((h4 free w2c-free (w2c_y))))
+(check "FGATE H6 (refused): a head both a def-functoid and a library definition"
+  (lambda () (w2c-gate '((w2c-both (x_) x_ #f)) '() '((w2c-both (w2c-both-def . (= (w2c-both 0) 0))))))
+  '((h6 both w2c-both #f)))
+(check "FGATE gate! prints one line per hypothesis and returns the counts"
+  (lambda () (functoid-hypotheses-gate! '((w2c-dup (x_ x_) (+ x_ w2c_y) #f)) '() '()))
+  '((h1 . 1) (h2 . 0) (h3 . 0) (h4 . 1) (h6 . 0)))
+;; The live library, against the backlog documented in W2C-REPORT.md (2026-11-10):
+;; H2 DUAL -> RR-NORMED-FIELD (dual-space loads before numeric-instances), H4
+;; PTWISE-NET-LIMITS free=(DIRECTED-SET) (a structure species is not a registered
+;; constant).  The log is read as the LOAD left it (records with a source file).
+(check "FGATE live library: H1, H3, H6 clean; H2 and H4 exactly the documented sites"
+  (lambda ()
+    (let ((vs (functoid-hypotheses-audit (fha--live-registry)
+                                         (filter (lambda (r) (list-ref r 4)) *functoid-def-log*)
+                                         (library-definitions *library*))))
+      (map (lambda (h) (cons h (sort (map caddr (filter (lambda (v) (eq? (car v) h)) vs))
+                                     (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
+           '(h1 h2 h3 h4 h6))))
+  '((h1) (h2 dual) (h3) (h4 ptwise-net-limits) (h6)))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

@@ -233,14 +233,16 @@
              (mr--cof '(IN (LIST 1 mrg_ (EXPR-OPEN mra_ 0 (EFVAR mry_)) (EXPR-OPEN mrb_ 0 (EFVAR mry_))) mrs_)))))
 
 ;;; Stage 7 (the brief's (e)): COMP (23) and IOTA (25), the body (a formula) by cofinite quantification.
-;;; The COMP case only between two PREDICATIVE bodies (agent METACORE, 2026-10-29): its law (der-comp-cr,
-;;; meta-ind-laws.scm) reads the members of both comprehensions, which CR-COMP-MEM now allows at a predicative
-;;; body only.  A kernel rewrite inside an impredicative COMP body is outside the relation: METACORE report.
+;;; (Agent METACORE, 2026-10-29, had restricted the COMP case to two PREDICATIVE bodies, because its law then read
+;;; the members of both comprehensions through CR-COMP-MEM, which is stated at a predicative body only.  Agent
+;;; W2B, 2026-11-10, the METACORE report's finding 3, the user's decision of 2026-11-10: the core rule TBIND-CR
+;;; covers COMP (structure-library/meta-core.scm 4.9), the law of the COMP case is that rule, as IOTA-CR is the
+;;; law of the IOTA case, and the restriction is withdrawn: a kernel rewrite inside an impredicative COMP body is
+;;; inside the relation again.)
 (mr--rw! 'RW-DESC-BODY 7 "the rewrite clause COMP / IOTA-body relates $2 to $3"
   (mr--ex '(mrg_ mrh_ mra_ mrb_)
     (mr--and '(= mrx_ (LIST 1 mrg_ (EBIND mrh_ 1 (LIST) mra_) (EBIND mrh_ 1 (LIST) mrb_)))
              '(OR (= mrh_ 23) (= mrh_ 25))
-             '(IMPLIES (= mrh_ 23) (AND (NBG-OK mra_) (NBG-OK mrb_)))
              '(IN (EBIND mrh_ 1 (LIST) mra_) CLT) '(IN (EBIND mrh_ 1 (LIST) mrb_) CLT)
              (mr--cof '(IN (LIST 2 mrg_ (EXPR-OPEN mra_ 0 (EFVAR mry_)) (EXPR-OPEN mrb_ 0 (EFVAR mry_))) mrs_)))))
 

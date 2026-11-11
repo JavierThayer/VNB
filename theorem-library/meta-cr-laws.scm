@@ -1785,8 +1785,12 @@
               (dk-apply! u z)
               (mr-open-prem! (list kk g az bz))
               ;; the relation's shape condition: the premise is the opened bodies' IFF for SEP, their == otherwise
-              (dk-have! `(OR (AND (= ,h 22) (= ,pf (ENC-IFF ,az ,bz))) (AND (OR (= ,h 24) (= ,h 26)) (= ,pf (ENC-QEQ ,az ,bz))))
-                (lambda () (if sep? (oi-l) (oi-r)) (dk-conj-close! (lambda () (if (dk-asm? (dk-goal)) (ass) (rfl))))))
+              ;; (W2B, 2026-11-10: the SEP disjunct reads (OR (= h 22) (= h 23)) since TBIND-CR covers COMP)
+              (dk-have! `(OR (AND (OR (= ,h 22) (= ,h 23)) (= ,pf (ENC-IFF ,az ,bz))) (AND (OR (= ,h 24) (= ,h 26)) (= ,pf (ENC-QEQ ,az ,bz))))
+                (lambda () (if sep? (oi-l) (oi-r))
+                           (dk-conj-close! (lambda () (cond ((dk-asm? (dk-goal)) (ass))
+                                                            ((dk-head-is? (dk-goal) 'OR) (oi-l) (rfl))
+                                                            (#t (rfl)))))))
               (dk-meta-derive! 'tt `(tbind-cr (,g ==> ,f) (given (,g ==> ,pf)) (y := ,z)))
               (if sep?
                   (dk-have! `(IN (LIST ,g (ENC-QEQ ,sa ,sb)) (DERIVABLE tt))

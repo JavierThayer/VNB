@@ -8767,3 +8767,667 @@
             (cons 'params (cdr (assq 'params r)))))))
 (define (dk-tfi3-fixed! . opt)
   (dkf--induct-fixed! "dk-tfi3-fixed!" 'ORD (lambda () (tfi3)) (if (pair? opt) (car opt) 'default)))
+
+;;; ==================================================================
+;;; KIT-ALG (2026-11-09/10), hoisted 2026-11-10 from scratchpad/kitalg-1109/kit-alg.scm, verbatim:
+;;; the algebra normaliser dk-alg-norm!.  Its law sets are proven in theorem-library/kal-laws.
+;;; ==================================================================
+
+;;; kit-alg.scm -- THE ALGEBRA NORMALISER: (dk-alg-norm! PREFIX A), an UNTRUSTED driver helper
+;;; that proves an equation between terms of a complex (star-)algebra by rewriting both sides to a
+;;; normal form with CITED LAWS of the structure.  Agent KIT-ALG, 2026-11-09/10.  Written as kit
+;;; code (prefix dk-alg- / dk--alg-) for the integrator to hoist into driver-kit.scm; it defines no
+;;; theorem.  Until hoisted it is loaded INTO *driver-kit-env* (not a fresh frame) so that later
+;;; files see it: (load ".../kit-alg.scm" *driver-kit-env*).
+;;;
+;;; WHAT IT PROVES.  The focus goal (= L R), L and R terms built from
+;;;     (VADD A) (VNEG A) (VZERO A) (ACT A) (VMUL A) (VONE A) (VSTAR A)
+;;; of one algebra A, over ATOMS: vector atoms typed (IN x (VEC A)) in context, scalar atoms typed
+;;; (IN c CC) or (IN c RR) in context, numerals (exact, complex allowed: +i), and the scalar
+;;; operations + * - conjugate.  It decides whether L = R holds in EVERY associative complex
+;;; (star-)algebra -- VMUL is NOT assumed commutative, monomials are WORDS -- and if so proves it;
+;;; if not it REFUSES, naming the word whose coefficients differ, with nothing changed.
+;;;
+;;; HOW.  Nothing is trusted but what is cited.  Every step is a `dk-cite!' of a law of the
+;;; structure followed by `subst' in the goal; the scalar coefficients are compared by `crs' (a
+;;; standing oracle) on lanes; conjugates are pushed inward by the CC axioms of the fixed base.
+;;;   0. DECIDE (Scheme, no proof step): both sides are put in the abstract normal form
+;;;      sum_w p_w . w (w a word of letters, p_w a polynomial in the scalar atoms with exact
+;;;      complex coefficients); the identity holds iff p_w(L) - p_w(R) = 0 for every word.
+;;;   1. EXPAND to a fixpoint, innermost redex first: -x -> (-1)x; star pushed to the letters;
+;;;      c(x+y), c(dx) -> (cd)x, c0, 0x, 1x; products distributed, scalars pulled out of
+;;;      products, 0 and 1 absorbed, products right-associated; sums right-associated, 0 dropped;
+;;;      conjugates of scalars pushed to the scalar atoms.
+;;;   2. WRAP every bare word on a sum spine as 1.w (the act-one law, by congruence).
+;;;   3. SORT the summands of each side by word (commutativity of VADD, through associativity)
+;;;      and COLLECT equal words: c.w + d.w -> (c + d).w.
+;;;   4. COMPARE word by word: equal coefficients made syntactically equal (crs on a lane),
+;;;      a word on one side only has a zero coefficient and is rewritten to 0 (then back to 1).
+;;;   5. rfl.
+;;;
+;;; THE LAW TABLE.  PREFIX names the law set: the law ROLE is the theorem PREFIX-ROLE, stated
+;;; forall A. PRED(A) => forall <args>. <equation>, the args in the order of the signature below.
+;;; theorem-library kal-laws.scm proves the sets kal-cna (IS-COMPLEX-NORMED-ALGEBRA), kal-uba
+;;; (IS-UNITAL-BANACH-ALGEBRA) and kal-uiba (IS-UNITAL-INVOLUTIVE-BANACH-ALGEBRA).  A set without
+;;; the one / star roles serves terms without VONE / VSTAR.  (dk-alg-law-statement ROLE PRED) is
+;;; the statement template, so a new structure gets its set by proving those statements.
+;;;
+;;; OPTIONS (keyword list after A):
+;;;   'hints (EQ ...)  -- equations (= U V) in context; a subterm equal to U is rewritten to V
+;;;                       wherever it occurs (e.g. (= (VSTAR A) h) h) for h self-adjoint).
+;;;   'trace #t        -- print each step.
+;;; Errors: an untyped atom, an unknown head, a refused identity (before any step), a law that
+;;; does not land, a step that changes nothing, or a lane that does not close.
+;;;
+;;; THE OTHER ENTRY POINTS.
+;;;   (dk-alg-have! PREFIX A CLAIM . OPTS) -- land the equation CLAIM, proved by dk-alg-norm!.
+;;;   (dk-alg-identity? PREFIX A L R . OPTS) -- the decision alone: #t, or the differing words.
+;;;   (dk-alg-type! PREFIX A T)  -- land (IN T (VEC A)) by the typing roles.
+;;;   (dk-cc-type! T)            -- land (IN T CC) for a scalar term (+ * - conjugate, numerals).
+;;;   (dk-cc-norm! . OPTS)       -- THE SCALAR FINISHER: the focus goal an equation over CC;
+;;;                                 conjugates pushed in by the CC axioms (a conjugate of an atom
+;;;                                 typed in RR, or of a real numeral, is dropped), then `crs'.
+;;; WHAT IT CANNOT DO: commutativity (refused: VMUL is a word product), a hypothesis other than a
+;;; hint equation, inverses, norms or any inequality, a scalar atom under a conjugate that is not
+;;; known real (it stays an opaque atom, so conj(u) = u is not proved), division by a non-numeral.
+
+;;; ------------------------------------------------------------------------------------------
+;;; the law roles: (ROLE ARG-KINDS), v = a vector, c = a scalar in CC
+(define dk--alg-roles
+  '((vadd-in (v v)) (vneg-in (v)) (act-in (c v)) (vmul-in (v v)) (vzero-in ()) (vone-in ())
+    (vstar-in (v))
+    (add-assoc (v v v)) (add-comm (v v)) (add-zero-l (v)) (add-zero-r (v))
+    (vneg-act (v)) (act-vadd (c v v)) (act-add (c c v)) (act-mul (c c v)) (act-one (v))
+    (act-zero (v)) (act-vzero (c))
+    (mul-assoc (v v v)) (mul-dist-l (v v v)) (mul-dist-r (v v v)) (mul-act-l (c v v))
+    (mul-act-r (c v v)) (mul-zero-l (v)) (mul-zero-r (v)) (mul-one-l (v)) (mul-one-r (v))
+    (star-vadd (v v)) (star-act (c v)) (star-star (v)) (star-mul (v v)) (star-one ()) (star-zero ())))
+
+;;; the statement of ROLE for the structure predicate PRED, instance variable a
+(define (dk-alg-law-statement role pred)
+  (let* ((A 'a)
+         (ad (lambda (x y) (list (list 'VADD A) x y))) (ng (lambda (x) (list (list 'VNEG A) x)))
+         (ac (lambda (c x) (list (list 'ACT A) c x))) (mu (lambda (x y) (list (list 'VMUL A) x y)))
+         (st (lambda (x) (list (list 'VSTAR A) x)))
+         (z (list 'VZERO A)) (o (list 'VONE A)) (V (list 'VEC A))
+         (sig (cadr (or (assq role dk--alg-roles) (error "dk-alg-law-statement: unknown role" role))))
+         (vars (let loop ((ks sig) (vs '(kax_ kay_ kaz_)) (cs '(kar_ kas_)) (acc '()))
+                 (cond ((null? ks) (reverse acc))
+                       ((eq? (car ks) 'v) (loop (cdr ks) (cdr vs) cs (cons (car vs) acc)))
+                       (#t (loop (cdr ks) vs (cdr cs) (cons (car cs) acc))))))
+         (x (if (pair? vars) (car vars) #f)) (y (and (pair? vars) (pair? (cdr vars)) (cadr vars)))
+         (w (and (pair? vars) (pair? (cdr vars)) (pair? (cddr vars)) (caddr vars)))
+         (body
+          (case role
+            ((vadd-in) (list 'IN (ad x y) V)) ((vneg-in) (list 'IN (ng x) V))
+            ((act-in) (list 'IN (ac x y) V)) ((vmul-in) (list 'IN (mu x y) V))
+            ((vzero-in) (list 'IN z V)) ((vone-in) (list 'IN o V)) ((vstar-in) (list 'IN (st x) V))
+            ((add-assoc) (list '= (ad (ad x y) w) (ad x (ad y w))))
+            ((add-comm) (list '= (ad x y) (ad y x)))
+            ((add-zero-l) (list '= (ad z x) x)) ((add-zero-r) (list '= (ad x z) x))
+            ((vneg-act) (list '= (ng x) (ac -1 x)))
+            ((act-vadd) (list '= (ac x (ad y w)) (ad (ac x y) (ac x w))))
+            ((act-add) (list '= (ac (list '+ x y) w) (ad (ac x w) (ac y w))))
+            ((act-mul) (list '= (ac (list '* x y) w) (ac x (ac y w))))
+            ((act-one) (list '= (ac 1 x) x)) ((act-zero) (list '= (ac 0 x) z))
+            ((act-vzero) (list '= (ac x z) z))
+            ((mul-assoc) (list '= (mu (mu x y) w) (mu x (mu y w))))
+            ((mul-dist-l) (list '= (mu x (ad y w)) (ad (mu x y) (mu x w))))
+            ((mul-dist-r) (list '= (mu (ad x y) w) (ad (mu x w) (mu y w))))
+            ((mul-act-l) (list '= (mu (ac x y) w) (ac x (mu y w))))
+            ((mul-act-r) (list '= (mu y (ac x w)) (ac x (mu y w))))
+            ((mul-zero-l) (list '= (mu z x) z)) ((mul-zero-r) (list '= (mu x z) z))
+            ((mul-one-l) (list '= (mu o x) x)) ((mul-one-r) (list '= (mu x o) x))
+            ((star-vadd) (list '= (st (ad x y)) (ad (st x) (st y))))
+            ((star-act) (list '= (st (ac x y)) (ac (list 'conjugate x) (st y))))
+            ((star-star) (list '= (st (st x)) x))
+            ((star-mul) (list '= (st (mu x y)) (mu (st y) (st x))))
+            ((star-one) (list '= (st o) o)) ((star-zero) (list '= (st z) z))
+            (else (error "dk-alg-law-statement: no template" role)))))
+    (list 'FORALL A
+          (list 'IMPLIES (list pred A)
+                (let wrap ((vs vars) (ks sig))
+                  (if (null? vs) body
+                      (list 'FORALL (car vs)
+                            (list 'IMPLIES (list 'IN (car vs) (if (eq? (car ks) 'v) V 'CC))
+                                  (wrap (cdr vs) (cdr ks))))))))))
+
+;;; ------------------------------------------------------------------------------------------
+;;; the structure record: (A PREFIX HINTS TRACE)
+(define (dk--alg-A krec) (car krec))
+(define (dk--alg-prefix krec) (cadr krec))
+(define (dk--alg-hints krec) (caddr krec))
+(define (dk--alg-trace? krec) (cadddr krec))
+(define (dk--alg-head krec acc) (list acc (dk--alg-A krec)))
+(define (dk--alg-op? krec t acc n)          ; t = ((ACC A) arg1 .. argn)
+  (and (pair? t) (equal? (car t) (dk--alg-head krec acc)) (= (length (cdr t)) n)))
+(define (dk--alg-const? krec t acc) (equal? t (dk--alg-head krec acc)))
+(define (dk--alg-vec krec) (list 'VEC (dk--alg-A krec)))
+(define (dk--alg-law krec role) (symbol-append (dk--alg-prefix krec) '- role))
+(define (dk--alg-has? krec role)
+  (eq? #t (vnb-guard (lambda () (and (lookup-theorem (dk--alg-law krec role)) #t)))))
+(define (dk--alg-say krec . xs)
+  (if (dk--alg-trace? krec)
+      (begin (display ";; dk-alg-norm! ")
+             (for-each (lambda (x) (display (if (string? x) x (expression->string x))) (display " ")) xs)
+             (newline))))
+(define (dk--alg-vecop? krec t)
+  (and (pair? t) (pair? (car t)) (memq (caar t) '(VADD VNEG ACT VMUL VSTAR))
+       (pair? (cdar t)) (equal? (cadar t) (dk--alg-A krec))))
+
+;;; ------------------------------------------------------------------------------------------
+;;; TYPING.  Scalars in CC, bottom-up by the CC closure laws; vectors in (VEC A) by the typing
+;;; roles.  Each lands its typing and returns the term; an atom not typed is an ERROR.
+(define (dk--alg-cite2! . args)          ; dk-cite!, detaching conjunctive antecedents from context
+  (let loop ((ch (apply dk-cite! args)) (n 0))
+    (if (and (dk-head-is? ch 'IMPLIES) (< n 6))
+        (loop (detach-with! ch (lambda () (dk-conj-close! (lambda () (dk-ass!))))) (+ n 1))
+        ch)))
+(define (dk--alg-ct! t)
+  (let ((want (list 'IN t 'CC)))
+    (cond ((dk-asm? want) t)
+          ((number? t) (dk-have! want (lambda () (arith))) t)
+          ((dk-asm? (list 'IN t 'RR)) (dk-cite! 'rr-subset-cc t) t)
+          ((and (pair? t) (memq (car t) '(+ *)) (= (length t) 3))
+           (dk--alg-ct! (cadr t)) (dk--alg-ct! (caddr t))
+           (dk--alg-cite2! (if (eq? (car t) '+) 'cc-add-closed 'cc-mul-closed) (cadr t) (caddr t)) t)
+          ((and (pair? t) (eq? (car t) '-) (= (length t) 2))
+           (dk--alg-ct! (cadr t)) (dk-cite! 'cc-neg-closed (cadr t)) t)
+          ((and (pair? t) (eq? (car t) '-) (= (length t) 3))
+           (dk--alg-ct! (cadr t)) (dk--alg-ct! (caddr t))
+           (dk-have! want (lambda () (type-term))) t)
+          ((and (pair? t) (eq? (car t) 'conjugate) (= (length t) 2))
+           (dk--alg-ct! (cadr t)) (dk-cite! 'cc-conjugate-closed (cadr t)) t)
+          (#t (error "dk-alg-norm!: a scalar atom is not typed in CC or RR:" (expression->string t))))))
+(define (dk--alg-vt! krec t)
+  (let ((want (list 'IN t (dk--alg-vec krec))) (A (dk--alg-A krec)))
+    (cond ((dk-asm? want) t)
+          ((dk--alg-const? krec t 'VZERO) (dk-cite! (dk--alg-law krec 'vzero-in) A) t)
+          ((dk--alg-const? krec t 'VONE) (dk-cite! (dk--alg-law krec 'vone-in) A) t)
+          ((dk--alg-op? krec t 'VADD 2)
+           (dk--alg-vt! krec (cadr t)) (dk--alg-vt! krec (caddr t))
+           (dk-cite! (dk--alg-law krec 'vadd-in) A (cadr t) (caddr t)) t)
+          ((dk--alg-op? krec t 'VMUL 2)
+           (dk--alg-vt! krec (cadr t)) (dk--alg-vt! krec (caddr t))
+           (dk-cite! (dk--alg-law krec 'vmul-in) A (cadr t) (caddr t)) t)
+          ((dk--alg-op? krec t 'VNEG 1)
+           (dk--alg-vt! krec (cadr t)) (dk-cite! (dk--alg-law krec 'vneg-in) A (cadr t)) t)
+          ((dk--alg-op? krec t 'VSTAR 1)
+           (dk--alg-vt! krec (cadr t)) (dk-cite! (dk--alg-law krec 'vstar-in) A (cadr t)) t)
+          ((dk--alg-op? krec t 'ACT 2)
+           (dk--alg-ct! (cadr t)) (dk--alg-vt! krec (caddr t))
+           (dk-cite! (dk--alg-law krec 'act-in) A (cadr t) (caddr t)) t)
+          (#t (error "dk-alg-norm!: a vector atom is not typed in (VEC A):" (expression->string t))))))
+
+;;; ------------------------------------------------------------------------------------------
+;;; THE STEP: cite ROLE at ARGS (typed first), check the instance is an equation between FROM and
+;;; TO (either orientation), and rewrite FROM -> TO in the goal.  Errors when nothing changes.
+(define (dk--alg-step! krec role args from to)
+  (let ((sig (cadr (assq role dk--alg-roles))))
+    (for-each (lambda (k a) (if (eq? k 'v) (dk--alg-vt! krec a) (dk--alg-ct! a))) sig args))
+  (let ((inst (apply dk-cite! (dk--alg-law krec role) (dk--alg-A krec) args)))
+    (if (not (and (pair? inst) (eq? (car inst) '=)
+                  (or (and (equal? (cadr inst) from) (equal? (caddr inst) to))
+                      (and (equal? (cadr inst) to) (equal? (caddr inst) from)))))
+        (error "dk-alg-norm!: the law did not land as the expected equation:" role
+               (expression->string inst) (expression->string (list '= from to))))
+    (dk--alg-say krec role ":" from "->" to)
+    (dk--alg-subst! (list '= from to))))
+(define (dk--alg-subst! eq)
+  (let ((g (dk-goal)))
+    (subst eq)
+    (if (equal? g (dk-goal))
+        (error "dk-alg-norm!: the rewrite changed nothing:" (expression->string eq)))))
+;;; a step justified by a scalar-law citation (the CC axioms): cite THM at TERMS (conjunctive
+;;; antecedents detached from context), rewrite FROM -> TO
+(define (dk--alg-cc-step! krec thm terms from to)
+  (for-each dk--alg-ct! terms)
+  (let ((inst (apply dk--alg-cite2! thm terms)))
+    (if (not (and (pair? inst) (eq? (car inst) '=)))
+        (error "dk-alg-norm!: the scalar law did not land:" thm (expression->string inst)))
+    (dk--alg-say krec thm ":" from "->" to)
+    (dk--alg-subst! (list '= from to))))
+
+;;; ------------------------------------------------------------------------------------------
+;;; PHASE 1: the expansion redexes.  (dk--alg-redex S t) is #f or a thunk performing the step.
+(define (dk--alg-real-number? t) (and (number? t) (exact? t) (real? t)))
+(define (dk--alg-letter? krec t)            ; an atom or the star of an atom
+  (and (not (dk--alg-vecop? krec t)) (not (dk--alg-const? krec t 'VZERO))))
+;;; the conjugate-pushing redex (the CC axioms), shared by dk-alg-norm! and dk-cc-norm!
+(define (dk--alg-conj-redex krec t)
+  (and (pair? t) (eq? (car t) 'conjugate) (= (length t) 2)
+      (let ((u (cadr t)))
+        (cond ((and (pair? u) (memq (car u) '(+ *)) (= (length u) 3))
+               (let ((to (list (car u) (list 'conjugate (cadr u)) (list 'conjugate (caddr u)))))
+                 (lambda () (dk--alg-cc-step! krec (if (eq? (car u) '+) 'cc-conjugate-add 'cc-conjugate-mul)
+                                              (cdr u) t to))))
+              ((and (pair? u) (eq? (car u) '-) (= (length u) 2))
+               (lambda () (dk--alg-cc-step! krec 'cc-conjugate-neg (cdr u) t (list '- (list 'conjugate (cadr u))))))
+              ((and (pair? u) (eq? (car u) '-) (= (length u) 3))
+               (lambda () (dk--alg-cc-step! krec 'cc-conjugate-sub (cdr u) t
+                                            (list '- (list 'conjugate (cadr u)) (list 'conjugate (caddr u))))))
+              ((and (pair? u) (eq? (car u) 'conjugate) (= (length u) 2))
+               (lambda () (dk--alg-cc-step! krec 'cc-conjugate-involution (cdr u) t (cadr u))))
+              ((equal? u +i)
+               (lambda () (dk--alg-say krec "cc-conjugate-i") (dk-cite! 'cc-conjugate-i)
+                          (dk--alg-subst! (list '= t (list '- +i)))))
+              ((or (dk--alg-real-number? u) (dk-asm? (list 'IN u 'RR)))
+               (lambda ()
+                 (if (not (dk-asm? (list 'IN u 'RR))) (dk-have! (list 'IN u 'RR) (lambda () (arith))))
+                 (dk--alg-say krec "cc-conjugate-fixes-rr" u)
+                 (dk-cite! 'cc-conjugate-fixes-rr u)
+                 (dk--alg-subst! (list '= t u))))
+              (#t #f)))))
+(define (dk--alg-redex krec t)
+  (let* ((A (dk--alg-A krec))
+         (hint (find-first (lambda (h) (equal? (cadr h) t)) (dk--alg-hints krec)))
+         (V? (lambda (u acc) (dk--alg-const? krec u acc)))
+         (O? (lambda (u acc n) (dk--alg-op? krec u acc n)))
+         (ad (lambda (x y) (list (dk--alg-head krec 'VADD) x y)))
+         (ac (lambda (c x) (list (dk--alg-head krec 'ACT) c x)))
+         (mu (lambda (x y) (list (dk--alg-head krec 'VMUL) x y)))
+         (st (lambda (x) (list (dk--alg-head krec 'VSTAR) x)))
+         (Z (dk--alg-head krec 'VZERO)) (One (dk--alg-head krec 'VONE))
+         (step (lambda (role args to) (lambda () (dk--alg-step! krec role args t to)))))
+    (cond
+     (hint (lambda () (dk--alg-say krec "hint:" hint) (dk--alg-subst! hint)))
+     ;; scalars: conjugates pushed in
+     ((dk--alg-conj-redex krec t))
+     ((O? t 'VNEG 1) (step 'vneg-act (list (cadr t)) (ac -1 (cadr t))))
+     ((O? t 'VSTAR 1)
+      (let ((u (cadr t)))
+        (cond ((O? u 'VADD 2) (step 'star-vadd (cdr u) (ad (st (cadr u)) (st (caddr u)))))
+              ((O? u 'ACT 2) (step 'star-act (cdr u) (ac (list 'conjugate (cadr u)) (st (caddr u)))))
+              ((O? u 'VSTAR 1) (step 'star-star (cdr u) (cadr u)))
+              ((O? u 'VMUL 2) (step 'star-mul (cdr u) (mu (st (caddr u)) (st (cadr u)))))
+              ((V? u 'VONE) (step 'star-one '() One))
+              ((V? u 'VZERO) (step 'star-zero '() Z))
+              (#t #f))))
+     ((O? t 'ACT 2)
+      (let ((c (cadr t)) (u (caddr t)))
+        (cond ((O? u 'VADD 2) (step 'act-vadd (list c (cadr u) (caddr u)) (ad (ac c (cadr u)) (ac c (caddr u)))))
+              ((O? u 'ACT 2) (step 'act-mul (list c (cadr u) (caddr u)) (ac (list '* c (cadr u)) (caddr u))))
+              ((V? u 'VZERO) (step 'act-vzero (list c) Z))
+              ((equal? c 0) (step 'act-zero (list u) Z))
+              ((equal? c 1) (step 'act-one (list u) u))
+              (#t #f))))
+     ((O? t 'VMUL 2)
+      (let ((p (cadr t)) (q (caddr t)))
+        (cond ((V? p 'VZERO) (step 'mul-zero-l (list q) Z))
+              ((V? q 'VZERO) (step 'mul-zero-r (list p) Z))
+              ((O? p 'VADD 2) (step 'mul-dist-r (list (cadr p) (caddr p) q) (ad (mu (cadr p) q) (mu (caddr p) q))))
+              ((O? q 'VADD 2) (step 'mul-dist-l (list p (cadr q) (caddr q)) (ad (mu p (cadr q)) (mu p (caddr q)))))
+              ((O? p 'ACT 2) (step 'mul-act-l (list (cadr p) (caddr p) q) (ac (cadr p) (mu (caddr p) q))))
+              ((O? q 'ACT 2) (step 'mul-act-r (list (cadr q) p (caddr q)) (ac (cadr q) (mu p (caddr q)))))
+              ((V? p 'VONE) (step 'mul-one-l (list q) q))
+              ((V? q 'VONE) (step 'mul-one-r (list p) p))
+              ((O? p 'VMUL 2) (step 'mul-assoc (list (cadr p) (caddr p) q) (mu (cadr p) (mu (caddr p) q))))
+              (#t #f))))
+     ((O? t 'VADD 2)
+      (let ((p (cadr t)) (q (caddr t)))
+        (cond ((V? p 'VZERO) (step 'add-zero-l (list q) q))
+              ((V? q 'VZERO) (step 'add-zero-r (list p) p))
+              ((O? p 'VADD 2) (step 'add-assoc (list (cadr p) (caddr p) q) (ad (cadr p) (ad (caddr p) q))))
+              (#t #f))))
+     (#t #f))))
+;;; the first redex, innermost (post-order), left to right
+(define (dk--alg-find krec t)
+  (or (and (pair? t) (let loop ((ts (cdr t)))
+                       (and (pair? ts) (or (dk--alg-find krec (car ts)) (loop (cdr ts))))))
+      (dk--alg-redex krec t)))
+(define (dk--alg-expand! krec)
+  (let loop ((n 0))
+    (if (> n 3000) (error "dk-alg-norm!: expansion did not terminate"))
+    (let ((r (dk--alg-find krec (dk-goal))))
+      (if r (begin (r) (loop (+ n 1)))))))
+
+;;; ------------------------------------------------------------------------------------------
+;;; the summand spine of a side in phase-1 normal form
+(define (dk--alg-spine krec t)              ; list of summands; () for VZERO
+  (cond ((dk--alg-const? krec t 'VZERO) '())
+        ((dk--alg-op? krec t 'VADD 2) (cons (cadr t) (dk--alg-spine krec (caddr t))))
+        (#t (list t))))
+(define (dk--alg-word krec s) (if (dk--alg-op? krec s 'ACT 2) (caddr s) s))
+(define (dk--alg-coef krec s) (if (dk--alg-op? krec s 'ACT 2) (cadr s) #f))
+(define (dk--alg-key krec s) (expression->string (dk--alg-word krec s)))
+
+;;; PHASE 2: wrap the bare words of a spine of two or more summands
+(define (dk--alg-wrap! krec)
+  (let ((ad (lambda (x y) (list (dk--alg-head krec 'VADD) x y)))
+        (ac (lambda (c x) (list (dk--alg-head krec 'ACT) c x))))
+    (let loop ()
+      (let ((node
+             (let scan ((sides (cdr (dk-goal))))
+               (and (pair? sides)
+                    (or (let walk ((t (car sides)))
+                          (and (dk--alg-op? krec t 'VADD 2)
+                               (cond ((not (dk--alg-coef krec (cadr t))) (cons t 'left))
+                                     ((and (not (dk--alg-op? krec (caddr t) 'VADD 2))
+                                           (not (dk--alg-coef krec (caddr t)))) (cons t 'right))
+                                     (#t (walk (caddr t))))))
+                        (scan (cdr sides)))))))
+        (if node
+            (let* ((t (car node)) (left? (eq? (cdr node) 'left))
+                   (m (if left? (cadr t) (caddr t)))
+                   (new (if left? (ad (ac 1 m) (caddr t)) (ad (cadr t) (ac 1 m))))
+                   (e1 (dk--alg-law-eq! krec 'act-one (list m))))
+              (dk--alg-vt! krec t) (dk--alg-vt! krec new)
+              (dk--alg-say krec "wrap" m)
+              (dk-congr! e1 (lambda (h) (if left? (ad h (caddr t)) (ad (cadr t) h))))
+              (dk--alg-subst! (list '= t new))
+              (loop)))))))
+(define (dk--alg-law-eq! krec role args)    ; cite ROLE at ARGS (typed), return the instance
+  (let ((sig (cadr (assq role dk--alg-roles))))
+    (for-each (lambda (k a) (if (eq? k 'v) (dk--alg-vt! krec a) (dk--alg-ct! a))) sig args))
+  (apply dk-cite! (dk--alg-law krec role) (dk--alg-A krec) args))
+
+;;; PHASE 3: sort the spine by word, collect equal words
+(define (dk--alg-sort! krec)
+  (let ((ad (lambda (x y) (list (dk--alg-head krec 'VADD) x y)))
+        (ac (lambda (c x) (list (dk--alg-head krec 'ACT) c x))))
+    (let loop ((fuel 4000))
+      (if (< fuel 0) (error "dk-alg-norm!: sorting did not terminate"))
+      ;; find, on either side, the first spine node VADD(si, rest) with key(si) >= key(s_{i+1})
+      (let ((hit
+             (let scan ((sides (cdr (dk-goal))))
+               (and (pair? sides)
+                    (or (let walk ((t (car sides)))
+                          (and (dk--alg-op? krec t 'VADD 2)
+                               (let* ((si (cadr t)) (rest (caddr t))
+                                      (tail? (not (dk--alg-op? krec rest 'VADD 2)))
+                                      (sj (if tail? rest (cadr rest))))
+                                 (if (string<? (dk--alg-key krec si) (dk--alg-key krec sj))
+                                     (walk rest)
+                                     (list t si sj tail? (if tail? #f (caddr rest)))))))
+                        (scan (cdr sides)))))))
+        (if hit
+            (let ((t (car hit)) (si (cadr hit)) (sj (caddr hit)) (tail? (cadddr hit)) (rest (car (cddddr hit))))
+              (if (string=? (dk--alg-key krec si) (dk--alg-key krec sj))
+                  ;; collect: c.w + d.w -> (c + d).w
+                  (let ((m (dk--alg-word krec si)) (c (dk--alg-coef krec si)) (d (dk--alg-coef krec sj)))
+                    (if tail?
+                        (dk--alg-step! krec 'act-add (list c d m) t (ac (list '+ c d) m))
+                        (let ((t2 (ad (ad si sj) rest)))
+                          (dk--alg-step! krec 'add-assoc (list si sj rest) t t2)
+                          (dk--alg-step! krec 'act-add (list c d m) (ad si sj) (ac (list '+ c d) m)))))
+                  ;; swap
+                  (if tail?
+                      (dk--alg-step! krec 'add-comm (list si sj) t (ad sj si))
+                      (begin
+                        (dk--alg-step! krec 'add-assoc (list si sj rest) t (ad (ad si sj) rest))
+                        (dk--alg-step! krec 'add-comm (list si sj) (ad si sj) (ad sj si))
+                        (dk--alg-step! krec 'add-assoc (list sj si rest) (ad (ad sj si) rest) (ad sj (ad si rest))))))
+              (loop (- fuel 1))))))))
+
+;;; ------------------------------------------------------------------------------------------
+;;; SCALAR equalities, on a lane: c = d by crs once every atom is typed in CC
+(define (dk--alg-scalar-have! krec c d)
+  (let ((claim (list '= c d)))
+    (dk--alg-ct! c) (dk--alg-ct! d)
+    (dk--alg-say krec "scalar:" claim)
+    (dk-have! claim (lambda () (crs)))
+    claim))
+;;; land (= s1 s2) for two summands of word m, coefficient #f meaning 1
+(define (dk--alg-coef-subst! c1 c2)     ; rewrite coefficient c1 into c2 in the goal, oriented by containment
+  (if (not (equal? c1 c2))
+      (subst (if (dk--occurs? c1 c2) (list '= c2 c1) (list '= c1 c2)))))
+(define (dk--alg-summand-eq! krec s1 s2)
+  (let* ((m (dk--alg-word krec s1))
+         (ac (lambda (c x) (list (dk--alg-head krec 'ACT) c x)))
+         (k1 (dk--alg-coef krec s1)) (k2 (dk--alg-coef krec s2))
+         (c1 (or k1 1)) (c2 (or k2 1)))
+    (dk--alg-vt! krec s1) (dk--alg-vt! krec s2)
+    (dk-have! (list '= s1 s2)
+      (lambda ()
+        ;; the scalar equation first, then the rewrite ON THE GOAL (no nested congruence lane:
+        ;; a lane inside this lane drifted focus, kalt-04 of probe 1).  The coefficient that is
+        ;; rewritten is always one that OCCURS in the goal, so a bare side never is the FROM.
+        (if (not (equal? c1 c2)) (dk--alg-scalar-have! krec c1 c2))
+        (cond ((and k1 k2) (dk--alg-coef-subst! c1 c2))
+              (k1 (if (not (equal? c1 1)) (subst (list '= c1 1)))      ; s2 = m bare: c1 -> 1
+                  (dk--alg-law-eq! krec 'act-one (list m))
+                  (subst (list '= (ac 1 m) m)))
+              (k2 (if (not (equal? c2 1)) (subst (list '= c2 1)))      ; s1 = m bare
+                  (dk--alg-law-eq! krec 'act-one (list m))
+                  (subst (list '= (ac 1 m) m))))
+        (dk--alg-vt! krec m)
+        (rfl)))))
+(define (dk--alg-zero-eq! krec s)           ; land (= s VZERO) for a summand with zero coefficient
+  (let* ((m (dk--alg-word krec s)) (c (dk--alg-coef krec s))
+         (ac (lambda (c x) (list (dk--alg-head krec 'ACT) c x)))
+         (Z (dk--alg-head krec 'VZERO)))
+    (if (not c) (error "dk-alg-norm!: internal: a bare word with coefficient 1 cannot be zero" (expression->string s)))
+    (dk--alg-vt! krec s)
+    (dk-have! (list '= s Z)
+      (lambda ()
+        (dk--alg-scalar-have! krec c 0)
+        (subst (list '= c 0))
+        (dk--alg-law-eq! krec 'act-zero (list m))
+        (subst (list '= (ac 0 m) Z))
+        (dk--alg-vt! krec Z)
+        (rfl)))))
+(define (dk--alg-compare! krec leaf)
+  (call-with-current-continuation (lambda (done) (dk--alg-compare-1! krec leaf done))))
+(define (dk--alg-compare-1! krec leaf done)
+  ;; a landed summand claim may BE the goal: dk-have! then proves it in place and the leaf
+  ;; is grounded (kalt-05, kalt-09 of probe 2) -- stop there, reporting 'closed
+  (define (closed?) (if (sequent-node-grounded? leaf) (done 'closed)))
+  (let* ((g (dk-goal)) (Ls (dk--alg-spine krec (cadr g))) (Rs (dk--alg-spine krec (caddr g)))
+         (find (lambda (k ss) (find-first (lambda (s) (string=? (dk--alg-key krec s) k)) ss)))
+         (zeroed #f))
+    ;; words of one side only: coefficient zero
+    (for-each (lambda (pr)
+                (for-each (lambda (s)
+                            (if (not (find (dk--alg-key krec s) (cdr pr)))
+                                (begin (dk--alg-zero-eq! krec s)
+                                       (closed?)
+                                       (dk--alg-say krec "zero:" s)
+                                       (dk--alg-subst! (list '= s (dk--alg-head krec 'VZERO)))
+                                       (set! zeroed #t))))
+                          (car pr)))
+              (list (cons Ls Rs) (cons Rs Ls)))
+    (if zeroed #t
+        (begin
+          (for-each (lambda (s1)
+                      (let ((s2 (find (dk--alg-key krec s1) Rs)))
+                        (if (not (equal? s1 s2))
+                            (begin (dk--alg-summand-eq! krec s1 s2)
+                                   (closed?)
+                                   (dk--alg-say krec "match:" s1 "->" s2)
+                                   (dk--alg-subst! (list '= s1 s2))))))
+                    Ls)
+          #f))))
+
+;;; ------------------------------------------------------------------------------------------
+;;; PHASE 0: the decision, in Scheme.  A polynomial is an alist ((MONO . COEF) ...), MONO a
+;;; sorted list of atom strings; the atom terms are kept in a table for conjugation.
+(define (dk--alg-cconj z) (if (real? z) z (make-rectangular (real-part z) (- (imag-part z)))))
+(define (dk--alg-p-norm p)
+  (let loop ((p p) (acc '()))
+    (if (null? p)
+        (filter (lambda (e) (not (= 0 (cdr e)))) acc)
+        (let ((hit (assoc (caar p) acc)))
+          (if hit (begin (set-cdr! hit (+ (cdr hit) (cdar p))) (loop (cdr p) acc))
+              (loop (cdr p) (cons (cons (caar p) (cdar p)) acc)))))))
+(define (dk--alg-p-add p q) (dk--alg-p-norm (append (map (lambda (e) (cons (car e) (cdr e))) p)
+                                                  (map (lambda (e) (cons (car e) (cdr e))) q))))
+(define (dk--alg-p-mul p q)
+  (dk--alg-p-norm
+   (append-map (lambda (a) (map (lambda (b) (cons (sort (append (car a) (car b)) string<?) (* (cdr a) (cdr b)))) q)) p)))
+(define (dk--alg-p-const k) (if (= k 0) '() (list (cons '() k))))
+(define (dk--alg-p-zero? p) (null? (dk--alg-p-norm p)))
+(define (dk--alg-p-conj atoms p)         ; atoms: alist string -> term
+  (dk--alg-p-norm
+   (map (lambda (e)
+          (cons (sort (map (lambda (s) (car (dk--alg-atom-conj atoms s))) (car e)) string<?)
+                (dk--alg-cconj (cdr e))))
+        p)))
+(define (dk--alg-atom-conj atoms s)      ; returns (string . term), registering the new atom
+  (let* ((t (cdr (assoc s (car atoms))))
+         (u (cond ((and (pair? t) (eq? (car t) 'conjugate)) (cadr t))
+                  ((dk-asm? (list 'IN t 'RR)) t)
+                  (#t (list 'conjugate t))))
+         (k (expression->string u)))
+    (if (not (assoc k (car atoms))) (set-car! atoms (cons (cons k u) (car atoms))))
+    (cons k u)))
+(define (dk--alg-scalar-poly atoms t)
+  (cond ((number? t) (dk--alg-p-const t))
+        ((and (pair? t) (eq? (car t) '+) (= (length t) 3))
+         (dk--alg-p-add (dk--alg-scalar-poly atoms (cadr t)) (dk--alg-scalar-poly atoms (caddr t))))
+        ((and (pair? t) (eq? (car t) '*) (= (length t) 3))
+         (dk--alg-p-mul (dk--alg-scalar-poly atoms (cadr t)) (dk--alg-scalar-poly atoms (caddr t))))
+        ((and (pair? t) (eq? (car t) '-) (= (length t) 2))
+         (dk--alg-p-mul (dk--alg-p-const -1) (dk--alg-scalar-poly atoms (cadr t))))
+        ((and (pair? t) (eq? (car t) '-) (= (length t) 3))
+         (dk--alg-p-add (dk--alg-scalar-poly atoms (cadr t))
+                        (dk--alg-p-mul (dk--alg-p-const -1) (dk--alg-scalar-poly atoms (caddr t)))))
+        ((and (pair? t) (eq? (car t) 'conjugate) (= (length t) 2))
+         (dk--alg-p-conj atoms (dk--alg-scalar-poly atoms (cadr t))))
+        (#t (if (not (or (dk-asm? (list 'IN t 'CC)) (dk-asm? (list 'IN t 'RR))))
+                (error "dk-alg-norm!: a scalar atom is not typed in CC or RR:" (expression->string t)))
+            (let ((k (expression->string t)))
+              (if (not (assoc k (car atoms))) (set-car! atoms (cons (cons k t) (car atoms))))
+              (list (cons (list k) 1))))))
+;;; a vector normal form: alist ((WORD . POLY) ...), WORD a list of letter terms
+(define (dk--alg-v-norm nf)
+  (let loop ((nf nf) (acc '()))
+    (if (null? nf)
+        (filter (lambda (e) (not (dk--alg-p-zero? (cdr e)))) (reverse acc))
+        (let ((hit (assoc (caar nf) acc)))
+          (if hit (begin (set-cdr! hit (dk--alg-p-add (cdr hit) (cdar nf))) (loop (cdr nf) acc))
+              (loop (cdr nf) (cons (cons (caar nf) (cdar nf)) acc)))))))
+(define (dk--alg-vnf krec atoms t)
+  (let ((hint (find-first (lambda (h) (equal? (cadr h) t)) (dk--alg-hints krec)))
+        (scale (lambda (p nf) (map (lambda (e) (cons (car e) (dk--alg-p-mul p (cdr e)))) nf))))
+    (cond (hint (dk--alg-vnf krec atoms (caddr hint)))
+          ((dk--alg-const? krec t 'VZERO) '())
+          ((dk--alg-const? krec t 'VONE) (list (cons '() (dk--alg-p-const 1))))
+          ((dk--alg-op? krec t 'VADD 2) (dk--alg-v-norm (append (dk--alg-vnf krec atoms (cadr t)) (dk--alg-vnf krec atoms (caddr t)))))
+          ((dk--alg-op? krec t 'VNEG 1) (scale (dk--alg-p-const -1) (dk--alg-vnf krec atoms (cadr t))))
+          ((dk--alg-op? krec t 'ACT 2) (dk--alg-v-norm (scale (dk--alg-scalar-poly atoms (cadr t)) (dk--alg-vnf krec atoms (caddr t)))))
+          ((dk--alg-op? krec t 'VMUL 2)
+           (let ((p (dk--alg-vnf krec atoms (cadr t))) (q (dk--alg-vnf krec atoms (caddr t))))
+             (dk--alg-v-norm (append-map (lambda (a) (map (lambda (b) (cons (append (car a) (car b))
+                                                                            (dk--alg-p-mul (cdr a) (cdr b)))) q)) p))))
+          ((dk--alg-op? krec t 'VSTAR 1)
+           (let ((p (dk--alg-vnf krec atoms (cadr t))))
+             (dk--alg-v-norm
+              (append-map (lambda (e)
+                            (let ((pc (dk--alg-p-conj atoms (cdr e))))
+                              ;; star of a word: reversed, each letter starred (and re-normalised by hints)
+                              (let loop ((ls (reverse (car e))) (acc (list (cons '() pc))))
+                                (if (null? ls) acc
+                                    (let* ((l (car ls))
+                                           (sl (if (dk--alg-op? krec l 'VSTAR 1) (cadr l) (list (dk--alg-head krec 'VSTAR) l)))
+                                           (sh (find-first (lambda (h) (equal? (cadr h) sl)) (dk--alg-hints krec)))
+                                           ;; a starred letter is a letter: re-entering vnf on (VSTAR x)
+                                           ;; would star x again, forever (kalt-12, probe 2)
+                                           (lnf (if sh (dk--alg-vnf krec atoms (caddr sh))
+                                                    (list (cons (list sl) (dk--alg-p-const 1))))))
+                                      (loop (cdr ls)
+                                            (dk--alg-v-norm
+                                             (append-map (lambda (a) (map (lambda (b) (cons (append (car a) (car b))
+                                                                                            (dk--alg-p-mul (cdr a) (cdr b)))) lnf)) acc))))))))
+                          p))))
+          ((dk--alg-vecop? krec t) (error "dk-alg-norm!: an operation of A with the wrong arity:" (expression->string t)))
+          (#t (if (not (dk-asm? (list 'IN t (dk--alg-vec krec))))
+                  (error "dk-alg-norm!: a vector atom is not typed in (VEC A):" (expression->string t)))
+              (list (cons (list t) (dk--alg-p-const 1)))))))
+;;; #t, or the list of words whose coefficients differ (each with the two polynomials)
+(define (dk--alg-decide krec l r)
+  (let* ((atoms (list '()))
+         (nl (dk--alg-vnf krec atoms l)) (nr (dk--alg-vnf krec atoms r))
+         (words (let loop ((ws (append (map car nl) (map car nr))) (acc '()))
+                  (cond ((null? ws) (reverse acc)) ((member (car ws) acc) (loop (cdr ws) acc))
+                        (#t (loop (cdr ws) (cons (car ws) acc))))))
+         (bad (filter (lambda (w)
+                        (let ((pl (let ((h (assoc w nl))) (if h (cdr h) '())))
+                              (pr (let ((h (assoc w nr))) (if h (cdr h) '()))))
+                          (not (dk--alg-p-zero? (dk--alg-p-add pl (dk--alg-p-mul (dk--alg-p-const -1) pr))))))
+                      words)))
+    (if (null? bad) #t
+        (map (lambda (w) (list w (let ((h (assoc w nl))) (if h (cdr h) '()))
+                               (let ((h (assoc w nr))) (if h (cdr h) '()))))
+             bad))))
+
+;;; ------------------------------------------------------------------------------------------
+;;; THE ENTRY POINTS
+(define (dk--alg-make prefix A opts)
+  (let loop ((o opts) (hints '()) (trace #f))
+    (cond ((null? o) (list A prefix (map ->raw-formula hints) trace))
+          ((and (eq? (car o) 'hints) (pair? (cdr o))) (loop (cddr o) (cadr o) trace))
+          ((and (eq? (car o) 'trace) (pair? (cdr o))) (loop (cddr o) hints (cadr o)))
+          (#t (error "dk-alg-norm!: unknown option" (car o))))))
+;;; (dk-alg-identity? PREFIX A L R . OPTS) -- the decision alone: #t or the differing words
+(define (dk-alg-identity? prefix A l r . opts)
+  (dk--alg-decide (dk--alg-make prefix A opts) (->raw-formula l) (->raw-formula r)))
+;;; (dk-alg-norm! PREFIX A . OPTS) -- prove the focus goal (= L R); returns #t
+(define (dk-alg-norm! prefix A . opts)
+  (let* ((krec (dk--alg-make prefix A opts))
+         (g (dk-goal))
+         (leaf (proof-state-focus *ps*)))
+    (if (not (and (pair? g) (eq? (car g) '=) (= (length g) 3)))
+        (error "dk-alg-norm!: the goal is not an equation" (expression->string g)))
+    (for-each (lambda (h) (if (not (dk-asm? h)) (error "dk-alg-norm!: a hint is not in context:" (expression->string h))))
+              (dk--alg-hints krec))
+    (let ((verdict (dk--alg-decide krec (cadr g) (caddr g))))
+      (if (not (eq? verdict #t))
+          (error "dk-alg-norm!: REFUSED -- not an identity of the algebra; the coefficients differ at the word(s):"
+                 (map (lambda (b) (list (expression->string (car b)) (cadr b) (caddr b))) verdict))))
+    (let loop ((round 0))
+      (if (> round 50) (error "dk-alg-norm!: the compare loop did not terminate"))
+      (dk--alg-expand! krec)
+      (dk--alg-wrap! krec)
+      (dk--alg-sort! krec)
+      (let ((r (dk--alg-compare! krec leaf)))
+        (cond ((eq? r 'closed) 'closed)
+              (r (loop (+ round 1)))
+              (#t (let ((g2 (dk-goal)))
+      (if (not (equal? (cadr g2) (caddr g2)))
+          (error "dk-alg-norm!: internal: the normal forms differ after the compare" (expression->string g2)))
+                    (dk--alg-vt! krec (cadr g2))
+                    (rfl))))))
+    (if (not (sequent-node-grounded? leaf))
+        (error "dk-alg-norm!: the goal did not close" (expression->string g)))
+    #t))
+;;; (dk-alg-have! PREFIX A CLAIM . OPTS) -- land the equation CLAIM, proved by dk-alg-norm!
+(define (dk-alg-have! prefix A claim . opts)
+  (dk-have! claim (lambda () (apply dk-alg-norm! prefix A opts)))
+  (->raw-formula claim))
+
+;;; ------------------------------------------------------------------------------------------
+;;; (dk-cc-norm! . OPTS) -- THE SCALAR FINISHER.  The focus goal is an equation over CC whose
+;;; atoms are typed in CC or RR in context.  Conjugates are pushed in by the CC axioms
+;;; (cc-conjugate-add / -mul / -neg / -sub / -involution / -i, cc-conjugate-fixes-rr at a real
+;;; number or an atom typed in RR), both sides are typed in CC, and `crs' closes the
+;;; commutative-ring identity (i*i = -1 is native to it).  Errors when the goal does not close.
+;;; OPTS: 'trace #t.  An atom left under a conjugate (conjugate(u), u not known real) stays an
+;;; opaque atom of crs: the identity must hold with it as an independent variable.
+(define (dk--cc-find krec t)
+  (or (and (pair? t) (let loop ((ts (cdr t)))
+                       (and (pair? ts) (or (dk--cc-find krec (car ts)) (loop (cdr ts))))))
+      (dk--alg-conj-redex krec t)))
+(define (dk-cc-norm! . opts)
+  (let ((krec (dk--alg-make #f #f opts))
+        (g (dk-goal))
+        (leaf (proof-state-focus *ps*)))
+    (if (not (and (pair? g) (eq? (car g) '=) (= (length g) 3)))
+        (error "dk-cc-norm!: the goal is not an equation" (expression->string g)))
+    (let loop ((n 0))
+      (if (> n 500) (error "dk-cc-norm!: conjugate pushing did not terminate"))
+      (let ((r (dk--cc-find krec (dk-goal))))
+        (if r (begin (r) (loop (+ n 1))))))
+    (if (not (sequent-node-grounded? leaf))
+        (let ((g2 (dk-goal)))
+          (dk--alg-ct! (cadr g2)) (dk--alg-ct! (caddr g2))
+          (crs)))
+    (if (not (sequent-node-grounded? leaf))
+        (error "dk-cc-norm!: crs did not close" (expression->string (dk-goal))))
+    #t))
+;;; (dk-alg-type! PREFIX A T) -- land (IN T (VEC A)) for a term of the algebra built from typed
+;;; atoms, by the typing laws PREFIX-vadd-in ... (a scalar coefficient typed in CC on the way)
+(define (dk-alg-type! prefix A t . opts)
+  (dk--alg-vt! (dk--alg-make prefix A opts) (->raw-formula t))
+  (list 'IN (->raw-formula t) (list 'VEC A)))
+;;; (dk-cc-type! T) -- land (IN T CC) for a scalar built by + * - conjugate from typed atoms
+(define (dk-cc-type! t) (dk--alg-ct! (->raw-formula t)) (list 'IN (->raw-formula t) 'CC))

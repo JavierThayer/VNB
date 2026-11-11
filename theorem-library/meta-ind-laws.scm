@@ -2427,8 +2427,11 @@
     (ass)))
 (qed 'der-comp-cr)
 
-;; THE LAW OF THE STAGE-7 CLAUSE: RW-DESC-BODY preserves EQV(T), the COMP case by der-comp-cr, the IOTA case by
-;; the core rule IOTA-CR (as eqv-iota-body, meta-cr-laws.scm section J, for the clause at a given tuple).
+;; THE LAW OF THE STAGE-7 CLAUSE: RW-DESC-BODY preserves EQV(T), the COMP case by the core rule TBIND-CR at head
+;; 23 (W2B, 2026-11-10, the METACORE report's finding 3; until then by der-comp-cr, which needed both bodies
+;; predicative), the IOTA case by the core rule IOTA-CR (as eqv-iota-body, meta-cr-laws.scm section J, for the
+;; clause at a given tuple).  The hypotheses SUBSET tt CLF and AX-CLASS-EXT in tt are no longer used by the proof;
+;; the statement is kept, since cr-closed-7 and its citers carry them (a strengthening is a statement change).
 (sp (make-wff '(FORALL jj (FORALL tt (FORALL x (IMPLIES (SUBSET tt CLF) (IMPLIES (IN AX-CLASS-EXT tt)
    (IMPLIES (RW-DESC-BODY jj (EQV tt) x) (IMPLIES (IN x RW-UNIV) (IN x (EQV tt)))))))))))
 (dk-peel!)
@@ -2459,29 +2462,29 @@
                         (dk-cite! unf v)
                         (dk-rewrite-h! t1 e c)))
                     (list a b) (list ea eb) (list e1 e2) (list ca cb))
-          (let ((ff (if cmp? `(ENC-IFF (ENC-IN (EBVAR 0) ,ca) (ENC-IN (EBVAR 0) ,cb)) `(ENC-QEQ ,ca ,cb))))
-            (if cmp?
-                (mi-expr! ff)
-                (begin (dk-cite! 'clf-qeq-intro ca cb)
-                       (dk-split-all! (list (dk-meta-iff-r! (dk-meta-iff! 'clf-iff ff))))))
+          ;; W2B, 2026-11-10 (finding 3): both cases by a core congruence rule -- COMP by TBIND-CR at head 23
+          ;; (structure-library/meta-core.scm 4.9), stated through EBIND; IOTA by IOTA-CR, through ENC-IOTA.
+          (let ((ff (if cmp? `(ENC-QEQ ,e1 ,e2) `(ENC-QEQ ,ca ,cb))))
+            (if cmp? (dk-cite! 'clf-qeq-intro e1 e2) (dk-cite! 'clf-qeq-intro ca cb))
+            (dk-split-all! (list (dk-meta-iff-r! (dk-meta-iff! 'clf-iff ff))))
             (let* ((z (dk-skolem! (dk-cite! 'mr-fresh fs g ff) #t))
                    (az `(EXPR-OPEN ,a 0 (EFVAR ,z))) (bz `(EXPR-OPEN ,b 0 (EFVAR ,z))))
               (dk-apply! u z)
               (dk-split! (dk-cite! 'eqv-f-open 'tt g az bz))
               (dk-cite! 'der-in-seq 'tt `(LIST ,g (ENC-IFF ,az ,bz)))
               (if cmp?
-                  (let ((imp (or (find-first (lambda (f) (and (dk-head-is? f 'IMPLIES) (equal? (cadr f) `(= ,h 23)))) (dk-asms))
-                                 (error "eqv-desc-body: no predicativity conjunct"))))
-                    ;; the clause's predicativity conjunct, at the COMP head (agent METACORE, 2026-10-29)
-                    (if (not (and (dk-asm? `(NBG-OK ,a)) (dk-asm? `(NBG-OK ,b))))
-                        (dk-split! (dk-landed-1 (lambda () (detach! imp)))))
-                    (dk-cite! 'der-comp-cr 'tt g a b z))
-                  (dk-meta-derive! 'tt `(iota-cr (,g ==> (ENC-QEQ ,ca ,cb)) (given (,g ==> (ENC-IFF ,az ,bz))) (y := ,z))))
-              (let* ((d1 `(IN (LIST ,g (ENC-QEQ ,ca ,cb)) (DERIVABLE tt)))
-                     (d2 (dk-rewrite-h! d1 ca e1)))
-                (dk-rewrite-h! d2 cb e2)
-                (dk-cite! 'eqv-t-intro 'tt g e1 e2)
-                (ass)))))))))
+                  (begin
+                    ;; the relation's shape condition at the COMP head: the premise is the opened bodies' IFF
+                    (dk-have! `(OR (AND (OR (= 23 22) (= 23 23)) (= (ENC-IFF ,az ,bz) (ENC-IFF ,az ,bz)))
+                                   (AND (OR (= 23 24) (= 23 26)) (= (ENC-IFF ,az ,bz) (ENC-QEQ ,az ,bz))))
+                      (lambda () (oi-l) (dk-conj-close! (lambda () (cond ((dk-head-is? (dk-goal) 'OR) (oi-r) (rfl)) (#t (rfl)))))))
+                    (dk-meta-derive! 'tt `(tbind-cr (,g ==> ,ff) (given (,g ==> (ENC-IFF ,az ,bz))) (y := ,z))))
+                  (begin
+                    (dk-meta-derive! 'tt `(iota-cr (,g ==> (ENC-QEQ ,ca ,cb)) (given (,g ==> (ENC-IFF ,az ,bz))) (y := ,z)))
+                    (let ((d2 (dk-rewrite-h! `(IN (LIST ,g (ENC-QEQ ,ca ,cb)) (DERIVABLE tt)) ca e1)))
+                      (dk-rewrite-h! d2 cb e2))))
+              (dk-cite! 'eqv-t-intro 'tt g e1 e2)
+              (ass))))))))
 (qed 'eqv-desc-body)
 
 ;; CR AT STAGE 7, the last stage: every clause of RW-RULE has its law (meta-cr-laws.scm, sections C-H, K; above).

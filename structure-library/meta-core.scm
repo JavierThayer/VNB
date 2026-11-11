@@ -645,6 +645,8 @@
 ;;; ADMITTED LATER (the user's decision of 2026-10-21; agent META-FUN): the congruence rule for the term
 ;;; binders over a domain, TBIND-CR (SEP, BIG-UNION, VNB-LAMBDA), as 4.9 below, after 4.8; and the
 ;;; functoid table FUN-DEF with the rule functoid-beta-eq (the note's 4.4 row), as 4.10 below, after 4.9.
+;;; EXTENDED and ADMITTED LATER (the user's decision of 2026-11-10; agent W2B): TBIND-CR extended to COMP (head
+;;; 23), 4.9; and tuple eta, TUPLE-ETA, as 4.11 below, after 4.10 (the core-schema route for cartesian-decompose).
 
 ;; The TOTAL class constructors (*total-term-heads*, primitive-inferences.scm): 11 UNION, 12
 ;; INTERSECTION, 13 CARTESIAN, 14 TUPLES, 19 FUN, 30 succ, 31 succ_ORD.  (Moved here from meta-def.scm,
@@ -815,38 +817,53 @@
              '(NOT (IN mcy_ (UNION (CTX-FV mcg_) (EXPR-FV (ENC-QEQ (ENC-IOTA mcp_) (ENC-IOTA mcq_))))))
              '(= mchs_ (LIST (LIST mcg_ (ENC-IFF (EXPR-OPEN mcp_ 0 (EFVAR mcy_)) (EXPR-OPEN mcq_ 0 (EFVAR mcy_)))))))))
 
-;;; 4.9 THE CONGRUENCE RULE FOR THE TERM BINDERS OVER A DOMAIN (TBIND-CR; the user's decision of 2026-10-21,
-;;; agent META-FUN; scratchpad/META-FUN-REPORT.md, section 2, option (i)).
-;;;   from  Gamma, y fresh |- phi(y) iff psi(y)  infer  Gamma |- (SEP x A. phi) == (SEP x A. psi);
+;;; 4.9 THE CONGRUENCE RULE FOR THE TERM BINDERS (TBIND-CR; the user's decision of 2026-10-21, agent META-FUN;
+;;; scratchpad/META-FUN-REPORT.md, section 2, option (i); EXTENDED to COMP, head 23, by the user's decision of
+;;; 2026-11-10, agent W2B, the METACORE report's finding 3).
+;;;   from  Gamma, y fresh |- phi(y) iff psi(y)  infer  Gamma |- (SEP x A. phi) == (SEP x A. psi),
+;;;                                                    Gamma |- (COMP x. phi) == (COMP x. psi);
 ;;;   from  Gamma, y fresh |- b(y) == c(y)      infer  Gamma |- (BIG-UNION x A. b) == (BIG-UNION x A. c),
 ;;;                                                    Gamma |- (VNB-LAMBDA x A. b) == (VNB-LAMBDA x A. c).
-;;; THE CLAIM: the value of SEP x A. p, BIG-UNION x A. b and VNB-LAMBDA x A. b depends on the domain A and on
-;;; the values of the body at OBJECTS only: SEP is the subclass of A of the members satisfying p, BIG-UNION
-;;; the union of the values b[x] that are sets as x ranges over A, VNB-LAMBDA the class of the pairs
-;;; [x, b[x]] for x in A with b[x] denoting.  Bodies equivalent (formulas) or quasi-equal (terms) at an
-;;; ARBITRARY value of the bound variable therefore give quasi-equal binder terms; when A does not denote,
-;;; neither side denotes (CR-DEF-STRICT-DOM), and the conclusion holds as a quasi-equation of two
-;;; non-denoting terms.  It is not derivable over the rules above (the report, section 2: over a
-;;; non-denoting domain no rule concludes a quasi-equation between distinct terms, and the core has no
-;;; membership schema for a lambda term).  The kernel exercises exactly this licence: its rewriters
-;;; descend into the bodies of the three binders (rkw--descend; the stage-6 clauses RW-SEP-BODY and
-;;; RW-TBIND-BODY of structure-library/meta-cr.scm).
-;;; THE ENCODING.  One relation for the three heads 22, 24, 26.  The premise formula f is named, and its
-;;; shape is fixed by the head: the opened bodies' equivalence (ENC-IFF) for SEP, whose body is a formula,
-;;; their quasi-equation (ENC-QEQ) for BIG-UNION and VNB-LAMBDA, whose bodies are terms.  As in IOTA-CR the
-;;; bodies are opened at a free name y, the premise has the conclusion's context, and y is free neither in
-;;; the context nor in the conclusion (whose free names are those of A and of the two bodies).
-;;; WHAT IT DOES NOT SAY: the conclusion is the QUASI-equation (head 9); the strict equation would assert
-;;; that the binder terms denote, which fails over a non-denoting domain.  META control:
-;;; tbind-cr-refuses-eq (theorem-library/meta-core-laws.scm).  It says nothing of COMP (head 23), whose
-;;; body clause is DERIVED from the encoded class-extensionality (meta-ind-laws.scm, der-comp-cr), nor of
-;;; IOTA (25, rule 4.8).  It is defined LAST, after 4.8, so that no earlier disjunct of CORE-RULE moves.
+;;; THE CLAIM: the value of SEP x A. p, COMP x. p, BIG-UNION x A. b and VNB-LAMBDA x A. b depends on the domain
+;;; A (none for COMP) and on the values of the body at OBJECTS only: SEP is the subclass of A of the members
+;;; satisfying p, COMP the class of the sets satisfying p, BIG-UNION the union of the values b[x] that are sets as
+;;; x ranges over A, VNB-LAMBDA the class of the pairs [x, b[x]] for x in A with b[x] denoting.  Bodies equivalent
+;;; (formulas) or quasi-equal (terms) at an ARBITRARY value of the bound variable therefore give quasi-equal binder
+;;; terms; when A does not denote, neither side denotes (CR-DEF-STRICT-DOM), and the conclusion holds as a
+;;; quasi-equation of two non-denoting terms.  It is not derivable over the rules above (the report, section 2:
+;;; over a non-denoting domain no rule concludes a quasi-equation between distinct terms, and the core has no
+;;; membership schema for a lambda term).  The kernel exercises exactly this licence: its rewriters descend into
+;;; the bodies of the binders (rkw--descend; the stage-6 clauses RW-SEP-BODY and RW-TBIND-BODY and the stage-7
+;;; clause RW-DESC-BODY of structure-library/meta-cr.scm).
+;;; THE COMP CASE (finding 3 of the METACORE report).  For PREDICATIVE bodies (NBG-OK, 4.3a) the COMP instance is
+;;; DERIVED over the core from the encoded class-extensionality (der-comp-cr, meta-ind-laws.scm section M), so
+;;; there it adds nothing.  For an IMPREDICATIVE body the core says nothing else about COMP x. phi: CR-DEF-COMP and
+;;; CR-COMP-MEM are stated for predicative bodies only, so the term is read, in NBG, as the class whose members
+;;; are exactly the sets satisfying phi, WHEN that class exists, and as non-denoting otherwise (the reading under
+;;; which every core rule is valid in every model of NBG).  Two bodies equivalent at every object have the same
+;;; satisfying sets; so either the one class exists and both terms denote it, or neither denotes: in both cases
+;;; the QUASI-equation holds.  The rule asserts no existence of a class (a quasi-equation, never the strict
+;;; equation, and no membership), so it adds no strength to the core beyond NBG; the kernel's rewriting inside a
+;;; COMP body, impredicative or not, is the licence it encodes.
+;;; THE ENCODING.  One relation for the four heads 22, 23, 24, 26.  The outside list ol is a witness: the
+;;; conclusion is a sequent (the closure law's premise (IN c SEQ-SET)), so its terms are well formed and BIND-SIG
+;;; (section 1) fixes the length of ol by the head: one domain for 22, 24, 26, none for 23.  (Before the
+;;; extension the conclusion read (LIST A) literally; for the heads 22, 24, 26 the instances are the same.)  The
+;;; premise formula f is named, and its shape is fixed by the head: the opened bodies' equivalence (ENC-IFF) for
+;;; SEP and COMP, whose bodies are formulas, their quasi-equation (ENC-QEQ) for BIG-UNION and VNB-LAMBDA, whose
+;;; bodies are terms.  As in IOTA-CR the bodies are opened at a free name y, the premise has the conclusion's
+;;; context, and y is free neither in the context nor in the conclusion (whose free names are those of ol and of
+;;; the two bodies).
+;;; WHAT IT DOES NOT SAY: the conclusion is the QUASI-equation (head 9); the strict equation would assert that the
+;;; binder terms denote, which fails over a non-denoting domain, and for an impredicative COMP.  META controls:
+;;; tbind-cr-refuses-eq and tbind-cr-comp-refuses-eq (theorem-library/meta-core-laws.scm).  It says nothing of
+;;; IOTA (25, rule 4.8).  It is defined after 4.8, so that no earlier disjunct of CORE-RULE moves.
 (mc--cr! 'CR-TBIND-CR "the core congruence rule for the term binders relates $2 to $3"
-  (mc--ex '(mcg_ mchd_ mca_ mcp_ mcq_ mcy_ mcf_)
-    (mc--and '(= mcc_ (LIST mcg_ (ENC-QEQ (EBIND mchd_ 1 (LIST mca_) mcp_) (EBIND mchd_ 1 (LIST mca_) mcq_))))
+  (mc--ex '(mcg_ mchd_ mcol_ mcp_ mcq_ mcy_ mcf_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-QEQ (EBIND mchd_ 1 mcol_ mcp_) (EBIND mchd_ 1 mcol_ mcq_))))
              '(IN mcy_ NN)
-             '(NOT (IN mcy_ (UNION (CTX-FV mcg_) (EXPR-FV (ENC-QEQ (EBIND mchd_ 1 (LIST mca_) mcp_) (EBIND mchd_ 1 (LIST mca_) mcq_))))))
-             '(OR (AND (= mchd_ 22) (= mcf_ (ENC-IFF (EXPR-OPEN mcp_ 0 (EFVAR mcy_)) (EXPR-OPEN mcq_ 0 (EFVAR mcy_)))))
+             '(NOT (IN mcy_ (UNION (CTX-FV mcg_) (EXPR-FV (ENC-QEQ (EBIND mchd_ 1 mcol_ mcp_) (EBIND mchd_ 1 mcol_ mcq_))))))
+             '(OR (AND (OR (= mchd_ 22) (= mchd_ 23)) (= mcf_ (ENC-IFF (EXPR-OPEN mcp_ 0 (EFVAR mcy_)) (EXPR-OPEN mcq_ 0 (EFVAR mcy_)))))
                   (AND (OR (= mchd_ 24) (= mchd_ 26)) (= mcf_ (ENC-QEQ (EXPR-OPEN mcp_ 0 (EFVAR mcy_)) (EXPR-OPEN mcq_ 0 (EFVAR mcy_))))))
              '(= mchs_ (LIST (LIST mcg_ mcf_))))))
 
@@ -893,6 +910,44 @@
     (mc--and '(= mcc_ (LIST mcg_ (ENC-QEQ (EAPP mchd_ mcl_) (OPENL mcb_ mcl_ (LENGTH mcl_)))))
              '(FUN-DEF mchd_ (LENGTH mcl_) mcb_)
              '(= mchs_ (LIST)))))
+;;; 4.11 TUPLE ETA (the user's decision of 2026-11-10, the core-schema route for row 57 of the K2 ledger,
+;;; cartesian-decompose; agent W2B; the METACORE report's finding 4).
+;;;   from  Gamma |- x in CARTESIAN(A_1 .. A_n)  infer  Gamma |- x = [NTH(1, x) .. NTH(n, x)]      (n >= 1).
+;;; THE CLAIM: a member of an n-ary product is the list of its own n components.  It is the one fact the core
+;;; lacked for cartesian-decompose (METACORE report, finding 4): CR-CARTESIAN-MEM states the membership through
+;;; NTH and LENGTH, and CR-NTH-EQ reads the entries of a LITERAL list only, so no rule above concludes an
+;;; equation between a non-literal x and a list.
+;;; WHY IT HOLDS IN NBG, with the tree's list encoding.  A list is a member of TUPLES; the base theory pins the
+;;; lists down by two PRIMITIVE generation axioms (structure-library/list-recursion.scm: tuple-length-zero, a
+;;; tuple of length 0 is [], and tuple-cons-decompose, a tuple of length succ(n) is CONS(y, M) with M a tuple of
+;;; length n) and by the defining equations of NTH and LENGTH on CONS.  By induction on n, every member L of
+;;; TUPLES(A) of length n equals [NTH(1, L) .. NTH(n, L)]: for n = 0 by the first axiom; for succ(n), L =
+;;; CONS(y, M), NTH(1, L) = y, NTH(i + 1, L) = NTH(i, M), and M = [NTH(1, M) .. NTH(n, M)] by the hypothesis.  A
+;;; member x of CARTESIAN(A_1 .. A_n) is a tuple of sets of length n (CR-CARTESIAN-MEM), hence the instance.  The
+;;; list on the right denotes, being equal to x (the list doctrine of 2026-10-01: its components are the sets
+;;; NTH(i, x)), so the STRICT equation is the right conclusion.
+;;; WHY IT ADDS NO STRENGTH BEYOND THE KERNEL.  The kernel's cartesian-decompose (primitive shelf, library.scm;
+;;; checker rule-checkers-rewrite.scm) rewrites x in CARTESIAN(A_1 .. A_n) to the chain FORSOME v_1 .. v_n.
+;;; v_i in A_i and x = [v_1 .. v_n]; with nth-reduce (NTH(i, [v_1 .. v_n]) = v_i) and the substitution of x for
+;;; [v_1 .. v_n], the kernel derives exactly this equation, and nothing in it is stronger: the schema is the
+;;; kernel rule's content with the existential witnesses named by their projections.  It is not derivable over
+;;; the rules above (METACORE report, finding 4): the core has no generation principle for tuples.
+;;; THE ENCODING.  The list on the right is a meta-level tuple l of terms, of the length n of the factor list a,
+;;; whose i-th entry is the encoded NTH(i, x) (ENC-NTH of the numeral ENC-NUM(i)); it is fixed by its length and
+;;; entries, as CR-CARTESIAN-INTRO fixes its list of premises.  The conclusion is a sequent (the closure law's
+;;; premise (IN c SEQ-SET)), so ENC-LIST(l) is a well-formed term and l a tuple of expressions.  n >= 1: a kernel
+;;; CARTESIAN has at least one argument (structure-library/meta-ind.scm, section 3), and CR-CARTESIAN-MEM is
+;;; stated for n >= 1.  The premise is the conclusion's context with the membership as its formula.
+;;; WHAT IT DOES NOT SAY: nothing of a class that is not a product, nothing of a list term that is not the list of
+;;; x's own projections (META control: the suite's TUPLE-ETA checks).  It is defined LAST, after 4.10, so that no
+;;; earlier disjunct of CORE-RULE moves.
+(mc--cr! 'CR-TUPLE-ETA "the core tuple-eta relates $2 to $3"
+  (mc--ex '(mcg_ mcx_ mca_ mcl_)
+    (mc--and '(= mcc_ (LIST mcg_ (ENC-EQ mcx_ (ENC-LIST mcl_))))
+             '(<= 1 (LENGTH mca_)) '(= (LENGTH mcl_) (LENGTH mca_))
+             '(FORALL mci_ (IMPLIES (IN mci_ NN) (IMPLIES (<= 1 mci_) (IMPLIES (<= mci_ (LENGTH mca_))
+                 (= (NTH mci_ mcl_) (ENC-NTH (ENC-NUM mci_) mcx_))))))
+             '(= mchs_ (LIST (LIST mcg_ (ENC-IN mcx_ (ENC-CART mca_))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; 5. CORE-RULE, CORE-CLOSED, DERIVABLE.

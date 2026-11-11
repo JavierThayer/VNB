@@ -120,6 +120,10 @@
     "macetes"
     "library"
     "structures"
+    ;; The def-functoid DEFINITION LOG and the load-end gate on the functoid
+    ;; hypotheses H1-H4, H6 (W2C, 2026-11-10).  Right after structures, so the log
+    ;; is armed before any file defines a functoid; not a kernel-key file.
+    "functoid-gate"
     ;; THE INFERENCE CHECKERS (batch 10, 2026-09-20).  One file per kind of
     ;; kernel operation; each registers a checker per rule tag, and the loader
     ;; arms *dg-check-inferences?* after the last of them -- so every inference
@@ -675,6 +679,15 @@
     ;; before the first contained proof file: its position is the boundary before
     ;; which an extension refuses to reload anything.
     "extend-band"
+    "structure-library/basw-vocab"    ; WAVE 2026-11-09/10: basw-1109/basw-vocab.scm
+    "structure-library/hilbert-onb-vocab"    ; WAVE 2026-11-09/10: baonb-1109/hilbert-onb-vocab.scm
+    "structure-library/l2-families-vocab"    ; WAVE 2026-11-09/10: baonb2-1109/bo2-l2-vocab.scm
+    "theorem-library/sep-congruence"    ; WAVE 2026-11-09/10: cnvs2-1109/cnvs2-sep.scm
+    "structure-library/ccr4c-subnf-vocab"    ; WAVE 2026-11-09/10: ccr1109c4/ccr4c-subnf-vocab.scm
+    "structure-library/ccr4d-ext-vocab"    ; WAVE 2026-11-09/10: ccr1109c5/ccr4d-ext-vocab.scm
+    "theorem-library/unique-choice"    ; WAVE 2026-11-09/10: ccr1109d4/unique-choice.scm
+    "structure-library/ring-pow-vocab"    ; WAVE 2026-11-09/10: ccr1109e/ring-pow-vocab.scm
+    "structure-library/th3a2-vocab"    ; WAVE 2026-11-09/10: th3-1109/a2/th3a2-vocab.scm
     ;; minimize! -- "choose v with MEASURE(v) least".  A composite tactic over
     ;; the cmd-* layer (no kernel rule); its one mathematical appeal is
     ;; nn-least-element, resolved by NAME at call time, so it may load here,
@@ -1041,6 +1054,7 @@
     ;; two laws are kernel axioms, so each proof is an unfold and a citation.
     ;; Here and not in prod-of-sums because `sp'/`qed' need interactive (485).
     "theorem-library/difference-laws"
+    "theorem-library/difference-subset"    ; WAVE 2026-11-09/10: 
     ;; The laws of INTERSECTION-OF (unfold, membership, subset of each member, the empty family, sethood,
     ;; antitonicity) and De Morgan for COMPLEMENT-IN over BIG-UNION and INTERSECTION-OF.  All modulo 0.
     ;; Floor: subset-lemmas (which the CARD surgery of 2026-09-20 moved up into the block after transport).
@@ -1099,6 +1113,7 @@
     ;; last of these is why the file sits here and not beside pair-tuple-sethood.
     ;; Must precede the earliest citer, compact-separable-proof.
     "theorem-library/op-typing"
+    "theorem-library/ba1i-dominated"    ; WAVE 2026-11-09/10: ba1i-1109/ba1i-dominated.scm
     ;; sum-ag-type (an axiom with NO warrant), enum-fam-in-fun, finsum-type and
     ;; finsum-all-id -- all PROVEN modulo 0 (wave 6).  MUST load BEFORE cancellation:
     ;; that file runs the unrestricted (view-as-auto-specialize! RING-ADDITIVE-AG),
@@ -1419,6 +1434,7 @@
     ;; PROVEN 2026-09-17 (rake batch P).  Window [251, 375): card-inequalities
     ;; (card-union-nn) above, binomial-proof (ring-power-succ) below.
     "theorem-library/rake-combinatorics"
+    "theorem-library/ccr1109a2-geom"    ; WAVE 2026-11-09/10: ccr1109a2/ccr1109a2-geom.scm
     ;; rake batch 5 (2026-09-18): interval-card, choose-in-nn, permutations-zero, pigeonhole-infinite
     "theorem-library/rake-combinatorics2"
     ;; rake batch 5b (2026-09-18): choose-succ (Pascal)
@@ -1486,6 +1502,7 @@
     ;; projecting the is-metric property folded into IS-METRIC-SPACE -- they
     ;; were redundant asserted axioms (a definition oversight).
     "structure-library/metric-laws"
+    "theorem-library/ccr1109a2-metric"    ; WAVE 2026-11-09/10: ccr1109a2/ccr1109a2-metric.scm
     ;; rake batch 6 (2026-09-19): cauchy-seq-is-fun, cauchy-cluster-converges PROVEN; then their one citer.
     ;; The one open-set constructor of the tree; latest citation metric-triangle (metric-laws).  Moved here
     ;; from the Ascoli block on 2026-09-19 so that rake-compact-cluster can cite it.
@@ -1816,6 +1833,7 @@
     ;; DERIVABLE (2), contextual rewriting (3), induction and definedness (4-7).  dk-meta-derive!
     ;; (meta-cr / -ind / -def-laws) is in driver-kit.scm.  Library: meta (libraries.sexp).
     "theorem-library/pair-self-cartesian3"
+    "theorem-library/th3-sort"    ; WAVE 2026-11-09/10: th3-1109/sort/th3-sort.scm
     "structure-library/meta-syntax"
     "theorem-library/meta-syntax-laws"
     "structure-library/meta-core"
@@ -2226,6 +2244,7 @@
     ;; ones (3.38, over any euclidean ring).
     "theorem-library/field-one-ne"    ; WAVE 2026-10-26/27: lemmas moved out of la-det-adjoint (library gate)
     "theorem-library/la-det-adjoint"
+    "theorem-library/ccr-adj-unit"    ; WAVE 2026-11-09/10: ccr1109b4/ccr-adj-unit.scm
     "theorem-library/la-elem-gen"
     "theorem-library/la-z6-col"
     "theorem-library/la-z-sdet"
@@ -2507,6 +2526,7 @@
     ;; the instance slots and cc-add-closed, as comparison-test-proof does for
     ;; RR.  Needs complex (CC-MS), numeric-instances (CC-NORMED-FIELD), views
     ;; (NORMED-FIELD-ADDITIVE-AG), sequences (SUM-AG) and metric-completeness.
+    "theorem-library/cc-magnitude-zero"    ; WAVE 2026-11-09/10: 
     "theorem-library/cc-series"
     "structure-library/poly-fn-vocab"    ; WAVE 2026-10-26/27: camontel/poly-fn-vocab.scm
     "theorem-library/poly-fn-laws"    ; WAVE 2026-10-26/27: camontel/poly-fn-laws.scm
@@ -2769,6 +2789,9 @@
     "theorem-library/la-z3-dsum"
     "theorem-library/la-z3-struct"
     "theorem-library/la-z4-free"
+    "theorem-library/ring-pow"    ; WAVE 2026-11-09/10: ccr1109e/ring-pow.scm
+    "theorem-library/ring-pow-form"    ; WAVE 2026-11-09/10: ccr1109e2/ring-pow-form.scm
+    "theorem-library/zz-pow-via-ring-pow"    ; WAVE 2026-11-09/10: ccr1109e2/zz-pow-via-ring-pow.scm
     "theorem-library/la-z4-dsum"
     "theorem-library/la-z4-exist"
     "theorem-library/la-z4-schanuel"
@@ -3039,6 +3062,7 @@
     ;; M = SUP of {0} u {|f x| * recip ||x||}), and the six corollaries in their GUARDED forms (-nvs).  The
     ;; unguarded supports are underdetermined (VNRM untyped without IS-NORMED-VECTOR-SPACE m).
     "theorem-library/rake-dual-norm-spec"
+    "theorem-library/limit-frequent"    ; WAVE 2026-11-09/10: ba2b-1109/limit-frequent.scm
     ;; THE MODULE BRIDGE of a normed vector space: the six read-offs of
     ;; NORMED-VECTOR-SPACE-AS-MODULE and the submodule transfer, all PROVEN
     ;; modulo 0.  A normed vector space is a 7-tuple and every module predicate
@@ -3058,6 +3082,7 @@
     ;; floor is abelian-group-opr-interchange (rake-finsum-laws, far above).  nvs-norm-laws below
     ;; cites nvs-metric-is-ms from it.
     "theorem-library/rake-norm-metrics"
+    "theorem-library/basw3-nag"    ; WAVE 2026-11-09/10: basw3-1109/basw3-nag.scm
     ;; nvs-norm-laws (2026-09-19, batch 8 consolidation): triangle, homogeneity (-c / RR forms) and ||0|| = 0 of
     ;; VNRM -- ONE home; they had been proven three times under hbg- / lfe- / nvs- prefixes.  The group and action
     ;; laws were gathered into nvs-act-laws the same day.  Suffixes: -c scalar in carr(scal m), -rr scalar in RR.
@@ -3465,6 +3490,9 @@
     ;; recip-star, rr-order-basics (rr-lt-scale-pos, rr-mul-comm, rr-lt-irrefl)
     ;; and driver-kit.
     "theorem-library/rpow-star"
+    "structure-library/ccr1109a3-laurent-vocab"    ; WAVE 2026-11-09/10: ccr1109a3/ccr1109a3-laurent-vocab.scm
+    "structure-library/ccr1109a4-laurent-lim-vocab"    ; WAVE 2026-11-09/10: ccr1109a4/ccr1109a4-laurent-lim-vocab.scm
+    "structure-library/ccr1109a5-vocab"    ; WAVE 2026-11-09/10: ccr1109a5/ccr1109a5-vocab.scm
     "structure-library/mb12-vocab"    ; WAVE 2026-10-26/27: mb12/mb12-vocab.scm
     "theorem-library/mb12-seq"    ; WAVE 2026-10-26/27: mb12/mb12-seq.scm
     "theorem-library/mb12-ultra"    ; WAVE 2026-10-26/27: mb12/mb12-ultra.scm
@@ -3576,6 +3604,7 @@
     ;; (power-real-closed), rr-order-basics (rr-le-scale-nonneg), rr-recip-order
     ;; and `contra' immediately above; must PRECEDE pss-topics.
     "theorem-library/geometric-series"
+    "theorem-library/complete-criterion"    ; WAVE 2026-11-09/10: ba1e-1109/complete-criterion.scm
     ;; 2026-09-24 (batch 25-A): the lim sup facts of the notes' Remark 2.6 (through ELIMSUP on [0, +inf]), EINF laws,
     ;; THE ROOT TEST (2.5) and THE RATIO TEST (2.15) for non-negative real series -- the divergence half with lim INF > 1,
     ;; the notes' lim sup form being false as printed.
@@ -3584,7 +3613,10 @@
     "theorem-library/rpow-defined"       ; RPOW == RPOW-STAR, the fifteen former supports proven (2026-10-03)
     ;; RAKE-ASM-B1 (2026-10-12): Cauchy-Schwarz (both forms), Minkowski, Hoelder over finite sums, proven.
     "theorem-library/rake-asm-b1"
+    "theorem-library/rps-finsum-mono-set"    ; WAVE 2026-11-09/10: 
     "theorem-library/measure-laws"       ; measure chapter 1: additivity, monotonicity, subadditivity, continuity, push-forward (M-1, 2026-10-03)
+    "theorem-library/finsum-cm-ptwise-laws"    ; WAVE 2026-11-09/10: 
+    "theorem-library/rps-finsum-le-ptwise"    ; WAVE 2026-11-09/10: 
     "theorem-library/integral-laws"      ; etimes algebra, finite sums in a commutative monoid, the simple integral and its laws, the six integral laws proven (M-2, 2026-10-04)
     ;; MEASURE-5-A (2026-10-10): ESUM homogeneity, ESUM(c f) = c ESUM(f); a scaled measure is a measure.
     "theorem-library/esum-scale"
@@ -3650,6 +3682,7 @@
     ;; union, image), continuity gives both one-sided limits, uniqueness of a one-sided limit within an interval,
     ;; restriction, the read-offs of IS-PRIMITIVE, and the bridge pw-antiderivative-implies-primitive.
     "theorem-library/regulated-primitive-laws"
+    "theorem-library/countable-products"    ; WAVE 2026-11-09/10: baonb3-1109/b3-count.scm
     "theorem-library/rabasics-extline"    ; WAVE 2026-10-26/27: rabasics/rabasics-extline.scm
     "theorem-library/rabasics-extline2"    ; WAVE 2026-10-26/27: rabasics/rabasics-extline2.scm
     "theorem-library/extinf-iso"    ; WAVE 2026-10-26/27: extinf/extinf-iso.scm
@@ -3703,6 +3736,7 @@
     "theorem-library/frechet-metric"
     ;; TVS-2A (2026-10-12): the open mapping theorem and its bounded-inverse corollary (exercise 8.9).
     "theorem-library/frechet-open-mapping-proof"
+    "theorem-library/ba-metric-lemmas"    ; WAVE 2026-11-09/10: ba1b-1109/ba-metric-lemmas.scm
     ;; TVS-2B (2026-10-12): Banach-Steinhaus for Frechet spaces (Thm 8.32) and the closed graph theorem; cites the two above.
     "theorem-library/frechet-banach-steinhaus"
     ;; RAKE-ASM-1 (2026-10-12): twelve elementary assumptions proven under their own names (semigroup-assoc,
@@ -3746,17 +3780,40 @@
     "theorem-library/rb2-dir"    ; WAVE 2026-10-26/27: rabasics2/rb2-dir.scm
     ;; HILBERT-1 (2026-10-10, Thayer Ch.2 s.3-4): IS-HILBERT-SPACE, PERP; parallelogram, Prop 2.19, Cor 2.21, Riesz 2.22.
     "structure-library/hilbert-space"
+    "structure-library/ba-ops-vocab"    ; WAVE 2026-11-09/10: babh-1109/ba-ops-vocab.scm
+    "structure-library/ba-bh2-vocab"    ; WAVE 2026-11-09/10: babh2-1109/ba-bh2-vocab.scm
+    "structure-library/th3-vocab"    ; WAVE 2026-11-09/10: th3-1109/th3-vocab.scm
+    "theorem-library/th3-vocab-unfold"    ; WAVE 2026-11-09/10: th3-1109/th3-vocab-unfold.scm
     "theorem-library/hilbert-projection"
     ;; RAKE-ASM-B3 (2026-10-12): hahn-banach-seminorm (RR and CC), the gauge-countable metrizability trio, and
     ;; rb3-dual-is-normed-vector-space-false (the asserted statement was false; deleted); that refutation
     ;; was itself CUT 2026-10-27 (batch 0) when DUAL's scalar slot was repaired (archive/2026-10-27-dual/).
     "theorem-library/rake-asm-b3"
+    "structure-library/ba-vocab"    ; WAVE 2026-11-09/10: ba1-1109/ba-vocab.scm
+    "theorem-library/ba-subtype-laws"    ; WAVE 2026-11-09/10: CBA -> CNA step for functoriality
+    "structure-library/ba-cx-vocab"    ; WAVE 2026-11-09/10: ba1-1109/ba-cx-vocab.scm
+    "structure-library/ba-neumann-vocab"    ; WAVE 2026-11-09/10: ba1-1109/ba-neumann-vocab.scm
+    "theorem-library/ba-laws"    ; WAVE 2026-11-09/10: ba1-1109/ba-laws.scm
+    "theorem-library/ba-elem"    ; WAVE 2026-11-09/10: ba1-1109/ba-elem.scm
+    "theorem-library/ba-unitization"    ; WAVE 2026-11-09/10: ba1c-1109/ba-unitization.scm
+    "structure-library/ba-quotient-vocab"    ; WAVE 2026-11-09/10: ba1c-1109/ba-quotient-vocab.scm
+    "theorem-library/cc-norming-functional"    ; WAVE 2026-11-09/10: ba1d-1109/cc-norming-functional.scm
+    "theorem-library/ba-maximal-ideal"    ; WAVE 2026-11-09/10: ba1d-1109/ba-maximal-ideal.scm
+    "structure-library/ba-quotient-na-vocab"    ; WAVE 2026-11-09/10: ba1e-1109/ba-quotient-na-vocab.scm
+    "theorem-library/kal-laws"    ; WAVE 2026-11-09/10: kitalg-1109/kal-laws.scm
+    "theorem-library/kal-unit"    ; WAVE 2026-11-09/10: kitalg-1109/kal-unit.scm
+    "theorem-library/kal-unit-cna"    ; WAVE 2026-11-09/10: kitalg-1109/kal-unit-cna.scm
+    "structure-library/ba2-vocab"    ; WAVE 2026-11-09/10: ba2-1109/ba2-vocab.scm
+    "structure-library/ba2b-gen-vocab"    ; WAVE 2026-11-09/10: ba2b-1109/ba2b-gen-vocab.scm
+    "structure-library/basw2-vocab"    ; WAVE 2026-11-09/10: basw2-1109/basw2-vocab.scm
     "theorem-library/inclusion-exclusion"    ; WAVE 2026-10-26/27: algnum/final/inclusion-exclusion.scm
     "theorem-library/euler-phi-product"    ; WAVE 2026-10-26/27: algnum/final/euler-phi-product.scm
     "theorem-library/cc-power-add"    ; WAVE 2026-10-26/27: lemmas moved out of cc-exp (library gate)
+    "theorem-library/fekete"    ; WAVE 2026-11-09/10: ba1c-1109/fekete.scm
     "theorem-library/phi-growth"    ; WAVE 2026-10-26/27: algnum/final/phi-growth.scm
     "theorem-library/rr-pos-star-order-lemmas"    ; WAVE 2026-10-26/27: lemmas moved out of integral-convergence (library gate)
     "theorem-library/rps-lt-le-trans"    ; WAVE-2 2026-10-30: lemmas moved out of theorem-library/integral-convergence
+    "theorem-library/esup-lt-witness"    ; WAVE 2026-11-09/10: 
     "theorem-library/integral-convergence"   ; the four measurable-fn closure laws, the dyadic approximation, monotone convergence, Fatou, general additivity, dominated convergence, all nine supports of integral.scm proven (M-3, 2026-10-04)
     "theorem-library/caratheodory"           ; the Caratheodory construction PROVEN (MEASURE-1, 2026-10-07): the five supports of measure.scm, statements unchanged; cites esup-eplus-le above
     ;; MEASURE-2 (2026-10-08): Method I outer measures (Prop 4.7), the outer measure extending a measure
@@ -3792,6 +3849,7 @@
     ;; metric space covered by countably many open sets has a finite subcover.
     "theorem-library/metric-finite-subcover"
     "structure-library/positive-functional"
+    "structure-library/hc2-vocab"    ; WAVE 2026-11-09/10: haarc2-1109/hc2-vocab.scm
     "theorem-library/cont-fns-laws"           ; CONT-FNS / CLOPEN-SETS laws, moved 2026-10-20 out of riesz-markov-cantor (measure) for the library gate
     "theorem-library/riesz-markov-cantor"
     "theorem-library/integral-unique"    ; WAVE-2 2026-10-30: md/md-unique.scm
@@ -3818,15 +3876,19 @@
     "theorem-library/lp-inequalities"
     "structure-library/lp-seminorm"
     "theorem-library/lp-seminorm"
+    "theorem-library/etimes-real-in"    ; WAVE 2026-11-09/10: 
     "theorem-library/lp-convergence"    ; WAVE-2 2026-10-30: md/md-lp.scm
+    "theorem-library/ba-fekete"    ; WAVE 2026-11-09/10: ba1c-1109/ba-fekete.scm
     ;; FUBINI-1 (2026-10-10, notes Ch.3 s.2): RECTANGLES, PRODUCT-SIGMA, sections; Dynkin pi-lambda;
     ;; Prop 3.5; Fubini (Thm 3.7) for sigma-finite measures and f >= 0; the product measure (Def 3.8).
     "structure-library/product-measure"
     "theorem-library/product-measure"
+    "theorem-library/l2c-b"    ; WAVE 2026-11-09/10: th3-1109/l2/l2c-b.scm
     ;; ESUP-PROD (2026-10-18): the ESUP product law; rho(A x B) = mu(A) nu(B) with no finiteness hypothesis.
     ;; SIP-1 / SIP-D / SIP-D2 (2026-10-18/19, the user's design): SEMI-INNER-PRODUCT-SPACE, PRE-HILBERT-SPACE,
     ;; the complex case as real + J, COMPLEXIFY, L^2 as an a.e. setoid; the projection theorems.
     "theorem-library/esup-product"
+    "theorem-library/l2c-c"    ; WAVE 2026-11-09/10: th3-1109/l2/l2c-c.scm
     "theorem-library/hausdorff-measure"    ; WAVE 2026-10-26/27: mh/mh-hausdorff.scm
     "theorem-library/hausdorff-dimension"    ; WAVE 2026-10-26/27: mh/mh-dim.scm
     "theorem-library/hausdorff-restrict"    ; WAVE 2026-10-26/27: mh/mh-restrict.scm
@@ -3834,6 +3896,8 @@
     "theorem-library/sip-a"
     "structure-library/sip-complex-vocab"
     "theorem-library/sip-b"
+    "theorem-library/hilbert-onb"    ; WAVE 2026-11-09/10: baonb-1109/hilbert-onb.scm
+    "theorem-library/abs-summable-cn"    ; WAVE 2026-11-09/10: baonb2-1109/bo2-abs.scm
     "structure-library/sip-l2-vocab"
     "theorem-library/sip-c"
     "theorem-library/lp-step-dense"    ; WAVE-2 2026-10-30: md/md-step.scm
@@ -3850,11 +3914,13 @@
     "theorem-library/tvs-seminorm-tvs"    ; WAVE 2026-10-26/27: tb01/tb-tvs.scm
     "theorem-library/tvs-rn"    ; WAVE 2026-10-26/27: tb01/tb-rn.scm
     "theorem-library/tvs-continuity"    ; WAVE 2026-10-26/27: tb01/tb-cont.scm
+    "theorem-library/tvs-single-bound"    ; WAVE 2026-11-09/10: baot1-1109/tvs-single-bound.scm
     "theorem-library/tvs-functional"    ; WAVE 2026-10-26/27: tb01/tb-func.scm
     "theorem-library/tvs-extremal"    ; WAVE 2026-10-26/27: tb01/tb-extremal.scm
     "structure-library/convex-functional"    ; WAVE 2026-10-26/27: dualfix2/hbc-vocab.scm
     "theorem-library/tvs-hahn-banach-convex"    ; WAVE 2026-10-26/27: dualfix2/hbc.scm
     "structure-library/top-closed"    ; WAVE 2026-10-26/27: dualfix2/tkr-vocab.scm
+    "structure-library/basw3-vocab"    ; WAVE 2026-11-09/10: basw3-1109/basw3-vocab.scm
     "theorem-library/tvs-kernel-closed"    ; WAVE 2026-10-26/27: dualfix2/tkr.scm
     "structure-library/line-coefficient"    ; WAVE 2026-10-26/27: tb2a/geo-vocab.scm
     "theorem-library/tvs-geometric-hb"    ; WAVE 2026-10-26/27: tb2a/geo.scm
@@ -3864,15 +3930,26 @@
     "theorem-library/nets"    ; WAVE 2026-10-26/27: nets/nets.scm
     "structure-library/weak-star"    ; WAVE 2026-10-26/27: tb6/tb6-vocab.scm
     "theorem-library/tvs-alaoglu"    ; WAVE 2026-10-26/27: tb6/tb6.scm
+    "theorem-library/cc-product"    ; WAVE 2026-11-09/10: ba1d-1109/cc-product.scm
+    "theorem-library/cc-top-continuity"    ; WAVE 2026-11-09/10: ba1f-1109/cc-top-continuity.scm
+    "theorem-library/top-power-compact"    ; WAVE 2026-11-09/10: ba1f-1109/top-power-compact.scm
     "structure-library/weak-star-separable"    ; WAVE 2026-10-26/27: tb6/tb6s-vocab.scm
     "theorem-library/subseq-fun-typing"    ; WAVE 2026-10-26/27: lemmas moved out of ca6-hurwitz (library gate)
     "theorem-library/tvs-alaoglu-separable"    ; WAVE 2026-10-26/27: tb6/tb6s.scm
     "structure-library/cvx-vocab"    ; WAVE 2026-10-26/27: cg3/cvx-vocab.scm
+    "structure-library/hc-vocab"    ; WAVE 2026-11-09/10: haarc-1109/hc-vocab.scm
+    "structure-library/hc3-vocab"    ; WAVE 2026-11-09/10: haarc3-1109/hc3-vocab.scm
     "theorem-library/cvx-alg"    ; WAVE 2026-10-26/27: cg3/cvx-alg.scm
     "theorem-library/cvx-hull"    ; WAVE 2026-10-26/27: cg3/cvx-hull.scm
     "theorem-library/sip-d1"
     "theorem-library/sip-quotient-complete"    ; WAVE-2 2026-10-30: lemmas moved out of theorem-library/l2-hilbert
+    "structure-library/cnvs-vocab"    ; WAVE 2026-11-09/10: cnvs-1109/cnvs-vocab.scm
+    "structure-library/cnvs-comp-vocab"    ; WAVE 2026-11-09/10: cnvs2-1109/cnvs2-comp-vocab.scm
+    "structure-library/cnvs-ba-vocab"    ; WAVE 2026-11-09/10: cnvs-1109/cnvs-ba-vocab.scm
     "theorem-library/l2-hilbert"    ; WAVE-2 2026-10-30: md/me-l2.scm
+    "structure-library/l2c-vocab"    ; WAVE 2026-11-09/10: th3-1109/l2/l2c-vocab.scm
+    "theorem-library/l2c-a"    ; WAVE 2026-11-09/10: th3-1109/l2/l2c-a.scm
+    "structure-library/l2-integral-operator"    ; WAVE 2026-11-09/10: th3-1109/l2c/kc-vocab.scm
     "theorem-library/real-riesz"    ; WAVE-2 2026-10-30: md/me-rz.scm
     ;; RM-3B (2026-10-10): Borel preimages, PUSH-FORWARD, change of variables; Riesz-Markov on X from K.
     "structure-library/push-forward"
@@ -3895,6 +3972,7 @@
     ;; theorem-library/cc-series) and the laws: the radius formula 2.7, normal convergence inside the radius 2.8,
     ;; polynomial factors 2.9; 2.10 follows in cc-power-series-deriv (batch 26-A).
     "structure-library/cc-power-series"
+    "structure-library/ba-optop-vocab"    ; WAVE 2026-11-09/10: baot1-1109/ba-optop-vocab.scm
     "theorem-library/cc-power-series-laws"
     ;; 2026-09-24 (batch 26-A): THE NOTES' 2.10 -- the sum function of a complex power series is holomorphic on
     ;; B(0, r) for every r < R, the derived series has the same radius, f' = sum (k+1) a_(k+1) u^k
@@ -3938,6 +4016,7 @@
     ;; CALC-3 (2026-10-19): IS-ACCUMULATION-POINT, IS-HOMEOMORPHISM, IS-DENSE, IS-LIMIT-ALONG; calculus 3.10,
     ;; 3.20, 3.22, 3.23, 3.26.
     "structure-library/calc3-vocab"
+    "structure-library/ba-unbdd-vocab"    ; WAVE 2026-11-09/10: bag1-1109/ba-unbdd-vocab.scm
     "theorem-library/mb4-polish-open"    ; WAVE 2026-10-26/27: mb4/mb4-polish-open.scm
     "structure-library/mb35-vocab"    ; WAVE 2026-10-26/27: mb35/mb35-vocab.scm
     "structure-library/mb35-souslin-vocab"    ; WAVE 2026-10-26/27: mb35/mb35-souslin-vocab.scm
@@ -3945,18 +4024,34 @@
     "structure-library/local-measure"    ; WAVE-2 2026-10-30: mf/mf-mgvocab.scm
     "theorem-library/calc3-closed"
     "theorem-library/calc3-compact-closed"
+    "theorem-library/compact-inter-closed"    ; WAVE 2026-11-09/10: 
     "theorem-library/mb35-regular"    ; WAVE 2026-10-26/27: mb35/mb35-regular.scm
     "theorem-library/radon-nikodym"    ; WAVE-2 2026-10-30: md/md-rn.scm + md/me-rn.scm + md/me-rn2.scm + md/me-rn3.scm
     "theorem-library/l1-dual"    ; WAVE-2 2026-10-30: md/me-du1.scm + md/me-du2.scm + md/me-du3.scm + md/me-du4.scm + md/me-du5.scm
     "theorem-library/jordan-decomposition"    ; WAVE-2 2026-10-30: mf/mf-jordan.scm + mf/mf-tv.scm
+    "theorem-library/rr-square-facts"    ; WAVE 2026-11-09/10: 
+    "theorem-library/ba-bh"    ; WAVE 2026-11-09/10: babh-1109/ba-bh.scm
+    "theorem-library/ba-bh2"    ; WAVE 2026-11-09/10: babh2-1109/ba-bh2.scm
+    "theorem-library/hilbert-separable"    ; WAVE 2026-11-09/10: baonb2-1109/bo2-sep.scm
     "theorem-library/complex-measure-laws"    ; WAVE-2 2026-10-30: mf/mf-c1.scm + mf/mf-c2.scm + mf/mf-c3.scm + mf/mf-c4.scm
+    "theorem-library/l2-bridge"    ; WAVE 2026-11-09/10: th3-1109/l2b/l2b-a.scm
+    "theorem-library/signed-fubini"    ; WAVE 2026-11-09/10: th3-1109/l2b/l2b-b.scm
+    "theorem-library/l2-kernel-sections"    ; WAVE 2026-11-09/10: th3-1109/l2b/l2b-c.scm
+    "theorem-library/l2-kernel-measurable"    ; WAVE 2026-11-09/10: th3-1109/l2b/l2b-d.scm
+    "theorem-library/l2-kernel-operator"    ; WAVE 2026-11-09/10: th3-1109/l2b/l2b-e.scm
+    "theorem-library/kernel-apply"    ; WAVE 2026-11-09/10: th3-1109/l2c/kc-a.scm
+    "theorem-library/cl2-integral-operator"    ; WAVE 2026-11-09/10: th3-1109/l2c/kc-b.scm
+    "theorem-library/cl2-integral-operator-bounded"    ; WAVE 2026-11-09/10: th3-1109/l2c/kc-d.scm
     "theorem-library/complex-measure-polar"    ; WAVE-2 2026-10-30: mf/mf-c5.scm + mf/mf-c6.scm + mf/mf-c7.scm + mf/mf-c8.scm
+    "theorem-library/rr-nonneg-below-all-zero"    ; WAVE 2026-11-09/10: 
     "theorem-library/mb35-souslin"    ; WAVE 2026-10-26/27: mb35/mb35-souslin.scm
     "theorem-library/mb67-baire"    ; WAVE 2026-10-26/27: mb67/mb67-baire.scm
     "theorem-library/mb67-souslin"    ; WAVE 2026-10-26/27: mb67/mb67-souslin.scm
     "theorem-library/mb67-lusin"    ; WAVE 2026-10-26/27: mb67/mb67-lusin.scm
     "theorem-library/mb67-standard"    ; WAVE 2026-10-26/27: mb67/mb67-standard.scm
     "theorem-library/mb67-prod2"    ; WAVE 2026-10-26/27: mb67/mb67-prod2.scm
+    "theorem-library/ba1i-unit-banach"    ; WAVE 2026-11-09/10: ba1i-1109/ba1i-unit-banach.scm
+    "theorem-library/ba1i-unit-star"    ; WAVE 2026-11-09/10: ba1i-1109/ba1i-unit-star.scm
     "theorem-library/mb67-prod"    ; WAVE 2026-10-26/27: mb67/mb67-prod.scm
     "theorem-library/mb67-sum"    ; WAVE 2026-10-26/27: mb67/mb67-sum.scm
     "theorem-library/mb67-lusin2"    ; WAVE 2026-10-26/27: mb67/mb67-lusin2.scm
@@ -3966,9 +4061,40 @@
     "theorem-library/mb67-b32"    ; WAVE 2026-10-26/27: mb67/mb67-b32.scm
     "theorem-library/mb67-s35"    ; WAVE 2026-10-26/27: mb67/mb67-s35.scm
     "structure-library/ccr2-vocab"    ; WAVE 2026-10-26/27: ccr2/ccr2-vocab.scm
+    "structure-library/ccr1109a2-vocab"    ; WAVE 2026-11-09/10: ccr1109a2/ccr1109a2-vocab.scm
+    "structure-library/ccr-ch3-vocab"    ; WAVE 2026-11-09/10: ccr1109b/ccr-ch3-vocab.scm
+    "structure-library/ccr-ch3b-vocab"    ; WAVE 2026-11-09/10: ccr1109b2/ccr-ch3b-vocab.scm
+    "structure-library/ccr-ch3c-vocab"    ; WAVE 2026-11-09/10: ccr1109b3/ccr-ch3c-vocab.scm
     "structure-library/nvlocal-vocab"    ; WAVE-2 2026-10-30: ccrqp/nvlocal-vocab.scm
+    "structure-library/ccr4x-ext-vocab"    ; WAVE 2026-11-09/10: ccr1109c2/ccr4x-ext-vocab.scm
+    "structure-library/ccr4x-vocab"    ; WAVE 2026-11-09/10: ccr1109c/ccr4x-vocab.scm
+    "structure-library/ccr4b-vocab"    ; WAVE 2026-11-09/10: ccr1109c3/ccr4b-vocab.scm
     "structure-library/ccr3-vocab"    ; WAVE 2026-10-26/27: ccr3/ccr3-vocab.scm
+    "theorem-library/rr-not-lt-ge"    ; WAVE 2026-11-09/10: 
     "theorem-library/ccr2-nv"    ; WAVE 2026-10-26/27: ccr2/ccr2-nv.scm+ccr3/ccr3-local.scm
+    "theorem-library/ba-neumann"    ; WAVE 2026-11-09/10: ba1-1109/ba-neumann.scm
+    "theorem-library/ccr1109a2-nv"    ; WAVE 2026-11-09/10: ccr1109a2/ccr1109a2-nv.scm
+    "theorem-library/ccr1109a2-laurent"    ; WAVE 2026-11-09/10: ccr1109a2/ccr1109a2-laurent.scm
+    "theorem-library/ccr1109a3-laurent-ring"    ; WAVE 2026-11-09/10: ccr1109a3/ccr1109a3-laurent-ring.scm
+    "theorem-library/ccr1109a3-laurent-val"    ; WAVE 2026-11-09/10: ccr1109a3/ccr1109a3-laurent-val.scm
+    "theorem-library/ccr1109a3-laurent-field"    ; WAVE 2026-11-09/10: ccr1109a3/ccr1109a3-laurent-field.scm
+    "theorem-library/ccr-ch3-ops"    ; WAVE 2026-11-09/10: ccr1109b/ccr-ch3-ops.scm
+    "theorem-library/ccr-ch3b-alg"    ; WAVE 2026-11-09/10: ccr1109b2/ccr-ch3b-alg.scm
+    "theorem-library/ccr-ch3b-an"    ; WAVE 2026-11-09/10: ccr1109b2/ccr-ch3b-an.scm
+    "theorem-library/ccr-ch3c-det"    ; WAVE 2026-11-09/10: ccr1109b3/ccr-ch3c-det.scm
+    "theorem-library/ccr-ch3c-ball"    ; WAVE 2026-11-09/10: ccr1109b3/ccr-ch3c-ball.scm
+    "theorem-library/ccr-ch3c-pb"    ; WAVE 2026-11-09/10: ccr1109b3/ccr-ch3c-pb.scm
+    "theorem-library/ccr4x-ext"    ; WAVE 2026-11-09/10: ccr1109c2/ccr4x-ext.scm
+    "theorem-library/ccr-ch3c-ext"    ; WAVE 2026-11-09/10: ccr1109b3/ccr-ch3c-ext.scm
+    "theorem-library/ccr-ch3d-ultra"    ; WAVE 2026-11-09/10: ccr1109b4/ccr-ch3d-ultra.scm
+    "theorem-library/ccr-ch3d-fam"    ; WAVE 2026-11-09/10: ccr1109b4/ccr-ch3d-fam.scm
+    "theorem-library/ccr-ch3d-ext"    ; WAVE 2026-11-09/10: ccr1109b4/ccr-ch3d-ext.scm
+    "theorem-library/ccr-ch3e-norms"    ; WAVE 2026-11-09/10: ccr1109b5/ccr-ch3e-norms.scm
+    "theorem-library/ccr4x-eisen"    ; WAVE 2026-11-09/10: ccr1109c/ccr4x-eisen.scm
+    "theorem-library/ccr4x-zpow"    ; WAVE 2026-11-09/10: ccr1109c/ccr4x-zpow.scm
+    "theorem-library/ccr4x-series"    ; WAVE 2026-11-09/10: ccr1109c/ccr4x-series.scm
+    "theorem-library/ccr4x-unique"    ; WAVE 2026-11-09/10: ccr1109c2/ccr4x-unique.scm
+    "theorem-library/ccr-kn-norms"    ; WAVE 2026-11-09/10: ccr1109e/ccr-kn-norms.scm
     "theorem-library/calc3-uniform"
     "theorem-library/isom-uc"    ; WAVE 2026-10-26/27: isom/isom-uc.scm
     "theorem-library/isom-equicont"    ; WAVE 2026-10-26/27: isom/isom-equicont.scm
@@ -3984,7 +4110,10 @@
     "theorem-library/cg2-compact"    ; WAVE 2026-10-26/27: cg2/cg2-compact.scm
     "theorem-library/cvx-tb"    ; WAVE 2026-10-26/27: cg3/cvx-tb.scm
     "structure-library/cg4-vocab"    ; WAVE 2026-10-26/27: cg4/cg4-vocab.scm
+    "structure-library/km-vocab"    ; WAVE 2026-11-09/10: bakm-1109/km-vocab.scm
     "theorem-library/cg4-extreme"    ; WAVE 2026-10-26/27: cg4/cg4-extreme.scm
+    "theorem-library/krein-milman"    ; WAVE 2026-11-09/10: bakm-1109/krein-milman.scm
+    "theorem-library/haar-fixed-point"    ; WAVE 2026-11-09/10: haarc-1109/haar-fixed-point.scm
     "theorem-library/cg4-cosets"    ; WAVE 2026-10-26/27: cg4/cg4-cosets.scm
     "theorem-library/cg4-opg"    ; WAVE 2026-10-26/27: cg4/cg4-opg.scm
     "theorem-library/cg4-gpow"    ; WAVE 2026-10-26/27: cg4/cg4-gpow.scm
@@ -3996,13 +4125,19 @@
     "structure-library/group-cosets-vocab"    ; WAVE 2026-10-26/27: algnum/final/group-cosets-vocab.scm
     "structure-library/group-zpow-vocab"    ; WAVE 2026-10-26/27: algnum/final/group-zpow-vocab.scm
     "theorem-library/group-zpow"    ; WAVE 2026-10-26/27: algnum/final/group-zpow.scm
+    "theorem-library/ccr4c-finite-char"    ; WAVE 2026-11-09/10: ccr1109c4/ccr4c-finite-char.scm
+    "theorem-library/ccr4c-subnf"    ; WAVE 2026-11-09/10: ccr1109c4/ccr4c-subnf.scm
+    "theorem-library/ccr4d-ext"    ; WAVE 2026-11-09/10: ccr1109c5/ccr4d-ext.scm
     "theorem-library/group-cosets"    ; WAVE 2026-10-26/27: algnum/final/group-cosets.scm
+    "theorem-library/haar-c2"    ; WAVE 2026-11-09/10: haarc2-1109/haar-c2.scm
+    "theorem-library/haar-c3"    ; WAVE 2026-11-09/10: haarc3-1109/haar-c3.scm
     "theorem-library/qag-laws"    ; WAVE-2 2026-10-30: ccrpr/qag-laws.scm
     "theorem-library/cyclic-product"    ; WAVE 2026-10-26/27: algnum/final/cyclic-product.scm
     "theorem-library/group-orders"    ; WAVE 2026-10-26/27: algnum/final/group-orders.scm
     "theorem-library/group-family-product"    ; WAVE 2026-10-26/27: algnum/final/group-family-product.scm
     "theorem-library/calc3-extension"
     "theorem-library/pw-int-order"
+    "theorem-library/cc-magnitude-sq"    ; WAVE 2026-11-09/10: 
     "theorem-library/cc-int-estimate"
     ;; 2026-09-23 (batch 24-A): the laws of the line integral for a ROAD and a CONTINUOUS f, no primitive in the
     ;; statement (line-int-sum, -scalar, -opposite-road (9.6.1), -adjacent, -abs-bound (54), -value); on the way
@@ -4027,6 +4162,7 @@
     ;; route along a segment, Prop 2.17 as its equations, conjugation, (34), (35) in its true form, the derivatives
     ;; of sin and cos, the addition formulas, cos^2 + sin^2 = 1.
     "structure-library/cc-elementary"
+    "structure-library/ccr1109a6-vocab"    ; WAVE 2026-11-09/10: ccr1109a6/ccr1109a6-vocab.scm
     "structure-library/ca-line-vocab"    ; WAVE-2 2026-10-30: ch3e/ch3f-line.scm + ch3e/ch3f-refl.scm
     "theorem-library/cc-exp"
     ;; 2026-09-25 (batch 31-B, the user's decision): PI is the positive real p with {z : exp z = 1} = ZZ (2 p i), i.e.
@@ -4047,10 +4183,20 @@
     "structure-library/ch4b-vocab"    ; WAVE-2 2026-10-30: ch4b/ch4b-vocab.scm
     "structure-library/ch4d-vocab"    ; WAVE-2 2026-10-30: ch4d/ch4d-vocab.scm
     "theorem-library/winding-number-laws"    ; Cauchy on a disc / a convex set inside U, the winding number's laws, the circle (CA-1)
+    "theorem-library/aif-scale-small"    ; WAVE 2026-11-09/10: 
+    "theorem-library/ccr4d-converge"    ; WAVE 2026-11-09/10: ccr1109c5/ccr4d-converge.scm
     "theorem-library/analytic-from-integral"  ; the geometric expansion, line integrals of uniform limits, analyticity from the integral formula, the Cauchy estimate (CA-2, 2026-10-03)
     "theorem-library/ch4a-termwise"    ; WAVE-2 2026-10-30: ch4a/ch4a-termwise.scm
     "theorem-library/ch4a-outer"    ; WAVE-2 2026-10-30: ch4a/ch4a-outer.scm
     "theorem-library/cauchy-integral-formula" ; cauchy-disc-except, winding-circle-inside, the Cauchy integral formula on a disc, Theorem 3.35, holomorphic-deriv-holomorphic (CA-3, 2026-10-04)
+    "theorem-library/cc-magnitude-i"    ; WAVE 2026-11-09/10: 
+    "theorem-library/cnvs-a"    ; WAVE 2026-11-09/10: cnvs-1109/cnvs-a.scm
+    "theorem-library/cnvs-b"    ; WAVE 2026-11-09/10: cnvs-1109/cnvs-b.scm
+    "theorem-library/cnvs-c"    ; WAVE 2026-11-09/10: cnvs-1109/cnvs-c.scm
+    "theorem-library/cnvs-d"    ; WAVE 2026-11-09/10: cnvs-1109/cnvs-d.scm
+    "theorem-library/cnvs-ba"    ; WAVE 2026-11-09/10: cnvs-1109/cnvs-ba.scm
+    "theorem-library/cnvs-bop-bridge"    ; WAVE 2026-11-09/10: cnvs2-1109/cnvs2-bop.scm
+    "theorem-library/cnvs-comp"    ; WAVE 2026-11-09/10: cnvs2-1109/cnvs2-comp.scm
     "theorem-library/cauchy-estimates"        ; the derivative formula, Cauchy's estimates, Liouville, the Fundamental Theorem of Algebra (CA-3, 2026-10-04)
     "theorem-library/principal-part"    ; WAVE-2 2026-10-30: ch3e/ch3e-pp.scm
     ;; CA-1 (2026-10-19): CC as the real matrices [[a, b], [-b, a]] (CC-MATRIX-OF, CC-MATRICES, CC-MATRIX-REP);
@@ -4081,6 +4227,18 @@
     "theorem-library/weierstrass-convergence" ; Weierstrass: locally uniform limits of holomorphic functions are holomorphic, with the derivatives (3.44) (CA-AC, 2026-10-14)
     "theorem-library/analytic-continuation"  ; the identity principle, analytic continuation (2.12), zeros finite in a ball (2.13) (CA-AC, 2026-10-14)
     "theorem-library/ca5-frechet"            ; C(U) a Frechet module (5.2), H(U) closed in it (5.3, sequence form) (CA-5, 2026-10-14)
+    "theorem-library/ba-spectrum"    ; WAVE 2026-11-09/10: ba1-1109/ba-spectrum.scm
+    "theorem-library/ba-inverse"    ; WAVE 2026-11-09/10: ba1b-1109/ba-inverse.scm
+    "theorem-library/ba-ideal-closure"    ; WAVE 2026-11-09/10: ba1b-1109/ba-ideal-closure.scm
+    "theorem-library/ba-resolvent"    ; WAVE 2026-11-09/10: ba1b-1109/ba-resolvent.scm
+    "theorem-library/ba-gelfand-mazur"    ; WAVE 2026-11-09/10: ba1b-1109/ba-gelfand-mazur.scm
+    "theorem-library/ba-gelfand"    ; WAVE 2026-11-09/10: ba1b-1109/ba-gelfand.scm
+    "theorem-library/ba-quotient"    ; WAVE 2026-11-09/10: ba1c-1109/ba-quotient.scm
+    "theorem-library/ba-gelfand-continuous"    ; WAVE 2026-11-09/10: ba1d-1109/ba-gelfand-continuous.scm
+    "theorem-library/ba-quotient-na"    ; WAVE 2026-11-09/10: ba1e-1109/ba-quotient-na.scm
+    "theorem-library/ba-spectral-radius"    ; WAVE 2026-11-09/10: ba1f-1109/ba-spectral-radius.scm
+    "theorem-library/ba-gelfand-compact"    ; WAVE 2026-11-09/10: ba1f-1109/ba-gelfand-compact.scm
+    "theorem-library/ba-cstar-laws"    ; WAVE 2026-11-09/10: ba1h-1109/ba-cstar-laws.scm
     "theorem-library/ca5-montel"             ; bounded sets equicontinuous (5.8), Montel, the derivative continuous on H(U) (5.20, sequence form) (CA-5, 2026-10-14)
     "theorem-library/ca5-series"             ; Lemma 5.21, normally convergent series of holomorphic functions (5.22), linearity of the derivative (CA-5, 2026-10-14)
     ;; CA-6 (2026-10-18): Hurwitz and its corollaries (5.19, 5.20, 5.23-5.25).  CA-LFT (2026-10-19): the
@@ -4096,12 +4254,17 @@
     "theorem-library/ch3a-maxmod"    ; WAVE 2026-10-26/27: ch3a/ch3a-maxmod.scm
     "theorem-library/ch3a-estimates"    ; WAVE 2026-10-26/27: ch3a/ch3a-estimates.scm
     "theorem-library/ch3a-schwarz"    ; WAVE 2026-10-26/27: ch3a/ch3a-schwarz.scm
+    "theorem-library/ba-spectrum-nonempty"    ; WAVE 2026-11-09/10: ba1d-1109/ba-spectrum-nonempty.scm
     "theorem-library/ch3a-growth"    ; WAVE 2026-10-26/27: ch3a/ch3a-growth.scm
     "theorem-library/ch3a-factor"    ; WAVE 2026-10-26/27: ch3a/ch3a-factor.scm
     "structure-library/algnum-vocab"    ; WAVE 2026-10-26/27: algnum/final/algnum-vocab.scm
     "structure-library/ca-lft-vocab"
     "theorem-library/ca-lft-plane"
     "theorem-library/ca-lft-compose"
+    "theorem-library/th3-compact"    ; WAVE 2026-11-09/10: th3-1109/th3-compact.scm
+    "theorem-library/th3a2-compact"    ; WAVE 2026-11-09/10: th3-1109/a2/th3a2-compact.scm
+    "theorem-library/th3a3-finrank"    ; WAVE 2026-11-09/10: th3-1109/a3/th3a3-finrank.scm
+    "theorem-library/th3a3-spectral"    ; WAVE 2026-11-09/10: th3-1109/a3/th3a3-spectral.scm
     "theorem-library/zero-order-laws"    ; WAVE-2 2026-10-30: ch6/zero-order-laws.scm
     "theorem-library/ch3b-const"    ; WAVE 2026-10-26/27: ch3b/ch3b-const.scm
     "theorem-library/ch3b-log"    ; WAVE 2026-10-26/27: ch3b/ch3b-log.scm
@@ -4109,6 +4272,8 @@
     "theorem-library/ch4a-coef"    ; WAVE-2 2026-10-30: ch4a/ch4a-coef.scm
     "theorem-library/catools-nthlocal"    ; WAVE 2026-10-26/27: catools/catools-nthlocal.scm
     "theorem-library/catools-hfrechet"    ; WAVE 2026-10-26/27: catools/catools-hfrechet.scm
+    "theorem-library/ba-g1"    ; WAVE 2026-11-09/10: bag1-1109/ba-g1.scm
+    "theorem-library/ba-g2"    ; WAVE 2026-11-09/10: bag2-1109/ba-g2.scm
     "theorem-library/compact-margins"    ; WAVE 2026-10-26/27: ch3c/ch3c-gen.scm
     "theorem-library/mvp-holo"    ; WAVE-2 2026-10-30: calint2/mvp-holo.scm
     "structure-library/ca-homotopy-vocab"    ; WAVE 2026-10-26/27: ch3c/ch3c-vocab.scm
@@ -4120,15 +4285,36 @@
     "theorem-library/ch4a-expansion"    ; WAVE-2 2026-10-30: ch4a/ch4a-expansion.scm
     "theorem-library/ch4a-punctured"    ; WAVE-2 2026-10-30: ch4a/ch4a-punctured.scm
     "theorem-library/ch4a-coefcont"    ; WAVE-2 2026-10-30: ch4a/ch4a-coefcont.scm
+    "theorem-library/ba-optop"    ; WAVE 2026-11-09/10: baot1-1109/ba-optop.scm
     "theorem-library/ch4b-residues"    ; WAVE-2 2026-10-30: ch4b/ch4b-residues.scm
     "theorem-library/ch4b-mero"    ; WAVE-2 2026-10-30: ch4b/ch4b-mero.scm
+    "theorem-library/union-subset-both"    ; WAVE 2026-11-09/10: 
+    "theorem-library/esum-tonelli"    ; WAVE 2026-11-09/10: th3-1109/b/th3b-esum.scm
+    "theorem-library/hilbert-schmidt"    ; WAVE 2026-11-09/10: th3-1109/b/th3b-hs.scm
+    "theorem-library/th3a4-spectral"    ; WAVE 2026-11-09/10: th3-1109/a4/th3a4-spectral.scm
+    "theorem-library/esum-tail"    ; WAVE 2026-11-09/10: th3-1109/b2/tb2-tail.scm
+    "theorem-library/esum-cartesian"    ; WAVE 2026-11-09/10: th3-1109/b3/tb3-esum.scm
+    "theorem-library/hs-compact"    ; WAVE 2026-11-09/10: th3-1109/b3/tb3-trunc.scm
+    "theorem-library/th3-eigen-normalized"    ; WAVE 2026-11-09/10: th3-1109/sort/th3-eigen-normalized.scm
     "theorem-library/sc-primitive"    ; WAVE 2026-10-26/27: ch3d/ch3d-sc.scm
     "theorem-library/sc-log-roots"    ; WAVE 2026-10-26/27: ch3d/ch3d-log.scm
     "theorem-library/riemann-reduction"    ; WAVE 2026-10-26/27: ch3d/ch3d-rm.scm
     "theorem-library/algnum-countable"    ; WAVE 2026-10-26/27: algnum/final/algnum-countable.scm
+    "theorem-library/countable-fin-subsets"    ; WAVE 2026-11-09/10: baonb4-1109/cf-1.scm
     "theorem-library/algebraic-numbers"    ; WAVE 2026-10-26/27: algnum/final/algebraic-numbers.scm
+    "theorem-library/basw-top"    ; WAVE 2026-11-09/10: basw-1109/basw-top.scm
     "theorem-library/ca-lft-topology"
+    "theorem-library/cc-real-part-facts"    ; WAVE 2026-11-09/10: 
     "theorem-library/ca-lft-cayley"
+    "theorem-library/ba-characters"    ; WAVE 2026-11-09/10: ba1g-1109/ba-characters.scm
+    "theorem-library/cc-im-i-mul"    ; WAVE 2026-11-09/10: 
+    "theorem-library/cc-real-bound"    ; WAVE 2026-11-09/10: ba2-1109/cc-real-bound.scm
+    "theorem-library/ba2-cstar"    ; WAVE 2026-11-09/10: ba2-1109/ba2-cstar.scm
+    "theorem-library/ba2b-gen"    ; WAVE 2026-11-09/10: ba2b-1109/ba2b-gen.scm
+    "theorem-library/basw2-cx"    ; WAVE 2026-11-09/10: basw2-1109/basw2-cx.scm
+    "theorem-library/kal-cstar-122"    ; WAVE 2026-11-09/10: kitalg-1109/kal-cstar-122.scm
+    "theorem-library/basw3-urysohn"    ; WAVE 2026-11-09/10: basw3-1109/basw3-urysohn.scm
+    "theorem-library/basw4-cx"    ; WAVE 2026-11-09/10: basw4-1109/basw4-cx.scm
     "theorem-library/triangle-orientation"    ; WAVE-2 2026-10-30: ch3e/ch3e-angle.scm + ch3e/ch3e-orient.scm
     "theorem-library/triangle-winding"    ; WAVE-2 2026-10-30: ch3e/ch3e-wind.scm + ch3e/ch3e-wext.scm
     "theorem-library/triangle-cauchy-formula"    ; WAVE-2 2026-10-30: ch3e/ch3e-cif.scm + ch3e/ch3e-cif2.scm
@@ -4137,6 +4323,11 @@
     "theorem-library/gamma-continuation"    ; WAVE-2 2026-10-30: ch3g/ch3g-gamma.scm
     "theorem-library/ch4c-inverse"    ; WAVE-2 2026-10-30: ch4c/ch4c-inverse.scm
     "theorem-library/ch4d-meromorphic"    ; WAVE-2 2026-10-30: ch4d/ch4d-meromorphic.scm
+    "theorem-library/ba-gelfand-formula"    ; WAVE 2026-11-09/10: ba1h-1109/ba-gelfand-formula.scm
+    "theorem-library/ba2b-radius"    ; WAVE 2026-11-09/10: ba2b-1109/ba2b-radius.scm
+    "theorem-library/ba2b-hom"    ; WAVE 2026-11-09/10: ba2b-1109/ba2b-hom.scm
+    "theorem-library/ba2b-gelfand"    ; WAVE 2026-11-09/10: ba2b-1109/ba2b-gelfand.scm
+    "theorem-library/ba2b-unique"    ; WAVE 2026-11-09/10: ba2b-1109/ba2b-unique.scm
     "theorem-library/ch6-prod"    ; WAVE-2 2026-10-30: ch6/ch6-prod.scm
     "theorem-library/ch6-fun"    ; WAVE-2 2026-10-30: ch6/ch6-fun.scm
     "theorem-library/ch6-weier"    ; WAVE-2 2026-10-30: ch6/ch6-weier.scm
@@ -4148,12 +4339,33 @@
     "theorem-library/ch6-g629"    ; WAVE-2 2026-10-30: ch6/ch6-g629.scm
     "theorem-library/ch6-g361"    ; WAVE-2 2026-10-30: ch6/ch6-g361.scm
     "structure-library/ccr4-vocab"    ; WAVE 2026-10-26/27: ccr4/ccr4-vocab.scm
+    "theorem-library/ccr1109a5-finite-field"    ; WAVE 2026-11-09/10: ccr1109a5/ccr1109a5-finite-field.scm
+    "structure-library/ccr5-vocab"    ; WAVE 2026-11-09/10: ccr1109d/ccr5-vocab.scm
+    "structure-library/ccr6e-vocab"    ; WAVE 2026-11-09/10: ccr1109d3/ccr6e-vocab.scm
     "theorem-library/ccr4-chars"    ; WAVE 2026-10-26/27: ccr4/ccr4-chars.scm
+    "theorem-library/ccr1109a6-chars"    ; WAVE 2026-11-09/10: ccr1109a6/ccr1109a6-chars.scm
     "structure-library/padic-vocab"    ; WAVE 2026-10-26/27: padic/padic-vocab.scm
     "structure-library/qp-vocab"    ; WAVE-2 2026-10-30: ccrqp/qp-vocab.scm
     "structure-library/pruefer-vocab"    ; WAVE-2 2026-10-30: ccrpr/pruefer-vocab.scm
     "theorem-library/padic-laws"    ; WAVE 2026-10-26/27: padic/padic-laws.scm
     "theorem-library/qp-laws"    ; WAVE-2 2026-10-30: ccrqp/qp-laws.scm
+    "theorem-library/ccr1109a-late"    ; WAVE 2026-11-09/10: ccr1109a/ccr1109a-late.scm
+    "theorem-library/ccr1109a-nv"    ; WAVE 2026-11-09/10: ccr1109a/ccr1109a-nv.scm
+    "theorem-library/ccr1109a2-val"    ; WAVE 2026-11-09/10: ccr1109a2/ccr1109a2-val.scm
+    "theorem-library/ccr1109a2-res"    ; WAVE 2026-11-09/10: ccr1109a2/ccr1109a2-res.scm
+    "theorem-library/ccr1109a4-laurent-complete"    ; WAVE 2026-11-09/10: ccr1109a4/ccr1109a4-laurent-complete.scm
+    "theorem-library/ccr5-dual"    ; WAVE 2026-11-09/10: ccr1109d/ccr5-dual.scm
+    "theorem-library/ccr5-selfdual"    ; WAVE 2026-11-09/10: ccr1109d2/ccr5-selfdual.scm
+    "theorem-library/ccr1109a5-pairing"    ; WAVE 2026-11-09/10: ccr1109a5/ccr1109a5-pairing.scm
+    "theorem-library/ccr1109a6-laurent"    ; WAVE 2026-11-09/10: ccr1109a6/ccr1109a6-laurent.scm
+    "theorem-library/ccr4b-base"    ; WAVE 2026-11-09/10: ccr1109c3/ccr4b-base.scm
+    "theorem-library/ccr4b-remark418"    ; WAVE 2026-11-09/10: ccr1109c3/ccr4b-remark418.scm
+    "theorem-library/ccr4c-local"    ; WAVE 2026-11-09/10: ccr1109c4/ccr4c-local.scm
+    "theorem-library/ccr6-e"    ; WAVE 2026-11-09/10: ccr1109d3/ccr6-e.scm
+    "theorem-library/ccr6-f"    ; WAVE 2026-11-09/10: ccr1109d4/ccr6-f.scm
+    "theorem-library/ccr-adj-integral"    ; WAVE 2026-11-09/10: ccr1109e/ccr-adj-integral.scm
+    "theorem-library/ccr6-g"    ; WAVE 2026-11-09/10: ccr1109e/ccr6-g.scm
+    "theorem-library/ccr6-h"    ; WAVE 2026-11-09/10: ccr1109e2/ccr6-h.scm
     "theorem-library/pruefer-laws"    ; WAVE-2 2026-10-30: ccrpr/pruefer-laws.scm
     "theorem-library/ca-lft-group"
     "theorem-library/ca-lft-matrix"
@@ -4222,6 +4434,17 @@
     ;; proved, modulo 0.
     "structure-library/functoriality"
     "theorem-library/gal-ch"    ; WAVE 2026-10-26/27: galois/gal-ch.scm
+    "theorem-library/l2-families"    ; WAVE 2026-11-09/10: baonb2-1109/bo2-l2a.scm
+    "theorem-library/sums-to-algebra"    ; WAVE 2026-11-09/10: baonb3-1109/b3-sums.scm
+    "theorem-library/complete-transfer"    ; WAVE 2026-11-09/10: baonb3-1109/b3-complete.scm
+    "theorem-library/l2-families-2"    ; WAVE 2026-11-09/10: baonb3-1109/b3-l2.scm
+    "theorem-library/riesz-fischer"    ; WAVE 2026-11-09/10: baonb4-1109/rf-1.scm + baonb4-1109/rf-2.scm + baonb4-1109/rf-3.scm
+    "theorem-library/l2-families-cips"    ; WAVE 2026-11-09/10: baonb4-1109/l2p-1.scm + baonb4-1109/l2p-2.scm
+    "theorem-library/hilbert-separable-l2"    ; WAVE 2026-11-09/10: baonb5-1109/hilbert-separable-l2.scm
+    "theorem-library/cc-sums-ptwise"    ; WAVE 2026-11-09/10: th3-1109/b2/tb2-sums.scm
+    "theorem-library/hs-inner-product"    ; WAVE 2026-11-09/10: th3-1109/b2/tb2-hip.scm
+    "theorem-library/hs-inner-product-2"    ; WAVE 2026-11-09/10: th3-1109/b2/tb2-hip2.scm
+    "theorem-library/hs-inner-product-3"    ; WAVE 2026-11-09/10: th3-1109/b2/tb2-hip3.scm
     ;; page-audit -- the gate on the PRINTED PAGE.  Reads *proof-script-table*
     ;; and emits each proof through `script--write-block', so it must come after
     ;; every proof file, after `interactive' (the emitter) and after
@@ -5017,6 +5240,14 @@
                       (display ";;   ") (display (car e)) (display ": ") (write (cdr e)) (newline))
                     bad)
           (error "functoid-binder-audit: functoid body binder(s) collide with a parameter -- see above"))))
+
+  ;; THE FUNCTOID HYPOTHESES GATE (functoid-gate.scm, W2C 2026-11-10): H1 distinct
+  ;; parameters, H2 no recursion and no forward reference, H3 no redefinition and no
+  ;; theorem surviving one, H4 no free variable in a body, H6 no head both a
+  ;; def-functoid and a library definition -- the hypotheses of the hand-written
+  ;; functoid argument (meta-report).  WARN-ONLY: one line per hypothesis with its
+  ;; backlog; a hypothesis goes fatal once its backlog is zero (a separate decision).
+  (functoid-hypotheses-gate!)
 
   ;; Soundness gate: a bound variable named like a registered constant (accessor /
   ;; operator / functoid / predicate / defined fn) is read as that CONSTANT in head

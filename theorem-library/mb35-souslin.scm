@@ -385,20 +385,8 @@
 (qed 'prefix-eq-le)
 (topic! 'prefix-eq-le 'analysis)
 
-(sp (make-wff '(FORALL x (IMPLIES (IN x RR) (IMPLIES (<= 0 x) (IMPLIES (FORALL eps (IMPLIES (POS-RR eps) (<= x eps))) (= x 0)))))))
-(dk-peel!)
-(use-cases (dk-cite! 'rr-lt-trichotomy 0 'x)
-  (lambda ()
-    (let ((h (list '* 1/2 'x)))
-      (dk-type! h 'RR)
-      (dk-have! (list '< 0 h) (lambda () (dk-ineq! '(< 0 x))))
-      (dk-cite! 'rr-pos-rr-of-lt h)
-      (dk-apply! '(FORALL eps (IMPLIES (POS-RR eps) (<= x eps))) h)
-      (dk-ineq! (list '<= 'x h) '(< 0 x))))
-  (lambda () (dk-ineq! '(= 0 x)))
-  (lambda () (dk-ineq! '(< x 0) '(<= 0 x))))
-(qed 'rr-nonneg-below-all-zero)
-(topic! 'rr-nonneg-below-all-zero 'analysis)
+;;; MOVED 2026-11-10 (integration): the proof of `rr-nonneg-below-all-zero' is now in
+;;; theorem-library/rr-nonneg-below-all-zero.scm (library analysis).
 
 ;;; ======================================================================
 ;;; PROPOSITION 5.10, sufficiency: the image of N^N under a continuous map is a Souslin set

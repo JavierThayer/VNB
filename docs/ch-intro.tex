@@ -29,6 +29,43 @@ with architectural direction from F.~J.~Thayer.  It is inspired by
 ideas from IMPS~\cite{IMPS}.
 
 %% =========================================================
+\section{VNB and Lean}
+\label{sec:vnb-lean}
+
+Lean~\cite{Lean} is the system with which VNB is most naturally compared.
+Lean is based on dependent type theory (the calculus of inductive
+constructions with universes); its mathematical library is Mathlib; it is
+implemented in Lean~4 and C++; its proofs are checked by a small kernel,
+and independent external checkers of that kernel exist.  Three differences
+follow.
+
+\begin{enumerate}
+\item \textbf{Authorship and lineage.}  VNB is written entirely by a large
+  language model, with architectural direction from F.~J.~Thayer.  Its
+  kernel follows IMPS~\cite{IMPS}: proofs are sequent-based deduction
+  graphs and rewriting is done by macetes.  It does not take over the
+  formal type theory of IMPS (LUTINS, a typed logic of partial
+  functions).  Where IMPS uses sorts, VNB uses set-theoretic membership
+  guards: a function in \texttt{fun($A$, $B$)} is defined exactly on $A$,
+  and a hypothesis $x \in A$ plays the part of a typing judgement.
+\item \textbf{Naive set theory with a formal foundation.}  In practice VNB
+  is a kind of naive set theory, although its foundation is formal
+  (von~Neumann--Bernays--G\"odel set theory, NBG; consistency is relative to
+  NBG, Chapter~\ref{ch:proofs}).  It is naive in that its structures follow
+  ordinary mathematical practice: a group, a metric space or a normed field
+  \emph{is} a tuple of sets (\texttt{declare-structure}, Chapter~\ref{ch:defs},
+  ``Mathematical structures''), not a record of a dependent type and not an
+  instance of a type class.
+\item \textbf{Self-verification.}  VNB is written in Scheme.  This makes
+  the verification of large parts of its own code less challenging: the
+  kernel's data are S-expressions, which can be encoded as sets, and the
+  kernel rules can then be stated and studied as relations on those sets.
+  Section~\ref{sec:meta} describes what has been built in this direction
+  and what has not.  No claim is made here about the difficulty of the
+  corresponding task for Lean.
+\end{enumerate}
+
+%% =========================================================
 \section{VNB: primitives and reductions}
 \label{sec:primitives}
 
@@ -232,7 +269,7 @@ mathematics.
   \VNBkernelopcountoracle{} are decision procedures.  They are listed and
   described in Section~\ref{sec:kernel-boundary}.  Every other command is a
   tactic, which acts on a proof only by calling kernel operations.  The
-  code permitted to record an inference is a declared list of eight files,
+  code permitted to record an inference is a declared list of files (\texttt{*kernel-caller-files*}, \texttt{audit.scm}),
   re-checked every time the system starts
   (Section~\ref{sec:kernel-checked}).
 \item \textbf{Composable rewriting.}  A macete mechanism (borrowed from
@@ -260,444 +297,5 @@ straightforward.
 %% =========================================================
 
 %% =========================================================
-\section{Quick start}
-\label{sec:quickstart-chap}
 
-\subsection{Installation and startup}
-
-\subsubsection{Requirements}
-
-MIT/GNU~Scheme~12.1, and GNU~Emacs~\cite{Emacs} (for the interactive workspace).
-A \texttt{Makefile} at the root of the tree wraps the steps below
-(\texttt{make help} lists them).
-No other dependencies.
-
-\subsubsection{Directory layout}
-
-The prover lives in \texttt{\textasciitilde/prover/}: the executable
-script \texttt{prover} and the loader \texttt{load.scm} are the only
-two files you need to know about to get started.  See
-Appendix~\ref{app:source} for a per-file overview.
-
-\subsubsection{Compile the tree first}
-\label{sec:compile-first}
-
-Compiled binaries (\texttt{.com}, \texttt{.bin}) are excluded from both the
-repository and the distributed archive, so a freshly cloned or unpacked tree is
-\emph{interpreted}.  It will run correctly, and nothing in its output will say
-that it is doing so; only the clock will.  On a modest machine the difference is
-between a library load of some twenty seconds and one of roughly eleven minutes,
-and between a full test suite of a few minutes and one of roughly forty.
-
-Compile once, after obtaining the tree.  This takes about ten minutes and
-includes one load from source:
-
-\begin{VNBsnip}
-~/prover/VNB-with-compile    # compile every source file, then launch
-\end{VNBsnip}
-
-Thereafter recompile only what has changed.  From a session that has already
-loaded \texttt{load.scm}:
-
-\begin{VNBsnip}
-(compile-vnb!)               # incremental: skips files whose .com is current
-\end{VNBsnip}
-
-After editing a source file, recompile it before running anything.  The
-loader compares modification times: a \texttt{.com} older than its
-\texttt{.scm} is ignored and the file loads from source.  That is harmless
-for a proof script and costly for a core file, and it is the usual
-explanation for a session that has become slow.  The question to ask is
-whether \emph{that file} is compiled.  A small number of files are compiled
-by nobody, deliberately: those that use a top-level macro, which
-\texttt{compile-vnb!} lists in \texttt{*vnb-no-compile-files*} and skips.  They
-load from source at no measurable cost, their work being done in the compiled
-procedures they call.
-
-\subsection{Starting the checker}
-
-\begin{VNBsnip}
-~/prover/prover              # interactive REPL
-~/prover/prover proof.scm    # run a proof script and exit
-~/prover/prover -i proof.scm # run a script, then stay interactive
-\end{VNBsnip}
-
-The interactive session is a standard MIT~Scheme REPL with the proof
-checker pre-loaded.
-\subsection{The VNB workspace}
-\label{sec:emacs}
-
-The VNB workspace is a styled Emacs session built for one task:
-writing proofs.  Start it from the shell:
-
-\begin{VNBsnip}
-~/prover/VNB
-\end{VNBsnip}
-
-\noindent
-A graphical Emacs frame opens with the VNB menu and toolbar already
-in place, the prover ready to launch on first use, and a Home
-Workspace inviting you to begin.
-
-\begin{remark}
-The launcher uses \texttt{emacs -Q}, so it ignores your personal
-Emacs init file.  The session is dedicated to the prover; nothing
-you do inside it affects your usual Emacs setup.
-\end{remark}
-
-\subsubsection{The Home Workspace}
-
-The first workspace you see.  It offers four buttons:
-
-\begin{itemize}
-\item \textbf{Start Proof} --- enter a formula in string syntax; the
-  workspace switches to the Focus Workspace and the prover begins.
-\item \textbf{Build Formula} --- parse and validate a formula
-  without starting a proof.  Useful for catching typos.
-\item \textbf{Show Theorems} --- list the theorems and definitions
-  that are installed.
-\item \textbf{Quit} --- shut down the prover and exit.
-\end{itemize}
-
-\noindent
-Single-letter keys (\texttt{s}, \texttt{f}, \texttt{t}, \texttt{q})
-duplicate the buttons.  Press \texttt{g} to refresh.
-
-\subsubsection{The Focus Workspace}
-
-The working surface.  After \textbf{Start Proof} the workspace shows
-the goal you are currently focused on, with its assumptions and the
-goal itself, and a row of tactic buttons:
-
-\begin{itemize}
-\item \textbf{Direct Inference} --- decompose the goal by its top
-  connective.
-\item \textbf{Assume} --- close the goal if it matches one of the
-  assumptions already in hand.
-\item \textbf{Theorem} --- prompts for the name of a theorem to add
-  to the context.
-\item \textbf{Instantiate} --- prompts for a universally quantified
-  assumption and a term to instantiate it at.
-\item \textbf{Backchain} --- prompts for an implication
-  \texttt{P} \texttt{implies} \textit{goal}; the new subgoal is
-  \texttt{P}.
-\item \textbf{Focus} --- prompts for the number of another open
-  goal to switch to.
-\item \textbf{QED} --- prompts for a name and installs the
-  completed proof as a theorem.
-\item \textbf{Overview} --- switch to the Proof Overview Workspace.
-\item \textbf{Home} --- back to the Home Workspace.
-\end{itemize}
-
-\noindent
-The same single-letter keys as the button labels' first letters
-work too (\texttt{d}, \texttt{a}, \texttt{t}, \texttt{i},
-\texttt{b}, \texttt{f}, \texttt{q}).
-
-\begin{remark}
-Many more tactics are available in the prover than there are
-buttons.  The buttons cover the most common everyday moves; the
-full set is documented in Chapter~\ref{ch:proofs}, and any
-tactic can be typed directly in the REPL described below.
-\end{remark}
-
-\subsubsection{The Proof Overview Workspace}
-
-A bird's-eye view of every open goal in the current proof.  Each
-goal is rendered as assumptions above a sequent arrow above the
-goal formula, with a \textbf{Focus on this} button beside it.
-The current focus is marked with a small triangle.  Use this
-workspace to navigate large proofs or to remember which goals are
-still open.
-
-Press \texttt{f} to return to the Focus Workspace, \texttt{h} for
-Home, \texttt{n}/\texttt{p} to jump between goals, and
-\texttt{RET} to focus on the goal at point.
-
-\subsubsection{Error reporting}
-
-When the prover rejects something --- a malformed formula, a tactic
-that does not apply --- the error appears in two places at once:
-
-\begin{itemize}
-\item the echo area at the bottom of the frame flashes the message
-  immediately;
-\item a red \texttt{! Error:} panel appears at the top of the
-  current workspace and stays there until the next successful
-  action clears it.
-\end{itemize}
-
-\noindent
-No detail is hidden in a side window: whatever the prover said,
-you see.
-
-\subsubsection{Display preferences}
-
-The \textbf{Display} submenu of the VNB menu offers the usual
-adjustments: frame size, position, font family and size,
-foreground/background/cursor colours.  Any change is saved
-automatically to \texttt{\textasciitilde/.vnb-display.el}, so the
-next \texttt{VNB} launch reopens the frame exactly the way you
-left it.  \textbf{Reset to Defaults} restores the built-in
-appearance and removes the saved file.
-
-\subsubsection{Advanced: the bare REPL}
-
-Sitting behind the styled workspaces is an ordinary MIT~Scheme
-REPL.  Open it with \textbf{Show REPL (advanced)} from the VNB
-menu, or skip the workspaces entirely:
-
-\begin{VNBsnip}
-~/prover/VNB --no-workspace       # plain comint layout
-~/prover/prover                   # no Emacs at all
-\end{VNBsnip}
-
-\noindent
-The plain Emacs layout is a two-window arrangement: the
-\texttt{*VNB*} REPL on the left, the live proof-state display
-\texttt{*VNB State*} on the right.  Any Scheme expression you type
-at the REPL prompt is evaluated; \texttt{(show)} refreshes the
-state display, and short forms like \texttt{(di)} or \texttt{(ass)}
-work exactly as they do from the workspace buttons.
-
-\paragraph{Scratch sheet of proof commands.}
-\texttt{M-x vnb-command-buffer} opens a \texttt{*VNB Commands*}
-window similar to Emacs's own \texttt{*scratch*}: type an
-S-expression, press \texttt{C-j}, and the result is sent to the
-running prover and inserted below.  \texttt{TAB} completes proof
-command names; \texttt{C-c C-d} describes the command at point.
-
-\paragraph{Programmatic evaluation.}
-\texttt{(vnb-eval-string STR \&optional TIMEOUT)} sends \texttt{STR}
-to the running prover, waits up to \texttt{TIMEOUT} seconds
-(default~30) for the next REPL prompt, and returns the Scheme
-return value as an Emacs string.  Use it from your own Elisp when
-integrating the prover into a larger setup.
-
-%% =========================================================
-\subsection{A complete proof}
-\label{sec:quickstart}
-
-\begin{sloppypar}
-Launch the workspace as in Section~\ref{sec:emacs} (\texttt{\textasciitilde/prover/VNB}).
-The Home Workspace appears; the proof state below is what you would
-see after stepping through the example in the Focus Workspace.  The
-same commands typed at the bare REPL produce identical output.
-\end{sloppypar}
-
-We prove the classical syllogism: all men are mortal; Socrates is a
-man; therefore Socrates is mortal.  There is no ``theory'' to extend
-(Section~\ref{sec:structures-not-theories}): the premises are either
-hypotheses of one statement, or the axioms of a structure.  Both
-readings follow; run them in this order in one session, because the
-second reserves the names it declares.
-
-\paragraph{First reading: one statement, free variables.}
-The classes \texttt{man} and \texttt{mortal} and the individual
-\texttt{socrates} are free variables of the theorem; the premises are
-its antecedent.
-
-\begin{VNBsnip}
-(sp (make-wff-from-string
-  "(forall([x in man], x in mortal) and socrates in man)
-     implies socrates in mortal"))
-(di)
-(ai 1)
-(inst "forall([x in man], x in mortal)" "socrates")
-(bc   "socrates in man implies socrates in mortal")
-(ass)
-(qed  'socrates-is-mortal)
-\end{VNBsnip}
-
-Final \texttt{*VNB State*}: \texttt{Proof complete.}  After \texttt{(di)}
-the antecedent is assumption~1; \texttt{(ai 1)} splits the conjunction
-into two assumptions; \texttt{inst} lands the implication for
-\texttt{socrates}; \texttt{bc} turns the goal into its antecedent, which
-\texttt{ass} finds in the context.
-
-\paragraph{Second reading: a structure.}
-Declare the species whose models are the worlds in which the syllogism
-holds: a carrier of people, a carrier of mortals, a distinguished person,
-and one law.  The theorem then quantifies over every model.
-
-\begin{VNBsnip}
-(declare-structure HUMANITY
-  (instance-var s)
-  (carriers PEOPLE MORTALS)
-  (constant SOCRATES PEOPLE)
-  (law "forall([x in PEOPLE(s)], x in MORTALS(s))"))
-
-(sp (make-wff-from-string
-  "forall([s in HUMANITY], SOCRATES(s) in MORTALS(s))"))
-(di)
-(mac-h 'humanity-class 1)
-(mac-h 'is-humanity 1)
-(dk-split-all!)
-(inst "forall([x in PEOPLE(s)], x in MORTALS(s))" "SOCRATES(s)")
-(bc   "SOCRATES(s) in PEOPLE(s) implies SOCRATES(s) in MORTALS(s)")
-(ass)
-(qed  'socrates-is-mortal-in-humanity)
-\end{VNBsnip}
-
-\texttt{(di)} lands \texttt{s in humanity}; the class axiom
-\texttt{humanity-class} rewrites it to \texttt{is-humanity(s)}, and the
-definition \texttt{is-humanity} unfolds that to the structure's typing
-conditions and its law, one conjunction, which \texttt{dk-split-all!}
-splits into separate assumptions; the rest is the first reading with
-\texttt{socrates(s)}, \texttt{people(s)}, \texttt{mortals(s)} in place of
-the free variables.
-
-\begin{remark}
-The same proofs in the styled workspace: \textbf{Start Proof} with the
-statement, then the buttons carrying the short forms' names
-(\textbf{Direct Inference} for \texttt{di}, \textbf{Assume} for
-\texttt{ass}, \ldots); a command with an argument asks for it in the
-minibuffer.  The structure declaration is typed once in the
-\texttt{*VNB Commands*} scratch sheet, or put in a file loaded at start.
-The error panel (Section~\ref{sec:emacs}) catches typos as you go.
-\end{remark}
-
-\paragraph{What each command does.}
-\begin{sloppypar}
-\begin{itemize}
-\item \texttt{(sp w)} starts a new proof with goal \texttt{w}.
-\item \texttt{(di)} direct inference: introduces the goal's leading
-  universals and the antecedent of an implication as assumptions.
-\item \texttt{(ai f)} antecedent inference on assumption \texttt{f}
-  (a formula or its 1-based index): a conjunction is split, an
-  implication whose antecedent is in context is detached.
-\item \texttt{(mac-h 'name k)} rewrites assumption \texttt{k} by the
-  named definition or theorem; \texttt{(dk-split-all!)} splits every
-  conjunction in the context.
-\item \texttt{(inst f t)} instantiates the universally quantified
-  assumption \texttt{f} at term \texttt{t}.
-\item \texttt{(bc f)} backchains: assumption \texttt{f} is $P
-  \Rightarrow Q$, current goal is $Q$, new goal is $P$.
-\item \texttt{(ass)} closes a goal that appears in the assumption
-  list.
-\item \texttt{(qed 'name)} installs the completed proof as a named
-  theorem.
-\end{itemize}
-\end{sloppypar}
-
-\begin{remark}
-The ``open goals'' count in \texttt{*VNB State*} climbs as the proof
-progresses: each inference adds a node to the deduction graph, and
-the parent stays open until its child grounds.  Completion is the
-root grounding, not the count returning to zero in entry order.
-Keep going until \texttt{Proof complete.} appears.
-\end{remark}
-
-\paragraph{The same proof, scripted.}
-For batch use, the first reading in the long forms:
-\begin{VNBsnip}
-(let* ((wic (make-wff-from-string
-              "(forall([x in man], x in mortal) and socrates in man)
-                 implies socrates in mortal"))
-       (ps  (start-proof wic))
-       (ps  (cmd-direct-inference ps))
-       (ps  (cmd-antecedent-inference ps
-              (parse-string
-                "forall([x in man], x in mortal) and socrates in man")))
-       (ps  (cmd-instantiate ps
-              (parse-string "forall([x in man], x in mortal)")
-              'socrates))
-       (ps  (cmd-backchain ps
-              (parse-string
-                "socrates in man implies socrates in mortal")))
-       (ps  (cmd-assumption ps)))
-  (cmd-qed ps 'socrates-is-mortal))
-\end{VNBsnip}
-All examples in this manual use the interactive short forms; the long
-form is available for scripting.
-
-\paragraph{What \texttt{make-wff} checks.}
-\texttt{make-wff} (and \texttt{make-wff-from-string}, which calls it)
-performs a position-typed walk of its argument and signals an error
-rather than wrap a malformed expression.  The checks are:
-\begin{sloppypar}
-\begin{itemize}
-\item \textbf{Numbers in wff positions} are rejected:
-  \texttt{(make-wff-from-string "1 and 35")} $\Rightarrow$ ``number in wff
-  position 1''.
-\item \textbf{Term-forming heads in wff positions} are rejected:
-  \texttt{(make-wff-from-string "choice(A)")} as a top-level wff fails because
-  \texttt{choice} produces a term, not a wff.
-\item \textbf{Wff-forming heads in term positions} are rejected:
-  \texttt{(make-wff-from-string "(A and B) in C")} fails because \texttt{A and B}
-  is a wff and the first argument of \texttt{in} must be a term.
-\item \textbf{Bare symbols in wff positions} are rejected.  Only
-  \texttt{truth} and \texttt{falsity} are valid bare-symbol wffs;
-  anything else (e.g.\ \texttt{A implies B}) is an error.
-\item \textbf{Free-symbol role conflicts}: a symbol that appears free
-  in both wff and term positions in the same formula is rejected.
-\item \textbf{Wff-position binders}: a binder whose body uses the
-  bound variable in wff position is rejected within its scope.  This
-  catches \texttt{forall([p], p implies p)}: \texttt{p} is bound as a
-  class variable but the body uses it as a proposition.
-\item \textbf{Bound vs.\ free same-name use} is \emph{accepted with a
-  warning}.  In \texttt{forall([a], a in nn) implies a in zz} the
-  inner \texttt{a} is bound and the outer \texttt{a} is free.  The
-  validator emits a \texttt{;; warning} but does not reject.
-\item \textbf{Arities and bound-variable shapes} are checked: every
-  connective and quantifier gets the right number of arguments;
-  \texttt{forall}, \texttt{forsome}, \texttt{iota},
-  \texttt{lambda}, \texttt{lambdoid}, and \texttt{sep} bound variables must be
-  symbols.
-\end{itemize}
-\end{sloppypar}
-%
-\begin{remark}\label{remark:27135-34761-138906}
-%
-The set-theoretic \texttt{power(A)} (power set) and arithmetic
-\texttt{x \^{} n} (exponentiation) share the same underlying symbol because
-MIT~Scheme reads identifiers case-insensitively; \texttt{make-wff}
-distinguishes them by arity (1 vs.\ 2 arguments).  All downstream
-operations (\texttt{free-vars}, \texttt{subst-free},
-\texttt{alpha-equiv?}, macete pattern matching) honour the same
-arity-based dispatch.
-
-%
-\end{remark}
-
-%% =========================================================
-\subsection{A macete example}
-\label{sec:quickstart-macete}
-
-Macetes are named rewrite rules derived from installed theorems.
-To apply a macete outside a proof, install a theorem and call
-\texttt{apply-macete}:
-
-\begin{VNBcode}
-(install-theorem! 'eq-symm
-  (make-wff-from-string "forall([x, y], x = y iff y = x)"))
-
-(apply-macete 'eq-symm (make-wff-from-string "3 + 5 = 8"))
-; => wff for "8 = 3 + 5"
-
-(apply-macete 'eq-symm (make-wff-from-string "n = m implies truth"))
-; => wff for "m = n implies truth"
-
-(apply-macete 'eq-symm (make-wff-from-string "3 in nn"))
-; => #f          -- pattern x = y does not match; no rewrite fires
-\end{VNBcode}
-
-\texttt{apply-macete} accepts and returns a \texttt{wff} object; it
-returns \texttt{\#f} when the pattern matches nowhere.
-To apply a macete as a proof step, use
-\texttt{(mac \textit{name})} inside a proof (see
-Section~\ref{sec:macetes}).
-
-\begin{remark}
-To try the four lines above in the styled workspace, open the
-\texttt{*VNB Commands*} scratch sheet (\texttt{M-x vnb-command-buffer})
-and press \texttt{C-j} after each S-expression; the prover's reply
-appears on the line below.  The Home, Focus, and Proof Overview
-workspaces are for \emph{proofs}; ad-hoc expression evaluation lives
-on the scratch sheet or in the bare REPL.
-\end{remark}
-
-%% =========================================================
-
-
-%% =========================================================
+Chapter~\ref{ch:quickstart} (Getting started) gives the installation steps and walks through a first session in the workspace, including a complete proof and a macete example.

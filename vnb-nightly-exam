@@ -61,7 +61,7 @@ PROVER=/home/ubuntu/prover
 METRICS=/home/ubuntu/mailbox/metrics
 LOG=$METRICS/nightly-exam.log
 LAST=$METRICS/last-exam.json
-WORKER=worker-02; TYPE=t3.medium; HEAP=; FORCE=0; DRY=0; SMOKE=0
+WORKER=worker-02; TYPE=t3.medium; HEAP=; FORCE=0; DRY=0; SMOKE=0; NOCORE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --worker) WORKER=$2; shift 2 ;;
@@ -70,6 +70,7 @@ while [ $# -gt 0 ]; do
     --force) FORCE=1; shift ;;
     --dry-run) DRY=1; shift ;;
     --smoke) SMOKE=1; shift ;;
+    --no-core-replay) NOCORE=1; shift ;;   # passed to vnb-band (2026-11-09: replay on ran past the 8 h cap)
     *) echo "vnb-nightly-exam: unknown option $1" >&2; exit 2 ;;
   esac
 done
@@ -135,7 +136,8 @@ if [ "$FORCE" = 0 ] && [ -f "$LAST" ]; then
   fi
 fi
 say "start: tree $TREE on $WORKER ($TYPE${HEAP:+, heap $HEAP}$([ "$SMOKE" = 1 ] && echo ", SMOKE: certified build in place of the exam"))"
-[ "$DRY" = 1 ] && { say "dry run: would start $WORKER ($TYPE if absent), push, exam, suite, pull, stop; exam cap 8 h"; exit 0; }
+CORE_WORD=on; [ "$NOCORE" = 1 ] && CORE_WORD=off
+[ "$DRY" = 1 ] && { say "dry run: would start $WORKER ($TYPE if absent), push, exam (core replay $CORE_WORD), suite, pull, stop; exam cap 8 h"; exit 0; }
 
 state=$(capataz list --json 2>/dev/null | python3 -c 'import json,sys; w=sys.argv[1]; print(next((r["state"] for r in json.load(sys.stdin) if r["name"]==w), "absent"))' "$WORKER")
 case "$state" in
@@ -188,6 +190,7 @@ capataz run "$WORKER" --json --user ubuntu "rm -f $PROVER/vnb.band $PROVER/vnb.b
 say "pushed and verified; old worker band removed; exam starting"
 
 EXAM_OPT=--exam; [ "$SMOKE" = 1 ] && EXAM_OPT=""
+[ "$NOCORE" = 1 ] && [ -n "$EXAM_OPT" ] && EXAM_OPT="$EXAM_OPT --no-core-replay"
 JOB=$("$PROVER/vnb-band" "$WORKER" --build $EXAM_OPT ${HEAP:+--heap $HEAP} 2>&1 | sed -n 's/.*started \(job-[^ ]*\).*/\1/p')
 [ -n "$JOB" ] || { say "FAIL: vnb-band --build --exam returned no job"; record failed "exam-start"; exit 2; }
 say "exam $JOB"
