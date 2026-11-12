@@ -485,6 +485,35 @@
         ((pair? x) (cc--note-symbols! (car x) table) (cc--note-symbols! (cdr x) table))
         (#t #f)))
 
+;;; Every symbol occurring in the STEPS into TABLE: the set `cc--note-symbols!' of
+;;; the steps notes.  CORE-GC (2026-11-11): the formulas of the sequent forms (a
+;;; step's sequent, its hypotheses) are walked once per formula OBJECT; the page
+;;; shares one context's formulas between all the steps under it, and the unshared
+;;; walk revisited every context at every step (quadratic in a proof's depth).
+(define (cc--note-symbols-of-steps! steps table)
+  (let ((seen (make-strong-eqv-hash-table)))
+    (define (f! x)
+      (if (and (pair? x) (hash-table-ref/default seen x #f))
+          #f
+          (begin (if (pair? x) (hash-table-set! seen x #t))
+                 (cc--note-symbols! x table))))
+    (define (seq! sq)                    ; (sequent ASMS GOAL), the form seq-of builds
+      (if (and (pair? sq) (eq? (car sq) 'sequent) (pair? (cdr sq)) (list? (cadr sq))
+               (pair? (cddr sq)) (null? (cdddr sq)))
+          (begin (hash-table-set! table 'sequent #t) (for-each f! (cadr sq)) (f! (caddr sq)))
+          (cc--note-symbols! sq table)))
+    (for-each
+     (lambda (st)
+       (if (list? st)
+           (for-each (lambda (fld)
+                       (cond ((and (pair? fld) (eq? (car fld) 'sequent)) (seq! fld))
+                             ((and (pair? fld) (eq? (car fld) 'hyps) (list? fld))
+                              (hash-table-set! table 'hyps #t) (for-each seq! (cdr fld)))
+                             (#t (cc--note-symbols! fld table))))
+                     st)
+           (cc--note-symbols! st table)))
+     steps)))
+
 ;;; Renaming keeps SHARING: a context list is shared by many steps, and a copy per
 ;;; occurrence multiplied the page in memory (and the writer's work, below).
 ;;; The symbols free in some formula of the steps (sequents, hypotheses, command
@@ -552,6 +581,15 @@
                        (if (null? bound) (hash-table-set! tbl x y))
                        y)))
                 (#t x))))))
+
+;;; `(delete-duplicates L eq?)', the first occurrence kept, in linear time (the mint
+;;; log of a long proof holds thousands of names; CORE-GC, 2026-11-11).
+(define (cc--delete-duplicates-eq l)
+  (let ((seen (make-strong-eqv-hash-table)))
+    (let loop ((l l) (acc '()))
+      (cond ((null? l) (reverse acc))
+            ((hash-table-ref/default seen (car l) #f) (loop (cdr l) acc))
+            (#t (hash-table-set! seen (car l) #t) (loop (cdr l) (cons (car l) acc)))))))
 
 ;;; ---------------------------------------------------------------- the lowering
 (define *cc-pages-lowered* 0)
@@ -659,7 +697,7 @@
       (let* ((steps (reverse steps))
              (stmt  (wff-formula (sequent-node-assertion root)))
              (present (make-strong-eqv-hash-table)))
-        (cc--note-symbols! steps present)
+        (cc--note-symbols-of-steps! steps present)
         ;; A page MINT is a minted name that occurs FREE in some formula of the page
         ;; (an eigenvariable, a witness).  A name minted only to rename a BOUND
         ;; variable (capture-avoiding substitution in inst, iota-d, lam-t) stays as
@@ -667,7 +705,7 @@
         ;; mint only from the free symbols of the hypotheses a step produced.
         (let* ((free (cc--free-symbols-of-steps steps))
                (mints (filter (lambda (m) (hash-table-ref/default free m #f))
-                              (delete-duplicates (cc--mints-since dg) eq?)))
+                              (cc--delete-duplicates-eq (cc--mints-since dg))))
                (alist (let lp ((ms mints) (i 1) (acc '()))
                         (if (null? ms) (reverse acc)
                             (lp (cdr ms) (+ i 1)
@@ -803,70 +841,104 @@
 (define cc--write
   (if (environment-bound? system-global-environment 'write-simple) write-simple write))
 
-(define (cc--write-page-to-port page port)
-  (let ((memo (make-strong-eqv-hash-table))
+;;; CORE-GC (2026-11-11): the page's own printer.  A page datum is lists of symbols
+;;; and exact numbers (docs/core-page-format.md s.1); this walk writes a pair, the
+;;; empty list, a symbol and an exact rational itself and hands anything else to
+;;; `cc--write'.  The text is the text `write-simple' writes (which abbreviates no
+;;; quote form: (quote a) is written (quote a)); a symbol's spelling is `write-simple'
+;;; of it, computed once per symbol per page (SYMS, an eq table).
+(define (cc--write-datum x emit syms)
+  (let walk ((x x))
+    (cond ((pair? x)
+           (emit #\()
+           (walk (car x))
+           (let loop ((d (cdr x)))
+             (cond ((pair? d) (emit #\space) (walk (car d)) (loop (cdr d)))
+                   ((null? d) #t)
+                   (#t (emit " . ") (walk d))))
+           (emit #\)))
+          ((symbol? x)
+           (emit (or (hash-table-ref/default syms x #f)
+                     (let ((t (call-with-output-string (lambda (p) (cc--write x p)))))
+                       (hash-table-set! syms x t)
+                       t))))
+          ((null? x) (emit "()"))
+          ((and (number? x) (exact-rational? x)) (emit (number->string x 10)))
+          (#t (emit (call-with-output-string (lambda (p) (cc--write x p))))))))
+
+;;; The page TEXT.  CORE-GC (2026-11-11): built with MIT's `string-builder' rather than
+;;; a string port (a port operation cost ~0.4 us, eight times a builder call), and
+;;; every formula through `cc--write-datum'; the text is the same, character for
+;;; character, as the port writer's of before (checked on 1608 pages).
+(define (cc--page-text page)
+  (let ((sb (string-builder))
+        (memo (make-strong-eqv-hash-table))
+        (syms (make-strong-eqv-hash-table))       ; symbol -> its written spelling
         (seqnum (make-strong-eqv-hash-table))     ; sequent form -> its number
         (nseq 0))
+    (define (num n) (sb (number->string n 10)))  ; `write' of an exact integer
     (define (wf f)
-      (write-string
-       (or (hash-table-ref/default memo f #f)
-           (let ((str (call-with-output-string (lambda (p) (cc--write f p)))))
-             (if (pair? f) (hash-table-set! memo f str))
-             str))
-       port))
+      (sb (or (hash-table-ref/default memo f #f)
+              (let ((str (let ((sub (string-builder))) (cc--write-datum f sub syms) (sub))))
+                (if (pair? f) (hash-table-set! memo f str))
+                str))))
     (define (wlist fs)
       (let loop ((as fs) (first #t))
         (if (pair? as)
-            (begin (if (not first) (write-char #\space port)) (wf (car as)) (loop (cdr as) #f)))))
+            (begin (if (not first) (sb #\space)) (wf (car as)) (loop (cdr as) #f)))))
     (define (number! sq)
       (set! nseq (+ nseq 1))
       (if (not (hash-table-ref/default seqnum sq #f)) (hash-table-set! seqnum sq nseq))
       nseq)
     (define (wseq-full sq)               ; (sequent (A ...) G)
       (set! *cc-seq-full* (+ *cc-seq-full* 1))
-      (write-string "(sequent (" port) (wlist (cadr sq))
-      (write-string ") " port) (wf (caddr sq)) (write-string ")" port))
+      (sb "(sequent (") (wlist (cadr sq))
+      (sb ") ") (wf (caddr sq)) (sb ")"))
     ;; BASE: the step's sequent form (already numbered), or #f
     (define (wseq sq base)
       (let ((j (hash-table-ref/default seqnum sq #f)))
         (cond
          (j (set! *cc-seq-ref* (+ *cc-seq-ref* 1))
-            (write-string "(sequent-ref " port) (cc--write j port) (write-string ")" port))
+            (sb "(sequent-ref ") (num j) (sb ")"))
          ((and base (hash-table-ref/default seqnum base #f) (cc--seq-delta base sq))
           => (lambda (d)
                (set! *cc-seq-delta* (+ *cc-seq-delta* 1))
-               (write-string "(sequent-delta " port) (cc--write (hash-table-ref seqnum base (lambda () 0)) port)
-               (write-string " (drop" port)
-               (for-each (lambda (i) (write-char #\space port) (cc--write i port)) (car d))
-               (write-string ") (add" port)
-               (for-each (lambda (f) (write-char #\space port) (wf f)) (cadr d))
-               (write-string ")" port)
-               (if (not (caddr d)) (begin (write-char #\space port) (wf (caddr sq))))
-               (write-string ")" port)))
+               (sb "(sequent-delta ") (num (hash-table-ref seqnum base (lambda () 0)))
+               (sb " (drop")
+               (for-each (lambda (i) (sb #\space) (num i)) (car d))
+               (sb ") (add")
+               (for-each (lambda (f) (sb #\space) (wf f)) (cadr d))
+               (sb ")")
+               (if (not (caddr d)) (begin (sb #\space) (wf (caddr sq))))
+               (sb ")")))
          (#t (wseq-full sq))))
       (number! sq))
     (define (wfield x base)              ; a step field
       (cond ((and (pair? x) (eq? (car x) 'sequent)) (wseq x #f))
             ((and (pair? x) (eq? (car x) 'hyps))
-             (write-string "(hyps" port)
-             (for-each (lambda (h) (write-char #\space port) (wseq h base)) (cdr x))
-             (write-string ")" port))
-            (#t (cc--write x port))))
-    (write-string "(core-page " port) (cc--write (cadr page) port) (newline port)
+             (sb "(hyps")
+             (for-each (lambda (h) (sb #\space) (wseq h base)) (cdr x))
+             (sb ")"))
+            (#t (cc--write-datum x sb syms))))
+    (sb "(core-page ") (cc--write-datum (cadr page) sb syms) (sb #\newline)
     (for-each (lambda (field)
-                (write-string "  " port)
+                (sb "  ")
                 (if (and (pair? field) (eq? (car field) 'step))
                     (let ((base (find (lambda (x) (and (pair? x) (eq? (car x) 'sequent))) (cdr field))))
-                      (write-string "(step" port)
-                      (for-each (lambda (x) (write-char #\space port) (wfield x base)) (cdr field))
-                      (write-string ")" port))
-                    (cc--write field port))
-                (newline port))
+                      (sb "(step")
+                      (for-each (lambda (x) (sb #\space) (wfield x base)) (cdr field))
+                      (sb ")"))
+                    (cc--write-datum field sb syms))
+                (sb #\newline))
               (cddr page))
-    (write-string ")" port) (newline port)))
+    (sb ")") (sb #\newline)
+    (sb)))
+
+(define (cc--write-page-to-port page port)
+  (write-string (cc--page-text page) port))
 
 (define (core-page->string page)
-  (call-with-output-string (lambda (port) (cc--write-page-to-port page port))))
+  (cc--page-text page))
 
 (define (cc--write-page! name page)
   (let ((dir (string-append *prover-dir* "core-pages/"))
@@ -883,8 +955,7 @@
           (lambda ()
             ;; the text is built in a string port and written as UTF-8 bytes in one call:
             ;; a textual file port encodes character by character
-            (let ((bytes (string->utf8 (call-with-output-string
-                                         (lambda (port) (cc--write-page-to-port page port)))))
+            (let ((bytes (string->utf8 (cc--page-text page)))
                   (out (open-binary-output-file tmp)))
               (write-bytevector bytes out)
               (close-port out))))))
@@ -931,7 +1002,7 @@
                 (cons (cons name (if (condition? e) (condition/report-string e) e)) *cc-replay-raised*))
           (k #f))
         (lambda ()
-          (let* ((page (core-page-expand (call-with-input-file path read)))
+          (let* ((page (core-page-expand (core-page-read-plain-file path)))   ; core-replay.scm
                  (v (fluid-let ((*cc-installed?* #f)) (core-replay-page page))))
             (if (eq? (car v) 'core-replayed)
                 (set! *cc-replayed* (+ *cc-replayed* 1))

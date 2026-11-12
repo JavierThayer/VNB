@@ -24686,6 +24686,321 @@ The proofs: the file that holds each, the lemmas it cites, its oracles and its b
 %
 \noindent\textbf{Deviation from the notes.} x = sum\_\{k $>$= n\} a\_k p\textasciicircum{}k is IS-QP-EXPANSION(p, a, n, x): digits a : ZZ -$>$ ZZ in [0, p), zero below n, partial sums QP-PSUM (SUM-AG of a\_(n+j) p\textasciicircum{}(n+j)) converging to x in QP(p). Uniqueness for any two starts (a(k) = b(k) for all k in ZZ). Absolute convergence: qe-abs-convergent. Remark 4.18 for Q\_p: ccr-4-18-qp. Proven 2026-10-29 (CCR-QP).
 %
+\renewcommand{\thethm}{4.4}
+\begin{rem}[{Uniformizers differ by a unit}]\label{thm:ccr-remark-4-4}
+%
+\leavevmode
+\vnbpart{\texttt{ccr-remark-4-4}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k, a.; \forall w, b \in a. \\ \quad \operatorname{is\text{-}compact\text{-}nv\text{-}domain}(k, a) \wedge \\ \quad \operatorname{nv\text{-}maximal}(k, a) = \operatorname{nv\text{-}principal}(k, a, w) \wedge \\ \quad \neg (w = \operatorname{zero}(k)) \wedge \\ \quad \operatorname{nv\text{-}maximal}(k, a) = \operatorname{nv\text{-}principal}(k, a, b) \Rightarrow \\ \quad \quad \exists u \in \operatorname{nv\text{-}units}(k, a).\; (b = \operatorname{mul}(k)(u, w)) \end{array}}
+\vnbpart{\texttt{ccr-remark-4-4-unit}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k, a.; \forall w \in a, u \in \operatorname{nv\text{-}units}(k, a). \\ \quad (\operatorname{is\text{-}compact\text{-}nv\text{-}domain}(k, a) \wedge ((\operatorname{nv\text{-}maximal}(k, a) = \operatorname{nv\text{-}principal}(k, a, w)) \wedge \neg (w = \operatorname{zero}(k)))) \Rightarrow  \\ \quad \quad \operatorname{mul}(k)(u, w) \in a \wedge \\ \quad \quad \operatorname{nv\text{-}maximal}(k, a) = \operatorname{nv\text{-}principal}(k, a, \operatorname{mul}(k)(u, w)) \wedge \\ \quad \quad \neg (\operatorname{mul}(k)(u, w) = \operatorname{zero}(k)) \end{array}}
+\vnbpart{\texttt{ccr-remark-4-4-norm}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k, a.; \forall w \in a. \\ \quad (\operatorname{is\text{-}compact\text{-}nv\text{-}domain}(k, a) \wedge ((\operatorname{nv\text{-}maximal}(k, a) = \operatorname{nv\text{-}principal}(k, a, w)) \wedge \neg (w = \operatorname{zero}(k)))) \Rightarrow  \\ \quad \quad (w \in \operatorname{nv\text{-}maximal}(k, a)) \wedge (\operatorname{fnrm}(k)(w) < 1) \end{array}}
+%
+\end{rem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{ccr-remark-4-4}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 16 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-compact-domain}, \texttt{nv-domain-normed}, \texttt{nv-generators-associate}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{ccr-remark-4-4-unit}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 51 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-compact-domain}, \texttt{nv-domain-normed}, \texttt{nv-uniformizer-pid}, \texttt{nv-units-unfold}, \texttt{nv-domain-mul}, \texttt{nv-domain-sub}, \texttt{nf-norm-mult}, \texttt{nv-unit-norm}, \texttt{nf-norm-in-rr}, \texttt{nf-norm-nonneg}, \texttt{nv-compact-pid-principal-ball}, \texttt{nf-norm-of-zero}, \texttt{nf-norm-zero-implies}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{ccr-remark-4-4-norm}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 21 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-compact-domain}, \texttt{nv-domain-normed}, \texttt{nv-principal-self}, \texttt{nv-maximal-norm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} K local: A = Z(K) a compact NV domain, w in A, M(A) = (w), w /= 0. Three statements: w in M and 0 $<$ |w| $<$ 1; u w is a uniformizer for u a unit; two uniformizers w, w2 satisfy w2 = u w for a unit u. Proven 2026-11-09 (CCR-1109-C3).
+%
+\renewcommand{\thethm}{4.5}
+\begin{rem}[{Uniformizers have maximal absolute value in M}]\label{thm:ccr-remark-4-5}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall k, a.; \forall w, b \in a. \\ \quad (\operatorname{is\text{-}compact\text{-}nv\text{-}domain}(k, a) \wedge ((\operatorname{nv\text{-}maximal}(k, a) = \operatorname{nv\text{-}principal}(k, a, w)) \wedge \neg (w = \operatorname{zero}(k)))) \Rightarrow  \\ \quad \quad \operatorname{nv\text{-}maximal}(k, a) = \operatorname{nv\text{-}principal}(k, a, b) \\ \quad \quad \Leftrightarrow\; ((b \in \operatorname{nv\text{-}maximal}(k, a)) \wedge \forall x \in \operatorname{nv\text{-}maximal}(k, a).\; (\operatorname{fnrm}(k)(x) \leq \operatorname{fnrm}(k)(b))) \end{array}}
+%
+\end{rem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 79 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-compact-domain}, \texttt{nv-domain-normed}, \texttt{ccr-remark-4-4-norm}, \texttt{nv-principal-self}, \texttt{nv-principal-norm-le}, \texttt{nv-maximal-sub}, \texttt{nv-domain-sub}, \texttt{nf-norm-in-rr}, \texttt{nf-norm-nonneg}, \texttt{rr-leq-antisymmetric}, \texttt{nv-compact-units-transitive}, \texttt{ccr-remark-4-4-unit}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} K local as in 4.4. Stated as an IFF: for x in M, x is a uniformizer exactly when |y| $<$= |x| for every y in M. Proven 2026-11-09 (CCR-1109-C3).
+%
+\renewcommand{\thethm}{4.20}
+\begin{rem}[{B\_F(K) is all of K}]\label{thm:ccr-4-20-collapse}
+%
+\leavevmode
+\vnbpart{\texttt{ccr-4-20-collapse}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k.; \forall w \in \operatorname{carr}(k), f. \\ \quad \operatorname{is\text{-}nv\text{-}field}(k) \wedge \\ \quad \neg (w = \operatorname{zero}(k)) \wedge \\ \quad \operatorname{fnrm}(k)(w) < 1 \wedge \\ \quad \operatorname{zero}(\operatorname{nv\text{-}residue}(k, \operatorname{nv\text{-}integers}(k))) \in f \Rightarrow \\ \quad \quad \operatorname{is\text{-}fractions\text{-}of}(k, \operatorname{nv\text{-}zf}(k, f)) \end{array}}
+\vnbpart{\texttt{nv-maximal-in-zf}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k, f. \\ \quad (\operatorname{is\text{-}nv\text{-}field}(k) \wedge (\operatorname{zero}(\operatorname{nv\text{-}residue}(k, \operatorname{nv\text{-}integers}(k))) \in f)) \Rightarrow  \\ \quad \quad \operatorname{nv\text{-}maximal}(k, \operatorname{nv\text{-}integers}(k)) \subseteq \operatorname{nv\text{-}zf}(k, f) \end{array}}
+\vnbpart{\texttt{nv-residue-zero-class}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k. \\ \quad \operatorname{is\text{-}nv\text{-}field}(k) \Rightarrow  \\ \quad \quad (\operatorname{zero}(\operatorname{nv\text{-}residue}(k, \operatorname{nv\text{-}integers}(k))) \simeq \operatorname{class}(\operatorname{ringoid\text{-}setoid}(\operatorname{nv\text{-}res\text{-}ringoid}(k, \operatorname{nv\text{-}integers}(k))), \operatorname{zero}(k))) \end{array}}
+\vnbpart{\texttt{is-fractions-of-mono}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k, a, b. \\ \quad ((a \subseteq b) \wedge \operatorname{is\text{-}fractions\text{-}of}(k, a)) \Rightarrow \operatorname{is\text{-}fractions\text{-}of}(k, b) \end{array}}
+%
+\end{rem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{ccr-4-20-collapse}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 11 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-fractions-of-maximal}, \texttt{nv-maximal-in-zf}, \texttt{is-fractions-of-mono}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nv-maximal-in-zf}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 55 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-field-normed}, \texttt{nv-integers-domain}, \texttt{nv-residue-zero-class}, \texttt{subset-def}, \texttt{nv-maximal-sub}, \texttt{nv-domain-zero}, \texttt{nv-domain-sub}, \texttt{nf-zero-in-carr}, \texttt{commutative-ring-is-ring}, \texttt{normed-field-ring-view-carr}, \texttt{normed-field-ring-view-add}, \texttt{normed-field-ring-view-mul}, \texttt{normed-field-ring-view-neg}, \texttt{normed-field-ring-view-zero}, \texttt{normed-field-ring-view-one}, \texttt{rs-class-eq-iff}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nv-residue-zero-class}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 8 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-integers-domain}, \texttt{rs-zero}, \texttt{nv-residue-unfold}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{is-fractions-of-mono}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 31 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{subset-mem-fwd}.}
+%
+\vnbprf{\textbf{Oracles.} none.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} The notes' B\_F(K), the field of fractions of Z\_F(K) = pi\_M\textasciicircum{}\{-1\}(F), collapses to K whenever F contains the zero class: Z\_F(K) contains M, and nv-fractions-of-maximal (CCR-1109-C) makes K the field of fractions of M. Hence the user's definition of B(K) (2026-11-09) replaces it. Hypotheses: K an NV field, w /= 0 with |w| $<$ 1. Proven 2026-11-09 (CCR-1109-C3).
+%
+\renewcommand{\thethm}{4.21}
+\begin{prop}[{B(K) is a closed subfield with compact integers}]\label{thm:ccr-4-21-base}
+%
+\leavevmode
+\vnbpart{\texttt{ccr-4-21-base}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k, w. \\ \quad \operatorname{is\text{-}compact\text{-}nv\text{-}domain}(k, \operatorname{nv\text{-}integers}(k)) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}nf\text{-}subfield}(k, \operatorname{nv\text{-}base}(k, w)) \wedge \\ \quad \quad \operatorname{is\text{-}closed}(\operatorname{nf\text{-}metric\text{-}space}(k), \operatorname{nv\text{-}base}(k, w)) \wedge \\ \quad \quad \operatorname{is\text{-}compact}(\operatorname{subspace\text{-}ms}(\operatorname{nf\text{-}metric\text{-}space}(k), (\operatorname{nv\text{-}integers}(k) \cap \operatorname{nv\text{-}base}(k, w)))) \end{array}}
+\vnbpart{\texttt{ccr-4-21-base-char-p}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k.; \forall w \in \operatorname{nv\text{-}integers}(k), p. \\ \quad \operatorname{is\text{-}compact\text{-}nv\text{-}domain}(k, \operatorname{nv\text{-}integers}(k)) \wedge \\ \quad \operatorname{nv\text{-}maximal}(k, \operatorname{nv\text{-}integers}(k)) = \operatorname{nv\text{-}principal}(k, \operatorname{nv\text{-}integers}(k), w) \wedge \\ \quad \neg (w = \operatorname{zero}(k)) \wedge \\ \quad \operatorname{has\text{-}characteristic}(\operatorname{normed\text{-}field\text{-}as\text{-}commutative\text{-}ring}(k), p) \Rightarrow \\ \quad \quad (w \in \operatorname{nv\text{-}base}(k, w)) \wedge ((0 < \operatorname{fnrm}(k)(w)) \wedge (\operatorname{fnrm}(k)(w) < 1)) \end{array}}
+\vnbpart{\texttt{nv-base-subfield}}
+\vnbstmt{\forall k, w.\; (\operatorname{is\text{-}nv\text{-}field}(k) \Rightarrow \operatorname{is\text{-}nf\text{-}subfield}(k, \operatorname{nv\text{-}base}(k, w)))}
+\vnbpart{\texttt{nv-base-closed}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k, w. \\ \quad \operatorname{is\text{-}normed\text{-}field}(k) \Rightarrow \operatorname{is\text{-}closed}(\operatorname{nf\text{-}metric\text{-}space}(k), \operatorname{nv\text{-}base}(k, w)) \end{array}}
+\vnbpart{\texttt{nv-base-char-p}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k.; \forall w \in \operatorname{carr}(k), p. \\ \quad (\operatorname{is\text{-}normed\text{-}field}(k) \wedge \operatorname{has\text{-}characteristic}(\operatorname{normed\text{-}field\text{-}as\text{-}commutative\text{-}ring}(k), p)) \Rightarrow  \\ \quad \quad w \in \operatorname{nv\text{-}base}(k, w) \end{array}}
+\vnbpart{\texttt{nv-base-char-0}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k, w, z. \\ \quad \forall p.\; \neg \operatorname{has\text{-}characteristic}(\operatorname{normed\text{-}field\text{-}as\text{-}commutative\text{-}ring}(k), p) \Rightarrow  \\ \quad \quad \neg (z \in \operatorname{nv\text{-}base\text{-}gen}(k, w)) \end{array}}
+\vnbpart{\texttt{nf-closure-subfield}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k, s. \\ \quad (\operatorname{is\text{-}nv\text{-}field}(k) \wedge \operatorname{is\text{-}nf\text{-}subfield}(k, s)) \Rightarrow  \\ \quad \quad \operatorname{is\text{-}nf\text{-}subfield}(k, \operatorname{closure}(\operatorname{nf\text{-}metric\text{-}space}(k), s)) \end{array}}
+\vnbpart{\texttt{nf-subfield-gen-is-subfield}}
+\vnbstmt{\begin{array}{@{}l@{}} \forall k, x. \\ \quad \operatorname{is\text{-}normed\text{-}field}(k) \Rightarrow \operatorname{is\text{-}nf\text{-}subfield}(k, \operatorname{nf\text{-}subfield\text{-}gen}(k, x)) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\vnbproofpart{\texttt{ccr-4-21-base}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 32 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-compact-domain}, \texttt{nv-domain-field}, \texttt{nv-field-normed}, \texttt{nf-metric-space-is-metric-space}, \texttt{subset-def}, \texttt{nv-domain-sub}, \texttt{nv-base-subfield}, \texttt{nv-base-closed}, \texttt{compact-inter-closed}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{ccr-4-21-base-char-p}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 50 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-compact-domain}, \texttt{nv-domain-normed}, \texttt{nv-domain-sub}, \texttt{nv-base-char-p}, \texttt{nf-norm-in-rr}, \texttt{nf-norm-nonneg}, \texttt{nf-norm-zero-iff}, \texttt{rr-le-ne-lt}, \texttt{ccr-remark-4-4-norm}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nv-base-subfield}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 8 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-field-normed}, \texttt{nf-subfield-gen-is-subfield}, \texttt{nf-closure-subfield}, \texttt{nv-base-unfold}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nv-base-closed}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 7 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nf-metric-space-is-metric-space}, \texttt{closure-is-closed}, \texttt{nv-base-unfold}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nv-base-char-p}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 24 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-base-gen-sub}, \texttt{nf-subfield-gen-contains}, \texttt{subset-mem-fwd}, \texttt{nv-base-contains-gen}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nv-base-char-0}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 10 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-base-gen-unfold}.}
+%
+\vnbprf{\textbf{Oracles.} none.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nf-closure-subfield}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 95 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-field-normed}, \texttt{subset-def}, \texttt{nf-metric-space-is-metric-space}, \texttt{nf-closure-in-carr}, \texttt{closure-contains}, \texttt{subset-mem-fwd}, \texttt{nf-closure-add}, \texttt{nf-closure-mul}, \texttt{nf-closure-neg}, \texttt{nf-closure-inv}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}, \texttt{ineq}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\vnbprf{\vnbproofpart{\texttt{nf-subfield-gen-is-subfield}}}
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 342 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nf-subfield-gen-sub}, \texttt{nf-zero-in-carr}, \texttt{nf-one-in-carr}, \texttt{subset-mem-fwd}, \texttt{subset-def}, \texttt{nf-add-in-carr}, \texttt{nf-subfield-gen-unfold}, \texttt{nf-mul-in-carr}, \texttt{nf-neg-in-carr}, \texttt{nf-inverse}, \texttt{commutative-ring-is-ring}, \texttt{normed-field-ring-view-carr}, \texttt{normed-field-ring-view-add}, \texttt{normed-field-ring-view-mul}, \texttt{normed-field-ring-view-neg}, \texttt{normed-field-ring-view-zero}, \texttt{normed-field-ring-view-one}, \texttt{nf-mul-cancel}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{crs}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} B(K) = NV-BASE(K, w): the closure in K of the subfield generated by \{w\} in prime characteristic and by the empty set in characteristic 0 (the user's definition, 2026-11-09). Proven: if Z(K) is compact, then B(K) is a subfield of K, B(K) is closed, and SUBSPACE-MS(NF-METRIC-SPACE K, Z(K) cap B(K)) is compact; in characteristic p, w is in B(K) with 0 $<$ |w| $<$ 1. Not packaged as IS-LOCAL-NV-FIELD of a normed field, because the tree has no restriction of a normed field to a subfield (SUB-NF). Non-discreteness in characteristic 0 is not shown: it needs |p.1| $<$ 1. Proven 2026-11-09 (CCR-1109-C3).
+%
+\renewcommand{\thethm}{4.23}
+\begin{prop}[{w is a uniformizer of B(K) in characteristic p}]\label{thm:ccr-4-23-base-char-p}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall k.; \forall w \in \operatorname{nv\text{-}integers}(k), p. \\ \quad \operatorname{is\text{-}compact\text{-}nv\text{-}domain}(k, \operatorname{nv\text{-}integers}(k)) \wedge \\ \quad \operatorname{nv\text{-}maximal}(k, \operatorname{nv\text{-}integers}(k)) = \operatorname{nv\text{-}principal}(k, \operatorname{nv\text{-}integers}(k), w) \wedge \\ \quad \neg (w = \operatorname{zero}(k)) \wedge \\ \quad \operatorname{has\text{-}characteristic}(\operatorname{normed\text{-}field\text{-}as\text{-}commutative\text{-}ring}(k), p) \Rightarrow \\ \quad \quad w \in \operatorname{nv\text{-}base}(k, w) \wedge \\ \quad \quad \forall x \in \operatorname{nv\text{-}base}(k, w). \\ \quad \quad \quad (\operatorname{fnrm}(k)(x) < 1) \Rightarrow (\operatorname{fnrm}(k)(x) \leq \operatorname{fnrm}(k)(w)) \end{array}}
+%
+\end{prop}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}base.scm} --- 63 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-compact-domain}, \texttt{nv-domain-field}, \texttt{nv-domain-normed}, \texttt{nv-domain-sub}, \texttt{nv-base-char-p}, \texttt{nv-base-subfield}, \texttt{subset-def}, \texttt{nv-principal-self}, \texttt{ccr-remark-4-5}, \texttt{subset-mem-fwd}, \texttt{nf-norm-in-rr}, \texttt{nf-norm-nonneg}, \texttt{nv-integers-unfold}, \texttt{nv-maximal-unfold}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} CORRECTED. The notes' M(B(K)) = M(K) is false under the user's definition when d $>$ 1 or e $>$ 1: B(K) cap M(K) is the maximal ideal of B(K), not M(K). Proven instead, in characteristic p: w is in B(K), and every x in B(K) with |x| $<$ 1 has |x| $<$= |w|, so w is a uniformizer of B(K) in the sense of 4.5. The characteristic 0 form (p is a uniformizer of Q\_p, with p = w\textasciicircum{}e u) is not proven. Proven 2026-11-09 (CCR-1109-C3).
+%
+\renewcommand{\thethm}{4.24}
+\begin{thm}[{K is a finite extension of B(K)}]\label{thm:ccr-4.24}
+%
+\textit{K is a finite extension of B(K) of degree d (4.24).}
+%
+Not in the library.
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{There is no library statement, and so no proof.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Not attempted (CCR-1109-C3). Under the user's definition: [K : B(K)] = d in characteristic p, and e d in characteristic 0, where p = w\textasciicircum{}e u (4.28). Blocked on: a restriction SUB-NF of a normed field to a subfield; IS-FIN-EXT of K over SUB-NF(K, B(K)); lifts of an F\_p-basis of the residue field and the rearrangement of the expansion sum a\_k w\textasciicircum{}k by coordinates; and the lemma that a finite field has prime characteristic.
+%
+\renewcommand{\thethm}{4.26}
+\begin{thm}[{Local fields of characteristic p are F\_q((w))}]\label{thm:ccr-4.26}
+%
+\textit{A local field of characteristic p is isomorphic to F\_q((w)).}
+%
+Not in the library.
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{There is no library statement, and so no proof.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Not attempted (CCR-1109-C3). Besides the 4.24 blockers it needs an embedding of the residue field F\_q into K (Teichmueller / roots of unity of order q - 1, a Hensel-type argument) and the identification with the Laurent field of A2-A5.
+%
+\renewcommand{\thethm}{4.27}
+\begin{thm}[{Local fields of characteristic 0 are finite extensions of Q\_p}]\label{thm:ccr-4.27}
+%
+\textit{A local field of characteristic 0 is a finite extension of Q\_p.}
+%
+Not in the library.
+%
+\end{thm}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{There is no library statement, and so no proof.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} Not attempted (CCR-1109-C3). It needs 4.24 in characteristic 0, the identification of B(K) with Q\_p (QP-FIELD lives in the complex-analysis library, see the report's F5), and the finite-field characteristic lemma.
+%
+\renewcommand{\thethm}{4.18}
+\begin{rem}[{The leading digit fixes the absolute value}]\label{thm:ccr-remark-4-18}
+%
+\vnbstmt{\begin{array}{@{}l@{}} \forall k, a, w, p.; \forall n \in \mathbb{Z}, b, x. \\ \quad \operatorname{is\text{-}compact\text{-}nv\text{-}domain}(k, a) \wedge \\ \quad w \in a \wedge \\ \quad \operatorname{nv\text{-}maximal}(k, a) = \operatorname{nv\text{-}principal}(k, a, w) \wedge \\ \quad \neg (w = \operatorname{zero}(k)) \wedge \\ \quad a = \operatorname{nv\text{-}integers}(k) \wedge \\ \quad \operatorname{is\text{-}nv\text{-}rep\text{-}set}(k, a, p) \wedge \\ \quad \operatorname{is\text{-}nv\text{-}expansion}(k, w, p, b, n, x) \wedge \\ \quad \neg (b(n) = \operatorname{zero}(k)) \Rightarrow \\ \quad \quad \operatorname{fnrm}(k)(x) = \operatorname{fnrm}(k)(\operatorname{nv\text{-}zpow}(k, w, n)) \end{array}}
+%
+\end{rem}
+%
+\begin{proof}
+%
+The proofs: the file that holds each, the lemmas it cites, its oracles and its bill.
+%
+\vnbprf{\textbf{Proof.} \texttt{theorem-\allowbreak{}library/ccr4b-\allowbreak{}remark418.scm} --- 185 recorded steps.}
+%
+\vnbprf{\textbf{Lemmas.} \texttt{nv-compact-domain}, \texttt{nv-domain-normed}, \texttt{nv-domain-sub}, \texttt{nf-zero-in-carr}, \texttt{rr-zero-in}, \texttt{rr-one-in}, \texttt{nn-one-in}, \texttt{zz-one-in}, \texttt{fun-apply-type-c}, \texttt{nv-rep-set-sub}, \texttt{nv-rep-set-norm-one}, \texttt{nv-zpow-def}, \texttt{zz-add-closed}, \texttt{nv-zpow-nonzero}, \texttt{nf-norm-in-rr}, \texttt{nf-norm-nonneg}, \texttt{nf-norm-zero-iff}, \texttt{rr-le-ne-lt}, \texttt{nv-zpow-norm-succ}, \texttt{ccr-remark-4-4-norm}, \texttt{rr-prod-lt-gen-right}, \texttt{nf-mul-in-carr}, \texttt{nf-norm-mult}, \texttt{nn-zero-in}, \texttt{nn-one-is-succ-zero}, \texttt{nv-psum-succ}, \texttt{nv-psum-zero}, \texttt{zz-in-rr}, \texttt{commutative-ring-is-ring}, \texttt{normed-field-ring-view-carr}, \texttt{normed-field-ring-view-add}, \texttt{normed-field-ring-view-mul}, \texttt{normed-field-ring-view-neg}, \texttt{normed-field-ring-view-zero}, \texttt{normed-field-ring-view-one}, \texttt{nv-tail}, \texttt{nf-neg-in-carr}, \texttt{nf-add-in-carr}, \texttt{nv-domain-field}, \texttt{nv-strict-dominance}, \texttt{nf-sub-add-back}.}
+%
+\vnbprf{\textbf{Oracles.} \texttt{ineq}, \texttt{crs}, \texttt{arith}.  \textbf{Bill:} \texttt{proven modulo 0}.}
+%
+\end{proof}
+%
+\noindent\textbf{Deviation from the notes.} K local as in 4.4, A = NV-INTEGERS K, RP a representative set (IS-NV-REP-SET). For n in ZZ: if IS-NV-EXPANSION K w RP dga n x and dga(n) /= 0, then |x| = |NV-ZPOW(K, w, n)|. Proof: the tail bound nv-tail (CCR-1109-C2) at m = 1, then strict ultrametric dominance. Proven 2026-11-09 (CCR-1109-C3).
+%
 \renewcommand{\thethm}{5.12}
 \begin{prop}[{Dual map Psi\_chi}]\label{thm:ccr-5-12-character}
 %
@@ -29496,6 +29811,15 @@ Ccr & 4.12 & Modules in a local NV field are principal & \texttt{nv-\allowbreak{
 Ccr & 4.13 & Open subgroups of Qp & \texttt{ccr-\allowbreak{}4-\allowbreak{}13}, \texttt{qo-\allowbreak{}open-\allowbreak{}subgroup-\allowbreak{}module}, \texttt{qp-\allowbreak{}maximal-\allowbreak{}principal}, \texttt{nv-\allowbreak{}local-\allowbreak{}module-\allowbreak{}principal} & proven \\
 Ccr & 4.16 & Order via uniformizer & \texttt{nv-\allowbreak{}order-\allowbreak{}nonneg}, \texttt{nv-\allowbreak{}order-\allowbreak{}negative} & proven \\
 Ccr & 4.19 & p-adic expansion & \texttt{ccr-\allowbreak{}4-\allowbreak{}19}, \texttt{qe-\allowbreak{}abs-\allowbreak{}convergent}, \texttt{ccr-\allowbreak{}4-\allowbreak{}18-\allowbreak{}qp}, \texttt{qe-\allowbreak{}expansion-\allowbreak{}exists}, \texttt{qe-\allowbreak{}unique-\allowbreak{}le} & proven \\
+Ccr & 4.4 & Uniformizers differ by a unit & \texttt{ccr-\allowbreak{}remark-\allowbreak{}4-\allowbreak{}4}, \texttt{ccr-\allowbreak{}remark-\allowbreak{}4-\allowbreak{}4-\allowbreak{}unit}, \texttt{ccr-\allowbreak{}remark-\allowbreak{}4-\allowbreak{}4-\allowbreak{}norm} & proven \\
+Ccr & 4.5 & Uniformizers have maximal absolute value in M & \texttt{ccr-\allowbreak{}remark-\allowbreak{}4-\allowbreak{}5} & proven \\
+Ccr & 4.20 & B\_F(K) is all of K & \texttt{ccr-\allowbreak{}4-\allowbreak{}20-\allowbreak{}collapse}, \texttt{nv-\allowbreak{}maximal-\allowbreak{}in-\allowbreak{}zf}, \texttt{nv-\allowbreak{}residue-\allowbreak{}zero-\allowbreak{}class}, \texttt{is-\allowbreak{}fractions-\allowbreak{}of-\allowbreak{}mono} & proven \\
+Ccr & 4.21 & B(K) is a closed subfield with compact integers & \texttt{ccr-\allowbreak{}4-\allowbreak{}21-\allowbreak{}base}, \texttt{ccr-\allowbreak{}4-\allowbreak{}21-\allowbreak{}base-\allowbreak{}char-\allowbreak{}p}, \texttt{nv-\allowbreak{}base-\allowbreak{}subfield}, \texttt{nv-\allowbreak{}base-\allowbreak{}closed}, \texttt{nv-\allowbreak{}base-\allowbreak{}char-\allowbreak{}p}, \texttt{nv-\allowbreak{}base-\allowbreak{}char-\allowbreak{}0}, \texttt{nf-\allowbreak{}closure-\allowbreak{}subfield}, \texttt{nf-\allowbreak{}subfield-\allowbreak{}gen-\allowbreak{}is-\allowbreak{}subfield} & partial \\
+Ccr & 4.23 & w is a uniformizer of B(K) in characteristic p & \texttt{ccr-\allowbreak{}4-\allowbreak{}23-\allowbreak{}base-\allowbreak{}char-\allowbreak{}p} & proven \\
+Ccr & 4.24 & K is a finite extension of B(K) & --- & absent \\
+Ccr & 4.26 & Local fields of characteristic p are F\_q((w)) & --- & absent \\
+Ccr & 4.27 & Local fields of characteristic 0 are finite extensions of Q\_p & --- & absent \\
+Ccr & 4.18 & The leading digit fixes the absolute value & \texttt{ccr-\allowbreak{}remark-\allowbreak{}4-\allowbreak{}18} & proven \\
 Ccr & 5.12 & Dual map Psi\_chi & \texttt{ccr-\allowbreak{}5-\allowbreak{}12-\allowbreak{}character}, \texttt{ccr-\allowbreak{}5-\allowbreak{}12-\allowbreak{}injective}, \texttt{ccr-\allowbreak{}5-\allowbreak{}12-\allowbreak{}continuous} & proven \\
 Ccr & 5.15 & Lemma toward self-duality & \texttt{ccr-\allowbreak{}5-\allowbreak{}15-\allowbreak{}core}, \texttt{ccr-\allowbreak{}5-\allowbreak{}15-\allowbreak{}bounded}, \texttt{ccr-\allowbreak{}5-\allowbreak{}15} & proven \\
 Ccr & 5.17 & p-adic fractional part & \texttt{ccr-\allowbreak{}5-\allowbreak{}17}, \texttt{qx-\allowbreak{}ppow-\allowbreak{}rat} & proven \\
@@ -29668,7 +29992,7 @@ Galois theory & 31 & 26 & 0 & 5 & 0 \\
 Algebraic numbers & 69 & 69 & 0 & 0 & 0 \\
 Compact groups & 7 & 4 & 0 & 3 & 0 \\
 Fourier integrals & 16 & 5 & 0 & 11 & 0 \\
-Ccr & 64 & 49 & 0 & 15 & 0 \\
+Ccr & 73 & 54 & 0 & 16 & 3 \\
 Banach algebras and applications (Thayer, notes), chapters 1-6 & 127 & 27 & 0 & 10 & 90 \\
 \hline
 \end{tabular}

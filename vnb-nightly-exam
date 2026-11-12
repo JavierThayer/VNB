@@ -29,7 +29,7 @@
 #   3. vnb-band WORKER --build --exam [--heap H] (VNB_CORE_REPLAY=on: every proof is also
 #      lowered to its core page, replayed, and given its kernel bill; the core-replay and
 #      kernel-bill lines go into last-exam.json and ~/notes/exam-report.txt, warn-only);
-#      poll --wait until it ends (cap 8 h:
+#      poll --wait until it ends (cap 10 h since 2026-11-12; 8 h before:
 #      the exam of 2026-10-05 ran 14037 s against a 4 h cap, 363 s inside it, and
 #      six exams of one unchanged tree had spread +-5%; Ignacio's note of 2026-10-05).
 #   4. vnb-suite WORKER --band --detach; poll --wait (cap 40 min).
@@ -137,7 +137,7 @@ if [ "$FORCE" = 0 ] && [ -f "$LAST" ]; then
 fi
 say "start: tree $TREE on $WORKER ($TYPE${HEAP:+, heap $HEAP}$([ "$SMOKE" = 1 ] && echo ", SMOKE: certified build in place of the exam"))"
 CORE_WORD=on; [ "$NOCORE" = 1 ] && CORE_WORD=off
-[ "$DRY" = 1 ] && { say "dry run: would start $WORKER ($TYPE if absent), push, exam (core replay $CORE_WORD), suite, pull, stop; exam cap 8 h"; exit 0; }
+[ "$DRY" = 1 ] && { say "dry run: would start $WORKER ($TYPE if absent), push, exam (core replay $CORE_WORD), suite, pull, stop; exam cap 10 h"; exit 0; }
 
 state=$(capataz list --json 2>/dev/null | python3 -c 'import json,sys; w=sys.argv[1]; print(next((r["state"] for r in json.load(sys.stdin) if r["name"]==w), "absent"))' "$WORKER")
 case "$state" in
@@ -194,7 +194,7 @@ EXAM_OPT=--exam; [ "$SMOKE" = 1 ] && EXAM_OPT=""
 JOB=$("$PROVER/vnb-band" "$WORKER" --build $EXAM_OPT ${HEAP:+--heap $HEAP} 2>&1 | sed -n 's/.*started \(job-[^ ]*\).*/\1/p')
 [ -n "$JOB" ] || { say "FAIL: vnb-band --build --exam returned no job"; record failed "exam-start"; exit 2; }
 say "exam $JOB"
-deadline=$(( $(date +%s) + 8*3600 )); rc=124
+deadline=$(( $(date +%s) + 10*3600 )); rc=124   # cap 10 h since 2026-11-12 (user): core replay on, 7.0 h on 11-12
 while [ $rc = 124 ] && [ "$(date +%s)" -lt $deadline ]; do
   out=$("$PROVER/vnb-band" "$WORKER" --wait "$JOB" --timeout 900 2>&1); rc=$?
 done
@@ -232,6 +232,23 @@ if ! "$PROVER/vnb-band-pull" "$WORKER" --no-band >> "$LOG" 2>&1; then
   say "FAIL: vnb-band-pull --no-band (the exam and suite passed; rerun: vnb-band-pull $WORKER)"; record failed "pull-1"; exit 2
 fi
 say "pulled reference/ and certificates/ from the exam"
+# The library book (the user, 2026-10-11): the exam just rewrote reference/library-book.tex,
+# so typeset docs/library-book.pdf here, on the primary, as soon as the exam's reference/ is
+# pulled -- BEFORE the certified build, whose failure exits (2026-11-11: refused for disk, and
+# the PDFs stayed at the previous day's).
+# Not fatal: a failed typeset is logged and the exam's outcome stands.
+if (cd "$PROVER/docs" && timeout 1800 nice make library-book > /dev/null 2>&1); then
+  say "typeset docs/library-book.pdf"
+else
+  say "WARN: make library-book failed (rerun by hand in docs/; the exam outcome is unaffected)"
+fi
+# The major theorems likewise (2026-10-21): the exam rewrites reference/major-theorems.tex, and
+# docs/major-theorems.pdf had not been typeset since 10-08 because nothing here did it.
+if (cd "$PROVER/docs" && timeout 1800 nice make major-theorems > /dev/null 2>&1); then
+  say "typeset docs/major-theorems.pdf"
+else
+  say "WARN: make major-theorems failed (rerun by hand in docs/; the exam outcome is unaffected)"
+fi
 
 # What comes back to the primary: reference/ and certificates/ as the exam wrote them,
 # and a CERTIFIED band built from those certificates (40 MB; the exam's own band is
@@ -262,21 +279,6 @@ else
   say "FAIL: vnb-band-pull (the exam and suite passed; rerun: vnb-band-pull $WORKER)"; record failed "pull"; exit 2
 fi
 stop_worker
-# The library book (the user, 2026-10-11): the exam just rewrote reference/library-book.tex,
-# so typeset docs/library-book.pdf here, on the primary, after the worker is stopped.
-# Not fatal: a failed typeset is logged and the exam's outcome stands.
-if (cd "$PROVER/docs" && timeout 1800 nice make library-book > /dev/null 2>&1); then
-  say "typeset docs/library-book.pdf"
-else
-  say "WARN: make library-book failed (rerun by hand in docs/; the exam outcome is unaffected)"
-fi
-# The major theorems likewise (2026-10-21): the exam rewrites reference/major-theorems.tex, and
-# docs/major-theorems.pdf had not been typeset since 10-08 because nothing here did it.
-if (cd "$PROVER/docs" && timeout 1800 nice make major-theorems > /dev/null 2>&1); then
-  say "typeset docs/major-theorems.pdf"
-else
-  say "WARN: make major-theorems failed (rerun by hand in docs/; the exam outcome is unaffected)"
-fi
 record "$([ "$SMOKE" = 1 ] && echo smoke-passed || echo passed)" "$summary; $sline"
 say "done"
 exit 0

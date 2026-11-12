@@ -67,6 +67,129 @@
 ;;; once, so that an interactive core-page-text prints no `;Loading' lines.
 (load-option 'synchronous-subprocess)
 
+;;; -----------------------------------------------------------------------
+;;; THE PAGE READER (CORE-GC, 2026-11-11).  MIT's `read' allocated about 1.5 KB per
+;;; character of a page (68 GB for the 44 MB of pages of a 250-file slice, 70 s; most
+;;; of it is the reader's case folding, `string-downcase' costing ~8 KB per token).
+;;; A page is lists, symbols and exact numbers (docs/core-page-format.md s.1), which
+;;; this reader reads from the page's BYTES: a comment line (;), `(' `)' and the
+;;; dotted tail ` . ', a |barred| symbol (escapes \| and \\), a string (escapes \"
+;;; and \\), and a bare token -- a number when `string->number' reads it, else a
+;;; symbol.  Anything else -- a byte beyond ASCII, `#', a quote character, a bracket,
+;;; another escape, or an upper-case letter in a bare token (which `read' would fold)
+;;; -- makes it give up, and the caller reads the text with MIT's `read', so the datum
+;;; is always the one `read' returns (checked on 1608 pages: equal?, 0 fallbacks).
+;;; (cr--fast-read-bytes BV) -> the first datum of BV, or the symbol
+;;; cr--fast-read-failed.
+(define (cr--fast-read-bytes bv)
+  (let ((n (bytevector-length bv)) (i 0))
+    (define (fail) (cr--fast-read-escape 'cr--fast-read-failed))
+    (define (byte j) (bytevector-u8-ref bv j))
+    (define (ascii-string start end)      ; `utf8->string' of an ASCII range, which it
+      (let ((str (make-string (- end start))))   ; does with an 8 KB buffer per call
+        (do ((j start (+ j 1))) ((= j end) str)
+          (string-set! str (- j start) (integer->char (bytevector-u8-ref bv j))))))
+    (define (ws? c) (or (= c 32) (= c 10) (= c 9) (= c 13) (= c 12) (= c 11)))
+    (define (delimiter? c)                ; whitespace ( ) ; " |
+      (or (ws? c) (= c 40) (= c 41) (= c 59) (= c 34) (= c 124)))
+    (define (bad-in-token? c)             ; \ # ' ` , [ ] { }, A-Z, non-ASCII
+      (or (= c 92) (= c 35) (= c 39) (= c 96) (= c 44) (= c 91) (= c 93) (= c 123) (= c 125)
+          (and (>= c 65) (<= c 90)) (> c 126) (< c 32)))
+    (define (skip!)
+      (let loop ()
+        (if (< i n)
+            (let ((c (byte i)))
+              (cond ((ws? c) (set! i (+ i 1)) (loop))
+                    ((= c 59)                                   ; ; to end of line
+                     (let eol () (if (and (< i n) (not (= (byte i) 10)))
+                                     (begin (set! i (+ i 1)) (eol))))
+                     (loop))
+                    (#t #t))))))
+    (define (quoted close)                ; I is just after the opening byte; -> string
+      (let ((start i))
+        (let loop ((plain #t))
+          (if (>= i n) (fail))
+          (let ((c (byte i)))
+            (cond ((> c 126) (fail))
+                  ((= c close)
+                   (set! i (+ i 1))
+                   (if plain
+                       (ascii-string start (- i 1))
+                       (let ((out (open-output-string)))      ; rare: unescape
+                         (let un ((j start))
+                           (if (< j (- i 1))
+                               (let ((d (byte j)))
+                                 (if (= d 92)
+                                     (begin (write-char (integer->char (byte (+ j 1))) out) (un (+ j 2)))
+                                     (begin (write-char (integer->char d) out) (un (+ j 1)))))))
+                         (get-output-string out))))
+                  ((= c 92)
+                   (if (>= (+ i 1) n) (fail))
+                   (let ((d (byte (+ i 1))))
+                     (if (not (or (= d close) (= d 92))) (fail))
+                     (set! i (+ i 2)) (loop #f)))
+                  (#t (set! i (+ i 1)) (loop plain)))))))
+    (define (datum)
+      (skip!)
+      (if (>= i n) (fail))
+      (let ((c (byte i)))
+        (cond
+         ((= c 40)                                              ; (
+          (set! i (+ i 1))
+          (let ((head (cons #f '())))
+            (let loop ((tail head))
+              (skip!)
+              (if (>= i n) (fail))
+              (let ((c (byte i)))
+                (cond ((= c 41) (set! i (+ i 1)) (cdr head))   ; )
+                      ((and (= c 46) (< (+ i 1) n) (delimiter? (byte (+ i 1))))   ; .
+                       (if (eq? tail head) (fail))              ; "(. x)": an error for `read' too
+                       (set! i (+ i 1))
+                       (let ((d (datum)))
+                         (skip!)
+                         (if (not (and (< i n) (= (byte i) 41))) (fail))
+                         (set! i (+ i 1))
+                         (set-cdr! tail d)
+                         (cdr head)))
+                      (#t (let ((cell (cons (datum) '())))
+                            (set-cdr! tail cell)
+                            (loop cell))))))))
+         ((= c 41) (fail))
+         ((= c 124) (set! i (+ i 1)) (string->symbol (quoted 124)))   ; |
+         ((= c 34) (set! i (+ i 1)) (quoted 34))                       ; "
+         ((bad-in-token? c) (fail))
+         (#t
+          (let ((start i))
+            (let loop ()
+              (if (and (< i n) (not (delimiter? (byte i))))
+                  (begin (if (bad-in-token? (byte i)) (fail))
+                         (set! i (+ i 1)) (loop))))
+            (if (and (< i n) (= (byte i) 124)) (fail))
+            (let ((tok (ascii-string start i)))
+              (or (string->number tok 10)
+                  (string->symbol tok))))))))
+    (call-with-current-continuation
+     (lambda (k)
+       (fluid-let ((cr--fast-read-escape k))
+         (datum))))))
+(define cr--fast-read-escape #f)
+
+;;; The datum of the page BYTES: the fast reader, else MIT's `read' of their text.
+(define *cr-fast-read-fallbacks* 0)
+(define (cr--read-page-bytes bv)
+  (let ((d (cr--fast-read-bytes bv)))
+    (if (eq? d 'cr--fast-read-failed)
+        (begin (set! *cr-fast-read-fallbacks* (+ *cr-fast-read-fallbacks* 1))
+               (read (open-input-string (utf8->string bv))))
+        d)))
+
+;;; The datum of a plain page FILE (the exam's read-back at qed, core-capture.scm).
+(define (core-page-read-plain-file p)
+  (let* ((port (open-binary-input-file p))
+         (bv (read-bytevector (file-length p) port)))
+    (close-port port)
+    (cr--read-page-bytes (if (eof-object? bv) (bytevector) bv))))
+
 ;;; The datum of a page file, plain or gzipped (gzip -dc through a string port).
 (define (cr--read-page-file p)
   (if (string-suffix? ".gz" p)
@@ -325,15 +448,63 @@
 (define (cr--all p l) (cond ((null? l) #t) ((p (car l)) (cr--all p (cdr l))) (#t #f)))
 
 ;;; Apply the mint map M (alist page-name -> session name) to a raw form.
+;;; CORE-GC (2026-11-11): a subtree the map does not change is returned AS IS (eq),
+;;; not copied: the result is `equal?' to the old copying walk's, and a step's whole
+;;; context used to be copied at every step once the map was non-empty.
 (define (cr--map M x)
   (if (null? M) x
       (let walk ((x x))
-        (cond ((pair? x) (cons (walk (car x)) (walk (cdr x))))
+        (cond ((pair? x)
+               (let ((a (walk (car x))) (d (walk (cdr x))))
+                 (if (and (eq? a (car x)) (eq? d (cdr x))) x (cons a d))))
               ((and (symbol? x) (assq x M)) => cdr)
               (#t x)))))
 
+;;; The map applied to a recorded SEQUENT (ASMS GOAL): `equal?' to (cr--map M RS).
+;;; CORE-GC (2026-11-11): the replay maps the sequent of every step and of every
+;;; recorded hypothesis (400 000 calls on a 1608-page slice, half the replay's time),
+;;; and the formulas of those sequents are shared between steps; each formula OBJECT
+;;; is mapped once per map M (*cr--map-memo*, replaced when M is).
+(define *cr--map-memo* (cons #f #f))        ; (M . eq table formula -> mapped formula)
+(define (cr--map-formula M f)
+  (if (not (pair? f))
+      (cr--map M f)
+      (let ((t (if (eq? (car *cr--map-memo*) M)
+                   (cdr *cr--map-memo*)
+                   (let ((t (make-strong-eqv-hash-table)))
+                     (set! *cr--map-memo* (cons M t))
+                     t))))
+        (or (hash-table-ref/default t f #f)
+            (let ((r (cr--map M f)))
+              (hash-table-set! t f r)
+              r)))))
+(define (cr--map-seq M rs)
+  (if (or (null? M) (not (and (pair? rs) (list? (car rs)) (pair? (cdr rs)) (null? (cddr rs)))))
+      (cr--map M rs)
+      (let* ((asms (car rs))
+             (mapped (map (lambda (f) (cr--map-formula M f)) asms)))
+        (list (if (cr--all-eq? mapped asms) asms mapped)
+              (cr--map-formula M (cadr rs))))))
+(define (cr--all-eq? a b)
+  (cond ((null? a) (null? b)) ((null? b) #f) ((eq? (car a) (car b)) (cr--all-eq? (cdr a) (cdr b))) (#t #f)))
+
+;;; Is every page mint mapped by M?  Then nothing is unmapped and the walk below is
+;;; skipped.  The answer is cached for the last M (the map is replaced, never
+;;; mutated, when it grows).
+(define *cr--all-mapped-cache* (cons #f #f))
+(define (cr--all-mapped? mints M)
+  (if (and (eq? (car *cr--all-mapped-cache*) M) (pair? M))
+      (cdr *cr--all-mapped-cache*)
+      (let ((r (cr--all (lambda (mint) (assq mint M)) mints)))   ; not `m': it folds onto M
+        (set! *cr--all-mapped-cache* (cons M r))
+        r)))
+
 ;;; The page mint names occurring in X that M does not map.
 (define (cr--unmapped mints M x)
+  (if (or (null? mints) (cr--all-mapped? mints M))
+      '()
+      (cr--unmapped-walk mints M x)))
+(define (cr--unmapped-walk mints M x)
   (let ((acc '()))
     (let walk ((x x))
       (cond ((pair? x) (walk (car x)) (walk (cdr x)))
@@ -341,7 +512,32 @@
              (set! acc (cons x acc)))))
     (reverse acc)))
 
-(define (cr--norm f) (expand-destructuring-quantifiers f))
+;;; CORE-GC (2026-11-11): `expand-destructuring-quantifiers' rebuilds every formula
+;;; it is given, sugar or not, and the sequent comparison below ran it on a whole
+;;; context per comparison (most of the replay's allocation).  A formula with no
+;;; sugar form in it comes back `equal?' to itself, so it is returned AS IS; the
+;;; test reads the same shapes the expander's clauses read (wff.scm), and anything
+;;; it is not sure of goes to the expander, as before.  Under `core-replay-page'
+;;; the answer is remembered per formula object (*cr--norm-memo*).
+(define (cr--sugar-free? x)
+  (let walk ((x x))
+    (cond ((not (pair? x)) #t)
+          ((not (list? x)) #f)
+          ((and (memq (car x) '(FORALL FORSOME))
+                (or (and (= (length x) 3) (pair? (cadr x))) (>= (length x) 4)))
+           #f)
+          ((and (eq? (car x) 'VNB-LAMBDA) (= (length x) 3) (pair? (cadr x)) (eq? (car (cadr x)) 'LIST))
+           #f)
+          ;; the expander maps over the ARGUMENTS only (the head is kept as it is)
+          (#t (let loop ((l (cdr x))) (or (null? l) (and (walk (car l)) (loop (cdr l)))))))))
+(define *cr--norm-memo* #f)                 ; eq table formula -> #t (sugar-free), or #f
+(define (cr--norm f)
+  (cond ((not (pair? f)) f)
+        ((and *cr--norm-memo* (hash-table-ref/default *cr--norm-memo* f #f)) f)
+        ((cr--sugar-free? f)
+         (if *cr--norm-memo* (hash-table-set! *cr--norm-memo* f #t))
+         f)
+        (#t (expand-destructuring-quantifiers f))))
 
 ;;; Does the recorded sequent RS = (ASMS GOAL) (raw, already mapped) equal the
 ;;; sequent of the node?  Goal up to alpha; context as a set up to alpha, as the
@@ -350,16 +546,70 @@
   (list (map wff-formula (sequent-node-assumptions n))
         (wff-formula (sequent-node-assertion n))))
 (define (cr--seq-equal? rs n)
-  (let ((na (map wff-formula (sequent-node-assumptions n)))
+  (let ((nas (sequent-node-assumptions n))
         (ng (wff-formula (sequent-node-assertion n))))
-    ;; fast path: the same formulas in the same order (the common case: the replay
-    ;; node was built by the same entry point as the recorded one)
-    (or (and (= (length (car rs)) (length na)) (equal? (cadr rs) ng) (equal? (car rs) na))
-        (let ((ra (map cr--norm (car rs))) (rg (cr--norm (cadr rs))))
-          (and (alpha-equiv? rg ng)
-               (= (length ra) (length na))
-               (cr--all (lambda (a) (or (member a na) (cr--some (lambda (b) (alpha-equiv? a b)) na))) ra)
-               (cr--all (lambda (b) (or (member b ra) (cr--some (lambda (a) (alpha-equiv? a b)) ra))) na))))))
+    ;; CORE-GC (2026-11-11): both paths below demand contexts of one length, so a
+    ;; node whose context length differs is rejected first, and the fast path walks
+    ;; the node's assumptions in place instead of consing their formulas into a list
+    ;; (the node search below calls this once per node of the replay graph).
+    (and
+     (= (length (car rs)) (length nas))
+     ;; fast path: the same formulas in the same order (the common case: the replay
+     ;; node was built by the same entry point as the recorded one)
+     (or (and (equal? (cadr rs) ng)
+              (let loop ((ra (car rs)) (l nas))
+                (cond ((null? ra) (null? l))
+                      ((null? l) #f)
+                      ((equal? (car ra) (wff-formula (car l))) (loop (cdr ra) (cdr l)))
+                      (#t #f))))
+        (and (alpha-equiv? (cr--norm (cadr rs)) ng)          ; the goal first: no context copy when it differs
+             (let ((na (map wff-formula nas)) (ra (map cr--norm (car rs))))
+               (and (= (length ra) (length na))
+                    (cr--context-same-set? ra na))))))))
+
+;;; The context test of the slow path above: every A of RA satisfies
+;;;   (or (member A NA) (cr--some (lambda (B) (alpha-equiv? A B)) NA))
+;;; and every B of NA satisfies
+;;;   (or (member B RA) (cr--some (lambda (A) (alpha-equiv? A B)) RA)).
+;;; CORE-GC (2026-11-11): the same test, evaluated without the quadratic scan in the
+;;; common case.  A pair (A, B) at the SAME position with (equal? A B) satisfies the
+;;; `member' disjunct of both; an element left over is first tried, by
+;;; (alpha-equiv? A B) in the original argument order, against the leftovers of the
+;;; other side, and only when that finds nothing is its whole condition evaluated
+;;; over the whole list as before.  A witness found among the leftovers is a witness
+;;; in the whole list, and a failure among them falls back to the full test, so the
+;;; answer is the original's.  (A context of 100-220 formulas in which a few binders
+;;; were renamed cost ~10^4 allocating `equal?' and `alpha-equiv?' calls per test.)
+(define (cr--context-same-set? ra na)
+  (let* ((av (list->vector ra)) (bv (list->vector na)) (k (vector-length av))
+         (a-ok (make-vector k #f)) (b-ok (make-vector k #f)))
+    (do ((i 0 (+ i 1))) ((= i k))
+      (if (equal? (vector-ref av i) (vector-ref bv i))
+          (begin (vector-set! a-ok i #t) (vector-set! b-ok i #t))))
+    ;; leftovers of RA: a partner among the leftovers of NA, else the full condition
+    (let loop-a ((i 0))
+      (cond
+       ((= i k)
+        ;; leftovers of NA that no leftover of RA matched: the full condition
+        (let loop-b ((j 0))
+          (cond ((= j k) #t)
+                ((vector-ref b-ok j) (loop-b (+ j 1)))
+                ((let ((b (vector-ref bv j)))
+                   (or (member b ra) (cr--some (lambda (a) (alpha-equiv? a b)) ra)))
+                 (loop-b (+ j 1)))
+                (#t #f))))
+       ((vector-ref a-ok i) (loop-a (+ i 1)))
+       (#t
+        (let ((a (vector-ref av i)))
+          (let find ((j 0))
+            (cond ((= j k)
+                   (if (or (member a na) (cr--some (lambda (b) (alpha-equiv? a b)) na))
+                       (loop-a (+ i 1))
+                       #f))
+                  ((and (not (vector-ref b-ok j)) (alpha-equiv? a (vector-ref bv j)))
+                   (vector-set! b-ok j #t)           ; B has a witness A: its condition holds
+                   (loop-a (+ i 1)))
+                  (#t (find (+ j 1)))))))))))
 
 (define (cr--free-symbols-of-node n)
   (let ((r (cr--node-raw n)))
@@ -441,7 +691,7 @@
                          (number->string (length P)))
           (let loop ((rs R) (ps P) (i 1))
             (cond ((null? rs) #f)
-                  ((cr--seq-equal? (cr--map M (car rs)) (car ps)) (loop (cdr rs) (cdr ps) (+ i 1)))
+                  ((cr--seq-equal? (cr--map-seq M (car rs)) (car ps)) (loop (cdr rs) (cdr ps) (+ i 1)))
                   (#t (call-with-output-string
                        (lambda (port)
                          (display "hypothesis " port) (display i port)
@@ -559,7 +809,7 @@
       (if (not R) (cr--refuse! "no (hyps (sequent ...) ...) field"))
       (let ((u (cr--unmapped (cr-mints st) (cr-mintmap st) rs)))
         (if (pair? u) (cr--refuse! "the step's sequent mentions a mint not yet learned:" (car u))))
-      (let* ((rsm  (cr--map (cr-mintmap st) rs))
+      (let* ((rsm  (cr--map-seq (cr-mintmap st) rs))
              (node (cr--resolve-node st N rsm (cps-sequent-form step)))
              (bind! (lambda (P)            ; recorded hypothesis forms -> the nodes they matched
                       (for-each (lambda (h p) (hash-table-set! (cr-seqnode st) h p))
@@ -642,7 +892,8 @@
                       (*dg-checked-count* *dg-checked-count*) (*dg-check-refusals* *dg-check-refusals*)
                       (*def-audit-total* *def-audit-total*) (*def-audit-uncert* *def-audit-uncert*)
                       (*def-audit-terms* *def-audit-terms*)
-                      (*vnb-quiet* #t))
+                      (*vnb-quiet* #t)
+                      (*cr--norm-memo* (make-strong-eqv-hash-table)))
             (let* ((k 0) (cmd 'core-page) (refusals0 (length *dg-check-refusals*)) (st #f))
               (let ((msg (call-with-current-continuation
                           (lambda (esc)
