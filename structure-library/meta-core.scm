@@ -920,10 +920,13 @@
 ;;; WHY IT HOLDS IN NBG, with the tree's list encoding.  A list is a member of TUPLES; the base theory pins the
 ;;; lists down by two PRIMITIVE generation axioms (structure-library/list-recursion.scm: tuple-length-zero, a
 ;;; tuple of length 0 is [], and tuple-cons-decompose, a tuple of length succ(n) is CONS(y, M) with M a tuple of
-;;; length n) and by the defining equations of NTH and LENGTH on CONS.  By induction on n, every member L of
-;;; TUPLES(A) of length n equals [NTH(1, L) .. NTH(n, L)]: for n = 0 by the first axiom; for succ(n), L =
-;;; CONS(y, M), NTH(1, L) = y, NTH(i + 1, L) = NTH(i, M), and M = [NTH(1, M) .. NTH(n, M)] by the hypothesis.  A
-;;; member x of CARTESIAN(A_1 .. A_n) is a tuple of sets of length n (CR-CARTESIAN-MEM), hence the instance.  The
+;;; length n) and by the defining equations of NTH and LENGTH on CONS.  From these the tree PROVES
+;;; tuple-extensionality (theorem-library/tuple-extensionality.scm, by tuples-induction): two members of
+;;; TUPLES(SET) of the same length with the same entries are equal.  A member x of CARTESIAN(A_1 .. A_n) is a
+;;; tuple of sets of length n (CR-CARTESIAN-MEM); the literal [NTH(1, x) .. NTH(n, x)] is a member of TUPLES(SET)
+;;; of length n (CR-TUPLES-MEM, its entries in the A_i), with the same entries (nth-reduce); hence the instance.
+;;; (No separate induction is needed: a direct induction would need CONS(y, [m1 .. mk]) = [y, m1 .. mk], which
+;;; list-recursion.scm does not state; W2V, 2026-11-10.)  The
 ;;; list on the right denotes, being equal to x (the list doctrine of 2026-10-01: its components are the sets
 ;;; NTH(i, x)), so the STRICT equation is the right conclusion.
 ;;; WHY IT ADDS NO STRENGTH BEYOND THE KERNEL.  The kernel's cartesian-decompose (primitive shelf, library.scm;

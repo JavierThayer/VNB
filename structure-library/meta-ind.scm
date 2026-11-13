@@ -308,21 +308,40 @@
 ;; NBGSEP (2026-10-25): miz_ and mia_ bounded by (IN v SET) -- components of the tuple
 ;; equated to mix_ (through the ENC-IN / ENC-CART codes), sets by the list doctrine; mig_
 ;; is bounded by CTX-SET.  The meaning is unchanged and the separation is predicative.
+;; CLF GUARD (agent W2E, 2026-11-12; the user's decision D6 of that day): the two sides are SENTENCES, the conjuncts
+;; CLF as in J-TEQ, J-UDEC and J-IDEC (the kernel's formulas are well formed by construction, make-wff).  Without
+;; them J-CART held tuples that are not in EQV(T) (a dangling index as the member) and j-cart-sub was false.
 (def-functoid 'J-CART '(mit_)
   '(SEP mix_ RW-UNIV
      (FORSOME mig_ (FORSOME miz_ (FORSOME mia_
        (AND (IN miz_ SET) (AND (IN mia_ SET)
        (AND (= mix_ (LIST 2 mig_ (ENC-IN miz_ (ENC-CART mia_)) (ENC-CCH miz_ mia_ (LENGTH mia_) (LENGTH mia_))))
-            (AND (IN mig_ CTX-SET) (<= 1 (LENGTH mia_)))))))))))
+            (AND (IN mig_ CTX-SET) (AND (<= 1 (LENGTH mia_))
+            (AND (IN (ENC-IN miz_ (ENC-CART mia_)) CLF)
+                 (IN (ENC-CCH miz_ mia_ (LENGTH mia_) (LENGTH mia_)) CLF))))))))))))
 (notation! 'J-CART 'kind 'functoid 'arity 1 'english "the local instances of cartesian-decompose")
+;; CCHS(x, a, n, l, k): the chain of ENC-CCH with the innermost list l in place of IDX-LIST(n) (agent W2E,
+;; 2026-11-11; the parametrised chain of the W2B report, s.4 (b)).  ENC-CCH(x, a, n, k) == CCHS(x, a, n, IDX-LIST(n), k)
+;; (cchs-idx, theorem-library/meta-ind-laws.scm, section N3).  Opening the chain at a depth d opens the list at d + k
+;; (cchs-open), so the two directions of cartesian-decompose induct on k over every list of the right shape.
+(def-by-nn-recursion 'CCHS '(m57x_ m57a_ m57n_ m57l_) '(ENC-EQ m57x_ (ENC-LIST m57l_)) '(m57k_ m57v_)
+  '(ENC-EX (ENC-AND (ENC-IN (EBVAR 0) (NTH (- m57n_ m57k_) m57a_)) m57v_)))
+(notation! 'CCHS 'kind 'functoid 'arity 5
+           'english "the existential chain of $1 in the last $5 of the $3 entries of $2, with the innermost list $4")
 ;; ROW 57, STATUS (agent W2B, 2026-11-10; the user's decision of 2026-11-10, the core-schema route).  The fact the
 ;; core lacked for the forward direction, tuple eta, is admitted as the core schema CR-TUPLE-ETA
-;; (structure-library/meta-core.scm 4.11).  The admissibility of this relation -- J-CART(T) inside EQV(T), as
-;; j-teq-sub for row 58 -- is NOT yet proven: both directions read the chain ENC-CCH under its binders, and the
-;; core-side calculus for that (EXPR-OPEN of ENC-CCH and of IDX-LIST, the denotation of IDX-LIST, the n-fold
-;; forsome-intro at the projections and the n-fold forsome-elim at fresh names) is not written.  W2B report.
+;; (structure-library/meta-core.scm 4.11).
+;; (agent W2E, 2026-11-11; the user's decision of that day.)  The chain calculus is written: IDX-LIST(n) denotes
+;; (idx-list-prop), ENC-CCH is CCHS at the innermost list IDX-LIST(n) (cchs-idx), the open law (cchs-open), the
+;; forward and backward directions (cchs-fwd, cchs-bwd) and the derived rule der-cartesian-decompose: every local
+;; instance whose two sides are SENTENCES is derivable, T containing AX-MEM-SET (theorem-library/meta-ind-laws.scm,
+;; section N3).  With the CLF guard of J-CART (D6, 2026-11-12) J-CART(T) is inside EQV(T) for T a set of sentences
+;; containing AX-MEM-SET (j-cart-sub), and the kernel's cartesian-decompose is admissible at one position of stage
+;; <= 5 and of any stage (adm-cartesian-decompose-1, adm-cartesian-decompose-7).  Row 57 is DERIVED.
 (def-predicate 'REL-CARTESIAN-DECOMPOSE-1 '(mit_ mihs_ mic_) '(REL-REWRITE-1 (J-CART mit_) mihs_ mic_))
 (notation! 'REL-CARTESIAN-DECOMPOSE-1 'kind 'predicate 'arity 3 'english "the kernel's cartesian-decompose, at one position, relates $2 to $3")
+(def-predicate 'REL-CARTESIAN-DECOMPOSE-7 '(mit_ mihs_ mic_) '(REL-REWRITE-7 (J-CART mit_) mihs_ mic_))
+(notation! 'REL-CARTESIAN-DECOMPOSE-7 'kind 'predicate 'arity 3 'english "the kernel's cartesian-decompose, at one position at any stage, relates $2 to $3")
 
 ;; tuple-equality-decompose, RE-TRANSCRIBED 2026-10-29 (agent METACORE) against rule-checkers-rewrite.scm of a320cb6f
 ;; (rkw--tuple-explainer, the LIST DEFINEDNESS paragraph above it; repair R4 of 2026-10-12): A = (= (LIST a1 .. an)

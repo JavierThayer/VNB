@@ -981,9 +981,11 @@
 ;;;   conclusion's context: it re-runs the decision rather than trusting that it
 ;;;   was made, so an instantiation that skipped it is still refused, but the
 ;;;   decision procedure itself is shared with the builder and is trusted.
-;;; W1 (METACORE finding 1, 2026-11-04).  A COMP denotes only when its condition is
-;;; PREDICATIVE: NBG has the class {x | p} for p with every quantifier confined to sets, and
-;;; for no other p.  Written here, independently of the builder's COMP clauses in
+;;; W1 (METACORE finding 1, 2026-11-04).  A COMP is CERTIFIED defined only when its condition
+;;; is PREDICATIVE: NBG proves that the class {x | p} exists for p with every quantifier
+;;; confined to sets.  An impredicative COMP is not thereby non-denoting (its class may exist,
+;;; and the kernel rewrites inside such bodies); the certificate simply does not vouch for
+;;; it (W2V finding V1, 2026-11-10).  Written here, independently of the builder's COMP clauses in
 ;;; `pi--defined?' / `term-self-defined?' / `pi--body-shape-total?': where the checker
 ;;; accepts a certificate on the builder's word, it first walks T through the positions in
 ;;; which definedness is STRUCTURAL -- the arguments of an application, the DOMAIN of a
@@ -1014,7 +1016,7 @@
 
 (define (chk-elim-certified? concl t)
   (let ((asms (chk-asms concl)))
-    (or (not (pair? t))                                          ; (a)
+    (or (and (not (pair? t)) (not (chk-head-only-symbol? t)))    ; (a)  (W2D patch 05, HELD: not a head-only atom)
         (chk-any (lambda (f)                                     ; (b)
                    (and (pair? f) (= (length f) 3)
                         (or (and (eq? (car f) 'IN) (chk-same? (cadr f) t))
@@ -1312,7 +1314,7 @@
                        (chk-same? (binary-left g) (binary-right g))))
              "the goal is not  t = t  for one and the same t")
             ((chk-impredicative-comp-certified? (chk-asms concl) (binary-left g))   ; W1
-             "t = t  for a term with an IMPREDICATIVE COMP, which NBG does not let denote")
+             "t = t  for a term with an IMPREDICATIVE COMP, whose definedness NBG comprehension does not certify")
             ((pi--defined? (sequent-assumptions concl) (binary-left g) 0) #t)
             (else "t = t  for a term the context does not certify DEFINED")))))
 

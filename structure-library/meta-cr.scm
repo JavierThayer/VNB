@@ -327,7 +327,8 @@
 ;;; DERIVED in the local context: the list denotes (nth, length), the argument is in the domain
 ;;; (lambda), the condition holds and the instantiating term denotes (macete).
 ;;; The forms at a position of ANY stage (binder bodies included), REL-REWRITE-7 and REL-<RULE>-7, are section 5
-;;; (agent K2-END, 2026-10-22): their admissibility needs CR at stage 7, hence AX-CLASS-EXT in T.
+;;; (agent K2-END, 2026-10-22): their admissibility needs CR at stage 7, which held for T containing AX-CLASS-EXT until
+;;; 2026-11-11 and holds for every T since (TBIND-CR at head 23, W2B; the hypotheses dropped by W2E).
 
 (def-predicate 'REL-REWRITE-1 '(mrt_ mrhs_ mrc_)
   (mr--and '(IN mrc_ SEQ-SET)
@@ -423,7 +424,7 @@
 ;;; -----------------------------------------------------------------------
 ;;; 5. THE ONE-POSITION FORMS AT EVERY STAGE (agent K2-END, 2026-10-22).  Since cr-closed-7
 ;;; (theorem-library/meta-ind-laws.scm, section M) CR is closed at every position, binder bodies included, for
-;;; every T of sentences containing the encoded class-extensionality AX-CLASS-EXT.  REL-REWRITE-7 and
+;;; every T (until 2026-11-11: every T of sentences containing the encoded class-extensionality AX-CLASS-EXT).  REL-REWRITE-7 and
 ;;; REL-REWRITE-HYP-7 are REL-REWRITE-1 and REL-REWRITE-HYP-1 with the position of ANY stage (REWR(J, 7) for
 ;;; REWR(J, 5)): the bodies of SEP, BIG-UNION and VNB-LAMBDA (stage 6) and of COMP and IOTA (stage 7), where the
 ;;; kernel's reduction rules and macetes also rewrite (section 4: "at ANY depth ... binders included").  The

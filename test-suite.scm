@@ -1641,13 +1641,13 @@
 
 ;; Validator now accepts (UNION A B C) and (INTERSECTION A B C).
 (check-true "make-wff accepts (UNION A B C)"
-  (lambda () (wff? (make-wff '(IN x (UNION CARR B C))))))
+  (lambda () (wff? (make-wff '(IN x (UNION ua_ B C))))))
 
 (check-true "make-wff accepts (INTERSECTION A B C D)"
-  (lambda () (wff? (make-wff '(IN x (INTERSECTION CARR B C DIST))))))
+  (lambda () (wff? (make-wff '(IN x (INTERSECTION ua_ B C ud_))))))
 
 (check-true "make-wff accepts (COMPLEMENT-IN A B)"
-  (lambda () (wff? (make-wff '(IN x (COMPLEMENT-IN CARR B))))))
+  (lambda () (wff? (make-wff '(IN x (COMPLEMENT-IN ua_ B))))))
 
 (check-error "(UNION A) (1 arg) rejected"
   (lambda () (make-wff '(IN x (UNION CARR)))))
@@ -1735,7 +1735,7 @@
 ;; --- SEPARATION ---
 (check-proof "pi-sep-sethood: (IN (SEP x A p) SET) reduces to (IN A SET)"
   (lambda ()
-    (sp (make-wff '(IN (SEP x CARR (IN x NN)) SET)))
+    (sp (make-wff '(IN (SEP x sa_ (IN x NN)) SET)))
     (let ((sqn (proof-state-focus *ps*)))
       (let ((r (pi-sep-sethood! sqn)))
         (or r (error "pi-sep-sethood! failed"))))))
@@ -2084,14 +2084,14 @@
 
 (check-proof "cartesian-decompose on (IN x (CARTESIAN A B)) at goal top"
   (lambda ()
-    (sp (make-wff '(IN x (CARTESIAN CARR B))))
+    (sp (make-wff '(IN x (CARTESIAN ca_ B))))
     (let ((sqn (proof-state-focus *ps*)))
       (or (apply-macete! 'cartesian-decompose sqn)
           (error "cartesian-decompose failed to fire")))))
 
 (check-proof "cartesian-decompose descends through IMPLIES"
   (lambda ()
-    (sp (make-wff '(IMPLIES (IN x SET) (IN x (CARTESIAN CARR B)))))
+    (sp (make-wff '(IMPLIES (IN x SET) (IN x (CARTESIAN ca_ B)))))
     (let ((sqn (proof-state-focus *ps*)))
       (or (apply-macete! 'cartesian-decompose sqn)
           (error "cartesian-decompose failed to descend through IMPLIES")))))
@@ -2528,13 +2528,13 @@
   (lambda () (and (lookup-theorem 'partial-fun-binary-sethood) #t)))
 
 (check-true "(IN f (PARTIAL-FUN A)) accepted as wff"
-  (lambda () (and (make-wff '(IN f (PARTIAL-FUN CARR))) #t)))
+  (lambda () (wff? (make-wff '(IN f (PARTIAL-FUN pa_))))))       ; W2V 05r: CARR is an accessor (head-only); wff? (an error object is truthy)
 
 (check-true "(IN f (PARTIAL-FUN A C)) accepted as wff"
-  (lambda () (and (make-wff '(IN f (PARTIAL-FUN CARR C))) #t)))
+  (lambda () (wff? (make-wff '(IN f (PARTIAL-FUN pa_ C))))))     ; W2V 05r
 
 (check-error "(PARTIAL-FUN A) rejected in wff position"
-  (lambda () (make-wff '(PARTIAL-FUN CARR))))
+  (lambda () (make-wff '(PARTIAL-FUN pa_))))                       ; W2V 05r: refused for the wff position, not for CARR
 
 ;;; -----------------------------------------------------------------------
 ;;; def-structure NAME-class axiom: associated class is named after structure
@@ -2864,10 +2864,10 @@
   (lambda () (and (lookup-theorem 'bijection-identity) #t)))
 
 (check-true "(IN phi (BIJECTION X Y)) accepted as wff"
-  (lambda () (and (make-wff '(IN phi (BIJECTION PTS Y))) #t)))
+  (lambda () (wff? (make-wff '(IN phi (BIJECTION bx_ Y))))))      ; W2V 05r: PTS is an accessor
 
 (check-true "(IN (INVERSE-BIJ phi X Y) (FUN Y X)) accepted as wff"
-  (lambda () (and (make-wff '(IN (INVERSE-BIJ phi PTS Y) (FUN Y PTS))) #t)))
+  (lambda () (wff? (make-wff '(IN (INVERSE-BIJ phi bx_ Y) (FUN Y bx_))))))   ; W2V 05r
 
 ;; DELETE-AT and its four asserted axioms were deleted 2026-10-12 (the user's decision;
 ;; dead since the finsum rework, and delete-at-above-k under-guarded).
@@ -2981,9 +2981,9 @@
     zz-act-nonneg zz-act-neg zz-act-zero zz-act-one zz-act-type
     zz-act-neg-sign zz-act-add zz-act-distrib zz-act-assoc))
 (check-true "(MPOW M X N) accepted as wff"
-  (lambda () (and (make-wff '(IN (MPOW M PTS N) (CARR M))) #t)))
+  (lambda () (wff? (make-wff '(IN (MPOW M mx_ N) (CARR M))))))    ; W2V 05r
 (check-true "(ZZ-ACT G K A) accepted as wff"
-  (lambda () (and (make-wff '(IN (ZZ-ACT G K CARR) (CARR G))) #t)))
+  (lambda () (wff? (make-wff '(IN (ZZ-ACT G K za_) (CARR G))))))  ; W2V 05r
 
 ;; --- NN as comm-monoid under addition ---
 (check-true "nn-add-monoid-def installed"
@@ -3511,7 +3511,7 @@
 ;; COMPOSE makes f o g a denotable term: typing and the native (un-Skolemised)
 ;; statement of sequential continuity (Prop 3.14) both parse.
 (check-true "(COMPOSE f g) is a well-formed function term"
-  (lambda () (and (make-wff '(IN (COMPOSE f g) (FUN CARR C))) #t)))
+  (lambda () (wff? (make-wff '(IN (COMPOSE f g) (FUN fa_ C))))))  ; W2V 05r
 (check-true "Prop 3.14 is natively statable with COMPOSE (no Skolem)"
   (lambda () (and (make-wff
     '(IMPLIES (AND (IS-CONTINUOUS-AT s t f a) (CONVERGES-TO s g a))
@@ -3857,7 +3857,8 @@
 ;; check above would still pass if someone put `bintimes' back beside the lambda.
 (check-false "(MUL ZZ-RING) is NOT the shared constant bintimes"
   (lambda ()
-    (sp (make-wff '(== (MUL ZZ-RING) bintimes)))
+    (fluid-let ((*wff-head-only-hook* #f))     ; W2D 05: the formula holds the head-only bintimes on purpose
+      (sp (make-wff '(== (MUL ZZ-RING) bintimes))))
     (slot 'mul)
     (qrfl)
     (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
@@ -3936,7 +3937,9 @@
 ;; ... and `slot' refuses anything that is not an accessor, so it cannot quietly
 ;; become a second name for `mac'.
 (check-error "slot rejects a non-accessor macete name"
-  (lambda () (sp (make-wff '(= (MUL ZZ-RING) bintimes))) (slot 'zz-ring-def)))
+  (lambda () (fluid-let ((*wff-head-only-hook* #f))     ; W2V 05r: else make-wff refuses bintimes and the check passes vacuously
+                (sp (make-wff '(= (MUL ZZ-RING) bintimes))))
+              (slot 'zz-ring-def)))
 
 ;;; -----------------------------------------------------------------------
 ;;; The two things an accessor CORRESPONDENCE cannot express.
@@ -8521,7 +8524,8 @@
   (lambda ()
     (dynamic-wind
      (lambda () (what-now-suppress! 'OPR))
-     (lambda () (null? (legibility--moves "opr([rr, binplus, 0, binneg]) == binplus")))
+     (lambda () (fluid-let ((*wff-head-only-hook* #f))        ; W2D 05: the goal holds the head-only binplus on purpose
+                  (null? (legibility--moves "opr([rr, binplus, 0, binneg]) == binplus"))))
      (lambda () (what-now-filter-clear!)))))
 
 ;;; THE PANEL COMPLETES, on an ugly goal and on a clean one -- the failure this
@@ -9901,7 +9905,8 @@
   (sqn-dg (proof-state-focus *ps*)))
 
 (define (rkwn--node dg asms goal)
-  (dg-post! dg (make-sequent (map make-wff asms) (make-wff goal))))
+  (fluid-let ((*wff-head-only-hook* #f))        ; W2D 05: the controls feed the kernel head-only symbols on purpose
+    (dg-post! dg (make-sequent (map make-wff asms) (make-wff goal)))))
 
 ;;; Record RULE with hypothesis sequents built from HYPS -- each (asms . goal) --
 ;;; against the conclusion (CASMS => CGOAL), with the checking switch ON.
@@ -9910,9 +9915,10 @@
          (concl (rkwn--node dg casms cgoal)))
     (fluid-let ((*dg-check-inferences?* #t))
       (dg-apply-rule! dg rule
-        (map (lambda (h)
-               (make-sequent (map make-wff (car h)) (make-wff (cdr h))))
-             hyps)
+        (fluid-let ((*wff-head-only-hook* #f))      ; W2D 05
+          (map (lambda (h)
+                 (make-sequent (map make-wff (car h)) (make-wff (cdr h))))
+               hyps))
         concl))))
 
 ;;; Two fixture heads and two fixture laws: one unconditional, one conditional.
@@ -10888,7 +10894,8 @@
 ;;; 'raised-after-writing if a refusal still left an arrow behind.
 (define (rcod--apply rule casms cgoal hyps)
   (let* ((dg    (make-deduction-graph))
-         (concl (dg-post! dg (make-sequent (map make-wff casms) (make-wff cgoal)))))
+         (concl (fluid-let ((*wff-head-only-hook* #f))     ; W2D 05: controls feed the kernel head-only symbols on purpose
+                  (dg-post! dg (make-sequent (map make-wff casms) (make-wff cgoal))))))
     (fluid-let ((*dg-check-inferences?* #t))
       (call-with-current-continuation
         (lambda (k)
@@ -10899,9 +10906,10 @@
                      'raised-after-writing)))
             (lambda ()
               (dg-apply-rule! dg rule
-                (map (lambda (h)
-                       (make-sequent (map make-wff (car h)) (make-wff (cdr h))))
-                     hyps)
+                (fluid-let ((*wff-head-only-hook* #f))        ; W2D 05
+                  (map (lambda (h)
+                         (make-sequent (map make-wff (car h)) (make-wff (cdr h))))
+                       hyps))
                 concl)
               'wrote)))))))
 
@@ -10956,6 +10964,45 @@
     (rcod--refuses? (list 'ineq '((h2 . 1) (goal . 1)))
                     '((IN x RR) (<= x 0))
                     '(FORALL x (IMPLIES (IN x RR) (<= x 0))))))
+
+;;; W2V, 2026-11-10 (held patch 06; the W2D report's finding F-INEQ): the checker reads the atoms of the goal and of
+;;; every premise used BEFORE cancellation.  The forged inferences below have an untyped u that cancels in the linear
+;;; form; each was ACCEPTED by the checker of fc7a27d3 (the builder `ineq' always declined them).  `=', `<=' and `<' are
+;;; strict in VNB: u - u = 0 asserts that u - u denotes, false for a u that is not a number.  The controls: the same
+;;; inferences with u typed in RR are accepted, and a NONLINEAR product that cancels asks for the product's own typing.
+(define w2v-ineq-eq-cert (cons '((goal . 1)) '((goal . 1))))
+(check-true "rule checkers: ineq refuses forged identities whose untyped atom cancels (u + 1 = 1 + u, u - u = 0, 0 * u = 0)"
+  (lambda ()
+    (and (rcod--refuses? (list 'ineq w2v-ineq-eq-cert) '() '(= (+ u_ 1) (+ 1 u_)))
+         (rcod--refuses? (list 'ineq w2v-ineq-eq-cert) '() '(= (- u_ u_) 0))
+         (rcod--refuses? (list 'ineq w2v-ineq-eq-cert) '() '(= (* 0 u_) 0))
+         (rcod--refuses? (list 'ineq w2v-ineq-eq-cert) '() '(= (- (recip u_) (recip u_)) 0)))))
+(check-true "rule checkers: ineq refuses forged order facts whose untyped atom cancels (u <= u, u < u + 1, abs(u - u) <= abs(u - u))"
+  (lambda ()
+    (and (rcod--refuses? (list 'ineq '((goal . 1))) '() '(<= u_ u_))
+         (rcod--refuses? (list 'ineq '((goal . 1))) '() '(< u_ (+ u_ 1)))
+         (rcod--refuses? (list 'ineq '((goal . 1))) '() '(<= (abs (- u_ u_)) (abs (- u_ u_)))))))
+(check-true "rule checkers: ineq refuses a PREMISE whose untyped atom cancels (u + x <= u + y |- x <= y)"
+  (lambda ()
+    (rcod--refuses? (list 'ineq '((h3 . 1) (goal . 1)))
+                    '((IN x RR) (IN y RR) (<= (+ u_ x) (+ u_ y))) '(<= x y))))
+(check-true "rule checkers: ineq ACCEPTS the same inferences with the cancelling atom typed in RR (controls)"
+  (lambda ()
+    (and (rcod--accepts? (list 'ineq w2v-ineq-eq-cert) '((IN u_ RR)) '(= (+ u_ 1) (+ 1 u_)))
+         (rcod--accepts? (list 'ineq w2v-ineq-eq-cert) '((IN u_ RR)) '(= (- u_ u_) 0))
+         (rcod--accepts? (list 'ineq w2v-ineq-eq-cert) '((IN u_ RR)) '(= (* 0 u_) 0))
+         (rcod--accepts? (list 'ineq '((goal . 1))) '((IN u_ RR)) '(<= u_ u_))
+         (rcod--accepts? (list 'ineq '((goal . 1))) '((IN u_ RR)) '(< u_ (+ u_ 1)))
+         (rcod--accepts? (list 'ineq '((goal . 1))) '((IN u_ RR)) '(<= (abs (- u_ u_)) (abs (- u_ u_))))
+         (rcod--accepts? (list 'ineq '((h4 . 1) (goal . 1)))
+                         '((IN x RR) (IN y RR) (IN u_ RR) (<= (+ u_ x) (+ u_ y))) '(<= x y)))))
+(check-true "rule checkers: ineq reads a cancelling NONLINEAR product as one atom: refused untyped, accepted with (IN (* a b) RR) (control)"
+  (lambda ()
+    (and (rcod--refuses? (list 'ineq '((h5 . 1) (goal . 1)))
+                         '((IN x RR) (IN y RR) (IN a RR) (IN b RR) (<= (+ (* a b) x) (+ (* a b) y))) '(<= x y))
+         (rcod--accepts? (list 'ineq '((h6 . 1) (goal . 1)))
+                         '((IN x RR) (IN y RR) (IN a RR) (IN b RR) (IN (* a b) RR) (<= (+ (* a b) x) (+ (* a b) y)))
+                         '(<= x y)))))
 
 (check-true "rule checkers: arith-ground ACCEPTS a true ground sentence"
   (lambda () (rcod--accepts? 'arith-ground '() '(= (+ 2 2) 4))))
@@ -17260,7 +17307,32 @@
   (lambda () (quietly (lambda () (vnb-guard (lambda () (teta-run! #f '(ENC-IN x (ENC-CART a)))))))))
 (check-error "TUPLE-ETA CONTROL: the rule refuses a premise other than the membership in the product (x a tuple of sets)"
   (lambda () (quietly (lambda () (vnb-guard (lambda () (teta-run! #t '(ENC-IN x (ENC-TUPLES ENC-SETC)))))))))
-(check-true "META-FUN: CR is closed at stage 6 (cr-closed-6) and, with the encoded class-extensionality in T, at stage 7 (cr-closed-7, der-comp-cr, eqv-desc-body)"
+;;; 2026-11-11, W2E: ROW 57, cartesian-decompose, over the META core (theorem-library/meta-ind-laws.scm, section N3).
+;;; The derived rule der-cartesian-decompose: for x in CARTESIAN(a) and the chain ENC-CCH(x, a, |a|, |a|) both
+;;; sentences, |a| >= 1, T a set of sentences containing AX-MEM-SET, [g, x in CARTESIAN(a) iff chain] is derivable.
+;;; The accepted check derives that sequent by citing the rule (on the old tree the name does not resolve and the
+;;; check errors); the control asks the same chain for a membership that is not in a product (a union of the same
+;;; list): citing the rule leaves the goal open (the rule says nothing of it).
+(define (cdc-run! cls)
+  (fluid-let ((*ps* #f))
+    (sp (make-wff `(FORALL tt (FORALL g (FORALL x (FORALL a
+       (IMPLIES (SUBSET tt CLF) (IMPLIES (IN AX-MEM-SET tt) (IMPLIES (IN g CTX-SET) (IMPLIES (<= 1 (LENGTH a))
+       (IMPLIES (IN (ENC-IN x (ENC-CART a)) CLF) (IMPLIES (IN (ENC-CCH x a (LENGTH a) (LENGTH a)) CLF)
+         (IN (LIST g (ENC-IFF (ENC-IN x (,cls a)) (ENC-CCH x a (LENGTH a) (LENGTH a)))) (DERIVABLE tt))))))))))))))
+    (dk-peel!)
+    (dk-cite! 'der-cartesian-decompose 'tt 'g 'x 'a)
+    (ass)
+    (proof-done? *ps*)))
+(check-true "ROW 57: the derived rule der-cartesian-decompose gives [g, x in CARTESIAN(a) iff ENC-CCH(x, a, |a|, |a|)] (fails on the old tree: no such theorem)"
+  (lambda () (quietly (lambda () (cdc-run! 'ENC-CART)))))
+(check-true "ROW 57 CONTROL: the derived rule does not close the goal for a membership that is not in a product (UNION of the same list)"
+  (lambda () (not (eq? #t (quietly (lambda () (vnb-guard (lambda () (cdc-run! 'ENC-UNION)))))))))
+(check-true "ROW 57: the chain calculus is proven (idx-list-prop, cchs-idx, cchs-open, cchs-fwd, cchs-bwd, der-cartesian-decompose)"
+  (lambda () (and (suite-proven? 'idx-list-prop) (suite-proven? 'cchs-idx) (suite-proven? 'cchs-open)
+                  (suite-proven? 'cchs-fwd) (suite-proven? 'cchs-bwd) (suite-proven? 'der-cartesian-decompose))))
+(check-true "ROW 57: with the CLF guard of J-CART (D6), J-CART(T) is inside EQV(T) and cartesian-decompose is admissible (j-cart-sub, adm-cartesian-decompose-1, -7)"
+  (lambda () (and (suite-proven? 'j-cart-sub) (suite-proven? 'adm-cartesian-decompose-1) (suite-proven? 'adm-cartesian-decompose-7))))
+(check-true "META-FUN: CR is closed at stage 6 (cr-closed-6) and at stage 7 (cr-closed-7, eqv-desc-body; for every T since 2026-11-11, W2E), der-comp-cr proven"
   (lambda () (and (suite-proven? 'cr-closed-6) (suite-proven? 'cr-goal-6) (suite-proven? 'der-comp-cr)
                   (suite-proven? 'eqv-desc-body) (suite-proven? 'cr-closed-7) (suite-proven? 'cr-goal-7))))
 ;;; 2026-10-21, META-FUN (B1): THE FUNCTOID TABLE AND FUNCTOID-BETA-EQ in the META core (structure-library/meta-core.scm
@@ -18888,6 +18960,38 @@
                 (property commutative MUL)))
             'accepted)))))
   #t)
+
+;;; ---------------------------------------------------------------------------
+;;; W2D patch 05 (HELD): a head-only symbol is not a term at an argument position (FREF-REPORT s.5).
+;;; make-wff reports a refusal as a vnb-error OBJECT (it does not raise), so the tests read wff?.
+(check-true "HEAD-ONLY atoms: make-wff refuses a bare operator / functoid / accessor / predicate at an argument position"
+  (lambda ()
+    (quietly (lambda ()
+      (and (not (wff? (make-wff '(= POWER POWER))))
+           (not (wff? (make-wff '(IN CARD SET))))
+           (not (wff? (make-wff '(IN (CARR POWER) SET))))
+           (not (wff? (make-wff '(= (f_ DOM) 0))))
+           (not (wff? (make-wff '(= IS-GROUP 0)))))))))
+(check-true "HEAD-ONLY atoms: make-wff still accepts objects, applied heads, class names and an apply-functoid (controls)"
+  (lambda ()
+    (and (wff? (make-wff '(= (POWER ORD) (POWER ORD))))
+         (wff? (make-wff '(IN ORD SET)))
+         (wff? (make-wff '(= PI PI)))
+         (wff? (make-wff '(= EPLUS EPLUS)))
+         (wff? (make-wff '(IN (apply-functoid (VNB-LAMBDA x_ NN x_) 0) NN))))))
+(check-true "HEAD-ONLY atoms: neither definedness predicate certifies a head-only atom (builder pi--defined?, checker chk-elim-certified?)"
+  (lambda ()
+    (let ((concl (make-sequent '() (make-wff 'TRUTH))))
+      (and (not (pi--defined? '() 'POWER 0))
+           (pi--defined? '() 'ORD 0) (pi--defined? '() 'x_ 0) (pi--defined? '() 'PI 0) (pi--defined? '() 3 0)
+           (not (chk-elim-certified? concl 'POWER))
+           (chk-elim-certified? concl 'ORD) (chk-elim-certified? concl 'x_) (chk-elim-certified? concl 'PI)))))
+(check-true "HEAD-ONLY atoms: the goal (= POWER POWER) cannot be started, so rfl cannot close it; (= (POWER ORD) (POWER ORD)) closes by rfl"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (quietly (lambda () (sp (make-wff '(= POWER POWER)))))
+      (and (not *ps*)
+           (begin (sp (make-wff '(= (POWER ORD) (POWER ORD)))) (quietly (lambda () (rfl))) (proof-done? *ps*))))))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

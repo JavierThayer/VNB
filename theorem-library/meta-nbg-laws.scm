@@ -835,8 +835,8 @@
 (dk-cite! 'adm-rewrite-1 'tt '(J-TEQ tt) 'hs 'c)
 (ass)
 (qed 'adm-tuple-eq-decompose-1)
-(sp (make-wff '(FORALL tt (FORALL hs (FORALL c (IMPLIES (SUBSET tt CLF) (IMPLIES (IN AX-CLASS-EXT tt)
-   (IMPLIES (REL-TUPLE-EQ-DECOMPOSE-7 tt hs c) (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt)))))))))))
+(sp (make-wff '(FORALL tt (FORALL hs (FORALL c
+   (IMPLIES (REL-TUPLE-EQ-DECOMPOSE-7 tt hs c) (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt)))))))))
 (dk-peel!)
 (mac-h 'REL-TUPLE-EQ-DECOMPOSE-7 '(REL-TUPLE-EQ-DECOMPOSE-7 tt hs c))
 (dk-cite! 'j-teq-sub 'tt)

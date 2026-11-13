@@ -1270,7 +1270,7 @@
 ;;; section 9).  The local step: J-MACN(T) is inside EQV(T): the member by theorem-assumption, its instance by
 ;;; adm-inst-reach (each value denotes), the condition by backchain.  Then the generic one-position laws
 ;;; adm-rewrite-1 / -hyp-1 (positions of stage <= 5, no hypothesis on T) and adm-rewrite-7 / -hyp-7 (any
-;;; position, T a set of sentences containing AX-CLASS-EXT).
+;;; position, for every T since 2026-11-11; until then T a set of sentences containing AX-CLASS-EXT).
 (sp (make-wff '(FORALL tt (SUBSET (J-MACN tt) (EQV tt)))))
 (di)
 (mac 'J-MACN)
@@ -1313,22 +1313,21 @@
               (dk-cite! (if qeq? 'eqv-t-intro 'eqv-f-intro) 'tt g a b)
               (ass))))))))
 (qed 'j-macn-sub)
-(define (md13-adm! rel generic t-hyps?)
+(define (md13-adm! rel generic)        ; W2E, 2026-11-11: the stage-7 forms no longer take SUBSET tt CLF, AX-CLASS-EXT in tt
   (sp (make-wff `(FORALL tt (FORALL hs (FORALL c
-       ,(let ((core `(IMPLIES (,rel tt hs c) (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt))))))
-          (if t-hyps? `(IMPLIES (SUBSET tt CLF) (IMPLIES (IN AX-CLASS-EXT tt) ,core)) core)))))))
+       (IMPLIES (,rel tt hs c) (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt)))))))))
   (dk-peel!)
   (mac-h rel `(,rel tt hs c))
   (dk-cite! 'j-macn-sub 'tt)
   (dk-cite! generic 'tt '(J-MACN tt) 'hs 'c)
   (ass))
-(md13-adm! 'REL-MACETE-N-1 'adm-rewrite-1 #f)
+(md13-adm! 'REL-MACETE-N-1 'adm-rewrite-1)
 (qed 'adm-macete-n-1)
-(md13-adm! 'REL-MACETE-N-HYP-1 'adm-rewrite-hyp-1 #f)
+(md13-adm! 'REL-MACETE-N-HYP-1 'adm-rewrite-hyp-1)
 (qed 'adm-macete-n-hyp-1)
-(md13-adm! 'REL-MACETE-N-7 'adm-rewrite-7 #t)
+(md13-adm! 'REL-MACETE-N-7 'adm-rewrite-7)
 (qed 'adm-macete-n-7)
-(md13-adm! 'REL-MACETE-N-HYP-7 'adm-rewrite-hyp-7 #t)
+(md13-adm! 'REL-MACETE-N-HYP-7 'adm-rewrite-hyp-7)
 (qed 'adm-macete-n-hyp-7)
 
 ;;; -----------------------------------------------------------------------
@@ -1620,30 +1619,29 @@
 (md14-jsub! 'J-UDEC 'ENC-UNION 'der-union-decompose 'j-udec-sub)
 (md14-jsub! 'J-IDEC 'ENC-INTER 'der-intersection-decompose 'j-idec-sub)
 
-(define (md14-adm! rel j jsub generic t-hyps?)
+(define (md14-adm! rel j jsub generic)   ; W2E, 2026-11-11: the stage-7 forms no longer take SUBSET tt CLF, AX-CLASS-EXT in tt
   (sp (make-wff `(FORALL tt (FORALL hs (FORALL c
-       ,(let ((core `(IMPLIES (,rel tt hs c) (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt))))))
-          (if t-hyps? `(IMPLIES (SUBSET tt CLF) (IMPLIES (IN AX-CLASS-EXT tt) ,core)) core)))))))
+       (IMPLIES (,rel tt hs c) (IMPLIES (HYPS-IN hs (DERIVABLE tt)) (IN c (DERIVABLE tt)))))))))
   (dk-peel!)
   (mac-h rel `(,rel tt hs c))
   (dk-cite! jsub 'tt)
   (dk-cite! generic 'tt `(,j tt) 'hs 'c)
   (ass))
-(md14-adm! 'REL-UNION-DECOMPOSE-1 'J-UDEC 'j-udec-sub 'adm-rewrite-1 #f)
+(md14-adm! 'REL-UNION-DECOMPOSE-1 'J-UDEC 'j-udec-sub 'adm-rewrite-1)
 (qed 'adm-union-decompose-1)
-(md14-adm! 'REL-UNION-DECOMPOSE-HYP-1 'J-UDEC 'j-udec-sub 'adm-rewrite-hyp-1 #f)
+(md14-adm! 'REL-UNION-DECOMPOSE-HYP-1 'J-UDEC 'j-udec-sub 'adm-rewrite-hyp-1)
 (qed 'adm-union-decompose-hyp-1)
-(md14-adm! 'REL-UNION-DECOMPOSE-7 'J-UDEC 'j-udec-sub 'adm-rewrite-7 #t)
+(md14-adm! 'REL-UNION-DECOMPOSE-7 'J-UDEC 'j-udec-sub 'adm-rewrite-7)
 (qed 'adm-union-decompose-7)
-(md14-adm! 'REL-UNION-DECOMPOSE-HYP-7 'J-UDEC 'j-udec-sub 'adm-rewrite-hyp-7 #t)
+(md14-adm! 'REL-UNION-DECOMPOSE-HYP-7 'J-UDEC 'j-udec-sub 'adm-rewrite-hyp-7)
 (qed 'adm-union-decompose-hyp-7)
-(md14-adm! 'REL-INTERSECTION-DECOMPOSE-1 'J-IDEC 'j-idec-sub 'adm-rewrite-1 #f)
+(md14-adm! 'REL-INTERSECTION-DECOMPOSE-1 'J-IDEC 'j-idec-sub 'adm-rewrite-1)
 (qed 'adm-intersection-decompose-1)
-(md14-adm! 'REL-INTERSECTION-DECOMPOSE-HYP-1 'J-IDEC 'j-idec-sub 'adm-rewrite-hyp-1 #f)
+(md14-adm! 'REL-INTERSECTION-DECOMPOSE-HYP-1 'J-IDEC 'j-idec-sub 'adm-rewrite-hyp-1)
 (qed 'adm-intersection-decompose-hyp-1)
-(md14-adm! 'REL-INTERSECTION-DECOMPOSE-7 'J-IDEC 'j-idec-sub 'adm-rewrite-7 #t)
+(md14-adm! 'REL-INTERSECTION-DECOMPOSE-7 'J-IDEC 'j-idec-sub 'adm-rewrite-7)
 (qed 'adm-intersection-decompose-7)
-(md14-adm! 'REL-INTERSECTION-DECOMPOSE-HYP-7 'J-IDEC 'j-idec-sub 'adm-rewrite-hyp-7 #t)
+(md14-adm! 'REL-INTERSECTION-DECOMPOSE-HYP-7 'J-IDEC 'j-idec-sub 'adm-rewrite-hyp-7)
 (qed 'adm-intersection-decompose-hyp-7)
 
 ;; THE BINARY INSTANCES (the catalog's union-membership and intersection-membership, library.scm 753, 763): the pair

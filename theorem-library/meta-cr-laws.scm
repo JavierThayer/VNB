@@ -1815,7 +1815,8 @@
 ;;; (structure-library/meta-core.scm 4.10), so the kernel's functoid-beta -- and the unfold macete of a
 ;;; def-functoid, which is the same contraction at a def-functoid row -- is admissible at one position of stage
 ;;; <= 5 (adm-rewrite-1).  (At the binder bodies, stages 6 and 7, cr-goal-7 of meta-ind-laws.scm gives the same
-;;; for every T containing the encoded class-extensionality.  Inside a row's body there is no clause.)
+;;; for every T; until 2026-11-11 for every T containing the encoded class-extensionality.  Inside a row's body there
+;;; is no clause.)
 (sp (make-wff '(FORALL tt (SUBSET (J-FB tt) (EQV tt)))))
 (di)
 (mac 'J-FB)

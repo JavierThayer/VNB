@@ -655,6 +655,13 @@
 ;; them for binder-walker-audit (expressions.scm: declare-binder-walker!).  A
 ;; head added to *binder-shapes* and not to the two `case' forms below would
 ;; leave its bound variable unrecorded and its body walked in the outer scope.
+;;; W2D patch 05 (HELD; FREF-REPORT s.5, "second layer").  A HEAD-ONLY symbol (a def-functoid name, a
+;;; structure accessor, or a registered constant head that no primitive / definitional statement
+;;; defines as an object -- primitive-inferences.scm, pi--head-only-symbol?) or a lambdoid record
+;;; at an ARGUMENT position is not a term of the object language: `(= POWER POWER)', `(IN CARD SET)'.
+;;; The hook is set by primitive-inferences.scm; #f before it loads (nothing is registered then).
+(define *wff-head-only-hook* #f)
+
 (declare-binder-walker! 'validate-wff!
   '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
 
@@ -716,7 +723,7 @@
         (else
          (error "make-wff: unrecognized expression in wff position" e))))
 
-    (define (walk-term e bound-env)
+    (define (walk-term e bound-env #!optional head-pos)
       (cond
         ((number? e) #t)
         ((symbol? e)
@@ -726,9 +733,14 @@
            ((assq e bound-env)
             ;; Bound class variable used in term position — fine.
             #t)
-           (else (set! term-syms (cons e term-syms)))))
+           (else
+            (if (and *wff-head-only-hook* (*wff-head-only-hook* e))
+                (error "make-wff: a head-only symbol (a functoid, an accessor, an operator or a constant that is not defined as an object) at an argument position" e))
+            (set! term-syms (cons e term-syms)))))
         ;; Functoid record: validate each domain and the body
         ((functoid? e)
+         (if (and *wff-head-only-hook* (or (default-object? head-pos) (not head-pos)))
+             (error "make-wff: a lambdoid record at an argument position" e))
          (let* ((bindings (functoid-bindings e))
                 (bvars    (map car bindings))
                 (env*     (fold-left (lambda (env bv)
@@ -852,7 +864,8 @@
            ((apply-functoid)
             ;; (apply-functoid f arg ...) — f is a functoid or term; all are terms
             (or (>= (length e) 3) (error "make-wff: apply-functoid arity" e))
-            (for-each (lambda (a) (walk-term a bound-env)) (cdr e)))
+            (walk-term (cadr e) bound-env #t)            ; the functoid position is a head
+            (for-each (lambda (a) (walk-term a bound-env)) (cddr e)))
            ((+ - * recip abs conjugate succ)
             (for-each (lambda (a) (walk-term a bound-env)) (cdr e)))
            ;; Wff-forming heads in term position are an error.

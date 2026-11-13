@@ -398,6 +398,42 @@
           (rco--l-scale (rco--lin (car args)) (/ 1 (cadr args))))
          (#t (rco--l-atom t)))))))
 
+;;; The ATOMS of a term with the case analysis of `rco--lin', collected instead of
+;;; added: nothing cancels.  A real numeral contributes none; a product that
+;;; `rco--lin' reads as linear contributes its factors' atoms, one that it does not
+;;; is ONE atom (so a premise like |c| * ||v|| <= e asks the context for the typing
+;;; of the product, as it does when the product survives); recip and / of a
+;;; nonzero rational literal fold as there.  (W2V, 2026-11-10, held patch 06.)
+(define (rco--lin-atoms t)
+  (cond
+    ((number? t) (let ((v (rco--exactify t)))
+                   (if (and v (real? v)) '() (list t))))
+    ((not (pair? t)) (list t))
+    (else
+     (let ((op (car t)) (args (cdr t)))
+       (cond
+         ((and (memq op '(+ binplus)) (pair? args))
+          (apply append (map rco--lin-atoms args)))
+         ((and (memq op '(- binneg)) (or (= (length args) 1) (= (length args) 2)))
+          (apply append (map rco--lin-atoms args)))
+         ((and (memq op '(* bintimes)) (pair? args))
+          (if (equal? (rco--lin t) (rco--l-atom t))
+              (list t)
+              (apply append (map rco--lin-atoms args))))
+         ((and (eq? op 'recip) (= (length args) 1)
+               (rco--rational-literal? (car args)))
+          '())
+         ((and (eq? op '/) (= (length args) 2)
+               (rco--rational-literal? (cadr args)))
+          (rco--lin-atoms (car args)))
+         (#t (list t)))))))
+
+;;; The atoms of the two sides of an order formula or equation, '() otherwise.
+(define (rco--formula-lin-atoms f)
+  (if (and (pair? f) (= (length f) 3) (memq (car f) '(<= < =)))
+      (append (rco--lin-atoms (cadr f)) (rco--lin-atoms (caddr f)))
+      '()))
+
 ;;; An order formula as (linear form . relation), the form being lhs - rhs and
 ;;; the relation what it stands in to 0.  #f for anything else.
 (define (rco--lin-rel f)
@@ -434,6 +470,20 @@
 ;;;       abs(.) of a term all of whose atoms are certified.  Scaling by a
 ;;;       positive rational and adding are order-preserving in an ordered FIELD;
 ;;;       over an uncertified atom the combination means nothing.
+;;;       THE ATOMS ARE READ OFF THE RAW SIDES, BEFORE CANCELLATION (agent W2V,
+;;;       2026-11-10, the W2D report's finding F-INEQ; held patch 06): `rco--lin'
+;;;       cancels, so an atom that occurs as t - t, on both sides of the relation,
+;;;       or multiplied by 0, leaves no trace in the linear form; until this
+;;;       patch the checker certified only the SURVIVING atoms and accepted, with
+;;;       u untyped, the forged  u + 1 = 1 + u,  u - u = 0,  u <= u,  u < u + 1.
+;;;       In VNB the order relations and = are strict: each asserts that its two
+;;;       sides DENOTE, and u + 1 denotes only for a number u.  `rco--lin-atoms'
+;;;       collects with the case analysis of `rco--lin' (a product that is not
+;;;       linear is ONE atom, as there), and the goal's atoms are certified
+;;;       whether or not the certificate uses the goal -- as the builder
+;;;       (ineq-oracle.scm, `ineq-source-atoms', since 2026-09-20) and the crs
+;;;       checker (`rco--num-gens') already do.  The abs(.) clause reads its
+;;;       argument the same way.
 ;;;   (e) no variable of a leading RR-restricted universal of the goal occurs
 ;;;       free in a premise used.  The oracle strips `forall x in RR' and treats
 ;;;       the bound x as a real atom; if an assumption mentions a DIFFERENT x
@@ -467,9 +517,10 @@
       (rco--in-rr? a asms)
       ;; abs(t) is real as soon as t is (rr-abs-closed); t is read linearly and
       ;; every atom of it must itself be certified.
+      ;; (W2V 06: the argument's atoms before cancellation -- abs(u - u) is not real for an untyped u)
       (and (pair? a) (eq? (car a) 'abs) (= (length a) 2)
-           (rco--all? (lambda (p) (rco--real-atom? (car p) asms rrvars))
-                      (rco--l-terms (rco--lin (cadr a)))))))
+           (rco--all? (lambda (b) (rco--real-atom? b asms rrvars))
+                      (rco--lin-atoms (cadr a))))))
 
 ;;; An id -> (index . direction) | 'goal | #f.  hI / hI-rev, I a positive
 ;;; decimal numeral.
@@ -538,7 +589,12 @@
               (loop (cdr cs)
                     (rco--l-add acc (rco--l-scale (car c) m))
                     (or strict (cdr c))
-                    (append atoms (map car (rco--l-terms (car c)))))))))))))
+                    (append atoms (map car (rco--l-terms (car c)))
+                            ;; W2V 06: a premise's atoms before cancellation
+                            (let ((k (rco--ineq-id id)))
+                              (if (pair? k)
+                                  (rco--formula-lin-atoms (list-ref asms (- (car k) 1)))
+                                  '()))))))))))))
 
 ;;; The variables a certificate's premises must not mention: the eigenvariables
 ;;; the goal's leading RR-universals bound.
@@ -563,6 +619,10 @@
       ((pair? hyps) "ineq takes no hypotheses")
       ((not cert) "the ineq tag carries no Farkas certificate")
       ((not gpr) "the goal is not an order formula between linear terms")
+      ;; W2V 06: every atom of the goal, cancelled or not, used by the certificate or not
+      ((rco--any? (lambda (a) (not (rco--real-atom? a asms rrvars)))
+                  (rco--formula-lin-atoms (car peel)))
+       "an atom of the goal is not certified real by the context (atoms are read before cancellation)")
       (#t
        (let* ((L (car gpr))
               (rel (cdr gpr)))
