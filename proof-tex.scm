@@ -343,7 +343,7 @@
     (union   . "$\\cup$ -- union")
     (intersection . "$\\cap$ -- intersection")
     (pair    . "$\\{a,b\\}$ -- the unordered pair (a singleton $\\{x\\}$ when the two are equal)")
-    (list    . "$\\langle \\ldots \\rangle$ -- a finite tuple")
+    (list    . "$[\\ldots]$ -- a finite tuple")
     (sep     . "$\\{x \\in A : \\varphi\\}$ -- the subset of $A$ carved out by the condition $\\varphi$")
     (choice  . "$\\varepsilon$ -- the global choice operator")
     (iota    . "$\\iota$ -- the definite-description operator")

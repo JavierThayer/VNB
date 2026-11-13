@@ -1,12 +1,10 @@
 %% library-book.tex -- a standalone wrapper around the GENERATED book of theorems
-%% and definitions by library (reference/library-book.tex, written at every load by
-%% (write-library-book-tex! "reference/library-book.tex"), library-book.scm).
+%% and definitions in the OUTLINE OF THE NOTES (reference/library-book.tex, written at
+%% every load by (write-library-book-tex! "reference/library-book.tex"), library-book.scm;
+%% the user's approval of 2026-11-12).  The book by library, as it was before, is
+%% library-book-by-library.tex.
 %%
-%% One part per library of libraries.sexp, in an order in which every theorem
-%% follows the theorems and definitions it depends on.  No proofs: a proposition's
-%% proof is (display-proof 'NAME "file.pdf") in the prover.
-%%
-%% Build:  make library-book     (pdflatex twice, for the table of contents)
+%% Build:  make library-book     (pdflatex twice, for the table of contents and the references)
 
 \documentclass[11pt]{report}
 \usepackage[T1]{fontenc}
@@ -24,7 +22,7 @@
 \setlength{\emergencystretch}{3em}
 \sloppy
 
-\title{VNB: the theorems and definitions, by library}
+\title{VNB: the theorems and definitions, in the outline of the notes}
 \author{}
 \date{}
 
@@ -33,25 +31,31 @@
 
 \noindent
 Every definition, axiom, assumption and theorem the VNB library installs, as a
-statement, without proofs, in seven books that are the libraries of
-\texttt{libraries.sexp}.  The books are in import order and the entries within a
-book in load order, so a theorem always follows the theorems and definitions it
-depends on.  A section is a source file (its path is a link).  An
-\textbf{Assumption} is a fact accepted without a machine proof, with the tier of
-its warrant; a \textbf{Proposition} is proven, and its proof is
-\texttt{(display-proof 'NAME "file.pdf")} in the prover.
+statement, without proofs.  The first parts follow the user's notes, one part per
+document, in the order of \texttt{docs/major-theorems-table.sexp}: its chapters and
+sections, and in each section the \emph{major results} (the numbered results of the
+notes that the table maps to the library) in the notes' order.  A major result prints
+the notes' statement, the major results its proof reaches (\emph{Uses}), the library
+theorems that state it, and the lemmas used by it alone, each indented under the lemma
+it serves (its immediate dominator in the citation graph).  A lemma used by several
+results of one section, chapter or document is printed once, as a \emph{tool}, after
+that section, chapter or document.  A result of the notes with no theorem of its own
+prints one line saying where its theorems are, or that the library lacks it.
+
+\noindent
+The last parts are the libraries of \texttt{libraries.sexp}: the definitions, axioms
+and assumptions of each, by source file in load order, then the theorems the notes'
+outline does not place -- those used by results of several documents, those of a
+library below the result that uses them, and those no major result reaches -- grouped
+by the principal defined symbol of the statement, in load order within a group.
+A \textbf{Proposition} is proven; its proof is \texttt{(display-proof 'NAME "file.pdf")}
+in the prover.
 
 \noindent
 A \textbf{Definition} of a structure (a field, a metric space, a measure space)
 transcribes its \texttt{declare-structure} declaration (manual, section
-``Mathematical structures'').  It lists the components, numbered as in the
-declaration; each is a projection, so that, for a field, $\mathrm{add}(s)$ is
-$\mathrm{nth}(2, s)$ for every $s$; each line names the clause that declared it
-(\texttt{carriers}, \texttt{op}, \texttt{constant}, \texttt{derived},
-\texttt{substructure}, \texttt{family}, \texttt{family-fun}, \texttt{relation})
-and gives its typing.  The laws follow (the \texttt{property} and \texttt{law}
-clauses).  The structure's predicate holds of $s$ exactly when $s$ has the stated
-length, every component has its typing, and every law holds.
+``Mathematical structures''): the components, numbered as in the declaration, each a
+projection with its typing, then the laws.
 
 \input{../reference/library-book.tex}
 

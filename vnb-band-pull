@@ -47,7 +47,9 @@ if [ "$REST" = 1 ]; then
   rsync -az --delete -e "$SSH" "$SRC/certificates/" ~/prover/certificates/ || rc=$?
   # core-pages/ (the exam's core pages, gzipped, and SUMMARY.txt): what the Emacs "Show
   # core proof" reads.  Only when the worker has them (an exam with VNB_CORE_REPLAY=on).
-  if $SSH ubuntu@127.0.0.1 test -d /home/ubuntu/prover/core-pages; then
+  # The test is SUMMARY.txt, not the directory (2026-11-13): a certified build leaves an EMPTY
+  # core-pages/ on the worker, and --delete then wiped the primary's pages of the last exam.
+  if $SSH ubuntu@127.0.0.1 test -f /home/ubuntu/prover/core-pages/SUMMARY.txt; then
     rsync -az --delete -e "$SSH" "$SRC/core-pages/" ~/prover/core-pages/ || rc=$?
   fi
 fi

@@ -472,9 +472,20 @@
               (string-append "M" (cert-md5 (cert-canon (cons name d))))
               "-")))))
 
+;;; A -rev companion is recorded as its SOURCE (the user's decision, 2026-11-12, EXAM-SLICE
+;;; finding): which of a definition and its -rev the rewriter reaches first depends on what
+;;; ran earlier in the image, so recording the name that fired made the uses list a function
+;;; of the load's history (130 records flipped between a sliced night and the single exam).
+;;; The companion's statement is minted from its source's, so the source's hash covers it.
+;;; A record written before this change still lists the -rev with the -rev's hash; it stays
+;;; valid (the validator hashes the names recorded) until an exam rewrites it.
 (define (cert--uses-of name)
-  (sort (filter (lambda (c) (not (cert--self? c name))) *proof-used-defs*)
-        (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+  (let loop ((cs *proof-used-defs*) (acc '()))
+    (if (null? cs)
+        (sort acc (lambda (a b) (string<? (symbol->string a) (symbol->string b))))
+        (let ((c (or (rev-companion-source (car cs)) (car cs))))
+          (loop (cdr cs)
+                (if (or (cert--self? c name) (memq c acc)) acc (cons c acc)))))))
 
 ;;; The record for NAME, just proven (called by qed--guarded after the ledger).
 (define (cert-make-record name bill)

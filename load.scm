@@ -4445,6 +4445,35 @@
     "theorem-library/hs-inner-product"    ; WAVE 2026-11-09/10: th3-1109/b2/tb2-hip.scm
     "theorem-library/hs-inner-product-2"    ; WAVE 2026-11-09/10: th3-1109/b2/tb2-hip2.scm
     "theorem-library/hs-inner-product-3"    ; WAVE 2026-11-09/10: th3-1109/b2/tb2-hip3.scm
+    "structure-library/ipf-vocab"    ; WAVE 2026-11-11: ba1111a2/ipf-vocab.scm
+    "structure-library/hilbert-completion-vocab"    ; WAVE 2026-11-11: ba1111a2/hc-vocab.scm
+    "theorem-library/ipf-laws"    ; WAVE 2026-11-11: ba1111a2/ipf-laws.scm
+    "theorem-library/ipf-quotient"    ; WAVE 2026-11-11: ba1111a2/ipf-quotient.scm
+    "theorem-library/ipf-form-plus"    ; WAVE 2026-11-11: ba1111a2/ipf-form-plus.scm
+    "theorem-library/hilbert-completion"    ; WAVE 2026-11-11: ba1111a2/hilbert-completion.scm
+    "theorem-library/ba-trace-class"    ; WAVE 2026-11-11: ba1111a/bta-trace.scm
+    "theorem-library/ba-graph-commutation"    ; WAVE 2026-11-11: ba1111a/btg-all.scm
+    "structure-library/ba-rep-vocab"    ; WAVE 2026-11-11: ba1111b/ba-rep-vocab.scm
+    "structure-library/ba-gns-vocab"    ; WAVE 2026-11-11: ba1111b/ba-gns-vocab.scm
+    "theorem-library/ba4-sqrt"    ; WAVE 2026-11-11: ba1111b/ba4-sqrt.scm
+    "theorem-library/ba4-pos"    ; WAVE 2026-11-11: ba1111b/ba4-pos.scm
+    "theorem-library/ba4-rep"    ; WAVE 2026-11-11: ba1111b/ba4-rep.scm
+    "theorem-library/ba4-gns"    ; WAVE 2026-11-11: ba1111b/ba4-gns.scm
+    "theorem-library/ba4-states"    ; WAVE 2026-11-11: ba1111b/ba4-states.scm
+    "theorem-library/tvs-sub-bound"    ; WAVE 2026-11-11: ba1111c/tvs-sub-bound.scm
+    "theorem-library/ba-optop-adjoint"    ; WAVE 2026-11-11: ba1111c/ba-optop-adjoint.scm
+    "structure-library/ba-vn-vocab"    ; WAVE 2026-11-11: ba1111c/ba-vn-vocab.scm
+    "theorem-library/ba-vn"    ; WAVE 2026-11-11: ba1111c/ba-vn.scm
+    "structure-library/ba-amp-vocab"    ; WAVE 2026-11-11: ba1111c2/ba-amp-vocab.scm
+    "theorem-library/ba-amp"    ; WAVE 2026-11-11: ba1111c2/ba-amp.scm
+    "theorem-library/ba-sesq"    ; WAVE 2026-11-11: ba1111c2/ba-sesq.scm
+    "theorem-library/ccr4e-unif0"    ; WAVE 2026-11-11: ccr1111/ccr4e-unif0.scm
+    "theorem-library/poly-eval-mul"    ; WAVE 2026-11-11: ccr1111b/poly-eval-mul.scm
+    "structure-library/ccr4f-vocab"    ; WAVE 2026-11-11: ccr1111b/ccr4f-vocab.scm
+    "theorem-library/ccr4f-digits"    ; WAVE 2026-11-11: ccr1111b/ccr4f-digits.scm
+    "theorem-library/ccr4f-poly"    ; WAVE 2026-11-11: ccr1111b/ccr4f-poly.scm
+    "theorem-library/ccr4g-coords"    ; WAVE 2026-11-11: ccr1111c/ccr4g-coords.scm
+    "theorem-library/ccr4g-residue"    ; WAVE 2026-11-11: ccr1111c/ccr4g-residue.scm
     ;; page-audit -- the gate on the PRINTED PAGE.  Reads *proof-script-table*
     ;; and emits each proof through `script--write-block', so it must come after
     ;; every proof file, after `interactive' (the emitter) and after
@@ -5095,7 +5124,11 @@
   ;; and VNB_WRITE_BOOK=1 forces it in any load.
   (if (or (eq? (cert-mode) 'off)
           (let ((v (get-environment-variable "VNB_WRITE_BOOK"))) (and v (string=? v "1"))))
-      (write-library-book-tex! "reference/library-book.tex")
+      (begin
+        ;; in the outline of the notes (the default since 2026-11-12, BOOK-GEN) and, for
+        ;; comparison, by library as before
+        (write-library-book-tex! "reference/library-book.tex")
+        (write-library-book-tex! "reference/library-book-by-library.tex" 'by-library))
       (display ";; library-book: not written in a certified load (the exam writes it; VNB_WRITE_BOOK=1 forces it)\n"))
 
   ;; Regenerate emacs/vnb-commands.lisp (the command-completion catalog) from the

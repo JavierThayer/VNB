@@ -472,10 +472,14 @@
                       (expr->tex (cadr args)) "\\}")))))
 
 (tex--register-special! 'list
+  ;; [a, b, c], as the manual says lists read in input AND output (the user, 2026-11-13: the
+  ;; angle brackets are wanted for inner products, <x, y>_H; they were \\langle .. \\rangle before)
   (lambda (args)
-    (string-append "\\langle "
+    ;; "{[}", not "[": after a line break "\\\\" a bare "[" is read as its optional
+    ;; dimension (library book, 2026-11-13: "Illegal unit of measure" at "\\\\ [2, 1] \\in ...").
+    (string-append "{[}"
                    (tex--string-join (map expr->tex args) ", ")
-                   " \\rangle")))
+                   "]")))
 
 (tex--register-special! 'fun
   (lambda (args)

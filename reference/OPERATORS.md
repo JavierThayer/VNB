@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-2006 operators: 3 functions, 11 syntax, 1161 functoids, 827 predicates, 4 undeclared.
+2064 operators: 3 functions, 11 syntax, 1201 functoids, 845 predicates, 4 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `delete-at` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (1161)
+## Functoids  (1201)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -153,6 +153,12 @@ Declared by: `amgm-2-sqrt` `bdd-fn-le-arg` `bdd-fn-lt-one` `bdd-fn-mono` `bdd-fn
 > _Reads as:_  the implicational spine of the body mnbb_, with depths
 
     all-spine(mnbb_) := {mnbz_ in cartesian(expr-set, nn): forall([mnbv_ in power(cartesian(expr-set, nn))], [mnbb_, 0] in mnbv_ implies all-spine-closed(mnbv_) implies mnbz_ in mnbv_)}
+
+### `amp-step`  — def-functoid · function-valued
+
+> _Reads as:_  the representation T |-> amf_(T) (+) T
+
+    amp-step(amv_, amw_, amf_) := vnb-lambda(amt_, bounded-ops(amv_, amv_), hsum-diag(amw_, amv_, amf_(amt_), amt_))
 
 ### `angle`  — def-functoid · element/number-valued
 
@@ -303,6 +309,12 @@ Declared by: `amgm-2-sqrt` `bdd-fn-le-arg` `bdd-fn-lt-one` `bdd-fn-mono` `bdd-fn
 > _Reads as:_  the polar of c5v_ with respect to c5w_
 
     bichar-polar(c5k_, c5w_, c5v_) := {c5h_ in carr(c5k_): forall([c5x_ in c5v_], c5w_(c5h_, c5x_) = 1)}
+
+### `bicommutant`  — def-functoid · element/number-valued
+
+> _Reads as:_  the bicommutant of vns_ in the bounded operators on vnv_
+
+    bicommutant(vnv_, vns_) := commutant(vnv_, commutant(vnv_, vns_))
 
 ### `bidual-eval`  — def-functoid · function-valued
 
@@ -732,6 +744,10 @@ Declared by: `cc-of-pair-def`
 
 > _Reads as:_  the unit sphere S^3 of C^2
 
+### `cchs`  — kernel primitive (notation-declared, no def-*)
+
+> _Reads as:_  cchs()
+
 ### `ccint`  — def-functoid · set-valued
 
 > _Reads as:_  the closed real interval [a, b]
@@ -1070,6 +1086,12 @@ Declared by: `cc-of-pair-def`
 
 Declared by: `comb-kk-zero` `comb-kk-succ` 
 
+### `commutant`  — def-functoid · set-valued
+
+> _Reads as:_  the commutant of vns_ in the bounded operators on vnv_
+
+    commutant(vnv_, vns_) := {vnt_ in bounded-ops(vnv_, vnv_): forall([vna_ in vns_], bop-comp(vnv_, vnt_, vna_) = bop-comp(vnv_, vna_, vnt_))}
+
 ### `comp`  — kernel term-former
 
 ### `compact-ops`  — def-functoid · set-valued
@@ -1219,6 +1241,12 @@ Declared by: `cons-in-tuples` `length-cons` `makeset-cons` `nth-cons-1` `nth-con
 ### `cseq`  — def-functoid · set-valued
 
     cseq(m) := {f in fun(nn, pts(m)): is-cauchy-seq(m, f)}
+
+### `cseq-module`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the module of the Cauchy sequences of (md, fq)
+
+    cseq-module(md, fq) := [scal(md), form-cseq(md, fq), vnb-lambda([hcf_, hcg_], cartesian(form-cseq(md, fq), form-cseq(md, fq)), seq-vadd(md, hcf_, hcg_)), seq-zero(md), vnb-lambda(hcf_, form-cseq(md, fq), seq-vneg(md, hcf_)), vnb-lambda([hca_, hcf_], cartesian(cc, form-cseq(md, fq)), seq-act(md, hca_, hcf_))]
 
 ### `csip-cips`  — def-functoid · tuple/structure-valued
 
@@ -2180,6 +2208,24 @@ Declared by: `fam-of-list-apply`
 
 > _Reads as:_  the norm on the scalar field of s
 
+### `form-cseq`  — def-functoid · element/number-valued
+
+> _Reads as:_  the Cauchy sequences of the inner product space (md, fq)
+
+    form-cseq(md, fq) := cseq(form-ms(md, fq))
+
+### `form-ms`  — def-functoid · element/number-valued
+
+> _Reads as:_  the metric space of the inner product fq on md
+
+    form-ms(md, fq) := ip-metric-space(module-with-form(md, fq))
+
+### `form-null`  — def-functoid · set-valued
+
+> _Reads as:_  the null space of the form ipff_
+
+    form-null(ipfm_, ipff_) := {ipfx_ in vec(ipfm_): ipff_(ipfx_, ipfx_) = 0}
+
 ### `form-operator`  — def-functoid · set-valued
 
 > _Reads as:_  the operator of the form ubf_
@@ -2197,6 +2243,18 @@ Declared by: `fam-of-list-apply`
 > _Reads as:_  the space ubd_ with the inner product of ubf_ plus that of ubv_
 
     form-plus-space(ubv_, ubd_, ubf_) := [normed-field-as-commutative-ring(cc-normed-field), ubd_, vnb-lambda([ubx_, uby_], cartesian(ubd_, ubd_), (vadd(ubv_))(ubx_, uby_)), vzero(ubv_), vnb-lambda(ubx_, ubd_, (vneg(ubv_))(ubx_)), vnb-lambda([ubk_, ubx_], cartesian(cc, ubd_), (act(ubv_))(ubk_, ubx_)), form-plus(ubv_, ubd_, ubf_)]
+
+### `form-qip`  — def-functoid · element/number-valued
+
+> _Reads as:_  the form induced by ipff_ on the quotient by its null space
+
+    form-qip(ipfm_, ipff_) := descend2(qmod-setoid(ipfm_, form-null(ipfm_, ipff_)), ipff_)
+
+### `form-quotient`  — def-functoid · element/number-valued
+
+> _Reads as:_  the quotient of ipfm_ by the null space of ipff_, with the induced inner product
+
+    form-quotient(ipfm_, ipff_) := module-with-form(quotient-module(ipfm_, form-null(ipfm_, ipff_)), form-qip(ipfm_, ipff_))
 
 ### `fp`  — def-functoid · element/number-valued
 
@@ -2291,6 +2349,42 @@ Declared by: `fam-of-list-apply`
 > _Reads as:_  the subgroup of gcg_ generated by gcx_
 
     generated-subgroup(gcg_, gcx_) := {gcy_ in carr(gcg_): forall([gcs_ in power(carr(gcg_))], is-subgroup(gcg_, gcs_) implies gcx_ in gcs_ implies gcy_ in gcs_)}
+
+### `gns-form`  — def-functoid · function-valued
+
+> _Reads as:_  the form (x, y) |-> g4gf_(y* x) on g4ga_
+
+    gns-form(g4ga_, g4gf_) := vnb-lambda([g4gx_, g4gy_], cartesian(vec(g4ga_), vec(g4ga_)), g4gf_((vmul(g4ga_))((vstar(g4ga_))(g4gy_), g4gx_)))
+
+### `gns-module`  — def-functoid · element/number-valued
+
+> _Reads as:_  g4ga_ as a complex module
+
+    gns-module(g4ga_) := uba-as-module(uiba-as-uba(g4ga_))
+
+### `gns-op`  — def-functoid · element/number-valued
+
+> _Reads as:_  the GNS operator of g4gx_
+
+    gns-op(g4ga_, g4gf_, g4gx_) := descend(gns-setoid(g4ga_, g4gf_), vnb-lambda(g4gb_, vec(g4ga_), class(gns-setoid(g4ga_, g4gf_), (vmul(g4ga_))(g4gx_, g4gb_))))
+
+### `gns-pre`  — def-functoid · element/number-valued
+
+> _Reads as:_  the GNS pre-Hilbert space of g4gf_
+
+    gns-pre(g4ga_, g4gf_) := form-quotient(gns-module(g4ga_), gns-form(g4ga_, g4gf_))
+
+### `gns-setoid`  — def-functoid · element/number-valued
+
+> _Reads as:_  congruence modulo the null space of g4gf_
+
+    gns-setoid(g4ga_, g4gf_) := qmod-setoid(gns-module(g4ga_), form-null(gns-module(g4ga_), gns-form(g4ga_, g4gf_)))
+
+### `gns-vector`  — def-functoid · element/number-valued
+
+> _Reads as:_  the GNS cyclic vector of g4gf_
+
+    gns-vector(g4ga_, g4gf_) := class(gns-setoid(g4ga_, g4gf_), vone(g4ga_))
 
 ### `gpow`  — kernel primitive (notation-declared, no def-*)
 
@@ -2398,6 +2492,10 @@ Declared by: `fam-of-list-apply`
 
     haar-mean(hmg_, hmf_) := iota(hmc_, hmc_ in rr and vnb-lambda(hix_, pts(metric-group-ms(hmg_)), hmc_) in closure(nvs-metric-space(ck-nvs(metric-group-ms(hmg_))), conv-hull(ck-nvs(metric-group-ms(hmg_)), image(vnb-lambda(hqa_, pts(metric-group-ms(hmg_)), vnb-lambda(hix_, pts(metric-group-ms(hmg_)), hmf_((opr(hmg_))(hqa_, hix_)))), pts(metric-group-ms(hmg_))))))
 
+### `half-sq-iter`  — kernel primitive (notation-declared, no def-*)
+
+> _Reads as:_  half-sq-iter()
+
 ### `hausdorff`  — def-functoid · element/number-valued
 
 > _Reads as:_  the Hausdorff outer measure of dimension mhl_ on mhm_
@@ -2415,6 +2513,12 @@ Declared by: `fam-of-list-apply`
 > _Reads as:_  A |-> diam(A)^mhl_ (in mhm_)
 
     hausdorff-pm(mhm_, mhl_) := vnb-lambda(mhh_, power(pts(mhm_)), epow(diam(mhm_, mhh_), mhl_))
+
+### `hc-embed`  — def-functoid · function-valued
+
+> _Reads as:_  the embedding of (md, fq) in its Hilbert completion
+
+    hc-embed(md, fq) := vnb-lambda(hcx_, vec(md), class(qmod-setoid(cseq-module(md, fq), form-null(cseq-module(md, fq), limit-form(md, fq))), embed-seq(form-ms(md, fq), hcx_)))
 
 ### `hd-argk`  — def-functoid · element/number-valued
 
@@ -2439,6 +2543,12 @@ Declared by: `fam-of-list-apply`
 > _Reads as:_  the kind of an application of the head mch_
 
     hd-res(mch_) := if(mch_ <= 10, 2, 1)
+
+### `hilbert-completion`  — def-functoid · element/number-valued
+
+> _Reads as:_  the Hilbert completion of the inner product space (md, fq)
+
+    hilbert-completion(md, fq) := form-quotient(cseq-module(md, fq), limit-form(md, fq))
 
 ### `hom-abelian-group`  — def-functoid · set-valued
 
@@ -2826,9 +2936,39 @@ Declared by: `fam-of-list-apply`
 
     hsum-act(bov_, bow_) := vnb-lambda([bhc_, bhp_], cartesian(cc, cartesian(vec(bov_), vec(bow_))), [(act(bov_))(bhc_, nth(1, bhp_)), (act(bow_))(bhc_, nth(2, bhp_))])
 
+### `hsum-diag`  — def-functoid · function-valued
+
+> _Reads as:_  the diagonal operator ama_ (+) amb_
+
+    hsum-diag(amw_, amv_, ama_, amb_) := vnb-lambda(amp_, cartesian(vec(amw_), vec(amv_)), [ama_(nth(1, amp_)), amb_(nth(2, amp_))])
+
+### `hsum-in1`  — def-functoid · function-valued
+
+> _Reads as:_  the injection of amw_ into the Hilbert direct sum of amw_ and amv_
+
+    hsum-in1(amw_, amv_) := vnb-lambda(amx_, vec(amw_), [amx_, vzero(amv_)])
+
+### `hsum-in2`  — def-functoid · function-valued
+
+> _Reads as:_  the injection of amv_ into the Hilbert direct sum of amw_ and amv_
+
+    hsum-in2(amw_, amv_) := vnb-lambda(amy_, vec(amv_), [vzero(amw_), amy_])
+
 ### `hsum-ip`  — def-functoid · function-valued
 
     hsum-ip(bov_, bow_) := vnb-lambda([bhp_, bhq_], cartesian(cartesian(vec(bov_), vec(bow_)), cartesian(vec(bov_), vec(bow_))), (ip(bov_))(nth(1, bhp_), nth(1, bhq_)) + (ip(bow_))(nth(2, bhp_), nth(2, bhq_)))
+
+### `hsum-pr1`  — def-functoid · function-valued
+
+> _Reads as:_  the projection of the Hilbert direct sum of amw_ and amv_ onto amw_
+
+    hsum-pr1(amw_, amv_) := vnb-lambda(amp_, cartesian(vec(amw_), vec(amv_)), nth(1, amp_))
+
+### `hsum-pr2`  — def-functoid · function-valued
+
+> _Reads as:_  the projection of the Hilbert direct sum of amw_ and amv_ onto amv_
+
+    hsum-pr2(amw_, amv_) := vnb-lambda(amp_, cartesian(vec(amw_), vec(amv_)), nth(2, amp_))
 
 ### `hsum-vadd`  — def-functoid · function-valued
 
@@ -2853,6 +2993,12 @@ Declared by: `fam-of-list-apply`
 > _Reads as:_  the strand identifier of the node ssn_
 
     id-of(ssn_) := nth(2, ssn_)
+
+### `id-rep`  — def-functoid · function-valued
+
+> _Reads as:_  the identity representation of the operators on amv_
+
+    id-rep(amv_) := vnb-lambda(amt_, bounded-ops(amv_, amv_), amt_)
 
 ### `ideal-stage`  — kernel primitive (notation-declared, no def-*)
 
@@ -3030,7 +3176,7 @@ Declared by: `fam-of-list-apply`
 
 > _Reads as:_  the local instances of cartesian-decompose
 
-    j-cart(mit_) := {mix_ in rw-univ: forsome([mig_, miz_, mia_], miz_ in set and mia_ in set and mix_ = [2, mig_, enc-in(miz_, enc-cart(mia_)), enc-cch(miz_, mia_, length(mia_), length(mia_))] and mig_ in ctx-set and 1 <= length(mia_))}
+    j-cart(mit_) := {mix_ in rw-univ: forsome([mig_, miz_, mia_], miz_ in set and mia_ in set and mix_ = [2, mig_, enc-in(miz_, enc-cart(mia_)), enc-cch(miz_, mia_, length(mia_), length(mia_))] and mig_ in ctx-set and 1 <= length(mia_) and enc-in(miz_, enc-cart(mia_)) in clf and enc-cch(miz_, mia_, length(mia_), length(mia_)) in clf)}
 
 ### `j-fb`  — def-functoid · set-valued
 
@@ -3388,9 +3534,21 @@ Declared by: `fam-of-list-apply`
 
 > _Reads as:_  the set of linear fractional transformations of the extended plane
 
+### `limit-form`  — def-functoid · function-valued
+
+> _Reads as:_  the limit of the inner products of two Cauchy sequences of (md, fq)
+
+    limit-form(md, fq) := vnb-lambda([hcf_, hcg_], cartesian(form-cseq(md, fq), form-cseq(md, fq)), iota(hcc_, hcc_ in cc and converges-to(cc-ms, seq-form(fq, hcf_, hcg_), hcc_)))
+
 ### `limit-ord`  — characterized by axiom(s)
 
 Declared by: `limit-ord-iff` 
+
+### `lin-coords`  — def-functoid · element/number-valued
+
+> _Reads as:_  the coordinates over ndsp_ of ndsv_ in the sequence ndsu_
+
+    lin-coords(ndsm_, ndsd_, ndsu_, ndsp_, ndsv_) := iota(ndsc_, ndsc_ in mat(1, ndsd_, ndsp_) and ndsv_ = lincomb(ndsm_, ndsd_, ndsc_, ndsu_))
 
 ### `lin-span`  — def-functoid · set-valued
 
@@ -3634,6 +3792,12 @@ Declared by: `nn-min-closed` `rr-le-min` `rr-lt-min` `rr-min-cases` `rr-min-clos
 
     minor(s, r, c, n) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), entry(s, if(i < r, i, succ(i)), if(j < c, j, succ(j)))))
 
+### `module-with-form`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  ipfm_ with the inner product ipff_
+
+    module-with-form(ipfm_, ipff_) := [scal(ipfm_), vec(ipfm_), vadd(ipfm_), vzero(ipfm_), vneg(ipfm_), act(ipfm_), ipff_]
+
 ### `monalg`  — def-functoid · tuple/structure-valued
 
 > _Reads as:_  the monoid algebra a[m]
@@ -3784,6 +3948,18 @@ Declared by: `mpow-zero` `mpow-succ`
 
     nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], cartesian(carr(nf), carr(nf)), (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]
 
+### `nf-poly-over`  — def-functoid · set-valued
+
+> _Reads as:_  the polynomials over ndsk_ with coefficients in ndsf_
+
+    nf-poly-over(ndsk_, ndsf_) := {ndsp_ in carr(poly(normed-field-as-commutative-ring(ndsk_))): forall([ndsi_ in nn], ndsp_(ndsi_) in ndsf_)}
+
+### `nf-rat-at`  — def-functoid · set-valued
+
+> _Reads as:_  the quotients of values at ndsw_ of polynomials over ndsf_ in ndsk_
+
+    nf-rat-at(ndsk_, ndsf_, ndsw_) := {ndsx_ in carr(ndsk_): forsome([ndsp_ in nf-poly-over(ndsk_, ndsf_), ndsq_ in nf-poly-over(ndsk_, ndsf_)], not(poly-eval(normed-field-as-commutative-ring(ndsk_), ndsq_, ndsw_) = zero(ndsk_)) and (mul(ndsk_))(ndsx_, poly-eval(normed-field-as-commutative-ring(ndsk_), ndsq_, ndsw_)) = poly-eval(normed-field-as-commutative-ring(ndsk_), ndsp_, ndsw_))}
+
 ### `nf-subfield-gen`  — def-functoid · set-valued
 
 > _Reads as:_  the subfield of bzk_ generated by bzg_
@@ -3919,6 +4095,12 @@ Declared by: `nth-deriv-v-zero` `nth-deriv-v-succ`
 > _Reads as:_  the representative in dgr_ of dgz_
 
     nv-digit(dgk_, dgr_, dgz_) := iota(dgy_, dgy_ in dgr_ and (fnrm(dgk_))((add(dgk_))(dgz_, (neg(dgk_))(dgy_))) < 1)
+
+### `nv-digits`  — def-functoid · element/number-valued
+
+> _Reads as:_  the digits in ndsr_ of the expansion of ndsx_ in powers of ndsw_
+
+    nv-digits(ndsk_, ndsw_, ndsr_, ndsx_) := iota(ndsa_, ndsa_ in fun(zz, ndsr_) and forsome([ndsn_ in zz], is-nv-expansion(ndsk_, ndsw_, ndsr_, ndsa_, ndsn_, ndsx_)))
 
 ### `nv-ideal2`  — def-functoid · set-valued
 
@@ -4828,6 +5010,24 @@ Declared by: `reduce-one` `reduce-succ`
 
     related(s, a, b) := [a, b] in rel(s)
 
+### `rep-functional`  — def-functoid · function-valued
+
+> _Reads as:_  the functional x |-> <g4p_(x) g4e_ | g4e_>
+
+    rep-functional(g4a_, g4v_, g4p_, g4e_) := vnb-lambda(g4x_, vec(g4a_), (ip(g4v_))((g4p_(g4x_))(g4e_), g4e_))
+
+### `rep-image`  — def-functoid · set-valued
+
+> _Reads as:_  the image of ams_ under amf_
+
+    rep-image(amv_, amw_, amf_, ams_) := {amb_ in bounded-ops(amw_, amw_): forsome([amt_ in ams_], amb_ = amf_(amt_))}
+
+### `rep-orbit`  — def-functoid · set-valued
+
+> _Reads as:_  the orbit g4p_(g4a_) g4e_
+
+    rep-orbit(g4a_, g4v_, g4p_, g4e_) := {g4y_ in vec(g4v_): forsome([g4x_ in vec(g4a_)], g4y_ = (g4p_(g4x_))(g4e_))}
+
 ### `res`  — kernel term-former
 
 ### `residue`  — def-functoid · element/number-valued
@@ -5152,11 +5352,23 @@ Declared by: `sent-def`
 
 ### `sep`  — kernel term-former
 
+### `seq-act`  — def-functoid · function-valued
+
+> _Reads as:_  the pointwise multiple of the sequence f by a in md
+
+    seq-act(md, a, f) := vnb-lambda(hcn_, nn, (act(md))(a, f(hcn_)))
+
 ### `seq-cons`  — def-functoid · function-valued
 
 > _Reads as:_  the sequence sck_ followed by scv_
 
     seq-cons(sck_, scv_) := vnb-lambda(scj_, nn, if(scj_ = 0, sck_, scv_(nn-minus(scj_, 1))))
+
+### `seq-form`  — def-functoid · function-valued
+
+> _Reads as:_  the sequence of the values of fq at the terms of f and g
+
+    seq-form(fq, f, g) := vnb-lambda(hcn_, nn, fq(f(hcn_), g(hcn_)))
 
 ### `seq-head`  — def-functoid · function-valued
 
@@ -5203,6 +5415,24 @@ Declared by: `sent-def`
 > _Reads as:_  the tail of the sequence stz_
 
     seq-tail(stz_) := vnb-lambda(stj_, nn, stz_(succ(stj_)))
+
+### `seq-vadd`  — def-functoid · function-valued
+
+> _Reads as:_  the pointwise sum of the sequences f and g in md
+
+    seq-vadd(md, f, g) := vnb-lambda(hcn_, nn, (vadd(md))(f(hcn_), g(hcn_)))
+
+### `seq-vneg`  — def-functoid · function-valued
+
+> _Reads as:_  the pointwise negative of the sequence f in md
+
+    seq-vneg(md, f) := vnb-lambda(hcn_, nn, (vneg(md))(f(hcn_)))
+
+### `seq-zero`  — def-functoid · function-valued
+
+> _Reads as:_  the zero sequence of md
+
+    seq-zero(md) := vnb-lambda(hcn_, nn, vzero(md))
 
 ### `series-limit`  — def-functoid · element/number-valued
 
@@ -5439,6 +5669,12 @@ Declared by: `intersection-decompose` `union-decompose`
 > _Reads as:_  the square root of a_
 
     sqrt(a_) := iota(x_, x_ in rr and 0 <= x_ and x_ * x_ = a_)
+
+### `states`  — def-functoid · set-valued
+
+> _Reads as:_  the states of g4a_
+
+    states(g4a_) := {g4f_ in fun(vec(g4a_), cc): is-positive-lf(g4a_, g4f_) and g4f_(vone(g4a_)) = 1}
 
 ### `strand-map`  — structure accessor · element (slot value)
 
@@ -6160,7 +6396,7 @@ Declared by: `zz-ring-def`
 
     zz-units(n) := matof(n, 1, vnb-lambda([zua_, zub_], cartesian(interval(1, n), interval(1, 1)), vnb-lambda(zut_, interval(1, n), entry(unitrow(zz-ring, n, zua_), 1, zut_))))
 
-## Predicates  (827)
+## Predicates  (845)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -6756,6 +6992,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  the functoid code mcfh_ has arity mcfn_ and body mcfb_
 
+### `functional-le`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  g4g_ <= g4f_ as functionals on g4a_
+
 ### `generates`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the n vectors u generate md
@@ -6931,6 +7171,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-algebraic-over-field`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  th is algebraic over the field kk
+
+### `is-amplification`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  amf_ is an amplification of the operators on amv_ on amw_ adapted to ams_
 
 ### `is-analytic-at`  — def-predicate · proposition (arity 3)
 
@@ -7260,9 +7504,17 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  the measurable space (ys, cb) is countably separated
 
+### `is-cyclic-for`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  vnx_ is a cyclic vector for vns_
+
 ### `is-cyclic-vector`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  gcv-v_ is a cyclic vector for gcv-t_
+
+### `is-cyclic-vector-rep`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  g4e_ is a cyclic vector of g4p_
 
 ### `is-decrypt-trace`  — def-predicate · proposition (arity 2)
 
@@ -7524,6 +7776,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  cb is a hereditary subset of ca
 
+### `is-hermitian-form`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  ipff_ is a hermitian sesquilinear form on ipfm_
+
 ### `is-hilbert-schmidt`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  kqt_ is a Hilbert-Schmidt operator from kqv_ to kqw_
@@ -7764,6 +8020,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  nls_ is an initiator's strand of nlp_ for the names nla_, nlb_ and the values nlm_, nln_
 
+### `is-inner-product-form`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  ipff_ is an inner product on ipfm_
+
 ### `is-integrable`  — def-predicate · proposition (arity 4)
 
 > _Reads as:_  f is integrable on omega with respect to the measure mu
@@ -7771,6 +8031,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-integral-domain`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is an integral domain
+
+### `is-intertwined`  — def-predicate · proposition (arity 6)
+
+> _Reads as:_  every operator from amu_ to amz_ intertwining amr_ and amq_ on ams_ intertwines them on the bicommutant of ams_
 
 ### `is-interval`  — def-predicate · proposition (arity 1)
 
@@ -7784,6 +8048,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  a_1, ..., a_l are invariant factors (non-negative, none equal to 1, each dividing the next)
 
+### `is-invariant-subspace-rep`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  g4k_ is a closed subspace invariant under g4p_
+
 ### `is-invertible-el`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  bax_ is invertible in baa_
@@ -7795,6 +8063,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-irreducible-mat`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the n-by-n matrix tm over k is irreducible
+
+### `is-irreducible-rep`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  g4p_ is an irreducible representation of g4a_ on g4v_
 
 ### `is-iso-group`  — def-predicate · proposition (arity 3)
 
@@ -8320,6 +8592,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  lam is a positive linear functional on the continuous real functions on s
 
+### `is-positive-lf`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  g4f_ is a positive linear functional on g4a_
+
 ### `is-positive-op`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  kqt_ is a positive operator on kqv_
@@ -8372,6 +8648,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  bot_ is a projection on bov_
 
+### `is-psd-form`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  ipff_ is a positive semi-definite hermitian form on ipfm_
+
 ### `is-pseudometric`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  dst is a pseudometric on crr
@@ -8387,6 +8667,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-ptwise-cauchy`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  fam is pointwise Cauchy on s
+
+### `is-pure-state`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  g4f_ is a pure state of g4a_
 
 ### `is-pw-antiderivable`  — def-predicate · proposition (arity 3)
 
@@ -8455,6 +8739,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-removable-singularity`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  mrf_ has a removable singularity at mra_
+
+### `is-representation`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  g4p_ is a representation of g4a_ on g4v_
 
 ### `is-resp-strand`  — def-predicate · proposition (arity 6)
 
@@ -8540,6 +8828,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  scl_ is a separating character of sck_ (a character whose kernel is the integral elements)
 
+### `is-separating-for`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  vnx_ is a separating vector for vns_
+
 ### `is-sesquilinear-form`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  sqf is a sesquilinear form on v
@@ -8603,6 +8895,14 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-star-hom`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  baf_ is a unital *-homomorphism from baa_ to bab_
+
+### `is-star-op-algebra`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  vns_ is an involutive algebra of operators on vnv_ containing the identity
+
+### `is-star-rep`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  amf_ is a unital *-representation of the operators on amv_ on amw_
 
 ### `is-step-fn`  — def-predicate · proposition (arity 3)
 
@@ -8796,6 +9096,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  s is a vector space
 
+### `is-von-neumann-algebra`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  vns_ is a von Neumann algebra on vnv_
+
 ### `little-o-at`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  g is little-o at a
@@ -8951,6 +9255,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `rel-cartesian-decompose-1`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the kernel's cartesian-decompose, at one position, relates mihs_ to mic_
+
+### `rel-cartesian-decompose-7`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the kernel's cartesian-decompose, at one position at any stage, relates mihs_ to mic_
 
 ### `rel-cartesian-elim`  — def-predicate · proposition (arity 3)
 

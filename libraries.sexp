@@ -441,6 +441,7 @@
     "theorem-library/ring-pow"   ; wave 2026-11-09/10
     "theorem-library/ring-pow-form"   ; wave 2026-11-09/10
     "theorem-library/zz-pow-via-ring-pow"   ; wave 2026-11-09/10
+    "theorem-library/poly-eval-mul"   ; wave 2026-11-11
     ))
 
 (library analysis
@@ -1017,6 +1018,7 @@
     "theorem-library/haar-c2"   ; wave 2026-11-09/10
     "structure-library/hc3-vocab"   ; wave 2026-11-09/10
     "theorem-library/haar-c3"   ; wave 2026-11-09/10
+    "theorem-library/tvs-sub-bound"   ; wave 2026-11-11
     ))
 
 (library complex-analysis
@@ -1194,6 +1196,12 @@
     "theorem-library/ccr-adj-integral"   ; wave 2026-11-09/10
     "theorem-library/ccr6-g"   ; wave 2026-11-09/10
     "theorem-library/ccr6-h"   ; wave 2026-11-09/10
+    "theorem-library/ccr4e-unif0"   ; wave 2026-11-11
+    "structure-library/ccr4f-vocab"   ; wave 2026-11-11
+    "theorem-library/ccr4f-digits"   ; wave 2026-11-11
+    "theorem-library/ccr4f-poly"   ; wave 2026-11-11
+    "theorem-library/ccr4g-coords"   ; wave 2026-11-11
+    "theorem-library/ccr4g-residue"   ; wave 2026-11-11
     ))
 
 (library measure
@@ -1413,6 +1421,27 @@
     "theorem-library/hs-compact"   ; wave 2026-11-09/10
     "theorem-library/cl2-integral-operator-bounded"   ; wave 2026-11-09/10
     "theorem-library/th3-eigen-normalized"   ; wave 2026-11-09/10
+    "theorem-library/ipf-form-plus"   ; wave 2026-11-11
+    "theorem-library/ba-trace-class"   ; wave 2026-11-11
+    "theorem-library/ba-graph-commutation"   ; wave 2026-11-11
+    "structure-library/ba-rep-vocab"   ; wave 2026-11-11
+    "structure-library/ba-gns-vocab"   ; wave 2026-11-11
+    "theorem-library/ba4-sqrt"   ; wave 2026-11-11
+    "theorem-library/ba4-pos"   ; wave 2026-11-11
+    "theorem-library/ba4-rep"   ; wave 2026-11-11
+    "theorem-library/ba4-gns"   ; wave 2026-11-11
+    "theorem-library/ba4-states"   ; wave 2026-11-11
+    "theorem-library/ba-optop-adjoint"   ; wave 2026-11-11
+    "structure-library/ba-vn-vocab"   ; wave 2026-11-11
+    "theorem-library/ba-vn"   ; wave 2026-11-11
+    "structure-library/ba-amp-vocab"   ; wave 2026-11-11
+    "theorem-library/ba-amp"   ; wave 2026-11-11
+    "theorem-library/ba-sesq"   ; wave 2026-11-11
+    "structure-library/ipf-vocab"   ; wave 2026-11-11
+    "structure-library/hilbert-completion-vocab"   ; wave 2026-11-11
+    "theorem-library/ipf-laws"   ; wave 2026-11-11
+    "theorem-library/ipf-quotient"   ; wave 2026-11-11
+    "theorem-library/hilbert-completion"   ; wave 2026-11-11
     ))
 
 (library strand

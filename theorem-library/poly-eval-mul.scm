@@ -1,0 +1,210 @@
+;;; poly-eval-mul.scm -- EVALUATION OF POLYNOMIALS IS MULTIPLICATIVE, in any commutative ring.
+;;; Agent CCR-1111B, 2026-11-11.  Destination: theorem-library/poly-eval-mul.scm.  Helper prefix pem-.
+;;; Library: algebra (POLY, POLY-EVAL, POLY-OP, RING-AS-MODULE only).
+;;;
+;;; The tree had poly-eval-add, -neg, -monomial, -monomial-mul, but not the product law
+;;;     POLY-EVAL(A, p q, t) = POLY-EVAL(A, p, t) POLY-EVAL(A, q, t).
+;;; It is obtained here WITHOUT any coefficient computation, by the operator calculus already proven for
+;;; POLY-OP (gal-op*.scm: poly-op-mul, poly-op-act): view A as a module over itself (RING-AS-MODULE A) and
+;;; let T = multiplication by t, a module endomorphism.  Then T^k(y) = t^k y, so p(T)(1) = p(t), and
+;;;     (pq)(t) = (pq)(T)(1) = p(T)(q(T)(1)) = p(T)(q(t) 1) = q(t) p(T)(1) = q(t) p(t).
+;;;
+;;;   pem-mvag            the vector group of A-as-a-module is the additive group of A
+;;;   pem-mult-hom        y |-> t y is an endomorphism of A-as-a-module
+;;;   pem-iter            T^k(y) = t^k y
+;;;   pem-poly-op-one     p(T)(1) = POLY-EVAL(A, p, t)
+;;;   poly-eval-mul       POLY-EVAL(A, p q, t) = POLY-EVAL(A, p, t) POLY-EVAL(A, q, t)
+;;;
+;;; Load window: after gal-op / gal-op2 (poly-op-mul, poly-op-act), gal-poly (poly-eval-type, poly-eval-bound),
+;;; la-z3 (RING-AS-MODULE, ram-ro-*), sum-ag-segment-congruence.
+
+(define (pem-md r) `(RING-AS-MODULE ,r))
+(define (pem-tt r t) `(VNB-LAMBDA pmy_ (CARR ,r) ((MUL ,r) ,t pmy_)))
+(define (pem-has? t x) (or (equal? t x) (and (pair? t) (or (pem-has? (car t) x) (pem-has? (cdr t) x)))))
+(define (pem-rfl!) (dk-close-if! (lambda () #t) (lambda () (rfl))))
+(define (pem-ram! r)                   ; the six read-offs of RING-AS-MODULE r, landed
+  (for-each (lambda (n) (dk-cite! n r)) '(ram-ro-scal ram-ro-vec ram-ro-vadd ram-ro-vzero ram-ro-vneg ram-ro-act)))
+(define (pem-ram-subst! r)             ; rewrite the module accessors of RING-AS-MODULE r in the goal
+  (for-each (lambda (acc val)
+              (if (pem-has? (dk-goal) (list acc (pem-md r))) (subst (list '== (list acc (pem-md r)) val))))
+            '(SCAL VEC VADD VZERO VNEG ACT)
+            (list r `(CARR ,r) `(ADD ,r) `(ZERO ,r) `(NEG ,r) `(MUL ,r))))
+
+;;; ---------------------------------------------------------------------------
+(sp (make-wff '(FORALL pmr (IMPLIES (IS-RING pmr)
+   (== (MODULE-VECTOR-AG (RING-AS-MODULE pmr)) (RING-ADDITIVE-AG pmr))))))
+(dk-peel!)
+(dk-cite! 'ring-as-module-is-module 'pmr)
+(pem-ram! 'pmr)
+(mac 'MODULE-VECTOR-AG)
+(mac 'RING-ADDITIVE-AG)
+(pem-ram-subst! 'pmr)
+(dk-close-if! (lambda () #t) (lambda () (qrfl)))
+(qed 'pem-mvag)
+
+;;; ---------------------------------------------------------------------------
+(sp (make-wff `(FORALL pmr (IMPLIES (IS-COMMUTATIVE-RING pmr) (FORALL pmt (IMPLIES (IN pmt (CARR pmr))
+   (IS-HOM-MODULE (RING-AS-MODULE pmr) (RING-AS-MODULE pmr) ,(pem-tt 'pmr 'pmt))))))))
+(dk-peel!)
+(dk-cite! 'commutative-ring-is-ring 'pmr)
+(dk-cite! 'ring-as-module-is-module 'pmr)
+(pem-ram! 'pmr)
+(dk-cite! 'ring-zero-in 'pmr)
+(dk-cite! 'ring-carr-in-set 'pmr)
+(mac 'is-hom-module-def)
+(pem-ram-subst! 'pmr)
+(define (pem-tv! x)                    ; type t x, then beta T(x)
+  (dk-cite! 'ring-carrier-closed-mul 'pmr 'pmt x))
+(dk-conj-close!
+  (lambda ()
+    (let ((g (dk-goal)))
+      (cond
+        ((dk-asm? g) (ass))
+        ((dk-head-is? g 'IN)                          ; T in FUN(CARR, CARR)
+         (dk-lam-type! (lambda ()
+                         (let* ((landed (dk-landed (lambda () (dk-peel!))))
+                                (g2 (dk-goal)))
+                           (pem-tv! (caddr (cadr g2)))
+                           (dk-close-if-asm!)))
+                       (lambda () (ass))))
+        ((and (dk-head-is? g '=) (equal? (cadr g) (caddr g))) (rfl))
+        ((dk-head-is? g '=)                           ; T(0) = 0
+         (pem-tv! '(ZERO pmr))
+         (dk-lam-b!)
+         (dk-close-if! (lambda () #t) (lambda () (crs))))
+        (#t
+         (let* ((landed (dk-landed (lambda () (dk-peel!))))
+                (vs (map cadr (filter (lambda (q) (and (dk-head-is? q 'IN) (equal? (caddr q) '(CARR pmr)))) landed))))
+           (for-each pem-tv! vs)
+           (let ((g2 (dk-goal)))
+             (cond
+               ((pem-has? g2 '(ADD pmr))
+                (dk-cite! 'ring-add-closed 'pmr (car vs) (cadr vs))
+                (pem-tv! `((ADD pmr) ,(car vs) ,(cadr vs))))
+               ((pem-has? g2 '(NEG pmr))
+                (dk-cite! 'ring-neg-in-carr 'pmr (car vs))
+                (pem-tv! `((NEG pmr) ,(car vs))))
+               (#t
+                (dk-cite! 'ring-carrier-closed-mul 'pmr (car vs) (cadr vs))
+                (pem-tv! `((MUL pmr) ,(car vs) ,(cadr vs))))))
+           (dk-lam-b!)
+           (dk-close-if! (lambda () #t) (lambda () (crs)))))))))
+(qed 'pem-mult-hom)
+
+;;; ---------------------------------------------------------------------------
+;;; T^k(y) = t^k y
+(sp (make-wff `(FORALL pmk (IMPLIES (IN pmk NN) (FORALL pmr (IMPLIES (IS-COMMUTATIVE-RING pmr)
+   (FORALL pmt (IMPLIES (IN pmt (CARR pmr)) (FORALL pmy (IMPLIES (IN pmy (CARR pmr))
+     (= (OP-ITER (RING-AS-MODULE pmr) ,(pem-tt 'pmr 'pmt) pmy pmk)
+        ((MUL pmr) (RING-POWER pmr pmt pmk) pmy))))))))))))
+(define pem-ni (dk-ni-fixed! '(pmr pmt pmy)))
+(define pem-ps (cdr (assq 'params pem-ni)))
+(define pem-r (cdr (assq 'pmr pem-ps)))
+(define pem-t (cdr (assq 'pmt pem-ps)))
+(define pem-y (cdr (assq 'pmy pem-ps)))
+(define (pem-iter-setup!)
+  (dk-cite! 'commutative-ring-is-ring pem-r)
+  (dk-cite! 'ring-one-in pem-r)
+  (dk-cite! 'ring-carr-in-set pem-r)
+  (dk-cite! 'ring-as-module-is-module pem-r))
+;; base
+(dk-focus! (cdr (assq 'base pem-ni)))
+(pem-iter-setup!)
+(subst (dk-cite! 'op-iter-zero (pem-md pem-r) (pem-tt pem-r pem-t) pem-y))
+(subst (dk-cite! 'ring-power-zero pem-r pem-t))
+(subst (dk-cite! 'ring-mul-left-id pem-r pem-y))
+(pem-rfl!)
+;; step
+(dk-focus! (cdr (assq 'step pem-ni)))
+(define pem-m (dk-di-var!))
+(define pem-ih (car (dk-landed (lambda () (di)))))
+(pem-iter-setup!)
+(subst (dk-cite! 'op-iter-succ (pem-md pem-r) (pem-tt pem-r pem-t) pem-y pem-m))
+(subst pem-ih)
+(define pem-tm `(RING-POWER ,pem-r ,pem-t ,pem-m))
+(dk-cite! 'ring-power-type pem-r pem-t pem-m)
+(dk-cite! 'ring-carrier-closed-mul pem-r pem-tm pem-y)
+(dk-lam-b!)
+(subst (dk-cite! 'ring-power-succ pem-r pem-t pem-m))
+(dk-close-if! (lambda () #t) (lambda () (crs)))
+(qed 'pem-iter)
+
+;;; ---------------------------------------------------------------------------
+;;; p(T)(1) = p(t)
+(define (pem-setup! r)
+  (dk-cite! 'commutative-ring-is-ring r)
+  (dk-cite! 'ring-one-in r)
+  (dk-cite! 'ring-carr-in-set r)
+  (dk-cite! 'ring-as-module-is-module r)
+  (pem-ram! r))
+(sp (make-wff `(FORALL pmr (IMPLIES (IS-COMMUTATIVE-RING pmr) (FORALL pmt (IMPLIES (IN pmt (CARR pmr))
+   (FORALL pmp (IMPLIES (IN pmp (CARR (POLY pmr)))
+     (= (POLY-OP (RING-AS-MODULE pmr) ,(pem-tt 'pmr 'pmt) pmp (ONE pmr)) (POLY-EVAL pmr pmp pmt))))))))))
+(dk-peel!)
+(pem-setup! 'pmr)
+(dk-cite! 'poly-eval-type 'pmr 'pmp 'pmt)
+(define pem-dw (dk-cite! 'deg-well-defined 'pmr 'pmp))
+(dk-split-all! (list pem-dw))
+(dk-cite! 'nn-succ-closed '(DEG pmr pmp))
+(define pem-pb (dk-cite! 'poly-eval-bound 'pmr 'pmp 'pmt '(DEG pmr pmp)))
+(mac 'POLY-OP)
+(pem-ram-subst! 'pmr)
+(subst (dk-cite! 'pem-mvag 'pmr))
+(define pem-G (caddr (cadr (dk-goal))))
+(define pem-H (caddr (caddr pem-pb)))
+(define pem-n '(succ (DEG pmr pmp)))
+(dk-have! `(FORALL pmi_ (IMPLIES (IN pmi_ (ORD-SEGMENT ,pem-n)) (== (,pem-G pmi_) (,pem-H pmi_))))
+  (lambda ()
+    (let ((i (dk-di-var!)))
+      (dk-cite! 'ord-segment-nn-subset pem-n i)
+      (dk-cite! 'poly-coef-in 'pmr 'pmp i)
+      (dk-cite! 'ring-power-type 'pmr 'pmt i)
+      (dk-lam-b!)
+      (subst (dk-cite! 'pem-iter i 'pmr 'pmt '(ONE pmr)))
+      (subst (dk-cite! 'ring-mul-right-id 'pmr `(RING-POWER pmr pmt ,i)))
+      (dk-close-if! (lambda () #t) (lambda () (qrfl))))))
+(subst (dk-cite! 'sum-ag-segment-congruence pem-n '(RING-ADDITIVE-AG pmr) pem-G pem-H))
+(subst `(= ,(caddr pem-pb) ,(cadr pem-pb)))
+(pem-rfl!)
+(qed 'pem-poly-op-one)
+
+;;; ---------------------------------------------------------------------------
+;;; THE PRODUCT LAW
+(sp (make-wff `(FORALL pmr (IMPLIES (IS-COMMUTATIVE-RING pmr) (FORALL pmt (IMPLIES (IN pmt (CARR pmr))
+   (FORALL pmp (IMPLIES (IN pmp (CARR (POLY pmr))) (FORALL pmq (IMPLIES (IN pmq (CARR (POLY pmr)))
+     (= (POLY-EVAL pmr ((MUL (POLY pmr)) pmp pmq) pmt)
+        ((MUL pmr) (POLY-EVAL pmr pmp pmt) (POLY-EVAL pmr pmq pmt)))))))))))))
+(dk-peel!)
+(pem-setup! 'pmr)
+(define pem-mo (pem-md 'pmr))
+(define pem-to (pem-tt 'pmr 'pmt))
+(define pem-pq '((MUL (POLY pmr)) pmp pmq))
+(define pem-ep '(POLY-EVAL pmr pmp pmt))
+(define pem-eq '(POLY-EVAL pmr pmq pmt))
+(dk-cite! 'poly-is-ring 'pmr)
+(dk-cite! 'ring-carrier-closed-mul '(POLY pmr) 'pmp 'pmq)
+(dk-cite! 'poly-eval-type 'pmr 'pmp 'pmt)
+(dk-cite! 'poly-eval-type 'pmr 'pmq 'pmt)
+(dk-cite! 'pem-mult-hom 'pmr 'pmt)
+(dk-cite! 'ring-carrier-closed-mul 'pmr pem-eq '(ONE pmr))
+;; the module-level laws, with the accessors of A-as-a-module read as A's operations
+(dk-have! `(IS-COMMUTATIVE-RING (SCAL ,pem-mo)) (lambda () (subst `(== (SCAL ,pem-mo) pmr)) (ass)))
+(dk-have! `(IN pmp (CARR (POLY (SCAL ,pem-mo)))) (lambda () (subst `(== (SCAL ,pem-mo) pmr)) (ass)))
+(dk-have! `(IN pmq (CARR (POLY (SCAL ,pem-mo)))) (lambda () (subst `(== (SCAL ,pem-mo) pmr)) (ass)))
+(dk-have! `(IN (ONE pmr) (VEC ,pem-mo)) (lambda () (subst `(== (VEC ,pem-mo) (CARR pmr))) (ass)))
+(dk-have! `(IN ,pem-eq (CARR (SCAL ,pem-mo))) (lambda () (subst `(== (SCAL ,pem-mo) pmr)) (ass)))
+(define pem-mul-law (dk-cite! 'poly-op-mul pem-mo pem-to 'pmp 'pmq '(ONE pmr)))
+(define pem-mul-law2 (dk-rewrite-h! pem-mul-law `(SCAL ,pem-mo) 'pmr))
+(define pem-act-law (dk-cite! 'poly-op-act pem-mo pem-to 'pmp pem-eq '(ONE pmr)))
+(define pem-act-law2 (dk-rewrite-h! pem-act-law `(ACT ,pem-mo) '(MUL pmr)))
+;; (pq)(t) = (pq)(T)(1) = p(T)(q(T)(1)) = p(T)(q(t) 1) = q(t) p(T)(1) = q(t) p(t)
+(dk-cite! 'pem-poly-op-one 'pmr 'pmt pem-pq)
+(subst `(= (POLY-EVAL pmr ,pem-pq pmt) (POLY-OP ,pem-mo ,pem-to ,pem-pq (ONE pmr))))
+(subst pem-mul-law2)
+(subst (dk-cite! 'pem-poly-op-one 'pmr 'pmt 'pmq))
+(define pem-r1 (dk-cite! 'ring-mul-right-id 'pmr pem-eq))
+(subst `(= ,pem-eq ((MUL pmr) ,pem-eq (ONE pmr))))
+(subst pem-act-law2)
+(subst (dk-cite! 'pem-poly-op-one 'pmr 'pmt 'pmp))
+(dk-close-if! (lambda () #t) (lambda () (crs)))
+(qed 'poly-eval-mul)

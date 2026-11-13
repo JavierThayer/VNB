@@ -77,40 +77,40 @@ digraph VNB {
 
   // refines (specialisation): child -> parent
   "commutative-ring" -> "ring" [color="#2a4a6a", penwidth=1.4, tooltip="commutative-ring refines ring"];
-  "cx-orp" -> "sk-space" [color="#2a4a6a", penwidth=1.4, tooltip="cx-orp refines sk-space"];
   "qq-line" -> "vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="qq-line refines vector-space"];
+  "cx-orp" -> "sk-space" [color="#2a4a6a", penwidth=1.4, tooltip="cx-orp refines sk-space"];
   "qq-field" -> "field" [color="#2a4a6a", penwidth=1.4, tooltip="qq-field refines field"];
-  "complex-pre-hilbert-space" -> "complex-semi-inner-product-space" [color="#2a4a6a", penwidth=1.4, tooltip="complex-pre-hilbert-space refines complex-semi-inner-product-space"];
   "nn-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="nn-add-monoid refines comm-monoid"];
+  "complex-pre-hilbert-space" -> "complex-semi-inner-product-space" [color="#2a4a6a", penwidth=1.4, tooltip="complex-pre-hilbert-space refines complex-semi-inner-product-space"];
   "nu-c-star-algebra" -> "nu-involutive-banach-algebra" [color="#2a4a6a", penwidth=1.4, tooltip="nu-c-star-algebra refines nu-involutive-banach-algebra"];
   "pid" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="pid refines integral-domain"];
-  "rr-field" -> "field" [color="#2a4a6a", penwidth=1.4, tooltip="rr-field refines field"];
   "rr-ms" -> "metric-space" [color="#2a4a6a", penwidth=1.4, tooltip="rr-ms refines metric-space"];
+  "rr-field" -> "field" [color="#2a4a6a", penwidth=1.4, tooltip="rr-field refines field"];
   "complex-banach-algebra" -> "complex-normed-algebra" [color="#2a4a6a", penwidth=1.4, tooltip="complex-banach-algebra refines complex-normed-algebra"];
   "cx-sp" -> "strand-space" [color="#2a4a6a", penwidth=1.4, tooltip="cx-sp refines strand-space"];
   "integral-domain" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="integral-domain refines commutative-ring"];
   "zz-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="zz-add-monoid refines comm-monoid"];
-  "cc-nag" -> "normed-ag" [color="#2a4a6a", penwidth=1.4, tooltip="cc-nag refines normed-ag"];
-  "qq-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="qq-ring refines integral-domain"];
   "rr-normed-field" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="rr-normed-field refines normed-field"];
+  "qq-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="qq-ring refines integral-domain"];
+  "cc-nag" -> "normed-ag" [color="#2a4a6a", penwidth=1.4, tooltip="cc-nag refines normed-ag"];
   "field-ring" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="field-ring refines commutative-ring"];
   "vector-space" -> "module" [color="#2a4a6a", penwidth=1.4, tooltip="vector-space refines module"];
   "metrizable-top-space" -> "top-space" [color="#2a4a6a", penwidth=1.4, tooltip="metrizable-top-space refines top-space"];
-  "zz-ring" -> "euclidean-ring" [color="#2a4a6a", penwidth=1.4, tooltip="zz-ring refines euclidean-ring"];
-  "unital-c-star-algebra" -> "unital-involutive-banach-algebra" [color="#2a4a6a", penwidth=1.4, tooltip="unital-c-star-algebra refines unital-involutive-banach-algebra"];
-  "rr-nvs" -> "normed-vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="rr-nvs refines normed-vector-space"];
   "commutative-banach-algebra" -> "unital-banach-algebra" [color="#2a4a6a", penwidth=1.4, tooltip="commutative-banach-algebra refines unital-banach-algebra"];
+  "rr-nvs" -> "normed-vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="rr-nvs refines normed-vector-space"];
+  "unital-c-star-algebra" -> "unital-involutive-banach-algebra" [color="#2a4a6a", penwidth=1.4, tooltip="unital-c-star-algebra refines unital-involutive-banach-algebra"];
+  "zz-ring" -> "euclidean-ring" [color="#2a4a6a", penwidth=1.4, tooltip="zz-ring refines euclidean-ring"];
   "cx-c" -> "bundle" [color="#2a4a6a", penwidth=1.4, tooltip="cx-c refines bundle"];
   "cc-normed-field" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="cc-normed-field refines normed-field"];
   "commutative-c-star-algebra" -> "unital-c-star-algebra" [color="#2a4a6a", penwidth=1.4, tooltip="commutative-c-star-algebra refines unital-c-star-algebra"];
   "cc-ms" -> "metric-space" [color="#2a4a6a", penwidth=1.4, tooltip="cc-ms refines metric-space"];
   "cc-hat-top" -> "top-space" [color="#2a4a6a", penwidth=1.4, tooltip="cc-hat-top refines top-space"];
   "pre-hilbert-space" -> "semi-inner-product-space" [color="#2a4a6a", penwidth=1.4, tooltip="pre-hilbert-space refines semi-inner-product-space"];
-  "complex-banach-space" -> "complex-normed-vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="complex-banach-space refines complex-normed-vector-space"];
   "euclidean-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="euclidean-ring refines integral-domain"];
+  "complex-banach-space" -> "complex-normed-vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="complex-banach-space refines complex-normed-vector-space"];
   "lft-group" -> "group" [color="#2a4a6a", penwidth=1.4, tooltip="lft-group refines group"];
-  "rr-pos-star-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="rr-pos-star-add-monoid refines comm-monoid"];
   "cx-isp" -> "infiltrated-space" [color="#2a4a6a", penwidth=1.4, tooltip="cx-isp refines infiltrated-space"];
+  "rr-pos-star-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="rr-pos-star-add-monoid refines comm-monoid"];
 
   // view-as (forgetful / component maps): source -> target
   "measure-space" -> "measurable-space" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-measurable-space", tooltip="measure-space-as-measurable-space :  measure-space -> measurable-space    (pts sigma) |-> (pts sigma)", URL="structure-graph.html#views"];
@@ -206,6 +206,7 @@ digraph VNB {
   "metric-group" -> "metric-group" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="opp-metric-group", tooltip="opp-metric-group :  metric-group -> metric-group    (constructor functoid)", URL="structure-graph.html#metric-group"];
   "metric-space" -> "metric-space" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="completion", tooltip="completion :  metric-space -> metric-space    (constructor functoid)", URL="structure-graph.html#metric-space"];
   "unital-banach-algebra" -> "ring" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="poly", tooltip="poly :  unital-banach-algebra -> ring    (constructor functoid)", URL="structure-graph.html#ring"];
+  "unital-involutive-banach-algebra" -> "module" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="gns-module", tooltip="gns-module :  unital-involutive-banach-algebra -> module    (constructor functoid)", URL="structure-graph.html#module"];
   "semi-inner-product-space" -> "semi-inner-product-space" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="cx-sip", tooltip="cx-sip :  semi-inner-product-space -> semi-inner-product-space    (constructor functoid)", URL="structure-graph.html#semi-inner-product-space"];
   "complex-inner-product-space" -> "metric-space" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="ip-metric-space", tooltip="ip-metric-space :  complex-inner-product-space -> metric-space    (constructor functoid)", URL="structure-graph.html#metric-space"];
   "metric-space" -> "metric-space" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="trunc-metric", tooltip="trunc-metric :  metric-space -> metric-space    (constructor functoid)", URL="structure-graph.html#metric-space"];

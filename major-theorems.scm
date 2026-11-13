@@ -30,9 +30,16 @@
 ;;;          (kind theorem)                     ; theorem | proposition | lemma | corollary | definition
 ;;;          (title "Generalized Mean Value Theorem")
 ;;;          (names generalized-mvt)            ; the library theorem(s); () when absent
+;;;          (section "11.2" prefilled)         ; the notes' section; `prefilled' = read off the PDF
 ;;;          (status proven)                    ; proven | asserted | partial | absent
+;;;          (home-elsewhere NAME ...)          ; names whose home is an EARLIER entry (library-book)
+;;;          (definitions NAME ...)             ; defining axioms the entry quotes (not theorems)
+;;;          (companions NAME ...)              ; view companions the entry quotes (not in the book)
 ;;;          (deviation "...")                  ; "" when the library says what the notes say
 ;;;          (notes-statement "..."))           ; the notes' statement, in prose
+;;;
+;;; A top-level (outline DOC (chapter C TITLE (section C.S TITLE) ...) ...) carries a
+;;; document's chapter and section titles for library-book.scm; this reader skips it.
 ;;;
 ;;; Every field is optional: a missing one takes a default, and a missing
 ;;; `status' is INFERRED from the library (proven / asserted / absent).  A
@@ -209,6 +216,10 @@
                      (reverse acc))
                     ((and (pair? form) (eq? (car form) 'entry))
                      (loop (read port) (cons form acc) skipped))
+                    ;; the OUTLINE of a document (chapter and section titles, BOOK-GEN
+                    ;; 2026-11-12) is read by library-book.scm; not an entry, not news
+                    ((and (pair? form) (eq? (car form) 'outline))
+                     (loop (read port) acc skipped))
                     (#t
                      (display ";; major-theorems: not an `entry' form, skipped: ")
                      (write (if (pair? form) (car form) form))
@@ -663,7 +674,10 @@
     (display head)
     (display "}]\\label{") (display label) (display "}\n")
     (display "%\n")
-    (display (mt--statement-block names notes))
+    ;; the defining axioms and view companions an entry quotes (fields `definitions' and
+    ;; `companions', BOOK-GEN 2026-11-12) are not theorems of the book but stay in the block
+    (display (mt--statement-block (append names (mt--list entry 'definitions) (mt--list entry 'companions))
+                                  notes))
     (display "%\n")
     (display "\\end{") (display env) (display "}\n")
     (display "%\n")

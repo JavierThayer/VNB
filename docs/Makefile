@@ -107,8 +107,14 @@ major-theorems:
 all-theorems:
 	$(LATEX) all-theorems.tex && $(LATEX) all-theorems.tex
 
-# The book of theorems and definitions by library, no proofs (reference/library-book.tex is written at load;
+# The book of theorems and definitions in the outline of the notes, then by library, no proofs (reference/library-book.tex
+# is written at load from docs/major-theorems-table.sexp and libraries.sexp; three passes for the cross-references;
 # libraries.sexp names the parts).  notes-61, 2026-10-06.
 .PHONY: library-book
 library-book:
-	$(LATEX) library-book.tex && $(LATEX) library-book.tex
+	$(LATEX) library-book.tex && $(LATEX) library-book.tex && $(LATEX) library-book.tex
+
+# The same book by library, as it was before 2026-11-12 (reference/library-book-by-library.tex).
+.PHONY: library-book-by-library
+library-book-by-library:
+	$(LATEX) library-book-by-library.tex && $(LATEX) library-book-by-library.tex

@@ -1,7 +1,13 @@
 ;;; major-theorems-table.sexp -- the MAJOR THEOREMS of the user's notes against the library.
 ;;; Hand-maintained (first drawn up 2026-09-21 by four mapping agents, scratchpad/triage/MAJOR-THEOREMS.md).
 ;;; One (entry ...) per numbered Theorem / Proposition / Lemma / Corollary of the notes, in the notes' order.
-;;; Read by major-theorems.scm, which writes reference/major-theorems.tex at every load.
+;;; Read by major-theorems.scm, which writes reference/major-theorems.tex at every load, and by
+;;; library-book.scm, which writes the book of theorems in the notes' outline (reference/library-book.tex).
+;;; FIELDS ADDED 2026-11-12 (BOOK-GEN): (section "C.S" [prefilled|prefilled-inferred]) -- the notes' section;
+;;;   (home-elsewhere NAME ...) -- names this entry shares with an EARLIER entry, which is their home (the
+;;;   book prints them there and a cross-reference here); (definitions NAME ...) / (companions NAME ...) --
+;;;   defining axioms and view companions the entry quotes, printed in its statement block but not theorems
+;;;   of the book.  (outline DOC (chapter C TITLE (section C.S TITLE) ...) ...) -- one per document.
 ;;; UPDATE an entry when its theorem is restated or proven: `names', `status', `deviation'.
 ;;; ===== calculus-ch1-2 =====
 ;;; calculus-ch1-2.sexp -- MAJOR THEOREMS table, agent MT-1.
@@ -33,8 +39,47 @@
 ;;; Definition 7.1, so no entry is generated for them.
 ;;; Definitions, Remarks, Examples and Tables are excluded throughout.
 ;;; 33 entries.
+;;; The OUTLINE of calculus: chapters that hold an entry, with every section the notes have.
+;;; Titles marked `prefilled' were read off the notes by pdftotext (BOOK-GEN, 2026-11-12); review
+;;; and delete the mark.  Read by library-book.scm; ignored by the major-theorems list.
+(outline "calculus"
+  (chapter "1" "Basic Notions" prefilled
+    (section "1.1" "Naive Set Theory" prefilled)
+    (section "1.2" "Natural Numbers and Integers" prefilled)
+    (section "1.3" "Rational Numbers" prefilled)
+    (section "1.4" "Bound, Least Upper Bound" prefilled)
+    (section "1.5" "Intervals" prefilled)
+    (section "1.6" "The Extended Real Number System" prefilled)
+    (section "1.7" "Convergence" prefilled)
+    (section "1.8" "Convergent Subsequences" prefilled))
+  (chapter "2" "Differentiation" prefilled
+    (section "2.1" "Definitions" prefilled)
+    (section "2.2" "THE CALCULUS OF o AND O NOTATION" prefilled)
+    (section "2.3" "Chain Rule" prefilled)
+    (section "2.4" "Local Maxima and Minima" prefilled)
+    (section "2.5" "Mean Value Theorem" prefilled)
+    (section "2.6" "Taylor's Formula" prefilled)
+    (section "2.7" "Polynomials" prefilled)
+    (section "2.8" "Multivariable Calculus" prefilled))
+  (chapter "3" "Basic Metric Space Theory" prefilled
+    (section "3.1" "Basic Notions" prefilled)
+    (section "3.2" "Continuity" prefilled)
+    (section "3.3" "Uniform Continuity" prefilled)
+    (section "3.4" "Extension of Uniformly Continuous Functions" prefilled)
+    (section "3.5" "Cartesian Products" prefilled)
+    (section "3.6" "Equicontiuity" prefilled)
+    (section "3.7" "Ascoli's Theorem" prefilled)
+    (section "3.8" "Groups of Isometries" prefilled))
+  (chapter "4" "Integration" prefilled
+    (section "4.1" "Definite Integrals" prefilled)
+    (section "4.2" "Antiderivatives" prefilled)
+    (section "4.3" "Existence Properties" prefilled))
+  (chapter "5" "Spaces of Continuous Functions" prefilled
+    (section "5.1" "Approximation by Polynomials" prefilled)))
+
 (entry (doc "calculus")
        (ref "1.1")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "Order compatible with addition and multiplication on Z")
        (names zz-lt-add-right zz-lt-mul-right)
@@ -44,6 +89,7 @@
 
 (entry (doc "calculus")
        (ref "1.2")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "Trichotomy of the integer ordering")
        (names rr-lt-trichotomy zz-trichotomy)
@@ -53,6 +99,7 @@
 
 (entry (doc "calculus")
        (ref "1.3")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "1 is the least natural number")
        (names nn-one-le-nonzero)
@@ -62,6 +109,7 @@
 
 (entry (doc "calculus")
        (ref "1.4")
+       (section "1.2" prefilled)
        (kind corollary)
        (title "No integer strictly between m and m + 1")
        (names zz-lt-succ-le zz-discrete)
@@ -71,6 +119,7 @@
 
 (entry (doc "calculus")
        (ref "1.9")
+       (section "1.4" prefilled)
        (kind proposition)
        (title "Uniqueness of the least upper bound")
        (names rr-lub-unique)
@@ -80,6 +129,7 @@
 
 (entry (doc "calculus")
        (ref "1.11")
+       (section "1.5" prefilled)
        (kind proposition)
        (title "The nested interval property")
        (names rr-nested-intervals)
@@ -89,6 +139,7 @@
 
 (entry (doc "calculus")
        (ref "1.13")
+       (section "1.6" prefilled)
        (kind proposition)
        (title "Order isomorphism of (-1, 1) with the extended reals")
        (names ooint-rr-iso-bijection ooint-rr-order-iso ooint-rr-iso-left-inverse ooint-rr-iso-right-inverse ooint-rr-iso-odd ccint-rr-star-iso-bijection ccint-rr-star-order-iso ccint-rr-star-iso-extends)
@@ -98,6 +149,7 @@
 
 (entry (doc "calculus")
        (ref "1.17")
+       (section "1.7" prefilled)
        (kind proposition)
        (title "Uniqueness of limits")
        (names rr-limit-unique metric-limit-unique)
@@ -107,6 +159,7 @@
 
 (entry (doc "calculus")
        (ref "1.19")
+       (section "1.8" prefilled)
        (kind theorem)
        (title "Bolzano-Weierstrass on a closed interval")
        (names rr-interval-seq-has-convergent-subseq rr-bolzano-weierstrass)
@@ -116,6 +169,7 @@
 
 (entry (doc "calculus")
        (ref "2.1")
+       (section "2.1" prefilled)
        (kind proposition)
        (title "Derivative of the monomial x^n")
        (names deriv-power deriv-const)
@@ -125,6 +179,7 @@
 
 (entry (doc "calculus")
        (ref "2.3")
+       (section "2.1" prefilled)
        (kind proposition)
        (title "Higher derivatives of x^n")
        (names nth-deriv-monomial nth-deriv-monomial-vanish)
@@ -134,6 +189,7 @@
 
 (entry (doc "calculus")
        (ref "2.4")
+       (section "2.1" prefilled)
        (kind proposition)
        (title "Differentiability implies continuity")
        (names diff-implies-continuous diff-on-implies-continuous)
@@ -143,6 +199,7 @@
 
 (entry (doc "calculus")
        (ref "2.5")
+       (section "2.1" prefilled)
        (kind proposition)
        (title "Derivative of a sum")
        (names deriv-sum diff-on-sum)
@@ -152,6 +209,7 @@
 
 (entry (doc "calculus")
        (ref "2.6")
+       (section "2.1" prefilled)
        (kind proposition)
        (title "Derivative of a product")
        (names deriv-product diff-on-product)
@@ -161,6 +219,7 @@
 
 (entry (doc "calculus")
        (ref "2.8")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "Chain Rule")
        (names has-deriv-at-chain deriv-chain diff-on-chain)
@@ -170,6 +229,7 @@
 
 (entry (doc "calculus")
        (ref "2.10")
+       (section "2.4" prefilled)
        (kind proposition)
        (title "Vanishing of the derivative at an interior extremum")
        (names interval-local-max-right-deriv-nonpos interval-local-max-left-deriv-nonneg interval-local-max-deriv-zero interior-max-deriv-zero)
@@ -179,6 +239,7 @@
 
 (entry (doc "calculus")
        (ref "2.11")
+       (section "2.5" prefilled)
        (kind theorem)
        (title "Generalized Mean Value Theorem")
        (names generalized-mvt-on-interval generalized-mvt)
@@ -188,6 +249,7 @@
 
 (entry (doc "calculus")
        (ref "2.12")
+       (section "2.5" prefilled)
        (kind lemma)
        (title "Rolle's Lemma")
        (names rolle-on-interval rolle)
@@ -197,6 +259,7 @@
 
 (entry (doc "calculus")
        (ref "2.13")
+       (section "2.5" prefilled)
        (kind theorem)
        (title "Mean Value Theorem")
        (names mvt-on-interval mvt)
@@ -206,6 +269,7 @@
 
 (entry (doc "calculus")
        (ref "2.14")
+       (section "2.5" prefilled)
        (kind corollary)
        (title "Increment bounds from derivative bounds")
        (names mvt-upper-bound-on-interval mvt-lower-bound-on-interval mvt-abs-bound-on-interval mvt-upper-bound mvt-lower-bound mvt-abs-bound)
@@ -215,6 +279,7 @@
 
 (entry (doc "calculus")
        (ref "2.15")
+       (section "2.5" prefilled)
        (kind corollary)
        (title "Zero derivative implies constant")
        (names deriv-zero-constant-on-interval deriv-zero-implies-constant deriv-zero-const-up)
@@ -224,6 +289,7 @@
 
 (entry (doc "calculus")
        (ref "2.16")
+       (section "2.6" prefilled)
        (kind proposition)
        (title "Uniqueness of the interpolating Taylor polynomial at 0")
        (names taylor-interpolant-at-zero)
@@ -233,6 +299,7 @@
 
 (entry (doc "calculus")
        (ref "2.18")
+       (section "2.6" prefilled)
        (kind theorem)
        (title "Taylor's formula with a general auxiliary function G")
        (names taylor-formula-on-interval taylor-lagrange)
@@ -242,15 +309,18 @@
 
 (entry (doc "calculus")
        (ref "2.19")
+       (section "2.6" prefilled)
        (kind corollary)
        (title "Taylor's formula with Lagrange remainder")
        (names taylor-lagrange-on-interval taylor-lagrange)
+       (home-elsewhere taylor-lagrange)
        (status proven)
        (deviation "Proven 2026-09-22 for functions ON [a, b] (the first name), from 2.18 with G(x) = (b - x)^n; derivatives as the finite family of 2.18. The second name is the older form for functions TOTAL on RR, with the remainder cross-multiplied by the factorial.")
        (notes-statement "Under the hypotheses of 2.18, there is xi in (a, b) with R_n(a, b) = f^(n)(xi) (b - a)^n / n!."))
 
 (entry (doc "calculus")
        (ref "2.20")
+       (section "2.6" prefilled)
        (kind corollary)
        (title "Supremum bound for the Taylor remainder")
        (names taylor-remainder-sup-bound)
@@ -260,6 +330,7 @@
 
 (entry (doc "calculus")
        (ref "2.21")
+       (section "2.6" prefilled)
        (kind corollary)
        (title "Continuous remainder factor S_n")
        (names taylor-remainder-factor taylor-lagrange-subinterval)
@@ -269,6 +340,7 @@
 
 (entry (doc "calculus")
        (ref "2.22")
+       (section "2.7" prefilled)
        (kind proposition)
        (title "Taylor's formula is exact for a polynomial")
        (names taylor-exact-polynomial)
@@ -278,6 +350,7 @@
 
 (entry (doc "calculus")
        (ref "2.24")
+       (section "2.8" prefilled)
        (kind proposition)
        (title "Mean Value Theorem for a directional derivative")
        (names dir-deriv-mvt dir-deriv-increment)
@@ -287,6 +360,7 @@
 
 (entry (doc "calculus")
        (ref "2.25")
+       (section "2.8" prefilled)
        (kind lemma)
        (title "Homogeneity of the directional derivative")
        (names dir-deriv-homogeneous)
@@ -296,6 +370,7 @@
 
 (entry (doc "calculus")
        (ref "2.26")
+       (section "2.8" prefilled)
        (kind lemma)
        (title "Additivity of the directional derivative under continuity")
        (names dir-deriv-additive)
@@ -305,6 +380,7 @@
 
 (entry (doc "calculus")
        (ref "2.27")
+       (section "2.8" prefilled)
        (kind proposition)
        (title "Linearity of the directional derivative on the span")
        (names dir-deriv-span-linear dir-deriv-span-formula has-dir-deriv-add has-dir-deriv-scale)
@@ -314,6 +390,7 @@
 
 (entry (doc "calculus")
        (ref "2.28")
+       (section "2.8" prefilled)
        (kind proposition)
        (title "Continuous partials give a directional derivative in every direction")
        (names continuous-partials-dir-deriv rn-partials-sum-linear continuous-partials-dir-deriv-continuous rn-is-normed-vector-space)
@@ -323,6 +400,7 @@
 
 (entry (doc "calculus")
        (ref "2.29")
+       (section "2.8" prefilled)
        (kind proposition)
        (title "Continuous partials imply differentiability")
        (names continuous-partials-estimate rn-partials-estimate-trunc)
@@ -332,6 +410,7 @@
 
 (entry (doc "calculus")
        (ref "3.3")
+       (section "3.1" prefilled)
        (kind proposition)
        (title "Unions and finite intersections of open sets")
        (names union-of-opens-open inter-of-finite-opens-open)
@@ -341,6 +420,7 @@
 
 (entry (doc "calculus")
        (ref "3.7")
+       (section "3.1" prefilled)
        (kind proposition)
        (title "A monotone bounded sequence converges to its sup (resp. inf)")
        (names monotone-converges-to-sup monotone-converges-to-inf-literal)
@@ -350,6 +430,7 @@
 
 (entry (doc "calculus")
        (ref "3.9")
+       (section "3.1" prefilled)
        (kind proposition)
        (title "Closed sets are exactly those stable under limits of sequences")
        (names closed-iff-sequentially-closed seq-closed-implies-closed closed-limit-in)
@@ -359,6 +440,7 @@
 
 (entry (doc "calculus")
        (ref "3.10")
+       (section "3.1" prefilled)
        (kind proposition)
        (title "A set is closed if and only if it contains its accumulation points")
        (names closed-iff-contains-accumulation-points)
@@ -368,6 +450,7 @@
 
 (entry (doc "calculus")
        (ref "3.12")
+       (section "3.1" prefilled)
        (kind proposition)
        (title "Four equivalent characterizations of a compact metric space")
        (names compact-iff-fip compact-iff-cluster-point compact-iff-seq-compact compact-iff-tb-complete)
@@ -377,6 +460,7 @@
 
 (entry (doc "calculus")
        (ref "3.14")
+       (section "3.2" prefilled)
        (kind proposition)
        (title "Continuity at a point is sequential continuity")
        (names continuous-at-iff-sequential continuous-at-implies-sequential)
@@ -386,6 +470,7 @@
 
 (entry (doc "calculus")
        (ref "3.15")
+       (section "3.2" prefilled)
        (kind proposition)
        (title "Continuity equals closedness (openness) of preimages")
        (names continuous-implies-closed-preimage closed-preimage-implies-continuous continuous-implies-open-preimage open-preimage-implies-continuous)
@@ -395,6 +480,7 @@
 
 (entry (doc "calculus")
        (ref "3.16")
+       (section "3.2" prefilled)
        (kind lemma)
        (title "Subsequence principle")
        (names subsequence-principle)
@@ -404,6 +490,7 @@
 
 (entry (doc "calculus")
        (ref "3.19")
+       (section "3.2" prefilled)
        (kind proposition)
        (title "The continuous image of a compact set is compact")
        (names continuous-image-of-compact compact-image)
@@ -413,6 +500,7 @@
 
 (entry (doc "calculus")
        (ref "3.20")
+       (section "3.2" prefilled)
        (kind corollary)
        (title "A continuous bijection from a compact space is a homeomorphism")
        (names compact-continuous-bijection-is-homeomorphism compact-subspace-is-closed)
@@ -422,6 +510,7 @@
 
 (entry (doc "calculus")
        (ref "3.21")
+       (section "3.3" prefilled)
        (kind proposition)
        (title "A continuous function on a compact space is uniformly continuous")
        (names compact-continuous-uniformly-continuous continuous-uniformly-continuous-on-ccint)
@@ -431,6 +520,7 @@
 
 (entry (doc "calculus")
        (ref "3.22")
+       (section "3.3" prefilled)
        (kind proposition)
        (title "Continuity plus uniform continuity off a compact set gives uniform continuity")
        (names uniformly-continuous-off-compact continuous-uniform-near-compact)
@@ -440,6 +530,7 @@
 
 (entry (doc "calculus")
        (ref "3.23")
+       (section "3.3" prefilled)
        (kind corollary)
        (title "A continuous function constant outside a compact set is uniformly continuous")
        (names constant-off-compact-uniformly-continuous)
@@ -449,6 +540,7 @@
 
 (entry (doc "calculus")
        (ref "3.26")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "Unique uniformly continuous extension from a dense subspace")
        (names uniformly-continuous-extension-from-dense limit-along-exists limit-along-unique)
@@ -458,6 +550,7 @@
 
 (entry (doc "calculus")
        (ref "3.27")
+       (section "3.5" prefilled)
        (kind proposition)
        (title "min(d,1) is a metric, with the same convergent sequences")
        (names trunc-metric-is-metric-space trunc-metric-converges-iff)
@@ -467,6 +560,7 @@
 
 (entry (doc "calculus")
        (ref "3.28")
+       (section "3.5" prefilled)
        (kind proposition)
        (title "Tychonov Theorem for Metric Spaces")
        (names compact-countable-product seq-compact-countable-product)
@@ -476,6 +570,7 @@
 
 (entry (doc "calculus")
        (ref "3.33")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "On a compact space pointwise and uniform convergence agree on an equicontinuous set")
        (names equicont-compact-ptwise-iff-uniform equicont-set-compact-ptwise-iff-uniform equicont-ptwise-implies-uniform uniform-conv-implies-ptwise ptwise-cauchy-compact-equicont-unif)
@@ -485,6 +580,7 @@
 
 (entry (doc "calculus")
        (ref "3.34")
+       (section "3.7" prefilled)
        (kind proposition)
        (title "Ascoli-Arzela")
        (names ascoli-arzela-sequential ascoli-sequential-from-diagonal ascoli-pointwise-diagonal)
@@ -494,6 +590,7 @@
 
 (entry (doc "calculus")
        (ref "3.36")
+       (section "3.7" prefilled)
        (kind lemma)
        (title "Equicontinuous sequence converging on a dense set converges everywhere, with continuous limit")
        (names ascoli-dense-bridge equicont-dense-conv-implies-unif-cauchy equicont-dense-conv-ptwise-cauchy)
@@ -503,6 +600,7 @@
 
 (entry (doc "calculus")
        (ref "3.37")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "The isometry group of a compact metric space is compact")
        (names isometry-group-compact isometry-group-ms-is-metric-space)
@@ -512,6 +610,7 @@
 
 (entry (doc "calculus")
        (ref "3.38")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "In the isometry group uniform and pointwise convergence agree")
        (names isometry-group-uniform-iff-ptwise isometry-group-conv-iff-uniform)
@@ -521,6 +620,7 @@
 
 (entry (doc "calculus")
        (ref "4.5")
+       (section "4.1" prefilled)
        (kind proposition)
        (title "Regulated functions are exactly the uniform limits of step functions")
        (names regulated-on-iff-step-limit regulated-on-is-step-limit step-fn-is-regulated uniform-limit-of-regulated)
@@ -530,6 +630,7 @@
 
 (entry (doc "calculus")
        (ref "4.8")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "The antiderivable functions on [a,b] form a vector space")
        (names antiderivable-fns-vector-space antiderivable-add antiderivable-scale antiderivable-sub)
@@ -539,6 +640,7 @@
 
 (entry (doc "calculus")
        (ref "4.10")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "Two antiderivatives of the same function differ by a constant")
        (names pw-antiderivative-differ-by-some-constant pw-antiderivative-differ-by-constant antiderivative-differ-by-constant)
@@ -548,6 +650,7 @@
 
 (entry (doc "calculus")
        (ref "4.11")
+       (section "4.2" prefilled)
        (kind corollary)
        (title "The endpoint difference is the same for all antiderivatives")
        (names pw-antiderivative-endpoint-difference antiderivative-endpoint-difference)
@@ -557,6 +660,7 @@
 
 (entry (doc "calculus")
        (ref "4.12")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "The definite integral is a linear functional")
        (names pw-antiderivative-linear pw-antiderivative-sum pw-antiderivative-real-mul c-int-add c-int-scale)
@@ -566,15 +670,18 @@
 
 (entry (doc "calculus")
        (ref "4.13")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "The integral of a sum is the sum of the integrals")
        (names pw-antiderivative-sum c-int-add antiderivative-add)
+       (home-elsewhere pw-antiderivative-sum c-int-add)
        (status proven)
        (deviation "Restated 2026-09-22 for functions ON [a, b] (the first name(s)), for the PIECEWISE primitive is-pw-antiderivative: continuous on [a, b], with derivative phi(t) at every t of (a, b) outside a finite set (Dieudonne 8.7 with a finite exceptional set; the notes' Definition 4.6 is the case of an empty exceptional set, which the library does not single out yet). The remaining names are the older forms for functions TOTAL on RR (is-antiderivative, c-int); they remain in the library.")
        (notes-statement "If f, g are antiderivatives of phi, psi respectively, then f + g is an antiderivative of phi + psi, and the integral of phi + psi over [a,b] is the sum of the two integrals."))
 
 (entry (doc "calculus")
        (ref "4.16")
+       (section "4.3" prefilled)
        (kind proposition)
        (title "Differentiating a sequence whose derivatives converge uniformly")
        (names deriv-uniform-limit-on-ccint primitive-continuous-deriv-on-ccint primitive-uniform-limit antiderivative-family-uniform-limit antiderivable-uniform-limit diff-at-ptwise-limit)
@@ -584,15 +691,18 @@
 
 (entry (doc "calculus")
        (ref "4.17")
+       (section "4.3" prefilled)
        (kind corollary)
        (title "The antiderivable functions are closed under uniform limits")
        (names antiderivable-uniform-limit)
+       (home-elsewhere antiderivable-uniform-limit)
        (status proven)
        (deviation "Uniform convergence is spelled out inline (for every eps > 0 there is n_ in nn with abs(psi(x_) - (phifam(k_))(x_)) <= eps for all k_ >= n_ and all x_ in ccint(a, b)) rather than through a named predicate, and is required only on ccint(a, b). The sequence and its limit are in fun(rr, rr), TOTAL on RR, and a < b is strict, so the degenerate interval is excluded.")
        (notes-statement "The space of antiderivable functions on [a,b] is closed under uniform limits."))
 
 (entry (doc "calculus")
        (ref "5.2")
+       (section "5.1" prefilled)
        (kind theorem)
        (title "Bernstein approximation of a continuous function on [0,1]")
        (names bernstein-uniform-approximation)
@@ -602,6 +712,7 @@
 
 (entry (doc "calculus")
        (ref "5.4")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "The two Bernstein estimates")
        (names bernstein-partition bernstein-variance-bound)
@@ -611,15 +722,18 @@
 
 (entry (doc "calculus")
        (ref "5.5")
+       (section "5.1" prefilled)
        (kind lemma)
        (title "The four Bernstein identities")
        (names bernstein-partition bernstein-moment-1 bernstein-moment-2 bernstein-variance)
+       (home-elsewhere bernstein-partition)
        (status proven)
        (deviation "Each of the last three identities is stated through an auxiliary sequence h_ pinned pointwise (forall k_ in nn, h_(k_) = ...) and the sum is series-partial-sum(h_, succ(n_)), because the library has no inline finite-sum term with a bound variable; bernstein-basis(n, x) is a function on ZZ, so the range of the notes' sum is enforced by bernstein-basis-above and bernstein-basis-null rather than by the summation. The notes derive the identities from the Binomial Theorem by differentiating in x; the library's route is bernstein-basis-succ and induction, so the proof does not follow the notes (binomial-theorem exists independently).")
        (notes-statement "sum_l B_{l,n}(x) = 1; sum_l l B_{l,n}(x) = nx; sum_l l(l-1) B_{l,n}(x) = n(n-1)x^2; sum_l (l - nx)^2 B_{l,n}(x) = nx(1-x)."))
 
 (entry (doc "calculus")
        (ref "5.7")
+       (section "5.1" prefilled)
        (kind corollary)
        (title "Weierstrass approximation on an arbitrary interval")
        (names weierstrass-approximation bernstein-partial-poly-fn bernstein-basis-poly-fn)
@@ -644,8 +758,23 @@
 ;;; Definitions (3.1, 3.2, 3.4, 3.7, 3.11, 3.16, 3.24, 3.28, 3.30, 3.33, 3.42), remarks
 ;;; (3.21, 3.32, 3.34, 3.35, 3.39) and examples (3.9, 3.14, 3.17) are NOT entries here.
 ;;; The lemma \iffalse'd out at tex:1651 carries no number and is not an entry.
+;;; The OUTLINE of linear-algebra: chapters that hold an entry, with every section the notes have.
+;;; Titles marked `prefilled' were read off the notes by pdftotext (BOOK-GEN, 2026-11-12); review
+;;; and delete the mark.  Read by library-book.scm; ignored by the major-theorems list.
+(outline "linear-algebra"
+  (chapter "3" "Linear Algebra" prefilled
+    (section "3.1" "Matrices" prefilled)
+    (section "3.2" "Matrices and Linear Operators" prefilled)
+    (section "3.3" "Elementary Matrices" prefilled)
+    (section "3.4" "Elementary Matrix Operations" prefilled)
+    (section "3.5" "Determinants" prefilled)
+    (section "3.6" "Expansion by Minors" prefilled)
+    (section "3.7" "Vector Spaces and Linear Operators" prefilled)
+    (section "3.8" "Matrices with Integer Entries" prefilled)))
+
 (entry (doc "linear-algebra")
        (ref "3.3")
+       (section "3.4" prefilled)
        (kind lemma)
        (title "Action of the matrix unit E_n[k,l] on the right")
        (names matunit-col-shift)
@@ -655,6 +784,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.5")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "The elementary column operations")
        (names elem-f-action elem-g-action elem-h-action)
@@ -664,6 +794,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.6")
+       (section "3.4" prefilled)
        (kind corollary)
        (title "The elementary column matrices are invertible, with explicit inverses")
        (names elem-f-inverse elem-g-inverse elem-h-inverse elem-f-invertible elem-g-invertible)
@@ -673,6 +804,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.8")
+       (section "3.4" prefilled)
        (kind lemma)
        (title "Column reduction of the first row over a field")
        (names col-reduce-first-row column-step-exists clear-first-row class-min-pivot)
@@ -682,24 +814,29 @@
 
 (entry (doc "linear-algebra")
        (ref "3.10")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "Column reduction to a step matrix with zeros above the diagonal")
        (names column-step-exists column-step-reduced smith-diagonalization)
+       (home-elsewhere column-step-exists)
        (status proven)
        (deviation "Stated over IS-FIELD-RING, as the lemma 3.8 it rests on. COL-EQUIV(R, n, A, B) and IS-COLUMN-STEP(R, m, n, B): b_ij = 0 for i < j and b_ii in {0, 1}. Proved by induction on the number of rows treated, not on min(m, n). column-step-reduced also clears the rest of a row whose diagonal entry is 1. smith-diagonalization (euclidean, MAT-EQUIV, fully diagonal, not normalised) stays as before.")
        (notes-statement "Any m x n matrix A is column equivalent to a B with b_{ij} = 0 for 1 <= i < j <= n and each b_{ii} either 0 or 1, i.e. B has zero entries above the diagonal."))
 
 (entry (doc "linear-algebra")
        (ref "3.12")
+       (section "3.4" prefilled)
        (kind corollary)
        (title "Over a field, invertible iff column equivalent to the identity")
        (names invertible-iff-col-equiv-identity column-step-exists column-step-reduced)
+       (home-elsewhere column-step-exists column-step-reduced)
        (status proven)
        (deviation "Stated over IS-FIELD-RING. Column equivalence is COL-EQUIV(R, n, A, B): B = A P with P in ELEM-GEN(R, n), the least subset of MAT(n, n) containing I and closed under right multiplication by an elementary matrix (ELEM-F, ELEM-G, or ELEM-H at a unit). The column-step proposition before 3.12 (column-step-exists) is proved by induction on the number of rows treated, not on min(m, n), and is stated over a field. A zero diagonal entry is excluded through the determinant (det-lower-triangular, invertible-iff-det-nonzero), not by the notes' test vector.")
        (notes-statement "If R is a field, A in M_n(R) is invertible if and only if A is column equivalent to the identity matrix."))
 
 (entry (doc "linear-algebra")
        (ref "3.13")
+       (section "3.4" prefilled)
        (kind corollary)
        (title "The elementary column matrices generate the group of invertible matrices")
        (names invertible-iff-elem-gen elem-gen-mul elem-gen-inverse)
@@ -709,6 +846,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.15")
+       (section "3.5" prefilled)
        (kind proposition)
        (title "A permutation of the indeterminates is a ring automorphism of R[x_1,...,x_n]")
        (names var-permute-is-ring-iso multi-index-reindex-is-ring-iso monalg-pullback-iso mpoly-is-ring mpoly-is-commutative-ring multi-index-monoid-is-comm-monoid)
@@ -718,6 +856,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.18")
+       (section "3.5" prefilled)
        (kind proposition)
        (title "det is multilinear and alternating, and det of the transpose equals det")
        (names det-row-linear det-col-linear det-swap-rows det-swap-cols det-alternating-rows det-equal-cols-zero det-transpose)
@@ -727,6 +866,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.19")
+       (section "3.5" prefilled)
        (kind corollary)
        (title "Determinant under an elementary column operation")
        (names det-elem-f-col det-elem-g-col det-elem-h-col det-mul-elem-f-col det-mul-elem-g-col det-mul-elem-h-col)
@@ -736,6 +876,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.20")
+       (section "3.5" prefilled)
        (kind corollary)
        (title "det(AV) = det A det V for invertible V over a field")
        (names det-mul-invertible det-multiplicative)
@@ -745,15 +886,18 @@
 
 (entry (doc "linear-algebra")
        (ref "3.22")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "Expansion by minors along a row and along a column")
-       (names det-expand-row det-expand-col det-cofactor)
+       (names det-expand-row det-expand-col)
+       (definitions det-cofactor)
        (status proven)
        (deviation "UPDATED 2026-09-25 (batch 32): the COLUMN half is PROVEN, det-expand-col (for each j, det A = sum_i (-1)^(i+j) a_ij det A[i,j]), by transposing det-expand-row with (minor of A^t at (j,i)) = (minor of A at (i,j))^t. UPDATED 2026-09-24 (batch 25): the ROW half is PROVEN: det-expand-row expands along any row i with the sign (-1)^(i+j). The column half waits on the transpose. EARLIER NOTE: The library DEFINES det by the cofactor expansion along the FIRST ROW: det-cofactor is the defining equation for det(r, succ(n), a), not a theorem.  So the notes' statement is available only at i = 1, and only as a definition; the expansion along an arbitrary row i, and the column expansion, are nowhere stated.  The library's minor(s,r,c,n) is the notes' A[i,j].  The sign (-1)^{i+j} appears in det-cofactor as mpow of neg(one(r)) to succ(j), the i = 1 specialisation.")
        (notes-statement "For each i, det A = sum_j (-1)^{i+j} a_{ij} det(A[i,j]); and for each j, det A = sum_i (-1)^{i+j} a_{ij} det(A[i,j])."))
 
 (entry (doc "linear-algebra")
        (ref "3.23")
+       (section "3.6" prefilled)
        (kind corollary)
        (title "The determinant of a triangular matrix is the product of its diagonal entries")
        (names det-lower-triangular det-upper-triangular)
@@ -763,6 +907,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.25")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "The formal adjoint satisfies adj(A) A = det(A) I")
        (names adj-mul mul-adj cramer-inverse)
@@ -772,6 +917,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.26")
+       (section "3.6" prefilled)
        (kind corollary)
        (title "Over a field, invertible iff the determinant is nonzero")
        (names invertible-iff-det-nonzero)
@@ -781,15 +927,18 @@
 
 (entry (doc "linear-algebra")
        (ref "3.27")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "det is multiplicative")
        (names det-multiplicative det-alternating-form)
+       (home-elsewhere det-multiplicative)
        (status proven)
        (deviation "UPDATED 2026-09-24 (batch 26-B): PROVEN for every commutative ring, theorem-library/det-multiplicative.scm: X |-> det(XQ) is linear in each row and zero on two equal rows, and Hoffman-Kunze 5.3 Theorem 2 (det-alternating-form: such a D is det(A) D(I)) is proven by induction on n without permutations or signs; the support is retired. EARLIER NOTE: Same statement, same hypothesis (is-commutative-ring, both matrices n x n), but ASSERTED with warrant reference -- it is trusted surface, never proven.  It is one of only two determinant facts on the debt bundle (with det-alternating-rows).")
        (notes-statement "det(A B) = det A det B for all A, B in M_n(R), R a commutative ring."))
 
 (entry (doc "linear-algebra")
        (ref "3.29")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "Behaviour of the sigma-th order subdeterminants under F and G operations")
        (names sdet-col-swap sdet-row-swap sdet-col-add sdet-row-add sdet-col-scale sdet-row-scale)
@@ -799,6 +948,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.31")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "The gcd of the sigma-th subdeterminants is an invariant over Z")
        (names sdet-gcd-invariant sdet-divisor-equiv)
@@ -808,6 +958,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.36")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "Integer normal form: existence and uniqueness of the diagonal form")
        (names integer-normal-form integer-normal-form-exists diagonal-normal-form-unique diagonal-normal-form-unique-invertible diagonal-chain-sdet-gcd)
@@ -817,6 +968,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.37")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "The reducing matrices U and V are products of elementary matrices")
        (names integer-normal-form-elementary)
@@ -826,6 +978,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.38")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "An invertible integer matrix is a product of elementary matrices")
        (names zz-invertible-iff-elementary-product euclidean-invertible-iff-elem-gen euclidean-unit-det-elem-gen elem-gen-det-unit)
@@ -835,6 +988,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.40")
+       (section "3.8" prefilled)
        (kind lemma)
        (title "An invertible change of sequence preserves generation and freeness")
        (names generates-transport free-transport spans-transport)
@@ -844,6 +998,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.41")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "A relation-free sequence is no longer than a generating sequence")
        (names free-length-le-generators free-generating-length-unique)
@@ -853,6 +1008,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.43")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "GL_n(Z) acts freely and transitively on the free generating sequences")
        (names free-generating-action-free free-generating-action-stabilizer free-generating-action-transitive free-generating-action-closed)
@@ -862,6 +1018,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.44")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "Adapted basis for a subgroup, with the divisibility chain")
        (names principal-sequence-exists principal-sequence-exists-unique)
@@ -871,6 +1028,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.45")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "The norm N_F(E): the absolute determinant is basis-independent")
        (names norm-independent change-of-basis-det-unit)
@@ -880,6 +1038,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.46")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "A subgroup of a free abelian group of rank n is free of rank at most n")
        (names submodule-of-free-is-free)
@@ -889,6 +1048,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.47")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "A subgroup of an n-generated group is generated by at most n elements")
        (names submodule-fg spans-submodule-fg)
@@ -898,6 +1058,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.48")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "Uniqueness of the principal sequence of a subgroup")
        (names principal-sequence-unique)
@@ -907,6 +1068,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.49")
+       (section "3.8" prefilled)
        (kind lemma)
        (title "The quotient E/F for a diagonal subgroup")
        (names quotient-by-diagonal-subgroup first-isomorphism-module)
@@ -916,6 +1078,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.50")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "Structure of a finitely generated abelian group")
        (names fg-abelian-group-structure-exists fg-abelian-group-structure-unique cyclic-sum-iso-core)
@@ -925,6 +1088,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.51")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "Every finitely generated abelian group is a direct sum of cyclic groups")
        (names fg-abelian-group-cyclic-decomposition cyclic-sum-iso-unique)
@@ -934,6 +1098,7 @@
 
 (entry (doc "linear-algebra")
        (ref "3.52")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "The cardinality of E/F is the norm N_E(F)")
        (names quotient-card-norm cyclic-dsum-card principal-sequence-of-presentation dsum-card zz-mod-card card-cartesian)
@@ -952,17 +1117,74 @@
 ;;; assertion sections), reference/PSS.md, reference/DEFINITIONS.md; `proven' confirmed by
 ;;; grepping (qed 'NAME) under theorem-library/.
 ;;; Added 2026-10-15 (agents CA-AC and CA-5, 2026-10-14; merged into the library 2026-10-15).
+;;; The OUTLINE of complex-analysis: chapters that hold an entry, with every section the notes have.
+;;; Titles marked `prefilled' were read off the notes by pdftotext (BOOK-GEN, 2026-11-12); review
+;;; and delete the mark.  Read by library-book.scm; ignored by the major-theorems list.
+(outline "complex-analysis"
+  (chapter "1" "Basic Notions" prefilled
+    (section "1.1" "Real Numbers" prefilled)
+    (section "1.2" "Complex Numbers" prefilled)
+    (section "1.3" "Basic Metric Space Theory" prefilled)
+    (section "1.4" "Geometry of the Complex Plane" prefilled)
+    (section "1.5" "Algebraic Completeness" prefilled)
+    (section "1.6" "Linear Fractional Transformations" prefilled))
+  (chapter "2" "Holomorphic Functions" prefilled
+    (section "2.1" "Differentiability in the Complex Domain" prefilled)
+    (section "2.2" "Power Series" prefilled)
+    (section "2.3" "Elementary Functions" prefilled))
+  (chapter "3" "Integration" prefilled
+    (section "3.1" "Integrals Along Paths" prefilled)
+    (section "3.2" "Cauchy Integral Theorem" prefilled)
+    (section "3.3" "Generalization of Cauchy's Theorem" prefilled)
+    (section "3.4" "Winding Number" prefilled)
+    (section "3.5" "Analyticity of Holomorphic Functions" prefilled)
+    (section "3.6" "Morera's Theorem" prefilled)
+    (section "3.7" "An Integral Formula" prefilled)
+    (section "3.8" "The Mean Value Property" prefilled)
+    (section "3.9" "The Gamma Function" prefilled))
+  (chapter "4" "Meromorphic Functions" prefilled
+    (section "4.1" "Laurent Series" prefilled)
+    (section "4.2" "Meromorphic Functions" prefilled)
+    (section "4.3" "Residues" prefilled)
+    (section "4.4" "Logarithmic Differentiation" prefilled)
+    (section "4.5" "Open Mapping Theorem" prefilled))
+  (chapter "5" "Function Spaces" prefilled
+    (section "5.1" "Topology of Convergence on Compact Sets" prefilled)
+    (section "5.2" "Compactness of Closed Bounded Sets in HpUq" prefilled)
+    (section "5.3" "Differentiation as a Linear Operator" prefilled)
+    (section "5.4" "Series of Meromorphic Functions" prefilled)
+    (section "5.5" "Mittag-Leffler's Theorem" prefilled))
+  (chapter "6" "Infinite Products" prefilled
+    (section "6.1" "Absolute Convergence of Products" prefilled)
+    (section "6.2" "Logarithmic Differentiation of Products" prefilled)
+    (section "6.3" "Weierstrauss Factorization" prefilled)
+    (section "6.4" "The Sine Function" prefilled)
+    (section "6.5" "Weierstrauss ?-function" prefilled)
+    (section "6.6" "The Gamma Function" prefilled))
+  (chapter "9" "Dirichlet Series" prefilled
+    (section "9.1" "Abel Summation Formula" prefilled)
+    (section "9.2" "Initial Definition of the Riemann ?" prefilled)
+    (section "9.3" "Dirichlet Series" prefilled)
+    (section "9.4" "L functions" prefilled))
+  (chapter "10" "Riemann Mapping Theorem" prefilled
+    (section "10.1" "Riemann Surfaces" prefilled)
+    (section "10.2" "Automorphisms" prefilled)
+    (section "10.3" "The Fundamental Theorem of Conformal Mapping" prefilled)))
+
 (entry (doc "complex-analysis")
        (ref "1.2")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "Uniqueness of the least upper bound")
        (names rr-lub-unique)
+       (home-elsewhere rr-lub-unique)
        (status proven)
        (deviation "A least upper bound is an RR-UPPER-BOUND that is <= every upper bound (Definition 1.8); no guard on the set. (calculus 1.9 and complex-analysis 1.2 share this statement.)")
        (notes-statement "Any S subset of R has at most one least upper bound."))
 
 (entry (doc "complex-analysis")
        (ref "1.3")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "C as 2x2 real matrices")
        (names cc-matrix-representation cc-matrix-rep-bijection cc-matrix-of-mul)
@@ -972,42 +1194,51 @@
 
 (entry (doc "complex-analysis")
        (ref "1.5")
+       (section "1.3" prefilled)
        (kind proposition)
        (title "Unions and finite intersections of open sets")
        (names union-of-opens-open inter-of-finite-opens-open)
+       (home-elsewhere union-of-opens-open inter-of-finite-opens-open)
        (status proven)
        (deviation "The finite family is a set c with CARD(c) in NN, inhabited, all members open; the intersection is INTERSECTION-OF(c). The union half is unchanged.")
        (notes-statement "The union of any family of open sets is open. The intersection of finitely many open sets is open."))
 
 (entry (doc "complex-analysis")
        (ref "1.7")
+       (section "1.3" prefilled)
        (kind proposition)
        (title "Monotone convergence for real sequences")
        (names monotone-converges-to-sup monotone-converges-to-inf-literal)
+       (home-elsewhere monotone-converges-to-sup monotone-converges-to-inf-literal)
        (status proven)
        (deviation "sup_n x_n is SUP of the range {y in RR : y = f(k)}; inf_n x_n is INF of the range (INF defined as -SUP of the negated set, proven to be the glb). Monotonicity in one-step form.")
        (notes-statement "If {x_n} is non-decreasing and bounded above then lim_n x_n = sup_n x_n; if non-increasing and bounded below then lim_n x_n = inf_n x_n."))
 
 (entry (doc "complex-analysis")
        (ref "1.9")
+       (section "1.3" prefilled)
        (kind proposition)
        (title "Closed sets and limits of sequences")
        (names closed-iff-sequentially-closed seq-closed-implies-closed closed-limit-in)
+       (home-elsewhere closed-iff-sequentially-closed seq-closed-implies-closed closed-limit-in)
        (status proven)
        (deviation "A subset PTS(s) is a hypothesis of the iff; sequences typed f in FUN(NN, A).")
        (notes-statement "A set A in a metric space X is closed if and only if every sequence of elements of A which converges, converges to an element of A."))
 
 (entry (doc "complex-analysis")
        (ref "1.11")
+       (section "1.3" prefilled)
        (kind proposition)
        (title "Characterisations of compactness")
        (names compact-iff-fip compact-iff-cluster-point compact-iff-tb-complete)
+       (home-elsewhere compact-iff-fip compact-iff-cluster-point compact-iff-tb-complete)
        (status proven)
        (deviation "All four conditions are present and each equivalence is proven, but as three separate IFF theorems against (1) rather than one four-way equivalence. In (2) the library's HAS-FIP carries two inhabitedness guards the notes do not: the family c must be non-empty (forsome a0. a0 in c), and only NON-EMPTY finite subfamilies are required to have a non-empty intersection. (3) is stated with CLUSTER-POINT defined by: for every eps > 0 and every m in NN there is n >= m with dist(f(n), x) < eps -- the notes define a cluster point by the set {n : x_n in B(y,r)} being infinite.")
        (notes-statement "For a metric space X the following are equivalent: (1) X is compact; (2) X satisfies the finite intersection property for closed sets; (3) every sequence in X has a cluster point; (4) X is totally bounded and complete."))
 
 (entry (doc "complex-analysis")
        (ref "1.12")
+       (section "1.4" prefilled)
        (kind proposition)
        (title "Product of numbers in polar form")
        (names cc-cos-add cc-sin-add cc-exp-add cc-polar-form)
@@ -1017,6 +1248,7 @@
 
 (entry (doc "complex-analysis")
        (ref "1.14")
+       (section "1.4" prefilled)
        (kind lemma)
        (title "Positive orientation of a triangular path by angles")
        (names positively-oriented-iff)
@@ -1026,6 +1258,7 @@
 
 (entry (doc "complex-analysis")
        (ref "1.15")
+       (section "1.5" prefilled)
        (kind theorem)
        (title "C is an algebraically closed field")
        (names cc-algebraically-closed fundamental-theorem-of-algebra cc-polynomial-lower-growth)
@@ -1035,6 +1268,7 @@
 
 (entry (doc "complex-analysis")
        (ref "1.16")
+       (section "1.6" prefilled)
        (kind lemma)
        (title "Convergence in the extended plane")
        (names cc-hat-converges-iff cc-hat-converges-inf-iff)
@@ -1044,6 +1278,7 @@
 
 (entry (doc "complex-analysis")
        (ref "1.18")
+       (section "1.6" prefilled)
        (kind proposition)
        (title "Linear maps on C^2 and linear fractional transformations")
        (names mat-lft-in-lfts mat-lft-hom mat-lft-onto mat-lft-kernel lft-homog lft-compose)
@@ -1053,6 +1288,7 @@
 
 (entry (doc "complex-analysis")
        (ref "1.19")
+       (section "1.6" prefilled)
        (kind corollary)
        (title "The linear fractional transformations form a group")
        (names lft-group-is-group)
@@ -1062,6 +1298,7 @@
 
 (entry (doc "complex-analysis")
        (ref "1.20")
+       (section "1.6" prefilled)
        (kind corollary)
        (title "SL(2,C) onto the linear fractional transformations")
        (names sl2-lft-hom sl2-lft-onto sl2-lft-kernel sl2-matmul-closed)
@@ -1071,6 +1308,7 @@
 
 (entry (doc "complex-analysis")
        (ref "1.21")
+       (section "1.6" prefilled)
        (kind proposition)
        (title "The Cayley transform")
        (names cayley-real-circle cayley-upper-disc)
@@ -1080,6 +1318,7 @@
 
 (entry (doc "complex-analysis")
        (ref "1.22")
+       (section "1.6" prefilled)
        (kind proposition)
        (title "The Hopf map is continuous and onto S^2")
        (names hopf-maps-sphere hopf-onto-sphere hopf-map-continuous-product hopf-map-continuous hopf-norm-identity)
@@ -1089,6 +1328,7 @@
 
 (entry (doc "complex-analysis")
        (ref "1.24")
+       (section "1.6" prefilled)
        (kind corollary)
        (title "The Hopf fibration factors through a bijection S^2 -> P")
        (names hopf-factors-through-bijection hopf-fibre-equiv hopf-fibre-iff)
@@ -1098,24 +1338,29 @@
 
 (entry (doc "complex-analysis")
        (ref "2.2")
+       (section "2.1" prefilled)
        (kind proposition)
        (title "Differentiable implies continuous")
        (names diff-on-implies-continuous)
+       (home-elsewhere diff-on-implies-continuous)
        (status proven)
        (deviation "Stated for an arbitrary normed field K rather than for CC (more general; the CC instance is got by taking K = CC-NORMED-FIELD, but no CC-specialised corollary is installed). The conclusion is continuity at a in the SUBSPACE metric on U -- is-continuous-at(subspace-ms(nf-metric-space(k), u), nf-metric-space(k), f, a) -- not continuity of a map defined near a in C; the two agree because IS-DIFF-ON forces U open, but the library does not say so.")
        (notes-statement "If f : U -> C is differentiable at a in U (U open) then f is continuous at a."))
 
 (entry (doc "complex-analysis")
        (ref "2.3")
+       (section "2.1" prefilled)
        (kind proposition)
        (title "Sum and product rules")
        (names diff-on-sum diff-on-product holomorphic-sum holomorphic-product)
+       (home-elsewhere diff-on-sum diff-on-product)
        (status proven)
        (deviation "Two separate developments, neither of which is exactly the notes' statement. diff-on-sum / diff-on-product give the derivative at a, but only for the LITERAL function VNB-LAMBDA x in U. (add K)(f(x), g(x)) (resp. the product); a pointwise-equal representative of f + g or f . g has to be transported by diff-on-transfer-ptwise-eq. holomorphic-sum / holomorphic-product do take an arbitrary sm in FUN(U, CC) that agrees pointwise, but they conclude only HOLOMORPHIC-ON(U, sm) and say nothing about the value of the derivative at a. Both diff-on laws are stated for a general normed field K.")
        (notes-statement "If f, g are differentiable at a then f + g and f . g are differentiable at a, with [f+g]'(a) = f'(a) + g'(a) and [f.g]'(a) = f'(a) g(a) + f(a) g'(a)."))
 
 (entry (doc "complex-analysis")
        (ref "2.3.3.1")
+       (section "2.1" prefilled-inferred)
        (kind definition)
        (title "The principal branch of the logarithm")
        (names cc-log-spec cc-exp-log cc-log-exp cc-log-char cc-log-unique cc-log-real cc-log-one cc-log-polar cc-log-scale cc-log-in-slit)
@@ -1125,6 +1370,7 @@
 
 (entry (doc "complex-analysis")
        (ref "2.3.3.1-hol")
+       (section "2.1" prefilled-inferred)
        (kind proposition)
        (title "log is holomorphic on C minus (-inf, 0]")
        (names cc-log-holomorphic cc-log-deriv cc-log-holomorphic-at cc-log-im-near-one cc-log-rotate cc-log-rotate-neg cc-log-mul cc-log-right-half cc-pi-gt-three cc-cos-pos-half cc-log-holomorphic-near-one cc-log-holomorphic-scale)
@@ -1134,15 +1380,18 @@
 
 (entry (doc "complex-analysis")
        (ref "2.4")
+       (section "2.1" prefilled)
        (kind proposition)
        (title "Chain Rule")
        (names diff-on-chain)
+       (home-elsewhere diff-on-chain)
        (status proven)
        (deviation "The library adds hypotheses the notes leave implicit: both U and the target set S must be open (carried by IS-DIFF-ON), and forall y in U. f(y) in S is an explicit antecedent (the notes only require g to be differentiable at f(a)). The composite is the literal VNB-LAMBDA x in U. g(f(x)), so a pointwise-equal representative needs diff-on-transfer-ptwise-eq; the derivative is written (mul K)(m, l) in the normed field K. Stated for a general K, not specialised to CC.")
        (notes-statement "If f is differentiable at a and g is differentiable at f(a), then g o f is differentiable at a and (g o f)'(a) = g'(f(a)) f'(a)."))
 
 (entry (doc "complex-analysis")
        (ref "2.5")
+       (section "2.2" prefilled)
        (kind lemma)
        (title "Root Test")
        (names root-test-converges root-test-diverges)
@@ -1152,6 +1401,7 @@
 
 (entry (doc "complex-analysis")
        (ref "2.7")
+       (section "2.2" prefilled-inferred)
        (kind proposition)
        (title "Radius of convergence by the root test")
        (names cps-radius-root)
@@ -1161,6 +1411,7 @@
 
 (entry (doc "complex-analysis")
        (ref "2.8")
+       (section "2.2" prefilled)
        (kind lemma)
        (title "Normal convergence inside the radius")
        (names cps-normally-convergent cps-abs-conv-closed-ball cps-converges-closed-ball)
@@ -1170,6 +1421,7 @@
 
 (entry (doc "complex-analysis")
        (ref "2.9")
+       (section "2.2" prefilled)
        (kind lemma)
        (title "Polynomially bounded factors do not shrink the radius")
        (names cps-radius-factor)
@@ -1179,6 +1431,7 @@
 
 (entry (doc "complex-analysis")
        (ref "2.10")
+       (section "2.2" prefilled)
        (kind proposition)
        (title "A power series is holomorphic and differentiates termwise")
        (names cps-holomorphic-ball cps-radius-derived cps-diff-on-ball)
@@ -1188,6 +1441,7 @@
 
 (entry (doc "complex-analysis")
        (ref "2.12")
+       (section "2.2" prefilled)
        (kind proposition)
        (title "Principle of analytic continuation")
        (names analytic-continuation holomorphic-identity-principle holomorphic-zeros-local holomorphic-zero-coefficients)
@@ -1197,6 +1451,7 @@
 
 (entry (doc "complex-analysis")
        (ref "2.13")
+       (section "2.2" prefilled)
        (kind corollary)
        (title "Finitely many zeros in a closed ball")
        (names analytic-zeros-finite-in-ball compact-cover-by-balls)
@@ -1215,6 +1470,7 @@
 
 (entry (doc "complex-analysis")
        (ref "2.15")
+       (section "2.3" prefilled)
        (kind lemma)
        (title "Ratio Test")
        (names ratio-test-converges-limsup ratio-test-diverges-liminf ratio-test-converges)
@@ -1224,6 +1480,7 @@
 
 (entry (doc "complex-analysis")
        (ref "2.16")
+       (section "2.3" prefilled)
        (kind lemma)
        (title "The exponential series has infinite radius")
        (names cc-exp-radius cps-radius-pos-inf cc-cos-radius cc-sin-radius)
@@ -1233,15 +1490,18 @@
 
 (entry (doc "complex-analysis")
        (ref "2.17")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "exp is a continuous homomorphism into C*")
        (names cc-exp-add cc-exp-zero cc-exp-neg cc-exp-nonzero cc-exp-maps-to-nonzero cc-exp-continuous cc-exp-deriv cc-exp-holomorphic)
+       (home-elsewhere cc-exp-add)
        (status proven)
        (deviation "UPDATED 2026-09-25 (batch 31-A): PROVEN for the COMPLEX exponential defined by its series (theorem-library/cc-exp.scm): exp(z + w) = exp z exp w (cc-exp-add, by the zero-derivative route along a segment: exp(z) exp(w - z) is constant, no Cauchy product needed), exp 0 = 1, exp(-z) = 1/exp z, exp z /= 0, continuity and exp' = exp on CC. The tree has no group-homomorphism predicate, so 2.17 is these equations. The real exponential R-EXP (inverse of the integral LOG) is a separate object; the bridge 'exp restricted to RR is R-EXP' is not yet stated. There is no complex exponential in the library. R-EXP is the REAL exponential, and it is not defined by the power series: LOG is defined as the oriented integral of 1/x from 1 (log-unfold) and R-EXP is its inverse, so the identification of R-EXP with the restriction of the notes' exp is not a library fact. What is proven is the real restriction of the statement: r-exp-add (exp(u+v) = exp(u) exp(v) for real u, v), r-exp-pos (0 < exp(y), i.e. the values land in the multiplicative group of the positive reals) and r-exp-continuous-at (continuity at each real point, in RR-MS). Nothing about C or C* = C minus {0}.")
        (notes-statement "z |-> exp z is a continuous homomorphism from the additive group of C into the multiplicative group C* = C minus {0}."))
 
 (entry (doc "complex-analysis")
        (ref "2.18")
+       (section "2.3" prefilled)
        (kind lemma)
        (title "The kernel of exp is 2 pi i Z")
        (names cc-exp-one-iff pi-spec cc-exp-kernel-generator cc-exp-kernel-generator-unique cc-exp-two-pi-i cc-exp-i-pi)
@@ -1251,15 +1511,18 @@
 
 (entry (doc "complex-analysis")
        (ref "2.19")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "exp is a bijection on a horizontal strip")
        (names cc-exp-bijection-strip cc-exp-bijection-open-strip cc-exp-surjective-strip cc-exp-injective-strip cc-exp-open-strip-onto cc-exp-open-strip-avoids-negatives cc-polar-form cc-exp-real-is-r-exp)
+       (home-elsewhere cc-polar-form)
        (status proven)
        (deviation "PROVEN 2026-09-26 (batch 34) as the notes state it: cc-exp-bijection-strip says the lambda z in S. exp z is in bijection(S, cc minus {0}) for S the SEP {-pi <= Im < pi}; cc-exp-bijection-open-strip the same for the open strip onto cc minus (-inf, 0]. Surjectivity goes through the polar form (cc-polar-form, cc-circle-arg by the IVT on cos) and the bridge cc-exp-real-is-r-exp (exp restricted to RR is the real exponential R-EXP, via the derivative of log(exp t) - t). Earlier: UPDATED 2026-09-25 (batch 31-B): the INJECTIVITY half is PROVEN for the complex exponential on the strip -pi <= Im z < pi (cc-exp-injective-strip, by Lemma 2.18); surjectivity onto CC minus 0 and the open-strip statement wait on the polar form (exp unbounded on RR, IVT for the modulus and the argument). Only the real restriction, and under the library's own definition of R-EXP as the inverse of the integral LOG rather than as a power series. r-exp-log and log-r-exp say that R-EXP and LOG are mutually inverse between RR and the positive reals, log-surjective and r-exp-pos give surjectivity onto (0, +inf), and log-injective-pos / r-exp-strictly-increasing give injectivity. Nothing about the strips S = {-pi <= Im z < pi} or S' = {-pi < Im z < pi}, about C minus {0} or about C minus (-inf, 0]; there is no pi and no complex exponential to state them with.")
        (notes-statement "exp is a bijection from S = {z : -pi <= Im z < pi} onto C minus {0}, and a bijection from S' = {z : -pi < Im z < pi} onto C minus (-inf, 0]."))
 
 (entry (doc "complex-analysis")
        (ref "2.20")
+       (section "2.3" prefilled)
        (kind lemma)
        (title "The logarithm series has radius 1")
        (names cps-log-radius-one cps-log-series cps-log-radius cps-log-radius-le-one cc-series-terms-small cc-geometric-alternating)
@@ -1269,15 +1532,18 @@
 
 (entry (doc "complex-analysis")
        (ref "2.21")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "The logarithm series agrees with ln on (0,2)")
        (names log0-is-ln log0-exp log0-is-log-on-ball cc-log-holomorphic-near-one)
+       (home-elsewhere cc-log-holomorphic-near-one)
        (status proven)
        (deviation "PROVEN 2026-09-27 (batch 38) in the notes' wording: log0-is-ln says the series (39) at a real t in (0, 2) equals LOG(t), by the notes' argument (equal derivatives, equal value at 1). Also exp(log0 z) = z on every B(1, r), r < 1 (log0-exp), and log0 IS the principal logarithm CC-LOG on B(1, pi/(1+pi)) (log0-is-log-on-ball: the radius where |log0 z| < pi keeps the value in the strip; the full B(1, 1) waits for the identity theorem 3.35). Earlier: Nothing near: the power series log_0 z = sum_{k>=1} (-1)^(k-1) (z-1)^k / k does not exist in the library. LOG itself is present and is exactly the notes' ln (log-unfold: LOG(x) = the oriented integral of 1/z from 1 to x, with log-one, log-mul, log-deriv, log-strictly-increasing proven), so only the series and its identification with LOG are missing.")
        (notes-statement "The function log_0 defined by the series sum_{k>=1} (-1)^(k-1) (z-1)^k / k coincides on the open interval (0,2) with the natural logarithm ln on the positive reals."))
 
 (entry (doc "complex-analysis")
        (ref "2.22")
+       (section "2.3" prefilled)
        (kind lemma)
        (title "The series of log(1 - z) and log(1 + z)")
        (names cc-log-one-minus-disc cc-log-one-plus-disc log0-is-log-on-unit-ball cc-log-of-deriv-on-ball cc-log-one-minus cc-log-one-plus)
@@ -1287,6 +1553,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.1")
+       (section "3.1" prefilled)
        (kind proposition)
        (title "Path additivity of the line integral")
        (names line-int-concat line-int-juxta juxta-is-road regulated-on-glue tri-int-is-line-int line-int-length-bound line-int-adjacent road-restrict)
@@ -1296,6 +1563,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.2")
+       (section "3.1" prefilled)
        (kind proposition)
        (title "Fundamental theorem for line integrals")
        (names line-int-of-derivative holomorphic-chain)
@@ -1305,6 +1573,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.3")
+       (section "3.1" prefilled)
        (kind corollary)
        (title "Polynomials integrate to zero over a closed path")
        (names poly-fn-closed-road-integral cc-ps-antiderivative line-int-closed-road-of-derivative affine-closed-road-integral)
@@ -1314,24 +1583,29 @@
 
 (entry (doc "complex-analysis")
        (ref "3.4")
+       (section "3.1" prefilled)
        (kind lemma)
        (title "Splitting a segment integral at an interior point")
        (names segment-int-split segment-int-abs-bound segment-int-reverse line-int-affine-reparam line-int-adjacent)
+       (home-elsewhere line-int-adjacent)
        (status proven)
        (deviation "UPDATED 2026-09-25 (batch 29-A): PROVEN for the segment itself (theorem-library/line-int-reparam.scm): segment-int-split splits the integral along the segment z0 + s w, s in [0,1], at the interior point z0 + t w (0 < t < 1) into the integrals along the two sub-segments, through the affine reparametrisation of the line integral, the notes' (48) (line-int-affine-reparam). The endpoint cases and the restatement with the segment functoid SEG-INT are batch 30. UPDATED 2026-09-23 (batch 24): proven for ANY road, line-int-adjacent (split at an interior point c of [a, b]); the segment of the notes is the special case where gamma is a straight segment (segment-is-road), and the restriction of a segment is not restated as a segment. EARLIER NOTE: Not in the library. The DEFINITIONS exist since 2026-09-21, for functions ON [a, b] (structure-library/path-integral.scm): is-path, is-road(gamma, dgamma, a, b) with the derivative dgamma an explicit argument, trace, cc-int (the notes' equation (44)) and line-int(f, gamma, dgamma, a, b). Proven since: the integral pw-int is well defined (two piecewise primitives have the same endpoint difference), linear, additive over adjacent intervals and monotone; cc-int is linear over CC and additive; the notes' estimate (45) (cc-int-abs-bound); the trace of a path is compact (path-trace-compact); line-int of 1 along a road is gamma(b) - gamma(a); the opposite road and Dieudonne (9.6.1). Existence of a primitive of a piecewise continuous function (Dieudonne 8.7.2) is NOT proven, so the primitives of an integrand's coordinates are hypotheses wherever a value of an integral is asserted.")
        (notes-statement "If c is an element of the segment <a,b>, then the integral of f along <a,b> is the integral along <a,c> plus the integral along <c,b>."))
 
 (entry (doc "complex-analysis")
        (ref "3.5")
+       (section "3.2" prefilled)
        (kind lemma)
        (title "The barycentric-subdivision sum")
        (names tri-int-subdivision seg-int-split-at segment-int-reverse)
+       (home-elsewhere segment-int-reverse)
        (status proven)
        (deviation "PROVEN 2026-09-25 (batch 30, theorem-library/goursat.scm). The triangle integral TRI-INT(f, a, b, c) is DEFINED as the sum of the three segment integrals (the user's decision, docs/goursat-definitions-2026-09-25.md), so the triangular path is not a road object; the subdivision S(triangle) is written out as the four vertex triples with CC-MID. Hypothesis: f continuous on a set containing CONV3(a, b, c).")
        (notes-statement "If f is continuous on the convex hull of a triangular path, the integral around the triangle is the sum of the integrals around the four triangles of its barycentric subdivision."))
 
 (entry (doc "complex-analysis")
        (ref "3.6")
+       (section "3.2" prefilled)
        (kind proposition)
        (title "Cauchy's theorem for triangles (Goursat)")
        (names goursat-triangle-except goursat-vertex tri-int-fan tri-int-vertex-split conv3-avoids-vertex collinear-cases tri-int-collinear tri-int-restrict goursat-triangle)
@@ -1341,6 +1615,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.7")
+       (section "3.2" prefilled)
        (kind corollary)
        (title "Segment integrals in a convex set")
        (names cauchy-convex-segments-except cauchy-convex-segments)
@@ -1350,6 +1625,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.8")
+       (section "3.2" prefilled)
        (kind proposition)
        (title "A primitive on a convex set")
        (names cauchy-convex-primitive-except cc-diff-on-of-eps-bound cc-continuous-at-add-const cauchy-convex-primitive)
@@ -1359,15 +1635,18 @@
 
 (entry (doc "complex-analysis")
        (ref "3.9")
+       (section "3.2" prefilled)
        (kind corollary)
        (title "Cauchy's theorem on a convex set")
        (names cauchy-convex-closed-except cauchy-convex-closed line-int-closed-road-of-derivative)
+       (home-elsewhere line-int-closed-road-of-derivative)
        (status proven)
        (deviation "PROVEN 2026-09-26 (batch 35) with the exceptional point; a closed path is a road on [a, b] with pgam(b) = pgam(a). the exceptional-point hypothesis is the notes' (f continuous on the open set u, x in u, f holomorphic on u minus {x}), spelled with restrict(f, difference(u, singleton(x))) because HOLOMORPHIC-ON types its function on exactly its set. Earlier: PROVEN 2026-09-25 (batch 30) for f holomorphic on the whole convex open set U: for a road on [a, b] with trace in U and gamma(b) = gamma(a), the integral of f along it is 0 (from 3.8 and Cor 3.3 for a closed road). 'Closed path' is the hypothesis gamma(b) = gamma(a); there is no closed-road predicate. The exceptional point x as for 3.6.")
        (notes-statement "If f is continuous on an open convex set U and holomorphic on U minus a point x, then for any closed path gamma in U the integral of f along gamma is 0."))
 
 (entry (doc "complex-analysis")
        (ref "3.12")
+       (section "3.3" prefilled)
        (kind proposition)
        (title "Integrals agree along a good approximation")
        (names good-approx-integral good-approx-invariant)
@@ -1377,6 +1656,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.16")
+       (section "3.3" prefilled)
        (kind proposition)
        (title "Homotopy with endpoints fixed is an equivalence relation")
        (names homotopic-refl homotopic-sym homotopic-trans)
@@ -1386,6 +1666,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.17")
+       (section "3.3" prefilled)
        (kind proposition)
        (title "Homotopic curves are linked by a chain of polygonal good approximations")
        (names homotopy-polygon-chain)
@@ -1395,6 +1676,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.18")
+       (section "3.3" prefilled)
        (kind theorem)
        (title "Homotopy invariance of the Cauchy integral")
        (names homotopy-line-int homotopy-chain-line-int)
@@ -1404,24 +1686,29 @@
 
 (entry (doc "complex-analysis")
        (ref "3.20")
+       (section "3.3" prefilled)
        (kind corollary)
        (title "Cauchy for null-homotopic closed paths")
        (names null-homotopic-line-int cauchy-convex-closed cauchy-disc cauchy-convex-sub)
+       (home-elsewhere cauchy-convex-closed)
        (status proven)
        (deviation "u open, f holomorphic on u, pgam a null-homotopic road: its integral is 0. (The convex cases cauchy-convex-closed, cauchy-disc, cauchy-convex-sub remain.)")
        (notes-statement "If f is holomorphic on the open set U and the closed path gamma is null homotopic in U, then int_gamma f = 0."))
 
 (entry (doc "complex-analysis")
        (ref "3.21")
+       (section "3.3" prefilled)
        (kind proposition)
        (title "Holomorphic primitive on a simply connected set")
        (names sc-primitive cauchy-convex-primitive)
+       (home-elsewhere cauchy-convex-primitive)
        (status proven)
        (deviation "SIMPLY-CONNECTED u, f holomorphic on u, o in u: a holomorphic g on u with g' = f. Same shape and binders as cauchy-convex-primitive.")
        (notes-statement "If U is simply connected then every holomorphic f on U has a holomorphic g on U with g' = f."))
 
 (entry (doc "complex-analysis")
        (ref "3.22")
+       (section "3.3" prefilled)
        (kind proposition)
        (title "Logarithm of a nonvanishing holomorphic function")
        (names holomorphic-log-sc-exists holomorphic-log-sc holomorphic-log-convex holomorphic-log-convex-exists)
@@ -1431,15 +1718,18 @@
 
 (entry (doc "complex-analysis")
        (ref "3.24")
+       (section "3.3" prefilled)
        (kind corollary)
        (title "Existence and uniqueness of the principal branch of log")
        (names principal-log-exists-unique cc-log-unique-branch cc-log-holomorphic cc-log-spec cc-log-one cc-log-unique)
+       (home-elsewhere cc-log-holomorphic cc-log-spec cc-log-one cc-log-unique)
        (status proven)
        (deviation "Existence and uniqueness of the principal branch (CH3-B-REPORT.md:17).")
        (notes-statement "There is a unique holomorphic g on C \\ (-inf, 0] with g(1) = 0 and exp g(z) = z."))
 
 (entry (doc "complex-analysis")
        (ref "3.25")
+       (section "3.3" prefilled)
        (kind corollary)
        (title "n-th roots of a nonvanishing holomorphic function")
        (names holomorphic-root-sc-exists holomorphic-root-sc-unique holomorphic-root-convex-exists holomorphic-root-convex-unique)
@@ -1449,6 +1739,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.27")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "The winding number is an integer, constant on components")
        (names winding-number-integer winding-constant-on-connected winding-locally-constant)
@@ -1458,6 +1749,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.28")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "Integral of a finite principal part")
        (names principal-part-integral principal-part-integral-step)
@@ -1467,6 +1759,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.30")
+       (section "3.4" prefilled)
        (kind corollary)
        (title "Winding number vanishes on the unbounded component")
        (names winding-zero-unbounded winding-zero-outside-disc)
@@ -1476,6 +1769,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.31")
+       (section "3.4" prefilled)
        (kind corollary)
        (title "Homotopy invariance of the winding number")
        (names homotopy-winding)
@@ -1485,6 +1779,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.32")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "Winding number of a positively oriented triangle")
        (names triangle-winding-interior triangle-tri-int-interior triangle-winding-exterior)
@@ -1494,6 +1789,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.33")
+       (section "3.5" prefilled)
        (kind lemma)
        (title "A Cauchy-type integral is analytic off the trace")
        (names analytic-from-integral-formula analytic-at-from-integral-formula cauchy-kernel-integral-series)
@@ -1503,6 +1799,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.35")
+       (section "3.5" prefilled)
        (kind theorem)
        (title "Holomorphic implies analytic")
        (names holomorphic-analytic-at holomorphic-power-series-disc)
@@ -1512,6 +1809,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.37")
+       (section "3.5" prefilled)
        (kind corollary)
        (title "The derivative of a holomorphic function is holomorphic")
        (names holomorphic-deriv-holomorphic)
@@ -1521,6 +1819,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.39")
+       (section "3.5" prefilled)
        (kind corollary)
        (title "Removable singularities")
        (names removable-singularity removable-extension-unique)
@@ -1530,6 +1829,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.40")
+       (section "3.5" prefilled)
        (kind proposition)
        (title "Derivative of a Cauchy-type integral")
        (names cauchy-type-integral-deriv)
@@ -1539,6 +1839,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.41")
+       (section "3.5" prefilled)
        (kind proposition)
        (title "Cauchy integral formula over a triangle")
        (names triangle-cauchy-formula)
@@ -1548,6 +1849,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.42")
+       (section "3.5" prefilled)
        (kind corollary)
        (title "Cauchy formula for the derivative over a triangle")
        (names triangle-cauchy-deriv)
@@ -1557,6 +1859,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.43")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "Morera's theorem")
        (names morera morera-conditional)
@@ -1566,6 +1869,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.44")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "Weierstrass: uniform limits on compacta of holomorphic functions are holomorphic")
        (names holomorphic-limit-on-compacta holomorphic-limit-derivatives unif-on-compacta-locally locally-uniform-on-compacta cc-closed-ball-compact)
@@ -1575,6 +1879,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.45")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "Holomorphy across a straight line")
        (names holomorphic-across-line)
@@ -1584,6 +1889,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.46")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "Schwarz reflection principle")
        (names schwarz-reflection)
@@ -1593,6 +1899,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.47")
+       (section "3.7" prefilled)
        (kind proposition)
        (title "Coefficient bound by the maximum on a circle")
        (names power-series-coefficient-bound)
@@ -1602,6 +1909,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.48")
+       (section "3.7" prefilled)
        (kind corollary)
        (title "Cauchy's estimates")
        (names cauchy-estimates cauchy-estimate-derivative rr-le-of-power-bounds holomorphic-nth-deriv)
@@ -1611,6 +1919,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.49")
+       (section "3.7" prefilled)
        (kind theorem)
        (title "Liouville")
        (names liouville bounded-entire-deriv-zero)
@@ -1620,15 +1929,18 @@
 
 (entry (doc "complex-analysis")
        (ref "3.50")
+       (section "3.7" prefilled)
        (kind corollary)
        (title "Every nonconstant polynomial has a zero")
        (names fundamental-theorem-of-algebra cc-algebraically-closed)
+       (home-elsewhere fundamental-theorem-of-algebra cc-algebraically-closed)
        (status proven)
        (deviation "fundamental-theorem-of-algebra (cauchy-estimates.scm) is the Liouville route; polynomials are coefficient functions with cc-series-partial-sum, leading coefficient nonzero.")
        (notes-statement "Any nonconstant polynomial P(z) has a zero."))
 
 (entry (doc "complex-analysis")
        (ref "3.51")
+       (section "3.7" prefilled)
        (kind proposition)
        (title "Complete factorization of a complex polynomial")
        (names cc-poly-factorization cc-partial-prod-congr cc-partial-prod-in-cc cc-ps-divide)
@@ -1638,6 +1950,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.53")
+       (section "3.7" prefilled)
        (kind proposition)
        (title "Entire functions of polynomial growth are polynomials")
        (names entire-polynomial-growth)
@@ -1647,6 +1960,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.55")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "Maximum modulus principle")
        (names mvp-maximum-modulus mvp-disc-max-constant mvp-circle-max-constant connected-clopen holomorphic-maximum-modulus holomorphic-has-mean-value-property maximum-modulus-connected maximum-modulus-disc ball-zeros-accumulate)
@@ -1656,6 +1970,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.56")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "Maximum on the boundary of a bounded domain")
        (names mvp-maximum-modulus-closure bounded-open-boundary-nonempty cc-closed-bounded-max continuous-constant-on-closure)
@@ -1665,6 +1980,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.57")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "Schwarz's lemma")
        (names schwarz-lemma schwarz-quotient cc-compact-modulus-max holomorphic-removable-point)
@@ -1674,6 +1990,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.59")
+       (section "3.9" prefilled)
        (kind proposition)
        (title "Gamma is holomorphic in the right half plane")
        (names gamma-holomorphic gamma-converges)
@@ -1683,6 +2000,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.60")
+       (section "3.9" prefilled)
        (kind proposition)
        (title "Analytic continuation of Gamma")
        (names gamma-analytic-continuation)
@@ -1692,6 +2010,7 @@
 
 (entry (doc "complex-analysis")
        (ref "3.61")
+       (section "3.9" prefilled)
        (kind corollary)
        (title "Gamma has no zeros")
        (names corollary-3-61)
@@ -1701,6 +2020,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.1")
+       (section "4.1" prefilled)
        (kind proposition)
        (title "A Laurent series is holomorphic on its annulus")
        (names laurent-holomorphic)
@@ -1710,6 +2030,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.2")
+       (section "4.1" prefilled-inferred)
        (kind proposition)
        (title "Laurent coefficients by a circle integral")
        (names laurent-coefficients cc-power-series-termwise cc-series-single-term)
@@ -1719,6 +2040,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.3")
+       (section "4.1" prefilled)
        (kind proposition)
        (title "Riemann's removable singularity criterion")
        (names riemann-removable-singularity cc-continuous-at-of-modulus riemann-removable)
@@ -1728,15 +2050,18 @@
 
 (entry (doc "complex-analysis")
        (ref "4.4")
+       (section "4.1" prefilled)
        (kind lemma)
        (title "Cauchy-type integral: power series inside, series in 1/(u - xi) outside")
        (names cauchy-kernel-integral-series outer-kernel-integral-series analytic-from-integral-formula cauchy-kernel-series-absolute)
+       (home-elsewhere cauchy-kernel-integral-series analytic-from-integral-formula)
        (status proven)
        (deviation "First half: the tree's cauchy-kernel-integral-series; second half (trace inside B(xi, R), expansion in powers of 1/(u - xi)): outer-kernel-integral-series.")
        (notes-statement "If phi is continuous on gamma* and B(xi, R) misses gamma*, int_gamma phi(z)/(z - u) dz is a power series in u - xi normally convergent on each smaller closed ball; if gamma* is inside B(xi, R) it is a series in (u - xi)^-1 outside."))
 
 (entry (doc "complex-analysis")
        (ref "4.5")
+       (section "4.1" prefilled)
        (kind proposition)
        (title "Laurent expansion of a function holomorphic on an annulus")
        (names laurent-expansion laurent-expansion-annulus laurent-coef-radius-free annulus-cauchy)
@@ -1746,6 +2071,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.6")
+       (section "4.1" prefilled)
        (kind corollary)
        (title "Holomorphic on a punctured disc iff Laurent expansion")
        (names laurent-punctured-iff laurent-punctured-expansion laurent-punctured-holomorphic laurent-coefs-radii)
@@ -1755,6 +2081,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.11")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "Poles of a meromorphic function are locally finite")
        (names meromorphic-poles-finite-in-compact)
@@ -1764,6 +2091,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.12")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "Meromorphic functions form a field")
        (names meromorphic-on-sum meromorphic-on-product meromorphic-at-sum meromorphic-at-product meromorphic-at-recip holomorphic-is-meromorphic-at)
@@ -1773,6 +2101,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.13")
+       (section "4.2" prefilled)
        (kind theorem)
        (title "Casorati-Weierstrass")
        (names casorati-weierstrass meromorphic-point-cases)
@@ -1782,6 +2111,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.15")
+       (section "4.3" prefilled)
        (kind proposition)
        (title "Residue theorem")
        (names residue-theorem residue-theorem-step meromorphic-residue-decomposition residue-theorem-induction)
@@ -1791,6 +2121,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.17")
+       (section "4.4" prefilled)
        (kind proposition)
        (title "Residue of the logarithmic derivative")
        (names log-derivative-residue-at-zero log-derivative-residue-at-pole log-derivative-at-zero log-derivative-at-pole simple-pole-of-decomposition)
@@ -1800,6 +2131,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.19")
+       (section "4.4" prefilled)
        (kind proposition)
        (title "Argument principle")
        (names argument-principle argument-principle-holomorphic)
@@ -1809,6 +2141,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.20")
+       (section "4.4" prefilled)
        (kind proposition)
        (title "Rouche's theorem")
        (names rouche-theorem)
@@ -1818,15 +2151,18 @@
 
 (entry (doc "complex-analysis")
        (ref "4.21")
+       (section "4.4" prefilled)
        (kind corollary)
        (title "Counting zeros by the logarithmic integral")
        (names argument-principle-holomorphic)
+       (home-elsewhere argument-principle-holomorphic)
        (status proven)
        (deviation "Winding-number form, for f holomorphic (CH4-C-REPORT.md:29).")
        (notes-statement "If f is holomorphic on a connected open U with finitely many zeros and gamma is a positively oriented simple closed path in U off the zeros, null homotopic in U, the number of zeros enclosed (with multiplicity) is (1/(2 pi i)) int_gamma f'/f."))
 
 (entry (doc "complex-analysis")
        (ref "4.24")
+       (section "4.5" prefilled)
        (kind proposition)
        (title "Number of solutions of f(z) = w as a winding number")
        (names zeros-count-winding)
@@ -1836,6 +2172,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.25")
+       (section "4.5" prefilled)
        (kind theorem)
        (title "Local n-to-one structure of a holomorphic map")
        (names local-n-to-one multiplicity-local-simple holomorphic-local-power-form)
@@ -1845,6 +2182,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.26")
+       (section "4.5" prefilled)
        (kind corollary)
        (title "Open mapping theorem")
        (names open-mapping-theorem-holomorphic holomorphic-local-openness)
@@ -1854,6 +2192,7 @@
 
 (entry (doc "complex-analysis")
        (ref "4.27")
+       (section "4.5" prefilled)
        (kind proposition)
        (title "Holomorphic inverse function theorem")
        (names holomorphic-inverse-function-theorem holomorphic-inverse-holomorphic)
@@ -1863,6 +2202,7 @@
 
 (entry (doc "complex-analysis")
        (ref "5.1")
+       (section "5.1" prefilled)
        (kind lemma)
        (title "An exhaustive sequence of compact sets")
        (names locally-compact-separable-exhaustion cc-open-has-compact-exhaustion cc-has-compact-exhaustion cc-exhaust-is-compact-exhaustion cc-exhaust-exhaustive cc-exhaust-compact cc-exhaust-covers)
@@ -1872,6 +2212,7 @@
 
 (entry (doc "complex-analysis")
        (ref "5.2")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "C(U) is a Frechet space for uniform convergence on compacta")
        (names cc-cont-fns-frechet cc-fn-module-is-module cc-exhaust-seminorms-family cc-exhaust-uniform-iff-compacta cc-fr-conv-iff-unif-on-compacta)
@@ -1881,6 +2222,7 @@
 
 (entry (doc "complex-analysis")
        (ref "5.3")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "H(U) is closed in C(U)")
        (names cc-hol-fns-closed cc-hol-fns-subset-cont)
@@ -1890,6 +2232,7 @@
 
 (entry (doc "complex-analysis")
        (ref "5.7")
+       (section "5.2" prefilled)
        (kind theorem)
        (title "Montel: bounded closed subsets of H(U) are compact")
        (names cc-montel cc-montel-subsequence cc-montel-tail cc-pointwise-diagonal)
@@ -1899,6 +2242,7 @@
 
 (entry (doc "complex-analysis")
        (ref "5.8")
+       (section "5.2" prefilled)
        (kind proposition)
        (title "Bounded subsets of H(U) are equicontinuous")
        (names cc-hol-bounded-equicontinuous cc-holomorphic-deriv-estimate cc-holomorphic-lipschitz-at-centre)
@@ -1908,42 +2252,51 @@
 
 (entry (doc "complex-analysis")
        (ref "5.10")
+       (section "5.2" prefilled)
        (kind theorem)
        (title "Ascoli-Arzela")
        (names ascoli-arzela-sequential cc-montel)
+       (home-elsewhere ascoli-arzela-sequential cc-montel)
        (status partial)
        (deviation "ascoli-arzela-sequential: X compact, real-valued sequences, equicontinuous and pointwise bounded => uniformly convergent subsequence (sufficiency only). Missing: separable locally compact X, complex values, uniform convergence on compacta, and necessity. cc-montel is the holomorphic instance on an open U in C.")
        (notes-statement "If X is a separable locally compact metric space, a set E in C(X) is relatively compact for uniform convergence on compacta iff it is equicontinuous at every point and pointwise bounded."))
 
 (entry (doc "complex-analysis")
        (ref "5.13")
+       (section "5.2" prefilled)
        (kind lemma)
        (title "Equicontinuous sequence converging on a dense set converges everywhere")
        (names equicont-dense-conv-ptwise-cauchy cc-unif-cauchy-on-compact ascoli-dense-bridge)
+       (home-elsewhere equicont-dense-conv-ptwise-cauchy ascoli-dense-bridge)
        (status partial)
        (deviation "equicont-dense-conv-ptwise-cauchy is the real-valued pointwise-Cauchy half on any metric space; cc-unif-cauchy-on-compact is the complex version on a compact subset of C; continuity of the limit is only for compact X (ascoli-dense-bridge). The general complex-valued statement is missing.")
        (notes-statement "If f_k : X -> C is an equicontinuous sequence converging on a dense set D, it converges at every x in X and the limit is continuous."))
 
 (entry (doc "complex-analysis")
        (ref "5.14")
+       (section "5.2" prefilled)
        (kind proposition)
        (title "On an equicontinuous set pointwise convergence equals compact convergence")
        (names ptwise-cauchy-compact-equicont-unif)
+       (home-elsewhere ptwise-cauchy-compact-equicont-unif)
        (status partial)
        (deviation "ptwise-cauchy-compact-equicont-unif: X compact, real-valued, pointwise Cauchy => uniformly Cauchy. Locally compact X, complex values, and the convergence on each compact K are missing.")
        (notes-statement "If X is locally compact and E in C(X) is equicontinuous, pointwise convergence of sequences in E coincides with uniform convergence on compact sets."))
 
 (entry (doc "complex-analysis")
        (ref "5.15")
+       (section "5.2" prefilled)
        (kind theorem)
        (title "Tychonov for countable products of compact metric spaces")
        (names compact-countable-product seq-compact-countable-product)
+       (home-elsewhere compact-countable-product seq-compact-countable-product)
        (status proven)
        (deviation "Products are PRODUCT-METRIC of an IS-MS-SEQUENCE; bills modulo 0.")
        (notes-statement "The product of a countable family of compact metric spaces is compact."))
 
 (entry (doc "complex-analysis")
        (ref "5.19")
+       (section "5.2" prefilled)
        (kind corollary)
        (title "A bounded pointwise convergent sequence in H(U) converges uniformly on compacta")
        (names cc-montel-pointwise-limit)
@@ -1953,6 +2306,7 @@
 
 (entry (doc "complex-analysis")
        (ref "5.20")
+       (section "5.3" prefilled)
        (kind proposition)
        (title "Differentiation is continuous on H(U)")
        (names cc-deriv-cont-lin cc-hol-fn-module-is-module cc-deriv-continuous-on-hol cc-deriv-linear)
@@ -1962,6 +2316,7 @@
 
 (entry (doc "complex-analysis")
        (ref "5.21")
+       (section "5.3" prefilled)
        (kind lemma)
        (title "The seminorms of f' are bounded by seminorms of f")
        (names cc-deriv-seminorm-estimate cc-exhaust-ball-inside)
@@ -1971,6 +2326,7 @@
 
 (entry (doc "complex-analysis")
        (ref "5.22")
+       (section "5.3" prefilled)
        (kind proposition)
        (title "Normally convergent series of holomorphic functions differentiate term by term")
        (names cc-series-holomorphic cc-derived-series-normally-convergent cc-normal-convergence-uniform cc-normal-convergence-pointwise cc-partial-sums-diff)
@@ -1980,6 +2336,7 @@
 
 (entry (doc "complex-analysis")
        (ref "5.23")
+       (section "5.3" prefilled)
        (kind proposition)
        (title "Hurwitz's theorem")
        (names cc-hurwitz cc-hurwitz-local)
@@ -1989,6 +2346,7 @@
 
 (entry (doc "complex-analysis")
        (ref "5.24")
+       (section "5.3" prefilled)
        (kind remark)
        (title "Hurwitz's theorem for a value a, and its contrapositive")
        (names cc-hurwitz-value cc-hurwitz-eventually)
@@ -1998,6 +2356,7 @@
 
 (entry (doc "complex-analysis")
        (ref "5.25")
+       (section "5.3" prefilled)
        (kind proposition)
        (title "A limit of injective holomorphic functions is constant or injective")
        (names cc-hurwitz-injective)
@@ -2007,6 +2366,7 @@
 
 (entry (doc "complex-analysis")
        (ref "5.26")
+       (section "5.3" prefilled)
        (kind proposition)
        (title "Laurent coefficients are continuous linear functionals on H(U)")
        (names laurent-coef-cont-lin laurent-coef-sup-bound laurent-coef-add laurent-coef-scale)
@@ -2016,6 +2376,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.4")
+       (section "6.1" prefilled)
        (kind lemma)
        (title "Convergence of prod(1 + r_i) vs sum ln(1 + r_i)")
        (names lemma-6-4 lemma-6-4-1-2 lemma-6-4-2-1 lemma-6-4-2-4 lemma-6-4-4-2 lemma-6-4-4-3 lemma-6-4-3-2)
@@ -2025,6 +2386,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.6")
+       (section "6.1" prefilled-inferred)
        (kind proposition)
        (title "Absolutely summable a_k give a convergent product")
        (names abs-convergent-product)
@@ -2034,6 +2396,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.8")
+       (section "6.1" prefilled)
        (kind proposition)
        (title "Absolute summability vs summability of log(1 + a_k)")
        (names prop-6-8 prop-6-8-forward prop-6-8-backward)
@@ -2043,6 +2406,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.9")
+       (section "6.1" prefilled)
        (kind corollary)
        (title "Absolutely convergent products converge unconditionally")
        (names corollary-6-9)
@@ -2052,6 +2416,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.11")
+       (section "6.1" prefilled)
        (kind proposition)
        (title "Zeros of a normally convergent product")
        (names prop-6-11)
@@ -2061,6 +2426,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.12")
+       (section "6.1" prefilled)
        (kind proposition)
        (title "A normally convergent product of continuous functions is continuous")
        (names prop-6-12 prop-6-12-continuous)
@@ -2070,6 +2436,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.13")
+       (section "6.1" prefilled)
        (kind corollary)
        (title "A normally convergent product of nonzero holomorphic functions is nonzero")
        (names corollary-6-13)
@@ -2079,6 +2446,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.14")
+       (section "6.1" prefilled)
        (kind proposition)
        (title "Normal convergence of sum f_k vs prod (1 + f_k)")
        (names prop-6-14)
@@ -2088,6 +2456,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.16")
+       (section "6.1" prefilled)
        (kind corollary)
        (title "Products via logarithms")
        (names corollary-6-16)
@@ -2097,6 +2466,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.17")
+       (section "6.2" prefilled)
        (kind proposition)
        (title "Logarithmic derivative of an infinite product")
        (names prop-6-17)
@@ -2106,6 +2476,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.19")
+       (section "6.3" prefilled)
        (kind lemma)
        (title "Nowhere-zero entire functions are exponentials")
        (names entire-nonvanishing-iff-exp)
@@ -2115,6 +2486,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.20")
+       (section "6.3" prefilled)
        (kind theorem)
        (title "Weierstrass product with prescribed zeros")
        (names theorem-6-20 theorem-6-20-family theorem-6-20-multiplicity)
@@ -2124,6 +2496,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.21")
+       (section "6.3" prefilled)
        (kind theorem)
        (title "Weierstrass factorization theorem")
        (names theorem-6-21)
@@ -2133,6 +2506,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.22")
+       (section "6.3" prefilled)
        (kind proposition)
        (title "Uniqueness of the canonical factorization")
        (names prop-6-22)
@@ -2142,6 +2516,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.28")
+       (section "6.6" prefilled)
        (kind proposition)
        (title "Gamma (product definition) is meromorphic with simple poles at -n")
        (names proposition-6-28 proposition-6-28-gamma)
@@ -2151,6 +2526,7 @@
 
 (entry (doc "complex-analysis")
        (ref "6.29")
+       (section "6.6" prefilled)
        (kind proposition)
        (title "The product Gamma equals Euler's integral")
        (names proposition-6-29)
@@ -2160,15 +2536,18 @@
 
 (entry (doc "complex-analysis")
        (ref "9.15")
+       (section "9.4" prefilled)
        (kind theorem)
        (title "Finite abelian groups are products of cyclic groups")
        (names fg-abelian-group-cyclic-decomposition fg-abelian-group-structure-exists)
+       (home-elsewhere fg-abelian-group-cyclic-decomposition fg-abelian-group-structure-exists)
        (status proven)
        (deviation "Stated for a finitely generated ZZ-module (a finite abelian group is one), with invariant factors and uniqueness; more general than the notes.")
        (notes-statement "Any finite abelian group G is a finite product of cyclic groups."))
 
 (entry (doc "complex-analysis")
        (ref "10.5")
+       (section "10.1" prefilled)
        (kind proposition)
        (title "Holomorphy of a map between Riemann surfaces is local")
        (names diff-on-local)
@@ -2178,15 +2557,18 @@
 
 (entry (doc "complex-analysis")
        (ref "10.6")
+       (section "10.1" prefilled)
        (kind proposition)
        (title "Composition of holomorphic maps")
        (names holomorphic-chain diff-on-chain)
+       (home-elsewhere holomorphic-chain diff-on-chain)
        (status partial)
        (deviation "Planar case proven (holomorphic-chain, diff-on-chain); Riemann surfaces absent.")
        (notes-statement "Holomorphic mappings between Riemann surfaces are closed under composition."))
 
 (entry (doc "complex-analysis")
        (ref "10.11")
+       (section "10.2" prefilled)
        (kind lemma)
        (title "Disc automorphisms fixing 0 are rotations")
        (names disc-automorphism-is-rotation automorphism-inverse-holomorphic holomorphic-injective-deriv-nonzero disc-automorphism-rotation)
@@ -2196,6 +2578,7 @@
 
 (entry (doc "complex-analysis")
        (ref "10.16")
+       (section "10.3" prefilled)
        (kind proposition)
        (title "A bounded simple holomorphic function on U")
        (names sc-bounded-simple)
@@ -2205,6 +2588,7 @@
 
 (entry (doc "complex-analysis")
        (ref "10.17")
+       (section "10.3" prefilled)
        (kind corollary)
        (title "A simple map into D whose image contains 0")
        (names sc-simple-into-disc)
@@ -2220,8 +2604,36 @@
 ;;; not a subterm of the encryption; the adversary (the paper's penetrator) without the K trace.
 ;;; Added 2026-10-06 after batches S-2 and S-2b (docs/strand-spaces-2026-10-06.md).
 
+;;; The OUTLINE of strand-spaces: chapters that hold an entry, with every section the notes have.
+;;; Titles marked `prefilled' were read off the notes by pdftotext (BOOK-GEN, 2026-11-12); review
+;;; and delete the mark.  Read by library-book.scm; ignored by the major-theorems list.
+(outline "strand-spaces"
+  (chapter "2" "Strand Spaces" prefilled
+    (section "2.1" "Basic Notions" prefilled)
+    (section "2.2" "Bundles and Causal Precedence" prefilled)
+    (section "2.3" "Terms and Encryption" prefilled)
+    (section "2.4" "Freeness Assumptions" prefilled))
+  (chapter "3" "The Penetrator" prefilled
+    (section "3.1" "Penetrator Strands" prefilled)
+    (section "3.2" "A Bound on the Penetrator" prefilled))
+  (chapter "5" "The Needham-Schroeder-Lowe Protocol" prefilled
+    (section "5.1" "NSL Strand Spaces" prefilled)
+    (section "5.2" "Agreement: The Responder's Guarantee" prefilled)
+    (section "5.3" "The Original Needham-Schroeder Protocol" prefilled)
+    (section "5.4" "Secrecy: The Responder's Nonce" prefilled)
+    (section "5.5" "The Initiator's Guarantees: Secrecy and Agreement" prefilled))
+  (chapter "6" "Ideals and Honesty" prefilled
+    (section "6.1" "Ideals" prefilled)
+    (section "6.2" "Entry Points and Honesty" prefilled)
+    (section "6.3" "More Bounds on the Penetrator" prefilled))
+  (chapter "7" "The Otway-Rees Protocol" prefilled
+    (section "7.1" "The Otway-Rees Protocol Itself" prefilled)
+    (section "7.2" "Otway-Rees: Secrecy" prefilled)
+    (section "7.3" "Otway-Rees: Authentication" prefilled)))
+
 (entry (doc "strand-spaces")
        (ref "2.7")
+       (section "2.2" prefilled)
        (kind lemma)
        (title "Causal precedence in a bundle is a partial order with minimal elements")
        (names precedes-partial-order finite-strict-minimal bundle-minimal)
@@ -2231,6 +2643,7 @@
 
 (entry (doc "strand-spaces")
        (ref "2.8")
+       (section "2.2" prefilled)
        (kind lemma)
        (title "A minimal node of a content-closed node set is a sent node")
        (names bundle-minimal-sent)
@@ -2240,6 +2653,7 @@
 
 (entry (doc "strand-spaces")
        (ref "2.9")
+       (section "2.2" prefilled)
        (kind lemma)
        (title "A minimal node among those whose content contains t originates t")
        (names bundle-minimal-originates)
@@ -2249,6 +2663,7 @@
 
 (entry (doc "strand-spaces")
        (ref "2.12")
+       (section "2.4" prefilled)
        (kind proposition)
        (title "A subterm of an encryption under one key that is an encryption under another lies inside the plaintext")
        (names subterm-encr-other-key)
@@ -2258,6 +2673,7 @@
 
 (entry (doc "strand-spaces")
        (ref "3.3")
+       (section "3.2" prefilled)
        (kind proposition)
        (title "The adversary bound: a secret that never originates on a regular node occurs nowhere")
        (names adversary-bound adversary-bound-adversary-nodes adversary-node-origin)
@@ -2272,6 +2688,7 @@
 
 (entry (doc "strand-spaces")
        (ref "5.2")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "The responder's agreement guarantee")
        (names nsl-responder-agreement nsl-lemma-5-4 nsl-lemma-5-6 nsl-lemma-5-7 nsl-resp-nonce-originates)
@@ -2281,42 +2698,51 @@
 
 (entry (doc "strand-spaces")
        (ref "5.3")
+       (section "5.2" prefilled)
        (kind lemma)
        (title "The responder's nonce originates at the responder's second node")
        (names nsl-resp-nonce-originates)
+       (home-elsewhere nsl-resp-nonce-originates)
        (status proven)
        (deviation "Stated for any responder strand of a PK-SPACE with Na /= Nb; 'Nb is not a name' is part of IS-RESP-STRAND (names and nonces are neither names of each other nor keys). Node <s,2> is the pair [2, s].")
        (notes-statement "Under the hypotheses of Proposition 5.2, Nb originates at the responder's node n0 = <s,2>."))
 
 (entry (doc "strand-spaces")
        (ref "5.4")
+       (section "5.2" prefilled)
        (kind lemma)
        (title "The minimal node containing Nb but not v0 is a positive regular node")
        (names nsl-lemma-5-4 adversary-encr-loss adversary-sent-source nsl-list-source bundle-minimal-sent-back)
+       (home-elsewhere nsl-lemma-5-4)
        (status proven)
        (deviation "GAP found: Lemma 2.8 does not apply to the auxiliary set T of the adversary case S (T is not closed under equal content); the weaker bundle-minimal-sent-back (closure toward the sender along send edges) is what the argument needs. Needs the rule that names and nonces are not keys (else a nonce equal to K_A^-1 leaks it). The adversary case analysis is factored once into adversary-encr-loss / adversary-sent-source.")
        (notes-statement "The set S of nodes of C whose term contains Nb but not v0 = {Na Nb B}_KA has a minimal node n2, and n2 is regular and positive."))
 
 (entry (doc "strand-spaces")
        (ref "5.6")
+       (section "5.2" prefilled)
        (kind lemma)
        (title "An earlier node on the same strand carries v0")
        (names nsl-lemma-5-6 nsl-regular-encr-subterm)
+       (home-elsewhere nsl-lemma-5-6)
        (status proven)
        (deviation "The paper's hand-wave 'no regular node contains an encrypted term as a proper subterm' is the theorem nsl-regular-encr-subterm.")
        (notes-statement "A node n1 precedes n2 on the same strand t, and term(n1) = {Na Nb B}_KA."))
 
 (entry (doc "strand-spaces")
        (ref "5.7")
+       (section "5.2" prefilled)
        (kind lemma)
        (title "The strand through n1 and n2 is an initiator strand in C")
        (names nsl-lemma-5-7)
+       (home-elsewhere nsl-lemma-5-7)
        (status proven)
        (deviation "Needs PUBKEY injective (a field of PK-SPACE) to read B and A back off the keys.")
        (notes-statement "The regular strand t containing n1 and n2 is an initiator strand and is contained in C (C-height 3)."))
 
 (entry (doc "strand-spaces")
        (ref "5.8")
+       (section "5.2" prefilled)
        (kind proposition)
        (title "Injectivity: at most one initiator strand for a uniquely originating Na")
        (names nsl-init-unique nsl-init-nonce-originates)
@@ -2324,7 +2750,7 @@
        (deviation "Stronger than the paper's: two initiator strands with the value Na, whatever their other parameters, have the same identifier.")
        (notes-statement "If Sigma is an NSL space and Na is uniquely originating in Sigma, then there is at most one strand t in Init[A, B, Na, Nb] for any A, B and Nb."))
 
-(entry (doc "strand-spaces") (ref "5.9") (kind lemma)
+(entry (doc "strand-spaces") (ref "5.9") (section "5.3" prefilled) (kind lemma)
        (title "Original Needham-Schroeder: an earlier node carries {Na Nb}_KA")
        (names nso-lemma-5-9 nso-lemma-5-4 nso-resp-nonce-originates)
        (status proven)
@@ -2333,6 +2759,7 @@
 
 (entry (doc "strand-spaces")
        (ref "5.10")
+       (section "5.4" prefilled)
        (kind proposition)
        (title "Secrecy of the responder's nonce")
        (names nsl-responder-secrecy nsl-responder-nonce-not-sent nsl-lemma-5-11 nsl-lemma-5-12)
@@ -2342,24 +2769,29 @@
 
 (entry (doc "strand-spaces")
        (ref "5.11")
+       (section "5.4" prefilled)
        (kind lemma)
        (title "No minimal node of the secrecy set is regular")
        (names nsl-lemma-5-11)
+       (home-elsewhere nsl-lemma-5-11)
        (status proven)
        (deviation "GAP found: the paper misses the case where Nb is a name; excluded by the rule that nonces are not names (IS-RESP-STRAND).")
        (notes-statement "No minimal member of S = {m in C : Nb subterm of term(m), v0 and v3 not subterms} is a regular node."))
 
 (entry (doc "strand-spaces")
        (ref "5.12")
+       (section "5.4" prefilled)
        (kind lemma)
        (title "No minimal node of the secrecy set is an adversary node")
        (names nsl-lemma-5-12)
+       (home-elsewhere nsl-lemma-5-12)
        (status proven)
        (deviation "Both private keys K_A^-1 and K_B^-1 uncompromised, as the paper says (the D case meets both v0 and v3).")
        (notes-statement "No minimal member of S is a penetrator (adversary) node."))
 
 (entry (doc "strand-spaces")
        (ref "5.13")
+       (section "5.5" prefilled)
        (kind proposition)
        (title "Secrecy of the initiator's nonce (corrected)")
        (names nsl-initiator-secrecy nsl-initiator-nonce-not-sent nsl-initiator-secrecy-adversary nsl-initiator-secrecy-regular)
@@ -2369,6 +2801,7 @@
 
 (entry (doc "strand-spaces")
        (ref "5.14")
+       (section "5.5" prefilled)
        (kind proposition)
        (title "The initiator's agreement guarantee")
        (names nsl-initiator-agreement)
@@ -2379,65 +2812,69 @@
 ;;; ----- Section 6, Ideals and Honesty (SB-1, SB-2, 2026-10-26; scratchpad/triage/SB-1-REPORT.md,
 ;;; SB-2-REPORT.md).  Vocabulary structure-library/strand-ideals.scm, strand-honesty.scm.
 
-(entry (doc "strand-spaces") (ref "6.3") (kind proposition)
+(entry (doc "strand-spaces") (ref "6.3") (section "6.1" prefilled) (kind proposition)
        (title "The ideal generated by a set is the union of the principal ideals")
        (names key-ideal-gen-union key-ideal-gen-is-ideal key-ideal-gen-least)
        (status proven)
        (deviation "On the user's model (tokens, n-ary LST, ENCR): a KS-ideal (IS-KEY-IDEAL, structure-library/strand-ideals.scm) is a subset I of A = MSG-SET(T, K) holding LST(l) whenever some component of the list l is in I (the n-ary join) and ENCR(h, y) for h in I, y in KS; I_k[S] is KEY-IDEAL-GEN(T, K, KS, S), the intersection of the KS-ideals in POWER(A) containing S; I_k[x] is KEY-IDEAL-GEN(T, K, KS, SINGLETON(x)). The paper's k and K are one folded symbol: the key subset is KS. Hypotheses as the paper's (S a subset of A, KS a subset of K) plus T and K sets. Proven 2026-10-26 (SB-1).")
        (notes-statement "For S a set of terms, I_k[S] is the union over x in S of I_k[x]."))
 
-(entry (doc "strand-spaces") (ref "6.4") (kind lemma)
+(entry (doc "strand-spaces") (ref "6.4") (section "6.1" prefilled) (kind lemma)
        (title "The generated ideal by stages of encryption")
        (names key-ideal-gen-stages ideal-stage-in-gen ideal-stage-in-power)
        (status proven)
        (deviation "The stages are IDEAL-STAGE(T, K, KS, S, i), a def-by-nn-recursion: S_0 = S, S_(i+1) = {ENCR(g, y) : g in I_empty[S_i], y in KS}; I_empty[-] is KEY-IDEAL-GEN with the key set EMPTY-SET. The paper's 'by induction, S_i is a subset of I_k[S]' is ideal-stage-in-gen (an induction on i using that a KS-ideal is an empty-set-ideal, key-ideal-empty-keys). Proven 2026-10-26 (SB-1).")
        (notes-statement "With S_0 = S and S_{i+1} = {{g}_K : g in I_empty[S_i], K in k}, I_k[S] is the union over i of I_empty[S_i]."))
 
-(entry (doc "strand-spaces") (ref "6.6") (kind proposition)
+(entry (doc "strand-spaces") (ref "6.6") (section "6.1" prefilled) (kind proposition)
        (title "Decryption stays in the ideal of simple terms")
        (names key-ideal-gen-decrypt key-ideal-gen-cases)
        (status proven)
        (deviation "Free encryption (the paper's Axiom 1) is a theorem of the tagged model (encr-injective, encr-ne-list). The paper's 'I' = I_k[S] minus {h}_K' argument is done once for 6.6, 6.7 and 6.8 as the inversion lemma key-ideal-gen-cases (a member of I_k[S] is in S, or a list message with a component in I_k[S], or an encryption of a member of I_k[S] under a key of KS); 6.6 is one case analysis of it. Stated as the notes state it; the hypotheses 'every s in S is simple' and 'K a key' are not used by the proof. Proven 2026-10-26 (SB-1).")
        (notes-statement "If K is a key, every s in S is simple and not of the form {g}_K, and {h}_K is in I_k[S], then h is in I_k[S]."))
 
-(entry (doc "strand-spaces") (ref "6.7") (kind proposition)
+(entry (doc "strand-spaces") (ref "6.7") (section "6.1" prefilled) (kind proposition)
        (title "Only keys of k encrypt into the ideal of simple terms")
        (names key-ideal-gen-encr-key key-ideal-gen-cases)
+       (home-elsewhere key-ideal-gen-cases)
        (status proven)
        (deviation "One case analysis of key-ideal-gen-cases with encr-injective (see 6.6). The simplicity hypothesis is not used. Proven 2026-10-26 (SB-1).")
        (notes-statement "If every s in S is simple and not of the form {g}_K, and {h}_K is in I_k[S], then K is in k."))
 
-(entry (doc "strand-spaces") (ref "6.8") (kind proposition)
+(entry (doc "strand-spaces") (ref "6.8") (section "6.1" prefilled) (kind proposition)
        (title "A concatenation in the ideal of simple terms has a component in it")
        (names key-ideal-gen-list-component key-ideal-gen-cases)
+       (home-elsewhere key-ideal-gen-cases)
        (status proven)
        (deviation "On the n-ary model 'g h' is LST(l) and the statement reads: LST(l) in I_k[S] gives some component NTH(j, l) in I_k[S]. Simple is IS-SIMPLE-MSG (not LST of a list of messages). The paper's detour through Lemma 6.4 and I_empty[x] is needed only when concatenation is not uniquely decomposable; LST is injective here (lst-injective), so the proof is one case analysis of key-ideal-gen-cases. Proven 2026-10-26 (SB-1).")
        (notes-statement "If every s in S is simple and g h is in I_k[S], then g or h is in I_k[S]."))
 
-(entry (doc "strand-spaces") (ref "6.9") (kind proposition)
+(entry (doc "strand-spaces") (ref "6.9") (section "6.2" prefilled) (kind proposition)
        (title "A minimal node with term in I is an entry point for I")
        (names bundle-minimal-entry-point bundle-minimal-sent bundle-ssb-precedes bundle-ssb-closed)
+       (home-elsewhere bundle-minimal-sent)
        (status proven)
        (deviation "Stated for any class I of messages: n in BNODES(c), NODE-CONTENT(n) in I, and no z in BNODES(c) with content in I strictly precedes n, give IS-ENTRY-POINT(BSPACE(c), n, I). The two steps of the paper are bundle-minimal-sent (the set is closed under equal content, so its minimal member is SENT) and bundle-ssb-closed / bundle-ssb-precedes (an earlier node on the same strand is in the bundle and precedes); 'n' =>+ n' is the strict same-strand order (D4). bundle-minimal-originates is the instance I = {m : u subterm of m}. Proven 2026-10-26 (SB-1).")
        (notes-statement "If C is a bundle and m is minimal in {m in C : term(m) in I}, then m is an entry point for I."))
 
-(entry (doc "strand-spaces") (ref "6.11") (kind theorem)
+(entry (doc "strand-spaces") (ref "6.11") (section "6.3" prefilled) (kind theorem)
        (title "Ideals generated by atoms are honest")
        (names key-ideal-gen-honest adversary-sent-shapes key-ideal-gen-decrypt-atoms tokens-are-simple)
        (status proven)
        (deviation "IS-HONEST(isp, c, I) (structure-library/strand-honesty.scm): every adversary entry point of the bundle into I lies on a TEXT trace -- the user's model merges the paper's M and K strands into one text trace of the known tokens ADV-TOKENS. 'S subset of T u K' is S a set of tokens (keys are tokens); 'K subset of S u k^-1' is: every key y is in S or KINV(y) is in KS. The seven adversary cases are read once (adversary-sent-shapes) and the proof is the paper's case analysis on it; case E uses 6.6 for S a set of tokens (key-ideal-gen-decrypt-atoms), case C uses 6.8. Proven 2026-10-26 (SB-2).")
        (notes-statement "If C is a bundle, S is a set of texts and keys, k a set of keys, and every key is in S or in k^-1, then I_k[S] is honest relative to C."))
 
-(entry (doc "strand-spaces") (ref "6.12") (kind corollary)
+(entry (doc "strand-spaces") (ref "6.12") (section "6.3" prefilled) (kind corollary)
        (title "A secret key reaching the network enters through a regular node")
        (names key-ideal-gen-regular-entry key-ideal-gen-token text-node-content)
        (status proven)
        (deviation "With the TEXT trace (M and K merged) the paper's two exclusions become one: S disjoint from ADV-TOKENS (a text node sends a known token, and a token in I_k[S] is in S: key-ideal-gen-token). The minimal node is found by bundle-minimal and is an entry point by 6.9 (bundle-minimal-entry-point). Proven 2026-10-26 (SB-2).")
        (notes-statement "If C is a bundle, K = S union k^-1, S disjoint from K_P, and some node of C has term in I_k[S], then some regular node of C is an entry point for I_k[S]."))
 
-(entry (doc "strand-spaces") (ref "6.13") (kind corollary)
+(entry (doc "strand-spaces") (ref "6.13") (section "6.3" prefilled) (kind corollary)
        (title "Encryption under an uncompromised key does not originate with the adversary")
        (names key-ideal-gen-no-adversary-origin adversary-sent-shapes)
+       (home-elsewhere adversary-sent-shapes)
        (status proven)
        (deviation "Stated for the adversary nodes of the bundle (the proof's E case needs the key node of the strand in C). By 6.12 no node of C has content in I_k[S]; the cases of adversary-sent-shapes then exclude each kind; the E case uses subterm-of-encr where the paper cites Proposition 2.12. Proven 2026-10-26 (SB-2).")
        (notes-statement "If C is a bundle, K = S union k^-1, S disjoint from K_P, and no regular node is an entry point for I_k[S], then no term {g}_K with K in S originates on an adversary strand."))
@@ -2445,51 +2882,54 @@
 ;;; ----- Section 7, Otway-Rees (SB-3, SB-4, SB-5, 2026-10-26; scratchpad/triage/SB-3-REPORT.md,
 ;;; SB-5-REPORT.md).  Vocabulary structure-library/otway-rees.scm.
 
-(entry (doc "strand-spaces") (ref "7.2") (kind lemma)
+(entry (doc "strand-spaces") (ref "7.2") (section "7.1" prefilled) (kind lemma)
        (title "Server, initiator and responder strands are pairwise disjoint")
        (names or-init-resp-disjoint or-init-serv-disjoint or-resp-serv-disjoint)
        (status proven)
        (deviation "Vocabulary structure-library/otway-rees.scm (SK-SPACE with LTKEY, IS-OR-INIT / -RESP / -SERV / -SPACE). On the n-ary model the paper's width argument is a length count: an initiator's trace has 2 entries beginning SENT, a responder's 4, a server's 2 beginning RECEIVED. Proven 2026-10-26 (SB-3).")
        (notes-statement "The sets Serv, Init and Resp of Otway-Rees strands are pairwise disjoint."))
 
-(entry (doc "strand-spaces") (ref "7.4") (kind theorem)
+(entry (doc "strand-spaces") (ref "7.4") (section "7.2" prefilled) (kind theorem)
        (title "Otway-Rees session key secrecy")
        (names or-session-key-secrecy key-ideal-gen-regular-entry key-ideal-gen-encr-atoms or-serv-key-originates)
+       (home-elsewhere key-ideal-gen-regular-entry)
        (status proven)
        (deviation "S = {K_AS, K_BS, K} and k = K minus S as separations of the keys; the conclusion is for I_k[{K}], obtained from I_k[S] by minimality (the paper's appeal to 6.3). The key-cover hypothesis of 6.12 holds because the three keys of S are symmetric. No regular node is an entry point for I_k[S]: each positive regular content is shown outside the ideal component by component (6.8, an encryption's plaintext and key by key-ideal-gen-encr-atoms, a token of S only as the session key of a server strand, which by unique origination of K is s_serv itself, whose keys are in S); the responder's H, H2 put the preceding node in the ideal. Proven 2026-10-26 (SB-3).")
        (notes-statement "If C is a bundle, A and B names, K uniquely originating, K_AS and K_BS not in K_P, and s_serv in Serv[A,B,Na,Nb,M,K], then no node of C has term in I_k[K] with k = all keys minus {K_AS, K_BS, K}."))
 
-(entry (doc "strand-spaces") (ref "7.5") (kind proposition)
+(entry (doc "strand-spaces") (ref "7.5") (section "7.3" prefilled) (kind proposition)
        (title "Encryption under an uncompromised long-term key originates on a regular node")
        (names or-ltkey-no-adversary-origin or-ltkey-not-regular-origin key-ideal-gen-subterms key-ideal-gen-no-adversary-origin)
+       (home-elsewhere key-ideal-gen-no-adversary-origin)
        (status proven)
        (deviation "Corollary 6.13 at S = {K_XS}, k = all keys; 'no regular entry point for I_K[S]' is 'K_XS originates on no regular node' through key-ideal-gen-subterms, and that is or-ltkey-not-regular-origin (the only key a regular content holds is a server's session key, never a K_XS). Stated for the adversary nodes of the bundle. Proven 2026-10-26 (SB-3).")
        (notes-statement "If K_XS is not in K_P, no term {g}_KXS originates on an adversary node of a bundle C."))
 
-(entry (doc "strand-spaces") (ref "7.6") (kind proposition)
+(entry (doc "strand-spaces") (ref "7.6") (section "7.3" prefilled) (kind proposition)
        (title "Shapes of encrypted terms originating on regular strands")
        (names or-regular-encr-shapes)
        (status proven)
        (deviation "Stated as one disjunction over the three shapes: H = LST([N, K]) (N a text, K a key), H = LST([N, M, X, C]) or H = LST([N, M, C, X]) (N, M texts, C a name). Proven by the general literal subterm inverter dks-sub-cases! on each positive regular content; an encryption inside the responder's H or H2 is received earlier and does not originate. Proven 2026-10-26 (SB-3).")
        (notes-statement "If {H}_KXS originates on a regular strand s: in Serv, H = N K; in Init, H = N M X C; in Resp, H = N M C X."))
 
-(entry (doc "strand-spaces") (ref "7.7") (kind corollary)
+(entry (doc "strand-spaces") (ref "7.7") (section "7.3" prefilled) (kind corollary)
        (title "Where the server's and the participants' encryptions originate")
        (names or-77-server or-77-initiator or-77-responder or-init-nonce-originates or-resp-nonce-originates)
        (status proven)
        (deviation "Three theorems, one per part. Part 3 ('N originates on s') needs N /= M, which is part of IS-OR-RESP (the paper's own remark that N originates on each responder strand). Proven 2026-10-26 (SB-3).")
        (notes-statement "On a regular strand: {N K}_KXS originates only at the second node of a server strand with X as one party (and K originates there); {N M A B}_KAS with A /= B only at the first node of an initiator strand; {N M A B}_KBS only at the second node of a responder strand."))
 
-(entry (doc "strand-spaces") (ref "7.8") (kind theorem)
+(entry (doc "strand-spaces") (ref "7.8") (section "7.3" prefilled) (kind theorem)
        (title "Otway-Rees: the initiator's guarantee")
        (names or-initiator-guarantee or-initiator-nonce-source bundle-subterm-originates)
        (status proven)
        (deviation "C-height 2 is [2, s] in BNODES(c); 'regular' is a strand identifier outside ADV-IDS. The paper's step 'by Corollary 7.7, Na originates on the same strand' is or-initiator-nonce-source, which needs no A /= X (with N /= M in Resp a responder source would originate Na at a second node). Proven 2026-10-26 (SB-4). Section 7.3.3 (Figure 9): the guarantee cannot be strengthened to name the session key; or-initiator-guarantee-key-not-determined exhibits a bundle (8 strands, 21 nodes; theorem-library/or-missing-guarantee.scm, SB-5) meeting every hypothesis of 7.8 with no regular responder strand holding the initiator's key.")
        (notes-statement "If A /= B, Na uniquely originating, K_AS, K_BS not in K_P, and s in Init[A,B,Na,M,K] has C-height 2, then for some Nb there are a responder strand in Resp[A,B,Nb,M,*,*,*] of C-height >= 2 and a server strand in Serv[A,B,Na,Nb,M,K] of C-height 2."))
 
-(entry (doc "strand-spaces") (ref "7.9") (kind theorem)
+(entry (doc "strand-spaces") (ref "7.9") (section "7.3" prefilled) (kind theorem)
        (title "Otway-Rees: the responder's guarantee")
        (names or-responder-guarantee or-responder-nonce-source bundle-subterm-originates)
+       (home-elsewhere bundle-subterm-originates)
        (status proven)
        (deviation "C-height >= 3 is [3, s] in BNODES(c). Symmetric to 7.8 through or-responder-nonce-source. Proven 2026-10-26 (SB-4). Likewise or-responder-guarantee-key-not-determined (or-missing-guarantee.scm) for the responder's key.")
        (notes-statement "If A /= B, Nb uniquely originating, K_AS, K_BS not in K_P, and s in Resp[A,B,Nb,M,K,H,H'] has C-height >= 3, then there are an initiator strand in Init[A,B,*,M,*] of C-height >= 1 and a server strand in Serv[A,B,*,Nb,M,K] of C-height 2."))
@@ -2502,8 +2942,67 @@
 ;;; (MEASURE-2, outer-measure-construction.scm, monotone-class.scm, 2026-10-08).  Added 2026-10-08.
 ;;; MEASURE-3 (metric-outer-measure.scm, lebesgue-interval-length.scm, lebesgue-measure-line.scm,
 ;;; 2026-10-09).  Added 2026-10-09.
+;;; The OUTLINE of construction-of-measures: chapters that hold an entry, with every section the notes have.
+;;; Titles marked `prefilled' were read off the notes by pdftotext (BOOK-GEN, 2026-11-12); review
+;;; and delete the mark.  Read by library-book.scm; ignored by the major-theorems list.
+(outline "construction-of-measures"
+  (chapter "1" "Algebras of Sets and Measures" prefilled
+    (section "1.1" "Algebras of Sets" prefilled))
+  (chapter "2" "Integration" prefilled
+    (section "2.1" "Measurable Functions" prefilled)
+    (section "2.2" "Definition of the Integral" prefilled)
+    (section "2.3" "Ho?lder and Minkowski Inequalities" prefilled)
+    (section "2.4" "Functions Defined Almost Everywhere" prefilled)
+    (section "2.5" "Convergence Theorems" prefilled)
+    (section "2.6" "Dual Spaces" prefilled)
+    (section "2.7" "Change of Variables" prefilled))
+  (chapter "3" "Further Development of the Basic Theory" prefilled
+    (section "3.1" "Completion of Measures" prefilled)
+    (section "3.2" "Product Measures" prefilled)
+    (section "3.3" "Radon Nikodym Theorem" prefilled)
+    (section "3.4" "Signed Measures" prefilled)
+    (section "3.5" "Complex Measures" prefilled))
+  (chapter "4" "Outer Measures" prefilled
+    (section "4.1" "Construction of Measures" prefilled)
+    (section "4.2" "Construction of Outer Measures" prefilled)
+    (section "4.3" "Metric Outer Measures" prefilled)
+    (section "4.4" "Hausdorff Measures" prefilled))
+  (chapter "5" "Descriptive Set Theory" prefilled
+    (section "5.1" "Borel, Souslin and Lusin Sets" prefilled)
+    (section "5.2" "Approximation Properties of Measures on Metric Spaces" prefilled))
+  (chapter "6" "Measure on Locally Compact Metric Spaces" prefilled
+    (section "6.1" "Outer Measures Associated to Contents" prefilled)
+    (section "6.2" "Radon Measures" prefilled)
+    (section "6.3" "Riesz Markov Theorem" prefilled))
+  (chapter "7" "Metric Size and Measure Size" prefilled
+    (section "7.1" "Measure and Metric" prefilled)
+    (section "7.2" "Ahlfors Regularity" prefilled)
+    (section "7.3" "Covering Measures" prefilled)
+    (section "7.4" "Bounded Compression and Bounded Covering Properties" prefilled)
+    (section "7.5" "Haar Measure for Locally Compact Separable Metric Groups" prefilled))
+  (chapter "8" "Measure on Locally Compact Spaces" prefilled
+    (section "8.1" "Baire Sets" prefilled)
+    (section "8.2" "Baire Measurability of Functions" prefilled)
+    (section "8.3" "Riesz-Markov Theorem for Compact Spaces" prefilled)
+    (section "8.4" "Riesz-Markov Theorem for Locally Compact Spaces" prefilled)
+    (section "8.5" "Regularity of Baire Measures" prefilled)
+    (section "8.6" "Integrability and Lebesgue Spaces" prefilled)
+    (section "8.7" "Radon Measures" prefilled)
+    (section "8.8" "Product Algebras" prefilled)
+    (section "8.9" "Infinite Product Measures" prefilled))
+  (chapter "10" "Measurable Groups" prefilled
+    (section "10.1" "Measure and Uniform Local Compactness" prefilled)
+    (section "10.2" "Partial Measurable Groups" prefilled)
+    (section "10.3" "Completion of Partial Measurable Groups" prefilled)
+    (section "10.4" "Measurable Groups" prefilled)
+    (section "10.5" "General Case" prefilled)
+    (section "10.6" "Stone-Weierstrauss Theorem" prefilled))
+  (chapter "A" "")
+  (chapter "Lebesgue" ""))
+
 (entry (doc "construction-of-measures")
        (ref "1.2")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "The atoms of a finite algebra of sets")
        (names finite-algebra-atoms algebra-point-atom atoms-pairwise-disjoint algebra-atom-decomposition)
@@ -2513,6 +3012,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "1.4")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "Finite unions of a semi-algebra form an algebra")
        (names finite-unions-algebra)
@@ -2522,6 +3022,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "1.6")
+       (section "1.1" prefilled)
        (kind corollary)
        (title "Finite unions of rectangles in R^n form an algebra")
        (names rn-rectangles-finite-unions-algebra rn-rectangles-inter-closed rn-rectangle-complement-finite-union)
@@ -2531,6 +3032,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "1.11")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "An algebra closed under monotone unions is a sigma-algebra")
        (names algebra-monotone-union-sigma-algebra)
@@ -2540,15 +3042,18 @@
 
 (entry (doc "construction-of-measures")
        (ref "1.13")
+       (section "1.1" prefilled)
        (kind theorem)
        (title "The monotone class theorem")
        (names monotone-class-theorem algebra-monotone-union-sigma-algebra)
+       (home-elsewhere algebra-monotone-union-sigma-algebra)
        (status proven)
        (deviation "IS-MONOTONE-CLASS carries omega in SET, as IS-SIGMA-ALGEBRA does; the binary intersection the algebra needs comes by De Morgan, which the notes skip.")
        (notes-statement "If M is a monotone class which contains the algebra A, then M contains the smallest sigma-algebra containing A."))
 
 (entry (doc "construction-of-measures")
        (ref "1.14")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "The pullback sigma-algebra")
        (names pullback-sigma-algebra pullback-sigma-is-sigma-algebra pullback-sigma-measurable pullback-sigma-smallest)
@@ -2558,6 +3063,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "1.17")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "Continuity of a measure from below")
        (names measure-continuity-from-below)
@@ -2567,6 +3073,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "1.18")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "Continuity of a measure from above")
        (names measure-continuity-from-above)
@@ -2576,6 +3083,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "1.19")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "The push-forward of a measure is a measure")
        (names measure-pushforward pfw-push-forward-measure)
@@ -2585,6 +3093,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "1.22")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "Pulling a measure back along a surjection")
        (names pullback-measure-exists-unique pullback-measure-is-measure pullback-measure-value pullback-measure-unique)
@@ -2594,6 +3103,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "1.23")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "No translation-invariant measure on all subsets of R (Vitali)")
        (names vitali-no-invariant-measure vitali-null-case vitali-positive-case)
@@ -2603,6 +3113,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.3")
+       (section "2.1" prefilled)
        (kind proposition)
        (title "Pointwise limits of measurable functions into a separable metric space")
        (names measurable-map-ptwise-limit)
@@ -2612,6 +3123,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.5")
+       (section "2.1" prefilled)
        (kind proposition)
        (title "Measurable functions into a separable metric space are uniform limits of step functions")
        (names step-map-approximation step-map-uniform-limit)
@@ -2621,6 +3133,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.6")
+       (section "2.1" prefilled)
        (kind proposition)
        (title "phi(f, g) is measurable for continuous phi")
        (names measurable-continuous-combination)
@@ -2630,6 +3143,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.7")
+       (section "2.2" prefilled)
        (kind theorem)
        (title "Existence and uniqueness of the integral of non-negative functions")
        (names integral-unique integral-unique-simple)
@@ -2639,6 +3153,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.9")
+       (section "2.2" prefilled)
        (kind proposition)
        (title "Conull sets are closed under countable intersections and supersets")
        (names conull-countable-inter conull-superset null-countable-union)
@@ -2648,6 +3163,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.10")
+       (section "2.2" prefilled)
        (kind proposition)
        (title "Functions equal almost everywhere have the same integral")
        (names integral-ae-eq integral-le-off-null)
@@ -2657,6 +3173,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.13")
+       (section "2.2" prefilled)
        (kind proposition)
        (title "Monotone approximation by step functions")
        (names integral-simple-approx)
@@ -2666,6 +3183,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.15")
+       (section "2.2" prefilled)
        (kind proposition)
        (title "The integral does not depend on the approximating sequence")
        (names monotone-convergence integral-simple integral-sup-of-simple)
@@ -2675,15 +3193,18 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.16")
+       (section "2.2" prefilled)
        (kind proposition)
        (title "The monotone convergence theorem")
        (names monotone-convergence)
+       (home-elsewhere monotone-convergence)
        (status proven)
        (deviation "For [0, +inf]-valued measurable functions, the integral defined as the supremum over simple functions below; the limit of the integrals is their ESUP (the sequence of integrals is nondecreasing).")
        (notes-statement "Suppose f_k is a nondecreasing sequence of nonnegative measurable functions with f_k increasing to f. Then f is measurable and the integral of f is the limit of the integrals of the f_k."))
 
 (entry (doc "construction-of-measures")
        (ref "2.17")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "Hoelder's inequality")
        (names hoelder young-extended)
@@ -2693,15 +3214,18 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.18")
+       (section "2.3" prefilled)
        (kind lemma)
        (title "Young's inequality")
        (names young-extended young-scaled)
+       (home-elsewhere young-extended)
        (status proven)
        (deviation "Stated on [0, infinity] with ETIMES / EPOW (young-extended); for a, b real it is the special case.")
        (notes-statement "If a, b >= 0 and p, q are conjugate exponents, then ab <= a^p/p + b^q/q."))
 
 (entry (doc "construction-of-measures")
        (ref "2.19")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "Minkowski's inequality")
        (names minkowski)
@@ -2711,15 +3235,18 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.21")
+       (section "2.4" prefilled)
        (kind proposition)
        (title "Functions equal almost everywhere have the same integral")
        (names integral-ae-eq rintegral-ae-eq)
+       (home-elsewhere integral-ae-eq)
        (status proven)
        (deviation "Functions are total on X; 'almost everywhere' is a clause 'except on a null set' (the user's decision, 2026-10-09). For a real f the hypothesis f >= 0 a.e. is not needed.")
        (notes-statement "If f = g almost everywhere and f >= 0 almost everywhere, then the integral of f equals the integral of g."))
 
 (entry (doc "construction-of-measures")
        (ref "2.22")
+       (section "2.4" prefilled-inferred)
        (kind theorem)
        (title "The L^p seminorm")
        (names lp-norm-triangle lp-norm-homogeneous lp-norm-zero-iff)
@@ -2729,6 +3256,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.23")
+       (section "2.4" prefilled)
        (kind proposition)
        (title "A function with finite integral is finite almost everywhere")
        (names integral-finite-ae-finite)
@@ -2737,6 +3265,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.24")
+       (section "2.4" prefilled)
        (kind proposition)
        (title "A function with nonnegative integral over every measurable set is nonnegative almost everywhere")
        (names rintegral-nonneg-on-sets-null rintegral-decomposition)
@@ -2746,6 +3275,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.26")
+       (section "2.5" prefilled)
        (kind theorem)
        (title "Fatou's lemma")
        (names fatou measurable-fn-liminf)
@@ -2755,15 +3285,18 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.28")
+       (section "2.5" prefilled)
        (kind proposition)
        (title "The dominated convergence theorem")
        (names dominated-convergence fatou)
+       (home-elsewhere fatou)
        (status proven)
        (deviation "Proven in the [0, +inf]-valued form the tree's integral has (no real- or complex-valued integrable functions yet) and everywhere rather than almost everywhere; Fatou's lemma beside it.")
        (notes-statement "Suppose f_k is a sequence of measurable functions with |f_k(x)| <= g(x) for almost all x, g integrable. If f_k(x) tends to f(x) for almost all x, then f is integrable and the integrals of the f_k tend to the integral of f."))
 
 (entry (doc "construction-of-measures")
        (ref "2.29")
+       (section "2.5" prefilled)
        (kind corollary)
        (title "Dominated convergence in L^p")
        (names lp-dominated-convergence)
@@ -2773,6 +3306,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.30")
+       (section "2.5" prefilled)
        (kind corollary)
        (title "Step functions are dense in L^p")
        (names step-functions-dense-lp simple-difference-step-fn)
@@ -2782,6 +3316,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.31")
+       (section "2.6" prefilled)
        (kind proposition)
        (title "L^infinity is the dual of L^1")
        (names linf-is-l1-dual l1-pairing-bounded l1-pairing-norm-bound l1-dual-onto)
@@ -2791,6 +3326,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.32")
+       (section "2.7" prefilled)
        (kind proposition)
        (title "Abstract change of variables")
        (names pfw-change-of-variables pfw-change-of-variables-real pfw-integrable-iff pfw-simple-change-of-variables)
@@ -2800,6 +3336,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "2.35")
+       (section "2.7" prefilled)
        (kind corollary)
        (title "A measure isomorphism induces isomorphisms of L^p")
        (names measure-isomorphism-lp-isomorphism comp-measure-preserving-lp-norm comp-measure-preserving-linf-norm)
@@ -2809,6 +3346,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "3.2")
+       (section "3.1" prefilled)
        (kind proposition)
        (title "Characterisation of complete measures")
        (names complete-iff-symdiff null-set-subset)
@@ -2818,6 +3356,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "3.3")
+       (section "3.1" prefilled)
        (kind proposition)
        (title "The completion of a measure")
        (names completion-sigma-algebra completion-measure-is-measure completion-measure-extends completion-measure-value completion-measure-complete completion-measure-unique)
@@ -2827,6 +3366,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "3.4")
+       (section "3.1" prefilled)
        (kind proposition)
        (title "A complete measure extends the completion of its restriction")
        (names complete-extends-completion completion-of-restrict-in measure-restrict)
@@ -2836,6 +3376,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "3.5")
+       (section "3.2" prefilled)
        (kind proposition)
        (title "Sections of a product-measurable function are measurable")
        (names x-section-measurable fn-x-section-measurable fn-y-section-measurable)
@@ -2845,6 +3386,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "3.7")
+       (section "3.2" prefilled)
        (kind theorem)
        (title "Fubini")
        (names fubini fubini-sets dynkin-pi-lambda)
@@ -2863,6 +3405,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "3.10")
+       (section "3.3" prefilled)
        (kind theorem)
        (title "Radon-Nikodym theorem")
        (names radon-nikodym radon-nikodym-sigma-finite radon-nikodym-finite density-implies-absolutely-continuous)
@@ -2872,6 +3415,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "3.12")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "Jordan decomposition of a signed measure")
        (names jordan-decomposition pos-variation-is-measure neg-variation-is-measure)
@@ -2881,6 +3425,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "3.13")
+       (section "3.4" prefilled)
        (kind corollary)
        (title "One of nu+, nu- is finite")
        (names signed-measure-one-variation-finite)
@@ -2890,6 +3435,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "3.17")
+       (section "3.5" prefilled)
        (kind proposition)
        (title "Polar decomposition of a complex measure")
        (names polar-decomposition-exists polar-decomposition-unique)
@@ -2908,6 +3454,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.4")
+       (section "4.1" prefilled)
        (kind proposition)
        (title "The Caratheodory theorem")
        (names caratheodory-measurable-sigma-algebra caratheodory-measure caratheodory-null-measurable caratheodory-superadditive-suffices)
@@ -2917,6 +3464,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.5")
+       (section "4.1" prefilled)
        (kind lemma)
        (title "Outer measure is additive on disjoint measurable pieces")
        (names outer-measure-disjoint-additive caratheodory-prefix-split)
@@ -2926,6 +3474,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.7")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "The method I outer measure of a pre-measure is an outer measure")
        (names method-i-outer-is-outer-measure)
@@ -2935,6 +3484,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.10")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "The outer measure extending a measure")
        (names method-i-outer-extends method-i-outer-measurable method-i-outer-null-iff method-i-outer-finite-approx method-i-outer-of-measure)
@@ -2944,6 +3494,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.11")
+       (section "4.2" prefilled)
        (kind corollary)
        (title "The Caratheodory measure of mu* is complete and extends the completion of rho")
        (names method-i-outer-caratheodory-complete method-i-outer-extends-completion caratheodory-measure-complete)
@@ -2953,6 +3504,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.12")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "For sigma-finite rho the Caratheodory measure of mu* is the completion of rho")
        (names method-i-outer-sigma-finite-completion)
@@ -2962,6 +3514,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.13")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "Measurability tested on sets of finite measure")
        (names method-i-outer-measurable-iff-finite)
@@ -2971,6 +3524,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.16")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "Method I extends a local measure")
        (names local-measure-outer-extends local-measure-outer-measurable)
@@ -2980,6 +3534,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.17")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "Extensions of a local measure agree on B-sigma")
        (names local-measure-extensions-agree)
@@ -2989,6 +3544,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.18")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "The method-I extension is the largest")
        (names local-measure-extension-le-outer local-measure-max-extension)
@@ -2998,6 +3554,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.22")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "The minimum extension of a local measure")
        (names local-measure-min-extension)
@@ -3007,6 +3564,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.23")
+       (section "4.2" prefilled)
        (kind proposition)
        (title "The method-II outer measure is a metric outer measure")
        (names method-ii-metric-outer-measure method-ii-outer-measure method-ii-delta-outer method-ii-delta-separated)
@@ -3016,6 +3574,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.26")
+       (section "4.3" prefilled)
        (kind proposition)
        (title "For a metric outer measure every Borel set is measurable")
        (names borel-sets-caratheodory-measurable metric-outer-closed-measurable metric-outer-open-measurable)
@@ -3024,6 +3583,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.27")
+       (section "4.3" prefilled)
        (kind lemma)
        (title "A metric outer measure is additive on a positively separated sequence")
        (names metric-outer-measure-separated-sum metric-outer-measure-finite-separated)
@@ -3033,6 +3593,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.28")
+       (section "4.3" prefilled)
        (kind lemma)
        (title "The layers of the complement of a closed set")
        (names metric-outer-layers-limit)
@@ -3042,6 +3603,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.32")
+       (section "4.4" prefilled)
        (kind proposition)
        (title "Comparison of Hausdorff measures for comparable metrics")
        (names hausdorff-compare method-ii-compare diam-compare)
@@ -3051,6 +3613,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.38")
+       (section "4.4" prefilled)
        (kind proposition)
        (title "Comparison of Hausdorff measures for a doubling function")
        (names hausdorff-phi-compare doubling-scale doubling-power)
@@ -3060,6 +3623,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.44")
+       (section "4.4" prefilled)
        (kind proposition)
        (title "Doubling is invariant under bounded equivalence")
        (names doubling-iff-boundedly-equivalent)
@@ -3069,6 +3633,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.53")
+       (section "4.4" prefilled)
        (kind proposition)
        (title "Uniqueness of the Hausdorff dimension")
        (names hausdorff-positive-infinite hausdorff-dim-unique hausdorff-delta-below)
@@ -3078,6 +3643,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.54")
+       (section "4.4" prefilled)
        (kind proposition)
        (title "Local Hausdorff dimension in a separable space")
        (names hausdorff-dim-local)
@@ -3087,6 +3653,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "4.55")
+       (section "4.4" prefilled)
        (kind proposition)
        (title "Hausdorff measure restricts to Borel subsets")
        (names hausdorff-phi-subspace method-ii-delta-subspace-le method-ii-delta-subspace-ge subspace-diam)
@@ -3096,6 +3663,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.2")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Borel sets of a subspace are traces")
        (names borel-sets-subspace mbs-trace-borel mbs-borel-is-trace)
@@ -3105,6 +3673,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.3")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Borel sets of a product of separable spaces")
        (names borel-sets-product mbp-open-in-product mbp-product-in-borel)
@@ -3114,6 +3683,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.6")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Sieve intersections are singletons")
        (names nested-closed-intersection diam-dist-le)
@@ -3123,6 +3693,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.10")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Souslin sets are continuous images of Baire space")
        (names souslin-iff-baire-image baire-image-souslin souslin-baire-image)
@@ -3132,6 +3703,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.12")
+       (section "5.1" prefilled)
        (kind lemma)
        (title "Complete separable spaces are Souslin")
        (names complete-separable-souslin polish-baire-surjection)
@@ -3141,6 +3713,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.14")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Souslin sets are continuous images of Polish spaces")
        (names souslin-iff-polish-image souslin-polish-image continuous-image-polish-souslin baire-ms-polish)
@@ -3150,6 +3723,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.15")
+       (section "5.1" prefilled)
        (kind corollary)
        (title "Continuous images of Souslin sets")
        (names souslin-continuous-image)
@@ -3159,6 +3733,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.16")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Souslin sets closed under countable unions and intersections")
        (names souslin-countable-union souslin-countable-intersection)
@@ -3168,6 +3743,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.17")
+       (section "5.1" prefilled)
        (kind corollary)
        (title "Borel sets are Souslin")
        (names borel-polish-souslin closed-polish-souslin)
@@ -3177,6 +3753,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.18")
+       (section "5.1" prefilled)
        (kind lemma)
        (title "Open subsets of Polish spaces are Polish")
        (names polish-open-souslin)
@@ -3186,6 +3763,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.20")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Lusin sets closed under countable disjoint unions and intersections")
        (names lusin-disjoint-union lusin-countable-intersection sum-ms-polish product-polish)
@@ -3195,6 +3773,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.21")
+       (section "5.1" prefilled)
        (kind corollary)
        (title "Borel sets are Lusin")
        (names borel-polish-lusin borel-from-inter-disjoint-union)
@@ -3204,15 +3783,18 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.23")
+       (section "5.1" prefilled)
        (kind lemma)
        (title "Classes containing the open sets contain the Borel sets")
        (names borel-from-inter-disjoint-union)
+       (home-elsewhere borel-from-inter-disjoint-union)
        (status proven)
        (deviation "For any metric space (the notes: Polish). Countable intersection is {x in X : x in g(n) for all n}; disjointness is stated pointwise.")
        (notes-statement "In a Polish space, a class of sets closed under countable intersections and countable disjoint unions that contains the open sets contains all Borel sets."))
 
 (entry (doc "construction-of-measures")
        (ref "5.25")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Lusin separation theorem")
        (names souslin-separation baire-separation separation-step borel-separated-union)
@@ -3222,6 +3804,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.26")
+       (section "5.1" prefilled)
        (kind corollary)
        (title "Souslin's theorem")
        (names souslin-theorem souslin-complement-borel)
@@ -3231,6 +3814,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.27")
+       (section "5.1" prefilled)
        (kind corollary)
        (title "Separation of a disjoint sequence of Souslin sets")
        (names souslin-disjoint-envelopes)
@@ -3240,6 +3824,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.28")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Borel sieve partitions of a Borel set")
        (names dense-piece-borel dense-piece-cover dense-piece-disjoint dense-piece-small dense-cell-borel dense-cell-cover dense-cell-disjoint dense-cell-small dense-cell-nested)
@@ -3249,6 +3834,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.30")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Injective continuous images of Borel sets are Borel")
        (names lusin-souslin-borel-domain lusin-souslin)
@@ -3258,15 +3844,18 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.31")
+       (section "5.1" prefilled)
        (kind corollary)
        (title "Borel = Lusin in Polish spaces")
        (names polish-borel-iff-lusin lusin-borel borel-polish-lusin)
+       (home-elsewhere borel-polish-lusin)
        (status proven)
        (deviation "Lusin or empty.")
        (notes-statement "The Borel sets of a Polish space are precisely its Lusin sets."))
 
 (entry (doc "construction-of-measures")
        (ref "5.32")
+       (section "5.1" prefilled)
        (kind theorem)
        (title "Injective Borel maps preserve Borel sets")
        (names injective-borel-image borel-injection-image separable-countably-separated)
@@ -3276,6 +3865,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.33")
+       (section "5.1" prefilled)
        (kind lemma)
        (title "Graphs of measurable maps are measurable")
        (names graph-measurable)
@@ -3285,6 +3875,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.34")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Measurable subsets of standard Borel spaces are standard")
        (names standard-measurable-subset restrict-sigma-algebra)
@@ -3294,6 +3885,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.35")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Countable disjoint unions of standard Borel spaces")
        (names standard-disjoint-union sum-sigma-algebra)
@@ -3303,6 +3895,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.36")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Countably separated spaces embed in separable metric spaces")
        (names countably-separated-iff countably-separated-embeds countably-separated-of-injection measurable-map-of-generators)
@@ -3312,6 +3905,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.37")
+       (section "5.1" prefilled)
        (kind corollary)
        (title "Injective measurable maps from standard spaces")
        (names standard-injection-images standard-injection-image-standard)
@@ -3321,6 +3915,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.38")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Souslin sets in Polish spaces via closed families")
        (names souslin-iff-closed-family closed-family-souslin souslin-closed-family souslin-closed-graph-closed dist0-closed)
@@ -3330,6 +3925,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.44")
+       (section "5.2" prefilled)
        (kind proposition)
        (title "Closed/open approximation of Borel sets")
        (names borel-closed-open-approx borel-closed-open-approx-finite)
@@ -3339,6 +3935,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.46")
+       (section "5.2" prefilled)
        (kind proposition)
        (title "Outer regularity for locally finite measures")
        (names borel-outer-regular borel-outer-approx)
@@ -3348,6 +3945,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.47")
+       (section "5.2" prefilled)
        (kind corollary)
        (title "Comparison on open sets extends to Borel sets")
        (names borel-measure-compare-open)
@@ -3357,6 +3955,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.49")
+       (section "5.2" prefilled)
        (kind proposition)
        (title "Regularity is tightness of the whole space")
        (names regular-iff-tight)
@@ -3366,6 +3965,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.51")
+       (section "5.2" prefilled)
        (kind proposition)
        (title "Ulam's theorem")
        (names polish-probability-regular tight-of-full-balls)
@@ -3375,6 +3975,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "5.52")
+       (section "5.2" prefilled)
        (kind corollary)
        (title "Regularity on complete spaces via separable support")
        (names regular-iff-separable-support)
@@ -3384,15 +3985,18 @@
 
 (entry (doc "construction-of-measures")
        (ref "6.8")
+       (section "6.1" prefilled)
        (kind theorem)
        (title "Borel sets are rho*-measurable")
        (names borel-sets-caratheodory-measurable)
+       (home-elsewhere borel-sets-caratheodory-measurable)
        (status partial)
        (deviation "The general step (a metric outer measure makes Borel sets Caratheodory-measurable, notes 4.26) is borel-sets-caratheodory-measurable; rho* itself (from a content) is not defined.")
        (notes-statement "Every Borel subset is measurable for the outer measure rho* of a content."))
 
 (entry (doc "construction-of-measures")
        (ref "6.12")
+       (section "6.1" prefilled)
        (kind lemma)
        (title "Splitting a compact set across two open sets")
        (names compact-split-open-cover)
@@ -3402,6 +4006,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "6.21")
+       (section "6.3" prefilled)
        (kind theorem)
        (title "Riesz-Markov on locally compact metric spaces")
        (names rmz-riesz-markov rmz-riesz-markov-dense rmk-riesz-markov-from-k)
@@ -3411,15 +4016,18 @@
 
 (entry (doc "construction-of-measures")
        (ref "6.22")
+       (section "6.3" prefilled)
        (kind theorem)
        (title "Uniqueness in Riesz-Markov (separable case)")
        (names rmz-riesz-markov)
+       (home-elsewhere rmz-riesz-markov)
        (status partial)
        (deviation "REWRITE-HEADS: INTEGRAL, CLOSURE. Existence is proven for compact metric spaces only (rmz-riesz-markov); uniqueness of the Borel measure is not stated anywhere; locally compact separable case absent.")
        (notes-statement "On a separable locally compact metric space a Radon measure is integration against a unique Borel measure."))
 
 (entry (doc "construction-of-measures")
        (ref "7.6")
+       (section "7.1" prefilled)
        (kind corollary)
        (title "Separability when r0 is infinite")
        (names measure-ball-separable ball-greedy-net ball-packing-bounded)
@@ -3429,6 +4037,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "7.7")
+       (section "7.1" prefilled)
        (kind proposition)
        (title "Sigma-finiteness")
        (names ball-finite-sigma-finite)
@@ -3438,6 +4047,7 @@
 
 (entry (doc "construction-of-measures")
        (ref "7.38")
+       (section "7.2" prefilled)
        (kind proposition)
        (title "Self-similar dimension equation")
        (names self-similar-dimension)
@@ -3447,27 +4057,33 @@
 
 (entry (doc "construction-of-measures")
        (ref "8.24")
+       (section "8.3" prefilled)
        (kind theorem)
        (title "Riesz-Markov for compact spaces")
        (names rmz-riesz-markov rmz-riesz-markov-dense)
+       (home-elsewhere rmz-riesz-markov rmz-riesz-markov-dense)
        (status partial)
        (deviation "REWRITE-HEADS: INTEGRAL. Proven only for compact METRIC spaces with a point (Borel = Baire there), existence only; uniqueness and finiteness of mu are not stated, and general compact Hausdorff spaces / Baire sets are absent.")
        (notes-statement "A positive linear functional on C(X), X compact, is integration against a unique finite measure on the Baire sets."))
 
 (entry (doc "construction-of-measures")
        (ref "8.32")
+       (section "8.4" prefilled)
        (kind theorem)
        (title "Riesz-Markov for bounded functionals on C_0")
        (names rmz-riesz-markov)
+       (home-elsewhere rmz-riesz-markov)
        (status partial)
        (deviation "REWRITE-HEADS: INTEGRAL. Only the compact metric existence case is proven (rmz-riesz-markov); locally compact spaces, C_omega(X), Baire sets, sigma-bounded carriers and uniqueness are absent.")
        (notes-statement "A bounded positive functional on C_omega(X) is integration against a unique finite Baire measure vanishing off a sigma-bounded set."))
 
 (entry (doc "construction-of-measures")
        (ref "10.14")
+       (section "10.3" prefilled)
        (kind lemma)
        (title "Extension from a dense set via Cauchy nets")
        (names uniformly-continuous-extension-from-dense)
+       (home-elsewhere uniformly-continuous-extension-from-dense)
        (status partial)
        (deviation "The metric uniformly-continuous version exists (uniformly-continuous-extension-from-dense: unique uniformly continuous extension from a dense set into a complete space); nets, pseudometric families and the Cauchy-net criterion are absent.")
        (notes-statement "A map from a dense subset into a complete pseudometric space extends continuously iff it maps Cauchy nets to Cauchy nets, uniquely."))
@@ -3589,6 +4205,16 @@
        (notes-statement "A measure on the Borel sets of the line that gives every interval [a, b] the measure b - a coincides with Lebesgue measure on the Borel sets."))
 
 ;;; ===== functional-analysis =====
+;;; The OUTLINE of functional-analysis: chapters that hold an entry, with every section the notes have.
+;;; Titles marked `prefilled' were read off the notes by pdftotext (BOOK-GEN, 2026-11-12); review
+;;; and delete the mark.  Read by library-book.scm; ignored by the major-theorems list.
+(outline "functional-analysis"
+  (chapter "1" "")
+  (chapter "2" "")
+  (chapter "8" "")
+  (chapter "Hahn-Banach" "")
+  (chapter "Riesz-Markov" ""))
+
 (entry (doc "functional-analysis")
        (ref "1.8")
        (kind theorem)
@@ -3612,6 +4238,7 @@
        (kind corollary)
        (title "Sesquilinear forms agreeing on the diagonal are equal")
        (names ses-polarization ses-add-left ses-add-right ses-homog-left ses-homog-right)
+       (home-elsewhere ses-polarization)
        (status partial)
        (deviation "Immediate from ses-polarization applied to B - B', but no theorem states it and the difference form is not shown to be sesquilinear (ses-add-*/ses-homog-* give the pieces).")
        (notes-statement "If sesquilinear forms B and B' satisfy B(x,x) = B'(x,x) for all x, then B = B'."))
@@ -3630,6 +4257,7 @@
        (kind proposition)
        (title "The inner product norm is a norm; the inner product is continuous")
        (names ip-normed-ag-is-normed-ag ip-metric-space-is-metric-space cips-minkowski)
+       (home-elsewhere cips-minkowski)
        (status partial)
        (deviation "(1) proven: ip-normed-ag-is-normed-ag, ip-metric-space-is-metric-space. (2) joint continuity of <.|.> : H x H -> K is not stated anywhere in the catalog.")
        (notes-statement "xi -> sqrt(<xi|xi>) is a norm on a pre-Hilbert space, and the inner product is continuous."))
@@ -3657,6 +4285,7 @@
        (kind lemma)
        (title "Simple functions are dense in L2")
        (names integral-simple-approx dominated-convergence)
+       (home-elsewhere integral-simple-approx dominated-convergence)
        (status partial)
        (deviation "REWRITE-HEADS: INTEGRAL, CLOSURE. integral-simple-approx (monotone simple approximation of a measurable function) and dominated-convergence are the ingredients; the density statement in the L2 seminorm is not stated.")
        (notes-statement "Simple functions are dense in L2_mu(X)."))
@@ -3666,6 +4295,7 @@
        (kind proposition)
        (title "L^p_mu(X) is a Banach space")
        (names lp-norm-triangle lp-norm-homogeneous lp-norm-zero-iff minkowski)
+       (home-elsewhere lp-norm-triangle lp-norm-homogeneous lp-norm-zero-iff minkowski)
        (status partial)
        (deviation "REWRITE-HEADS: INTEGRAL. The seminorm axioms for real measurable functions are proven (lp-norm-*, minkowski); the quotient normed space, completeness (Riesz-Fischer) and complex-valued L^p are missing.")
        (notes-statement "L^p_mu(X) with pointwise operations and the p-norm is a Banach space."))
@@ -3674,7 +4304,8 @@
        (ref "1.52")
        (kind proposition)
        (title "Bounded iff continuous for a linear map of normed spaces")
-       (names frm-cont-lin-iff-bound frm-bound-of-cont-lin frm-cont-lin-of-bound is-bounded-linear-arrow-def)
+       (names frm-cont-lin-iff-bound frm-bound-of-cont-lin frm-cont-lin-of-bound)
+       (definitions is-bounded-linear-arrow-def)
        (status partial)
        (deviation "Proven for seminorm-family structures over a non-trivially valued field (the 8.26 form). IS-BOUNDED-LINEAR-ARROW is defined by the bound; the equivalence with continuity of the normed space (nvs-metric-space) and with the sup over the unit ball is not stated. No complex normed vector space and no Banach-space predicate: IS-NORMED-VECTOR-SPACE has real scalars only (scal = RR-NORMED-FIELD) and 'complete' is IS-COMPLETE of a metric space.")
        (notes-statement "For a linear T: E -> F of normed spaces, sup{||T eta||: ||eta|| <= 1} < infinity iff ||T eta|| <= C||eta|| iff T is continuous (at 0, everywhere)."))
@@ -3693,6 +4324,7 @@
        (kind proposition)
        (title "Extension of a bounded operator from a dense subspace")
        (names uniformly-continuous-extension-from-dense)
+       (home-elsewhere uniformly-continuous-extension-from-dense)
        (status partial)
        (deviation "REWRITE-HEADS: CLOSURE. Only the metric-space extension of uniformly continuous maps from a dense set (uniformly-continuous-extension-from-dense) is there; linearity of the extension, equality of norms, uniqueness are not stated.")
        (notes-statement "A continuous linear map on a dense subspace D of a normed space E into a Banach space F has a unique continuous linear extension to E, of the same norm."))
@@ -3783,6 +4415,7 @@
        (kind proposition)
        (title "Seminormed spaces with a countable family: the metric")
        (names frm-cont-lin-iff-bound frm-scal-continuous)
+       (home-elsewhere frm-cont-lin-iff-bound frm-scal-continuous)
        (status proven)
        (deviation "Sequences, not nets. The field is a parameter of the seminorm vocabulary (the user's decision 2026-10-10); 8.26 continuity => bound needs IS-NONTRIVIALLY-VALUED, which every non-discrete locally compact field satisfies.")
        (notes-statement "A countable separating family of seminorms defines a translation-invariant metric with the same convergence; the vector operations are continuous; a linear map is continuous iff each target seminorm is bounded by a constant times a max of finitely many source seminorms."))
@@ -3792,6 +4425,7 @@
        (kind theorem)
        (title "Closed graph theorem for Frechet spaces")
        (names closed-graph-theorem)
+       (home-elsewhere closed-graph-theorem)
        (status proven)
        (deviation "Frechet = complete metric space of a countable separating family of seminorms (frm- metric), sequences, not nets; needs IS-NONTRIVIALLY-VALUED on the scalar field. Proved by citing the bounded-inverse corollary of 8.30.")
        (notes-statement "A linear map between Frechet spaces with closed graph is continuous."))
@@ -3801,6 +4435,7 @@
        (kind theorem)
        (title "Open mapping theorem for Frechet spaces")
        (names open-mapping-theorem open-mapping-bounded-inverse)
+       (home-elsewhere open-mapping-theorem open-mapping-bounded-inverse)
        (status proven)
        (deviation "By the roadmap of exercise 8.9 (a)-(i), modelled on Thm 1.72. Needs IS-NONTRIVIALLY-VALUED (the rescaling uses an invertible scalar of small norm). The bounded-inverse corollary is stated for a given linear two-sided inverse g.")
        (notes-statement "A continuous linear surjection between Frechet spaces is open; a continuous linear bijection has a continuous inverse."))
@@ -3810,6 +4445,7 @@
        (kind theorem)
        (title "Banach-Steinhaus for Frechet spaces")
        (names frechet-banach-steinhaus)
+       (home-elsewhere frechet-banach-steinhaus)
        (status proven)
        (deviation "Def 8.31 is IS-FR-BOUNDED / IS-FR-EQUICONT (structure-library/frechet-banach-steinhaus.scm); the family is a function h on an index set g; the target needs only a countable seminorm family, not completeness. Needs IS-NONTRIVIALLY-VALUED.")
        (notes-statement "A pointwise bounded family of continuous linear maps on a Frechet space is equicontinuous."))
@@ -3819,6 +4455,7 @@
        (kind proposition)
        (title "C(X) is a Frechet space for X locally compact separable")
        (names cc-cont-fns-frechet cc-exhaust-seminorms-family cc-exhaust-seminorms-separate)
+       (home-elsewhere cc-cont-fns-frechet cc-exhaust-seminorms-family)
        (status partial)
        (deviation "Proven for X = an open subset U of C and complex-valued functions (cc-cont-fns-frechet, exhaustion CC-EXHAUST); the general locally compact separable metric X and the real-valued case are not stated.")
        (notes-statement "For X a separable locally compact metric space, C(X) with the seminorms sup over an exhaustion by compacts is a Frechet space."))
@@ -3828,6 +4465,7 @@
        (kind proposition)
        (title "Bounded sets of holomorphic functions are relatively compact (Montel)")
        (names cc-montel cc-hol-bounded-equicontinuous cc-montel-pointwise-limit)
+       (home-elsewhere cc-montel cc-hol-bounded-equicontinuous cc-montel-pointwise-limit)
        (status partial)
        (deviation "Proven in the sequential form: a bounded sequence of holomorphic functions has a subsequence converging uniformly on compacta to a holomorphic function (cc-montel), with equicontinuity (cc-hol-bounded-equicontinuous). Relative compactness of a bounded SET as a statement about the Frechet topology is not stated (sequential and set versions agree in a metrizable space but the bridge is not a theorem).")
        (notes-statement "Every bounded subset of the space A(Omega) of holomorphic functions is relatively compact."))
@@ -3837,6 +4475,7 @@
        (kind corollary)
        (title "A(Omega) is a Frechet space")
        (names cc-hol-fns-closed cc-cont-fns-frechet cc-hol-fn-module-is-module)
+       (home-elsewhere cc-hol-fns-closed cc-cont-fns-frechet cc-hol-fn-module-is-module)
        (status partial)
        (deviation "The pieces are proven: CC-CONT-FNS(u) is a Frechet structure (cc-cont-fns-frechet), the holomorphic functions form a submodule (cc-hol-fn-module-is-module) closed under Frechet limits (cc-hol-fns-closed). The statement IS-FRECHET-STRUCTURE for CC-FN-MODULE(u, CC-HOL-FNS(u)) with the exhaustion seminorms is not itself a theorem.")
        (notes-statement "The space of holomorphic functions on Omega with the topology of compact convergence is a Frechet space."))
@@ -3846,6 +4485,7 @@
        (kind theorem)
        (title "Hahn-Banach for a sublinear functional")
        (names hbs-hahn-banach-sublinear hahn-banach-seminorm-rr hahn-banach-seminorm)
+       (home-elsewhere hahn-banach-seminorm)
        (status proven)
        (deviation "Sublinear form over real vector spaces; the seminorm form hahn-banach-seminorm over RR or CC (rake-asm-b3, 2026-10-12). Proved by Zorn over the sublinear functionals below p ordered pointwise (a minimal one is linear), not over partial extensions.")
        (notes-statement "A linear functional on a subspace dominated by a sublinear p extends to the whole space, still dominated by p."))
@@ -3855,6 +4495,7 @@
        (kind theorem)
        (title "Riesz-Markov on a compact metric space")
        (names rmz-riesz-markov rmc-riesz-markov-k pex-positive-extension)
+       (home-elsewhere rmz-riesz-markov)
        (status proven)
        (deviation "The user's route of notes-63, form (b): the Cantor model K of X (consistent 0-1 sequences over a countable family of closed balls), pi : K -> X continuous onto, Riesz-Markov on K, the positive (M. Riesz) extension, push-forward. Uniqueness and regularity of the measure are not stated.")
        (notes-statement "A positive linear functional on C(X), X compact metric, is integration against a Borel measure."))
@@ -3864,8 +4505,46 @@
 ;;; Chapter 1 section 3 (Hilbert space) and 3.1 (complex Hilbert spaces), on the user's design of 2026-10-18:
 ;;; a real SEMI-INNER-PRODUCT-SPACE is the default, a complex space is a real one with J.  Agents SIP-1,
 ;;; SIP-D, SIP-D2 (2026-10-18/19; sip-a.scm, sip-b.scm, sip-c.scm, sip-d1.scm).  Added 2026-10-20.
+;;; The OUTLINE of topological-vector-spaces: chapters that hold an entry, with every section the notes have.
+;;; Titles marked `prefilled' were read off the notes by pdftotext (BOOK-GEN, 2026-11-12); review
+;;; and delete the mark.  Read by library-book.scm; ignored by the major-theorems list.
+(outline "topological-vector-spaces"
+  (chapter "1" "Topological Vector Spaces" prefilled
+    (section "1.1" "Vector Space Topologies" prefilled)
+    (section "1.2" "Continuity of Linear Mappings" prefilled)
+    (section "1.3" "Hilbert Space" prefilled)
+    (section "1.4" "Orthonormal Families" prefilled))
+  (chapter "2" "Convexity and Separation by Linear Functionals" prefilled
+    (section "2.1" "Convexity" prefilled)
+    (section "2.2" "Convexity and Topology" prefilled)
+    (section "2.3" "Separation" prefilled)
+    (section "2.4" "Extension of Linear Functionals" prefilled)
+    (section "2.5" "Krein Milman Theorem" prefilled)
+    (section "2.6" "Fixed Point Theorems" prefilled))
+  (chapter "3" "Duality and Topologies" prefilled
+    (section "3.1" "Dual Systems" prefilled)
+    (section "3.2" "Weak Topologies in Locally Convex Spaces" prefilled)
+    (section "3.3" "Polar Sets" prefilled)
+    (section "3.4" "Banach Spaces" prefilled)
+    (section "3.5" "Topologies of Uniform Convergence" prefilled)
+    (section "3.6" "Complex Dual Systems" prefilled))
+  (chapter "4" "Linear Mappings between Topological Vector Spaces" prefilled
+    (section "4.1" "Completeness" prefilled)
+    (section "4.2" "Open Mapping Theorem" prefilled)
+    (section "4.3" "Closed Graph Theorem" prefilled)
+    (section "4.4" "Uniform Boundedness Theorem" prefilled)
+    (section "4.5" "Strict Inductive Limits" prefilled))
+  (chapter "5" "Spaces of Differentiable Functions and Distributions" prefilled
+    (section "5.1" "Pseudometric Spaces" prefilled)
+    (section "5.2" "Baire Category Theorem" prefilled)
+    (section "5.3" "Topological Groups" prefilled)
+    (section "5.4" "Connectedness" prefilled)
+    (section "5.5" "Ascoli-Arzela? Theorem" prefilled))
+  (chapter "A" ""))
+
 (entry (doc "topological-vector-spaces")
        (ref "1.4")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "A separating family of seminorms defines a vector space topology")
        (names seminorm-top-is-tvs sntop-is-top-space sntop-hausdorff sntop-add-continuous sntop-scal-continuous sntop-open-basic)
@@ -3879,6 +4558,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "1.5")
+       (section "1.1" prefilled)
        (kind corollary)
        (title "R^n is a topological vector space")
        (names rn-is-tvs nvs-norm-top-is-tvs nvs-norm-is-seminorm nvs-norm-family)
@@ -3890,15 +4570,18 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "1.8")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "The C^k(U) seminorms and convergence uniformly on compacta")
        (names cc-exhaust-seminorms-family cc-fr-conv-iff-unif-on-compacta)
+       (home-elsewhere cc-exhaust-seminorms-family cc-fr-conv-iff-unif-on-compacta)
        (status partial)
        (deviation "Only k = 0, U open in CC, complex-valued functions, sequences, and seminorms over a compact EXHAUSTION rather than all (K, alpha): cc-exhaust-seminorms-family and cc-fr-conv-iff-unif-on-compacta. Missing: C^k(U) for U open in R^n, multi-index partial derivatives d^alpha, the seminorms p_{K,alpha}, and directed families (nets).")
        (notes-statement "p_{K,alpha} is a seminorm on C^k(U); a directed family phi_lambda converges to phi iff d^alpha phi_lambda -> d^alpha phi uniformly on compact subsets for every |alpha| <= k."))
 
 (entry (doc "topological-vector-spaces")
        (ref "1.12")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "Continuity of a linear map between seminormed spaces by seminorm bounds")
        (names sn-cont-iff-bound sn-cont-of-bound sn-bound-of-cont sn-bound-combine)
@@ -3912,6 +4595,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "1.13")
+       (section "1.2" prefilled)
        (kind corollary)
        (title "Continuity of a linear functional by a seminorm bound")
        (names functional-cont-iff-bound)
@@ -3922,24 +4606,29 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "1.18")
+       (section "1.3" prefilled)
        (kind proposition)
        (title "Cauchy-Schwarz inequality")
        (names sip-schwarz)
+       (home-elsewhere sip-schwarz)
        (status proven)
        (deviation "Stated for a positive SEMIdefinite form (SEMI-INNER-PRODUCT-SPACE), squared: <x,y>^2 <= <x,x><y,y>. The proof avoids the notes' division by <eta,eta>, which may vanish for a nonzero eta in the semidefinite case.")
        (notes-statement "For xi, eta in a pre-Hilbert space H, |<xi|eta>| <= <xi|xi>^{1/2} <eta|eta>^{1/2}."))
 
 (entry (doc "topological-vector-spaces")
        (ref "1.19")
+       (section "1.3" prefilled)
        (kind proposition)
        (title "The norm of a pre-Hilbert space")
        (names sip-normed-ag-is-normed-ag sip-minkowski sip-metric-space-is-metric-space)
+       (home-elsewhere sip-minkowski)
        (status proven)
        (deviation "Stated as IS-NORMED-AG(SIP-NORMED-AG(v)) for a pre-Hilbert space v, the norm being x |-> SQRT(<x,x>). The triangle inequality (sip-minkowski) is proven for a semidefinite form.")
        (notes-statement "For a pre-Hilbert space H, the functional xi |-> <xi|xi>^{1/2} is a norm."))
 
 (entry (doc "topological-vector-spaces")
        (ref "1.20")
+       (section "1.3" prefilled)
        (kind proposition)
        (title "Closest point of a closed convex set")
        (names real-convex-closest-point-unique real-convex-closest-point real-convex-closest-unique real-convex-closest-iff-variational)
@@ -3949,15 +4638,18 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "1.23")
+       (section "1.3" prefilled)
        (kind proposition)
        (title "Complex polarization identity")
        (names ses-polarization)
+       (home-elsewhere ses-polarization)
        (status proven)
        (deviation "Stated for a sesquilinear form on the vectors of a COMPLEX-SEMI-INNER-PRODUCT-SPACE, i psi being the complex multiple (37).")
        (notes-statement "If B is a sesquilinear form, 4B(phi, psi) = B(phi + psi, phi + psi) - B(phi - psi, phi - psi) + iB(phi + i psi, phi + i psi) - iB(phi - i psi, phi - i psi)."))
 
 (entry (doc "topological-vector-spaces")
        (ref "1.24")
+       (section "1.3" prefilled)
        (kind proposition)
        (title "Antisymmetric, isometric, square minus the identity: any two give the third")
        (names sip-isometric-of-antisym-sq sip-antisym-of-isometric-sq phs-square-of-antisym-isometric)
@@ -3976,6 +4668,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "2.10")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "Two functionals with the same hyperplane are proportional")
        (names hyperplane-functionals-proportional)
@@ -3988,6 +4681,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "2.11")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "A nontrivial functional is continuous iff its kernel is closed")
        (names functional-continuous-iff-kernel-closed tvs-closed-kernel-continuous tvs-continuous-kernel-closed)
@@ -3998,6 +4692,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "2.12")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "An open convex cone misses a nontrivial subspace")
        (names open-cone-misses-subspace)
@@ -4008,6 +4703,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "2.13")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "Geometric Hahn-Banach: a closed hyperplane through F missing an open convex set")
        (names closed-hyperplane-through-subspace)
@@ -4019,6 +4715,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "2.14")
+       (section "2.3" prefilled)
        (kind corollary)
        (title "Extension of a functional positive on an open convex set")
        (names extend-positive-functional positive-functional-vanishing-on-subspace)
@@ -4031,6 +4728,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "2.15")
+       (section "2.3" prefilled)
        (kind corollary)
        (title "A functional strictly positive on an open convex set missing 0")
        (names open-convex-positive-functional)
@@ -4041,6 +4739,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "2.29")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "The Minkowski functional of a symmetric absorbing convex set is a seminorm")
        (names minkowski-functional-is-seminorm mink-inf-subadditive mink-inf-homogeneous)
@@ -4053,15 +4752,18 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "2.33")
+       (section "2.4" prefilled)
        (kind proposition)
        (title "Hahn-Banach: extension dominated by a seminorm")
        (names hahn-banach-seminorm hahn-banach-seminorm-rr)
+       (home-elsewhere hahn-banach-seminorm hahn-banach-seminorm-rr)
        (status proven)
        (deviation "Stated over RR or CC (the notes: real vector space), with f K-linear on a submodule s and |f| <= p on s; the extension is K-linear on the whole module with |ff| <= p.")
        (notes-statement "If p is a seminorm on a real vector space E and f a linear functional on a subspace V with |f(x)| <= p(x), then f extends to E with |f~(x)| <= p(x) for all x."))
 
 (entry (doc "topological-vector-spaces")
        (ref "2.35")
+       (section "2.4" prefilled)
        (kind proposition)
        (title "The strict epigraph of a continuous convex functional is open convex")
        (names strict-epigraph-open-convex prod-is-tvs)
@@ -4073,6 +4775,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "2.36")
+       (section "2.4" prefilled)
        (kind corollary)
        (title "Hahn-Banach for a convex dominating functional")
        (names hahn-banach-convex homog-minorant-sublinear)
@@ -4084,6 +4787,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "2.40")
+       (section "2.5" prefilled)
        (kind proposition)
        (title "Extremal subsets: transitivity, intersections, inverse images")
        (names extremal-subset-trans extremal-subset-inter extremal-subset-preimage)
@@ -4096,6 +4800,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "3.27")
+       (section "3.3" prefilled)
        (kind corollary)
        (title "Banach-Alaoglu (locally convex form)")
        (names banach-alaoglu)
@@ -4105,6 +4810,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "3.29")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "Banach-Alaoglu for normed spaces")
        (names dual-unit-ball-weak-star-compact)
@@ -4114,6 +4820,7 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "3.31")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "The canonical map into the bidual is an isometry")
        (names bidual-eval-isometry bidual-eval-in-bidual bidual-eval-additive bidual-eval-homogeneous norming-functional-exists)
@@ -4126,33 +4833,40 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "4.7")
+       (section "4.2" prefilled)
        (kind theorem)
        (title "Open mapping theorem")
        (names open-mapping-theorem open-mapping-bounded-inverse fom-baire-approx fom-open-of-approx)
+       (home-elsewhere open-mapping-theorem open-mapping-bounded-inverse)
        (status partial)
        (deviation "REWRITE-HEADS: CLOSURE, INTERIOR (the non-meager hypothesis). Proven for E and F both FRECHET structures (countable seminorm families, hence locally convex) over a nontrivially valued field, with T SURJECTIVE instead of 'range non-meager'; the conclusion 'F is metrizable' and the case F an arbitrary TVS / E a non-locally-convex complete metrizable TVS are missing.")
        (notes-statement "If E is a complete metrizable TVS, F any TVS and phi : E -> F continuous linear with non-meager range, then phi is open and surjective and F is metrizable."))
 
 (entry (doc "topological-vector-spaces")
        (ref "4.9")
+       (section "4.3" prefilled)
        (kind theorem)
        (title "Closed graph theorem")
        (names closed-graph-theorem fbs-graph-frechet)
+       (home-elsewhere closed-graph-theorem)
        (status partial)
        (deviation "Proven for E and F FRECHET structures (countable seminorm families: locally convex) over a nontrivially valued field; HAS-CLOSED-GRAPH is sequential (equivalent in the metric case). The notes' complete metrizable TVS need not be locally convex: that generality is missing with the TVS structure.")
        (notes-statement "If E, F are complete metrizable TVS, a linear map phi : E -> F is continuous iff its graph is closed in E x F."))
 
 (entry (doc "topological-vector-spaces")
        (ref "4.15")
+       (section "4.4" prefilled)
        (kind theorem)
        (title "Uniform boundedness theorem")
        (names frechet-banach-steinhaus fbs-baire-ball fbs-uniform-ball)
+       (home-elsewhere frechet-banach-steinhaus)
        (status partial)
        (deviation "REWRITE-HEADS: CLOSURE, INTERIOR (non-meager A). Proven with E a FRECHET structure, F a countable seminorm family, and pointwise boundedness at EVERY x of E; the notes assume it only on a non-meager subset A and allow arbitrary TVS E, F.")
        (notes-statement "If E, F are TVS, S a set of continuous linear maps E -> F, and A non-meager in E with {Sx : S in S} bounded for each x in A, then S is equicontinuous."))
 
 (entry (doc "topological-vector-spaces")
        (ref "4.20")
+       (section "4.5" prefilled)
        (kind lemma)
        (title "Extension of a dominated seminorm from a subspace")
        (names seminorm-extension sxt-inf-extends sxt-inf-le-q)
@@ -4164,18 +4878,22 @@
 
 (entry (doc "topological-vector-spaces")
        (ref "5.2")
+       (section "5.0" prefilled)
        (kind proposition)
        (title "C^k(U) is complete")
        (names cc-cont-fns-frechet cc-hol-fns-closed)
+       (home-elsewhere cc-cont-fns-frechet cc-hol-fns-closed)
        (status partial)
        (deviation "Only k = 0 for U open in CC (complex-valued continuous functions, compact exhaustion seminorms; also holomorphic functions closed). C^k(U) for U open in R^n with multi-index derivatives is missing (see 1.8).")
        (notes-statement "C^k(U) with the seminorms p_{K,alpha} is complete."))
 
 (entry (doc "topological-vector-spaces")
        (ref "5.3")
+       (section "5.0" prefilled)
        (kind theorem)
        (title "Mean value theorem along a segment")
        (names dir-deriv-mvt)
+       (home-elsewhere dir-deriv-mvt)
        (status proven)
        (deviation "dir-deriv-mvt is stated for f in FUN(vec(m), RR) on a normed vector space (not a function ON the open set U); its hypotheses involve only the segment (continuity of t -> f(a + t eta) on [0, 1], differentiability inside), so the notes' form follows by extending f off U. The conclusion has 0 < theta < 1 (stronger than 0 <= theta <= 1) and the derivative is a directional derivative IS-DIR-DIFF-AT; no C^1 hypothesis is needed.")
        (notes-statement "If phi is C^1 on an open U and the segment [a, a + eta] lies in U, then phi(a + eta) - phi(a) = [d_eta phi](a + theta eta) for some 0 <= theta <= 1."))
@@ -4185,6 +4903,7 @@
        (kind theorem)
        (title "Baire category theorem")
        (names baire-category)
+       (home-elsewhere baire-category)
        (status proven)
        (deviation "baire-category adds that the space is NONEMPTY: the notes' statement is false for the empty space (the empty set is meager in itself).")
        (notes-statement "Any complete metric space is non-meager in itself."))
@@ -4221,6 +4940,7 @@
        (kind theorem)
        (title "Ascoli-Arzela")
        (names ascoli-arzela-sequential ascoli-dense-bridge equicont-dense-conv-implies-unif-cauchy)
+       (home-elsewhere ascoli-arzela-sequential ascoli-dense-bridge equicont-dense-conv-implies-unif-cauchy)
        (status partial)
        (deviation "REWRITE-HEADS: CLOSURE (relatively compact). Proven: for a COMPACT METRIC X, a SEQUENCE of continuous real functions that is equicontinuous and pointwise bounded has a uniformly convergent subsequence. Missing: Hausdorff X, the compact-open topology, relative compactness of a SET E of functions, and the necessity direction.")
        (notes-statement "For X Hausdorff, E in C(X) is relatively compact in the topology of uniform convergence on compacta iff E is equicontinuous at every point and pointwise bounded."))
@@ -4251,23 +4971,46 @@
        (kind proposition)
        (title "C(X) is metrizable for X locally compact and sigma-compact")
        (names cc-cont-fns-frechet frm-metric-space-is-metric-space)
+       (home-elsewhere cc-cont-fns-frechet)
        (status partial)
        (deviation "Proven only for X = U open in CC with complex-valued functions (compact exhaustion seminorms give a Frechet structure, whose FR-METRIC-SPACE is a metric). General locally compact sigma-compact metric X and real-valued C(X) missing.")
        (notes-statement "If X is a locally compact metric space that is a countable union of compact sets, then C(X) with uniform convergence on compacta is metrizable."))
 
 ;;; ===== galois-theory =====
 ;;; Added 2026-11-09 (TABLE-1): results of the Galois theory notes mapped by MAP-1026 (2026-10-26) and proven by later waves.
+;;; The OUTLINE of galois-theory: chapters that hold an entry, with every section the notes have.
+;;; Titles marked `prefilled' were read off the notes by pdftotext (BOOK-GEN, 2026-11-12); review
+;;; and delete the mark.  Read by library-book.scm; ignored by the major-theorems list.
+(outline "galois-theory"
+  (title "Galois theory (Thayer, notes)" prefilled)
+  (chapter "1" "Preliminaries" prefilled
+    (section "1.1" "Integral Domains and Fields" prefilled)
+    (section "1.2" "Polynomial Rings" prefilled)
+    (section "1.3" "Base Field and Characteristic" prefilled)
+    (section "1.4" "Matrices with Entries in a Euclidean Domain" prefilled)
+    (section "1.5" "Normal Forms" prefilled)
+    (section "1.6" "Structure of Finitely Generated Modules" prefilled)
+    (section "1.7" "Endomorphisms of Vector Spaces" prefilled)
+    (section "1.8" "Polynomial Equations" prefilled)
+    (section "1.9" "Lagrange Interpolation" prefilled)
+    (section "1.10" "Unique Factorization in Polynomial Rings" prefilled)
+    (section "1.11" "Eisenstein Factorization Criterion" prefilled)
+    (section "1.12" "Roots of Unity" prefilled)))
+
 (entry (doc "galois-theory")
        (ref "1.3")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "Ideals of a Euclidean domain are principal")
-       (names euclidean-ideal-has-generator principal-ideal-membership)
+       (names euclidean-ideal-has-generator)
+       (definitions principal-ideal-membership)
        (status proven)
        (deviation "Library form: every IS-IDEAL of a euclidean ring has a generator in the ideal with all elements multiples (no 'non-trivial' hypothesis needed).")
        (notes-statement "In a Euclidean domain every non-trivial ideal is principal."))
 
 (entry (doc "galois-theory")
        (ref "1.5")
+       (section "1.1" prefilled)
        (kind corollary)
        (title "Euclid's lemma in a Euclidean domain")
        (names euclid-lemma two-element-ideal euclidean-domain-is-euclidean-ring)
@@ -4277,6 +5020,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.6")
+       (section "1.1" prefilled)
        (kind corollary)
        (title "Prime dividing a product of primes is associate to one")
        (names prime-divides-prime-product)
@@ -4286,6 +5030,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.7")
+       (section "1.1" prefilled)
        (kind lemma)
        (title "Proper divisor has smaller gauge")
        (names degree-proper-divisor)
@@ -4295,6 +5040,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.8")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "A Euclidean domain is a UFD")
        (names euclidean-domain-is-ufd factorization-exists-bounded factorization-unique)
@@ -4304,6 +5050,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.9")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "Division with remainder in F[x]")
        (names poly-division-with-remainder poly-division-bounded)
@@ -4313,6 +5060,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.10")
+       (section "1.2" prefilled)
        (kind corollary)
        (title "F[x] is a PID and a UFD")
        (names poly-is-pid-and-ufd euclidean-domain-is-pid poly-is-euclidean-domain)
@@ -4322,6 +5070,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.12")
+       (section "1.3" prefilled)
        (kind lemma)
        (title "p divides C(p,i) for 0<i<p")
        (names prime-divides-binomial)
@@ -4331,6 +5080,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.14")
+       (section "1.3" prefilled)
        (kind proposition)
        (title "Frobenius map in characteristic p")
        (names frobenius-additive frobenius-injective)
@@ -4340,123 +5090,151 @@
 
 (entry (doc "galois-theory")
        (ref "1.16")
+       (section "1.4" prefilled)
        (kind lemma)
        (title "Elementary column/row matrices are invertible")
        (names elem-f-invertible elem-g-invertible elem-f-inverse elem-g-inverse)
+       (home-elsewhere elem-f-invertible elem-g-invertible elem-f-inverse elem-g-inverse)
        (status proven)
        (deviation "Same results as linear-algebra 3.6.")
        (notes-statement "The elementary matrices F[k,l], G[r,k,l] are invertible in M_n(A)."))
 
 (entry (doc "galois-theory")
        (ref "1.18")
+       (section "1.4" prefilled)
        (kind lemma)
        (title "A E_n[k,l] shifts column k to column l")
        (names matunit-col-shift)
+       (home-elsewhere matunit-col-shift)
        (status proven)
        (deviation "Mapped under linear-algebra 3.3.")
        (notes-statement "For any m x n matrix A, A E_n[k,l] is A with column k moved to column l and zeros elsewhere."))
 
 (entry (doc "galois-theory")
        (ref "1.20")
+       (section "1.4" prefilled)
        (kind proposition)
        (title "Elementary operations as matrix multiplication")
        (names elem-f-action elem-g-action elem-h-action)
+       (home-elsewhere elem-f-action elem-g-action elem-h-action)
        (status proven)
        (deviation "Mapped under linear-algebra 3.5.")
        (notes-statement "Right multiplication by F[k,l] swaps columns k,l; by G[r,k,l] adds r times column k to column l."))
 
 (entry (doc "galois-theory")
        (ref "1.23")
+       (section "1.4" prefilled)
        (kind proposition)
        (title "Elementary operations: s-minors of B lie in the ideal of those of A")
        (names sdet-col-swap sdet-row-swap sdet-col-add sdet-row-add sdet-col-scale sdet-row-scale sdet-divisor-equiv)
+       (home-elsewhere sdet-col-swap sdet-row-swap sdet-col-add sdet-row-add sdet-col-scale sdet-row-scale sdet-divisor-equiv)
        (status proven)
        (deviation "Mapped under linear-algebra 3.29.")
        (notes-statement "If A goes to B by an elementary operation then every s-minor of B lies in the ideal generated by the s-minors of A."))
 
 (entry (doc "galois-theory")
        (ref "1.24")
+       (section "1.4" prefilled)
        (kind corollary)
        (title "gcd of s-minors is invariant up to a unit")
        (names sdet-gcd-associated sdet-divisor-equiv sdet-gcd-invariant diagonal-chain-sdet-gcd)
+       (home-elsewhere sdet-divisor-equiv sdet-gcd-invariant diagonal-chain-sdet-gcd)
        (status proven)
        (deviation "Elementarily equivalent matrices have associated gcds of s-minors; the general Euclidean-domain form (the tree had it for ZZ only).")
        (notes-statement "If A is elementarily equivalent to B then gcd sdet_s A = u gcd sdet_s B for a unit u."))
 
 (entry (doc "galois-theory")
        (ref "1.27")
+       (section "1.5" prefilled)
        (kind proposition)
        (title "Smith normal form over a Euclidean domain (existence and uniqueness)")
-       (names smith-normal-form-unique smith-normal-form smith-diagonalization smith-staircase smith-equiv-divisor)
+       (names smith-normal-form-unique smith-normal-form smith-diagonalization smith-equiv-divisor)
+       (definitions smith-staircase)
+       (home-elsewhere smith-diagonalization)
        (status proven)
        (deviation "Two normal forms of A have associated diagonal entries (uniqueness, general Euclidean domain); existence was already in the tree (smith-normal-form).")
        (notes-statement "An m x n matrix over a Euclidean domain is elementarily equivalent to a diagonal matrix with b_ii | b_jj for i<=j, unique up to units."))
 
 (entry (doc "galois-theory")
        (ref "1.28")
+       (section "1.5" prefilled)
        (kind corollary)
        (title "U A V in normal form with U, V invertible")
        (names smith-normal-form smith-diagonalization euclidean-invertible-iff-elem-gen euclidean-unit-det-elem-gen)
+       (home-elsewhere smith-normal-form smith-diagonalization euclidean-invertible-iff-elem-gen euclidean-unit-det-elem-gen)
        (status proven)
        (deviation "Form: MAT-EQUIV gives invertible U, V; elementary-product form via euclidean-invertible-iff-elem-gen.")
        (notes-statement "There are invertible U, V with U A V diagonal and divisibility chain."))
 
 (entry (doc "galois-theory")
        (ref "1.29")
+       (section "1.6" prefilled)
        (kind lemma)
        (title "Submodule of an n-generated module over a Euclidean domain has <= n generators")
        (names submodule-fg spans-submodule-fg)
+       (home-elsewhere submodule-fg spans-submodule-fg)
        (status proven)
        (deviation "Stated for IS-MODULE with SCAL a euclidean ring.")
        (notes-statement "Any submodule of a module with n generators over a Euclidean domain is generated by <= n elements."))
 
 (entry (doc "galois-theory")
        (ref "1.30")
+       (section "1.6" prefilled)
        (kind lemma)
        (title "Elementary matrices preserve generating / free generating")
        (names generates-transport free-transport spans-transport)
+       (home-elsewhere generates-transport free-transport spans-transport)
        (status proven)
        (deviation "Stated for any invertible matrix over any ring (more general).")
        (notes-statement "If U is elementary then U.u generates E iff u does; freely generates iff u does."))
 
 (entry (doc "galois-theory")
        (ref "1.31")
+       (section "1.6" prefilled)
        (kind proposition)
        (title "Principal sequence of a submodule of a free module (Euclidean domain)")
        (names principal-sequence-exists principal-sequence-exists-unique principal-sequence-unique submodule-of-free-is-free)
+       (home-elsewhere principal-sequence-exists principal-sequence-exists-unique principal-sequence-unique submodule-of-free-is-free)
        (status partial)
        (deviation "Proven only for SCAL = ZZ-RING; the Euclidean-domain form is not stated (the smith-normal-form over a Euclidean ring is, so a bridge from it to modules is the missing step).")
        (notes-statement "E freely generated by n elements, F a submodule: there are free generators e_i and b_i with b_i | b_{i+1} such that b_i e_i generate F."))
 
 (entry (doc "galois-theory")
        (ref "1.32")
+       (section "1.6" prefilled)
        (kind lemma)
        (title "Quotient E/F by a diagonal submodule is a sum of A/(a_i) and A's")
        (names quotient-by-diagonal-subgroup first-isomorphism-module)
+       (home-elsewhere quotient-by-diagonal-subgroup first-isomorphism-module)
        (status partial)
        (deviation "REWRITE-HEADS: DESCEND. Z only (SCAL = ZZ-RING); uses DESCEND for the induced iso.")
        (notes-statement "If F is generated by a_i e_i (a_i /= 0) then E/F is isomorphic to A/(a_1) + ... + A/(a_k) + A + ... + A."))
 
 (entry (doc "galois-theory")
        (ref "1.33")
+       (section "1.6" prefilled)
        (kind proposition)
        (title "Structure theorem for f.g. modules over a Euclidean domain")
        (names fg-abelian-group-structure-exists fg-abelian-group-structure-unique fg-abelian-group-cyclic-decomposition cyclic-sum-iso-unique)
+       (home-elsewhere fg-abelian-group-structure-exists fg-abelian-group-structure-unique fg-abelian-group-cyclic-decomposition cyclic-sum-iso-unique)
        (status partial)
        (deviation "REWRITE-HEADS: DESCEND (the iso out of the quotient). Proven for abelian groups (SCAL = ZZ-RING); the Euclidean-domain generalisation is not.")
        (notes-statement "A f.g. module over a Euclidean domain is a direct sum of cyclic modules A/(a_i) with a_i | a_j."))
 
 (entry (doc "galois-theory")
        (ref "1.34")
+       (section "1.6" prefilled)
        (kind proposition)
        (title "Finitely generated abelian groups are sums of cyclic groups")
        (names fg-abelian-group-structure-exists fg-abelian-group-cyclic-decomposition fg-abelian-group-structure-unique cyclic-sum-iso-unique)
+       (home-elsewhere fg-abelian-group-structure-exists fg-abelian-group-cyclic-decomposition fg-abelian-group-structure-unique cyclic-sum-iso-unique)
        (status proven)
        (deviation "Same as algebraic-numbers 3.50/3.51 (mapped in linear-algebra).")
        (notes-statement "Every f.g. abelian group is Z/(m_1) + ... + Z/(m_l) with m_k | m_{k+1}."))
 
 (entry (doc "galois-theory")
        (ref "1.36")
+       (section "1.7" prefilled)
        (kind proposition)
        (title "Cyclic vector: annihilating polynomial and companion matrix")
        (names cyclic-vector-companion)
@@ -4466,6 +5244,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.37")
+       (section "1.7" prefilled)
        (kind proposition)
        (title "Characteristic polynomial of a companion matrix")
        (names charpoly-of-companion)
@@ -4475,6 +5254,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.43")
+       (section "1.8" prefilled)
        (kind proposition)
        (title "alpha is a root iff x-alpha divides p")
        (names poly-root-iff-x-minus-divides)
@@ -4484,6 +5264,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.45")
+       (section "1.8" prefilled)
        (kind corollary)
        (title "A degree n polynomial has at most n roots")
        (names poly-roots-at-most-degree)
@@ -4493,6 +5274,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.46")
+       (section "1.8" prefilled)
        (kind corollary)
        (title "Polynomial of degree < card F vanishing on F is zero")
        (names poly-vanishing-iff-zero)
@@ -4502,6 +5284,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.47")
+       (section "1.9" prefilled)
        (kind proposition)
        (title "Evaluation at n points is bijective on degree < n polynomials iff the points are distinct")
        (names eval-at-points-bijective-iff-distinct poly-interpolation-exists poly-interpolation-unique)
@@ -4511,6 +5294,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.48")
+       (section "1.9" prefilled)
        (kind corollary)
        (title "Polynomials over an infinite field are determined by their functions")
        (names poly-determined-by-values)
@@ -4520,6 +5304,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.49")
+       (section "1.9" prefilled)
        (kind corollary)
        (title "Functions on a finite field are polynomials")
        (names finite-field-maps-are-polynomials)
@@ -4529,6 +5314,7 @@
 
 (entry (doc "galois-theory")
        (ref "1.64")
+       (section "1.12" prefilled)
        (kind proposition)
        (title "x^d = 1 has at most d roots; finite multiplicative group of a field is cyclic")
        (names unity-roots-at-most-d)
@@ -4538,8 +5324,53 @@
 
 ;;; ===== algebraic-numbers =====
 ;;; Added 2026-11-09 (TABLE-1): results of the algebraic numbers notes mapped by MAP-1026 (2026-10-26) and proven by later waves.
+;;; The OUTLINE of algebraic-numbers: chapters that hold an entry, with every section the notes have.
+;;; Titles marked `prefilled' were read off the notes by pdftotext (BOOK-GEN, 2026-11-12); review
+;;; and delete the mark.  Read by library-book.scm; ignored by the major-theorems list.
+(outline "algebraic-numbers"
+  (title "Algebraic numbers (Thayer, notes)" prefilled)
+  (chapter "1" "Basic Number Theory" prefilled
+    (section "1.1" "Natural Numbers and Integers" prefilled)
+    (section "1.2" "Euclidean Algorithm" prefilled)
+    (section "1.3" "Congruences" prefilled)
+    (section "1.4" "Euler's Totient Function" prefilled)
+    (section "1.5" "Groups" prefilled)
+    (section "1.6" "Chinese Remainder Theorem" prefilled)
+    (section "1.7" "Cyclic Groups" prefilled)
+    (section "1.8" "Other Number Systems" prefilled))
+  (chapter "2" "Integral Domains and Fields" prefilled
+    (section "2.1" "Preliminaries" prefilled)
+    (section "2.2" "Principal Ideal Domains" prefilled)
+    (section "2.3" "Polynomial Rings" prefilled)
+    (section "2.4" "IRREDUCIBLE ELEMENTS OF Z[x]" prefilled)
+    (section "2.5" "Eisenstein Factorization Criterion" prefilled))
+  (chapter "3" "Linear Algebra" prefilled
+    (section "3.1" "Matrices" prefilled)
+    (section "3.2" "Matrices and Linear Operators" prefilled)
+    (section "3.3" "Elementary Matrices" prefilled)
+    (section "3.4" "Elementary Matrix Operations" prefilled)
+    (section "3.5" "Determinants" prefilled)
+    (section "3.6" "Expansion by Minors" prefilled)
+    (section "3.7" "Vector Spaces and Linear Operators" prefilled)
+    (section "3.8" "Matrices with Integer Entries" prefilled))
+  (chapter "4" "Basic Field Theory" prefilled
+    (section "4.1" "Algebraically Closed Fields" prefilled)
+    (section "4.2" "Field Extensions" prefilled)
+    (section "4.3" "Algebraic Integers" prefilled)
+    (section "4.4" "Algebraic Numbers" prefilled))
+  (chapter "5" "Field Extensions" prefilled
+    (section "5.1" "Finite Extensions" prefilled)
+    (section "5.2" "Galois Groups" prefilled)
+    (section "5.3" "Normal Extensions" prefilled)
+    (section "5.4" "The Field of Rational Functions" prefilled)
+    (section "5.5" "Discriminants" prefilled)
+    (section "5.6" "Norm and Trace" prefilled)
+    (section "5.7" "Cyclotomic Polynomials" prefilled)
+    (section "5.8" "Adjunction of Roots of Unity" prefilled)))
+
 (entry (doc "algebraic-numbers")
        (ref "1.1")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "Order is compatible with addition and multiplication by naturals")
        (names rr-lt-add rr-lt-scale-pos zz-in-rr)
@@ -4549,15 +5380,18 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.2")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "Trichotomy for integers")
        (names zz-trichotomy rr-lt-trichotomy zz-in-rr)
+       (home-elsewhere zz-trichotomy rr-lt-trichotomy zz-in-rr)
        (status proven)
        (deviation "zz-trichotomy is the 0-comparison form; the general form follows via zz-in-rr.")
        (notes-statement "For integers k, l exactly one of k < l, k = l, l < k holds."))
 
 (entry (doc "algebraic-numbers")
        (ref "1.3")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "Well-ordering of N")
        (names nn-least-element)
@@ -4567,24 +5401,29 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.4")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "1 <= c for c in N")
        (names zz-discrete nn-one-le-succ)
+       (home-elsewhere zz-discrete)
        (status proven)
        (deviation "Notes' N = positive integers; tree's form: 0 < a in ZZ implies 1 <= a.")
        (notes-statement "For every c in N, 1 <= c."))
 
 (entry (doc "algebraic-numbers")
        (ref "1.5")
+       (section "1.1" prefilled)
        (kind corollary)
        (title "No integer strictly between m and m+1")
        (names zz-lt-succ-le zz-discrete)
+       (home-elsewhere zz-lt-succ-le zz-discrete)
        (status proven)
        (deviation "zz-lt-succ-le: a < b implies a + 1 <= b.")
        (notes-statement "If m in Z there is no k in Z with m < k < m + 1."))
 
 (entry (doc "algebraic-numbers")
        (ref "1.9")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "Fundamental theorem of arithmetic")
        (names prime-factorization-exists prime-factorization-unique)
@@ -4594,6 +5433,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.10")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "Euclid's lemma")
        (names prime-divides-product)
@@ -4603,6 +5443,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.11")
+       (section "1.2" prefilled)
        (kind lemma)
        (title "Floor: unique n >= 0 with a n <= b < a n + a")
        (names nn-floor-unique nn-division zz-division)
@@ -4612,15 +5453,18 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.12")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "Division with remainder (unique)")
        (names nn-division-remainder nn-division-remainder-unique nn-division zz-division)
+       (home-elsewhere nn-division zz-division)
        (status proven)
        (deviation "Existence (nn-division) and uniqueness of q, r (nn-division-remainder-unique).")
        (notes-statement "For a >= 1, b >= 0, b = a n + r uniquely with n >= 0 and 0 <= r < a."))
 
 (entry (doc "algebraic-numbers")
        (ref "1.13")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "gcd(a,b) = gcd(a, rem(a,b))")
        (names zz-gcd-remainder)
@@ -4630,6 +5474,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.15")
+       (section "1.2" prefilled)
        (kind lemma)
        (title "Two steps of the Euclidean algorithm halve a")
        (names euclid-two-steps-halve)
@@ -4639,15 +5484,18 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.17")
+       (section "1.2" prefilled)
        (kind corollary)
        (title "gcd(a,b) lies in the ideal (a, b) (Bezout)")
-       (names zz-gcd-in-bezout-set zz-bezout zz-bezout-set-membership zz-bezout-set-is-ideal zz-is-gcd)
+       (names zz-gcd-in-bezout-set zz-bezout zz-bezout-set-is-ideal)
+       (definitions zz-bezout-set-membership zz-is-gcd)
        (status proven)
        (deviation "Proven 2026-10-27 (ALGNUM); see scratchpad/triage/ALGNUM-REPORT.md.")
        (notes-statement "If a, b in N then gcd(a, b) lies in the ideal generated by a, b."))
 
 (entry (doc "algebraic-numbers")
        (ref "1.19")
+       (section "1.4" prefilled)
        (kind proposition)
        (title "Euler's product formula for phi(n)")
        (names euler-phi-product)
@@ -4657,6 +5505,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.20")
+       (section "1.4" prefilled)
        (kind proposition)
        (title "Inclusion-exclusion for finite families of subsets")
        (names inclusion-exclusion)
@@ -4666,6 +5515,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.21")
+       (section "1.4" prefilled)
        (kind corollary)
        (title "Inclusion-exclusion (intersection form)")
        (names inclusion-exclusion-union)
@@ -4675,6 +5525,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.23")
+       (section "1.4" prefilled)
        (kind proposition)
        (title "The Euler totient is multiplicative")
        (names euler-phi-multiplicative)
@@ -4684,6 +5535,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.24")
+       (section "1.4" prefilled)
        (kind lemma)
        (title "Multiplicative f bounded if f(p^k) <= 1 for large prime powers")
        (names multiplicative-bounded)
@@ -4693,6 +5545,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.25")
+       (section "1.4" prefilled)
        (kind proposition)
        (title "n^(1-delta)/phi(n) -> 0")
        (names euler-phi-ratio-limit)
@@ -4702,6 +5555,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.26")
+       (section "1.4" prefilled)
        (kind corollary)
        (title "phi(n) >= c n^(1-delta)")
        (names euler-phi-lower-bound)
@@ -4711,6 +5565,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.28")
+       (section "1.5" prefilled)
        (kind proposition)
        (title "Cosets partition G, card G = card H card(G/H)")
        (names lagrange)
@@ -4720,6 +5575,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.29")
+       (section "1.5" prefilled)
        (kind corollary)
        (title "Order of an element divides the order of a finite group (Lagrange)")
        (names lagrange-element-order generated-subgroup-is-subgroup)
@@ -4729,6 +5585,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.31")
+       (section "1.6" prefilled)
        (kind theorem)
        (title "Chinese remainder theorem for Z")
        (names zz-chinese-remainder)
@@ -4738,6 +5595,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.34")
+       (section "1.6" prefilled)
        (kind corollary)
        (title "Systems of linear congruences c_i x = a_i (mod n_i) are solvable")
        (names zz-linear-congruences)
@@ -4747,6 +5605,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.36")
+       (section "1.7" prefilled)
        (kind proposition)
        (title "Universal property of Z as a cyclic group")
        (names zz-cyclic-universal)
@@ -4756,6 +5615,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.38")
+       (section "1.7" prefilled)
        (kind proposition)
        (title "Number of generators of Z/(n) is phi(n)")
        (names generator-count generator-power-iff)
@@ -4765,6 +5625,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "1.39")
+       (section "1.7" prefilled)
        (kind proposition)
        (title "Product of cyclic groups is cyclic iff orders pairwise coprime")
        (names cyclic-product-generator cyclic-family-product-generator)
@@ -4774,321 +5635,394 @@
 
 (entry (doc "algebraic-numbers")
        (ref "2.3")
+       (section "2.2" prefilled)
        (kind proposition)
        (title "Ideals of a Euclidean domain are principal")
-       (names euclidean-ideal-has-generator principal-ideal-membership)
+       (names euclidean-ideal-has-generator)
+       (definitions principal-ideal-membership)
+       (home-elsewhere euclidean-ideal-has-generator)
        (status proven)
        (deviation "Library form: every IS-IDEAL of a euclidean ring has a generator in the ideal with all elements multiples (no 'non-trivial' hypothesis needed). (Same statement as galois-theory 1.3.)")
        (notes-statement "In a Euclidean domain every non-trivial ideal is principal."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.3")
+       (section "3.4" prefilled)
        (kind lemma)
        (title "A E_n[k,l] shifts column k to column l")
        (names matunit-col-shift)
+       (home-elsewhere matunit-col-shift)
        (status proven)
        (deviation "Same numbering as linear-algebra.tex (mapped there).")
        (notes-statement "For any m x n matrix A, A E_n[k,l] moves column k of A to column l, zeros elsewhere."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.5")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "Elementary column operations as matrices")
        (names elem-f-action elem-g-action elem-h-action)
+       (home-elsewhere elem-f-action elem-g-action elem-h-action)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "F swaps columns, G adds multiples, H scales by r."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.6")
+       (section "3.4" prefilled)
        (kind corollary)
        (title "Elementary matrices are invertible")
        (names elem-f-inverse elem-g-inverse elem-h-inverse elem-f-invertible elem-g-invertible)
+       (home-elsewhere elem-f-inverse elem-g-inverse elem-h-inverse elem-f-invertible elem-g-invertible)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "F, G, and H (r invertible) are invertible in M_n(R)."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.8")
+       (section "3.4" prefilled)
        (kind lemma)
        (title "Column reduction of the first row over a field")
        (names col-reduce-first-row column-step-exists clear-first-row class-min-pivot)
+       (home-elsewhere col-reduce-first-row column-step-exists clear-first-row class-min-pivot)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "Over a field every matrix is column equivalent to one with b_1j = 0 for j >= 2 and b_11 in {0, 1}."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.10")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "Column echelon form over a field")
        (names column-step-exists column-step-reduced smith-diagonalization)
+       (home-elsewhere column-step-exists column-step-reduced smith-diagonalization)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "Every matrix over a field is column equivalent to a lower-triangular one with diagonal entries 0 or 1."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.12")
+       (section "3.4" prefilled)
        (kind corollary)
        (title "Invertible iff column equivalent to the identity (field)")
        (names invertible-iff-col-equiv-identity column-step-exists column-step-reduced)
+       (home-elsewhere invertible-iff-col-equiv-identity column-step-exists column-step-reduced)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "Over a field, A is invertible iff column equivalent to I."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.13")
+       (section "3.4" prefilled)
        (kind corollary)
        (title "Elementary matrices generate GL_n over a field")
        (names invertible-iff-elem-gen elem-gen-mul elem-gen-inverse)
+       (home-elsewhere invertible-iff-elem-gen elem-gen-mul elem-gen-inverse)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "Over a field the elementary column matrices generate the invertible matrices."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.15")
+       (section "3.5" prefilled)
        (kind proposition)
        (title "Permuting variables is a ring isomorphism of R[x_1..x_n]")
        (names var-permute-is-ring-iso multi-index-reindex-is-ring-iso monalg-pullback-iso mpoly-is-ring mpoly-is-commutative-ring multi-index-monoid-is-comm-monoid)
+       (home-elsewhere var-permute-is-ring-iso multi-index-reindex-is-ring-iso monalg-pullback-iso mpoly-is-ring mpoly-is-commutative-ring multi-index-monoid-is-comm-monoid)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "p -> sigma.p is a ring isomorphism of the polynomial ring."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.18")
+       (section "3.5" prefilled)
        (kind proposition)
        (title "det is multilinear and alternating in rows and columns")
        (names det-row-linear det-col-linear det-swap-rows det-swap-cols det-alternating-rows det-equal-cols-zero det-transpose)
+       (home-elsewhere det-row-linear det-col-linear det-swap-rows det-swap-cols det-alternating-rows det-equal-cols-zero det-transpose)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "det is linear in each row/column, changes sign on interchange, det A^t = det A."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.19")
+       (section "3.5" prefilled)
        (kind corollary)
        (title "det and elementary column operations")
        (names det-elem-f-col det-elem-g-col det-elem-h-col det-mul-elem-f-col det-mul-elem-g-col det-mul-elem-h-col)
+       (home-elsewhere det-elem-f-col det-elem-g-col det-elem-h-col det-mul-elem-f-col det-mul-elem-g-col det-mul-elem-h-col)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "det(A F) = - det A, det(A G) = det A, det(A H) = r det A."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.20")
+       (section "3.5" prefilled)
        (kind corollary)
        (title "det(A V) = det A det V for invertible V")
        (names det-mul-invertible det-multiplicative)
+       (home-elsewhere det-mul-invertible det-multiplicative)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "If V is invertible, det(AV) = det A det V."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.22")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "Expansion by minors")
-       (names det-expand-row det-expand-col det-cofactor)
+       (names det-expand-row det-expand-col)
+       (definitions det-cofactor)
+       (home-elsewhere det-expand-row det-expand-col)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "det A = sum_j (-1)^(i+j) a_ij det A[i,j]."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.23")
+       (section "3.6" prefilled)
        (kind corollary)
        (title "det of a triangular matrix")
        (names det-lower-triangular det-upper-triangular)
+       (home-elsewhere det-lower-triangular det-upper-triangular)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "The determinant of a triangular matrix is the product of its diagonal entries."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.25")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "Adjugate: A adj(A) = det A I (Cramer)")
        (names adj-mul mul-adj cramer-inverse)
+       (home-elsewhere adj-mul mul-adj cramer-inverse)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "A times its adjugate is det(A) I."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.26")
+       (section "3.6" prefilled)
        (kind corollary)
        (title "Invertible iff det /= 0 over a field")
        (names invertible-iff-det-nonzero)
+       (home-elsewhere invertible-iff-det-nonzero)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "Over a field, A is invertible iff det A /= 0."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.27")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "det is multiplicative")
        (names det-multiplicative det-alternating-form)
+       (home-elsewhere det-multiplicative det-alternating-form)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "det(AB) = det A det B."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.29")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "s-minors under elementary operations")
        (names sdet-col-swap sdet-row-swap sdet-col-add sdet-row-add sdet-col-scale sdet-row-scale)
+       (home-elsewhere sdet-col-swap sdet-row-swap sdet-col-add sdet-row-add sdet-col-scale sdet-row-scale)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "Elementary operations map s-minors into the ideal of s-minors of the original."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.31")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "gcd of s-minors is an invariant (integers)")
        (names sdet-gcd-invariant sdet-divisor-equiv)
+       (home-elsewhere sdet-gcd-invariant sdet-divisor-equiv)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "gcd sdet_s A = +- gcd sdet_s B for elementarily equivalent integer matrices."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.36")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "Smith normal form over Z: existence and uniqueness")
        (names integer-normal-form integer-normal-form-exists diagonal-normal-form-unique diagonal-normal-form-unique-invertible diagonal-chain-sdet-gcd)
+       (home-elsewhere integer-normal-form integer-normal-form-exists diagonal-normal-form-unique diagonal-normal-form-unique-invertible diagonal-chain-sdet-gcd)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "Every integer matrix is equivalent to a unique diagonal matrix with non-negative entries and divisibility chain."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.37")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "U A V normal form with elementary U, V")
        (names integer-normal-form-elementary)
+       (home-elsewhere integer-normal-form-elementary)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "There are products of elementary matrices U, V with U A V in normal form."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.38")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "Invertible integer matrices are products of elementary matrices")
        (names zz-invertible-iff-elementary-product euclidean-invertible-iff-elem-gen euclidean-unit-det-elem-gen elem-gen-det-unit)
+       (home-elsewhere zz-invertible-iff-elementary-product euclidean-invertible-iff-elem-gen euclidean-unit-det-elem-gen elem-gen-det-unit)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "U in M_m(Z) is invertible iff it is a product of elementary matrices."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.40")
+       (section "3.8" prefilled)
        (kind lemma)
        (title "Generators/free generators and invertible actions")
        (names generates-transport free-transport spans-transport)
+       (home-elsewhere generates-transport free-transport spans-transport)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "If U is invertible then u generates E iff U.u does; free iff free."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.41")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "Relation-free sequences have at most n elements")
        (names free-length-le-generators free-generating-length-unique)
+       (home-elsewhere free-length-le-generators free-generating-length-unique)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "If E is generated by n elements any relation-free sequence has <= n elements."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.43")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "Action on free generating sets is free and transitive")
        (names free-generating-action-free free-generating-action-stabilizer free-generating-action-transitive free-generating-action-closed)
+       (home-elsewhere free-generating-action-free free-generating-action-stabilizer free-generating-action-transitive free-generating-action-closed)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "GL_n(Z) acts freely and transitively on free generating sequences of E."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.44")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "Principal sequence of a subgroup of a free abelian group")
        (names principal-sequence-exists principal-sequence-exists-unique)
+       (home-elsewhere principal-sequence-exists principal-sequence-exists-unique)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "For F <= E free of rank n there are free generators e_i and b_i | b_{i+1} with b_i e_i generating F; b_i are invariants."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.45")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "Absolute determinant of change of basis is independent of choices")
        (names norm-independent change-of-basis-det-unit)
+       (home-elsewhere norm-independent change-of-basis-det-unit)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "The absolute determinant of the change of basis between free generators of F <= E is independent of choices."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.46")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "Subgroup of a free abelian group of rank n is free of rank <= n")
        (names submodule-of-free-is-free)
+       (home-elsewhere submodule-of-free-is-free)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "Any subgroup of Z^n is free of rank <= n."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.47")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "Subgroup of an n-generated group is n-generated")
        (names submodule-fg spans-submodule-fg)
+       (home-elsewhere submodule-fg spans-submodule-fg)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "Any subgroup F of a group generated by n elements is generated by <= n elements."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.48")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "Principal sequence is unique")
        (names principal-sequence-unique)
+       (home-elsewhere principal-sequence-unique)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "The principal sequence b of F <= E is uniquely determined."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.49")
+       (section "3.8" prefilled)
        (kind lemma)
        (title "E/F for F generated by a_i e_i")
        (names quotient-by-diagonal-subgroup first-isomorphism-module)
+       (home-elsewhere quotient-by-diagonal-subgroup first-isomorphism-module)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "E/F is isomorphic to Z/(a_1) + ... + Z/(a_k) + Z + ... + Z."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.50")
+       (section "3.8" prefilled)
        (kind proposition)
        (title "Structure of f.g. abelian groups")
        (names fg-abelian-group-structure-exists fg-abelian-group-structure-unique cyclic-sum-iso-core)
+       (home-elsewhere fg-abelian-group-structure-exists fg-abelian-group-structure-unique cyclic-sum-iso-core)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "E is isomorphic to Z/(a_1) + ... + Z/(a_l) with a_i | a_j."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.51")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "F.g. abelian group is a sum of cyclic groups, uniquely")
        (names fg-abelian-group-cyclic-decomposition cyclic-sum-iso-unique)
+       (home-elsewhere fg-abelian-group-cyclic-decomposition cyclic-sum-iso-unique)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "Every f.g. abelian group is Z/(m_1) + ... + Z/(m_l) with m_k | m_{k+1}, uniquely."))
 
 (entry (doc "algebraic-numbers")
        (ref "3.52")
+       (section "3.8" prefilled)
        (kind corollary)
        (title "card E/F = N_E(F)")
        (names quotient-card-norm cyclic-dsum-card principal-sequence-of-presentation dsum-card zz-mod-card card-cartesian)
+       (home-elsewhere quotient-card-norm cyclic-dsum-card principal-sequence-of-presentation dsum-card zz-mod-card card-cartesian)
        (status proven)
        (deviation "Mapped in linear-algebra.")
        (notes-statement "For f.g. free E and F <= E with N_E(F) /= 0, card E/F = N_E(F)."))
 
 (entry (doc "algebraic-numbers")
        (ref "4.3")
+       (section "4.1" prefilled)
        (kind proposition)
        (title "C is algebraically closed")
        (names fundamental-theorem-of-algebra)
+       (home-elsewhere fundamental-theorem-of-algebra)
        (status proven)
        (deviation "Notes form: coefficient sequence p in FUN(NN, CC) with p(succ m) /= 0 has a root of CC-SERIES-PARTIAL-SUM; also stated in ca1-alg-closed.scm as the notes' form (see complex-analysis 1.15).")
        (notes-statement "Every non-constant polynomial over C has a root in C."))
 
 (entry (doc "algebraic-numbers")
        (ref "4.18")
+       (section "4.3" prefilled)
        (kind proposition)
        (title "r algebraic over a ring A iff finitely generated A-module V with rV in V")
        (names algebraic-iff-invariant-module algebraic-of-invariant-module invariant-module-of-algebraic algebraic-monic-of-invariant-space invariant-space-of-relation)
@@ -5098,6 +6032,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "4.19")
+       (section "4.3" prefilled)
        (kind corollary)
        (title "Algebraic elements over A form a subring")
        (names algebraic-numbers-subring algebraic-add-mul algebraic-neg algebraic-of-ring-element)
@@ -5107,6 +6042,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "4.22")
+       (section "4.4" prefilled)
        (kind proposition)
        (title "theta algebraic of degree <= n over K iff K-subspace V of dim <= n with theta V <= V")
        (names algebraic-degree-iff-invariant-space algebraic-degree-of-invariant-space)
@@ -5116,6 +6052,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "4.23")
+       (section "4.4" prefilled)
        (kind corollary)
        (title "Algebraic numbers over K form a field, countable if K is")
        (names algebraic-numbers-countable algebraic-numbers-over-qq-countable algebraic-numbers-over-subfield-field)
@@ -5125,6 +6062,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "4.24")
+       (section "4.4" prefilled)
        (kind proposition)
        (title "The field of algebraic numbers is algebraically closed")
        (names algebraic-numbers-algebraically-closed algebraic-numbers-factorization)
@@ -5134,6 +6072,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "4.25")
+       (section "4.4" prefilled)
        (kind proposition)
        (title "k theta is algebraic over A for some non-zero k in A")
        (names algebraic-over-fractions-scaled)
@@ -5143,6 +6082,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "4.26")
+       (section "4.4" prefilled)
        (kind corollary)
        (title "theta algebraic over Q iff theta in the fractions of the algebraic integers")
        (names algebraic-over-qq-iff-fraction-of-algebraic-integers)
@@ -5152,6 +6092,7 @@
 
 (entry (doc "algebraic-numbers")
        (ref "5.44")
+       (section "5.7" prefilled)
        (kind lemma)
        (title "Finite abelian group with at most d elements of order dividing d is cyclic")
        (names finite-group-cyclic-criterion)
@@ -5161,17 +6102,43 @@
 
 ;;; ===== compact-groups =====
 ;;; Added 2026-11-09 (TABLE-1): results of the compact groups notes mapped by MAP-1026 (2026-10-26) and proven by later waves.
+;;; The OUTLINE of compact-groups: chapters that hold an entry, with every section the notes have.
+;;; Titles marked `prefilled' were read off the notes by pdftotext (BOOK-GEN, 2026-11-12); review
+;;; and delete the mark.  Read by library-book.scm; ignored by the major-theorems list.
+(outline "compact-groups"
+  (title "Compact groups and their representations (Thayer, notes)" prefilled)
+  (chapter "1" "Compact Groups" prefilled
+    (section "1.1" "Preliminaries" prefilled)
+    (section "1.2" "Examples" prefilled)
+    (section "1.3" "Isometry Groups" prefilled)
+    (section "1.4" "Haar Measure" prefilled))
+  (chapter "5" "Compact Lie Groups" prefilled
+    (section "5.1" "Linear Lie Groups" prefilled)
+    (section "5.2" "Connectivity" prefilled)
+    (section "5.3" "Lie Algebras" prefilled)
+    (section "5.4" "Local Homomorphisms" prefilled)
+    (section "5.5" "Involutive Lie Algebras and Representations" prefilled)
+    (section "5.6" "Hilbert Lie Algebras" prefilled)
+    (section "5.7" "Lie Algebras of Compact Groups" prefilled)
+    (section "5.8" "Covering Groups" prefilled)
+    (section "5.9" "Maximal Tori" prefilled)
+    (section "5.10" "Root Systems" prefilled)
+    (section "5.11" "Bases" prefilled)))
+
 (entry (doc "compact-groups")
        (ref "1.5")
+       (section "1.3" prefilled)
        (kind proposition)
        (title "Isom(X): convergence is pointwise, compact")
        (names isometry-group-uniform-iff-ptwise isometry-group-compact isometry-group-compact-metric-group)
+       (home-elsewhere isometry-group-uniform-iff-ptwise isometry-group-compact)
        (status proven)
        (deviation "Proven by ISOM (calculus 3.37, 3.38); mapped here by CG-1.")
        (notes-statement "For a compact metric space X, convergence in Isom(X) is pointwise convergence and Isom(X) is compact."))
 
 (entry (doc "compact-groups")
        (ref "1.6")
+       (section "1.3" prefilled)
        (kind proposition)
        (title "Isom(X) is a topological group")
        (names isometry-group-is-top-group metric-group-is-top-group)
@@ -5181,6 +6148,7 @@
 
 (entry (doc "compact-groups")
        (ref "1.12")
+       (section "1.4" prefilled)
        (kind lemma)
        (title "Convex hull of a totally bounded set is totally bounded")
        (names conv-hull-totally-bounded conv-hull-finite-totally-bounded)
@@ -5190,6 +6158,7 @@
 
 (entry (doc "compact-groups")
        (ref "1.13")
+       (section "1.4" prefilled)
        (kind lemma)
        (title "Extreme points of a compact convex set lie in a generating closed set")
        (names extreme-points-of-hull-in-set)
@@ -5199,6 +6168,7 @@
 
 (entry (doc "compact-groups")
        (ref "5.7")
+       (section "5.2" prefilled)
        (kind lemma)
        (title "Connected component of a topological group is a closed normal subgroup")
        (names top-group-component-normal-subgroup top-group-open-subgroup-complement-open top-group-open-connected-subgroup-is-component connected-component-connected connected-component-intro)
@@ -5208,6 +6178,7 @@
 
 (entry (doc "compact-groups")
        (ref "5.33")
+       (section "5.3" prefilled)
        (kind lemma)
        (title "Open normal subgroup of a compact metric group has finite index")
        (names top-group-compact-finitely-many-cosets)
@@ -5217,6 +6188,7 @@
 
 (entry (doc "compact-groups")
        (ref "5.36")
+       (section "5.4" prefilled)
        (kind proposition)
        (title "One-parameter group segments extend")
        (names one-parameter-group-extension-unique)
@@ -5226,53 +6198,101 @@
 
 ;;; ===== fourier-integrals =====
 ;;; Added 2026-11-09 (TABLE-1): results of the Fourier integrals notes mapped by MAP-1026 (2026-10-26).
+;;; The OUTLINE of fourier-integrals: chapters that hold an entry, with every section the notes have.
+;;; Titles marked `prefilled' were read off the notes by pdftotext (BOOK-GEN, 2026-11-12); review
+;;; and delete the mark.  Read by library-book.scm; ignored by the major-theorems list.
+(outline "fourier-integrals"
+  (title "Fourier integrals (Thayer, notes)" prefilled)
+  (chapter "1" "Hilbert Space" prefilled
+    (section "1.1" "Pre-Hilbert Spaces" prefilled)
+    (section "1.2" "Orthogonal Projection" prefilled)
+    (section "1.3" "Riesz Representation Theorem" prefilled)
+    (section "1.4" "Weak Topology" prefilled)
+    (section "1.5" "Adjoint" prefilled)
+    (section "1.6" "Projections" prefilled)
+    (section "1.7" "Orthonormal Families" prefilled)
+    (section "1.8" "Spectral Theory of Compact Operators" prefilled)
+    (section "1.9" "Hilbert-Schmidt Operators" prefilled)
+    (section "1.10" "THE UNITARY GROUP U(H)" prefilled))
+  (chapter "2" "Review of Spectral Theory" prefilled
+    (section "2.1" "Preliminaries" prefilled)
+    (section "2.2" "Continuous Functional Calculus" prefilled)
+    (section "2.3" "Boolean Rings" prefilled)
+    (section "2.4" "Maximal Ideal Space" prefilled)
+    (section "2.5" "Measure Theory on Totally Disconnected Spaces" prefilled)
+    (section "2.6" "Support Projections" prefilled)
+    (section "2.7" "The Gelfand Homomorphism for Projection Algebras" prefilled)
+    (section "2.8" "The Borel Functional Calculus" prefilled))
+  (chapter "5" "Tempered Distributions" prefilled
+    (section "5.1" "Topological Vector Spaces" prefilled)
+    (section "5.2" "The Schwartz Space" prefilled)
+    (section "5.3" "Tempered Distributions" prefilled)
+    (section "5.4" "Poisson Summation Formula" prefilled)
+    (section "5.5" "Nyquist-Shannon Sampling Theorem" prefilled))
+  (chapter "11" "Theta Functions" prefilled
+    (section "11.1" "Spaces of Entire Functions" prefilled)
+    (section "11.2" "Theta Functions" prefilled)
+    (section "11.3" "Theta Representation" prefilled)))
+
 (entry (doc "fourier-integrals")
        (ref "1.3")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "Cauchy-Schwarz inequality")
-       (names cips-schwarz sip-schwarz sip-schwarz-csip-as-sip)
+       (names cips-schwarz sip-schwarz)
+       (companions sip-schwarz-csip-as-sip)
+       (home-elsewhere cips-schwarz sip-schwarz)
        (status proven)
        (deviation "")
        (notes-statement "For a real or complex pre-Hilbert space, abs(<x,y>) <= <x,x>^(1/2) <y,y>^(1/2). The tree states it squared: abs(<x,y>)^2 <= <x,x><y,y> (complex inner product spaces; real and semi-inner products via sip-schwarz)."))
 
 (entry (doc "fourier-integrals")
        (ref "1.4")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "The Hilbert norm is a norm")
        (names ip-normed-ag-is-normed-ag sip-normed-ag-is-normed-ag cips-minkowski sip-minkowski)
+       (home-elsewhere ip-normed-ag-is-normed-ag sip-normed-ag-is-normed-ag cips-minkowski sip-minkowski)
        (status proven)
        (deviation "")
        (notes-statement "x -> <x,x>^(1/2) is a norm on a pre-Hilbert space."))
 
 (entry (doc "fourier-integrals")
        (ref "1.5")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "Polarization identity")
        (names ses-polarization)
+       (home-elsewhere ses-polarization)
        (status proven)
        (deviation "")
        (notes-statement "For a sesquilinear form B, 4B(phi,psi) is the four-term polarization sum."))
 
 (entry (doc "fourier-integrals")
        (ref "1.8")
+       (section "1.1" prefilled)
        (kind lemma)
        (title "Triangle inequality for countable sums in L2")
        (names minkowski)
+       (home-elsewhere minkowski)
        (status partial)
        (deviation "REWRITE-HEADS: INTEGRAL. Finite two-function Minkowski (p >= 1, measurable functions) is proven; the version for a countable sum of non-negative measurable functions with values in [0,inf] (via monotone-convergence, which is in the tree) is not stated.")
        (notes-statement "The L2 norm of a countable sum of non-negative measurable functions is at most the sum of the L2 norms."))
 
 (entry (doc "fourier-integrals")
        (ref "1.10")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "L2(X,mu) is a Hilbert space")
        (names l2-quotient-is-pre-hilbert cl2-quotient-is-cips cl2-quotient-is-cphs)
+       (home-elsewhere l2-quotient-is-pre-hilbert cl2-quotient-is-cips cl2-quotient-is-cphs)
        (status partial)
        (deviation "REWRITE-HEADS: INTEGRAL. Pre-Hilbert structure on the quotient of L2 by a.e.-equality is proven; COMPLETENESS (Riesz-Fischer) is not in the tree.")
        (notes-statement "For any measure space L2(X,mu) is a Hilbert space."))
 
 (entry (doc "fourier-integrals")
        (ref "1.11")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "Closest point in a closed convex set")
        (names hilbert-closest-point-midpoint hilbert-closest-point cips-midpoint-estimate-midpoint)
@@ -5282,24 +6302,29 @@
 
 (entry (doc "fourier-integrals")
        (ref "1.12")
+       (section "1.2" prefilled)
        (kind theorem)
        (title "Orthogonal projection theorem")
        (names hilbert-projection-exists hilbert-projection-point hilbert-decomposition-unique orthogonal-projection-exists orthogonal-projection-unique)
+       (home-elsewhere hilbert-projection-exists hilbert-decomposition-unique)
        (status proven)
        (deviation "Proven as Prop 2.19 of Thayer's Analise Funcional (also mapped there).")
        (notes-statement "The minimiser a in a closed subspace K satisfies: xi - a is orthogonal to K."))
 
 (entry (doc "fourier-integrals")
        (ref "1.15")
+       (section "1.3" prefilled)
        (kind theorem)
        (title "Riesz representation theorem for Hilbert space")
        (names riesz-representation riesz-representation-exists riesz-representation-unique)
+       (home-elsewhere riesz-representation riesz-representation-unique)
        (status proven)
        (deviation "Complex linear functionals; the remark on conjugate linear functionals is not stated.")
        (notes-statement "A continuous linear functional on a Hilbert space is represented by a unique vector."))
 
 (entry (doc "fourier-integrals")
        (ref "1.21")
+       (section "1.6" prefilled)
        (kind proposition)
        (title "Orthogonal projections are the self-adjoint idempotents")
        (names orthogonal-projection-idempotent orthogonal-projection-fixes orthogonal-projection-type orthogonal-projection-additive)
@@ -5309,6 +6334,7 @@
 
 (entry (doc "fourier-integrals")
        (ref "2.29")
+       (section "2.5" prefilled)
        (kind lemma)
        (title "Method I outer measure of a clopen union")
        (names rmc-premeasure rmc-outer-on-clopen)
@@ -5318,62 +6344,89 @@
 
 (entry (doc "fourier-integrals")
        (ref "2.30")
+       (section "2.5" prefilled)
        (kind proposition)
        (title "Extension of a finitely additive measure on clopen sets")
        (names rmc-outer-on-clopen rmc-clopen-measurable rmc-measure method-i-outer-extends)
+       (home-elsewhere rmc-outer-on-clopen method-i-outer-extends)
        (status partial)
        (deviation "REWRITE-HEADS: INTEGRAL. Done for contents of positive functionals on compact metric spaces (rmc-measure); not for an arbitrary finitely additive rho (the premeasure property comes from compactness: rmc-countable-subadditive).")
        (notes-statement "The method I outer measure of a finitely additive measure on clopen(X) extends it and makes clopen sets measurable."))
 
 (entry (doc "fourier-integrals")
        (ref "2.31")
+       (section "2.5" prefilled)
        (kind proposition)
        (title "Riesz-Markov for totally disconnected compact spaces")
        (names rmz-riesz-markov rmz-riesz-markov-dense rmc-riesz-markov-k)
+       (home-elsewhere rmz-riesz-markov rmz-riesz-markov-dense rmc-riesz-markov-k)
        (status partial)
        (deviation "REWRITE-HEADS: INTEGRAL. Positive functionals on a compact metric space (hence totally disconnected ones) are integration against a Borel measure (existence). Missing: bounded (complex) functionals, uniqueness, and the Baire sigma-algebra.")
        (notes-statement "A bounded functional on C(X) is integration against a unique countably additive complex Baire measure."))
 
 (entry (doc "fourier-integrals")
        (ref "5.2")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "A separating family of seminorms gives a vector space topology")
        (names frm-add-continuous frm-ball-seminorm)
+       (home-elsewhere frm-add-continuous)
        (status partial)
        (deviation "For COUNTABLE families (is-seminorm-family indexed by NN, fr-metric-space, is-frechet-structure) the translation-invariant metric and continuity of the operations are proven; arbitrary index sets I are not covered.")
        (notes-statement "The topology defined by a separating family of seminorms is a vector space topology."))
 
 (entry (doc "fourier-integrals")
        (ref "5.3")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Continuity of linear maps between seminormed spaces")
        (names frm-cont-lin-iff-bound frm-bound-of-cont-lin fbs-ball-bound)
+       (home-elsewhere frm-cont-lin-iff-bound frm-bound-of-cont-lin)
        (status partial)
        (deviation "For countable families: continuity iff each q_j is bounded by a finite maximum of constant multiples of p_i; arbitrary families not covered.")
        (notes-statement "A linear map between spaces with separating seminorm families is continuous iff the seminorm-bound condition holds."))
 
 (entry (doc "fourier-integrals")
        (ref "5.4")
+       (section "5.1" prefilled)
        (kind corollary)
        (title "Continuous linear functionals on a seminormed TVS")
        (names frm-bound-of-cont-lin frm-cont-lin-iff-bound)
+       (home-elsewhere frm-bound-of-cont-lin frm-cont-lin-iff-bound)
        (status partial)
        (deviation "Specialisation of 5.3 to the scalar field, countable families.")
        (notes-statement "A linear functional is continuous iff abs(f) <= C max of finitely many p_i."))
 
 (entry (doc "fourier-integrals")
        (ref "11.8")
+       (section "11.1" prefilled)
        (kind corollary)
        (title "H2_loc(C^n) is a Frechet space")
-       (names cc-cont-fns-frechet is-frechet-structure)
+       (names cc-cont-fns-frechet)
+       (definitions is-frechet-structure)
+       (home-elsewhere cc-cont-fns-frechet)
        (status partial)
        (deviation "The tree has Frechet structures from countable seminorm families (is-frechet-structure; cc-cont-fns-frechet for continuous functions on an open U in CC), but not the space of entire functions on C^n or its H2_R seminorms.")
        (notes-statement "H2_loc(C^n) is a locally convex, metrizable, complete space."))
 
 ;;; ===== ccr =====
 ;;; Added 2026-11-09 (TABLE-1): results of CCR.pdf mapped by MAP-1026 (2026-10-26) and proven by later waves.
+;;; The OUTLINE of ccr: chapters that hold an entry, with every section the notes have.
+;;; Titles marked `prefilled' were read off the notes by pdftotext (BOOK-GEN, 2026-11-12); review
+;;; and delete the mark.  Read by library-book.scm; ignored by the major-theorems list.
+(outline "ccr"
+  (title "Canonical commutation relations (Thayer, notes)" prefilled)
+  (chapter "1" "Ultrametrics and valuations" prefilled)
+  (chapter "2" "Compactness and local compactness" prefilled)
+  (chapter "4" "Extension of valuations" prefilled)
+  (chapter "5" "The character group of a local NV field" prefilled)
+  (chapter "6" "Duality" prefilled)
+  (chapter "8" "Linear algebra and related topics" prefilled)
+  (chapter "10" "Symplectic Spaces" prefilled))
+
 (entry (doc "ccr")
        (ref "1.2")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Nested or equal balls in an ultrametric")
        (names ultra-closed-ball-nested ultra-ball-nested ultra-closed-ball-equal ultra-ball-equal ultra-le ultra-lt)
@@ -5383,6 +6436,7 @@
 
 (entry (doc "ccr")
        (ref "1.3")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Balls in an ultrametric are clopen")
        (names ultra-closed-ball-open ultra-ball-closed closed-ball-is-closed ball-is-open)
@@ -5392,6 +6446,7 @@
 
 (entry (doc "ccr")
        (ref "1.4")
+       (section "1.0" prefilled)
        (kind corollary)
        (title "Spheres are clopen")
        (names ultra-sphere-open ultra-sphere-closed ultra-isosceles)
@@ -5401,6 +6456,7 @@
 
 (entry (doc "ccr")
        (ref "1.5")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Equivalence relation d(x,y)<eps")
        (names eps-rel-equivalence eps-setoid-is-setoid)
@@ -5410,6 +6466,7 @@
 
 (entry (doc "ccr")
        (ref "1.7")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Total boundedness in ultrametric spaces")
        (names ultra-totally-bounded-iff)
@@ -5419,6 +6476,7 @@
 
 (entry (doc "ccr")
        (ref "1.9")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Operations continuous for a non-archimedean valuation")
        (names nv-field-normed)
@@ -5428,6 +6486,7 @@
 
 (entry (doc "ccr")
        (ref "1.17")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Valuation ring of the fraction field")
        (names nv-domain-integral nv-integers-iff-divisibility)
@@ -5437,6 +6496,7 @@
 
 (entry (doc "ccr")
        (ref "1.19")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Approximation in Z(Q) by integers")
        (names ccr-1-19)
@@ -5446,6 +6506,7 @@
 
 (entry (doc "ccr")
        (ref "1.20")
+       (section "1.0" prefilled)
        (kind corollary)
        (title "Z dense in Z(Q)")
        (names ccr-1-20 ccr-1-20-dense)
@@ -5455,6 +6516,7 @@
 
 (entry (doc "ccr")
        (ref "1.21")
+       (section "1.0" prefilled)
        (kind corollary)
        (title "Z(Q) totally bounded")
        (names ccr-1-21)
@@ -5464,6 +6526,7 @@
 
 (entry (doc "ccr")
        (ref "1.22")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Residue field of Z(Q)")
        (names ccr-1-22 nv-residue-fp-iso fp-is-field)
@@ -5473,6 +6536,7 @@
 
 (entry (doc "ccr")
        (ref "1.24")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Ostrowski for non-archimedean valuations on Q")
        (names ccr-1-24)
@@ -5482,6 +6546,7 @@
 
 (entry (doc "ccr")
        (ref "1.28")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Z dense in Zp")
        (names ccr-1-28 qp-embed-value qp-abs-le qp-eventually-le-one)
@@ -5491,6 +6556,7 @@
 
 (entry (doc "ccr")
        (ref "1.29")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Qp is the fraction field of Zp")
        (names ccr-1-29 nv-field-fractions-of-integers)
@@ -5500,6 +6566,7 @@
 
 (entry (doc "ccr")
        (ref "1.30")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Open subgroups of Zp are principal ideals")
        (names ccr-1-30 ccr-4-13)
@@ -5509,6 +6576,7 @@
 
 (entry (doc "ccr")
        (ref "1.32")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Order and p^k x in Zp")
        (names ccr-1-32 ccr-1-31 qo-ppow-abs qo-ord-value)
@@ -5518,6 +6586,7 @@
 
 (entry (doc "ccr")
        (ref "1.33")
+       (section "1.0" prefilled-inferred)
        (kind remark)
        (title "-ord_p(x) >= 0: the order of x mod Z_p is p^(-ord_p x)")
        (names ccr-1-33 qp-pruefer-order qag-pow-iden-iff)
@@ -5527,6 +6596,7 @@
 
 (entry (doc "ccr")
        (ref "1.43")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Gauss lemma for content")
        (names nv-gauss-content-one nv-strict-dominance)
@@ -5536,6 +6606,7 @@
 
 (entry (doc "ccr")
        (ref "1.44")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Content is a valuation")
        (names nv-content-multiplicative nv-content-ultra)
@@ -5545,6 +6616,7 @@
 
 (entry (doc "ccr")
        (ref "1.47")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Neumann series in a complete NV domain")
        (names ccr-1-47-neumann ccr-1-47-unit ccr-1-47-subgroup nv-compact-one-minus-unit)
@@ -5554,6 +6626,7 @@
 
 (entry (doc "ccr")
        (ref "2.1")
+       (section "2.0" prefilled)
        (kind proposition)
        (title "Closed balls of a locally compact NV field")
        (names nv-closed-balls-compact)
@@ -5563,6 +6636,7 @@
 
 (entry (doc "ccr")
        (ref "2.2")
+       (section "2.0" prefilled)
        (kind corollary)
        (title "Z(K) is compact")
        (names nv-integers-compact)
@@ -5572,6 +6646,7 @@
 
 (entry (doc "ccr")
        (ref "2.4")
+       (section "2.0" prefilled)
        (kind proposition)
        (title "Units of a compact domain")
        (names nv-unit-norm nv-compact-norm-one-unit nv-compact-units-norm-one)
@@ -5581,6 +6656,7 @@
 
 (entry (doc "ccr")
        (ref "2.6")
+       (section "2.0" prefilled)
        (kind proposition)
        (title "Maximal ideal of a compact NV domain")
        (names nv-maximal-ideal nv-maximal-proper nv-compact-proper-in-maximal nv-compact-maximal-unique)
@@ -5590,6 +6666,7 @@
 
 (entry (doc "ccr")
        (ref "2.7")
+       (section "2.0" prefilled)
        (kind proposition)
        (title "Residue field is finite")
        (names ccr-2-7 rs-is-ringoid rs-setoid-eq)
@@ -5599,6 +6676,7 @@
 
 (entry (doc "ccr")
        (ref "2.10")
+       (section "2.0" prefilled)
        (kind proposition)
        (title "Units act transitively on generators")
        (names nv-pid-maximal-generator nv-compact-units-transitive)
@@ -5608,6 +6686,7 @@
 
 (entry (doc "ccr")
        (ref "2.11")
+       (section "2.0" prefilled)
        (kind proposition)
        (title "Generators of an ideal")
        (names nv-generators-associate)
@@ -5617,6 +6696,7 @@
 
 (entry (doc "ccr")
        (ref "2.12")
+       (section "2.0" prefilled)
        (kind proposition)
        (title "Principal ideals are balls")
        (names nv-compact-pid-principal-ball)
@@ -5626,6 +6706,7 @@
 
 (entry (doc "ccr")
        (ref "2.13")
+       (section "2.0" prefilled)
        (kind proposition)
        (title "A = Z(K) iff PID")
        (names ccr-2-13 ccr-2-13-converse nv-pid-integers)
@@ -5635,6 +6716,7 @@
 
 (entry (doc "ccr")
        (ref "2.14")
+       (section "2.0" prefilled)
        (kind corollary)
        (title "Z(K) is a PID")
        (names nv-uniformizer-pid)
@@ -5644,6 +6726,7 @@
 
 (entry (doc "ccr")
        (ref "2.18")
+       (section "2.0" prefilled)
        (kind corollary)
        (title "Qp is a local NV field")
        (names ccr-2-18 qp-zp-compact nv-local-of-compact-integers)
@@ -5653,15 +6736,18 @@
 
 (entry (doc "ccr")
        (ref "2.24")
+       (section "2.0" prefilled)
        (kind corollary)
        (title "Residue field of Qp is Fp")
        (names ccr-2-24 nv-residue-fp-iso qp-embed-add)
+       (home-elsewhere nv-residue-fp-iso)
        (status proven)
        (deviation "As 1.22, with A = Z_p and the embedding Z -> Q_p. Proven 2026-10-29 (CCR-QP).")
        (notes-statement "The residue field of Qp is F_p."))
 
 (entry (doc "ccr")
        (ref "4.7")
+       (section "4.0" prefilled)
        (kind proposition)
        (title "Factorisation in a compact NV PID")
        (names nv-uniformizer-factorization nv-uniformizer-factorization-unique nv-uniformizer-exponent-le)
@@ -5671,6 +6757,7 @@
 
 (entry (doc "ccr")
        (ref "4.8")
+       (section "4.0" prefilled)
        (kind proposition)
        (title "Factorisation in a local NV field")
        (names ccr-4-8 ccr-4-8-unique nv-local-factorization)
@@ -5680,6 +6767,7 @@
 
 (entry (doc "ccr")
        (ref "4.10")
+       (section "4.0" prefilled)
        (kind proposition)
        (title "Elements of Qp as u p^k")
        (names ccr-4-10 qo-ppow-inverse nv-unit-iff-norm-one)
@@ -5689,6 +6777,7 @@
 
 (entry (doc "ccr")
        (ref "4.12")
+       (section "4.0" prefilled)
        (kind proposition)
        (title "Modules in a local NV field are principal")
        (names nv-local-module-principal nv-local-module-in-multiple nv-multiples-unfold)
@@ -5698,15 +6787,18 @@
 
 (entry (doc "ccr")
        (ref "4.13")
+       (section "4.0" prefilled)
        (kind corollary)
        (title "Open subgroups of Qp")
        (names ccr-4-13 qo-open-subgroup-module qp-maximal-principal nv-local-module-principal)
+       (home-elsewhere ccr-4-13 nv-local-module-principal)
        (status proven)
        (deviation "Additive subgroup = IS-ADD-SUBGROUP, open = IS-OPEN in NF-METRIC-SPACE(Q_p); module/principal = IS-NV-MODULE / NV-MULTIPLES over Z_p (ccr3-vocab). Proven 2026-10-29 (CCR-QP).")
        (notes-statement "Every open additive subgroup of Qp distinct from Qp is a principal module."))
 
 (entry (doc "ccr")
        (ref "4.16")
+       (section "4.0" prefilled)
        (kind proposition)
        (title "Order via uniformizer")
        (names nv-order-nonneg nv-order-negative)
@@ -5716,6 +6808,7 @@
 
 (entry (doc "ccr")
        (ref "4.19")
+       (section "4.0" prefilled)
        (kind proposition)
        (title "p-adic expansion")
        (names ccr-4-19 qe-abs-convergent ccr-4-18-qp qe-expansion-exists qe-unique-le)
@@ -5725,6 +6818,7 @@
 
 (entry (doc "ccr")
        (ref "4.4")
+       (section "4.0" prefilled-inferred)
        (kind remark)
        (title "Uniformizers differ by a unit")
        (names ccr-remark-4-4 ccr-remark-4-4-unit ccr-remark-4-4-norm)
@@ -5734,6 +6828,7 @@
 
 (entry (doc "ccr")
        (ref "4.5")
+       (section "4.0" prefilled-inferred)
        (kind remark)
        (title "Uniformizers have maximal absolute value in M")
        (names ccr-remark-4-5)
@@ -5743,6 +6838,7 @@
 
 (entry (doc "ccr")
        (ref "4.20")
+       (section "4.0" prefilled-inferred)
        (kind remark)
        (title "B_F(K) is all of K")
        (names ccr-4-20-collapse nv-maximal-in-zf nv-residue-zero-class is-fractions-of-mono)
@@ -5752,6 +6848,7 @@
 
 (entry (doc "ccr")
        (ref "4.21")
+       (section "4.0" prefilled)
        (kind proposition)
        (title "B(K) is a closed subfield with compact integers")
        (names ccr-4-21-base ccr-4-21-base-char-p nv-base-subfield nv-base-closed nv-base-char-p nv-base-char-0 nf-closure-subfield nf-subfield-gen-is-subfield)
@@ -5761,6 +6858,7 @@
 
 (entry (doc "ccr")
        (ref "4.23")
+       (section "4.0" prefilled-inferred)
        (kind proposition)
        (title "w is a uniformizer of B(K) in characteristic p")
        (names ccr-4-23-base-char-p)
@@ -5770,6 +6868,7 @@
 
 (entry (doc "ccr")
        (ref "4.24")
+       (section "4.0" prefilled)
        (kind theorem)
        (title "K is a finite extension of B(K)")
        (names)
@@ -5779,6 +6878,7 @@
 
 (entry (doc "ccr")
        (ref "4.26")
+       (section "4.0" prefilled)
        (kind theorem)
        (title "Local fields of characteristic p are F_q((w))")
        (names)
@@ -5788,6 +6888,7 @@
 
 (entry (doc "ccr")
        (ref "4.27")
+       (section "4.0" prefilled)
        (kind theorem)
        (title "Local fields of characteristic 0 are finite extensions of Q_p")
        (names)
@@ -5806,6 +6907,7 @@
 
 (entry (doc "ccr")
        (ref "5.12")
+       (section "5.0" prefilled)
        (kind proposition)
        (title "Dual map Psi_chi")
        (names ccr-5-12-character ccr-5-12-injective ccr-5-12-continuous)
@@ -5815,6 +6917,7 @@
 
 (entry (doc "ccr")
        (ref "5.15")
+       (section "5.0" prefilled)
        (kind lemma)
        (title "Lemma toward self-duality")
        (names ccr-5-15-core ccr-5-15-bounded ccr-5-15)
@@ -5824,6 +6927,7 @@
 
 (entry (doc "ccr")
        (ref "5.17")
+       (section "5.0" prefilled)
        (kind lemma)
        (title "p-adic fractional part")
        (names ccr-5-17 qx-ppow-rat)
@@ -5833,6 +6937,7 @@
 
 (entry (doc "ccr")
        (ref "5.20")
+       (section "5.0" prefilled)
        (kind proposition)
        (title "Canonical character of Qp")
        (names ccr-5-20 qx-lam-value qx-lam-local ccr-5-20-nontrivial)
@@ -5842,6 +6947,7 @@
 
 (entry (doc "ccr")
        (ref "5.22")
+       (section "5.0" prefilled-inferred)
        (kind definition)
        (title "The Pruefer p-group")
        (names ccr-5-22 quotient-ag-is-abelian-group)
@@ -5851,6 +6957,7 @@
 
 (entry (doc "ccr")
        (ref "5.23")
+       (section "5.0" prefilled)
        (kind proposition)
        (title "Separating characters of Qp")
        (names ccr-5-23 nv-separating-factor qp-lambda-separating)
@@ -5860,15 +6967,18 @@
 
 (entry (doc "ccr")
        (ref "5.24")
+       (section "5.0" prefilled)
        (kind proposition)
        (title "Order of Lambda(x)")
        (names ccr-5-24 qp-pruefer-order)
+       (home-elsewhere qp-pruefer-order)
        (status proven)
        (deviation "Stated for the class [x] in PRUEFER(p) (= Lambda(x) under 5.23's injection); the trivial order is 1 (the notes' '0'). Proven 2026-10-29 (CCR-PRUEFER).")
        (notes-statement "The order of Lambda(x) in Z(p^inf) is 0 if x in Zp and p^{-ord_p x} otherwise."))
 
 (entry (doc "ccr")
        (ref "5.25")
+       (section "5.0" prefilled)
        (kind corollary)
        (title "Prufer group as roots of unity")
        (names ccr-5-25 qp-lambda-onto-roots hom-cc-gpow)
@@ -5887,6 +6997,7 @@
 
 (entry (doc "ccr")
        (ref "6.3")
+       (section "6.0" prefilled)
        (kind lemma)
        (title "Bilinear bicharacters of K+")
        (names ccr-6-3-bicharacter ch-bichar-value ch-bichar-type ccr-6-3-converse ccr-6-3-converse-local ccr-6-3-unique)
@@ -5896,24 +7007,29 @@
 
 (entry (doc "ccr")
        (ref "8.3")
+       (section "8.0" prefilled)
        (kind lemma)
        (title "Elementary matrices act by shifting columns")
        (names col-equiv-elem elem-f-action elem-f-ck-at elem-f-cl-at)
+       (home-elsewhere elem-f-action)
        (status partial)
        (deviation "Elementary matrices E_kl, F, G, H over a ring exist (elem-f/g/h, is-elementary); the column-shifting lemma itself not seen as a theorem.")
        (notes-statement "For any m x n matrix A, A E_kl is A with column k moved to column l, other entries 0."))
 
 (entry (doc "ccr")
        (ref "8.5")
+       (section "8.0" prefilled)
        (kind proposition)
        (title "Elementary column operations as right multiplication")
        (names col-equiv-elem elem-f-action det-mul-elem-f-col)
+       (home-elsewhere col-equiv-elem elem-f-action det-mul-elem-f-col)
        (status partial)
        (deviation "Row and column operations as multiplication by elem-f/g/h are in the library over a ring; the exact statement of the list (a)-(c) is not matched by a single theorem.")
        (notes-statement "Column operations (swap, add multiple, scale) correspond to right multiplication by F, G, H matrices."))
 
 (entry (doc "ccr")
        (ref "8.6")
+       (section "8.0" prefilled)
        (kind corollary)
        (title "Elementary matrices invertible")
        (names det-elem-f)
@@ -5923,15 +7039,18 @@
 
 (entry (doc "ccr")
        (ref "8.7")
+       (section "8.0" prefilled)
        (kind proposition)
        (title "Reduction to diagonal over a field")
        (names smith-diagonalization)
+       (home-elsewhere smith-diagonalization)
        (status partial)
        (deviation "Proven for any Euclidean ring (a field is one, instance not checked); statement here is over a field.")
        (notes-statement "Any m x n matrix over a field can be reduced by F, G row and column operations to a diagonal matrix."))
 
 (entry (doc "ccr")
        (ref "8.8")
+       (section "8.0" prefilled)
        (kind lemma)
        (title "Pivot clearing over a field")
        (names smith-pivot-cross-minimal smith-pivot-divides-block)
@@ -5941,24 +7060,29 @@
 
 (entry (doc "ccr")
        (ref "8.15")
+       (section "8.0" prefilled)
        (kind proposition)
        (title "Smith form over Z(K)")
        (names smith-diagonalization smith-normal-form smith-equiv-divisor)
+       (home-elsewhere smith-diagonalization smith-normal-form smith-equiv-divisor)
        (status partial)
        (deviation "REWRITE-HEADS:  b_{i+1,i+1}.. Proven for Euclidean rings. Missing: Z(K) as an instance of is-euclidean-ring (needs valuations); the divisibility chain b_i | b_{i+1} is smith-staircase plus smith-equiv-divisor.")
        (notes-statement "An m x n matrix over Z(K) is equivalent to a diagonal matrix with divisibility chain b_ii "))
 
 (entry (doc "ccr")
        (ref "8.16")
+       (section "8.0" prefilled)
        (kind corollary)
        (title "Smith form with explicit U,V")
        (names smith-diagonalization)
+       (home-elsewhere smith-diagonalization)
        (status partial)
        (deviation "As 8.15: explicit U,V as mat-equiv witnesses for Euclidean rings; Z(K) instance missing.")
        (notes-statement "For A in M_mxn(Z(K)) there are invertible U,V with V A U in the form of 8.15."))
 
 (entry (doc "ccr")
        (ref "8.17")
+       (section "8.0" prefilled)
        (kind corollary)
        (title "Invertible matrices over Z(K)")
        (names col-equiv-identity-in-elem-gen)
@@ -5968,63 +7092,77 @@
 
 (entry (doc "ccr")
        (ref "8.19")
+       (section "8.0" prefilled)
        (kind lemma)
        (title "Generating sets and change of basis")
        (names free-generating-action-closed)
+       (home-elsewhere free-generating-action-closed)
        (status partial)
        (deviation "Closure of free generating tuples under invertible matrices is in the library (statement form differs).")
        (notes-statement "A tuple u generates E (is free) iff U.u generates E (is free) for invertible U."))
 
 (entry (doc "ccr")
        (ref "8.22")
+       (section "8.0" prefilled)
        (kind corollary)
        (title "Action on free generating sets")
        (names free-generating-action-closed)
+       (home-elsewhere free-generating-action-closed)
        (status partial)
        (deviation "Action of GL_n on free generating sets: closure proven; freeness and transitivity not seen.")
        (notes-statement "For a free module of rank n, GL_n acts freely and transitively on free generating sets."))
 
 (entry (doc "ccr")
        (ref "8.23")
+       (section "8.0" prefilled)
        (kind proposition)
        (title "Adapted bases for a submodule")
        (names principal-sequence-exists smith-normal-form)
+       (home-elsewhere principal-sequence-exists smith-normal-form)
        (status partial)
        (deviation "REWRITE-HEADS:  b_{i+1} so that b_i e_i generate F.. Principal sequence for submodules exists over zz (principal-sequence-exists) and, via smith-normal-form, over Euclidean rings; Z(K) instance missing.")
        (notes-statement "For a free module E of rank n and submodule F there are free generators e_i and b_i with b_i "))
 
 (entry (doc "ccr")
        (ref "8.25")
+       (section "8.0" prefilled)
        (kind corollary)
        (title "Submodules of free modules are free")
        (names submodule-of-free-is-free)
+       (home-elsewhere submodule-of-free-is-free)
        (status partial)
        (deviation "Proven for modules over a Euclidean ring with a free generating tuple, with k <= n; Z(K) is a PID/Euclidean but is not yet an instance.")
        (notes-statement "Any submodule of a free Z(K)-module of rank n is free of rank <= n."))
 
 (entry (doc "ccr")
        (ref "8.26")
+       (section "8.0" prefilled)
        (kind corollary)
        (title "Submodule of n-generated module")
        (names submodule-of-free-is-free)
+       (home-elsewhere submodule-of-free-is-free)
        (status partial)
        (deviation "Follows from the free case plus a surjection from a free module; not stated for a merely n-generated module.")
        (notes-statement "Any submodule of a module generated by n elements is generated by <= n elements."))
 
 (entry (doc "ccr")
        (ref "8.27")
+       (section "8.0" prefilled)
        (kind proposition)
        (title "Uniqueness of the principal sequence")
        (names principal-sequence-unique principal-sequence-exists-unique)
+       (home-elsewhere principal-sequence-unique principal-sequence-exists-unique)
        (status partial)
        (deviation "Uniqueness of the principal sequence is proven over zz only.")
        (notes-statement "The principal sequence b of a submodule F of E is uniquely determined."))
 
 (entry (doc "ccr")
        (ref "10.34")
+       (section "10.0" prefilled)
        (kind corollary)
        (title "Everywhere defined Carleman is bounded")
        (names closed-graph-theorem)
+       (home-elsewhere closed-graph-theorem)
        (status partial)
        (deviation "Closed graph theorem is in the library (Frechet spaces over nontrivially valued fields); the Carleman operator (10.33) and the application to everywhere-defined T_w are absent.")
        (notes-statement "If T_w is everywhere defined it is bounded (closed graph theorem)."))
@@ -6042,8 +7180,60 @@
 ;;; Notes typos fixed in the statements: 1.8 reads B(0, rho(a)); 1.57's "real Hilbert space" is complex.
 
 ;;; ===== banach-algebras ch. 1 (introduction, before section 1) =====
+;;; The OUTLINE of banach-algebras: chapters that hold an entry, with every section the notes have.
+;;; Titles marked `prefilled' were read off the notes by pdftotext (BOOK-GEN, 2026-11-12); review
+;;; and delete the mark.  Read by library-book.scm; ignored by the major-theorems list.
+(outline "banach-algebras"
+  (chapter "1" "Banach Algebras" prefilled
+    (section "1.1" "Gelfand-Mazur Theorem" prefilled)
+    (section "1.2" "Involution" prefilled)
+    (section "1.3" "Functional Calculus" prefilled)
+    (section "1.4" "Ordering" prefilled)
+    (section "1.5" "Ordering for C*-algebras" prefilled)
+    (section "1.6" "Approximate Identities" prefilled)
+    (section "1.7" "The Algebra of Bounded Operators" prefilled)
+    (section "1.8" "Representations" prefilled)
+    (section "1.9" "Extension of the Gelfand Homomorphism" prefilled)
+    (section "1.10" "The Borel Functional Calculus" prefilled))
+  (chapter "2" "Some Basic Classes of Operators" prefilled
+    (section "2.1" "Partial Isometries" prefilled)
+    (section "2.2" "Hilbert-Schmidt Operators" prefilled)
+    (section "2.3" "Trace Class" prefilled))
+  (chapter "3" "Unbounded Operators" prefilled
+    (section "3.1" "Adjoint Operator" prefilled)
+    (section "3.2" "Symmetric and Self-Adjoint Operators" prefilled)
+    (section "3.3" "The Cayley Transform for Operators" prefilled)
+    (section "3.4" "Quadratic Forms" prefilled)
+    (section "3.5" "Polar Decomposition for Closed Operators" prefilled)
+    (section "3.6" "Commutation Properties" prefilled)
+    (section "3.7" "Extensions to Linear Mappings Between Arbitrary Hilbert Spaces" prefilled))
+  (chapter "4" "GNS Construction" prefilled
+    (section "4.1" "Positive Functionals and Representations" prefilled)
+    (section "4.2" "The GNS Construction" prefilled)
+    (section "4.3" "Example: Commutative C*-algebras" prefilled)
+    (section "4.4" "Order Structure of Positive Functionals" prefilled)
+    (section "4.5" "Irreducibility" prefilled)
+    (section "4.6" "Extension of Positive Functionals" prefilled)
+    (section "4.7" "Positive Functionals" prefilled)
+    (section "4.8" "Order Preserving Isometric Embedding" prefilled))
+  (chapter "5" "Operator Topologies" prefilled
+    (section "5.1" "Strong Operator Topology" prefilled)
+    (section "5.2" "Weak Operator Topology" prefilled)
+    (section "5.3" "Ultrastrong Operator Topology" prefilled)
+    (section "5.4" "Ultraweak Operator Topology" prefilled)
+    (section "5.5" "Comparisons" prefilled)
+    (section "5.6" "Spaces of Weakly and Ultraweakly Continuous Linear Functionals" prefilled)
+    (section "5.7" "Duals" prefilled)
+    (section "5.8" "Transpose and Module Structure of L*(H)" prefilled)
+    (section "5.9" "Ultraweak and Ultrastrong Topologies" prefilled))
+  (chapter "6" "Density Theorems" prefilled
+    (section "6.1" "Von Neuman Density Theorem" prefilled)
+    (section "6.2" "Kaplansky Density Theorem" prefilled)
+    (section "6.3" "Cyclic and Separating Vectors" prefilled)))
+
 (entry (doc "banach-algebras")
        (ref "1.1")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Adjunction of a unit to a normed algebra")
        (names unitization-is-complex-normed-algebra unitization-unit-left unitization-unit-right unitization-norm-unit unitization-vnrm-submult unitization-vnrm-definite unitization-vnrm-homog unitization-vnrm-triangle unitization-vmul-assoc) ;; from-report: unitization-unit-left unitization-unit-right unitization-vnrm-submult unitization-vnrm-definite unitization-vnrm-homog unitization-vnrm-triangle unitization-vmul-assoc
@@ -6053,6 +7243,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.3")
+       (section "1.0" prefilled)
        (kind proposition)
        (title "Neumann series: 1 - x invertible for ||x|| < 1")
        (names neumann-series neumann-series-bound neumann-inverse-norm-bound)
@@ -6062,6 +7253,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.4")
+       (section "1.0" prefilled)
        (kind corollary)
        (title "The invertible elements form an open set")
        (names invertibles-open invertible-near-invertible)
@@ -6071,6 +7263,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.5")
+       (section "1.0" prefilled)
        (kind corollary)
        (title "Proper maximal left ideals are closed")
        (names maximal-left-ideal-closed left-ideal-closure commutative-maximal-ideal-closed)
@@ -6081,6 +7274,7 @@
 ;;; ===== ch. 1 section 1: Gelfand-Mazur Theorem =====
 (entry (doc "banach-algebras")
        (ref "1.6")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "The resolvent is analytic off the spectrum")
        (names resolvent-derivative resolvent-continuous resolvent-laurent resolvent-norm-bound spectrum-in-closed-ball)
@@ -6090,6 +7284,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.7")
+       (section "1.1" prefilled)
        (kind lemma)
        (title "||a^n||^(1/n) converges (Fekete)")
        (names spectral-radius-limit fekete-lemma)
@@ -6099,15 +7294,18 @@
 
 (entry (doc "banach-algebras")
        (ref "1.8")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "The spectrum lies in the disc of radius rho(a)")
        (names spectrum-in-spectral-radius-disc spectral-radius-limit gelfand-spectral-radius-max)
+       (home-elsewhere spectral-radius-limit)
        (status proven)
        (deviation "Stated for a unital Banach algebra, with SPECTRAL-RADIUS(a, x) = inf_(n >= 1) ||x^n||^(1/n), which is lim ||x^n||^(1/n) by 1.7 (spectral-radius-limit). The disc is B(0, rho(x)). Also proven (gelfand-spectral-radius-max): rho(x) = max |sigma(x)|.")
        (notes-statement "For any a in A, sigma(a) is contained in the closed ball B(0, rho(a)), rho(a) = lim_k ||a^k||^(1/k)."))
 
 (entry (doc "banach-algebras")
        (ref "1.9")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "The spectrum is nonempty")
        (names spectrum-nonempty)
@@ -6117,6 +7315,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.10")
+       (section "1.1" prefilled)
        (kind theorem)
        (title "Gelfand-Mazur")
        (names gelfand-mazur gelfand-mazur-from-nonempty-spectrum scalar-embedding-injective)
@@ -6126,15 +7325,18 @@
 
 (entry (doc "banach-algebras")
        (ref "1.11")
+       (section "1.1" prefilled)
        (kind corollary)
        (title "A / M is C for a maximal ideal M")
        (names maximal-quotient-field maximal-quotient-scalar maximal-quotient-scalar-unique maximal-ideal-character commutative-maximal-ideal-closed)
+       (home-elsewhere commutative-maximal-ideal-closed)
        (status proven)
        (deviation "Stated through the quotient QUOTIENT-BA(a, M): every coset is z 1 + M for a unique z in CC (maximal-quotient-scalar, -unique) and A/M is a field (maximal-quotient-field); the isomorphism is packaged as the character chi with ker chi = M (maximal-ideal-character). M is closed by commutative-maximal-ideal-closed.")
        (notes-statement "If M is a maximal ideal in a commutative complex Banach algebra A with unit, A/M is algebraically isomorphic to C."))
 
 (entry (doc "banach-algebras")
        (ref "1.14")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "The characters form a weak* closed set")
        (names characters-closed-in-product gelfand-space-compact)
@@ -6144,6 +7346,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.15")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "The Gelfand transform is a homomorphism of norm 1")
        (names gelfand-transform-mul gelfand-transform-add gelfand-transform-act gelfand-transform-one gelfand-transform-bounded gelfand-transform-continuous gelfand-transform-in-ccont) ;; from-report: gelfand-transform-mul gelfand-transform-add gelfand-transform-act gelfand-transform-one gelfand-transform-bounded
@@ -6153,6 +7356,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.16")
+       (section "1.1" prefilled)
        (kind proposition)
        (title "The range of G(a) is the spectrum; ||G(a)||sup = rho(a)")
        (names gelfand-range-spectrum gelfand-sup-spectral-radius)
@@ -6163,6 +7367,7 @@
 ;;; ===== ch. 1 section 2: Involution =====
 (entry (doc "banach-algebras")
        (ref "1.18")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "The unitization of an involutive algebra is involutive")
        (names unitization-is-involutive-banach-algebra unitization-is-unital-banach-algebra unitization-complete)
@@ -6172,6 +7377,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.19")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "A unique C* norm on the unitization")
        (names unitization-cstar-norm-unique)
@@ -6181,6 +7387,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.22")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "Characters of a commutative C*-algebra preserve the involution")
        (names character-preserves-involution ccsa-character-preserves-involution)
@@ -6190,15 +7397,18 @@
 
 (entry (doc "banach-algebras")
        (ref "1.23")
+       (section "1.2" prefilled)
        (kind theorem)
        (title "Commutative Gelfand-Naimark")
        (names gelfand-isometric gelfand-transform-in-ccont gelfand-sup-spectral-radius)
+       (home-elsewhere gelfand-transform-in-ccont gelfand-sup-spectral-radius)
        (status partial)
        (deviation "Proven: G maps into CCONT(GELFAND-SPACE a) and is isometric (SUP-NORM-T(GELFAND-SPACE a, G x) = ||x||), by ||x||^2 = ||G(x* x)|| <= ||G x*|| ||G x|| <= ||x|| ||G x||; the homomorphism laws are gelfand-transform-add / -act / -mul / -one. Not stated: G(x*) = conj G(x) as a theorem on the transform (character-preserves-involution is the pointwise fact), and surjectivity onto C(A-hat) (Stone-Weierstrass, closed range).")
        (notes-statement "If A is a commutative C*-algebra with unit, the Gelfand transform is an isometric involution-preserving isomorphism A -> C(A-hat)."))
 
 (entry (doc "banach-algebras")
        (ref "1.24")
+       (section "1.2" prefilled)
        (kind corollary)
        (title "Unital *-homomorphisms of C*-algebras have norm 1")
        (names cstar-hom-contractive cstar-hom-norm-one)
@@ -6208,6 +7418,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.25")
+       (section "1.2" prefilled)
        (kind corollary)
        (title "At most one C* norm")
        (names cstar-norm-unique)
@@ -6217,6 +7428,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.26")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "The dual map of Gelfand spaces is continuous")
        (names)
@@ -6226,6 +7438,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.28")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "Continuous maps of Gelfand spaces come from homomorphisms")
        (names)
@@ -6235,6 +7448,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.29")
+       (section "1.2" prefilled)
        (kind proposition)
        (title "The spectrum in a C*-subalgebra is absolute")
        (names spectral-permanence)
@@ -6245,6 +7459,7 @@
 ;;; ===== ch. 1 section 3: Functional Calculus =====
 (entry (doc "banach-algebras")
        (ref "1.31")
+       (section "1.3" prefilled)
        (kind proposition)
        (title "Continuous functional calculus for a normal element")
        (names)
@@ -6255,6 +7470,7 @@
 ;;; ===== ch. 1 section 4: Ordering =====
 (entry (doc "banach-algebras")
        (ref "1.32")
+       (section "1.4" prefilled)
        (kind lemma)
        (title "The binomial series for sqrt converges absolutely at 1")
        (names)
@@ -6264,6 +7480,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.33")
+       (section "1.4" prefilled)
        (kind proposition)
        (title "Square root of 1 + a for ||a|| <= 1")
        (names)
@@ -6273,6 +7490,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.36")
+       (section "1.4" prefilled)
        (kind proposition)
        (title "1 is an order unit of A_sa")
        (names)
@@ -6283,6 +7501,7 @@
 ;;; ===== ch. 1 section 5: Ordering for C*-algebras =====
 (entry (doc "banach-algebras")
        (ref "1.37")
+       (section "1.5" prefilled)
        (kind proposition)
        (title "Positivity in C(X) is pointwise")
        (names ccont-positive-iff-nonneg ccont-pos-cone-nonneg ccont-nonneg-pos-cone)
@@ -6292,6 +7511,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.38")
+       (section "1.5" prefilled)
        (kind proposition)
        (title "The squares of self-adjoints form the positive cone")
        (names)
@@ -6301,6 +7521,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.39")
+       (section "1.5" prefilled)
        (kind lemma)
        (title "1 - a is a square for ||a|| <= 1")
        (names)
@@ -6310,6 +7531,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.40")
+       (section "1.5" prefilled)
        (kind lemma)
        (title "Norm test for being a square")
        (names)
@@ -6319,6 +7541,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.41")
+       (section "1.5" prefilled)
        (kind lemma)
        (title "sigma(ab) and sigma(ba) agree off 0")
        (names)
@@ -6328,6 +7551,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.43")
+       (section "1.5" prefilled)
        (kind proposition)
        (title "0 <= x <= y implies ||x|| <= ||y||")
        (names)
@@ -6338,6 +7562,7 @@
 ;;; ===== ch. 1 section 6: Approximate Identities =====
 (entry (doc "banach-algebras")
        (ref "1.47")
+       (section "1.6" prefilled)
        (kind proposition)
        (title "Left ideals have right approximate identities")
        (names)
@@ -6347,6 +7572,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.49")
+       (section "1.6" prefilled)
        (kind corollary)
        (title "Closed two-sided ideals are self-adjoint")
        (names)
@@ -6356,6 +7582,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.50")
+       (section "1.6" prefilled)
        (kind corollary)
        (title "A closed left ideal is generated by its positive elements")
        (names)
@@ -6366,15 +7593,18 @@
 ;;; ===== ch. 1 section 7: The Algebra of Bounded Operators =====
 (entry (doc "banach-algebras")
        (ref "1.53")
+       (section "1.7" prefilled)
        (kind theorem)
        (title "Orthogonal projection")
        (names minimizer-orthogonal orthogonal-point-unique proj-op-is-orthogonal-projection proj-op-unique proj-op-linear hilbert-closest-point)
+       (home-elsewhere hilbert-closest-point)
        (status proven)
        (deviation "Split as the notes' sentences are: a minimizer a of ||xi - a|| over a subspace K has xi - a in PERP K (minimizer-orthogonal; any complex inner product space, K any subspace); at most one a in K has xi - a in PERP K; E_K = PROJ-OP(v, K), the IOTA of the orthogonal projection, exists, is unique and is linear (Hilbert space, K closed). Existence of the minimizer is hilbert-closest-point.")
        (notes-statement "H Hilbert, K a closed subspace. For xi in H the unique a in K minimizing ||xi - a|| has xi - a orthogonal to K; there is exactly one such a, and xi |-> a is linear."))
 
 (entry (doc "banach-algebras")
        (ref "1.55")
+       (section "1.7" prefilled)
        (kind proposition)
        (title "Projections are the self-adjoint idempotents")
        (names proj-op-range projection-op-range-closed projection-op-is-proj-op-of-range projection-op-range-perp-kernel)
@@ -6385,6 +7615,7 @@
 ;;; ===== ch. 1 section 8: Representations =====
 (entry (doc "banach-algebras")
        (ref "1.60")
+       (section "1.8" prefilled)
        (kind proposition)
        (title "Every representation is a direct sum of cyclic ones")
        (names)
@@ -6395,6 +7626,7 @@
 ;;; ===== ch. 1 section 9: Extension of the Gelfand Homomorphism =====
 (entry (doc "banach-algebras")
        (ref "1.63")
+       (section "1.9" prefilled)
        (kind proposition)
        (title "A spectral homomorphism integrates its spectral measures")
        (names)
@@ -6404,6 +7636,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.64")
+       (section "1.9" prefilled)
        (kind proposition)
        (title "C(X) representations extend to M(X)")
        (names)
@@ -6413,6 +7646,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.65")
+       (section "1.9" prefilled)
        (kind proposition)
        (title "Commutant of C(X) and of M(X) agree")
        (names)
@@ -6423,6 +7657,7 @@
 ;;; ===== ch. 1 section 10: The Borel Functional Calculus =====
 (entry (doc "banach-algebras")
        (ref "1.66")
+       (section "1.10" prefilled)
        (kind proposition)
        (title "Borel functional calculus for a normal operator")
        (names)
@@ -6432,6 +7667,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.67")
+       (section "1.10" prefilled)
        (kind corollary)
        (title "Commuting with T versus commuting with f(T)")
        (names)
@@ -6441,6 +7677,7 @@
 
 (entry (doc "banach-algebras")
        (ref "1.68")
+       (section "1.10" prefilled)
        (kind corollary)
        (title "Commuting with T versus with its spectral projections")
        (names)
@@ -6451,6 +7688,7 @@
 ;;; ===== ch. 2 section 1: Partial Isometries =====
 (entry (doc "banach-algebras")
        (ref "2.1")
+       (section "2.1" prefilled)
        (kind proposition)
        (title "Four characterizations of a partial isometry")
        (names partial-isometry-iff-adjoint-square-projection adjoint-square-projection-iff adjoint-partial-isometry-iff)
@@ -6460,6 +7698,7 @@
 
 (entry (doc "banach-algebras")
        (ref "2.4")
+       (section "2.1" prefilled)
        (kind corollary)
        (title "Support and range projections of a partial isometry")
        (names partial-isometry-support-projection partial-isometry-range-projection)
@@ -6470,6 +7709,7 @@
 ;;; ===== ch. 2 section 2: Hilbert-Schmidt Operators =====
 (entry (doc "banach-algebras")
        (ref "2.5")
+       (section "2.2" prefilled)
        (kind proposition)
        (title "sum ||T e_i||^2 is independent of the basis")
        (names)
@@ -6479,6 +7719,7 @@
 
 (entry (doc "banach-algebras")
        (ref "2.7")
+       (section "2.2" prefilled)
        (kind proposition)
        (title "HS(H) is an inner product space")
        (names)
@@ -6488,6 +7729,7 @@
 
 (entry (doc "banach-algebras")
        (ref "2.9")
+       (section "2.2" prefilled)
        (kind proposition)
        (title "HS(H) is a two-sided ideal")
        (names)
@@ -6497,6 +7739,7 @@
 
 (entry (doc "banach-algebras")
        (ref "2.10")
+       (section "2.2" prefilled)
        (kind proposition)
        (title "The HS norm dominates the operator norm")
        (names)
@@ -6506,6 +7749,7 @@
 
 (entry (doc "banach-algebras")
        (ref "2.11")
+       (section "2.2" prefilled)
        (kind proposition)
        (title "HS norm of a compact self-adjoint operator")
        (names)
@@ -6516,6 +7760,7 @@
 ;;; ===== ch. 2 section 3: Trace Class =====
 (entry (doc "banach-algebras")
        (ref "2.15")
+       (section "2.3" prefilled)
        (kind lemma)
        (title "The trace as a diagonal sum")
        (names)
@@ -6525,6 +7770,7 @@
 
 (entry (doc "banach-algebras")
        (ref "2.17")
+       (section "2.3" prefilled)
        (kind corollary)
        (title "The trace is additive")
        (names)
@@ -6534,6 +7780,7 @@
 
 (entry (doc "banach-algebras")
        (ref "2.18")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "T(H) is a two-sided ideal")
        (names)
@@ -6543,6 +7790,7 @@
 
 (entry (doc "banach-algebras")
        (ref "2.19")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "tr(AB) = tr(BA) for Hilbert-Schmidt A, B")
        (names)
@@ -6552,6 +7800,7 @@
 
 (entry (doc "banach-algebras")
        (ref "2.20")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "tr(TS) = tr(ST)")
        (names)
@@ -6561,6 +7810,7 @@
 
 (entry (doc "banach-algebras")
        (ref "2.22")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "The trace pairing is non-degenerate")
        (names)
@@ -6570,6 +7820,7 @@
 
 (entry (doc "banach-algebras")
        (ref "2.23")
+       (section "2.3" prefilled)
        (kind proposition)
        (title "T(H) is closed under adjoints; tr(T*) = conj tr(T)")
        (names)
@@ -6580,6 +7831,7 @@
 ;;; ===== ch. 3 section 1: Adjoint Operator =====
 (entry (doc "banach-algebras")
        (ref "3.3")
+       (section "3.1" prefilled)
        (kind proposition)
        (title "The adjoint graph through J")
        (names graph-adjoint-via-j graph-adjoint-perp-j graph-adjoint-j-perp)
@@ -6589,6 +7841,7 @@
 
 (entry (doc "banach-algebras")
        (ref "3.4")
+       (section "3.1" prefilled)
        (kind proposition)
        (title "Double adjoint, functional and closable graphs")
        (names graph-closure-double-adjoint graph-adjoint-functional-iff-dense closable-iff-adjoint-dense graph-closure-is-double-adjoint)
@@ -6598,6 +7851,7 @@
 
 (entry (doc "banach-algebras")
        (ref "3.5")
+       (section "3.1" prefilled)
        (kind corollary)
        (title "Inverse graphs: dense range")
        (names inverse-adjoint-functional-iff-dense-range inverse-closable-iff-adjoint-dense-range graph-adjoint-of-inverse)
@@ -6608,6 +7862,7 @@
 ;;; ===== ch. 3 section 3: The Cayley Transform =====
 (entry (doc "banach-algebras")
        (ref "3.9")
+       (section "3.3" prefilled)
        (kind proposition)
        (title "Symmetric iff the Cayley transform is isometric")
        (names cayley-symmetric-iff-isometric)
@@ -6617,6 +7872,7 @@
 
 (entry (doc "banach-algebras")
        (ref "3.11")
+       (section "3.3" prefilled)
        (kind proposition)
        (title "Cayley transform of the adjoint")
        (names cayley-of-adjoint)
@@ -6626,6 +7882,7 @@
 
 (entry (doc "banach-algebras")
        (ref "3.12")
+       (section "3.3" prefilled)
        (kind corollary)
        (title "Self-adjoint iff the Cayley transform is unitary")
        (names self-adjoint-iff-cayley-unitary)
@@ -6636,6 +7893,7 @@
 ;;; ===== ch. 3 section 4: Quadratic Forms =====
 (entry (doc "banach-algebras")
        (ref "3.16")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "Closed form iff H_Q+ is complete")
        (names)
@@ -6645,6 +7903,7 @@
 
 (entry (doc "banach-algebras")
        (ref "3.17")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "The operator of a closed positive form is self-adjoint")
        (names)
@@ -6654,6 +7913,7 @@
 
 (entry (doc "banach-algebras")
        (ref "3.21")
+       (section "3.4" prefilled)
        (kind proposition)
        (title "Positive symmetric operators have closable forms (Friedrichs)")
        (names)
@@ -6664,6 +7924,7 @@
 ;;; ===== ch. 3 section 5: Polar Decomposition for Closed Operators =====
 (entry (doc "banach-algebras")
        (ref "3.23")
+       (section "3.5" prefilled)
        (kind proposition)
        (title "T*T is positive self-adjoint for closed T")
        (names)
@@ -6673,6 +7934,7 @@
 
 (entry (doc "banach-algebras")
        (ref "3.26")
+       (section "3.5" prefilled)
        (kind proposition)
        (title "dom T = dom |T|")
        (names)
@@ -6682,6 +7944,7 @@
 
 (entry (doc "banach-algebras")
        (ref "3.28")
+       (section "3.5" prefilled)
        (kind proposition)
        (title "Polar decomposition for closed operators")
        (names)
@@ -6692,6 +7955,7 @@
 ;;; ===== ch. 3 section 6: Commutation Properties =====
 (entry (doc "banach-algebras")
        (ref "3.30")
+       (section "3.6" prefilled)
        (kind proposition)
        (title "Commuting with T*T, graph criterion")
        (names)
@@ -6701,6 +7965,7 @@
 
 (entry (doc "banach-algebras")
        (ref "3.31")
+       (section "3.6" prefilled)
        (kind corollary)
        (title "A sufficient condition for commuting with T*T")
        (names)
@@ -6711,6 +7976,7 @@
 ;;; ===== ch. 4 section 1: Positive Functionals and Representations =====
 (entry (doc "banach-algebras")
        (ref "4.4")
+       (section "4.1" prefilled)
        (kind lemma)
        (title "phi(y* x) is a positive sesquilinear form")
        (names)
@@ -6720,6 +7986,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.6")
+       (section "4.1" prefilled)
        (kind corollary)
        (title "Cauchy-Schwarz for a positive functional")
        (names)
@@ -6729,6 +7996,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.7")
+       (section "4.1" prefilled)
        (kind proposition)
        (title "Positive functionals are bounded, ||phi|| = phi(1)")
        (names)
@@ -6738,6 +8006,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.9")
+       (section "4.1" prefilled)
        (kind corollary)
        (title "The state space is weak* compact")
        (names)
@@ -6747,6 +8016,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.10")
+       (section "4.1" prefilled)
        (kind corollary)
        (title "|phi(y* x y)| <= ||x|| phi(y* y)")
        (names)
@@ -6756,6 +8026,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.11")
+       (section "4.1" prefilled)
        (kind proposition)
        (title "Vector functionals are positive of norm ||xi||^2")
        (names)
@@ -6765,6 +8036,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.12")
+       (section "4.1" prefilled)
        (kind corollary)
        (title "Representations are contractive")
        (names)
@@ -6775,6 +8047,7 @@
 ;;; ===== ch. 4 section 2: The GNS Construction =====
 (entry (doc "banach-algebras")
        (ref "4.13")
+       (section "4.2" prefilled)
        (kind theorem)
        (title "GNS construction")
        (names)
@@ -6785,9 +8058,11 @@
 ;;; ===== ch. 4 section 3: Example: Commutative C*-algebras =====
 (entry (doc "banach-algebras")
        (ref "4.16")
+       (section "4.3" prefilled)
        (kind proposition)
        (title "Positive functionals on a commutative C*-algebra are measures")
        (names rmz-riesz-markov)
+       (home-elsewhere rmz-riesz-markov)
        (status partial)
        (deviation "rmz-riesz-markov is the first assertion for a compact METRIC space and a real positive functional on CONT-FNS, with a Borel measure. Missing: compact Hausdorff A-hat with Baire measures (decision D5), the transport through 1.23, uniqueness, L2 of the measure as a complex Hilbert space (CL2-SPACE is real pairs) and the multiplication representation.")
        (notes-statement "phi positive on a commutative C*-algebra A. There is a unique positive Baire measure nu on X = A-hat with phi(a) = integral G(a) d nu; the multiplication representation of A on L2(X, nu) is cyclic with cyclic vector 1_X and f_(M, 1_X) = phi."))
@@ -6795,6 +8070,7 @@
 ;;; ===== ch. 4 section 4: Order Structure of Positive Functionals =====
 (entry (doc "banach-algebras")
        (ref "4.18")
+       (section "4.4" prefilled)
        (kind proposition)
        (title "Functionals below phi and the commutant")
        (names)
@@ -6805,6 +8081,7 @@
 ;;; ===== ch. 4 section 5: Irreducibility =====
 (entry (doc "banach-algebras")
        (ref "4.20")
+       (section "4.5" prefilled)
        (kind proposition)
        (title "Schur's lemma for representations")
        (names)
@@ -6814,6 +8091,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.23")
+       (section "4.5" prefilled)
        (kind proposition)
        (title "Irreducible iff the state is pure")
        (names)
@@ -6823,6 +8101,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.24")
+       (section "4.5" prefilled)
        (kind proposition)
        (title "The extreme states are the pure states")
        (names)
@@ -6832,6 +8111,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.29")
+       (section "4.5" prefilled)
        (kind proposition)
        (title "The radical is the joint kernel of irreducible representations")
        (names)
@@ -6841,6 +8121,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.30")
+       (section "4.5" prefilled)
        (kind proposition)
        (title "Positive functionals vanish on the radical")
        (names)
@@ -6851,15 +8132,18 @@
 ;;; ===== ch. 4 section 6: Extension of Positive Functionals =====
 (entry (doc "banach-algebras")
        (ref "4.32")
+       (section "4.6" prefilled)
        (kind proposition)
        (title "M. Riesz extension of positive functionals")
        (names pex-positive-extension)
+       (home-elsewhere pex-positive-extension)
        (status partial)
        (deviation "pex-positive-extension is the special case E = C(K), K compact metric, cone = nonnegative functions, V containing the constant 1 (cofinal). The general ordered vector space with a pointed cone and a cofinal subspace is not formed (ORDERED-VECTOR-SPACE, ba-order-vocab); hbs-hahn-banach-sublinear is the engine of the general proof.")
        (notes-statement "E an ordered vector space with positive cone C. A linear functional f on a cofinal subspace V, nonnegative on C meet V, extends to a linear functional on E nonnegative on C."))
 
 (entry (doc "banach-algebras")
        (ref "4.34")
+       (section "4.6" prefilled)
        (kind proposition)
        (title "Extension of positive functionals and pure states from a subalgebra")
        (names)
@@ -6869,6 +8153,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.36")
+       (section "4.6" prefilled)
        (kind corollary)
        (title "Extension of representations from a subalgebra")
        (names)
@@ -6879,6 +8164,7 @@
 ;;; ===== ch. 4 section 7: Positive Functionals =====
 (entry (doc "banach-algebras")
        (ref "4.37")
+       (section "4.7" prefilled)
        (kind proposition)
        (title "A state attains the norm of a positive element")
        (names)
@@ -6888,6 +8174,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.39")
+       (section "4.7" prefilled)
        (kind corollary)
        (title "The norming states form a closed face")
        (names)
@@ -6897,6 +8184,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.41")
+       (section "4.7" prefilled)
        (kind corollary)
        (title "An irreducible representation attains ||a||")
        (names)
@@ -6906,6 +8194,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.42")
+       (section "4.7" prefilled)
        (kind theorem)
        (title "Gelfand-Naimark")
        (names)
@@ -6916,6 +8205,7 @@
 ;;; ===== ch. 4 section 8: Order Preserving Isometric Embedding =====
 (entry (doc "banach-algebras")
        (ref "4.43")
+       (section "4.8" prefilled)
        (kind proposition)
        (title "A_sa embeds isometrically in C(Sigma(A))")
        (names)
@@ -6925,6 +8215,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.45")
+       (section "4.8" prefilled)
        (kind corollary)
        (title "Hermitian functionals are integrals over the state space")
        (names)
@@ -6934,6 +8225,7 @@
 
 (entry (doc "banach-algebras")
        (ref "4.46")
+       (section "4.8" prefilled)
        (kind corollary)
        (title "Jordan decomposition of hermitian functionals")
        (names)
@@ -6944,6 +8236,7 @@
 ;;; ===== ch. 5 section 1: Strong Operator Topology =====
 (entry (doc "banach-algebras")
        (ref "5.1")
+       (section "5.1" prefilled)
        (kind proposition)
        (title "Strongly continuous functionals are finite sums")
        (names vec-functional-linear vec-functional-sot-continuous vec-functional-in-strong-dual)
@@ -6954,15 +8247,18 @@
 ;;; ===== ch. 5 section 2: Weak Operator Topology =====
 (entry (doc "banach-algebras")
        (ref "5.6")
+       (section "5.2" prefilled)
        (kind proposition)
        (title "WOT is the weak topology of the pairing with L.(H)")
        (names vec-functional-wot-continuous vec-functional-in-weak-dual vec-functional-in-strong-dual wot-pf-apply-pair)
+       (home-elsewhere vec-functional-in-strong-dual)
        (status partial)
        (deviation "First half of the proof: each WOT seminorm p_(xi,eta)(T) = |<T xi | eta>| (wot-pf-apply-pair) is |phi(T)| for phi = VEC-FUNCTIONAL(v, xi, eta), which lies in STRONG-DUAL(v) and in WEAK-DUAL(v). The pairing topology WEAK-PAIRING-TOP(BH-MODULE v, STRONG-DUAL v) is defined; the equality of the topologies needs the necessity of 5.1 (bound (116)).")
        (notes-statement "The weak operator topology on L(H) is the weak topology of the natural pairing <L(H), L.(H)>."))
 
 (entry (doc "banach-algebras")
        (ref "5.7")
+       (section "5.2" prefilled)
        (kind corollary)
        (title "SOT and WOT have the same dual")
        (names weak-dual-subset-strong-dual sot-to-wot-continuous)
@@ -6972,6 +8268,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.8")
+       (section "5.2" prefilled)
        (kind proposition)
        (title "Convex sets: WOT closed iff SOT closed")
        (names)
@@ -6981,6 +8278,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.10")
+       (section "5.2" prefilled)
        (kind proposition)
        (title "The unit ball is WOT compact")
        (names)
@@ -6990,6 +8288,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.11")
+       (section "5.2" prefilled)
        (kind proposition)
        (title "Multiplication and adjoint are WOT continuous")
        (names bop-right-mult-wot-continuous bop-left-mult-wot-continuous bop-right-mult-sot-continuous bop-left-mult-sot-continuous)
@@ -6999,6 +8298,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.12")
+       (section "5.2" prefilled)
        (kind proposition)
        (title "Bounded pointwise convergence gives WOT convergence")
        (names)
@@ -7009,6 +8309,7 @@
 ;;; ===== ch. 5 section 3: Ultrastrong Operator Topology =====
 (entry (doc "banach-algebras")
        (ref "5.14")
+       (section "5.3" prefilled)
        (kind proposition)
        (title "Ultrastrongly continuous functionals")
        (names)
@@ -7019,6 +8320,7 @@
 ;;; ===== ch. 5 section 4: Ultraweak Operator Topology =====
 (entry (doc "banach-algebras")
        (ref "5.16")
+       (section "5.4" prefilled)
        (kind proposition)
        (title "UWT is the weak topology of the pairing with L*(H)")
        (names)
@@ -7028,6 +8330,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.18")
+       (section "5.4" prefilled)
        (kind corollary)
        (title "Ultrastrong and ultraweak have the same dual")
        (names)
@@ -7037,6 +8340,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.19")
+       (section "5.4" prefilled)
        (kind proposition)
        (title "Convex sets: ultraweakly closed iff ultrastrongly closed")
        (names)
@@ -7047,6 +8351,7 @@
 ;;; ===== ch. 5 section 5: Comparisons =====
 (entry (doc "banach-algebras")
        (ref "5.20")
+       (section "5.5" prefilled)
        (kind proposition)
        (title "The topologies agree on bounded sets")
        (names)
@@ -7057,6 +8362,7 @@
 ;;; ===== ch. 5 section 6: Spaces of Weakly and Ultraweakly Continuous Linear Functionals =====
 (entry (doc "banach-algebras")
        (ref "5.22")
+       (section "5.6" prefilled)
        (kind proposition)
        (title "Weakly continuous functionals via finite rank operators")
        (names)
@@ -7066,6 +8372,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.23")
+       (section "5.6" prefilled)
        (kind proposition)
        (title "Ultraweakly continuous functionals via HS operators")
        (names)
@@ -7075,6 +8382,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.24")
+       (section "5.6" prefilled)
        (kind corollary)
        (title "Ultraweak functionals are A |-> tr(A S)")
        (names)
@@ -7084,6 +8392,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.27")
+       (section "5.6" prefilled)
        (kind proposition)
        (title "||tau_S|| = tr|S|")
        (names)
@@ -7093,6 +8402,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.28")
+       (section "5.6" prefilled)
        (kind corollary)
        (title "The trace norm")
        (names)
@@ -7102,6 +8412,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.29")
+       (section "5.6" prefilled)
        (kind proposition)
        (title "The dual of K(H) is T(H)")
        (names)
@@ -7111,6 +8422,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.30")
+       (section "5.6" prefilled)
        (kind lemma)
        (title "A trace bound over finite rank projections")
        (names)
@@ -7121,6 +8433,7 @@
 ;;; ===== ch. 5 section 7: Duals =====
 (entry (doc "banach-algebras")
        (ref "5.31")
+       (section "5.7" prefilled)
        (kind proposition)
        (title "L(H) is the dual of L*(H)")
        (names)
@@ -7131,6 +8444,7 @@
 ;;; ===== ch. 5 section 8: Transpose and Module Structure =====
 (entry (doc "banach-algebras")
        (ref "5.32")
+       (section "5.8" prefilled)
        (kind proposition)
        (title "The adjoint of a weakly continuous functional")
        (names)
@@ -7140,6 +8454,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.33")
+       (section "5.8" prefilled)
        (kind proposition)
        (title "tau_S is self-adjoint / positive iff S is")
        (names)
@@ -7150,6 +8465,7 @@
 ;;; ===== ch. 5 section 9: Ultraweak and Ultrastrong Topologies =====
 (entry (doc "banach-algebras")
        (ref "5.34")
+       (section "5.9" prefilled)
        (kind proposition)
        (title "Ultraweak seminorms through HS operators")
        (names)
@@ -7159,6 +8475,7 @@
 
 (entry (doc "banach-algebras")
        (ref "5.35")
+       (section "5.9" prefilled)
        (kind proposition)
        (title "Ultrastrong seminorms through HS operators")
        (names)
@@ -7169,6 +8486,7 @@
 ;;; ===== ch. 6 section 1: Von Neumann Density Theorem =====
 (entry (doc "banach-algebras")
        (ref "6.1")
+       (section "6.1" prefilled)
        (kind theorem)
        (title "Von Neumann's bicommutant theorem")
        (names)
@@ -7178,6 +8496,7 @@
 
 (entry (doc "banach-algebras")
        (ref "6.3")
+       (section "6.1" prefilled)
        (kind theorem)
        (title "A'' is the ultrastrong closure")
        (names)
@@ -7188,6 +8507,7 @@
 ;;; ===== ch. 6 section 2: Kaplansky Density Theorem =====
 (entry (doc "banach-algebras")
        (ref "6.6")
+       (section "6.2" prefilled)
        (kind theorem)
        (title "Kaplansky density")
        (names)
@@ -7197,6 +8517,7 @@
 
 (entry (doc "banach-algebras")
        (ref "6.7")
+       (section "6.2" prefilled)
        (kind corollary)
        (title "Von Neumann algebras via the unit ball")
        (names)
@@ -7207,6 +8528,7 @@
 ;;; ===== ch. 6 section 3: Cyclic and Separating Vectors =====
 (entry (doc "banach-algebras")
        (ref "6.8")
+       (section "6.3" prefilled)
        (kind proposition)
        (title "Cyclic for A' implies separating for A")
        (names)
@@ -7216,6 +8538,7 @@
 
 (entry (doc "banach-algebras")
        (ref "6.9")
+       (section "6.3" prefilled)
        (kind corollary)
        (title "Cyclic and separating vectors of a von Neumann algebra")
        (names)
