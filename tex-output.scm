@@ -361,13 +361,42 @@
   (if (and *tex-fold?* (tex--fold-collapses? e0))
       (fluid-let ((*tex-fold?* #f)) (tex--expr->tex-1 e0))
       (tex--expr->tex-1 e0)))
+;;; THE OPTIONAL INFIX LAYER (tex-infix.scm; the user, 2026-11-12/14).  OFF by default, and
+;;; while it is off nothing below changes: `tex--expr->tex-1' is the plain printer and an
+;;; application's arguments are rendered by `expr->tex' as before.  When it is ON,
+;;; `tex--infix-render' (installed by tex-infix.scm) sees every term first and declines
+;;; (handing it to the plain printer) unless the term is an applied structure operation or a
+;;; relation with one on a side.  `*tex-infix-bare?*' says the term stands where it needs no
+;;; parentheses of its own: an argument of an application, the top of a formula.
+(define *tex-infix?* #f)
+(define *tex-infix-bare?* #f)
+(define tex--infix-render #f)
 (define (tex--expr->tex-1 e0)
+  (if (and *tex-infix?* tex--infix-render)
+      (tex--infix-render e0 tex--expr->tex-plain)
+      (tex--expr->tex-plain e0)))
+(define (tex--app-arg->tex a)
+  (if *tex-infix?*
+      (fluid-let ((*tex-infix-bare?* #t)) (expr->tex a))
+      (expr->tex a)))
+(define (tex--expr->tex-plain e0)
   (define e (if *tex-fold?* (tex--fold e0) e0))
   (cond
     ((number? e) (number->string e))
     ((symbol? e) (tex--symbol->string e))
     ((string? e)
      (string-append "\\text{``" e "''}"))
+    ;; A functoid record (lambdoid) prints as \lambda o, never as the \lambda of a
+    ;; VNB-LAMBDA, so the two binders cannot be confused on the page (the user,
+    ;; 2026-11-13: "\lambda\omicron"; omicron is the Latin o in TeX math).
+    ((functoid? e)
+     (string-append "(\\lambda o\\, "
+                    (tex--string-join
+                     (map (lambda (b) (string-append (expr->tex (car b)) " \\in "
+                                                     (expr->tex (cdr b))))
+                          (functoid-bindings e))
+                     ", ")
+                    ".\\; " (expr->tex (functoid-body e)) ")"))
     ((pair? e)
      (let ((op (car e)) (args (cdr e)))
        (cond
@@ -408,7 +437,7 @@
          ;; default: application  (f a b c) -> f(a, b, c)
          (else
           (string-append (tex--head->tex op) "("
-                         (tex--string-join (map expr->tex args) ", ")
+                         (tex--string-join (map tex--app-arg->tex args) ", ")
                          ")")))))
     (else
      (string-append "\\text{?}\\{"
@@ -815,6 +844,7 @@
     "\\documentclass[border=12pt]{standalone}\n"
     "\\usepackage{amsmath, amssymb}\n"
     "\\usepackage[utf8]{inputenc}\n"
+    "\\providecommand{\\norm}[1]{\\left\\lVert #1 \\right\\rVert}\n"
     "\\begin{document}\n"
     "% PSS / theorem name: " name "\n"
     "$\\displaystyle\n"

@@ -770,6 +770,7 @@
     ;; structure-library/polynomial (SUPP/FINSUPP/POLY, :350), sqn
     ;; (sqn-membership, :144), numeric-instances (nn-add-monoid@carr, :250) and
     ;; driver-kit + prop, all above.
+    "theorem-library/sqn-laws"    ; 2026-11-13: sqn-membership, sqn-sethood proven (were stamped definitional in sqn.scm); after prop (:703)
     "theorem-library/poly-membership"
     ;; normed-field-ring-view -- THE SCALAR BRIDGE, PROVEN modulo 0.  A normed
     ;; field is a 7-tuple and the ring predicates pin length 6, so a scalar slot
@@ -3536,6 +3537,9 @@
     "theorem-library/rake-ringoid-quotient"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
+    ;; 2026-11-14: the OPTIONAL infix layer for the TeX printer (a +_K b), off by default;
+    ;; (tex-infix! #t) turns it on, (infix-tex X) prints one formula with it.
+    "tex-infix"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /
     ;; (view-proof-pdf name)).  Needs tex-output (expr->tex) + the replay
     ;; machinery in interactive.scm.
@@ -4722,9 +4726,12 @@
           ;; a contained proof file: certificates.scm decides whether it is
           ;; loaded as today (VNB_CERTIFIED=off, or outside a load of the tree)
           ;; or from its certificate, form by form
+          ;; under VNB_EXAM_SLICE (the sliced exam, below) the mode is chosen per file
           ((proof-file? f)
-           (cert-load-proof-file! f path
-                                  (lambda () (extend-top-level-environment *driver-kit-env*))))
+           (exam-slice-load f
+             (lambda ()
+               (cert-load-proof-file! f path
+                                      (lambda () (extend-top-level-environment *driver-kit-env*))))))
           (else (load path)))
     ;; No-op until clobber-guard.scm has taken its snapshot.  Contained files can
     ;; no longer trip it; it still guards the engine and structure-library.
@@ -4817,6 +4824,253 @@
               (string-search-forward "/" f 0))
          'skipped)
         (#t (prover-load--keep-going f))))
+
+;;; THE SLICED EXAM (2026-11-12; scratchpad/triage/EXAM-SLICE-REPORT.md).  The
+;;; exam (VNB_CERTIFIED=off) runs every proof of the tree in one load; it took
+;;; 25229 s on 2026-11-12 and grows with the library.  A SLICED night cuts the
+;;; contained proof files into N slices and runs N full, ordered loads of the
+;;; whole tree, one per worker:
+;;;
+;;;     VNB_CERTIFIED=on VNB_EXAM_SLICE=K/N VNB_EXAM_SLICE_PLAN=FILE ./prover --build-band
+;;;
+;;; A contained proof file of slice K is loaded in OFF mode (every proof runs,
+;;; its page is audited, its certificate file is rewritten, its core pages are
+;;; lowered and replayed under VNB_CORE_REPLAY=on); every other contained proof
+;;; file is loaded in ON mode (installed from its certificate, a theorem whose
+;;; record is not valid re-proved), exactly as in a daytime certified build.
+;;; The switch is `*cert-mode-override*' (certificates.scm, the binding the
+;;; suite's controls use), bound per FILE around `cert-load-proof-file!'; no
+;;; kernel-hash file is touched.  Each contained proof file is in exactly one
+;;; slice, so across the N loads every proof runs once in off mode.
+;;;
+;;; THE PLAN (VNB_EXAM_SLICE_PLAN): one line per file, `K<TAB>FILE' (the load-list
+;;; key, e.g. theorem-library/goursat), written by scratchpad/examslice/slice-plan.py
+;;; from measured per-file times.  A contained proof file the plan does not name is
+;;; placed by a fixed hash of its name (the same on every worker), so a stale plan
+;;; can unbalance a night but never leave a file unexamined; such files are listed.
+;;;
+;;; At load end (exam-slice-load-end!) the slice writes VNB_EXAM_SLICE_OUT (default
+;;; <tree>/exam-slice/): manifest.tsv, one row per contained proof file loaded:
+;;; FILE, slice, mode (off|on), CPU ms, proofs run, theorems certified.
+(define *exam-slice*
+  (let ((v (get-environment-variable "VNB_EXAM_SLICE")))
+    (and v (not (string-null? v))
+         (let* ((i (string-search-forward "/" v 0))
+                (k (and i (string->number (substring v 0 i))))
+                (n (and i (string->number (substring v (+ i 1) (string-length v))))))
+           (if (and k n (exact-nonnegative-integer? k) (exact-nonnegative-integer? n) (<= 1 k n))
+               (cons k n)
+               (error "VNB_EXAM_SLICE must be K/N with 1 <= K <= N, not" v))))))
+
+(if (and *exam-slice*
+         (let ((c (get-environment-variable "VNB_CERTIFIED")))
+           (not (or (not c) (string-null? c) (string=? c "on")))))
+    (error "VNB_EXAM_SLICE wants VNB_CERTIFIED=on (the files outside the slice are certified), not"
+           (get-environment-variable "VNB_CERTIFIED")))
+
+(define *exam-slice-plan*                    ; file -> slice
+  (let ((t (make-equal-hash-table))
+        (p (get-environment-variable "VNB_EXAM_SLICE_PLAN")))
+    (if (and *exam-slice* p (not (string-null? p)))
+        (call-with-input-file p
+          (lambda (port)
+            (let loop ()
+              (let ((line (read-line port)))
+                (if (not (eof-object? line))
+                    (let ((tab (string-search-forward "\t" line 0)))
+                      (if (and tab (> (string-length line) 0) (not (char=? (string-ref line 0) #\#)))
+                          (let ((k (string->number (substring line 0 tab)))
+                                (f (substring line (+ tab 1) (string-length line))))
+                            (if (not (and k (exact-nonnegative-integer? k) (<= 1 k (cdr *exam-slice*))))
+                                (error "VNB_EXAM_SLICE_PLAN: bad slice number on line" line))
+                            (hash-table-set! t f k)))
+                      (loop))))))))
+    (if (and *exam-slice* (null? (hash-table-keys t)))
+        (begin (display ";VNB exam-slice: no plan (VNB_EXAM_SLICE_PLAN) -- every file placed by hash")
+               (newline)))
+    t))
+
+;;; The fixed hash of an unplanned file: the same on every worker and in every image.
+(define (exam-slice--hash f)
+  (let loop ((i 0) (h 7))
+    (if (= i (string-length f))
+        h
+        (loop (+ i 1) (modulo (+ (* h 31) (char->integer (string-ref f i))) 1000003)))))
+
+(define *exam-slice-unplanned* '())          ; files placed by hash, newest first
+(define *exam-slice-rows* '())               ; (file slice mode ms proven certified), newest first
+
+(define (exam-slice-of f)
+  (or (hash-table-ref/default *exam-slice-plan* f #f)
+      (begin (if (not (member f *exam-slice-unplanned*))
+                 (set! *exam-slice-unplanned* (cons f *exam-slice-unplanned*)))
+             (+ 1 (modulo (exam-slice--hash f) (cdr *exam-slice*))))))
+
+;;; Called by prover-load--file for a contained proof file.  THUNK loads it.
+(define (exam-slice-load f thunk)
+  (if (not *exam-slice*)
+      (thunk)
+      (let* ((k (exam-slice-of f))
+             (mine? (= k (car *exam-slice*)))
+             (p0 *cert-session-proven*)
+             (c0 *cert-session-certified*)
+             (t0 (runtime)))
+        (fluid-let ((*cert-mode-override* (if mine? 'off #f)))
+          (thunk))
+        (set! *exam-slice-rows*
+              (cons (list f k (if mine? 'off 'on)
+                          (round->exact (* 1000 (- (runtime) t0)))
+                          (- *cert-session-proven* p0)
+                          (- *cert-session-certified* c0))
+                    *exam-slice-rows*)))))
+
+(define (exam-slice-out-dir)
+  (let ((v (get-environment-variable "VNB_EXAM_SLICE_OUT")))
+    (if (and v (not (string-null? v)))
+        (if (char=? (string-ref v (- (string-length v) 1)) #\/) v (string-append v "/"))
+        (string-append *prover-dir* "exam-slice/"))))
+
+(define (exam-slice-load-end!)
+  (if *exam-slice*
+      (let* ((rows (reverse *exam-slice-rows*))
+             (mine (filter (lambda (r) (eq? (caddr r) 'off)) rows))
+             (others (filter (lambda (r) (eq? (caddr r) 'on)) rows))
+             (sum (lambda (rs i) (fold-left + 0 (map (lambda (r) (list-ref r i)) rs))))
+             (stale (filter (lambda (f) (and (= (hash-table-ref/default *exam-slice-plan* f 0) (car *exam-slice*))
+                                             (not (assoc f rows))))
+                            (hash-table-keys *exam-slice-plan*)))
+             (dir (exam-slice-out-dir)))
+        (display ";; exam-slice: slice ") (display (car *exam-slice*)) (display "/") (display (cdr *exam-slice*))
+        (display ": ") (display (length mine)) (display " proof file(s) EXAMINED (off), ")
+        (display (sum mine 4)) (display " proofs run, ") (display (quotient (sum mine 3) 1000)) (display " s; ")
+        (display (length others)) (display " file(s) certified (on), ")
+        (display (sum others 4)) (display " proofs re-run there, ")
+        (display (sum others 5)) (display " theorems installed from certificates, ")
+        (display (quotient (sum others 3) 1000)) (display " s") (newline)
+        (if (pair? *exam-slice-unplanned*)
+            (begin (display ";; exam-slice: ") (display (length *exam-slice-unplanned*))
+                   (display " file(s) not in the plan, placed by hash:")
+                   (for-each (lambda (f) (display " ") (display f)) (reverse *exam-slice-unplanned*))
+                   (newline)))
+        (if (pair? stale)
+            (begin (display ";; exam-slice: ") (display (length stale))
+                   (display " planned file(s) of this slice were never loaded (not in this load list):")
+                   (for-each (lambda (f) (display " ") (display f)) stale)
+                   (newline)))
+        (if (not (file-directory? dir)) (make-directory dir))
+        (call-with-output-file (string-append dir "manifest.tsv")
+          (lambda (port)
+            (write-string "# file\tslice\tmode\tcpu_ms\tproven\tcertified\n" port)
+            (for-each (lambda (r)
+                        (write-string (car r) port)
+                        (for-each (lambda (x)
+                                    (write-string "\t" port)
+                                    (write-string (if (symbol? x) (symbol->string x) (number->string x)) port))
+                                  (cdr r))
+                        (newline port))
+                      rows)))
+        (exam-slice--write-core-results! (string-append dir "core-results.tsv"))
+        (exam-slice--write-scripts! (string-append dir "scripts.sexp"))
+        (display ";; exam-slice: manifest written to ") (display dir) (display "manifest.tsv") (newline))))
+
+;;; THE SCRIPTS OF THE MAJOR THEOREMS.  reference/major-theorems.tex renders the stored
+;;; script of every theorem of docs/major-theorems-table.sexp (major-theorems.scm), and an
+;;; image that holds no script for one of them (a certified theorem) KEEPS the old file.
+;;; No slice holds them all, so each slice writes the scripts it has of the table's names
+;;; (and of their pd-source-of), one `(NAME . SCRIPT)' per line, and the strict build
+;;; after the merge lends them to the writer (exam-slice-with-scripts, below).
+(define (exam-slice--table-names)
+  (let ((entries (mt--read-table "docs/major-theorems-table.sexp")))
+    (if (not entries) '()
+        (let ((ns (apply append (map (lambda (e) (mt--list e 'names)) entries))))
+          (append ns (filter symbol? (map (lambda (n) (pd-source-of n)) ns)))))))
+
+(define (exam-slice--write-scripts! path)
+  (call-with-output-file path
+    (lambda (port)
+      (for-each (lambda (n)
+                  (let ((sc (and (symbol? n) (hash-table-ref/default *proof-script-table* n #f))))
+                    (if sc (begin (write (cons n sc) port) (newline port)))))
+                (delete-duplicates (exam-slice--table-names))))))
+
+;;; VNB_EXAM_SLICE_SCRIPTS=FILE[:FILE...]: run THUNK with the scripts of FILE lent to
+;;; *proof-script-table* for every CERTIFIED theorem that has none in this image, and take
+;;; them back after, so nothing else (the page audit, the catalogs) sees a script whose
+;;; proof did not run here.  Without the variable, THUNK alone.
+(define (exam-slice-with-scripts thunk)
+  (let ((v (get-environment-variable "VNB_EXAM_SLICE_SCRIPTS")))
+    (if (not (and v (not (string-null? v))))
+        (thunk)
+        (let ((lent '()))
+          (for-each
+           (lambda (path)
+             (if (file-exists? path)
+                 (call-with-input-file path
+                   (lambda (port)
+                     (let loop ()
+                       (let ((x (read port)))
+                         (if (not (eof-object? x))
+                             (begin
+                               (if (and (pair? x) (symbol? (car x))
+                                        (certified-theorem? (car x))
+                                        (not (hash-table-ref/default *proof-script-table* (car x) #f)))
+                                   (begin (hash-table-set! *proof-script-table* (car x) (cdr x))
+                                          (set! lent (cons (car x) lent))))
+                               (loop)))))))
+                 (begin (display ";; exam-slice: no scripts file ") (display path) (newline))))
+           (burst-string v #\: #t))
+          (display ";; exam-slice: ") (display (length lent))
+          (display " script(s) of certified major theorems lent to the major-theorems writer") (newline)
+          (dynamic-wind (lambda () #f) thunk
+                        (lambda () (for-each (lambda (n) (hash-table-delete! *proof-script-table* n)) lent)))))))
+
+;;; The core replay's verdicts PER THEOREM (core-capture.scm keeps counts and the
+;;; lists of exceptions; the merge of N slices needs to know which slice's verdict
+;;; is the owner's).  One row per kind:  lowered NAME | failed NAME REASON |
+;;; line KIND NAME TEXT (TEXT = the SUMMARY.txt line exactly as cc--summary-lines
+;;; prints it) | stat KEY VALUE.  Nothing when the core replay was off.
+(define (exam-slice--write-core-results! path)
+  (let ((flat (lambda (x) (let ((s (if (string? x) x (call-with-output-string (lambda (p) (write x p))))))
+                            (list->string (map (lambda (c) (if (or (char=? c #\newline) (char=? c #\tab)) #\space c))
+                                               (string->list s))))))
+        (str (lambda (thunk) (with-output-to-string thunk))))
+    (call-with-output-file path
+      (lambda (port)
+        (let ((row (lambda fields
+                     (let loop ((fs fields) (first? #t))
+                       (if (pair? fs)
+                           (begin (if (not first?) (write-string "\t" port))
+                                  (write-string (car fs) port)
+                                  (loop (cdr fs) #f))))
+                     (newline port))))
+          (hash-table-walk *cc-kernel-bill*
+            (lambda (n b) (row "lowered" (symbol->string n))))
+          (for-each (lambda (e) (row "failed" (flat (car e)) (flat (cdr e)))) *cc-pages-failed*)
+          (for-each (lambda (r)
+                      (row "line" "kernel-bill" (flat (car r))
+                           (flat (str (lambda () (display ";;   kernel-bill differs: ") (write (car r))
+                                        (display " kernel ") (write (cadr r)) (display " ledger ") (write (caddr r)))))))
+                    *cc-bill-differ*)
+          (for-each (lambda (r)
+                      (row "line" "kernel-oracles" (flat (car r))
+                           (flat (str (lambda () (display ";;   kernel-oracles differ: ") (write (car r))
+                                        (display " kernel ") (write (cadr r)) (display " ledger ") (write (caddr r)))))))
+                    *cc-oracle-differ*)
+          (for-each (lambda (r)
+                      (row "line" "core-replay-refused" (flat (car r))
+                           (flat (str (lambda () (display ";;   core-replay refused: ") (write (car r))
+                                        (display " at step ") (display (cadr r)) (display " (") (write (caddr r))
+                                        (display "): ") (display (cadddr r)))))))
+                    *cc-replay-refused*)
+          (for-each (lambda (r)
+                      (row "line" "core-replay-raised" (flat (car r))
+                           (flat (str (lambda () (display ";;   core-replay raised: ") (write (car r))
+                                        (display " -- ") (display (cdr r)))))))
+                    *cc-replay-raised*)
+          (row "stat" "replay_on" (if *cc-replay-at-qed?* "1" "0"))
+          (row "stat" "replayed" (number->string *cc-replayed*))
+          (row "stat" "replay_s" (number->string (round->exact *cc-t-replay*)))
+          (row "stat" "pages_lowered" (number->string *cc-pages-lowered*)))))))
 
 (set! *cert-in-load-list* #t)
 (let ((err (call-with-current-continuation
@@ -5098,6 +5352,7 @@
   ;; two or three named arcs.  Recomputed here, never stored, so it cannot drift.
   (report-stale-coms)
   (when *vnb-time-load?* (report-load-times))
+  (exam-slice-load-end!)                 ; the sliced exam's manifest; nothing unless VNB_EXAM_SLICE
   (report-load-failures)
 
   (let ((p (debt-bundle-md)))
@@ -5113,7 +5368,10 @@
   (write-glossary-md)
   ;; The major theorems of the notes against the library, in LaTeX (docs/major-theorems.tex is the wrapper;
   ;; `make major-theorems' in docs/).  A missing table is not an error.
-  (write-major-theorems-tex! "docs/major-theorems-table.sexp" "reference/major-theorems.tex")
+  ;; (exam-slice-with-scripts: after a sliced exam, the strict build lends the slices'
+  ;; scripts of the table's theorems; without VNB_EXAM_SLICE_SCRIPTS it is the call alone)
+  (exam-slice-with-scripts
+    (lambda () (write-major-theorems-tex! "docs/major-theorems-table.sexp" "reference/major-theorems.tex")))
   ;; The book of all proven theorems (statements only, so a certified load writes it too).
   (write-all-theorems-tex! "reference/all-theorems.tex")
   ;; The book of theorems and definitions by LIBRARY (notes-61; docs/library-book.tex is the

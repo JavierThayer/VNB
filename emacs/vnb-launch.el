@@ -2081,6 +2081,7 @@ the page step by step in the Focus workspace."
   (concat
    "\\documentclass[border=2pt]{standalone}\n"
    "\\usepackage{amsmath,amssymb}\n"
+   "\\providecommand{\\norm}[1]{\\left\\lVert #1 \\right\\rVert}\n"
    "\\begin{document}\n"
    "$\\displaystyle " tex "$\n"
    "\\end{document}\n"))

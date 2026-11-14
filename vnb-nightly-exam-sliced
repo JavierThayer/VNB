@@ -1,0 +1,375 @@
+#!/bin/bash
+# vnb-nightly-exam-sliced -- THE EXAM, cut into N slices run side by side on N workers.
+#
+#   vnb-nightly-exam-sliced --workers W1,W2,...,WN [--type m7i.large] [--heap 500000]
+#                           [--compare] [--force] [--dry-run] [--no-core-replay] [--reference-from K]
+#                           [--single-worker worker-05] [--single-heap 1200000]
+#                           [--resume RUN-DIR]
+#
+# The single exam (vnb-nightly-exam) runs every proof of the tree in ONE load: 25229 s on
+# 2026-11-12 (m7i.xlarge, heap 1200000, core replay on) against a 10 h cap, growing with the
+# library.  This script runs the same work as N full, ordered loads, one per worker
+# (load.scm, VNB_EXAM_SLICE=K/N): the contained proof files of slice K run in OFF mode
+# (every proof, its page audit, its certificate rewritten, its core page lowered and
+# replayed), every other one is installed from its certificate as in a daytime certified
+# build.  Design, verification and what it does not check: scratchpad/triage/EXAM-SLICE-REPORT.md.
+#
+# One run, each step logged to ~/mailbox/metrics/nightly-exam.log ("sliced" prefix):
+#   0. SKIP when the tree is the one the last exam passed (as vnb-nightly-exam), unless --force.
+#      If the KERNEL HASH of the tree differs from the one in the certificate store, every
+#      certificate is invalid and each slice would re-prove the whole tree: the run hands
+#      over to the single exam (exec vnb-nightly-exam) -- in --compare mode it stops.
+#   1. PLAN: exam-slice-plan.py balances the files by the measured off-mode CPU time of
+#      the last sliced night (~/mailbox/metrics/exam-slice/times/*.tsv), else an estimate
+#      from the last exam's core pages.  The plan is kept beside the times.
+#   2. For each worker, IN PARALLEL: start (or launch, --type), provision as
+#      vnb-nightly-exam does (mit-scheme, swap, idle stop, pull key), push the tree (the
+#      same excludes), verify md5s, push the plan, remove the old band, start the slice
+#      job (`prover --build-band', VNB_CERTIFIED=on, VNB_EXAM_SLICE=K/N, VNB_CORE_REPLAY=on,
+#      VNB_TIME_LOAD=1; VNB_WRITE_BOOK=1 on the reference slice).
+#   3. Wait for every slice (cap 10 h, as the single exam), the ledger rows through
+#      `vnb-band W --wait' as usual; one extra row per slice, job `exam-slice'.
+#   4. PULL each slice's certificates/, core-pages/, exam-slice/, reference/ to
+#      ~/mailbox/metrics/exam-slice/run-STAMP/slice-K/, then MERGE (exam-slice-merge.py)
+#      into the tree (production) or into ~/mailbox/metrics/exam-slice/run-STAMP/merged/
+#      (--compare: the tree, last-exam.json and the report are not touched).
+#   5. On worker 1: push the MERGED certificates/, remove its slice band, run a STRICT
+#      certified build (VNB_CERTIFIED=strict: every theorem installed from the merged
+#      store, NOTHING proved; an uncovered theorem fails the night -- the proof that the
+#      merge is complete), then the suite from that band.
+#   6. Production: pull that band (vnb-band-pull --band-only), typeset the books,
+#      record last-exam.json and the report; stop every worker (EXIT trap, every exit).
+# --resume ~/mailbox/metrics/exam-slice/run-STAMP: skip steps 1-3 and continue a run whose
+# slices all passed from step 4, with the same --workers in the same order (the slices'
+# products are still on the stopped workers' disks; the workers are started again).
+# Exit 0 = passed or skipped; 1 = a slice, the merge, the strict build or the suite failed;
+# 2 = infrastructure.  NEVER EDIT THIS FILE WHILE A RUN IS GOING (see vnb-nightly-exam).
+set -u
+PROVER=/home/ubuntu/prover
+METRICS=/home/ubuntu/mailbox/metrics
+ES=$METRICS/exam-slice
+LOG=$METRICS/nightly-exam.log
+RESUME=""; SINGLE_W=worker-05; SINGLE_HEAP=1200000; WORKERS=""; TYPE=m7i.large; HEAP=500000; FORCE=0; DRY=0; COMPARE=0; NOCORE=0; REFK=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --workers) WORKERS=$2; shift 2 ;;
+    --type) TYPE=$2; shift 2 ;;
+    --heap) HEAP=$2; shift 2 ;;
+    --force) FORCE=1; shift ;;
+    --dry-run) DRY=1; shift ;;
+    --compare) COMPARE=1; shift ;;
+    --no-core-replay) NOCORE=1; shift ;;
+    --reference-from) REFK=$2; shift 2 ;;
+    --single-worker) SINGLE_W=$2; shift 2 ;;    # the single exam this hands over to on a kernel change
+    --single-heap) SINGLE_HEAP=$2; shift 2 ;;
+    --resume) RESUME=${2%/}; shift 2 ;;
+    *) echo "vnb-nightly-exam-sliced: unknown option $1" >&2; exit 2 ;;
+  esac
+done
+IFS=, read -r -a W <<< "$WORKERS"
+N=${#W[@]}
+[ "$N" -ge 2 ] || { echo "vnb-nightly-exam-sliced: --workers wants at least two names (got '$WORKERS')" >&2; exit 2; }
+[ "$REFK" -ge 0 ] && [ "$REFK" -le "$N" ] || { echo "vnb-nightly-exam-sliced: --reference-from must be 0..$N (0: from the strict build)" >&2; exit 2; }
+mkdir -p "$ES/times"
+STAMP=$(date -u +%Y%m%dT%H%M%SZ)
+RUN=$ES/run-$STAMP
+if [ -n "$RESUME" ]; then
+  [ -d "$RESUME" ] || { echo "vnb-nightly-exam-sliced: --resume: no directory $RESUME" >&2; exit 2; }
+  RUN=$RESUME; STAMP=${RUN##*/run-}
+fi
+TAG="sliced"; [ "$COMPARE" = 1 ] && TAG="sliced-compare"
+say() { echo "$(date -u +%FT%TZ) nightly-exam[$TAG]: $*" | tee -a "$LOG"; }
+LAST=$METRICS/last-exam.json; [ "$COMPARE" = 1 ] && LAST=$ES/last-sliced-compare.json
+REPORT=/home/ubuntu/notes/exam-report.txt; [ "$COMPARE" = 1 ] && REPORT=$ES/report-$STAMP.txt
+LOG0=$( [ -f "$LOG" ] && wc -l < "$LOG" || echo 0 )
+CORE=""
+record() { # record OUTCOME DETAIL -- the same json fields as vnb-nightly-exam, plus sliced:N
+  python3 - "$LAST" "$1" "$2" "$TREE" "$WORKERS" "$CORE" "$N" <<'PY'
+import json, sys, datetime
+p, outcome, detail, tree, worker, core, n = sys.argv[1:8]
+d = {"ts": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "outcome": outcome,
+     "detail": detail, "tree": tree, "worker": worker, "sliced": int(n)}
+for line in core.splitlines():
+    for key, field in ((";; core-replay:", "core_replay"), (";; kernel-bill:", "kernel_bill"),
+                       (";; kernel-oracles:", "kernel_oracles"), (";; core-lowering:", "core_lowering")):
+        if line.startswith(key): d[field] = line[len(key):].strip()
+    if line.startswith(";;   core-replay refused:") or line.startswith(";;   core-replay raised:"):
+        d.setdefault("core_replay_refusals", []).append(line[5:].strip())
+json.dump(d, open(p, "w"))
+PY
+  { echo "Nightly exam report ($N slices$([ "$COMPARE" = 1 ] && echo ', COMPARE run')) -- $(date -u '+%F %H:%M') UTC"
+    echo; echo "OUTCOME: $1"; echo "DETAIL:  $2"
+    echo "TREE:    ${TREE:-?}    WORKERS: $WORKERS ($TYPE, heap $HEAP)"; echo
+    if [ -n "$CORE" ]; then
+      echo "Core replay (warn-only; merged core-pages/SUMMARY.txt):"
+      echo "$CORE" | grep -E '^;; (core-replay|kernel-bill|kernel-oracles):|^;;   (core-replay refused|core-replay raised|kernel-bill differs|kernel-oracles differ):' | head -60 | sed 's/^/  /'; echo
+    fi
+    echo "This run's log ($LOG):"; tail -n +"$((LOG0 + 1))" "$LOG" 2>/dev/null | sed 's/^/  /'
+  } > "$REPORT.tmp" 2>/dev/null && mv "$REPORT.tmp" "$REPORT"
+  return 0
+}
+STARTED=(); for k in $(seq 1 $N); do STARTED[$k]=0; done
+stop_workers() {
+  for k in $(seq 1 $N); do
+    [ "${STARTED[$k]}" = 1 ] && capataz stop "${W[$((k-1))]}" --yes --json > /dev/null 2>&1 && say "stopped ${W[$((k-1))]}"
+    STARTED[$k]=0
+  done; return 0
+}
+trap stop_workers EXIT
+cd "$PROVER" || exit 2
+TREE="$(git rev-parse --short HEAD 2>/dev/null)+$(git diff HEAD 2>/dev/null | md5sum | cut -c1-8)"
+if [ "$FORCE" = 0 ] && [ "$COMPARE" = 0 ] && [ -f "$LAST" ]; then
+  prev=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("tree",""), d.get("outcome",""))' "$LAST")
+  if [ "$prev" = "$TREE passed" ]; then say "skip: tree $TREE already passed"; record skipped "tree unchanged since the last passed exam"; exit 0; fi
+fi
+# ---- 0. the kernel hash (certificates.scm, cert-kernel-hash): md5 of "f:md5;" over the key files
+KH=$(python3 - "$PROVER" <<'PY'
+import hashlib, os, re, sys
+root = sys.argv[1]
+src = open(os.path.join(root, 'certificates.scm')).read()
+def lst(name):
+    i = src.index('(define ' + name); j = src.index(')', src.index("'(", i))
+    return re.findall(r'"([^"]+)"', src[i:j])
+i = src.index('(define *cert-kernel-files*'); j = src.index('(define *cert-kernel-hash*', i)
+files = lst('*cert-kernel-caller-files*') + re.findall(r'"([^"]+)"', re.sub(r';[^\n]*', '', src[i:j]))
+s = ''
+for f in files:
+    p = os.path.join(root, f + '.scm')
+    s += f + ':' + (hashlib.md5(open(p, 'rb').read()).hexdigest() if os.path.exists(p) else 'absent') + ';'
+print(hashlib.md5(s.encode()).hexdigest())
+PY
+)
+STORE_KH=$(grep -rhom1 '(kernel "[0-9a-f]*")' "$PROVER/certificates" 2>/dev/null | sed 's/.*"\(.*\)".*/\1/' | sort | uniq -c | sort -rn | head -1 | awk '{print $2}')
+if [ -z "$KH" ] || [ "$KH" != "$STORE_KH" ]; then
+  say "kernel hash of the tree ($KH) differs from the certificate store's ($STORE_KH): every certificate is invalid, a sliced night would re-prove the whole tree on every worker"
+  if [ "$COMPARE" = 1 ] || [ "$DRY" = 1 ]; then exit 2; fi
+  say "handing over to the single exam (vnb-nightly-exam)"
+  trap - EXIT
+  SINGLE=(--worker "$SINGLE_W" --heap "$SINGLE_HEAP"); [ "$FORCE" = 1 ] && SINGLE+=(--force); [ "$NOCORE" = 1 ] && SINGLE+=(--no-core-replay)
+  exec "$PROVER/vnb-nightly-exam" "${SINGLE[@]}"
+fi
+if [ -n "$RESUME" ]; then
+# ---- resume: wake the workers, read the slices' rows back, go to step 4
+  say "resume $RUN from step 4 on $WORKERS"
+  for k in $(seq 1 $N); do
+    [ -f "$RUN/slice-$k.out" ] && grep -q '"band_replaced":true' "$RUN/slice-$k.out" \
+      || { say "FAIL: resume: slice $k has no passing row in $RUN/slice-$k.out"; exit 2; }
+  done
+  wake() { # wake WORKER -> 0 when its SSM agent is Online
+    local w=$1 st i
+    st=$(capataz list --json 2>/dev/null | python3 -c 'import json,sys; w=sys.argv[1]; print(next((r["state"] for r in json.load(sys.stdin) if r["name"]==w), "absent"))' "$w")
+    case "$st" in running) ;; stopped) capataz start "$w" --yes --json > /dev/null 2>&1 || return 1 ;; *) return 1 ;; esac
+    for i in $(seq 1 40); do
+      st=$(capataz list --json 2>/dev/null | python3 -c 'import json,sys; w=sys.argv[1]; print(next((r["ssm_status"] for r in json.load(sys.stdin) if r["name"]==w), "?"))' "$w")
+      [ "$st" = Online ] && return 0; sleep 15
+    done; return 1
+  }
+  for k in $(seq 1 $N); do STARTED[$k]=1; ( wake "${W[$((k-1))]}" || echo FAIL > "$RUN/wake-$k.fail" ) & done
+  wait
+  for k in $(seq 1 $N); do [ -f "$RUN/wake-$k.fail" ] && { rm -f "$RUN/wake-$k.fail"; say "FAIL: resume: ${W[$((k-1))]} did not come up"; exit 2; }; done
+  WALL=0; SUMW=0
+  for k in $(seq 1 $N); do
+    w=$(grep '"job":"build-band"' "$RUN/slice-$k.out" | tail -1 | python3 -c 'import json,sys; print(int(json.loads(sys.stdin.read()).get("wall_s",0)))' 2>/dev/null || echo 0)
+    SUMW=$((SUMW + w)); [ "$w" -gt "$WALL" ] && WALL=$w
+  done
+else
+# ---- 1. the plan
+mkdir -p "$RUN"
+PLAN=$RUN/plan.tsv
+TIMES=$(ls -t "$ES"/times/*.tsv 2>/dev/null | head -$((4*N)) | tac | sed 's/^/--times /' | tr '\n' ' ')
+python3 "$PROVER/exam-slice-plan.py" --tree "$PROVER" --n "$N" --out "$PLAN" $TIMES --report > "$RUN/plan.report" 2>&1 \
+  || { say "FAIL: exam-slice-plan.py"; cat "$RUN/plan.report" >> "$LOG"; record failed "plan"; exit 2; }
+say "start: tree $TREE, $N slices on $WORKERS ($TYPE if absent, heap $HEAP); $(head -1 "$PLAN" | sed 's/^# //')"
+sed 's/^/    /' "$RUN/plan.report" | tee -a "$LOG"
+CORE_ENV="VNB_CORE_REPLAY=on"; [ "$NOCORE" = 1 ] && CORE_ENV=""
+[ "$DRY" = 1 ] && { say "dry run: plan $PLAN; would start $WORKERS, push, run $N slices, merge, strict build + suite on ${W[0]}"; exit 0; }
+
+# ---- 2. bring up, push and start one slice (runs in a subshell per worker)
+PUB=$(cat ~/.ssh/vnb-secondary.pub)
+want=$(md5sum load.scm certificates.scm | awk '{print $1}' | paste -sd' ')
+slice_up() { # slice_up K WORKER -> prints "JOB <id>" or "FAIL <why>"
+  local k=$1 w=$2 st
+  st=$(capataz list --json 2>/dev/null | python3 -c 'import json,sys; w=sys.argv[1]; print(next((r["state"] for r in json.load(sys.stdin) if r["name"]==w), "absent"))' "$w")
+  case "$st" in
+    running) echo "UP" ;;      # UP: this run stops it at exit (a running worker too, as vnb-nightly-exam does)
+    stopped) echo "UP"; capataz start "$w" --yes --json > /dev/null 2>&1 || { echo "FAIL start"; return; } ;;
+    *) echo "FAIL $w is $st (launch the workers by name first: capataz launch worker --type $TYPE)"; return ;;
+  esac
+  for i in $(seq 1 40); do
+    st=$(capataz list --json 2>/dev/null | python3 -c 'import json,sys; w=sys.argv[1]; print(next((r["ssm_status"] for r in json.load(sys.stdin) if r["name"]==w), "?"))' "$w")
+    [ "$st" = Online ] && break; sleep 15
+  done
+  [ "$st" = Online ] || { echo "FAIL ssm"; return; }
+  capataz run "$w" --json --user root 'command -v mit-scheme >/dev/null || apt-get install -y -q mit-scheme >/dev/null; swapon --show | grep -q swapfile || { fallocate -l 2G /swapfile; chmod 600 /swapfile; mkswap /swapfile; swapon /swapfile; }; bash /home/ubuntu/prover/vnb-idle-stop-install 30 >/dev/null 2>&1; echo ready' > /dev/null 2>&1
+  capataz run "$w" --json --user ubuntu "mkdir -p /home/ubuntu/.ssh && chmod 700 /home/ubuntu/.ssh && touch /home/ubuntu/.ssh/authorized_keys && chmod 600 /home/ubuntu/.ssh/authorized_keys && (grep -qF '$PUB' /home/ubuntu/.ssh/authorized_keys || echo '$PUB' >> /home/ubuntu/.ssh/authorized_keys) && echo key-ok" 2>/dev/null | grep -q key-ok || { echo "FAIL pull-key"; return; }
+  capataz push "$w" --yes --rsync --src "$PROVER" --dest "$PROVER" --exclude .git --exclude scratchpad/ --exclude scratch/ --exclude .claude/ --exclude vnb.band --exclude reference/ --exclude core-pages/ --exclude exam-slice/ > /dev/null 2>&1 || { echo "FAIL push"; return; }
+  local have
+  have=$(capataz run "$w" --json --user ubuntu "cd $PROVER && md5sum load.scm certificates.scm" 2>/dev/null | python3 -c 'import json,sys; print(" ".join(l.split()[0] for l in json.load(sys.stdin)["stdout"].splitlines()))' 2>/dev/null)
+  [ "$want" = "$have" ] || { echo "FAIL md5"; return; }
+  if ! capataz run "$w" --json --user ubuntu "test -d $PROVER/reference && echo have-ref" 2>/dev/null | grep -q have-ref; then
+    capataz push "$w" --yes --rsync --src "$PROVER/reference" --dest "$PROVER/reference" > /dev/null 2>&1 || { echo "FAIL push-ref"; return; }
+  fi
+  # the plan, to a fixed path outside the tree (a push of a file lands in a directory of its name)
+  capataz push "$w" --yes --rsync --src "$PLAN" --dest /home/ubuntu/exam-slice-plan > /dev/null 2>&1 || { echo "FAIL push-plan"; return; }
+  local pm; pm=$(md5sum < "$PLAN" | cut -c1-32)
+  capataz run "$w" --json --user ubuntu "md5sum /home/ubuntu/exam-slice-plan/plan.tsv" 2>/dev/null | grep -q "$pm" || { echo "FAIL plan md5"; return; }
+  capataz run "$w" --json --user ubuntu "rm -rf $PROVER/vnb.band $PROVER/vnb.band.new $PROVER/exam-slice" > /dev/null 2>&1 || { echo "FAIL clear-band"; return; }
+  local book=""; [ "$REFK" != 0 ] && [ "$k" = "$REFK" ] && book="VNB_WRITE_BOOK=1"
+  local script="cd $PROVER && VNB_TIME_LOAD=1 VNB_HOST=$w VNB_CERTIFIED=on VNB_EXAM_SLICE=$k/$N VNB_EXAM_SLICE_PLAN=/home/ubuntu/exam-slice-plan/plan.tsv $CORE_ENV $book VNB_BUILD_HEAP=$HEAP ./prover --build-band"
+  local job
+  job=$(capataz run "$w" --detach --json --user ubuntu --job-name band "$script" | python3 -c 'import json,sys; print(json.load(sys.stdin)["job"])' 2>/dev/null)
+  [ -n "$job" ] && echo "JOB $job" || echo "FAIL detach"
+}
+for k in $(seq 1 $N); do slice_up "$k" "${W[$((k-1))]}" > "$RUN/up-$k.txt" 2>&1 & done
+wait
+JOBS=(); FAILED=0
+for k in $(seq 1 $N); do
+  w=${W[$((k-1))]}
+  grep -q '^UP' "$RUN/up-$k.txt" && STARTED[$k]=1
+  j=$(sed -n 's/^JOB //p' "$RUN/up-$k.txt")
+  if [ -n "$j" ]; then JOBS[$k]=$j; say "slice $k/$N on $w: $j"
+  else say "FAIL: slice $k/$N on $w: $(grep FAIL "$RUN/up-$k.txt" | head -1)"; FAILED=1; fi
+done
+[ "$FAILED" = 0 ] || { record failed "slice start"; exit 2; }
+
+# ---- 3. wait for every slice
+deadline=$(( $(date +%s) + 10*3600 ))
+declare -A DONE ROW
+while :; do
+  left=0
+  for k in $(seq 1 $N); do
+    [ -n "${DONE[$k]:-}" ] && continue
+    w=${W[$((k-1))]}
+    out=$("$PROVER/vnb-band" "$w" --wait "${JOBS[$k]}" --timeout 30 2>&1); rc=$?
+    if [ $rc = 124 ]; then left=1; continue; fi
+    DONE[$k]=$rc; ROW[$k]=$(echo "$out" | grep '"job":"build-band"' | tail -1)
+    echo "$out" > "$RUN/slice-$k.out"
+    say "slice $k/$N ended (status $rc): $(python3 -c 'import json,sys; r=json.loads(sys.argv[1]); print("wall %.0f s, gc %.0f s, audit %.0f s, rss %.0f MB, band_replaced %s" % (r.get("wall_s",0), r.get("gc_s",0), r.get("audit_s",0), r.get("max_rss_mb",0), r.get("band_replaced")))' "${ROW[$k]}" 2>/dev/null || echo 'no ledger row')"
+  done
+  [ $left = 0 ] && break
+  [ "$(date +%s)" -ge $deadline ] && { say "FAIL: slices still running at the 10 h cap"; record failed "cap"; exit 1; }
+  sleep 600
+done
+WALL=0; SUMW=0
+for k in $(seq 1 $N); do
+  w=$(python3 -c 'import json,sys; print(int(json.loads(sys.argv[1]).get("wall_s",0)))' "${ROW[$k]}" 2>/dev/null || echo 0)
+  SUMW=$((SUMW + w)); [ "$w" -gt "$WALL" ] && WALL=$w
+  python3 - "$METRICS/runs.jsonl" "${ROW[$k]:-{\}}" "$k" "$N" "$STAMP" "${W[$((k-1))]}" <<'PY'
+import json, sys, datetime
+out, row, k, n, stamp, w = sys.argv[1:7]
+try: r = json.loads(row)
+except Exception: r = {}
+d = {"ts": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "host": w, "job": "exam-slice",
+     "name": "%s/%s" % (k, n), "run": stamp}
+for f in ("instance", "heap", "wall_s", "gc_s", "audit_s", "gates_s", "reference_s", "max_rss_mb", "qed", "theorems", "band_replaced", "outcome"):
+    if f in r: d[f] = r[f]
+open(out, "a").write(json.dumps(d, separators=(",", ":")) + "\n")
+PY
+done
+for k in $(seq 1 $N); do
+  if [ "${DONE[$k]}" != 0 ] || ! echo "${ROW[$k]}" | grep -q '"band_replaced":true'; then
+    w=${W[$((k-1))]}
+    say "FAIL: slice $k/$N on $w did not complete (status ${DONE[$k]})"
+    capataz cat "$w" "/home/ubuntu/.capataz/jobs/${JOBS[$k]}/stderr" --user ubuntu 2>&1 | tail -10 | sed 's/^/  job stderr: /' >> "$LOG"
+    record failed "slice $k/$N"; exit 1
+  fi
+done
+say "all $N slices passed: longest $WALL s, sum $SUMW s"
+fi   # resume
+
+# ---- 4. pull and merge
+pull_slice() { # pull_slice K WORKER PORT [SUBDIR ...]  (default: certificates core-pages exam-slice reference)
+  local k=$1 w=$2 port=$3 d=$RUN/slice-$1 KEY=~/.ssh/vnb-secondary
+  shift 3; local subs="${*:-certificates core-pages exam-slice reference}"
+  mkdir -p "$d"
+  local SSH="ssh -i $KEY -p $port -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=20"
+  local rc=1 x attempt tun i up
+  # 2026-11-14: of four tunnels opened at once, one never came up and the run lost that slice:
+  # stagger, wait up to 60 s for the port, and try the whole pull three times on a fresh tunnel.
+  sleep $(( k * 3 ))
+  for attempt in 1 2 3; do
+    capataz tunnel "$w" 22 --local-port "$port" > /dev/null 2>&1 &
+    tun=$!; up=0
+    for i in $(seq 1 60); do (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null && { up=1; break; }; sleep 1; done
+    rc=0
+    if [ $up = 1 ]; then
+      for x in $subs; do rsync -az --delete -e "$SSH" "ubuntu@127.0.0.1:$PROVER/$x/" "$d/$x/" || rc=$?; done
+    else rc=255; fi
+    pkill -TERM -P $tun 2>/dev/null; kill $tun 2>/dev/null; wait $tun 2>/dev/null
+    [ $rc = 0 ] && return 0
+    echo "$(date -u +%FT%TZ) nightly-exam[$TAG]: pull of slice $k from $w: attempt $attempt failed (rc $rc, tunnel up $up)" >> "$LOG"
+    sleep 10
+  done
+  return $rc
+}
+for k in $(seq 1 $N); do pull_slice "$k" "${W[$((k-1))]}" $((2230 + k)) & done
+wait
+for k in $(seq 1 $N); do
+  [ -f "$RUN/slice-$k/exam-slice/manifest.tsv" ] || { say "FAIL: pull of slice $k (no manifest)"; record failed "pull slice $k"; exit 2; }
+  cp "$RUN/slice-$k/exam-slice/manifest.tsv" "$ES/times/$STAMP-slice-$k.tsv"
+done
+if [ "$COMPARE" = 1 ]; then
+  DEST=$RUN/merged; mkdir -p "$DEST"
+  cp -a "$PROVER/certificates" "$DEST/certificates"; mkdir -p "$DEST/reference"
+else
+  DEST=$PROVER
+fi
+SL=""; for k in $(seq 1 $N); do SL="$SL $RUN/slice-$k"; done
+if ! python3 "$PROVER/exam-slice-merge.py" --dest "$DEST" --reference-from "$REFK" --scripts-out "$RUN/scripts.sexp" $SL > "$RUN/merge.out" 2>&1; then
+  say "FAIL: merge: $(tail -1 "$RUN/merge.out")"; record failed "merge"; exit 1
+fi
+sed 's/^/    /' "$RUN/merge.out" | tee -a "$LOG"
+CORE=$(cat "$DEST/core-pages/SUMMARY.txt" 2>/dev/null)
+
+# ---- 5. strict certified build of the merged store, then the suite, on worker 1
+W1=${W[0]}
+# capataz push has no --delete: the worker's store is removed first, so a certificate file the
+# merge deleted cannot survive there; the md5 of the whole set is compared after.
+capataz run "$W1" --json --user ubuntu "rm -rf $PROVER/vnb.band $PROVER/vnb.band.new $PROVER/certificates" > /dev/null 2>&1
+capataz push "$W1" --yes --rsync --src "$DEST/certificates" --dest "$PROVER/certificates" > /dev/null 2>&1 \
+  || { say "FAIL: push of the merged certificates to $W1"; record failed "push-merged"; exit 2; }
+wm=$(cd "$DEST" && find certificates -name '*.cert' | sort | xargs md5sum | md5sum | cut -c1-32)
+hm=$(capataz run "$W1" --json --user ubuntu "cd $PROVER && find certificates -name '*.cert' | sort | xargs md5sum | md5sum" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["stdout"][:32])' 2>/dev/null)
+[ "$wm" = "$hm" ] || { say "FAIL: merged certificates on $W1 do not match ($wm / $hm)"; record failed "md5-merged"; exit 2; }
+# the slices' scripts of the major theorems, lent to the major-theorems writer of this build
+capataz push "$W1" --yes --rsync --src "$RUN/scripts.sexp" --dest /home/ubuntu/exam-slice-scripts > /dev/null 2>&1 \
+  || { say "FAIL: push of the merged scripts to $W1"; record failed "push-scripts"; exit 2; }
+SJOB=$(capataz run "$W1" --detach --json --user ubuntu --job-name band "cd $PROVER && VNB_TIME_LOAD=1 VNB_HOST=$W1 VNB_CERTIFIED=strict VNB_WRITE_BOOK=1 VNB_EXAM_SLICE_SCRIPTS=/home/ubuntu/exam-slice-scripts/scripts.sexp ./prover --build-band" | python3 -c 'import json,sys; print(json.load(sys.stdin)["job"])' 2>/dev/null)
+[ -n "$SJOB" ] || { say "FAIL: strict build did not start"; record failed "strict-start"; exit 2; }
+deadline=$(( $(date +%s) + 45*60 )); rc=124
+while [ $rc = 124 ] && [ "$(date +%s)" -lt $deadline ]; do cout=$("$PROVER/vnb-band" "$W1" --wait "$SJOB" --timeout 600 2>&1); rc=$?; done
+if [ $rc != 0 ] || ! echo "$cout" | grep -q '"band_replaced":true'; then
+  say "FAIL: STRICT build of the merged certificates (status $rc): a theorem is not covered"; echo "$cout" | grep -E 'strict|uncovered|NOT covered|;;   ' | head -20 >> "$LOG"
+  record failed "strict rc=$rc"; exit 1
+fi
+say "strict build of the merged store: every theorem installed from its certificate ($SJOB)"
+# reference/ comes from THIS build (the whole library in one image, the book written, the
+# major theorems' scripts lent) unless --reference-from K named a slice; core-pages/ on
+# W1 are slice 1's only and are NOT pulled (vnb-band-pull without --band-only would).
+if [ "$REFK" = 0 ]; then
+  pull_slice 0 "$W1" 2230 reference && rsync -a --delete "$RUN/slice-0/reference/" "$DEST/reference/" \
+    || { say "FAIL: pull of reference/ from the strict build"; record failed "pull-ref"; exit 2; }
+  say "reference/ from the strict build"
+fi
+SJ=$("$PROVER/vnb-suite" "$W1" --band --detach 2>&1 | sed -n 's/.*\(job-[^ ]*\).*/\1/p' | head -1)
+[ -n "$SJ" ] || { say "FAIL: suite did not start"; record failed "suite-start"; exit 2; }
+deadline=$(( $(date +%s) + 40*60 )); rc=124
+while [ $rc = 124 ] && [ "$(date +%s)" -lt $deadline ]; do sout=$("$PROVER/vnb-suite" "$W1" --wait "$SJ" --timeout 600 2>&1); rc=$?; done
+sline=$(echo "$sout" | grep -o '=== SUMMARY: [0-9]* passed, [0-9]* failed ===' | tail -1)
+if [ -z "$sline" ] || ! echo "$sline" | grep -q ' 0 failed'; then
+  say "FAIL: suite ${sline:-printed no SUMMARY}"; echo "$sout" | grep -E 'FAIL|SUMMARY' | tail -20 >> "$LOG"; record failed "suite: ${sline:-no summary}"; exit 1
+fi
+say "suite $sline"
+summary="sliced $N: longest slice $WALL s, sum $SUMW s; $(grep -m1 'proof files' "$RUN/merge.out" | sed 's/^exam-slice-merge: //')"
+
+# ---- 6. production: the band and the books
+if [ "$COMPARE" = 0 ]; then
+  if "$PROVER/vnb-band-pull" "$W1" --band-only >> "$LOG" 2>&1; then say "pulled the strict certified band from $W1"
+  else say "FAIL: vnb-band-pull (rerun: vnb-band-pull $W1 --band-only)"; record failed "pull"; exit 2; fi
+  (cd "$PROVER/docs" && timeout 1800 nice make library-book > /dev/null 2>&1) && say "typeset docs/library-book.pdf" || say "WARN: make library-book failed"
+  (cd "$PROVER/docs" && timeout 1800 nice make major-theorems > /dev/null 2>&1) && say "typeset docs/major-theorems.pdf" || say "WARN: make major-theorems failed"
+fi
+stop_workers
+record passed "$summary; $sline"
+say "done$([ "$COMPARE" = 1 ] && echo " (compare: merged products in $DEST)")"
+exit 0

@@ -804,14 +804,14 @@
 \subsubsection*{\texttt{mat-ring-add}}
 \emph{for every a, n, if a is a ring, then if n is in nn, then add(mat-ring(a, n)) equals vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q))}
 {\small\[
-\forall a, n.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow (\operatorname{add}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda [p, q] \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matadd}(a, p, q)))))
+\forall a, n.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow (\operatorname{add}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda {[}p, q] \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matadd}(a, p, q)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{mat-ring-mul}}
 \emph{for every a, n, if a is a ring, then if n is in nn, then mul(mat-ring(a, n)) equals vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q))}
 {\small\[
-\forall a, n.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow (\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda [p, q] \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matmul}(a, p, q)))))
+\forall a, n.\; (\operatorname{is\text{-}ring}(a) \Rightarrow ((n \in \mathbb{N}) \Rightarrow (\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda {[}p, q] \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matmul}(a, p, q)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
@@ -839,14 +839,14 @@
 \subsubsection*{\texttt{mat-ring-add-fun}}
 \emph{for every ring a, for every n in nn, vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)) is in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; ((\lambda [p, q] \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matadd}(a, p, q)) \in ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a)))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; ((\lambda {[}p, q] \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matadd}(a, p, q)) \in ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{mat-ring-mul-fun}}
 \emph{for every ring a, for every n in nn, vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q)) is in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; ((\lambda [p, q] \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matmul}(a, p, q)) \in ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a)))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; ((\lambda {[}p, q] \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matmul}(a, p, q)) \in ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
@@ -1231,14 +1231,14 @@
 \subsubsection*{\texttt{matact-triple-left}}
 \emph{for every module md, for every m, n, k, l, p, q, u, row, col, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if 1 is at most n, then if 1 is at most k, then if row is in interval(1, m), then if col is in interval(1, l), then entry(matact(md, matmul(scal(md), p, q), u), row, col) equals finsum(module-vector-ag(md), vnb-lambda(c, interval(1, k), finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, n))), interval(1, k))}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, k, l.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md})), \mathit{row}, \mathit{col}.\; ((1 \leq n) \Rightarrow ((1 \leq k) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{matmul}(\operatorname{scal}(\mathit{md}), p, q), u), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c \in \operatorname{interval}(1, k).\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; (\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))([c, j])), \operatorname{interval}(1, n))), \operatorname{interval}(1, k))))))))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, k, l.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md})), \mathit{row}, \mathit{col}.\; ((1 \leq n) \Rightarrow ((1 \leq k) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{matmul}(\operatorname{scal}(\mathit{md}), p, q), u), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c \in \operatorname{interval}(1, k).\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; (\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))({[}c, j])), \operatorname{interval}(1, n))), \operatorname{interval}(1, k))))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{matact-triple-right}}
 \emph{for every module md, for every m, n, k, l, p, q, u, row, col, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if 1 is at most n, then if 1 is at most k, then if row is in interval(1, m), then if col is in interval(1, l), then entry(matact(md, p, matact(md, q, u)), row, col) equals finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), finsum(module-vector-ag(md), vnb-lambda(c, interval(1, k), (vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, k))), interval(1, n))}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, k, l.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md})), \mathit{row}, \mathit{col}.\; ((1 \leq n) \Rightarrow ((1 \leq k) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, \operatorname{matact}(\mathit{md}, q, u)), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c \in \operatorname{interval}(1, k).\; (\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))([c, j])), \operatorname{interval}(1, k))), \operatorname{interval}(1, n))))))))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m, n, k, l.; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md}))), u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md})), \mathit{row}, \mathit{col}.\; ((1 \leq n) \Rightarrow ((1 \leq k) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, \operatorname{matact}(\mathit{md}, q, u)), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c \in \operatorname{interval}(1, k).\; (\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))({[}c, j])), \operatorname{interval}(1, k))), \operatorname{interval}(1, n))))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
@@ -1383,7 +1383,7 @@
 \subsubsection*{\texttt{dc-on-nn}}
 \emph{for every x in set, a in x, r in set, if for every k in nn, u in x, there is some y in x such that [k, u, y] is in r, then there is some f in fun(nn, x) such that f(0) equals a and for every k in nn, [k, f(k), f(succ(k))] is in r}
 {\small\[
-\forall x \in \mathbf{Set}, a \in x, r \in \mathbf{Set}.\; (\forall k \in \mathbb{N}, u \in x.\; \exists y \in x.\; ([k, u, y] \in r) \Rightarrow \exists f \in (\mathbb{N} \to x).\; ((f(0) = a) \wedge \forall k \in \mathbb{N}.\; ([k, f(k), f((k + 1))] \in r)))
+\forall x \in \mathbf{Set}, a \in x, r \in \mathbf{Set}.\; (\forall k \in \mathbb{N}, u \in x.\; \exists y \in x.\; ({[}k, u, y] \in r) \Rightarrow \exists f \in (\mathbb{N} \to x).\; ((f(0) = a) \wedge \forall k \in \mathbb{N}.\; ({[}k, f(k), f((k + 1))] \in r)))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
@@ -1757,7 +1757,7 @@
 \subsubsection*{\texttt{is-subterm-closed}}
 \emph{for every smt\_, smk\_, smr\_, smr\_ is closed under the subterm clauses over the tokens smt\_ and the keys smk\_ if and only if for every sma\_ in msg-set(smt\_, smk\_), [sma\_, sma\_] is in smr\_ and for every sma\_, sml\_, smi\_, if sml\_ is in tuples(msg-set(smt\_, smk\_)), then if smi\_ is in nn, then if 1 is at most smi\_, then if smi\_ is at most length(sml\_), then if [sma\_, nth(smi\_, sml\_)] is in smr\_, then [sma\_, lst(sml\_)] is in smr\_ and for every sma\_, smg\_, smy\_, if smg\_ is in msg-set(smt\_, smk\_), then if smy\_ is in smk\_, then if [sma\_, smg\_] is in smr\_, then [sma\_, encr(smg\_, smy\_)] is in smr\_}
 {\small\[
-\forall \operatorname{smt\_}, \operatorname{smk\_}, \operatorname{smr\_}.\; (\operatorname{is\text{-}subterm\text{-}closed}(\operatorname{smt\_}, \operatorname{smk\_}, \operatorname{smr\_}) \Leftrightarrow (\forall \operatorname{sma\_} \in \operatorname{msg\text{-}set}(\operatorname{smt\_}, \operatorname{smk\_}).\; ([\operatorname{sma\_}, \operatorname{sma\_}] \in \operatorname{smr\_}) \wedge (\forall \operatorname{sma\_}.; \forall \operatorname{sml\_} \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{smt\_}, \operatorname{smk\_})), \operatorname{smi\_} \in \mathbb{N}.\; ((1 \leq \operatorname{smi\_}) \Rightarrow ((\operatorname{smi\_} \leq \operatorname{length}(\operatorname{sml\_})) \Rightarrow (([\operatorname{sma\_}, \operatorname{nth}(\operatorname{smi\_}, \operatorname{sml\_})] \in \operatorname{smr\_}) \Rightarrow ([\operatorname{sma\_}, \operatorname{lst}(\operatorname{sml\_})] \in \operatorname{smr\_})))) \wedge \forall \operatorname{sma\_}.; \forall \operatorname{smg\_} \in \operatorname{msg\text{-}set}(\operatorname{smt\_}, \operatorname{smk\_}), \operatorname{smy\_} \in \operatorname{smk\_}.\; (([\operatorname{sma\_}, \operatorname{smg\_}] \in \operatorname{smr\_}) \Rightarrow ([\operatorname{sma\_}, \operatorname{encr}(\operatorname{smg\_}, \operatorname{smy\_})] \in \operatorname{smr\_})))))
+\forall \operatorname{smt\_}, \operatorname{smk\_}, \operatorname{smr\_}.\; (\operatorname{is\text{-}subterm\text{-}closed}(\operatorname{smt\_}, \operatorname{smk\_}, \operatorname{smr\_}) \Leftrightarrow (\forall \operatorname{sma\_} \in \operatorname{msg\text{-}set}(\operatorname{smt\_}, \operatorname{smk\_}).\; ({[}\operatorname{sma\_}, \operatorname{sma\_}] \in \operatorname{smr\_}) \wedge (\forall \operatorname{sma\_}.; \forall \operatorname{sml\_} \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{smt\_}, \operatorname{smk\_})), \operatorname{smi\_} \in \mathbb{N}.\; ((1 \leq \operatorname{smi\_}) \Rightarrow ((\operatorname{smi\_} \leq \operatorname{length}(\operatorname{sml\_})) \Rightarrow (({[}\operatorname{sma\_}, \operatorname{nth}(\operatorname{smi\_}, \operatorname{sml\_})] \in \operatorname{smr\_}) \Rightarrow ({[}\operatorname{sma\_}, \operatorname{lst}(\operatorname{sml\_})] \in \operatorname{smr\_})))) \wedge \forall \operatorname{sma\_}.; \forall \operatorname{smg\_} \in \operatorname{msg\text{-}set}(\operatorname{smt\_}, \operatorname{smk\_}), \operatorname{smy\_} \in \operatorname{smk\_}.\; (({[}\operatorname{sma\_}, \operatorname{smg\_}] \in \operatorname{smr\_}) \Rightarrow ({[}\operatorname{sma\_}, \operatorname{encr}(\operatorname{smg\_}, \operatorname{smy\_})] \in \operatorname{smr\_})))))
 \]}
 \noindent\textbf{Definition.}
 
@@ -1767,7 +1767,7 @@
 \subsubsection*{\texttt{is-subterm}}
 \emph{for every smt\_, smk\_, sma\_, smb\_, sma\_ is a subterm of smb\_ over the tokens smt\_ and the keys smk\_ if and only if [sma\_, smb\_] is in subterm-rel(smt\_, smk\_)}
 {\small\[
-\forall \operatorname{smt\_}, \operatorname{smk\_}, \operatorname{sma\_}, \operatorname{smb\_}.\; (\operatorname{is\text{-}subterm}(\operatorname{smt\_}, \operatorname{smk\_}, \operatorname{sma\_}, \operatorname{smb\_}) \Leftrightarrow ([\operatorname{sma\_}, \operatorname{smb\_}] \in \operatorname{subterm\text{-}rel}(\operatorname{smt\_}, \operatorname{smk\_})))
+\forall \operatorname{smt\_}, \operatorname{smk\_}, \operatorname{sma\_}, \operatorname{smb\_}.\; (\operatorname{is\text{-}subterm}(\operatorname{smt\_}, \operatorname{smk\_}, \operatorname{sma\_}, \operatorname{smb\_}) \Leftrightarrow ({[}\operatorname{sma\_}, \operatorname{smb\_}] \in \operatorname{subterm\text{-}rel}(\operatorname{smt\_}, \operatorname{smk\_})))
 \]}
 \noindent\textbf{Definition.}
 
@@ -1882,7 +1882,7 @@
 \subsubsection*{\texttt{is-prec-closed}}
 \emph{for every spc\_, snd\_, ssd\_, srl\_, srl\_ contains ssd\_ and the strand order of spc\_ on snd\_, and is transitive if and only if for every ssx\_, ssy\_, if [ssx\_, ssy\_] is in ssd\_, then [ssx\_, ssy\_] is in srl\_ and for every ssx\_ in snd\_, ssy\_ in snd\_, if ssx\_ comes strictly before ssy\_ on one strand of spc\_, then [ssx\_, ssy\_] is in srl\_ and for every ssx\_, ssy\_, ssz\_, if [ssx\_, ssy\_] is in srl\_, then if [ssy\_, ssz\_] is in srl\_, then [ssx\_, ssz\_] is in srl\_}
 {\small\[
-\forall \operatorname{spc\_}, \operatorname{snd\_}, \operatorname{ssd\_}, \operatorname{srl\_}.\; (\operatorname{is\text{-}prec\text{-}closed}(\operatorname{spc\_}, \operatorname{snd\_}, \operatorname{ssd\_}, \operatorname{srl\_}) \Leftrightarrow (\forall \operatorname{ssx\_}, \operatorname{ssy\_}.\; (([\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{ssd\_}) \Rightarrow ([\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{srl\_})) \wedge (\forall \operatorname{ssx\_}, \operatorname{ssy\_} \in \operatorname{snd\_}.\; (\operatorname{same\text{-}strand\text{-}before}(\operatorname{spc\_}, \operatorname{ssx\_}, \operatorname{ssy\_}) \Rightarrow ([\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{srl\_})) \wedge \forall \operatorname{ssx\_}, \operatorname{ssy\_}, \operatorname{ssz\_}.\; (([\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{srl\_}) \Rightarrow (([\operatorname{ssy\_}, \operatorname{ssz\_}] \in \operatorname{srl\_}) \Rightarrow ([\operatorname{ssx\_}, \operatorname{ssz\_}] \in \operatorname{srl\_}))))))
+\forall \operatorname{spc\_}, \operatorname{snd\_}, \operatorname{ssd\_}, \operatorname{srl\_}.\; (\operatorname{is\text{-}prec\text{-}closed}(\operatorname{spc\_}, \operatorname{snd\_}, \operatorname{ssd\_}, \operatorname{srl\_}) \Leftrightarrow (\forall \operatorname{ssx\_}, \operatorname{ssy\_}.\; (({[}\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{ssd\_}) \Rightarrow ({[}\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{srl\_})) \wedge (\forall \operatorname{ssx\_}, \operatorname{ssy\_} \in \operatorname{snd\_}.\; (\operatorname{same\text{-}strand\text{-}before}(\operatorname{spc\_}, \operatorname{ssx\_}, \operatorname{ssy\_}) \Rightarrow ({[}\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{srl\_})) \wedge \forall \operatorname{ssx\_}, \operatorname{ssy\_}, \operatorname{ssz\_}.\; (({[}\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{srl\_}) \Rightarrow (({[}\operatorname{ssy\_}, \operatorname{ssz\_}] \in \operatorname{srl\_}) \Rightarrow ({[}\operatorname{ssx\_}, \operatorname{ssz\_}] \in \operatorname{srl\_}))))))
 \]}
 \noindent\textbf{Definition.}
 
@@ -1892,7 +1892,7 @@
 \subsubsection*{\texttt{is-bundle}}
 \emph{for every s, s is a bundle if and only if length(s) equals 3 and bspace(s) is a strand space and bnodes(s) is in set and bsend(s) is in power(cartesian(bnodes(s), bnodes(s))) and for every ssx\_ in bnodes(s), ssx\_ is in nodes(bspace(s)) and card(bnodes(s)) is in nn and for every ssx\_, ssy\_, if [ssx\_, ssy\_] is in bsend(s), then the node ssx\_ of bspace(s) sends to the node ssy\_ and for every ssy\_ in bnodes(s), if the node ssy\_ of bspace(s) is received, then there is some ssx\_ such that [ssx\_, ssy\_] is in bsend(s) and for every ssz\_, if [ssz\_, ssy\_] is in bsend(s), then ssz\_ equals ssx\_ and for every ssy\_ in bnodes(s), ssx\_, if ssx\_ comes strictly before ssy\_ on one strand of bspace(s), then ssx\_ is in bnodes(s) and for every ssx\_, [ssx\_, ssx\_] is not in prec-strict(bspace(s), bnodes(s), bsend(s)) and s is in set}
 {\small\[
-\forall s.\; (\operatorname{is\text{-}bundle}(s) \Leftrightarrow ((\operatorname{length}(s) = 3) \wedge (\operatorname{is\text{-}strand\text{-}space}(\operatorname{bspace}(s)) \wedge ((\operatorname{bnodes}(s) \in \mathbf{Set}) \wedge ((\operatorname{bsend}(s) \in \operatorname{power}((\operatorname{bnodes}(s) \times \operatorname{bnodes}(s)))) \wedge (\forall \operatorname{ssx\_} \in \operatorname{bnodes}(s).\; (\operatorname{ssx\_} \in \operatorname{nodes}(\operatorname{bspace}(s))) \wedge ((|\operatorname{bnodes}(s)| \in \mathbb{N}) \wedge (\forall \operatorname{ssx\_}, \operatorname{ssy\_}.\; (([\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{bsend}(s)) \Rightarrow \operatorname{sends\text{-}to}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_})) \wedge (\forall \operatorname{ssy\_} \in \operatorname{bnodes}(s).\; (\operatorname{is\text{-}received}(\operatorname{bspace}(s), \operatorname{ssy\_}) \Rightarrow \exists \operatorname{ssx\_}.\; (([\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{bsend}(s)) \wedge \forall \operatorname{ssz\_}.\; (([\operatorname{ssz\_}, \operatorname{ssy\_}] \in \operatorname{bsend}(s)) \Rightarrow (\operatorname{ssz\_} = \operatorname{ssx\_})))) \wedge (\forall \operatorname{ssy\_} \in \operatorname{bnodes}(s), \operatorname{ssx\_}.\; (\operatorname{same\text{-}strand\text{-}before}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_}) \Rightarrow (\operatorname{ssx\_} \in \operatorname{bnodes}(s))) \wedge (\forall \operatorname{ssx\_}.\; \neg ([\operatorname{ssx\_}, \operatorname{ssx\_}] \in \operatorname{prec\text{-}strict}(\operatorname{bspace}(s), \operatorname{bnodes}(s), \operatorname{bsend}(s))) \wedge (s \in \mathbf{Set}))))))))))))
+\forall s.\; (\operatorname{is\text{-}bundle}(s) \Leftrightarrow ((\operatorname{length}(s) = 3) \wedge (\operatorname{is\text{-}strand\text{-}space}(\operatorname{bspace}(s)) \wedge ((\operatorname{bnodes}(s) \in \mathbf{Set}) \wedge ((\operatorname{bsend}(s) \in \operatorname{power}((\operatorname{bnodes}(s) \times \operatorname{bnodes}(s)))) \wedge (\forall \operatorname{ssx\_} \in \operatorname{bnodes}(s).\; (\operatorname{ssx\_} \in \operatorname{nodes}(\operatorname{bspace}(s))) \wedge ((|\operatorname{bnodes}(s)| \in \mathbb{N}) \wedge (\forall \operatorname{ssx\_}, \operatorname{ssy\_}.\; (({[}\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{bsend}(s)) \Rightarrow \operatorname{sends\text{-}to}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_})) \wedge (\forall \operatorname{ssy\_} \in \operatorname{bnodes}(s).\; (\operatorname{is\text{-}received}(\operatorname{bspace}(s), \operatorname{ssy\_}) \Rightarrow \exists \operatorname{ssx\_}.\; (({[}\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{bsend}(s)) \wedge \forall \operatorname{ssz\_}.\; (({[}\operatorname{ssz\_}, \operatorname{ssy\_}] \in \operatorname{bsend}(s)) \Rightarrow (\operatorname{ssz\_} = \operatorname{ssx\_})))) \wedge (\forall \operatorname{ssy\_} \in \operatorname{bnodes}(s), \operatorname{ssx\_}.\; (\operatorname{same\text{-}strand\text{-}before}(\operatorname{bspace}(s), \operatorname{ssx\_}, \operatorname{ssy\_}) \Rightarrow (\operatorname{ssx\_} \in \operatorname{bnodes}(s))) \wedge (\forall \operatorname{ssx\_}.\; \neg ({[}\operatorname{ssx\_}, \operatorname{ssx\_}] \in \operatorname{prec\text{-}strict}(\operatorname{bspace}(s), \operatorname{bnodes}(s), \operatorname{bsend}(s))) \wedge (s \in \mathbf{Set}))))))))))))
 \]}
 \noindent\textbf{Definition.}
 
@@ -1907,49 +1907,49 @@
 \subsubsection*{\texttt{is-text-trace}}
 \emph{for every sasp\_, sap\_, sas\_, sas\_ is a text trace of the adversary knowing sap\_ in the strand space sasp\_ if and only if there is some saa\_ in sap\_ such that sas\_ equals [[sent, saa\_]]}
 {\small\[
-\forall \operatorname{sasp\_}, \operatorname{sap\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}text\text{-}trace}(\operatorname{sasp\_}, \operatorname{sap\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{saa\_} \in \operatorname{sap\_}.\; (\operatorname{sas\_} = [[\mathit{sent}, \operatorname{saa\_}]]))
+\forall \operatorname{sasp\_}, \operatorname{sap\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}text\text{-}trace}(\operatorname{sasp\_}, \operatorname{sap\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{saa\_} \in \operatorname{sap\_}.\; (\operatorname{sas\_} = {[}{[}\mathit{sent}, \operatorname{saa\_}]]))
 \]}
 \noindent\textbf{Definition.}
 
 \subsubsection*{\texttt{is-flush-trace}}
 \emph{for every sasp\_, sas\_, sas\_ is a flushing trace in the strand space sasp\_ if and only if there is some sag\_ in msg-set(tokens(sasp\_), keys(sasp\_)) such that sas\_ equals [[received, sag\_]]}
 {\small\[
-\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}flush\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sag\_} \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_})).\; (\operatorname{sas\_} = [[\mathit{received}, \operatorname{sag\_}]]))
+\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}flush\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sag\_} \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_})).\; (\operatorname{sas\_} = {[}{[}\mathit{received}, \operatorname{sag\_}]]))
 \]}
 \noindent\textbf{Definition.}
 
 \subsubsection*{\texttt{is-tee-trace}}
 \emph{for every sasp\_, sas\_, sas\_ is a tee trace in the strand space sasp\_ if and only if there is some sag\_ in msg-set(tokens(sasp\_), keys(sasp\_)) such that sas\_ equals [[received, sag\_], [sent, sag\_], [sent, sag\_]]}
 {\small\[
-\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}tee\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sag\_} \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_})).\; (\operatorname{sas\_} = [[\mathit{received}, \operatorname{sag\_}], [\mathit{sent}, \operatorname{sag\_}], [\mathit{sent}, \operatorname{sag\_}]]))
+\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}tee\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sag\_} \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_})).\; (\operatorname{sas\_} = {[}{[}\mathit{received}, \operatorname{sag\_}], {[}\mathit{sent}, \operatorname{sag\_}], {[}\mathit{sent}, \operatorname{sag\_}]]))
 \]}
 \noindent\textbf{Definition.}
 
 \subsubsection*{\texttt{is-concat-trace}}
 \emph{for every sasp\_, sas\_, sas\_ is a concatenation trace in the strand space sasp\_ if and only if there is some sal\_ in tuples(msg-set(tokens(sasp\_), keys(sasp\_))) such that length(sas\_) equals succ(length(sal\_)) and for every sai\_ in nn, if 1 is at most sai\_, then if sai\_ is at most length(sal\_), then nth(sai\_, sas\_) equals [received, nth(sai\_, sal\_)] and nth(succ(length(sal\_)), sas\_) equals [sent, lst(sal\_)]}
 {\small\[
-\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}concat\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sal\_} \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_}))).\; ((\operatorname{length}(\operatorname{sas\_}) = (\operatorname{length}(\operatorname{sal\_}) + 1)) \wedge (\forall \operatorname{sai\_} \in \mathbb{N}.\; ((1 \leq \operatorname{sai\_}) \Rightarrow ((\operatorname{sai\_} \leq \operatorname{length}(\operatorname{sal\_})) \Rightarrow (\operatorname{nth}(\operatorname{sai\_}, \operatorname{sas\_}) = [\mathit{received}, \operatorname{nth}(\operatorname{sai\_}, \operatorname{sal\_})]))) \wedge (\operatorname{nth}((\operatorname{length}(\operatorname{sal\_}) + 1), \operatorname{sas\_}) = [\mathit{sent}, \operatorname{lst}(\operatorname{sal\_})]))))
+\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}concat\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sal\_} \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_}))).\; ((\operatorname{length}(\operatorname{sas\_}) = (\operatorname{length}(\operatorname{sal\_}) + 1)) \wedge (\forall \operatorname{sai\_} \in \mathbb{N}.\; ((1 \leq \operatorname{sai\_}) \Rightarrow ((\operatorname{sai\_} \leq \operatorname{length}(\operatorname{sal\_})) \Rightarrow (\operatorname{nth}(\operatorname{sai\_}, \operatorname{sas\_}) = {[}\mathit{received}, \operatorname{nth}(\operatorname{sai\_}, \operatorname{sal\_})]))) \wedge (\operatorname{nth}((\operatorname{length}(\operatorname{sal\_}) + 1), \operatorname{sas\_}) = {[}\mathit{sent}, \operatorname{lst}(\operatorname{sal\_})]))))
 \]}
 \noindent\textbf{Definition.}
 
 \subsubsection*{\texttt{is-separate-trace}}
 \emph{for every sasp\_, sas\_, sas\_ is a separation trace in the strand space sasp\_ if and only if there is some sal\_ in tuples(msg-set(tokens(sasp\_), keys(sasp\_))) such that length(sas\_) equals succ(length(sal\_)) and nth(1, sas\_) equals [received, lst(sal\_)] and for every sai\_ in nn, if 1 is at most sai\_, then if sai\_ is at most length(sal\_), then nth(succ(sai\_), sas\_) equals [sent, nth(sai\_, sal\_)]}
 {\small\[
-\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}separate\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sal\_} \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_}))).\; ((\operatorname{length}(\operatorname{sas\_}) = (\operatorname{length}(\operatorname{sal\_}) + 1)) \wedge ((\operatorname{nth}(1, \operatorname{sas\_}) = [\mathit{received}, \operatorname{lst}(\operatorname{sal\_})]) \wedge \forall \operatorname{sai\_} \in \mathbb{N}.\; ((1 \leq \operatorname{sai\_}) \Rightarrow ((\operatorname{sai\_} \leq \operatorname{length}(\operatorname{sal\_})) \Rightarrow (\operatorname{nth}((\operatorname{sai\_} + 1), \operatorname{sas\_}) = [\mathit{sent}, \operatorname{nth}(\operatorname{sai\_}, \operatorname{sal\_})]))))))
+\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}separate\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sal\_} \in \operatorname{tuples}(\operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_}))).\; ((\operatorname{length}(\operatorname{sas\_}) = (\operatorname{length}(\operatorname{sal\_}) + 1)) \wedge ((\operatorname{nth}(1, \operatorname{sas\_}) = {[}\mathit{received}, \operatorname{lst}(\operatorname{sal\_})]) \wedge \forall \operatorname{sai\_} \in \mathbb{N}.\; ((1 \leq \operatorname{sai\_}) \Rightarrow ((\operatorname{sai\_} \leq \operatorname{length}(\operatorname{sal\_})) \Rightarrow (\operatorname{nth}((\operatorname{sai\_} + 1), \operatorname{sas\_}) = {[}\mathit{sent}, \operatorname{nth}(\operatorname{sai\_}, \operatorname{sal\_})]))))))
 \]}
 \noindent\textbf{Definition.}
 
 \subsubsection*{\texttt{is-encrypt-trace}}
 \emph{for every sasp\_, sas\_, sas\_ is an encryption trace in the strand space sasp\_ if and only if there is some sak\_ in keys(sasp\_), sag\_ in msg-set(tokens(sasp\_), keys(sasp\_)) such that sas\_ equals [[received, sak\_], [received, sag\_], [sent, encr(sag\_, sak\_)]]}
 {\small\[
-\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}encrypt\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sak\_} \in \operatorname{keys}(\operatorname{sasp\_}), \operatorname{sag\_} \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_})).\; (\operatorname{sas\_} = [[\mathit{received}, \operatorname{sak\_}], [\mathit{received}, \operatorname{sag\_}], [\mathit{sent}, \operatorname{encr}(\operatorname{sag\_}, \operatorname{sak\_})]]))
+\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}encrypt\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sak\_} \in \operatorname{keys}(\operatorname{sasp\_}), \operatorname{sag\_} \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_})).\; (\operatorname{sas\_} = {[}{[}\mathit{received}, \operatorname{sak\_}], {[}\mathit{received}, \operatorname{sag\_}], {[}\mathit{sent}, \operatorname{encr}(\operatorname{sag\_}, \operatorname{sak\_})]]))
 \]}
 \noindent\textbf{Definition.}
 
 \subsubsection*{\texttt{is-decrypt-trace}}
 \emph{for every sasp\_, sas\_, sas\_ is a decryption trace in the strand space sasp\_ if and only if there is some sak\_ in keys(sasp\_), sag\_ in msg-set(tokens(sasp\_), keys(sasp\_)) such that sas\_ equals [[received, (kinv(sasp\_))(sak\_)], [received, encr(sag\_, sak\_)], [sent, sag\_]]}
 {\small\[
-\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}decrypt\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sak\_} \in \operatorname{keys}(\operatorname{sasp\_}), \operatorname{sag\_} \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_})).\; (\operatorname{sas\_} = [[\mathit{received}, \operatorname{kinv}(\operatorname{sasp\_})(\operatorname{sak\_})], [\mathit{received}, \operatorname{encr}(\operatorname{sag\_}, \operatorname{sak\_})], [\mathit{sent}, \operatorname{sag\_}]]))
+\forall \operatorname{sasp\_}, \operatorname{sas\_}.\; (\operatorname{is\text{-}decrypt\text{-}trace}(\operatorname{sasp\_}, \operatorname{sas\_}) \Leftrightarrow \exists \operatorname{sak\_} \in \operatorname{keys}(\operatorname{sasp\_}), \operatorname{sag\_} \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\operatorname{sasp\_}), \operatorname{keys}(\operatorname{sasp\_})).\; (\operatorname{sas\_} = {[}{[}\mathit{received}, \operatorname{kinv}(\operatorname{sasp\_})(\operatorname{sak\_})], {[}\mathit{received}, \operatorname{encr}(\operatorname{sag\_}, \operatorname{sak\_})], {[}\mathit{sent}, \operatorname{sag\_}]]))
 \]}
 \noindent\textbf{Definition.}
 
@@ -2079,7 +2079,7 @@
 \subsubsection*{\texttt{subterm-least}}
 \emph{for every t, k, r in power(cartesian(msg-set(t, k), msg-set(t, k))), if r is closed under the subterm clauses over the tokens t and the keys k, then for every a, b, if a is a subterm of b over the tokens t and the keys k, then [a, b] is in r}
 {\small\[
-\forall t, k.; \forall r \in \operatorname{power}((\operatorname{msg\text{-}set}(t, k) \times \operatorname{msg\text{-}set}(t, k))).\; (\operatorname{is\text{-}subterm\text{-}closed}(t, k, r) \Rightarrow \forall a, b.\; (\operatorname{is\text{-}subterm}(t, k, a, b) \Rightarrow ([a, b] \in r)))
+\forall t, k.; \forall r \in \operatorname{power}((\operatorname{msg\text{-}set}(t, k) \times \operatorname{msg\text{-}set}(t, k))).\; (\operatorname{is\text{-}subterm\text{-}closed}(t, k, r) \Rightarrow \forall a, b.\; (\operatorname{is\text{-}subterm}(t, k, a, b) \Rightarrow ({[}a, b] \in r)))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
@@ -2179,14 +2179,14 @@
 \subsubsection*{\texttt{node-intro}}
 \emph{for every spa, k, a, if k is in nn, then if a is in ids(spa), then if 1 is at most k, then if k is at most length((strand-map(spa))(a)), then [k, a] is in nodes(spa)}
 {\small\[
-\forall \mathit{spa}.; \forall k \in \mathbb{N}, a \in \operatorname{ids}(\mathit{spa}).\; ((1 \leq k) \Rightarrow ((k \leq \operatorname{length}(\operatorname{strand\text{-}map}(\mathit{spa})(a))) \Rightarrow ([k, a] \in \operatorname{nodes}(\mathit{spa}))))
+\forall \mathit{spa}.; \forall k \in \mathbb{N}, a \in \operatorname{ids}(\mathit{spa}).\; ((1 \leq k) \Rightarrow ((k \leq \operatorname{length}(\operatorname{strand\text{-}map}(\mathit{spa})(a))) \Rightarrow ({[}k, a] \in \operatorname{nodes}(\mathit{spa}))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{node-parts}}
 \emph{for every spa, n in nodes(spa), nth(1, n) is in nn and nth(2, n) is in ids(spa) and 1 is at most nth(1, n) and nth(1, n) is at most length((strand-map(spa))(nth(2, n))) and n equals [nth(1, n), nth(2, n)]}
 {\small\[
-\forall \mathit{spa}.; \forall n \in \operatorname{nodes}(\mathit{spa}).\; ((\operatorname{nth}(1, n) \in \mathbb{N}) \wedge ((\operatorname{nth}(2, n) \in \operatorname{ids}(\mathit{spa})) \wedge ((1 \leq \operatorname{nth}(1, n)) \wedge ((\operatorname{nth}(1, n) \leq \operatorname{length}(\operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n)))) \wedge (n = [\operatorname{nth}(1, n), \operatorname{nth}(2, n)])))))
+\forall \mathit{spa}.; \forall n \in \operatorname{nodes}(\mathit{spa}).\; ((\operatorname{nth}(1, n) \in \mathbb{N}) \wedge ((\operatorname{nth}(2, n) \in \operatorname{ids}(\mathit{spa})) \wedge ((1 \leq \operatorname{nth}(1, n)) \wedge ((\operatorname{nth}(1, n) \leq \operatorname{length}(\operatorname{strand\text{-}map}(\mathit{spa})(\operatorname{nth}(2, n)))) \wedge (n = {[}\operatorname{nth}(1, n), \operatorname{nth}(2, n)])))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
@@ -2235,7 +2235,7 @@
 \subsubsection*{\texttt{directed-intro}}
 \emph{for every t, k, g in msg-set(t, k), [sent, g] is in directed(t, k) and [received, g] is in directed(t, k)}
 {\small\[
-\forall t, k.; \forall g \in \operatorname{msg\text{-}set}(t, k).\; (([\mathit{sent}, g] \in \operatorname{directed}(t, k)) \wedge ([\mathit{received}, g] \in \operatorname{directed}(t, k)))
+\forall t, k.; \forall g \in \operatorname{msg\text{-}set}(t, k).\; (({[}\mathit{sent}, g] \in \operatorname{directed}(t, k)) \wedge ({[}\mathit{received}, g] \in \operatorname{directed}(t, k)))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
@@ -2251,28 +2251,28 @@
 \subsubsection*{\texttt{ps-last-step}}
 \emph{for every spa, nd, ed, if nd is in set, then if ed is in power(cartesian(nd, nd)), then for every x, y, if [x, y] is in prec-strict(spa, nd, ed), then there is some z such that [z, y] is in ed or z is in nd and z comes strictly before y on one strand of spa and z equals x or [x, z] is in prec-strict(spa, nd, ed)}
 {\small\[
-\forall \mathit{spa}.; \forall \mathit{nd} \in \mathbf{Set}, \mathit{ed} \in \operatorname{power}((\mathit{nd} \times \mathit{nd})).\; \forall x, y.\; (([x, y] \in \operatorname{prec\text{-}strict}(\mathit{spa}, \mathit{nd}, \mathit{ed})) \Rightarrow \exists z.\; ((([z, y] \in \mathit{ed}) \vee ((z \in \mathit{nd}) \wedge \operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, z, y))) \wedge ((z = x) \vee ([x, z] \in \operatorname{prec\text{-}strict}(\mathit{spa}, \mathit{nd}, \mathit{ed})))))
+\forall \mathit{spa}.; \forall \mathit{nd} \in \mathbf{Set}, \mathit{ed} \in \operatorname{power}((\mathit{nd} \times \mathit{nd})).\; \forall x, y.\; (({[}x, y] \in \operatorname{prec\text{-}strict}(\mathit{spa}, \mathit{nd}, \mathit{ed})) \Rightarrow \exists z.\; ((({[}z, y] \in \mathit{ed}) \vee ((z \in \mathit{nd}) \wedge \operatorname{same\text{-}strand\text{-}before}(\mathit{spa}, z, y))) \wedge ((z = x) \vee ({[}x, z] \in \operatorname{prec\text{-}strict}(\mathit{spa}, \mathit{nd}, \mathit{ed})))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{precedes-elim}}
 \emph{for every c, x, y, if [x, y] is in precedes(c), then [x, y] is in precedes-strict(c) or x equals y and x is in bnodes(c)}
 {\small\[
-\forall c, x, y.\; (([x, y] \in \operatorname{precedes}(c)) \Rightarrow (([x, y] \in \operatorname{precedes\text{-}strict}(c)) \vee ((x = y) \wedge (x \in \operatorname{bnodes}(c)))))
+\forall c, x, y.\; (({[}x, y] \in \operatorname{precedes}(c)) \Rightarrow (({[}x, y] \in \operatorname{precedes\text{-}strict}(c)) \vee ((x = y) \wedge (x \in \operatorname{bnodes}(c)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{bundle-send-precedes}}
 \emph{for every c, x, y, if c is a bundle, then if [x, y] is in bsend(c), then [x, y] is in precedes-strict(c)}
 {\small\[
-\forall c, x, y.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (([x, y] \in \operatorname{bsend}(c)) \Rightarrow ([x, y] \in \operatorname{precedes\text{-}strict}(c))))
+\forall c, x, y.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (({[}x, y] \in \operatorname{bsend}(c)) \Rightarrow ({[}x, y] \in \operatorname{precedes\text{-}strict}(c))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{bundle-ssb-precedes}}
 \emph{for every c, x, y, if c is a bundle, then if y is in bnodes(c), then if x comes strictly before y on one strand of bspace(c), then [x, y] is in precedes-strict(c)}
 {\small\[
-\forall c, x, y.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow ((y \in \operatorname{bnodes}(c)) \Rightarrow (\operatorname{same\text{-}strand\text{-}before}(\operatorname{bspace}(c), x, y) \Rightarrow ([x, y] \in \operatorname{precedes\text{-}strict}(c)))))
+\forall c, x, y.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow ((y \in \operatorname{bnodes}(c)) \Rightarrow (\operatorname{same\text{-}strand\text{-}before}(\operatorname{bspace}(c), x, y) \Rightarrow ({[}x, y] \in \operatorname{precedes\text{-}strict}(c)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
@@ -2286,7 +2286,7 @@
 \subsubsection*{\texttt{bundle-received-sender}}
 \emph{for every bundle c, for every ssy\_ in bnodes(c), if the node ssy\_ of bspace(c) is received, then there is some ssx\_ such that [ssx\_, ssy\_] is in bsend(c) and for every ssz\_, if [ssz\_, ssy\_] is in bsend(c), then ssz\_ equals ssx\_}
 {\small\[
-\forall c.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow \forall \operatorname{ssy\_} \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}received}(\operatorname{bspace}(c), \operatorname{ssy\_}) \Rightarrow \exists \operatorname{ssx\_}.\; (([\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{bsend}(c)) \wedge \forall \operatorname{ssz\_}.\; (([\operatorname{ssz\_}, \operatorname{ssy\_}] \in \operatorname{bsend}(c)) \Rightarrow (\operatorname{ssz\_} = \operatorname{ssx\_})))))
+\forall c.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow \forall \operatorname{ssy\_} \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}received}(\operatorname{bspace}(c), \operatorname{ssy\_}) \Rightarrow \exists \operatorname{ssx\_}.\; (({[}\operatorname{ssx\_}, \operatorname{ssy\_}] \in \operatorname{bsend}(c)) \wedge \forall \operatorname{ssz\_}.\; (({[}\operatorname{ssz\_}, \operatorname{ssy\_}] \in \operatorname{bsend}(c)) \Rightarrow (\operatorname{ssz\_} = \operatorname{ssx\_})))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
@@ -2300,21 +2300,21 @@
 \subsubsection*{\texttt{finite-strict-minimal}}
 \emph{for every r, if for every x, y, z, if [x, y] is in r, then if [y, z] is in r, then [x, z] is in r, then if for every x, [x, x] is not in r, then for every s in set, if card(s) is in nn, then if there is some w such that w is in s, then there is some m in s such that for every z in s, [z, m] is not in r}
 {\small\[
-\forall r.\; (\forall x, y, z.\; (([x, y] \in r) \Rightarrow (([y, z] \in r) \Rightarrow ([x, z] \in r))) \Rightarrow (\forall x.\; \neg ([x, x] \in r) \Rightarrow \forall s \in \mathbf{Set}.\; ((|s| \in \mathbb{N}) \Rightarrow (\exists w.\; (w \in s) \Rightarrow \exists m \in s.\; \forall z \in s.\; \neg ([z, m] \in r)))))
+\forall r.\; (\forall x, y, z.\; (({[}x, y] \in r) \Rightarrow (({[}y, z] \in r) \Rightarrow ({[}x, z] \in r))) \Rightarrow (\forall x.\; \neg ({[}x, x] \in r) \Rightarrow \forall s \in \mathbf{Set}.\; ((|s| \in \mathbb{N}) \Rightarrow (\exists w.\; (w \in s) \Rightarrow \exists m \in s.\; \forall z \in s.\; \neg ({[}z, m] \in r)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{bundle-minimal}}
 \emph{for every c, s, if c is a bundle, then if for every z in s, z is in bnodes(c), then if there is some w such that w is in s, then there is some m in s such that for every z in s, [z, m] is not in precedes-strict(c)}
 {\small\[
-\forall c, s.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \Rightarrow (\exists w.\; (w \in s) \Rightarrow \exists m \in s.\; \forall z \in s.\; \neg ([z, m] \in \operatorname{precedes\text{-}strict}(c)))))
+\forall c, s.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \Rightarrow (\exists w.\; (w \in s) \Rightarrow \exists m \in s.\; \forall z \in s.\; \neg ({[}z, m] \in \operatorname{precedes\text{-}strict}(c)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{bundle-minimal-precedes}}
 \emph{for every c, s, if c is a bundle, then if for every z in s, z is in bnodes(c), then if there is some w such that w is in s, then there is some m in s such that for every z in s, if z is not equal to m, then [z, m] is not in precedes(c)}
 {\small\[
-\forall c, s.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \Rightarrow (\exists w.\; (w \in s) \Rightarrow \exists m \in s.\; \forall z \in s.\; (\neg (z = m) \Rightarrow \neg ([z, m] \in \operatorname{precedes}(c))))))
+\forall c, s.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \Rightarrow (\exists w.\; (w \in s) \Rightarrow \exists m \in s.\; \forall z \in s.\; (\neg (z = m) \Rightarrow \neg ({[}z, m] \in \operatorname{precedes}(c))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
@@ -2323,14 +2323,14 @@
 \subsubsection*{\texttt{bundle-minimal-sent}}
 \emph{for every c, s, n, if c is a bundle, then if for every z in s, z is in bnodes(c), then if for every x, y, if x is in bnodes(c), then if y is in bnodes(c), then if node-content(bspace(c), x) equals node-content(bspace(c), y), then if y is in s, then x is in s, then if n is in s, then if for every z in s, [z, n] is not in precedes-strict(c), then the node n of bspace(c) is sent}
 {\small\[
-\forall c, s, n.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \Rightarrow (\forall x, y \in \operatorname{bnodes}(c).\; ((\operatorname{node\text{-}content}(\operatorname{bspace}(c), x) = \operatorname{node\text{-}content}(\operatorname{bspace}(c), y)) \Rightarrow ((y \in s) \Rightarrow (x \in s))) \Rightarrow ((n \in s) \Rightarrow (\forall z \in s.\; \neg ([z, n] \in \operatorname{precedes\text{-}strict}(c)) \Rightarrow \operatorname{is\text{-}sent}(\operatorname{bspace}(c), n))))))
+\forall c, s, n.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow (\forall z \in s.\; (z \in \operatorname{bnodes}(c)) \Rightarrow (\forall x, y \in \operatorname{bnodes}(c).\; ((\operatorname{node\text{-}content}(\operatorname{bspace}(c), x) = \operatorname{node\text{-}content}(\operatorname{bspace}(c), y)) \Rightarrow ((y \in s) \Rightarrow (x \in s))) \Rightarrow ((n \in s) \Rightarrow (\forall z \in s.\; \neg ({[}z, n] \in \operatorname{precedes\text{-}strict}(c)) \Rightarrow \operatorname{is\text{-}sent}(\operatorname{bspace}(c), n))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{bundle-minimal-originates}}
 \emph{for every c, u, n, if c is a bundle, then if n is in bnodes(c), then if u is a subterm of node-content(bspace(c), n) over the tokens tokens(bspace(c)) and the keys keys(bspace(c)), then if for every z in bnodes(c), if u is a subterm of node-content(bspace(c), z) over the tokens tokens(bspace(c)) and the keys keys(bspace(c)), then [z, n] is not in precedes-strict(c), then u originates on the node n of bspace(c)}
 {\small\[
-\forall c, u, n.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow ((n \in \operatorname{bnodes}(c)) \Rightarrow (\operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{bspace}(c)), \operatorname{keys}(\operatorname{bspace}(c)), u, \operatorname{node\text{-}content}(\operatorname{bspace}(c), n)) \Rightarrow (\forall z \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{bspace}(c)), \operatorname{keys}(\operatorname{bspace}(c)), u, \operatorname{node\text{-}content}(\operatorname{bspace}(c), z)) \Rightarrow \neg ([z, n] \in \operatorname{precedes\text{-}strict}(c))) \Rightarrow \operatorname{originates}(\operatorname{bspace}(c), u, n)))))
+\forall c, u, n.\; (\operatorname{is\text{-}bundle}(c) \Rightarrow ((n \in \operatorname{bnodes}(c)) \Rightarrow (\operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{bspace}(c)), \operatorname{keys}(\operatorname{bspace}(c)), u, \operatorname{node\text{-}content}(\operatorname{bspace}(c), n)) \Rightarrow (\forall z \in \operatorname{bnodes}(c).\; (\operatorname{is\text{-}subterm}(\operatorname{tokens}(\operatorname{bspace}(c)), \operatorname{keys}(\operatorname{bspace}(c)), u, \operatorname{node\text{-}content}(\operatorname{bspace}(c), z)) \Rightarrow \neg ({[}z, n] \in \operatorname{precedes\text{-}strict}(c))) \Rightarrow \operatorname{originates}(\operatorname{bspace}(c), u, n)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
@@ -2437,14 +2437,14 @@
 \subsubsection*{\texttt{encrypt-trace-strand}}
 \emph{for every spa, k, m, if spa is a strand space, then if k is in keys(spa), then if m is in msg-set(tokens(spa), keys(spa)), then [[received, k], [received, m], [sent, encr(m, k)]] is in strands(tokens(spa), keys(spa)) and [[received, k], [received, m], [sent, encr(m, k)]] is an encryption trace in the strand space spa}
 {\small\[
-\forall \mathit{spa}, k, m.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((k \in \operatorname{keys}(\mathit{spa})) \Rightarrow ((m \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \Rightarrow (([[\mathit{received}, k], [\mathit{received}, m], [\mathit{sent}, \operatorname{encr}(m, k)]] \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \wedge \operatorname{is\text{-}encrypt\text{-}trace}(\mathit{spa}, [[\mathit{received}, k], [\mathit{received}, m], [\mathit{sent}, \operatorname{encr}(m, k)]])))))
+\forall \mathit{spa}, k, m.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((k \in \operatorname{keys}(\mathit{spa})) \Rightarrow ((m \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \Rightarrow (({[}{[}\mathit{received}, k], {[}\mathit{received}, m], {[}\mathit{sent}, \operatorname{encr}(m, k)]] \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \wedge \operatorname{is\text{-}encrypt\text{-}trace}(\mathit{spa}, {[}{[}\mathit{received}, k], {[}\mathit{received}, m], {[}\mathit{sent}, \operatorname{encr}(m, k)]])))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsubsection*{\texttt{decrypt-trace-strand}}
 \emph{for every spa, k, m, if spa is a strand space, then if k is in keys(spa), then if m is in msg-set(tokens(spa), keys(spa)), then [[received, (kinv(spa))(k)], [received, encr(m, k)], [sent, m]] is in strands(tokens(spa), keys(spa)) and [[received, (kinv(spa))(k)], [received, encr(m, k)], [sent, m]] is a decryption trace in the strand space spa}
 {\small\[
-\forall \mathit{spa}, k, m.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((k \in \operatorname{keys}(\mathit{spa})) \Rightarrow ((m \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \Rightarrow (([[\mathit{received}, \operatorname{kinv}(\mathit{spa})(k)], [\mathit{received}, \operatorname{encr}(m, k)], [\mathit{sent}, m]] \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \wedge \operatorname{is\text{-}decrypt\text{-}trace}(\mathit{spa}, [[\mathit{received}, \operatorname{kinv}(\mathit{spa})(k)], [\mathit{received}, \operatorname{encr}(m, k)], [\mathit{sent}, m]])))))
+\forall \mathit{spa}, k, m.\; (\operatorname{is\text{-}strand\text{-}space}(\mathit{spa}) \Rightarrow ((k \in \operatorname{keys}(\mathit{spa})) \Rightarrow ((m \in \operatorname{msg\text{-}set}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \Rightarrow (({[}{[}\mathit{received}, \operatorname{kinv}(\mathit{spa})(k)], {[}\mathit{received}, \operatorname{encr}(m, k)], {[}\mathit{sent}, m]] \in \operatorname{strands}(\operatorname{tokens}(\mathit{spa}), \operatorname{keys}(\mathit{spa}))) \wedge \operatorname{is\text{-}decrypt\text{-}trace}(\mathit{spa}, {[}{[}\mathit{received}, \operatorname{kinv}(\mathit{spa})(k)], {[}\mathit{received}, \operatorname{encr}(m, k)], {[}\mathit{sent}, m]])))))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 

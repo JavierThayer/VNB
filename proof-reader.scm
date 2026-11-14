@@ -1947,6 +1947,33 @@
 ;;; as the load does; the cost is the file's proving time.  Without pdflatex the
 ;;; .tex is left beside the requested path and the message says so.
 ;;; =======================================================================
+;; The last fallback (2026-11-14, the user: `display-proof' found no script for
+;; mat-left-inverse-eq-right, which la-elem-gen.scm closes with its own helper `laeg-done!'):
+;; the CERTIFICATE STORE.  Every certified theorem has a record line `(NAME "hash" ...)' in
+;; certificates/theorem-library/<file>.cert, and <file> is its proof file -- whatever helper
+;; the file closes its proofs with, so no helper needs its own needle.
+(define (display-proof--source-from-certificates name)
+  (let ((dir (string-append *prover-dir* "certificates/theorem-library/"))
+        (needle (string-append "(" (symbol->string name) " \"")))
+    (define (cert-holds? f)
+      (call-with-input-file f
+        (lambda (port)
+          (let scan ()
+            (let ((line (read-line port)))
+              (cond ((eof-object? line) #f)
+                    ((string-prefix? needle line) #t)
+                    (else (scan))))))))
+    (and (file-directory? dir)
+         (let loop ((files (directory-read dir #f)))
+           (if (null? files)
+               #f
+               (let* ((f (->namestring (car files)))
+                      (src (and (string-suffix? ".cert" f)
+                                (cert-holds? f)
+                                (string-append *prover-dir* "theorem-library/"
+                                               (pathname-name (car files)) ".scm"))))
+                 (if (and src (file-exists? src)) src (loop (cdr files)))))))))
+
 (define (display-proof--source name)
   (let* ((rec (hash-table-ref/default *theorem-source* name #f))
          (rec (and rec (if (string? rec) rec (->namestring rec))))
@@ -1973,7 +2000,8 @@
                                              (string-search-forward needle! line 0)) #t)
                                         (else (scan)))))))
                           f)))
-                  (else (loop (cdr files)))))))))
+                  (else (loop (cdr files))))))
+        (display-proof--source-from-certificates name))))
 
 (define (display-proof--basename path)
   ;; the file name without directory or extension: `*theorem-source*' holds the
@@ -2058,16 +2086,21 @@
 ;;; (display-proof 'NAME "path.pdf" 'with-types) ... with the implied types of the
 ;;;                                              statement's variables; combines with 'with-defs [n]
 (define (display-proof name pdf-path . opts)
-  (let loop ((o opts) (depth #f) (types #f))
+  (let loop ((o opts) (depth #f) (types #f) (infix *tex-infix?*))
     (cond ((null? o)
            (fluid-let ((*proof-reader-with-defs* depth)
-                       (*proof-reader-with-types* types))
+                       (*proof-reader-with-types* types)
+                       (*tex-infix?* infix))
              (display-proof--to-pdf name pdf-path)))
+          ;; 'infix: this printout through the optional infix layer (tex-infix.scm),
+          ;; whatever (tex-infix! ...) says; 'no-infix: through the plain printer
+          ((eq? (car o) 'infix) (loop (cdr o) depth types #t))
+          ((eq? (car o) 'no-infix) (loop (cdr o) depth types #f))
           ((eq? (car o) 'with-defs)
            (if (and (pair? (cdr o)) (number? (cadr o)))
-               (loop (cddr o) (cadr o) types)
-               (loop (cdr o) 1 types)))
-          ((eq? (car o) 'with-types) (loop (cdr o) depth #t))
+               (loop (cddr o) (cadr o) types infix)
+               (loop (cdr o) 1 types infix)))
+          ((eq? (car o) 'with-types) (loop (cdr o) depth #t infix))
           (#t (error "display-proof: unknown option" (car o))))))
 ;;; A name that is not a theorem is said to be one, with the names that contain it
 ;;; (the user typed frechet-open-mapping, a FILE name, 2026-10-21, and was told "no

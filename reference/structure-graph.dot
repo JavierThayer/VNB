@@ -98,8 +98,8 @@ digraph VNB {
   "metrizable-top-space" -> "top-space" [color="#2a4a6a", penwidth=1.4, tooltip="metrizable-top-space refines top-space"];
   "commutative-banach-algebra" -> "unital-banach-algebra" [color="#2a4a6a", penwidth=1.4, tooltip="commutative-banach-algebra refines unital-banach-algebra"];
   "rr-nvs" -> "normed-vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="rr-nvs refines normed-vector-space"];
-  "unital-c-star-algebra" -> "unital-involutive-banach-algebra" [color="#2a4a6a", penwidth=1.4, tooltip="unital-c-star-algebra refines unital-involutive-banach-algebra"];
   "zz-ring" -> "euclidean-ring" [color="#2a4a6a", penwidth=1.4, tooltip="zz-ring refines euclidean-ring"];
+  "unital-c-star-algebra" -> "unital-involutive-banach-algebra" [color="#2a4a6a", penwidth=1.4, tooltip="unital-c-star-algebra refines unital-involutive-banach-algebra"];
   "cx-c" -> "bundle" [color="#2a4a6a", penwidth=1.4, tooltip="cx-c refines bundle"];
   "cc-normed-field" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="cc-normed-field refines normed-field"];
   "commutative-c-star-algebra" -> "unital-c-star-algebra" [color="#2a4a6a", penwidth=1.4, tooltip="commutative-c-star-algebra refines unital-c-star-algebra"];

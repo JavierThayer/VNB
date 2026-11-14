@@ -1,0 +1,36 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\setlength{\mathindent}{1em}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem*{proposition*}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\providecommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\begin{document}
+\begin{proposition*}[gelfand-mazur]
+Suppose $a \text{ s.t. } \operatorname{is\text{-}unital\text{-}banach\text{-}algebra}(a)$. If $\forall y \in \operatorname{vec}(a).\; (\neg (y = 0) \Rightarrow \operatorname{is\text{-}invertible\text{-}el}(a, y))$, then for every $x \in \operatorname{vec}(a)$,  $\exists z \in \mathbb{C}.\; (x = z \cdot 1)$
+\end{proposition*}
+
+\begin{proof}
+{\small\emph{The numbers in the margin are step numbers of the full proof (\texttt{proof-tex}); a range such as 13--15 is several steps shown as one row.  A claim is proved by the indented rows under it.}}\par\smallskip
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{1--3}] Steps 1--3 take the proposition apart: they introduce the variables and hypotheses of the statement and are not shown one by one.
+  \item[\textbf{4}] Clearly $\forall x \in \operatorname{vec}(a).\; \exists q.\; (q \in \sigma({x}))$.
+  \item[\textbf{5--6}] By the proposition \emph{gelfand-mazur-from-nonempty-spectrum} at $a := a$ (its hypotheses $\forall y \in \operatorname{vec}(a).\; (\neg (y = 0) \Rightarrow \operatorname{is\text{-}invertible\text{-}el}(a, y))$ and $\operatorname{is\text{-}unital\text{-}banach\text{-}algebra}(a)$ are in context):
+\begin{equation*}
+\forall x \in \operatorname{vec}(a).\; \exists z \in \mathbb{C}.\; (x = z \cdot 1)
+\end{equation*}
+  Its antecedent holds, so this gives the goal
+\begin{equation*}
+\forall x \in \operatorname{vec}(a).\; \exists z \in \mathbb{C}.\; (x = z \cdot 1)
+\end{equation*}
+.
+\end{itemize}
+\end{proof}
+\end{document}

@@ -1,0 +1,70 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\setlength{\mathindent}{1em}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem*{proposition*}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\providecommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\begin{document}
+\subsection*{Definitions}
+\par\medskip\noindent\textbf{Structure definition} (\texttt{unital-banach-algebra}).\;An unital banach algebra $s$ is a 9-tuple whose components are listed below.\par
+\begin{enumerate}[nosep]
+\item $\operatorname{scal}(s) = \operatorname{nth}(1, s)$, a substructure (\texttt{substructure}): $\operatorname{is\text{-}ring}(\operatorname{scal}(s))$.
+\item $\operatorname{vec}(s) = \operatorname{nth}(2, s)$, a carrier (\texttt{carriers}): $\operatorname{vec}(s) \in \mathbf{Set}$.
+\item $\operatorname{vadd}(s) = \operatorname{nth}(3, s)$, an operation (\texttt{op}): $\operatorname{vadd}(s) \in ((\operatorname{vec}(s) \times \operatorname{vec}(s)) \to \operatorname{vec}(s))$.
+\item $0_{s} = \operatorname{nth}(4, s)$, a constant (\texttt{constant}): $0 \in \operatorname{vec}(s)$.
+\item $\operatorname{vneg}(s) = \operatorname{nth}(5, s)$, an operation (\texttt{op}): $\operatorname{vneg}(s) \in (\operatorname{vec}(s) \to \operatorname{vec}(s))$.
+\item $\operatorname{act}(s) = \operatorname{nth}(6, s)$, an operation (\texttt{op}): $\operatorname{act}(s) \in ((\operatorname{carr}(\operatorname{scal}(s)) \times \operatorname{vec}(s)) \to \operatorname{vec}(s))$.
+\item $\operatorname{vnrm}(s) = \operatorname{nth}(7, s)$, an operation (\texttt{op}): $\operatorname{vnrm}(s) \in (\operatorname{vec}(s) \to \mathbb{R})$.
+\item $\cdot_{s} = \operatorname{nth}(8, s)$, an operation (\texttt{op}): $\cdot_{s} \in ((\operatorname{vec}(s) \times \operatorname{vec}(s)) \to \operatorname{vec}(s))$.
+\item $1_{s} = \operatorname{nth}(9, s)$, a constant (\texttt{constant}): $1 \in \operatorname{vec}(s)$.
+\end{enumerate}
+The laws (the \texttt{property} and \texttt{law} clauses):
+\begin{itemize}[nosep]
+\item
+\begin{equation*}
+\operatorname{is\text{-}complex\text{-}banach\text{-}algebra}({[}\operatorname{scal}(s), \operatorname{vec}(s), \operatorname{vadd}(s), 0, \operatorname{vneg}(s), \operatorname{act}(s), \operatorname{vnrm}(s), \cdot_{s}])
+\end{equation*}
+
+\item $\operatorname{carr}(\operatorname{scal}(s)) = \mathbb{C}$
+\item $\forall \operatorname{x\_} \in \operatorname{vec}(s).\; (1 \times \operatorname{x\_} = \operatorname{x\_})$
+\item $\forall \operatorname{x\_} \in \operatorname{vec}(s).\; (\operatorname{x\_} \times 1 = \operatorname{x\_})$
+\item $\norm{1_{s}} = 1$
+\end{itemize}
+The characteristic law (the axiom \texttt{is-unital-banach-algebra}): $\operatorname{is\text{-}unital\text{-}banach\text{-}algebra}(s)$ holds if and only if $\operatorname{length}(s) = 9$, every component has the typing listed with it, every law holds, and $s \in \mathbf{Set}$ (the structure is a set).
+
+\par\medskip\noindent\textbf{Definition} (\texttt{is-invertible-el}).\;For all $\operatorname{baa\_}$ and $\operatorname{bax\_}$, 
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{is\text{-}invertible\text{-}el}(\operatorname{baa\_}, \operatorname{bax\_}) \\ \Leftrightarrow\; \operatorname{bax\_} \in \operatorname{vec}(\operatorname{baa\_}) \wedge \\ \exists \operatorname{bau\_} \in \operatorname{vec}(\operatorname{baa\_}). \\ \quad (\operatorname{bau\_} \times \operatorname{bax\_} = 1) \wedge (\operatorname{bax\_} \times \operatorname{bau\_} = 1) \end{array}
+\end{equation*}
+
+\bigskip
+
+\begin{proposition*}[gelfand-mazur]
+Suppose $a \text{ s.t. } \operatorname{is\text{-}unital\text{-}banach\text{-}algebra}(a)$. If $\forall y \in \operatorname{vec}(a).\; (\neg (y = 0) \Rightarrow \operatorname{is\text{-}invertible\text{-}el}(a, y))$, then for every $x \in \operatorname{vec}(a)$,  $\exists z \in \mathbb{C}.\; (x = z \cdot 1)$
+\end{proposition*}
+
+\begin{proof}
+{\small\emph{The numbers in the margin are step numbers of the full proof (\texttt{proof-tex}); a range such as 13--15 is several steps shown as one row.  A claim is proved by the indented rows under it.}}\par\smallskip
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{1--3}] Steps 1--3 take the proposition apart: they introduce the variables and hypotheses of the statement and are not shown one by one.
+  \item[\textbf{4}] Clearly $\forall x \in \operatorname{vec}(a).\; \exists q.\; (q \in \sigma({x}))$.
+  \item[\textbf{5--6}] By the proposition \emph{gelfand-mazur-from-nonempty-spectrum} at $a := a$ (its hypotheses $\forall y \in \operatorname{vec}(a).\; (\neg (y = 0) \Rightarrow \operatorname{is\text{-}invertible\text{-}el}(a, y))$ and $\operatorname{is\text{-}unital\text{-}banach\text{-}algebra}(a)$ are in context):
+\begin{equation*}
+\forall x \in \operatorname{vec}(a).\; \exists z \in \mathbb{C}.\; (x = z \cdot 1)
+\end{equation*}
+  Its antecedent holds, so this gives the goal
+\begin{equation*}
+\forall x \in \operatorname{vec}(a).\; \exists z \in \mathbb{C}.\; (x = z \cdot 1)
+\end{equation*}
+.
+\end{itemize}
+\end{proof}
+\end{document}

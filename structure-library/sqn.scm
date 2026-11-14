@@ -30,17 +30,12 @@
 
 (def-functoid 'SQN '(a) '(FUN NN a))
 
-(fluid-let ((*current-provenance* 'definitional))
-  (add-axiom! *library* 'sqn-membership
-    '(FORALL a (FORALL f_ (IFF (IN f_ (SQN a)) (IN f_ (FUN NN a)))))))
-
-;;; Sethood, from `fun-set-iff' (fun(a,b) in set iff a in set and b in set) and
-;;; `nn-is-set'.  Stated rather than left to be re-derived: a sequence space is
-;;; fed to SEP and to the finite-set machinery, both of which are gated on
-;;; sethood.
-(fluid-let ((*current-provenance* 'definitional))
-  (add-axiom! *library* 'sqn-sethood
-    '(FORALL a (IMPLIES (IN a SET) (IN (SQN a) SET)))))
+;;; `sqn-membership' (f in SQN(a) iff f in FUN(NN, a)) and `sqn-sethood' (a in SET =>
+;;; SQN(a) in SET) stood here as `definitional' axioms until 2026-11-13.  Neither is a
+;;; definition: the first is the unfold of the def-functoid above, the second follows from
+;;; `fun-set-iff' and `nn-is-set'.  Both are PROVEN, under the same names and statements,
+;;; in theorem-library/sqn-laws.scm, which loads before any citer (the user, 2026-11-13).
+;;; The originals are archive/2026-11-13-sqn/sqn.scm.
 
 ;;; NOT named-only: `sqn-membership' is a LIVE macete, fired by name at 25 call
 ;;; sites (`(mac-h 'sqn-membership k)'), and that is what the library wants.

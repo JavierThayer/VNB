@@ -30942,7 +30942,7 @@ definition:
 fun(nn, a)
 ```
 
-characterized by `sqn-sethood`  *(definitional)*:
+characterized by `sqn-sethood`  *(proven)*:
 
 ```
 forall([a in set], sqn(a) in set)

@@ -4365,6 +4365,66 @@
          (string=? (expr->tex '(+ k 0)) "k")
          #t)))
 
+;; THE OPTIONAL INFIX LAYER (tex-infix.scm, 2026-11-14).  OFF: the printer is the plain one,
+;; string for string (the control renders with the hook removed).  ON: the user's 11-12 example
+;; (is-diff-on's body) reads as he wrote it; subscripts kept with (keep); a left-nested chain
+;; flattens and a right-nested one keeps its parentheses (associativity still reads as a law);
+;; a NAMED structure keeps its subscript (zero(zz-ring) = 0 must not read 0 = 0); a postfix
+;; operand is braced (no double subscript); a def-functor view is read through.
+(define ts-infix-diff
+  '(= ((ADD K) (f x) ((NEG K) (f a))) ((MUL K) (phi x) ((ADD K) x ((NEG K) a)))))
+(check-true "infix layer: OFF prints exactly what the plain printer prints"
+  (lambda ()
+    (and (not *tex-infix?*)
+         (let ((samples (list ts-infix-diff '((OPR S) ((OPR S) a b) c) '(= (ZERO ZZ-RING) 0)
+                              '(FORALL x (IMPLIES (IN x U) (= ((VNRM V) x) 0))))))
+           (every (lambda (e)
+                    (string=? (expr->tex-top e)
+                              (fluid-let ((tex--infix-render #f)) (expr->tex-top e))))
+                  samples))
+         (string-search-forward "operatorname{add}" (expr->tex ts-infix-diff) 0)
+         #t)))
+(check-true "infix layer: ON reads is-diff-on's equation as the user wrote it"
+  (lambda ()
+    (string=? (with-tex-infix '((auto)) (lambda () (expr->tex-top ts-infix-diff)))
+              "f(x) + - f(a) = \\varphi(x) \\times (x + - a)")))
+(check-true "infix layer: (keep) writes the subscripts"
+  (lambda ()
+    (and (string-search-forward "f(x) +_{k} -_{k} f(a)"
+                                (with-tex-infix '((keep)) (lambda () (expr->tex-top ts-infix-diff))) 0)
+         #t)))
+(check-true "infix layer: a left chain flattens, a right chain keeps its parentheses"
+  (lambda ()
+    (string=? (infix-tex '(= ((OPR S) ((OPR S) a b) c) ((OPR S) a ((OPR S) b c))))
+              "a \\cdot b \\cdot c = a \\cdot (b \\cdot c)")))
+(check-true "infix layer: a named structure keeps its subscript; a postfix operand is braced"
+  (lambda ()
+    (and (string-search-forward "0_{" (infix-tex '(= (ZERO ZZ-RING) 0)) 0)
+         (string=? (with-tex-infix '((keep)) (lambda () (expr->tex-top '((INV G) (IDEN G)))))
+                   "{e_{g}}^{-1}_{g}")
+         #t)))
+(check-true "infix layer: a def-functor view is read through to its structure"
+  (lambda ()
+    (let ((s (with-tex-infix '((keep))
+               (lambda () (expr->tex-top '((ADD (NORMED-FIELD-AS-COMMUTATIVE-RING K)) a b))))))
+      (and (string=? s "a +_{k} b") #t))))
+(check-true "infix layer: a norm is outfix, \\norm{.}, and the reader's preamble defines it"
+  (lambda ()
+    (and (string=? (with-tex-infix '((auto)) (lambda () (expr->tex-top '((VNRM A) x))))
+                   "\\norm{x}")
+         (string=? (with-tex-infix '((keep)) (lambda () (expr->tex-top '((VNRM A) x))))
+                   "\\norm{x}_{a}")
+         (string-search-forward "\\providecommand{\\norm}" proof-tex--preamble 0)
+         #t)))
+;; display-proof's last fallback finds a theorem closed by a file's OWN qed helper through the
+;; certificate store (mat-left-inverse-eq-right: la-elem-gen.scm closes it with laeg-done!).
+(check-true "display-proof: the certificate store finds a proof file closed by its own helper"
+  (lambda ()
+    (let ((src (display-proof--source-from-certificates 'mat-left-inverse-eq-right)))
+      (and src (string-suffix? "theorem-library/la-elem-gen.scm" src)
+           (not (display-proof--source-from-certificates 'no-such-theorem-anywhere))
+           #t))))
+
 ;; display-proof on a theorem this image holds without a trace (certified) runs its
 ;; source file, which re-installs theorems already installed: those re-installs are
 ;; intentional and must not print install-theorem!'s "already installed" warning

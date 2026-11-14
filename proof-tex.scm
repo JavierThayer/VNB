@@ -425,6 +425,8 @@
    ;; formulas now use displayed equations that wrap via expr->tex-display.
    "\\newcommand{\\fit}[1]{\\resizebox{\\ifdim\\width>\\linewidth\\linewidth\\else\\width\\fi}{!}{#1}}\n"
    "\\setlength{\\parindent}{0pt}\n"
+   ;; the infix layer prints a norm as \norm{x} (tex-infix.scm)
+   "\\providecommand{\\norm}[1]{\\left\\lVert #1 \\right\\rVert}\n"
    "\\begin{document}\n"))
 
 ;; A single formula as an editable align* block.  align* (not inline $...$ +

@@ -39,6 +39,7 @@
     "structure-library/nn-arith"
     "structure-library/list-recursion"
     "structure-library/sqn"
+    "theorem-library/sqn-laws"    ; 2026-11-13
     "structure-library/zz-arith"
     "structure-library/order-predicates"
     "structure-library/nn-minus"
