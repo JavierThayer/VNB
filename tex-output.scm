@@ -371,6 +371,9 @@
 (define *tex-infix?* #f)
 (define *tex-infix-bare?* #f)
 (define tex--infix-render #f)
+;; the \providecommand lines of the infix table's TeX macros (tex-infix.scm sets it), written
+;; into every preamble whether the layer is on or not
+(define tex--preamble-macros (lambda () ""))
 (define (tex--expr->tex-1 e0)
   (if (and *tex-infix?* tex--infix-render)
       (tex--infix-render e0 tex--expr->tex-plain)
@@ -844,7 +847,7 @@
     "\\documentclass[border=12pt]{standalone}\n"
     "\\usepackage{amsmath, amssymb}\n"
     "\\usepackage[utf8]{inputenc}\n"
-    "\\providecommand{\\norm}[1]{\\left\\lVert #1 \\right\\rVert}\n"
+    (tex--preamble-macros)
     "\\begin{document}\n"
     "% PSS / theorem name: " name "\n"
     "$\\displaystyle\n"

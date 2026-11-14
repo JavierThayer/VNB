@@ -1861,7 +1861,7 @@
 ;; exactly as before.
 (define (proof-reader name-or-names)
   (string-append
-   proof-tex--preamble
+   (proof-tex--preamble-text)
    (if (pair? name-or-names)
        (apply string-append
               (map (lambda (n) (string-append (proof-reader--body* n) "\n\\bigskip\n\n"))
@@ -2088,6 +2088,7 @@
 (define (display-proof name pdf-path . opts)
   (let loop ((o opts) (depth #f) (types #f) (infix *tex-infix?*))
     (cond ((null? o)
+           (if infix (tex-infix--ensure-table!))
            (fluid-let ((*proof-reader-with-defs* depth)
                        (*proof-reader-with-types* types)
                        (*tex-infix?* infix))

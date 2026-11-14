@@ -425,9 +425,15 @@
    ;; formulas now use displayed equations that wrap via expr->tex-display.
    "\\newcommand{\\fit}[1]{\\resizebox{\\ifdim\\width>\\linewidth\\linewidth\\else\\width\\fi}{!}{#1}}\n"
    "\\setlength{\\parindent}{0pt}\n"
-   ;; the infix layer prints a norm as \norm{x} (tex-infix.scm)
-   "\\providecommand{\\norm}[1]{\\left\\lVert #1 \\right\\rVert}\n"
    "\\begin{document}\n"))
+
+;; the preamble as written into a file: the TeX macros of the infix table (\norm, ...; read from
+;; notation/infix.tbl by tex-infix.scm) declared with \providecommand before \begin{document}
+(define (proof-tex--preamble-text)
+  (let ((k (string-search-forward "\\begin{document}" proof-tex--preamble 0)))
+    (string-append (substring proof-tex--preamble 0 k)
+                   (tex--preamble-macros)
+                   (substring proof-tex--preamble k (string-length proof-tex--preamble)))))
 
 ;; A single formula as an editable align* block.  align* (not inline $...$ +
 ;; \fit) so the .tex is easy to hand-edit: insert `\\' for line breaks and `&'
@@ -523,7 +529,7 @@
   ;; does the printout say so.
   (if (not (proof--ensure-trace! name))
       (string-append
-       proof-tex--preamble
+       (proof-tex--preamble-text)
        "\\section*{Proof of \\texttt{" (proof-tex--escape-tt (symbol->string name)) "}}\n"
        proof--no-script-text
        "\\end{document}\n")
@@ -537,7 +543,7 @@
          (syms  (list-ref data 3))
          (heads (list-ref data 4)))
     (apply string-append
-     proof-tex--preamble
+     (proof-tex--preamble-text)
      "\\section*{Proof of \\texttt{" (proof-tex--escape-tt (symbol->string name)) "}}\n"
      "\\textbf{Claim.}\n" (proof-tex--formula-align goal) "\\bigskip\n\n"
      (proof-tex--tactic-glossary cmds)

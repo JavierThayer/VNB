@@ -4414,8 +4414,54 @@
                    "\\norm{x}")
          (string=? (with-tex-infix '((keep)) (lambda () (expr->tex-top '((VNRM A) x))))
                    "\\norm{x}_{a}")
-         (string-search-forward "\\providecommand{\\norm}" proof-tex--preamble 0)
+         (string-search-forward "\\providecommand{\\norm}" (proof-tex--preamble-text) 0)
          #t)))
+;; THE INFIX TABLE (2026-11-14): notation/infix.tbl, overridden row by row by the user's file;
+;; a table with an error is refused whole.  Each check binds the user file to a scratch file
+;; and reloads the real configuration after.
+(define (sx-infix-with-user-table text thunk)
+  (let ((f "/tmp/vnb-suite-infix.tbl"))
+    (call-with-output-file f (lambda (port) (write-string text port)))
+    (let ((r (fluid-let ((*tex-infix-user-file* f))
+               (let ((v (thunk))) v))))
+      (delete-file f)
+      (tex-infix-reload!)
+      r)))
+(check-true "infix table: the shipped table reads (21 operations, the \\norm macro)"
+  (lambda ()
+    (and (string? (tex-infix-reload!))
+         (= (length *tex-infix-ops*) 21)
+         (assoc "\\norm" *tex-infix-macros*)
+         (string-search-forward "\\providecommand{\\norm}[1]{\\left\\lVert #1 \\right\\rVert}"
+                                (tex-infix-preamble-macros) 0)
+         #t)))
+(check-true "infix table: the user's rows replace, `off' removes, conventions replace"
+  (lambda ()
+    (sx-infix-with-user-table
+     "; a user table\noutfix vnrm 100 - \\Vert #1 \\Vert\noff add\nconvention keep\n"
+     (lambda ()
+       (and (string? (tex-infix-reload!))
+            (string=? (with-tex-infix '((keep)) (lambda () (expr->tex-top '((VNRM A) x))))
+                      "\\Vert x \\Vert_{a}")
+            (equal? *tex-infix-conventions* '((keep)))
+            (not (string-search-forward " + " (with-tex-infix '((auto))
+                                                (lambda () (expr->tex-top '((ADD A) a b)))) 0))
+            #t)))))
+(check-true "infix table: a malformed row refuses the whole reload, the table in force stays (control)"
+  (lambda ()
+    (sx-infix-with-user-table
+     "outfix vnrm 100 - \\Vert #1 \\Vert\ninfix add ten assoc +\n"
+     (lambda ()
+       (and (not (tex-infix-reload!))
+            (string=? (with-tex-infix '((auto)) (lambda () (expr->tex-top '((VNRM A) x))))
+                      "\\norm{x}")
+            (string=? (with-tex-infix '((auto)) (lambda () (expr->tex-top '((ADD A) a b))))
+                      "a + b")
+            #t)))))
+(check-true "infix table: an outfix row without #1 is an error (control)"
+  (lambda ()
+    (sx-infix-with-user-table "outfix vnrm 100 - \\norm{}\n"
+      (lambda () (not (tex-infix-reload!))))))
 ;; display-proof's last fallback finds a theorem closed by a file's OWN qed helper through the
 ;; certificate store (mat-left-inverse-eq-right: la-elem-gen.scm closes it with laeg-done!).
 (check-true "display-proof: the certificate store finds a proof file closed by its own helper"

@@ -1,0 +1,71 @@
+; notation/infix.tbl -- THE TABLE OF THE OPTIONAL INFIX LAYER (tex-infix.scm).
+;
+; The layer prints an applied structure operation, ((ADD K) a b), as  a +_{K} b  instead of
+; add(K)(a, b).  It is OFF by default: (tex-infix! #t) turns it on, (display-proof NAME PDF 'infix)
+; uses it for one printout.  This file says which operations it knows and how each is written.
+;
+; YOUR OWN TABLE: ~/.vnb-infix.tbl, same format, read AFTER this one.  A row there REPLACES the row
+; of this file with the same head (or the macro with the same name); `off HEAD' removes HEAD;
+; `convention' rows there replace the conventions of this file.  The menu item
+; VNB > Infix Notation > Edit Infix Table creates it as a copy of this file.  A changed file is
+; re-read at the next printout with the layer on, or at once by (tex-infix-reload!).  A row in
+; error is reported with its file and line and the whole reload is refused: the table in force
+; stays as it was.
+;
+; ROWS.  Columns are separated by blanks; everything after the fourth column is the TeX, written
+; as in a TeX document (one backslash).  A `;' starts a comment.
+;
+;   KIND     HEAD      PREC  ASSOC  TEX
+;
+;   KIND   infix    a TEX b               two arguments
+;          prefix   TEX a                 one argument
+;          postfix  a TEX                 one argument (the operand is braced: {e_{G}}^{-1}_{G})
+;          const    TEX                   no argument: (ZERO K) is 0_{K}
+;          outfix   template with #1      one argument: \norm{#1}
+;          bracket  template with #1 #2   two arguments: \langle #1, #2 \rangle
+;   HEAD   the structure accessor: add means ((ADD S) ...) for any structure S (read through
+;          def-functor views: (ADD (NORMED-FIELD-AS-COMMUTATIVE-RING K)) is written with K).
+;   PREC   binding strength; a weaker operand gets parentheses.  Shipped: + 10, products 20,
+;          unary minus 30, postfix 40, atoms 100.
+;   ASSOC  assoc: a LEFT-nested chain of the same operation of the same structure drops its
+;          parentheses, (a + b) + c is a + b + c, while a + (b + c) keeps them, so an
+;          associativity law still reads as one.  `-' otherwise.
+;   The subscript _{S} follows each operation; the conventions below say when it is dropped.
+;
+;   macro  \NAME  NARGS  -  BODY        a TeX macro the templates use; every TeX file VNB writes
+;                                       declares it with \providecommand, so a document that
+;                                       already defines \NAME keeps its own.
+;   off    HEAD                         (in your file) the layer leaves HEAD to the plain printer.
+;   convention auto | keep | drop S ...
+;          auto  drop the subscript when ONE structure is in play in the formula and it is a
+;                variable (not a named constant such as zz-ring); its constants 0_S 1_S e_S keep
+;                theirs when the formula also holds a numeral, so 0_K never reads as the number 0.
+;          keep  always write the subscript.
+;          drop S ...  drop the subscript of these structure terms.
+;
+; KIND     HEAD      PREC  ASSOC  TEX
+infix      add       10    assoc  +
+infix      vadd      10    assoc  +
+infix      mul       20    assoc  \times
+infix      opr       20    assoc  \cdot
+infix      vmul      20    assoc  \times
+infix      act       20    -      \cdot
+prefix     neg       30    -      -
+prefix     vneg      30    -      -
+postfix    inv       40    -      ^{-1}
+postfix    mul-inv   40    -      ^{-1}
+postfix    vstar     40    -      ^{*}
+postfix    istar     40    -      ^{*}
+const      zero      100   -      0
+const      one       100   -      1
+const      vzero     100   -      0
+const      iden      100   -      e
+const      vone      100   -      1
+outfix     fnrm      100   -      \lvert #1 \rvert
+outfix     vnrm      100   -      \norm{#1}
+outfix     nrm       100   -      \norm{#1}
+bracket    ip        100   -      \langle #1, #2 \rangle
+
+macro      \norm     1     -      \left\lVert #1 \right\rVert
+
+convention auto

@@ -1683,6 +1683,67 @@ argument, open in the desktop viewer instead of `doc-view-mode'."
            (message "pdflatex produced no PDF; this is the TeX it was given"))
           (t (user-error "display-proof of `%s': no file came back (prover: %s)" name res)))))
 
+;;; -----------------------------------------------------------------------
+;;; The optional infix layer (tex-infix.scm; the table notation/infix.tbl)
+
+(defvar vnb-infix-on nil
+  "Non-nil when the prover's infix layer is on (`tex-infix!'), as last set from here.")
+
+(defun vnb-infix--refresh-macros ()
+  "Fetch the infix table's TeX macros from the prover into `vnb-tex--preamble-macros'."
+  (let* ((res (ignore-errors (vnb-eval-string "(tex-infix-preamble-macros)")))
+         (v   (and res (condition-case nil (car (read-from-string res)) (error nil)))))
+    (when (stringp v) (setq vnb-tex--preamble-macros v))))
+
+;;;###autoload
+(defun vnb-infix-toggle ()
+  "Turn the prover's optional infix layer on or off, then repaint.
+With the layer on, ((ADD K) a b) prints a + b, a norm \\norm{x}, and so on,
+as the table notation/infix.tbl (and ~/.vnb-infix.tbl) says, in every TeX
+printout: the panels, `display-proof', `proof-tex'."
+  (interactive)
+  (vnb-launch--ensure-prover)
+  (let ((res (string-trim (or (vnb-eval-string
+                                (if vnb-infix-on "(tex-infix! #f)" "(tex-infix! #t)"))
+                               ""))))
+    (setq vnb-infix-on (string-suffix-p "#t" res))
+    (vnb-infix--refresh-macros)
+    (ignore-errors (vnb-ws-refresh))
+    (message "VNB: infix notation %s" (if vnb-infix-on "ON" "OFF"))))
+
+;;;###autoload
+(defun vnb-infix-edit-table ()
+  "Open your infix table ~/.vnb-infix.tbl, creating it as a copy of the shipped one.
+Its rows replace the shipped rows of the same head; `off HEAD' removes one.
+The format is described at the head of the file.  Save it, then use
+VNB > Infix Notation > Reload Infix Table (or just print: a changed table is
+re-read at the next printout with the layer on)."
+  (interactive)
+  (let ((user    (expand-file-name "~/.vnb-infix.tbl"))
+        (shipped (expand-file-name "notation/infix.tbl" (file-name-directory vnb-program))))
+    (unless (file-exists-p user)
+      (unless (file-exists-p shipped) (user-error "No shipped table at %s" shipped))
+      (copy-file shipped user))
+    (find-file user)
+    (message "Edit, save, then VNB > Infix Notation > Reload Infix Table")))
+
+;;;###autoload
+(defun vnb-infix-reload ()
+  "Re-read the infix table now and report.  A table with an error is NOT
+installed: the table in force stays, and the errors are listed by file and line."
+  (interactive)
+  (vnb-launch--ensure-prover)
+  (let* ((res (or (vnb-eval-string "(tex-infix-reload-report)") ""))
+         (txt (condition-case nil (car (read-from-string res)) (error res))))
+    (vnb-infix--refresh-macros)
+    (if (and (stringp txt) (string-match-p "NOT reloaded\\|missing" txt))
+        (with-current-buffer (get-buffer-create "*VNB infix table*")
+          (let ((inhibit-read-only t)) (erase-buffer) (insert txt))
+          (display-buffer (current-buffer))
+          (message "VNB: the infix table has errors; the table in force is kept"))
+      (ignore-errors (vnb-ws-refresh))
+      (message "%s" (string-trim (if (stringp txt) txt res))))))
+
 ;;;###autoload
 (defun vnb-show-proof-script (name)
   "Show the re-runnable script -- the PAGE -- of the stored proof of NAME.
@@ -2076,12 +2137,19 @@ the page step by step in the Focus workspace."
   (let ((rgb (and name (color-name-to-rgb name))))
     (if rgb (apply #'format "rgb %.3f %.3f %.3f" rgb) "rgb 0 0 0")))
 
+(defvar vnb-tex--preamble-macros
+  "\\providecommand{\\norm}[1]{\\left\\lVert #1 \\right\\rVert}\n"
+  "The \\providecommand lines of the infix table's TeX macros.
+Fetched from the prover (`tex-infix-preamble-macros', notation/infix.tbl and
+~/.vnb-infix.tbl) by `vnb-infix--refresh-macros'; this default is the shipped
+table's one macro, for a panel painted before the first fetch.")
+
 (defun vnb-tex--latex-document (tex)
   "A standalone LaTeX document rendering math string TEX."
   (concat
    "\\documentclass[border=2pt]{standalone}\n"
    "\\usepackage{amsmath,amssymb}\n"
-   "\\providecommand{\\norm}[1]{\\left\\lVert #1 \\right\\rVert}\n"
+   vnb-tex--preamble-macros
    "\\begin{document}\n"
    "$\\displaystyle " tex "$\n"
    "\\end{document}\n"))
@@ -2092,7 +2160,8 @@ the page step by step in the Focus workspace."
   (let* ((fg  (vnb-tex--color (face-attribute 'default :foreground nil t)))
          (dpi (vnb-tex--dpi))
          (dir (expand-file-name "render" vnb-tex-cache-dir))
-         (key (secure-hash 'md5 (format "%s|%s|%s" tex fg dpi)))
+         ;; the macros are in the key: an edited \\norm in the infix table repaints
+         (key (secure-hash 'md5 (format "%s|%s|%s|%s" tex fg dpi vnb-tex--preamble-macros)))
          (png (expand-file-name (concat key ".png") dir)))
     (unless (file-directory-p dir) (make-directory dir t))
     (if (file-exists-p png)
@@ -3942,6 +4011,12 @@ monospace font is installed.")
     ["Library (HTML)"     vnb-reference-html         t]
     ["Browser Home"       vnb-home-html              t]
     ["View as PDF"        vnb-view-as-pdf       t]
+    ("Infix Notation"
+      ["Infix Notation On"  vnb-infix-toggle
+       :style toggle :selected vnb-infix-on
+       :help "Print structure operations infix (a + b, \\norm{x}) in every TeX printout and the panels"]
+      ["Edit Infix Table"   vnb-infix-edit-table  t]
+      ["Reload Infix Table" vnb-infix-reload      t])
     ["Suggest Forward Moves" vnb-suggest-forward-moves t]
     "---"
     ["Home Workspace"     vnb-launch-workspace             t]
