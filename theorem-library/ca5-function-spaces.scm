@@ -771,7 +771,7 @@
 ;; the facts on NFM and on the subspace u (u subset CC in context), after morera.scm's mrr-ms!
 (define (ca5-nfm! u)
   (fact 'nf-cc-is-metric-space)
-  (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
+  (fact 'cc-is-normed-field) (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
   (fact 'cc-nf-carr)
   (if (not (dk-asm? (list '== (list 'PTS ca5-nfm) 'CC)))
       (dk-have! (list '== (list 'PTS ca5-nfm) 'CC)

@@ -100,9 +100,12 @@
   'COMPLEX-NORMED-ALGEBRA '(SCAL VEC VADD VZERO VNEG ACT)
   'MODULE                 '(SCAL VEC VADD VZERO VNEG ACT))
 
+;;; DEFERRED typing (D8, 2026-11-15): ||-x|| = ||x|| is a consequence, not a law --
+;;; theorem-library/nvs-normed-ag-typing.scm.
 (def-functor 'CNA-AS-NORMED-AG
   'COMPLEX-NORMED-ALGEBRA '(VEC VADD VZERO VNEG VNRM)
-  'NORMED-AG              '(CARR OPR IDEN INV NRM))
+  'NORMED-AG              '(CARR OPR IDEN INV NRM)
+  'deferred)
 
 ;;; the metric space of a normed algebra: d(x, y) = ||x - y||
 (def-functoid 'CNA-METRIC-SPACE '(baa_)
@@ -148,9 +151,12 @@
   'UNITAL-BANACH-ALGEBRA '(SCAL VEC VADD VZERO VNEG ACT)
   'MODULE                '(SCAL VEC VADD VZERO VNEG ACT))
 
+;;; DEFERRED typing (D8): generic, through CNA-AS-NORMED-AG's, once that is proven
+;;; (theorem-library/nvs-normed-ag-typing.scm).
 (def-functor 'UBA-AS-NORMED-AG
   'UNITAL-BANACH-ALGEBRA '(VEC VADD VZERO VNEG VNRM)
-  'NORMED-AG             '(CARR OPR IDEN INV NRM))
+  'NORMED-AG             '(CARR OPR IDEN INV NRM)
+  'deferred)
 
 ;;; the metric space of a unital algebra (the same as CNA-METRIC-SPACE(UBA-AS-CBA(a)))
 (def-functoid 'BA-METRIC-SPACE '(baa_)

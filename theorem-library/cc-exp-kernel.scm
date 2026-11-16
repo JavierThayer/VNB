@@ -1079,7 +1079,7 @@
 (define cek-nfm '(NF-METRIC-SPACE CC-NORMED-FIELD))
 (define cek-sub '(SUBSPACE-MS (NF-METRIC-SPACE CC-NORMED-FIELD) CC))
 (define (cek-nf-setup!)
-  (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
+  (fact 'cc-is-normed-field) (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
   (fact 'cc-nf-carr)
   (if (not (dk-asm? (list '== (list 'PTS cek-nfm) 'CC)))
       (dk-have! (list '== (list 'PTS cek-nfm) 'CC)

@@ -1941,6 +1941,16 @@
                        (any install--variadic-schema? e)))
         (else #f)))
 
+;;; The symbols FORMULA defines as objects, if it is being installed primitive or
+;;; definitional: a side S of (= S u) / (== S u) / (= u S) / (== u S) / (IN S C), S a
+;;; symbol -- the shape pi--object-definition accepts once installed (D7, 2026-11-15).
+(define (install--defined-objects formula)
+  (if (and (memq *current-provenance* '(primitive definitional))
+           (pair? formula) (= (length formula) 3))
+      (filter (lambda (s) (and (symbol? s) (pi--object-def-shape? formula s)))
+              (list (cadr formula) (caddr formula)))
+      '()))
+
 (define (install--grade! name formula)
   ;; Record this formula's bound names, so that a constant registered LATER
   ;; whose spelling collides is reported when it is registered rather than by
@@ -1951,7 +1961,13 @@
                  (lambda (k)
                    (bind-condition-handler (list condition-type:error)
                      (lambda (c) (k (condition/report-string c)))
-                     (lambda () (validate-wff! formula) #f))))))
+                     (lambda ()
+                       ;; D7 (2026-11-15): the symbol THIS formula defines as an object is not
+                       ;; yet defined by an installed statement; it is exempt from the head-only
+                       ;; test for this one call, and nothing else is (wff.scm, *wff-head-only-exempt*)
+                       (fluid-let ((*wff-head-only-exempt* (install--defined-objects formula)))
+                         (validate-wff! formula))
+                       #f))))))
       (when why
         (set! *install-validation-failures*
               (cons (list name why (safe-load-pathname))

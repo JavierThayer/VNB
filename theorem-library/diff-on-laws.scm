@@ -74,7 +74,23 @@
 (dk-peel!)
 (mac-h 'IS-OPEN '(IS-OPEN (NF-METRIC-SPACE K) U))
 (dk-split-all!)
-(fact 'nf-metric-carrier 'K)
+;; nf-metric-carrier is guarded by IS-NORMED-FIELD(K) since D8 (2026-11-15), which this
+;; statement does not carry: read PTS off the constructed tuple instead, its denotation
+;; certified by IS-METRIC-SPACE of the tuple (the unfold of the one in context).
+(define dol-nfm-l '(LIST (CARR K) (VNB-LAMBDA (LIST x y) (CARTESIAN (CARR K) (CARR K)) ((FNRM K) ((ADD K) x ((NEG K) y))))))
+(dk-have! (list '== '(NF-METRIC-SPACE K) dol-nfm-l) (lambda () (mac 'NF-METRIC-SPACE) (qrfl)))
+(dk-rewrite-h! '(IS-METRIC-SPACE (NF-METRIC-SPACE K)) '(NF-METRIC-SPACE K) dol-nfm-l)
+(dk-have! '(== (PTS (NF-METRIC-SPACE K)) (CARR K))
+  (lambda ()
+    (define lf (proof-state-focus *ps*))
+    (slot 'PTS)
+    (let loop ((k 0))
+      (if (and (< k 4) (not (sequent-node-grounded? lf)))
+          (begin (cond ((dk-vt--nth-redex? (dk-goal)) (nth-r))
+                       ((alpha-equiv? (cadr (dk-goal)) (caddr (dk-goal))) (qrfl))
+                       ((dk-head-is? (dk-goal) '=) (rfl))
+                       (#t (qrfl)))
+                 (loop (+ k 1)))))))
 (subst '(== (CARR K) (PTS (NF-METRIC-SPACE K))))
 (ass)
 (qed 'nf-open-subset-carr)
@@ -419,6 +435,7 @@
 (topic! 'nf-rr-is-metric-space 'analysis)
 
 (sp (make-wff (dfo-agree-pts dfo-rr-m 'RR-MS)))
+(fact 'rr-is-normed-field)                 ; the guard of nf-metric-carrier (D8, 2026-11-15)
 (fact 'nf-metric-carrier 'RR-NORMED-FIELD)
 (subst (list '== (list 'PTS dfo-rr-m) '(CARR RR-NORMED-FIELD)))
 (slot 'CARR)

@@ -217,6 +217,8 @@
     "structure-library/euclidean-ring"
     "structure-library/ideal"
     "structure-library/views"
+    "theorem-library/view-typing-laws"        ; D8 2026-11-15 (D8c: assigned)
+    "theorem-library/view-typing-proofs"      ; D8 2026-11-15 (D8c: assigned)
     "structure-library/numeric-instances"
     "structure-library/zz-divisibility"
     "structure-library/monoid-power"
@@ -476,6 +478,7 @@
     "structure-library/normed-field-metric"
     "structure-library/normed-ag-metric"
     "structure-library/normed-vector-space"
+    "theorem-library/nvs-normed-ag-typing"    ; D8 2026-11-15 (D8c: assigned)
     "structure-library/nvs-metric"
     "structure-library/linear-functional"
     "structure-library/dual-space"
@@ -966,6 +969,7 @@
     "theorem-library/basw3-nag"   ; wave 2026-11-09/10
     "structure-library/cnvs-vocab"   ; wave 2026-11-09/10
     "theorem-library/cnvs-a"   ; wave 2026-11-09/10
+    "theorem-library/cnvs-view-typing"   ; D8c 2026-11-16: the CNVS view flush point
     "theorem-library/cnvs-b"   ; wave 2026-11-09/10
     "theorem-library/cnvs-c"   ; wave 2026-11-09/10
     "structure-library/cnvs-comp-vocab"   ; wave 2026-11-09/10
@@ -1342,6 +1346,7 @@
   (files
   
     "structure-library/ba-vocab"   ; wave 2026-11-09/10
+    "theorem-library/cna-normed-ag-typing"    ; D8 2026-11-15 (D8c: assigned)
     "theorem-library/ba-subtype-laws"   ; wave 2026-11-09/10
     "structure-library/ba-cx-vocab"   ; wave 2026-11-09/10
     "structure-library/ba-neumann-vocab"   ; wave 2026-11-09/10
@@ -1506,6 +1511,10 @@
   "theorem-library/discrete-space"
   "structure-library/subtype-laws"
   "structure-library/is-set-laws"
+  "theorem-library/view-typing-laws"        ; D8 2026-11-15: the generic view typings
+  "theorem-library/view-typing-proofs"      ; D8 2026-11-15: the deferred field view typings
+  "theorem-library/nvs-normed-ag-typing"    ; D8 2026-11-15: NVS-AS-NORMED-AG
+  "theorem-library/cna-normed-ag-typing"    ; D8 2026-11-15: CNA-AS-NORMED-AG, UBA-AS-NORMED-AG
   "theorem-library/op-typing"
   "theorem-library/cancellation"
   "theorem-library/rake-algebra"

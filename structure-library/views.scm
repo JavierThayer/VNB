@@ -2,9 +2,10 @@
 ;;;
 ;;; A view-as is a way to *see* one structure as another (RING as additive
 ;;; ABELIAN-GROUP, RING as multiplicative MONOID, ABELIAN-GROUP as MONOID,
-;;; etc.).  Each declaration installs a constructor functoid and the
-;;; corresponding typing axiom, and auto-specializes every target-structure
-;;; theorem to the source structure.  See def-functor in structures.scm.
+;;; etc.).  Each declaration installs a constructor functoid, POSTS the
+;;; corresponding typing obligation (proven, never assumed: D8, 2026-11-15), and
+;;; auto-specializes every target-structure theorem to the source structure.  See
+;;; def-functor in structures.scm.
 ;;;
 ;;; Why this file is separate: def-functor must be called *after* both the
 ;;; source and target structures and all their theorems have been declared,
@@ -133,24 +134,44 @@
 ;;; FIELD now carries NON-ZERO and MUL-INV as built-in slots (see field.scm
 ;;; reshape), so its nonzero elements form a genuine group, not just a
 ;;; monoid.  This replaces the old FIELD-MULTIPLICATIVE-MONOID view.
+;;;
+;;; THE OPERATION IS THE RESTRICTION OF MUL (D8, 2026-11-15; DEFSTAMP F1).  Until
+;;; 2026-11-15 the group's operation was MUL(r) itself, and the typing axiom said
+;;; MUL(r) in FUN(NZ x NZ, NZ).  A member of FUN(A, B) is defined EXACTLY on A, while
+;;; IS-FIELD types MUL(r) on CARR x CARR, so the axiom made CARR x CARR = NZ x NZ:
+;;; 0 in NZ, i.e. no field exists, and with qq-field-is-field 0 = 1 modulo 0.  The
+;;; operation is now the restriction of MUL(r) to NON-ZERO(r) x NON-ZERO(r), a term
+;;; component of the view (def-functor, structures.scm); MUL-INV(r) is typed on
+;;; NON-ZERO(r) already.  The typing is a DEFERRED obligation, proven in
+;;; theorem-library/field-multiplicative-group-laws.scm (closure of NON-ZERO under
+;;; MUL is the absence of zero divisors).
 (def-functor 'FIELD-MULTIPLICATIVE-GROUP
-  'FIELD '(NON-ZERO MUL ONE MUL-INV)
-  'GROUP '(CARR OPR IDEN INV))
+  'FIELD '(NON-ZERO
+           (VNB-LAMBDA (LIST fmgu_ fmgv_) (CARTESIAN (NON-ZERO r) (NON-ZERO r)) ((MUL r) fmgu_ fmgv_))
+           ONE MUL-INV)
+  'GROUP '(CARR OPR IDEN INV)
+  'deferred)
 
 ;;; Forget the extra slots to recover the integral-domain (and hence ring)
 ;;; view of a field.  This re-attaches FIELD to the RING-shape chain so
 ;;; every ring/comm-ring/integral-domain theorem auto-specializes back.
+;;; The typing is DEFERRED (D8): no zero divisors is a proof, not a projection --
+;;; theorem-library/field-ring-view.scm, by field-is-field-ring and
+;;; field-ring-is-integral-domain.
 (def-functor 'FIELD-AS-INTEGRAL-DOMAIN
   'FIELD            '(CARR ADD MUL NEG ZERO ONE)
-  'INTEGRAL-DOMAIN  '(CARR ADD MUL NEG ZERO ONE))
+  'INTEGRAL-DOMAIN  '(CARR ADD MUL NEG ZERO ONE)
+  'deferred)
 
 ;;; Every field is a Euclidean ring under the trivial degree function
 ;;; deg(x) = 0 — division is exact because every nonzero element is a unit:
 ;;; a = (a * b^-1) * b + 0.  The view component pattern is identical to
 ;;; FIELD-AS-INTEGRAL-DOMAIN since EUCLIDEAN-RING shares the RING shape.
+;;; DEFERRED (D8): the trivial degree is a construction -- theorem-library/field-ring-view.scm.
 (def-functor 'FIELD-AS-EUCLIDEAN-RING
   'FIELD          '(CARR ADD MUL NEG ZERO ONE)
-  'EUCLIDEAN-RING '(CARR ADD MUL NEG ZERO ONE))
+  'EUCLIDEAN-RING '(CARR ADD MUL NEG ZERO ONE)
+  'deferred)
 
 ;;; -----------------------------------------------------------------------
 ;;; NORMED-FIELD as COMMUTATIVE-RING / INTEGRAL-DOMAIN
@@ -168,9 +189,11 @@
   'NORMED-FIELD     '(CARR ADD MUL NEG ZERO ONE)
   'COMMUTATIVE-RING '(CARR ADD MUL NEG ZERO ONE))
 
+;;; DEFERRED (D8): no zero divisors -- theorem-library/field-ring-view.scm.
 (def-functor 'NORMED-FIELD-AS-INTEGRAL-DOMAIN
   'NORMED-FIELD    '(CARR ADD MUL NEG ZERO ONE)
-  'INTEGRAL-DOMAIN '(CARR ADD MUL NEG ZERO ONE))
+  'INTEGRAL-DOMAIN '(CARR ADD MUL NEG ZERO ONE)
+  'deferred)
 
 ;;; NORMED-FIELD is its own 7-slot shape (carrier, ring ops, NRM at slot 7);
 ;;; no structural NON-ZERO / INV slots, so its multiplicative-group view is

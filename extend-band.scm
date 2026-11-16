@@ -306,6 +306,8 @@
          (del! '*provenance* *provenance* n)
          (del! '*lemma-fingerprint-memo* *lemma-fingerprint-memo* n)
          (del! '*proof-citation-graph* *proof-citation-graph* n)
+         (del! '*proof-all-citations* *proof-all-citations* n)
+         (del! '*view-companion-view* *view-companion-view* n)
          (del! '*proof-debt* *proof-debt* n)
          (del! '*proof-oracles* *proof-oracles* n)
          (del! '*certifications* *certifications* n)

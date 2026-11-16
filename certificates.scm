@@ -625,6 +625,7 @@
     (fluid-let ((*current-provenance* 'certified))
       (add-theorem! *library* name stmt))
     (register-proven-theorem! name)
+    (hash-table-set! *proof-all-citations* name (filter (lambda (c) (not (eq? c name))) cites))
     (hash-table-set! *proof-citation-graph* name
       (filter (lambda (c) (and (not (eq? c name))
                                (not (eq? (provenance-of c) 'definitional))))

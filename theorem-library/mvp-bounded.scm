@@ -385,7 +385,7 @@
 (define mxb-a-sub (list 'SUBSPACE-MS mxb-nfm 'mxw_))
 (mxb-cc-pts!)
 (fact 'cc-is-set) (dk-cite! 'subclass-of-set-is-set 'mxw_ 'CC)
-(fact 'nf-cc-is-metric-space) (fact 'nf-metric-carrier 'CC-NORMED-FIELD) (fact 'cc-nf-carr)
+(fact 'nf-cc-is-metric-space) (fact 'cc-is-normed-field) (fact 'nf-metric-carrier 'CC-NORMED-FIELD) (fact 'cc-nf-carr)
 (dk-have! (list '== (list 'PTS mxb-nfm) 'CC) (lambda () (subst (list '== (list 'PTS mxb-nfm) '(CARR CC-NORMED-FIELD))) (ass)))
 (dk-cite! 'subspace-pts mxb-nfm 'mxw_)
 (dk-split-all! (dk-landed* (lambda () (mac-h 'IS-CONTINUOUS-AT (dk-pick (dk-head? 'IS-CONTINUOUS-AT) "continuity")))))

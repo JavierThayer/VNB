@@ -6,6 +6,11 @@
 ;;; DESTINATION: theorem-library/l2-hilbert.scm.  Library: measure.  Helper prefix: mlh-.
 ;;; Load window: after me-rf.scm (lp-complete), sip-c.scm (L2-SPACE laws), sip-d1.scm (SIP-METRIC-SPACE).
 
+;;; THE FLUSH POINT for the generic views of structure-library/cnvs-vocab.scm (D8b, 2026-11-15):
+;;; their typings are proven here, before the first citer, in a file with a certificate
+;;; store (structures.scm, view-typing-flush!).
+(view-typing-flush!)
+
 (dk-skip-links!)   ; KIT-9 link skipping, opt-in per file (wave-2 files were developed with it on)
 
 (define (mlh-qed! name)

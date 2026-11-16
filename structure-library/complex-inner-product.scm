@@ -305,9 +305,12 @@
 (fluid-let ((*current-provenance* 'definitional))
   (support 'ip-normed-ag-carrier
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v) (== (CARR (IP-NORMED-AG v)) (VEC v)))))
+  ;; GUARDED by IS-COMPLEX-INNER-PRODUCT-SPACE(v) as well (D8, 2026-11-15; DEFSTAMP s.3):
+  ;; x in VEC(v) does not certify the tuple, the structure predicate does -- the reason
+  ;; its carrier twin above was guarded on 2026-10-13.
   (support 'ip-normed-ag-norm-value
-    '(FORALL v (FORALL x (IMPLIES (IN x (VEC v))
-       (== ((NRM (IP-NORMED-AG v)) x) (IP-NORM v x)))))))
+    '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v) (FORALL x (IMPLIES (IN x (VEC v))
+       (== ((NRM (IP-NORMED-AG v)) x) (IP-NORM v x))))))))
 
 ;;; The induced norm IS a group norm.  Nonnegativity and definiteness are
 ;;; sqrt-nonneg and cips-ip-definite; the triangle inequality is MINKOWSKI,

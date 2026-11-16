@@ -1465,7 +1465,7 @@
   (dk-split-all! (list conj))
   (fact 'cc-is-metric-space)
   (gox-pts-cc!)
-  (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
+  (fact 'cc-is-normed-field) (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
   (fact 'cc-nf-carr)
   (dk-have! (list '== (list 'PTS gox-nfm) 'CC)
     (lambda () (subst (list '== (list 'PTS gox-nfm) '(CARR CC-NORMED-FIELD))) (ass)))

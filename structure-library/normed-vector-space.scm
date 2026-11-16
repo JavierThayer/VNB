@@ -139,6 +139,10 @@
 
 ;;; the additive normed group -> NORMED-AG (so FINSUM / triangle-sum machinery
 ;;; over the underlying group of a normed vector space applies)
+;;; DEFERRED typing (D8, 2026-11-15): the group norm's ||-x|| = ||x|| is not a law of
+;;; NORMED-VECTOR-SPACE but a consequence (homogeneity at -1 and (-1).x = -x), proven
+;;; in theorem-library/nvs-normed-ag-typing.scm.
 (def-functor 'NORMED-VECTOR-SPACE-AS-NORMED-AG
   'NORMED-VECTOR-SPACE '(VEC VADD VZERO VNEG VNRM)
-  'NORMED-AG           '(CARR   OPR  IDEN     INV  NRM))
+  'NORMED-AG           '(CARR   OPR  IDEN     INV  NRM)
+  'deferred)

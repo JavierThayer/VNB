@@ -71,6 +71,55 @@
 (frv-slot! 'field-id-add  'ADD)
 (frv-slot! 'field-id-neg  'NEG)
 
+;;; ======================================================================
+;;; A field-ring is an integral domain.  MOVED 2026-11-15 (D8) from
+;;; theorem-library/gal-poly.scm, unchanged but for the local helper's prefix: the
+;;; typing of FIELD-AS-INTEGRAL-DOMAIN, proven below from it, is cited from this
+;;; file on, and gal-poly loads ~250 entries later.
+;;; ======================================================================
+(define (frv-conjs f) (if (and (pair? f) (eq? (car f) 'AND)) (append (frv-conjs (cadr f)) (frv-conjs (caddr f))) (list f)))
+(define (frv-iff! thm lhs . args)
+  (let ((ii (apply dk-cite! thm args)))
+    (if (not (every dk-asm? (frv-conjs (caddr ii))))
+        (begin
+          (dk-have! (caddr ii) (lambda () (dk-close-if! (lambda () (dk-only! ii lhs)) prop)))
+          (dk-split-all! (list (caddr ii)))))
+    (caddr ii)))
+(sp (make-wff '(FORALL s (IMPLIES (IS-FIELD-RING s) (IS-INTEGRAL-DOMAIN s)))))
+(dk-peel!)
+(define frv7-fi (frv-iff! 'is-field-ring-def '(IS-FIELD-RING s) 's))
+(dk-cite! 'commutative-ring-is-ring 's)
+(dk-cite! 'ring-zero-in 's)
+(define frv7-ii (dk-cite! 'is-integral-domain-def 's))
+(dk-have! (caddr frv7-ii)
+  (lambda ()
+    (dk-conj-close!
+      (lambda ()
+        (if (dk-asm? (dk-goal)) (ass)
+            (let* ((ls (dk-peel!))
+                   (eq (car (filter (dk-head? '=) ls)))
+                   (a (cadr (cadr eq))) (b (caddr (cadr eq))))
+              (use-em (list '= a '(ZERO s))
+                (lambda () (dk-close-if! (lambda () (dk-only! (list '= a '(ZERO s)))) prop))
+                (lambda ()
+                  (let* ((inv (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'FORSOME) (dk-contains? fm '(ONE s)))) "inverses"))
+                         (ex (dk-apply! inv a))
+                         (c (dk-skolem! ex)))
+                    (dk-split-all!)
+                    (let* ((h0 (list '= (list '(MUL s) c (list '(MUL s) a b)) (list '(MUL s) (list '(MUL s) a c) b)))
+                           (x (dk-have! h0 (lambda () (crs))))
+                           (h1 (dk-rewrite-h! h0 (list '(MUL s) a b) '(ZERO s)))
+                           (h2 (dk-rewrite-h! h1 (list '(MUL s) a c) '(ONE s)))
+                           (z1 (dk-cite! 'ring-mul-zero-right 's c))
+                           (h3 (dk-rewrite-h! h2 (list '(MUL s) c '(ZERO s)) '(ZERO s)))
+                           (z2 (dk-cite! 'ring-mul-left-id 's b))
+                           (h4 (dk-rewrite-h! h3 (list '(MUL s) '(ONE s) b) b)))
+                      (dk-have! (list '= b '(ZERO s)) (lambda () (subst (list '= b '(ZERO s))) (rfl))))
+                    (dk-close-if! (lambda () (dk-only! (list '= b '(ZERO s)))) prop))))))))))
+(dk-close-if! (lambda () (dk-only! frv7-ii (caddr frv7-ii))) prop)
+(qed 'field-ring-is-integral-domain)
+(topic! 'field-ring-is-integral-domain 'algebra)
+
 (sp (make-wff '(FORALL s_ (IMPLIES (IS-FIELD s_)
                  (IS-FIELD-RING (FIELD-AS-INTEGRAL-DOMAIN s_))))))
 (di)
@@ -79,8 +128,15 @@
 (di)                       ; assume is-field(s_)
 ;; Land every consequence of IS-FIELD we will need BEFORE unfolding it:
 ;; `mac-h' REPLACES the assumption it unfolds, so is-field(s_) is gone after.
-(fact 'field-as-integral-domain-is-integral-domain 's_)
-(fact 'integral-domain-is-commutative-ring '(FIELD-AS-INTEGRAL-DOMAIN s_))
+;; IS-COMMUTATIVE-RING of the view, by the generic view driver on a lane (D8,
+;; 2026-11-15): this used to be read off the typing AXIOM of the view, which is now
+;; the theorem PROVEN below FROM this one.
+(dk-have! '(IS-COMMUTATIVE-RING (FIELD-AS-INTEGRAL-DOMAIN s_))
+  (lambda ()
+    (let ((left (dk-view-close! 'FIELD-AS-INTEGRAL-DOMAIN 'COMMUTATIVE-RING)))
+      (if (pair? left)
+          (error "field-ring-view: the commutative-ring read-off left open"
+                 (map (lambda (l) (expression->string (dk-goal-of l))) left))))))
 ;; field-zero-not-one and field-mul-inverse were cited here as separate axioms
 ;; until 2026-09-15, when they became (law ...) clauses of the FIELD declaration
 ;; (structure-library/field.scm) -- they were a support finishing a definition.
@@ -155,5 +211,17 @@
       (else (ass)))))
 (fr-close!)
 (qed 'field-is-field-ring)
+
+;;; THE TYPING OF FIELD-AS-INTEGRAL-DOMAIN, PROVEN (D8, 2026-11-15).  It was the
+;;; `definitional' typing axiom def-functor installed (views.scm); the obligation is
+;;; deferred to here because the absence of zero divisors is a proof, not a read-off:
+;;; a field is a field-ring (above), a field-ring is an integral domain (above).
+(sp (make-wff '(FORALL r (IMPLIES (IS-FIELD r) (IS-INTEGRAL-DOMAIN (FIELD-AS-INTEGRAL-DOMAIN r))))))
+(dk-peel!)
+(fact 'field-is-field-ring 'r)
+(fact 'field-ring-is-integral-domain '(FIELD-AS-INTEGRAL-DOMAIN r))
+(ass)
+(qed 'field-as-integral-domain-is-integral-domain)
+(view-typing-installed! 'FIELD-AS-INTEGRAL-DOMAIN)
 (topic! 'field-is-field-ring 'algebra)
 (alias! 'field-is-field-ring "every field is a field-ring")

@@ -109,27 +109,32 @@
          (CLASS (RINGOID-SETOID r) (ZERO r))
          (CLASS (RINGOID-SETOID r) (ONE r))))
 
-;; Read-off macetes: unconditional projections of the tuple, one per slot (mac
-;; them in the IS-RING proof, exactly as mat-ring-* serve mat-ring-proof).
+;; Read-off macetes: projections of the tuple, one per slot (mac them in the
+;; IS-RING proof, exactly as mat-ring-* serve mat-ring-proof).
+;; GUARDED by IS-RINGOID(r) (D8, 2026-11-15; DEFSTAMP s.3, the species of the 10-13
+;; ruling on ip-normed-ag-carrier): unguarded, the read-off asserts that the 6-tuple
+;; denotes for EVERY r, while under the list doctrine a list denotes only when its
+;; components are sets, which nothing certifies for an arbitrary r.  IS-RINGOID(r)
+;; types every component, so the guarded read-off is the definitional fact.
 (fluid-let ((*current-provenance* 'definitional))
   (add-axiom! *library* 'rq-carr
-    '(FORALL r (== (CARR (RINGOID-QUOTIENT-RING r)) (QUOTIENT (RINGOID-SETOID r)))))
+    '(FORALL r (IMPLIES (IS-RINGOID r) (== (CARR (RINGOID-QUOTIENT-RING r)) (QUOTIENT (RINGOID-SETOID r))))))
   (add-axiom! *library* 'rq-add
-    '(FORALL r (== (ADD (RINGOID-QUOTIENT-RING r))
-                   (DESCEND2 (RINGOID-SETOID r) (VNB-LAMBDA (LIST a b) (CARTESIAN (CARR r) (CARR r)) (CLASS (RINGOID-SETOID r) ((ADD r) a b)))))))
+    '(FORALL r (IMPLIES (IS-RINGOID r) (== (ADD (RINGOID-QUOTIENT-RING r))
+                   (DESCEND2 (RINGOID-SETOID r) (VNB-LAMBDA (LIST a b) (CARTESIAN (CARR r) (CARR r)) (CLASS (RINGOID-SETOID r) ((ADD r) a b))))))))
   (add-axiom! *library* 'rq-mul
-    '(FORALL r (== (MUL (RINGOID-QUOTIENT-RING r))
-                   (DESCEND2 (RINGOID-SETOID r) (VNB-LAMBDA (LIST a b) (CARTESIAN (CARR r) (CARR r)) (CLASS (RINGOID-SETOID r) ((MUL r) a b)))))))
+    '(FORALL r (IMPLIES (IS-RINGOID r) (== (MUL (RINGOID-QUOTIENT-RING r))
+                   (DESCEND2 (RINGOID-SETOID r) (VNB-LAMBDA (LIST a b) (CARTESIAN (CARR r) (CARR r)) (CLASS (RINGOID-SETOID r) ((MUL r) a b))))))))
   (add-axiom! *library* 'rq-neg
-    '(FORALL r (== (NEG (RINGOID-QUOTIENT-RING r))
-                   (DESCEND (RINGOID-SETOID r) (VNB-LAMBDA a (CARR r) (CLASS (RINGOID-SETOID r) ((NEG r) a)))))))
+    '(FORALL r (IMPLIES (IS-RINGOID r) (== (NEG (RINGOID-QUOTIENT-RING r))
+                   (DESCEND (RINGOID-SETOID r) (VNB-LAMBDA a (CARR r) (CLASS (RINGOID-SETOID r) ((NEG r) a))))))))
   (add-axiom! *library* 'rq-zero
-    '(FORALL r (== (ZERO (RINGOID-QUOTIENT-RING r)) (CLASS (RINGOID-SETOID r) (ZERO r)))))
+    '(FORALL r (IMPLIES (IS-RINGOID r) (== (ZERO (RINGOID-QUOTIENT-RING r)) (CLASS (RINGOID-SETOID r) (ZERO r))))))
   (add-axiom! *library* 'rq-one
-    '(FORALL r (== (ONE (RINGOID-QUOTIENT-RING r)) (CLASS (RINGOID-SETOID r) (ONE r)))))
+    '(FORALL r (IMPLIES (IS-RINGOID r) (== (ONE (RINGOID-QUOTIENT-RING r)) (CLASS (RINGOID-SETOID r) (ONE r))))))
   ;; PTS of the ringoid setoid is the ring carrier (RINGOID-SETOID = [CARR, REL]).
   (add-axiom! *library* 'ringoid-setoid-pts
-    '(FORALL r (== (PTS (RINGOID-SETOID r)) (CARR r)))))
+    '(FORALL r (IMPLIES (IS-RINGOID r) (== (PTS (RINGOID-SETOID r)) (CARR r))))))
 
 ;;; ---- descend interface: the operations compute on classes (well-known) --------
 ;; The DESCEND2/DESCEND specialisation to this ring, one per operation.  Each is

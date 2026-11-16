@@ -142,6 +142,7 @@
         "the metric space of the complex normed field is a metric space")
 
 (sp (make-wff (hbz-agree-pts hbz-m 'CC-MS)))
+(fact 'cc-is-normed-field)                 ; the guard of nf-metric-carrier (D8, 2026-11-15)
 (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
 (subst (list '== (list 'PTS hbz-m) '(CARR CC-NORMED-FIELD)))
 (slot 'CARR)

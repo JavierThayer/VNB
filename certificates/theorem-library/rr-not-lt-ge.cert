@@ -1,3 +1,3 @@
 ;;; VNB proof certificates for theorem-library/rr-not-lt-ge.scm -- written by a load that proved them; do not edit.
-(vnb-certificate-file "theorem-library/rr-not-lt-ge" (kernel "bc223d2ddd360cf8b3c538926ae554cd") (count 1))
-(rr-not-lt-ge "3ac998e2b0096a571c6d5a8983031f7f" (forall cra (implies (in cra rr) (forall crb (implies (in crb rr) (implies (not (< cra crb)) (<= crb cra)))))) (cites (rr-leq-total . "T9b39b6621db1537b4a9f1d00eb418dd8") (rr-le-ne-lt . "Te3dcc15d21b53829351c4ba9aea3101b")) (defs (< . "Da7c837a353c6f526aaae9633e5f41f42")) (uses) (own-oracles ineq) (bill) (oracles ineq) (kernel "bc223d2ddd360cf8b3c538926ae554cd"))
+(vnb-certificate-file "theorem-library/rr-not-lt-ge" (kernel "4c98b340e7c338c7bed28f5672bcc029") (count 1))
+(rr-not-lt-ge "3ac998e2b0096a571c6d5a8983031f7f" (forall cra (implies (in cra rr) (forall crb (implies (in crb rr) (implies (not (< cra crb)) (<= crb cra)))))) (cites (rr-leq-total . "T9b39b6621db1537b4a9f1d00eb418dd8") (rr-le-ne-lt . "Te3dcc15d21b53829351c4ba9aea3101b")) (defs (< . "Da7c837a353c6f526aaae9633e5f41f42")) (uses) (own-oracles ineq) (bill) (oracles ineq) (kernel "4c98b340e7c338c7bed28f5672bcc029"))

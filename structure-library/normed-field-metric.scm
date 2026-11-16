@@ -74,7 +74,11 @@
 
 ;;; -----------------------------------------------------------------------
 ;;; Carrier of the underlying metric space is the field's carrier.
+;;; GUARDED by IS-NORMED-FIELD(nf) (D8, 2026-11-15; DEFSTAMP s.3, the species of the
+;;; 10-13 ruling on ip-normed-ag-carrier): the read-off of the constructed tuple holds
+;;; where the tuple denotes, which the structure predicate certifies.
 
 (support 'nf-metric-carrier
   '(FORALL nf
-     (== (PTS (NF-METRIC-SPACE nf)) (CARR nf))))
+     (IMPLIES (IS-NORMED-FIELD nf)
+       (== (PTS (NF-METRIC-SPACE nf)) (CARR nf)))))

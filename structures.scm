@@ -1184,11 +1184,24 @@
 ;;; Installs three things:
 ;;;   1. A functoid (NAME r) whose defining equation is
 ;;;        (NAME r) = (LIST (src-comp-1 r) ... (src-comp-n r))
-;;;   2. The typing axiom
+;;;   2. The typing OBLIGATION (D8, 2026-11-15, the user's decision "Prove views"):
 ;;;        forall r. IS-SOURCE(r) => IS-TARGET((NAME r))
-;;;      named  <name>-is-<target>  (e.g. ring-additive-ag-is-abelian-group)
-;;;      *Installed as an axiom*, not proved.  Per library-build policy: leave
-;;;      results as axioms; promotion to proven theorem is a separate task.
+;;;      named  <name>-is-<target>  (e.g. ring-additive-ag-is-abelian-group).
+;;;      It is NOT installed here.  Until 2026-11-15 it was installed as a
+;;;      `definitional' axiom, unproved, and one of them was FALSE
+;;;      (field-multiplicative-group-is-group, DEFSTAMP F1: 0 = 1 modulo 0).  It is
+;;;      now POSTED (*view-obligations*) and PROVEN: by the generic driver
+;;;      dk-view-typing! (driver-kit.scm) -- in the catch-up file
+;;;      theorem-library/view-typing-laws.scm for a view declared before it, at the
+;;;      next flush point (view-typing-flush!) for a view declared after it -- or,
+;;;      when MODE is 'deferred, by a proof in a theorem-library file that names it.
+;;;      The theorem is installed only when proven; the end-of-load gate
+;;;      report-view-obligations! (FATAL in a strict load) lists every obligation
+;;;      that is not a proven theorem of exactly that statement, and every view whose
+;;;      typing proof rests on a companion of the same view (a circle).
+;;;      A source component may be an accessor (the usual case) or a TERM in the
+;;;      variable r (FIELD-MULTIPLICATIVE-GROUP's restricted multiplication):
+;;;      view-as-comp-at reads either at an argument.
 ;;;   3. Auto-specializations: for every theorem of the form
 ;;;        forall s. IS-TARGET(s) => P[s]
 ;;;      currently in *theorem-table*, install
@@ -1218,6 +1231,21 @@
 (define (structure-slot-names sd)
   (map car (structure-def-slots sd)))
 
+;;; A view's source component at the argument D: (C D) for an accessor C, else the
+;;; TERM C with its variable r replaced by D (D8, 2026-11-15).
+(define (view-as-comp-at c d)
+  (if (symbol? c) (list c d) (subst-free 'r d c)))
+
+;;; Declaration order of the views (a view's index is its position here).
+(define *view-as-order* '())
+(define (view-as-index name)
+  (let loop ((l *view-as-order*) (k 0))
+    (cond ((null? l) #f) ((eq? (car l) name) k) (#t (loop (cdr l) (+ k 1))))))
+
+;;; companion name -> the view that minted it (read by the view-obligation gate's
+;;; circle test: a typing proof may not rest on a companion of its own view).
+(define *view-companion-view* (make-equal-hash-table))
+
 ;;; Replace `(tgt-slot (view-name r-sym))` with `(src-comp r-sym)` throughout
 ;;; expr, using slot->comp alist.  Walks the full cons tree; safe on atoms.
 (define (view-as-reduce-accessors expr view-name slot->comp r-sym)
@@ -1229,7 +1257,7 @@
           (eq? (car  (cadr expr)) view-name)
           (eq? (cadr (cadr expr)) r-sym)
           (assq (car expr) slot->comp))
-     `(,(cdr (assq (car expr) slot->comp)) ,r-sym))
+     (view-as-comp-at (cdr (assq (car expr) slot->comp)) r-sym))
     ((pair? expr)
      (cons (view-as-reduce-accessors (car expr) view-name slot->comp r-sym)
            (view-as-reduce-accessors (cdr expr) view-name slot->comp r-sym)))
@@ -1255,6 +1283,7 @@
 (define (view-specialized-source name)
   (hash-table-ref/default *view-specialized-source* name #f))
 
+(define *view-as-last-minted* '())     ; companions minted by the latest call, newest first
 (define (view-as-auto-specialize! view-name #!optional only-name)
   (fluid-let ((*current-provenance* 'definitional))
    (let* ((v          (or (lookup-view-as view-name)
@@ -1269,7 +1298,7 @@
                       (string-append "-"
                        (string-downcase (symbol->string view-name)))))
          (r-sym      'r)
-         (count      0)
+         (count      (begin (set! *view-as-last-minted* '()) 0))
          (all        (if (default-object? only-name)
                          (hash-table->alist *theorem-table*)
                          (let ((f (hash-table-ref/default *theorem-table*
@@ -1302,6 +1331,8 @@
                 ;; law through its view companion would report zero debt; see
                 ;; debt-of in proof-debt.scm.
                 (hash-table-set! *view-specialized-source* new-name thm-name)
+                (hash-table-set! *view-companion-view* new-name view-name)
+                (set! *view-as-last-minted* (cons new-name *view-as-last-minted*))
                 (set! count (+ count 1)))))))
       all)
     (display ";; def-functor ") (display view-name) (display ": ")
@@ -1324,8 +1355,11 @@
         (and dsd (find-shape-structure
                   (definitional-structure-parent dsd))))))
 
-(define (def-functor name source-struct source-comps target-struct target-comps)
+(define (def-functor name source-struct source-comps target-struct target-comps #!optional mode0)
+  (define mode (if (default-object? mode0) 'generic mode0))
   (fluid-let ((*current-provenance* 'definitional))
+  (unless (memq mode '(generic deferred))
+    (error "def-functor: MODE is 'generic or 'deferred" name mode))
   ;; Validation — source/target may be shape OR definitional structures;
   ;; in the latter case we walk up to the ancestor shape for the slot list.
   (let ((src-def (find-shape-structure source-struct))
@@ -1343,10 +1377,10 @@
       (unless (equal? target-comps tgt-slots)
         (error "def-functor: target components must equal target slot order"
                'got: target-comps 'expected: tgt-slots)))
-    ;; Source components must all be valid accessors of source-struct.
+    ;; Source components must all be valid accessors of source-struct, or terms in r.
     (let ((src-slots (structure-slot-names src-def)))
       (for-each (lambda (c)
-                  (unless (member c src-slots)
+                  (unless (or (member c src-slots) (pair? c))
                     (error "def-functor: not a source accessor" c
                            'source-struct: source-struct
                            'source-slots: src-slots)))
@@ -1355,18 +1389,150 @@
   (hash-table-set! *view-as-table* name
     (%make-view-as name source-struct source-comps target-struct target-comps
                    (safe-load-pathname)))
+  (if (not (memq name *view-as-order*))
+      (set! *view-as-order* (append *view-as-order* (list name))))
   ;; Functoid: (NAME r) = (LIST (c1 r) ... (cn r)).
   (def-functoid name '(r)
-    `(LIST ,@(map (lambda (c) `(,c r)) source-comps)))
-  ;; Typing axiom: forall r. IS-SOURCE(r) => IS-TARGET((NAME r)).
-  (let ((is-src  (symbol-append 'IS- source-struct))
-        (is-tgt  (symbol-append 'IS- target-struct))
-        (ax-name (symbol-append name '-is- target-struct)))
-    (add-axiom! *library* ax-name
-      `(FORALL r (IMPLIES (,is-src r) (,is-tgt (,name r))))))
+    `(LIST ,@(map (lambda (c) (view-as-comp-at c 'r)) source-comps)))
+  ;; The typing OBLIGATION, posted, not installed (D8): see the header above.
+  (hash-table-set! *view-obligations* name
+    (list (view-typing-name name) (view-typing-statement name) mode))
   ;; Auto-specialize target theorems.
   (view-as-auto-specialize! name)
+  ;; A generic obligation is QUEUED; a theorem-library file proves the queue
+  ;; (view-typing-flush!) before the first citer: the catch-up file
+  ;; view-typing-laws.scm, and the FLUSH POINTS after the later vocabularies
+  ;; (D8b: proven in a theorem-library file, the typing is installed from its
+  ;; certificate by a certified build instead of re-proven at every load).
+  (if (eq? mode 'generic)
+      (set! *view-typing-pending* (append *view-typing-pending* (list name))))
   name))
+
+;;; --- THE VIEW TYPING OBLIGATIONS (D8, 2026-11-15) ---------------------------
+;;; view -> (typing-name statement mode).  MODE generic: proven by dk-view-typing!
+;;; (the catch-up, or the hook); deferred: proven by a named proof in a file.
+(define *view-obligations* (make-equal-hash-table))
+(define *view-typing-pending* '())     ; generic views declared and not yet proven, in order
+(define *view-typing-prover* #f)      ; set by view-typing-laws.scm: proves one view, never raises
+
+;;; THE FLUSH (D8b, 2026-11-15).  Prove every queued generic obligation, in
+;;; declaration order (a composite is proven after the view it composes through).
+;;; Called once by the catch-up file (view-typing-laws.scm) and at the head of the
+;;; theorem-library file that follows each later vocabulary declaring a generic view
+;;; (ba-subtype-laws after ba-vocab, sip-a after sip-vocab, sip-b after
+;;; sip-complex-vocab, l2-hilbert after cnvs-vocab).  Until 2026-11-15 (D8) the later
+;;; views were proven AT the declaration, inside a structure-library file: those
+;;; proofs have no certificate store, so every certified build re-ran them.  A view
+;;; left queued at the end of the load is an outstanding obligation for the gate.
+(define (view-typing-flush!)
+  (if (not *view-typing-prover*)
+      (error "view-typing-flush!: called before theorem-library/view-typing-laws (the driver is not installed)"))
+  (let ((pending *view-typing-pending*))
+    (set! *view-typing-pending* '())
+    (for-each *view-typing-prover* pending)
+    pending))
+(define *view-typing-failures* '())   ; ((view why) ...): generic proofs that failed (view-typing-laws.scm)
+
+(define (view-typing-name v)
+  (let ((vd (lookup-view-as v)))
+    (and vd (symbol-append v '-is- (view-as-target-struct vd)))))
+(define (view-typing-statement v)
+  (let ((vd (lookup-view-as v)))
+    (and vd `(FORALL r (IMPLIES (,(symbol-append 'IS- (view-as-source-struct vd)) r)
+                                (,(symbol-append 'IS- (view-as-target-struct vd)) (,v r)))))))
+(define (view-obligation v)
+  (let ((st (view-typing-statement v))) (and st (make-wff st))))
+(define (view-obligation-mode v)
+  (let ((ob (hash-table-ref/default *view-obligations* v #f))) (and ob (caddr ob))))
+
+;;; THE REPLAY.  The old def-functor installed the typing axiom at the declaration,
+;;; so every view W declared LATER whose target is V's SOURCE transported it (and
+;;; then the views after W transported that companion in turn).  A typing that is
+;;; proven later than its view's declaration is installed after those W, so it is
+;;; handed to each of them here, in declaration order, restricted to the one
+;;; theorem: the same companions, under the same names, as before.  Called by
+;;; dk-view-typing! and by every deferred proof after its qed.
+(define (view-typing-installed! v)
+  (let ((thm (view-typing-name v)) (k (view-as-index v)))
+    (if (not (hash-table-ref/default *theorem-table* thm #f))
+        (error "view-typing-installed!: the typing theorem is not installed" thm))
+    (let replay ((thm thm) (k k))
+      (let ((f (hash-table-ref/default *theorem-table* thm #f)))
+        (let loop ((ws (list-tail *view-as-order* (+ k 1))) (j (+ k 1)))
+          (if (pair? ws)
+              (let* ((w (car ws)) (wd (lookup-view-as w)))
+                (if (and f (generic-for-struct? f (symbol-append 'IS- (view-as-target-struct wd))))
+                    (begin
+                      (view-as-auto-specialize! w thm)
+                      (for-each (lambda (c) (replay c j)) (reverse *view-as-last-minted*))))
+                (loop (cdr ws) (+ j 1)))))))
+    thm))
+
+;;; An obligation is DISCHARGED when a theorem of the typing name is installed,
+;;; PROVEN (a proof ran, or a valid certificate installed it), and states exactly
+;;; the obligation up to bound-variable renaming -- the category rule.
+(define (view--discharged? v)
+  (let* ((ob (hash-table-ref/default *view-obligations* v #f))
+         (f  (and ob (hash-table-ref/default *theorem-table* (car ob) #f))))
+    (and f (memq (provenance-of (car ob)) '(proven certified))
+         (alpha-equiv? f (cadr ob)) #t)))
+
+(define (view-obligations-audit)
+  (filter (lambda (v) (not (view--discharged? v)))
+          (filter (lambda (v) (hash-table-ref/default *view-obligations* v #f)) *view-as-order*)))
+
+;;; THE CIRCLE TEST.  A companion of view W is a transport THROUGH W's typing, so a
+;;; proof of a typing that rests -- through any chain of citations -- on a
+;;; companion of W depends on W's typing.  The views' dependency graph so read must
+;;; be acyclic; a view on a cycle is reported.  Citations: *proof-all-citations*
+;;; (proof-debt.scm, every name a proof cited, definitional ones included), a
+;;; companion standing for its source.
+(define (view--typing-deps v)
+  (let ((seen (make-strong-eqv-hash-table)) (deps '()))
+    (let walk ((n (view-typing-name v)))
+      (if (not (hash-table-ref/default seen n #f))
+          (begin
+            (hash-table-set! seen n #t)
+            (let ((w (hash-table-ref/default *view-companion-view* n #f)))
+              (if (and w (not (memq w deps))) (set! deps (cons w deps))))
+            (let ((src (hash-table-ref/default *view-specialized-source* n #f)))
+              (if src (walk src)))
+            (for-each walk (proof-all-citations-of n)))))
+    deps))
+(define (view-typing-circles)
+  (let ((g (map (lambda (v) (cons v (view--typing-deps v)))
+                (filter view--discharged? *view-as-order*))))
+    (filter (lambda (v)
+              (let ((seen '()))
+                (let reach ((x v) (first #t))
+                  (cond ((and (not first) (eq? x v)) #t)
+                        ((memq x seen) #f)
+                        (#t (set! seen (cons x seen))
+                            (any (lambda (y) (reach y #f))
+                                 (let ((e (assq x g))) (if e (cdr e) '()))))))))
+            (map car g))))
+
+(define (report-view-obligations! #!optional fatal?)
+  (let ((owed (view-obligations-audit))
+        (circ (view-typing-circles))
+        (n    (length *view-as-order*))
+        (fatal (and (not (default-object? fatal?)) fatal?)))
+    (if (and (null? owed) (null? circ))
+        (begin (display ";; view obligations: none outstanding (") (display n)
+               (display " views, every typing proven)\n"))
+        (begin
+          (for-each (lambda (v)
+                      (display ";; view obligation OUTSTANDING: ") (display (view-typing-name v))
+                      (display "  -- (view-obligation '") (display v) (display ") for the goal\n"))
+                    owed)
+          (for-each (lambda (v)
+                      (display ";; view typing CIRCULAR: ") (display (view-typing-name v))
+                      (display " rests on a companion of a view that depends on it\n"))
+                    circ)
+          (if fatal
+              (error "view-obligations-audit: unproven or circular view typings"
+                     (append owed circ)))))
+    (append owed circ)))
 
 ;;; -----------------------------------------------------------------------
 ;;; Definitional structures

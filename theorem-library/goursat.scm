@@ -976,7 +976,7 @@
 (define gou-nfm '(NF-METRIC-SPACE CC-NORMED-FIELD))
 (sp (make-wff (list 'FORALL 'u (list 'IMPLIES (list 'IS-OPEN gou-nfm 'u) '(SUBSET u CC)))))
 (dk-peel!)
-(fact 'nf-metric-carrier 'CC-NORMED-FIELD)
+(fact 'cc-is-normed-field) (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
 (fact 'cc-nf-carr)
 (dk-have! (list '== (list 'PTS gou-nfm) 'CC)
   (lambda () (subst (list '== (list 'PTS gou-nfm) '(CARR CC-NORMED-FIELD))) (ass)))

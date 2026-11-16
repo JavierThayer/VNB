@@ -5173,7 +5173,9 @@
         (string-append acc ")")
         (loop (cdr l)
               (string-append acc (if first? "" " ")
-                             (string-downcase (symbol->string (car l))))
+                             (if (symbol? (car l))
+                                 (string-downcase (symbol->string (car l)))
+                                 (expression->string (car l))))
               #f))))
 
 ;;; Edge tooltip = the UNABBREVIATED functoid name (the symbol you actually

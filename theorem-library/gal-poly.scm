@@ -322,40 +322,8 @@
 ;;; ======================================================================
 ;;; A field is an integral domain; over an integral domain the degrees of a product add
 ;;; ======================================================================
-(sp (make-wff '(FORALL s (IMPLIES (IS-FIELD-RING s) (IS-INTEGRAL-DOMAIN s)))))
-(dk-peel!)
-(define gp7-fi (gp-iff! 'is-field-ring-def '(IS-FIELD-RING s) 's))
-(dk-cite! 'commutative-ring-is-ring 's)
-(dk-cite! 'ring-zero-in 's)
-(define gp7-ii (dk-cite! 'is-integral-domain-def 's))
-(dk-have! (caddr gp7-ii)
-  (lambda ()
-    (dk-conj-close!
-      (lambda ()
-        (if (dk-asm? (dk-goal)) (ass)
-            (let* ((ls (dk-peel!))
-                   (eq (car (filter (dk-head? '=) ls)))
-                   (a (cadr (cadr eq))) (b (caddr (cadr eq))))
-              (use-em (list '= a '(ZERO s))
-                (lambda () (dk-close-if! (lambda () (dk-only! (list '= a '(ZERO s)))) prop))
-                (lambda ()
-                  (let* ((inv (dk-pick (lambda (fm) (and (dk-head-is? fm 'FORALL) (dk-contains? fm 'FORSOME) (dk-contains? fm '(ONE s)))) "inverses"))
-                         (ex (dk-apply! inv a))
-                         (c (dk-skolem! ex)))
-                    (dk-split-all!)
-                    (let* ((h0 (list '= (list '(MUL s) c (list '(MUL s) a b)) (list '(MUL s) (list '(MUL s) a c) b)))
-                           (x (dk-have! h0 (lambda () (crs))))
-                           (h1 (dk-rewrite-h! h0 (list '(MUL s) a b) '(ZERO s)))
-                           (h2 (dk-rewrite-h! h1 (list '(MUL s) a c) '(ONE s)))
-                           (z1 (dk-cite! 'ring-mul-zero-right 's c))
-                           (h3 (dk-rewrite-h! h2 (list '(MUL s) c '(ZERO s)) '(ZERO s)))
-                           (z2 (dk-cite! 'ring-mul-left-id 's b))
-                           (h4 (dk-rewrite-h! h3 (list '(MUL s) '(ONE s) b) b)))
-                      (dk-have! (list '= b '(ZERO s)) (lambda () (subst (list '= b '(ZERO s))) (rfl))))
-                    (dk-close-if! (lambda () (dk-only! (list '= b '(ZERO s)))) prop))))))))))
-(dk-close-if! (lambda () (dk-only! gp7-ii (caddr gp7-ii))) prop)
-(qed 'field-ring-is-integral-domain)
-(topic! 'field-ring-is-integral-domain 'algebra)
+;;; field-ring-is-integral-domain MOVED 2026-11-15 (D8) to theorem-library/field-ring-view.scm,
+;;; unchanged: the typing of FIELD-AS-INTEGRAL-DOMAIN is now proven from it there.
 
 (define gp-FG '((MUL (POLY a_)) f_ g_))
 (define gp-Z '(ZERO (POLY a_)))

@@ -213,6 +213,7 @@
 (dk-peel!)
 (dk-cite! 'nv-integers-domain 'K)
 (dk-cite! 'rs-zero 'K bzt-Z)
+(dk-cite! 'rs-is-ringoid 'K bzt-Z)          ; the guard of rq-zero (D8, 2026-11-15)
 (mac 'nv-residue-unfold)
 (mac 'rq-zero)
 (subst `(== (ZERO (NV-RES-RINGOID K ,bzt-Z)) (ZERO K)))

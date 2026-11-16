@@ -334,6 +334,8 @@
       (dk-split-all! (dk-landed (lambda () (sep-me (list 'IN z rmm-S)))))
       (ass))))
 (dk-cite! 'inf-subsets-membership 'NN rmm-S)
+;; the sethood conjunct of inf-subsets-membership (D8, 2026-11-15, DEFSTAMP F2)
+(dk-have! (list 'IN rmm-S 'SET) (lambda () (dk-sethood! rmm-S)))
 (dk-have! (list 'IN rmm-S '(INF-SUBSETS NN)) (lambda () (prop)))
 (define rmm-phi (dk-skolem! (dk-cite! 'subsequence-capture rmm-S)))
 (dk-cite! 'fun-codomain-superset rmm-phi 'NN rmm-S 'NN)

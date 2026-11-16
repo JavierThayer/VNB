@@ -111,7 +111,7 @@
 (fact 'cc-is-set)
 (dk-cite! 'subclass-of-set-is-set 'u 'CC)
 (fact 'nf-cc-is-metric-space)
-(fact 'nf-metric-carrier 'CC-NORMED-FIELD)
+(fact 'cc-is-normed-field) (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
 (fact 'cc-nf-carr)
 (dk-have! (list '== (list 'PTS mxm-nfm) 'CC) (lambda () (subst (list '== (list 'PTS mxm-nfm) '(CARR CC-NORMED-FIELD))) (ass)))
 (dk-cite! 'subspace-pts mxm-nfm 'u)

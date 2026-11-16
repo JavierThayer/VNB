@@ -150,6 +150,13 @@
 
 (define *proof-debt* (make-equal-hash-table))   ; proven name -> bill (name list)
 (define *proof-citation-graph* (make-equal-hash-table))  ; proven name -> immediate citations
+;;; proven name -> EVERY name its proof cited, definitional ones included (D8,
+;;; 2026-11-15).  The cycle graph above drops definitional citations, and a view
+;;; companion is definitional; the view-obligation gate's circle test
+;;; (structures.scm, view-typing-circles) needs to see them.
+(define *proof-all-citations* (make-equal-hash-table))
+(define (proof-all-citations-of name)
+  (hash-table-ref/default *proof-all-citations* name '()))
 
 ;;; debt(NAME): the set of asserted facts NAME ultimately rests on.
 ;;;
@@ -181,6 +188,7 @@
     ;; kept for the certificate record (certificates.scm), which must name
     ;; exactly the citations this bill was computed from
     (set! *pd-last-citations* cits)
+    (hash-table-set! *proof-all-citations* name (filter (lambda (c) (not (eq? c name))) cits))
     ;; The BILL (below) is computed over the FULL citation list and is unchanged
     ;; by the filter here.  The cycle GRAPH, however, must exclude two kinds of
     ;; edge that are never a real proof dependency, or a well-founded induction

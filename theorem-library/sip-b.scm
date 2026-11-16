@@ -28,6 +28,11 @@
 ;;; measure or complex-analysis libraries (cc-conjugate-sub, the cc-scalar-ring-* read-offs and
 ;;; cartesian-membership-nth live there and are avoided: see the report).
 
+;;; THE FLUSH POINT for the generic views of structure-library/sip-complex-vocab.scm (D8b, 2026-11-15):
+;;; their typings are proven here, before the first citer, in a file with a certificate
+;;; store (structures.scm, view-typing-flush!).
+(view-typing-flush!)
+
 (define (sipb-qed! name)
   (if (proof-done? *ps*)
       (begin (qed name) (topic! name 'analysis))

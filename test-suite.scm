@@ -2377,8 +2377,8 @@
 ;; the predicate name IS-NORMED-FIELD (matching FIELD's pattern above).
 (check-true "IS-NORMED-FIELD axiom installed"
   (lambda () (and (lookup-theorem 'IS-NORMED-FIELD) #t)))
-;; The FIELD→INTEGRAL-DOMAIN forgetful relation is installed by the view.
-(check-true "FIELD-AS-INTEGRAL-DOMAIN view's typing axiom installed"
+;; The FIELD→INTEGRAL-DOMAIN forgetful relation: the view's typing, PROVEN since D8 (2026-11-15).
+(check-true "FIELD-AS-INTEGRAL-DOMAIN view's typing theorem installed"
   (lambda () (and (lookup-theorem 'FIELD-AS-INTEGRAL-DOMAIN-is-INTEGRAL-DOMAIN) #t)))
 (check-true "euclidean-ring-is-integral-domain installed"
   (lambda () (and (lookup-theorem 'euclidean-ring-is-integral-domain) #t)))
@@ -19146,7 +19146,7 @@
   #t)
 
 ;;; ---------------------------------------------------------------------------
-;;; W2D patch 05 (HELD): a head-only symbol is not a term at an argument position (FREF-REPORT s.5).
+;;; W2D patch 05 (in force since 71e8c663, as 05r): a head-only symbol is not a term at an argument position (FREF-REPORT s.5).
 ;;; make-wff reports a refusal as a vnb-error OBJECT (it does not raise), so the tests read wff?.
 (check-true "HEAD-ONLY atoms: make-wff refuses a bare operator / functoid / accessor / predicate at an argument position"
   (lambda ()
@@ -19176,6 +19176,97 @@
       (quietly (lambda () (sp (make-wff '(= POWER POWER)))))
       (and (not *ps*)
            (begin (sp (make-wff '(= (POWER ORD) (POWER ORD)))) (quietly (lambda () (rfl))) (proof-done? *ps*))))))
+
+;;; ---------------------------------------------------------------------------
+;;; D8 (2026-11-15, the user's decision "Prove views + fix F1/F2"): def-functor POSTS its
+;;; typing obligation and the view's typing is a PROVEN theorem; the gate
+;;; report-view-obligations! refuses an unproven or circular one.
+(display "\n=== D8: view typings proven ===\n")
+(check-true "D8 views: every view's typing obligation is discharged by a PROVEN theorem, and none is circular"
+  (lambda ()
+    (and (pair? *view-as-order*)
+         (null? (view-obligations-audit))
+         (null? (view-typing-circles))
+         (every (lambda (v) (memq (provenance-of (view-typing-name v)) '(proven certified))) *view-as-order*)
+         #t)))
+(check-true "D8 views: field-multiplicative-group-is-group (F1) is PROVEN, not definitional, and its operation is the restriction of MUL"
+  (lambda ()
+    (and (memq (provenance-of 'field-multiplicative-group-is-group) '(proven certified))
+         (equal? (cadr (view-as-source-comps (lookup-view-as 'FIELD-MULTIPLICATIVE-GROUP)))
+                 '(VNB-LAMBDA (LIST fmgu_ fmgv_) (CARTESIAN (NON-ZERO r) (NON-ZERO r)) ((MUL r) fmgu_ fmgv_)))
+         #t)))
+(check-true "D8 views (F2): inf-subsets-membership carries its S in SET conjunct"
+  (lambda ()
+    (let* ((f   (hash-table-ref/default *theorem-table* 'inf-subsets-membership #f))
+           (iff (caddr (caddr f))))
+      (and (eq? (car iff) 'IFF) (equal? (cadr (caddr iff)) '(IN S SET))))))
+(check-true "D8b views: no generic view is left queued at the end of the load (every flush point ran)"
+  (lambda () (null? *view-typing-pending*)))
+;; accepted: a provable view, declared now, is queued and proven by the next flush (D8b)
+(def-functor 'D8-TOY-AG-AS-MONOID 'ABELIAN-GROUP '(CARR OPR IDEN) 'MONOID '(CARR OPR IDEN))
+(check-true "D8b views: a provable view declared after the catch-up is QUEUED, not proven, until a flush"
+  (lambda ()
+    (and (equal? *view-typing-pending* '(D8-TOY-AG-AS-MONOID))
+         (not (hash-table-ref/default *theorem-table* 'd8-toy-ag-as-monoid-is-monoid #f))
+         #t)))
+(view-typing-flush!)
+(check-true "D8 views: a provable view declared after the catch-up is PROVEN by the flush (accepted)"
+  (lambda ()
+    (and (eq? (provenance-of 'd8-toy-ag-as-monoid-is-monoid) 'proven)
+         (null? *view-typing-pending*)
+         (not (memq 'D8-TOY-AG-AS-MONOID (view-obligations-audit)))
+         #t)))
+;; refused: F1's old shape -- MUL itself as the operation on NON-ZERO -- is not a group;
+;; the generic driver cannot prove it and the gate refuses it.  The control's companions
+;; and obligation are removed afterwards (they exist only in this image).
+(define d8s-fail-before (length *view-typing-failures*))
+(quietly (lambda () (def-functor 'D8-TOY-OLD-FMG 'FIELD '(NON-ZERO MUL ONE MUL-INV) 'GROUP '(CARR OPR IDEN INV))
+                    (view-typing-flush!)))
+(check-true "D8 views: F1's old shape is refused -- no typing theorem, the obligation outstanding, the fatal gate raises (control)"
+  (lambda ()
+    (let ((raised (call-with-current-continuation
+                    (lambda (k)
+                      (with-exception-handler (lambda (e) (k #t))
+                        (lambda () (quietly (lambda () (report-view-obligations! #t))) #f))))))
+      (and (not (hash-table-ref/default *theorem-table* 'd8-toy-old-fmg-is-group #f))
+           (memq 'D8-TOY-OLD-FMG (view-obligations-audit))
+           (> (length *view-typing-failures*) d8s-fail-before)
+           raised
+           #t))))
+(hash-table-walk *view-companion-view*
+  (lambda (c v) (if (eq? v 'D8-TOY-OLD-FMG) (begin (hash-table-delete! *theorem-table* c) (hash-table-delete! *macete-table* c)))))
+(hash-table-delete! *view-obligations* 'D8-TOY-OLD-FMG)
+(check-true "D8 views: after the control is withdrawn the gate is clean again"
+  (lambda () (null? (view-obligations-audit))))
+
+;;; ---------------------------------------------------------------------------
+;;; D7 (2026-11-15, the user's "fix the grader"): install--grade! exempts from the head-only
+;;; test the symbol the formula being installed DEFINES (primitive / definitional, object-
+;;; definition shape) and nothing else.
+(register-constant! 'D7-TOY-K 'defined-fn)
+(check-true "D7 grader: the defining axiom of a fresh constant passes install grading (accepted)"
+  (lambda ()
+    (fluid-let ((*install-validation-failures* '()))
+      (fluid-let ((*current-provenance* 'definitional))
+        (quietly (lambda () (install--grade! 'd7-toy-k-def '(= D7-TOY-K (LIST 0))))))
+      (null? *install-validation-failures*))))
+(check-true "D7 grader: the same symbol at an argument position of an UNRELATED formula, before its definition, is still refused (control)"
+  (lambda ()
+    (fluid-let ((*install-validation-failures* '()))
+      (fluid-let ((*current-provenance* 'definitional))
+        (quietly (lambda () (install--grade! 'd7-toy-k-use '(IN (CARD D7-TOY-K) NN)))))
+      (and (pair? *install-validation-failures*)
+           (eq? (car (car *install-validation-failures*)) 'd7-toy-k-use)))))
+(check-true "D7 grader: the exemption is for the defining provenance only -- an ASSERTED (= K ...) is refused (control)"
+  (lambda ()
+    (fluid-let ((*install-validation-failures* '()))
+      (fluid-let ((*current-provenance* 'asserted))
+        (quietly (lambda () (install--grade! 'd7-toy-k-asserted '(= D7-TOY-K (LIST 0))))))
+      (pair? *install-validation-failures*))))
+(check-true "D7 grader: the library's install grading is clean (zero-ring-def, eplus-def, etimes-def, cc-inf-in-set no longer reported)"
+  (lambda ()
+    (null? (filter (lambda (e) (memq (car e) '(zero-ring-def eplus-def etimes-def cc-inf-in-set)))
+                   (install-validation-failures)))))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

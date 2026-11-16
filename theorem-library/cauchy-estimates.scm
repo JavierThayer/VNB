@@ -436,7 +436,7 @@
   (fact 'subset-refl cie-T)
   (dk-cite! 'circle-path-closed 'c 'r)
   (fact 'nf-cc-is-metric-space)
-  (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
+  (fact 'cc-is-normed-field) (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
   (fact 'cc-nf-carr)
   (dk-have! (list '== (list 'PTS cie-nfm) 'CC)
     (lambda () (subst (list '== (list 'PTS cie-nfm) '(CARR CC-NORMED-FIELD))) (ass)))

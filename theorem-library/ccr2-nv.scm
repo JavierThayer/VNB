@@ -519,6 +519,7 @@
 
 (sp (make-wff '(FORALL K (FORALL A (IMPLIES (IS-NV-DOMAIN K A) (SUBSET A (PTS (NF-METRIC-SPACE K))))))))
 (dk-peel!)
+(dk-cite! 'nv-domain-normed 'K 'A)            ; the guard of nf-metric-carrier (D8, 2026-11-15)
 (dk-cite! 'nf-metric-carrier 'K)
 (subst '(= (PTS (NF-METRIC-SPACE K)) (CARR K)))
 (mac 'subset-def)

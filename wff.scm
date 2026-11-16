@@ -655,12 +655,22 @@
 ;; them for binder-walker-audit (expressions.scm: declare-binder-walker!).  A
 ;; head added to *binder-shapes* and not to the two `case' forms below would
 ;; leave its bound variable unrecorded and its body walked in the outer scope.
-;;; W2D patch 05 (HELD; FREF-REPORT s.5, "second layer").  A HEAD-ONLY symbol (a def-functoid name, a
+;;; W2D patch 05 (FREF-REPORT s.5, "second layer"; IN FORCE since commit 71e8c663, 2026-11-13,
+;;; as patch 05r).  A HEAD-ONLY symbol (a def-functoid name, a
 ;;; structure accessor, or a registered constant head that no primitive / definitional statement
 ;;; defines as an object -- primitive-inferences.scm, pi--head-only-symbol?) or a lambdoid record
 ;;; at an ARGUMENT position is not a term of the object language: `(= POWER POWER)', `(IN CARD SET)'.
 ;;; The hook is set by primitive-inferences.scm; #f before it loads (nothing is registered then).
 (define *wff-head-only-hook* #f)
+;;; THE SYMBOLS A FORMULA BEING INSTALLED DEFINES (D7, 2026-11-15).  install--grade! (macetes.scm)
+;;; grades a formula BEFORE it is installed, and pi--head-only-symbol? counts a constant as an
+;;; object only once its defining primitive / definitional statement IS installed -- so the
+;;; defining statement itself (zero-ring-def, eplus-def, etimes-def, cc-inf-in-set) read its own
+;;; constant as head-only and was graded MALFORMED.  install--grade! binds this, for the one
+;;; validate-wff! call, to the symbols S for which the formula has the object-definition shape
+;;; (pi--object-def-shape?) and is being installed primitive or definitional; NOTHING else is
+;;; exempt, and the exemption lasts only for that call.
+(define *wff-head-only-exempt* '())
 
 (declare-binder-walker! 'validate-wff!
   '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
@@ -734,7 +744,7 @@
             ;; Bound class variable used in term position — fine.
             #t)
            (else
-            (if (and *wff-head-only-hook* (*wff-head-only-hook* e))
+            (if (and *wff-head-only-hook* (not (memq e *wff-head-only-exempt*)) (*wff-head-only-hook* e))
                 (error "make-wff: a head-only symbol (a functoid, an accessor, an operator or a constant that is not defined as an object) at an argument position" e))
             (set! term-syms (cons e term-syms)))))
         ;; Functoid record: validate each domain and the body

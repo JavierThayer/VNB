@@ -185,8 +185,12 @@
 (dk-conj-close!
  (lambda ()
    (let ((g (dk-goal)))
-     (if (eq? (car g) 'SUBSET)
-         (ass)
+     (cond
+       ;; (IN J SET): inf-subsets-membership's sethood conjunct (D8, 2026-11-15, DEFSTAMP F2)
+       ((and (eq? (car g) 'IN) (eq? (caddr g) 'SET)) (dk-sethood! (cadr g)))
+       ((eq? (car g) 'SUBSET)
+         (ass))
+       (#t
          ;; (NOT (IN (CARD J) NN)) -- assume it and refute.
          (begin
            (di)                                  ; (IN (CARD J) NN); goal FALSITY
@@ -208,7 +212,7 @@
                           (dk-conj-close!
                            (lambda ()
                              (if (eq? (car (dk-goal)) 'IN) (ass) (rfl))))))))))
-               (ai neg))))))))
+               (ai neg)))))))))
 
 (r8l-qed! 'strictly-mono-image-infinite)
 (gloss! 'strictly-mono-image-infinite

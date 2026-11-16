@@ -438,7 +438,7 @@
       (list 'CC-SERIES-CONVERGES-TO lc-SER (list 'LINE-INT lc-g 'pgam 'dgam 'a 'b))))))))))))))))))))))))))))
 (dk-peel!)
 (fact 'nf-cc-is-metric-space)
-(fact 'nf-metric-carrier 'CC-NORMED-FIELD)
+(fact 'cc-is-normed-field) (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
 (fact 'cc-nf-carr)
 (dk-have! (list '== (list 'PTS lc-nfm) 'CC) (lambda () (subst (list '== (list 'PTS lc-nfm) '(CARR CC-NORMED-FIELD))) (ass)))
 (dk-have! (list 'SUBSET 'u (list 'PTS lc-nfm)) (lambda () (subst (list '== (list 'PTS lc-nfm) 'CC)) (ass)))

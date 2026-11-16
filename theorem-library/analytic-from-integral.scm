@@ -146,7 +146,7 @@
 ;;; DEFINED before any instantiation at it), pts(subspace-ms(NFM, u)) == u.
 (define (aif-ms! u)
   (fact 'nf-cc-is-metric-space)
-  (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
+  (fact 'cc-is-normed-field) (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
   (fact 'cc-nf-carr)
   (dk-have! (list '== (list 'PTS aif-nfm) 'CC)
     (lambda () (subst (list '== (list 'PTS aif-nfm) '(CARR CC-NORMED-FIELD))) (ass)))

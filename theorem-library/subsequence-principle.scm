@@ -198,7 +198,15 @@
 ;;; ---- S INFINITE: capture it, and the hypothesis refutes the branch ------
 (define (ssp-infinite!)
   (have! `(IN ,ssp-set (INF-SUBSETS NN))
-         (lambda () (mac 'inf-subsets-membership) (from-context!)))
+         (lambda ()
+           (mac 'inf-subsets-membership)
+           ;; the sethood conjunct (D8, 2026-11-15, DEFSTAMP F2) by dk-sethood!, the rest as before
+           (dk-conj-close!
+             (lambda ()
+               (let ((g (dk-goal)))
+                 (if (and (eq? (car g) 'IN) (eq? (caddr g) 'SET))
+                     (dk-sethood! (cadr g))
+                     (from-context!)))))))
   (let* ((ex     (dk-fact! 'subsequence-capture ssp-set))
          (landed (dk-landed (lambda () (ai ex))))
          (two    (dk-split! (any-pred (dk-head? 'AND) landed)))

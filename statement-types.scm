@@ -190,8 +190,12 @@
                           (let ((d (cadr (cdr pr))))
                             (for-each
                              (lambda (sc tc)
-                               (if (add! (list '== (list sc d) (list tc tt)) 'view
-                                         (view-as-name vw) (list f))
+                               ;; an accessor component only: a TERM component (D8,
+                               ;; FIELD-MULTIPLICATIVE-GROUP's restricted product) has no
+                               ;; slot read-off of this shape
+                               (if (and (symbol? sc)
+                                        (add! (list '== (list sc d) (list tc tt)) 'view
+                                              (view-as-name vw) (list f)))
                                    (set! changed #t)))
                              (view-as-source-comps vw) (view-as-target-comps vw))))))
                   (list (cons (cadr f) (caddr f)) (cons (caddr f) (cadr f)))))
@@ -271,7 +275,7 @@
          (tc  (car (caddr f)))
          (vd  (list view d))
          (vw  (hash-table-ref/default *view-as-table* view #f))
-         (lst (cons 'LIST (map (lambda (a) (list a d)) (view-as-source-comps vw)))))
+         (lst (cons 'LIST (map (lambda (a) (view-as-comp-at a d)) (view-as-source-comps vw)))))
     (dk-have! f
       (lambda ()
         (dk-have! (list '== vd lst) (lambda () (mac view) (qrfl)))
@@ -396,8 +400,8 @@
   (let ((vw (st--view-of u)))
     (string-append (expression->string (list (symbol-append 'IS- (view-as-source-struct vw)) v))
                    " is not given by the view: " (st--name (view-as-name vw))
-                   " only reads its slots (" (st--commas (map st--name (view-as-source-comps vw)))
-                   "), and its typing axiom runs from " (st--name (symbol-append 'IS- (view-as-source-struct vw)))
+                   " only reads its slots (" (st--commas (map (lambda (c) (if (symbol? c) (st--name c) (expression->string c))) (view-as-source-comps vw)))
+                   "), and its typing theorem runs from " (st--name (symbol-append 'IS- (view-as-source-struct vw)))
                    " to " (st--name (symbol-append 'IS- (view-as-target-struct vw))) ", not back.")))
 
 ;;; With no argument: the statement of the proof in progress.
@@ -482,7 +486,7 @@
                               (string-append
                                " " (st--tex (list (symbol-append 'IS- (view-as-source-struct vw)) v))
                                " does not follow: the view \\texttt{" (proof-tex--escape-tt (st--name (view-as-name vw)))
-                               "} reads only these slots, and its typing axiom \\texttt{"
+                               "} reads only these slots, and its typing theorem \\texttt{"
                                (proof-tex--escape-tt (st--name (symbol-append (view-as-name vw) '-is- (view-as-target-struct vw))))
                                "} runs from " (st--tex (list (symbol-append 'IS- (view-as-source-struct vw)) v))
                                " to the view, not back.")))

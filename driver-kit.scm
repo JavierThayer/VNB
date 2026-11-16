@@ -9431,3 +9431,386 @@
   (list 'IN (->raw-formula t) (list 'VEC A)))
 ;;; (dk-cc-type! T) -- land (IN T CC) for a scalar built by + * - conjugate from typed atoms
 (define (dk-cc-type! t) (dk--alg-ct! (->raw-formula t)) (list 'IN (->raw-formula t) 'CC))
+
+;;; =======================================================================
+;;; THE VIEW TYPING DRIVER (D8, 2026-11-15; the user's decision "Prove views").
+;;;
+;;; def-functor (structures.scm) no longer installs its typing axiom
+;;;     V-is-T :  forall r. IS-S(r) => IS-T(V r)
+;;; as a `definitional' fact; it POSTS it, and this driver PROVES it.
+;;;
+;;; (dk-view-typing! V)       open, drive and close V's typing obligation through
+;;;                           dk-sp-qed!, then hand the new theorem to the views
+;;;                           declared after V (view-typing-installed!).  Errors when
+;;;                           the generic driver leaves a leaf open.  Returns the name.
+;;; (dk-view-close! V [T])    on a focus goal IS-T(V x) with IS-S(x) in context
+;;;                           (T defaults to V's target; an ANCESTOR of it may be
+;;;                           named), drive the goal and return the leaves left open
+;;;                           (empty: closed).  A hand proof of a deferred obligation
+;;;                           calls this and closes what it returns.
+;;;
+;;; THE METHOD, in order:
+;;;  1. the SOURCE is expanded: every conjunct of IS-S(x) is landed by a lane
+;;;     (dk-project!: IS-S(x) survives), recursively into a parent conjunct and into
+;;;     a structure predicate of a literal LIST (UBA's is-cba([scal(s), ...])), and
+;;;     every def-predicate hypothesis (is-measure, ...) is opened the same way;
+;;;  2. COMPOSITION: for a source conjunct IS-X(t) and a view W : X -> T whose
+;;;     typing is installed, W's typing is cited at t;
+;;;  3. the goal is MATCHED against a hypothesis equal to it up to NORMALISATION
+;;;     (accessors read off literal lists, views unfolded): the differing closed
+;;;     subterm pairs are proved equal on lanes (dk-vt--eq-lane!) and the
+;;;     HYPOTHESIS is rewritten (dk-rewrite-h!) -- never the goal, whose terms are
+;;;     the smaller ones -- and `ass' closes;
+;;;  4. else the target is unfolded to its shape level (refinements through their
+;;;     parent), dk-isx-set! takes the sethood conjunct, and each conjunct is read
+;;;     off (slot / view unfold / nth-r) and closed by `ass', the LENGTH by len-r,
+;;;     a symmetric `not(a = b)' by neq-sym, a match (3), a property or predicate
+;;;     unfolded, or -- for a universal -- peeled, split and closed piecewise by a
+;;;     universal hypothesis instantiated where its body MATCHES the piece.
+;;; Nothing is asserted; every step is a recorded surface tactic.  The read-off of
+;;; an accessor applied to a literal list goes through an equation proved by `slot'
+;;; to its fixpoint, then `subst': a global `slot' would also rewrite the accessor
+;;; inside the list's own components, and nth-r would then owe the denotation of a
+;;; list of NTHs, which the certificate does not see.
+
+(define (dk-vt--try thunk)
+  (call-with-current-continuation
+    (lambda (k) (with-exception-handler
+                  (lambda (e) (k (if (condition? e) (condition/report-string e) (list 'raised e))))
+                  (lambda () (thunk) #f)))))
+(define (dk-vt--loud what thunk)        ; dk-vt--try, saying what failed
+  (let ((why (dk-vt--try thunk)))
+    (if why (begin (display ";; dk-view: ") (display what) (display " did not go through: ")
+                   (display why) (newline)))
+    why))
+(define (dk-vt--def-name x)
+  (if (lookup-structure x) (symbol-append 'IS- x) (symbol-append 'is- x '-def)))
+(define (dk-vt--parent x)
+  (let ((d (lookup-definitional-structure x))) (and d (definitional-structure-parent d))))
+(define (dk-vt--struct-of-pred h)        ; an IS-X head -> X, when X is a declared structure
+  (and (symbol? h)
+       (let ((s (symbol->string h)))
+         (and (> (string-length s) 3) (string=? (substring s 0 3) "is-")
+              (let ((x (string->symbol (substring s 3 (string-length s)))))
+                (and (or (lookup-structure x) (lookup-definitional-structure x)) x))))))
+(define (dk-vt--definiens x t)
+  (let ((f (hash-table-ref/default *theorem-table* (dk-vt--def-name x) #f)))
+    (subst-free (quantifier-var f) t (caddr (quantifier-body f)))))
+(define (dk-vt--conjs f)
+  (if (dk-head-is? f 'AND) (append (dk-vt--conjs (cadr f)) (dk-vt--conjs (caddr f))) (list f)))
+;; the definiens of a def-predicate application (P a1 .. an), or #f
+(define (dk-vt--pred-def f)
+  (and (pair? f) (symbol? (car f)) (not (dk-vt--struct-of-pred (car f)))
+       (let ((d (hash-table-ref/default *theorem-table* (car f) #f)))
+         (and d (let loop ((d d) (args (cdr f)))
+                  (cond ((and (dk-head-is? d 'FORALL) (pair? args))
+                         (loop (subst-free (quantifier-var d) (car args) (quantifier-body d)) (cdr args)))
+                        ((and (null? args) (dk-head-is? d 'IFF) (dk-head-is? (cadr d) (car f))) (caddr d))
+                        (#t #f)))))))
+;; THE EXPANSION IN ONE PASS (D8b, 2026-11-15; finding V1).  The definiens of a
+;; predicate hypothesis H is landed WHOLE by one lane (dk-project!: mac-h, then
+;; `ass' on the lane) and split ONCE on the main branch; H survives.  The first
+;; version projected each conjunct by its own lane, and every lane's closer
+;; (dk--lane-close-at!) split EVERY conjunction in the lane's context -- a cubic
+;; number of `ai' steps, each scanning the context: in a load, with a context of
+;; some hundred formulas, one expansion of IS-INTEGRAL-DOMAIN took 64 s and one
+;; view typing ten minutes.  A definiens that is not a conjunction keeps the
+;; one-conjunct lane.
+(define (dk-vt--land-definiens! d opener h)
+  (let ((cs (dk-vt--conjs d)))
+    (if (any-pred (lambda (c) (not (dk-asm? c))) cs)
+        (begin
+          (if (dk-head-is? d 'AND)
+              (dk-vt--try (lambda ()
+                            (let ((f (dk-project! d opener h)))
+                              (if (and (pair? f) (dk-asm? f)) (dk-split-all! (list f)))))))
+          ;; a conjunct the whole lane did not land (or a definiens that is not a
+          ;; conjunction): its own lane, as before
+          (for-each (lambda (c) (if (not (dk-asm? c)) (dk-vt--try (lambda () (dk-project! c opener h)))))
+                    cs)))
+    cs))
+(define (dk-vt--expand! x t depth)
+  (let ((h (list (symbol-append 'IS- x) t)))
+    (for-each
+      (lambda (c)
+        (let ((y (and (pair? c) (= (length c) 2) (dk-vt--struct-of-pred (car c)))))
+          (if (and y (dk-asm? c) (< depth 3)
+                   (or (equal? (cadr c) t) (dk-head-is? (cadr c) 'LIST)))
+              (dk-vt--expand! y (cadr c) (+ depth 1)))))
+      (dk-vt--land-definiens! (dk-vt--definiens x t) (dk-vt--def-name x) h))))
+(define (dk-vt--expand-preds!)
+  (for-each (lambda (f)
+              (let ((b (dk-vt--pred-def f)))
+                (if b (dk-vt--land-definiens! b (car f) f))))
+            (dk-asms)))
+;;; ---- the symbolic normal form: accessors to NTH, views unfolded, NTH of a LIST reduced
+(define (dk-vt--view-unfold e)
+  (let ((v (and (pair? e) (symbol? (car e)) (= (length e) 2) (lookup-view-as (car e)))))
+    (and v (cons 'LIST (map (lambda (c) (view-as-comp-at c (cadr e))) (view-as-source-comps v))))))
+(define (dk-vt--accessor? a)
+  (and (symbol? a) (eq? (constant-head? a) 'accessor) (hash-table-ref/default *accessor-index* a #f)))
+(define (dk-vt--norm e)
+  (cond ((not (pair? e)) e)
+        (#t (let ((e (map dk-vt--norm e)))
+              (cond ((and (= (length e) 2) (dk-vt--accessor? (car e)))
+                     (let ((k (car (dk-vt--accessor? (car e)))) (x (cadr e)))
+                       (if (and (dk-head-is? x 'LIST) (<= k (length (cdr x)))) (list-ref x k) (list 'NTH k x))))
+                    ((dk-vt--view-unfold e) => dk-vt--norm)
+                    (#t e))))))
+(define (dk-vt--views-in e)
+  (let ((acc '()))
+    (let walk ((e e))
+      (if (pair? e)
+          (begin (if (and (symbol? (car e)) (lookup-view-as (car e)) (not (memq (car e) acc)))
+                     (set! acc (cons (car e) acc)))
+                 (for-each walk e))))
+    acc))
+(define (dk-vt--nth-redex? e)
+  (and (pair? e) (or (and (eq? (car e) 'NTH) (= (length e) 3) (dk-head-is? (caddr e) 'LIST))
+                     (any-pred dk-vt--nth-redex? e))))
+(define (dk-vt--acc-on-list e)           ; the first subterm (ACC (LIST ..)), or #f
+  (cond ((not (pair? e)) #f)
+        ((and (= (length e) 2) (dk-vt--accessor? (car e)) (dk-head-is? (cadr e) 'LIST)) e)
+        (#t (let loop ((xs e))
+              (cond ((null? xs) #f)
+                    ((dk-vt--acc-on-list (car xs)) => (lambda (x) x))
+                    (#t (loop (cdr xs))))))))
+;; slot ACC to the fixpoint of an (== A B) goal, then qrfl
+(define (dk-vt--slot-fix! acc)
+  (let loop ((k 0))
+    (let ((g (dk-goal)))
+      (cond ((alpha-equiv? (cadr g) (caddr g)) (qrfl))
+            ((> k 5) (error "dk-vt--slot-fix!: no fixpoint" (expression->string g)))
+            (#t (slot acc)
+                (if (equal? g (dk-goal)) (error "dk-vt--slot-fix!: slot changed nothing" (expression->string g)))
+                (loop (+ k 1)))))))
+;; on a lane whose goal is (== A B), A and B equal up to normalisation
+(define (dk-vt--eq-lane!)
+  (let ((leaf (proof-state-focus *ps*)))
+    (let loop ((k 0))
+      (if (not (sequent-node-grounded? leaf))
+          (let ((g (dk-goal)))
+            (cond ((alpha-equiv? (cadr g) (caddr g)) (qrfl))
+                  ((> k 40) (error "dk-vt--eq-lane!: no fixpoint" (expression->string g)))
+                  ((dk-vt--nth-redex? g) (nth-r) (loop (+ k 1)))
+                  ((pair? (dk-vt--views-in g)) (for-each (lambda (v) (mac v)) (dk-vt--views-in g)) (loop (+ k 1)))
+                  ((dk-vt--acc-on-list g)
+                   => (lambda (t)
+                        (let* ((kx (car (dk-vt--accessor? (car t))))
+                               (nt (list 'NTH kx (cadr t)))
+                               (e  (list '== t nt)))
+                          (if (not (dk-asm? e)) (dk-have! e (lambda () (dk-vt--slot-fix! (car t)))))
+                          (subst (list '= t nt))
+                          (loop (+ k 1)))))
+                  (#t (error "dk-vt--eq-lane!: stuck" (expression->string g)))))))
+    (if (not (sequent-node-grounded? leaf))
+        (error "dk-vt--eq-lane!: open" (map (lambda (l) (expression->string (dk-goal-of l))) (dk-open-leaves))))))
+;;; ---- the parallel diff of a goal G against a hypothesis H
+(define *dk-vt--connectives* '(AND OR IMPLIES IFF NOT))
+(define *dk-vt--term-binders* '(SEP IOTA VNB-LAMBDA BIG-UNION COMP))
+(define (dk-vt--mentions-any? e vs)
+  (cond ((symbol? e) (memq e vs)) ((pair? e) (any-pred (lambda (x) (dk-vt--mentions-any? x vs)) e)) (#t #f)))
+(define (dk-vt--rename-binder g v)
+  (if (eq? (cadr g) v) g (cons (car g) (cons v (map (lambda (x) (subst-free (cadr g) v x)) (cddr g))))))
+(define (dk-vt--all ds) (and (every (lambda (x) x) ds) (apply append ds)))
+(define (dk-vt--diff g h bound)          ; formula position: a list of (g-term . h-term), or #f
+  (cond ((equal? g h) '())
+        ((not (and (pair? g) (pair? h) (eq? (car g) (car h)) (= (length g) (length h)))) #f)
+        ((memq (car g) *dk-vt--connectives*)
+         (dk-vt--all (map (lambda (a b) (dk-vt--diff a b bound)) (cdr g) (cdr h))))
+        ((memq (car g) '(FORALL FORSOME))
+         (and (symbol? (cadr g)) (symbol? (cadr h))
+              (let ((g2 (dk-vt--rename-binder g (cadr h))))
+                (dk-vt--diff (caddr g2) (caddr h) (cons (cadr h) bound)))))
+        (#t (dk-vt--all (map (lambda (a b) (dk-vt--diff-t a b bound)) (cdr g) (cdr h))))))
+(define (dk-vt--diff-t g h bound)        ; term position
+  (cond ((equal? g h) '())
+        ((and (not (dk-vt--mentions-any? g bound)) (not (dk-vt--mentions-any? h bound))
+              (equal? (dk-vt--norm g) (dk-vt--norm h)))
+         (list (cons g h)))
+        ((not (and (pair? g) (pair? h) (= (length g) (length h)))) #f)
+        ((and (memq (car g) '(SEP IOTA)) (eq? (car g) (car h)) (symbol? (cadr g)) (symbol? (cadr h)))
+         (let ((g2 (dk-vt--rename-binder g (cadr h))) (b2 (cons (cadr h) bound)))
+           (if (= (length g) 4)
+               (dk-vt--all (list (dk-vt--diff-t (caddr g2) (caddr h) bound) (dk-vt--diff (cadddr g2) (cadddr h) b2)))
+               (dk-vt--diff (caddr g2) (caddr h) b2))))
+        ((and (memq (car g) '(VNB-LAMBDA BIG-UNION)) (eq? (car g) (car h)) (= (length g) 4)
+              (symbol? (cadr g)) (symbol? (cadr h)))
+         (let ((g2 (dk-vt--rename-binder g (cadr h))) (b2 (cons (cadr h) bound)))
+           (dk-vt--all (list (dk-vt--diff-t (caddr g2) (caddr h) bound) (dk-vt--diff-t (cadddr g2) (cadddr h) b2)))))
+        ((and (symbol? (car g)) (memq (car g) *dk-vt--term-binders*)) #f)
+        (#t (dk-vt--all (map (lambda (a b) (dk-vt--diff-t a b bound)) g h)))))
+;; close the focus goal from the hypothesis that differs from it least (up to
+;; normalisation); #t when the start leaf is grounded
+(define (dk-vt--match!)
+  (let* ((leaf (proof-state-focus *ps*)) (g (dk-goal))
+         (cands (filter (lambda (c) (cdr c))
+                        (map (lambda (h) (cons h (and (pair? h) (pair? g) (eq? (car h) (car g)) (dk-vt--diff g h '()))))
+                             (dk-asms))))
+         (best (and (pair? cands)
+                    (fold-left (lambda (b c) (if (< (length (cdr c)) (length (cdr b))) c b)) (car cands) (cdr cands)))))
+    (if best
+        (let ((why (dk-vt--try
+                    (lambda ()
+                      ;; each pair is rewritten toward its SMALLER side: the goal's term
+                      ;; when the goal's term contains the hypothesis' (the hypothesis is
+                      ;; then rewritten), else the goal (subst): a rewrite whose result
+                      ;; contains the term it replaces would rewrite its own result
+                      (let loop ((ps (cdr best)) (hh (car best)))
+                        (if (pair? ps)
+                            (let* ((p (car ps)) (g1 (car p)) (h1 (cdr p)) (e (list '== g1 h1)))
+                              (if (not (dk-asm? e)) (dk-have! e dk-vt--eq-lane!))
+                              (cond ((dk-contains? g1 h1)
+                                     (if (dk-contains? (dk-goal) g1) (subst (list '= g1 h1)))
+                                     (loop (cdr ps) hh))
+                                    (#t (loop (cdr ps) (if (dk-contains? hh h1) (dk-rewrite-h! hh h1 g1) hh)))))))
+                      (if (not (sequent-node-grounded? leaf)) (ass))))))
+          (if why (begin (display ";; dk-view: a match did not go through: ") (display why) (newline)))))
+    (sequent-node-grounded? leaf)))
+;;; ---- a universal hypothesis whose body matches the goal
+(define (dk-vt--univ-parts h)
+  (let loop ((h h) (vs '()))
+    (cond ((dk-head-is? h 'FORALL) (loop (caddr h) (cons (cadr h) vs)))
+          ((and (dk-head-is? h 'IMPLIES) (pair? vs) (dk-head-is? (cadr h) 'IN) (memq (cadr (cadr h)) vs))
+           (loop (caddr h) vs))
+          (#t (cons (reverse vs) h)))))
+(define (dk-vt--inst-guards h ts)       ; the (IN t D) guards of h instantiated at ts
+  (let loop ((h h) (ts ts) (acc '()))
+    (cond ((and (dk-head-is? h 'FORALL) (pair? ts))
+           (loop (subst-free (cadr h) (car ts) (caddr h)) (cdr ts) acc))
+          ((and (dk-head-is? h 'IMPLIES) (dk-head-is? (cadr h) 'IN))
+           (loop (caddr h) ts (cons (cadr h) acc)))
+          (#t (reverse acc)))))
+(define (dk-vt--pmatch p e vs binds)
+  (cond ((not binds) #f)
+        ((and (symbol? p) (memq p vs))
+         (let ((b (assq p binds)))
+           (cond ((not b) (cons (cons p e) binds)) ((equal? (cdr b) e) binds) (#t #f))))
+        ((and (pair? p) (pair? e) (= (length p) (length e)))
+         (let loop ((ps p) (es e) (bs binds))
+           (if (null? ps) bs (loop (cdr ps) (cdr es) (dk-vt--pmatch (car ps) (car es) vs bs)))))
+        ((equal? p e) binds)
+        (#t #f)))
+(define (dk-vt--univ!)
+  (let* ((leaf (proof-state-focus *ps*)) (g (dk-goal)) (ng (dk-vt--norm g))
+         (hit (let loop ((hs (dk-asms)))
+                (if (null? hs) #f
+                    (let* ((h (car hs)) (pp (and (dk-head-is? h 'FORALL) (dk-vt--univ-parts h)))
+                           (bs (and pp (pair? (car pp)) (dk-vt--pmatch (dk-vt--norm (cdr pp)) ng (car pp) '()))))
+                      (if (and bs (= (length bs) (length (car pp)))) (cons h (map (lambda (v) (cdr (assq v bs))) (car pp)))
+                          (loop (cdr hs))))))))
+    (if hit
+        (begin
+          ;; the guards of the instance, typed in the hypothesis' own spelling (a
+          ;; universal read off a literal list guards on vec([..]), the goal's
+          ;; eigenvariable is typed on vec(r)): each one not in context is MATCHED first
+          (for-each (lambda (gd)
+                      (if (not (dk-asm? gd))
+                          (dk-vt--try (lambda () (dk-have! gd (lambda () (dk-vt--match!)))))))
+                    (dk-vt--inst-guards (car hit) (cdr hit)))
+          (dk-vt--try (lambda () (apply dk-apply! hit)))
+          (if (not (sequent-node-grounded? leaf))
+              (if (dk-asm? (dk-goal)) (ass) (dk-vt--match!)))))
+    (sequent-node-grounded? leaf)))
+(define (dk-vt--goal-leaves!)            ; split an AND focus goal to its non-AND leaves
+  (let ((leaf (proof-state-focus *ps*)))
+    (if (dk-head-is? (dk-goal) 'AND)
+        (let ((ls (dk-opened (lambda () (di)))))
+          (append-map (lambda (l) (dk-focus! l) (dk-vt--goal-leaves!)) ls))
+        (list leaf))))
+(define (dk-vt--deep! . depth0)           ; peel, split, close each piece (pieces recursively)
+  (let ((depth (if (pair? depth0) (car depth0) 0)))
+    (dk-vt--loud "a piece" (lambda ()
+      (if (memq (car (dk-goal)) '(FORALL IMPLIES)) (dk-peel!))
+      (for-each (lambda (l)
+                  (if (not (sequent-node-grounded? l))
+                      (begin (dk-focus! l)
+                             (cond ((dk-asm? (dk-goal)) (ass))
+                                   ((dk-vt--match!) #t)
+                                   ((dk-vt--univ!) #t)
+                                   ((and (< depth 3) (pair? (dk-goal)) (memq (car (dk-goal)) '(FORALL IMPLIES AND)))
+                                    (dk-vt--deep! (+ depth 1)))
+                                   (#t #f)))))
+                (dk-vt--goal-leaves!))))))
+(define (dk-vt--close-leaf! leaf view accs)
+  (define (done?) (sequent-node-grounded? leaf))
+  (dk-focus! leaf)
+  (for-each (lambda (a) (if (dk-contains? (dk-goal) a) (slot a))) accs)
+  (if (dk-contains? (dk-goal) view) (mac view))
+  (let loop ((k 0)) (if (and (< k 6) (dk-vt--nth-redex? (dk-goal))) (begin (nth-r) (loop (+ k 1)))))
+  (if (not (done?))
+      (let ((g (dk-goal)))
+        (cond ((dk-asm? g) (ass))
+              ((and (dk-head-is? g '=) (dk-head-is? (cadr g) 'LENGTH)) (len-r) (if (not (done?)) (rfl)))
+              ((and (dk-head-is? g 'NOT) (dk-head-is? (cadr g) '=)
+                    (dk-asm? (list 'NOT (list '= (caddr (cadr g)) (cadr (cadr g))))))
+               (fact 'neq-sym (caddr (cadr g)) (cadr (cadr g))) (ass))
+              (#t (dk-vt--match!)))))
+  (if (and (not (done?)) (dk-vt--pred-def (dk-goal)))
+      (begin (dk-vt--try (lambda () (mac (car (dk-goal)))))
+             (if (not (done?)) (if (dk-asm? (dk-goal)) (ass) (dk-vt--match!)))))
+  (if (and (not (done?)) (pair? (dk-goal)) (memq (car (dk-goal)) '(FORALL IMPLIES AND)))
+      (dk-vt--deep!))
+  (done?))
+(define (dk-vt--compose! view tgt)
+  (for-each
+    (lambda (h)
+      (let ((x (and (pair? h) (= (length h) 2) (dk-vt--struct-of-pred (car h)))))
+        (if x
+            (for-each
+              (lambda (w)
+                (let ((wv (lookup-view-as w)))
+                  (if (and (not (eq? w view)) (eq? (view-as-source-struct wv) x)
+                           (eq? (view-as-target-struct wv) tgt))
+                      (let ((thm (view-typing-name w)))
+                        (if (hash-table-ref/default *theorem-table* thm #f)
+                            (dk-vt--try (lambda () (dk-cite! thm (cadr h)))))))))
+              *view-as-order*))))
+    (dk-asms)))
+(define (dk-view-close! view . opt)
+  (let* ((v   (or (lookup-view-as view) (error "dk-view-close!: not a view" view)))
+         (src (view-as-source-struct v))
+         (tgt (if (pair? opt) (car opt) (view-as-target-struct v)))
+         (accs (map car (structure-def-slots (find-shape-structure tgt))))
+         (g0  (dk-goal))
+         (x   (if (and (pair? g0) (= (length g0) 2) (dk-head-is? (cadr g0) view)) (cadr (cadr g0))
+                  (error "dk-view-close!: the focus goal is not IS-T(V x) for" view (expression->string g0))))
+         (top (proof-state-focus *ps*)))
+    (if (not (dk-asm? (list (symbol-append 'IS- src) x)))
+        (error "dk-view-close!: the source predicate is not in context" (list (symbol-append 'IS- src) x)))
+    (let ((opened
+           (dk-opened
+            (lambda ()
+              (dk-vt--expand! src x 0)
+              (dk-vt--expand-preds!)
+              (dk-vt--compose! view tgt)
+              ;; the lanes above moved the main branch to a NEW leaf: stay on it
+              (if (not (dk-vt--match!))
+                  (let unfold ((y tgt))
+                    (mac (dk-vt--def-name y))
+                    (if (not (lookup-structure y))
+                        (for-each (lambda (l)
+                                    (if (dk-head-is? (dk-goal-of l) (symbol-append 'IS- (dk-vt--parent y)))
+                                        (begin (dk-focus! l)
+                                               (if (not (dk-vt--match!)) (unfold (dk-vt--parent y))))
+                                        (dk-vt--close-leaf! l view accs)))
+                                  (dk-vt--goal-leaves!))
+                        (begin (dk-isx-set!)
+                               (for-each (lambda (l) (dk-vt--close-leaf! l view accs)) (dk-vt--goal-leaves!))))))))))
+      (let ((left (filter (lambda (l) (not (sequent-node-grounded? l))) opened)))
+        (cond ((sequent-node-grounded? top) '())
+              ((pair? left) (dk-focus! (car left)) left)
+              (#t (list (proof-state-focus *ps*))))))))
+(define (dk-view-typing! view)
+  (let ((name (or (view-typing-name view) (error "dk-view-typing!: not a view" view))))
+    (if (not (hash-table-ref/default *theorem-table* name #f))
+        (dk-sp-qed! (view-obligation view)
+          (lambda ()
+            (dk-peel!)
+            (let ((left (dk-view-close! view)))
+              (if (pair? left)
+                  (error "dk-view-typing!: the generic driver left open:" view
+                         (map (lambda (l) (expression->string (dk-goal-of l))) left)))))
+          name))
+    (view-typing-installed! view)
+    name))

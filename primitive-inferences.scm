@@ -381,7 +381,9 @@
            (and (constant-head? s)
                 (not (pi--object-definition s))))))
 
-;;; W2D patch 05 (HELD): validate-wff! (wff.scm) refuses a head-only symbol at an argument position.
+;;; W2D patch 05 (in force since commit 71e8c663, 2026-11-13, as 05r): validate-wff! (wff.scm)
+;;; refuses a head-only symbol at an argument position.  The formula being installed may
+;;; name the symbol it defines (D7, 2026-11-15: *wff-head-only-exempt*, bound by install--grade!).
 (set! *wff-head-only-hook* pi--head-only-symbol?)
 
 ;;; The first offending item of T (a head-only symbol, or the symbol `a-lambdoid'), or #f
@@ -1358,7 +1360,7 @@
 (define (pi--defined? asms t depth)
   (cond
     ((> depth 8) #f)
-    ;; an atom denotes -- unless it is a HEAD-ONLY symbol (W2D patch 05, HELD): `POWER = POWER' must
+    ;; an atom denotes -- unless it is a HEAD-ONLY symbol (W2D patch 05, in force since 71e8c663): `POWER = POWER' must
     ;; not close by rfl.  A verdict (the clauses below assume a pair).
     ((not (pair? t)) (not (pi--head-only-symbol? t)))
     ((pi--arith-number? t) #t)

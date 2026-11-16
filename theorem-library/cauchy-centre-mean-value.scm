@@ -108,7 +108,7 @@
 ;;; the metric facts on NFM and on the subspace u (u subset CC in context)
 (define (cmv-ms! u)
   (fact 'nf-cc-is-metric-space)
-  (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
+  (fact 'cc-is-normed-field) (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
   (fact 'cc-nf-carr)
   (if (not (dk-asm? (list '== (list 'PTS cmv-nfm) 'CC)))
       (dk-have! (list '== (list 'PTS cmv-nfm) 'CC)

@@ -21,6 +21,11 @@
 ;;; theorem-library/frechet-metric), before structure-library/sip-complex-vocab.  Nothing in the
 ;;; tree cites this file.  Library: analysis.
 
+;;; THE FLUSH POINT for the generic views of structure-library/sip-vocab.scm (D8b, 2026-11-15):
+;;; their typings are proven here, before the first citer, in a file with a certificate
+;;; store (structures.scm, view-typing-flush!).
+(view-typing-flush!)
+
 (define (sipa-qed! name)
   (if (proof-done? *ps*)
       (begin (qed name) (topic! name 'analysis))

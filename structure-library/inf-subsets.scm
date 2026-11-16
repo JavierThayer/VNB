@@ -14,14 +14,19 @@
 (def-functoid 'INF-SUBSETS '(A)
   '(SEP S (POWER A) (NOT (IN (CARD S) NN))))
 
-;;; inf-subsets-membership: S in INF-SUBSETS(A) iff S subset A and S infinite.
-;;; Follows from SEP membership + POWER membership; recorded as a usable
+;;; inf-subsets-membership: S in INF-SUBSETS(A) iff S is a set, S subset A and S
+;;; infinite.  Follows from SEP membership + POWER membership; recorded as a usable
 ;;; lemma so proofs can rewrite by name.
+;;; THE `S in SET' CONJUNCT (D8, 2026-11-15; DEFSTAMP F2, the user's decision "fix
+;;; F1/F2").  Until 2026-11-15 the right side read only `S subset A and not(CARD(S) in
+;;; NN)'.  INF-SUBSETS(A) is a SEP over POWER(A), so a member is a SET; without the
+;;; conjunct the stamp gave, at A := S := ORD (subset-refl; CARD(ORD) not in NN),
+;;; ORD in INF-SUBSETS(ORD), hence ORD in SET, and with Burali-Forti 0 = 1 modulo 0.
 (add-axiom! *library* 'inf-subsets-membership
   '(FORALL A
      (FORALL S
        (IFF (IN S (INF-SUBSETS A))
-            (AND (SUBSET S A) (NOT (IN (CARD S) NN)))))))
+            (AND (IN S SET) (AND (SUBSET S A) (NOT (IN (CARD S) NN))))))))
 
 ;;; inf-subsets-is-set: INF-SUBSETS(A) in SET when A in SET.
 ;;; Direct from SEP sethood (POWER A in SET when A in SET).

@@ -29,7 +29,7 @@
   (cond ((eq? e from) to) ((pair? e) (cons (out-repl (car e) from to) (out-repl (cdr e) from to))) (#t e)))
 (define (out-ms! u)
   (fact 'nf-cc-is-metric-space)
-  (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
+  (fact 'cc-is-normed-field) (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
   (fact 'cc-nf-carr)
   (dk-have! (list '== (list 'PTS out-nfm) 'CC)
     (lambda () (subst (list '== (list 'PTS out-nfm) '(CARR CC-NORMED-FIELD))) (ass)))

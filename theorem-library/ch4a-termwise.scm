@@ -37,7 +37,7 @@
 ;; the metric facts the continuity lemmas need
 (define (tw-ms!)
   (fact 'nf-cc-is-metric-space)
-  (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
+  (fact 'cc-is-normed-field) (fact 'nf-metric-carrier 'CC-NORMED-FIELD)
   (fact 'cc-nf-carr)
   (dk-have! (list '== (list 'PTS tw-nfm) 'CC)
     (lambda () (subst (list '== (list 'PTS tw-nfm) '(CARR CC-NORMED-FIELD))) (ass)))
