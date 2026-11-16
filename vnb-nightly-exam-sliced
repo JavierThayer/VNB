@@ -148,6 +148,31 @@ if [ -z "$KH" ] || [ "$KH" != "$STORE_KH" ]; then
   SINGLE=(--worker "$SINGLE_W" --heap "$SINGLE_HEAP"); [ "$FORCE" = 1 ] && SINGLE+=(--force); [ "$NOCORE" = 1 ] && SINGLE+=(--no-core-replay)
   exec "$PROVER/vnb-nightly-exam" "${SINGLE[@]}"
 fi
+pull_slice() { # pull_slice K WORKER PORT [SUBDIR ...]  (default: certificates core-pages exam-slice reference)
+  local k=$1 w=$2 port=$3 d=$RUN/slice-$1 KEY=~/.ssh/vnb-secondary
+  shift 3; local subs="${*:-certificates core-pages exam-slice reference}"
+  mkdir -p "$d"
+  local SSH="ssh -i $KEY -p $port -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=20"
+  local rc=1 x attempt tun i up
+  # 2026-11-14: of four tunnels opened at once, one never came up and the run lost that slice:
+  # stagger, wait up to 60 s for the port, and try the whole pull three times on a fresh tunnel.
+  sleep $(( k * 3 ))
+  for attempt in 1 2 3; do
+    capataz tunnel "$w" 22 --local-port "$port" > /dev/null 2>&1 &
+    tun=$!; up=0
+    for i in $(seq 1 60); do (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null && { up=1; break; }; sleep 1; done
+    rc=0
+    if [ $up = 1 ]; then
+      for x in $subs; do rsync -az --delete -e "$SSH" "ubuntu@127.0.0.1:$PROVER/$x/" "$d/$x/" || rc=$?; done
+    else rc=255; fi
+    pkill -TERM -P $tun 2>/dev/null; kill $tun 2>/dev/null; wait $tun 2>/dev/null
+    [ $rc = 0 ] && return 0
+    echo "$(date -u +%FT%TZ) nightly-exam[$TAG]: pull of slice $k from $w: attempt $attempt failed (rc $rc, tunnel up $up)" >> "$LOG"
+    sleep 10
+  done
+  return $rc
+}
+
 if [ -n "$RESUME" ]; then
 # ---- resume: wake the workers, read the slices' rows back, go to step 4
   say "resume $RUN from step 4 on $WORKERS"
@@ -173,7 +198,7 @@ if [ -n "$RESUME" ]; then
     SUMW=$((SUMW + w)); [ "$w" -gt "$WALL" ] && WALL=$w
   done
 else
-# ---- 1. the plan
+# ---- 3 is below; 1. the plan
 mkdir -p "$RUN"
 PLAN=$RUN/plan.tsv
 TIMES=$(ls -t "$ES"/times/*.tsv 2>/dev/null | head -$((4*N)) | tac | sed 's/^/--times /' | tr '\n' ' ')
@@ -232,7 +257,7 @@ for k in $(seq 1 $N); do
 done
 [ "$FAILED" = 0 ] || { record failed "slice start"; exit 2; }
 
-# ---- 3. wait for every slice
+# ---- 3. wait for every slice (each is pulled as it ends)
 deadline=$(( $(date +%s) + 10*3600 ))
 declare -A DONE ROW
 while :; do
@@ -245,6 +270,15 @@ while :; do
     DONE[$k]=$rc; ROW[$k]=$(echo "$out" | grep '"job":"build-band"' | tail -1)
     echo "$out" > "$RUN/slice-$k.out"
     say "slice $k/$N ended (status $rc): $(python3 -c 'import json,sys; r=json.loads(sys.argv[1]); print("wall %.0f s, gc %.0f s, audit %.0f s, rss %.0f MB, band_replaced %s" % (r.get("wall_s",0), r.get("gc_s",0), r.get("audit_s",0), r.get("max_rss_mb",0), r.get("band_replaced")))' "${ROW[$k]}" 2>/dev/null || echo 'no ledger row')"
+    # PULL AT ONCE (2026-11-14: workers 07-09 finished at ~07:30, stopped themselves at
+    # 08:15-08:25 by the 30-minute idle rule, and slice 1 ended at 09:30: every pull after
+    # the last slice found them off).  Then stop the worker, except worker 1 (strict build).
+    if [ "$rc" = 0 ]; then
+      if pull_slice "$k" "$w" $((2230 + k)) && [ -f "$RUN/slice-$k/exam-slice/manifest.tsv" ]; then
+        say "pulled slice $k/$N from $w"
+        if [ "$k" != 1 ]; then capataz stop "$w" --yes --json > /dev/null 2>&1 && { STARTED[$k]=0; say "stopped $w"; }; fi
+      else say "WARN: pull of slice $k/$N from $w failed; retried after the last slice"; fi
+    fi
   done
   [ $left = 0 ] && break
   [ "$(date +%s)" -ge $deadline ] && { say "FAIL: slices still running at the 10 h cap"; record failed "cap"; exit 1; }
@@ -278,31 +312,17 @@ say "all $N slices passed: longest $WALL s, sum $SUMW s"
 fi   # resume
 
 # ---- 4. pull and merge
-pull_slice() { # pull_slice K WORKER PORT [SUBDIR ...]  (default: certificates core-pages exam-slice reference)
-  local k=$1 w=$2 port=$3 d=$RUN/slice-$1 KEY=~/.ssh/vnb-secondary
-  shift 3; local subs="${*:-certificates core-pages exam-slice reference}"
-  mkdir -p "$d"
-  local SSH="ssh -i $KEY -p $port -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=20"
-  local rc=1 x attempt tun i up
-  # 2026-11-14: of four tunnels opened at once, one never came up and the run lost that slice:
-  # stagger, wait up to 60 s for the port, and try the whole pull three times on a fresh tunnel.
-  sleep $(( k * 3 ))
-  for attempt in 1 2 3; do
-    capataz tunnel "$w" 22 --local-port "$port" > /dev/null 2>&1 &
-    tun=$!; up=0
-    for i in $(seq 1 60); do (exec 3<>/dev/tcp/127.0.0.1/$port) 2>/dev/null && { up=1; break; }; sleep 1; done
-    rc=0
-    if [ $up = 1 ]; then
-      for x in $subs; do rsync -az --delete -e "$SSH" "ubuntu@127.0.0.1:$PROVER/$x/" "$d/$x/" || rc=$?; done
-    else rc=255; fi
-    pkill -TERM -P $tun 2>/dev/null; kill $tun 2>/dev/null; wait $tun 2>/dev/null
-    [ $rc = 0 ] && return 0
-    echo "$(date -u +%FT%TZ) nightly-exam[$TAG]: pull of slice $k from $w: attempt $attempt failed (rc $rc, tunnel up $up)" >> "$LOG"
-    sleep 10
-  done
-  return $rc
-}
-for k in $(seq 1 $N); do pull_slice "$k" "${W[$((k-1))]}" $((2230 + k)) & done
+for k in $(seq 1 $N); do
+  [ -f "$RUN/slice-$k/exam-slice/manifest.tsv" ] && continue
+  w=${W[$((k-1))]}
+  ( capataz start "$w" --yes --json > /dev/null 2>&1
+    for i in $(seq 1 40); do
+      st=$(capataz list --json 2>/dev/null | python3 -c 'import json,sys; w=sys.argv[1]; print(next((r["ssm_status"] for r in json.load(sys.stdin) if r["name"]==w), "?"))' "$w")
+      [ "$st" = Online ] && break; sleep 15
+    done
+    pull_slice "$k" "$w" $((2230 + k)) ) &
+  STARTED[$k]=1
+done
 wait
 for k in $(seq 1 $N); do
   [ -f "$RUN/slice-$k/exam-slice/manifest.tsv" ] || { say "FAIL: pull of slice $k (no manifest)"; record failed "pull slice $k"; exit 2; }
@@ -323,6 +343,14 @@ CORE=$(cat "$DEST/core-pages/SUMMARY.txt" 2>/dev/null)
 
 # ---- 5. strict certified build of the merged store, then the suite, on worker 1
 W1=${W[0]}
+# worker 1 may have stopped itself while it waited for the other slices (30-minute idle rule)
+capataz start "$W1" --yes --json > /dev/null 2>&1
+for i in $(seq 1 40); do
+  st=$(capataz list --json 2>/dev/null | python3 -c 'import json,sys; w=sys.argv[1]; print(next((r["ssm_status"] for r in json.load(sys.stdin) if r["name"]==w), "?"))' "$W1")
+  [ "$st" = Online ] && break; sleep 15
+done
+[ "$st" = Online ] || { say "FAIL: $W1 did not come back for the strict build"; record failed "w1-online"; exit 2; }
+STARTED[1]=1
 # capataz push has no --delete: the worker's store is removed first, so a certificate file the
 # merge deleted cannot survive there; the md5 of the whole set is compared after.
 capataz run "$W1" --json --user ubuntu "rm -rf $PROVER/vnb.band $PROVER/vnb.band.new $PROVER/certificates" > /dev/null 2>&1

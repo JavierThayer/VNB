@@ -98,7 +98,7 @@
 ;;;     (f a_1 a_2 ... a_n)  ==  (f (LIST a_1 a_2 ... a_n))
 ;;;
 ;;; That is: the curried n-arg application is **quasi-equal** to the unary
-;;; apply of f to the n-tuple of its arguments, for every arity n >= 1.
+;;; apply of f to the n-tuple of its arguments, for every arity n >= 2.
 ;;; Quasi-equality (==) is required here, not VNB's partial equality (=):
 ;;; the convention has to hold even when f is *not* typed as a tuple-domain
 ;;; function, in which case both sides are undefined and (==) holds
@@ -129,13 +129,24 @@
 ;;; for p = [1, 2] (META-4 report 0.1, scratchpad/meta4/probes/tupling-falsity.scm).  A one-argument
 ;;; application IS the unary apply; the tupling convention is for n >= 2 only.  Nothing cited it.
 
-(add-axiom! *library* 'apply-tupling-2
-  '(FORALL f (FORALL a (FORALL b
-      (== (f a b) (f (LIST a b)))))))
+;;; DEFINITIONAL, not primitive (the user's decision, 2026-11-15).  This file loads with
+;;; *current-provenance* = 'primitive (load.scm's *primitive-files*); the fluid-let below
+;;; overrides that for these two forms, as number-systems.scm does for binary-minus-def.
+;;; The CLAIM the stamp records: nothing else in the theory gives the n-ary application
+;;; (f a_1 .. a_n) of a class a value -- the primitive apply is unary -- so these equations
+;;; DEFINE that term form as the unary apply to the n-tuple.  They are unguarded quasi-
+;;; equations, so they constrain nothing where f is not a function on tuples (both sides
+;;; undefined).  Either stamp contributes {} to a bill: no proof's debt changes; the catalog
+;;; counts them as definitions.  The n = 1 case was not a definition but an identification
+;;; of [a] with a, and it was false (above).
+(fluid-let ((*current-provenance* 'definitional))
+  (add-axiom! *library* 'apply-tupling-2
+    '(FORALL f (FORALL a (FORALL b
+        (== (f a b) (f (LIST a b)))))))
 
-(add-axiom! *library* 'apply-tupling-3
-  '(FORALL f (FORALL a (FORALL b (FORALL c
-      (== (f a b c) (f (LIST a b c))))))))
+  (add-axiom! *library* 'apply-tupling-3
+    '(FORALL f (FORALL a (FORALL b (FORALL c
+        (== (f a b c) (f (LIST a b c)))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Equality substitution for membership
