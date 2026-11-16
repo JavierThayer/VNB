@@ -1,12 +1,15 @@
 \chapter{Regression and demonstration test suite}
 \label{app:tests}
 
-The file \texttt{test-suite.scm} is the canonical regression suite for
-the VNB proof checker.  It exercises every major subsystem in order:
-ground arithmetic, axiom installation, the parser, wff validation,
-macetes with local context, proof commands, the number-system chain,
-and arithmetic over~$\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{R}$,
-$\mathbb{C}$.  Running it requires only the command below; each test
+The file \texttt{test-suite.scm} is the regression suite of the VNB
+proof checker: some two and a half thousand checks in sixty-odd
+sections.  This appendix reproduces the first of them (sections 1 to 7
+of the file), which serve also as worked examples: ground arithmetic,
+axiom installation, the parser, wff validation, macetes with local
+context, proof commands, the number-system chain, and arithmetic
+over~$\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{R}$, $\mathbb{C}$.  The
+remainder covers the kernel checkers, the gates, the tactics and the
+driver kit.  Running it requires only the command below; each test
 prints \texttt{PASS} or \texttt{FAIL} and the final line gives the
 aggregate count.
 
@@ -230,10 +233,13 @@ right disjunct of \texttt{or} adds the negation of the left disjunct.
        (lambda () (macete-str 'eq-symm "n = m and m = k"))
        "m = n and k = m")
 
+;;; A propositional schema cannot be stated through make-wff, which
+;;; refuses a quantifier over a formula position; it is installed as a
+;;; macete from its S-expression.
 (install-theorem! 'and-comm-iff
-  (make-wff-from-string "forall([P, Q], P and Q iff Q and P)"))
+  '(FORALL p (FORALL q (IFF (AND p q) (AND q p)))))
 
-(check "and-comm: (CARR and B) -> (B and A)"
+(check "and-comm: (A and B) -> (B and A)"
        (lambda () (macete-str 'and-comm-iff "n in nn and m in nn"))
        "m in nn and n in nn")
 (check "and-comm: fires inside implies antecedent"
@@ -282,7 +288,7 @@ right disjunct of \texttt{or} adds the negation of the left disjunct.
 (check "power-succ: fires with two conditions in context"
        (lambda () (macete-str 'power-succ
                               "z in cc and k in nn implies power(z, succ(k)) = w"))
-       "z in cc and k in nn implies z * power(z, k) = w")
+       "z in cc and k in nn implies z * z ^ k = w")
 \end{VNBcode}
 
 \section{Proof commands}
@@ -322,7 +328,7 @@ Each sub-test proves a simple theorem using one or two rules.
     (di) (ass) (ass)))
 
 ;;; OR introduction (oi-l, oi-r)
-(check-proof "oi-l: A implies (CARR or B)"
+(check-proof "oi-l: A implies (A or B)"
   (lambda ()
     (sp (make-wff-from-string "n in nn implies n in nn or m in nn"))
     (di) (oi-l) (ass)))
@@ -350,11 +356,18 @@ Each sub-test proves a simple theorem using one or two rules.
           "x in cc and n in nn implies power(x, succ(n)) = x * power(x, n)"))
     (di) (ta 'power-succ) (ui "x") (ui "n") (ass)))
 
-;;; Backchain (bc) — use an implication theorem as an introduction rule
-(check-proof "bc: n+m in NN"
+;;; Backchain (bc) -- bc takes an implication in context, not a theorem
+;;; name: the theorem is brought in with ta and instantiated first.
+(check-proof "bc: n in NN and m in NN"
   (lambda ()
     (sp (make-wff-from-string "n in nn and m in nn implies n + m in nn"))
-    (di) (bc 'nn-add-closed) (ass) (ass)))
+    (di) (ai (make-wff-from-string "n in nn and m in nn"))
+    (ta 'nn-add-closed)
+    (inst '(FORALL n (FORALL m (IMPLIES (AND (IN n NN) (IN m NN)) (IN (+ n m) NN)))) 'n)
+    (inst '(FORALL m (IMPLIES (AND (IN n NN) (IN m NN)) (IN (+ n m) NN))) 'm)
+    (bc '(IMPLIES (AND (IN n NN) (IN m NN)) (IN (+ n m) NN)))
+    (ass) (ass) (ass)
+    (unless (proof-done? *ps*) (error "bc test: proof did not close"))))
 
 ;;; Proof by contradiction (pbc)
 (check-proof "pbc: double negation"
@@ -434,5 +447,14 @@ Each sub-test proves a simple theorem using one or two rules.
 \end{VNBcode}
 
 \noindent A clean run ends with a line of the form \verb|=== SUMMARY: N passed, 0 failed ===|.
+
+\section{Other checks}
+
+The workspace has its own check, \texttt{emacs --batch -l
+emacs/vnb-panel-check.el}, ending in \texttt{=== PANEL CHECK: N passed, M
+failed ===}.  \texttt{test-suite-negative.scm} is a corpus of statements
+that must \emph{not} be provable.  The suite can start from a saved band
+instead of loading the library.  In every case it is the summary line,
+not the exit status, that shows the run completed.
 
 %% =========================================================

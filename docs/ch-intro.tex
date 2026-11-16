@@ -4,8 +4,11 @@
 \begin{sloppypar}The VNB Proof Checker is an interactive proof assistant implemented in
 MIT~Scheme.  Its logical foundation is a first-order set theory in the
 style of von~Neumann--Bernays (VNB): a single-sorted universe of
-\emph{classes}, with \textsc{set} as a distinguished predicate and
-membership ($\in$) as the only non-logical primitive.\end{sloppypar}
+\emph{classes}, among which the \emph{sets} are distinguished as the
+classes that are members of the class \textsc{set}.  Equality and
+membership ($\in$) are the logical core; the primitive constants and
+constructors described below (the number systems, the ordinals, function
+spaces) extend it.\end{sloppypar}
 
 The proof architecture follows the sequent-calculus approach of the
 IMPS~2.0 system~\cite{IMPS}: proofs are \emph{deduction graphs} whose
@@ -130,8 +133,8 @@ A further departure from standard set theory is the treatment of
 is a well-formed term, but it may be \emph{undefined} if \texttt{f} is
 not a function applicable to \texttt{x}.  The system provides both
 strict equality \texttt{a = b} (false if either side is undefined) and
-quasi-equality \texttt{a == b} (true when both sides are undefined in
-the same way), following the approach of IMPS~\cite{IMPS}.
+quasi-equality \texttt{a == b} (true when both sides are undefined,
+or both are defined and equal), following the approach of IMPS~\cite{IMPS}.
 
 A consequence of this broad primitive base is that membership in a
 primitive constant has \emph{indeterminate truth value} in general.
@@ -182,56 +185,81 @@ ordinary definition of that system.
   three classes of the same universe.
 
 \item \textbf{The models form a category.}  The declaration also generates the
-  morphism predicate \texttt{is-hom-\textit{name}}$(a, b, f_1 \ldots f_k)$, one
-  map per independent carrier, with one rule per KIND of slot
-  (Section~\ref{sec:morphisms}): an operation or a constant is preserved; a
-  substructure (the scalars of a module) is held equal; a \emph{family} slot,
-  declared \texttt{(family F C)} and holding a set of subsets of the carrier
-  $C$ (a $\sigma$-algebra, a topology), is pulled back,
-  $\forall u \in F(t).\ \mathtt{preimage}(s, f, u) \in F(s)$; and a
-  \emph{function on a family}, declared \texttt{(family-fun M F R)} (a
-  measure), is transported, $M(t)(u) = M(s)(\mathtt{preimage}(s, f, u))$ for
-  $u \in F(t)$; and a \emph{relation} slot, declared \texttt{(relation R C)}
-  and holding a set of pairs of points of the carrier $C$, typed
-  $R(s) \in \mathtt{power}(\mathtt{cartesian}(C(s), C(s)))$ in
-  \texttt{is-\textit{name}}, is preserved by the map of $C$:
-  $\forall x_1, x_2 \in C(a).\ [x_1, x_2] \in R(a) \Rightarrow [f(x_1), f(x_2)] \in R(b)$.
-  So the generated arrows are the homomorphisms of an algebraic
+  morphism predicate \texttt{is-hom-\textit{name}}$(a, b, f_1 \ldots f_k)$, with
+  one map per independent carrier.  Each kind of slot contributes one rule
+  (Section~\ref{sec:morphisms}):
+  \begin{itemize}
+  \item an operation or a constant is preserved;
+  \item a substructure (the scalars of a module) is held equal;
+  \item a \emph{family} slot \texttt{(family F C)}, a set of subsets of the
+    carrier $C$ (a $\sigma$-algebra, a topology), is pulled back:
+    $\forall u \in F(t).\ \mathtt{preimage}(s, f, u) \in F(s)$;
+  \item a \emph{function on a family} \texttt{(family-fun M F R)} (a measure)
+    is transported: $M(t)(u) = M(s)(\mathtt{preimage}(s, f, u))$ for
+    $u \in F(t)$;
+  \item a \emph{relation} slot \texttt{(relation R C)}, a set of pairs of points
+    of $C$, is preserved:
+    $\forall x_1, x_2 \in C(a).\ [x_1, x_2] \in R(a) \Rightarrow [f(x_1), f(x_2)] \in R(b)$.
+  \end{itemize}
+
+  The generated arrows are therefore the homomorphisms of an algebraic
   structure, the isometries of a metric space, the continuous maps of a
   topological space, the measurable maps of a measurable space, the
   measure-preserving measurable maps of a measure space, and the maps of a
-  setoid that send related points to related points (\texttt{setoid} declares
-  one carrier \texttt{pts} and its equivalence \texttt{rel} as a relation
-  slot).  A species whose arrows
+  setoid that send related points to related points.  A species whose arrows
   are none of these replaces the definition with \texttt{declare-hom!}
   (\texttt{ringoid}, \texttt{metrizable-top-space},
-  Section~\ref{sec:declare-hom}).  This generated category is the DEFAULT one;
-  \texttt{(declare-category! 'CAT 'NAME '(a b f) BODY)} adds another on the same
-  objects, with arrow predicate
+  Section~\ref{sec:declare-hom}).
+
+  For a structure with one or two independent carriers the declaration also
+  installs the hom-set
+  $\texttt{hom-\textit{name}}(a, b) = \{f \in \mathtt{fun}(c(a), c(b)) : \texttt{is-hom-\textit{name}}(a, b, f)\}$.
+  With two carriers it is a set of pairs of maps.  The library proves, for
+  each structure, that the identity is a morphism, that morphisms compose,
+  and that the hom-set is a set (\texttt{theorem-library/hom-laws.scm} and
+  \texttt{hom-kinds.scm}).  Three or more independent carriers are not yet
+  covered: the tree has no separation over triples.
+
+  \emph{Other categories.}  The generated category is only the default one;
+  the same objects may carry others.  A metric space, for instance, has its
+  isometries by default, but also its Lipschitz, uniformly continuous and
+  continuous maps.  \texttt{(declare-category! 'CAT 'NAME '(a b f) BODY)}
+  declares such a category on the models of \texttt{NAME}, with arrow
+  predicate
   $\texttt{is-\textit{cat}-arrow}(a, b, f) \iff \texttt{is-\textit{name}}(a) \wedge \texttt{is-\textit{name}}(b) \wedge f \in \mathtt{fun}(c(a), c(b)) \wedge \mathtt{BODY}$
-  and hom-set \texttt{hom-\textit{cat}}$(a, b)$, and records as OBLIGATIONS, not
-  as theorems, that identities are arrows, that arrows compose and that the
-  hom-set is a set; the load reports every obligation not yet proven
-  (\texttt{category-obligations-audit}).  The library declares
-  \texttt{lipschitz}, \texttt{uniformly-continuous} and \texttt{continuous} on
-  \texttt{metric-space} and \texttt{bounded-linear} on
-  \texttt{normed-vector-space}, proves their laws, and proves the inclusions
-  $\texttt{hom-metric-space}(a, b) \subseteq \texttt{hom-lipschitz}(a, b) \subseteq \texttt{hom-uniformly-continuous}(a, b) \subseteq \texttt{hom-continuous}(a, b)$
-  and $\texttt{hom-normed-vector-space}(a, b) \subseteq \texttt{hom-bounded-linear}(a, b)$
-  (\texttt{theorem-library/categories.scm}).  For every structure with one or two
-  independent carriers the declaration installs the hom-set
-  $\texttt{hom-\textit{name}}(a, b) = \{f \in \mathtt{fun}(c(a), c(b)) : \texttt{is-hom-\textit{name}}(a, b, f)\}$
-  (with two carriers, a set of pairs of maps in
-  $\mathtt{cartesian}(\mathtt{fun}(c_1(a), c_1(b)), \mathtt{fun}(c_2(a), c_2(b)))$),
-  and the library proves, for each, that the identity is a morphism, that
-  morphisms compose, and that the hom-set is a set
-  (\texttt{theorem-library/hom-laws.scm}, one generic driver over the slot list;
-  \texttt{hom-kinds.scm} for the family and relation kinds; the
-  replaced definitions by hand).  The Hom functors $\mathrm{Hom}(a, -)$ and
-  $\mathrm{Hom}(-, b)$ are post- and pre-composition by a morphism, maps between
-  hom-sets with the functor laws proven once over any set of functions
-  (\texttt{hom-functors.scm}).  Not yet covered: three or more independent
-  carriers (the tree has no separation over triples).
+  and hom-set \texttt{hom-\textit{cat}}$(a, b)$.  The three category laws are
+  then recorded as \emph{obligations}, not as theorems.  An obligation not yet
+  proven stops a strict load and is listed by a keep-going one
+  (\texttt{category-obligations-audit}).  The library declares four such
+  categories: \texttt{lipschitz}, \texttt{uniformly-continuous} and
+  \texttt{continuous} on \texttt{metric-space}, and \texttt{bounded-linear} on
+  \texttt{normed-vector-space}.  It proves their laws and the inclusions
+  $\texttt{hom-metric-space} \subseteq \texttt{hom-lipschitz} \subseteq \texttt{hom-uniformly-continuous} \subseteq \texttt{hom-continuous}$
+  and $\texttt{hom-normed-vector-space} \subseteq \texttt{hom-bounded-linear}$
+  (\texttt{theorem-library/categories.scm}).
+
+  The Hom functors $\mathrm{Hom}(a, -)$ and $\mathrm{Hom}(-, b)$ are post- and
+  pre-composition by a morphism.  Their functor laws are proven once, over any
+  set of functions (\texttt{hom-functors.scm}).
+
+  \emph{Essentially small categories.}  The models of a structure form a
+  proper class, so a category of them is not itself an object of VNB.  It
+  may nevertheless be \emph{essentially small}: there is a set of models
+  such that every model is isomorphic to a member of it.  Separable metric spaces under isometry
+  are an example.  Every separable metric space embeds isometrically in the
+  Urysohn space $\mathbb{U}$, so the subspaces of $\mathbb{U}$, which form a
+  set, represent every isometry class.  Gromov's work on spaces of metric
+  spaces rests on such sets of representatives: the Gromov--Hausdorff
+  distance, for instance, is a metric on the isometry classes of compact
+  metric spaces.
+
+  Essential smallness is the reason VNB has no universe axiom.  Some systems
+  extend set theory with Grothendieck universes, or adopt Tarski--Grothendieck
+  set theory, so that a category of all groups or of all metric spaces can be
+  a set.  For an essentially small category this is unnecessary.  A statement about
+  all models up to isomorphism quantifies over the set of representatives,
+  which the quantifiers reach; only a statement about the class itself is out
+  of reach, and none of the mathematics formalized so far has needed one.
 
 \item \textbf{Interpretations are views.}  Where IMPS translates one theory into
   another, VNB \emph{views} an instance of one structure as an instance of
@@ -269,8 +297,10 @@ mathematics.
   \VNBkernelopcountoracle{} are decision procedures.  They are listed and
   described in Section~\ref{sec:kernel-boundary}.  Every other command is a
   tactic, which acts on a proof only by calling kernel operations.  The
-  code permitted to record an inference is a declared list of files (\texttt{*kernel-caller-files*}, \texttt{audit.scm}),
-  re-checked every time the system starts
+  code permitted to record an inference is a declared list of eight files
+  (\texttt{*cert-kernel-caller-files*}, \texttt{certificates.scm}), whose
+  contents are also hashed into every proof certificate; the list is
+  re-checked at the end of every library load
   (Section~\ref{sec:kernel-checked}).
 \item \textbf{Composable rewriting.}  A macete mechanism (borrowed from
   IMPS) allows theorems to be automatically converted into named rewrite

@@ -428,7 +428,7 @@
    "\\begin{document}\n"))
 
 ;; the preamble as written into a file: the TeX macros of the infix table (\norm, ...; read from
-;; notation/infix.tbl by tex-infix.scm) declared with \providecommand before \begin{document}
+;; notation/base.tbl by tex-infix.scm) declared with \providecommand before \begin{document}
 (define (proof-tex--preamble-text)
   (let ((k (string-search-forward "\\begin{document}" proof-tex--preamble 0)))
     (string-append (substring proof-tex--preamble 0 k)

@@ -1,16 +1,23 @@
-; notation/infix.tbl -- THE TABLE OF THE OPTIONAL INFIX LAYER (tex-infix.scm).
+; notation/base.tbl -- THE BASE PRINTER TABLE (tex-infix.scm): operators, templates, macros.
 ;
 ; The layer prints an applied structure operation, ((ADD K) a b), as  a +_{K} b  instead of
 ; add(K)(a, b).  It is OFF by default: (tex-infix! #t) turns it on, (display-proof NAME PDF 'infix)
 ; uses it for one printout.  This file says which operations it knows and how each is written.
 ;
-; YOUR OWN TABLE: ~/.vnb-infix.tbl, same format, read AFTER this one.  A row there REPLACES the row
-; of this file with the same head (or the macro with the same name); `off HEAD' removes HEAD;
-; `convention' rows there replace the conventions of this file.  The menu item
-; VNB > Infix Notation > Edit Infix Table creates it as a copy of this file.  A changed file is
-; re-read at the next printout with the layer on, or at once by (tex-infix-reload!).  A row in
-; error is reported with its file and line and the whole reload is refused: the table in force
-; stays as it was.
+; THIS IS THE BASE TABLE, always read first.  Further tables, in the same format, are read after
+; it in this order:
+;   1. the tables named, one per line, in ~/vnb-notation/active, in that order.  A NAME is
+;      ~/vnb-notation/NAME.tbl when that file exists, else notation/NAME.tbl in this directory:
+;      your table shadows a shipped one of the same name.  The menu VNB > Printer Macros turns
+;      each table on or off, and Edit or New Table... opens one in ~/vnb-notation/ (copying a
+;      shipped table there first).  At the REPL: (tex-infix-tables), (tex-infix-use! '("a" "b")).
+;   2. ~/vnb-notation/personal.tbl, the personal table, when it exists (Printer Macros > Edit
+;      Personal Table creates it as a copy of this file), and ~/.vnb-infix.tbl, its first name.
+; A row of a later table REPLACES the row with the same head (or the macro with the same name);
+; `off HEAD' removes HEAD; `convention' rows replace the conventions read so far.  A changed file
+; is re-read at the next printout with the layer on, or at once by (tex-infix-reload!).  A row in
+; error, or a name in the active file with no table, is reported and the whole reload is
+; refused: the table in force stays as it was.
 ;
 ; ROWS.  Columns are separated by blanks; everything after the fourth column is the TeX, written
 ; as in a TeX document (one backslash).  A `;' starts a comment.
@@ -65,6 +72,34 @@ outfix     fnrm      100   -      \lvert #1 \rvert
 outfix     vnrm      100   -      \norm{#1}
 outfix     nrm       100   -      \norm{#1}
 bracket    ip        100   -      \langle #1, #2 \rangle
+
+; APPLY ROWS print the application of a DEFINED head (a functoid, a constant head) by a template:
+;
+;   apply  HEAD  PREC  -  TEMPLATE
+;
+;   #1 .. #9    the arguments.  Every argument must appear: a template may not hide one.  The
+;               row matches an application with exactly as many arguments as the highest #N.
+;   #_N  #^N    argument N as the STRUCTURE of the term, as a sub- or superscript, dropped by
+;               the conventions below exactly as an operation's subscript is.
+;   #NAME       a variable the printer invents (NAME starts with a letter: #i, #j, even #fuba),
+;               one per distinct NAME, spelled i, j, k, ... so that it clashes with no symbol of
+;               the formula and with no variable invented around it.
+;   #N(#NAME)   argument N applied to that variable.  When argument N is a vnb-lambda over nn
+;               (or over another argument, such as finsum's set), the lambda's own variable is
+;               used and its body printed: sum_{k<n} c(k) x^k.
+;   \#          a literal #.
+;   PREC        the binding strength as an operand: a sum (5) is parenthesised inside a +.
+;
+; The ranges below are the definitions' own: sum-ag(G, f, n) is f(0) + ... + f(n-1).
+apply      series-partial-sum  5  -  \sum_{#i < #2} #1(#i)
+apply      sum-ag              5  -  \sum#^1_{#i < #3} #2(#i)
+apply      prod-ord            5  -  \prod#^1_{#i < #3} #2(#i)
+apply      cc-partial-prod     5  -  \prod_{#i < #2} #1(#i)
+apply      finsum              5  -  \sum#^1_{#i \in #3} #2(#i)
+apply      finprod             5  -  \prod#^1_{#i \in #3} #2(#i)
+apply      sum-set             5  -  \sum#^1_{#i \in #2} #3(#i)
+apply      prod-set            5  -  \prod#^1_{#i \in #2} #3(#i)
+apply      prod-ring           5  -  \prod#^1_{#i \in #3} #2(#i)
 
 macro      \norm     1     -      \left\lVert #1 \right\rVert
 

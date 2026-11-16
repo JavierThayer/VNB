@@ -23,8 +23,21 @@ place.  The layout is:
   \texttt{calculus/} file the same fresh-environment containment it gives
   \texttt{theorem-library/} precisely because such a file can be loaded.  An
   edit here is therefore not automatically inert.
-\item \textbf{\texttt{reference/}} --- generated documentation (see below); never
-  hand-edited.
+\item \textbf{\texttt{reference/}} --- for the most part generated at every
+  load (\texttt{PSS.md}, \texttt{THEOREMS.md}, \texttt{DEFINITIONS.md},
+  \texttt{PROOF-DEBT.md}, \texttt{TACTICS.md}, \ldots), and those files must
+  not be edited by hand; \texttt{LIBRARY.md}, \texttt{KERNEL.md},
+  \texttt{KERNEL-RULES.md}, \texttt{REVIEW.md}, \texttt{USABILITY-REVIEW.md}
+  and \texttt{VNB-TEST.md} are written by hand.
+\item \textbf{\texttt{certificates/}} --- the proof-certificate store, one
+  file per proof file.
+\item \textbf{\texttt{libraries.sexp}} --- the assignment of files to
+  libraries.
+\item \textbf{\texttt{emacs/}} --- the workspace.
+\item \textbf{\texttt{preambles/}} --- the preamble rule files.
+\item \textbf{\texttt{notation/}} --- the printer tables (\texttt{base.tbl} and others).
+\item \textbf{\texttt{docs/}} --- this manual and the design notes.
+\item \textbf{\texttt{archive/}} --- retired and spliced originals.
 \end{itemize}
 
 \begin{remark}

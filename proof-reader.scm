@@ -1300,6 +1300,22 @@
          vars)
         (reverse out))))
 
+;; The step lists (the user, 2026-11-15): labels FLUSH LEFT in a box as wide as the widest
+;; step range of this proof, so every row's text starts at one indent; a claim's block is one
+;; label column further in.  enumitem's default (labels flush right in a 2.8em box) staggered
+;; the labels and, past the box, the text.
+(define proof-reader--steplist-open
+  "  \\begin{itemize}[align=left, labelindent=0pt, labelwidth=\\vnbstepw, labelsep=0.8em, leftmargin=!, itemsep=4pt, parsep=1pt]\n")
+
+(define (proof-reader--steplist-width setup groups)
+  (let* ((hi (if (pair? setup) (apply max (map ir-idx setup)) 0))
+         (labels (append (cond ((< hi 1) '()) ((= hi 1) (list "1"))
+                               (else (list (string-append "1--" (number->string hi)))))
+                         (map proof-reader--range groups)))
+         (widest (fold-left (lambda (w l) (if (> (string-length l) (string-length w)) l w)) "0" labels)))
+    (string-append "\\ifdefined\\vnbstepw\\else\\newlength{\\vnbstepw}\\fi"
+                   "\\settowidth{\\vnbstepw}{\\textbf{" widest "}}%\n")))
+
 (define (proof-reader--body name)
   (let* ((records (proof-reader--derename (proof-reader--records name)))
          (claim   (cadr (car records)))            ; sp record's goal
@@ -1329,7 +1345,8 @@
      "{\\small\\emph{The numbers in the margin are step numbers of the full proof "
      "(\\texttt{proof-tex}); a range such as 13--15 is several steps shown as one row.  "
      "A claim is proved by the indented rows under it.}}\\par\\smallskip\n"
-     "\\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]\n"
+     (proof-reader--steplist-width setup groups)
+     proof-reader--steplist-open
      ;; the setup steps (di / ai / wk / keep before the first content step) are not shown
      ;; one by one; their row says so, so the first number in the margin is not a puzzle
      ;; (the user, 2026-10-15: "the first number (9) ... is a little confusing").
@@ -1472,7 +1489,7 @@
                          ;; close the blocks of the claims proved here, then open this claim's
                          (apply string-append
                                 (map (lambda (c) (if (memq c opened) "  \\end{itemize}\n" "")) named))
-                         (if opens? "  \\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]\n" "")))
+                         (if opens? proof-reader--steplist-open "")))
                    (opened! (begin (set! opened (filter (lambda (c) (not (memq c named))) opened))
                              (if opens? (set! opened (cons claim-here opened)))))
                    ;; thread the state AFTER the whole group (its last record),

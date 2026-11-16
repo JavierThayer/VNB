@@ -1684,7 +1684,7 @@ argument, open in the desktop viewer instead of `doc-view-mode'."
           (t (user-error "display-proof of `%s': no file came back (prover: %s)" name res)))))
 
 ;;; -----------------------------------------------------------------------
-;;; The optional infix layer (tex-infix.scm; the table notation/infix.tbl)
+;;; The optional infix layer (tex-infix.scm; the base table notation/base.tbl)
 
 (defvar vnb-infix-on nil
   "Non-nil when the prover's infix layer is on (`tex-infix!'), as last set from here.")
@@ -1699,7 +1699,7 @@ argument, open in the desktop viewer instead of `doc-view-mode'."
 (defun vnb-infix-toggle ()
   "Turn the prover's optional infix layer on or off, then repaint.
 With the layer on, ((ADD K) a b) prints a + b, a norm \\norm{x}, and so on,
-as the table notation/infix.tbl (and ~/.vnb-infix.tbl) says, in every TeX
+as the printer tables (notation/base.tbl and those in force) say, in every TeX
 printout: the panels, `display-proof', `proof-tex'."
   (interactive)
   (vnb-launch--ensure-prover)
@@ -1713,19 +1713,124 @@ printout: the panels, `display-proof', `proof-tex'."
 
 ;;;###autoload
 (defun vnb-infix-edit-table ()
-  "Open your infix table ~/.vnb-infix.tbl, creating it as a copy of the shipped one.
+  "Open your personal printer table, ~/vnb-notation/personal.tbl.
+It is created as a copy of the base table notation/base.tbl; it is read after
+every other table, so its rows win.
 Its rows replace the shipped rows of the same head; `off HEAD' removes one.
 The format is described at the head of the file.  Save it, then use
-VNB > Infix Notation > Reload Infix Table (or just print: a changed table is
+VNB > Printer Macros > Reload (or just print: a changed table is
 re-read at the next printout with the layer on)."
   (interactive)
-  (let ((user    (expand-file-name "~/.vnb-infix.tbl"))
-        (shipped (expand-file-name "notation/infix.tbl" (file-name-directory vnb-program))))
+  (let ((user    (expand-file-name "personal.tbl" vnb-notation-dir))
+        (shipped (expand-file-name "notation/base.tbl" (file-name-directory vnb-program))))
+    (make-directory (expand-file-name vnb-notation-dir) t)
     (unless (file-exists-p user)
       (unless (file-exists-p shipped) (user-error "No shipped table at %s" shipped))
       (copy-file shipped user))
     (find-file user)
-    (message "Edit, save, then VNB > Infix Notation > Reload Infix Table")))
+    (message "Edit, save, then VNB > Printer Macros > Reload")))
+
+;;; Several printer tables (2026-11-15).  notation/base.tbl is always read first; then the
+;;; tables named in ~/vnb-notation/active, in order, each ~/vnb-notation/NAME.tbl or else the
+;;; tree's notation/NAME.tbl (tex-infix.scm).  The menu VNB > Printer Macros lists them.
+
+(defvar vnb-notation-dir "~/vnb-notation/"
+  "Your directory of printer tables.
+A table here shadows a shipped one of the same name.")
+
+(defun vnb-notation--shipped-dir ()
+  (expand-file-name "notation/" (file-name-directory vnb-program)))
+
+(defun vnb-notation--active-file ()
+  (expand-file-name "active" vnb-notation-dir))
+
+(defun vnb-notation--names (dir)
+  (and (file-directory-p dir)
+       (sort (mapcar #'file-name-sans-extension (directory-files dir nil "\\.tbl\\'")) #'string<)))
+
+(defun vnb-notation-active ()
+  "The printer tables in force after the base table, in order.
+Read from the file `active' in `vnb-notation-dir'."
+  (let ((f (vnb-notation--active-file)))
+    (and (file-exists-p f)
+         (with-temp-buffer
+           (insert-file-contents f)
+           (let (acc)
+             (dolist (l (split-string (buffer-string) "\n"))
+               (let ((l (string-trim (replace-regexp-in-string ";.*" "" l))))
+                 (unless (string-empty-p l) (push l acc))))
+             (nreverse acc))))))
+
+(defun vnb-notation-tables ()
+  "Every printer table there is, as (NAME . WHERE).
+WHERE is `local' or `shipped'; the base table infix is not listed."
+  (let* ((local (delete "personal" (vnb-notation--names (expand-file-name vnb-notation-dir))))
+         (shipped (delete "base" (vnb-notation--names (vnb-notation--shipped-dir)))))
+    (sort (append (mapcar (lambda (n) (cons n 'local)) local)
+                  (mapcar (lambda (n) (cons n 'shipped))
+                          (seq-remove (lambda (n) (member n local)) shipped)))
+          (lambda (a b) (string< (car a) (car b))))))
+
+(defun vnb-notation--write-active (names)
+  (make-directory (expand-file-name vnb-notation-dir) t)
+  (with-temp-file (vnb-notation--active-file)
+    (insert "; the printer tables in force after notation/base.tbl, in order\n")
+    (dolist (n names) (insert n "\n"))))
+
+(defun vnb-notation--reload-if-running ()
+  (when (ignore-errors (vnb-launch--prover-running-p))
+    (vnb-infix-reload)))
+
+(defun vnb-notation-toggle (name)
+  "Put the printer table NAME in force (last, so its rows win), or take it out."
+  (let ((active (vnb-notation-active)))
+    (vnb-notation--write-active (if (member name active) (delete name active)
+                                  (append active (list name))))
+    (vnb-notation--reload-if-running)
+    (message "VNB: printer tables in force: %s"
+             (mapconcat #'identity (cons "base" (vnb-notation-active)) ", "))))
+
+;;;###autoload
+(defun vnb-notation-edit (name)
+  "Open your printer table NAME in `vnb-notation-dir'.  A shipped table of that
+name is copied there first (yours then shadows it); a new name starts from the
+format notes of the base table."
+  (interactive
+   (list (completing-read "Printer table (new or existing): "
+                          (mapcar #'car (vnb-notation-tables)))))
+  (when (or (string-empty-p name) (string-match-p "[/ ]" name) (member name '("base" "personal")))
+    (user-error "A table name is one word; `base' and `personal' are reserved"))
+  (let* ((dir (expand-file-name vnb-notation-dir))
+         (file (expand-file-name (concat name ".tbl") dir))
+         (shipped (expand-file-name (concat name ".tbl") (vnb-notation--shipped-dir))))
+    (make-directory dir t)
+    (unless (file-exists-p file)
+      (if (file-exists-p shipped)
+          (copy-file shipped file)
+        (with-temp-file file
+          (insert (format "; %s.tbl -- a printer table (see notation/base.tbl for the format).\n" name)
+                  "; Put it in force with VNB > Printer Macros; its rows replace earlier rows of the same head.\n"
+                  ";\n; KIND   HEAD   PREC  ASSOC  TEX\n"))))
+    (find-file file)
+    (message "Edit, save, then VNB > Printer Macros > Reload")))
+
+(defun vnb-notation--menu (_)
+  "The VNB > Printer Macros menu: one toggle per table, then edit and reload."
+  (append
+   (list ["Printer Macros On" vnb-infix-toggle :style toggle :selected vnb-infix-on
+          :help "Print through the printer tables in every TeX printout and the panels"]
+         "---"
+         ["base (always in force)" ignore :style toggle :selected t :active nil])
+   (let ((active (vnb-notation-active)))
+     (mapcar (lambda (tb)
+               (vector (format "%s (%s)" (car tb) (cdr tb))
+                       `(lambda () (interactive) (vnb-notation-toggle ,(car tb)))
+                       :style 'toggle :selected (and (member (car tb) active) t)))
+             (vnb-notation-tables)))
+   (list "---"
+         ["Edit or New Table..." vnb-notation-edit t]
+         ["Edit Personal Table" vnb-infix-edit-table t]
+         ["Reload" vnb-infix-reload t])))
 
 ;;;###autoload
 (defun vnb-infix-reload ()
@@ -2140,8 +2245,7 @@ the page step by step in the Focus workspace."
 (defvar vnb-tex--preamble-macros
   "\\providecommand{\\norm}[1]{\\left\\lVert #1 \\right\\rVert}\n"
   "The \\providecommand lines of the infix table's TeX macros.
-Fetched from the prover (`tex-infix-preamble-macros', notation/infix.tbl and
-~/.vnb-infix.tbl) by `vnb-infix--refresh-macros'; this default is the shipped
+Fetched from the prover (`tex-infix-preamble-macros', from the printer tables) by `vnb-infix--refresh-macros'; this default is the shipped
 table's one macro, for a panel painted before the first fetch.")
 
 (defun vnb-tex--latex-document (tex)
@@ -4011,12 +4115,7 @@ monospace font is installed.")
     ["Library (HTML)"     vnb-reference-html         t]
     ["Browser Home"       vnb-home-html              t]
     ["View as PDF"        vnb-view-as-pdf       t]
-    ("Infix Notation"
-      ["Infix Notation On"  vnb-infix-toggle
-       :style toggle :selected vnb-infix-on
-       :help "Print structure operations infix (a + b, \\norm{x}) in every TeX printout and the panels"]
-      ["Edit Infix Table"   vnb-infix-edit-table  t]
-      ["Reload Infix Table" vnb-infix-reload      t])
+    ("Printer Macros" :filter vnb-notation--menu)
     ["Suggest Forward Moves" vnb-suggest-forward-moves t]
     "---"
     ["Home Workspace"     vnb-launch-workspace             t]

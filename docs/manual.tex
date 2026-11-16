@@ -115,6 +115,22 @@
 %% per-kind counts and \VNBkerneloptable.
 \input{ch-kernel-ops-generated}
 
+%% ---- Line breaking in code (2026-11-15) -----------------------------------
+%% A \texttt token such as is-hom-uniformly-continuous used to run into the
+%% margin: TeX may not break typewriter text at all.  Here it may break AFTER
+%% a hyphen already in the name, and nowhere else: no hyphen is ever added,
+%% since the typewriter text is set in a language with no hyphenation patterns.
+%% The emergency stretch lets TeX accept a looser line rather than overrun.
+\makeatletter
+\ifdefined\l@nohyphenation\else\newlanguage\l@nohyphenation\fi
+\newcommand{\VNBttbreaks}{\hyphenchar\font=`\-\relax\language\l@nohyphenation}
+\AtBeginDocument{%
+  \DeclareRobustCommand\ttfamily{%
+    \not@math@alphabet\ttfamily\mathtt\fontfamily\ttdefault\selectfont
+    \VNBttbreaks}}
+\makeatother
+\setlength{\emergencystretch}{2em}
+
 \begin{document}
 \maketitle
 \tableofcontents
@@ -191,7 +207,7 @@ Cambridge University Press, 1993.
 
 \bibitem{MITScheme}
 C.~Hanson,
-\textit{MIT/GNU Scheme Reference Manual}, 2015.  MIT/GNU Scheme 9.2.0 or later.
+\textit{MIT/GNU Scheme Reference Manual}, 2015.  VNB requires MIT/GNU Scheme 12.1.
 
 \bibitem{Monk1988}
 L.~G.~Monk,

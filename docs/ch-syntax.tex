@@ -6,14 +6,16 @@
 A \emph{well-formed formula} in this system is not a bare S-expression
 but a typed object: a formula that has passed the well-formedness check.  In the REPL it prints as:
 \begin{VNBsnip}
-#[wff N "formula string"]
+#[wff N hD "formula string"]
 \end{VNBsnip}
-where \texttt{N} is an internal identifier and the quoted string is the
+where \texttt{N} is MIT Scheme's object hash, \texttt{hD} is the
+formula's digest in hexadecimal, and the quoted string is the
 pretty-printed formula.  Every formula in a sequent is a \texttt{wff}.
 
 \texttt{(make-wff expr)} constructs such an object, from a string in
-surface syntax or from an S-expression.  \texttt{(free-vars p)} returns
-the variables that are free in it.
+surface syntax or from an S-expression.  \texttt{(free-vars (wff->sexp p))}
+returns the variables free in the formula: \texttt{free-vars} works on
+the expression, not on the \texttt{wff} record.
 
 Two procedures expose the internals of a \texttt{wff}:
 \begin{VNBsnip}
@@ -29,6 +31,6 @@ Example (the base library is \texttt{VNB-LIBRARY}):
 (define p (make-wff "forall([x in A], 0 <= funny-name)"))
 ; => #[wff 12 "forall([x in a], 0 <= funny-name)"]
 
-(free-vars p)
+(free-vars (wff->sexp p))
 ; => (a funny-name)   ; x is bound by the forall
 \end{VNBsnip}

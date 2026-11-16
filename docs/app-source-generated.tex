@@ -4,7 +4,7 @@
 
 \section{Kernel and subsystems (\texttt{\textasciitilde/prover/})}
 \label{sec:src-root}
-The 77 Scheme files at the root of the tree: the proof kernel, the reader, the theory record, the interactive command layer, and the documentation / proof-printing / driver subsystems.
+The 82 Scheme files at the root of the tree: the proof kernel, the reader, the theory record, the interactive command layer, and the documentation / proof-printing / driver subsystems.
 
 \begin{longtable}{@{}p{0.30\textwidth}p{0.63\textwidth}@{}}
 \toprule
@@ -21,6 +21,9 @@ The 77 Scheme files at the root of the tree: the proof kernel, the reader, the t
 \texttt{clobber-guard.scm} & the gate CLAUDE.md says does not exist \\
 \texttt{contexts.scm} & make-wff, the interactive entry point for building a <wff> \\
 \texttt{contra.scm} & (contra): close a branch whose CONTEXT is arithmetically \\
+\texttt{core-capture.scm} & CORE REPLAY, steps 1-3: capture, the kernel bill, the lowering \\
+\texttt{core-replay-checks.scm} & the suite checks of the CORE REPLAYER (core-replay.scm), loaded by \\
+\texttt{core-replay.scm} & the CORE REPLAYER (core replay, design step 4) and the \\
 \texttt{counterexample.scm} & probes that try to REFUTE the focus goal \\
 \texttt{deduction-graphs.scm} & deduction graph: sequent nodes and inference nodes \\
 \texttt{driver-kit.scm} & the proof-driving helpers that more than one file needs \\
@@ -28,6 +31,7 @@ The 77 Scheme files at the root of the tree: the proof kernel, the reader, the t
 \texttt{errors.scm} & VNB error value and guard wrapper \\
 \texttt{expressions.scm} & FOL expressions over VNB-style set theory \\
 \texttt{extend-band.scm} & extend a saved band instead of rebuilding it (2026-09-23) \\
+\texttt{functoid-gate.scm} & the def-functoid DEFINITION LOG and the load-end gate on \\
 \texttt{glossary.scm} & THE ALPHABETICAL GLOSSARY: every name in VNB, in one list \\
 \texttt{harvest.scm} & MEASURE the What Now panel against the library's own proofs \\
 \texttt{ineq-supply.scm} & the What Now lane that SUPPLIES the inequalities the \\
@@ -81,6 +85,7 @@ The 77 Scheme files at the root of the tree: the proof kernel, the reader, the t
 \texttt{tactics-help.scm} & a self-describing registry of the interactive tactics \\
 \texttt{test-suite-negative.scm} & the MUST-NOT-PROVE corpus \\
 \texttt{test-suite.scm} & VNB system regression and demonstration tests \\
+\texttt{tex-infix.scm} & THE OPTIONAL INFIX LAYER for the TeX printer (printer side) \\
 \texttt{tex-output.scm} & render VNB s-expression formulas as LaTeX math \\
 \texttt{transport.scm} & TRANSPORTABLE FACTS \\
 \texttt{vlet.scm} & (vlet (names...) FORMER): bind names to proof objects \\
@@ -93,7 +98,7 @@ The 77 Scheme files at the root of the tree: the proof kernel, the reader, the t
 
 \section{\texttt{structure-library/}}
 \label{sec:src-structure-library}
-The 265 files that install definitions, structures, vocabulary, and warranted supports.  One file per structure or cluster; the always-current per-structure listing (declaration, slots, parent, theorems) is the generated \texttt{reference/STRUCTURE-INDEX.md}.
+The 317 files that install definitions, structures, vocabulary, and warranted supports.  One file per structure or cluster; the always-current per-structure listing (declaration, slots, parent, theorems) is the generated \texttt{reference/STRUCTURE-INDEX.md}.
 
 \begin{longtable}{@{}p{0.30\textwidth}p{0.63\textwidth}@{}}
 \toprule
@@ -105,7 +110,25 @@ The 265 files that install definitions, structures, vocabulary, and warranted su
 \texttt{analytic-log.scm} & ANALYTICITY AT A POINT (the notes' Def 2.11) AND THE \\
 \texttt{antiderivative.scm} & Definition 4.6 (calculus.pdf), as VOCABULARY \\
 \texttt{ascoli-arzela-statement.scm} & \textit{(no header)} \\
+\texttt{ba-amp-vocab.scm} & Thayer, Banach Algebras and Applications, ch. 6 (the amplification in the proof of \\
+\texttt{ba-bh2-vocab.scm} & wave of 2026-11-09/10 (agent BA-BH2), wired 2026-11-10 from scratchpad/babh2-1109/ba-bh2-vocab.scm \\
+\texttt{ba-cx-vocab.scm} & wave of 2026-11-09/10 (agent BA-1), wired 2026-11-10 from scratchpad/ba1-1109/ba-cx-vocab.scm \\
+\texttt{ba-gns-vocab.scm} & THE GNS CONSTRUCTION, the pre-Hilbert stage: BanachAlgebras.pdf Theorem 4.13 and \\
+\texttt{ba-neumann-vocab.scm} & wave of 2026-11-09/10 (agent BA-1), wired 2026-11-10 from scratchpad/ba1-1109/ba-neumann-vocab.scm \\
+\texttt{ba-ops-vocab.scm} & wave of 2026-11-09/10 (agent BA-BH), wired 2026-11-10 from scratchpad/babh-1109/ba-ops-vocab.scm \\
+\texttt{ba-optop-vocab.scm} & wave of 2026-11-09/10 (agent BA-OT1), wired 2026-11-10 from scratchpad/baot1-1109/ba-optop-vocab.scm \\
+\texttt{ba-quotient-na-vocab.scm} & wave of 2026-11-09/10 (agent BA-1E), wired 2026-11-10 from scratchpad/ba1e-1109/ba-quotient-na-vocab.scm \\
+\texttt{ba-quotient-vocab.scm} & wave of 2026-11-09/10 (agent BA-1C), wired 2026-11-10 from scratchpad/ba1c-1109/ba-quotient-vocab.scm \\
+\texttt{ba-rep-vocab.scm} & POSITIVE FUNCTIONALS, STATES AND REPRESENTATIONS of a unital involutive \\
+\texttt{ba-unbdd-vocab.scm} & wave of 2026-11-09/10 (agent BA-G1), wired 2026-11-10 from scratchpad/bag1-1109/ba-unbdd-vocab.scm \\
+\texttt{ba-vn-vocab.scm} & Thayer, Banach Algebras and Applications, chapter 6 (density theorems): the \\
+\texttt{ba-vocab.scm} & wave of 2026-11-09/10 (agent BA-1), wired 2026-11-10 from scratchpad/ba1-1109/ba-vocab.scm \\
+\texttt{ba2-vocab.scm} & wave of 2026-11-09/10 (agent BA-2), wired 2026-11-10 from scratchpad/ba2-1109/ba2-vocab.scm \\
+\texttt{ba2b-gen-vocab.scm} & wave of 2026-11-09/10 (agent BA-2B), wired 2026-11-10 from scratchpad/ba2b-1109/ba2b-gen-vocab.scm \\
 \texttt{baire-category.scm} & interior/closure, nowhere-dense, meager/nonmeager, and \\
+\texttt{basw-vocab.scm} & wave of 2026-11-09/10 (agent BA-SW), wired 2026-11-10 from scratchpad/basw-1109/basw-vocab.scm \\
+\texttt{basw2-vocab.scm} & wave of 2026-11-09/10 (agent BA-SW2), wired 2026-11-10 from scratchpad/basw2-1109/basw2-vocab.scm \\
+\texttt{basw3-vocab.scm} & wave of 2026-11-09/10 (agent BA-SW3), wired 2026-11-10 from scratchpad/basw3-1109/basw3-vocab.scm \\
 \texttt{bidual.scm} & \textit{(no header)} \\
 \texttt{bijection-derived.scm} & the three BIJECTION projection lemmas, PROVEN \\
 \texttt{bijection.scm} & bijections between classes, and INVERSE-BIJ via CHOICE \\
@@ -131,10 +154,26 @@ The 265 files that install definitions, structures, vocabulary, and warranted su
 \texttt{cc-elementary.scm} & THE ELEMENTARY FUNCTIONS exp, cos, sin ON CC, DEFINED BY \\
 \texttt{cc-pi.scm} & THE CONSTANT pi, DEFINED FROM THE KERNEL OF exp (the notes 2.3.3) \\
 \texttt{cc-power-series.scm} & THE VOCABULARY OF COMPLEX POWER SERIES (the notes 2.2) \\
+\texttt{ccr-ch3-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-B), wired 2026-11-10 from scratchpad/ccr1109b/ccr-ch3-vocab.scm \\
+\texttt{ccr-ch3b-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-B2), wired 2026-11-10 from scratchpad/ccr1109b2/ccr-ch3b-vocab.scm \\
+\texttt{ccr-ch3c-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-B3), wired 2026-11-10 from scratchpad/ccr1109b3/ccr-ch3c-vocab.scm \\
 \texttt{ccr1-vocab.scm} & ULTRAMETRIC SPACES (CCR.pdf, chapter 1, Definition 1.1 and the objects of \\
+\texttt{ccr1109a2-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-A2), wired 2026-11-10 from scratchpad/ccr1109a2/ccr1109a2-vocab.scm \\
+\texttt{ccr1109a3-laurent-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-A3), wired 2026-11-10 from scratchpad/ccr1109a3/ccr1109a3-laurent-vocab.scm \\
+\texttt{ccr1109a4-laurent-lim-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-A4), wired 2026-11-10 from scratchpad/ccr1109a4/ccr1109a4-laurent-lim-vocab.scm \\
+\texttt{ccr1109a5-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-A5), wired 2026-11-10 from scratchpad/ccr1109a5/ccr1109a5-vocab.scm \\
+\texttt{ccr1109a6-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-A6), wired 2026-11-10 from scratchpad/ccr1109a6/ccr1109a6-vocab.scm \\
 \texttt{ccr2-vocab.scm} & NON-ARCHIMEDEAN VALUED FIELDS AND THEIR DOMAINS (CCR.pdf chapters 1-2 and 4: \\
 \texttt{ccr3-vocab.scm} & MODULES IN A LOCAL NV FIELD (CCR.pdf Definition 4.11) \\
 \texttt{ccr4-vocab.scm} & ADDITIVE CHARACTERS OF A NORMED FIELD AND THE DUALITY MAP (CCR.pdf chapter 5, Definitions \\
+\texttt{ccr4b-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-C3), wired 2026-11-10 from scratchpad/ccr1109c3/ccr4b-vocab.scm \\
+\texttt{ccr4c-subnf-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-C4), wired 2026-11-10 from scratchpad/ccr1109c4/ccr4c-subnf-vocab.scm \\
+\texttt{ccr4d-ext-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-C5), wired 2026-11-10 from scratchpad/ccr1109c5/ccr4d-ext-vocab.scm \\
+\texttt{ccr4f-vocab.scm} & THE DIGIT MAP AND THE COORDINATE MAP AS FUNCTIONS (CCR-1111 finding F1) \\
+\texttt{ccr4x-ext-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-C2), wired 2026-11-10 from scratchpad/ccr1109c2/ccr4x-ext-vocab.scm \\
+\texttt{ccr4x-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-C), wired 2026-11-10 from scratchpad/ccr1109c/ccr4x-vocab.scm \\
+\texttt{ccr5-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-D), wired 2026-11-10 from scratchpad/ccr1109d/ccr5-vocab.scm \\
+\texttt{ccr6e-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-D3), wired 2026-11-10 from scratchpad/ccr1109d3/ccr6e-vocab.scm \\
 \texttt{cg1-vocab.scm} & vocabulary for the compact-groups notes, chapter 5 section 2 (CG-1) \\
 \texttt{cg2-vocab.scm} & set products and set powers in a group (compact-groups notes, Prop 5.8: \\
 \texttt{cg4-vocab.scm} & compact-groups notes, sections 1 and 5 (CG-4 session) \\
@@ -142,6 +181,9 @@ The 265 files that install definitions, structures, vocabulary, and warranted su
 \texttt{ch4a-vocab.scm} & WAVE 2 (2026-10-27..30), wired 2026-10-30 from scratchpad/ch4a/ch4a-vocab.scm \\
 \texttt{ch4b-vocab.scm} & WAVE 2 (2026-10-27..30), wired 2026-10-30 from scratchpad/ch4b/ch4b-vocab.scm \\
 \texttt{ch4d-vocab.scm} & WAVE 2 (2026-10-27..30), wired 2026-10-30 from scratchpad/ch4d/ch4d-vocab.scm \\
+\texttt{cnvs-ba-vocab.scm} & wave of 2026-11-09/10 (agent CNVS), wired 2026-11-10 from scratchpad/cnvs-1109/cnvs-ba-vocab.scm \\
+\texttt{cnvs-comp-vocab.scm} & wave of 2026-11-09/10 (agent CNVS2), wired 2026-11-10 from scratchpad/cnvs2-1109/cnvs2-comp-vocab.scm \\
+\texttt{cnvs-vocab.scm} & wave of 2026-11-09/10 (agent CNVS), wired 2026-11-10 from scratchpad/cnvs-1109/cnvs-vocab.scm \\
 \texttt{comm-ring-simplify.scm} & commutative-ring identity decision procedure \\
 \texttt{commutative-ring.scm} & COMMUTATIVE-RING: a ring whose MUL is commutative \\
 \texttt{compactness.scm} & compactness of a metric space and the four-way \\
@@ -190,6 +232,11 @@ The 265 files that install definitions, structures, vocabulary, and warranted su
 \texttt{group.scm} & GROUP structure \\
 \texttt{hahn-banach-sublinear.scm} & \textit{(no header)} \\
 \texttt{hausdorff-vocab.scm} & \textit{(no header)} \\
+\texttt{hc-vocab.scm} & wave of 2026-11-09/10 (agent HAAR-C), wired 2026-11-10 from scratchpad/haarc-1109/hc-vocab.scm \\
+\texttt{hc2-vocab.scm} & wave of 2026-11-09/10 (agent HAAR-C2), wired 2026-11-10 from scratchpad/haarc2-1109/hc2-vocab.scm \\
+\texttt{hc3-vocab.scm} & wave of 2026-11-09/10 (agent HAAR-C3), wired 2026-11-10 from scratchpad/haarc3-1109/hc3-vocab.scm \\
+\texttt{hilbert-completion-vocab.scm} & \textit{(no header)} \\
+\texttt{hilbert-onb-vocab.scm} & wave of 2026-11-09/10 (agent BA-ONB), wired 2026-11-10 from scratchpad/baonb-1109/hilbert-onb-vocab.scm \\
 \texttt{hilbert-space.scm} & HILBERT SPACES: the metric space of a complex inner \\
 \texttt{id-fun.scm} & ID-FUN: the identity map of a set \\
 \texttt{ideal.scm} & ideals, principal ideals, and principal-ideal domains over a \\
@@ -204,10 +251,16 @@ The 265 files that install definitions, structures, vocabulary, and warranted su
 \texttt{interval-calculus.scm} & THE VOCABULARY OF THE CALCULUS ON AN INTERVAL \\
 \texttt{interval-extremum.scm} & LOCAL MAXIMUM AND LOCAL MINIMUM OF A FUNCTION ON \\
 \texttt{interval-taylor.scm} & THE VOCABULARY OF TAYLOR'S FORMULA ON AN INTERVAL \\
+\texttt{ipf-vocab.scm} & INNER PRODUCT FORMS ON A COMPLEX MODULE, the module carrying such a form, and the \\
+\texttt{is-set-laws.scm} & \textit{(no header)} \\
 \texttt{isom-vocab.scm} & vocabulary for calculus.pdf ch. 3, sections 6 and 8: uniform and \\
 \texttt{isom2-rrvs-vocab.scm} & the real numbers as a FIELD instance, the vector space of \\
 \texttt{isom2-vocab.scm} & the group structure of the isometry group (calculus.pdf ch. 3 \\
+\texttt{km-vocab.scm} & wave of 2026-11-09/10 (agent BA-KM), wired 2026-11-10 from scratchpad/bakm-1109/km-vocab.scm \\
 \texttt{l1-dual.scm} & WAVE 2 (2026-10-27..30), wired 2026-10-30 from scratchpad/md/me-du-vocab.scm \\
+\texttt{l2-families-vocab.scm} & wave of 2026-11-09/10 (agent BA-ONB2), wired 2026-11-10 from scratchpad/baonb2-1109/bo2-l2-vocab.scm \\
+\texttt{l2-integral-operator.scm} & wave of 2026-11-09/10 (agent TH3-L2C), wired 2026-11-10 from scratchpad/th3-1109/l2c/kc-vocab.scm \\
+\texttt{l2c-vocab.scm} & wave of 2026-11-09/10 (agent TH3-L2), wired 2026-11-10 from scratchpad/th3-1109/l2/l2c-vocab.scm \\
 \texttt{la-det-vocab.scm} & triangular matrices and the formal adjoint (LA-DET, 2026-10-18) \\
 \texttt{la-elem-vocab.scm} & elementary column matrices as a class, the subgroup they \\
 \texttt{la-z-vocab.scm} & subdeterminants, equivalence by elementary operations and the \\
@@ -241,6 +294,7 @@ The 265 files that install definitions, structures, vocabulary, and warranted su
 \texttt{meta-cr.scm} & CONTEXTUAL REWRITING (CR) over the encoded core: the one-step rewrite relation \\
 \texttt{meta-def.scm} & K2 PHASE 5: the clauses of the kernel's definedness certificate pi--defined? \\
 \texttt{meta-ind.scm} & K2 PHASE 4: the kernel relations of the induction rules, the set-formation rules \\
+\texttt{meta-nbg.scm} & K2, agent METACORE (2026-10-29): the kernel forms of the ten C+ rows of the K2 ledger \\
 \texttt{meta-syntax.scm} & THE SYNTAX OF THE KERNEL AS A VNB OBJECT: locally nameless expressions, \\
 \texttt{metric-completeness.scm} & Cauchy sequences, convergence, completeness \\
 \texttt{metric-completion.scm} & \textit{(no header)} \\
@@ -308,6 +362,7 @@ The 265 files that install definitions, structures, vocabulary, and warranted su
 \texttt{regulated-primitive.scm} & COUNTABLE SETS, ONE-SIDED LIMITS WITHIN A SET, \\
 \texttt{regulated.scm} & docs/calculus.pdf CHAPTER 4 SECTION 1: the vocabulary of \\
 \texttt{riesz-markov-model.scm} & \textit{(no header)} \\
+\texttt{ring-pow-vocab.scm} & wave of 2026-11-09/10 (agent CCR-1109-E), wired 2026-11-10 from scratchpad/ccr1109e/ring-pow-vocab.scm \\
 \texttt{ring-power.scm} & RING-POWER: the natural-number power x\textasciicircum{}n in a commutative ring \\
 \texttt{ring-simplify.scm} & polynomial-normal-form ring identity decision procedure \\
 \texttt{ring.scm} & RING, RING-PROD, ZERO-RING \\
@@ -347,6 +402,8 @@ The 265 files that install definitions, structures, vocabulary, and warranted su
 \texttt{summability.scm} & unconditional summability of a normed-AG-valued function \\
 \texttt{tb11-vocab.scm} & vocabulary for topological-vector-spaces Appendix A.3 (TB-11): \\
 \texttt{tg-vocab.scm} & topological groups (topological-vector-space.pdf Appendix A.3, TB-11) \\
+\texttt{th3-vocab.scm} & wave of 2026-11-09/10 (agent TH3-A), wired 2026-11-10 from scratchpad/th3-1109/th3-vocab.scm \\
+\texttt{th3a2-vocab.scm} & wave of 2026-11-09/10 (agent TH3-A2), wired 2026-11-10 from scratchpad/th3-1109/a2/th3a2-vocab.scm \\
 \texttt{top-closed.scm} & \textit{(no header)} \\
 \texttt{top-continuity.scm} & COMPACTNESS of a topological space, and the SUBSPACE \\
 \texttt{top-product.scm} & \textit{(no header)} \\
@@ -370,12 +427,13 @@ The 265 files that install definitions, structures, vocabulary, and warranted su
 
 \section{\texttt{theorem-library/} and \texttt{calculus/}}
 \label{sec:src-libraries}
-\texttt{theorem-library/} holds 885 proof scripts, each reaching \texttt{(qed \ldots)} and gated into the library load; by convention \texttt{X-proof.scm} proves \texttt{X}.  \texttt{calculus/} holds 21 probes and stress tests that are \emph{not} in \texttt{load.scm}.  Rather than enumerate them here, the theorems they prove are indexed, with statements and per-file links, in the generated browser references \texttt{reference/THEOREMS.md} (flat) and \texttt{reference/BY-TOPIC.md} (grouped like a textbook table of contents).
+\texttt{theorem-library/} holds 1085 proof scripts, each reaching \texttt{(qed \ldots)} and gated into the library load; by convention \texttt{X-proof.scm} proves \texttt{X}.  \texttt{calculus/} holds 21 probes and stress tests that are \emph{not} in \texttt{load.scm}.  Rather than enumerate them here, the theorems they prove are indexed, with statements and per-file links, in the generated browser references \texttt{reference/THEOREMS.md} (flat) and \texttt{reference/BY-TOPIC.md} (grouped like a textbook table of contents).
 
 \section{Emacs interface (\texttt{emacs/}) and generated docs}
 \label{sec:src-emacs}
 The workspace front end lives in \texttt{emacs/}:
 \begin{itemize}
+\item \texttt{core-replay-stub.scm}
 \item \texttt{vnb-cmd-gen.el}
 \item \texttt{vnb-commands.lisp}
 \item \texttt{vnb-complete.el}

@@ -34,7 +34,7 @@ LATEX := pdflatex -interaction=nonstopmode -halt-on-error
 # is invisible in the log, so it is wired into every target, not documented.
 MAKEINDEX := makeindex -q
 
-.PHONY: all gen kindle both clean check-fresh
+.PHONY: all gen kindle both clean check-fresh overfull
 
 all: gen major-theorems all-theorems library-book
 	$(LATEX) manual.tex
@@ -118,3 +118,8 @@ library-book:
 .PHONY: library-book-by-library
 library-book-by-library:
 	$(LATEX) library-book-by-library.tex && $(LATEX) library-book-by-library.tex
+
+# The lines that run into the margin, by chapter file and source line (run
+# after `make'; `python3 check-overfull.py 3 --all' lists the generated files too).
+overfull:
+	python3 check-overfull.py

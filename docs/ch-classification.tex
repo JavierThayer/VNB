@@ -33,19 +33,20 @@ conflates them, and most of what follows is aimed at pulling them apart.
 \item \textbf{Definition.} True \emph{by construction}: a defining
   equation, or an unfolding of one.  A definition is \emph{not a theorem}
   --- there is nothing to prove, since it holds by the meaning of the
-  symbol it introduces.  Consequently it is never submitted to the VNB
-  test and is \emph{not} a member of the Proof Support Set.  It does,
+  symbol it introduces.  Consequently it is never submitted to the exam
+  and is \emph{not} a member of the Proof Support Set.  It does,
   however, still \textbf{fire as a rewrite} (Section~\ref{sec:firing}):
   the defining equation is exactly the rule that unfolds the symbol.
 
 \item \textbf{Theorem.} Carries a machine proof.  Its proof script runs
-  end-to-end and is re-certified by the VNB test
-  (Section~\ref{sec:vnb-test}).  This is the only kind whose truth rests
+  end-to-end in the exam (Section~\ref{sec:vnb-test}), which records a
+  certificate for it; an everyday load installs the theorem from that
+  certificate without running the script.  This is the only kind whose truth rests
   on a checked derivation inside the system.
 
 \item \textbf{Proof Support Set (PSS).} A theorem \emph{trusted on a
-  warrant, without a machine proof} --- and so \emph{excused} from the VNB
-  test.  Every PSS member carries credentials: a plain statement of what
+  warrant, without a machine proof} --- and so \emph{excused} from the
+  exam.  Every PSS member carries credentials: a plain statement of what
   it says plus a short justification of why it is accepted
   (Section~\ref{sec:warrants}).  The PSS is the curated foundational
   engine of obvious-but-tedious facts (finite-sum identities, ordinal and
@@ -83,9 +84,14 @@ Whether the prover may apply a result as a rewrite rule is
 definitions, theorems, and PSS members can \emph{all} be rewrite rules,
 and any of them can equally be inert (cited only by name).  Activation is
 the business of the \emph{macete} mechanism, a separate registry described
-in Section~\ref{sec:macetes}: installing a result as a macete with
-\texttt{install-theorem!} is what lets the engine fire it, and that is a
-decision about \emph{use}, not about what justifies the statement.
+in Section~\ref{sec:macetes}: every installed result is also a macete,
+and fires unless it is withheld.  It is withheld either by
+\texttt{declare-named-only!}, which must precede the installation (a
+declaration made afterwards has no effect, and the load reports it), or
+because its rewrite form would be unsound, in which case an inert macete
+stands in its place (\texttt{display-inert-macetes} lists them).
+Withholding is a decision about \emph{use}, not about what justifies the
+statement.
 
 The clearest case is the definition: it is not a PSS member, yet its
 defining equation is precisely the rewrite that unfolds the defined
@@ -95,7 +101,7 @@ specialised to be worth firing automatically.
 \begin{center}
 \begin{tabular}{@{}llll@{}}
 \toprule
-\textbf{Kind} & \textbf{Believed because} & \textbf{In VNB test?} & \textbf{May fire?}\\
+\textbf{Kind} & \textbf{Believed because} & \textbf{In the exam?} & \textbf{May fire?}\\
 \midrule
 Axiom      & assumed (primitive)   & no  & yes\\
 Definition & true by construction  & no  & yes\\
@@ -182,6 +188,15 @@ The bill is printed inline at \texttt{QED} and collected in the ledger
 \end{itemize}
 
 \noindent
+A theorem whose proof ran in the current image prints
+\texttt{proven modulo \ldots}; one installed from its certificate prints
+\texttt{certified modulo \ldots}, with the bill recorded when the proof
+last ran.  Both are theorems.  When a proof used a decision procedure
+(Section~\ref{sec:kernel-boundary}) the line ends with
+\texttt{[oracles: \ldots]}: an oracle is trusted code, not an asserted
+fact, and so it is named beside the bill rather than in it.
+
+\noindent
 A non-empty bill is stamped with a \emph{trust tier}
 \texttt{[trust:\ \textit{K}]}, and $K$ is the warrant of the bill's
 \emph{weakest} leaf: a single shaky citation caps the whole proof, however
@@ -250,37 +265,40 @@ runs through \emph{proven} citations, which are always kept --- so the gate
 neither cries wolf on sound induction nor lets a real circle through.
 
 %% =========================================================
-\section{The VNB test}
+\section{The exam}
 \label{sec:vnb-test}
 
-The \emph{VNB test} is the standing examination that certifies the
-\textbf{theorem} bucket.  It re-proves, in sequence, every result that has
-a runnable proof script, and reports whether each still reaches
-\texttt{QED}.  Definitions and PSS members are excused by construction:
-the former have nothing to prove, the latter are accepted on a warrant.
-Run it from the prover root:
+The \emph{exam} is the standing examination of the \textbf{theorem}
+bucket.  It is a full library build in which every proof script runs,
+every proof page is typed back in and must reach a grounded graph, and
+every certificate in \texttt{certificates/} is rewritten from the run.
+Definitions and PSS members are excused by construction: the former have
+nothing to prove, the latter are accepted on a warrant.
 
 \begin{VNBsnip}
-./vnb-test
+vnb-band WORKER --build --exam
 \end{VNBsnip}
 
 \noindent
-It harvests the proofs that run at load time and the standalone proof
-scripts, runs each, and writes a \emph{certification stamp}
-(\texttt{reference/certification.scm}) recording the date and which results
-passed, together with a human-readable report
-(\texttt{reference/VNB-TEST.md}).  The next time the prover loads, the
-stamp is read back, so a result's status can report ``certified by the VNB
-test on \textit{date}'' rather than merely ``has a proof script.''
+runs it on a worker machine; \texttt{vnb-nightly-exam} runs it every
+night, skips a tree that the last exam already passed, and records the
+outcome in \texttt{last-exam.json}.  The everyday build is the
+\emph{certified} build: a theorem whose certificate is still valid is
+installed without running its proof, and only the theorems whose
+statement, citations or definitions changed since the exam are proved
+again.  A change to a kernel file invalidates every certificate, so the
+everyday build after such a change is itself an exam.
 
 \begin{remark}
-The VNB test is \emph{not} the unit test suite.
-\texttt{test-suite.scm} is a feature-and-regression suite
-of checks, run during development; it checks that the
-machinery behaves, not that the library's theorems still derive.  The VNB
-test is the slower, periodic exam that re-runs the mathematics
-itself --- re-deriving every proof in the library, as any serious proof
-system must.  Keep both: they answer different questions.
+The exam is \emph{not} the regression suite.  \texttt{test-suite.scm}
+checks that the machinery behaves; the exam checks that the library's
+theorems still derive.  The two answer different questions and both are
+run.
+\end{remark}
+
+\begin{remark}
+The earlier script \texttt{./vnb-test} and its stamp
+\nolinkurl{reference/certification.scm} are no longer maintained.
 \end{remark}
 
 %% =========================================================
@@ -291,9 +309,8 @@ Three commands expose the classification at the REPL.
 
 \begin{itemize}
 \item \texttt{(status 'name)} prints, on one screen, a result's
-  provenance, whether it is a PSS member, any warrant it carries, and its
-  certification state (``certified by the VNB test on \textit{date}'' or
-  ``not certified since the last run'').
+  provenance, whether it is a PSS member, any warrant it carries, and the
+  bill.
 
 \item \texttt{(status-audit)} writes \texttt{reference/STATUS-AUDIT.md}: a
   census of the whole library by kind, flagging hygiene issues --- asserted

@@ -4416,7 +4416,7 @@
                    "\\norm{x}_{a}")
          (string-search-forward "\\providecommand{\\norm}" (proof-tex--preamble-text) 0)
          #t)))
-;; THE INFIX TABLE (2026-11-14): notation/infix.tbl, overridden row by row by the user's file;
+;; THE INFIX TABLE (2026-11-14): notation/base.tbl, overridden row by row by the user's file;
 ;; a table with an error is refused whole.  Each check binds the user file to a scratch file
 ;; and reloads the real configuration after.
 (define (sx-infix-with-user-table text thunk)
@@ -4427,10 +4427,10 @@
       (delete-file f)
       (tex-infix-reload!)
       r)))
-(check-true "infix table: the shipped table reads (21 operations, the \\norm macro)"
+(check-true "infix table: the shipped table reads (30 operations, the \\norm macro)"
   (lambda ()
     (and (string? (tex-infix-reload!))
-         (= (length *tex-infix-ops*) 21)
+         (= (length *tex-infix-ops*) 30)
          (assoc "\\norm" *tex-infix-macros*)
          (string-search-forward "\\providecommand{\\norm}[1]{\\left\\lVert #1 \\right\\rVert}"
                                 (tex-infix-preamble-macros) 0)
@@ -4462,6 +4462,84 @@
   (lambda ()
     (sx-infix-with-user-table "outfix vnrm 100 - \\norm{}\n"
       (lambda () (not (tex-infix-reload!))))))
+;; APPLY ROWS (2026-11-15, the user): a defined head printed by a template; #N an argument,
+;; #_N / #^N the structure, #NAME a variable the printer invents, #N(#NAME) the application,
+;; with a vnb-lambda's own variable and body when its domain is nn or another argument.
+(check-true "infix apply: series-partial-sum is a sum over i < n; OFF it is the plain head"
+  (lambda ()
+    (and (string=? (infix-tex '(series-partial-sum f n)) "\\sum_{i < n} f(i)")
+         (string-search-forward "operatorname{series" (expr->tex-top '(series-partial-sum f n)) 0)
+         #t)))
+(check-true "infix apply: a lambda summand prints its body with its own variable"
+  (lambda ()
+    (and (string=? (infix-tex '(series-partial-sum (vnb-lambda k nn ((mul r) (c k) (x k))) n))
+                   "\\sum_{k < n} c(k) \\times x(k)")
+         (string=? (infix-tex '(series-partial-sum (vnb-lambda k nn (+ (a k) (b k))) n))
+                   "\\sum_{k < n} (a(k) + b(k))")
+         (string=? (infix-tex '(finsum g (vnb-lambda z s (f z)) s)) "\\sum_{z \\in s} f(z)")
+         #t)))
+(check-true "infix apply: the invented index avoids the formula's symbols and an enclosing index"
+  (lambda ()
+    (and (string=? (infix-tex '(= (series-partial-sum f n) i)) "\\sum_{j < n} f(j) = i")
+         (string=? (infix-tex '(series-partial-sum (vnb-lambda i nn (series-partial-sum f i)) n))
+                   "\\sum_{i < n} \\sum_{j < i} f(j)")
+         #t)))
+(check-true "infix apply: the structure superscript follows the conventions; a sum is an operand"
+  (lambda ()
+    (and (string=? (infix-tex '(= (finsum g f s) (finsum h f s)))
+                   "\\sum^{g}_{i \\in s} f(i) = \\sum^{h}_{i \\in s} f(i)")
+         (string=? (infix-tex '(+ (series-partial-sum f n) 1)) "(\\sum_{i < n} f(i)) + 1")
+         #t)))
+(check-true "infix apply: a lambda whose variable is in another argument is printed applied (control)"
+  (lambda ()
+    (string=? (infix-tex '(series-partial-sum (vnb-lambda n nn (f n)) n))
+              "\\sum_{i < n} (\\lambda n \\in \\mathbb{N}.\\; f(n))(i)")))
+(check-true "infix apply: a user row with #fuba and \\# reads and prints"
+  (lambda ()
+    (sx-infix-with-user-table "apply card-like 100 - \\#\\{#fuba \\in #1\\}\n"
+      (lambda ()
+        (and (string? (tex-infix-reload!))
+             (string=? (infix-tex '(card-like s)) "\\#\\{i \\in s\\}"))))))
+(check-true "infix apply: a template that hides an argument refuses the reload (control)"
+  (lambda ()
+    (sx-infix-with-user-table "apply sum-ag 5 - \\sum_{#i < #3} #2(#i)\n"
+      (lambda () (not (tex-infix-reload!))))))
+(check-true "infix apply: a bare # is an error (control)"
+  (lambda ()
+    (sx-infix-with-user-table "apply card-like 100 - # #1\n"
+      (lambda () (not (tex-infix-reload!))))))
+;; SEVERAL PRINTER TABLES (2026-11-15, the user): notation/base.tbl, then the tables named in
+;; ~/vnb-notation/active in order (a local NAME.tbl shadows the tree's), then the personal table.
+;; Each check binds the user directory to a scratch one and reloads the real configuration after.
+(define (sx-infix-with-tables files names thunk)
+  (let ((dir "/tmp/vnb-suite-notation/"))
+    (if (not (file-directory? dir)) (make-directory dir))
+    (for-each (lambda (f) (call-with-output-file (string-append dir (car f))
+                            (lambda (p) (write-string (cdr f) p))))
+              files)
+    (let ((r (fluid-let ((*tex-infix-user-dir* dir)
+                         (*tex-infix-user-file* "/tmp/vnb-suite-no-such.tbl"))
+               (and (tex-infix-use! names) (thunk)))))
+      (for-each (lambda (f) (delete-file (string-append dir (car f)))) files)
+      (if (file-exists? (string-append dir "active")) (delete-file (string-append dir "active")))
+      (tex-infix-reload!)
+      r)))
+(check-true "printer tables: the later table's row wins, and the order is the active file's"
+  (lambda ()
+    (let ((files '(("alpha.tbl" . "apply series-partial-sum 5 - A_{#2}(#1)\n")
+                   ("beta.tbl"  . "apply series-partial-sum 5 - B_{#2}(#1)\n"))))
+      (and (sx-infix-with-tables files '("alpha" "beta")
+             (lambda () (string=? (infix-tex '(series-partial-sum f n)) "B_{n}(f)")))
+           (sx-infix-with-tables files '("beta" "alpha")
+             (lambda () (string=? (infix-tex '(series-partial-sum f n)) "A_{n}(f)")))
+           (string=? (infix-tex '(series-partial-sum f n)) "\\sum_{i < n} f(i)")
+           #t))))
+(check-true "printer tables: a name with no table is refused and nothing is written (control)"
+  (lambda ()
+    (fluid-let ((*tex-infix-user-dir* "/tmp/vnb-suite-notation-empty/"))
+      (and (not (tex-infix-use! '("no-such-table")))
+           (not (file-exists? "/tmp/vnb-suite-notation-empty/active"))
+           #t))))
 ;; display-proof's last fallback finds a theorem closed by a file's OWN qed helper through the
 ;; certificate store (mat-left-inverse-eq-right: la-elem-gen.scm closes it with laeg-done!).
 (check-true "display-proof: the certificate store finds a proof file closed by its own helper"

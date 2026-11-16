@@ -44,10 +44,10 @@
 
 ;;; --- THE TABLE (2026-11-14, the user: "make the optional layer an editable table") -------
 ;;;
-;;; The operations, their TeX and the default conventions are DATA: notation/infix.tbl in the
-;;; tree, then ~/.vnb-infix.tbl, the user's, read after it (a row there replaces the shipped row
+;;; The operations, their TeX and the default conventions are DATA: notation/base.tbl in the
+;;; tree, then the user's tables, read after it (a row there replaces the shipped row
 ;;; of the same head; `off HEAD' removes one).  The format is described at the head of
-;;; notation/infix.tbl.  A changed file is re-read at the next printout with the layer on
+;;; notation/base.tbl.  A changed file is re-read at the next printout with the layer on
 ;;; (`tex-infix--ensure-table!'), or at once by (tex-infix-reload!).  A reload with ANY row in
 ;;; error changes nothing: the errors are listed with file and line and the table in force stays.
 ;;;
@@ -58,10 +58,103 @@
 (define *tex-infix-macros* '())          ; ((NAME NARGS BODY) ...), NAME with its backslash
 (define *tex-infix-table-stamp* '())     ; ((FILE . MTIME-OR-#F) ...) of the last good read
 
-(define (tex-infix--shipped-file) (string-append *prover-dir* "notation/infix.tbl"))
-(define *tex-infix-user-file* "~/.vnb-infix.tbl")
+;;; --- SEVERAL TABLES (2026-11-15, the user: "more than one convention, in much the same way
+;;; that I have multiple LaTeX macro files for different purposes") ----------------------
+;;;
+;;; The base table notation/base.tbl is always read first.  Then the tables NAMED, in order,
+;;; in the file ~/vnb-notation/active (one name per line; `;' starts a comment): each NAME is
+;;; ~/vnb-notation/NAME.tbl when that file exists, else the tree's notation/NAME.tbl, so a
+;;; local table shadows a shipped one of the same name.  A later table's row replaces an
+;;; earlier row of the same head.  Last, the PERSONAL table ~/vnb-notation/personal.tbl, and the
+;;; same table under its first name, ~/.vnb-infix.tbl (2026-11-14), when either exists.
+;;; (The base table was notation/infix.tbl until the user found the name misleading, 11-15: the
+;;; tables hold templates and macros as well as infix operators.)  A name that resolves to no file is an error of the reload, like a bad row.
+;;; (tex-infix-tables) lists the tables there are; (tex-infix-use! '("a" "b")) rewrites the
+;;; active file and reloads.  The workspace's menu VNB > Printer Macros does the same.
+
+(define (tex-infix--shipped-dir) (string-append *prover-dir* "notation/"))
+(define (tex-infix--shipped-file) (string-append (tex-infix--shipped-dir) "base.tbl"))
+(define *tex-infix-user-file* "~/.vnb-infix.tbl")      ; the personal table's first name
+(define *tex-infix-user-dir* "~/vnb-notation/")
+(define (tex-infix--user-dir) (->namestring (merge-pathnames *tex-infix-user-dir*)))
+(define (tex-infix--active-file) (string-append (tex-infix--user-dir) "active"))
+(define (tex-infix--personal-file) (string-append (tex-infix--user-dir) "personal.tbl"))
+;; the two names that are not tables one turns on: the base, and the personal table
+(define (tex-infix--reserved? name) (member name '("base" "personal")))
+
+;; the names in the active file, in order
+(define (tex-infix--active-names)
+  (let ((f (tex-infix--active-file)))
+    (if (not (file-exists? f))
+        '()
+        (call-with-input-file f
+          (lambda (port)
+            (let loop ((acc '()))
+              (let ((line (read-line port)))
+                (if (eof-object? line)
+                    (reverse acc)
+                    (let* ((l (string-trim line))
+                           (cut (string-search-forward ";" l 0))
+                           (l (string-trim (if cut (substring l 0 cut) l))))
+                      (loop (if (string-null? l) acc (cons l acc))))))))))))
+
+;; NAME -> its file, local first, or #f
+(define (tex-infix--resolve name)
+  (let ((local (string-append (tex-infix--user-dir) name ".tbl"))
+        (shipped (string-append (tex-infix--shipped-dir) name ".tbl")))
+    (cond ((tex-infix--reserved? name) #f)
+          ((file-exists? local) local)
+          ((file-exists? shipped) shipped)
+          (else #f))))
+
+;; the files of the table in force, in reading order, and the names that resolve to nothing
 (define (tex-infix--files)
-  (list (tex-infix--shipped-file) (->namestring (merge-pathnames *tex-infix-user-file*))))
+  (let ((names (tex-infix--active-names)))
+    (append (list (tex-infix--shipped-file))
+            (filter-map tex-infix--resolve names)
+            (list (tex-infix--personal-file)
+                  (->namestring (merge-pathnames *tex-infix-user-file*))))))
+(define (tex-infix--unresolved)
+  (filter (lambda (n) (not (tex-infix--resolve n))) (tex-infix--active-names)))
+
+;; the .tbl names in a directory, sorted
+(define (tex-infix--dir-names dir)
+  (if (not (file-directory? dir))
+      '()
+      (sort (filter-map (lambda (p)
+                          (let ((n (->namestring p)))
+                            (and (string-suffix? ".tbl" n)
+                                 (let ((b (pathname-name p))) (and (string? b) b)))))
+                        (directory-read (string-append dir "*.tbl")))
+            string<?)))
+
+;; every table there is: (NAME WHERE ACTIVE?), WHERE `local' or `shipped'
+(define (tex-infix-tables)
+  (let* ((local (filter (lambda (n) (not (tex-infix--reserved? n)))
+                       (tex-infix--dir-names (tex-infix--user-dir))))
+         (shipped (filter (lambda (n) (not (tex-infix--reserved? n)))
+                          (tex-infix--dir-names (tex-infix--shipped-dir))))
+         (active (tex-infix--active-names)))
+    (map (lambda (n) (list n (if (member n local) 'local 'shipped) (and (member n active) #t)))
+         (sort (append local (filter (lambda (n) (not (member n local))) shipped)) string<?))))
+
+;; NAMES become the active list (the file is rewritten) and the table is reloaded.  A name
+;; with no table is refused before anything is written, and #f returned.
+(define (tex-infix-use! names)
+  (let ((dir (tex-infix--user-dir))
+        (bad (filter (lambda (n) (not (tex-infix--resolve n))) names)))
+   (if (pair? bad)
+    (begin
+      (display ";; no printer table ") (display bad) (display " in ") (display dir)
+      (display " or ") (display (tex-infix--shipped-dir)) (display "; nothing changed") (newline)
+      #f)
+    (begin
+    (if (not (file-directory? dir)) (make-directory dir))
+    (call-with-output-file (tex-infix--active-file)
+      (lambda (port)
+        (write-string "; the printer tables in force after notation/base.tbl, in order (tex-infix.scm)\n" port)
+        (for-each (lambda (n) (write-string n port) (newline port)) names)))
+    (tex-infix-reload!)))))
 
 (define (tex-infix--arity kind)
   (case kind ((infix bracket) 2) ((prefix postfix outfix) 1) ((const) 0) (else -1)))
@@ -95,6 +188,85 @@
                 (list (substring tex 0 p1) (substring tex (+ p1 2) p2)
                       (substring tex (+ p2 2) (string-length tex)))))
       (else #f))))
+
+;;; --- APPLY rows (2026-11-15, the user: "summation and product over indices ... a macro
+;;; facility ... loaded by the user") ---------------------------------------------------
+;;;
+;;;   apply  HEAD  PREC  -  TEMPLATE
+;;;
+;;; prints the application (HEAD a1 .. an) of a DEFINED head (a functoid, a constant head) by a
+;;; TeX template.  In the template:
+;;;   #1 .. #9     the arguments, each shown where it stands;
+;;;   #_N / #^N    argument N as the STRUCTURE of the term, written as a sub- / superscript and
+;;;                dropped by the same conventions as an operation's subscript (auto, drop, keep);
+;;;   #NAME        a variable the printer INVENTS (NAME begins with a letter: #i, #fuba), one
+;;;                per distinct NAME, spelled so that it clashes with no symbol of the formula
+;;;                and no variable invented around it (i, j, k, ... in that order; a one-letter
+;;;                NAME is tried first);
+;;;   #N(#NAME)    argument N applied to that variable.  When argument N is a vnb-lambda whose
+;;;                domain is nn or is another argument of the term (finsum's set), the lambda's
+;;;                own variable is used and its BODY is printed: sum_{k<n} c(k) x^k, not
+;;;                sum_{i<n} (lambda k. c(k) x^k)(i).  Otherwise it prints arg(variable);
+;;;   \#           a literal #, as in TeX.
+;;; Every argument 1 .. n must appear: a template may not hide an argument.  The arity of the
+;;; row is the highest N, and only an application with exactly that many arguments matches.
+;;; PREC is the row's binding strength as an operand (a sum, 5, is parenthesised inside a +).
+
+;; TEMPLATE -> (PIECES . ARITY), or an error string.  A piece is a string or one of
+;; (arg N) (sub N) (sup N) (var NAME) (app N NAME).
+(define (tex-infix--parse-apply tex)
+  (let ((len (string-length tex)))
+    (define (digit-at i)
+      (and (< i len) (char-numeric? (string-ref tex i))
+           (not (char=? (string-ref tex i) #\0))
+           (char->digit (string-ref tex i) 10)))
+    (define (name-end i)
+      (if (and (< i len) (char-alphabetic? (string-ref tex i)))
+          (let loop ((j (+ i 1)))
+            (if (and (< j len) (or (char-alphabetic? (string-ref tex j))
+                                   (char-numeric? (string-ref tex j))))
+                (loop (+ j 1))
+                j))
+          #f))
+    (let loop ((i 0) (buf '()) (acc '()) (err #f))
+      (define (flush) (if (null? buf) acc (cons (list->string (reverse buf)) acc)))
+      (cond
+        (err err)
+        ((>= i len)
+         (let* ((pieces (reverse (flush)))
+                (ns (append-map (lambda (p) (if (and (pair? p) (memq (car p) '(arg sub sup app)))
+                                                (list (cadr p)) '()))
+                                pieces))
+                (arity (if (null? ns) 0 (apply max ns))))
+           (cond
+             ((= arity 0) "an apply template shows its arguments: #1, #2, ...")
+             ((let find ((k 1)) (and (<= k arity) (if (memv k ns) (find (+ k 1)) k)))
+              => (lambda (k) (string-append "argument #" (number->string k)
+                                            " does not appear: a template may not hide an argument")))
+             (else (cons pieces arity)))))
+        ((and (char=? (string-ref tex i) #\\) (< (+ i 1) len) (char=? (string-ref tex (+ i 1)) #\#))
+         (loop (+ i 2) (cons #\# (cons #\\ buf)) acc #f))
+        ((char=? (string-ref tex i) #\#)
+         (cond
+           ((digit-at (+ i 1))
+            => (lambda (n)
+                 ;; #N(#NAME)
+                 (let* ((j (+ i 2))
+                        (e (and (< (+ j 1) len) (char=? (string-ref tex j) #\()
+                                (char=? (string-ref tex (+ j 1)) #\#)
+                                (name-end (+ j 2)))))
+                   (if (and e (< e len) (char=? (string-ref tex e) #\)))
+                       (loop (+ e 1) '() (cons (list 'app n (substring tex (+ j 2) e)) (flush)) #f)
+                       (loop j '() (cons (list 'arg n) (flush)) #f)))))
+           ((and (< (+ i 1) len) (memv (string-ref tex (+ i 1)) '(#\_ #\^)) (digit-at (+ i 2)))
+            => (lambda (n)
+                 (loop (+ i 3) '()
+                       (cons (list (if (char=? (string-ref tex (+ i 1)) #\_) 'sub 'sup) n) (flush)) #f)))
+           ((name-end (+ i 1))
+            => (lambda (e) (loop e '() (cons (list 'var (substring tex (+ i 1) e)) (flush)) #f)))
+           (else (loop i buf acc
+                       "a # is followed by a digit 1-9, _N, ^N or a name; write \\# for a #"))))
+        (else (loop (+ i 1) (cons (string-ref tex i) buf) acc #f))))))
 
 ;; one line -> (op . ENTRY) | (macro . (NAME NARGS BODY)) | (off . HEAD) | (convention . C)
 ;;           | #f (blank or comment) | (error . MESSAGE)
@@ -131,6 +303,21 @@
                                      ((bracket) "a bracket TeX wants #1 then #2, once each")
                                      (else "only outfix and bracket TeX may hold #")))
                              (cons 'op (list head kw t prec (string=? assoc "assoc")))))))))))
+           ((apply)
+            (let ((g (tex-infix--fields line 4)))
+              (if (not g)
+                  (cons 'error "an apply row wants apply HEAD PREC - TEMPLATE")
+                  (let ((head (string->symbol (string-downcase (list-ref g 1))))
+                        (prec (string->number (list-ref g 2)))
+                        (t (tex-infix--parse-apply (list-ref g 4))))
+                    (cond
+                      ((not (and prec (exact-nonnegative-integer? prec)))
+                       (cons 'error (string-append "PREC is not a whole number: " (list-ref g 2))))
+                      ((not (string=? (list-ref g 3) "-"))
+                       (cons 'error "the ASSOC column of an apply row is `-'"))
+                      ((string? t) (cons 'error t))
+                      ;; (HEAD apply PIECES PREC #f ARITY)
+                      (else (cons 'op (list head 'apply (car t) prec #f (cdr t)))))))))
            ((macro)
             (let ((g (tex-infix--fields line 4)))
               (cond
@@ -173,14 +360,19 @@
                       (else (loop (+ n 1) (cons r items) errs))))))))))
 
 (define (tex-infix--stamp)
-  (map (lambda (f) (cons f (and (file-exists? f) (file-modification-time f)))) (tex-infix--files)))
+  (map (lambda (f) (cons f (and (file-exists? f) (file-modification-time f))))
+       (cons (tex-infix--active-file) (tex-infix--files))))
 
 ;; read both files; on success install and return a one-line summary, else print the errors,
 ;; change nothing, return #f
 (define (tex-infix-reload!)
   (let* ((files (filter file-exists? (tex-infix--files)))
          (reads (map tex-infix--read-file files))
-         (errs (append-map cdr reads)))
+         (errs (append (map (lambda (n)
+                              (string-append (tex-infix--active-file) ": no table " n
+                                             " in " (tex-infix--user-dir) " or " (tex-infix--shipped-dir)))
+                            (tex-infix--unresolved))
+                       (append-map cdr reads))))
     (cond
       ((not (member (tex-infix--shipped-file) files))
        (display ";; infix table: ") (display (tex-infix--shipped-file))
@@ -243,7 +435,7 @@
 
 ;; the shipped table is read when this file loads; an error in it stops the load
 (let ((r (tex-infix-reload!)))
-  (if (not r) (error "tex-infix: the shipped table notation/infix.tbl does not read")))
+  (if (not r) (error "tex-infix: the shipped table notation/base.tbl does not read")))
 
 ;; the relations a layer term may stand on either side of, with their separators
 (define *tex-infix-relations* '(= < <= > >= in))
@@ -276,6 +468,18 @@
             => (lambda (ent)
                  (and (= (length (cdr e)) (tex-infix--arity (cadr ent)))
                       (list ent (tex-infix--strip-views (cadr h)) (cdr e)))))
+           ;; (HEAD a1 .. an) of an apply row; the STRUCT is the argument of the first #_N / #^N
+           ((and (symbol? h) (assq h *tex-infix-ops*)
+                 (eq? (cadr (assq h *tex-infix-ops*)) 'apply))
+            ;; the test's value is #t, not the row: look the row up again
+            => (lambda (is-apply?)
+                 (let ((ent (assq h *tex-infix-ops*)))
+                   (and (list? (cdr e)) (= (length (cdr e)) (list-ref ent 5))
+                        (let ((sp (find (lambda (p) (and (pair? p) (memq (car p) '(sub sup))))
+                                        (caddr ent))))
+                          (list ent
+                                (and sp (tex-infix--strip-views (list-ref (cdr e) (- (cadr sp) 1))))
+                                (cdr e)))))))
            ;; (CONST S)
            ((and (symbol? h) (pair? (cdr e)) (null? (cddr e))
                  (assq h *tex-infix-ops*))
@@ -292,7 +496,7 @@
     (cond ((not (pair? e)) acc)
           (else
            (let* ((n (tex-infix--node e))
-                  (acc (if (and n (not (member (cadr n) acc))) (cons (cadr n) acc) acc)))
+                  (acc (if (and n (cadr n) (not (member (cadr n) acc))) (cons (cadr n) acc) acc)))
              (let loop ((xs (if n (caddr n) e)) (acc acc))
                (if (pair? xs) (loop (cdr xs) (walk (car xs) acc)) acc)))))))
 
@@ -336,6 +540,11 @@
                (not (and (not (default-object? const?)) const? *tex-infix-scope-numeral?*))))
       ""
       (string-append "_{" (fluid-let ((*tex-infix-bare?* #t)) (expr->tex s)) "}")))
+
+;; the same structure script as a superscript (an apply row's #^N)
+(define (tex-infix--sup s)
+  (let ((sub (tex-infix--sub s)))
+    (if (string-null? sub) "" (string-append "^" (substring sub 1 (string-length sub))))))
 
 (define (tex-infix--symbol ent)
   (let ((over (assq (car ent) (map cdr (tex-infix--conv 'symbol)))))
@@ -390,7 +599,106 @@
       ((bracket)
        (string-append (car sym) (tex-infix--child (car args) 0 #f) (cadr sym)
                       (tex-infix--child (cadr args) 0 #f) (caddr sym) sub))
+      ((apply)
+       (let ((s (tex-infix--show-apply ent args)))
+         (if (or bare (>= prec 30)) s (string-append "(" s ")"))))
       (else (error "tex-infix: unknown kind" kind)))))
+
+;;; --- apply rows: the invented variables ------------------------------------
+
+(define *tex-infix-scope-taken* '())   ; the spellings of the formula's symbols, this formula
+(define *tex-infix-scope-bound* '())   ; the variables invented by the templates around this one
+(define *tex-infix-fresh-pool* '("i" "j" "k" "l" "m" "n" "p" "q" "r" "s" "t" "u" "v" "w"))
+
+(define (tex-infix--symbols e)
+  (let walk ((e e) (acc '()))
+    (cond ((symbol? e) (if (memq e acc) acc (cons e acc)))
+          ((pair? e) (walk (cdr e) (walk (car e) acc)))
+          (else acc))))
+
+(define (tex-infix--occurs? s e)
+  (cond ((eq? s e) #t)
+        ((pair? e) (or (tex-infix--occurs? s (car e)) (tex-infix--occurs? s (cdr e))))
+        (else #f)))
+
+;; a spelling for the invented variable NAME, not in TAKEN
+(define (tex-infix--fresh name taken)
+  (let ((cands (append (if (= (string-length name) 1) (list name) '()) *tex-infix-fresh-pool*)))
+    (or (find (lambda (c) (not (member c taken))) cands)
+        (let loop ((c (string-append (car cands) "'")))
+          (if (member c taken) (loop (string-append c "'")) c)))))
+
+;; argument K as a lambda whose variable may index the term: (VAR . BODY), or #f.  Its domain
+;; must be nn or another argument of the term, so printing the body loses nothing, and its
+;; variable must not occur in the other arguments.
+(define (tex-infix--index-lambda args k)
+  (let ((a (list-ref args (- k 1)))
+        (others (let loop ((xs args) (i 1))
+                  (cond ((null? xs) '()) ((= i k) (loop (cdr xs) (+ i 1)))
+                        (else (cons (car xs) (loop (cdr xs) (+ i 1))))))))
+    (and (pair? a) (eq? (car a) 'vnb-lambda) (list? a) (= (length a) 4) (symbol? (cadr a))
+         (or (eq? (caddr a) 'nn) (member (caddr a) others))
+         (not (any-occurs? (cadr a) others))
+         (cons (cadr a) (cadddr a)))))
+
+(define (any-occurs? s es)
+  (and (pair? es) (or (tex-infix--occurs? s (car es)) (any-occurs? s (cdr es)))))
+
+;; the body of an indexing lambda, printed after the sum sign: a sum or difference keeps its
+;; parentheses, sum_k (a_k + b_k); a product, an application or a further sum needs none,
+;; sum_k c_k x^k and sum_i sum_j f(j)
+(define (tex-infix--summand b)
+  (let ((n (tex-infix--node b)))
+    (cond ((and n (eq? (cadr (car n)) 'apply)) (tex-infix--show n #t))
+          (n (tex-infix--child b 20 #f))
+          ((and (pair? b) (or (eq? (car b) '+) (and (eq? (car b) '-) (= (length b) 3))))
+           (tex-infix--child b 20 #f))
+          (else (expr->tex-top b)))))
+
+(define (tex-infix--show-apply ent args)
+  (let* ((pieces (caddr ent))
+         ;; first, the lambdas whose own variable names an invented variable
+         (lams (let loop ((ps pieces) (acc '()))
+                 (cond ((null? ps) (reverse acc))
+                       ((and (pair? (car ps)) (eq? (caar ps) 'app)
+                             (not (assoc (caddr (car ps)) acc))
+                             (tex-infix--index-lambda args (cadr (car ps))))
+                        => (lambda (vb) (loop (cdr ps) (cons (list (caddr (car ps)) (cadr (car ps)) vb) acc))))
+                       (else (loop (cdr ps) acc)))))
+         (names (let loop ((ps pieces) (acc '()))
+                  (cond ((null? ps) (reverse acc))
+                        ((and (pair? (car ps)) (memq (caar ps) '(var app)))
+                         (let ((nm (if (eq? (caar ps) 'var) (cadr (car ps)) (caddr (car ps)))))
+                           (loop (cdr ps) (if (member nm acc) acc (cons nm acc)))))
+                        (else (loop (cdr ps) acc)))))
+         ;; then a spelling for every name: the lambda's variable, or a fresh one
+         (spell (let loop ((ns names) (acc '()))
+                  (if (null? ns)
+                      (reverse acc)
+                      (let* ((nm (car ns))
+                             (lam (assoc nm lams))
+                             (taken (append (map cdr acc) *tex-infix-scope-bound* *tex-infix-scope-taken*))
+                             (sp (if lam
+                                     (fluid-let ((*tex-infix-bare?* #t)) (expr->tex (car (caddr lam))))
+                                     (tex-infix--fresh nm taken))))
+                        (loop (cdr ns) (cons (cons nm sp) acc)))))))
+    (fluid-let ((*tex-infix-scope-bound* (append (map cdr spell) *tex-infix-scope-bound*)))
+      (apply string-append
+             (map (lambda (p)
+                    (cond
+                      ((string? p) p)
+                      ((eq? (car p) 'arg) (tex-infix--child (list-ref args (- (cadr p) 1)) 0 #f))
+                      ((eq? (car p) 'sub) (tex-infix--sub (tex-infix--strip-views (list-ref args (- (cadr p) 1)))))
+                      ((eq? (car p) 'sup) (tex-infix--sup (tex-infix--strip-views (list-ref args (- (cadr p) 1)))))
+                      ((eq? (car p) 'var) (cdr (assoc (cadr p) spell)))
+                      ((eq? (car p) 'app)
+                       (let ((lam (assoc (caddr p) lams)))
+                         (if (and lam (= (cadr lam) (cadr p)))
+                             (tex-infix--summand (cdr (caddr lam)))
+                             (string-append (tex-infix--child (list-ref args (- (cadr p) 1)) 100 #f)
+                                            "(" (cdr (assoc (caddr p) spell)) ")"))))
+                      (else "")))
+                  pieces)))))
 
 ;; a relation with a layer term on a side: the sides need no parentheses
 (define (tex-infix--relation e bare)
@@ -413,7 +721,9 @@
           ;; the outermost call: the formula being printed; fix its conventions
           (fluid-let ((*tex-infix-scope-drop* (apply append (map cdr (tex-infix--conv 'drop))))
                       (*tex-infix-scope-auto* (tex-infix--scope-for e0))
-                      (*tex-infix-scope-numeral?* (tex-infix--has-numeral? e0)))
+                      (*tex-infix-scope-numeral?* (tex-infix--has-numeral? e0))
+                      (*tex-infix-scope-taken* (map tex--symbol->string (tex-infix--symbols e0)))
+                      (*tex-infix-scope-bound* '()))
             (go #t))
           (go bare)))))
 

@@ -151,13 +151,16 @@ def main():
                     if d.strip().startswith("```"):
                         if not in_code:
                             flush_prose()
-                            f.write("\\begin{quote}\\ttfamily\\footnotesize\\noindent\n")
+                            f.write("\\begin{quote}\\ttfamily\\footnotesize\\raggedright\\noindent\n")
                         else:
                             f.write("\\end{quote}\n")
                         in_code = not in_code
                         continue
                     if in_code:
-                        f.write(esc(d) + "\n")
+                        # A formula may break after an opening parenthesis as
+                        # well as at a space or after a hyphen (manual.tex),
+                        # and is set ragged right: no line of it overruns.
+                        f.write(esc(d).replace("(", "(\\allowbreak{}") + "\n")
                         continue
                     # a browser cross-reference becomes plain prose in print
                     d = re.sub(r"\[mentioned by (\d+) result\(s\)\]\([^)]*\)",
