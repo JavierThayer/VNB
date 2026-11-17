@@ -99,6 +99,104 @@ does not by itself mean the suite ran.
 contributor rather than a new reader, and it records the failures that produced
 each rule, which is usually the fastest way to understand one.
 
+## Verifying a release
+
+Before running VNB, check that what you downloaded is what its author published.
+Each release `vYYYY.MM.DD` has, in `releases/`, a **manifest** -- the SHA-256 hash of
+every file of the repository at the release's commit -- and the author's **SSH
+signature** of it.  Checking both takes standard tools only (OpenSSH 8.0 or later,
+`git`, `sha256sum`); no VNB script is involved.
+
+1. **Get the author's public signing key**, and check it in a place that is not GitHub:
+   * GitHub: <https://api.github.com/users/JavierThayer/ssh_signing_keys>, and the
+     key printed below, under *The signing key*;
+   * the fingerprint published off GitHub (see *The signing key*).  The GitHub copies
+     alone are not enough: whoever takes over the author's GitHub account can change
+     both of them, and this README with them.
+
+   Put it in a file `vnb-signers`, one line:
+
+        javier namespaces="vnb-release" ssh-ed25519 AAAA...the key...
+
+2. **Check the signature** (in your clone; `V` is the release):
+
+        V=v2026.11.17
+        cp releases/$V.manifest releases/$V.manifest.sig ..
+        ssh-keygen -Y verify -f ../vnb-signers -I javier -n vnb-release \
+            -s ../$V.manifest.sig < ../$V.manifest
+
+   It must print `Good "vnb-release" signature for javier`.
+
+3. **Check the files** against the manifest, at the release's commit:
+
+        git checkout $(sed -n 's/^# commit //p' ../$V.manifest)
+        diff <(grep -v '^#' ../$V.manifest) <(git ls-files -z | xargs -0 sha256sum) \
+            && echo "all files match"
+
+   (On Windows, clone with `git -c core.autocrlf=false clone ...`: converted line
+   endings change every hash.)
+
+### What checking protects you from, and what it does not
+
+If the three steps succeed, you are protected from:
+
+* **a doctored copy**: a fake fork, a tampered mirror, a file changed on the way to you;
+* **a forged release**: no one can sign a release without the author's private key,
+  which exists only on the author's own computer -- not on GitHub, and not on the
+  server where VNB is developed;
+* **a planted proof certificate**: certificates are files of the release, checked like
+  every other file.
+
+You are **not** protected from:
+
+* **changes after the download.**  The check is made once.  A file changed later -- by a
+  program, an intruder or a child -- goes unnoticed unless you check again.  Step 3 can
+  be rerun at any time, and `vnb-start` (below) reruns a check at every start;
+* **a computer already taken over.**  An intruder in control of your machine can change
+  VNB, the checking tools, or `ssh-keygen` itself.  No signature protects a computer
+  that is no longer yours;
+* **a stolen key.**  If the author's key and passphrase were stolen, the thief's releases
+  would check as good until the author withdraws the key;
+* **bad code.**  A good signature says the files are the ones the author published, not
+  that they are harmless.  VNB is a program: run it under an ordinary user account,
+  never as root;
+* **wrong proofs.**  The signature does not make a theorem true.  For that you need not
+  trust the author: the exam, `VNB_CERTIFIED=off ./prover --build-band` (several hours),
+  re-runs every proof through VNB's kernel, and the certificates in the release are then
+  only a cache.
+
+Checking hides nothing: it is about where the files came from, not about who can read
+them.  VNB keeps your own work on your own computer.
+
+### Keeping your copy checked: `vnb-start`
+
+`trust/` holds two scripts, `vnb-trust` and `vnb-start`.  After the three steps, copy
+them OUT of the tree, so that a change to the tree cannot change them too:
+
+    mkdir -p ~/bin && cp trust/vnb-trust trust/vnb-start ~/bin/
+
+Then, once, with a key of your own (`ssh-keygen -t ed25519 -f ~/.ssh/vnb-signing`):
+
+    ./VNB-with-compile                   # first run: compiles, so the compiled files exist
+    vnb-trust setup ~/.ssh/vnb-signing
+    vnb-trust accept ~/prover            # "this is the tree I checked"
+
+From then on start VNB with `vnb-start`.  It hashes the tree, starts VNB if it is the
+tree you accepted, and otherwise lists the files that changed and does not start.  It
+catches accidents and casual tampering; it cannot defend a computer taken over (above).
+After installing a new release, check it (steps 1-3) and run `vnb-trust accept` again.
+
+### The signing key
+
+Javier Thayer's release signing key (ed25519), added 2026-11-17:
+
+    javier namespaces="vnb-release" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINvqpG1lfo/uew0X/luQERtTgM5gS7Jmj13E8NuX5tH8
+
+Its fingerprint is `SHA256:pvv9BBY6uAVZrlz0H7G/xub84NareBQos+3Af8jHTvk` (`ssh-keygen -lf` on a file holding the key prints it).
+Compare it with the key GitHub lists for the account `JavierThayer`, and with the
+fingerprint published off GitHub at: *(to be announced by the author)*.  If any of them
+differ, stop.
+
 ## Licence
 
 VNB is released under the MIT License: see `LICENSE`.  MIT/GNU Scheme and GNU

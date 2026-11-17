@@ -1,0 +1,292 @@
+\chapter{Structures as categories}
+\label{ch:categories}
+
+A structure declared with \texttt{declare-structure}
+(Chapter~\ref{ch:defs}) comes with its morphisms: the maps between two
+of its models that preserve the structure.  The models and their
+morphisms form a category.  This chapter describes how VNB sets those
+categories up, how a species can carry more than one, and how one
+structure is viewed as another.  Such a view is a functor.
+
+%%% -----------------------------------------------------------------------
+\section{Morphisms of structures}
+\label{sec:morphisms}
+
+Declaring a structure declares its morphisms too.  From the slot list alone,
+\texttt{declare-structure} generates a homomorphism predicate
+\texttt{is-hom-\textit{name}}$(a, b, f_1 \ldots f_k)$ --- one map $f_i$ per
+\emph{independent} carrier --- whose meaning is the obvious one: each map is
+typed between the corresponding carriers, and every operation and constant is
+preserved.
+
+\begin{itemize}
+\item \textbf{carrier} $c$: a map \texttt{$f$ in fun($c(a)$, $c(b)$)}.
+\item \textbf{operation} \texttt{OP}: preservation ---
+  \texttt{$f$(OP($a$)($x_1,\ldots$)) = OP($b$)($f(x_1),\ldots$)} for all
+  arguments in their sorts (each argument mapped by its own carrier's map).
+\item \textbf{constant} \texttt{C}: \texttt{$f$(C($a$)) = C($b$)}.
+\item \textbf{substructure} \texttt{K}: agreement, \texttt{K($a$) = K($b$)} ---
+  morphisms are taken between structures over the \emph{same} base.
+\item \textbf{derived} carrier: nothing.  Its value is pinned by
+  \texttt{is-\textit{name}} (Section~\ref{sec:declare-structure}), so it rides
+  the base carrier's map and owes no map of its own.  This is why a field
+  homomorphism is one map, not two.
+\end{itemize}
+
+\noindent A group's generated hom, for instance, is the single map \texttt{$f$
+in fun(carr($a$), carr($b$))} with \texttt{$f$(opr($a$)($x$,$y$)) =
+opr($b$)($f(x)$,$f(y)$)} and \texttt{$f$(iden($a$)) = iden($b$)} --- exactly a
+group homomorphism.  The definition is installed with \emph{definitional}
+provenance, so it costs no warrant.
+
+\subsection{Overriding the default: \texttt{declare-hom!}}
+\label{sec:declare-hom}
+
+The generated clause for each slot kind is the standard one: preservation for
+an operation or a constant, the pullback condition for a \texttt{family} slot
+(the arrows of \texttt{top-space} are the continuous maps, those of
+\texttt{measurable-space} the measurable maps), transport for a
+\texttt{family-fun} slot, ``related points go to related points'' for a
+\texttt{relation} slot.  For a \texttt{metric-space} the generated arrows
+preserve the distance: they are the isometries, and a \texttt{notation!}
+beside the structure says so, since ``homomorphism'' is then the wrong word
+(Section~\ref{sec:notation}).  Where no generated clause is the right one, a
+species declares its own morphism notion with \texttt{declare-hom!}, beside the
+structure like \texttt{notation!}:
+
+\begin{VNBcode}
+(declare-hom! 'METRIZABLE-TOP-SPACE '(s t f)
+  '(FORALL u (IMPLIES (IN u (OPENS t))
+      (IN (PREIMAGE s f u) (OPENS s)))))
+\end{VNBcode}
+
+The argument list is the two objects and one map per carrier.  The body states
+\emph{only} what is characteristic: the object typings
+\texttt{is-metrizable-top-space($s$)}, \texttt{is-metrizable-top-space($t$)}
+and the map typing \texttt{$f$ in fun(pts($s$), pts($t$))} are supplied
+automatically and need not be repeated.  The declaration replaces the generated
+\texttt{is-hom-metrizable-top-space} entirely.  Two species override today:
+\texttt{metrizable-top-space} (a refinement inherits its parent's shape, not
+its arrows, so continuity is restated) and \texttt{ringoid} (a ring
+homomorphism of the underlying rings that preserves the ideal).  The table of
+Section~\ref{sec:declare-category} says, for every structure, which of the
+three cases its arrows are.
+
+\subsection{Several categories on one species: \texttt{declare-category!}}
+\label{sec:declare-category}
+
+A structure is a category: its objects are its models, its arrows the maps
+satisfying \texttt{is-hom-\textit{name}}, composed as functions.  That is the
+species' \emph{default} category, and for an algebraic species it is the right
+one.  For a metric space the default is the category of isometries, which is
+not the one analysis works in: the Lipschitz maps, the uniformly continuous
+maps and the continuous maps each form a category on the same objects; on the
+countably-metrised spaces (\texttt{c-metric-space}) the continuous maps for
+the canonical metric form one, which rests on the canonical metric being a
+metric (\texttt{c-metric-is-metric-space}).  A species may therefore carry
+several categories.  A second one is declared
+beside the structure:
+
+\begin{VNBcode}
+(declare-category! 'LIPSCHITZ 'METRIC-SPACE '(a b f)
+  '(FORSOME lpk_ (AND (IN lpk_ RR) (AND (<= 0 lpk_)
+     (FORALL lpx_ (IMPLIES (IN lpx_ (PTS a))
+       (FORALL lpy_ (IMPLIES (IN lpy_ (PTS a))
+         (<= ((DIST b) (f lpx_) (f lpy_))
+             (* lpk_ ((DIST a) lpx_ lpy_)))))))))))
+\end{VNBcode}
+
+The body states what is characteristic of an arrow $f \colon a \to b$; the
+object typings and the carrier typing of each map are supplied, as for
+\texttt{declare-hom!}.  The declaration installs, definitionally, the arrow
+predicate \texttt{is-lipschitz-arrow}$(a, b, f)$ and the hom-set
+\texttt{hom-lipschitz}$(a, b)$, and registers three \emph{obligations} as
+statements, not as theorems: \texttt{hom-lipschitz-id} (the identity is an
+arrow), \texttt{hom-lipschitz-compose} (arrows compose) and
+\texttt{hom-lipschitz-in-set} (the hom-set is a set).  That the arrows of a
+declared category contain the identities and compose is where the
+mathematics is (Lipschitz constants multiply; an $\varepsilon$--$\delta$
+argument for the continuous maps), so the generator does not stamp it: the
+obligations are proven in \texttt{theorem-library/categories.scm}, and
+\texttt{category-obligations-audit}, run at the end of every load, lists
+every obligation that is not a proven theorem of exactly its statement.
+Until that list is empty the declared category is not yet a category.  The
+default category is untouched by the declaration.
+
+The categories the library knows are listed below.  The listing is generated
+at every load (\texttt{reference/CATEGORIES.md}, also a page of the browser
+reference): the default category of each structure with the status of its
+three laws, the declared categories with their defining equivalences, and the
+inclusions between categories on the same objects --- an isometry is
+$1$-Lipschitz, a Lipschitz map is uniformly continuous, a uniformly
+continuous map is continuous, a linear isometry is bounded linear --- which
+the page finds by the shape of the installed theorems.
+
+\input{app-categories-generated}
+
+\section{Viewing one structure as another: \texttt{view-as}}
+\label{sec:view-as}
+
+A ring's additive part $(\mathtt{carr}, \mathtt{add}, \mathtt{zero},
+\mathtt{neg})$ is an abelian group; its multiplicative part
+$(\mathtt{carr}, \mathtt{mul}, \mathtt{one})$ is a monoid.  A
+\emph{view-as} records such a relationship: a way of \emph{seeing} an
+instance of one structure as an instance of another.  The relationship
+is asymmetric (the ring's additive group forgets the multiplication;
+there is no route back) and not unique (the same ring has both an
+additive-group view and a multiplicative-monoid view).  We call these
+\emph{views}, not ``bridges'': a bridge sounds symmetric, and the
+asymmetry and the multiplicity are exactly the point.
+
+A view is a \emph{functoid} (Remark~\ref{rem:functoids-quantified}):
+\texttt{def-functor} installs the \texttt{def-functoid} that builds the
+target instance as the list of the source's slots, plus the definitional
+axiom that the result satisfies the target predicate.  Its domain, the
+class of all instances of the source structure, is a proper class; a
+view is a member of nothing and, like every functoid, outside the range
+of the quantifiers.
+
+\subsection{The \texttt{def-functor} form}
+
+\begin{VNBcode}
+(def-functor NAME
+  SOURCE-STRUCT  (src-comp-1 src-comp-2 ... src-comp-n)
+  TARGET-STRUCT  (tgt-slot-1 tgt-slot-2 ... tgt-slot-n))
+\end{VNBcode}
+
+The two component lists are flat lists of accessor symbols of equal
+length, matched position by position: the value at the target's $k$-th
+slot is the source's $k$-th named component.  The target list must be
+the target structure's slots in their declared order (the form checks
+this); the source list names, in that same order, which source accessor
+fills each target slot.  So a view is a \textbf{slot map written in the
+target's coordinate system}.
+
+A view-as is a \emph{forgetful functor} between structure categories, and a
+forgetful functor does exactly one or both of two things (recall
+\S\ref{sec:shape-vs-property}: a structure is a \emph{shape} plus
+\emph{properties}):
+
+\begin{itemize}
+\item \textbf{forget shape} --- the source list keeps only a sub-list of the
+  source's slots; the rest drop.  (A ring's additive group forgets
+  \texttt{mul}/\texttt{one}; a field's multiplicative group keeps the
+  \texttt{non-zero} carrier slot and forgets the additive ones.)
+\item \textbf{forget properties} --- \texttt{is-\textit{target}} folds fewer laws than
+  \texttt{is-\textit{source}}, so the image satisfies less (a commutative ring viewed
+  as a ring forgets commutativity).
+\end{itemize}
+
+\noindent These are the \emph{only} two forgetful operations.  Writing the kept
+slots in the target's coordinate order (a ring's \texttt{add} filling a group's
+\texttt{mul} slot, or a non-first slot serving as the carrier) is just
+notation, not a third kind --- it is what lets shape-forgetting be expressed at
+all.  Genuinely \emph{non}-forgetful functors --- the quotient, the completion
+--- are constructions, not views; they are written as plain functoids.
+
+\begin{VNBcode}
+;;; A ring's additive structure is an abelian group.
+;;; ABELIAN-GROUP's slots, in order, are (CARR OPR IDEN INV); the view fills
+;;; them from the ring's (CARR ADD ZERO NEG):
+(def-functor 'RING-ADDITIVE-AG
+  'RING          '(CARR ADD ZERO NEG)
+  'ABELIAN-GROUP '(CARR OPR IDEN INV))
+\end{VNBcode}
+
+\subsection{What \texttt{def-functor} installs}
+
+\begin{enumerate}
+\item \textbf{A constructor functoid} \texttt{(\textit{name} s)} whose defining
+  equation gathers the named source components into a target-shaped list:
+  \[
+    \mathtt{(ring\text{-}additive\text{-}ag}\;r) \;=\;
+      \mathtt{list}(\mathtt{carr}(r),\, \mathtt{add}(r),\,
+                    \mathtt{zero}(r),\, \mathtt{neg}(r)).
+  \]
+  Inside a proof, \texttt{(mul (ring-additive-ag r))} reduces to
+  \texttt{(add r)} by unfolding the functoid and the accessor.
+
+\item \textbf{A typing axiom}, named
+  \texttt{\textit{name}-is-\textit{target}} (here
+  \texttt{ring-additive-ag-is-abelian-group}):
+  \[
+    \forall r.\; \mathit{is\text{-}source}(r) \;\Rightarrow\;
+      \mathit{is\text{-}target}(\mathit{name}(r)).
+  \]
+  During the library-build phase this is installed as an \emph{axiom}
+  (a warranted assertion, Section~\ref{sec:warrants}), not proved;
+  promoting it to a theorem is a separate task.
+
+\item \textbf{Auto-specializations.}  Every theorem of the form
+  $\forall s.\; \mathit{is\text{-}target}(s) \Rightarrow P[s]$ already in
+  the library is re-installed as
+  $\forall r.\; \mathit{is\text{-}source}(r) \Rightarrow P[\mathit{name}(r)]$,
+  with the target-slot accessors reduced to source components (so
+  $\mathtt{mul}(s)$ becomes $\mathtt{add}(r)$, etc.), under the name
+  \texttt{\textit{original}-\textit{name}}.  Thus declaring the additive
+  view immediately carries every abelian-group theorem over to the
+  additive structure of every ring.
+\end{enumerate}
+
+\begin{remark}
+A view-as is a covariant functor in waiting: the constructor is the
+object map (an instance of the source becomes an instance of the
+target), and the auto-specialization transports the target's theorems
+along it.  Homomorphisms are now first-class
+(Section~\ref{sec:morphisms}); the morphism half --- transporting a
+homomorphism across a view --- remains deferred.  The
+auto-specializer currently matches only theorems guarded by exactly
+\texttt{is-\textit{target}}; it does not chain through structure-inclusion axioms,
+so same-shape refinements (a commutative ring's additive view, say) are
+declared directly rather than derived.
+\end{remark}
+
+\begin{remark}
+Same-shape inclusions --- every abelian group is a group, every
+commutative ring is a ring --- are \emph{not} views.  They are recorded
+as plain $\texttt{is-}X \Rightarrow \texttt{is-}Y$ typing axioms, because
+the constructor would be a redundant identity list.  A \texttt{view-as}
+earns its keep when source and target have different shapes, so the
+constructor genuinely projects.
+\end{remark}
+
+\subsection{Constructed functors: \texttt{def-constructed-functor}}
+\label{sec:constructed-functor}
+
+A \texttt{view-as} selects the target's slots from among the source's --- its
+object map is a re-shuffling of accessors.  Some functors are not like that.
+The metric topology $\tau_d$ is \emph{computed} from the distance, not read off a
+slot; the distance of a normed field is \emph{computed} from the norm.  For these
+the object map is an arbitrary term, and the form is
+\texttt{def-constructed-functor}:
+
+\begin{VNBcode}
+;;; A normed field is a metric space, with d(x, y) = norm(x - y).
+(def-constructed-functor 'NF-METRIC-SPACE 'NORMED-FIELD 'METRIC-SPACE '(nf)
+  '(LIST (CARR nf)
+         (VNB-LAMBDA (LIST x y) (CARTESIAN (CARR nf) (CARR nf)) ((FNRM nf) ((ADD nf) x ((NEG nf) y))))))
+\end{VNBcode}
+
+The arguments are the functor name, its source and target species, the
+parameter list, and the defining term --- installed as an ordinary functoid
+(Section~\ref{sec:def-functoid}), so \texttt{(nf-metric-space nf)} rewrites to
+that tuple.
+
+The decisive difference from \texttt{view-as} is what it \emph{claims}.  A view's
+typing axiom is installed as a warranted assertion; a constructed functor
+\textbf{asserts nothing}.  ``An isometry is continuous'' and ``the norm-difference
+is a metric'' are theorems with content, not free consequences of a slot
+correspondence.  So the form only \emph{records} the two obligations any functor
+owes, and \texttt{functor-obligation-audit} reports at load any still
+undischarged:
+\[
+  \begin{aligned}
+    \texttt{\textit{name}-is-\textit{tgt}} &:\quad
+      \mathit{is\text{-}src}(r) \Rightarrow \mathit{is\text{-}tgt}(\mathit{name}(r)), \\
+    \texttt{\textit{name}-functorial} &:\quad
+      \mathit{is\text{-}hom\text{-}src}(a, b, f) \Rightarrow
+      \mathit{is\text{-}hom\text{-}tgt}(\mathit{name}(a), \mathit{name}(b), f).
+  \end{aligned}
+\]
+Both are available as goals, ready for \texttt{sp}.  A functor whose obligations
+are unproved is a functor you do not yet have.

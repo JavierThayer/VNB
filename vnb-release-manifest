@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+"""vnb-release-manifest -- write the manifest of a VNB release: the SHA-256 of every file
+git tracks at one commit.  Run on the primary; the user signs the result on the laptop
+(vnb-trust release-sign), and the signed manifest is committed under releases/.
+
+    vnb-release-manifest VERSION [COMMIT]        (COMMIT defaults to HEAD)
+
+Writes releases/VERSION.manifest.  The body is exactly what anyone can recompute in a clean
+checkout of COMMIT with
+
+    git ls-files -z | xargs -0 sha256sum
+
+(same order: git lists paths byte-wise sorted).  So checking a release needs no VNB script:
+see "Verifying a VNB release" in README.md.  The files are hashed straight from git's object
+store (git cat-file --batch); nothing is unpacked to disk.
+"""
+import hashlib, os, subprocess, sys
+
+def git(*args):
+    return subprocess.run(("git",) + args, check=True, capture_output=True).stdout
+
+def main():
+    if len(sys.argv) not in (2, 3):
+        sys.exit(__doc__)
+    version = sys.argv[1]
+    commit = git("rev-parse", "--verify", (sys.argv[2] if len(sys.argv) == 3 else "HEAD") + "^{commit}").decode().strip()
+    top = git("rev-parse", "--show-toplevel").decode().strip()
+    out = os.path.join(top, "releases", version + ".manifest")
+    if os.path.exists(out):
+        sys.exit("vnb-release-manifest: %s exists" % out)
+    # mode type blob<TAB>path, NUL-terminated, sorted as git sorts
+    entries = []
+    for rec in git("ls-tree", "-r", "-z", "--full-tree", commit).split(b"\0"):
+        if not rec:
+            continue
+        meta, path = rec.split(b"\t", 1)
+        mode, kind, oid = meta.split()
+        if kind != b"blob":
+            sys.exit("vnb-release-manifest: %s is a %s, not a file" % (path.decode(), kind.decode()))
+        if mode == b"120000":
+            sys.exit("vnb-release-manifest: %s is a symbolic link; refusing" % path.decode())
+        entries.append((path, oid))
+    cat = subprocess.Popen(["git", "cat-file", "--batch"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    lines = []
+    for path, oid in entries:
+        cat.stdin.write(oid + b"\n"); cat.stdin.flush()
+        header = cat.stdout.readline().split()
+        size = int(header[2])
+        h = hashlib.sha256()
+        left = size
+        while left:
+            chunk = cat.stdout.read(min(left, 1 << 20))
+            h.update(chunk); left -= len(chunk)
+        cat.stdout.read(1)                      # the newline after each object
+        lines.append("%s  %s" % (h.hexdigest(), path.decode()))
+    cat.stdin.close(); cat.wait()
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, "w") as f:
+        f.write("# VNB release %s\n# commit %s\n# repository https://github.com/JavierThayer/VNB\n" % (version, commit))
+        f.write("\n".join(lines) + "\n")
+    print("wrote %s: %d files at commit %s" % (os.path.relpath(out), len(lines), commit[:12]))
+
+if __name__ == "__main__":
+    main()

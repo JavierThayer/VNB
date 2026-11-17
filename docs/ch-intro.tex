@@ -54,7 +54,7 @@ follow.
 \item \textbf{Naive set theory with a formal foundation.}  In practice VNB
   is a kind of naive set theory, although its foundation is formal
   (von~Neumann--Bernays--G\"odel set theory, NBG; consistency is relative to
-  NBG, Chapter~\ref{ch:proofs}).  It is naive in that its structures follow
+  NBG, Section~\ref{sec:consistency-relative}).  It is naive in that its structures follow
   ordinary mathematical practice: a group, a metric space or a normed field
   \emph{is} a tuple of sets (\texttt{declare-structure}, Chapter~\ref{ch:defs},
   ``Mathematical structures''), not a record of a dependent type and not an
@@ -66,6 +66,31 @@ follow.
   Section~\ref{sec:meta} describes what has been built in this direction
   and what has not.  No claim is made here about the difficulty of the
   corresponding task for Lean.
+
+  VNB is developed on a server, and its user runs it on a computer of
+  their own.  What the user runs is a copy of the whole \emph{tree}: the
+  directory holding VNB's source files, its compiled files, the saved
+  image of the loaded library, and the proof certificates.  A script
+  copies the tree from the server, then launches VNB from the copy.
+
+  This copy can be made to accept only what the user has approved.  The
+  order is:
+  \begin{enumerate}
+  \item the nightly exam reruns every proof on the server;
+  \item the user reads the exam's result and \emph{signs} the tree: a
+    list of a cryptographic hash of every file VNB loads, signed with a
+    key that exists only on the user's computer;
+  \item each later copy is checked against the lists the user signed
+    before VNB is launched from it.  If any file differs, the copy is
+    refused, the differing files are named, and the previous copy stays
+    in use.
+  \end{enumerate}
+  So nothing VNB loads (source, compiled code, certificates, axioms) can
+  come from the server into the user's copy without the user's
+  signature, and nothing on the server can produce that signature.  A
+  file changed on the user's own computer is caught at the next start,
+  when VNB is started with \texttt{vnb-start}
+  (Section~\ref{sec:signed-trees}).
 \end{enumerate}
 
 %% =========================================================

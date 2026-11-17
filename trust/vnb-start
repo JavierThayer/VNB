@@ -1,0 +1,44 @@
+#!/bin/bash
+# vnb-start -- start VNB only if the tree is one you signed.
+#
+#   vnb-start [DIR]          (DIR defaults to ~/prover, or $VNB_DIR)
+#
+# Runs  vnb-trust verify DIR  and, when it succeeds, starts DIR/VNB.  When it fails,
+# the files that differ from the last tree you accepted are listed and VNB does not
+# start unless you say so:
+#
+#   q  stop (the default)
+#   p  pull a fresh copy with pull-prover.sh (which verifies it again), if you have it
+#   u  start anyway, UNVERIFIED -- you must type the whole word "unverified"
+#
+# Keep this file OUTSIDE the tree it checks (in ~/bin): a copy inside the tree can be
+# changed together with the tree.  It catches a file changed by accident, by a child,
+# or by a program that does not know about it.  It cannot protect a computer that an
+# intruder controls: such an intruder can change this script, vnb-trust or ssh-keygen.
+set -u
+DIR=${1:-${VNB_DIR:-$HOME/prover}}
+TRUST=${VNB_TRUST:-$(command -v vnb-trust || echo "$HOME/bin/vnb-trust")}
+[ -x "$TRUST" ] || { echo "vnb-start: vnb-trust not found (put it in ~/bin)" >&2; exit 1; }
+[ -x "$DIR/VNB" ] || { echo "vnb-start: no VNB launcher in $DIR" >&2; exit 1; }
+
+if "$TRUST" verify "$DIR"; then
+  exec "$DIR/VNB"
+fi
+
+echo
+echo "VNB was NOT started: $DIR is not a tree you signed (the list is above)."
+echo
+echo "  q  stop"
+command -v pull-prover.sh >/dev/null && echo "  p  pull a fresh copy (pull-prover.sh verifies it again)"
+echo "  u  start anyway, unverified"
+read -r -p "Choice [q]: " ch
+case "$ch" in
+  p) command -v pull-prover.sh >/dev/null && exec pull-prover.sh
+     echo "vnb-start: pull-prover.sh not found"; exit 1 ;;
+  u) read -r -p "Type the word  unverified  to start a tree you did not sign: " w
+     if [ "$w" = unverified ]; then
+       echo "vnb-start: starting an UNVERIFIED tree"; exec "$DIR/VNB"
+     fi
+     echo "vnb-start: not started"; exit 1 ;;
+  *) echo "vnb-start: not started"; exit 1 ;;
+esac

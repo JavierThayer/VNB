@@ -17,7 +17,7 @@ gen-tactic-uses.py, which composes it from reference/kernel-map-static.sexp.  An
 for a command the measurement does not cover simply has no such line.
 
 Run:   python3 docs/gen-tactics-ref.py
-Emits: docs/app-tactics-generated.tex   (\input by ch-proofs.tex)
+Emits: docs/app-tactics-generated.tex   (\input by ch-proving.tex)
 """
 import os, re, importlib.util
 

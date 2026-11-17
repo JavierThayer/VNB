@@ -1,0 +1,213 @@
+#!/bin/bash
+# vnb-trust -- laptop side.  Signed acceptance of a VNB tree.
+#
+# The idea.  After a nightly exam passes, you ACCEPT the tree you pulled: this script hashes
+# every file VNB will load (SHA-256), writes the list -- the MANIFEST -- with the exam's
+# result at its head, and signs it with your SSH key.  From then on, every pull is VERIFIED:
+# the pulled tree is hashed again and must match a manifest you signed, or it is not used.
+# The signing key and the list of keys you trust live only on this laptop, never on the
+# primary or a worker, so nothing running there can forge your signature.
+#
+#   vnb-trust setup KEY        once: trust KEY (e.g. ~/.ssh/id_ed25519) for signing trees
+#   vnb-trust accept DIR       sign the tree in DIR as accepted (shows the exam result first)
+#   vnb-trust verify DIR       exit 0 if DIR matches a signed manifest, else list what differs
+#   vnb-trust list             the trees you have accepted
+#   vnb-trust release-sign M   sign a release manifest M (from the primary) for GitHub
+#
+# What is hashed: every file of the tree EXCEPT
+#   - what the pull itself skips: .git/ scratch/ scratchpad/ *.bci *.ext *.elc
+#   - under docs/ and reference/, the documents (.tex .pdf .md .html and the rest),
+#     which VNB never loads.  The .sexp and .scm files there ARE hashed: load.scm reads
+#     docs/major-theorems-table.sexp, and the kernel-map audit reads reference/*.sexp.
+#
+# Needs: bash, OpenSSH 8.0 or newer (ssh-keygen -Y), sha256sum or shasum.
+set -euo pipefail
+
+STORE=${VNB_TRUST_DIR:-$HOME/vnb-signed}          # signed manifests
+SIGNERS=${VNB_TRUST_SIGNERS:-$HOME/.vnb-allowed-signers}
+CONF=${VNB_TRUST_CONF:-$HOME/.vnb-trust.conf}     # which key signs
+NS=vnb-tree                                       # signature namespace: a VNB signature
+                                                  # cannot be replayed as any other kind
+ID=vnb-owner                                      # the signer's name in the signers file
+
+die() { echo "vnb-trust: $*" >&2; exit 1; }
+
+if command -v sha256sum >/dev/null; then SHA="sha256sum"
+elif command -v shasum >/dev/null; then SHA="shasum -a 256"
+else die "neither sha256sum nor shasum found"; fi
+
+# The manifest body: "HASH  PATH" for every checked file, sorted byte-wise.
+body() {
+  local dir=$1
+  ( cd "$dir" &&
+    find . \( -path ./.git -o -path ./scratch -o -path ./scratchpad \) -prune -o -type f -print0 |
+    LC_ALL=C sort -z |
+    while IFS= read -r -d '' f; do
+      f=${f#./}
+      case "$f" in
+        *.bci|*.ext|*.elc) continue ;;
+        */scratch/*|*/scratchpad/*) continue ;;
+        docs/*.sexp|docs/*.scm|reference/*.sexp|reference/*.scm) ;;
+        docs/*|reference/*) continue ;;
+      esac
+      printf '%s\0' "$f"
+    done |
+    xargs -0 $SHA | sed 's/ \*/  /' )
+}
+
+cmd_setup() {
+  local key=${1:-}
+  [ -n "$key" ] || die "usage: vnb-trust setup PRIVATE-KEY   (e.g. ~/.ssh/id_ed25519)"
+  [ -r "$key" ] || die "cannot read $key"
+  local pub="$key.pub"
+  [ -r "$pub" ] || die "cannot read the public half $pub"
+  mkdir -p "$STORE"
+  printf '%s namespaces="%s,vnb-release" %s\n' "$ID" "$NS" "$(cat "$pub")" > "$SIGNERS"
+  printf 'KEY=%q\n' "$key" > "$CONF"
+  chmod 600 "$CONF"
+  echo "vnb-trust: trees will be signed with $key"
+  echo "vnb-trust: the trusted public key is in $SIGNERS"
+  echo "vnb-trust: signed manifests will be kept in $STORE"
+}
+
+# Verify one signed manifest; exit status of ssh-keygen.
+sig_ok() {
+  ssh-keygen -Y verify -f "$SIGNERS" -I "$ID" -n "$NS" -s "$1.sig" < "$1" >/dev/null 2>&1
+}
+
+# The newest manifest with a valid signature, or nothing.
+latest_signed() {
+  local m
+  for m in $(ls -1r "$STORE"/*.manifest 2>/dev/null); do
+    [ -f "$m.sig" ] && sig_ok "$m" && { echo "$m"; return; }
+  done
+}
+
+cmd_verify() {
+  local dir=${1:-}
+  [ -d "$dir" ] || die "usage: vnb-trust verify DIR"
+  [ -r "$SIGNERS" ] || die "not set up: run  vnb-trust setup KEY"
+  local now; now=$(mktemp)
+  body "$dir" > "$now"
+  local m
+  for m in $(ls -1r "$STORE"/*.manifest 2>/dev/null); do
+    [ -f "$m.sig" ] || continue
+    if ! sig_ok "$m"; then
+      echo "vnb-trust: WARNING: bad signature on $m -- ignored" >&2; continue
+    fi
+    if grep -v '^#' "$m" | cmp -s - "$now"; then
+      echo "vnb-trust: VERIFIED: $dir matches the tree you accepted in $(basename "$m")"
+      grep '^# exam' "$m" | sed 's/^# /vnb-trust:   /'
+      rm -f "$now"; return 0
+    fi
+  done
+  local last; last=$(latest_signed || true)
+  echo "vnb-trust: NOT VERIFIED: $dir matches no tree you have signed." >&2
+  if [ -n "$last" ]; then
+    echo "vnb-trust: differences from your last accepted tree ($(basename "$last")):" >&2
+    diff <(grep -v '^#' "$last") "$now" |
+      sed -n 's/^\([<>]\) [0-9a-f]*  /\1 /p' |
+      awk '{ k[$2] = k[$2] $1 } END { for (f in k) {
+             s = (k[f] == "<>" || k[f] == "><") ? "changed" : (k[f] == "<" ? "removed" : "added");
+             print "    " s "  " f } }' | LC_ALL=C sort -k2 | head -40 >&2
+    local n; n=$(diff <(grep -v '^#' "$last") "$now" | grep -c '^[<>]' || true)
+    [ "$n" -gt 80 ] && echo "    (list cut short)" >&2
+  else
+    echo "vnb-trust: no tree you accepted has a valid signature." >&2
+  fi
+  echo "vnb-trust: to accept this tree, read the exam result and run:  vnb-trust accept $dir" >&2
+  rm -f "$now"; return 1
+}
+
+cmd_accept() {
+  local dir=${1:-}
+  [ -d "$dir" ] || die "usage: vnb-trust accept DIR"
+  [ -r "$CONF" ] || die "not set up: run  vnb-trust setup KEY"
+  . "$CONF"
+  [ -r "$KEY" ] || die "signing key $KEY not readable"
+  mkdir -p "$STORE"
+  local ts; ts=$(date -u +%Y%m%dT%H%M%SZ)
+  local m="$STORE/$ts.manifest"
+  {
+    echo "# VNB tree manifest v1, accepted $ts"
+    if [ -n "${VNB_EXAM_INFO:-}" ]; then
+      printf '%s\n' "$VNB_EXAM_INFO" | sed 's/^/# exam: /'
+    else
+      echo "# exam: (no exam information was supplied)"
+    fi
+    body "$dir"
+  } > "$m.tmp"
+  local nfiles; nfiles=$(grep -vc '^#' "$m.tmp")
+  echo "----------------------------------------------------------------"
+  grep '^#' "$m.tmp"
+  echo "files hashed: $nfiles"
+  local last; last=$(latest_signed || true)
+  if [ -n "$last" ]; then
+    local d; d=$(diff <(grep -v '^#' "$last") <(grep -v '^#' "$m.tmp") | grep -c '^[<>]' || true)
+    echo "lines differing from your last accepted tree ($(basename "$last")): $d"
+  fi
+  echo "----------------------------------------------------------------"
+  read -r -p "Accept and sign this tree? [y/N] " ans
+  case "$ans" in y|Y|yes) ;; *) rm -f "$m.tmp"; echo "vnb-trust: not accepted"; return 1 ;; esac
+  mv "$m.tmp" "$m"
+  ssh-keygen -Y sign -f "$KEY" -n "$NS" "$m" >/dev/null
+  sig_ok "$m" || die "the signature just made does not verify -- check $SIGNERS"
+  echo "vnb-trust: accepted and signed: $m"
+}
+
+cmd_list() {
+  local m
+  for m in $(ls -1 "$STORE"/*.manifest 2>/dev/null); do
+    if [ -f "$m.sig" ] && sig_ok "$m"; then s=signed; else s=UNSIGNED; fi
+    printf '%-28s %-8s %s\n' "$(basename "$m" .manifest)" "$s" \
+      "$(grep -m1 '^# exam' "$m" | sed 's/^# exam: //' | cut -c1-90)"
+  done
+}
+
+# RELEASES.  A release manifest (vnb-release-manifest on the primary) lists the SHA-256 of
+# every file git tracks at one commit.  Signing it says: these are the files of the tree I
+# accepted.  So every listed file is compared with the same file in your accepted tree
+# (DIR, default ~/prover) before you are asked; one mismatch and nothing is signed.  Files
+# the pull never copies (scratch/, scratchpad/) cannot be compared: they are counted and
+# shown, and they are throwaway probes that VNB does not load.
+cmd_release_sign() {
+  local m=${1:-} dir=${2:-$HOME/prover}
+  [ -f "$m" ] || die "usage: vnb-trust release-sign MANIFEST [DIR]"
+  [ -r "$CONF" ] || die "not set up: run  vnb-trust setup KEY"
+  . "$CONF"
+  grep -q '^# VNB release ' "$m" || die "$m is not a VNB release manifest"
+  echo "vnb-trust: checking that $dir is a tree you accepted ..."
+  cmd_verify "$dir" >/dev/null 2>&1 || die "$dir does not match a tree you signed; pull and accept first"
+  local bad=0 skip=0 ok=0 hash path have
+  while IFS= read -r line; do
+    case "$line" in '#'*) continue ;; esac
+    hash=${line%%  *}; path=${line#*  }
+    case "$path" in scratch/*|scratchpad/*|*/scratch/*|*/scratchpad/*) skip=$((skip+1)); continue ;; esac
+    if [ ! -f "$dir/$path" ]; then echo "    missing  $path" >&2; bad=$((bad+1)); continue; fi
+    have=$($SHA "$dir/$path" | cut -d' ' -f1)
+    if [ "$have" != "$hash" ]; then echo "    differs  $path" >&2; bad=$((bad+1)); else ok=$((ok+1)); fi
+  done < "$m"
+  echo "----------------------------------------------------------------"
+  grep '^#' "$m"
+  echo "files identical to your accepted tree: $ok"
+  echo "files not on the laptop (scratch/, scratchpad/), not compared: $skip"
+  echo "files that differ or are missing: $bad"
+  echo "----------------------------------------------------------------"
+  [ "$bad" -eq 0 ] || die "not signed: the release is not the tree you accepted"
+  read -r -p "Sign this release? [y/N] " ans
+  case "$ans" in y|Y|yes) ;; *) echo "vnb-trust: not signed"; return 1 ;; esac
+  rm -f "$m.sig"
+  ssh-keygen -Y sign -f "$KEY" -n vnb-release "$m" >/dev/null
+  ssh-keygen -Y verify -f "$SIGNERS" -I "$ID" -n vnb-release -s "$m.sig" < "$m" >/dev/null 2>&1 \
+    || die "the signature just made does not verify"
+  echo "vnb-trust: signed: $m.sig   -- send it back:  push-file.sh $m.sig prover/releases/"
+}
+
+case "${1:-}" in
+  setup)  shift; cmd_setup "$@" ;;
+  accept) shift; cmd_accept "$@" ;;
+  verify) shift; cmd_verify "$@" ;;
+  list)   shift; cmd_list "$@" ;;
+  release-sign) shift; cmd_release_sign "$@" ;;
+  *) sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+esac
