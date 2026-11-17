@@ -150,8 +150,11 @@ available here.  See \emph{Images and replacement} below.
 
 \subsubsection{The $\beta$-licence of \texttt{vnb-lambda}}
 
-$(\texttt{vnb-lambda}(x \in A, b))(u) \;==\; b[u/x]$ is a sound rewrite
-exactly when $b[u/x]$ is a set (then $[u, b[u/x]]$ is a member of the
+The contraction
+\[
+  (\texttt{vnb-lambda}(x \in A, b))(u) \;==\; b[u/x]
+\]
+is a sound rewrite exactly when $b[u/x]$ is a set (then $[u, b[u/x]]$ is a member of the
 lambda) or undefined (then both sides are undefined).  It fails in one
 case: $b[u/x]$ a proper class, where the right side denotes and the left
 does not.  The rule \texttt{lam-b} (\texttt{pi-lambda-beta!}; checker
@@ -178,18 +181,29 @@ conditions, decided before either is posted:
   proper class.)
 \end{itemize}
 The argument's membership, licensed or owed, counts as a typing of the
-value, so $(\texttt{vnb-lambda}(z \in A, z))(c)$ owes $c \in A$ and nothing
-more.  A redex whose obligation would mention a variable bound where the
+value, so
+\[
+  (\texttt{vnb-lambda}(z \in A, z))(c)
+\]
+owes $c \in A$ and nothing more.  A redex whose obligation would mention a variable bound where the
 redex sits is left standing.
 
-The example that the licence caught the same day.  The monomial
-$\texttt{monomial}(R, c, n) := \texttt{vnb-lambda}(k \in \mathtt{nn},
-\texttt{if}(k = n, c, \mathtt{zero}(R)))$ had the law
-$\texttt{monomial}(R, c, n)(n) = c$ stated with $c$ unrestricted.  At a
+The example that the licence caught the same day.  The monomial is
+\[
+  \texttt{monomial}(R, c, n) := \texttt{vnb-lambda}(k \in \mathtt{nn},\;
+  \texttt{if}(k = n, c, \mathtt{zero}(R))).
+\]
+It had the law
+\[
+  \texttt{monomial}(R, c, n)(n) = c
+\]
+stated with $c$ unrestricted.  At a
 proper class $c$ the lambda has no pair at $n$, the application is
 undefined, and the strict equation is false; the kernel owed
-$\texttt{if}(n = n, c, \mathtt{zero}(R)) \in \mathtt{set}$, which nothing
-could close.  The law is true, and now proven, under the hypothesis
+\[
+  \texttt{if}(n = n, c, \mathtt{zero}(R)) \in \mathtt{set},
+\]
+which nothing could close.  The law is true, and now proven, under the hypothesis
 $c \in \mathtt{carr}(R)$, which every use of it already had in context.  The
 species is the one Section~\ref{sec:class-set-discipline} warns of: a strict
 equation whose terms are untyped asserts their definedness, and here their

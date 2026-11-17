@@ -849,25 +849,41 @@ whose single argument is an element of the Cartesian product.
 Likewise the typing axiom \texttt{fun-apply-type} is unary
 ($f(x) \in B$ when $f \in \textsc{fun}(A,B)$ and $x \in A$).
 
-The bridge between what the parser writes and what the typing expects
-is the library convention
-\[
-  \boxed{(f\ a_1\ \ldots\ a_n)\ \mathrel{==}\ (f\ (\textsc{list}\ a_1\ \ldots\ a_n))}
-  \qquad\text{for each arity } n \geq 1
-\]
-— the $n$-arg curried apply is \emph{quasi-equal} ($\mathrel{==}$) to
-the unary apply to the tuple
-$(\textsc{list}\ a_1\ \ldots\ a_n)$.  Quasi-equality (not the partial
-$=$) is required because the convention must hold even when $f$ is
-not a tuple-domain function: both sides are then undefined and
-$\mathrel{==}$ holds vacuously, whereas $=$ would fail since $t=t$
-is the definedness predicate.  When $f$ \emph{is} so typed and the
-arguments lie in the components, both sides are defined and
-\texttt{quasi-eq-def} upgrades $\mathrel{==}$ to $=$ for substitution.
+The kernel's primitive application is unary, so it gives the
+$n$-argument form no meaning by itself.  The library defines it, for
+$n = 2$ and $n = 3$, as the unary apply to the tuple:
+\begin{align*}
+  \texttt{apply-tupling-2:}\quad & (f\ a\ b)\ \mathrel{==}\ (f\ (\textsc{list}\ a\ b))\\
+  \texttt{apply-tupling-3:}\quad & (f\ a\ b\ c)\ \mathrel{==}\ (f\ (\textsc{list}\ a\ b\ c))
+\end{align*}
+These are definitions in \texttt{theorem-library/axioms.scm}, not
+kernel rules.  No arity-4 definition exists yet; one is added by
+declaration when needed.
 
-Installed as a family of axioms \texttt{apply-tupling-$n$} in
-\texttt{theorem-library/axioms.scm} (declared for $n = 1, 2, 3$;
-add more by declaration as needed).  Together with
+There is none for $n = 1$, and there must not be one.  A
+one-argument application \emph{is} the unary apply.  The equation
+\[
+  (f\ a)\ \mathrel{==}\ (f\ (\textsc{list}\ a)) \quad\text{for every } f
+\]
+would give $a = [a]$ for every set $a$: take $f$ the identity
+function on $\{a\}$.  Then $f(a) = a$ is defined, so $f([a])$ is
+defined, so $[a]$ lies in the domain $\{a\}$, and
+\[
+  a \;=\; f(a) \;=\; f([a]) \;=\; [a].
+\]
+Every set would then be a list of length one.  In particular
+$[\,] = [[\,]]$ would have length $1$, against
+$\mathtt{length}([\,]) = 0$.
+
+Quasi-equality (not the partial $=$) is required because the
+definition must hold even when $f$ is not a tuple-domain function:
+both sides are then undefined and $\mathrel{==}$ holds vacuously,
+whereas $=$ would fail since $t=t$ is the definedness predicate.
+When $f$ \emph{is} so typed and the arguments lie in the components,
+both sides are defined and \texttt{quasi-eq-def} upgrades
+$\mathrel{==}$ to $=$ for substitution.
+
+Together with
 \texttt{fun-apply-type} and \texttt{quasi-eq-def}, these axioms
 close $(f\ a_1\ \ldots\ a_n) \in B$ from the signature
 $f \in \textsc{fun}(\textsc{cartesian}(A_1,\ldots,A_n),\,B)$ and the
@@ -969,13 +985,26 @@ $\mathtt{fun}(A', B)$ with $A' = \mathtt{tuples}(A)$.
 \subsection{The constant-head registry}
 \label{sec:constant-registry}
 
-A compound term \texttt{$h$($a_1,\ldots,a_n$)} has a head $h$ that is
-either a \emph{constant} or a \emph{variable}.  A constant head names a
-fixed operator and is never substituted for; a variable head is a
-function-valued bound variable applied to arguments, and \emph{is}
-substituted for and counted as free.  Substitution (\texttt{subst-free})
-and free-variable collection (\texttt{free-vars}) must tell the two
-apart, and nothing in the S-expression \texttt{($h$ \ldots)} marks which
+A compound term \texttt{$h$($a_1,\ldots,a_n$)} has a head $h$ of one
+of three forms.
+\begin{itemize}
+\item A \emph{registered head}: a symbol in the constant-head registry
+  below.  This covers the kernel operators (\texttt{cartesian},
+  \texttt{union}, \texttt{in}, \ldots), structure accessors, defined
+  functions, functoids and predicates.  It names something fixed and is
+  never substituted for.
+\item A \emph{compound term}, as in \texttt{mul(s)(a, b)}, whose head is
+  \texttt{mul(s)}.  Its variables are collected and substituted like
+  those of any other subterm.
+\item Any other symbol: a \emph{variable} applied as a function.  It
+  \emph{is} substituted for, and counted as free.
+\end{itemize}
+In this section ``constant'' means a registered head, not only a
+0-ary constant.
+
+Substitution (\texttt{subst-free}) and free-variable collection
+(\texttt{free-vars}) must tell the first and third forms apart, and
+nothing in the S-expression \texttt{($h$ \ldots)} marks which a symbol
 $h$ is.
 
 The \emph{constant-head registry} supplies the missing information.

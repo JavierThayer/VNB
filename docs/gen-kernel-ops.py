@@ -66,12 +66,15 @@ for kind, _ in GROUPS:
     n = sum(1 for e in entries if e[1] == kind)
     lines.append('\\newcommand{\\VNBkernelopcount%s}{%d}' % (kind, n))
 lines.append('\\newcommand{\\VNBkerneloptable}{%')
-lines.append('\\begin{longtable}{@{}p{0.34\\textwidth}p{0.62\\textwidth}@{}}')
+# each name links to the operation's inference figure in ch-proofs.tex (\label{kop:NAME}), page in the last column
+lines.append('\\begin{longtable}{@{}p{0.41\\textwidth}>{\\raggedright\\arraybackslash}p{0.45\\textwidth}>{\\raggedleft\\arraybackslash}p{0.08\\textwidth}@{}}')
+lines.append('\\textit{operation} & \\textit{what it does} & \\textit{figure}\\\\[2pt]')
+lines.append('\\endhead')
 for kind, title in GROUPS:
     es = [e for e in entries if e[1] == kind]
-    lines.append('\\multicolumn{2}{@{}l}{\\textbf{%s} (%d)}\\\\[2pt]' % (title, len(es)))
+    lines.append('\\multicolumn{3}{@{}l}{\\textbf{%s} (%d)}\\\\[2pt]' % (title, len(es)))
     for name, _, gloss in es:
-        lines.append('\\texttt{%s}\\index{%s@\\texttt{%s} (kernel operation)} & %s\\\\' % (tex(name), name, tex(name), tex(gloss)))
+        lines.append('\\hyperref[kop:%s]{\\mbox{\\texttt{%s}}}\\index{%s@\\texttt{%s} (kernel operation)} & %s & p.~\\pageref{kop:%s}\\\\' % (name, tex(name), name, tex(name), tex(gloss), name))
     lines.append('\\\\[-4pt]')
 lines.append('\\end{longtable}}')
 open(os.path.join(here, 'ch-kernel-ops-generated.tex'), 'w').write('\n'.join(lines) + '\n')

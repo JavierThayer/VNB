@@ -6,78 +6,80 @@
 \newcommand{\VNBkernelopcountrewrite}{4}
 \newcommand{\VNBkernelopcountoracle}{7}
 \newcommand{\VNBkerneloptable}{%
-\begin{longtable}{@{}p{0.34\textwidth}p{0.62\textwidth}@{}}
-\multicolumn{2}{@{}l}{\textbf{Logic, equality, induction and the structure eliminators} (41)}\\[2pt]
-\texttt{and-intro}\index{and-intro@\texttt{and-intro} (kernel operation)} & goal AND: prove both (di)\\
-\texttt{or-intro-left}\index{or-intro-left@\texttt{or-intro-left} (kernel operation)} & goal OR: prove the left disjunct (oi-l)\\
-\texttt{or-intro-right}\index{or-intro-right@\texttt{or-intro-right} (kernel operation)} & goal OR: prove the right disjunct (oi-r)\\
-\texttt{implies-intro}\index{implies-intro@\texttt{implies-intro} (kernel operation)} & goal IMPLIES: assume the antecedent (di)\\
-\texttt{not-intro}\index{not-intro@\texttt{not-intro} (kernel operation)} & goal NOT: assume it, prove FALSITY (di)\\
-\texttt{iff-intro}\index{iff-intro@\texttt{iff-intro} (kernel operation)} & goal IFF: prove both directions (di)\\
-\texttt{forall-intro}\index{forall-intro@\texttt{forall-intro} (kernel operation)} & goal FORALL: introduce an eigenvariable (di)\\
-\texttt{forsome-intro}\index{forsome-intro@\texttt{forsome-intro} (kernel operation)} & goal FORSOME: supply a witness (ew)\\
-\texttt{truth-intro}\index{truth-intro@\texttt{truth-intro} (kernel operation)} & goal TRUTH.  UNREACHABLE: no tactic calls pi-truth!\\
-\texttt{and-elim}\index{and-elim@\texttt{and-elim} (kernel operation)} & split a conjunctive assumption (ai)\\
-\texttt{or-elim}\index{or-elim@\texttt{or-elim} (kernel operation)} & case-split on a disjunctive assumption (ai)\\
-\texttt{not-elim}\index{not-elim@\texttt{not-elim} (kernel operation)} & assumption NOT p with p in context closes the goal (ai)\\
-\texttt{iff-elim}\index{iff-elim@\texttt{iff-elim} (kernel operation)} & an IFF assumption becomes its two implications (ai)\\
-\texttt{forsome-elim}\index{forsome-elim@\texttt{forsome-elim} (kernel operation)} & open an existential assumption at a fresh eigenvariable (ai)\\
-\texttt{forall-elim}\index{forall-elim@\texttt{forall-elim} (kernel operation)} & instantiate a universal (inst, inst+, fact)\\
-\texttt{assumption}\index{assumption@\texttt{assumption} (kernel operation)} & the goal is in the context (ass)\\
-\texttt{theorem-assumption}\index{theorem-assumption@\texttt{theorem-assumption} (kernel operation)} & cite an installed theorem (ta, fact)\\
-\texttt{cut}\index{cut@\texttt{cut} (kernel operation)} & introduce a lemma (cut, have!)\\
-\texttt{weakening}\index{weakening@\texttt{weakening} (kernel operation)} & drop an assumption (wk)\\
-\texttt{detach}\index{detach@\texttt{detach} (kernel operation)} & modus ponens on a context implication (detach!)\\
-\texttt{backchain}\index{backchain@\texttt{backchain} (kernel operation)} & reduce the goal to an implication's antecedent (bc, bc*)\\
-\texttt{proof-by-contradiction}\index{proof-by-contradiction@\texttt{proof-by-contradiction} (kernel operation)} & assume the negation, prove FALSITY (pbc)\\
-\texttt{eq-subst}\index{eq-subst@\texttt{eq-subst} (kernel operation)} & Leibniz rewriting by a context equation (subst)\\
-\texttt{reflexivity}\index{reflexivity@\texttt{reflexivity} (kernel operation)} & t = t, requiring t to be DEFINED (rfl)\\
-\texttt{quasi-reflexivity}\index{quasi-reflexivity@\texttt{quasi-reflexivity} (kernel operation)} & t == t, unconditionally (qrfl)\\
-\texttt{if-true}\index{if-true@\texttt{if-true} (kernel operation)} & IF-term, true branch\\
-\texttt{if-false}\index{if-false@\texttt{if-false} (kernel operation)} & IF-term, false branch\\
-\texttt{cartesian-intro}\index{cartesian-intro@\texttt{cartesian-intro} (kernel operation)} & membership in a CARTESIAN product (ci)\\
-\texttt{cartesian-elim}\index{cartesian-elim@\texttt{cartesian-elim} (kernel operation)} & consume one, componentwise (ce)\\
-\texttt{tuples-intro}\index{tuples-intro@\texttt{tuples-intro} (kernel operation)} & membership in TUPLES (ti)\\
-\texttt{tuples-elim}\index{tuples-elim@\texttt{tuples-elim} (kernel operation)} & consume one (te)\\
-\texttt{union-intro}\index{union-intro@\texttt{union-intro} (kernel operation)} & membership in a UNION, at a chosen side (ui)\\
-\texttt{union-elim}\index{union-elim@\texttt{union-elim} (kernel operation)} & case-split a UNION membership (ue)\\
-\texttt{intersection-intro}\index{intersection-intro@\texttt{intersection-intro} (kernel operation)} & membership in an INTERSECTION (ii)\\
-\texttt{intersection-elim}\index{intersection-elim@\texttt{intersection-elim} (kernel operation)} & project one component (ie)\\
-\texttt{nth-reduce}\index{nth-reduce@\texttt{nth-reduce} (kernel operation)} & NTH of a literal LIST (nth-r)\\
-\texttt{length-reduce}\index{length-reduce@\texttt{length-reduce} (kernel operation)} & LENGTH of a literal LIST (len-r)\\
-\texttt{functoid-beta}\index{functoid-beta@\texttt{functoid-beta} (kernel operation)} & beta-reduce a functoid application (beta)\\
-\texttt{nn-induction}\index{nn-induction@\texttt{nn-induction} (kernel operation)} & induction on NN (ni)\\
-\texttt{transfinite-induction}\index{transfinite-induction@\texttt{transfinite-induction} (kernel operation)} & STRONG transfinite induction on ORD (tfi)\\
-\texttt{transfinite-induction-3cases}\index{transfinite-induction-3cases@\texttt{transfinite-induction-3cases} (kernel operation)} & base/successor/limit transfinite induction (tfi3)\\
+\begin{longtable}{@{}p{0.41\textwidth}>{\raggedright\arraybackslash}p{0.45\textwidth}>{\raggedleft\arraybackslash}p{0.08\textwidth}@{}}
+\textit{operation} & \textit{what it does} & \textit{figure}\\[2pt]
+\endhead
+\multicolumn{3}{@{}l}{\textbf{Logic, equality, induction and the structure eliminators} (41)}\\[2pt]
+\hyperref[kop:and-intro]{\mbox{\texttt{and-intro}}}\index{and-intro@\texttt{and-intro} (kernel operation)} & goal AND: prove both (di) & p.~\pageref{kop:and-intro}\\
+\hyperref[kop:or-intro-left]{\mbox{\texttt{or-intro-left}}}\index{or-intro-left@\texttt{or-intro-left} (kernel operation)} & goal OR: prove the left disjunct (oi-l) & p.~\pageref{kop:or-intro-left}\\
+\hyperref[kop:or-intro-right]{\mbox{\texttt{or-intro-right}}}\index{or-intro-right@\texttt{or-intro-right} (kernel operation)} & goal OR: prove the right disjunct (oi-r) & p.~\pageref{kop:or-intro-right}\\
+\hyperref[kop:implies-intro]{\mbox{\texttt{implies-intro}}}\index{implies-intro@\texttt{implies-intro} (kernel operation)} & goal IMPLIES: assume the antecedent (di) & p.~\pageref{kop:implies-intro}\\
+\hyperref[kop:not-intro]{\mbox{\texttt{not-intro}}}\index{not-intro@\texttt{not-intro} (kernel operation)} & goal NOT: assume it, prove FALSITY (di) & p.~\pageref{kop:not-intro}\\
+\hyperref[kop:iff-intro]{\mbox{\texttt{iff-intro}}}\index{iff-intro@\texttt{iff-intro} (kernel operation)} & goal IFF: prove both directions (di) & p.~\pageref{kop:iff-intro}\\
+\hyperref[kop:forall-intro]{\mbox{\texttt{forall-intro}}}\index{forall-intro@\texttt{forall-intro} (kernel operation)} & goal FORALL: introduce an eigenvariable (di) & p.~\pageref{kop:forall-intro}\\
+\hyperref[kop:forsome-intro]{\mbox{\texttt{forsome-intro}}}\index{forsome-intro@\texttt{forsome-intro} (kernel operation)} & goal FORSOME: supply a witness (ew) & p.~\pageref{kop:forsome-intro}\\
+\hyperref[kop:truth-intro]{\mbox{\texttt{truth-intro}}}\index{truth-intro@\texttt{truth-intro} (kernel operation)} & goal TRUTH.  UNREACHABLE: no tactic calls pi-truth! & p.~\pageref{kop:truth-intro}\\
+\hyperref[kop:and-elim]{\mbox{\texttt{and-elim}}}\index{and-elim@\texttt{and-elim} (kernel operation)} & split a conjunctive assumption (ai) & p.~\pageref{kop:and-elim}\\
+\hyperref[kop:or-elim]{\mbox{\texttt{or-elim}}}\index{or-elim@\texttt{or-elim} (kernel operation)} & case-split on a disjunctive assumption (ai) & p.~\pageref{kop:or-elim}\\
+\hyperref[kop:not-elim]{\mbox{\texttt{not-elim}}}\index{not-elim@\texttt{not-elim} (kernel operation)} & assumption NOT p with p in context closes the goal (ai) & p.~\pageref{kop:not-elim}\\
+\hyperref[kop:iff-elim]{\mbox{\texttt{iff-elim}}}\index{iff-elim@\texttt{iff-elim} (kernel operation)} & an IFF assumption becomes its two implications (ai) & p.~\pageref{kop:iff-elim}\\
+\hyperref[kop:forsome-elim]{\mbox{\texttt{forsome-elim}}}\index{forsome-elim@\texttt{forsome-elim} (kernel operation)} & open an existential assumption at a fresh eigenvariable (ai) & p.~\pageref{kop:forsome-elim}\\
+\hyperref[kop:forall-elim]{\mbox{\texttt{forall-elim}}}\index{forall-elim@\texttt{forall-elim} (kernel operation)} & instantiate a universal (inst, inst+, fact) & p.~\pageref{kop:forall-elim}\\
+\hyperref[kop:assumption]{\mbox{\texttt{assumption}}}\index{assumption@\texttt{assumption} (kernel operation)} & the goal is in the context (ass) & p.~\pageref{kop:assumption}\\
+\hyperref[kop:theorem-assumption]{\mbox{\texttt{theorem-assumption}}}\index{theorem-assumption@\texttt{theorem-assumption} (kernel operation)} & cite an installed theorem (ta, fact) & p.~\pageref{kop:theorem-assumption}\\
+\hyperref[kop:cut]{\mbox{\texttt{cut}}}\index{cut@\texttt{cut} (kernel operation)} & introduce a lemma (cut, have!) & p.~\pageref{kop:cut}\\
+\hyperref[kop:weakening]{\mbox{\texttt{weakening}}}\index{weakening@\texttt{weakening} (kernel operation)} & drop an assumption (wk) & p.~\pageref{kop:weakening}\\
+\hyperref[kop:detach]{\mbox{\texttt{detach}}}\index{detach@\texttt{detach} (kernel operation)} & modus ponens on a context implication (detach!) & p.~\pageref{kop:detach}\\
+\hyperref[kop:backchain]{\mbox{\texttt{backchain}}}\index{backchain@\texttt{backchain} (kernel operation)} & reduce the goal to an implication's antecedent (bc, bc*) & p.~\pageref{kop:backchain}\\
+\hyperref[kop:proof-by-contradiction]{\mbox{\texttt{proof-by-contradiction}}}\index{proof-by-contradiction@\texttt{proof-by-contradiction} (kernel operation)} & assume the negation, prove FALSITY (pbc) & p.~\pageref{kop:proof-by-contradiction}\\
+\hyperref[kop:eq-subst]{\mbox{\texttt{eq-subst}}}\index{eq-subst@\texttt{eq-subst} (kernel operation)} & Leibniz rewriting by a context equation (subst) & p.~\pageref{kop:eq-subst}\\
+\hyperref[kop:reflexivity]{\mbox{\texttt{reflexivity}}}\index{reflexivity@\texttt{reflexivity} (kernel operation)} & t = t, requiring t to be DEFINED (rfl) & p.~\pageref{kop:reflexivity}\\
+\hyperref[kop:quasi-reflexivity]{\mbox{\texttt{quasi-reflexivity}}}\index{quasi-reflexivity@\texttt{quasi-reflexivity} (kernel operation)} & t == t, unconditionally (qrfl) & p.~\pageref{kop:quasi-reflexivity}\\
+\hyperref[kop:if-true]{\mbox{\texttt{if-true}}}\index{if-true@\texttt{if-true} (kernel operation)} & IF-term, true branch & p.~\pageref{kop:if-true}\\
+\hyperref[kop:if-false]{\mbox{\texttt{if-false}}}\index{if-false@\texttt{if-false} (kernel operation)} & IF-term, false branch & p.~\pageref{kop:if-false}\\
+\hyperref[kop:cartesian-intro]{\mbox{\texttt{cartesian-intro}}}\index{cartesian-intro@\texttt{cartesian-intro} (kernel operation)} & membership in a CARTESIAN product (ci) & p.~\pageref{kop:cartesian-intro}\\
+\hyperref[kop:cartesian-elim]{\mbox{\texttt{cartesian-elim}}}\index{cartesian-elim@\texttt{cartesian-elim} (kernel operation)} & consume one, componentwise (ce) & p.~\pageref{kop:cartesian-elim}\\
+\hyperref[kop:tuples-intro]{\mbox{\texttt{tuples-intro}}}\index{tuples-intro@\texttt{tuples-intro} (kernel operation)} & membership in TUPLES (ti) & p.~\pageref{kop:tuples-intro}\\
+\hyperref[kop:tuples-elim]{\mbox{\texttt{tuples-elim}}}\index{tuples-elim@\texttt{tuples-elim} (kernel operation)} & consume one (te) & p.~\pageref{kop:tuples-elim}\\
+\hyperref[kop:union-intro]{\mbox{\texttt{union-intro}}}\index{union-intro@\texttt{union-intro} (kernel operation)} & membership in a UNION, at a chosen side (ui) & p.~\pageref{kop:union-intro}\\
+\hyperref[kop:union-elim]{\mbox{\texttt{union-elim}}}\index{union-elim@\texttt{union-elim} (kernel operation)} & case-split a UNION membership (ue) & p.~\pageref{kop:union-elim}\\
+\hyperref[kop:intersection-intro]{\mbox{\texttt{intersection-intro}}}\index{intersection-intro@\texttt{intersection-intro} (kernel operation)} & membership in an INTERSECTION (ii) & p.~\pageref{kop:intersection-intro}\\
+\hyperref[kop:intersection-elim]{\mbox{\texttt{intersection-elim}}}\index{intersection-elim@\texttt{intersection-elim} (kernel operation)} & project one component (ie) & p.~\pageref{kop:intersection-elim}\\
+\hyperref[kop:nth-reduce]{\mbox{\texttt{nth-reduce}}}\index{nth-reduce@\texttt{nth-reduce} (kernel operation)} & NTH of a literal LIST (nth-r) & p.~\pageref{kop:nth-reduce}\\
+\hyperref[kop:length-reduce]{\mbox{\texttt{length-reduce}}}\index{length-reduce@\texttt{length-reduce} (kernel operation)} & LENGTH of a literal LIST (len-r) & p.~\pageref{kop:length-reduce}\\
+\hyperref[kop:functoid-beta]{\mbox{\texttt{functoid-beta}}}\index{functoid-beta@\texttt{functoid-beta} (kernel operation)} & beta-reduce a functoid application (beta) & p.~\pageref{kop:functoid-beta}\\
+\hyperref[kop:nn-induction]{\mbox{\texttt{nn-induction}}}\index{nn-induction@\texttt{nn-induction} (kernel operation)} & induction on NN (ni) & p.~\pageref{kop:nn-induction}\\
+\hyperref[kop:transfinite-induction]{\mbox{\texttt{transfinite-induction}}}\index{transfinite-induction@\texttt{transfinite-induction} (kernel operation)} & STRONG transfinite induction on ORD (tfi) & p.~\pageref{kop:transfinite-induction}\\
+\hyperref[kop:transfinite-induction-3cases]{\mbox{\texttt{transfinite-induction-3cases}}}\index{transfinite-induction-3cases@\texttt{transfinite-induction-3cases} (kernel operation)} & base/successor/limit transfinite induction (tfi3) & p.~\pageref{kop:transfinite-induction-3cases}\\
 \\[-4pt]
-\multicolumn{2}{@{}l}{\textbf{Set formation, descriptions and functions} (13)}\\[2pt]
-\texttt{sep-sethood}\index{sep-sethood@\texttt{sep-sethood} (kernel operation)} & SEP over a set is a set\\
-\texttt{sep-mem-intro}\index{sep-mem-intro@\texttt{sep-mem-intro} (kernel operation)} & y in SEP(x,A,p) from y in A and p[x:=y]\\
-\texttt{sep-mem-elim}\index{sep-mem-elim@\texttt{sep-mem-elim} (kernel operation)} & consume y in SEP(x,A,p) into y in A and p[x:=y]\\
-\texttt{comp-mem-intro}\index{comp-mem-intro@\texttt{comp-mem-intro} (kernel operation)} & y in COMP(x,p) from y in SET and p[x:=y]\\
-\texttt{comp-mem-elim}\index{comp-mem-elim@\texttt{comp-mem-elim} (kernel operation)} & consume y in COMP(x,p)\\
-\texttt{big-union-sethood}\index{big-union-sethood@\texttt{big-union-sethood} (kernel operation)} & set-indexed union of sets is a set\\
-\texttt{big-union-mem-intro}\index{big-union-mem-intro@\texttt{big-union-mem-intro} (kernel operation)} & membership in an indexed union, at a witness\\
-\texttt{big-union-mem-elim}\index{big-union-mem-elim@\texttt{big-union-mem-elim} (kernel operation)} & consume it, at a fresh eigenvariable\\
-\texttt{iota-def}\index{iota-def@\texttt{iota-def} (kernel operation)} & the defining property of IOTA(x,p), under uniqueness\\
-\texttt{iota-in-elim}\index{iota-in-elim@\texttt{iota-in-elim} (kernel operation)} & IOTA(x,p) DENOTES (per the context), so it satisfies p\\
-\texttt{lambda-type}\index{lambda-type@\texttt{lambda-type} (kernel operation)} & VNB-LAMBDA typing into FUN\\
-\texttt{lambda-beta}\index{lambda-beta@\texttt{lambda-beta} (kernel operation)} & beta-reduce an applied VNB-LAMBDA in the GOAL\\
-\texttt{lambda-beta-hyp}\index{lambda-beta-hyp@\texttt{lambda-beta-hyp} (kernel operation)} & beta-reduce an applied VNB-LAMBDA in an ASSUMPTION\\
+\multicolumn{3}{@{}l}{\textbf{Set formation, descriptions and functions} (13)}\\[2pt]
+\hyperref[kop:sep-sethood]{\mbox{\texttt{sep-sethood}}}\index{sep-sethood@\texttt{sep-sethood} (kernel operation)} & SEP over a set is a set & p.~\pageref{kop:sep-sethood}\\
+\hyperref[kop:sep-mem-intro]{\mbox{\texttt{sep-mem-intro}}}\index{sep-mem-intro@\texttt{sep-mem-intro} (kernel operation)} & y in SEP(x,A,p) from y in A and p[x:=y] & p.~\pageref{kop:sep-mem-intro}\\
+\hyperref[kop:sep-mem-elim]{\mbox{\texttt{sep-mem-elim}}}\index{sep-mem-elim@\texttt{sep-mem-elim} (kernel operation)} & consume y in SEP(x,A,p) into y in A and p[x:=y] & p.~\pageref{kop:sep-mem-elim}\\
+\hyperref[kop:comp-mem-intro]{\mbox{\texttt{comp-mem-intro}}}\index{comp-mem-intro@\texttt{comp-mem-intro} (kernel operation)} & y in COMP(x,p) from y in SET and p[x:=y] & p.~\pageref{kop:comp-mem-intro}\\
+\hyperref[kop:comp-mem-elim]{\mbox{\texttt{comp-mem-elim}}}\index{comp-mem-elim@\texttt{comp-mem-elim} (kernel operation)} & consume y in COMP(x,p) & p.~\pageref{kop:comp-mem-elim}\\
+\hyperref[kop:big-union-sethood]{\mbox{\texttt{big-union-sethood}}}\index{big-union-sethood@\texttt{big-union-sethood} (kernel operation)} & set-indexed union of sets is a set & p.~\pageref{kop:big-union-sethood}\\
+\hyperref[kop:big-union-mem-intro]{\mbox{\texttt{big-union-mem-intro}}}\index{big-union-mem-intro@\texttt{big-union-mem-intro} (kernel operation)} & membership in an indexed union, at a witness & p.~\pageref{kop:big-union-mem-intro}\\
+\hyperref[kop:big-union-mem-elim]{\mbox{\texttt{big-union-mem-elim}}}\index{big-union-mem-elim@\texttt{big-union-mem-elim} (kernel operation)} & consume it, at a fresh eigenvariable & p.~\pageref{kop:big-union-mem-elim}\\
+\hyperref[kop:iota-def]{\mbox{\texttt{iota-def}}}\index{iota-def@\texttt{iota-def} (kernel operation)} & the defining property of IOTA(x,p), under uniqueness & p.~\pageref{kop:iota-def}\\
+\hyperref[kop:iota-in-elim]{\mbox{\texttt{iota-in-elim}}}\index{iota-in-elim@\texttt{iota-in-elim} (kernel operation)} & IOTA(x,p) DENOTES (per the context), so it satisfies p & p.~\pageref{kop:iota-in-elim}\\
+\hyperref[kop:lambda-type]{\mbox{\texttt{lambda-type}}}\index{lambda-type@\texttt{lambda-type} (kernel operation)} & VNB-LAMBDA typing into FUN & p.~\pageref{kop:lambda-type}\\
+\hyperref[kop:lambda-beta]{\mbox{\texttt{lambda-beta}}}\index{lambda-beta@\texttt{lambda-beta} (kernel operation)} & beta-reduce an applied VNB-LAMBDA in the GOAL & p.~\pageref{kop:lambda-beta}\\
+\hyperref[kop:lambda-beta-hyp]{\mbox{\texttt{lambda-beta-hyp}}}\index{lambda-beta-hyp@\texttt{lambda-beta-hyp} (kernel operation)} & beta-reduce an applied VNB-LAMBDA in an ASSUMPTION & p.~\pageref{kop:lambda-beta-hyp}\\
 \\[-4pt]
-\multicolumn{2}{@{}l}{\textbf{Rewriting} (4)}\\[2pt]
-\texttt{macete}\index{macete@\texttt{macete} (kernel operation)} & rewrite the GOAL by an installed macete (mac, macm)\\
-\texttt{macete-hyp}\index{macete-hyp@\texttt{macete-hyp} (kernel operation)} & rewrite an ASSUMPTION by one (mac-h, mac-h*)\\
-\texttt{cartesian-decompose}\index{cartesian-decompose@\texttt{cartesian-decompose} (kernel operation)} & IN x (CARTESIAN ...) to its existential chain (library.scm)\\
-\texttt{tuple-equality-decompose}\index{tuple-equality-decompose@\texttt{tuple-equality-decompose} (kernel operation)} & LIST = LIST to the conjunction of components (library.scm)\\
+\multicolumn{3}{@{}l}{\textbf{Rewriting} (4)}\\[2pt]
+\hyperref[kop:macete]{\mbox{\texttt{macete}}}\index{macete@\texttt{macete} (kernel operation)} & rewrite the GOAL by an installed macete (mac, macm) & p.~\pageref{kop:macete}\\
+\hyperref[kop:macete-hyp]{\mbox{\texttt{macete-hyp}}}\index{macete-hyp@\texttt{macete-hyp} (kernel operation)} & rewrite an ASSUMPTION by one (mac-h, mac-h*) & p.~\pageref{kop:macete-hyp}\\
+\hyperref[kop:cartesian-decompose]{\mbox{\texttt{cartesian-decompose}}}\index{cartesian-decompose@\texttt{cartesian-decompose} (kernel operation)} & IN x (CARTESIAN ...) to its existential chain (library.scm) & p.~\pageref{kop:cartesian-decompose}\\
+\hyperref[kop:tuple-equality-decompose]{\mbox{\texttt{tuple-equality-decompose}}}\index{tuple-equality-decompose@\texttt{tuple-equality-decompose} (kernel operation)} & LIST = LIST to the conjunction of components (library.scm) & p.~\pageref{kop:tuple-equality-decompose}\\
 \\[-4pt]
-\multicolumn{2}{@{}l}{\textbf{Oracles} (7)}\\[2pt]
-\texttt{arith-ground}\index{arith-ground@\texttt{arith-ground} (kernel operation)} & decide a closed arithmetic sentence (arith)\\
-\texttt{arith-forsome}\index{arith-forsome@\texttt{arith-forsome} (kernel operation)} & witness a ground existential (arith)\\
-\texttt{arith-simplify}\index{arith-simplify@\texttt{arith-simplify} (kernel operation)} & rewrite by ground context equations, then decide (arith)\\
-\texttt{ring-simplify}\index{ring-simplify@\texttt{ring-simplify} (kernel operation)} & normalise a ring identity (rs, simp)\\
-\texttt{comm-ring-simplify}\index{comm-ring-simplify@\texttt{comm-ring-simplify} (kernel operation)} & normalise a commutative-ring identity (crs)\\
-\texttt{ineq}\index{ineq@\texttt{ineq} (kernel operation)} & the RR order calculus (ineq)\\
-\texttt{sos}\index{sos@\texttt{sos} (kernel operation)} & sum-of-squares nonnegativity (sos)\\
+\multicolumn{3}{@{}l}{\textbf{Oracles} (7)}\\[2pt]
+\hyperref[kop:arith-ground]{\mbox{\texttt{arith-ground}}}\index{arith-ground@\texttt{arith-ground} (kernel operation)} & decide a closed arithmetic sentence (arith) & p.~\pageref{kop:arith-ground}\\
+\hyperref[kop:arith-forsome]{\mbox{\texttt{arith-forsome}}}\index{arith-forsome@\texttt{arith-forsome} (kernel operation)} & witness a ground existential (arith) & p.~\pageref{kop:arith-forsome}\\
+\hyperref[kop:arith-simplify]{\mbox{\texttt{arith-simplify}}}\index{arith-simplify@\texttt{arith-simplify} (kernel operation)} & rewrite by ground context equations, then decide (arith) & p.~\pageref{kop:arith-simplify}\\
+\hyperref[kop:ring-simplify]{\mbox{\texttt{ring-simplify}}}\index{ring-simplify@\texttt{ring-simplify} (kernel operation)} & normalise a ring identity (rs, simp) & p.~\pageref{kop:ring-simplify}\\
+\hyperref[kop:comm-ring-simplify]{\mbox{\texttt{comm-ring-simplify}}}\index{comm-ring-simplify@\texttt{comm-ring-simplify} (kernel operation)} & normalise a commutative-ring identity (crs) & p.~\pageref{kop:comm-ring-simplify}\\
+\hyperref[kop:ineq]{\mbox{\texttt{ineq}}}\index{ineq@\texttt{ineq} (kernel operation)} & the RR order calculus (ineq) & p.~\pageref{kop:ineq}\\
+\hyperref[kop:sos]{\mbox{\texttt{sos}}}\index{sos@\texttt{sos} (kernel operation)} & sum-of-squares nonnegativity (sos) & p.~\pageref{kop:sos}\\
 \\[-4pt]
 \end{longtable}}

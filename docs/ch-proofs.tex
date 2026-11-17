@@ -17,6 +17,35 @@ A \emph{deduction graph} is a directed acyclic graph of
 node records which rule was applied, which sequent nodes are its
 hypotheses, and which sequent node is its conclusion.
 
+An inference is drawn as an \emph{inference figure}, in the notation
+Gentzen introduced for his sequent calculus~\cite{Gentzen1935} and now standard in
+proof theory:
+\[
+  \frac{\text{hypothesis}_1 \qquad \text{hypothesis}_2 \qquad \cdots \qquad \text{hypothesis}_k}
+       {\text{conclusion}}
+  \;\;\mbox{\textit{rule}}
+\]
+Note that $k = 0$ is a possibility: a figure with nothing above the
+line closes its conclusion outright.  Every entry is a sequent.  Below the line is the \emph{conclusion}: the
+target sequent the rule is applied to.  Above the line are the
+\emph{hypotheses}: the sequents that result.  The name of the rule
+stands to the right.
+
+Read downward, a figure is a deduction: from the hypotheses, the rule
+yields the conclusion.  Read upward, it is how a proof is built in VNB:
+to prove the conclusion, it suffices to prove the hypotheses, which
+become new subgoals.
+
+For example, the rule for conjunction is
+\[
+  \frac{\Gamma \Longrightarrow A \qquad \Gamma \Longrightarrow B}
+       {\Gamma \Longrightarrow A \wedge B}
+  \;\;\mbox{\texttt{and-intro}}
+\]
+To prove $A \wedge B$ from the assumptions $\Gamma$, prove $A$ and
+prove $B$, each from $\Gamma$.  Every rule of the kernel is stated
+this way in Section~\ref{sec:kernel-ops-detail}.
+
 A sequent node is \emph{grounded} when it has an inference node all of
 whose hypothesis nodes are themselves grounded.  Leaf inferences (with no
 hypothesis nodes) are immediately grounded.  Grounding propagates upward.
@@ -199,9 +228,13 @@ $\forall x.\, B$ & \texttt{forall-intro} \\
 \end{center}
 
 %% rule-checkers-logic.scm:347 and-intro, :386 implies-intro, :412 iff-intro, :399 not-intro
+\phantomsection\label{kop:and-intro}%
 \VNBfig{and-intro}{\Gamma \Longrightarrow A \qquad \Gamma \Longrightarrow B}{\Gamma \Longrightarrow A \wedge B}
+\phantomsection\label{kop:implies-intro}%
 \VNBfig{implies-intro}{\Gamma, A \Longrightarrow B}{\Gamma \Longrightarrow A \Rightarrow B}
+\phantomsection\label{kop:iff-intro}%
 \VNBfig{iff-intro}{\Gamma, A \Longrightarrow B \qquad \Gamma, B \Longrightarrow A}{\Gamma \Longrightarrow A \Leftrightarrow B}
+\phantomsection\label{kop:not-intro}%
 \VNBfig{not-intro}{\Gamma, A \Longrightarrow \textsc{falsity}}{\Gamma \Longrightarrow \neg A}
 
 To prove $\forall x.\, B$ one proves $B$ for an $x$ about which nothing
@@ -216,6 +249,7 @@ that restrict them.  Write the assertion as $G_0 = G$ and, for
 $1 \leq i \leq k$, $G_{i-1} = \forall x_i.\, C_i$.
 %% chk-forall-strip :441, chk-forall-eigen-ok? :491, chk-forall-intro-at :514,
 %% forall-intro checker :555, all rule-checkers-logic.scm
+\phantomsection\label{kop:forall-intro}%
 \VNBfig{forall-intro}{\Gamma, g_1, \ldots, g_m \Longrightarrow G_k}{\Gamma \Longrightarrow G_0}
 \begin{VNBcond}
 \item[Chain] $1 \leq k$, and for each $i$ the formula $C_i[x_i{:=}y_i]$
@@ -251,12 +285,15 @@ gives $\Gamma, P(x) \Longrightarrow C$.
   (commands \texttt{oi-l}, \texttt{oi-r})}
 
 %% rule-checkers-logic.scm:362, :374
+\phantomsection\label{kop:or-intro-left}%
 \VNBfig{or-intro-left}{\Gamma \Longrightarrow A}{\Gamma \Longrightarrow A \vee B}
+\phantomsection\label{kop:or-intro-right}%
 \VNBfig{or-intro-right}{\Gamma \Longrightarrow B}{\Gamma \Longrightarrow A \vee B}
 
 \subsubsection*{\texttt{forsome-intro}: supplying a witness (command \texttt{ew})}
 
 %% rule-checkers-logic.scm:574; pi-exists-witness!, primitive-inferences.scm:357
+\phantomsection\label{kop:forsome-intro}%
 \VNBfig{forsome-intro}{\Gamma \Longrightarrow B[x{:=}t]}{\Gamma \Longrightarrow \exists x.\, B}
 \begin{VNBcond}
 \item[Matching] $t$ is read off the hypothesis.
@@ -271,6 +308,7 @@ posted for $t$, so the operation is not the mirror of
 \subsubsection*{\texttt{truth-intro}}
 
 %% rule-checkers-logic.scm:588
+\phantomsection\label{kop:truth-intro}%
 \VNBfig{truth-intro}{\VNBnohyp}{\Gamma \Longrightarrow \textsc{truth}}
 
 This operation is unreachable.  No proof command calls the procedure
@@ -305,24 +343,29 @@ the context is used by \texttt{detach} and \texttt{backchain}, a universal
 formula by \texttt{forall-elim}.
 
 %% rule-checkers-logic.scm:597 and-elim, :615 or-elim, :633 not-elim, :645 iff-elim
+\phantomsection\label{kop:and-elim}%
 \VNBfig{and-elim}{(\Gamma - F), A, B \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $F = A \wedge B$, $F \in \Gamma$.
 \end{VNBcond}
+\phantomsection\label{kop:or-elim}%
 \VNBfig{or-elim}{(\Gamma - F), A \Longrightarrow G \qquad (\Gamma - F), B \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $F = A \vee B$, $F \in \Gamma$.
 \end{VNBcond}
+\phantomsection\label{kop:not-elim}%
 \VNBfig{not-elim}{\VNBnohyp}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $\neg A \in \Gamma$ and $A \in \Gamma$.
 \end{VNBcond}
+\phantomsection\label{kop:iff-elim}%
 \VNBfig{iff-elim}{(\Gamma - F), A \Rightarrow B, B \Rightarrow A \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $F = A \Leftrightarrow B$, $F \in \Gamma$.
 \end{VNBcond}
 
 %% forsome-elim checker, rule-checkers-logic.scm:665
+\phantomsection\label{kop:forsome-elim}%
 \VNBfig{forsome-elim}{(\Gamma - F), B[x{:=}y] \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $F = \exists x.\, B$, $F \in \Gamma$.
@@ -345,6 +388,7 @@ already in $\Gamma - F$.
   (commands \texttt{inst}, \texttt{inst+}; used by \texttt{fact})}
 
 %% forall-elim checker, rule-checkers-logic.scm:702; pi-instantiate!, primitive-inferences.scm:282
+\phantomsection\label{kop:forall-elim}%
 \VNBfig{forall-elim}{\Gamma, B[x{:=}t] \Longrightarrow G \qquad \bigl(\Gamma \Longrightarrow t = t\bigr)}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $\forall x.\, B \in \Gamma$.  It stays in the context.
@@ -371,6 +415,7 @@ instantiates it at a list of terms (\texttt{pi-spec!}).
   (command \texttt{ass})}
 
 %% rule-checkers-logic.scm:738
+\phantomsection\label{kop:assumption}%
 \VNBfig{assumption}{\VNBnohyp}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $G \in \Gamma$, or $G$ is \textsc{truth}.
@@ -380,6 +425,7 @@ instantiates it at a list of terms (\texttt{pi-spec!}).
   (command \texttt{ta}; used by \texttt{fact})}
 
 %% rule-checkers-logic.scm:750; chk-installed-theorem-name :329
+\phantomsection\label{kop:theorem-assumption}%
 \VNBfig{theorem-assumption}{\Gamma, S \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Installed] $S \aeq$ the formula installed under some name in the
@@ -401,6 +447,7 @@ through this operation, directly or through the theorems cited.
   \texttt{have!})}
 
 %% rule-checkers-logic.scm:767; pi-cut!, primitive-inferences.scm:223
+\phantomsection\label{kop:cut}%
 \VNBfig{cut}{\Gamma \Longrightarrow A \qquad \Gamma, A \Longrightarrow G}{\Gamma \Longrightarrow G}
 
 The argument is $A$.  It is checked for well-formedness first, and a
@@ -418,6 +465,7 @@ proof where it was.
 \subsubsection*{\texttt{weakening}: dropping assumptions (command \texttt{wk})}
 
 %% rule-checkers-logic.scm:781; pi-weaken!, primitive-inferences.scm:208
+\phantomsection\label{kop:weakening}%
 \VNBfig{weakening}{\Delta \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Inclusion] $\Delta \subseteq \Gamma$.
@@ -428,6 +476,7 @@ $\Delta = \Gamma - F$; it declines when $F$ is not an assumption of $N$.
 \subsubsection*{\texttt{detach}: forward modus ponens (command \texttt{detach!})}
 
 %% rule-checkers-logic.scm:790; pi-detach!, primitive-inferences.scm:442
+\phantomsection\label{kop:detach}%
 \VNBfig{detach}{\Gamma, B \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $A \Rightarrow B \in \Gamma$ and $A \in \Gamma$.
@@ -438,6 +487,7 @@ The argument is the implication.  Both it and its antecedent stay.
   (commands \texttt{bc}, \texttt{bc*})}
 
 %% rule-checkers-logic.scm:807; pi-backchain!, primitive-inferences.scm:419
+\phantomsection\label{kop:backchain}%
 \VNBfig{backchain}{\Gamma \Longrightarrow A}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $A \Rightarrow G \in \Gamma$.
@@ -446,24 +496,16 @@ The argument is the implication.  Both it and its antecedent stay.
 \subsubsection*{\texttt{proof-by-contradiction} (command \texttt{pbc})}
 
 %% rule-checkers-logic.scm:824
+\phantomsection\label{kop:proof-by-contradiction}%
 \VNBfig{proof-by-contradiction}{\Gamma, \neg G \Longrightarrow \textsc{falsity}}{\Gamma \Longrightarrow G}
 
 There are no arguments, and the operation never declines.
-
-\subsubsection*{\texttt{contraposition}}
-
-%% rule-checkers-logic.scm:835
-\VNBfig{contraposition}{\Gamma \Longrightarrow \neg B}{\Gamma \Longrightarrow \neg A}
-\begin{VNBcond}
-\item[Assumption] $A \Rightarrow B \in \Gamma$.
-\end{VNBcond}
-This operation is unreachable: no proof command calls the procedure that
-records it.
 
 \subsubsection*{\texttt{eq-subst}: rewriting the assertion by a context
   equation (command \texttt{subst})}
 
 %% rule-checkers-logic.scm:857; chk-replaced? :241
+\phantomsection\label{kop:eq-subst}%
 \VNBfig{eq-subst}{\Gamma \Longrightarrow G'}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $\Gamma$ contains $s = t$, $t = s$, $s \equiv t$ or
@@ -495,6 +537,7 @@ context equation from right to left, name it the other way round.
   (commands \texttt{rfl}, \texttt{qrfl})}
 
 %% rule-checkers-logic.scm:879, :890
+\phantomsection\label{kop:reflexivity}%
 \VNBfig{reflexivity}{\VNBnohyp}{\Gamma \Longrightarrow t = t}
 \begin{VNBcond}
 \item[Definedness] $\Gamma$ certifies $t$.  The operation also accepts
@@ -502,6 +545,7 @@ context equation from right to left, name it the other way round.
 \item[Not checked] The definedness condition.  The checker accepts
   $\Gamma \Longrightarrow u = u$ for any term $u$.
 \end{VNBcond}
+\phantomsection\label{kop:quasi-reflexivity}%
 \VNBfig{quasi-reflexivity}{\VNBnohyp}{\Gamma \Longrightarrow t \equiv t}
 
 \texttt{quasi-reflexivity} asks nothing further: quasi-equality holds
@@ -511,7 +555,9 @@ between two undefined terms as well.
   (commands \texttt{if-true}, \texttt{if-false})}
 
 %% chk-if-rule, rule-checkers-logic.scm:900-933
+\phantomsection\label{kop:if-true}%
 \VNBfig{if-true}{\Gamma \Longrightarrow p \qquad \Gamma, \mathrm{if}(p,a,b) = a \Longrightarrow G}{\Gamma \Longrightarrow G}
+\phantomsection\label{kop:if-false}%
 \VNBfig{if-false}{\Gamma \Longrightarrow \neg p \qquad \Gamma, \mathrm{if}(p,a,b) = b \Longrightarrow G}{\Gamma \Longrightarrow G}
 
 The argument is the conditional term $\mathrm{if}(p, a, b)$.  It need not
@@ -524,11 +570,13 @@ declining.
   (commands \texttt{ci}, \texttt{ce})}
 
 %% rule-checkers-logic.scm:939, :963
+\phantomsection\label{kop:cartesian-intro}%
 \VNBfig{cartesian-intro}{\Gamma \Longrightarrow a_1 \in A_1 \quad \cdots \quad \Gamma \Longrightarrow a_n \in A_n}{\Gamma \Longrightarrow [a_1, \ldots, a_n] \in A_1 \times \cdots \times A_n}
 \begin{VNBcond}
 \item[Arity] The literal tuple and the literal product have the same
   length $n$, and there is one hypothesis per component, in order.
 \end{VNBcond}
+\phantomsection\label{kop:cartesian-elim}%
 \VNBfig{cartesian-elim $k$}{\Gamma, a_k \in A_k \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $[a_1, \ldots, a_n] \in A_1 \times \cdots \times A_n
@@ -541,10 +589,12 @@ declining.
 
 $\mathrm{tuples}(A)$ is the class of finite tuples over $A$.
 %% rule-checkers-logic.scm:991, :1012
+\phantomsection\label{kop:tuples-intro}%
 \VNBfig{tuples-intro}{\Gamma \Longrightarrow a_1 \in A \quad \cdots \quad \Gamma \Longrightarrow a_n \in A}{\Gamma \Longrightarrow [a_1, \ldots, a_n] \in \mathrm{tuples}(A)}
 \begin{VNBcond}
 \item[Arity] One hypothesis per component; none for the empty tuple.
 \end{VNBcond}
+\phantomsection\label{kop:tuples-elim}%
 \VNBfig{tuples-elim $k$}{\Gamma, a_k \in A \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $[a_1, \ldots, a_n] \in \mathrm{tuples}(A) \in \Gamma$.
@@ -556,10 +606,12 @@ $\mathrm{tuples}(A)$ is the class of finite tuples over $A$.
 
 $\mathrm{union}$ takes $n$ arguments.
 %% rule-checkers-logic.scm:1038, :1060
+\phantomsection\label{kop:union-intro}%
 \VNBfig{union-intro $k$}{\Gamma \Longrightarrow x \in A_k}{\Gamma \Longrightarrow x \in A_1 \cup \cdots \cup A_n}
 \begin{VNBcond}
 \item[Index] $k$ is recorded with the name, and $1 \leq k \leq n$.
 \end{VNBcond}
+\phantomsection\label{kop:union-elim}%
 \VNBfig{union-elim}{(\Gamma - F), x \in A_1 \Longrightarrow G \quad \cdots \quad (\Gamma - F), x \in A_n \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $F = x \in A_1 \cup \cdots \cup A_n$, $F \in \Gamma$.
@@ -571,7 +623,9 @@ $\mathrm{union}$ takes $n$ arguments.
   (commands \texttt{ii}, \texttt{ie})}
 
 %% rule-checkers-logic.scm:1079, :1098
+\phantomsection\label{kop:intersection-intro}%
 \VNBfig{intersection-intro}{\Gamma \Longrightarrow x \in A_1 \quad \cdots \quad \Gamma \Longrightarrow x \in A_n}{\Gamma \Longrightarrow x \in A_1 \cap \cdots \cap A_n}
+\phantomsection\label{kop:intersection-elim}%
 \VNBfig{intersection-elim $k$}{\Gamma, x \in A_k \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $x \in A_1 \cap \cdots \cap A_n \in \Gamma$.  It stays.
@@ -582,19 +636,36 @@ $\mathrm{union}$ takes $n$ arguments.
   \texttt{functoid-beta} (commands \texttt{nth-r}, \texttt{len-r},
   \texttt{beta})}
 
-The three have the same figure and differ in the contraction.
+Each contracts one kind of redex.  In the figures, $G[e]$ is the goal
+with the subterm $e$ marked, and $G[e']$ is the same goal with $e'$ in
+its place.
+
 %% chk-contracts? rule-checkers-logic.scm:284; checkers :1137, :1153, :1174
-\VNBfig{}{\Gamma \Longrightarrow G'}{\Gamma \Longrightarrow G}
+\phantomsection\label{kop:nth-reduce}%
+\VNBfig{nth-reduce}{\Gamma \Longrightarrow G[t_k]}{\Gamma \Longrightarrow G[\mathrm{nth}(k, [t_1, \ldots, t_n])]}
 \begin{VNBcond}
-\item[Contraction] $G' \not\aeq G$, and $G'$ is obtained from $G$ by
-  contracting redexes, where a redex that a contraction creates may be
-  contracted in its turn.  The redexes are, respectively:
-  $\mathrm{nth}(k, [t_1, \ldots, t_n])$ with $1 \leq k \leq n$, which
-  contracts to $t_k$; $\mathrm{length}([t_1, \ldots, t_n])$, which
-  contracts to $n$; and a functoid applied to as many arguments as it
-  binds, which contracts to its body with the arguments substituted in
-  parallel for the bound variables.
+\item[Index] $k$ is a numeral with $1 \leq k \leq n$.
 \end{VNBcond}
+
+\phantomsection\label{kop:length-reduce}%
+\VNBfig{length-reduce}{\Gamma \Longrightarrow G[n]}{\Gamma \Longrightarrow G[\mathrm{length}([t_1, \ldots, t_n])]}
+\begin{VNBcond}
+\item[Result] $n$ is the numeral counting the entries.
+\end{VNBcond}
+
+\phantomsection\label{kop:functoid-beta}%
+\VNBfig{functoid-beta}{\Gamma \Longrightarrow G[\,b[x_1{:=}a_1, \ldots, x_n{:=}a_n]\,]}{\Gamma \Longrightarrow G[F(a_1, \ldots, a_n)]}
+\begin{VNBcond}
+\item[Redex] $F$ is a functoid that binds $x_1, \ldots, x_n$ and has
+  body $b$, applied to exactly $n$ arguments.  The substitution is
+  simultaneous.
+\end{VNBcond}
+
+Each figure shows one redex.  The checker of all three accepts
+$\Gamma \Longrightarrow G'$ over $\Gamma \Longrightarrow G$ when
+$G' \not\aeq G$ and $G'$ is obtained from $G$ by contracting redexes of
+the operation's kind, where a redex that a contraction creates may be
+contracted in its turn.
 None takes an argument.  Each operation contracts every redex of its
 kind in $G$ and declines when $G'$ is $G$.  \texttt{nth-reduce} raises an
 error on an index outside $1 \leq k \leq n$.  Nothing is asked of the
@@ -604,6 +675,7 @@ denote.
 \subsubsection*{\texttt{nn-induction} (command \texttt{ni})}
 
 %% rule-checkers-logic.scm:1191
+\phantomsection\label{kop:nn-induction}%
 \VNBfig{nn-induction}{\Gamma \Longrightarrow B[n{:=}0] \qquad \Gamma \Longrightarrow \forall n.\, n \in \mathbb{N} \Rightarrow (B \Rightarrow B[n{:=}\mathrm{succ}\,n])}{\Gamma \Longrightarrow \forall n.\, n \in \mathbb{N} \Rightarrow B}
 \begin{VNBcond}
 \item[Shape] The guard is $n \in \mathbb{N}$ on the variable of the
@@ -616,6 +688,7 @@ that quantifies over something else first is not of this shape.
 \subsubsection*{\texttt{transfinite-induction} (command \texttt{tfi})}
 
 %% rule-checkers-logic.scm:1247; chk-tfi-beta-ok? :1241
+\phantomsection\label{kop:transfinite-induction}%
 \VNBfig{transfinite-induction}{\Gamma \Longrightarrow \forall \alpha.\, \bigl(\alpha \in \mathrm{ord} \wedge \forall \beta.\, \beta <_{\mathrm{ord}} \alpha \Rightarrow P[\alpha{:=}\beta]\bigr) \Rightarrow P}{\Gamma \Longrightarrow \forall \alpha.\, \alpha \in \mathrm{ord} \Rightarrow P}
 \begin{VNBcond}
 \item[Freshness] $\beta$ is a variable, $\beta \neq \alpha$,
@@ -633,6 +706,7 @@ objects.  One is code in the kernel, the other a formula in the catalog.
 
 \subsubsection*{\texttt{transfinite-induction-3cases} (command \texttt{tfi3})}
 
+\phantomsection\label{kop:transfinite-induction-3cases}%
 %% rule-checkers-logic.scm:1274
 \[
 \frac{\displaystyle
@@ -641,17 +715,20 @@ objects.  One is code in the kernel, the other a formula in the catalog.
   \Gamma \Longrightarrow \forall \alpha.\,
     (\alpha \in \mathrm{ord} \wedge P) \Rightarrow P[\alpha{:=}\mathrm{succ}_{\mathrm{ord}}\,\alpha] \\[2pt]
   \Gamma \Longrightarrow \forall \alpha.\,
-    \bigl(\mathrm{limit\text{-}ord}(\alpha) \wedge
+    \bigl(\mathrm{limit\text{-}ord}(\alpha) \wedge {} \\
+  \hphantom{\Gamma \Longrightarrow \forall \alpha.\,\bigl(}
           \forall \beta.\, \beta <_{\mathrm{ord}} \alpha \Rightarrow P[\alpha{:=}\beta]\bigr)
     \Rightarrow P
   \end{array}}
  {\displaystyle \Gamma \Longrightarrow \forall \alpha.\, \alpha \in \mathrm{ord} \Rightarrow P}
+\;\;\mbox{\texttt{transfinite-induction-3cases}}
 \]
 \begin{VNBcond}
 \item[Freshness] As for \texttt{transfinite-induction}, with $\beta$ read
   off the third hypothesis.
 \end{VNBcond}
-The three hypotheses are the base, successor and limit cases, in that
+This is one operation with three premises.  Applied to the goal, it
+leaves the base, successor and limit cases as three subgoals, in that
 order.
 
 \subsection{Set formation, descriptions and functions}
@@ -669,8 +746,11 @@ $\mathrm{big\text{-}union}(z, A, b)$ is $\bigcup_{z \in A} b$.
   (commands \texttt{sep-set}, \texttt{sep-mi}, \texttt{sep-me})}
 
 %% rcs-sep-sethood :107, rcs-sep-mem-intro :160, rcs-sep-mem-elim :167, rule-checkers-schema.scm
+\phantomsection\label{kop:sep-sethood}%
 \VNBfig{sep-sethood}{\Gamma \Longrightarrow A \in \mathrm{set}}{\Gamma \Longrightarrow \mathrm{sep}(x,A,p) \in \mathrm{set}}
+\phantomsection\label{kop:sep-mem-intro}%
 \VNBfig{sep-mem-intro}{\Gamma \Longrightarrow y \in A \qquad \Gamma \Longrightarrow p[x{:=}y]}{\Gamma \Longrightarrow y \in \mathrm{sep}(x,A,p)}
+\phantomsection\label{kop:sep-mem-elim}%
 \VNBfig{sep-mem-elim}{(\Gamma - F), y \in A, p[x{:=}y] \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $F = y \in \mathrm{sep}(x,A,p)$, $F \in \Gamma$.  It
@@ -684,7 +764,9 @@ A comprehension is in general a proper class, and its members are sets,
 so the domain condition of separation is replaced by membership in
 $\mathrm{set}$.
 %% rcs-comp-mem-intro :177, rcs-comp-mem-elim :182, rule-checkers-schema.scm
+\phantomsection\label{kop:comp-mem-intro}%
 \VNBfig{comp-mem-intro}{\Gamma \Longrightarrow y \in \mathrm{set} \qquad \Gamma \Longrightarrow p[x{:=}y]}{\Gamma \Longrightarrow y \in \mathrm{comp}(x,p)}
+\phantomsection\label{kop:comp-mem-elim}%
 \VNBfig{comp-mem-elim}{(\Gamma - F), y \in \mathrm{set}, p[x{:=}y] \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $F = y \in \mathrm{comp}(x,p)$, $F \in \Gamma$.  It is
@@ -700,6 +782,7 @@ set only when it is separately shown to be bounded by one.
 Write $U$ for $\mathrm{big\text{-}union}(z, A, b)$.
 %% rcs-big-union-sethood :194, rcs-big-union-mem-intro :234,
 %% rcs-big-union-mem-elim :260, rule-checkers-schema.scm
+\phantomsection\label{kop:big-union-sethood}%
 \VNBfigS{big-union-sethood}{\Gamma \Longrightarrow A \in \mathrm{set} \\ \Gamma \Longrightarrow \forall v.\, v \in A \Rightarrow b[z{:=}v] \in \mathrm{set}}{\Gamma \Longrightarrow U \in \mathrm{set}}
 \begin{VNBcond}
 \item[Freshness] $v = z$, or $v \notin \FV(A)$.
@@ -709,10 +792,12 @@ Write $U$ for $\mathrm{big\text{-}union}(z, A, b)$.
   $\Gamma$ (\texttt{pi-big-union-sethood!}, primitive-inferences.scm).
 \end{VNBcond}
 %% pi-big-union-sethood!, primitive-inferences.scm:1651
+\phantomsection\label{kop:big-union-mem-intro}%
 \VNBfig{big-union-mem-intro}{\Gamma \Longrightarrow w \in A \qquad \Gamma \Longrightarrow x \in b[z{:=}w]}{\Gamma \Longrightarrow x \in U}
 \begin{VNBcond}
 \item[Matching] $w$ is read off the first hypothesis.
 \end{VNBcond}
+\phantomsection\label{kop:big-union-mem-elim}%
 \VNBfig{big-union-mem-elim}{(\Gamma - F), e \in A, x \in b[z{:=}e] \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $F = x \in U$, $F \in \Gamma$.  It is consumed.
@@ -731,10 +816,12 @@ $\mathrm{iota}(x, p)$.  Both operations take the term as their argument;
 it need not occur in $G$.  Both grant the defining property
 $p[x{:=}\iota]$ as an assumption, and they differ in what pays for it.
 %% rcs-iota-def :308, rcs-iota-in-elim :372, rcs--context-defines? :350, rule-checkers-schema.scm
+\phantomsection\label{kop:iota-def}%
 \VNBfigS{iota-def}{\Gamma \Longrightarrow \exists x.\, \bigl(p \wedge \forall y.\, p[x{:=}y] \Rightarrow x = y\bigr) \\ \Gamma, p[x{:=}\iota] \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Freshness] $y$ is a variable, $y \neq x$, $y \notin \FV(p)$.
 \end{VNBcond}
+\phantomsection\label{kop:iota-in-elim}%
 \VNBfig{iota-in-elim}{\Gamma, p[x{:=}\iota] \Longrightarrow G}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Denotation] $\Gamma$ contains $\iota \in X$ for some $X$, or an
@@ -751,6 +838,7 @@ $\mathrm{vnb\text{-}lambda}(\sigma, A, b)$ is the set of pairs
 $\{(x, b) : x \in A\}$, with $\sigma$ the binder, a variable or a list of
 variables.  The term carries its domain.
 %% rcs-lambda-type :437, rcs--lambda-typing-ok? :414, rule-checkers-schema.scm
+\phantomsection\label{kop:lambda-type}%
 \VNBfig{lambda-type}{\Gamma \Longrightarrow \forall v.\, v \in A \Rightarrow b[x{:=}v] \in B \qquad \Gamma \Longrightarrow A \in \mathrm{set}}{\Gamma \Longrightarrow \mathrm{vnb\text{-}lambda}(x, A, b) \in \mathrm{fun}(A, B)}
 \begin{VNBcond}
 \item[Domain] The domain the term declares is $\aeq$ the domain of the
@@ -782,7 +870,9 @@ for the variables of $\sigma$.  Write $o_1, \ldots, o_m$ for the
 \emph{obligations}, $m \geq 0$.
 %% rcs-lambda-beta :854, rcs-lambda-beta-hyp :881, rcs--beta-match/fuel :701,
 %% rcs--beta-licences-ok? :816, rcs--beta-licensed? :775, rule-checkers-schema.scm
+\phantomsection\label{kop:lambda-beta}%
 \VNBfigS{lambda-beta}{\Gamma \Longrightarrow G' \\ \Gamma \Longrightarrow o_1 \quad \cdots \quad \Gamma \Longrightarrow o_m}{\Gamma \Longrightarrow G}
+\phantomsection\label{kop:lambda-beta-hyp}%
 \VNBfigS{lambda-beta-hyp}{(\Gamma - F), F' \Longrightarrow G \\ \Gamma \Longrightarrow o_1 \quad \cdots \quad \Gamma \Longrightarrow o_m}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Contraction] $G'$ (respectively $F'$, for some $F \in \Gamma$) is
@@ -852,6 +942,7 @@ a functoid) removes every formula in which the bound variable occurs
 free (Monk~\cite{Monk1988}).
 %% rkw--descend, rule-checkers-rewrite.scm:471
 %% rkw--check-macete, rule-checkers-rewrite.scm:687; rkw--condition-discharged? :390
+\phantomsection\label{kop:macete}%
 \VNBfig{macete $N$ $L$ $R$}{\Gamma \Longrightarrow G' \qquad \Gamma \Longrightarrow c_1 \quad \cdots \quad \Gamma \Longrightarrow c_m}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Licence] $N$ names an installed theorem, a functoid, an accessor
@@ -884,6 +975,7 @@ that the inference can be checked against the rule it claims to apply
   (commands \texttt{mac-h}, \texttt{mac-h*})}
 
 %% rkw--check-macete-hyp, rule-checkers-rewrite.scm:741
+\phantomsection\label{kop:macete-hyp}%
 \VNBfig{macete-hyp $N$ $L$ $R$}{(\Gamma - H), H' \Longrightarrow G \qquad \Gamma \Longrightarrow c_1 \quad \cdots \quad \Gamma \Longrightarrow c_m}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Assumption] $H \in \Gamma$.  Exactly one formula of $\Gamma$ is
@@ -911,6 +1003,7 @@ would be conjured free into the context.
 \subsubsection*{\texttt{cartesian-decompose} (command \texttt{mac})}
 
 %% rkw--check-cartesian-decompose :870, rkw--cartesian-shape? :819, rule-checkers-rewrite.scm
+\phantomsection\label{kop:cartesian-decompose}%
 \VNBfig{cartesian-decompose}{\Gamma \Longrightarrow G'}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Rewrite] $G'$ is $G$ with some subformulas
@@ -933,6 +1026,7 @@ bill.
 \subsubsection*{\texttt{tuple-equality-decompose} (command \texttt{mac})}
 
 %% rkw--check-tuple-equality-decompose :902, rkw--tuple-conjunction :883, rule-checkers-rewrite.scm
+\phantomsection\label{kop:tuple-equality-decompose}%
 \VNBfig{tuple-equality-decompose}{\Gamma \Longrightarrow G'}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Rewrite] $G'$ is $G$ with some subformulas
@@ -964,16 +1058,19 @@ checker of each oracle tests.
 One procedure records these three, trying them in this order.
 %% rco--check-arith-ground :242, rco--check-arith-forsome :265,
 %% rco--check-arith-simplify :298, rule-checkers-oracle.scm
+\phantomsection\label{kop:arith-ground}%
 \VNBfig{arith-ground}{\VNBnohyp}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Evaluation] $G$ is closed, and exact evaluation gives true.
 \end{VNBcond}
+\phantomsection\label{kop:arith-forsome}%
 \VNBfig{arith-forsome}{\VNBnohyp}{\Gamma \Longrightarrow \exists x.\, x \in C \wedge e = x}
 \begin{VNBcond}
 \item[Evaluation] $e$ evaluates exactly to a number $v$, and the body
   evaluates to true at $x = v$.  The equation may also be written
   $x = e$.
 \end{VNBcond}
+\phantomsection\label{kop:arith-simplify}%
 \VNBfig{arith-simplify}{\Gamma \Longrightarrow G'}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
 \item[Evaluation] $G'$ is $G$ with some ground subterms replaced by
@@ -1002,6 +1099,7 @@ The command declines when none of the three applies.
   (commands \texttt{rs}, \texttt{simp})}
 
 %% rco--check-rs :939, rco--crs-number-ok? :881, rco--num-gens-ok? :846, rule-checkers-oracle.scm
+\phantomsection\label{kop:ring-simplify}%
 \VNBfig{ring-simplify}{\VNBnohyp}{\Gamma \Longrightarrow \forall x_1.\, x_1 \in D_1 \Rightarrow \cdots \forall x_k.\, x_k \in D_k \Rightarrow e_1 = e_2}
 \begin{VNBcond}
 \item[Normal form] $e_1$ and $e_2$ have the same normal form in the
@@ -1023,6 +1121,7 @@ denotes.
   (command \texttt{crs})}
 
 %% rco--check-crs :929, rco--crs-structure-ok? :894, rule-checkers-oracle.scm
+\phantomsection\label{kop:comm-ring-simplify}%
 \VNBfig{comm-ring-simplify}{\VNBnohyp}{\Gamma \Longrightarrow \forall x_1.\, x_1 \in D_1 \Rightarrow \cdots \forall x_k.\, x_k \in D_k \Rightarrow e_1 = e_2}
 \begin{VNBcond}
 \item[Normal form] $e_1$ and $e_2$ have the same normal form in the
@@ -1050,6 +1149,7 @@ the equation that remains is an identity within reach of
   (command \texttt{ineq})}
 
 %% rco--check-ineq :556, rco--farkas-ok? :515, rco--ineq-constraint :494, rule-checkers-oracle.scm
+\phantomsection\label{kop:ineq}%
 \VNBfig{ineq $c$}{\VNBnohyp}{\Gamma \Longrightarrow \forall x_1.\, x_1 \in \mathbb{R} \Rightarrow \cdots \forall x_k.\, x_k \in \mathbb{R} \Rightarrow G_0}
 \begin{VNBcond}
 \item[Certificate] $c$ is a list of pairs $(\mathit{id}\ .\ m)$,
@@ -1103,6 +1203,7 @@ operation, and no proof in the library had used it.
   (command \texttt{sos})}
 
 %% rco--check-sos :956, rule-checkers-oracle.scm; tag built at structure-library/sos-oracle.scm:120
+\phantomsection\label{kop:sos}%
 \VNBfig{sos $c$}{\VNBnohyp}{\Gamma \Longrightarrow \forall x_1.\, x_1 \in \mathbb{R} \Rightarrow \cdots \forall x_k.\, x_k \in \mathbb{R} \Rightarrow a \leq b}
 \begin{VNBcond}
 \item[Certificate] $c$ is a list of pairs $(c_i\ .\ \lambda_i)$, each
@@ -2827,14 +2928,16 @@ string-syntax parser emits from \texttt{f(a$_1$,\,\ldots,\,a$_n$)} ---
 verbatim, no implicit tupling.  An operation typed
 \texttt{f $\in$ fun(cartesian(A$_1$,\,\ldots,\,A$_n$),~B)}, however,
 takes one argument from the Cartesian product.  The two views are
-reconciled by the library axioms
+reconciled by the library definitions
 \begin{equation*}
 \texttt{apply-tupling-$n$:} \qquad
 (f\ a_1\ \ldots\ a_n)\ \mathrel{==}\ (f\ (\texttt{list}\ a_1\ \ldots\ a_n))
 \quad\text{for each arity }n
 \end{equation*}
-(installed for $n=1,2,3$ in \texttt{theorem-library/axioms.scm};
-add more arities by declaration as needed).  Quasi-equality
+(definitions for $n=2,3$ in \texttt{theorem-library/axioms.scm};
+add more arities by declaration as needed).  There is none for $n=1$:
+$(f\ a) \mathrel{==} (f\ (\texttt{list}\ a))$ would give $a=[a]$ for every set $a$
+(Section~\ref{sec:curried-tupled-apply}), so $[\,]$ would be a list of length one.  Quasi-equality
 $\mathrel{==}$, not partial $=$: the convention holds vacuously when
 either side is undefined.  Combined with \texttt{fun-apply-type} and
 \texttt{quasi-eq-def}, these give the $n$-ary apply closure
