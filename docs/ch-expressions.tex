@@ -241,9 +241,9 @@ accessor of a structure the context knows (\texttt{carr(s)} under
 \texttt{is-ring(s)}); for any other term the instantiation leaves the
 obligation $t = t$ as an open goal, to be closed by a typing fact
 (\texttt{t in A}).  In particular \texttt{choice([])} is not assumed
-to denote.  (Before 2026-09-18 the rule carried no such obligation, and
-the checker could prove \texttt{recip(0) = recip(0)}; see
-\texttt{docs/definedness-instantiation-2026-09-18.md}.)
+to denote.  Without this obligation the rule would prove
+\texttt{recip(0) = recip(0)}.  The policy is stated in
+\texttt{docs/definedness-instantiation-2026-09-18.md}.
 
 \paragraph{Quasi-equality \texttt{$a$ == $b$}.}
 True iff both \texttt{a} and \texttt{b} are defined and equal, \emph{or}
@@ -399,9 +399,9 @@ states that no natural number is a list,
 It is stated in the same abstract terms, as a fact about $\mathtt{nn}$
 and $\mathtt{tuples}$ and not about an encoding.  With it, a natural
 number and a list are provably distinct; for example
-$[2,3] \neq 23$.  It is on the primitive shelf by an explicit decision
-(2026-10-26): it records that a natural number is a number and not a
-finite sequence, which is part of what the two notions mean here.  The
+$[2,3] \neq 23$.  It is on the primitive shelf by an explicit
+foundational decision: it records that a natural number is a number and
+not a finite sequence, which is part of what the two notions mean here.  The
 strand-space theory, which uses naturals as atomic message tokens,
 relies on it (\texttt{strand-tokens-nn.scm}).  It is consistent relative
 to NBG with the rest of the base theory: with von~Neumann naturals and
@@ -486,7 +486,7 @@ Section~\ref{sec:nary-proof-commands}.
   in general because the codomain is unconstrained.
   See Section~\ref{sec:funapp}.
 
-  The strengthened \texttt{fun-domain-apply-def} now reads
+  The axiom \texttt{fun-domain-apply-def} reads
   $f \in \mathtt{fun}(A) \Rightarrow ((f\,x) = (f\,x) \Leftrightarrow x \in A)$.
   Recall VNB equality is partial: $(t = t)$ is the definedness predicate
   for $t$, so the iff says \emph{$f(x)$ is defined exactly when $x \in A$}.
@@ -703,10 +703,8 @@ representation are objects in the VNB universe.
   \texttt{pi-lambda-beta!} (\texttt{(lam-b)}); a functoid is reduced by
   \texttt{cmd-functoid-beta} (\texttt{(beta)}) and has no such typing rule.
   Essentially every proof in the shipped library uses \texttt{vnb-lambda};
-  none reduces a functoid.  An unadorned \texttt{lambda} was accepted as a
-  third spelling until 2026-08-18 --- it built a \emph{functoid}, despite the
-  name --- and was removed for exactly this reason.  Writing it now raises an
-  error naming both replacements.
+  none reduces a functoid.  An unadorned \texttt{lambda} is not part of the
+  language: the parser rejects it with an error naming both binders.
   \end{quote}
 
   Its representation is the raw S-expression
@@ -715,8 +713,8 @@ representation are objects in the VNB universe.
     where $A$ is the \emph{domain} and lies outside the binder's scope
     (as in \texttt{sep} and \texttt{big-union}).  The domain is
     \emph{required}: a lambda that does not carry one does not determine
-    a function, and the typing rule was free to certify one and the same
-    domainless term into $\mathrm{fun}(A,B)$ for every $A$ at once.
+    a function, and without one the typing rule could certify one and the
+    same domainless term into $\mathrm{fun}(A,B)$ for every $A$ at once.
     Used in axioms written directly as S-expressions
     (e.g.\ \texttt{ring-prod}, \texttt{cc-normed-field}, \texttt{sum}).
     At the surface, the binder list may carry its domains the way a
@@ -731,7 +729,7 @@ representation are objects in the VNB universe.
     $\mathit{vnb\text{-}lambda}(x, A, \mathit{body}) \in
     \mathtt{fun}(A, B)$ reduces to two subgoals,
     $\forall x.\; x \in A \Rightarrow \mathit{body} \in B$ and
-    $A \in \mathtt{set}$.  Since 2026-08-14 the rule also accepts a
+    $A \in \mathtt{set}$.  The rule also accepts a
     binder \emph{list} when the domain is a \texttt{cartesian} of the
     same length, discharging the first subgoal componentwise as
     $\forall x_1 \in A_1 \ldots \forall x_n \in A_n.\;
@@ -770,7 +768,7 @@ prevents the expression-traversal code from ever confusing a functoid with an
 ordinary compound term.
 
 Internally, the application
-$\texttt{lambda}([x_1 \in A_1,\ldots], \mathit{body})(v_1,\ldots)$
+$\texttt{lambdoid}([x_1 \in A_1,\ldots], \mathit{body})(v_1,\ldots)$
 is represented as
 $(\texttt{apply-functoid}\;\langle\textit{record}\rangle\;v_1\;\cdots)$,
 a mixed structure whose \texttt{car} is the symbol \texttt{apply-functoid}
@@ -1162,15 +1160,6 @@ Destructuring bindings compose freely with plain and bounded bindings
 \begin{VNBsnip}
 forall([[pp, dd] in metric-space, u in pp], dd(u, u) = 0)
 \end{VNBsnip}
-
-\begin{remark}
-A facility that declared a named instance of a structure for the
-duration of a session (\texttt{declare-local-context}) was removed in
-July~2026.  It had no users outside the test suite.  The \emph{local
-contexts} of Section~\ref{sec:kernel-ops-detail} are a different thing:
-they are the assumptions available at a position inside a formula when a
-macete is applied there.
-\end{remark}
 
 
 \section{Parser and printer}

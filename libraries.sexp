@@ -1024,6 +1024,8 @@
     "structure-library/hc3-vocab"   ; wave 2026-11-09/10
     "theorem-library/haar-c3"   ; wave 2026-11-09/10
     "theorem-library/tvs-sub-bound"   ; wave 2026-11-11
+    "structure-library/m-riesz-vocab"   ; wave 2026-11-17
+    "theorem-library/m-riesz"   ; wave 2026-11-17
     ))
 
 (library complex-analysis
@@ -1448,6 +1450,30 @@
     "theorem-library/ipf-laws"   ; wave 2026-11-11
     "theorem-library/ipf-quotient"   ; wave 2026-11-11
     "theorem-library/hilbert-completion"   ; wave 2026-11-11
+    "structure-library/gn-vocab"   ; wave 2026-11-17
+    "theorem-library/gn-order"   ; wave 2026-11-17
+    "theorem-library/gn-onto"   ; wave 2026-11-17
+    "theorem-library/gn-jac"   ; wave 2026-11-17
+    "theorem-library/gn-pos"   ; wave 2026-11-17
+    "theorem-library/gn-dual"   ; wave 2026-11-17
+    "theorem-library/gn-cgen"   ; wave 2026-11-17
+    "theorem-library/gn-gen"   ; wave 2026-11-17
+    "structure-library/ba-gns2-vocab"   ; wave 2026-11-17
+    "theorem-library/completion-lift"   ; wave 2026-11-17
+    "theorem-library/gns-completion"   ; wave 2026-11-17
+    "theorem-library/state-extreme"   ; wave 2026-11-17
+    "theorem-library/states-compact"   ; wave 2026-11-17
+    "theorem-library/pure-states"   ; wave 2026-11-17
+    "theorem-library/gns-unique"   ; wave 2026-11-17
+    "structure-library/ba-trace-dual-vocab"   ; wave 2026-11-17
+    "theorem-library/ba-trace-dual"   ; wave 2026-11-17
+    "theorem-library/family-nn-enum"   ; wave 2026-11-17
+    "structure-library/wot-compact-vocab"   ; wave 2026-11-17
+    "theorem-library/wot-compact"   ; wave 2026-11-17
+    "theorem-library/sub-riesz"   ; wave 2026-11-17
+    "theorem-library/amp-sum"   ; wave 2026-11-17
+    "theorem-library/cc-separation"   ; wave 2026-11-17
+    "theorem-library/ba-forms"   ; wave 2026-11-17
     ))
 
 (library strand

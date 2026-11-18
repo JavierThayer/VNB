@@ -54,7 +54,7 @@ an object it is \texttt{binplus}, with \texttt{binplus(x, y) == x + y}, or the
 \texttt{add} slot of a structure instance, which is a \texttt{vnb-lambda} over
 that instance's carrier and hence a function with a domain.
 Section~\ref{sec:arith-symbols} has the full account, including why the
-function typing of \texttt{binplus} was once installed and proved FALSITY.
+function typing of \texttt{binplus} would prove FALSITY.
 
 \subsubsection{What an unguarded quantifier reaches}
 
@@ -105,12 +105,12 @@ of $t$.  The domain of an arbitrary $f$ is the class
 \[
   x \in \mathtt{dom}(f) \iff x \in \mathtt{set} \;\wedge\; f(x) \in \mathtt{set}
 \]
-(\texttt{dom-membership}, 2026-10-01).  Until that date the second conjunct
-was $f(x) = f(x)$, definedness.  On a class of pairs the two readings
-coincide, since $f(x)$ is defined exactly when a unique set $v$ has
-$[x, v] \in f$, and that $v$ is a set; the sethood form was adopted because
-the image axiom (below) asks for the sethood of $f(x)$ and the kernel has
-no rule from ``defined'' to ``a set''.  For $f \in \mathtt{fun}(A)$,
+(\texttt{dom-membership}).  On a class of pairs the second conjunct
+could equally be $f(x) = f(x)$, definedness, since $f(x)$ is defined
+exactly when a unique set $v$ has $[x, v] \in f$, and that $v$ is a set.
+The sethood form is the one stated because the image axiom (below) asks
+for the sethood of $f(x)$, and the kernel has no rule from ``defined'' to
+``a set''.  For $f \in \mathtt{fun}(A)$,
 $x \in \mathtt{dom}(f) \iff x \in A$ (\texttt{dom-fun-membership}).
 
 Since a functoid is refused as an instance of $f$, these axioms say nothing
@@ -135,10 +135,10 @@ undefined.  The axiom
   \;\Longrightarrow\; \texttt{nth}(k, L) \in \mathtt{set}\bigr)
   \qquad (k \in \mathtt{nn})
 \]
-(\texttt{tuple-members-are-sets}, primitive, 2026-10-01) states this
+(\texttt{tuple-members-are-sets}, primitive) states this
 sentence, which every reduction of pairs to sets supplies and the primitive
 constructor does not.  Nothing cites it; it is a tripwire: should any
-derivation again produce a pair with a proper class as a member of
+derivation produce a pair with a proper class as a member of
 something, two steps (\texttt{nth-r}, then $\mathtt{set} \in \mathtt{set}$
 against Burali-Forti) turn it into \texttt{falsity} instead of leaving it inert.
 
@@ -175,10 +175,9 @@ conditions, decided before either is posted:
   body; an \texttt{if} with such a branch.  A numeral, a
   typed variable, the set constants, arithmetic, a tuple, a choice or
   description, an application of a variable, and every other term owe
-  nothing.  (The positive form, ``certify the value a set'', was tried the
-  same day and broke many library files: a library lambda's value is typically an
-  arithmetic term, an application or a choice, typed nowhere, and never a
-  proper class.)
+  nothing.  The test is negative because a lambda's value is typically
+  an arithmetic term, an application or a choice: typed nowhere, and
+  never a proper class.
 \end{itemize}
 The argument's membership, licensed or owed, counts as a typing of the
 value, so
@@ -188,26 +187,25 @@ value, so
 owes $c \in A$ and nothing more.  A redex whose obligation would mention a variable bound where the
 redex sits is left standing.
 
-The example that the licence caught the same day.  The monomial is
+\paragraph{Example.}  The monomial is
 \[
   \texttt{monomial}(R, c, n) := \texttt{vnb-lambda}(k \in \mathtt{nn},\;
   \texttt{if}(k = n, c, \mathtt{zero}(R))).
 \]
-It had the law
+The law
 \[
   \texttt{monomial}(R, c, n)(n) = c
 \]
-stated with $c$ unrestricted.  At a
-proper class $c$ the lambda has no pair at $n$, the application is
-undefined, and the strict equation is false; the kernel owed
+is false when $c$ is unrestricted.  At a proper class $c$ the lambda has
+no pair at $n$, the application is undefined, and the strict equation
+fails.  Accordingly the contraction owes
 \[
   \texttt{if}(n = n, c, \mathtt{zero}(R)) \in \mathtt{set},
 \]
-which nothing could close.  The law is true, and now proven, under the hypothesis
-$c \in \mathtt{carr}(R)$, which every use of it already had in context.  The
-species is the one Section~\ref{sec:class-set-discipline} warns of: a strict
-equation whose terms are untyped asserts their definedness, and here their
-sethood.
+which nothing closes.  The law holds under the hypothesis
+$c \in \mathtt{carr}(R)$.  This is the pitfall
+Section~\ref{sec:class-set-discipline} describes: a strict equation whose
+terms are untyped asserts their definedness, and here their sethood.
 
 \subsubsection{Images and replacement}
 
@@ -227,12 +225,11 @@ it.
 \item[\texttt{image-set} (replacement, primitive).]
   $S \in \mathtt{set} \Longrightarrow \mathtt{image}(\phi, S) \in
   \mathtt{set}$ for every object $\phi$.  This is the axiom of replacement
-  and it is installed as such, on the primitive shelf, by the user's
-  decision of 2026-07-28.  It is load-bearing in the ordinal and cardinal
+  and it is installed as such, on the primitive shelf.  It is load-bearing in the ordinal and cardinal
   layer: \texttt{ord-no-injection-into-set} (hence Zorn's lemma), the
   definition of $\mathtt{card}$, \texttt{card-image-finite},
   \texttt{fun-domain-in-set}.
-\item[\texttt{fun-image-set} (proven, 2026-10-01).]
+\item[\texttt{fun-image-set} (proven).]
   $f \in \mathtt{fun}(A, B) \Longrightarrow B \in \mathtt{set}
   \Longrightarrow \mathtt{image}(f, S) \in \mathtt{set}$, with no
   hypothesis on $S$, from separation alone: every member of the image is

@@ -131,6 +131,12 @@
 \makeatother
 \setlength{\emergencystretch}{2em}
 
+%% Paragraph headings: amsbook's default is run-in italic at text size, which reads as
+%% emphasis rather than as a heading (the user, 2026-11-17).  Bold, run-in, with space above.
+\makeatletter
+\def\paragraph{\@startsection{paragraph}{4}{\z@}{\medskipamount}{-0.6em}{\normalfont\bfseries}}
+\makeatother
+
 \begin{document}
 \maketitle
 \tableofcontents
@@ -150,6 +156,9 @@
 
 %% =========================================================
 \input{ch-proofs}
+
+%% =========================================================
+\input{ch-provenance}
 
 %% =========================================================
 \input{ch-proving}

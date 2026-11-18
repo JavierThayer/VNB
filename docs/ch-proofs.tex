@@ -1192,11 +1192,9 @@ the name of the operation.
 
 \begin{remark}
 The condition on bound variables is the eigenvariable condition of
-\texttt{forall-intro}.  Until 2026-09-20 the oracle did not impose it,
-and from $x \in \mathbb{R},\; x \leq 0$ it closed
-$\forall x \in \mathbb{R}.\; x \leq 0$.  The defect was found when the
-checker of Section~\ref{sec:inference-checked} was written for this
-operation, and no proof in the library had used it.
+\texttt{forall-intro}.  Without it, from $x \in \mathbb{R},\; x \leq 0$
+the oracle would close $\forall x \in \mathbb{R}.\; x \leq 0$, which
+does not follow.
 \end{remark}
 
 \subsubsection*{\texttt{sos}: nonnegativity by a sum of squares
@@ -1428,8 +1426,7 @@ When it succeeds the oracle prints the certificate:
 \end{VNBcode}
 \texttt{sos} prints its decomposition in the same way.  \texttt{proof-tex}
 prints, for each step, the command and the sequent it leaves, read from
-the command trace recorded while the proof ran; since 2026-09-25 that trace
-also keeps, with each step that closed a node by \texttt{ineq} or
+the command trace recorded while the proof ran.  That trace also keeps, with each step that closed a node by \texttt{ineq} or
 \texttt{sos}, the certificate the oracle recorded together with the
 formulas of the node it closed, and \texttt{proof-tex} prints it beside the
 step.  A step of a composite tactic that runs an oracle with recording
@@ -1505,7 +1502,7 @@ operations and their checkers are described in
 Sections~\ref{sec:kernel-boundary} and~\ref{sec:inference-checked}, the
 closed list of files that may record an inference in
 Section~\ref{sec:kernel-checked}, the proof certificate in
-Section~\ref{sec:certificates}; they are not repeated here.  Consistency
+Section~\ref{sec:proof-certificate}; they are not repeated here.  Consistency
 of the whole is relative to NBG, for the reasons given next.
 
 \subsection{Why consistency can only be relative to NBG}
@@ -1632,14 +1629,14 @@ it reduces what has to be trusted without removing it.
 
 \subsection{Regression: the key and the exam}
 
-The certificate of a theorem (Section~\ref{sec:certificates}) is valid only
+The certificate of a theorem (Section~\ref{sec:proof-certificate}) is valid only
 for the kernel that issued it.  The kernel hash covers the files listed in
 \texttt{*cert-kernel-files*} (\texttt{certificates.scm}): the files that may
 record an inference, \texttt{deduction-graphs}, \texttt{expressions},
 \texttt{sequents} and the four checker files; a change to any of them
 invalidates every certificate.  The script \texttt{vnb-nightly-exam} runs the
 exam each night from cron: every proof is run, the page of every proof is typed back, and the
-certificates are rewritten (Section~\ref{sec:certificates}).
+certificates are rewritten (Section~\ref{sec:proof-certificate}).
 
 \subsection{What is not covered}
 
@@ -1667,12 +1664,13 @@ certificates are rewritten (Section~\ref{sec:certificates}).
 VNB uses the word \emph{certificate} for several distinct objects.  What
 they share is the division of labour: a certificate is evidence produced
 by one part of the system and verified by another, and what a proof rests
-on is the verification, never the producer.  This section lists every
-kind, each with what it certifies, who issues it, its form, where it is
-kept, who verifies it, and what it does not do.  The first five are
-consumed by the inference check of Section~\ref{sec:inference-checked};
-the sixth is the mechanism by which a load installs a theorem without
-running its proof.
+on is the verification, never the producer.  This section lists
+the five that the inference check of Section~\ref{sec:inference-checked}
+consumes, each with what it certifies, who issues it, its form, where it
+is kept, who verifies it, and what it does not do.  The proof
+certificate, by which a load installs a theorem without running its
+proof, is described with the other records of where a theorem comes from
+in Chapter~\ref{ch:provenance}.
 
 \subsection{The Farkas certificate}
 \index{certificate!Farkas}\index{ineq@\texttt{ineq}!certificate}
@@ -1798,269 +1796,6 @@ running its proof.
   introduces is fresh and certifies nothing until it is typed.  The policy
   and its cases are \texttt{docs/definedness-instantiation-2026-09-18.md}.
 \end{description}
-
-\subsection{The proof certificate}
-\index{certificate!proof}\index{VNB\_CERTIFIED@\texttt{VNB\_CERTIFIED}}
-\index{exam}
-
-\begin{description}
-\item[Certifies] that the proof of a named theorem ran to \texttt{qed} and
-  passed the inference check, on a stated kernel, and what that proof
-  depended on.  It is the mechanism by which the
-  everyday load installs a theorem without running its proof.
-\item[Issued by] a load that ran the proof: the \emph{exam},
-  \texttt{VNB\_CERTIFIED=off ./prover --build-band}, which runs every proof
-  and rewrites the store; or an ordinary load meeting a theorem with no
-  valid record, which proves it and writes one.
-\item[Form] one file per proof file, \texttt{certificates/}$\langle$load
-  key$\rangle$\texttt{.cert}, one record per \texttt{qed} in installation
-  order.  A record holds the theorem's name, the hash of its statement and
-  the statement itself; \texttt{cites}, the names the ledger read off the
-  script, each with the hash of its installed statement; \texttt{defs},
-  the closure of the statement's defined heads through their definitions
-  (the bodies of \texttt{def-functoid}s, the axioms of \texttt{def-predicate}s
-  and \texttt{def-constant}s; proven theorems are not followed), with their hashes;
-  \texttt{uses}, every macete the kernel saw fire in the proof (an accessor
-  read by \texttt{slot} among them), and every \texttt{def-functoid} body and
-  predicate defining iff a checker read while accepting an inference, with
-  the hash of the rewrite rule or definition, the kernel's own list kept
-  independent of the ledger's; the oracles the script called and the bill and oracles
-  \texttt{qed} announced; and the kernel hash.  A record carries no date and no host.  A hash is
-  the MD5 of the canonical text of a formula, with counter-minted names
-  relabelled in order of first occurrence so that it does not depend on
-  how much was proved before.  The \emph{kernel hash} is the MD5 of the
-  source of the files in \texttt{*cert-kernel-files*}
-  (\texttt{certificates.scm}): the files that may call
-  \texttt{dg-apply-rule!}, the deduction-graph file, \texttt{expressions},
-  \texttt{sequents} and the four checker files; tactics, the kit and
-  the drivers are not in it, because every inference they produce is
-  checked.
-\item[Read by] \texttt{sp}, at load, under \texttt{VNB\_CERTIFIED=on}
-  (the default) or \texttt{strict}.  A record is valid when the statement
-  being started hashes to its statement hash, every cited, defined and
-  used name hashes the same in this tree, and the kernel hash is this
-  tree's.  On a valid record the theorem is installed with provenance
-  \texttt{certified}, its bill recomputed from the recorded citations, and
-  the driver's steps are skipped.  Under \texttt{on} a theorem without a
-  valid record is proved and its record written; under \texttt{strict}
-  nothing is proved, the uncovered theorems are listed and the load exits
-  non-zero.  The bill line of such a theorem reads \texttt{certified modulo
-  \{\ldots\}} (a record carries no date and no host, so an exam that changes
-  nothing rewrites nothing); the load summary counts \texttt{proven} and
-  \texttt{certified} separately, and the word \texttt{proven} alone means
-  the proof ran in this image.  The page audit covers the proofs that ran.
-\item[Invalidated by] a change to the statement, to the statement of a
-  cited name, to a definition the statement mentions or a macete the proof
-  fired, or to any kernel file, which invalidates every record at once.  A
-  record without a \texttt{uses} field, written before 2026-09-26, is not
-  valid.
-\item[Does not] certify what the record cannot see: a functoid reduced by
-  \texttt{beta} needs no entry (a \texttt{beta} contracts only a lambda record
-  that reached the goal through the statement, a cited theorem or a named
-  unfold, each of which is keyed), and the exam is the backstop for what
-  the kernel hash does not cover: the tactics and the kit.  A certificate is not a proof:
-  it says a proof ran and was checked.  The design is
-  \texttt{docs/certificates-2026-09-24.md}.
-\end{description}
-
-\subsection{The bill, and \texttt{proof-rules}}
-\index{bill}\index{proof-rules@\texttt{proof-rules}}
-
-Two further things are certified about a completed proof, neither called
-a certificate in the code.  The \emph{bill} that \texttt{qed} prints,
-\texttt{proven modulo \{\ldots\} [trust: \ldots]}, is the kernel's
-certification of the theorem relative to the asserted facts it names
-(Section~\ref{sec:proof-debt}): the theorem holds if those do.  The
-command \texttt{(proof-rules)} walks the grounded derivation of the
-current proof from its root and tallies every kernel inference by its
-rule tag; because every tag is one of the fixed set of kernel operations,
-this shows that a proof driven by composite tactics rests on nothing but
-those operations, independently of the command trace, which is lossy.
-
-\subsection{The certification stamp of the VNB test}
-\index{certificate!VNB test stamp}
-
-The classification pages of Chapter~\ref{ch:classification} report a
-result as ``certified by the VNB test on \textit{date}''.  That stamp is
-written by \texttt{vnb-test} to \texttt{reference/certification.scm}, one
-\texttt{(certify!\ '\textit{name} "\textit{date}")} per theorem the test
-re-proved to \texttt{qed}, and read back at the next load.  It certifies a
-run of the test, not a proof, and predates the proof certificate above,
-which has replaced it as the everyday mechanism: the exam that writes the
-store is the run that re-proves the library.
-
-\subsection{Signed trees}
-\label{sec:signed-trees}
-\index{signed tree}\index{vnb-trust@\texttt{vnb-trust}}
-
-A proof certificate is a plain file.  Anyone who can write to the tree
-can write one, and the everyday load would then install the theorem
-without running its proof.  The nightly exam, which runs every proof,
-removes such a record by the next morning.  Until then it stands.
-
-A \emph{signed tree} closes that gap on the user's own machine.  The
-user, having read the exam's result, \emph{accepts} the tree: every
-file VNB loads is hashed, and the list is signed with the user's key.
-After that, a tree is checked against the lists the user signed at
-two moments: when it is pulled, and when VNB is started with
-\texttt{vnb-start}.  The picture is
-\[
-  \text{exam passes}
-  \;\longrightarrow\;
-  \text{you sign the hashes}
-  \;\longrightarrow\;
-  \text{each pull is verified}.
-\]
-
-\paragraph{The pieces.}  Three scripts, all kept in \texttt{\textasciitilde/bin}
-on the user's laptop, outside the tree they check:
-\begin{itemize}
-\item \texttt{vnb-trust}, with five commands: \texttt{setup KEY} (once),
-  \texttt{accept DIR}, \texttt{verify DIR}, \texttt{list} and
-  \texttt{release-sign} (Section~\ref{sec:signed-releases});
-\item \texttt{pull-prover.sh}, which pulls into a staging copy,
-  \texttt{\textasciitilde/prover.incoming}, and calls
-  \texttt{vnb-trust verify} on it;
-\item \texttt{vnb-start}, which calls \texttt{vnb-trust verify} on
-  \texttt{\textasciitilde/prover} and starts VNB only if it succeeds.
-  On a mismatch it lists the changed files and offers to stop, to pull
-  a fresh copy, or to start anyway once the word
-  \texttt{unverified} is typed in full.
-\end{itemize}
-The master copies of \texttt{vnb-trust} and \texttt{vnb-start} are in
-the tree, under \texttt{trust/}.
-The signature is an SSH signature (\texttt{ssh-keygen -Y sign}) in its
-own namespace, \texttt{vnb-tree}, so it cannot be mistaken for any other
-signature made with the same key.  The hashes are SHA-256.
-
-\paragraph{The manifest.}  Accepting writes a \emph{manifest} to
-\texttt{\textasciitilde/vnb-signed/}: a few header lines with the exam's
-result and the commit, then one line per file, its SHA-256 hash and its
-path.  Every file of the tree is listed except
-\begin{itemize}
-\item what the pull itself skips: \texttt{.git/}, \texttt{scratch/},
-  \texttt{scratchpad/}, and \texttt{*.bci}, \texttt{*.ext}, \texttt{*.elc};
-\item the documents under \texttt{docs/} and \texttt{reference/}, which
-  VNB never loads.  The \texttt{.sexp} and \texttt{.scm} files there are
-  listed, because the load reads some of them.
-\end{itemize}
-So the source, the compiled files, the band, the certificates and the
-Emacs files are all covered.  The manifest and its signature,
-\texttt{.manifest.sig}, stay on the laptop.
-
-\paragraph{A pull.}  If the staging copy matches a signed manifest, it
-replaces \texttt{\textasciitilde/prover}, the previous tree is kept as
-\texttt{\textasciitilde/prover.prev}, and VNB starts.  If it matches
-none, \texttt{\textasciitilde/prover} is left untouched.  The files that
-differ from the last accepted tree are listed, with the last exam's
-result, and the user chooses: accept the new tree, start the old one,
-or stop.
-
-\paragraph{What it protects, and what it does not.}  The private key
-and the list of trusted keys (\texttt{\textasciitilde/.vnb-allowed-signers})
-exist only on the laptop.  Nothing running on the primary or a worker,
-an agent included, can sign a tree.  So no file, certificate, axiom or
-tactic changed on the server reaches the user's copy without the user's
-signature.
-
-A file changed on the laptop itself is caught by \texttt{vnb-start}, at
-the next start.  VNB started any other way, from Emacs or by
-\texttt{\textasciitilde/prover/VNB}, is not checked.  And nothing here
-defends a laptop that an intruder controls: such an intruder can change
-\texttt{vnb-start}, \texttt{vnb-trust} or \texttt{ssh-keygen}
-itself.
-
-The signature says ``I read this exam's result and accepted this tree.''
-It is not a proof, and it does not show that the exam itself was
-honest: the exam runs on machines the agents can reach.  The defence
-against that would be an exam the user starts outside their reach.
-
-Two rules keep the scheme sound.  The laptop's copies of
-\texttt{vnb-trust} and \texttt{pull-prover.sh} must not be replaced from
-the primary without reading the change, since the primary is where
-their master copies live.  And the signing key should have a
-passphrase.
-
-The setup and daily use are described step by step in
-\texttt{\textasciitilde/vnb-trust-walkthrough.txt} on the primary.
-
-\subsection{Signed releases}
-\label{sec:signed-releases}
-\index{signed release}
-
-A signed tree (Section~\ref{sec:signed-trees}) protects the user's own
-copy.  Someone else who downloads VNB from its public repository needs
-a different assurance: that the files are the ones its author
-published.  A \emph{signed release} gives it, with the same key.
-
-\paragraph{What a release is.}  A release has a version,
-\texttt{v}\textit{YYYY.MM.DD}, and two files committed under
-\texttt{releases/}:
-\begin{itemize}
-\item the \emph{release manifest}: the commit, then the SHA-256 hash of
-  every file git tracks at that commit, one line per file, in the order
-  \texttt{git ls-files} gives;
-\item the author's SSH signature of the manifest, in the namespace
-  \texttt{vnb-release}.
-\end{itemize}
-
-\paragraph{How the author makes one.}  The order is:
-\begin{enumerate}
-\item the nightly exam passes and the author accepts the tree
-  (Section~\ref{sec:signed-trees});
-\item on the server, \texttt{vnb-release-manifest} \textit{VERSION}
-  writes the manifest straight from git's object store;
-\item on the author's computer, \texttt{vnb-trust release-sign}
-  compares every file of the manifest with the same file in the
-  accepted tree, and signs only if all agree.  Files under
-  \texttt{scratch/} and \texttt{scratchpad/}, which the pull does not
-  copy and VNB does not load, are counted and shown, not compared;
-\item the signature is copied back, both files are committed, and the
-  release commit is tagged and pushed.
-\end{enumerate}
-So a release is exactly a tree the author accepted after an exam.
-
-\paragraph{How anyone checks one.}  With standard tools only:
-\texttt{ssh-keygen -Y verify} for the signature, then
-\texttt{git ls-files -z | xargs -0 sha256sum} at the release commit,
-compared with the manifest.  The commands are in the repository's
-\texttt{README.md}, under ``Verifying a release''.  The public key must
-come from two places that an attacker would have to change together:
-the author's GitHub signing keys, and the key printed in the README.
-The key, added 2026-11-17, is the ed25519 key with fingerprint
-\begin{center}
-\texttt{SHA256:pvv9BBY6uAVZrlz0H7G/xub84NareBQos+3Af8jHTvk}
-\end{center}
-so this manual is a third place to compare it with.
-
-\paragraph{What it shows, and what it does not.}  A valid signature
-protects the person who downloads VNB from
-\begin{itemize}
-\item a doctored copy: a fake fork, a tampered mirror, a file changed in
-  transit;
-\item a forged release, since the private key exists only on the
-  author's computer;
-\item a planted proof certificate, since certificates are files of the
-  release.
-\end{itemize}
-It does not protect from
-\begin{itemize}
-\item a change after the download, unless the check is made again;
-  \texttt{vnb-start}, used with the downloader's own key, makes it at
-  every start;
-\item a computer that an intruder already controls;
-\item a stolen signing key, until the author withdraws it;
-\item a takeover of the author's GitHub account, which can replace the
-  key listed on GitHub and the one printed in the README together.  For
-  that reason the fingerprint is also published away from GitHub.
-\end{itemize}
-
-A valid signature shows that the files are the ones the author signed.  It does not show
-that the code is harmless: VNB is a program, and running it means
-trusting its author or reading it.  Nor does it show that the proofs
-are right.  For that, no trust in the author is needed: the exam,
-run by the user, reruns every proof through the kernel, and the
-certificates in the repository are then only a cache.
 
 \subsection{What is not a certificate}
 

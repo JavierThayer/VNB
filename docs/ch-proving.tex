@@ -274,8 +274,8 @@ advances the focus to the first new ungrounded subgoal.
 
 \item \begin{sloppypar}\texttt{(cmd-functoid-beta ps)}
   Rewrite every occurrence of
-  \texttt{lambda([$x_1$ in $A_1$,\ldots], $\mathit{body}$)($v_1$,\ldots)}
-  (or \texttt{lambdoid}) in the goal to
+  \texttt{lambdoid([$x_1$ in $A_1$,\ldots], $\mathit{body}$)($v_1$,\ldots)}
+  in the goal to
   $\mathit{body}[x_1 := v_1]\cdots$ (capture-avoiding).\end{sloppypar}
 
 \item \texttt{(cmd-union-intro ps $k$)}
@@ -911,12 +911,12 @@ one side of the equality.
 
 \subsection{\texorpdfstring{$\beta$}{beta}-reduction with \texttt{(beta)}}
 
-Applied \texttt{lambda} (or \texttt{lambdoid}) terms are reduced
+Applied \texttt{lambdoid} terms are reduced
 in-place, then the underlying numeric or logical content is closed
 by another rule:
 
 \begin{VNBcode}
-(sp (make-wff-from-string "lambda([x in nn], 2 * x)(5) = 10"))
+(sp (make-wff-from-string "lambdoid([x in nn], 2 * x)(5) = 10"))
 (beta)   ; goal becomes (2 * 5 = 10)
 (arith)  ; closes
 \end{VNBcode}

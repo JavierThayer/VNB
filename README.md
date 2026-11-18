@@ -23,9 +23,18 @@ directory a repository shows.
 
 ## First run
 
-Run these once, in this order.
+Run these once, in this order.  **From GitHub**, clone and check the release
+before running anything (*Verifying a release*, below), then start at `cd`:
+
+    git clone https://github.com/JavierThayer/VNB.git ~/prover
+    # ... check the release: steps 1-3 of "Verifying a release" ...
+
+**From the tarball** (a copy handed to you directly):
 
     tar xzf prover-src.tar.gz -C ~      # unpacks ~/prover and ~/vnb
+
+Then, either way:
+
     cd ~/prover
     ./VNB-with-compile                  # about 10 minutes
     ./prover --build-band               # about 4 minutes
@@ -177,9 +186,10 @@ them OUT of the tree, so that a change to the tree cannot change them too:
 
 Then, once, with a key of your own (`ssh-keygen -t ed25519 -f ~/.ssh/vnb-signing`):
 
-    ./VNB-with-compile                   # first run: compiles, so the compiled files exist
+    # first the two build steps of "First run" (VNB-with-compile, prover --build-band):
+    # they write the compiled files and the band, which the check covers
     vnb-trust setup ~/.ssh/vnb-signing
-    vnb-trust accept ~/prover            # "this is the tree I checked"
+    vnb-trust accept ~/prover            # "this is the tree I checked, now built"
 
 From then on start VNB with `vnb-start`.  It hashes the tree, starts VNB if it is the
 tree you accepted, and otherwise lists the files that changed and does not start.  It
@@ -194,7 +204,8 @@ Javier Thayer's release signing key (ed25519), added 2026-11-17:
 
 Its fingerprint is `SHA256:pvv9BBY6uAVZrlz0H7G/xub84NareBQos+3Af8jHTvk` (`ssh-keygen -lf` on a file holding the key prints it).
 Compare it with the key GitHub lists for the account `JavierThayer`, and with the
-fingerprint published off GitHub at: *(to be announced by the author)*.  If any of them
+fingerprint published off GitHub, in the author's Bluesky profile:
+<https://bsky.app/profile/javiertf.bsky.social>.  If any of them
 differ, stop.
 
 ## Licence

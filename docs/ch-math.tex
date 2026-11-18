@@ -110,10 +110,11 @@ rejected by the parser.  \texttt{-0} normalises to \texttt{0}.
 
 The ordinal operators \texttt{ord-le}, \texttt{ord-lt}, and
 \texttt{succ\_ord} are named apart from the numeric \texttt{<=} and
-\texttt{succ}.  The first two were written \texttt{<=\_ORD} and
-\texttt{<\_ORD} until 2026-08-24; those spellings could not be tokenized
+\texttt{succ}.  The first two are spelled with letters only: a
+spelling that begins with an operator character, such as
+\texttt{<=\_ORD}, cannot be tokenized
 (\texttt{read-op} consumes the \texttt{<} and stops, and \texttt{\_}
-cannot begin a token), so no formula mentioning them could be retyped
+cannot begin a token), so no formula mentioning it can be retyped
 from its own printed form.  \texttt{succ\_ord} keeps its subscript: it
 begins with a letter and reads back.
 
@@ -244,19 +245,18 @@ is unobservable from inside a proof; it is visible only in a
   \texttt{binary-divide-def} all operate on the syntactic tree
   \texttt{(+ a b)}.  An application form would have to be unfolded before
   any of them could see it.
-\item \emph{The function typing was tried and was unsound.}  Until
-  2026-08-29 \texttt{numeric-instances.scm} carried axioms of the
-  form \texttt{binplus in fun(cartesian(zz, zz), zz)}, one per operation and
-  domain, described in their comment as closure facts.  They were not.
+\item \emph{A function typing of the arithmetic operations is unsound.}  Axioms of the form
+  \texttt{binplus in fun(cartesian(zz, zz), zz)}, one per operation and
+  domain, are not closure facts.
   Membership in \texttt{fun($A$, $B$)} pins the domain \emph{exactly}
   (\texttt{dom-of-fun} draws the equation out), so one object asserted into
-  function classes over \texttt{zz} and over \texttt{rr} proved
+  function classes over \texttt{zz} and over \texttt{rr} proves
   $\mathtt{zz} = \mathtt{rr}$; with all fourteen, $\mathtt{nn} = \mathtt{zz} =
   \mathtt{qq} = \mathtt{rr} = \mathtt{cc}$, and with \texttt{cc-i-squared},
-  $0 \le i \cdot i = -1$: FALSITY with zero open leaves.  No proof ever took
-  the route, but the axiom set had no model.  The fourteen were deleted and
-  nothing replaced them, because the typing conjunct they existed to
-  discharge is proved by \texttt{lam-t} from the closure axiom and sethood.
+  $0 \le i \cdot i = -1$: FALSITY with zero open leaves.  Such an axiom set
+  has no model.  The library carries none of these axioms and needs none,
+  because the typing conjunct they would discharge is proved by
+  \texttt{lam-t} from the closure axiom and sethood.
   A single symbol shared by five domains \emph{cannot} be a member of a
   \texttt{fun} class; a symbol with closure axioms can.
 \end{enumerate}
@@ -285,13 +285,12 @@ The one place the underdetermination shows is a \emph{statement} that applies
 \texttt{forall([x in u, y in u], x + y in u)} with \texttt{u} unconstrained
 says what the author means only for a \texttt{u} that lies in \texttt{cc}; for
 any other \texttt{u} its truth value is underdetermined, and a definition
-built on it is then a definition of something nobody intends.  The library
-met exactly this case: the convexity predicate of the plane was first written
-with the combination clause alone, and no theorem could read \texttt{u subset
-cc} out of it (every theorem that needed the inclusion carried it beside the
-predicate, from \texttt{holomorphic-on} or \texttt{is-open}).  Since
-2026-10-05 it is \texttt{is-convex-cc(u)}, with the conjunct \texttt{u subset
-cc} first and the name saying the ambient plane.  State the class inside the
+built on it is then a definition of something nobody intends.  Example:
+a convexity predicate of the plane written with the combination clause
+alone lets no theorem read \texttt{u subset cc} out of it, and every
+theorem that needs the inclusion must carry it beside the predicate.  The
+library's predicate is \texttt{is-convex-cc(u)}, with the conjunct
+\texttt{u subset cc} first and the name saying the ambient plane.  State the class inside the
 number system --- a conjunct or antecedent \texttt{u subset cc} --- or type
 the parameters in the statement itself, and the problem does not arise.  The
 same applies to every symbol of the list at the head of this subsection.
@@ -609,7 +608,7 @@ but are not yet installed.  They fall into two groups.
 
 \subsection*{Installed in \texttt{axioms.scm}}
 
-The following were previously pending but are now installed.
+The following are installed in \texttt{axioms.scm}.
 They are straightforward first-order statements requiring no new
 expression primitives.
 
@@ -649,7 +648,7 @@ expression primitives.
 
 \end{itemize}
 
-The following were already installed (noted here for completeness):
+Also installed:
 \texttt{fun-domain-apply-def}, \texttt{fun-domain-extensionality},
 \texttt{fun-codomain-iff} and \texttt{choice-axiom} in \texttt{library.scm};
 \texttt{nn-subset-ord} and all \texttt{ord-*} axioms in
@@ -660,8 +659,7 @@ The following were already installed (noted here for completeness):
 \subsection*{List recursion and list induction}
 \label{sec:list-recursion}
 
-Both were listed as pending in earlier editions of this manual, and both are
-now installed.  \texttt{structure-library/list-recursion.scm} adds the
+Both are installed.  \texttt{structure-library/list-recursion.scm} adds the
 constructor \texttt{cons}$(x, L)$ --- the name is \texttt{cons}, not
 \texttt{prepend} --- with four defining equations, stamped
 \texttt{definitional} because they constrain a new head and so add no
@@ -700,7 +698,7 @@ tuples are finite.
 
 \subsection*{Still pending}
 
-Four items once listed here are installed kernel rules and not pending:
+Four related facts are installed kernel rules and not pending:
 \texttt{equality-substitution} is the rule \texttt{eq-subst}
 (\texttt{pi-eq-subst!}), \texttt{lambda-type} is \texttt{pi-lambda-type!},
 \texttt{lambda-beta} is \texttt{pi-lambda-beta!} (with
@@ -709,9 +707,8 @@ Four items once listed here are installed kernel rules and not pending:
 (Section~\ref{sec:kernel-boundary}).
 
 The remaining items require schema-level infrastructure --- a primitive
-inference rather than a first-order axiom.  (An earlier edition also listed
-\texttt{separation}, \texttt{union-set}, \texttt{comp} and \texttt{prepend}
-as missing expression primitives.  They are not missing: \texttt{sep},
+inference rather than a first-order axiom.  (The expression primitives
+exist: \texttt{sep},
 \texttt{comp} and \texttt{big-union} are registered term-forming heads
 (\texttt{wff.scm}) with intro/elim rules in \texttt{primitive-inferences.scm},
 and they are documented in \texttt{reference/KERNEL-RULES.md}.)
@@ -755,9 +752,8 @@ and they are documented in \texttt{reference/KERNEL-RULES.md}.)
 \texttt{card} is a functoid (\texttt{structure-library/cardinality.scm}) defined by
 a description: $\mathtt{card}(A)$ is the least ordinal $\alpha$ such that
 $A$ bijects onto $\mathit{ord\text{-}segment}(\alpha)$, with $A$ first in
-\texttt{bijection}.  No axiom is asserted about it.  The eight facts that
-once stood on the primitive shelf are theorems under their old names and
-in their old shapes: \texttt{card-segment} (\texttt{card-defined.scm}),
+\texttt{bijection}.  No axiom is asserted about it.  Its eight basic
+facts are theorems: \texttt{card-segment} (\texttt{card-defined.scm}),
 \texttt{card-empty} (\texttt{card-finite.scm}), \texttt{finite-set-induction}
 (\texttt{rake-card-star-laws.scm}), and \texttt{card-in-ord},
 \texttt{card-insert}, \texttt{card-finite-bij}, \texttt{card-union-disjoint},
@@ -1194,9 +1190,9 @@ Installed by \texttt{def-by-nn-recursion}:
 The indexed-family product $\prod_{i \in I} f(i)$ for an arbitrary
 index set $I$ (not necessarily $\mathtt{nn}$) will use
 \texttt{big-union($i$, $I$, carr($f(i)$))} as the function codomain.
-The big-union binder is now in place
-(Section~\ref{sec:class-set-discipline}); the family product is the next
-step.
+The big-union binder is available
+(Section~\ref{sec:class-set-discipline}); the family product is not yet
+defined.
 \end{remark}
 
 %% =========================================================
@@ -1238,9 +1234,8 @@ negation).  They are polymorphic in the sense that the \emph{same}
   $\forall x.\;\mathtt{binneg}(x) = -x$.
 \end{description}
 
-There are no per-domain typing axioms for them.  The axioms
-\texttt{binplus-in-fun-}$d$ that once gave them a \texttt{fun} typing
-were deleted on 2026-08-29 (Section~\ref{sec:nums}, where the reason is given);
+There are no per-domain typing axioms for them.  A \texttt{fun} typing
+of them is unsound (Section~\ref{sec:nums}, where the reason is given);
 the \texttt{fun} typing that a structure instance needs is obtained inside
 the instance proof by \texttt{lam-t}.
 
@@ -1362,11 +1357,10 @@ file \texttt{extended-reals.scm} (loaded after \texttt{numeric-instances.scm})
 installs the carrier class and the ordering.
 
 \begin{remark}
-The class is spelled \texttt{rr-star}.  It was written \texttt{RR*}
-until 2026-08-24, and that spelling could not be tokenized: the
-\texttt{*} lexes as an operator, so \texttt{x in rr*} parsed as a
-product rather than as a membership.  \texttt{rr-star} is the spelling
-the axioms below already use, and it parses from a string like any
+The class is spelled \texttt{rr-star}.  A spelling \texttt{RR*} cannot
+be tokenized: the \texttt{*} lexes as an operator, so \texttt{x in rr*}
+parses as a product rather than as a membership.  \texttt{rr-star} is
+the spelling the axioms below use, and it parses from a string like any
 other name.
 \end{remark}
 
@@ -1458,12 +1452,12 @@ entries in $X$; $\mathtt{entry}(M, i, j)$ is the $(i,j)$ entry.
 $\mathtt{size}$ is total.  A matrix with no rows is $[\,]$, and it is
 the unique member of $\mathtt{mat}(0, n, X)$ for every natural $n$: a
 matrix with no rows does not determine its column count, and membership
-in $\mathtt{mat}$ does not pretend that it does.  Both clauses are
-decisions of 2026-09-16 (\texttt{docs/size-mat-surgery-2026-09-16.md}).
-Until then $\mathtt{mat}(m,n,X)$ was $\mathtt{sep}\, P \in
+in $\mathtt{mat}$ does not pretend that it does.  The design note is
+\texttt{docs/size-mat-surgery-2026-09-16.md}.
+Were $\mathtt{mat}(m,n,X)$ defined as $\mathtt{sep}\, P \in
 \mathtt{matrix}(X).\; \mathtt{size}(P) = [m,n]$ with $\mathtt{size}$
-reading the column count off the first row, so no zero-row matrix had a
-size and no $\mathtt{mat}(0,n,X)$ had a member.  Proofs read a
+reading the column count off the first row, no zero-row matrix would
+have a size and no $\mathtt{mat}(0,n,X)$ would have a member.  Proofs read a
 $\mathtt{mat}$ membership only through the lemmas of
 \texttt{theorem-library/mat-basics.scm} (\texttt{mat-in-matrix},
 \texttt{mat-length}, \texttt{mat-cols}, \texttt{mat-rows-in-nn},
@@ -1505,17 +1499,14 @@ and \texttt{matof-in-mat} are derived from them by \texttt{iota-def}
 are theorems guarded on $m, n \in \mathtt{nn}$, and a \texttt{qed} that
 cites them pays nothing.
 
-The guard is not decoration.  Until 2026-09-16 \texttt{matof-exists}
-was an asserted support with $m$ and $n$ unquantified, and the library
-proved \texttt{falsity} from it: instantiated at $m := \mathtt{ord}$ it
-gave a matrix with $\mathtt{ord}$ rows, \texttt{mat-rows-in-nn} read
-$\mathtt{ord} \in \mathtt{nn}$ off that matrix, and Burali-Forti refuted
-it (the derivation is \texttt{scratchpad/mx/mx-probe3.scm}, kept as a
-control that must \emph{fail}).  The assertion had been harmless for
-weeks; the lemma that met it was proved much later for an unrelated
-reason.  That is the case for the bill ledger of
-Section~\ref{sec:proof-debt}: an asserted step is a liability whose
-size is not known when it is taken.
+The guard is not decoration.  Without it \texttt{matof-exists} proves
+\texttt{falsity}: instantiated at $m := \mathtt{ord}$ it gives a matrix
+with $\mathtt{ord}$ rows, \texttt{mat-rows-in-nn} reads
+$\mathtt{ord} \in \mathtt{nn}$ off that matrix, and Burali-Forti refutes
+it.  An unguarded assertion of this kind is
+harmless until a lemma proved for an unrelated reason meets it.  That
+is the case for the bill ledger of Section~\ref{sec:proof-debt}: an
+asserted step is a liability whose size is not known when it is taken.
 
 Every construction below is a $\mathtt{matof}$, so each carries its
 typing lemma and its entry lemma, and proofs about it reduce to
@@ -1566,7 +1557,7 @@ interval, carries $1 \le n$; a typing law carries
 $n = 0 \Rightarrow (m = 0 \vee k = 0)$; associativity, with two inner
 dimensions, carries a pair of such conditions (G1, G2 in the design
 note).  The guards are premises placed after the binders, so a citation
-of the law reads exactly as it did before the guard.
+of the law reads exactly as a citation of the unguarded statement.
 
 The whole-matrix laws (addition: associativity, commutativity, the zero and
 negation laws; multiplication: associativity, the guarded distributive laws
@@ -1574,8 +1565,8 @@ negation laws; multiplication: associativity, the guarded distributive laws
 identity laws \texttt{identmat-left-identity} and \texttt{identmat-right-identity})
 are theorems of the library, proved in \texttt{theorem-library/}
 (\texttt{rake-matrix-laws.scm}, \texttt{rake-identmat.scm},
-\texttt{matmul-assoc-proof.scm}); \texttt{structure-library/matrix.scm} no
-longer installs any support.  Whether a particular law is proved or still
+\texttt{matmul-assoc-proof.scm}); \texttt{structure-library/matrix.scm}
+installs no support.  Whether a particular law is proved or still
 rests on an asserted fact is reported, with its bill, by
 \texttt{reference/PROOF-DEBT.md} and the browser reference; the generated
 pages are the authority.

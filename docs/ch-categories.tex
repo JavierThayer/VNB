@@ -65,7 +65,7 @@ The argument list is the two objects and one map per carrier.  The body states
 \texttt{is-metrizable-top-space($s$)}, \texttt{is-metrizable-top-space($t$)}
 and the map typing \texttt{$f$ in fun(pts($s$), pts($t$))} are supplied
 automatically and need not be repeated.  The declaration replaces the generated
-\texttt{is-hom-metrizable-top-space} entirely.  Two species override today:
+\texttt{is-hom-metrizable-top-space} entirely.  Two species override it:
 \texttt{metrizable-top-space} (a refinement inherits its parent's shape, not
 its arrows, so continuity is restated) and \texttt{ringoid} (a ring
 homomorphism of the underlying rings that preserves the ideal).  The table of
@@ -213,7 +213,7 @@ all.  Genuinely \emph{non}-forgetful functors --- the quotient, the completion
     \forall r.\; \mathit{is\text{-}source}(r) \;\Rightarrow\;
       \mathit{is\text{-}target}(\mathit{name}(r)).
   \]
-  During the library-build phase this is installed as an \emph{axiom}
+  It is installed as an \emph{axiom}
   (a warranted assertion, Section~\ref{sec:warrants}), not proved;
   promoting it to a theorem is a separate task.
 
@@ -232,10 +232,10 @@ all.  Genuinely \emph{non}-forgetful functors --- the quotient, the completion
 A view-as is a covariant functor in waiting: the constructor is the
 object map (an instance of the source becomes an instance of the
 target), and the auto-specialization transports the target's theorems
-along it.  Homomorphisms are now first-class
+along it.  Homomorphisms are first-class
 (Section~\ref{sec:morphisms}); the morphism half --- transporting a
 homomorphism across a view --- remains deferred.  The
-auto-specializer currently matches only theorems guarded by exactly
+auto-specializer matches only theorems guarded by exactly
 \texttt{is-\textit{target}}; it does not chain through structure-inclusion axioms,
 so same-shape refinements (a commutative ring's additive view, say) are
 declared directly rather than derived.

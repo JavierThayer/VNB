@@ -3869,6 +3869,8 @@
     "theorem-library/integral-unique"    ; WAVE-2 2026-10-30: md/md-unique.scm
     ;; RM-3A: the M. Riesz positive extension to C(s), s compact.
     "theorem-library/positive-extension"
+    "structure-library/m-riesz-vocab"    ; WAVE 2026-11-17: ba1117gns2/m-riesz-vocab.scm
+    "theorem-library/m-riesz"    ; WAVE 2026-11-17: ba1117gns2/m-riesz.scm
     "theorem-library/lebesgue-measure-line"
     ;; MEASURE-4 (2026-10-10).  4-A: TRANSLATE; translates of Lebesgue sets are Lebesgue sets
     ;; with the same measure; a Borel measure on the line giving [a, b] the length b - a is Lebesgue measure.
@@ -4208,6 +4210,7 @@
     "theorem-library/cnvs-a"    ; WAVE 2026-11-09/10: cnvs-1109/cnvs-a.scm
     "theorem-library/cnvs-b"    ; WAVE 2026-11-09/10: cnvs-1109/cnvs-b.scm
     "theorem-library/cnvs-c"    ; WAVE 2026-11-09/10: cnvs-1109/cnvs-c.scm
+    "theorem-library/sub-riesz"    ; WAVE 2026-11-17: ba1117trace/sub-riesz.scm
     "theorem-library/cnvs-d"    ; WAVE 2026-11-09/10: cnvs-1109/cnvs-d.scm
     "theorem-library/cnvs-ba"    ; WAVE 2026-11-09/10: cnvs-1109/cnvs-ba.scm
     "theorem-library/cnvs-bop-bridge"    ; WAVE 2026-11-09/10: cnvs2-1109/cnvs2-bop.scm
@@ -4453,6 +4456,7 @@
     "structure-library/functoriality"
     "theorem-library/gal-ch"    ; WAVE 2026-10-26/27: galois/gal-ch.scm
     "theorem-library/l2-families"    ; WAVE 2026-11-09/10: baonb2-1109/bo2-l2a.scm
+    "theorem-library/family-nn-enum"    ; WAVE 2026-11-17: ba1117trace/family-nn-enum.scm
     "theorem-library/sums-to-algebra"    ; WAVE 2026-11-09/10: baonb3-1109/b3-sums.scm
     "theorem-library/complete-transfer"    ; WAVE 2026-11-09/10: baonb3-1109/b3-complete.scm
     "theorem-library/l2-families-2"    ; WAVE 2026-11-09/10: baonb3-1109/b3-l2.scm
@@ -4470,21 +4474,43 @@
     "theorem-library/ipf-form-plus"    ; WAVE 2026-11-11: ba1111a2/ipf-form-plus.scm
     "theorem-library/hilbert-completion"    ; WAVE 2026-11-11: ba1111a2/hilbert-completion.scm
     "theorem-library/ba-trace-class"    ; WAVE 2026-11-11: ba1111a/bta-trace.scm
+    "structure-library/ba-trace-dual-vocab"    ; WAVE 2026-11-17: ba1117trace/ba-trace-dual-vocab.scm
+    "theorem-library/ba-trace-dual"    ; WAVE 2026-11-17: ba1117trace/ba-trace-dual.scm
     "theorem-library/ba-graph-commutation"    ; WAVE 2026-11-11: ba1111a/btg-all.scm
     "structure-library/ba-rep-vocab"    ; WAVE 2026-11-11: ba1111b/ba-rep-vocab.scm
     "structure-library/ba-gns-vocab"    ; WAVE 2026-11-11: ba1111b/ba-gns-vocab.scm
+    "structure-library/ba-gns2-vocab"    ; WAVE 2026-11-17: ba1117gns2/ba-gns2-vocab.scm
+    "theorem-library/completion-lift"    ; WAVE 2026-11-17: ba1117gns2/completion-lift.scm
     "theorem-library/ba4-sqrt"    ; WAVE 2026-11-11: ba1111b/ba4-sqrt.scm
+    "structure-library/gn-vocab"    ; WAVE 2026-11-17: ba1117gn/gn-vocab.scm
+    "theorem-library/gn-order"    ; WAVE 2026-11-17: ba1117gn/gn-order.scm
+    "theorem-library/gn-onto"    ; WAVE 2026-11-17: ba1117gn/gn-onto.scm
+    "theorem-library/gn-jac"    ; WAVE 2026-11-17: ba1117gn/gn-jac.scm
+    "theorem-library/gn-pos"    ; WAVE 2026-11-17: ba1117gn/gn-pos.scm
+    "theorem-library/gn-dual"    ; WAVE 2026-11-17: ba1117gn/gn-dual.scm
+    "theorem-library/gn-cgen"    ; WAVE 2026-11-17: ba1117gn/gn-cgen.scm
+    "theorem-library/gn-gen"    ; WAVE 2026-11-17: ba1117gn/gn-gen.scm
     "theorem-library/ba4-pos"    ; WAVE 2026-11-11: ba1111b/ba4-pos.scm
     "theorem-library/ba4-rep"    ; WAVE 2026-11-11: ba1111b/ba4-rep.scm
+    "theorem-library/gns-unique"    ; WAVE 2026-11-17: ba1117gns2/gns-unique.scm
     "theorem-library/ba4-gns"    ; WAVE 2026-11-11: ba1111b/ba4-gns.scm
     "theorem-library/ba4-states"    ; WAVE 2026-11-11: ba1111b/ba4-states.scm
+    "theorem-library/state-extreme"    ; WAVE 2026-11-17: ba1117gns2/state-extreme.scm
+    "theorem-library/states-compact"    ; WAVE 2026-11-17: ba1117gns2/states-compact.scm
+    "theorem-library/pure-states"    ; WAVE 2026-11-17: ba1117gns2/pure-states.scm
     "theorem-library/tvs-sub-bound"    ; WAVE 2026-11-11: ba1111c/tvs-sub-bound.scm
     "theorem-library/ba-optop-adjoint"    ; WAVE 2026-11-11: ba1111c/ba-optop-adjoint.scm
     "structure-library/ba-vn-vocab"    ; WAVE 2026-11-11: ba1111c/ba-vn-vocab.scm
     "theorem-library/ba-vn"    ; WAVE 2026-11-11: ba1111c/ba-vn.scm
+    "theorem-library/ba-forms"    ; WAVE 2026-11-17: ba1117forms/ba-forms.scm
     "structure-library/ba-amp-vocab"    ; WAVE 2026-11-11: ba1111c2/ba-amp-vocab.scm
     "theorem-library/ba-amp"    ; WAVE 2026-11-11: ba1111c2/ba-amp.scm
+    "theorem-library/gns-completion"    ; WAVE 2026-11-17: ba1117gns2/gns-completion.scm
+    "theorem-library/amp-sum"    ; WAVE 2026-11-17: ba1117trace/amp-sum.scm
+    "theorem-library/cc-separation"    ; WAVE 2026-11-17: ba1117trace/cc-separation.scm
     "theorem-library/ba-sesq"    ; WAVE 2026-11-11: ba1111c2/ba-sesq.scm
+    "structure-library/wot-compact-vocab"    ; WAVE 2026-11-17: ba1117trace/wot-compact-vocab.scm
+    "theorem-library/wot-compact"    ; WAVE 2026-11-17: ba1117trace/wot-compact.scm
     "theorem-library/ccr4e-unif0"    ; WAVE 2026-11-11: ccr1111/ccr4e-unif0.scm
     "theorem-library/poly-eval-mul"    ; WAVE 2026-11-11: ccr1111b/poly-eval-mul.scm
     "structure-library/ccr4f-vocab"    ; WAVE 2026-11-11: ccr1111b/ccr4f-vocab.scm

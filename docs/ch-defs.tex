@@ -121,13 +121,13 @@ expands to a three-conjunct mouthful.
 
 Installed in \texttt{structure-library/order-predicates.scm} (loads
 right after \texttt{number-systems}).  Each is just a defined-by-iff
-predicate; ground reasoning still unfolds through the iff (arith-eval
-has not been extended to dispatch on \texttt{<} directly).
+predicate; ground reasoning unfolds through the iff (arith-eval
+does not dispatch on \texttt{<} directly).
 
 \begin{remark}
-Opt-in.  Existing statements (the metric-topology
-vocabulary) retain the verbose forms for backward consistency; new
-axioms going forward should prefer \texttt{<} and \texttt{pos-rr}.
+Opt-in.  The metric-topology vocabulary is stated with the
+verbose forms; new statements should prefer \texttt{<} and
+\texttt{pos-rr}.
 \end{remark}
 
 %% =========================================================
@@ -273,7 +273,7 @@ Defining $A_\alpha(\beta) = \alpha + \beta$ as a function of $\beta$:
   '(lam) '(SUP-ORD (ORD-SEGMENT lam)))     ; ORD-ADD(lam) = sup of ORD-ADD on lam
 \end{VNBcode}
 
-(Here \texttt{alpha-fixed} is the constant playing the role of $\alpha$.
+(Here \texttt{a\_fix} is the parameter playing the role of $\alpha$.
 A full definition would use nested ordinal recursion.)
 
 %% =========================================================
@@ -521,7 +521,7 @@ which it is worth keeping clearly separated.
 This matches the standard textbook presentation in which a ring, say,
 is defined as a 6-tuple $(R,+,\times,-,0,1)$ satisfying certain axioms:
 the tuple is the instance (point~2) and the collection of all such tuples
-is the class (point~3), now an addressable name.
+is the class (point~3), which has a name of its own.
 \end{remark}
 
 \paragraph{How a declared structure is printed.}
@@ -667,7 +667,7 @@ The core algebraic species are declared in \texttt{structure-library/} (one file
 per structure) and loaded at startup.  The declarations below are \emph{generated}
 from the live catalogue (\texttt{reference/STRUCTURE-INDEX.md}), so their slots and
 laws match the running system.  Names are shown as \emph{stored}: the reader and
-MIT~Scheme fold case, so \texttt{monoid} and \texttt{monoid}, \texttt{carr} and
+MIT~Scheme fold case, so \texttt{MONOID} and \texttt{monoid}, \texttt{CARR} and
 \texttt{carr}, denote the same symbol.  Each \texttt{(property \ldots)} clause folds
 one characteristic law into the structure's \texttt{is-X} predicate.
 
@@ -1032,8 +1032,8 @@ form: \texttt{((add K) a b)} prints as $\mathtt{add}(K)(a, b)$.  The
 \[
   a +_K b .
 \]
-It is off by default.  While it is off the printer prints exactly what
-it printed before.  It changes only TeX output: the panels, the
+It is off by default, and while it is off the printer writes the
+functional form.  It changes only TeX output: the panels, the
 proof reader and \texttt{display-proof}.  The parser, \texttt{pp} and
 the kernel never see it.
 
