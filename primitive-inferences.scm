@@ -583,14 +583,10 @@
            (list (make-sequent asms (wff-child goal (binary-right g))))
            sqn))))
 
-;;; TRUTH introduction
-
-(define (pi-truth! sqn)
-  (let ((goal (sequent-node-assertion sqn))
-        (dg   (sqn-dg sqn)))
-    (if (eq? (wff-formula goal) 'TRUTH)
-        (dg-apply-rule! dg 'truth-intro '() sqn)
-        #f)))
+;;; TRUTH INTRODUCTION -- RETIRED 2026-11-18 (the user's decision 2026-11-17): pi-truth! had no
+;;; caller, so its checker could never fire; `assumption''s checker already accepts a TRUTH goal.
+;;; The rule tag and its checker went with it, as contraposition's did on 2026-10-08.  The META
+;;; core calculus keeps its own rule CR-TRUTH-INTRO (structure-library/meta-core.scm).
 
 ;;; -----------------------------------------------------------------------
 ;;; BACKCHAIN

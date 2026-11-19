@@ -1,3 +1,3 @@
 ;;; VNB proof certificates for theorem-library/rr-ms-dist.scm -- written by a load that proved them; do not edit.
-(vnb-certificate-file "theorem-library/rr-ms-dist" (kernel "4c98b340e7c338c7bed28f5672bcc029") (count 1))
-(rr-ms-dist "6745c28a0c314c7f63eee92e8dc875e8" (forall u_ (forall v_ (implies (in u_ rr) (implies (in v_ rr) (== ((dist rr-ms) u_ v_) (abs (- u_ v_))))))) (cites) (defs (rr-ms . "D69a4770fcec757e9e0d852c8741f7f36")) (uses (rr-ms@dist . "T43c73b3d5b509a051c6e8438e27eefe5")) (own-oracles) (bill) (oracles) (kernel "4c98b340e7c338c7bed28f5672bcc029"))
+(vnb-certificate-file "theorem-library/rr-ms-dist" (kernel "303c835d1e541b207681959c87511f05") (count 1))
+(rr-ms-dist "6745c28a0c314c7f63eee92e8dc875e8" (forall u_ (forall v_ (implies (in u_ rr) (implies (in v_ rr) (== ((dist rr-ms) u_ v_) (abs (- u_ v_))))))) (cites) (defs (rr-ms . "D69a4770fcec757e9e0d852c8741f7f36")) (uses (rr-ms@dist . "T43c73b3d5b509a051c6e8438e27eefe5")) (own-oracles) (bill) (oracles) (kernel "303c835d1e541b207681959c87511f05"))

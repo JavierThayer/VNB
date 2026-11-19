@@ -687,12 +687,7 @@
                    ((chk-elim-certified? concl t) #t)
                    (else "the witness is not certified defined in the context, and no definedness sequent  t = t  is owed"))))))))))
 
-;;; truth-intro: G = TRUTH; no hypotheses.  (Unreachable: no tactic calls it.)
-(register-rule-checker! 'truth-intro
-  (lambda (rule hyps concl)
-    (cond ((not (eq? (chk-goal concl) 'TRUTH)) "the goal is not TRUTH")
-          ((not (null? hyps)) "truth-intro takes no hypotheses")
-          (else #t))))
+;;; truth-intro: RETIRED 2026-11-18 with pi-truth!, which had no caller.
 
 ;;; --- elimination rules on the CONTEXT ----------------------------------
 

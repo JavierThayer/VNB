@@ -939,8 +939,9 @@
 ;;;                           `arith-' tags went undocumented until 2026-07-28.
 ;;;   listed but not used  -- either a rule no proof in the library exercises, or
 ;;;                           a rule no tactic can reach at all.  `contraposition'
-;;;                           and `truth-intro' are the second kind: pi-contraposit!
-;;;                           and pi-truth! are implemented and called from nowhere.
+;;;                           (retired 2026-10-08) and `truth-intro' (retired
+;;;                           2026-11-18) were the second kind: pi-contraposit! and
+;;;                           pi-truth! were implemented and called from nowhere.
 ;;;
 ;;; Entry: (tag kind "gloss").  KIND is `schema' (carries set-existence content),
 ;;; `logic' (ordinary natural deduction, equality, structure eliminators),
@@ -967,7 +968,6 @@
     (iff-intro             logic  "goal IFF: prove both directions (di)")
     (forall-intro          logic  "goal FORALL: introduce an eigenvariable (di)")
     (forsome-intro         logic  "goal FORSOME: supply a witness (ew)")
-    (truth-intro           logic  "goal TRUTH.  UNREACHABLE: no tactic calls pi-truth!")
     (and-elim              logic  "split a conjunctive assumption (ai)")
     (or-elim               logic  "case-split on a disjunctive assumption (ai)")
     (not-elim              logic  "assumption NOT p with p in context closes the goal (ai)")

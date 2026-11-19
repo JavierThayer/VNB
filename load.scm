@@ -4670,7 +4670,7 @@
 (define *rule-checker-groups*
   '(("rule-checkers-logic"
      and-intro or-intro-left or-intro-right implies-intro not-intro iff-intro
-     forall-intro forsome-intro truth-intro and-elim or-elim not-elim iff-elim
+     forall-intro forsome-intro and-elim or-elim not-elim iff-elim
      forsome-elim forall-elim assumption theorem-assumption cut weakening
      detach backchain proof-by-contradiction eq-subst
      reflexivity quasi-reflexivity if-true if-false cartesian-intro

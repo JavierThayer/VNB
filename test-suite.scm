@@ -10713,8 +10713,7 @@
   (rcl--h '() '(FORSOME x (IN y (r4f-bnd x))))
   (list (rcl--h '() `(IN y (r4f-bnd ,r4f-u)))))
 
-(rcl--accept "truth-intro" 'truth-intro (rcl--h '() 'TRUTH) '())
-(rcl--refuse "truth-intro" 'truth-intro (rcl--h '() '(IN x NN)) '())
+;; truth-intro: RETIRED 2026-11-18 (pi-truth! had no caller); its accepted / refused pair went with it.
 
 (rcl--case "and-elim" 'and-elim
   (rcl--h (list '(AND (IN x NN) (IN y NN))) '(< x y))
@@ -18752,16 +18751,16 @@
 ;;; the wrappers are installed and removed by the checks themselves.
 
 ;;; check 9: with the flag off every wrapped entry point is its original
-(check "CORE-CAPTURE 9 (accepted): flag off -- all 54 entry points (and start-proof) are eq? to their originals"
+(check "CORE-CAPTURE 9 (accepted): flag off -- all 53 entry points (and start-proof) are eq? to their originals"
   (lambda () (list (length (core-capture-wrapped-names)) (core-capture-originals-intact?)))
-  '(54 #t))
+  '(53 #t))
 (check "CORE-CAPTURE 9 (control): installed, none is its original; removed, all are again"
   (lambda ()
     (core-capture-install!)
     (let ((during (core-capture-originals-intact?)))
       (core-capture-uninstall!)
       (list (and (list? during) (length during)) (core-capture-originals-intact?))))
-  '(54 #t))
+  '(53 #t))
 
 ;;; check 7: the kernel bill against the ledger bill
 (add-axiom! *library* 'cc7-ax '(IN cc7zz NN))

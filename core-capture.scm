@@ -12,8 +12,9 @@
 ;;;
 ;;;  1. CAPTURE.  Every kernel entry point (the named procedures of
 ;;;     reference/kernel-map-static.sexp that call `dg-apply-rule!' and are still
-;;;     defined -- 53; `pi-contraposit!' is listed there but no longer exists --
-;;;     plus `apply-macete!', which reaches the elementary-macete closures: 54) is replaced
+;;;     defined -- 52; `pi-contraposit!' and `pi-truth!' are listed there but no
+;;;     longer exist -- plus `apply-macete!', which reaches the elementary-macete
+;;;     closures: 53) is replaced
 ;;;     by `environment-assign!' with a wrapper that calls the original and then
 ;;;     attributes the inference nodes the call added to the graph (the prefix of
 ;;;     `dg-inference-nodes' before the pointer read on entry; that list is
@@ -83,7 +84,6 @@
     (pi-assumption!              ass       0)
     (pi-or-intro-left!           oi-l      0)
     (pi-or-intro-right!          oi-r      0)
-    (pi-truth!                   #f        0)
     (pi-backchain!               bc        0 f)
     (pi-detach!                  detach!   0 f)
     (pi-eq-subst!                subst     0 f)
