@@ -1,0 +1,575 @@
+%% ch-meta-soundness.tex -- Part 2 (\ref{part:meta}), the soundness of the core for version-X (link 3).
+%% Hand-written (DS-6).  Cites the design specification as \DS{n}.  Placed after ch-meta-k2.
+\providecommand{\DS}[1]{\hyperref[ds:#1]{DS-#1}}
+\providecommand{\Sq}{\Rightarrow}
+\providecommand{\FV}{\mathrm{FV}}
+
+\chapter{Soundness of the core}
+\label{ch:meta-soundness}
+
+This chapter is link~3 of Section~\ref{sec:meta-chain}.  It argues
+that each of the 56 core rules of Section~\ref{sec:meta-core} is sound
+for version-X, and that each axiom of the catalog holds, under one
+reading of VNB's terms and formulas.
+
+The argument is written by hand (\DS{6}).  It is not a VNB theorem
+(Section~\ref{sec:meta-not-claimed}).  The functoid part is
+Chapter~\ref{ch:meta-functoids}; here every formula is read after the
+elimination of its defined heads.
+
+%% =========================================================
+\section{The reading}\label{sec:meta-reading}
+
+\subsection{Models}
+
+Let $M$ be a model of version-X, NBG with global choice
+(\DS{3})~\cite{vonNeumann1925,Bernays1937,Godel1940}.  The objects of
+$M$ are its classes; a set is a class that is a member of a class.  Fix
+in $M$ a well-ordering $W$ of the universe.  NBG with global choice
+provides one.
+
+A VNB class is read as a class of $M$ (\DS{4}).  Free names
+(variables) range over all classes of $M$.  An \emph{assignment}
+$\sigma$ gives each free name a class.
+
+\subsection{Terms}
+
+A term denotes a class of $M$ or nothing.  We write $[\![t]\!]\sigma$
+for the denotation, and say that $t$ \emph{denotes} when there is one.
+The clauses:
+\begin{itemize}
+\item A free name denotes $\sigma$ of it.  A primitive constant denotes
+  a fixed class: $\mathrm{SET}$ the class of all sets, $\mathrm{ORD}$
+  the class of von Neumann ordinals, $\mathrm{NN}$ the von Neumann
+  naturals, $\mathrm{EMPTY\text{-}SET}$ the empty set, the numerals and
+  the number classes as in Section~\ref{sec:meta-numbers}.
+\item \emph{Lists.}  The list $[e_1..e_n]$ denotes when every $e_i$
+  denotes a set (\DS{24}).  Its value is the Kuratowski pair
+  $(n, s)$, where $s$ is the set of Kuratowski pairs $(i, e_i)$,
+  $1\leq i\leq n$.  These pairs are NBG's own, not VNB's; a VNB pair
+  $[x, y]$ is the list of length 2.  Every list is a set.
+\item $\mathrm{LENGTH}(c)$ is $n$ when $c$ is a list of length $n$, and
+  $0$ for every other class.  $\mathrm{NTH}(k, c)$ is the $k$-th entry
+  when $c$ is a list and $1\leq k\leq n$, and nothing otherwise.
+  $\mathrm{CONS}(x, c)$, for a set $x$, is the list with first entry $x$
+  followed by the entries of $c$ when $c$ is a list, and $[x]$
+  otherwise; for a proper class $x$ it is nothing.
+\item The class constructors $\mathrm{UNION}$, $\mathrm{INTERSECTION}$,
+  $\mathrm{CARTESIAN}$, $\mathrm{TUPLES}$ and $\mathrm{FUN}$ denote
+  when every argument denotes.  They are then the classes of sets that
+  their membership schemas describe.  $\mathrm{CARTESIAN}(A_1..A_n)$ is the class of lists of
+  length $n$ whose $i$-th entry is in $A_i$; $\mathrm{TUPLES}(A)$ the
+  class of lists all of whose entries are in $A$; $\mathrm{FUN}(A)$ the
+  class of sets $f$ of VNB pairs, single-valued, with domain exactly
+  $A$; $\mathrm{FUN}(A, B)$ those members of $\mathrm{FUN}(A)$ whose
+  values lie in $B$.  $\mathrm{UNION}()$ is the empty set; the nullary
+  intersection and product are fixed arbitrarily, since no rule or
+  axiom mentions them.
+\item $\mathrm{succ}$ and $\mathrm{succ\_ORD}$ are total: at a set $x$
+  the value is $x\cup\{x\}$, at a proper class the class itself.
+\item \emph{Application.}  $\mathrm{APPLY}(f, x)$ is the unique $v$ with
+  $[x, v]\in f$, when $f$ and $x$ denote and exactly one such $v$
+  exists, and nothing otherwise.  Such a $v$ is a set.  An application
+  of arity $n\geq 2$, $f(a_1,\ldots,a_n)$, is
+  $\mathrm{APPLY}(f, [a_1..a_n])$.
+\item $\mathrm{IF}(p, a, b)$ is the denotation of $a$ when $p$ is true,
+  of $b$ otherwise, and nothing when that branch denotes nothing.
+\item $\iota x.\,B$ denotes the unique class $C$ such that $B$ holds at
+  $x := C$, and nothing when there is no such class or more than one.
+\item $\mathrm{CHOICE}(A)$ denotes the $W$-least member of $A$ when $A$
+  denotes an inhabited class, and nothing otherwise (\DS{52}).
+\item \emph{Binder terms.}  Over a denoting domain $A$:
+  $\mathrm{SEP}\,x{\in}A.\,p$ is the class of the members of $A$ at which
+  $p$ holds; $\bigcup x{\in}A.\,b$ the class of the members of the
+  denoting values $b[x]$, $x\in A$; $\lambda x{\in}A.\,b$ the class of
+  the pairs $[x, b[x]]$, $x\in A$, $b[x]$ a set.
+  $\mathrm{COMP}\,x.\,p$ is the class of the sets at which $p$ holds.
+  Each denotes when that class exists in $M$, and nothing otherwise.
+  Over a non-denoting domain the binder term denotes nothing.
+\end{itemize}
+Each other constructor is read by its defining axioms in the catalog
+(Section~\ref{sec:meta-axioms}).  A guarded definition is read as a
+description: off every guard its head denotes nothing (\DS{31}).
+
+\subsection{Formulas and sequents}
+
+The atoms $\in$, $=$, $\leq$ and $<$ are strict: an atom with a
+non-denoting argument is false (\DS{18}).  So $t = t$ says that $t$
+denotes.  $s\equiv t$ holds when neither side denotes, or both denote the
+same class.  A predicate application $P(t_1..t_n)$ is false when some
+$t_i$ does not denote, and otherwise holds when the values satisfy $P$.
+Primitive predicates are classes of $M$; a defined predicate is read
+through its definition.
+
+The connectives are classical.  The quantifiers range over all classes
+of $M$.  A formula containing defined heads means its elimination
+(\DS{7}; Chapter~\ref{ch:meta-functoids}).
+
+A sequent $\Gamma\Sq A$ is \emph{valid in $M$} when every assignment
+that makes each member of $\Gamma$ true makes $A$ true.  A theory $T$ is
+\emph{true in $M$} when each of its members is true at every
+assignment.
+
+\begin{dfn}\label{dfn:meta-sound}
+A core rule $\mathrm{CR}\text{-}x$ is \emph{sound} when, for every model
+$M$ of version-X and every theory $T$ true in $M$, each instance of
+$\mathrm{CR}\text{-}x(T, \mathit{hs}, c)$ whose hypotheses are valid in
+$M$ has a conclusion valid in $M$.
+\end{dfn}
+
+A definedness side sequent $\Gamma\Sq t=t$ is an ordinary hypothesis
+under this definition.  Nothing else is needed for it.
+
+\subsection{Two lemmas}
+
+\paragraph{Substitution.}  Let $t$ be a closed term that denotes at
+$\sigma$.  Then $B[x:=t]$ is true at $\sigma$ exactly when $B$ is true
+at $\sigma$ with $x$ given the value of $t$.  The same holds for the
+denotation of a term.  If $s\equiv t$ holds at $\sigma$, then $P[z:=s]$
+and $P[z:=t]$ have the same truth value at $\sigma$.  Both statements
+are proven by induction on the expression.  They hold because each clause
+above reads a subterm only through its denotation or the absence of one.
+The encoding is locally nameless (\DS{10}), so no capture arises.
+
+\paragraph{Elimination.}  Let $p$ satisfy $\mathrm{NBG\text{-}OK}$: every
+quantifier and description in it is confined to sets, read through the
+tables $\mathrm{FUN\text{-}DEF}$ and $\mathrm{PRED\text{-}DEF}$ (\DS{39}).
+Then $p$ is equivalent in $M$ to a formula of NBG all of whose
+quantifiers range over sets, with class parameters: the values of its
+free names, the primitive classes and $W$.
+
+The proof replaces each atom about a compound term by its defining
+condition.  $y\in\mathrm{SEP}\,x{\in}A.\,q$ becomes
+$y\in A\wedge q[x:=y]$.  $y=\mathrm{APPLY}(f,x)$ becomes
+$[x,y]\in f\wedge\forall y'\,([x,y']\in f\to y'=y)$, where $y'$ is
+confined by the membership.  $y=\mathrm{CHOICE}(A)$ becomes
+$y\in A\wedge\forall z\,(z\in A\to\neg\,zWy)$.  A list becomes its
+Kuratowski code.  A confined description becomes the confined unique
+existence it abbreviates.  Hence the class $\{x\in\mathrm{SET} : p\}$
+exists in $M$, by the class comprehension of NBG.
+
+\begin{prop}[hand-written, conditional]\label{prop:meta-sound}
+Assume the hypotheses of Section~\ref{sec:meta-sound-hyp}.  Every core
+rule is sound.  Consequently, if $T$ is true in a model of version-X,
+every sequent in $\mathrm{DERIVABLE}(T)$ is valid in it, and
+$\{\}\Sq\textsc{falsity}$ is not derivable.
+\end{prop}
+
+The consequence is an induction on $\mathrm{DERIVABLE}(T)$, the least
+set closed under the rules.  $\{\}\Sq\textsc{falsity}$ is valid in no
+model.  If version-X is consistent it has a model, so $T$, when true in
+one, derives no \textsc{falsity}.  Section~\ref{sec:meta-axioms} argues
+that the catalog is true in every model of version-X, with the primitive
+heads read as stated there.  A theorem enters $T$ only after it is derived
+(links~1 and~2), so by induction on the order of installation it is true
+as well.
+
+%% =========================================================
+\section{The rules}\label{sec:meta-rules}
+
+The groups follow the table of Section~\ref{sec:meta-core}.  In each
+argument, $\sigma$ is an assignment that makes $\Gamma$ true, and a
+hypothesis is used through its validity at $\sigma$.
+
+\subsection{Logic (21 rules)}
+
+and-intro, and-elim, or-intro-left, or-intro-right, or-elim,
+implies-intro, backchain, not-intro, not-elim, iff-intro, iff-elim,
+assumption, cut, weakening and proof-by-contradiction are the
+propositional rules of classical natural deduction in the sequent
+form~\cite{Gentzen1935}.  Each is sound by the truth tables.  The
+elimination rules read a formula of the context; that changes nothing in
+the argument.  truth-intro concludes \textsc{truth},
+true everywhere.  theorem-assumption concludes a member of $T$, true by
+the assumption on $T$.
+
+The four quantifier rules are those of a partial first-order logic in
+which variables always denote and a term may not, as in the logic of
+IMPS~\cite{IMPS} and in~\cite{Farmer2023}.
+\begin{itemize}
+\item forall-elim and forsome-intro carry the hypothesis $\Gamma\Sq t=t$
+  (\DS{19}, \DS{40}).  At $\sigma$, $t$ denotes a class $C$.  By the
+  substitution lemma, $B[x:=t]$ is $B$ at $x:=C$.  The universal gives
+  it; the existential is witnessed by it.  Without the hypothesis
+  neither rule is sound: $\forall x.\,x=x$ is true, and
+  $\iota x.\,\textsc{falsity} = \iota x.\,\textsc{falsity}$ is false.
+\item forall-intro: $y\notin\FV(\Gamma)\cup\FV(B)$.  For a class $C$,
+  the assignment $\sigma[y:=C]$ still makes $\Gamma$ true, so $B[x:=y]$
+  holds there, which is $B$ at $x:=C$.  forsome-elim is the dual
+  argument, with $y\notin\FV(G)$.
+\end{itemize}
+
+\subsection{Equality (4 rules)}
+
+reflexivity concludes $t=t$ for $t$ a free name or an atomic constant.
+A free name denotes under every assignment.  An atomic constant denotes
+by hypothesis~(S2).  quasi-reflexivity holds by the definition of
+$\equiv$.
+
+eq-subst and eq-subst-sym need one of $s=t$, $s\equiv t$, $t=s$,
+$t\equiv s$ in $\Gamma$ (\DS{41}).  Each makes $s\equiv t$ true at
+$\sigma$.  The substitution lemma then gives $P[z:=s]$ from $P[z:=t]$.
+The rule is sound for $\equiv$, not only for $=$, because the reading
+is compositional in the denotation or its absence.
+
+\subsection{Structural membership and tuples (7 rules)}
+
+Each schema is the membership condition of the reading.  The work is at
+the arguments that may not denote.
+\begin{itemize}
+\item union-mem, with one hypothesis $\Gamma\Sq S_i=S_i$ per entry
+  (\DS{53}).  All entries denote, so $\bigcup(S_1..S_n)$ is the union of
+  their values, and the equivalence is its definition.  If $x$ does not
+  denote, both sides are false.  At $n=0$ the union is empty and the
+  right side is \textsc{falsity}.  Without the hypotheses the schema is
+  false: with $S_2$ non-denoting and $x\in S_1$ true, the right side holds
+  and the left does not, since $\mathrm{UNION}$ is strict.
+\item intersection-mem, $n\geq 1$.  If some $S_i$ does not denote, both
+  sides are false.  Otherwise the equivalence is the definition.  No
+  hypothesis is needed, since every entry occurs in a strict atom on the
+  right.
+\item cartesian-mem, $n\geq1$.  The same argument.  The right side's
+  conjuncts $\mathrm{NTH}(i,x)\in A_i$ are false at a non-denoting
+  $A_i$, and the product does not denote.
+\item tuples-mem, with the hypothesis $\Gamma\Sq A=A$ (\DS{53}).  If some
+  $e_i$ is a proper class or does not denote, the list does not denote
+  and $e_i\in A$ is false: both sides are false.  Otherwise the list is
+  in $\mathrm{TUPLES}(A)$ exactly when each entry is in $A$.  At $n=0$
+  the list $[\,]$ denotes and lies in $\mathrm{TUPLES}(A)$ for every
+  denoting $A$; the right side is \textsc{truth}.  This is where the
+  hypothesis is needed.
+\item nth-eq and length-eq carry $\Gamma\Sq L=L$ for the literal
+  $L=[e_1..e_n]$ (\DS{25}).  $L$ denotes, so each $e_k$ is a set,
+  $\mathrm{NTH}(k,L)$ is $e_k$ for $1\leq k\leq n$, and
+  $\mathrm{LENGTH}(L)$ is $n$.  The conclusion is the quasi-equation.
+\item tuple-eq carries $\Gamma\Sq L=L$ and $\Gamma\Sq M=M$.  Two
+  denoting lists of the same length are equal exactly when their entries
+  are, by the uniqueness of Kuratowski pairs.  This is also the claim of
+  the primitive \texttt{tuple-equality-decompose} (\DS{50}).
+\end{itemize}
+
+\subsection{Conditional terms (2 rules)}
+
+The rule if-true has the hypotheses $\Gamma\Sq p$ and
+$\Gamma,\ \mathrm{IF}(p,a,b)\equiv a\Sq G$, and the conclusion
+$\Gamma\Sq G$.  At $\sigma$, $p$ is true, so $\mathrm{IF}(p,a,b)$
+has the denotation of $a$, or none when $a$ has none.  The added
+quasi-equation is therefore true at $\sigma$, and the second hypothesis
+gives $G$.  if-false is the same with $\neg p$ and $b$.  The core
+concludes the quasi-equation, not the strict one: the strict equation
+would assert that the branch denotes (\DS{20}).
+
+\subsection{Set formation, descriptions, functions (9 rules)}
+
+Every schema here that forms a class carries $\mathrm{NBG\text{-}OK}$ on
+its condition or body.  By the elimination lemma the class it names
+exists in $M$.  This is the only place where the strength of NBG, and
+not of Morse--Kelley, is at stake (\DS{38}, \DS{39}).
+\begin{itemize}
+\item sep-mem and comp-mem are the definitions of the two classes.  At a
+  non-denoting $t$ both sides are false: $t\in A$, $t\in\mathrm{SET}$
+  are strict.
+\item sep-sethood: a subclass of a set is a set (separation in NBG).
+\item big-union-mem is the definition of the union of the denoting values.
+  $\exists z\,(z\in A\wedge x\in b)$ is confined by $z\in A$.
+\item big-union-sethood: $A$ is a set and each value $b[z]$, $z\in A$, is
+  a set.  By replacement the values form a set; its union is a set.
+\item iota-def: the first hypothesis says that exactly one class
+  satisfies $B$.  So $\iota x.\,B$ denotes it, and $B[x:=\iota x.\,B]$ is
+  true by the substitution lemma.  The second hypothesis gives $G$.
+\item iota-in-elim: $\iota x.\,B$ denotes, so it denotes the unique
+  class satisfying $B$, and $B[x:=\iota x.\,B]$ holds.
+\item lambda-type carries $\Gamma\Sq\forall x.\,(x\in A\to b\in D)$,
+  $\Gamma\Sq A\in\mathrm{SET}$ and $\Gamma\Sq D=D$ (\DS{53}).  Let $L$ be
+  $\lambda x{\in}A.\,b$.  $L$ is a class, by the elimination lemma.  Each
+  value $b[x]$, $x\in A$, is in $D$, so it is a set, and $L$ contains a
+  pair for every $x\in A$.  $L$ is single-valued with domain $A$.  It is a
+  set by replacement, since $A$ is a set.  $D$ denotes, so
+  $\mathrm{FUN}(A,D)$ denotes, and $L$ is a member.  Without $D=D$ the
+  instance $A=\mathrm{EMPTY\text{-}SET}$, $D$ non-denoting has a true
+  first hypothesis and a false conclusion.
+\item lambda-beta-eq carries $\Gamma\Sq t\in A$ and
+  $\Gamma\Sq b[x:=t]\in\mathrm{SET}$.  $t$ and $b[t]$ are sets, so
+  $[t, b[t]]$ denotes and lies in $L$.  A pair $[x, v]\in L$ with $x=t$
+  has $v=b[t]$.  So $\mathrm{APPLY}(L,t)$ is $b[t]$, and the
+  quasi-equation holds.  Without the second hypothesis the rule is
+  unsound: a pair whose second entry is a proper class does not denote,
+  so a lambda term with a class-valued body has no pair at that point,
+  and the application denotes nothing while $b[t]$ denotes.
+\end{itemize}
+
+\subsection{Definedness (9 rules; \DS{42})}
+
+\begin{itemize}
+\item def-strict-in-l, def-strict-in-r: a true membership has denoting
+  sides.
+\item def-total: $\mathrm{UNION}$, $\mathrm{INTERSECTION}$,
+  $\mathrm{CARTESIAN}$, $\mathrm{TUPLES}$, $\mathrm{FUN}$, $\mathrm{succ}$
+  and $\mathrm{succ\_ORD}$ denote at denoting arguments.  For the class
+  constructors this is comprehension over a predicative condition of the
+  arguments.  For the two successors it is their totality.
+\item def-binder: $\mathrm{SEP}$, $\bigcup$ and $\lambda$ over a
+  denoting domain, with an $\mathrm{NBG\text{-}OK}$ body, denote by the
+  elimination lemma.  def-comp: likewise for $\mathrm{COMP}\,x.\,p$.
+\item def-list: a list of sets denotes (\DS{24}).
+\item def-strict-arg: the heads $\mathrm{UNION}$ through $\mathrm{FUN}$
+  (with $\mathrm{NTH}$, $\mathrm{LENGTH}$, $\mathrm{LIST}$ and
+  $\mathrm{APPLY}$), $\mathrm{succ}$ and $\mathrm{succ\_ORD}$ denote only
+  at denoting arguments.  For $\mathrm{LIST}$ this is the other half of
+  \DS{24}.  def-strict-dom: a binder term denotes only over a denoting
+  domain.
+\item def-strict-pred: a true predicate application has denoting
+  arguments, by the reading.  The reading agrees with the definition of
+  a defined predicate $P$ only at denoting arguments.  This is enough,
+  because every instantiation of a definition owes the definedness of the
+  instance (\DS{19}): a definition is never applied at a term that may
+  not denote.
+\end{itemize}
+
+\subsection{Congruence, functoids, tuples (4 rules)}
+
+\begin{itemize}
+\item iota-cr: from $\Gamma\Sq B[x:=y]\leftrightarrow C[x:=y]$, $y$ fresh,
+  infer $\iota x.\,B\equiv\iota x.\,C$.  By forall-intro's argument $B$ and
+  $C$ hold at the same classes.  So the two descriptions denote the same
+  class, or both denote nothing.
+\item tbind-cr: for $\mathrm{SEP}$ and $\mathrm{COMP}$ the premise is
+  the equivalence of the conditions, for $\bigcup$ and $\lambda$ the
+  quasi-equation of the bodies, at a fresh $y$.  The two classes have the
+  same members, or neither exists (\DS{43}).  No predicativity premise is
+  needed: the conclusion is a quasi-equation, true when neither side
+  denotes.
+\item functoid-beta-eq: $F(l)\equiv b[l]$ for a row $(F,|l|,b)$ of
+  $\mathrm{FUN\text{-}DEF}$.  The meaning of $F(l)$ is that of its
+  instantiated body (\DS{7}, \DS{34}), at every argument list, so the
+  quasi-equation holds.  It rests on hypothesis~(S3).
+\item tuple-eta, $n\geq1$: a member $x$ of $\mathrm{CART}(A_1..A_n)$ is a
+  list of length $n$ of sets, and a list is the list of its own entries.
+  The right side denotes, being equal to $x$ (\DS{45}).
+\end{itemize}
+
+%% =========================================================
+\section{The axioms}\label{sec:meta-axioms}
+
+The catalog is the set of axioms in \texttt{reference/THEOREMS.md},
+section ``Axioms -- the fixed VNB base''.  Its sources are the base
+theory of \texttt{library.scm} and the primitive shelf:
+\texttt{theorem-library/axioms.scm}, \texttt{number-systems.scm},
+and, in \texttt{structure-library/}, \texttt{ordinals.scm},
+\texttt{list-recursion.scm}, \texttt{injection.scm},
+\texttt{extended-reals.scm}, \texttt{order-lemmas.scm} and
+\texttt{ca-lft-vocab.scm}.  Each
+axiom falls into one of the classes below.
+
+\subsection{NBG axioms and their direct consequences}
+
+\begin{itemize}
+\item Extensionality: \texttt{class-extensionality},
+  \texttt{extensionality}.
+\item Sets: \texttt{membership-implies-sethood},
+  \texttt{empty-set-is-set}, \texttt{empty-set-has-no-members},
+  \texttt{subset-set}.
+\item Pairing, power and union: \texttt{pairing},
+  \texttt{pairing-membership}, \texttt{power-set},
+  \texttt{power-set-membership}, \texttt{union-set-closure}.
+\item Separation: \texttt{intersection-set-closure} (one factor a set),
+  \texttt{complement-in-set-closure}.
+\item Replacement: \texttt{image-set}.  Here $\mathrm{IMAGE}(\varphi, S)$
+  is the class of sets $w$ with $\varphi(x)=w$ for some $x\in S$
+  (\texttt{image-membership-iff}).  This is the range of the
+  single-valued part of $\varphi$ over $S$, a set when $S$ is one.
+  $\varphi$ ranges over classes: a bare functoid is never an instance
+  (\DS{33}).
+\item Infinity: \texttt{nn-is-set}.
+\item Global choice: \texttt{choice-axiom}, by the reading of
+  $\mathrm{CHOICE}$ (\DS{52}).
+\item Theorems of NBG: \texttt{burali-forti}; \texttt{nn-induction} and
+  \texttt{transfinite-induction}, at every class $c$.  Every non-empty
+  class of ordinals has a least member.
+\item Equality.  The axioms \texttt{equality-symmetry},
+  \texttt{equality-transitivity} and \texttt{eq-subst-membership} are
+  true for strict equality.
+\end{itemize}
+
+\subsection{Definitional axioms}
+
+Each of these fixes the meaning of a head under the reading.  It is
+therefore true by choice of that meaning.  A membership condition is
+predicative, read through defined heads, as the binder-predicativity
+gate checks for every definitional or primitive membership equivalence
+(\DS{38}).  So the class it describes exists.
+\begin{itemize}
+\item Application and domain: \texttt{app-graph} (the reading of
+  $\mathrm{APPLY}$), \texttt{dom-membership}, \texttt{is-fun-def}, and
+  the definitional \texttt{apply-tupling-2} and \texttt{-3}, the
+  application of arity $n\geq2$.
+\item Functions: \texttt{fun-no-junk}, \texttt{fun-codomain-iff},
+  \texttt{fun-domain-apply-def}.  These are the reading of
+  $\mathrm{FUN}$.  At $x\notin A$ no pair $[x, v]$ is in $f$, so $f(x)$
+  denotes nothing.
+\item Boolean operations.  The axioms \texttt{union-membership},
+  \texttt{intersection-membership},
+  \texttt{complement-in-membership} and \texttt{subset-def}; and the
+  schemas \texttt{union-decompose},
+  \texttt{intersection-decompose}.  The two schemas are true at every
+  instance whose entries denote.  The macete door owes each entry's
+  definedness (\DS{19}), and the nullary intersection is refused.
+\item Constructions: \texttt{make-set-membership},
+  \texttt{make-set-empty}, \texttt{partial-fun-membership},
+  \texttt{partial-fun-binary-membership}, \texttt{res-apply},
+  \texttt{res-typing}, \texttt{res-codomain}.  $\mathrm{RES}(f,b)$ is the
+  set of the pairs of $f$ whose first entry is in $b$.
+\item Quasi-equality: \texttt{quasi-eq-reflexivity}, \texttt{-symmetry},
+  \texttt{-transitivity}, \texttt{quasi-eq-def},
+  \texttt{quasi-eq-subst-membership}.  The last holds because $b\in S$
+  makes $b$ denote, and then $a\equiv b$ is $a=b$.
+\item Ordinals: $\mathrm{ORD\text{-}LE}$ is inclusion on $\mathrm{ORD}$
+  and false elsewhere; $\mathrm{succ\_ORD}(\alpha)=\alpha\cup\{\alpha\}$;
+  $\mathrm{ORD\text{-}SEGMENT}(\alpha)=\alpha$;
+  $\mathrm{SUP\text{-}ORD}(a)=\bigcup a$.  Under these, \texttt{ord-le-*},
+  \texttt{ord-succ-*}, \texttt{ord-segment-*}, \texttt{sup-ord-*},
+  \texttt{ord-zero-least}, \texttt{limit-ord-is-sup},
+  \texttt{nn-subset-ord}, \texttt{ord-succ-nn} and
+  \texttt{ord-le-nn-compat} are facts about von Neumann ordinals.
+  \texttt{ord-lt-iff} and \texttt{limit-ord-iff} define two predicates.
+\item Structures.  For each declared structure $X$, $\mathrm{IS\text{-}}X$
+  is a predicate defined by its shape and laws.  Its last conjunct is
+  $s\in\mathrm{SET}$, and a refinement inherits it through its parent.
+  The class axiom $\forall s\,(s\in X\leftrightarrow\mathrm{IS\text{-}}X(s))$
+  is then comprehension over that condition.  It holds because the
+  condition implies sethood and is predicative (the gate above).  The
+  morphism and hom-set definitions are definitions of new heads.
+\end{itemize}
+
+\subsection{The two sethood axioms}
+
+\texttt{fun-set-iff} and \texttt{cartesian-set-iff} are implications.
+Their names are kept:
+\begin{itemize}
+\item \texttt{fun-set-iff}:
+  \[\forall A\,\forall B\,(A\in\mathrm{SET}\wedge B\in\mathrm{SET}\to\mathrm{FUN}(A,B)\in\mathrm{SET});\]
+\item \texttt{cartesian-set-iff}:
+  \[\forall A\,\forall B\,(A\in\mathrm{SET}\wedge B\in\mathrm{SET}\to\mathrm{CARTESIAN}(A,B)\in\mathrm{SET}).\]
+\end{itemize}
+\emph{cartesian-set-iff.}  The map $(a,b)\mapsto[a,b]$ is a class
+function on the NBG product $A\times B$, a set.  By replacement its
+range is a set, and that range is $\mathrm{CARTESIAN}(A,B)$.
+
+\emph{fun-set-iff.}  A member of $\mathrm{FUN}(A,B)$ is a set of pairs
+$[x,y]$ with $x\in A$ and $y\in B$, so a subset of
+$\mathrm{CARTESIAN}(A,B)$.  Hence $\mathrm{FUN}(A,B)$ is a subclass of
+$\mathrm{POWER}(\mathrm{CARTESIAN}(A,B))$, a set.
+
+The converses do not hold in general.  $\mathrm{CARTESIAN}(\mathrm{EMPTY\text{-}SET},\mathrm{ORD})$
+is empty, hence a set.  $\mathrm{FUN}(\mathrm{EMPTY\text{-}SET},\mathrm{ORD})$
+is $\{\mathrm{EMPTY\text{-}SET}\}$.  $\mathrm{FUN}(\mathrm{ORD},B)$ is
+empty for every $B$, since a set function has a set domain.  The
+converses that hold are theorems, proven in
+\texttt{theorem-library/set-iff-converses.scm}:
+\begin{itemize}
+\item \texttt{fun-domain-in-set}: an inhabited $\mathrm{FUN}(A,B)$ has a
+  set domain $A$;
+\item \texttt{fun-set-converse}: if $A$ is an inhabited set and
+  $\mathrm{FUN}(A,B)$ is a set, then $B$ is a set;
+\item \texttt{cartesian-set-converse-1} and \texttt{-2}: if
+  $\mathrm{CARTESIAN}(A,B)$ is a set and one factor is inhabited, the
+  other factor is a set.
+\end{itemize}
+
+\subsection{Consequences under the reading}
+
+These follow from the reading by a short argument.
+\begin{itemize}
+\item Functions.  The axioms \texttt{dom-of-fun},
+  \texttt{dom-fun-membership}, \texttt{fun-apply-type},
+  \texttt{fun-elements-are-sets},
+  \texttt{fun-domain-elements-are-sets},
+  \texttt{fun-domain-extensionality} and
+  \texttt{partial-fun-binary-sethood}.  The last is the union, over the subsets $b$ of $A$, of the sets
+  $\mathrm{FUN}(b,C)$.
+\item Lists: \texttt{list-sethood}, \texttt{tuples-sethood},
+  \texttt{length-in-nn}, \texttt{length-of-empty}, \texttt{nth-in-range},
+  \texttt{tuple-members-are-sets}, \texttt{make-set-sethood}.  A list's
+  entries are sets.  The lists over a set $A$ form a set: they are coded
+  by finite sequences from $A$.
+\item List generation, primitive: \texttt{tuple-length-zero} and
+  \texttt{tuple-cons-decompose}.  Under the reading every list of length
+  $n+1$ is $\mathrm{CONS}$ of its first entry onto the list of the
+  others.
+\item List construction, definitional: \texttt{empty-in-tuples},
+  \texttt{cons-in-tuples}, \texttt{length-cons}, \texttt{nth-cons-1},
+  \texttt{nth-cons-succ}, \texttt{makeset-cons}.  The equations are
+  unguarded in $L$.  They hold at a non-list $L$ because
+  $\mathrm{LENGTH}(L)$ is $0$ and $\mathrm{CONS}(x,L)$ is $[x]$.  At that
+  $L$, $\mathrm{NTH}$ has no index in range and $\mathrm{MAKE\text{-}SET}(L)$
+  is empty.  A reading in which $\mathrm{LENGTH}$ or $\mathrm{CONS}$
+  denotes nothing off the lists would make \texttt{length-cons} and
+  \texttt{nth-cons-1} false.
+\item \texttt{nn-not-a-list} (\DS{49}).  Every list is a Kuratowski pair
+  $\{\{n\},\{n,s\}\}$, and no member of a Kuratowski pair is empty.
+  $0$ is empty, and every natural $n\geq1$ has $0$ as a member.
+  So no natural is a list.
+\item The primitive rule \texttt{cartesian-decompose} is tuple eta with
+  the membership condition, and \texttt{tuple-equality-decompose} is
+  tuple-eq (\DS{50}).
+\end{itemize}
+
+\subsection{The number systems}\label{sec:meta-numbers}
+
+The axioms of \texttt{number-systems.scm}, the order and infinity
+primitives and \texttt{recip-defined-nonzero} hold in a standard
+construction, recoded so that the inclusions are literal.
+
+Build $\mathbb{C}$ over the Dedekind reals in $M$.  Recode it by an
+injection into the sets that is the identity from the standard copy of
+$\omega$ onto the von Neumann naturals.  Then
+$\mathrm{NN}\subseteq\mathrm{ZZ}\subseteq\mathrm{QQ}\subseteq\mathrm{RR}\subseteq\mathrm{CC}$
+holds literally, $0$ is the empty set, and $\mathrm{succ}$ on
+$\mathrm{NN}$ is $n+1$.  The arithmetic heads, the order, $|\cdot|$,
+$\max$, $\min$, conjugation and the powers are transported.  Then:
+\begin{itemize}
+\item the field, order and completeness axioms (\texttt{nn-*},
+  \texttt{zz-*}, \texttt{qq-*}, \texttt{rr-*}, \texttt{cc-*},
+  \texttt{power-*}) hold, \texttt{rr-sup-*} included;
+\item $\mathrm{recip}$ is the reciprocal on the non-zero numbers and
+  denotes nothing at $0$, which gives \texttt{recip-defined-nonzero};
+\item $\mathrm{RR\text{-}STAR}$ is $\mathrm{RR}$ with two fresh sets
+  $\mathrm{NEG\text{-}INF}$ and $\mathrm{POS\text{-}INF}$.  $\leq$ is the
+  order of the extended line on $\mathrm{RR\text{-}STAR}$ and false
+  elsewhere.  This gives \texttt{pos-inf-upper-bound},
+  \texttt{neg-inf-lower-bound}, \texttt{rr-star-leq-antisymmetric} and
+  \texttt{rr-star-leq-domain}.  The two points must be sets for the
+  definitional \texttt{rr-star-membership} to hold;
+\item $\mathrm{CC\text{-}INF}$ is a fresh set outside $\mathrm{CC}$
+  (\texttt{cc-inf-in-set}, \texttt{cc-inf-not-in-cc});
+\item the definitional \texttt{binary-minus-def},
+  \texttt{binary-divide-def}, \texttt{rr-abs-def}, \texttt{rr-max-def}
+  and \texttt{rr-min-def} define new heads.
+\end{itemize}
+The recoding does not disturb the reading of lists: no axiom says
+whether a number other than a natural is a list.
+
+%% =========================================================
+\section{The hypotheses}\label{sec:meta-sound-hyp}
+
+Proposition~\ref{prop:meta-sound} assumes the following.
+\begin{enumerate}
+\item[(S1)] Version-X is consistent.  The oracles are correct
+  (\DS{5}).
+\item[(S2)] Every atomic constant code of the encoding names a
+  denoting class.  A defined constant whose definition may fail is not
+  encoded as an atomic constant.
+\item[(S3)] The rows of $\mathrm{FUN\text{-}DEF}$ are the eliminations
+  of the kernel's defined heads.  The hypotheses H1--H6 of
+  Chapter~\ref{ch:meta-functoids} hold.
+\item[(S4)] Every predicate of $T$ without a row of
+  $\mathrm{PRED\text{-}DEF}$ has a predicative definition, so the
+  elimination lemma reads through it.
+\item[(S5)] $T$ consists of the catalog and of installed theorems.  The
+  argument covers the axioms of the catalog and the definitions read
+  as above.  A guarded definition is read as a description
+  (Chapter~\ref{ch:meta-functoids}, \DS{31}).
+\end{enumerate}
+(S2)--(S4) are obligations of the translator, K3
+(Section~\ref{sec:meta-open}).  The definitions of the library are
+covered by their general form, not one by one.

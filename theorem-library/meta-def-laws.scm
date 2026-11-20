@@ -1425,9 +1425,7 @@
     (if (not (dk-asm? `(IN ,cc SET)))
         (begin
           (fact 'expr-set-is-set) (fact 'nn-is-set)
-          (let ((iff (dk-meta-iff! 'cartesian-set-iff 'NN 'EXPR-SET)))
-            (dk-meta-and! '(IN NN SET) '(IN EXPR-SET SET))
-            (dk-meta-iff-l! iff))))
+          (dk-set-if! 'cartesian-set-iff 'NN 'EXPR-SET)))
     (dk-have! `(IN ,xs SET) (lambda () (sep-set) (ass)))
     (let* ((iff (dk-meta-iff! 'power-set-membership cc xs))
            (inc `(FORALL md14vz_ (IMPLIES (IN md14vz_ ,xs) (IN md14vz_ ,cc)))))

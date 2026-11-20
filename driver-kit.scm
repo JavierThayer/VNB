@@ -1438,6 +1438,23 @@
          (dk-conj-close! (lambda () (dk-set-close! (cadr (dk-goal))))))
         (#t (dk--set-fact! A) (ass))))
 
+;;; (dk-set-if! THM A B [THUNK]) -- THM is `fun-set-iff' or `cartesian-set-iff', since
+;;; 2026-11-20 the IMPLIES (A in SET and B in SET) => HEAD(A, B) in SET (library.scm; the
+;;; "only if" halves were false).  Lands HEAD(A, B) in SET and returns it.  The antecedent
+;;; conjunction is proved in a have! lane by THUNK, which starts on the goal
+;;; (AND (IN A SET) (IN B SET)); the default closes it from context, conjunct by conjunct.
+;;; The replacement for the old IFF idiom -- cite, prove the right side, land the left --
+;;; at every site that used the IFF value rather than `mac'.
+(define (dk-set-if! thm a b . opt)
+  (let* ((head (case thm ((fun-set-iff) 'FUN) ((cartesian-set-iff) 'CARTESIAN)
+                 (else (error "dk-set-if!: not a sethood axiom" thm))))
+         (goal `(IN (,head ,a ,b) SET))
+         (thunk (if (pair? opt) (car opt)
+                    (lambda () (if (dk-asm? (dk-goal)) (ass) (dk-conj-close! (lambda () (ass))))))))
+    (if (not (dk-asm? goal))
+        (dk-have! goal (lambda () (mac thm) (thunk))))
+    goal))
+
 (define (dk-lam-t!)
   (let* ((before (proof-leaves)))
     (lam-t)

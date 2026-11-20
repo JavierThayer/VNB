@@ -387,7 +387,7 @@ already in $\Gamma - F$.
 \subsubsection*{\texttt{forall-elim}: instantiation of a universal assumption
   (commands \texttt{inst}, \texttt{inst+}; used by \texttt{fact})}
 
-%% forall-elim checker, rule-checkers-logic.scm:702; pi-instantiate!, primitive-inferences.scm:282
+%% forall-elim checker, rule-checkers-logic.scm:1112; pi-instantiate!, primitive-inferences.scm:432
 \phantomsection\label{kop:forall-elim}%
 \VNBfig{forall-elim}{\Gamma, B[x{:=}t] \Longrightarrow G \qquad \bigl(\Gamma \Longrightarrow t = t\bigr)}{\Gamma \Longrightarrow G}
 \begin{VNBcond}
@@ -396,11 +396,10 @@ already in $\Gamma - F$.
 \item[Definedness] The second hypothesis is present exactly when
   $\Gamma$ does not certify $t$ (the certificate at the head of this
   section).
-\item[Not checked] The checker accepts the second hypothesis present or
-  absent.  When it is present, the checker requires it to be
-  $\Gamma \Longrightarrow u = u$ for some term $u$, and does not require
-  $u$ to be $t$.  Definedness of $t$ is therefore enforced by the
-  operation alone.
+\item[Verified by] When the second hypothesis is present, the checker
+  requires it to be $\Gamma \Longrightarrow t = t$ for the instance $t$.
+  When it is absent, the checker requires $\Gamma$ to certify $t$
+  (\texttt{chk-elim-certified?}).
 \end{VNBcond}
 The arguments are the universal assumption and $t$.  The second
 hypothesis is there because a term may be undefined ($f(a)$ for $a$
@@ -536,14 +535,15 @@ context equation from right to left, name it the other way round.
 \subsubsection*{\texttt{reflexivity} and \texttt{quasi-reflexivity}
   (commands \texttt{rfl}, \texttt{qrfl})}
 
-%% rule-checkers-logic.scm:879, :890
+%% rule-checkers-logic.scm:1303
 \phantomsection\label{kop:reflexivity}%
 \VNBfig{reflexivity}{\VNBnohyp}{\Gamma \Longrightarrow t = t}
 \begin{VNBcond}
 \item[Definedness] $\Gamma$ certifies $t$.  The operation also accepts
   the assertion \textsc{truth}.
-\item[Not checked] The definedness condition.  The checker accepts
-  $\Gamma \Longrightarrow u = u$ for any term $u$.
+\item[Verified by] The checker re-runs the definedness certificate
+  (\texttt{pi--defined?}) on $t$ in $\Gamma$, and refuses a term with an
+  impredicative \texttt{comp}.
 \end{VNBcond}
 \phantomsection\label{kop:quasi-reflexivity}%
 \VNBfig{quasi-reflexivity}{\VNBnohyp}{\Gamma \Longrightarrow t \equiv t}
@@ -588,11 +588,14 @@ declining.
   (commands \texttt{ti}, \texttt{te})}
 
 $\mathrm{tuples}(A)$ is the class of finite tuples over $A$.
-%% rule-checkers-logic.scm:991, :1012
+%% rule-checkers-logic.scm:1430, :1459
 \phantomsection\label{kop:tuples-intro}%
 \VNBfig{tuples-intro}{\Gamma \Longrightarrow a_1 \in A \quad \cdots \quad \Gamma \Longrightarrow a_n \in A}{\Gamma \Longrightarrow [a_1, \ldots, a_n] \in \mathrm{tuples}(A)}
 \begin{VNBcond}
-\item[Arity] One hypothesis per component; none for the empty tuple.
+\item[Arity] One hypothesis per component.
+\item[Definedness] For the empty tuple, one hypothesis
+  $\Gamma \Longrightarrow A = A$, present exactly when $\Gamma$ does not
+  certify $A$.  With a component, $a_1 \in A$ makes $A$ defined.
 \end{VNBcond}
 \phantomsection\label{kop:tuples-elim}%
 \VNBfig{tuples-elim $k$}{\Gamma, a_k \in A \Longrightarrow G}{\Gamma \Longrightarrow G}
@@ -605,11 +608,15 @@ $\mathrm{tuples}(A)$ is the class of finite tuples over $A$.
   (commands \texttt{ui}, \texttt{ue})}
 
 $\mathrm{union}$ takes $n$ arguments.
-%% rule-checkers-logic.scm:1038, :1060
+%% rule-checkers-logic.scm:1490, :1520
 \phantomsection\label{kop:union-intro}%
-\VNBfig{union-intro $k$}{\Gamma \Longrightarrow x \in A_k}{\Gamma \Longrightarrow x \in A_1 \cup \cdots \cup A_n}
+\VNBfig{union-intro $k$}{\Gamma \Longrightarrow x \in A_k \qquad \bigl(\Gamma \Longrightarrow A_j = A_j\bigr)_{j \neq k}}{\Gamma \Longrightarrow x \in A_1 \cup \cdots \cup A_n}
 \begin{VNBcond}
 \item[Index] $k$ is recorded with the name, and $1 \leq k \leq n$.
+\item[Definedness] After the membership, one hypothesis
+  $\Gamma \Longrightarrow A_j = A_j$ for each entry $A_j$ other than
+  $A_k$ that $\Gamma$ does not certify.  $\mathrm{union}$ is strict in
+  every entry.
 \end{VNBcond}
 \phantomsection\label{kop:union-elim}%
 \VNBfig{union-elim}{(\Gamma - F), x \in A_1 \Longrightarrow G \quad \cdots \quad (\Gamma - F), x \in A_n \Longrightarrow G}{\Gamma \Longrightarrow G}
@@ -837,10 +844,13 @@ certificate, and the operation declines without one of them.
 $\mathrm{vnb\text{-}lambda}(\sigma, A, b)$ is the set of pairs
 $\{(x, b) : x \in A\}$, with $\sigma$ the binder, a variable or a list of
 variables.  The term carries its domain.
-%% rcs-lambda-type :437, rcs--lambda-typing-ok? :414, rule-checkers-schema.scm
+%% rcs-lambda-type :854, rcs--lambda-typing-ok? :831, rule-checkers-schema.scm
 \phantomsection\label{kop:lambda-type}%
-\VNBfig{lambda-type}{\Gamma \Longrightarrow \forall v.\, v \in A \Rightarrow b[x{:=}v] \in B \qquad \Gamma \Longrightarrow A \in \mathrm{set}}{\Gamma \Longrightarrow \mathrm{vnb\text{-}lambda}(x, A, b) \in \mathrm{fun}(A, B)}
+\VNBfigS{lambda-type}{\Gamma \Longrightarrow \forall v.\, v \in A \Rightarrow b[x{:=}v] \in B \qquad \Gamma \Longrightarrow A \in \mathrm{set}\\ \bigl(\Gamma \Longrightarrow B = B\bigr)}{\Gamma \Longrightarrow \mathrm{vnb\text{-}lambda}(x, A, b) \in \mathrm{fun}(A, B)}
 \begin{VNBcond}
+\item[Definedness] The third hypothesis is present exactly when
+  $\Gamma$ does not certify the codomain $B$.  Over an empty domain the
+  first hypothesis holds for every $B$.
 \item[Domain] The domain the term declares is $\aeq$ the domain of the
   $\mathrm{fun}$.
 \item[Freshness] $v = x$, or $v \notin \FV(b) \cup \FV(B)$.
@@ -870,6 +880,7 @@ for the variables of $\sigma$.  Write $o_1, \ldots, o_m$ for the
 \emph{obligations}, $m \geq 0$.
 %% rcs-lambda-beta :854, rcs-lambda-beta-hyp :881, rcs--beta-match/fuel :701,
 %% rcs--beta-licences-ok? :816, rcs--beta-licensed? :775, rule-checkers-schema.scm
+%% value sethood: rcs--rx-owed :1262, chk-value-may-be-class? check :1498
 \phantomsection\label{kop:lambda-beta}%
 \VNBfigS{lambda-beta}{\Gamma \Longrightarrow G' \\ \Gamma \Longrightarrow o_1 \quad \cdots \quad \Gamma \Longrightarrow o_m}{\Gamma \Longrightarrow G}
 \phantomsection\label{kop:lambda-beta-hyp}%
@@ -893,7 +904,13 @@ for the variables of $\sigma$.  Write $o_1, \ldots, o_m$ for the
   as written or with the redexes inside it contracted; in the second
   case those inner redexes count as contracted and need their own
   licence.
-\item[Obligations] Every $o_j$ is owed by some redex.
+\item[Value] The value of an application is a set, so a redex may be
+  contracted to a term $v$ that may denote a proper class only when
+  $v \in \textsc{set}$ is one of the $o_j$.  A term the checker
+  certifies as a set needs no such obligation: a numeral, a set
+  constant, a term that a known formula puts in some class.
+\item[Obligations] Every $o_j$ is owed by some redex, as a licence or
+  as the sethood of its value.
 \item[Bound] The checker's search takes at most
   \texttt{rcs--beta-fuel-limit} contractions (\texttt{rule-checkers-schema.scm}),
   and refuses when that runs out.
@@ -1494,168 +1511,17 @@ record, and which proof commands reach it) is
 \texttt{reference/KERNEL-MAP.md}.
 
 %% =========================================================
-\section{Self-verification of the kernel (META)}\label{sec:meta}
+\section{Self-verification of the kernel}
 \index{META}\index{self-verification}
 
-This section collects what the tree does to check its own kernel.  The
-operations and their checkers are described in
-Sections~\ref{sec:kernel-boundary} and~\ref{sec:inference-checked}, the
-closed list of files that may record an inference in
-Section~\ref{sec:kernel-checked}, the proof certificate in
-Section~\ref{sec:proof-certificate}; they are not repeated here.  Consistency
-of the whole is relative to NBG, for the reasons given next.
-
-\subsection{Why consistency can only be relative to NBG}
-\label{sec:consistency-relative}
-
-VNB cannot prove its own consistency, and no check in this section can
-either.  This is Gödel's second incompleteness theorem~\cite{Godel1931}:
-a consistent theory with effectively listed axioms, strong enough to
-express arithmetic, does not prove its own consistency.  VNB is such a
-theory: it has the natural numbers $\mathtt{nn}$ and their arithmetic.
-
-The checks below are written and run inside VNB, or in Scheme code
-that VNB's proofs depend on.  So they cannot establish that VNB is
-consistent.  An argument made outside VNB would have to be made in some
-other theory, and the consistency of that theory would then be the
-assumption.
-
-The best available claim is therefore relative:
-\begin{center}
-\emph{if NBG is consistent, then VNB is consistent.}
-\end{center}
-NBG is the natural theory to compare with, because VNB is built on it.
-Its axioms are those of von~Neumann--Bernays--Gödel set theory
-\cite{vonNeumann1925,Bernays1937,Godel1940}.  The rest of VNB is
-definitions, notation and proof machinery, plus a short list of
-primitive axioms the library adds (the shelf of primitives, kept in the
-tree).  The translation below has to account for those too.  NBG in turn proves the same
-statements about sets as Zermelo--Fraenkel set theory, and it is
-consistent exactly when ZF is.  So the claim says that VNB is as safe
-as ordinary set theory.
-
-The argument for the claim translates VNB into NBG.  Each VNB formula
-becomes an NBG formula:
-\begin{itemize}
-\item definitions are unfolded;
-\item functoids are eliminated, since they are operations, not objects;
-\item partial terms are replaced by statements of definedness.
-\end{itemize}
-Each kernel operation and each axiom is then shown to preserve
-provability under the translation.  Some of these steps are proved in
-VNB, and some are written by hand.  A chapter of this manual will give
-the argument.
-
-What the checks in this section do is narrow what has to be trusted:
-every inference is tested against its rule, and every assumption is
-listed.  They also search for trouble.  A derivation of
-$\textsc{falsity}$, once found, is conclusive.  Finding none is
-evidence, never proof.
-
-%% TODO(meta-ledger): report the K2 coverage ledger and the open findings here once the ledger is regenerated.
-\subsection{Every inference is checked before it is recorded}
-
-An inference is checked at the moment it is written into the deduction
-graph, not afterwards.  Every inference passes through one procedure,
-\texttt{dg-apply-rule!}.  Before anything is written, it hands the
-proposed inference (hypotheses and conclusion) to the \emph{checker}
-registered for the operation's name.  The checker tests it against the
-operation's figure (Section~\ref{sec:inference-checked}).  Only if the
-checker accepts is the inference written.
-
-A missing checker, or a refusal, raises an error.  A refusal is printed
-as a line beginning \texttt{;VNB RULE CHECKER REFUSED}, and the load
-summary reports how many inferences were verified and how many refused.
-In a strict load a single refusal is an error.  The checkers are in
-\texttt{rule-checkers-logic.scm}, \texttt{-schema.scm},
-\texttt{-rewrite.scm} and \texttt{-oracle.scm}.
-
-So the procedures that build inferences (\texttt{pi-\ldots!}) and the
-tactics need not be trusted.  A wrong builder can only fail to prove:
-whatever it proposes, the checker decides.
-
-What must be trusted, for a false sequent not to be grounded, is:
-\begin{itemize}
-\item the relation each checker enforces;
-\item the expression layer the checkers use: substitution, free
-  variables, equality up to renaming, matching;
-\item the write point and the propagation of grounding, in
-  \texttt{deduction-graphs.scm};
-\item the installation of a theorem by \texttt{qed};
-\item the axioms.
-\end{itemize}
-
-\subsection{Predicativity: staying within NBG}
-
-NBG allows class comprehension only over formulas whose quantifiers range over
-sets.  The tree enforces this at four places.
-\begin{itemize}
-\item The kernel's membership rules for \texttt{comp} refuse a \texttt{comp}
-  whose condition quantifies beyond sets, and the definedness certificate
-  (\texttt{pi--body-shape-total?}, \texttt{primitive-inferences.scm}) treats
-  a \texttt{comp} body as total only when its condition is predicative, and
-  likewise a \texttt{sep}, \texttt{big-union} or \texttt{vnb-lambda} body.
-\item \texttt{comp-predicativity-audit} lists every \texttt{comp} term named by
-  a proof's commands, by an installed formula or by a functoid body whose
-  condition quantifies beyond sets; \texttt{binder-predicativity-audit} does
-  the same for \texttt{sep}, \texttt{big-union} and \texttt{vnb-lambda}
-  (\texttt{proof-debt.scm}).  Both gates are fatal in a strict load and are
-  reported under keep-going.  A certified load sees only the proofs it ran.
-\item The \emph{NBG induction census}: an induction whose body has a binder not
-  confined to sets.  The switch \texttt{*nbg-induction-fatal?*}
-  (\texttt{rule-checkers-logic.scm}) is on, so the checkers of the induction
-  operations refuse such a body, and the load prints one line,
-  \texttt{;; NBG induction census: $n$ impredicative induction(s)}, with $n=0$
-  in a load that completes.
-\end{itemize}
-
-\subsection{The core, written in VNB}
-
-The library \texttt{meta} (\texttt{libraries.sexp}) encodes the kernel in the
-kernel's own language.  \texttt{structure-library/meta-syntax.scm} encodes
-expressions as sets (every node is a list whose first entry is a numeral tag);
-\texttt{meta-core.scm} defines well-formedness, sequents, a set of core rule
-relations and \texttt{DERIVABLE}$(T)$, the least set of sequents closed under
-them, and transcribes the kernel's own rule relations;
-\texttt{meta-cr.scm}, \texttt{meta-ind.scm} and \texttt{meta-def.scm} treat
-contextual rewriting, the induction rules and the definedness clauses;
-\texttt{meta-nbg.scm} transcribes the kernel forms of further rules, with the bridges that show each admissible over the core.  The laws proved of these
-definitions are in the files of the same names in \texttt{theorem-library/}.
-The aim, recorded in \texttt{docs/meta-k2-admissibility-2026-10-08.md}, is
-that each non-oracle kernel rule is \emph{admissible} in the core: whenever
-the hypotheses of an instance are derivable, so is its conclusion.  This is a
-theorem about derivations regarded as data.  It does not give a semantics, and
-it reduces what has to be trusted without removing it.
-
-\subsection{Regression: the key and the exam}
-
-The certificate of a theorem (Section~\ref{sec:proof-certificate}) is valid only
-for the kernel that issued it.  The kernel hash covers the files listed in
-\texttt{*cert-kernel-files*} (\texttt{certificates.scm}): the files that may
-record an inference, \texttt{deduction-graphs}, \texttt{expressions},
-\texttt{sequents} and the four checker files; a change to any of them
-invalidates every certificate.  The script \texttt{vnb-nightly-exam} runs the
-exam each night from cron: every proof is run, the page of every proof is typed back, and the
-certificates are rewritten (Section~\ref{sec:proof-certificate}).
-
-\subsection{What is not covered}
-
-\begin{itemize}
-\item The oracles are trusted code.  Their checkers verify a certificate
-  (\texttt{ineq}, \texttt{sos}) or repeat the decision with a second
-  implementation (Section~\ref{sec:inference-checked}); that adds no proving
-  power and is not a proof of the oracle.
-\item Tactics are untrusted; they act only through kernel operations.
-\item That the Scheme code of a checker computes the relation written for it
-  in the core is not a theorem: the transcription is made by hand, and the
-  design note states that this faithfulness is not provable in VNB without a
-  model of Scheme.
-\item The expression layer, MIT Scheme, the certificate store and its hash,
-  the undo journal and \texttt{qed} are assumed.
-\item The axioms are assumed, and consistency is relative to NBG.  A
-  statement or axiom stamped as definitional or primitive is invisible in the
-  bill; the shelf of primitives is a list kept in the tree.
-\end{itemize}
+What VNB checks of its own kernel, what it proves about it inside VNB,
+and what it leaves to hand-written argument or to assumption is the
+subject of Part~\ref{part:meta}.  Every consistency statement there is
+relative to NBG with global choice (Section~\ref{sec:meta-relative}).
+Each non-oracle kernel operation is proven admissible over a small core
+of rules (Chapter~\ref{ch:meta-k2}).  What remains to be trusted is
+listed in Section~\ref{sec:meta-chain} and
+Chapter~\ref{ch:meta-limits}.
 
 %% =========================================================
 \section{Certificates}\label{sec:certificates}

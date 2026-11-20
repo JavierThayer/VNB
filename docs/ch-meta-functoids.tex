@@ -1,0 +1,182 @@
+%% ch-meta-functoids.tex -- Part 2 (\ref{part:meta}), chapter 3: the hand-written argument for functoids.
+\providecommand{\DS}[1]{\hyperref[ds:#1]{DS-#1}}
+
+\chapter{Functoids}
+\label{ch:meta-functoids}
+
+The encoding of Chapter~\ref{ch:meta-k2} has no functoids of its own
+beyond the table $\mathrm{FUN\text{-}DEF}$.  The soundness of the kernel's
+functoid apparatus is therefore covered by a hand-written argument
+(\DS{6}, \DS{7}).  This chapter states the argument and the hypotheses it
+needs, and says how the kernel enforces each.
+
+%% =========================================================
+\section{What is eliminated}
+
+Three kinds of head are \emph{defined heads}:
+\begin{itemize}
+\item a \texttt{def-functoid} head $F$ with parameters $\bar p$ and body
+  $b_F$: its unfold rewrites $F(\bar p)$ to $b_F$ with no condition
+  (Chapter~\ref{ch:defs});
+\item a structure accessor $\mathit{ACC}$ of slot $k$: it rewrites
+  $\mathit{ACC}(s)$ to $\mathrm{NTH}(k, s)$;
+\item an anonymous record $R$ (a \texttt{lambdoid}) with bindings $\bar x$
+  and body $b_R$, applied as \texttt{(apply-functoid $R$ $\bar t$)}.
+\end{itemize}
+$L_0$ is the part of the language in which none of them occurs.
+
+\begin{dfn}[the elimination map $E$]
+On a formula in which every defined head is applied to as many arguments
+as it has parameters, $E$ is defined by recursion, arguments first:
+\[
+\begin{aligned}
+E(F(t_1,\ldots,t_n)) &= E(b_F)[\bar p := E(\bar t)],\\
+E(\mathit{ACC}(s)) &= \mathrm{NTH}(k, E(s)),\\
+E(\texttt{apply-functoid}(R, t_1,\ldots,t_n)) &= E(b_R)[\bar x := E(\bar t)],
+\end{aligned}
+\]
+with simultaneous capture-avoiding substitution; $E$ commutes with every
+other constructor, connective and binder.
+\end{dfn}
+
+The meaning of a formula with defined heads is the meaning of its
+E-image (\DS{7}).  ``$F(\bar t)$ denotes'' means ``$E(F(\bar t))$
+denotes''; nothing more is asserted about $F$.
+
+A record's domains are dropped by $E$: \texttt{functoid-beta} does not
+read them, so they have no logical content.
+
+\paragraph{Two lemmas.}  \emph{Substitution:}
+$E(e[x:=t]) =_\alpha E(e)[x:=E(t)]$.  \emph{Definedness through the
+body:} $F(\bar t)$ denotes exactly when $E(b_F)[\bar p := E(\bar t)]$
+does.  In particular a defined head is not strict: $F(\bar t)$ may denote
+while some $t_i$ does not.  This is the schematic reading of an unfolding
+(\DS{34}).
+
+%% =========================================================
+\section{The proposition}
+
+\begin{prop}[hand-written, conditional]\label{prop:meta-fun}
+Assume version-X, the soundness of the functoid-free rules for $L_0$
+(link~3 of Section~\ref{sec:meta-chain}, restricted to $L_0$), the
+oracles and the infrastructure, and the hypotheses H1--H6 below.  For
+every inference accepted by its checker, either its E-image is the
+identity (one hypothesis with the E-image of the conclusion), or its
+E-image is an inference between $L_0$ sequents accepted by some kernel
+rule.
+
+Consequently every theorem installed by \texttt{qed} over a grounded
+graph with an empty bill has a valid E-image; since
+$E(\textup{\textsc{falsity}}) = \textup{\textsc{falsity}}$, no such theorem is
+\textup{\textsc{falsity}}, provided version-X is consistent.
+\end{prop}
+
+The proof goes rule by rule.
+\begin{itemize}
+\item \emph{An unfold} (\texttt{mac} at $F$, goal or hypothesis) and an
+  accessor rewrite owe nothing; under $E$ they are the identity.  Owing
+  nothing is correct because the substitution lemma holds at every
+  argument, denoting or not.
+\item \emph{A functor projection} $\mathit{NAME}@\mathit{ACC}$ owes the
+  definedness of the instantiated list (\DS{29}); its E-image is an
+  \texttt{nth-reduce} of a literal list, which owes the same (\DS{25}).
+\item \emph{The view clause} certifies $\mathit{ACC}(V(r))$ only when the
+  whole instantiated list is certified (\DS{28}); its E-image is then
+  certified by the NTH clause.
+\item \emph{The strictness walks} read a \texttt{def-functoid} application
+  through its instance and an applied record through its contraction
+  (\DS{21}); every other head they enter is, under $E$, a strict head of
+  $L_0$.  So a term the walk reaches is at a strict position of the
+  E-image.
+\item \emph{The definedness certificate and the value tests} read a
+  defined head through its instance (\DS{30}); by the two lemmas each
+  verdict is the verdict on the E-image.
+\item \emph{Every other rule} treats $F(\bar a)$ as an application with a
+  constant head.  Such a head is never substituted, and the matchers match
+  a constant head only by identity; so the E-image of an accepted
+  inference is an accepted inference of the same rule.
+\item \emph{Inside a record body} a record's variable is a placeholder for
+  an arbitrary term, denoting or not.  Along the local-context walk of the
+  rewriting rules, an assumption mentioning a crossed bound variable is
+  dropped, and a term mentioning a record variable is not certified
+  (\DS{27}).  A step inside the body is therefore valid after any term is
+  substituted for the variable.
+\end{itemize}
+
+\paragraph{Guarded definitions.}  Heads defined by \texttt{def-constant},
+the two recursion commands and \texttt{def-operator} are not eliminated:
+their equations are axioms of $T$.  They are read as descriptions: off
+every guard the head denotes nothing (\DS{31}).  This reading satisfies
+every defining equation provided no two cases hold at once with
+different values.  Under it such a head is strict, and the two readings
+-- non-strict for \texttt{def-functoid} heads, strict for defined
+functions -- are kept apart by H6.
+
+%% =========================================================
+\section{The hypotheses, and how each is enforced}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lp{\dimexpr0.44\linewidth-2\tabcolsep\relax}p{\dimexpr0.48\linewidth-2\tabcolsep\relax}@{}}
+\toprule
+& hypothesis & enforcement \\
+\midrule
+H1 & the parameters of a \texttt{def-functoid} are distinct symbols
+  & functoid-hypotheses gate, fatal (\DS{35}) \\
+H2 & a body names only heads defined before it (no recursion, no forward
+  reference) & functoid-hypotheses gate, fatal \\
+H3 & one definition per head; no theorem proven under an earlier
+  definition survives a redefinition & functoid-hypotheses gate, fatal; the
+  certificate key records the body's hash (\DS{17}) \\
+H4 & the free variables of a body are among its parameters
+  & functoid-hypotheses gate, fatal \\
+H5 & every formula written into the graph is eliminable: a defined head
+  occurs only applied, never as a term or as a quantifier instance or
+  witness & refused at formula construction, by \texttt{forall-elim}, by
+  \texttt{forsome-intro} and by \texttt{reflexivity} (\DS{33}) \\
+H6 & no head is both a \texttt{def-functoid} and a library definition
+  & functoid-hypotheses gate, fatal \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+H4 carries weight.  With $G(x) := y$, $y$ free, the unfold rewrites
+$G(0)$ to $y$ inside $\forall y$, so $\forall y.\,G(0)=y$ would be
+provable; instantiated at $0$ and at $1$ it gives $0=1$.  The gate
+refuses such a body.
+
+The functoid-hypotheses gate (\texttt{functoid-gate.scm}) runs at the end
+of every load, a cold load, a certified build and an extension of the
+band alike.  It reads the registry of functoids and the log of
+definitions, which records for each \texttt{def-functoid} the heads and
+constants defined at that moment.  In a strict load a violation of any of
+H1--H4 or H6 is an error, with one line naming the hypotheses violated;
+under keep-going it is reported and the load continues.  The library has
+no violation.
+
+Two consequences for the library.  A body may name a
+constant or a head only if it is defined earlier in the load order
+(H2); an instance made by \texttt{declare-instance!} counts from the file
+that makes it.  A structure species used as a class in a body, such as
+$\mathrm{DIRECTED\text{-}SET}$ in $\mathrm{PTWISE\text{-}NET\text{-}LIMITS}$,
+is a class constant through the class axiom of its
+\texttt{declare-structure}.  H4 reads every declared structure species
+as a constant, not as a free variable of the body.  A species is not a
+registered constant: that would make it head-only, and a membership in
+it would be refused as a formula.
+
+%% =========================================================
+\section{The J-MACN bound}
+
+$\mathrm{J\text{-}MACN}(T)$, the local instances of the macetes of $T$
+with any number of schema variables, bounds its argument list by
+$\mathrm{SET}$.  The bound holds on the intended domain but is not
+derivable from the body alone (\DS{47}).
+
+It excludes no kernel step.  For an actual macete step the encoder takes
+the list of encoded substitution values, each a member of
+$\mathrm{EXPR\text{-}SET}$, which is a set; a literal list of sets is a
+set.  The bound thus holds of every encoded kernel step, provided the
+encoder produces a literal list of encoded terms, which is the
+translator's obligation (K3).  $\mathrm{HYPS\text{-}IN}$ makes the same
+kind of bound on a list of hypothesis sequents.

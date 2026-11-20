@@ -1,5 +1,6 @@
 \documentclass{amsbook}[openany]
 \renewcommand\thesection{\thechapter.\arabic{section}}
+\renewcommand\thepart{\arabic{part}}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb}
 \usepackage{textcomp}
@@ -21,6 +22,7 @@
 %% is needed.  Entries come from the generators; see \printindex at the end.
 \makeindex
 \usepackage{hyperref}
+\hypersetup{pdftitle={VNB Proof Checker: User Manual},pdfauthor={Claude (Anthropic), with design specifications, technical direction and review by F. J. Thayer}}
 \usepackage[protrusion=true,expansion=false]{microtype}
 \usepackage{array}
 \usepackage{booktabs}
@@ -107,7 +109,10 @@
 
 \title{\textbf{VNB Proof Checker}\\[4pt]
        \large User Manual}
-\author{F. J. Thayer}
+\author{Claude (Anthropic)\\[6pt]
+  {\normalfont\normalsize the author of the system and of this manual,\\
+   with design specifications, technical direction and review\\
+   by F.~J.~Thayer}}
 \date{}
 
 %% The list of kernel operations and its counts, generated from the registry the
@@ -142,6 +147,8 @@
 \tableofcontents
 \newpage
 
+\input{ch-preface}
+
 \part{The system}\label{part:system}
 
 %% =========================================================
@@ -165,6 +172,23 @@
 %% =========================================================
 \input{ch-categories}
 
+\part{Self-verification}\label{part:meta}
+
+%% =========================================================
+\input{ch-meta-claim}
+
+%% =========================================================
+\input{ch-meta-k2}
+
+%% =========================================================
+\input{ch-meta-soundness}
+
+%% =========================================================
+\input{ch-meta-functoids}
+
+%% =========================================================
+\input{ch-meta-limits}
+
 \part{Using VNB}\label{part:using}
 
 %% =========================================================
@@ -185,6 +209,9 @@
 %% =========================================================
 \appendix
 \input{ch-source}
+
+%% =========================================================
+\input{app-design-spec}
 
 %% =========================================================
 \input{app-tests}

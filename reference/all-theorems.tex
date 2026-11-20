@@ -28,7 +28,7 @@
 \providecommand{\vnbproofpart}[1]{\par\medskip\noindent\textbf{Proof of} #1\textbf{.}\par\nopagebreak}
 \providecommand{\vnbentry}[2]{\par\medskip\noindent\textbf{#1}\par\nopagebreak#2\par}
 \providecommand{\vnbfile}[2]{\section*{\href{file:../#2}{\texttt{#1}}}\addcontentsline{toc}{section}{\texttt{#1}}}
-\noindent 13906 theorems in 1105 files, in load order.  Each entry is the statement as the library holds it, with the bill when it is not \texttt{modulo 0}; the section is the file that proves it (its path is a link).  Open the proof's graph from Emacs with \texttt{M-x vnb-graph-browse-theorem}.
+\noindent 13909 theorems in 1106 files, in load order.  Each entry is the statement as the library holds it, with the bill when it is not \texttt{modulo 0}; the section is the file that proves it (its path is a link).  Open the proof's graph from Emacs with \texttt{M-x vnb-graph-browse-theorem}.
 
 \tableofcontents
 
@@ -458,6 +458,12 @@
 \vnbfile{theorem-library/fun-image-set.scm}{theorem-library/fun-image-set.scm}
 \noindent{\small fun-image-set.scm -- the image of ANY class under a function into a SET is a set, proven with no citation of `image-set' (replacement).}\par
 \vnbentry{\texttt{fun-\allowbreak{}image-\allowbreak{}set}}{\vnbstmt{\forall a, b, f, s.\; (((f \in (a \to b)) \wedge (b \in \mathbf{Set})) \Rightarrow (\operatorname{image}(f, s) \in \mathbf{Set}))}}
+
+\vnbfile{theorem-library/set-iff-converses.scm}{theorem-library/set-iff-converses.scm}
+\noindent{\small set-iff-converses.scm -- the TRUE converses of the two sethood axioms, PROVEN.}\par
+\vnbentry{\texttt{fun-\allowbreak{}set-\allowbreak{}converse}}{\vnbstmt{\begin{array}{@{}l@{}} \forall a, b. \\ \quad ((a \in \mathbf{Set}) \wedge (\exists u.\; (u \in a) \wedge ((a \to b) \in \mathbf{Set}))) \Rightarrow (b \in \mathbf{Set}) \end{array}}}
+\vnbentry{\texttt{cartesian-\allowbreak{}set-\allowbreak{}converse-\allowbreak{}1}}{\vnbstmt{\forall a, b.\; ((((a \times b) \in \mathbf{Set}) \wedge \exists v.\; (v \in b)) \Rightarrow (a \in \mathbf{Set}))}}
+\vnbentry{\texttt{cartesian-\allowbreak{}set-\allowbreak{}converse-\allowbreak{}2}}{\vnbstmt{\forall a, b.\; ((((a \times b) \in \mathbf{Set}) \wedge \exists u.\; (u \in a)) \Rightarrow (b \in \mathbf{Set}))}}
 
 \vnbfile{theorem-library/rake-analysis2.scm}{theorem-library/rake-analysis2.scm}
 \noindent{\small rake-analysis2.scm -- rake batch L (2026-09-17): five asserted leaves of the analysis / sets area, plus the general lemma that unblocked one of them.}\par

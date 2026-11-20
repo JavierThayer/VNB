@@ -35,9 +35,7 @@
   (if (not (dk-asm? '(IN (CARTESIAN EXPR-SET NN) SET)))
       (begin
         (fact 'expr-set-is-set) (fact 'nn-is-set)
-        (let ((iff (dk-meta-iff! 'cartesian-set-iff 'EXPR-SET 'NN)))
-          (dk-meta-and! '(IN EXPR-SET SET) '(IN NN SET))
-          (dk-meta-iff-l! iff)))))
+        (dk-set-if! 'cartesian-set-iff 'EXPR-SET 'NN))))
 ;; Open REL(tt, hs, c) (its body (AND (IN c SEQ-SET) (FORSOME ...))); N hypotheses (0, 1 or 2): c and hs rewritten
 ;; away, each hypothesis' derivability and SEQ-SET membership landed; return the witnesses.
 (define (mn-rel-open! rel n)
@@ -619,9 +617,7 @@
 (define (mn-cart-set! a b)                 ; (IN (CARTESIAN A B) SET), A and B sets in context
   (let ((cc `(CARTESIAN ,a ,b)))
     (if (not (dk-asm? `(IN ,cc SET)))
-        (let ((iff (dk-meta-iff! 'cartesian-set-iff a b)))
-          (dk-meta-and! `(IN ,a SET) `(IN ,b SET))
-          (dk-meta-iff-l! iff)))))
+        (dk-set-if! 'cartesian-set-iff a b))))
 
 (sp (make-wff '(FORALL mitfa_ (FORALL mitfb_ (== (TF-SET mitfa_ mitfb_)
    (SEP mitfp_ (CARTESIAN NN EXPR-SET) (FORALL mitfw_ (IMPLIES (IN mitfw_ (POWER (CARTESIAN NN EXPR-SET)))

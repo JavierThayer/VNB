@@ -278,17 +278,15 @@ operation --- e.g.\ \texttt{(compose(f, g))(x) := f(g(x))} --- and reserve
 undefined, and \texttt{=}, being strict, is then false --- whereas
 \texttt{==} is true).
 
-\paragraph{Why \texttt{==} is not a function.}
-Quasi-equality cannot be a function, or a defined constant, in a logic
-whose application is strict.  A function applied to an undefined argument
-yields nothing, whereas $t$~\texttt{==}~$s$ must be true when $t$ and $s$
-are both undefined.  IMPS~\cite{IMPS}, where equality is a constructor
-with values in the sort of propositions, makes \texttt{==} a
-\emph{quasi-constructor}: an abbreviation that the reader expands into
-$(t{\downarrow} \lor s{\downarrow}) \supset t = s$, so that no
-application ever takes place.  In VNB \texttt{==}, like \texttt{=}, is
-a formula former, not a function symbol: $t$~\texttt{==}~$s$ is a
-formula, never a term, and nothing is applied to it.
+\paragraph{Neither \texttt{=} nor \texttt{==} is a function.}
+In VNB both are formula formers: $t$~\texttt{=}~$s$ and
+$t$~\texttt{==}~$s$ are formulas, never terms.  Their values are truth
+values, not objects of the universe, so nothing is ever applied to them,
+and an undefined $t$ or $s$ raises no question of an application to an
+undefined argument.  (In IMPS~\cite{IMPS}, where formulas are terms of a
+sort of propositions, \texttt{==} is instead an abbreviation, a
+\emph{quasi-constructor}, which the reader expands into
+$(t{\downarrow} \lor s{\downarrow}) \supset t = s$.)
 
 \section{Definedness}
 \label{sec:definedness}
@@ -483,8 +481,9 @@ must be kept separate:
   domain forces $\mathtt{fun}(X) = \varnothing$; the existential in
   \texttt{is-fun-def} ($\exists A \in \mathtt{set}.\; f \in
   \mathtt{fun}(A)$) is load-bearing on this point.
-\item \emph{Sethood} --- only when $X, Y \in \mathtt{set}$
-  (\texttt{fun-set-iff}).
+\item \emph{Sethood} --- a set when $X, Y \in \mathtt{set}$
+  (\texttt{fun-set-iff}).  The converse fails: $\mathtt{fun}(\emptyset, Y)$
+  is a set for every class $Y$.
 \end{itemize}
 Functoids exist precisely for operations that genuinely act on
 proper classes (e.g.\ $\mathtt{power}: \mathtt{CLASS} \to
@@ -581,7 +580,9 @@ Section~\ref{sec:nary-proof-commands}.
 
 \item \texttt{cartesian($A_1$,\ldots,$A_n$)}
   $x \in C$ iff $x = [a_1,\ldots,a_n]$ with $a_i \in A_i$.
-  Result is a set iff all $A_i \in \mathtt{set}$ (\texttt{cartesian-set-iff}).
+  Result is a set when all $A_i \in \mathtt{set}$ (\texttt{cartesian-set-iff});
+  for $n=2$ the converse holds when both factors are inhabited
+  (\texttt{cartesian-set-converse-1}, \texttt{cartesian-set-converse-2}).
 
 \item \texttt{tuples($A$)}
   $x \in C$ iff $x = [a_1,\ldots,a_n]$ with all $a_i \in A$,
@@ -593,7 +594,7 @@ Section~\ref{sec:nary-proof-commands}.
   domain $A$ (no codomain restriction); proper class in general.  The
   binary $\mathtt{fun}(A,B)$ is the restriction
   $\{f \in \mathtt{fun}(A) : \forall x \in A.\;f(x) \in B\}$.
-  $\mathtt{fun}(A,B) \in \mathtt{set}$ iff $A, B \in \mathtt{set}$
+  $\mathtt{fun}(A,B) \in \mathtt{set}$ when $A, B \in \mathtt{set}$
   (\texttt{fun-set-iff}); $\mathtt{fun}(A) \in \mathtt{set}$ never holds
   in general because the codomain is unconstrained.
   See Section~\ref{sec:funapp}.
@@ -1059,13 +1060,13 @@ is the derived form $\{f \in \mathtt{fun}(A) : \forall x \in A.\;f(x) \in B\}$.
   $f \in \mathtt{fun}(A,B) \land x \in A \;\Rightarrow\; f(x) \in B$
   (in \texttt{axioms.scm}; derivable from \texttt{fun-codomain-iff})
 \item \texttt{fun-set-iff}
-  $\mathtt{fun}(A,B) \in \mathtt{set} \;\Leftrightarrow\; (A \in \mathtt{set}) \land (B \in \mathtt{set})$
+  $(A \in \mathtt{set}) \land (B \in \mathtt{set}) \;\Rightarrow\; \mathtt{fun}(A,B) \in \mathtt{set}$
 \item \texttt{fun-elements-are-sets}
   $f \in \mathtt{fun}(A,B) \land A \in \mathtt{set} \;\Rightarrow\; f \in \mathtt{set}$
 \item \texttt{fun-domain-elements-are-sets}
   $f \in \mathtt{fun}(A) \land A \in \mathtt{set} \;\Rightarrow\; f \in \mathtt{set}$
 \item \texttt{cartesian-set-iff}
-  $A \times B \in \mathtt{set} \;\Leftrightarrow\; (A \in \mathtt{set}) \land (B \in \mathtt{set})$
+  $(A \in \mathtt{set}) \land (B \in \mathtt{set}) \;\Rightarrow\; A \times B \in \mathtt{set}$
 \item \texttt{tuples-sethood}
   $A \in \mathtt{set} \;\Rightarrow\; \mathtt{tuples}(A) \in \mathtt{set}$
 \end{itemize}

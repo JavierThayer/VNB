@@ -1396,9 +1396,8 @@
 (fact 'clf-is-set)
 (fact 'power-set 'CLF)
 (dk-have! '(IN CTX-SET SET) (lambda () (subst (dk-cite! 'ctx-def)) (sep-set) (ass)))
-(let ((iff (dk-meta-iff! 'cartesian-set-iff 'CTX-SET 'CLF)))
-  (dk-meta-and! '(IN CTX-SET SET) '(IN CLF SET))
-  (dk-meta-iff-l! iff) (ass))
+(dk-set-if! 'cartesian-set-iff 'CTX-SET 'CLF)
+(ass)
 (qed 'seq-set-is-set)
 
 (define mc-fvf '(VNB-LAMBDA mczv3_ EXPR-SET (EXPR-FV mczv3_)))

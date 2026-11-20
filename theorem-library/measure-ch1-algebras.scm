@@ -1046,7 +1046,7 @@
       (ass)))
   (fact 'rr-is-set)
   (dk-have! (list 'AND (list 'IN ma-int 'SET) '(IN RR SET)))
-  (ma-iff-back! (dk-cite! 'fun-set-iff ma-int 'RR))
+  (dk-set-if! 'fun-set-iff ma-int 'RR)
   (dk-conj-close! dk-ass!))
 (qed 'rn-is-set)
 

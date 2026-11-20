@@ -540,7 +540,7 @@
 (dk-peel!)
 (bsc-rhs! (dk-cite! 'is-top-space 't))
 (dk-cite! 'cc-is-set)
-(bsc-lhs! (dk-cite! 'fun-set-iff '(PTS t) 'CC) (lambda () (bsc-close-ctx!)))
+(dk-set-if! 'fun-set-iff '(PTS t) 'CC (lambda () (bsc-close-ctx!)))
 (dk-cite! 'ccont-unfold 't)
 (subst (list '= '(CCONT t) bsc-csep))
 (sep-set)
@@ -566,7 +566,7 @@
 (define (bsc-body) (if (dk-head-is? (dk-goal) 'FORALL) (dk-peel!)) (cadddr (cadr (dk-goal))))
 (define (bsc-slot-stmt fn dom cod) (list 'FORALL 't (list 'IMPLIES '(IS-TOP-SPACE t) (list 'IN (list fn 't) (list 'FUN dom cod)))))
 (define (bsc-set-cart! a b)            ; (IN (CARTESIAN a b) SET), a and b sets in context
-  (bsc-lhs! (dk-cite! 'cartesian-set-iff a b) (lambda () (bsc-close-ctx!))))
+  (dk-set-if! 'cartesian-set-iff a b (lambda () (bsc-close-ctx!))))
 (define (bsc-slot! fn dom cod set! typer)
   (sp (make-wff (bsc-slot-stmt fn dom cod)))
   (dk-peel!)

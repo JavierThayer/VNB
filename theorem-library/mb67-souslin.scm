@@ -129,9 +129,7 @@
   (if (not (dk-asm? (list 'IN msx-F 'SET)))
       (begin
         (dk-cite! 'nn-is-set)
-        (let ((iff (dk-cite! 'fun-set-iff 'NN 'NN)))
-          (dk-have! (caddr iff) (lambda () (dk-conj-close! (lambda () (ass)))))
-          (mr-iff-back! iff)))))
+        (dk-set-if! 'fun-set-iff 'NN 'NN (lambda () (dk-conj-close! (lambda () (ass))))))))
 (define (msx-P! y n)                 ; y in N^N, n in NN: recip P(y, n) typed and positive
   (let* ((P (msx-P y n)) (rP (list 'recip P)))
     (if (not (dk-asm? (list '< 0 rP)))

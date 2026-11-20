@@ -115,6 +115,7 @@
     "theorem-library/rr-le-all-pos"
     "theorem-library/subset-lemmas"
     "theorem-library/fun-image-set"
+    "theorem-library/set-iff-converses"      ; K1SET 2026-11-20: the converses of the two sethood axioms
     "theorem-library/rake-inverse-bij"
     "theorem-library/nn-parity-proof"
     "theorem-library/nn-pred"

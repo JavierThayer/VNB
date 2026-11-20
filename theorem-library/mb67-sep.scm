@@ -413,9 +413,7 @@
   (if (not (dk-asm? (list 'IN msp-F 'SET)))
       (begin
         (fact 'nn-is-set)
-        (let ((iff (dk-cite! 'fun-set-iff 'NN 'NN)))
-          (dk-have! (caddr iff) (lambda () (dk-conj-close! (lambda () (ass)))))
-          (mr-iff-back! iff)))))
+        (dk-set-if! 'fun-set-iff 'NN 'NN (lambda () (dk-conj-close! (lambda () (ass))))))))
 (define (msp-img-open! f dom p)      ; p in IMAGE(f, dom) in context: the witness x, with x in dom and f(x) = p landed
   (let* ((ps (mr-iff-parts! (dk-cite! 'image-membership-iff f dom p)))
          (x (dk-skolem! (cadr ps))))

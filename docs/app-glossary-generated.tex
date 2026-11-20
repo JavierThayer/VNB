@@ -7,7 +7,7 @@
 Every other listing in this manual and in the browser reference is grouped by
 something: operators by class, structures by structure, tactics by task.  This
 one has the ordering nobody has to learn.  It carries the whole
-\emph{vocabulary} -- 2270 names: 35 structure, 15 refinement, 20 instance, 33 view, 850 predicate, 1027 functoid, 54 accessor, 25 defined-fn, 57 operator, 10 primitive, 94 tactic -- and no results: the theorems, axioms and
+\emph{vocabulary} -- 2312 names: 35 structure, 15 refinement, 20 instance, 33 view, 887 predicate, 1031 functoid, 54 accessor, 25 defined-fn, 57 operator, 10 primitive, 94 tactic -- and no results: the theorems, axioms and
 supports are catalogued in \texttt{THEOREMS.md}, \texttt{BY-OPERATOR.md} and
 \texttt{PROOF-DEBT.md}, and each entry here says how many of them mention it.
 
@@ -29,7 +29,7 @@ mentioned by 3286 result(s)
 
 \noindent\textbf{\texttt{+}}\quad\textit{operator}\index{+@\texttt{+}}\\
 a term-forming head \\
-mentioned by 2575 result(s)
+mentioned by 2577 result(s)
 
 \smallskip
 
@@ -39,8 +39,8 @@ characterized by \texttt{is-pole}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mrf\_, mra\_, mrn\_], is-pole(\allowbreak{}mrf\_, mra\_, mrn\_) iff mra\_ in cc and mrn\_ in nn and 1 <= mrn\_ and forsome(\allowbreak{}[mrr\_ in rr], 0 < mrr\_ and forsome(\allowbreak{}[mrg\_], holomorphic-on(\allowbreak{}ball(\allowbreak{}cc-ms, mra\_, mrr\_), mrg\_) and not(\allowbreak{}mrg\_(\allowbreak{}mra\_) = 0) and forall(\allowbreak{}[mrz\_ in difference(\allowbreak{}ball(\allowbreak{}cc-ms, mra\_, mrr\_), singleton(\allowbreak{}mra\_))], mrf\_(\allowbreak{}mrz\_) = recip(\allowbreak{}mrz\_ - mra\_) \textasciicircum{} mrn\_ * mrg\_(\allowbreak{}mrz\_)))))
 \end{quote}
-also: \texttt{opg-rep} \texttt{lfts-def} \texttt{zz-prime} \texttt{cc-ms-def} \texttt{cchs-succ} \texttt{rr-ms-def} \texttt{cayley-def} \texttt{cc-ms@dist} ... (1528 in all) \\
-mentioned by 2406 result(s)
+also: \texttt{opg-rep} \texttt{lfts-def} \texttt{zz-prime} \texttt{cc-ms-def} \texttt{cchs-succ} \texttt{ltch-succ} \texttt{ltop-succ} \texttt{rr-ms-def} ... (1531 in all) \\
+mentioned by 2411 result(s)
 
 \smallskip
 
@@ -64,7 +64,7 @@ mentioned by 2103 result(s)
 \noindent\textbf{\texttt{<=}}\quad\textit{primitive}\index{<=@\texttt{<=}}\\
 reads: \$1 is at most \$2 \\
 a kernel relation \\
-mentioned by 3900 result(s)
+mentioned by 3913 result(s)
 
 \smallskip
 
@@ -377,7 +377,7 @@ characterized by \texttt{adm-def-strict-in-l}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_], adm-def-strict-in-l(\allowbreak{}mdt\_) iff forall(\allowbreak{}[mdhs\_, mdc\_], def-strict-in-l(\allowbreak{}mdt\_, mdhs\_, mdc\_) implies hyps-in(\allowbreak{}mdhs\_, derivable(\allowbreak{}mdt\_)) implies mdc\_ in derivable(\allowbreak{}mdt\_)))
 \end{quote}
 also: \texttt{adm-def-strict-in-l-holds} \\
-mentioned by 5 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -389,7 +389,7 @@ characterized by \texttt{adm-def-strict-in-r}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_], adm-def-strict-in-r(\allowbreak{}mdt\_) iff forall(\allowbreak{}[mdhs\_, mdc\_], def-strict-in-r(\allowbreak{}mdt\_, mdhs\_, mdc\_) implies hyps-in(\allowbreak{}mdhs\_, derivable(\allowbreak{}mdt\_)) implies mdc\_ in derivable(\allowbreak{}mdt\_)))
 \end{quote}
 also: \texttt{adm-def-strict-in-r-holds} \\
-mentioned by 4 result(s)
+mentioned by 5 result(s)
 
 \smallskip
 
@@ -729,6 +729,12 @@ defined by \texttt{ax-class-ext-def}
 \noindent\textbf{\texttt{ax-fun-app}}\quad\textit{constant}\index{ax-fun-app@\texttt{ax-fun-app}}\\
 reads: the encoded axiom fun-domain-apply-def \\
 defined by \texttt{ax-fun-app-def}
+
+\smallskip
+
+\noindent\textbf{\texttt{ax-len-nn}}\quad\textit{constant}\index{ax-len-nn@\texttt{ax-len-nn}}\\
+reads: the encoded axiom length-in-nn \\
+defined by \texttt{ax-len-nn-def}
 
 \smallskip
 
@@ -1612,10 +1618,10 @@ mentioned by 4788 result(s)
 a term-forming head \\
 characterized by \texttt{cartesian-set-iff}  \textit{(primitive)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
-forall(\allowbreak{}[a, b], cartesian(\allowbreak{}a, b) in set iff a in set and b in set)
+forall(\allowbreak{}[a, b], a in set and b in set implies cartesian(\allowbreak{}a, b) in set)
 \end{quote}
-also: \texttt{cartesian-nth} \texttt{card-cartesian} \texttt{cartesian-mono} \texttt{cartesian3-set} \texttt{cartesian4-set} \texttt{cartesian5-set} \texttt{esum-cartesian} \texttt{card-cartesian-nn} ... (19 in all) \\
-mentioned by 1325 result(s)
+also: \texttt{cartesian-nth} \texttt{card-cartesian} \texttt{cartesian-mono} \texttt{cartesian3-set} \texttt{cartesian4-set} \texttt{cartesian5-set} \texttt{esum-cartesian} \texttt{card-cartesian-nn} ... (21 in all) \\
+mentioned by 1326 result(s)
 
 \smallskip
 
@@ -2498,7 +2504,7 @@ characterized by \texttt{cert-set-least}  \textit{(certified)}:
 forall(\allowbreak{}[tt, g, w, md12xs\_ in power(\allowbreak{}expr-set)], cert-closed(\allowbreak{}tt, g, w, md12xs\_) implies forall(\allowbreak{}[x in cert-set(\allowbreak{}tt, g, w)], x in md12xs\_))
 \end{quote}
 also: \texttt{cert-set-unfold} \\
-mentioned by 18 result(s)
+mentioned by 22 result(s)
 
 \smallskip
 
@@ -3925,7 +3931,7 @@ characterized by \texttt{cr-assumption}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mct\_, mchs\_, mcc\_], cr-assumption(\allowbreak{}mct\_, mchs\_, mcc\_) iff forsome(\allowbreak{}[mcg\_, mca\_], mcc\_ = [mcg\_, mca\_] and mca\_ in mcg\_ and mchs\_ = []))
 \end{quote}
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -4286,7 +4292,7 @@ reads: the core lambda-beta-eq relates \$2 to \$3 \\
 defined by \texttt{cr-lambda-beta-eq} \\
 characterized by \texttt{cr-lambda-beta-eq}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
-forall(\allowbreak{}[mct\_, mchs\_, mcc\_], cr-lambda-beta-eq(\allowbreak{}mct\_, mchs\_, mcc\_) iff forsome(\allowbreak{}[mcg\_, mca\_, mcb\_, mctm\_], mcc\_ = [mcg\_, enc-qeq(\allowbreak{}enc-apply(\allowbreak{}enc-lam(\allowbreak{}mca\_, mcb\_), mctm\_), expr-open(\allowbreak{}mcb\_, 0, mctm\_))] and nbg-ok(\allowbreak{}mcb\_) and mchs\_ = [[mcg\_, enc-in(\allowbreak{}mctm\_, mca\_)]]))
+forall(\allowbreak{}[mct\_, mchs\_, mcc\_], cr-lambda-beta-eq(\allowbreak{}mct\_, mchs\_, mcc\_) iff forsome(\allowbreak{}[mcg\_, mca\_, mcb\_, mctm\_], mcc\_ = [mcg\_, enc-qeq(\allowbreak{}enc-apply(\allowbreak{}enc-lam(\allowbreak{}mca\_, mcb\_), mctm\_), expr-open(\allowbreak{}mcb\_, 0, mctm\_))] and nbg-ok(\allowbreak{}mcb\_) and mchs\_ = [[mcg\_, enc-in(\allowbreak{}mctm\_, mca\_)], [mcg\_, enc-in(\allowbreak{}expr-open(\allowbreak{}mcb\_, 0, mctm\_), enc-setc)]]))
 \end{quote}
 mentioned by 5 result(s)
 
@@ -4297,7 +4303,7 @@ reads: the core lambda-type relates \$2 to \$3 \\
 defined by \texttt{cr-lambda-type} \\
 characterized by \texttt{cr-lambda-type}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
-forall(\allowbreak{}[mct\_, mchs\_, mcc\_], cr-lambda-type(\allowbreak{}mct\_, mchs\_, mcc\_) iff forsome(\allowbreak{}[mcg\_, mca\_, mcb\_, mcd\_], mcc\_ = [mcg\_, enc-in(\allowbreak{}enc-lam(\allowbreak{}mca\_, mcb\_), enc-fun(\allowbreak{}mca\_, mcd\_))] and nbg-ok(\allowbreak{}mcb\_) and mchs\_ = [[mcg\_, enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), mca\_), enc-in(\allowbreak{}mcb\_, mcd\_)))], [mcg\_, enc-in(\allowbreak{}mca\_, enc-setc)]]))
+forall(\allowbreak{}[mct\_, mchs\_, mcc\_], cr-lambda-type(\allowbreak{}mct\_, mchs\_, mcc\_) iff forsome(\allowbreak{}[mcg\_, mca\_, mcb\_, mcd\_], mcc\_ = [mcg\_, enc-in(\allowbreak{}enc-lam(\allowbreak{}mca\_, mcb\_), enc-fun(\allowbreak{}mca\_, mcd\_))] and nbg-ok(\allowbreak{}mcb\_) and mchs\_ = [[mcg\_, enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), mca\_), enc-in(\allowbreak{}mcb\_, mcd\_)))], [mcg\_, enc-in(\allowbreak{}mca\_, enc-setc)], [mcg\_, enc-eq(\allowbreak{}mcd\_, mcd\_)]]))
 \end{quote}
 mentioned by 5 result(s)
 
@@ -4398,7 +4404,7 @@ characterized by \texttt{cr-reflexivity}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mct\_, mchs\_, mcc\_], cr-reflexivity(\allowbreak{}mct\_, mchs\_, mcc\_) iff forsome(\allowbreak{}[mcg\_, mctm\_, mcn\_], mcc\_ = [mcg\_, enc-eq(\allowbreak{}mctm\_, mctm\_)] and mcn\_ in nn and (\allowbreak{}mctm\_ = efvar(\allowbreak{}mcn\_) or mctm\_ = econst(\allowbreak{}mcn\_)) and mchs\_ = []))
 \end{quote}
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -4442,7 +4448,7 @@ characterized by \texttt{cr-theorem-assumption}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mct\_, mchs\_, mcc\_], cr-theorem-assumption(\allowbreak{}mct\_, mchs\_, mcc\_) iff forsome(\allowbreak{}[mcg\_, mca\_], mcc\_ = [mcg\_, mca\_] and mca\_ in mct\_ and mchs\_ = []))
 \end{quote}
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -4484,7 +4490,7 @@ reads: the core tuples-mem relates \$2 to \$3 \\
 defined by \texttt{cr-tuples-mem} \\
 characterized by \texttt{cr-tuples-mem}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
-forall(\allowbreak{}[mct\_, mchs\_, mcc\_], cr-tuples-mem(\allowbreak{}mct\_, mchs\_, mcc\_) iff forsome(\allowbreak{}[mcg\_, mcl\_, mca\_], mcc\_ = [mcg\_, enc-iff(\allowbreak{}enc-in(\allowbreak{}enc-list(\allowbreak{}mcl\_), enc-tuples(\allowbreak{}mca\_)), enc-ande(\allowbreak{}mcl\_, mca\_, length(\allowbreak{}mcl\_)))] and mchs\_ = []))
+forall(\allowbreak{}[mct\_, mchs\_, mcc\_], cr-tuples-mem(\allowbreak{}mct\_, mchs\_, mcc\_) iff forsome(\allowbreak{}[mcg\_, mcl\_, mca\_], mcc\_ = [mcg\_, enc-iff(\allowbreak{}enc-in(\allowbreak{}enc-list(\allowbreak{}mcl\_), enc-tuples(\allowbreak{}mca\_)), enc-ande(\allowbreak{}mcl\_, mca\_, length(\allowbreak{}mcl\_)))] and mchs\_ = [[mcg\_, enc-eq(\allowbreak{}mca\_, mca\_)]]))
 \end{quote}
 mentioned by 5 result(s)
 
@@ -4495,7 +4501,7 @@ reads: the core union-mem relates \$2 to \$3 \\
 defined by \texttt{cr-union-mem} \\
 characterized by \texttt{cr-union-mem}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
-forall(\allowbreak{}[mct\_, mchs\_, mcc\_], cr-union-mem(\allowbreak{}mct\_, mchs\_, mcc\_) iff forsome(\allowbreak{}[mcg\_, mcx\_, mcl\_], mcc\_ = [mcg\_, enc-iff(\allowbreak{}enc-in(\allowbreak{}mcx\_, enc-union(\allowbreak{}mcl\_)), enc-orl(\allowbreak{}mcx\_, mcl\_, length(\allowbreak{}mcl\_)))] and mchs\_ = []))
+forall(\allowbreak{}[mct\_, mchs\_, mcc\_], cr-union-mem(\allowbreak{}mct\_, mchs\_, mcc\_) iff forsome(\allowbreak{}[mcg\_, mcx\_, mcl\_], mcc\_ = [mcg\_, enc-iff(\allowbreak{}enc-in(\allowbreak{}mcx\_, enc-union(\allowbreak{}mcl\_)), enc-orl(\allowbreak{}mcx\_, mcl\_, length(\allowbreak{}mcl\_)))] and length(\allowbreak{}mchs\_) = length(\allowbreak{}mcl\_) and forall(\allowbreak{}[mci\_ in nn], 1 <= mci\_ implies mci\_ <= length(\allowbreak{}mcl\_) implies nth(\allowbreak{}mci\_, mchs\_) = [mcg\_, enc-eq(\allowbreak{}nth(\allowbreak{}mci\_, mcl\_), nth(\allowbreak{}mci\_, mcl\_))])))
 \end{quote}
 mentioned by 5 result(s)
 
@@ -4683,7 +4689,7 @@ characterized by \texttt{ctx-add-ctx}  \textit{(certified)}:
 forall(\allowbreak{}[g, a], g in ctx-set implies a in clf implies ctx-add(\allowbreak{}g, a) in ctx-set)
 \end{quote}
 also: \texttt{ctx-add-has} \texttt{ctx-add-sub} \texttt{ctx-add-keeps} \texttt{ctx-add-unfold} \\
-mentioned by 89 result(s)
+mentioned by 97 result(s)
 
 \smallskip
 
@@ -4921,7 +4927,7 @@ characterized by \texttt{def-app}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-app(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdf\_, mdd\_, mda\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}enc-apply(\allowbreak{}mdf\_, mda\_), enc-apply(\allowbreak{}mdf\_, mda\_))] and mdhs\_ = [[mdg\_, enc-in(\allowbreak{}mdf\_, enc-fun1(\allowbreak{}mdd\_))], [mdg\_, enc-in(\allowbreak{}mda\_, mdd\_)]]))
 \end{quote}
 also: \texttt{adm-def-app} \\
-mentioned by 3 result(s)
+mentioned by 5 result(s)
 
 \smallskip
 
@@ -4933,7 +4939,7 @@ characterized by \texttt{def-binder}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-binder(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdh\_, mda\_, mdb\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}ebind(\allowbreak{}mdh\_, 1, [mda\_], mdb\_), ebind(\allowbreak{}mdh\_, 1, [mda\_], mdb\_))] and (\allowbreak{}mdh\_ = 22 or mdh\_ = 24 or mdh\_ = 26) and nbg-ok(\allowbreak{}mdb\_) and mdhs\_ = [[mdg\_, enc-eq(\allowbreak{}mda\_, mda\_)]]))
 \end{quote}
 also: \texttt{def-binder-admitted} \\
-mentioned by 3 result(s)
+mentioned by 5 result(s)
 
 \smallskip
 
@@ -4945,6 +4951,18 @@ characterized by \texttt{def-cert-hyp}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-cert-hyp(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdf\_, mdw\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}mdw\_, mdw\_)] and mdf\_ in cert-set(\allowbreak{}mdt\_, mdg\_, mdw\_) and mdhs\_ = [[mdg\_, mdf\_]]))
 \end{quote}
 also: \texttt{adm-def-cert-hyp} \texttt{def-cert-hyp-derived} \\
+mentioned by 7 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{def-closed(mnkt\_, mnks\_)}}\quad\textit{predicate}\index{def-closed(mnkt_, mnks_)@\texttt{def-closed(mnkt\_, mnks\_)}}\\
+reads: \$2 is closed under the definedness rows over \$1 \\
+defined by \texttt{def-closed} \\
+characterized by \texttt{def-closed}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mnkt\_, mnks\_], def-closed(\allowbreak{}mnkt\_, mnks\_) iff forall(\allowbreak{}[mnkhs\_, mnkc\_], def-rule(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) implies hyps-in(\allowbreak{}mnkhs\_, mnks\_) implies mnkc\_ in seq-set implies mnkc\_ in mnks\_))
+\end{quote}
+also: \texttt{def-closed-derivable} \\
 mentioned by 5 result(s)
 
 \smallskip
@@ -4957,7 +4975,7 @@ characterized by \texttt{def-comp}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-comp(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdp\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}enc-comp(\allowbreak{}mdp\_), enc-comp(\allowbreak{}mdp\_))] and nbg-ok(\allowbreak{}mdp\_) and mdhs\_ = []))
 \end{quote}
 also: \texttt{adm-def-comp} \texttt{def-comp-admitted} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -4973,6 +4991,21 @@ mentioned by 7 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{def-derivable(mnkt\_)}}\quad\textit{functoid}\index{def-derivable(mnkt_)@\texttt{def-derivable(mnkt\_)}}\\
+reads: the sequents the definedness rows over \$1 reach \\
+definition:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+\{mnkq\_ in seq-set: forall(\allowbreak{}[mnks\_ in power(\allowbreak{}seq-set)], def-closed(\allowbreak{}mnkt\_, mnks\_) implies mnkq\_ in mnks\_)\}
+\end{quote}
+characterized by \texttt{def-derivable-sub}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[tt, s in def-derivable(\allowbreak{}tt)], s in derivable(\allowbreak{}tt))
+\end{quote}
+also: \texttt{def-derivable-unfold} \\
+mentioned by 13 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{def-fun-inst(mdt\_, mdhs\_, mdc\_)}}\quad\textit{predicate}\index{def-fun-inst(mdt_, mdhs_, mdc_)@\texttt{def-fun-inst(mdt\_, mdhs\_, mdc\_)}}\\
 reads: the definedness rule functoid-instance relates \$2 to \$3 \\
 defined by \texttt{def-fun-inst} \\
@@ -4981,7 +5014,7 @@ characterized by \texttt{def-fun-inst}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-fun-inst(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdh\_, mdl\_, mdb\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}eapp(\allowbreak{}mdh\_, mdl\_), eapp(\allowbreak{}mdh\_, mdl\_))] and fun-def(\allowbreak{}mdh\_, length(\allowbreak{}mdl\_), mdb\_) and mdhs\_ = [[mdg\_, enc-eq(\allowbreak{}openl(\allowbreak{}mdb\_, mdl\_, length(\allowbreak{}mdl\_)), openl(\allowbreak{}mdb\_, mdl\_, length(\allowbreak{}mdl\_)))]]))
 \end{quote}
 also: \texttt{adm-def-fun-inst} \texttt{def-fun-inst-derived} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -4993,7 +5026,7 @@ characterized by \texttt{def-fun-nth}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-fun-nth(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdh\_, mdl\_, mdb\_, mdk\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}enc-nth(\allowbreak{}enc-num(\allowbreak{}mdk\_), eapp(\allowbreak{}mdh\_, mdl\_)), enc-nth(\allowbreak{}enc-num(\allowbreak{}mdk\_), eapp(\allowbreak{}mdh\_, mdl\_)))] and fun-def(\allowbreak{}mdh\_, length(\allowbreak{}mdl\_), mdb\_) and mdk\_ in nn and mdhs\_ = [[mdg\_, enc-eq(\allowbreak{}enc-nth(\allowbreak{}enc-num(\allowbreak{}mdk\_), openl(\allowbreak{}mdb\_, mdl\_, length(\allowbreak{}mdl\_))), enc-nth(\allowbreak{}enc-num(\allowbreak{}mdk\_), openl(\allowbreak{}mdb\_, mdl\_, length(\allowbreak{}mdl\_))))]]))
 \end{quote}
 also: \texttt{adm-def-fun-nth} \texttt{def-fun-nth-derived} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5005,7 +5038,7 @@ characterized by \texttt{def-fun-sep}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-fun-sep(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdh\_, mdl\_, mdb\_, md11y\_], mdc\_ = [mdg\_, enc-in(\allowbreak{}md11y\_, openl(\allowbreak{}mdb\_, mdl\_, length(\allowbreak{}mdl\_)))] and fun-def(\allowbreak{}mdh\_, length(\allowbreak{}mdl\_), mdb\_) and mdhs\_ = [[mdg\_, enc-in(\allowbreak{}md11y\_, eapp(\allowbreak{}mdh\_, mdl\_))]]))
 \end{quote}
 also: \texttt{adm-def-fun-sep} \texttt{def-fun-sep-derived} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5017,7 +5050,7 @@ characterized by \texttt{def-fun-strict}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-fun-strict(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdh\_, mdl\_, mdb\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}openl(\allowbreak{}mdb\_, mdl\_, length(\allowbreak{}mdl\_)), openl(\allowbreak{}mdb\_, mdl\_, length(\allowbreak{}mdl\_)))] and fun-def(\allowbreak{}mdh\_, length(\allowbreak{}mdl\_), mdb\_) and mdhs\_ = [[mdg\_, enc-eq(\allowbreak{}eapp(\allowbreak{}mdh\_, mdl\_), eapp(\allowbreak{}mdh\_, mdl\_))]]))
 \end{quote}
 also: \texttt{adm-def-fun-strict} \texttt{def-fun-strict-derived} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5033,6 +5066,18 @@ mentioned by 6 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{def-len-tuples(mdt\_, mdhs\_, mdc\_)}}\quad\textit{predicate}\index{def-len-tuples(mdt_, mdhs_, mdc_)@\texttt{def-len-tuples(mdt\_, mdhs\_, mdc\_)}}\\
+reads: the definedness rule length-of-tuple relates \$2 to \$3 \\
+defined by \texttt{def-len-tuples} \\
+characterized by \texttt{def-len-tuples}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-len-tuples(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdw\_, mda\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}enc-length(\allowbreak{}mdw\_), enc-length(\allowbreak{}mdw\_))] and mdhs\_ = [[mdg\_, enc-in(\allowbreak{}mdw\_, enc-tuples(\allowbreak{}mda\_))]]))
+\end{quote}
+also: \texttt{adm-def-len-tuples} \\
+mentioned by 5 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{def-list(mdt\_, mdhs\_, mdc\_)}}\quad\textit{predicate}\index{def-list(mdt_, mdhs_, mdc_)@\texttt{def-list(mdt\_, mdhs\_, mdc\_)}}\\
 reads: the definedness rule list relates \$2 to \$3 \\
 defined by \texttt{def-list} \\
@@ -5041,7 +5086,7 @@ characterized by \texttt{def-list}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-list(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdl\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}enc-list(\allowbreak{}mdl\_), enc-list(\allowbreak{}mdl\_))] and length(\allowbreak{}mdhs\_) = length(\allowbreak{}mdl\_) and forall(\allowbreak{}[mdi\_ in nn], 1 <= mdi\_ implies mdi\_ <= length(\allowbreak{}mdl\_) implies nth(\allowbreak{}mdi\_, mdhs\_) = [mdg\_, enc-in(\allowbreak{}nth(\allowbreak{}mdi\_, mdl\_), enc-setc)])))
 \end{quote}
 also: \texttt{def-list-admitted} \\
-mentioned by 3 result(s)
+mentioned by 5 result(s)
 
 \smallskip
 
@@ -5053,7 +5098,7 @@ characterized by \texttt{def-nth-list}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-nth-list(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdl\_, mdk\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}enc-nth(\allowbreak{}enc-num(\allowbreak{}mdk\_), enc-list(\allowbreak{}mdl\_)), enc-nth(\allowbreak{}enc-num(\allowbreak{}mdk\_), enc-list(\allowbreak{}mdl\_)))] and mdk\_ in nn and 1 <= mdk\_ and mdk\_ <= length(\allowbreak{}mdl\_) and length(\allowbreak{}mdhs\_) = length(\allowbreak{}mdl\_) and forall(\allowbreak{}[mdi\_ in nn], 1 <= mdi\_ implies mdi\_ <= length(\allowbreak{}mdl\_) implies nth(\allowbreak{}mdi\_, mdhs\_) = [mdg\_, enc-in(\allowbreak{}nth(\allowbreak{}mdi\_, mdl\_), enc-setc)])))
 \end{quote}
 also: \texttt{adm-def-nth-list} \texttt{def-nth-list-derived} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5076,7 +5121,7 @@ characterized by \texttt{def-pred-hyp}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-pred-hyp(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdk\_, mds\_, mdb\_, md10f\_, mdw\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}mdw\_, mdw\_)] and pred-code(\allowbreak{}mdk\_) and mdhs\_ = [[mdg\_, enc-pred1(\allowbreak{}econst(\allowbreak{}mdk\_), mds\_)], [mdg\_, enc-all(\allowbreak{}enc-iff(\allowbreak{}enc-pred1(\allowbreak{}econst(\allowbreak{}mdk\_), ebvar(\allowbreak{}0)), mdb\_))]] and md10f\_ in true-reach(\allowbreak{}expr-open(\allowbreak{}mdb\_, 0, mds\_)) and strict-atom(\allowbreak{}md10f\_, mdw\_)))
 \end{quote}
 also: \texttt{adm-def-pred-hyp} \texttt{def-pred-hyp-derived} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5088,7 +5133,7 @@ characterized by \texttt{def-pred-hyp-n}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-pred-hyp-n(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdl\_, mdk\_, mdd\_, mdb\_, mdw\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}mdw\_, mdw\_)] and nth(\allowbreak{}1, mdl\_) = econst(\allowbreak{}mdk\_) and pred-code(\allowbreak{}mdk\_) and enc-iff(\allowbreak{}eapp(\allowbreak{}10, mdl\_), mdb\_) in inst-reach(\allowbreak{}mdd\_, mdl\_) and mdb\_ in cert-set(\allowbreak{}mdt\_, mdg\_, mdw\_) and mdhs\_ = [[mdg\_, eapp(\allowbreak{}10, mdl\_)], [mdg\_, mdd\_]]))
 \end{quote}
 also: \texttt{adm-def-pred-hyp-n} \texttt{def-pred-hyp-n-derived} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5100,7 +5145,7 @@ characterized by \texttt{def-pred-unfold}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-pred-unfold(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdk\_, mds\_, mdb\_], mdc\_ = [mdg\_, expr-open(\allowbreak{}mdb\_, 0, mds\_)] and pred-code(\allowbreak{}mdk\_) and mdhs\_ = [[mdg\_, enc-pred1(\allowbreak{}econst(\allowbreak{}mdk\_), mds\_)], [mdg\_, enc-all(\allowbreak{}enc-iff(\allowbreak{}enc-pred1(\allowbreak{}econst(\allowbreak{}mdk\_), ebvar(\allowbreak{}0)), mdb\_))]]))
 \end{quote}
 also: \texttt{adm-def-pred-unfold} \texttt{def-pred-unfold-derived} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5112,7 +5157,18 @@ characterized by \texttt{def-pred-unfold-n}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-pred-unfold-n(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdl\_, mdk\_, mdd\_, mdb\_], mdc\_ = [mdg\_, mdb\_] and nth(\allowbreak{}1, mdl\_) = econst(\allowbreak{}mdk\_) and pred-code(\allowbreak{}mdk\_) and enc-iff(\allowbreak{}eapp(\allowbreak{}10, mdl\_), mdb\_) in inst-reach(\allowbreak{}mdd\_, mdl\_) and mdhs\_ = [[mdg\_, eapp(\allowbreak{}10, mdl\_)], [mdg\_, mdd\_]]))
 \end{quote}
 also: \texttt{adm-def-pred-unfold-n} \texttt{def-pred-unfold-n-derived} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{def-rule(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{def-rule(mnkt_, mnkhs_, mnkc_)@\texttt{def-rule(mnkt\_, mnkhs\_, mnkc\_)}}\\
+reads: some definedness row over \$1 relates \$2 to \$3 \\
+defined by \texttt{def-rule} \\
+characterized by \texttt{def-rule}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mnkt\_, mnkhs\_, mnkc\_], def-rule(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) iff cr-assumption(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or cr-theorem-assumption(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or cr-reflexivity(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-strict-in-l(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-strict-in-r(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-strict-eq-l(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-strict-eq-r(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-strict-arg(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-strict-dom(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-total(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-binder(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-comp(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-list(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-strict-hyp(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-nth-list(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-strict-pred(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-struct-hyp(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-pred-unfold(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-pred-hyp(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-fun-inst(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-fun-strict(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-fun-nth(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-fun-sep(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-pred-unfold-n(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-pred-hyp-n(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or def-cert-hyp(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or mnkt\_ subset clf and ax-fun-app in mnkt\_ and def-app(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) or mnkt\_ subset clf and ax-len-nn in mnkt\_ and def-len-tuples(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_))
+\end{quote}
+mentioned by 4 result(s)
 
 \smallskip
 
@@ -5124,7 +5180,7 @@ characterized by \texttt{def-strict-arg}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-strict-arg(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdh\_, mdl\_, mdi\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}nth(\allowbreak{}mdi\_, mdl\_), nth(\allowbreak{}mdi\_, mdl\_))] and strict-head(\allowbreak{}mdh\_) and mdi\_ in nn and 1 <= mdi\_ and mdi\_ <= length(\allowbreak{}mdl\_) and mdhs\_ = [[mdg\_, enc-eq(\allowbreak{}eapp(\allowbreak{}mdh\_, mdl\_), eapp(\allowbreak{}mdh\_, mdl\_))]]))
 \end{quote}
 also: \texttt{adm-def-strict-arg} \texttt{def-strict-arg-admitted} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5136,7 +5192,7 @@ characterized by \texttt{def-strict-dom}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-strict-dom(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdh\_, mda\_, mdb\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}mda\_, mda\_)] and (\allowbreak{}mdh\_ = 22 or mdh\_ = 24 or mdh\_ = 26) and mdhs\_ = [[mdg\_, enc-eq(\allowbreak{}ebind(\allowbreak{}mdh\_, 1, [mda\_], mdb\_), ebind(\allowbreak{}mdh\_, 1, [mda\_], mdb\_))]]))
 \end{quote}
 also: \texttt{adm-def-strict-dom} \texttt{def-strict-dom-admitted} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5148,7 +5204,7 @@ characterized by \texttt{def-strict-eq-l}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-strict-eq-l(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mds\_, mdu\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}mds\_, mds\_)] and mdhs\_ = [[mdg\_, enc-eq(\allowbreak{}mds\_, mdu\_)]]))
 \end{quote}
 also: \texttt{adm-def-strict-eq-l} \\
-mentioned by 3 result(s)
+mentioned by 5 result(s)
 
 \smallskip
 
@@ -5160,7 +5216,7 @@ characterized by \texttt{def-strict-eq-r}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-strict-eq-r(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mds\_, mdu\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}mdu\_, mdu\_)] and mdhs\_ = [[mdg\_, enc-eq(\allowbreak{}mds\_, mdu\_)]]))
 \end{quote}
 also: \texttt{adm-def-strict-eq-r} \\
-mentioned by 3 result(s)
+mentioned by 5 result(s)
 
 \smallskip
 
@@ -5172,7 +5228,7 @@ characterized by \texttt{def-strict-hyp}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-strict-hyp(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdf\_, md7h2\_, mdw\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}mdw\_, mdw\_)] and mdhs\_ = [[mdg\_, mdf\_]] and md7h2\_ in true-reach(\allowbreak{}mdf\_) and strict-atom(\allowbreak{}md7h2\_, mdw\_)))
 \end{quote}
 also: \texttt{adm-def-strict-hyp} \texttt{def-strict-hyp-derived} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5184,7 +5240,7 @@ characterized by \texttt{def-strict-in-l}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-strict-in-l(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdw\_, mda\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}mdw\_, mdw\_)] and mdhs\_ = [[mdg\_, enc-in(\allowbreak{}mdw\_, mda\_)]]))
 \end{quote}
 also: \texttt{adm-def-strict-in-l} \texttt{def-strict-in-l-admitted} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5196,7 +5252,7 @@ characterized by \texttt{def-strict-in-r}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-strict-in-r(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdw\_, mda\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}mda\_, mda\_)] and mdhs\_ = [[mdg\_, enc-in(\allowbreak{}mdw\_, mda\_)]]))
 \end{quote}
 also: \texttt{adm-def-strict-in-r} \texttt{def-strict-in-r-admitted} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5208,7 +5264,7 @@ characterized by \texttt{def-strict-pred}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-strict-pred(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdl\_, mdk\_, mdi\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}nth(\allowbreak{}mdi\_, mdl\_), nth(\allowbreak{}mdi\_, mdl\_))] and nth(\allowbreak{}1, mdl\_) = econst(\allowbreak{}mdk\_) and pred-code(\allowbreak{}mdk\_) and mdi\_ in nn and 2 <= mdi\_ and mdi\_ <= length(\allowbreak{}mdl\_) and mdhs\_ = [[mdg\_, eapp(\allowbreak{}10, mdl\_)]]))
 \end{quote}
 also: \texttt{adm-def-strict-pred} \texttt{def-strict-pred-admitted} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5220,7 +5276,7 @@ characterized by \texttt{def-struct-hyp}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-struct-hyp(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdk\_, mds\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}mds\_, mds\_)] and pred-code(\allowbreak{}mdk\_) and mdhs\_ = [[mdg\_, enc-pred1(\allowbreak{}econst(\allowbreak{}mdk\_), mds\_)]]))
 \end{quote}
 also: \texttt{adm-def-struct-hyp} \texttt{def-struct-hyp-derived} \\
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -5232,7 +5288,7 @@ characterized by \texttt{def-total}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-total(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdh\_, mdl\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}eapp(\allowbreak{}mdh\_, mdl\_), eapp(\allowbreak{}mdh\_, mdl\_))] and total-head(\allowbreak{}mdh\_) and length(\allowbreak{}mdhs\_) = length(\allowbreak{}mdl\_) and forall(\allowbreak{}[mdi\_ in nn], 1 <= mdi\_ implies mdi\_ <= length(\allowbreak{}mdl\_) implies nth(\allowbreak{}mdi\_, mdhs\_) = [mdg\_, enc-eq(\allowbreak{}nth(\allowbreak{}mdi\_, mdl\_), nth(\allowbreak{}mdi\_, mdl\_))])))
 \end{quote}
 also: \texttt{def-total-admitted} \\
-mentioned by 3 result(s)
+mentioned by 5 result(s)
 
 \smallskip
 
@@ -5320,8 +5376,8 @@ characterized by \texttt{derivable-cut}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[tt, hs, c], cr-cut(\allowbreak{}tt, hs, c) implies hyps-in(\allowbreak{}hs, derivable(\allowbreak{}tt)) implies c in seq-set implies c in derivable(\allowbreak{}tt))
 \end{quote}
-also: \texttt{derivable-cut-c} \texttt{derivable-closed} \texttt{derivable-nth-eq} \texttt{derivable-unfold} \texttt{derivable-if-true} \texttt{derivable-iota-cr} \texttt{derivable-or-elim} \texttt{derivable-sep-mem} ... (68 in all) \\
-mentioned by 272 result(s)
+also: \texttt{derivable-cut-c} \texttt{derivable-closed} \texttt{derivable-nth-eq} \texttt{derivable-unfold} \texttt{def-derivable-sub} \texttt{derivable-if-true} \texttt{derivable-iota-cr} \texttt{derivable-or-elim} ... (72 in all) \\
+mentioned by 311 result(s)
 
 \smallskip
 
@@ -5430,7 +5486,7 @@ characterized by \texttt{difference-set}  \textit{(certified)}:
 forall(\allowbreak{}[x in set, b], difference(\allowbreak{}x, b) in set)
 \end{quote}
 also: \texttt{difference-subset} \texttt{difference-unfold} \texttt{difference-in-power} \texttt{translate-difference} \texttt{difference-empty-left} \texttt{difference-membership} \texttt{insert-difference-cancel} \texttt{insert-difference-outside} ... (9 in all) \\
-mentioned by 221 result(s)
+mentioned by 223 result(s)
 
 \smallskip
 
@@ -5850,7 +5906,7 @@ characterized by \texttt{fv-eapp}  \textit{(certified)}:
 forall(\allowbreak{}[h, l], h in nn implies l in tuples(\allowbreak{}expr-set) implies expr-fv(\allowbreak{}eapp(\allowbreak{}h, l)) == big-union(\allowbreak{}mxw\_, make-set(\allowbreak{}l), expr-fv(\allowbreak{}mxw\_)))
 \end{quote}
 also: \texttt{lcd-eapp} \texttt{wks-eapp} \texttt{open-eapp} \texttt{subst-eapp} \texttt{eapp-unfold} \texttt{lc-eapp-iff} \texttt{clt-eapp-arg} \texttt{eapp-in-expr} ... (13 in all) \\
-mentioned by 171 result(s)
+mentioned by 173 result(s)
 
 \smallskip
 
@@ -5865,7 +5921,7 @@ characterized by \texttt{fv-ebind}  \textit{(certified)}:
 forall(\allowbreak{}[h, nb, a, b], h in nn implies nb in nn implies a in tuples(\allowbreak{}expr-set) implies b in expr-set implies expr-fv(\allowbreak{}ebind(\allowbreak{}h, nb, a, b)) == union(\allowbreak{}big-union(\allowbreak{}mxw\_, make-set(\allowbreak{}a), expr-fv(\allowbreak{}mxw\_)), expr-fv(\allowbreak{}b)))
 \end{quote}
 also: \texttt{lcd-ebind} \texttt{wks-ebind} \texttt{open-ebind} \texttt{subst-ebind} \texttt{ebind-unfold} \texttt{clt-ebind-dom} \texttt{ebind-in-expr} \texttt{ebind-args-expr} ... (13 in all) \\
-mentioned by 66 result(s)
+mentioned by 68 result(s)
 
 \smallskip
 
@@ -5880,7 +5936,7 @@ characterized by \texttt{fv-ebvar}  \textit{(certified)}:
 forall(\allowbreak{}[k in nn], expr-fv(\allowbreak{}ebvar(\allowbreak{}k)) == empty-set)
 \end{quote}
 also: \texttt{lcd-ebvar} \texttt{wks-ebvar} \texttt{subst-ebvar} \texttt{ebvar-unfold} \texttt{ebvar-in-expr} \texttt{open-ebvar-hit} \texttt{open-ebvar-miss} \\
-mentioned by 85 result(s)
+mentioned by 99 result(s)
 
 \smallskip
 
@@ -5921,7 +5977,7 @@ characterized by \texttt{fv-efvar}  \textit{(certified)}:
 forall(\allowbreak{}[n in nn], expr-fv(\allowbreak{}efvar(\allowbreak{}n)) == pair(\allowbreak{}n, n))
 \end{quote}
 also: \texttt{clt-efvar} \texttt{lcd-efvar} \texttt{wks-efvar} \texttt{open-efvar} \texttt{efvar-unfold} \texttt{efvar-in-expr} \texttt{subst-efvar-hit} \texttt{subst-efvar-miss} \\
-mentioned by 66 result(s)
+mentioned by 79 result(s)
 
 \smallskip
 
@@ -6125,7 +6181,7 @@ characterized by \texttt{enc-all-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mrp\_], enc-all(\allowbreak{}mrp\_) == ebind(\allowbreak{}20, 1, [], mrp\_))
 \end{quote}
-mentioned by 61 result(s)
+mentioned by 77 result(s)
 
 \smallskip
 
@@ -6206,7 +6262,7 @@ characterized by \texttt{enc-cart-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[l], enc-cart(\allowbreak{}l) == eapp(\allowbreak{}13, l))
 \end{quote}
-mentioned by 14 result(s)
+mentioned by 24 result(s)
 
 \smallskip
 
@@ -6259,7 +6315,7 @@ characterized by \texttt{enc-eql-succ}  \textit{(definitional)}:
 forall(\allowbreak{}[mcl\_, mca\_, mcn\_ in nn], enc-eql(\allowbreak{}mcl\_, mca\_, succ(\allowbreak{}mcn\_)) == enc-and(\allowbreak{}enc-eql(\allowbreak{}mcl\_, mca\_, mcn\_), enc-eq(\allowbreak{}nth(\allowbreak{}succ(\allowbreak{}mcn\_), mcl\_), nth(\allowbreak{}succ(\allowbreak{}mcn\_), mca\_))))
 \end{quote}
 also: \texttt{enc-eq-unfold} \\
-mentioned by 136 result(s)
+mentioned by 173 result(s)
 
 \smallskip
 
@@ -6285,7 +6341,7 @@ characterized by \texttt{enc-ex-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mrp\_], enc-ex(\allowbreak{}mrp\_) == ebind(\allowbreak{}21, 1, [], mrp\_))
 \end{quote}
-mentioned by 30 result(s)
+mentioned by 32 result(s)
 
 \smallskip
 
@@ -6301,7 +6357,11 @@ definition:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 eapp(\allowbreak{}19, [mcp\_, mcq\_])
 \end{quote}
-mentioned by 2 result(s)
+characterized by \texttt{enc-fun-unfold}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpofp\_, mpofq\_], enc-fun(\allowbreak{}mpofp\_, mpofq\_) == eapp(\allowbreak{}19, [mpofp\_, mpofq\_]))
+\end{quote}
+mentioned by 16 result(s)
 
 \smallskip
 
@@ -6325,7 +6385,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 ebind(\allowbreak{}27, 0, [mca\_, mcb\_], mcp\_)
 \end{quote}
-mentioned by 14 result(s)
+mentioned by 18 result(s)
 
 \smallskip
 
@@ -6339,7 +6399,7 @@ characterized by \texttt{enc-iff-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[p, q], enc-iff(\allowbreak{}p, q) == eapp(\allowbreak{}6, [p, q]))
 \end{quote}
-mentioned by 76 result(s)
+mentioned by 77 result(s)
 
 \smallskip
 
@@ -6353,7 +6413,7 @@ characterized by \texttt{enc-imp-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[p, q], enc-imp(\allowbreak{}p, q) == eapp(\allowbreak{}5, [p, q]))
 \end{quote}
-mentioned by 60 result(s)
+mentioned by 75 result(s)
 
 \smallskip
 
@@ -6367,7 +6427,7 @@ characterized by \texttt{enc-in-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[p, q], enc-in(\allowbreak{}p, q) == eapp(\allowbreak{}7, [p, q]))
 \end{quote}
-mentioned by 168 result(s)
+mentioned by 194 result(s)
 
 \smallskip
 
@@ -6405,7 +6465,11 @@ definition:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 ebind(\allowbreak{}26, 1, [mca\_], mcb\_)
 \end{quote}
-mentioned by 4 result(s)
+characterized by \texttt{enc-lam-unfold}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpofp\_, mpofq\_], enc-lam(\allowbreak{}mpofp\_, mpofq\_) == ebind(\allowbreak{}26, 1, [mpofp\_], mpofq\_))
+\end{quote}
+mentioned by 18 result(s)
 
 \smallskip
 
@@ -6433,7 +6497,7 @@ characterized by \texttt{enc-length-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mip\_], enc-length(\allowbreak{}mip\_) == eapp(\allowbreak{}16, [mip\_]))
 \end{quote}
-mentioned by 6 result(s)
+mentioned by 10 result(s)
 
 \smallskip
 
@@ -6461,7 +6525,7 @@ characterized by \texttt{enc-list-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[l], enc-list(\allowbreak{}l) == eapp(\allowbreak{}17, l))
 \end{quote}
-mentioned by 34 result(s)
+mentioned by 38 result(s)
 
 \smallskip
 
@@ -6495,7 +6559,7 @@ characterized by \texttt{enc-not-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[p], enc-not(\allowbreak{}p) == eapp(\allowbreak{}2, [p]))
 \end{quote}
-mentioned by 26 result(s)
+mentioned by 28 result(s)
 
 \smallskip
 
@@ -6509,7 +6573,7 @@ characterized by \texttt{enc-nth-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mdp7\_, mdq7\_], enc-nth(\allowbreak{}mdp7\_, mdq7\_) == eapp(\allowbreak{}15, [mdp7\_, mdq7\_]))
 \end{quote}
-mentioned by 17 result(s)
+mentioned by 28 result(s)
 
 \smallskip
 
@@ -6523,7 +6587,7 @@ characterized by \texttt{enc-num-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mik\_ in nn], enc-num(\allowbreak{}mik\_) = econst(\allowbreak{}2 * mik\_))
 \end{quote}
-mentioned by 35 result(s)
+mentioned by 46 result(s)
 
 \smallskip
 
@@ -6570,7 +6634,7 @@ characterized by \texttt{enc-orl-succ}  \textit{(definitional)}:
 forall(\allowbreak{}[mcx\_, mcl\_, mcn\_ in nn], enc-orl(\allowbreak{}mcx\_, mcl\_, succ(\allowbreak{}mcn\_)) == enc-or(\allowbreak{}enc-orl(\allowbreak{}mcx\_, mcl\_, mcn\_), enc-in(\allowbreak{}mcx\_, nth(\allowbreak{}succ(\allowbreak{}mcn\_), mcl\_))))
 \end{quote}
 also: \texttt{enc-orl-zero} \\
-mentioned by 11 result(s)
+mentioned by 12 result(s)
 
 \smallskip
 
@@ -6666,7 +6730,7 @@ characterized by \texttt{enc-tuples-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[p], enc-tuples(\allowbreak{}p) == eapp(\allowbreak{}14, [p]))
 \end{quote}
-mentioned by 11 result(s)
+mentioned by 19 result(s)
 
 \smallskip
 
@@ -6680,7 +6744,7 @@ characterized by \texttt{enc-union-unfold}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[l], enc-union(\allowbreak{}l) == eapp(\allowbreak{}11, l))
 \end{quote}
-mentioned by 12 result(s)
+mentioned by 13 result(s)
 
 \smallskip
 
@@ -6839,8 +6903,8 @@ characterized by \texttt{eqv-ex}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[jj, tt, x], rw-ex(\allowbreak{}jj, eqv(\allowbreak{}tt), x) implies x in rw-univ implies x in eqv(\allowbreak{}tt))
 \end{quote}
-also: \texttt{eqv-all} \texttt{eqv-not} \texttt{eqv-top} \texttt{eqv-or-l} \texttt{eqv-or-r} \texttt{eqv-pred} \texttt{eqv-tapp} \texttt{eqv-and-l} ... (29 in all) \\
-mentioned by 66 result(s)
+also: \texttt{eqv-all} \texttt{eqv-not} \texttt{eqv-top} \texttt{eqv-or-l} \texttt{eqv-or-r} \texttt{eqv-pred} \texttt{eqv-tapp} \texttt{eqv-and-l} ... (30 in all) \\
+mentioned by 70 result(s)
 
 \smallskip
 
@@ -7127,7 +7191,7 @@ characterized by \texttt{expr-open-at}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[u, j, e, ix], j in nn implies e in expr-stage(\allowbreak{}j) implies ix in nn implies expr-open(\allowbreak{}e, ix, u) == (\allowbreak{}open-stage(\allowbreak{}u, j))(\allowbreak{}e, ix))
 \end{quote}
-mentioned by 119 result(s)
+mentioned by 137 result(s)
 
 \smallskip
 
@@ -7697,7 +7761,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 vnb-lambda(\allowbreak{}[ubx\_, uby\_], cartesian(\allowbreak{}ubd\_, ubd\_), ubf\_(\allowbreak{}ubx\_, uby\_) + (\allowbreak{}ip(\allowbreak{}ubv\_))(\allowbreak{}ubx\_, uby\_))
 \end{quote}
-characterized by \texttt{form-ms-form-plus}  \textit{(proven)}:
+characterized by \texttt{form-ms-form-plus}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[v, dd, q], is-complex-inner-product-space(\allowbreak{}v) implies is-submodule(\allowbreak{}v, dd) implies is-positive-form(\allowbreak{}v, dd, q) implies form-ms(\allowbreak{}complex-inner-product-space-as-module(\allowbreak{}sub-cips(\allowbreak{}v, dd)), form-plus(\allowbreak{}v, dd, q)) == ip-metric-space(\allowbreak{}form-plus-space(\allowbreak{}v, dd, q)))
 \end{quote}
@@ -7712,7 +7776,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 [normed-field-as-commutative-ring(\allowbreak{}cc-normed-field), ubd\_, vnb-lambda(\allowbreak{}[ubx\_, uby\_], cartesian(\allowbreak{}ubd\_, ubd\_), (\allowbreak{}vadd(\allowbreak{}ubv\_))(\allowbreak{}ubx\_, uby\_)), vzero(\allowbreak{}ubv\_), vnb-lambda(\allowbreak{}ubx\_, ubd\_, (\allowbreak{}vneg(\allowbreak{}ubv\_))(\allowbreak{}ubx\_)), vnb-lambda(\allowbreak{}[ubk\_, ubx\_], cartesian(\allowbreak{}cc, ubd\_), (\allowbreak{}act(\allowbreak{}ubv\_))(\allowbreak{}ubk\_, ubx\_)), form-plus(\allowbreak{}ubv\_, ubd\_, ubf\_)]
 \end{quote}
-characterized by \texttt{form-plus-space-ip}  \textit{(proven)}:
+characterized by \texttt{form-plus-space-ip}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[v, dd, q], is-complex-inner-product-space(\allowbreak{}v) implies is-submodule(\allowbreak{}v, dd) implies is-positive-form(\allowbreak{}v, dd, q) implies ip(\allowbreak{}form-plus-space(\allowbreak{}v, dd, q)) == form-plus(\allowbreak{}v, dd, q))
 \end{quote}
@@ -7848,7 +7912,7 @@ characterized by \texttt{is-degree-function}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[gfs\_, gfn\_], is-degree-function(\allowbreak{}gfs\_, gfn\_) iff is-integral-domain(\allowbreak{}gfs\_) and gfn\_ in fun(\allowbreak{}carr(\allowbreak{}gfs\_), nn) and forall(\allowbreak{}[gfa\_ in carr(\allowbreak{}gfs\_), gfb\_ in carr(\allowbreak{}gfs\_)], not(\allowbreak{}gfa\_ = zero(\allowbreak{}gfs\_)) implies not(\allowbreak{}gfb\_ = zero(\allowbreak{}gfs\_)) implies gfn\_(\allowbreak{}gfa\_) <= gfn\_(\allowbreak{}(\allowbreak{}mul(\allowbreak{}gfs\_))(\allowbreak{}gfa\_, gfb\_))) and forall(\allowbreak{}[gfa\_ in carr(\allowbreak{}gfs\_), gfb\_ in carr(\allowbreak{}gfs\_)], not(\allowbreak{}gfa\_ = zero(\allowbreak{}gfs\_)) implies forsome(\allowbreak{}[gfq\_ in carr(\allowbreak{}gfs\_)], gfb\_ = (\allowbreak{}mul(\allowbreak{}gfs\_))(\allowbreak{}gfa\_, gfq\_) or gfn\_(\allowbreak{}(\allowbreak{}add(\allowbreak{}gfs\_))(\allowbreak{}gfb\_, (\allowbreak{}neg(\allowbreak{}gfs\_))(\allowbreak{}(\allowbreak{}mul(\allowbreak{}gfs\_))(\allowbreak{}gfa\_, gfq\_)))) < gfn\_(\allowbreak{}gfa\_))))
 \end{quote}
-also: \texttt{is-convex-functional} \texttt{is-linear-functional} \texttt{is-positive-functional} \texttt{is-cc-linear-functional} \texttt{is-linear-functional-on} \texttt{sip-act-fun-csip-as-sip} \texttt{sip-rip-fun-csip-as-sip} \texttt{is-bounded-l1-functional} ... (474 in all) \\
+also: \texttt{is-convex-functional} \texttt{is-linear-functional} \texttt{is-positive-functional} \texttt{is-cc-linear-functional} \texttt{is-linear-functional-on} \texttt{sip-act-fun-csip-as-sip} \texttt{sip-rip-fun-csip-as-sip} \texttt{is-bounded-l1-functional} ... (475 in all) \\
 mentioned by 4701 result(s)
 
 \smallskip
@@ -9825,8 +9889,8 @@ characterized by \texttt{hyps-in}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mchs\_, mcs\_], hyps-in(\allowbreak{}mchs\_, mcs\_) iff mchs\_ in set and forall(\allowbreak{}[mci\_ in nn], 1 <= mci\_ implies mci\_ <= length(\allowbreak{}mchs\_) implies nth(\allowbreak{}mci\_, mchs\_) in mcs\_))
 \end{quote}
-also: \texttt{hyps-in-0} \texttt{hyps-in-1} \texttt{hyps-in-2} \texttt{hyps-in-all} \texttt{hyps-in-set} \texttt{hyps-in-1-elim} \texttt{hyps-in-2-elim} \texttt{hyps-in-3-elim} \\
-mentioned by 198 result(s)
+also: \texttt{hyps-in-0} \texttt{hyps-in-1} \texttt{hyps-in-2} \texttt{hyps-in-3} \texttt{hyps-in-all} \texttt{hyps-in-set} \texttt{hyps-in-1-elim} \texttt{hyps-in-2-elim} ... (9 in all) \\
+mentioned by 234 result(s)
 
 \smallskip
 
@@ -10038,8 +10102,8 @@ characterized by \texttt{hyps-in}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mchs\_, mcs\_], hyps-in(\allowbreak{}mchs\_, mcs\_) iff mchs\_ in set and forall(\allowbreak{}[mci\_ in nn], 1 <= mci\_ implies mci\_ <= length(\allowbreak{}mchs\_) implies nth(\allowbreak{}mci\_, mchs\_) in mcs\_))
 \end{quote}
-also: \texttt{is-ring} \texttt{is-chain} \texttt{is-lusin} \texttt{inst-step} \texttt{def-binder} \texttt{is-cofinal} \texttt{is-fin-ext} \texttt{is-or-init} ... (4303 in all) \\
-mentioned by 23071 result(s)
+also: \texttt{is-ring} \texttt{is-chain} \texttt{is-lusin} \texttt{inst-step} \texttt{def-binder} \texttt{is-cofinal} \texttt{is-fin-ext} \texttt{is-or-init} ... (4316 in all) \\
+mentioned by 23175 result(s)
 
 \smallskip
 
@@ -16158,7 +16222,7 @@ characterized by \texttt{j-cart-sub}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[tt], tt subset clf implies ax-mem-set in tt implies j-cart(\allowbreak{}tt) subset eqv(\allowbreak{}tt))
 \end{quote}
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -16172,7 +16236,7 @@ characterized by \texttt{j-fb-sub}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[tt], j-fb(\allowbreak{}tt) subset eqv(\allowbreak{}tt))
 \end{quote}
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -16186,21 +16250,21 @@ characterized by \texttt{j-idec-sub}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[tt], j-idec(\allowbreak{}tt) subset eqv(\allowbreak{}tt))
 \end{quote}
-mentioned by 9 result(s)
+mentioned by 13 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{j-lb(mrt\_)}}\quad\textit{functoid}\index{j-lb(mrt_)@\texttt{j-lb(mrt\_)}}\\
-reads: the local lambda redexes over \$1, the argument in the domain \\
+reads: the local lambda redexes over \$1, the argument in the domain and the value a set \\
 definition:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
-\{mrx\_ in rw-univ: forsome(\allowbreak{}[mrg\_, mra\_, mrb\_, mre\_], mrg\_ in set and mra\_ in set and mrb\_ in set and mre\_ in set and mrx\_ = [1, mrg\_, enc-apply(\allowbreak{}enc-lam(\allowbreak{}mra\_, mrb\_), mre\_), expr-open(\allowbreak{}mrb\_, 0, mre\_)] and nbg-ok(\allowbreak{}mrb\_) and enc-apply(\allowbreak{}enc-lam(\allowbreak{}mra\_, mrb\_), mre\_) in clt and expr-open(\allowbreak{}mrb\_, 0, mre\_) in clt and [mrg\_, enc-in(\allowbreak{}mre\_, mra\_)] in derivable(\allowbreak{}mrt\_))\}
+\{mrx\_ in rw-univ: forsome(\allowbreak{}[mrg\_, mra\_, mrb\_, mre\_], mrg\_ in set and mra\_ in set and mrb\_ in set and mre\_ in set and mrx\_ = [1, mrg\_, enc-apply(\allowbreak{}enc-lam(\allowbreak{}mra\_, mrb\_), mre\_), expr-open(\allowbreak{}mrb\_, 0, mre\_)] and nbg-ok(\allowbreak{}mrb\_) and enc-apply(\allowbreak{}enc-lam(\allowbreak{}mra\_, mrb\_), mre\_) in clt and expr-open(\allowbreak{}mrb\_, 0, mre\_) in clt and [mrg\_, enc-in(\allowbreak{}mre\_, mra\_)] in derivable(\allowbreak{}mrt\_) and [mrg\_, enc-in(\allowbreak{}expr-open(\allowbreak{}mrb\_, 0, mre\_), enc-setc)] in derivable(\allowbreak{}mrt\_))\}
 \end{quote}
 characterized by \texttt{j-lb-sub}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[tt], j-lb(\allowbreak{}tt) subset eqv(\allowbreak{}tt))
 \end{quote}
-mentioned by 9 result(s)
+mentioned by 13 result(s)
 
 \smallskip
 
@@ -16214,7 +16278,7 @@ characterized by \texttt{j-len-sub}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[tt], j-len(\allowbreak{}tt) subset eqv(\allowbreak{}tt))
 \end{quote}
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -16228,7 +16292,7 @@ characterized by \texttt{j-mac-sub}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[tt], j-mac(\allowbreak{}tt) subset eqv(\allowbreak{}tt))
 \end{quote}
-mentioned by 9 result(s)
+mentioned by 13 result(s)
 
 \smallskip
 
@@ -16242,7 +16306,7 @@ characterized by \texttt{j-macn-sub}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[tt], j-macn(\allowbreak{}tt) subset eqv(\allowbreak{}tt))
 \end{quote}
-mentioned by 9 result(s)
+mentioned by 13 result(s)
 
 \smallskip
 
@@ -16256,7 +16320,7 @@ characterized by \texttt{j-nth-sub}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[tt], j-nth(\allowbreak{}tt) subset eqv(\allowbreak{}tt))
 \end{quote}
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -16270,7 +16334,7 @@ characterized by \texttt{j-teq-sub}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[tt], j-teq(\allowbreak{}tt) subset eqv(\allowbreak{}tt))
 \end{quote}
-mentioned by 5 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -16278,13 +16342,13 @@ mentioned by 5 result(s)
 reads: the local instances over \$1 of the catalog's union-decompose \\
 definition:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
-\{md14y\_ in rw-univ: forsome(\allowbreak{}[md14g\_, md14x2\_, md14l2\_, md14f2\_], md14g\_ in set and md14x2\_ in set and md14l2\_ in set and md14y\_ = [2, md14g\_, enc-in(\allowbreak{}md14x2\_, enc-union(\allowbreak{}md14l2\_)), md14f2\_] and [0, md14f2\_] in rf-set(\allowbreak{}4, md14x2\_, md14l2\_) and enc-in(\allowbreak{}md14x2\_, enc-union(\allowbreak{}md14l2\_)) in clf and md14f2\_ in clf)\}
+\{md14y\_ in rw-univ: forsome(\allowbreak{}[md14g\_, md14x2\_, md14l2\_, md14f2\_], md14g\_ in set and md14x2\_ in set and md14l2\_ in set and md14y\_ = [2, md14g\_, enc-in(\allowbreak{}md14x2\_, enc-union(\allowbreak{}md14l2\_)), md14f2\_] and [0, md14f2\_] in rf-set(\allowbreak{}4, md14x2\_, md14l2\_) and enc-in(\allowbreak{}md14x2\_, enc-union(\allowbreak{}md14l2\_)) in clf and md14f2\_ in clf and forall(\allowbreak{}[md14i\_ in nn], 1 <= md14i\_ implies md14i\_ <= length(\allowbreak{}md14l2\_) implies [md14g\_, enc-eq(\allowbreak{}nth(\allowbreak{}md14i\_, md14l2\_), nth(\allowbreak{}md14i\_, md14l2\_))] in derivable(\allowbreak{}md14t\_)))\}
 \end{quote}
 characterized by \texttt{j-udec-sub}  \textit{(certified)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[tt], j-udec(\allowbreak{}tt) subset eqv(\allowbreak{}tt))
 \end{quote}
-mentioned by 9 result(s)
+mentioned by 13 result(s)
 
 \smallskip
 
@@ -17044,7 +17108,7 @@ characterized by \texttt{length-cons}  \textit{(definitional)}:
 forall(\allowbreak{}[x, l], x in set implies length(\allowbreak{}cons(\allowbreak{}x, l)) = succ(\allowbreak{}length(\allowbreak{}l)))
 \end{quote}
 also: \texttt{cr-length-eq} \texttt{sipq-length-csip-as-sip} \texttt{qmod-length-cna-as-module} \texttt{qmod-length-sip-as-module} \texttt{qmod-length-uba-as-module} \texttt{qmod-length-cnvs-as-module} \texttt{qmod-length-sip-as-module-csip-as-sip} \texttt{qmod-length-uba-as-module-uiba-as-uba} ... (27 in all) \\
-mentioned by 337 result(s)
+mentioned by 351 result(s)
 
 \smallskip
 
@@ -17210,7 +17274,7 @@ characterized by \texttt{def-list}  \textit{(definitional)}:
 forall(\allowbreak{}[mdt\_, mdhs\_, mdc\_], def-list(\allowbreak{}mdt\_, mdhs\_, mdc\_) iff mdc\_ in seq-set and forsome(\allowbreak{}[mdg\_, mdl\_], mdc\_ = [mdg\_, enc-eq(\allowbreak{}enc-list(\allowbreak{}mdl\_), enc-list(\allowbreak{}mdl\_))] and length(\allowbreak{}mdhs\_) = length(\allowbreak{}mdl\_) and forall(\allowbreak{}[mdi\_ in nn], 1 <= mdi\_ implies mdi\_ <= length(\allowbreak{}mdl\_) implies nth(\allowbreak{}mdi\_, mdhs\_) = [mdg\_, enc-in(\allowbreak{}nth(\allowbreak{}mdi\_, mdl\_), enc-setc)])))
 \end{quote}
 also: \texttt{cr-def-list} \texttt{def-nth-list} \texttt{der-list-hole} \texttt{nsl-list-source} \texttt{nso-list-source} \texttt{flat-list-source} \texttt{cx-strand-list-typed} \texttt{rb5-nary-plus-2-list-cc} ... (15 in all) \\
-mentioned by 1882 result(s)
+mentioned by 1930 result(s)
 
 \smallskip
 
@@ -17270,6 +17334,18 @@ mentioned by 107 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{ltch}}\quad\textit{functoid}\index{ltch@\texttt{ltch}}\\
+reads: the chain of guarded universals over the last \$5 of the \$4 entries of \$1 around \$2 in \$3 \\
+defined by \texttt{ltch-zero} \texttt{ltch-succ} \\
+characterized by \texttt{ltch-succ}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[m52a\_, m52b\_, m52d\_, m52n\_, m52k\_ in nn], ltch(\allowbreak{}m52a\_, m52b\_, m52d\_, m52n\_, succ(\allowbreak{}m52k\_)) == enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), nth(\allowbreak{}m52n\_ - m52k\_, m52a\_)), ltch(\allowbreak{}m52a\_, m52b\_, m52d\_, m52n\_, m52k\_))))
+\end{quote}
+also: \texttt{ltch-zero} \texttt{ltch-expr} \texttt{ltch-inst} \texttt{ltch-open} \\
+mentioned by 10 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{ltkey(s)}}\quad\textit{accessor}\index{ltkey(s)@\texttt{ltkey(s)}}\\
 reads: the ltkey slot of \$1 \\
 a structure slot \\
@@ -17279,6 +17355,18 @@ ltkey(\allowbreak{}cx-orp) == vnb-lambda(\allowbreak{}cxn\_, interval(\allowbrea
 \end{quote}
 also: \texttt{or-ltkey-injective-at} \texttt{or-ltkey-not-regular-origin} \texttt{or-ltkey-no-adversary-origin} \\
 mentioned by 28 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{ltop}}\quad\textit{functoid}\index{ltop@\texttt{ltop}}\\
+reads: \$1 opened at the first \$4 projections of the name \$2, of \$3 \\
+defined by \texttt{ltop-zero} \texttt{ltop-succ} \\
+characterized by \texttt{ltop-succ}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[m52b\_, m52y\_, m52n\_, m52k\_ in nn], ltop(\allowbreak{}m52b\_, m52y\_, m52n\_, succ(\allowbreak{}m52k\_)) == expr-open(\allowbreak{}ltop(\allowbreak{}m52b\_, m52y\_, m52n\_, m52k\_), m52n\_ - succ(\allowbreak{}m52k\_), enc-nth(\allowbreak{}enc-num(\allowbreak{}succ(\allowbreak{}m52k\_)), efvar(\allowbreak{}m52y\_))))
+\end{quote}
+also: \texttt{ltop-zero} \texttt{ltop-expr} \\
+mentioned by 8 result(s)
 
 \smallskip
 
@@ -17343,7 +17431,7 @@ characterized by \texttt{make-set-empty}  \textit{(primitive)}:
 \{\} = empty-set
 \end{quote}
 also: \texttt{make-set-sethood} \texttt{make-set-membership} \\
-mentioned by 86 result(s)
+mentioned by 90 result(s)
 
 \smallskip
 
@@ -18282,7 +18370,7 @@ characterized by \texttt{nbg-ok}  \textit{(definitional)}:
 forall(\allowbreak{}[mnbp\_], nbg-ok(\allowbreak{}mnbp\_) iff forall(\allowbreak{}[mnboe\_ in nbg-walk(\allowbreak{}mnbp\_)], qnode-ok(\allowbreak{}mnboe\_)))
 \end{quote}
 also: \texttt{nbg-ok-truth} \texttt{nbg-ok-refuses-unguarded} \\
-mentioned by 55 result(s)
+mentioned by 67 result(s)
 
 \smallskip
 
@@ -18773,7 +18861,7 @@ characterized by \texttt{cr-nth-eq}  \textit{(definitional)}:
 forall(\allowbreak{}[mct\_, mchs\_, mcc\_], cr-nth-eq(\allowbreak{}mct\_, mchs\_, mcc\_) iff forsome(\allowbreak{}[mcg\_, mcl\_, mck\_], mcc\_ = [mcg\_, enc-qeq(\allowbreak{}enc-nth(\allowbreak{}enc-num(\allowbreak{}mck\_), enc-list(\allowbreak{}mcl\_)), nth(\allowbreak{}mck\_, mcl\_))] and mck\_ in nn and 1 <= mck\_ and mck\_ <= length(\allowbreak{}mcl\_) and mchs\_ = [[mcg\_, enc-eq(\allowbreak{}enc-list(\allowbreak{}mcl\_), enc-list(\allowbreak{}mcl\_))]]))
 \end{quote}
 also: \texttt{nth-cons-1} \texttt{def-nth-lit} \texttt{def-nth-list} \texttt{nth-cons-succ} \texttt{nth-in-range} \texttt{ms-nth-2} \texttt{nth1-pair} \texttt{nth2-pair} ... (11 in all) \\
-mentioned by 597 result(s)
+mentioned by 606 result(s)
 
 \smallskip
 
@@ -19737,7 +19825,7 @@ characterized by \texttt{pairing}  \textit{(primitive)}:
 forall(\allowbreak{}[a, b], a in set and b in set implies pair(\allowbreak{}a, b) in set)
 \end{quote}
 also: \texttt{pairing-membership} \texttt{pair-self-eq} \texttt{pair-self-member} \texttt{sent-received-in-pair} \\
-mentioned by 253 result(s)
+mentioned by 255 result(s)
 
 \smallskip
 
@@ -20058,8 +20146,8 @@ characterized by \texttt{good-sub-in-power-cnvs-as-nvs}  \textit{(definitional)}
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[r], is-complex-normed-vector-space(\allowbreak{}r) implies forall(\allowbreak{}[s, f, t], good-sub(\allowbreak{}cnvs-as-nvs(\allowbreak{}r), s, f, t) implies t in power(\allowbreak{}vec(\allowbreak{}r))))
 \end{quote}
-also: \texttt{power-neg} \texttt{power-set} \texttt{power-succ} \texttt{power-zero} \texttt{power-typing-nonneg} \texttt{power-set-membership} \texttt{qo-power} \texttt{deriv-power} ... (149 in all) \\
-mentioned by 1021 result(s)
+also: \texttt{power-neg} \texttt{power-set} \texttt{power-succ} \texttt{power-zero} \texttt{power-typing-nonneg} \texttt{power-set-membership} \texttt{qo-power} \texttt{deriv-power} ... (150 in all) \\
+mentioned by 1027 result(s)
 
 \smallskip
 
@@ -21595,6 +21683,17 @@ mentioned by 52 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{rel-adds-nothing-k(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-adds-nothing-k(mnkt_, mnkhs_, mnkc_)@\texttt{rel-adds-nothing-k(mnkt\_, mnkhs\_, mnkc\_)}}\\
+reads: a kernel rule whose hypothesis adds nothing relates \$2 to \$3 \\
+defined by \texttt{rel-adds-nothing-k} \\
+characterized by \texttt{rel-adds-nothing-k}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mnkt\_, mnkhs\_, mnkc\_], rel-adds-nothing-k(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) iff mnkc\_ in seq-set and forsome(\allowbreak{}[mnkg\_, mnkf\_, mnkd\_, mnki\_], mnkc\_ = [mnkg\_, mnkf\_] and mnkd\_ subset mnkg\_ and mnki\_ in nn and 1 <= mnki\_ and mnki\_ <= length(\allowbreak{}mnkhs\_) and nth(\allowbreak{}mnki\_, mnkhs\_) = [mnkd\_, mnkf\_]))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{rel-and-elim-k(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-and-elim-k(mnkt_, mnkhs_, mnkc_)@\texttt{rel-and-elim-k(mnkt\_, mnkhs\_, mnkc\_)}}\\
 reads: the kernel's and-elim relates \$2 to \$3 \\
 defined by \texttt{rel-and-elim-k} \\
@@ -21656,6 +21755,17 @@ defined by \texttt{rel-cartesian-decompose-7} \\
 characterized by \texttt{rel-cartesian-decompose-7}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mit\_, mihs\_, mic\_], rel-cartesian-decompose-7(\allowbreak{}mit\_, mihs\_, mic\_) iff rel-rewrite-7(\allowbreak{}j-cart(\allowbreak{}mit\_), mihs\_, mic\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-cartesian-decompose-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-cartesian-decompose-s(mpot_, mpohs_, mpocc_)@\texttt{rel-cartesian-decompose-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-cartesian-decompose-s} \\
+characterized by \texttt{rel-cartesian-decompose-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-cartesian-decompose-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-s(\allowbreak{}j-cart(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
 \end{quote}
 mentioned by 3 result(s)
 
@@ -21727,6 +21837,17 @@ mentioned by 3 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{rel-forall-elim-kd(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-forall-elim-kd(mnkt_, mnkhs_, mnkc_)@\texttt{rel-forall-elim-kd(mnkt\_, mnkhs\_, mnkc\_)}}\\
+reads: the kernel's forall-elim at a term certified by the rows relates \$2 to \$3 \\
+defined by \texttt{rel-forall-elim-kd} \\
+characterized by \texttt{rel-forall-elim-kd}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mnkt\_, mnkhs\_, mnkc\_], rel-forall-elim-kd(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) iff mnkc\_ in seq-set and forsome(\allowbreak{}[mnkg\_, mnkf\_, mnkb\_, mnktm\_], mnkc\_ = [mnkg\_, mnkf\_] and enc-all(\allowbreak{}mnkb\_) in mnkg\_ and mnktm\_ in clt and [mnkg\_, enc-eq(\allowbreak{}mnktm\_, mnktm\_)] in def-derivable(\allowbreak{}mnkt\_) and mnkhs\_ = [[ctx-add(\allowbreak{}mnkg\_, expr-open(\allowbreak{}mnkb\_, 0, mnktm\_)), mnkf\_]]))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{rel-forsome-elim-k(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-forsome-elim-k(mnkt_, mnkhs_, mnkc_)@\texttt{rel-forsome-elim-k(mnkt\_, mnkhs\_, mnkc\_)}}\\
 reads: the kernel's forsome-elim relates \$2 to \$3 \\
 defined by \texttt{rel-forsome-elim-k} \\
@@ -21744,6 +21865,17 @@ defined by \texttt{rel-forsome-intro-k} \\
 characterized by \texttt{rel-forsome-intro-k}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mnkt\_, mnkhs\_, mnkc\_], rel-forsome-intro-k(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) iff mnkc\_ in seq-set and forsome(\allowbreak{}[mnkg\_, mnkb\_, mnktm\_], mnkc\_ = [mnkg\_, enc-ex(\allowbreak{}mnkb\_)] and mnktm\_ in clt and mnkhs\_ = [[mnkg\_, expr-open(\allowbreak{}mnkb\_, 0, mnktm\_)]] and (\allowbreak{}forsome(\allowbreak{}[mnkf2\_ in true-reach(\allowbreak{}expr-open(\allowbreak{}mnkb\_, 0, mnktm\_))], strict-atom(\allowbreak{}mnkf2\_, mnktm\_)) or forsome(\allowbreak{}[mnkh\_ in mnkg\_], mnkh\_ in cert-set(\allowbreak{}mnkt\_, mnkg\_, mnktm\_)))))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-forsome-intro-kd(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-forsome-intro-kd(mnkt_, mnkhs_, mnkc_)@\texttt{rel-forsome-intro-kd(mnkt\_, mnkhs\_, mnkc\_)}}\\
+reads: the kernel's forsome-intro with a witness certified by the rows relates \$2 to \$3 \\
+defined by \texttt{rel-forsome-intro-kd} \\
+characterized by \texttt{rel-forsome-intro-kd}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mnkt\_, mnkhs\_, mnkc\_], rel-forsome-intro-kd(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) iff mnkc\_ in seq-set and forsome(\allowbreak{}[mnkg\_, mnkb\_, mnktm\_], mnkc\_ = [mnkg\_, enc-ex(\allowbreak{}mnkb\_)] and mnktm\_ in clt and [mnkg\_, enc-eq(\allowbreak{}mnktm\_, mnktm\_)] in def-derivable(\allowbreak{}mnkt\_) and mnkhs\_ = [[mnkg\_, expr-open(\allowbreak{}mnkb\_, 0, mnktm\_)]]))
 \end{quote}
 mentioned by 3 result(s)
 
@@ -21783,6 +21915,17 @@ mentioned by 3 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{rel-functoid-beta-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-functoid-beta-s(mpot_, mpohs_, mpocc_)@\texttt{rel-functoid-beta-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-functoid-beta-s} \\
+characterized by \texttt{rel-functoid-beta-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-functoid-beta-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-s(\allowbreak{}j-fb(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{rel-if-false-k(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-if-false-k(mnkt_, mnkhs_, mnkc_)@\texttt{rel-if-false-k(mnkt\_, mnkhs\_, mnkc\_)}}\\
 reads: the kernel's if-false at a certified branch relates \$2 to \$3 \\
 defined by \texttt{rel-if-false-k} \\
@@ -21794,12 +21937,34 @@ mentioned by 3 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{rel-if-false-kd(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-if-false-kd(mnkt_, mnkhs_, mnkc_)@\texttt{rel-if-false-kd(mnkt\_, mnkhs\_, mnkc\_)}}\\
+reads: the kernel's if-false at a branch certified by the rows relates \$2 to \$3 \\
+defined by \texttt{rel-if-false-kd} \\
+characterized by \texttt{rel-if-false-kd}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mnkt\_, mnkhs\_, mnkc\_], rel-if-false-kd(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) iff mnkc\_ in seq-set and forsome(\allowbreak{}[mnkg\_, mnkf\_, mnkp\_, mnka\_, mnkb\_], mnkc\_ = [mnkg\_, mnkf\_] and [mnkg\_, enc-eq(\allowbreak{}mnkb\_, mnkb\_)] in def-derivable(\allowbreak{}mnkt\_) and enc-if(\allowbreak{}mnkp\_, mnka\_, mnkb\_) in clt and mnka\_ in clt and mnkb\_ in clt and mnkhs\_ = [[mnkg\_, enc-not(\allowbreak{}mnkp\_)], [ctx-add(\allowbreak{}mnkg\_, enc-eq(\allowbreak{}enc-if(\allowbreak{}mnkp\_, mnka\_, mnkb\_), mnkb\_)), mnkf\_]]))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{rel-if-true-k(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-if-true-k(mnkt_, mnkhs_, mnkc_)@\texttt{rel-if-true-k(mnkt\_, mnkhs\_, mnkc\_)}}\\
 reads: the kernel's if-true at a certified branch relates \$2 to \$3 \\
 defined by \texttt{rel-if-true-k} \\
 characterized by \texttt{rel-if-true-k}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mnkt\_, mnkhs\_, mnkc\_], rel-if-true-k(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) iff mnkc\_ in seq-set and forsome(\allowbreak{}[mnkg\_, mnkf\_, mnkp\_, mnka\_, mnkb\_, mnkh\_], mnkc\_ = [mnkg\_, mnkf\_] and mnkh\_ in mnkg\_ and mnkh\_ in cert-set(\allowbreak{}mnkt\_, mnkg\_, mnka\_) and enc-if(\allowbreak{}mnkp\_, mnka\_, mnkb\_) in clt and mnka\_ in clt and mnkb\_ in clt and mnkhs\_ = [[mnkg\_, mnkp\_], [ctx-add(\allowbreak{}mnkg\_, enc-eq(\allowbreak{}enc-if(\allowbreak{}mnkp\_, mnka\_, mnkb\_), mnka\_)), mnkf\_]]))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-if-true-kd(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-if-true-kd(mnkt_, mnkhs_, mnkc_)@\texttt{rel-if-true-kd(mnkt\_, mnkhs\_, mnkc\_)}}\\
+reads: the kernel's if-true at a branch certified by the rows relates \$2 to \$3 \\
+defined by \texttt{rel-if-true-kd} \\
+characterized by \texttt{rel-if-true-kd}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mnkt\_, mnkhs\_, mnkc\_], rel-if-true-kd(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) iff mnkc\_ in seq-set and forsome(\allowbreak{}[mnkg\_, mnkf\_, mnkp\_, mnka\_, mnkb\_], mnkc\_ = [mnkg\_, mnkf\_] and [mnkg\_, enc-eq(\allowbreak{}mnka\_, mnka\_)] in def-derivable(\allowbreak{}mnkt\_) and enc-if(\allowbreak{}mnkp\_, mnka\_, mnkb\_) in clt and mnka\_ in clt and mnkb\_ in clt and mnkhs\_ = [[mnkg\_, mnkp\_], [ctx-add(\allowbreak{}mnkg\_, enc-eq(\allowbreak{}enc-if(\allowbreak{}mnkp\_, mnka\_, mnkb\_), mnka\_)), mnkf\_]]))
 \end{quote}
 mentioned by 3 result(s)
 
@@ -21855,6 +22020,28 @@ defined by \texttt{rel-intersection-decompose-hyp-7} \\
 characterized by \texttt{rel-intersection-decompose-hyp-7}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[md14t\_, md14hs\_, md14c\_], rel-intersection-decompose-hyp-7(\allowbreak{}md14t\_, md14hs\_, md14c\_) iff rel-rewrite-hyp-7(\allowbreak{}j-idec(\allowbreak{}md14t\_), md14hs\_, md14c\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-intersection-decompose-hyp-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-intersection-decompose-hyp-s(mpot_, mpohs_, mpocc_)@\texttt{rel-intersection-decompose-hyp-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-intersection-decompose-hyp-s} \\
+characterized by \texttt{rel-intersection-decompose-hyp-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-intersection-decompose-hyp-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-hyp-s(\allowbreak{}j-idec(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-intersection-decompose-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-intersection-decompose-s(mpot_, mpohs_, mpocc_)@\texttt{rel-intersection-decompose-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-intersection-decompose-s} \\
+characterized by \texttt{rel-intersection-decompose-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-intersection-decompose-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-s(\allowbreak{}j-idec(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
 \end{quote}
 mentioned by 3 result(s)
 
@@ -21937,6 +22124,94 @@ mentioned by 3 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{rel-lambda-beta-hyp-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-lambda-beta-hyp-s(mpot_, mpohs_, mpocc_)@\texttt{rel-lambda-beta-hyp-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-lambda-beta-hyp-s} \\
+characterized by \texttt{rel-lambda-beta-hyp-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-lambda-beta-hyp-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-hyp-s(\allowbreak{}j-lb(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-lambda-beta-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-lambda-beta-s(mpot_, mpohs_, mpocc_)@\texttt{rel-lambda-beta-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-lambda-beta-s} \\
+characterized by \texttt{rel-lambda-beta-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-lambda-beta-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-s(\allowbreak{}j-lb(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-lambda-type-1(mit\_, mihs\_, mic\_)}}\quad\textit{predicate}\index{rel-lambda-type-1(mit_, mihs_, mic_)@\texttt{rel-lambda-type-1(mit\_, mihs\_, mic\_)}}\\
+reads: the kernel's lambda-type at a binder list of fixed length relates \$2 to \$3 \\
+defined by \texttt{rel-lambda-type-1} \\
+characterized by \texttt{rel-lambda-type-1}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mit\_, mihs\_, mic\_], rel-lambda-type-1(\allowbreak{}mit\_, mihs\_, mic\_) iff mic\_ in seq-set and forsome(\allowbreak{}[mig\_, mia1\_, mib\_, mid\_, mie\_], mic\_ = [mig\_, enc-in(\allowbreak{}enc-lam(\allowbreak{}enc-cart(\allowbreak{}[mia1\_]), mie\_), enc-fun(\allowbreak{}enc-cart(\allowbreak{}[mia1\_]), mid\_))] and nbg-ok(\allowbreak{}mie\_) and forall(\allowbreak{}[miy\_ in nn], expr-open(\allowbreak{}mie\_, 0, efvar(\allowbreak{}miy\_)) = expr-open(\allowbreak{}mib\_, 0, enc-nth(\allowbreak{}enc-num(\allowbreak{}1), efvar(\allowbreak{}miy\_)))) and mihs\_ = [[mig\_, enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), mia1\_), enc-in(\allowbreak{}mib\_, mid\_)))], [mig\_, enc-in(\allowbreak{}enc-cart(\allowbreak{}[mia1\_]), enc-setc)], [mig\_, enc-eq(\allowbreak{}mid\_, mid\_)]]))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-lambda-type-2(mit\_, mihs\_, mic\_)}}\quad\textit{predicate}\index{rel-lambda-type-2(mit_, mihs_, mic_)@\texttt{rel-lambda-type-2(mit\_, mihs\_, mic\_)}}\\
+reads: the kernel's lambda-type at a binder list of fixed length relates \$2 to \$3 \\
+defined by \texttt{rel-lambda-type-2} \\
+characterized by \texttt{rel-lambda-type-2}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mit\_, mihs\_, mic\_], rel-lambda-type-2(\allowbreak{}mit\_, mihs\_, mic\_) iff mic\_ in seq-set and forsome(\allowbreak{}[mig\_, mia1\_, mia2\_, mib\_, mid\_, mie\_], mic\_ = [mig\_, enc-in(\allowbreak{}enc-lam(\allowbreak{}enc-cart(\allowbreak{}[mia1\_, mia2\_]), mie\_), enc-fun(\allowbreak{}enc-cart(\allowbreak{}[mia1\_, mia2\_]), mid\_))] and nbg-ok(\allowbreak{}mie\_) and forall(\allowbreak{}[miy\_ in nn], expr-open(\allowbreak{}mie\_, 0, efvar(\allowbreak{}miy\_)) = expr-open(\allowbreak{}expr-open(\allowbreak{}mib\_, 1, enc-nth(\allowbreak{}enc-num(\allowbreak{}1), efvar(\allowbreak{}miy\_))), 0, enc-nth(\allowbreak{}enc-num(\allowbreak{}2), efvar(\allowbreak{}miy\_)))) and mihs\_ = [[mig\_, enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), mia1\_), enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), mia2\_), enc-in(\allowbreak{}mib\_, mid\_)))))], [mig\_, enc-in(\allowbreak{}enc-cart(\allowbreak{}[mia1\_, mia2\_]), enc-setc)], [mig\_, enc-eq(\allowbreak{}mid\_, mid\_)]]))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-lambda-type-3(mit\_, mihs\_, mic\_)}}\quad\textit{predicate}\index{rel-lambda-type-3(mit_, mihs_, mic_)@\texttt{rel-lambda-type-3(mit\_, mihs\_, mic\_)}}\\
+reads: the kernel's lambda-type at a binder list of fixed length relates \$2 to \$3 \\
+defined by \texttt{rel-lambda-type-3} \\
+characterized by \texttt{rel-lambda-type-3}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mit\_, mihs\_, mic\_], rel-lambda-type-3(\allowbreak{}mit\_, mihs\_, mic\_) iff mic\_ in seq-set and forsome(\allowbreak{}[mig\_, mia1\_, mia2\_, mia3\_, mib\_, mid\_, mie\_], mic\_ = [mig\_, enc-in(\allowbreak{}enc-lam(\allowbreak{}enc-cart(\allowbreak{}[mia1\_, mia2\_, mia3\_]), mie\_), enc-fun(\allowbreak{}enc-cart(\allowbreak{}[mia1\_, mia2\_, mia3\_]), mid\_))] and nbg-ok(\allowbreak{}mie\_) and forall(\allowbreak{}[miy\_ in nn], expr-open(\allowbreak{}mie\_, 0, efvar(\allowbreak{}miy\_)) = expr-open(\allowbreak{}expr-open(\allowbreak{}expr-open(\allowbreak{}mib\_, 2, enc-nth(\allowbreak{}enc-num(\allowbreak{}1), efvar(\allowbreak{}miy\_))), 1, enc-nth(\allowbreak{}enc-num(\allowbreak{}2), efvar(\allowbreak{}miy\_))), 0, enc-nth(\allowbreak{}enc-num(\allowbreak{}3), efvar(\allowbreak{}miy\_)))) and mihs\_ = [[mig\_, enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), mia1\_), enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), mia2\_), enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), mia3\_), enc-in(\allowbreak{}mib\_, mid\_)))))))], [mig\_, enc-in(\allowbreak{}enc-cart(\allowbreak{}[mia1\_, mia2\_, mia3\_]), enc-setc)], [mig\_, enc-eq(\allowbreak{}mid\_, mid\_)]]))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-lambda-type-4(mit\_, mihs\_, mic\_)}}\quad\textit{predicate}\index{rel-lambda-type-4(mit_, mihs_, mic_)@\texttt{rel-lambda-type-4(mit\_, mihs\_, mic\_)}}\\
+reads: the kernel's lambda-type at a binder list of fixed length relates \$2 to \$3 \\
+defined by \texttt{rel-lambda-type-4} \\
+characterized by \texttt{rel-lambda-type-4}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mit\_, mihs\_, mic\_], rel-lambda-type-4(\allowbreak{}mit\_, mihs\_, mic\_) iff mic\_ in seq-set and forsome(\allowbreak{}[mig\_, mia1\_, mia2\_, mia3\_, mia4\_, mib\_, mid\_, mie\_], mic\_ = [mig\_, enc-in(\allowbreak{}enc-lam(\allowbreak{}enc-cart(\allowbreak{}[mia1\_, mia2\_, mia3\_, mia4\_]), mie\_), enc-fun(\allowbreak{}enc-cart(\allowbreak{}[mia1\_, mia2\_, mia3\_, mia4\_]), mid\_))] and nbg-ok(\allowbreak{}mie\_) and forall(\allowbreak{}[miy\_ in nn], expr-open(\allowbreak{}mie\_, 0, efvar(\allowbreak{}miy\_)) = expr-open(\allowbreak{}expr-open(\allowbreak{}expr-open(\allowbreak{}expr-open(\allowbreak{}mib\_, 3, enc-nth(\allowbreak{}enc-num(\allowbreak{}1), efvar(\allowbreak{}miy\_))), 2, enc-nth(\allowbreak{}enc-num(\allowbreak{}2), efvar(\allowbreak{}miy\_))), 1, enc-nth(\allowbreak{}enc-num(\allowbreak{}3), efvar(\allowbreak{}miy\_))), 0, enc-nth(\allowbreak{}enc-num(\allowbreak{}4), efvar(\allowbreak{}miy\_)))) and mihs\_ = [[mig\_, enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), mia1\_), enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), mia2\_), enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), mia3\_), enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), mia4\_), enc-in(\allowbreak{}mib\_, mid\_)))))))))], [mig\_, enc-in(\allowbreak{}enc-cart(\allowbreak{}[mia1\_, mia2\_, mia3\_, mia4\_]), enc-setc)], [mig\_, enc-eq(\allowbreak{}mid\_, mid\_)]]))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-lambda-type-k(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-lambda-type-k(mnkt_, mnkhs_, mnkc_)@\texttt{rel-lambda-type-k(mnkt\_, mnkhs\_, mnkc\_)}}\\
+reads: the kernel's lambda-type at one binder, the codomain certified, relates \$2 to \$3 \\
+defined by \texttt{rel-lambda-type-k} \\
+characterized by \texttt{rel-lambda-type-k}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mnkt\_, mnkhs\_, mnkc\_], rel-lambda-type-k(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) iff mnkc\_ in seq-set and forsome(\allowbreak{}[mnkg\_, mnka\_, mnkb\_, mnkd\_, mnkh\_], mnkc\_ = [mnkg\_, enc-in(\allowbreak{}enc-lam(\allowbreak{}mnka\_, mnkb\_), enc-fun(\allowbreak{}mnka\_, mnkd\_))] and nbg-ok(\allowbreak{}mnkb\_) and mnkd\_ in clt and mnkh\_ in mnkg\_ and mnkh\_ in cert-set(\allowbreak{}mnkt\_, mnkg\_, mnkd\_) and mnkhs\_ = [[mnkg\_, enc-all(\allowbreak{}enc-imp(\allowbreak{}enc-in(\allowbreak{}ebvar(\allowbreak{}0), mnka\_), enc-in(\allowbreak{}mnkb\_, mnkd\_)))], [mnkg\_, enc-in(\allowbreak{}mnka\_, enc-setc)]]))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-lambda-type-n(mit\_, mihs\_, mic\_)}}\quad\textit{predicate}\index{rel-lambda-type-n(mit_, mihs_, mic_)@\texttt{rel-lambda-type-n(mit\_, mihs\_, mic\_)}}\\
+reads: the kernel's lambda-type at a binder list relates \$2 to \$3 \\
+defined by \texttt{rel-lambda-type-n} \\
+characterized by \texttt{rel-lambda-type-n}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mit\_, mihs\_, mic\_], rel-lambda-type-n(\allowbreak{}mit\_, mihs\_, mic\_) iff mic\_ in seq-set and forsome(\allowbreak{}[mig\_, mia\_, mib\_, mid\_, mie\_], mic\_ = [mig\_, enc-in(\allowbreak{}enc-lam(\allowbreak{}enc-cart(\allowbreak{}mia\_), mie\_), enc-fun(\allowbreak{}enc-cart(\allowbreak{}mia\_), mid\_))] and 1 <= length(\allowbreak{}mia\_) and mib\_ in expr-set and nbg-ok(\allowbreak{}mie\_) and forall(\allowbreak{}[miy\_ in nn], expr-open(\allowbreak{}mie\_, 0, efvar(\allowbreak{}miy\_)) = ltop(\allowbreak{}mib\_, miy\_, length(\allowbreak{}mia\_), length(\allowbreak{}mia\_))) and mihs\_ = [[mig\_, ltch(\allowbreak{}mia\_, mib\_, mid\_, length(\allowbreak{}mia\_), length(\allowbreak{}mia\_))], [mig\_, enc-in(\allowbreak{}enc-cart(\allowbreak{}mia\_), enc-setc)], [mig\_, enc-eq(\allowbreak{}mid\_, mid\_)]]))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{rel-length-reduce-1(mrt\_, mrhs\_, mrc\_)}}\quad\textit{predicate}\index{rel-length-reduce-1(mrt_, mrhs_, mrc_)@\texttt{rel-length-reduce-1(mrt\_, mrhs\_, mrc\_)}}\\
 reads: the kernel rule, at one position, relates \$2 to \$3 \\
 defined by \texttt{rel-length-reduce-1} \\
@@ -21954,6 +22229,17 @@ defined by \texttt{rel-length-reduce-7} \\
 characterized by \texttt{rel-length-reduce-7}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mrt\_, mrhs\_, mrc\_], rel-length-reduce-7(\allowbreak{}mrt\_, mrhs\_, mrc\_) iff rel-rewrite-7(\allowbreak{}j-len(\allowbreak{}mrt\_), mrhs\_, mrc\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-length-reduce-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-length-reduce-s(mpot_, mpohs_, mpocc_)@\texttt{rel-length-reduce-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-length-reduce-s} \\
+characterized by \texttt{rel-length-reduce-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-length-reduce-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-s(\allowbreak{}j-len(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
 \end{quote}
 mentioned by 3 result(s)
 
@@ -22003,6 +22289,17 @@ mentioned by 3 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{rel-macete-hyp-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-macete-hyp-s(mpot_, mpohs_, mpocc_)@\texttt{rel-macete-hyp-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-macete-hyp-s} \\
+characterized by \texttt{rel-macete-hyp-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-macete-hyp-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-hyp-s(\allowbreak{}j-mac(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{rel-macete-n-1(md13t\_, md13hs\_, md13c\_)}}\quad\textit{predicate}\index{rel-macete-n-1(md13t_, md13hs_, md13c_)@\texttt{rel-macete-n-1(md13t\_, md13hs\_, md13c\_)}}\\
 reads: the kernel's macete of any number of schema variables, at one position, relates \$2 to \$3 \\
 defined by \texttt{rel-macete-n-1} \\
@@ -22042,6 +22339,39 @@ defined by \texttt{rel-macete-n-hyp-7} \\
 characterized by \texttt{rel-macete-n-hyp-7}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[md13t\_, md13hs\_, md13c\_], rel-macete-n-hyp-7(\allowbreak{}md13t\_, md13hs\_, md13c\_) iff rel-rewrite-hyp-7(\allowbreak{}j-macn(\allowbreak{}md13t\_), md13hs\_, md13c\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-macete-n-hyp-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-macete-n-hyp-s(mpot_, mpohs_, mpocc_)@\texttt{rel-macete-n-hyp-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-macete-n-hyp-s} \\
+characterized by \texttt{rel-macete-n-hyp-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-macete-n-hyp-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-hyp-s(\allowbreak{}j-macn(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-macete-n-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-macete-n-s(mpot_, mpohs_, mpocc_)@\texttt{rel-macete-n-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-macete-n-s} \\
+characterized by \texttt{rel-macete-n-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-macete-n-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-s(\allowbreak{}j-macn(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-macete-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-macete-s(mpot_, mpohs_, mpocc_)@\texttt{rel-macete-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-macete-s} \\
+characterized by \texttt{rel-macete-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-macete-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-s(\allowbreak{}j-mac(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
 \end{quote}
 mentioned by 3 result(s)
 
@@ -22091,6 +22421,17 @@ mentioned by 3 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{rel-nth-reduce-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-nth-reduce-s(mpot_, mpohs_, mpocc_)@\texttt{rel-nth-reduce-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-nth-reduce-s} \\
+characterized by \texttt{rel-nth-reduce-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-nth-reduce-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-s(\allowbreak{}j-nth(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{rel-or-elim-k(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-or-elim-k(mnkt_, mnkhs_, mnkc_)@\texttt{rel-or-elim-k(mnkt\_, mnkhs\_, mnkc\_)}}\\
 reads: the kernel's or-elim relates \$2 to \$3 \\
 defined by \texttt{rel-or-elim-k} \\
@@ -22108,6 +22449,28 @@ defined by \texttt{rel-reflexivity-k} \\
 characterized by \texttt{rel-reflexivity-k}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mnkt\_, mnkhs\_, mnkc\_], rel-reflexivity-k(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) iff mnkc\_ in seq-set and forsome(\allowbreak{}[mnkg\_, mnktm\_, mnkh\_], mnkc\_ = [mnkg\_, enc-eq(\allowbreak{}mnktm\_, mnktm\_)] and mnktm\_ in clt and mnkh\_ in mnkg\_ and mnkh\_ in cert-set(\allowbreak{}mnkt\_, mnkg\_, mnktm\_) and mnkhs\_ = []))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-reflexivity-kd(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-reflexivity-kd(mnkt_, mnkhs_, mnkc_)@\texttt{rel-reflexivity-kd(mnkt\_, mnkhs\_, mnkc\_)}}\\
+reads: the kernel's reflexivity at a term certified by the rows relates \$2 to \$3 \\
+defined by \texttt{rel-reflexivity-kd} \\
+characterized by \texttt{rel-reflexivity-kd}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mnkt\_, mnkhs\_, mnkc\_], rel-reflexivity-kd(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) iff mnkc\_ in seq-set and forsome(\allowbreak{}[mnkg\_, mnktm\_], mnkc\_ = [mnkg\_, enc-eq(\allowbreak{}mnktm\_, mnktm\_)] and [mnkg\_, enc-eq(\allowbreak{}mnktm\_, mnktm\_)] in def-derivable(\allowbreak{}mnkt\_) and mnkhs\_ = []))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-reflexivity-kt(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-reflexivity-kt(mnkt_, mnkhs_, mnkc_)@\texttt{rel-reflexivity-kt(mnkt\_, mnkhs\_, mnkc\_)}}\\
+reads: the kernel's reflexivity at TRUTH relates \$2 to \$3 \\
+defined by \texttt{rel-reflexivity-kt} \\
+characterized by \texttt{rel-reflexivity-kt}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mnkt\_, mnkhs\_, mnkc\_], rel-reflexivity-kt(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) iff mnkc\_ in seq-set and forsome(\allowbreak{}[mnkg\_], mnkc\_ = [mnkg\_, enc-truth] and mnkhs\_ = []))
 \end{quote}
 mentioned by 3 result(s)
 
@@ -22154,6 +22517,28 @@ characterized by \texttt{rel-rewrite-hyp-7}  \textit{(definitional)}:
 forall(\allowbreak{}[mrt\_, mrhs\_, mrc\_], rel-rewrite-hyp-7(\allowbreak{}mrt\_, mrhs\_, mrc\_) iff mrc\_ in seq-set and forsome(\allowbreak{}[mrg\_, mrf\_, mra\_, mrb\_], mrc\_ = [mrg\_, mrf\_] and mra\_ in mrg\_ and mrhs\_ = [[ctx-add(\allowbreak{}difference(\allowbreak{}mrg\_, pair(\allowbreak{}mra\_, mra\_)), mrb\_), mrf\_]] and [2, mrg\_, mra\_, mrb\_] in rewr(\allowbreak{}mrt\_, 7)))
 \end{quote}
 mentioned by 13 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-rewrite-hyp-s(mpoj\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-rewrite-hyp-s(mpoj_, mpohs_, mpocc_)@\texttt{rel-rewrite-hyp-s(mpoj\_, mpohs\_, mpocc\_)}}\\
+reads: \$2 is \$3 with one assumption rewritten at finitely many positions justified by \$1 \\
+defined by \texttt{rel-rewrite-hyp-s} \\
+characterized by \texttt{rel-rewrite-hyp-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpoj\_, mpohs\_, mpocc\_], rel-rewrite-hyp-s(\allowbreak{}mpoj\_, mpohs\_, mpocc\_) iff mpocc\_ in seq-set and forsome(\allowbreak{}[mpog\_, mpof\_, mpoa\_, mpob\_], mpocc\_ = [mpog\_, mpof\_] and mpoa\_ in mpog\_ and mpohs\_ = [[ctx-add(\allowbreak{}difference(\allowbreak{}mpog\_, pair(\allowbreak{}mpoa\_, mpoa\_)), mpob\_), mpof\_]] and [2, mpog\_, mpoa\_, mpob\_] in rewrs(\allowbreak{}mpoj\_)))
+\end{quote}
+mentioned by 13 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-rewrite-s(mpoj\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-rewrite-s(mpoj_, mpohs_, mpocc_)@\texttt{rel-rewrite-s(mpoj\_, mpohs\_, mpocc\_)}}\\
+reads: \$2 is \$3 with its goal rewritten at finitely many positions justified by \$1 \\
+defined by \texttt{rel-rewrite-s} \\
+characterized by \texttt{rel-rewrite-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpoj\_, mpohs\_, mpocc\_], rel-rewrite-s(\allowbreak{}mpoj\_, mpohs\_, mpocc\_) iff mpocc\_ in seq-set and forsome(\allowbreak{}[mpog\_, mpoa\_, mpob\_], mpocc\_ = [mpog\_, mpoa\_] and mpohs\_ = [[mpog\_, mpob\_]] and [2, mpog\_, mpoa\_, mpob\_] in rewrs(\allowbreak{}mpoj\_)))
+\end{quote}
+mentioned by 23 result(s)
 
 \smallskip
 
@@ -22256,6 +22641,17 @@ mentioned by 3 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{rel-tuple-eq-decompose-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-tuple-eq-decompose-s(mpot_, mpohs_, mpocc_)@\texttt{rel-tuple-eq-decompose-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-tuple-eq-decompose-s} \\
+characterized by \texttt{rel-tuple-eq-decompose-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-tuple-eq-decompose-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-s(\allowbreak{}j-teq(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{rel-tuples-elim(mct\_, mchs\_, mcc\_)}}\quad\textit{predicate}\index{rel-tuples-elim(mct_, mchs_, mcc_)@\texttt{rel-tuples-elim(mct\_, mchs\_, mcc\_)}}\\
 reads: the kernel's tuples-elim relates \$2 to \$3 \\
 defined by \texttt{rel-tuples-elim} \\
@@ -22272,7 +22668,29 @@ reads: the kernel's tuples-intro relates \$2 to \$3 \\
 defined by \texttt{rel-tuples-intro} \\
 characterized by \texttt{rel-tuples-intro}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
-forall(\allowbreak{}[mct\_, mchs\_, mcc\_], rel-tuples-intro(\allowbreak{}mct\_, mchs\_, mcc\_) iff mcc\_ in seq-set and forsome(\allowbreak{}[mcg\_, mcl\_, mca\_], mcc\_ = [mcg\_, enc-in(\allowbreak{}enc-list(\allowbreak{}mcl\_), enc-tuples(\allowbreak{}mca\_))] and length(\allowbreak{}mchs\_) = length(\allowbreak{}mcl\_) and forall(\allowbreak{}[mci\_ in nn], 1 <= mci\_ implies mci\_ <= length(\allowbreak{}mcl\_) implies nth(\allowbreak{}mci\_, mchs\_) = [mcg\_, enc-in(\allowbreak{}nth(\allowbreak{}mci\_, mcl\_), mca\_)])))
+forall(\allowbreak{}[mct\_, mchs\_, mcc\_], rel-tuples-intro(\allowbreak{}mct\_, mchs\_, mcc\_) iff mcc\_ in seq-set and forsome(\allowbreak{}[mcg\_, mcl\_, mca\_], mcc\_ = [mcg\_, enc-in(\allowbreak{}enc-list(\allowbreak{}mcl\_), enc-tuples(\allowbreak{}mca\_))] and 1 <= length(\allowbreak{}mcl\_) and length(\allowbreak{}mchs\_) = length(\allowbreak{}mcl\_) and forall(\allowbreak{}[mci\_ in nn], 1 <= mci\_ implies mci\_ <= length(\allowbreak{}mcl\_) implies nth(\allowbreak{}mci\_, mchs\_) = [mcg\_, enc-in(\allowbreak{}nth(\allowbreak{}mci\_, mcl\_), mca\_)])))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-tuples-intro-0(mct\_, mchs\_, mcc\_)}}\quad\textit{predicate}\index{rel-tuples-intro-0(mct_, mchs_, mcc_)@\texttt{rel-tuples-intro-0(mct\_, mchs\_, mcc\_)}}\\
+reads: the kernel's tuples-intro at the empty tuple relates \$2 to \$3 \\
+defined by \texttt{rel-tuples-intro-0} \\
+characterized by \texttt{rel-tuples-intro-0}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mct\_, mchs\_, mcc\_], rel-tuples-intro-0(\allowbreak{}mct\_, mchs\_, mcc\_) iff mcc\_ in seq-set and forsome(\allowbreak{}[mcg\_, mcl\_, mca\_], mcc\_ = [mcg\_, enc-in(\allowbreak{}enc-list(\allowbreak{}mcl\_), enc-tuples(\allowbreak{}mca\_))] and length(\allowbreak{}mcl\_) = 0 and mchs\_ = [[mcg\_, enc-eq(\allowbreak{}mca\_, mca\_)]]))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-tuples-intro-0k(mnkt\_, mnkhs\_, mnkc\_)}}\quad\textit{predicate}\index{rel-tuples-intro-0k(mnkt_, mnkhs_, mnkc_)@\texttt{rel-tuples-intro-0k(mnkt\_, mnkhs\_, mnkc\_)}}\\
+reads: the kernel's tuples-intro at the empty tuple, the class certified, relates \$2 to \$3 \\
+defined by \texttt{rel-tuples-intro-0k} \\
+characterized by \texttt{rel-tuples-intro-0k}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mnkt\_, mnkhs\_, mnkc\_], rel-tuples-intro-0k(\allowbreak{}mnkt\_, mnkhs\_, mnkc\_) iff mnkc\_ in seq-set and forsome(\allowbreak{}[mnkg\_, mnkl\_, mnka\_, mnkh\_], mnkc\_ = [mnkg\_, enc-in(\allowbreak{}enc-list(\allowbreak{}mnkl\_), enc-tuples(\allowbreak{}mnka\_))] and length(\allowbreak{}mnkl\_) = 0 and mnka\_ in clt and mnkh\_ in mnkg\_ and mnkh\_ in cert-set(\allowbreak{}mnkt\_, mnkg\_, mnka\_) and mnkhs\_ = []))
 \end{quote}
 mentioned by 3 result(s)
 
@@ -22322,6 +22740,28 @@ mentioned by 3 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{rel-union-decompose-hyp-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-union-decompose-hyp-s(mpot_, mpohs_, mpocc_)@\texttt{rel-union-decompose-hyp-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-union-decompose-hyp-s} \\
+characterized by \texttt{rel-union-decompose-hyp-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-union-decompose-hyp-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-hyp-s(\allowbreak{}j-udec(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rel-union-decompose-s(mpot\_, mpohs\_, mpocc\_)}}\quad\textit{predicate}\index{rel-union-decompose-s(mpot_, mpohs_, mpocc_)@\texttt{rel-union-decompose-s(mpot\_, mpohs\_, mpocc\_)}}\\
+reads: the kernel rule, at finitely many positions, relates \$2 to \$3 \\
+defined by \texttt{rel-union-decompose-s} \\
+characterized by \texttt{rel-union-decompose-s}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpot\_, mpohs\_, mpocc\_], rel-union-decompose-s(\allowbreak{}mpot\_, mpohs\_, mpocc\_) iff rel-rewrite-s(\allowbreak{}j-udec(\allowbreak{}mpot\_), mpohs\_, mpocc\_))
+\end{quote}
+mentioned by 3 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{rel-union-elim(mct\_, mchs\_, mcc\_)}}\quad\textit{predicate}\index{rel-union-elim(mct_, mchs_, mcc_)@\texttt{rel-union-elim(mct\_, mchs\_, mcc\_)}}\\
 reads: the kernel's union-elim relates \$2 to \$3 \\
 defined by \texttt{rel-union-elim} \\
@@ -22338,7 +22778,7 @@ reads: the kernel's union-intro relates \$2 to \$3 \\
 defined by \texttt{rel-union-intro} \\
 characterized by \texttt{rel-union-intro}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
-forall(\allowbreak{}[mct\_, mchs\_, mcc\_], rel-union-intro(\allowbreak{}mct\_, mchs\_, mcc\_) iff mcc\_ in seq-set and forsome(\allowbreak{}[mcg\_, mcx\_, mcl\_, mck\_], mcc\_ = [mcg\_, enc-in(\allowbreak{}mcx\_, enc-union(\allowbreak{}mcl\_))] and mck\_ in nn and 1 <= mck\_ and mck\_ <= length(\allowbreak{}mcl\_) and mchs\_ = [[mcg\_, enc-in(\allowbreak{}mcx\_, nth(\allowbreak{}mck\_, mcl\_))]]))
+forall(\allowbreak{}[mct\_, mchs\_, mcc\_], rel-union-intro(\allowbreak{}mct\_, mchs\_, mcc\_) iff mcc\_ in seq-set and forsome(\allowbreak{}[mcg\_, mcx\_, mcl\_, mck\_], mcc\_ = [mcg\_, enc-in(\allowbreak{}mcx\_, enc-union(\allowbreak{}mcl\_))] and mck\_ in nn and 1 <= mck\_ and mck\_ <= length(\allowbreak{}mcl\_) and length(\allowbreak{}mchs\_) = succ(\allowbreak{}length(\allowbreak{}mcl\_)) and nth(\allowbreak{}1, mchs\_) = [mcg\_, enc-in(\allowbreak{}mcx\_, nth(\allowbreak{}mck\_, mcl\_))] and forall(\allowbreak{}[mci\_ in nn], 1 <= mci\_ implies mci\_ <= length(\allowbreak{}mcl\_) implies nth(\allowbreak{}succ(\allowbreak{}mci\_), mchs\_) = [mcg\_, enc-eq(\allowbreak{}nth(\allowbreak{}mci\_, mcl\_), nth(\allowbreak{}mci\_, mcl\_))])))
 \end{quote}
 mentioned by 3 result(s)
 
@@ -22519,8 +22959,23 @@ characterized by \texttt{rel-rewrite-1}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[mrt\_, mrhs\_, mrc\_], rel-rewrite-1(\allowbreak{}mrt\_, mrhs\_, mrc\_) iff mrc\_ in seq-set and forsome(\allowbreak{}[mrg\_, mra\_, mrb\_], mrc\_ = [mrg\_, mra\_] and mrhs\_ = [[mrg\_, mrb\_]] and [2, mrg\_, mra\_, mrb\_] in rewr(\allowbreak{}mrt\_, 5)))
 \end{quote}
-also: \texttt{rel-rewrite-7} \texttt{rel-rewrite-hyp-1} \texttt{rel-rewrite-hyp-7} \texttt{rewr-least} \texttt{rewr-unfold} \\
-mentioned by 25 result(s)
+also: \texttt{rel-rewrite-7} \texttt{rel-rewrite-hyp-1} \texttt{rel-rewrite-hyp-7} \texttt{rewr-least} \texttt{rewrs-base} \texttt{rewr-unfold} \\
+mentioned by 28 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rewrs(mpoj\_)}}\quad\textit{functoid}\index{rewrs(mpoj_)@\texttt{rewrs(mpoj\_)}}\\
+reads: the rewrites at finitely many positions justified by \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+\{mpox\_ in rw-univ: forall(\allowbreak{}[mpos\_ in power(\allowbreak{}rw-univ)], rws-closed(\allowbreak{}mpoj\_, mpos\_) implies mpox\_ in mpos\_)\}
+\end{quote}
+characterized by \texttt{rewrs-base}  \textit{(certified)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[jj, x in rewr(\allowbreak{}jj, 7)], x in rewrs(\allowbreak{}jj))
+\end{quote}
+also: \texttt{rewrs-refl} \texttt{rewrs-least} \texttt{rewrs-trans} \texttt{rewrs-unfold} \\
+mentioned by 11 result(s)
 
 \smallskip
 
@@ -23409,6 +23864,29 @@ defined by \texttt{rw-univ-def}
 
 \smallskip
 
+\noindent\textbf{\texttt{rws-closed(mpoj\_, mpos\_)}}\quad\textit{predicate}\index{rws-closed(mpoj_, mpos_)@\texttt{rws-closed(mpoj\_, mpos\_)}}\\
+reads: \$2 holds the one-position rewrites justified by \$1 and is closed under composing formula rewrites \\
+defined by \texttt{rws-closed} \\
+characterized by \texttt{rws-closed}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpoj\_, mpos\_], rws-closed(\allowbreak{}mpoj\_, mpos\_) iff forall(\allowbreak{}[mpox\_ in rw-univ], rws-rule(\allowbreak{}mpoj\_, mpos\_, mpox\_) implies mpox\_ in mpos\_))
+\end{quote}
+also: \texttt{eqv-rws-closed} \\
+mentioned by 6 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{rws-rule(mpoj\_, mpos\_, mpox\_)}}\quad\textit{predicate}\index{rws-rule(mpoj_, mpos_, mpox_)@\texttt{rws-rule(mpoj\_, mpos\_, mpox\_)}}\\
+reads: \$3 is a one-position rewrite justified by \$1, an empty rewrite, or the composition of two rewrites in \$2 \\
+defined by \texttt{rws-rule} \\
+characterized by \texttt{rws-rule}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\raggedright\noindent
+forall(\allowbreak{}[mpoj\_, mpos\_, mpox\_], rws-rule(\allowbreak{}mpoj\_, mpos\_, mpox\_) iff mpox\_ in rewr(\allowbreak{}mpoj\_, 7) or forsome(\allowbreak{}[mpog\_, mpoe\_], mpog\_ in ctx-set and mpoe\_ in clf and mpox\_ = [2, mpog\_, mpoe\_, mpoe\_]) or forsome(\allowbreak{}[mpog\_, mpoa\_, mpob\_, mpoc\_], mpog\_ in ctx-set and mpoa\_ in expr-set and mpob\_ in expr-set and mpoc\_ in expr-set and mpox\_ = [2, mpog\_, mpoa\_, mpoc\_] and [2, mpog\_, mpoa\_, mpob\_] in mpos\_ and [2, mpog\_, mpob\_, mpoc\_] in mpos\_))
+\end{quote}
+mentioned by 4 result(s)
+
+\smallskip
+
 
 \section*{S}
 \addcontentsline{toc}{section}{S}
@@ -23656,7 +24134,7 @@ characterized by \texttt{ball-sep-unfold}  \textit{(certified)}:
 forall(\allowbreak{}[s, c, r], ball(\allowbreak{}s, c, r) == \{y in pts(\allowbreak{}s): (\allowbreak{}dist(\allowbreak{}s))(\allowbreak{}c, y) <= r and not(\allowbreak{}(\allowbreak{}dist(\allowbreak{}s))(\allowbreak{}c, y) = r)\})
 \end{quote}
 also: \texttt{bsw-cs-real-sep} \texttt{closure-sep-unfold} \texttt{dist-layer-set-sep} \texttt{interior-sep-unfold} \texttt{gno-range-separating} \texttt{sep-congruence-ptwise} \texttt{sep-fiber-insert-same} \texttt{closed-ball-sep-unfold} ... (13 in all) \\
-mentioned by 1021 result(s)
+mentioned by 1025 result(s)
 
 \smallskip
 
@@ -24910,7 +25388,7 @@ characterized by \texttt{is-convex-subset}  \textit{(definitional)}:
 forall(\allowbreak{}[v, cs], is-convex-subset(\allowbreak{}v, cs) iff cs subset vec(\allowbreak{}v) and forall(\allowbreak{}[sxa\_ in cs, sxb\_ in cs, sxt\_ in rr], 0 <= sxt\_ implies sxt\_ <= 1 implies (\allowbreak{}vadd(\allowbreak{}v))(\allowbreak{}(\allowbreak{}act(\allowbreak{}v))(\allowbreak{}1 - sxt\_, sxa\_), (\allowbreak{}act(\allowbreak{}v))(\allowbreak{}sxt\_, sxb\_)) in cs))
 \end{quote}
 also: \texttt{submodule-subset} \texttt{is-complete-subset} \texttt{is-extremal-subset} \texttt{is-absorbing-subset} \texttt{is-symmetric-subset} \texttt{ringoid-ideal-subset} \texttt{inf-subsets-membership} \texttt{lfe-line-subset-cnvs-as-nvs} ... (116 in all) \\
-mentioned by 1613 result(s)
+mentioned by 1623 result(s)
 
 \smallskip
 
@@ -25003,8 +25481,8 @@ characterized by \texttt{sum-succ}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\raggedright\noindent
 forall(\allowbreak{}[r, f, n in nn], sum(\allowbreak{}r, f, succ(\allowbreak{}n)) == (\allowbreak{}add(\allowbreak{}r))(\allowbreak{}sum(\allowbreak{}r, f, n), f(\allowbreak{}n)))
 \end{quote}
-also: \texttt{cchs-succ} \texttt{gpow-succ} \texttt{mpow-succ} \texttt{poch-succ} \texttt{mprod-succ} \texttt{openl-succ} \texttt{pprod-succ} \texttt{el-pow-succ} ... (142 in all) \\
-mentioned by 1282 result(s)
+also: \texttt{cchs-succ} \texttt{gpow-succ} \texttt{ltch-succ} \texttt{ltop-succ} \texttt{mpow-succ} \texttt{poch-succ} \texttt{mprod-succ} \texttt{openl-succ} ... (144 in all) \\
+mentioned by 1288 result(s)
 
 \smallskip
 
@@ -25826,7 +26304,7 @@ characterized by \texttt{cons-in-tuples}  \textit{(definitional)}:
 forall(\allowbreak{}[a, x, l], x in a and l in tuples(\allowbreak{}a) implies cons(\allowbreak{}x, l) in tuples(\allowbreak{}a))
 \end{quote}
 also: \texttt{empty-in-tuples} \texttt{tuples-sethood} \texttt{tuples-mono} \texttt{tuples-induction} \texttt{lst-in-tuples-set} \texttt{encr-in-tuples-set} \\
-mentioned by 173 result(s)
+mentioned by 177 result(s)
 
 \smallskip
 

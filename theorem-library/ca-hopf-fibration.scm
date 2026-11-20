@@ -1156,9 +1156,7 @@
 
 (sp (make-wff "unit-sphere-cr in set"))
 (fact 'cc-is-set) (fact 'rr-is-set)
-(let ((ci (dk-cite! 'cartesian-set-iff 'CC 'RR)))
-  (hps-and2! '(IN CC SET) '(IN RR SET))
-  (dk-meta-iff-l! ci))
+(dk-set-if! 'cartesian-set-iff 'CC 'RR)
 (dk-cite! 'unit-sphere-cr-subset)
 (dk-cite! 'subclass-of-set-is-set 'UNIT-SPHERE-CR '(CARTESIAN CC RR))
 (hps-finish!)

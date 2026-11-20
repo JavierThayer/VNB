@@ -29,9 +29,7 @@
        goal)
       ((and (pair? t) (eq? (car t) 'CARTESIAN) (= (length t) 3))
        (mr-set! (cadr t)) (mr-set! (caddr t))
-       (let ((iff (dk-meta-iff! 'cartesian-set-iff (cadr t) (caddr t))))
-         (dk-meta-and! `(IN ,(cadr t) SET) `(IN ,(caddr t) SET))
-         (dk-meta-iff-l! iff))
+       (dk-set-if! 'cartesian-set-iff (cadr t) (caddr t))
        goal)
       (#t (error "mr-set!: no route" t)))))
 

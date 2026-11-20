@@ -793,9 +793,7 @@
 (gw-ctx!)
 (mac 'OPS)
 (sep-set)
-(dk-cite! 'fun-set-iff '(VEC md) '(VEC md))
-(dk-have! '(AND (IN (VEC md) SET) (IN (VEC md) SET)) (lambda () (dk-conj-close!)))
-(dk-close-if! (lambda () (dk-only! (dk-pick (lambda (fm) (dk-head-is? fm 'IFF)) "iff") '(AND (IN (VEC md) SET) (IN (VEC md) SET)))) prop)
+(dk-set-if! 'fun-set-iff '(VEC md) '(VEC md) (lambda () (dk-conj-close!)))
 (qed 'ops-in-set)
 (topic! 'ops-in-set 'algebra)
 

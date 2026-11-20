@@ -88,7 +88,7 @@
 (dk-cite! 'membership-implies-sethood '(OPENS t) '(POWER (POWER (PTS t))))
 (mac 'CU-PAIRS)
 (sep-set)
-(bu3-lhs! (dk-cite! 'cartesian-set-iff '(POWER (PTS t)) '(OPENS t)) (lambda () (bu3-close-ctx!)))
+(dk-set-if! 'cartesian-set-iff '(POWER (PTS t)) '(OPENS t) (lambda () (bu3-close-ctx!)))
 (bu3-ass!)
 (bu3-qed! 'ury-cu-set)
 

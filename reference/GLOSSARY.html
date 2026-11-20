@@ -921,9 +921,9 @@
 <h4 id="GLOSSARY__cartesian-*-operator-*"><code>cartesian</code>  <em>(operator)</em></h4>
 <p>a term-forming head</p>
 <p>characterized by <a class="x" href="THEOREMS.html#t-cartesian-set-iff"><code>cartesian-set-iff</code></a>  <em>(primitive)</em>:</p>
-<pre>forall([a, b], cartesian(a, b) in set iff a in set and b in set)</pre>
-<p>also: <a class="x" href="THEOREMS.html#t-cartesian-nth"><code>cartesian-nth</code></a> <a class="x" href="THEOREMS.html#t-card-cartesian"><code>card-cartesian</code></a> <a class="x" href="THEOREMS.html#t-cartesian-mono"><code>cartesian-mono</code></a> <a class="x" href="THEOREMS.html#t-cartesian3-set"><code>cartesian3-set</code></a> <a class="x" href="THEOREMS.html#t-cartesian4-set"><code>cartesian4-set</code></a> <a class="x" href="THEOREMS.html#t-cartesian5-set"><code>cartesian5-set</code></a> <a class="x" href="THEOREMS.html#t-esum-cartesian"><code>esum-cartesian</code></a> <a class="x" href="THEOREMS.html#t-card-cartesian-nn"><code>card-cartesian-nn</code></a> ... (19 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__cartesian-1325">mentioned by 1325 result(s)</a></p>
+<pre>forall([a, b], a in set and b in set implies cartesian(a, b) in set)</pre>
+<p>also: <a class="x" href="THEOREMS.html#t-cartesian-nth"><code>cartesian-nth</code></a> <a class="x" href="THEOREMS.html#t-card-cartesian"><code>card-cartesian</code></a> <a class="x" href="THEOREMS.html#t-cartesian-mono"><code>cartesian-mono</code></a> <a class="x" href="THEOREMS.html#t-cartesian3-set"><code>cartesian3-set</code></a> <a class="x" href="THEOREMS.html#t-cartesian4-set"><code>cartesian4-set</code></a> <a class="x" href="THEOREMS.html#t-cartesian5-set"><code>cartesian5-set</code></a> <a class="x" href="THEOREMS.html#t-esum-cartesian"><code>esum-cartesian</code></a> <a class="x" href="THEOREMS.html#t-card-cartesian-nn"><code>card-cartesian-nn</code></a> ... (21 in all)</p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__cartesian-1326">mentioned by 1326 result(s)</a></p>
 <h4 id="GLOSSARY__cauchy-setoid-m-*-functoid-*"><code>cauchy-setoid(m)</code>  <em>(functoid)</em></h4>
 <p>definition:</p>
 <pre>[cseq(m), crel(m)]</pre>
@@ -4232,7 +4232,7 @@
 <p>a term-forming head</p>
 <p>characterized by <a class="x" href="THEOREMS.html#t-is-degree-function"><code>is-degree-function</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([gfs_, gfn_], is-degree-function(gfs_, gfn_) iff is-integral-domain(gfs_) and gfn_ in fun(carr(gfs_), nn) and forall([gfa_ in carr(gfs_), gfb_ in carr(gfs_)], not(gfa_ = zero(gfs_)) implies not(gfb_ = zero(gfs_)) implies gfn_(gfa_) &lt;= gfn_((mul(gfs_))(gfa_, gfb_))) and forall([gfa_ in carr(gfs_), gfb_ in carr(gfs_)], not(gfa_ = zero(gfs_)) implies forsome([gfq_ in carr(gfs_)], gfb_ = (mul(gfs_))(gfa_, gfq_) or gfn_((add(gfs_))(gfb_, (neg(gfs_))((mul(gfs_))(gfa_, gfq_)))) &lt; gfn_(gfa_))))</pre>
-<p>also: <a class="x" href="THEOREMS.html#t-is-convex-functional"><code>is-convex-functional</code></a> <a class="x" href="THEOREMS.html#t-is-linear-functional"><code>is-linear-functional</code></a> <a class="x" href="THEOREMS.html#t-is-positive-functional"><code>is-positive-functional</code></a> <a class="x" href="THEOREMS.html#t-is-cc-linear-functional"><code>is-cc-linear-functional</code></a> <a class="x" href="THEOREMS.html#t-is-linear-functional-on"><code>is-linear-functional-on</code></a> <a class="x" href="THEOREMS.html#t-sip-act-fun-csip-as-sip"><code>sip-act-fun-csip-as-sip</code></a> <a class="x" href="THEOREMS.html#t-sip-rip-fun-csip-as-sip"><code>sip-rip-fun-csip-as-sip</code></a> <a class="x" href="THEOREMS.html#t-is-bounded-l1-functional"><code>is-bounded-l1-functional</code></a> ... (474 in all)</p>
+<p>also: <a class="x" href="THEOREMS.html#t-is-convex-functional"><code>is-convex-functional</code></a> <a class="x" href="THEOREMS.html#t-is-linear-functional"><code>is-linear-functional</code></a> <a class="x" href="THEOREMS.html#t-is-positive-functional"><code>is-positive-functional</code></a> <a class="x" href="THEOREMS.html#t-is-cc-linear-functional"><code>is-cc-linear-functional</code></a> <a class="x" href="THEOREMS.html#t-is-linear-functional-on"><code>is-linear-functional-on</code></a> <a class="x" href="THEOREMS.html#t-sip-act-fun-csip-as-sip"><code>sip-act-fun-csip-as-sip</code></a> <a class="x" href="THEOREMS.html#t-sip-rip-fun-csip-as-sip"><code>sip-rip-fun-csip-as-sip</code></a> <a class="x" href="THEOREMS.html#t-is-bounded-l1-functional"><code>is-bounded-l1-functional</code></a> ... (475 in all)</p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__fun-4701">mentioned by 4701 result(s)</a></p>
 <h4 id="GLOSSARY__fun-def-mcfh-mcfn-mcfb-*-predicate-*"><code>fun-def(mcfh_, mcfn_, mcfb_)</code>  <em>(predicate)</em></h4>
 <p>reads: the functoid code $1 has arity $2 and body $3</p>
@@ -5382,7 +5382,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-hyps-in"><code>hyps-in</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([mchs_, mcs_], hyps-in(mchs_, mcs_) iff mchs_ in set and forall([mci_ in nn], 1 &lt;= mci_ implies mci_ &lt;= length(mchs_) implies nth(mci_, mchs_) in mcs_))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-is-ring"><code>is-ring</code></a> <a class="x" href="THEOREMS.html#t-is-chain"><code>is-chain</code></a> <a class="x" href="THEOREMS.html#t-is-lusin"><code>is-lusin</code></a> <a class="x" href="THEOREMS.html#t-inst-step"><code>inst-step</code></a> <a class="x" href="THEOREMS.html#t-def-binder"><code>def-binder</code></a> <a class="x" href="THEOREMS.html#t-is-cofinal"><code>is-cofinal</code></a> <a class="x" href="THEOREMS.html#t-is-fin-ext"><code>is-fin-ext</code></a> <a class="x" href="THEOREMS.html#t-is-or-init"><code>is-or-init</code></a> ... (4316 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__in-23174">mentioned by 23174 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__in-23175">mentioned by 23175 result(s)</a></p>
 <h4 id="GLOSSARY__index-of-ssn-*-functoid-*"><code>index-of(ssn_)</code>  <em>(functoid)</em></h4>
 <p>reads: the index of the node $1</p>
 <p>definition:</p>

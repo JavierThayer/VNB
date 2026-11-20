@@ -1,0 +1,32 @@
+\chapter*{Preface}
+\label{ch:preface}
+
+\begin{sloppypar}The VNB Proof Checker is an interactive proof assistant implemented in
+MIT~Scheme.  Its logical foundation is a first-order set theory in the
+style of von~Neumann--Bernays (VNB): a single-sorted universe of
+\emph{classes}, among which the \emph{sets} are distinguished as the
+classes that are members of the class \textsc{set}.  Equality and
+membership ($\in$) are the logical core; the primitive constants and
+constructors described below (the number systems, the ordinals, function
+spaces) extend it.\end{sloppypar}
+
+The proof architecture follows the sequent-calculus approach of the
+IMPS~2.0 system~\cite{IMPS}: proofs are \emph{deduction graphs} whose
+nodes are sequents and whose edges are inference steps.  Every
+inference step is validated by a small, auditable \emph{primitive
+inference kernel}; higher-level tactics and a form of conditional
+rewrite rules, called macetes in the IMPS system, are built on top of
+the inference kernel and cannot introduce unsoundness.
+The deduction-graph proof structure and the use of local contexts in
+macete application are due to L.~G.~Monk~\cite{Monk1988}, whose work
+was a direct influence on IMPS.
+
+Other proof assistants in current use are built on type theories:
+Lean~\cite{Lean} and Rocq~\cite{Rocq} on dependent type theory,
+HOL~\cite{HOL} on higher-order logic.  VNB is built on set theory, the
+formalism in which most mathematics is written.
+
+This project is, among other things, a proof of concept: a rigorous
+mathematical proof system built entirely by AI, with design
+specifications and subsequent direction from F.~J.~Thayer
+(Section~\ref{sec:vnb-lean}, item~1).

@@ -519,11 +519,22 @@
                      (AND (= z (LIST x y))
                           (AND (IN x A) (= (f x) y)))))))))))
 
-    ;; FUN(A,B) sethood
+    ;; FUN(A,B) sethood: the "if" half only.
+    ;;
+    ;; Until 2026-11-20 this was an IFF, (IN (FUN A B) SET) iff (IN A SET) and (IN B SET).
+    ;; Its "only if" half is FALSE in every model of NBG (K1ARG2 finding K1-6):
+    ;; FUN(EMPTY-SET, ORD) = {EMPTY-SET} is a set and ORD is not, and FUN(ORD, B) is
+    ;; empty for every B because a set function has a set domain.  From the IFF the
+    ;; kernel proved FALSITY modulo 0 from the empty context.  The name is kept so that
+    ;; every citer (all of which used the "if" direction) keeps its citation; `mac' of
+    ;; it BACKCHAINS (interactive.scm, *backchain-macetes*).  The true converses are
+    ;; theorems: fun-domain-in-set (FUN(A,B) inhabited => A in SET) and
+    ;; fun-set-converse (A a set, A inhabited, FUN(A,B) a set => B in SET),
+    ;; theorem-library/set-iff-converses.scm.
     (add-axiom! th 'fun-set-iff
       '(FORALL A (FORALL B
-          (IFF (IN (FUN A B) SET)
-               (AND (IN A SET) (IN B SET))))))
+          (IMPLIES (AND (IN A SET) (IN B SET))
+                   (IN (FUN A B) SET)))))
 
     ;; f ∈ FUN(A,B) and A is a set ⟹ f is a set
     (add-axiom! th 'fun-elements-are-sets
@@ -691,10 +702,18 @@
               (IMPLIES (AND (IN A SET) (IN C SET))
                        (IN (PARTIAL-FUN A C) SET)))))
 
+    ;; CARTESIAN(A,B) sethood: the "if" half only.
+    ;;
+    ;; Until 2026-11-20 this was an IFF.  Its "only if" half is FALSE in every model
+    ;; of NBG (K1ARG2 finding K1-5): CARTESIAN(EMPTY-SET, ORD) is empty, hence a set,
+    ;; and ORD is not; the kernel proved FALSITY modulo 0 from it.  Name kept, `mac'
+    ;; backchains, as for fun-set-iff above.  The true converses (each factor is a set
+    ;; when the product is a set and the OTHER factor is inhabited) are the theorems
+    ;; cartesian-set-converse-1 / -2, theorem-library/set-iff-converses.scm.
     (add-axiom! th 'cartesian-set-iff
       '(FORALL A (FORALL B
-          (IFF (IN (CARTESIAN A B) SET)
-               (AND (IN A SET) (IN B SET))))))
+          (IMPLIES (AND (IN A SET) (IN B SET))
+                   (IN (CARTESIAN A B) SET)))))
 
     ;; TUPLES(A) is the class of all finite sequences of elements from A.
     ;; TUPLES(A) is a set when A is a set.

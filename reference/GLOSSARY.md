@@ -2045,12 +2045,12 @@ a term-forming head
 characterized by `cartesian-set-iff`  *(primitive)*:
 
 ```
-forall([a, b], cartesian(a, b) in set iff a in set and b in set)
+forall([a, b], a in set and b in set implies cartesian(a, b) in set)
 ```
 
-also: `cartesian-nth` `card-cartesian` `cartesian-mono` `cartesian3-set` `cartesian4-set` `cartesian5-set` `esum-cartesian` `card-cartesian-nn` ... (19 in all)
+also: `cartesian-nth` `card-cartesian` `cartesian-mono` `cartesian3-set` `cartesian4-set` `cartesian5-set` `esum-cartesian` `card-cartesian-nn` ... (21 in all)
 
-[mentioned by 1325 result(s)](BY-OPERATOR.md#cartesian)
+[mentioned by 1326 result(s)](BY-OPERATOR.md#cartesian)
 
 ### `cauchy-setoid(m)`  *(functoid)*
 
@@ -10093,7 +10093,7 @@ characterized by `is-degree-function`  *(definitional)*:
 forall([gfs_, gfn_], is-degree-function(gfs_, gfn_) iff is-integral-domain(gfs_) and gfn_ in fun(carr(gfs_), nn) and forall([gfa_ in carr(gfs_), gfb_ in carr(gfs_)], not(gfa_ = zero(gfs_)) implies not(gfb_ = zero(gfs_)) implies gfn_(gfa_) <= gfn_((mul(gfs_))(gfa_, gfb_))) and forall([gfa_ in carr(gfs_), gfb_ in carr(gfs_)], not(gfa_ = zero(gfs_)) implies forsome([gfq_ in carr(gfs_)], gfb_ = (mul(gfs_))(gfa_, gfq_) or gfn_((add(gfs_))(gfb_, (neg(gfs_))((mul(gfs_))(gfa_, gfq_)))) < gfn_(gfa_))))
 ```
 
-also: `is-convex-functional` `is-linear-functional` `is-positive-functional` `is-cc-linear-functional` `is-linear-functional-on` `sip-act-fun-csip-as-sip` `sip-rip-fun-csip-as-sip` `is-bounded-l1-functional` ... (474 in all)
+also: `is-convex-functional` `is-linear-functional` `is-positive-functional` `is-cc-linear-functional` `is-linear-functional-on` `sip-act-fun-csip-as-sip` `sip-rip-fun-csip-as-sip` `is-bounded-l1-functional` ... (475 in all)
 
 [mentioned by 4701 result(s)](BY-OPERATOR.md#fun)
 
@@ -12906,7 +12906,7 @@ forall([mchs_, mcs_], hyps-in(mchs_, mcs_) iff mchs_ in set and forall([mci_ in 
 
 also: `is-ring` `is-chain` `is-lusin` `inst-step` `def-binder` `is-cofinal` `is-fin-ext` `is-or-init` ... (4316 in all)
 
-[mentioned by 23174 result(s)](BY-OPERATOR.md#in)
+[mentioned by 23175 result(s)](BY-OPERATOR.md#in)
 
 ### `index-of(ssn_)`  *(functoid)*
 

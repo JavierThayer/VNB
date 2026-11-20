@@ -1,43 +1,18 @@
 \chapter{Introduction}
 \label{ch:intro}
 
-\begin{sloppypar}The VNB Proof Checker is an interactive proof assistant implemented in
-MIT~Scheme.  Its logical foundation is a first-order set theory in the
-style of von~Neumann--Bernays (VNB): a single-sorted universe of
-\emph{classes}, among which the \emph{sets} are distinguished as the
-classes that are members of the class \textsc{set}.  Equality and
-membership ($\in$) are the logical core; the primitive constants and
-constructors described below (the number systems, the ordinals, function
-spaces) extend it.\end{sloppypar}
-
-The proof architecture follows the sequent-calculus approach of the
-IMPS~2.0 system~\cite{IMPS}: proofs are \emph{deduction graphs} whose
-nodes are sequents and whose edges are inference steps.  Every
-inference step is validated by a small, auditable \emph{primitive
-inference kernel}; higher-level tactics and a form of conditional
-rewrite rules, called macetes in the IMPS system, are built on top of
-the inference kernel and cannot introduce unsoundness.
-The deduction-graph proof structure and the use of local contexts in
-macete application are due to L.~G.~Monk~\cite{Monk1988}, whose work
-was a direct influence on IMPS.
-
-Other proof assistants in current use are built on type theories:
-Lean~\cite{Lean} and Rocq~\cite{Rocq} on dependent type theory,
-HOL~\cite{HOL} on higher-order logic.  VNB is built on set theory, the
-formalism in which most mathematics is written.
-
-This project is, among other things, a proof of concept: a rigorous
-mathematical proof system built entirely by AI, with design
-specifications and subsequent direction from F.~J.~Thayer
-(Section~\ref{sec:vnb-lean}).
+This chapter compares VNB with Lean (Section~\ref{sec:vnb-lean}), lists its
+primitives and the reductions of its notation to them
+(Section~\ref{sec:primitives}), and outlines its architecture
+(Section~\ref{sec:architecture}).
 
 %% =========================================================
 \section{VNB and comparable systems}
 \label{sec:vnb-lean}
 
 VNB is one of several proof checkers for mathematics.  Others are
-HOL~\cite{HOL}, Isabelle, Rocq~\cite{Rocq}, Mizar and Lean~\cite{Lean}.
-Mizar is founded on set theory, as VNB is.  The system most comparable to
+HOL, Isabelle, Rocq, Mizar and Lean; of these, only Mizar is founded on
+set theory, as VNB is.  The system most comparable to
 VNB is Lean: both aim at a large library of ordinary mathematics whose
 proofs are checked by a small kernel, and Lean's library is the usual
 point of reference for such work.  The rest of this section compares VNB
@@ -56,7 +31,7 @@ follow.
   F.~J.~Thayer.  It is partly inspired by IMPS~\cite{IMPS}: proofs are
   sequent-based deduction graphs, terms can be undefined, and rewriting
   is done by what IMPS called macetes.  The project is also indebted to
-  the work of L.~G.~Monk on local contexts~\cite{Monk1988}, and to that
+  the work of L.~G.~Monk (see the Preface), and to that
   of W.~M.~Farmer, among other things for the use of undefined terms and
   for the design of practical reasoning systems~\cite{Farmer2023}.
 
@@ -74,7 +49,7 @@ follow.
 \item \textbf{Naive set theory with a formal foundation.}  In practice VNB
   is a kind of naive set theory, although its foundation is formal
   (von~Neumann--Bernays--G\"odel set theory, NBG; consistency is relative to
-  NBG, Section~\ref{sec:consistency-relative}).  It is naive in that its structures follow
+  NBG, Section~\ref{sec:meta-relative}).  It is naive in that its structures follow
   ordinary mathematical practice: a group, a metric space or a normed field
   \emph{is} a tuple of sets (\texttt{declare-structure}, Chapter~\ref{ch:defs},
   ``Mathematical structures''), not a record of a dependent type and not an
@@ -83,7 +58,7 @@ follow.
   the verification of large parts of its own code less challenging: the
   kernel's data are S-expressions, which can be encoded as sets, and the
   kernel rules can then be stated and studied as relations on those sets.
-  Section~\ref{sec:meta} describes what has been built in this direction
+  Part~\ref{part:meta} describes what has been built in this direction
   and what has not.  No claim is made here about the difficulty of the
   corresponding task for Lean.
 \item \textbf{Provenance of a copy.}  A copy of VNB is one directory,
@@ -369,6 +344,6 @@ straightforward.
 
 %% =========================================================
 
-Part~\ref{part:system} describes the system: its classification of results, its expression language, its deductive system, the records of provenance, definitions and structures.  Part~\ref{part:using} describes how to use it: the library, getting started, writing proofs, working with formulas from Scheme, and checking results and copies.
+Part~\ref{part:system} describes the system: its classification of results, its expression language, its deductive system, the records of provenance, definitions and structures.  Part~\ref{part:meta} describes the self-verification of the kernel: the claim and what it is relative to, the admissibility of the kernel's rules over a core, the argument for functoids, and the limits.  Part~\ref{part:using} describes how to use it: the library, getting started, writing proofs, working with formulas from Scheme, and checking results and copies.
 
 Chapter~\ref{ch:quickstart} (Getting started) gives the installation steps and walks through a first session in the workspace, including a complete proof and a macete example.

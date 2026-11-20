@@ -1,0 +1,273 @@
+%% ch-meta-claim.tex -- Part 2 (\ref{part:meta}), chapter 1: the claim and the trusted base.
+%% Cites the design specification as \DS{n} (app-design-spec.tex).
+%% Uses only the manual's own preamble; the two macros below are provided here in case this
+%% chapter is built before ch-proofs.tex defines its figure macros.
+\providecommand{\DS}[1]{\hyperref[ds:#1]{DS-#1}}
+\providecommand{\VNBfig}[3]{\[\frac{\displaystyle #2}{\displaystyle #3}\;\;\mbox{\texttt{#1}}\]}
+\providecommand{\VNBnohyp}{\phantom{\Gamma}}
+
+\chapter{Self-verification: the claim and the trusted base}
+\label{ch:meta-claim}
+\index{META}\index{self-verification}
+
+This part describes what VNB does to check its own kernel, what it
+proves about it, and what it leaves to hand-written argument or to
+assumption.  The work has two purposes (\DS{1}): to make VNB credible as
+a proof checker, and to show that code can be modelled formally and its
+correctness proven relative to a stated base.
+
+The operations and their checkers are described in
+Sections~\ref{sec:kernel-boundary} and~\ref{sec:inference-checked}; the
+closed list of files that may record an inference in
+Section~\ref{sec:kernel-checked}; the proof certificate in
+Section~\ref{sec:proof-certificate}.  They are not repeated here.
+
+%% =========================================================
+\section{The claim}\label{sec:meta-the-claim}
+
+\subsection{Consistency is relative}\label{sec:meta-relative}
+
+VNB cannot prove its own consistency, and no check in this part can
+either.  This is G\"odel's second incompleteness theorem~\cite{Godel1931}:
+a consistent theory with effectively listed axioms, strong enough to
+express arithmetic, does not prove its own consistency.  VNB is such a
+theory.
+
+So no statement of the form ``VNB cannot prove \textsc{falsity}'' is made
+(\DS{2}).  Every consistency statement is relative.  A derivation of
+\textsc{falsity}, once found, is conclusive.  Finding none is evidence,
+never proof.
+
+\subsection{Version-X}
+
+Every claim is relative to a fixed class theory, called
+\emph{version-X}.  Version-X is NBG with global choice (\DS{3}).  Global
+choice is needed because \texttt{choice-axiom} gives
+$\mathrm{CHOICE}(A) \in A$ for every inhabited class $A$.
+$\mathrm{CHOICE}(A)$ denotes exactly when $A$ is inhabited (\DS{52}).  The
+definedness certificate never accepts a $\mathrm{CHOICE}$ term by its
+shape: it is not a total head.
+
+What VNB calls a class is read as a class of version-X (\DS{4}).  The
+oracles are excluded from the formal reasoning and assumed correct
+(\DS{5}).
+
+NBG proves the same statements about sets as ZF, and is consistent
+exactly when ZF is.  The claim therefore says that VNB is as safe as
+ordinary set theory, under the assumptions listed below.
+
+\subsection{The statement}
+
+The claim, in the form this part establishes it, is:
+\begin{center}
+\emph{Relative to version-X, and assuming the oracles correct, every
+inference the kernel accepts is admissible over the core.}
+\end{center}
+``Admissible over the core'' is defined in
+Chapter~\ref{ch:meta-k2}: whenever the hypotheses of the inference are
+derivable by the rules of a small, fixed system (the \emph{core}), so is
+its conclusion.
+
+\subsection{From the claim to relative consistency}\label{sec:meta-chain}
+
+The step from the claim to relative consistency has five links.  Only
+the first is a VNB theorem.
+\begin{enumerate}
+\item \emph{Admissibility} (formal).  Each non-oracle kernel rule is
+  admissible over the core.  This is K2 (\DS{8}), stated rule by rule in
+  Chapter~\ref{ch:meta-k2}; its coverage is in
+  Section~\ref{sec:meta-coverage}.
+\item \emph{Faithfulness} (hand review).  Each transcribed relation is the
+  relation its Scheme checker enforces.  This is K3 (\DS{9}).
+\item \emph{Soundness of the core} (hand-written).  Each core rule is
+  sound for version-X under the reading of classes of \DS{4} and the
+  reading of functoids of Chapter~\ref{ch:meta-functoids}; each axiom of
+  the catalog holds under that reading (\DS{6}).  The argument is
+  Chapter~\ref{ch:meta-soundness}.
+\item \emph{Oracles} (assumption, \DS{5}).
+\item \emph{Infrastructure} (assumption).  The expression layer, the write
+  point and grounding, the install, the certificate store and MIT Scheme
+  behave as described.
+\end{enumerate}
+
+\begin{prop}[informal; conditional]\label{prop:meta-relcons}
+If version-X is consistent, links 1--5 hold, and every installed theorem
+was installed by \texttt{qed} over a grounded deduction graph whose every
+inference passed its checker, then the installed theorems do not include
+\textup{\textsc{falsity}}.
+\end{prop}
+
+The proposition is stated to make the dependency explicit.  It is not a
+VNB theorem.  What is not yet established for each link is listed in
+Chapter~\ref{ch:meta-limits}.
+
+The META theorems are themselves VNB theorems.  They presuppose the
+consistency of the system they are proven in, and many of them use the
+oracles \texttt{arith} and \texttt{ineq}.
+
+%% =========================================================
+\section{The trusted base}\label{sec:meta-base}
+
+\subsection{The write point and the check}
+
+\texttt{dg-apply-rule!} (\texttt{deduction-graphs.scm}) is the only
+procedure that writes an inference into a deduction graph.  The
+\emph{kernel} consists of all the procedures that call it (\DS{11}).
+Before anything is written, \texttt{dg-apply-rule!} hands the proposed inference to the checker
+registered for the rule's name (\DS{12}).  A missing checker or a
+refusal is an error, and nothing reaches the graph.
+
+Each rule is a relation between the premises of an inference, its
+conclusion and its side data.  A checker receives an inference after it
+is built and tests whether these stand in the relation of its rule; it
+builds nothing itself.  It is written
+independently of the procedure that builds the inference, and calls
+neither that procedure nor a copy of it.  So the builders and the
+tactics carry no soundness: a wrong builder can only fail to prove.
+
+The four checker files register 64 checkers: 40 in
+\texttt{rule-checkers-logic.scm}, 13 in \texttt{-schema.scm}, 4 in
+\texttt{-rewrite.scm} and 7 in \texttt{-oracle.scm}.  The 57 that are
+not oracles are the subject of Chapter~\ref{ch:meta-k2}.
+
+No rule is accepted on trust: the checker registered for each rule
+tests the inference, and none accepts every inference.  Two procedures
+could register such an always-accepting checker: \texttt{dg-check-arm-with!}, for a documented
+tag without a checker, and \texttt{rco-trust-oracle!}.  The first
+registers nothing in a complete load, because every documented tag has
+its checker; the second has no caller.  The suite checks both.
+
+\paragraph{One exception: the definedness test is shared.}  Several
+rules are sound only when some term denotes.  For instance,
+\texttt{forall-elim} passes from $\forall x\,A$ to $A[t/x]$ only for a
+defined $t$.  When no hypothesis of the inference says that $t$ is
+defined, the checker must decide it, and for this it does not have a
+test of its own.  It calls \texttt{chk-elim-certified?}
+(\texttt{rule-checkers-logic.scm}), which tries a few clauses and then
+falls back on \texttt{pi--defined?}, the same definedness test that the
+builders use.
+
+The checkers of \texttt{forall-elim}, \texttt{forsome-intro},
+\texttt{if-true}, \texttt{if-false}, \texttt{tuples-intro},
+\texttt{union-intro} and \texttt{lambda-type} take this route.  The
+checker of \texttt{reflexivity} and the value test of the macete door
+call \texttt{pi--defined?} directly.
+
+The clauses of \texttt{pi--defined?} are themselves proven: each is
+transcribed as a VNB relation and derived over the core, so a term that
+a clause accepts does denote (Section~\ref{sec:meta-lemma-star}).  What
+the checkers share with the builders is only the Scheme code that
+applies those clauses.  A mistake in that code, one that reports a term
+as defined when no clause covers it, would reach the builder and its
+checker alike, where elsewhere the checker would catch the builder's
+mistake.  Whether Scheme code computes its transcribed relation is the
+question K3 asks of every checker (Chapter~\ref{ch:meta-limits}).  A
+second definedness
+test, written separately for the checkers, would remove the overlap; if
+one is adopted, it accepts no more than \texttt{pi--defined?} does
+(\DS{32}).
+
+\subsection{How ``every inference is checked'' is enforced}
+
+\begin{itemize}
+\item The switch \texttt{*dg-check-inferences?*} is armed at load, after
+  the four checker files.  \texttt{VNB\_NO\_RULE\_CHECK=1} is the control
+  that turns it off.
+\item A refusal prints a line beginning \texttt{;VNB RULE CHECKER
+  REFUSED}, also inside \texttt{quietly}, and is recorded.  The load ends
+  with \texttt{inference checking: $N$ verified, $M$ refusal(s)}; a
+  strict load is an error when $M>0$.
+\item The suite checks that the switch is on after the load, that more
+  than a thousand inferences were verified, that no rule is accepted on
+  trust, and that an unregistered tag is refused.
+\item Each checker has one accepted and one refused control, and a new
+  kernel operation comes with its checker and both controls (\DS{13}).
+\end{itemize}
+
+\subsection{The code that may write}
+
+Only the files listed in \texttt{*cert-kernel-caller-files*}
+(\texttt{certificates.scm}) may call \texttt{dg-apply-rule!}:
+\texttt{primitive-inferences}, \texttt{macetes}, \texttt{library},
+\texttt{arith-eval} and the four oracle files.  The fatal
+\texttt{kernel-callers-audit} refuses a call, or a use as a value, of
+\texttt{dg-apply-rule!} anywhere else (\DS{11};
+Section~\ref{sec:kernel-checked}).
+
+\subsection{The axioms and the primitive shelf}
+
+The axioms are assumed.  The set and class formation schemas are kernel
+rules, not entries of the axiom table.  The shelf of primitives grows
+only by an explicit decision, one fact at a time, with its claim
+recorded in the file (\DS{15}).
+
+The stamps \texttt{primitive} and \texttt{definitional} bill nothing.  A
+stamp therefore records what it assumes (\DS{15}), and a guarded
+definitional equation says nothing off its guards (\DS{31}).
+
+\subsection{The gates that stop a strict load}
+
+Among the end-of-load gates, the following are fatal in a strict load:
+\begin{itemize}
+\item inference checking: any refusal;
+\item the \texttt{qed}-failure gate: a \texttt{qed} that failed;
+\item the after-\texttt{qed} gate: a command run on a proof that a
+  \texttt{qed} had just closed;
+\item the guarded-definition gate: a guarded defined head in a
+  certificate table or typed in $\mathrm{FUN}(\ldots)$ (\DS{31});
+\item the view gate: a view typing installed without its proof (\DS{36});
+\item \texttt{connective-arity-audit} and \texttt{constant-binder-audit};
+\item the category obligations of \texttt{declare-category!};
+\item the predicativity gates for \texttt{comp} and for the binder terms
+  (\DS{38});
+\item the functoid-hypotheses gate: a violation of H1--H4 or H6
+  (\DS{35}; Chapter~\ref{ch:meta-functoids});
+\item the library gate;
+\item \texttt{kernel-callers-audit}.
+\end{itemize}
+Under keep-going these gates report and the load continues.  The
+free-variable audit, the head-registry sweep and the duplicate audits
+warn only.
+
+\subsection{The certified load}\label{sec:meta-certified}
+
+The everyday load installs a theorem from its certificate without
+running its proof (Section~\ref{sec:proof-certificate}).  The inferences
+of a certified theorem are therefore not re-checked in that load: they
+were checked by the run that wrote the record.
+
+The certificate key covers the statement, the definitions of its defined
+heads, followed transitively, and every definition or macete a checker
+read while accepting an inference (\DS{17}).  The kernel hash covers the
+files that may write, \texttt{deduction-graphs}, \texttt{expressions},
+\texttt{sequents} and the four checker files; a change to any of them
+invalidates every certificate.
+
+The run in which every proof is re-executed is the nightly exam
+(Chapter~\ref{ch:checking}).  A kernel change lands only after an exam of
+a tree that contains it (\DS{16}).
+
+%% =========================================================
+\section{Predicativity: staying within NBG}\label{sec:meta-predicative}
+
+NBG allows class comprehension only over conditions whose quantifiers
+range over sets.  The kernel keeps to that (\DS{38}).
+\begin{itemize}
+\item The membership rules of \texttt{comp}, \texttt{sep},
+  \texttt{big-union} and \texttt{vnb-lambda}, and the three induction
+  rules, refuse a condition or body with a quantifier not confined to
+  sets.  The test reads through defined heads.
+\item The definedness certificate treats a \texttt{comp}, \texttt{sep},
+  \texttt{big-union} or \texttt{vnb-lambda} term as defined only when its
+  condition or body is predicative.
+\item \texttt{comp-predicativity-audit} and
+  \texttt{binder-predicativity-audit} (\texttt{proof-debt.scm}) list every
+  impredicative term named by a proof, an installed formula or a functoid
+  body.  Both gates are fatal in a strict load.
+\item The induction census prints
+  \texttt{;; NBG induction census: $n$ impredicative induction(s)}; with
+  \texttt{*nbg-induction-fatal?*} on, $n=0$ in any load that completes.
+\end{itemize}
+The encoded core is NBG-strength in the same way (\DS{39}): each core
+schema that forms a class carries the premise $\mathrm{NBG\text{-}OK}$ on
+its condition or body (Section~\ref{sec:meta-core}).

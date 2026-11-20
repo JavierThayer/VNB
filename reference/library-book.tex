@@ -11440,7 +11440,7 @@ Let $\mathit{grd}$ and $\mathit{porel}$ be arbitrary. Let $\mathit{lam} \text{ b
 \vnbpropat{0}{rko2-dist-seq-at}{\vnbstmt{\forall m, f, g.; \forall n \in \mathbb{N}.\; (\operatorname{dist\text{-}seq}(m, f, g)(n) \simeq \operatorname{dist}(m)(f(n), g(n)))}}
 \chapter*{Results not reached from the notes}
 \addcontentsline{toc}{chapter}{Results not reached from the notes}
-\vnbblock{Reached from no major result of the notes (136).}
+\vnbblock{Reached from no major result of the notes (139).}
 \vnbgroup{\texttt{fun}}
 \vnbpropat{0}{uniq-choice-fun-2}{\vnbstmt{\begin{array}{@{}l@{}} \forall a, b \in \mathbf{Set}, c, q. \\ \quad \forall x \in a, w \in b. \exists y \in c. \\ \quad \quad (y \in q(x, w)) \wedge \forall z \in c.\; ((z \in q(x, w)) \Rightarrow (z = y)) \Rightarrow \\ \quad \quad \exists f \in ((a \times b) \to c). \forall x \in a, w \in b. \\ \quad \quad \quad f(x, w) \in q(x, w) \end{array}}}
 \vnbpropat{0}{dc-on-nn}{\vnbstmt{\begin{array}{@{}l@{}} \forall x \in \mathbf{Set}, a \in x, r \in \mathbf{Set}. \\ \quad \forall k \in \mathbb{N}, u \in x.\; \exists y \in x.\; ({[}k, u, y] \in r) \Rightarrow  \\ \quad \quad \exists f \in (\mathbb{N} \to x). \\ \quad \quad \quad (f(0) = a) \wedge \forall k \in \mathbb{N}.\; ({[}k, f(k), f((k + 1))] \in r) \end{array}}}
@@ -11463,6 +11463,9 @@ Let $\mathit{grd}$ and $\mathit{porel}$ be arbitrary. Let $\mathit{lam} \text{ b
 \vnbpropat{0}{co-lt-le-trans}{\vnbstmt{\forall a, b, c \in \mathbb{R}.\; (((a < b) \wedge (b \leq c)) \Rightarrow (a < c))}}
 \vnbpropat{0}{co-le-eq-trans}{\vnbstmt{\forall a, b, c.\; (((a \leq b) \wedge (b = c)) \Rightarrow (a \leq c))}}
 \vnbpropat{0}{co-eq-le-trans}{\vnbstmt{\forall a, b, c.\; (((a = b) \wedge (b \leq c)) \Rightarrow (a \leq c))}}
+\vnbpropat{0}{fun-set-converse}{\vnbstmt{\begin{array}{@{}l@{}} \forall a, b. \\ \quad ((a \in \mathbf{Set}) \wedge (\exists u.\; (u \in a) \wedge ((a \to b) \in \mathbf{Set}))) \Rightarrow (b \in \mathbf{Set}) \end{array}}}
+\vnbpropat{0}{cartesian-set-converse-1}{\vnbstmt{\forall a, b.\; ((((a \times b) \in \mathbf{Set}) \wedge \exists v.\; (v \in b)) \Rightarrow (a \in \mathbf{Set}))}}
+\vnbpropat{0}{cartesian-set-converse-2}{\vnbstmt{\forall a, b.\; ((((a \times b) \in \mathbf{Set}) \wedge \exists u.\; (u \in a)) \Rightarrow (b \in \mathbf{Set}))}}
 \vnbpropat{0}{nn-even-square}{\vnbstmt{\begin{array}{@{}l@{}} \forall p \in \mathbb{N}. \\ \quad \exists m \in \mathbb{N}.\; ((p \cdot p) = (2 \cdot m)) \Rightarrow \exists k \in \mathbb{N}.\; (p = (2 \cdot k)) \end{array}}}
 \vnbpropat{0}{rr-lt-from-diff-pos}{\vnbstmt{\forall x, y \in \mathbb{R}.\; ((0 < (y - x)) \Rightarrow (x < y))}}
 \vnbpropat{0}{nn-mul-cancel}{\vnbstmt{\forall a, b, c \in \mathbb{N}.\; ((\neg (c = 0) \wedge ((a \cdot c) = (b \cdot c))) \Rightarrow (a = b))}}

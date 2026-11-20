@@ -1,0 +1,90 @@
+%% app-design-spec.tex -- GENERATED from design-spec.md
+%% (rules only; the Source lines stay in the .md for the integrator).
+\chapter{Design specification}\label{app:design-spec}
+
+The rules below are the design decisions the kernel and its self-verification follow.
+Part~\ref{part:meta} cites them as DS-$n$.
+
+\section*{Purpose and claim}
+\begin{description}[style=nextline,leftmargin=1.4cm]
+\item[DS-1]\phantomsection\label{ds:1} The self-verification work has two purposes: to make VNB credible as a proof checker, and to show that code can be modelled formally and its correctness proven relative to a stated base.
+\item[DS-2]\phantomsection\label{ds:2} No statement of the form ``VNB cannot prove \textsc{falsity}'' is made. Every consistency statement is relative: if version-X is consistent (and the stated assumptions hold), the installed theorems do not include \textsc{falsity}. A derivation of \textsc{falsity}, once found, is conclusive; finding none is evidence only.
+\item[DS-3]\phantomsection\label{ds:3} Version-X, the class theory every claim is relative to, is NBG with global choice. (Morse-Kelley is not used: the NBG claim is the stronger one, and the MK claim follows from it.)
+\item[DS-4]\phantomsection\label{ds:4} A VNB class is read as a class of version-X.
+\item[DS-5]\phantomsection\label{ds:5} The oracles are excluded from the formal reasoning and assumed correct.
+\item[DS-6]\phantomsection\label{ds:6} The arguments that are not VNB theorems (the soundness of the core for version-X, the functoid argument, the faithfulness of the transcriptions) are written by hand and are labelled as such.
+\item[DS-7]\phantomsection\label{ds:7} Functoids are covered by a hand-written argument, not by the formal encoding: a def-functoid head and an anonymous record are \emph{eliminated} (replaced by their instantiated bodies), and the meaning of a formula with functoids is the meaning of its elimination.
+\end{description}
+\section*{Route}
+\begin{description}[style=nextline,leftmargin=1.4cm]
+\item[DS-8]\phantomsection\label{ds:8} The formal route is K2: each non-oracle kernel rule is proven \emph{admissible} over a small core of rules, inside VNB, with formulas encoded as sets. Semantic soundness of the core (K1) is not attempted formally.
+\item[DS-9]\phantomsection\label{ds:9} The faithfulness of each Scheme checker to its transcribed relation (K3) is deferred until K2 is complete. Its depth (a second independent transcription, or checkers rewritten as VNB-definable functions run through a small translator) is decided after a prototype.
+\item[DS-10]\phantomsection\label{ds:10} The encoding is locally nameless (a bound variable is a de Bruijn index, a free variable a name); every node is a literal list whose first entry is a numeral tag; terms and formulas form one category separated by a well-formedness predicate; a context is a finite set of sentences.
+\end{description}
+\section*{The trusted base}
+\begin{description}[style=nextline,leftmargin=1.4cm]
+\item[DS-11]\phantomsection\label{ds:11} The kernel consists of all the procedures that call \texttt{dg-apply-rule!}. Only the files listed in \texttt{*cert-kernel-caller-files*} may call it; a fatal gate refuses any other call.
+\item[DS-12]\phantomsection\label{ds:12} Every inference is checked before it is recorded, by a checker registered for its rule. A checker receives the inference after it is built and tests whether its premises, conclusion and side data stand in the relation of its rule; it builds nothing itself, and it is written independently of the procedure that builds the inference; it calls neither that procedure nor a copy. A missing checker or a refusal records nothing.
+\item[DS-13]\phantomsection\label{ds:13} A new kernel operation comes with its checker and with one accepted and one refused suite control.
+\item[DS-14]\phantomsection\label{ds:14} A kernel change, and a new core rule, enter only by an explicit design decision, one at a time, with the claim written beside the code. Proof repairs (statement guards) are preferred to kernel additions.
+\item[DS-15]\phantomsection\label{ds:15} The primitive shelf grows only by an explicit foundational decision, one fact at a time, with the claim recorded in the file. A \texttt{primitive} or \texttt{definitional} stamp records what it assumes.
+\item[DS-16]\phantomsection\label{ds:16} A kernel change lands only after a full exam (every proof run) of a tree that contains it. Several candidate trees may be examined in one night, one per worker.
+\item[DS-17]\phantomsection\label{ds:17} The certificate key of a theorem follows the definitions of the statement's defined heads transitively, and records every definition and macete a checker read while accepting an inference of its proof.
+\end{description}
+\section*{Definedness}
+\begin{description}[style=nextline,leftmargin=1.4cm]
+\item[DS-18]\phantomsection\label{ds:18} The atoms IN, =, $\leq$ and < are strict: an atom with a non-denoting argument is false, so t = t states that t denotes. Quasi-equality s == t holds when neither side denotes or both denote the same object.
+\item[DS-19]\phantomsection\label{ds:19} Every instantiation owes the definedness of the instance (the LUTINS rule): forall-elim, forsome-intro and the instantiation of a theorem macete post  G $\Rightarrow$ t = t  unless the certificate accepts t in G.
+\item[DS-20]\phantomsection\label{ds:20} if-true and if-false hand over the strict equation IF(p, a, b) = a (= b) only when the branch is certified; otherwise the quasi-equation.
+\item[DS-21]\phantomsection\label{ds:21} The strictness walks of the certificate stop at IF and at the binders, enter a SEP, BIG-UNION or VNB-LAMBDA through its domain only, read a def-functoid application through its instantiated body, and read an applied record through its contraction.
+\item[DS-22]\phantomsection\label{ds:22} A true membership y in SEP x D. P certifies the strict terms of P at y.
+\item[DS-23]\phantomsection\label{ds:23} The certificate accepts arithmetic over arguments that are themselves certified numbers, recursively. It has no clause for a structure term built from untyped variables; such definedness is landed in the proof.
+\item[DS-24]\phantomsection\label{ds:24} A literal list denotes exactly when every component is a set.
+\item[DS-25]\phantomsection\label{ds:25} nth-reduce, length-reduce and tuple-equality-decompose require the list's definedness (certified, or owed as L = L); NTH(k, t) is certified only when t is.
+\item[DS-26]\phantomsection\label{ds:26} A one-entry list binder destructures a 1-tuple: [a] is not a. A LIST binder needs a literal CARTESIAN domain of the same length.
+\item[DS-27]\phantomsection\label{ds:27} A term that mentions a record's bound variable is not certified under the record's binder.
+\item[DS-28]\phantomsection\label{ds:28} The view clause certifies ACC(V(r)) only when the whole instantiated list V(r) is certified.
+\item[DS-29]\phantomsection\label{ds:29} A functor-projection rewrite owes the list's definedness; the generated invariance equations are guarded by IS-src(r). The stamp stays \texttt{definitional}, its claim conditional.
+\item[DS-30]\phantomsection\label{ds:30} The value certificate reads an unknown head as ``may be a class''; only justified rows certify a value as a set or nothing. A head is judged through its instantiated body, never by a shortcut on the structure its argument belongs to.
+\item[DS-31]\phantomsection\label{ds:31} A guarded equation of a \emph{definition} (def-constant, def-by-nn-recursion, def-by-ord-recursion, def-operator) is read as a description: off every guard the head denotes nothing. A theorem of the same shape says nothing off its guards. def-by-ord-recursion writes its equations as quasi-equations. A guarded head is kept out of every table that would certify it total and out of every FUN typing (fatal gate).
+\item[DS-32]\phantomsection\label{ds:32} The independent definedness certificate, when adopted, mirrors the builder's relation and does not widen it (its accessor-through-functoid reading stays narrow).
+\end{description}
+\section*{Functoids and operators}
+\begin{description}[style=nextline,leftmargin=1.4cm]
+\item[DS-33]\phantomsection\label{ds:33} Functoids stand outside quantification: a quantifier instance or witness is an object, never a def-functoid name, an anonymous record, or a bare operator or predicate name. A bare operator, functoid or predicate name is refused as a term.
+\item[DS-34]\phantomsection\label{ds:34} A functoid unfolding is schematic: F(a) == body[a] holds at every argument, denoting or not, and owes nothing.
+\item[DS-35]\phantomsection\label{ds:35} The hypotheses of the functoid argument (H1 distinct parameters, H2 no forward or recursive reference, H3 one definition per head, H4 no free variable in a body outside the parameters, H6 no head both a def-functoid and a library definition) are checked by a load-end gate, fatal in a strict load and reported under keep-going.
+\item[DS-36]\phantomsection\label{ds:36} def-functor proves each view typing it would install; a view whose obligation fails is refused.
+\item[DS-37]\phantomsection\label{ds:37} The install grader accepts the symbol its own defining formula defines.
+\end{description}
+\section*{Predicativity (staying within NBG)}
+\begin{description}[style=nextline,leftmargin=1.4cm]
+\item[DS-38]\phantomsection\label{ds:38} Comprehension is predicative: COMP, SEP, BIG-UNION and VNB-LAMBDA, and the three induction rules, accept a condition or body only when every quantifier in it is confined to sets, read through defined heads. The gates are fatal in a strict load.
+\item[DS-39]\phantomsection\label{ds:39} The encoded core is NBG-strength: each schema that forms a class carries the premise NBG-OK on its condition or body.
+\end{description}
+\section*{The core}
+\begin{description}[style=nextline,leftmargin=1.4cm]
+\item[DS-40]\phantomsection\label{ds:40} The core consists of the natural-deduction rules with their side conditions and of one-line schemas a reader checks against the intended meaning of a constructor. In the core, forall-elim and forsome-intro always owe t = t, reflexivity fires only on a variable or an atomic constant, and the list schemas carry the list's definedness.
+\item[DS-41]\phantomsection\label{ds:41} The core's eq-subst is two-way (both orientations of the context equation).
+\item[DS-42]\phantomsection\label{ds:42} The core admits, each with its claim: strictness of IN on both sides, total constructors on denoting arguments, binder terms over a denoting domain, comprehension, lists of sets; strictness of the constructors in their arguments and of the binder terms in their domain; strictness of a predicate application, with predicate codes, sound only because every instantiation owes definedness.
+\item[DS-43]\phantomsection\label{ds:43} The core admits the congruence rule for descriptions (IOTA-CR) and for the term binders SEP, COMP, BIG-UNION, VNB-LAMBDA (TBIND-CR); both conclude a quasi-equation only.
+\item[DS-44]\phantomsection\label{ds:44} The core admits a functoid table FUN-DEF (rows filled by the K3 translator; anonymous records lambda-lifted into rows) and functoid-beta-eq, a quasi-equation at every argument list.
+\item[DS-45]\phantomsection\label{ds:45} The core admits tuple eta: a member of an n-ary product is the list of its own components.
+\item[DS-46]\phantomsection\label{ds:46} The core keeps truth-intro although the kernel operation is retired; contraposition is retired from the kernel and from the encoding.
+\item[DS-47]\phantomsection\label{ds:47} A META relation that bounds a witness by SET only on its intended domain says so in the hand-written text: the argument list of J-MACN, and the hypothesis list of HYPS-IN.
+\item[DS-48]\phantomsection\label{ds:48} A relation transcribing a kernel rewrite requires its two formulas to be sentences (J-CART, as J-TEQ, J-UDEC, J-IDEC).
+\end{description}
+\section*{The odd primitives}
+\begin{description}[style=nextline,leftmargin=1.4cm]
+\item[DS-49]\phantomsection\label{ds:49} No natural number is a list (\texttt{nn-not-a-list}, primitive). It is included because the strand-space token law needs a set of tokens free of lists; its consistency is shown by an explicit interpretation.
+\item[DS-50]\phantomsection\label{ds:50} tuple-equality-decompose is a primitive with its claim recorded: two literal lists that both denote are equal iff they have the same length and equal components.
+\end{description}
+\section*{Documentation}
+\begin{description}[style=nextline,leftmargin=1.4cm]
+\item[DS-51]\phantomsection\label{ds:51} The manual states present-tense rules and cites this specification; dates, decision history and the findings that led to a rule stay in the META report.
+\end{description}
+\section*{Partial terms}
+\begin{description}[style=nextline,leftmargin=1.4cm]
+\item[DS-52]\phantomsection\label{ds:52} $\mathrm{CHOICE}(A)$ denotes iff $A$ is inhabited; then it is a member of $A$. No rule infers anything from $\mathrm{CHOICE}(A) = \mathrm{CHOICE}(A)$ beyond that.
+\item[DS-53]\phantomsection\label{ds:53} A rule that makes a membership (or a $\mathrm{FUN}$ statement) true owes the definedness of every class argument it does not itself check, unless the certificate already accepts it: \texttt{tuples-intro} at the empty tuple, every entry of \texttt{union-intro}, the codomain of \texttt{lambda-type}. The matching core rules carry the same premise.
+\end{description}

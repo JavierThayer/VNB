@@ -1,0 +1,695 @@
+%% ch-meta-k2.tex -- Part 2 (\ref{part:meta}), chapter 2: admissibility of the kernel rules over the core (K2).
+%% Sources: structure-library/meta-*.scm, theorem-library/meta-*-laws.scm; the per-rule ledger
+%% reference/K2-LEDGER.md.  Cites the design specification as \DS{n}.
+\providecommand{\DS}[1]{\hyperref[ds:#1]{DS-#1}}
+\providecommand{\VNBfig}[3]{\[\frac{\displaystyle #2}{\displaystyle #3}\;\;\mbox{\texttt{#1}}\]}
+\providecommand{\VNBfigS}[3]{\[\frac{\displaystyle\begin{array}{c}#2\end{array}}{\displaystyle #3}\;\;\mbox{\texttt{#1}}\]}
+\providecommand{\VNBnohyp}{\phantom{\Gamma}}
+\providecommand{\FV}{\mathrm{FV}}
+%% A core figure in a table cell: \Rl{hypotheses}{conclusion}.
+\providecommand{\Rl}[2]{$\frac{#1}{#2}$}
+\providecommand{\Sq}{\Rightarrow}
+
+\chapter{Admissibility over the core}
+\label{ch:meta-k2}
+
+This chapter states what is proven, inside VNB, about the kernel's
+rules.  The route is K2 (\DS{8}): formulas and sequents are encoded as
+sets, a small system of rules called the \emph{core} is defined, and each
+non-oracle kernel rule is proven \emph{admissible} over it.  What has to
+be trusted is thereby reduced from the 57 checked relations to the core.
+
+The definitions are in \texttt{structure-library/meta-*.scm}, the
+theorems in the files of the same names in \texttt{theorem-library/},
+all in the library \texttt{meta}.  Every theorem bills
+\texttt{modulo 0}.
+
+%% =========================================================
+\section{The encoding}\label{sec:meta-encoding}
+
+The rules are schemas, and VNB has no formula variables, so formulas
+are VNB objects.  The encoding is locally nameless (\DS{10}): a bound
+variable is a de~Bruijn index, a free variable a name.
+Alpha-equivalence is then equality, and substitution for a free name is
+structural.
+
+Every node is a literal list whose first entry is a numeral tag:
+\[
+\begin{gathered}
+\mathrm{EFVAR}(n)=[0,n],\quad \mathrm{EBVAR}(k)=[1,k],\quad
+\mathrm{ECONST}(c)=[2,c],\\
+\mathrm{EAPP}(h,l)=[3,h,l],\quad \mathrm{EBIND}(h,n,a,b)=[4,h,n,a,b].
+\end{gathered}
+\]
+$h$ is a numeral head code, $l$ a list of nodes, $a$ the list of
+arguments outside a binder (the domain of \texttt{sep},
+\texttt{big-union}, \texttt{vnb-lambda}) and $b$ its body.
+
+$\mathrm{EXPR}$ is a union over $\mathtt{nn}$ of stages.  The free
+names $\FV$, the opening of an index $\mathrm{OPEN}$, the substitution
+$\mathrm{SUBST}$ and local closure $\mathrm{LC}$ are defined by
+recursion on the stage, with the usual substitution lemmas.  A
+well-formedness predicate separates terms from formulas by head code.
+$\mathrm{CLF}$ is the set of sentences (closed formulas), $\mathrm{CLT}$
+the set of closed terms.
+
+Predicate constants have codes ($\mathrm{PRED\text{-}CODE}$).  A
+functoid application is $\mathrm{EAPP}(h,l)$ with $h\geq 32$, read
+through a table $\mathrm{FUN\text{-}DEF}$ of rows $(h, n, b)$
+(\DS{44}).  The tables hold the rows the META theorems need; filling
+them for the whole library is the translator's task (K3).
+
+In what follows formulas are written in ordinary notation for their
+encodings: $A \wedge B$ for $\mathrm{ENC\text{-}AND}(A,B)$, $B[x:=t]$ for
+$\mathrm{OPEN}(B,0,t)$, and so on.
+
+%% =========================================================
+\section{Theory, sequents and derivability}\label{sec:meta-derivable}
+
+Fix a \emph{theory} $T$: a set of encoded sentences, standing for the
+axioms of the catalog and the theorems installed at the time.  A cited
+theorem is a member of $T$ and nothing more.
+
+A \emph{sequent} $\Gamma \Longrightarrow A$ is a pair $[\Gamma, A]$ with
+$\Gamma$ a finite set of sentences ($\mathrm{CTX\text{-}SET}$) and $A$ a
+sentence; $\mathrm{SEQ\text{-}SET}$ is the set of sequents.  Contexts are
+sets, so ``$\Gamma, A$'' is $\Gamma \cup \{A\}$.
+
+Each core rule is a relation $\mathrm{CR\text{-}}x(T, \mathit{hs}, c)$
+between a list $\mathit{hs}$ of hypothesis sequents and a conclusion
+sequent $c$.  $\mathrm{CORE\text{-}RULE}(T, \mathit{hs}, c)$ is their
+disjunction.  $\mathrm{DERIVABLE}(T)$ is the least subset of
+$\mathrm{SEQ\text{-}SET}$ closed under
+$\mathrm{CORE\text{-}RULE}(T,\cdot,\cdot)$.
+
+We write $\vdash_T \Gamma \Longrightarrow A$ for
+$[\Gamma, A] \in \mathrm{DERIVABLE}(T)$.  Each core rule has a closure
+law, generated in \texttt{meta-core-laws.scm} and named
+\texttt{derivable-}$x$: if the hypotheses of an instance are derivable,
+so is its conclusion.
+
+%% =========================================================
+\section{The core}\label{sec:meta-core}
+
+The core is chosen so that each member is a rule of natural deduction
+with its side condition, or a one-line schema that a reader checks
+against the intended meaning of a constructor (\DS{40}).  A relation
+enters the core only by a design decision, with its claim written beside
+it in \texttt{meta-core.scm} (\DS{14}).
+
+$\mathrm{CORE\text{-}RULE}$ has 56 disjuncts.  They are listed below as
+figures, hypotheses above the line.  A side condition follows in
+brackets.  In the set-formation and definedness schemas, $p$ or $b$
+carries the premise $\mathrm{NBG\text{-}OK}$ (every quantifier confined
+to sets, read through the tables), written [NBG] (\DS{39}).
+
+{\small
+\begin{longtable}{@{}p{0.22\linewidth}p{\dimexpr0.78\linewidth-2\tabcolsep\relax}@{}}
+\toprule
+core rule & figure \\
+\midrule
+\endhead
+\multicolumn{2}{@{}l}{\emph{Logic} (21)} \\
+and-intro & \Rl{\Gamma\Sq A \quad \Gamma\Sq B}{\Gamma\Sq A\wedge B} \\
+and-elim & \Rl{\Gamma, A, B\Sq G}{\Gamma\Sq G}\ \ [$A\wedge B\in\Gamma$] \\
+or-intro-left, -right & \Rl{\Gamma\Sq A}{\Gamma\Sq A\vee B}\ \ \Rl{\Gamma\Sq B}{\Gamma\Sq A\vee B} \\
+or-elim & \Rl{\Gamma,A\Sq G \quad \Gamma,B\Sq G}{\Gamma\Sq G}\ \ [$A\vee B\in\Gamma$] \\
+implies-intro & \Rl{\Gamma,A\Sq B}{\Gamma\Sq A\to B} \\
+backchain & \Rl{\Gamma\Sq A}{\Gamma\Sq G}\ \ [$A\to G\in\Gamma$] \\
+not-intro & \Rl{\Gamma,A\Sq\textsc{falsity}}{\Gamma\Sq\neg A} \\
+not-elim & \Rl{\VNBnohyp}{\Gamma\Sq G}\ \ [$\neg A\in\Gamma$, $A\in\Gamma$] \\
+iff-intro & \Rl{\Gamma,A\Sq B \quad \Gamma,B\Sq A}{\Gamma\Sq A\leftrightarrow B} \\
+iff-elim & \Rl{\Gamma, A\to B, B\to A\Sq G}{\Gamma\Sq G}\ \ [$A\leftrightarrow B\in\Gamma$] \\
+forall-intro & \Rl{\Gamma\Sq B[x:=y]}{\Gamma\Sq\forall x.\,B}\ \ [$y\notin\FV(\Gamma)\cup\FV(B)$] \\
+forall-elim & \Rl{\Gamma, B[x:=t]\Sq G \quad \Gamma\Sq t=t}{\Gamma\Sq G}\ \ [$\forall x.\,B\in\Gamma$, $t\in\mathrm{CLT}$] \\
+forsome-intro & \Rl{\Gamma\Sq B[x:=t] \quad \Gamma\Sq t=t}{\Gamma\Sq\exists x.\,B}\ \ [$t\in\mathrm{CLT}$] \\
+forsome-elim & \Rl{\Gamma, B[x:=y]\Sq G}{\Gamma\Sq G}\ \ [$\exists x.\,B\in\Gamma$, $y\notin\FV(\Gamma)\cup\FV(G)$] \\
+assumption & \Rl{\VNBnohyp}{\Gamma\Sq A}\ \ [$A\in\Gamma$] \\
+theorem-assumption & \Rl{\VNBnohyp}{\Gamma\Sq A}\ \ [$A\in T$] \\
+cut & \Rl{\Gamma\Sq A \quad \Gamma,A\Sq G}{\Gamma\Sq G} \\
+weakening & \Rl{\Delta\Sq G}{\Gamma\Sq G}\ \ [$\Delta\subseteq\Gamma$] \\
+proof-by-contradiction & \Rl{\Gamma,\neg G\Sq\textsc{falsity}}{\Gamma\Sq G} \\
+truth-intro & \Rl{\VNBnohyp}{\Gamma\Sq\textsc{truth}} \\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Equality} (4)} \\
+eq-subst, eq-subst-sym & \Rl{\Gamma\Sq P[z:=t]}{\Gamma\Sq P[z:=s]}\ \ [one of $s=t$, $s\equiv t$, $t=s$, $t\equiv s$ in $\Gamma$] \\
+reflexivity & \Rl{\VNBnohyp}{\Gamma\Sq t=t}\ \ [$t$ a variable or an atomic constant] \\
+quasi-reflexivity & \Rl{\VNBnohyp}{\Gamma\Sq t\equiv t} \\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Structural membership and tuples} (7)} \\
+union-mem & \Rl{\Gamma\Sq S_1=S_1 \ \cdots\ \Gamma\Sq S_n=S_n}{\Gamma\Sq x\in\bigcup(S_1..S_n)\leftrightarrow x\in S_1\vee\cdots\vee x\in S_n} \\
+intersection-mem & \Rl{\VNBnohyp}{\Gamma\Sq x\in\bigcap(S_1..S_n)\leftrightarrow x\in S_1\wedge\cdots\wedge x\in S_n}\ \ [$n\geq 1$] \\
+cartesian-mem & \Rl{\VNBnohyp}{\begin{array}{@{}l@{}}\Gamma\Sq x\in\mathrm{CART}(A_1..A_n)\leftrightarrow{}\\ \quad x\in\mathrm{TUPLES}(\mathrm{SET})\wedge\mathrm{LENGTH}(x)=n\wedge{}\\ \quad\bigwedge_i\mathrm{NTH}(i,x)\in A_i\end{array}}\ \ [$n\geq1$] \\
+tuples-mem & \Rl{\Gamma\Sq A=A}{\Gamma\Sq[e_1..e_n]\in\mathrm{TUPLES}(A)\leftrightarrow\bigwedge_i e_i\in A} \\
+nth-eq & \Rl{\Gamma\Sq L=L}{\Gamma\Sq\mathrm{NTH}(k,L)\equiv e_k}\ \ [$L=[e_1..e_n]$, $1\leq k\leq n$] \\
+length-eq & \Rl{\Gamma\Sq L=L}{\Gamma\Sq\mathrm{LENGTH}(L)\equiv n} \\
+tuple-eq & \Rl{\Gamma\Sq L=L \quad \Gamma\Sq M=M}{\Gamma\Sq L=M\leftrightarrow\bigwedge_i a_i=b_i}\ \ [$L=[a_1..a_n]$, $M=[b_1..b_n]$] \\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Conditional terms} (2)} \\
+if-true & \Rl{\Gamma\Sq p \quad \Gamma, \mathrm{IF}(p,a,b)\equiv a\Sq G}{\Gamma\Sq G} \\
+if-false & \Rl{\Gamma\Sq \neg p \quad \Gamma, \mathrm{IF}(p,a,b)\equiv b\Sq G}{\Gamma\Sq G} \\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Set formation, descriptions, functions} (9)} \\
+sep-sethood & \Rl{\Gamma\Sq A\in\mathrm{SET}}{\Gamma\Sq\mathrm{SEP}\,x{\in}A.\,p\in\mathrm{SET}}\ \ [NBG] \\
+sep-mem & \Rl{\VNBnohyp}{\Gamma\Sq t\in\mathrm{SEP}\,x{\in}A.\,p\leftrightarrow t\in A\wedge p[x:=t]}\ \ [NBG] \\
+comp-mem & \Rl{\VNBnohyp}{\Gamma\Sq t\in\mathrm{COMP}\,x.\,p\leftrightarrow t\in\mathrm{SET}\wedge p[x:=t]}\ \ [NBG] \\
+big-union-sethood & \Rl{\Gamma\Sq A\in\mathrm{SET} \quad \Gamma\Sq\forall z.\,(z\in A\to b\in\mathrm{SET})}{\Gamma\Sq\bigcup z{\in}A.\,b\in\mathrm{SET}}\ \ [NBG] \\
+big-union-mem & \Rl{\VNBnohyp}{\Gamma\Sq x\in\bigcup z{\in}A.\,b\leftrightarrow\exists z.\,(z\in A\wedge x\in b)}\ \ [NBG] \\
+iota-def & \Rl{\Gamma\Sq\exists x.\,(B\wedge\forall y.\,(B[x:=y]\to x=y)) \quad \Gamma, B[x:=\iota x.B]\Sq G}{\Gamma\Sq G} \\
+iota-in-elim & \Rl{\Gamma\Sq\iota x.B=\iota x.B \quad \Gamma, B[x:=\iota x.B]\Sq G}{\Gamma\Sq G} \\
+lambda-type & \Rl{\Gamma\Sq\forall x.\,(x\in A\to b\in D) \quad \Gamma\Sq A\in\mathrm{SET} \quad \Gamma\Sq D=D}{\Gamma\Sq\lambda x{\in}A.\,b\in\mathrm{FUN}(A,D)}\ \ [NBG; one binder] \\
+lambda-beta-eq & \Rl{\Gamma\Sq t\in A \quad \Gamma\Sq b[x:=t]\in\mathrm{SET}}{\Gamma\Sq(\lambda x{\in}A.\,b)(t)\equiv b[x:=t]}\ \ [NBG] \\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Definedness} (9; \DS{42})} \\
+def-strict-in-l, -r & \Rl{\Gamma\Sq w\in A}{\Gamma\Sq w=w}\ \ \Rl{\Gamma\Sq w\in A}{\Gamma\Sq A=A} \\
+def-total & \Rl{\Gamma\Sq t_1=t_1 \ \cdots\ \Gamma\Sq t_n=t_n}{\Gamma\Sq h(t_1..t_n)=h(t_1..t_n)}\ \ [$h$ a total constructor] \\
+def-binder & \Rl{\Gamma\Sq A=A}{\Gamma\Sq Qx{\in}A.\,b=Qx{\in}A.\,b}\ \ [$Q$ one of SEP, BIG-UNION, VNB-LAMBDA; NBG] \\
+def-comp & \Rl{\VNBnohyp}{\Gamma\Sq\mathrm{COMP}\,x.\,p=\mathrm{COMP}\,x.\,p}\ \ [NBG] \\
+def-list & \Rl{\Gamma\Sq e_1\in\mathrm{SET}\ \cdots\ \Gamma\Sq e_n\in\mathrm{SET}}{\Gamma\Sq[e_1..e_n]=[e_1..e_n]} \\
+def-strict-arg & \Rl{\Gamma\Sq h(t_1..t_n)=h(t_1..t_n)}{\Gamma\Sq t_i=t_i}\ \ [$h$ a strict constructor] \\
+def-strict-dom & \Rl{\Gamma\Sq Qx{\in}A.\,b=Qx{\in}A.\,b}{\Gamma\Sq A=A} \\
+def-strict-pred & \Rl{\Gamma\Sq P(t_1..t_n)}{\Gamma\Sq t_i=t_i}\ \ [$P$ a predicate constant] \\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Congruence, functoids, tuples} (4; \DS{43}--\DS{45})} \\
+iota-cr & \Rl{\Gamma\Sq B[x:=y]\leftrightarrow C[x:=y]}{\Gamma\Sq\iota x.B\equiv\iota x.C}\ \ [$y$ fresh] \\
+tbind-cr & \Rl{\Gamma\Sq B[x:=y]\leftrightarrow C[x:=y]}{\Gamma\Sq Qx{\in}A.\,B\equiv Qx{\in}A.\,C}\ \ [$Q$ SEP or COMP; for BIG-UNION, VNB-LAMBDA the premise is $b[y]\equiv c[y]$; $y$ fresh] \\
+functoid-beta-eq & \Rl{\VNBnohyp}{\Gamma\Sq F(l)\equiv b[l]}\ \ [$(F,|l|,b)$ a row of FUN-DEF] \\
+tuple-eta & \Rl{\Gamma\Sq x\in\mathrm{CART}(A_1..A_n)}{\Gamma\Sq x=[\mathrm{NTH}(1,x)..\mathrm{NTH}(n,x)]}\ \ [$n\geq1$] \\
+\bottomrule
+\end{longtable}
+}
+
+Where a strict conclusion would assert that a term denotes, the core
+concludes a quasi-equation instead: the conditional rules, lambda-beta,
+the two congruence rules and functoid beta.  Where the kernel reads the
+definedness of a term off its certificate, the core states it as a
+premise: forall-elim, forsome-intro, iota-in-elim and the list schemas.
+The differences between such a core rule and the kernel's figure are the
+bridges of Section~\ref{sec:meta-bridges}.
+
+A schema whose conclusion makes a class defined that its other premises
+do not carries that class's definedness as a premise (\DS{53}):
+tuples-mem the class $A$, union-mem every entry $S_i$, lambda-type the
+codomain $D$.  $\mathrm{TUPLES}$, $\mathrm{UNION}$ and $\mathrm{FUN}$ are
+strict in these arguments, and without the premise the schema is false
+at the empty tuple, at a non-denoting entry, or over an empty domain.
+lambda-beta-eq carries the value's sethood, $b[x:=t]\in\mathrm{SET}$: a
+pair with a proper class as its second component does not denote.
+
+Each schema beyond the logic, equality and structural groups carries its
+claim beside it in \texttt{meta-core.scm}; where a schema is sound only
+under a precondition, the precondition is written there and pinned by a
+suite control.  The strictness of a predicate application, for example,
+is sound only because every instantiation of a definition owes the
+definedness of the instance (\DS{19}, \DS{42}).  The suite checks that
+the four schemas above carry their premises.
+
+%% =========================================================
+\section{The statement of K2}\label{sec:meta-k2-statement}
+
+For each non-oracle kernel rule $R$, $\mathrm{REL\text{-}}R(T,
+\mathit{hs}, c)$ is the relation its checker enforces, transcribed by
+hand into VNB.  Each transcription is kept beside the checker's line
+numbers, to be reviewed as a pair (\DS{9}).
+
+An instance of $R$ is a figure
+\[
+  \frac{\Gamma_1 \Longrightarrow A_1 \qquad \cdots \qquad \Gamma_n \Longrightarrow A_n}
+       {\Gamma \Longrightarrow A}\;\;\mbox{\textit{R}}
+\]
+with $\mathrm{REL\text{-}}R(T, [\Gamma_1\Sq A_1, \ldots,
+\Gamma_n\Sq A_n], \Gamma\Sq A)$.
+
+\begin{dfn}
+$R$ is \emph{admissible over the core} of $T$ when every instance with
+derivable hypotheses has a derivable conclusion:
+\[
+  \frac{\vdash_T \Gamma_1 \Longrightarrow A_1 \qquad \cdots \qquad \vdash_T \Gamma_n \Longrightarrow A_n}
+       {\vdash_T \Gamma \Longrightarrow A}
+\]
+\end{dfn}
+
+\begin{claim}[K2, per rule]\label{claim:meta-k2}
+Every non-oracle kernel rule is admissible over the core.  As a VNB
+theorem, for a rule $R$:
+\[
+\begin{aligned}
+&\forall T, \mathit{hs}, c.\;
+\mathrm{REL\text{-}}R(T,\mathit{hs},c) \Rightarrow{}\\
+&\qquad\bigl(\mathrm{HYPS\text{-}IN}(\mathit{hs}, \mathrm{DERIVABLE}(T)) \Rightarrow
+c \in \mathrm{DERIVABLE}(T)\bigr).
+\end{aligned}
+\]
+\end{claim}
+
+$\mathrm{HYPS\text{-}IN}(\mathit{hs}, S)$ says that $\mathit{hs}$ is a
+list, a set, every entry of which is in $S$ (\DS{47}).
+
+For a rule that is itself a core rule, the claim is its closure law.
+The content lies in the rules that are not: there the proof is a
+derivation template, built by recursion on the syntax.  What the
+theorems establish is that trusting the kernel's relations is no more
+than trusting the core.  They do not establish that the core is sound
+(link~3 of Section~\ref{sec:meta-chain}), nor that the Scheme of a
+checker computes its relation (link~2).
+
+\paragraph{Four kinds of proof.}
+\begin{enumerate}
+\item \emph{Derivation templates.}  A rule outside the core is derived
+  by a template (\texttt{adm-detach}, \texttt{adm-union-intro},
+  \texttt{adm-tuples-intro}, \ldots).
+\item \emph{Contextual rewriting.}  The rules that rewrite at an
+  arbitrary position (\texttt{macete}, \texttt{macete-hyp},
+  \texttt{lambda-beta}, \texttt{lambda-beta-hyp}, \texttt{nth-reduce},
+  \texttt{length-reduce}, \texttt{functoid-beta}, and the two
+  decompositions) are reduced to a theorem CR: a rewrite valid in the
+  local context of a position is valid at that position.  CR is proven by
+  induction on positions, by stages: stages 1--5 cover the connectives,
+  atoms, quantifiers, \texttt{if}, the arguments of a term and the domain
+  of a binder; stage~6 the bodies of \texttt{sep}, \texttt{big-union} and
+  \texttt{vnb-lambda}, through tbind-cr; stage~7 the bodies of
+  \texttt{comp} and \texttt{iota}.  A rewrite at several positions is a
+  chain of one-position rewrites, and its admissibility follows from CR
+  by induction on the length of the chain
+  (Section~\ref{sec:meta-positions}).
+\item \emph{Definedness rows.}  Each clause of the certificate
+  \texttt{pi--defined?} is transcribed as a relation
+  $\mathrm{DEF\text{-}}x$ and derived over the core or admitted as a
+  schema (Section~\ref{sec:meta-lemma-star}).
+\item \emph{Inductions.}  The three induction rules are derived from the
+  class-form induction axioms of the catalog and comp-mem, for a
+  predicative body.
+\end{enumerate}
+
+%% =========================================================
+\section{Coverage}\label{sec:meta-coverage}
+
+Each of the 57 non-oracle rules has one of the following forms.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lp{\dimexpr0.88\linewidth-2\tabcolsep\relax}@{}}
+\toprule
+form & meaning \\
+\midrule
+C & The kernel figure is a core figure.  The theorem is the closure law. \\
+B & The kernel figure differs from a core figure by a small step, the
+  \emph{bridge}: the kernel replaces a formula the core keeps, or omits a
+  premise the core states.  The kernel relation is transcribed and its
+  admissibility proven (\texttt{adm-}$R$\texttt{-k}). \\
+B* & As B, when the premise the kernel omits is the definedness
+  $\Gamma \Longrightarrow t = t$ of a term the kernel certifies.  The
+  admissibility is proven for a term certified by a member of the context
+  (\texttt{adm-}$R$\texttt{-k}) and for a term certified by any
+  composition of the definedness rows of lemma~(*)
+  (\texttt{adm-}$R$\texttt{-kd}; Section~\ref{sec:meta-lemma-star}).
+  A certificate that uses an open row is not covered. \\
+D & Not a core rule.  Transcribed and derived in full over the core
+  (\texttt{adm-}$R$). \\
+PS & A rewriting rule, admissible for a rewrite at any finite set of
+  positions, at any stage of CR (\texttt{adm-}$R$\texttt{-s};
+  Section~\ref{sec:meta-positions}). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrp{\dimexpr0.82\linewidth-4\tabcolsep\relax}@{}}
+\toprule
+form & count & rules \\
+\midrule
+C & 19 & and-intro, or-intro-left, or-intro-right, implies-intro,
+  not-intro, iff-intro, forall-intro, not-elim, assumption,
+  theorem-assumption, cut, weakening, backchain, proof-by-contradiction,
+  eq-subst, quasi-reflexivity, sep-sethood, big-union-sethood, iota-def \\
+B & 5 & and-elim, or-elim, iff-elim, forsome-elim, iota-in-elim \\
+B* & 5 & forsome-intro, forall-elim, reflexivity, if-true, if-false \\
+D & 19 & detach, cartesian-intro, cartesian-elim, tuples-intro,
+  tuples-elim, union-intro, union-elim, intersection-intro,
+  intersection-elim, nn-induction, transfinite-induction,
+  transfinite-induction-3cases, sep-mem-intro, sep-mem-elim,
+  comp-mem-intro, comp-mem-elim, big-union-mem-intro, big-union-mem-elim,
+  lambda-type \\
+PS & 9 & nth-reduce, length-reduce, functoid-beta, lambda-beta,
+  lambda-beta-hyp, macete, macete-hyp, cartesian-decompose,
+  tuple-equality-decompose \\
+\midrule
+all & 57 & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+So Claim~\ref{claim:meta-k2} is proven in full for the C, B, D and PS
+rows, and for the B* rows for every certificate built from the rows of
+lemma~(*).  One qualification applies to the D rows tuples-intro,
+union-intro and lambda-type, which owe the definedness of a class
+(Section~\ref{sec:meta-owed}).  The D theorem is for the figure with
+the owed premise.  Where the kernel omits the premise because its
+certificate accepts the class, the figure is covered at the empty tuple
+and for lambda-type at one binder, for a class certified by a member of
+the context; it is open for union-intro and for lambda-type at a binder
+list.
+
+The ledger \texttt{reference/K2-LEDGER.md} lists, for each of the 57
+rules, its form, the relation, the theorems that discharge it and what
+is open.
+
+%% =========================================================
+\section{The bridged rules}\label{sec:meta-bridges}
+
+For each B and B* rule: the kernel figure, the core figure, the bridge,
+and the theorem.  The kernel relations are transcribed in
+\texttt{structure-library/meta-nbg.scm}, the theorems proven in section~B
+of \texttt{theorem-library/meta-nbg-laws.scm}.  $\Gamma'$ is the context
+with the eliminated formula removed.
+
+\subsection{The kernel replaces, the core keeps}
+
+The kernel's elimination rules remove the formula they eliminate from
+the context; the core's keep it.  The bridge is one weakening.
+
+\VNBfig{and-elim (kernel)}{\Gamma', A, B \Longrightarrow G}{\Gamma \Longrightarrow G}
+\VNBfig{and-elim (core)}{\Gamma, A, B \Longrightarrow G}{\Gamma \Longrightarrow G}
+with $A \wedge B \in \Gamma$ and $\Gamma' = \Gamma \setminus \{A\wedge B\}$.
+Bridge: $\Gamma', A, B \subseteq \Gamma, A, B$, so weakening takes the
+kernel's hypothesis to the core's.  Theorem \texttt{adm-and-elim-k}.
+
+\VNBfig{or-elim (kernel)}{\Gamma', A \Longrightarrow G \qquad \Gamma', B \Longrightarrow G}{\Gamma \Longrightarrow G}
+with $A \vee B \in \Gamma$.  Core: the same with $\Gamma$ for $\Gamma'$.
+Bridge: weakening in each branch.  Theorem \texttt{adm-or-elim-k}.
+
+\VNBfig{iff-elim (kernel)}{\Gamma', A \to B, B \to A \Longrightarrow G}{\Gamma \Longrightarrow G}
+with $A \leftrightarrow B \in \Gamma$.  Bridge: weakening.  Theorem
+\texttt{adm-iff-elim-k}.
+
+\VNBfig{forsome-elim (kernel)}{\Gamma', B[x:=y] \Longrightarrow G}{\Gamma \Longrightarrow G}
+with $\exists x.\,B \in \Gamma$ and $y \notin \FV(\Gamma') \cup \FV(G)
+\cup \FV(\exists x.\,B)$.  The core asks $y \notin \FV(\Gamma) \cup
+\FV(G)$.  Bridge: a free name of a member of $\Gamma$ is free in a member
+of $\Gamma'$ or in $\exists x.\,B$ (\texttt{ctx-fv-minus}), so the
+kernel's eigenvariable condition gives the core's; then weakening.
+Theorem \texttt{adm-forsome-elim-k}.
+
+\subsection{The kernel reads a definedness off the context}
+
+\VNBfig{iota-in-elim (kernel)}{\Gamma, B[x:=\iota x.B] \Longrightarrow G}{\Gamma \Longrightarrow G}
+with $\iota x.B \in A$, $\iota x.B = u$ or $u = \iota x.B$ in $\Gamma$.
+\VNBfig{iota-in-elim (core)}{\Gamma \Longrightarrow \iota x.B = \iota x.B \qquad \Gamma, B[x:=\iota x.B] \Longrightarrow G}{\Gamma \Longrightarrow G}
+Bridge: the core's first hypothesis is derived from the context member,
+by assumption and the strictness of $\in$ (def-strict-in-l) or of $=$
+(\texttt{adm-def-strict-eq-l}, \texttt{-r}).  Theorem
+\texttt{adm-iota-in-elim-k}.
+
+\subsection{The kernel omits a definedness premise it certifies}
+
+For the five B* rules the kernel omits the premise
+$\Gamma \Longrightarrow t = t$ when its certificate accepts $t$ in
+$\Gamma$.  When the certificate declines, the kernel posts that premise
+and its figure is the core's: that case is C.
+
+Each B* rule has two transcribed kernel forms.  In the form
+$\mathrm{REL\text{-}}R\mathrm{\text{-}K}$ the term is certified by one
+member of the context; in the form $\mathrm{REL\text{-}}R\mathrm{\text{-}KD}$
+the sequent $\Gamma \Longrightarrow t = t$ is a member of
+$\mathrm{DEF\text{-}DERIVABLE}(T)$, the sequents the definedness rows
+reach (Section~\ref{sec:meta-lemma-star}).  The theorems are
+\texttt{adm-}$R$\texttt{-k} and \texttt{adm-}$R$\texttt{-kd}.
+
+\VNBfig{forall-elim (kernel, $t$ certified)}{\Gamma, B[x:=t] \Longrightarrow G}{\Gamma \Longrightarrow G}
+\VNBfig{forall-elim (core)}{\Gamma, B[x:=t] \Longrightarrow G \qquad \Gamma \Longrightarrow t = t}{\Gamma \Longrightarrow G}
+with $\forall x.\,B \in \Gamma$.  Bridge: $\vdash_T \Gamma \Longrightarrow
+t=t$ whenever $\Gamma$ certifies $t$; this is lemma~(*).  Theorems
+\texttt{adm-forall-elim-k} and \texttt{adm-forall-elim-kd}.
+
+\VNBfig{forsome-intro (kernel, $t$ certified)}{\Gamma \Longrightarrow B[x:=t]}{\Gamma \Longrightarrow \exists x.\,B}
+\VNBfig{forsome-intro (core)}{\Gamma \Longrightarrow B[x:=t] \qquad \Gamma \Longrightarrow t = t}{\Gamma \Longrightarrow \exists x.\,B}
+The kernel accepts $t$ certified by the instance itself (a strict atom
+among the sentences $B[x:=t]$ makes true) or by the context.  Bridge:
+from the instance, by cut with the walks \texttt{adm-true-walk} and
+\texttt{adm-strict-atom}; from the context or the rows, lemma~(*).  Theorems
+\texttt{adm-forsome-intro-k} and \texttt{adm-forsome-intro-kd}.
+
+\VNBfig{reflexivity (kernel)}{\VNBnohyp}{\Gamma \Longrightarrow t = t}
+with $\Gamma$ certifying $t$.  The core's reflexivity fires only for a
+variable or an atomic constant.  Bridge: lemma~(*).  Theorems
+\texttt{adm-reflexivity-k} and \texttt{adm-reflexivity-kd}.  The
+reflexivity checker also accepts $\Gamma \Longrightarrow \textsc{truth}$
+with no hypothesis; that figure is the core's truth-intro (theorem
+\texttt{adm-reflexivity-kt}).  The kernel has no other operation that
+concludes \textsc{truth}.
+
+\VNBfig{if-true (kernel, $a$ certified)}{\Gamma \Longrightarrow p \qquad \Gamma, \mathrm{IF}(p,a,b) = a \Longrightarrow G}{\Gamma \Longrightarrow G}
+\VNBfig{if-true (core)}{\Gamma \Longrightarrow p \qquad \Gamma, \mathrm{IF}(p,a,b) \equiv a \Longrightarrow G}{\Gamma \Longrightarrow G}
+Bridge: from $\Gamma \Longrightarrow a = a$ (lemma~(*)) and the
+quasi-equation the core hands over, the strict equation (a
+strictness law of $=$), then a cut.  The kernel hands over the strict
+equation only when $a$ is certified, otherwise the quasi-equation
+(\DS{20}).  Theorems \texttt{adm-if-true-k} and
+\texttt{adm-if-true-kd}; if-false likewise with $\neg p$ and $b$,
+\texttt{adm-if-false-k} and \texttt{adm-if-false-kd}.
+
+\subsection{A hypothesis that adds nothing}
+
+The checkers of forall-elim, forsome-elim, if-true, if-false and
+iota-in-elim also accept a hypothesis $\Delta \Longrightarrow G$ with the
+conclusion's goal and $\Delta \subseteq \Gamma$: the formula the rule
+would add is already in the context.  That figure is one weakening
+(theorem \texttt{adm-adds-nothing-k}).
+
+When the bound variable does not occur in the body, forsome-elim imposes
+no eigenvariable condition.  That instance is an instance of the kernel
+form for any fresh $y$, since opening a vacuous body does not change it;
+the vacuous forall-elim is the kernel form at a fresh variable $y$, which
+the rows certify by reflexivity.
+
+%% =========================================================
+\section{Rules that owe the definedness of a class}\label{sec:meta-owed}
+
+Three kernel rules conclude a membership, or a $\mathrm{FUN}$ statement,
+that makes a class defined which their other hypotheses do not
+(\DS{53}).  Each owes the definedness of that class unless its
+certificate accepts the class in $\Gamma$.
+\begin{itemize}
+\item \texttt{tuples-intro} at the empty tuple owes
+  $\Gamma \Longrightarrow A = A$.  With $n \geq 1$ components the
+  hypothesis $\Gamma \Longrightarrow a_1 \in A$ makes $A$ defined, and
+  nothing is owed.
+\item \texttt{union-intro} $k$ owes $\Gamma \Longrightarrow S_j = S_j$ for
+  each entry $S_j$ other than $S_k$; the hypothesis
+  $\Gamma \Longrightarrow x \in S_k$ makes $S_k$ defined.
+\item \texttt{lambda-type} owes $\Gamma \Longrightarrow B = B$ for the
+  codomain $B$.  Over an empty domain the typing hypothesis holds for
+  every $B$.
+\end{itemize}
+The owed sequents are hypotheses of the inference, and the checker
+accepts each omitted one only when \texttt{chk-elim-certified?} accepts
+the class.  The core schemas tuples-mem, union-mem and lambda-type carry
+the same premises (Section~\ref{sec:meta-core}).
+
+\paragraph{The relations.}
+$\mathrm{REL\text{-}TUPLES\text{-}INTRO}$ is the figure with $n \geq 1$
+components, and $\mathrm{REL\text{-}TUPLES\text{-}INTRO\text{-}0}$ the
+empty tuple with the owed premise (\texttt{meta-core.scm}).
+$\mathrm{REL\text{-}UNION\text{-}INTRO}$ is the owed form: the
+membership, then one definedness sequent for each entry.
+$\mathrm{REL\text{-}LAMBDA\text{-}TYPE\text{-}1}$ to
+$\text{-}4$ and $\mathrm{REL\text{-}LAMBDA\text{-}TYPE\text{-}N}$
+(\texttt{meta-ind.scm}) carry $\Gamma \Longrightarrow B = B$ as their last
+hypothesis.  The certified forms
+$\mathrm{REL\text{-}TUPLES\text{-}INTRO\text{-}0K}$ and
+$\mathrm{REL\text{-}LAMBDA\text{-}TYPE\text{-}K}$ (one binder;
+\texttt{meta-nbg.scm}) drop the premise for a class certified by a
+member of the context, as the -K forms of the B* rules do.
+
+\paragraph{The theorems.}  \texttt{adm-tuples-intro},
+\texttt{adm-tuples-intro-0} and \texttt{adm-tuples-intro-0k};
+\texttt{adm-union-intro}; \texttt{adm-lambda-type-1} to \texttt{-4},
+\texttt{adm-lambda-type-n} and \texttt{adm-lambda-type-k}.  The closure
+law used by \texttt{adm-union-intro}, \texttt{derivable-union-mem-c},
+assumes the definedness of every entry derivable.
+\texttt{derivable-union-mem-u} obtains those premises from the
+definedness of the union itself, by the strictness of $\mathrm{UNION}$
+in its arguments.  The decomposition lemmas \texttt{der-union-decompose}
+and \texttt{der-union-binary} carry the same assumption.
+
+\paragraph{The rewriting rules.}  The local instances of the union
+decomposition, $\mathrm{J\text{-}UDEC}$, require each entry's definedness
+derivable in the local context.  Those of lambda-beta,
+$\mathrm{J\text{-}LB}$, require the value's sethood derivable there: the
+kernel's \texttt{lambda-beta} owes $\Gamma \Longrightarrow b[x:=u] \in
+\mathrm{SET}$ when the value may be a proper class, and the core's
+lambda-beta-eq has it as a premise.
+
+\paragraph{What is open.}  The kernel omits an owed sequent that its
+certificate accepts.  For \texttt{union-intro} at any entry, and for
+\texttt{lambda-type} at a binder list, that omission is not
+transcribed.  The -K forms cover a class certified by one member of the
+context; no form covers a class certified through a composition of the
+rows of lemma~(*).
+
+\subsection{lambda-type at a binder list}
+
+The core has one-binder lambdas only.  A kernel term
+$\mathrm{vnb\text{-}lambda}([x_1..x_n], A_1 \times \cdots \times A_n, b)$
+is encoded as a one-binder lambda over the product,
+$\mathrm{ENC\text{-}LAM}(\mathrm{ENC\text{-}CART}(a), c)$, where $c$ is $b$
+with each $x_i$ replaced by the projection $\mathrm{NTH}(i, \cdot)$ of the
+bound variable.  The relation fixes $c$ by the one property the rule
+needs: opened at a name $y$, $c$ is $b$ opened at the projections of $y$,
+in the order in which instantiating the $n$ guarded universals opens
+them.
+
+\texttt{adm-lambda-type-n} proves the kernel figure admissible at every
+length $n \geq 1$; the fixed lengths 1 to 4 are proven separately in
+literal form.  For a fresh $z$ in the product, the chain of guarded
+universals is instantiated at the projections of $z$ by induction on the
+number of guards left (\texttt{ltch-inst}).  This gives $c$ opened at $z$
+in $B$.  Then implies-intro, forall-intro at $z$, and the core
+lambda-type.
+
+The theorem is relative to the encoding of a destructuring lambda,
+which is the translator's (K3).  Two of its properties are argued in
+the file, not proven: every member of a product is the list of its
+projections (the core's tuple-eta says it), and $c$ is predicative
+exactly when $b$ is.
+
+%% =========================================================
+\section{Rewriting at several positions}\label{sec:meta-positions}
+
+The kernel's rewriting rules rewrite at every position their walk
+explains, in one inference.  The META relations read such an inference
+as a chain of one-position rewrites.
+$\mathrm{REWRS}(J)$ is the least set of rewrite tuples that contains
+each one-position rewrite justified by $J$ (at any stage of CR) and the
+empty rewrite, and is closed under composition.
+$\mathrm{REL\text{-}}R\mathrm{\text{-}S}$ is the rule $R$ over the $J$
+set of its one-position form, rewritten by a member of
+$\mathrm{REWRS}(J)$ (\texttt{meta-nbg.scm}).
+
+The chain is the kernel's relation when the positions are taken in the
+order of the kernel's walk.  The macete walk stops at the first
+explained position, so the positions are disjoint.  The local contexts
+are read off different sides at a connective: at $A \wedge B$ the right
+conjunct is rewritten under the original left, the left under the
+rewritten right; at $A \vee B$ the left disjunct under the negation of
+the original right, the right under the negation of the rewritten left;
+at $A \to B$ the consequent under the original antecedent.  Taking the
+right conjunct, the left disjunct and the consequent first, the context
+the $k$-th step computes is the walk's.  The reduction rules read no
+local context: their reachability, created redexes and contractions
+inside a contractum included, is a chain of single contractions.
+
+\texttt{adm-rewrite-s} and \texttt{adm-rewrite-hyp-s} prove, by the
+least-set induction of $\mathrm{REWRS}$ from the one-position law, that a
+rewrite at any finite set of positions is admissible for a goal and for
+an assumption.  The rows are \texttt{adm-}$R$\texttt{-s} for nth-reduce,
+length-reduce, functoid-beta, lambda-beta and its hypothesis form,
+macete and macete-hyp (with their several-variable forms), the union and
+intersection decompositions, cartesian-decompose and
+tuple-equality-decompose.
+
+Composition adds no restriction, because each step's justification is
+judged on the formula the earlier steps produced.  What stays outside
+is what the one-position forms exclude: the licence of lambda-beta
+through its binder's own scope, the binder-domain reads of the list
+definedness checks, and any justification outside the rule's $J$ set.
+
+%% =========================================================
+\section{The definedness lemma (*)}\label{sec:meta-lemma-star}
+
+\begin{lem}[(*)]
+If the certificate \texttt{pi--defined?} accepts the term $t$ in the
+context $\Gamma$, and every clause it uses is a row of
+$\mathrm{DEF\text{-}RULE}$, then $\vdash_T \Gamma \Longrightarrow t = t$.
+\end{lem}
+
+The lemma is the bridge of every B* rule.  Each clause of the
+certificate is transcribed as a relation $\mathrm{DEF\text{-}}x$
+(\texttt{structure-library/meta-def.scm}), and each relation is either a
+core schema (its closure law) or derived over the core.  A clause that
+certifies a compound term from certified parts is the corresponding
+relation applied to the parts.
+
+$\mathrm{DEF\text{-}RULE}(T, \mathit{hs}, c)$ is the disjunction of the
+derived and admitted rows of the table below, together with the three
+core rules that start a reading: assumption (a member of the context),
+theorem-assumption (a member of $T$, such as a definition a predicate
+row reads) and reflexivity (an atom).  The rows $\mathrm{DEF\text{-}APP}$
+and $\mathrm{DEF\text{-}LEN\text{-}TUPLES}$ enter only when $T$ is a set of sentences
+holding the encoded axiom the row rests on.  $\mathrm{DEF\text{-}DERIVABLE}(T)$ is the
+least set of sequents closed under $\mathrm{DEF\text{-}RULE}(T,\cdot,\cdot)$,
+defined as $\mathrm{DERIVABLE}(T)$ is.
+
+\begin{thm}[\texttt{def-derivable-sub}]
+For every $T$,
+\[
+\mathrm{DEF\text{-}DERIVABLE}(T) \subseteq \mathrm{DERIVABLE}(T).
+\]
+\end{thm}
+
+The proof is \texttt{def-closed-derivable}: $\mathrm{DERIVABLE}(T)$ is
+closed under every row of $\mathrm{DEF\text{-}RULE}$, each row citing its
+closure law.  The theorem is lemma~(*) for every composition of the
+rows.  That the kernel's acceptance of $t$, through clauses that are
+rows, puts $\Gamma \Longrightarrow t = t$ in
+$\mathrm{DEF\text{-}DERIVABLE}(T)$ is a faithfulness claim, part of K3
+(\DS{9}).
+
+{\small
+\begin{longtable}{@{}p{\dimexpr0.4\linewidth-2\tabcolsep\relax}p{\dimexpr0.28\linewidth-2\tabcolsep\relax}p{0.32\linewidth}@{}}
+\toprule
+clause & relation & status \\
+\midrule
+\endhead
+atom (variable, constant) & reflexivity & core \\
+$t \in \_$ or $\_ \in t$ in context & def-strict-in-l, -r & core \\
+$t = \_$, $\_ = t$ in context & DEF-STRICT-EQ-L, -R & derived \\
+$t$ outside binders in a true $\in$, $=$, $\leq$, $<$, or in a
+  separation condition & DEF-STRICT-HYP & derived \\
+structure hypothesis $\mathrm{IS\text{-}X}(t)$, $t \in X$ & DEF-STRUCT-HYP & derived \\
+predicate hypothesis (any arity, leading existentials, nested, parent
+  chain); accessor under $\mathrm{IS\text{-}X}(s)$ & DEF-PRED-HYP-N, DEF-CERT-HYP & derived \\
+literal list of sets & def-list & core \\
+total class constructor on certified arguments & def-total & core \\
+\texttt{sep}, \texttt{big-union}, \texttt{vnb-lambda} over a certified
+  domain, predicative body & def-binder & core \\
+\texttt{comp}, predicative condition & def-comp & core \\
+$\mathrm{NTH}(k, L)$, $L$ certified & DEF-NTH-LIST & derived \\
+functoid with a certified instance; NTH or SEP through a functoid
+  & DEF-FUN-INST, -NTH, -SEP, -STRICT & derived \\
+$f(a)$ with $f \in \mathrm{FUN}(D,\_)$, $a \in D$ & DEF-APP & derived, $T$ holding \texttt{fun-domain-apply-def} \\
+$\mathrm{LENGTH}(t)$ with $t \in \mathrm{TUPLES}(A)$ in context & DEF-LEN-TUPLES & derived, $T$ holding \texttt{length-in-nn} \\
+$\mathrm{LENGTH}(t)$, $t$ typed in a class of tuples through a
+  \texttt{sep} domain or a functoid body & -- & open \\
+ground arithmetic; arithmetic on certified numbers & -- & open \\
+applied structure operation on typed arguments & -- & open \\
+view clause $\mathit{ACC}(V(r))$, the whole list certified (\DS{28}) & -- & no row \\
+\bottomrule
+\end{longtable}
+}
+
+The derived rows are proven in the laws files of
+\texttt{meta-def.scm} and \texttt{meta-ind.scm}; the theorem for each is
+in the ledger.  The open rows have no theorem.  Ground arithmetic needs
+head codes for the arithmetic heads and their closure axioms in $T$; the
+applied structure operation needs an encoding of an application to
+several arguments and the slot's domain term; \texttt{LENGTH} through a
+\texttt{sep} domain or a functoid body needs the certificate's walk to a
+class of tuples transcribed.  All three are part of K3.  The view clause
+is not admissible as a row.  The retired clause for $\mathrm{NTH}$ of a
+literal list is not a row.  A certificate that uses an open clause is not
+covered by the B* theorems (Chapter~\ref{ch:meta-limits}).
+
+%% =========================================================
+\section{Regression}\label{sec:meta-regression}
+
+The META theorems are checked as every theorem is: by the certified load
+by day and by the exam at night.  Their certificates follow the
+definitions of the statement transitively (\DS{17}), so a change to a
+core relation re-proves every META theorem that rests on it.
+
+Each kernel repair comes with a reproducer and suite controls, at least
+one of which fails on the code before the repair.  Each core schema with
+a precondition has a control for it; each congruence and beta rule has a
+control that it concludes only the quasi-equation.

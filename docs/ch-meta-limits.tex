@@ -1,0 +1,116 @@
+%% ch-meta-limits.tex -- Part 2 (\ref{part:meta}), chapter 4: what is not claimed, and what is open.
+\providecommand{\DS}[1]{\hyperref[ds:#1]{DS-#1}}
+
+\chapter{Limits of the self-verification}
+\label{ch:meta-limits}
+
+%% =========================================================
+\section{What is not claimed}\label{sec:meta-not-claimed}
+
+\begin{itemize}
+\item No absolute consistency statement of any kind (\DS{2}).
+\item No formal soundness theorem for the core (K1).  Within VNB, K1 could
+  be a theorem only relative to set models: VNB cannot define truth over
+  the class universe, and cannot prove that a model exists.  The
+  soundness of the core for version-X is link~3 of
+  Section~\ref{sec:meta-chain}, a hand-written argument (\DS{6}).
+\item No formal statement that a checker computes its relation (K3).  The
+  transcription is by hand (\DS{9}).
+\item Nothing about the seven oracle relations, \texttt{ineq},
+  \texttt{arith-ground}, \texttt{arith-forsome}, \texttt{arith-simplify},
+  \texttt{comm-ring-simplify}, \texttt{ring-simplify} and \texttt{sos}
+  (\DS{5}).  They are checked -- \texttt{ineq} and \texttt{sos} by a
+  certificate the checker verifies by arithmetic, the others by an
+  independent second decision (Section~\ref{sec:oracles}) -- but the
+  checks add no proving power and are not a proof of the oracle.
+\item Nothing about the certificate store and its hash, \texttt{qed} and
+  the install, the undo journal, the Scheme of the expression layer
+  (\texttt{alpha-equiv?}, \texttt{subst-free}, the matchers), or MIT
+  Scheme.  The encoded operations restate the expression layer; they do
+  not verify it.
+\item The META theorems are VNB theorems with empty bills, but most of
+  their certificates list the oracles \texttt{arith} or \texttt{ineq}.
+  They rest on the oracle assumption as every theorem does.
+\end{itemize}
+
+%% =========================================================
+\section{What is open}\label{sec:meta-open}
+
+\subsection{Coverage of K2}
+
+\begin{itemize}
+\item The open rows of lemma~(*): ground arithmetic and arithmetic on
+  certified numbers, $\mathrm{LENGTH}$ of a term typed in a class of
+  tuples through a \texttt{sep} domain or a functoid body, an applied
+  structure operation, and the view clause
+  (Section~\ref{sec:meta-lemma-star}).  The B* rows are proven for every
+  certificate built from the other rows; a certificate that uses an open
+  clause is not covered.
+\item The rewriting rules (PS) are proven at any finite set of positions
+  (Section~\ref{sec:meta-positions}).  The \texttt{lambda-beta} licence
+  through its binder's own scope, the binder-domain reads of the list
+  definedness checks, a macete with a chain of conditions, and the
+  numeral and successor bridge of the macete matcher are not covered.
+\item The certified omissions of the rules that owe the definedness of a
+  class (Section~\ref{sec:meta-owed}): the figure in which the kernel
+  omits the owed sequent because its certificate accepts the class is
+  open for \texttt{union-intro} at any entry and for
+  \texttt{lambda-type} at a binder list.  For the empty tuple and for
+  \texttt{lambda-type} at one binder it is covered when one member of
+  the context certifies the class, not for a composition of the rows.
+\end{itemize}
+
+\subsection{Faithfulness (K3)}
+
+K3 is deferred until K2 is complete (\DS{9}).  Its obligations:
+\begin{itemize}
+\item that each actual kernel step is a member of its transcribed
+  relation, and that each C row is faithful (named syntax against locally
+  nameless; eigenvariable and capture conditions);
+\item the rows of $\mathrm{FUN\text{-}DEF}$, with the lambda-lifting of
+  records, and of the predicate table $\mathrm{PRED\text{-}DEF}$, which has
+  no row yet; until it has, every definition in $T$ of a predicate without
+  a row must have a predicative body;
+\item the head codes still missing (\texttt{pair}, \texttt{singleton},
+  \texttt{power}, \texttt{choice}, the arithmetic heads, the structure
+  operations);
+\item that $T$ contains the encoded catalog axioms the induction and
+  class-extensionality theorems assume;
+\item that when the kernel certifies a term through clauses that are
+  rows of lemma~(*), its definedness sequent is among the sequents the
+  rows reach (Section~\ref{sec:meta-lemma-star});
+\item that the kernel's predicativity test of a \texttt{comp} condition
+  decides exactly $\mathrm{NBG\text{-}OK}$, the premise of def-comp;
+\item the encoding of a destructuring lambda over a product, with the
+  two properties argued for it: every member of a product is the list of
+  its projections, and the encoded body is predicative exactly when the
+  body is (Section~\ref{sec:meta-owed});
+\item that the chain of one-position rewrites, in the order of
+  Section~\ref{sec:meta-positions}, is the relation the rewriting
+  checkers enforce;
+\item that a value the kernel's value test accepts as a set has its
+  sethood derivable, as $\mathrm{J\text{-}LB}$ requires;
+\item the independence from the builder's certificate of the checkers
+  that re-run it (Section~\ref{sec:meta-base}; \DS{32}).
+\end{itemize}
+
+\subsection{Hand-written arguments}
+
+\begin{itemize}
+\item The soundness of each core rule for version-X, and the truth of
+  each axiom of the catalog, under the readings of \DS{4} and \DS{7}
+  (link~3), are argued in Chapter~\ref{ch:meta-soundness} and, for
+  functoids, in Chapter~\ref{ch:meta-functoids}.  The argument is
+  conditional on the hypotheses (S1)--(S5) of
+  Section~\ref{sec:meta-sound-hyp}.
+\item The definitions of the library are covered by their general form
+  (definitional equations of new heads, guarded definitions read as
+  descriptions), not one by one.
+\end{itemize}
+
+\subsection{Enforcement}
+
+\begin{itemize}
+\item The macete builder offers a rewrite at a record variable, which the
+  checker refuses.  The disagreement is in the safe direction.
+\end{itemize}

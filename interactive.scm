@@ -1814,7 +1814,55 @@
                   (vnb--run! 'ue (list raw) (lambda () (cmd-union-elim *ps* raw)))))
 
 (define (ta n)  (vnb--run! 'ta (list n) (lambda () (cmd-theorem-assumption *ps* n))))
-(define (mac n) (vnb--run! 'mac (list n) (lambda () (cmd-apply-macete *ps* n))))
+;;; BACKCHAINING MACETES (2026-11-20, K1SET).  `fun-set-iff' and `cartesian-set-iff'
+;;; were IFFs whose "only if" half is false (library.scm); they are now the IMPLIES
+;;; (A in SET and B in SET) => HEAD(A, B) in SET.  Every proof used them at the "if"
+;;; direction, and every `mac' of them was applied to a goal that IS the sethood atom
+;;; (census of the 11-20 core pages: 463 of 463).  The old IFF macete rewrote that goal
+;;; into the conjunction; an IMPLIES macete instead rewrites it to TRUTH under side
+;;; conditions.  For a name listed here, `mac' on a goal that is an instance of the
+;;; consequent BACKCHAINS through the theorem instead: (ta NAME), one (inst ...) per
+;;; universal, (bc INSTANCE) -- three ordinary recorded steps, no new inference --
+;;; leaving the focus on the instance of the antecedent, the goal the IFF macete left.
+;;; Any other goal falls through to the ordinary macete.
+(define *backchain-macetes* '(fun-set-iff cartesian-set-iff))
+(define (mac--match pat e vars binds)       ; first-order match of PAT against E; VARS are the pattern variables
+  (cond ((not binds) #f)
+        ((and (symbol? pat) (memq pat vars))
+         (let ((b (assq pat binds)))
+           (cond ((not b) (cons (cons pat e) binds))
+                 ((equal? (cdr b) e) binds)
+                 (else #f))))
+        ((and (pair? pat) (pair? e) (= (length pat) (length e)))
+         (let loop ((ps pat) (es e) (bs binds))
+           (if (null? ps) bs (loop (cdr ps) (cdr es) (mac--match (car ps) (car es) vars bs)))))
+        ((equal? pat e) binds)
+        (else #f)))
+(define (mac--backchain-terms n)            ; the instantiation terms when the focus goal is an instance of N's consequent
+  (let ((thm (and (memq n *backchain-macetes*) *ps* (proof-state-focus *ps*)
+                  (hash-table-ref/default *theorem-table* n #f))))
+    (and thm
+         (let loop ((f thm) (vars '()))
+           (if (and (pair? f) (eq? (car f) 'FORALL))
+               (loop (caddr f) (cons (cadr f) vars))
+               (let ((vars (reverse vars)))
+                 (and (pair? f) (eq? (car f) 'IMPLIES)
+                      (let* ((goal (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+                             (bs (mac--match (caddr f) goal vars '())))
+                        (and bs (= (length bs) (length vars))
+                             (map (lambda (v) (cdr (assq v bs))) vars))))))))))
+(define (mac--backchain! n terms)
+  (ta n)
+  (let loop ((f (hash-table-ref/default *theorem-table* n #f)) (ts terms))
+    (if (null? ts)
+        (bc f)
+        (begin (inst f (car ts))
+               (loop (subst-free (cadr f) (car ts) (caddr f)) (cdr ts))))))
+(define (mac n)
+  (let ((terms (mac--backchain-terms n)))
+    (if terms
+        (mac--backchain! n terms)
+        (vnb--run! 'mac (list n) (lambda () (cmd-apply-macete *ps* n))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; (slot ACC) -- reduce an ACCESSOR to its projection, THROUGH ONE DOOR.

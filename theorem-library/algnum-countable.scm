@@ -488,7 +488,7 @@
   (let ((p (an-polys kk m)))
     (fact 'nn-is-set)
     (dk-have! (list 'AND '(IN NN SET) (list 'IN kk 'SET)))
-    (ma-iff-back! (dk-cite! 'fun-set-iff 'NN kk))
+    (dk-set-if! 'fun-set-iff 'NN kk)
     (ma-sep-subset! p)
     (fact 'subclass-of-set-is-set p (list 'FUN 'NN kk))))
 

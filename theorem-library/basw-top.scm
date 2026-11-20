@@ -711,7 +711,7 @@
 (bst-rhs! (dk-cite! 'is-top-space 't))
 (dk-cite! 'rr-is-set)
 (sep-set)
-(bst-lhs! (dk-cite! 'fun-set-iff '(PTS t) 'RR) (lambda () (dk-conj-close! (lambda () (bst-ass!)))))
+(dk-set-if! 'fun-set-iff '(PTS t) 'RR (lambda () (dk-conj-close! (lambda () (bst-ass!)))))
 (bst-ass!)
 (bst-qed! 'bsw-rcont-set)
 
