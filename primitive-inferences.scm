@@ -1549,13 +1549,34 @@
            (and (pair? tuple)       (eq? (car tuple)       'LIST)
                 (pair? tuples-expr) (eq? (car tuples-expr) 'TUPLES)
                 (= (length tuples-expr) 2)
-                (let ((elems (cdr tuple))
-                      (A     (cadr tuples-expr)))
-                  (dg-apply-rule! dg 'tuples-intro
-                    (map (lambda (elem)
-                           (make-sequent asms (wff-child goal `(IN ,elem ,A))))
-                         elems)
-                    sqn)))))))
+                (let* ((elems (cdr tuple))
+                       (A     (cadr tuples-expr))
+                       ;; K1FIX (2026-11-19, the user's decision): TUPLES is strict in A, so the
+                       ;; conclusion certifies A.  With a component, its hypothesis (IN e1 A) certifies A;
+                       ;; the EMPTY tuple has no hypothesis, and the rule OWES  Gamma => A = A  unless
+                       ;; the certificate accepts A in Gamma (as forall-elim owes t = t).  Unowed, the
+                       ;; kernel proved FALSITY modulo 0 at A a non-denoting IOTA (K1ARG K1-1, K1REPRO).
+                       (owe? (and (null? elems) (not (pi--defined? asms A 0))))
+                       (nodes (dg-apply-rule! dg 'tuples-intro
+                                (append
+                                 (map (lambda (elem)
+                                        (make-sequent asms (wff-child goal `(IN ,elem ,A))))
+                                      elems)
+                                 (if owe? (list (make-sequent asms (wff-child goal (list '= A A)))) '()))
+                                sqn)))
+                  (if (and owe? (pair? nodes)) (pi--note-owed-tail! nodes 1))
+                  nodes))))))
+
+;;; K1FIX: the LAST K nodes of a rule's children are owed definedness sequents; they join
+;;; *pi-owed-nodes*, the owed-leaf hook's work list (pi--note-owed-all! notes all but the first).
+(define (pi--note-owed-tail! nodes k)
+  (let ((n (length nodes)))
+    (for-each (lambda (nd)
+                (set! *pi-owed-nodes*
+                      (let ((l (cons nd *pi-owed-nodes*)))
+                        (if (> (length l) 400) (list-head l 400) l))))
+              (list-tail nodes (max 0 (- n k))))
+    nodes))
 
 (define (pi-tuples-elim! sqn membership-formula k)
   (let* ((asms (sequent-node-assumptions sqn))
@@ -1858,9 +1879,26 @@
            (and (pair? prod) (eq? (car prod) 'UNION)
                 (let ((sets (cdr prod)))
                   (and (integer? k) (>= k 1) (<= k (length sets))
-                       (dg-apply-rule! dg `(union-intro ,k)
-                         (list (make-sequent asms (wff-child goal `(IN ,x ,(list-ref sets (- k 1))))))
-                         sqn))))))))
+                       ;; K1FIX (2026-11-19, the user's decision): UNION is strict in EVERY entry,
+                       ;; and the conclusion certifies them all; the hypothesis (IN x S_k) certifies
+                       ;; S_k only.  The rule OWES  Gamma => S_j = S_j  for every other entry S_j
+                       ;; the certificate does not accept in Gamma (one per distinct entry, in order).
+                       ;; Unowed, the kernel proved FALSITY modulo 0 (K1ARG K1-2, K1REPRO).
+                       (let* ((sk (list-ref sets (- k 1)))
+                              (owed (let loop ((ss sets) (acc '()))
+                                      (cond ((null? ss) (reverse acc))
+                                            ((or (alpha-equiv? (car ss) sk)
+                                                 (any (lambda (a) (alpha-equiv? a (car ss))) acc)
+                                                 (pi--defined? asms (car ss) 0))
+                                             (loop (cdr ss) acc))
+                                            (#t (loop (cdr ss) (cons (car ss) acc))))))
+                              (nodes (dg-apply-rule! dg `(union-intro ,k)
+                                       (cons (make-sequent asms (wff-child goal `(IN ,x ,sk)))
+                                             (map (lambda (s) (make-sequent asms (wff-child goal (list '= s s))))
+                                                  owed))
+                                       sqn)))
+                         (if (and (pair? owed) (pair? nodes)) (pi--note-owed-tail! nodes (length owed)))
+                         nodes))))))))
 
 (define (pi-union-elim! sqn membership-formula)
   ;; membership-formula: raw S-expression
@@ -2838,11 +2876,21 @@
                        (sub-goal (pi--lambda-type-subgoal (cadr subj) A body B avoids))
                        (set-goal `(IN ,A SET)))
                   (pi--refuse-impredicative-binder! "lambda-type" subj)
+                  ;; K1FIX (2026-11-19, the user's decision): FUN is strict in its CODOMAIN, and the
+                  ;; conclusion certifies B; nothing else does (over an empty domain the typing
+                  ;; subgoal holds for every B).  The rule OWES  Gamma => B = B  unless the
+                  ;; certificate accepts B in Gamma.  Unowed, the kernel proved FALSITY modulo 0 at
+                  ;; A = EMPTY-SET, B a non-denoting IOTA (K1FIX K1-4).
                   (and sub-goal
-                       (dg-apply-rule! dg 'lambda-type
-                         (list (make-sequent asms (wff-child goal sub-goal))
-                               (make-sequent asms (wff-child goal set-goal)))
-                         sqn))))))))
+                       (let* ((owe? (not (pi--defined? asms B 0)))
+                              (nodes (dg-apply-rule! dg 'lambda-type
+                                       (append
+                                        (list (make-sequent asms (wff-child goal sub-goal))
+                                              (make-sequent asms (wff-child goal set-goal)))
+                                        (if owe? (list (make-sequent asms (wff-child goal (list '= B B)))) '()))
+                                       sqn)))
+                         (if (and owe? (pair? nodes)) (pi--note-owed-tail! nodes 1))
+                         nodes))))))))
 
 (define (pi-lambda-beta! sqn)
   (let* ((asms (sequent-node-assumptions sqn))

@@ -854,7 +854,7 @@
 (define (rcs-lambda-type rule hyps concl)
   (let ((g (rcs--goal concl)))
     (cond
-      ((not (= (length hyps) 2)) "lambda-type: expects exactly two hypotheses")
+      ((not (memv (length hyps) '(2 3))) "lambda-type: expects two hypotheses, or three with the owed  Gamma => B = B")
       ((not (and (rcs--in? g)
                  (let ((subj (cadr g)) (cls (caddr g)))
                    (and (pair? subj) (eq? (car subj) 'VNB-LAMBDA) (= (length subj) 4)
@@ -863,6 +863,15 @@
       ((not (and (rcs--same-asms? (car hyps) concl) (rcs--same-asms? (cadr hyps) concl)))
        "lambda-type: a hypothesis does not keep the conclusion's assumptions")
       ((not (rcs--binder-nbg? (cadr g))) (rcs--binder-reason "lambda-type" (cadr g)))
+      ;; K1FIX (2026-11-19, the user's decision): FUN is strict in its codomain B and the
+      ;; conclusion certifies B, which the typing hypothesis does not (over an empty domain it holds
+      ;; for every B).  B is certified defined in the context, or the third hypothesis is the owed
+      ;; Gamma => B = B.  Without it: FALSITY modulo 0 at A = EMPTY-SET (K1FIX K1-4).
+      ((and (= (length hyps) 3)
+            (not (chk-owed-eq-of? (caddr hyps) concl (caddr (caddr g)))))
+       "lambda-type: the third hypothesis is not the owed definedness sequent  Gamma => B = B  of the codomain")
+      ((and (= (length hyps) 2) (not (chk-elim-certified? concl (caddr (caddr g)))))
+       "lambda-type: the codomain B is not certified defined in the context, and no definedness sequent  B = B  is owed")
       (#t
        (let* ((subj (cadr g))
               (cls  (caddr g))

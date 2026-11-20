@@ -233,6 +233,24 @@
 (notation! 'AX-FUN-APP 'kind 'constant 'arity 0 'english "the encoded axiom fun-domain-apply-def")
 
 ;;; -----------------------------------------------------------------------
+;;; 4a. LENGTH OF A TUPLE (agent BRIDGE, 2026-11-19; pi--defined?, the LENGTH arm, primitive-inferences.scm, through
+;;; pi--typed-in-tuples?): LENGTH(t) certified when the context types t in a class of TUPLES.  The DIRECT case, t in
+;;; TUPLES(A), is DEF-LEN-TUPLES, DERIVED (theorem-library/meta-ind-laws.scm, section J, adm-def-len-tuples) over T
+;;; holding the encoded library axiom length-in-nn (library.scm):  forall A L. L in TUPLES(A) => LENGTH(L) in NN
+;;; (A = index 1, L = index 0 under the inner binder; ENC-NNC the class code of NN, meta-ind.scm).  NOT covered:
+;;; the classes of tuples reached through SEP domains and functoid bodies (pi--class-of-tuples?: MAT -> MATRIX -> TUPLES).
+(def-constant 'AX-LEN-NN
+  '(ax-len-nn-def
+     (== AX-LEN-NN
+         (ENC-ALL (ENC-ALL (ENC-IMP (ENC-IN (EBVAR 0) (ENC-TUPLES (EBVAR 1)))
+                                    (ENC-IN (ENC-LENGTH (EBVAR 0)) ENC-NNC)))))))
+(notation! 'AX-LEN-NN 'kind 'constant 'arity 0 'english "the encoded axiom length-in-nn")
+(md--rel! 'DEF-LEN-TUPLES "the definedness rule length-of-tuple relates $2 to $3"
+  (md--ex '(mdg_ mdw_ mda_)
+    (md--and '(= mdc_ (LIST mdg_ (ENC-EQ (ENC-LENGTH mdw_) (ENC-LENGTH mdw_))))
+             '(= mdhs_ (LIST (LIST mdg_ (ENC-IN mdw_ (ENC-TUPLES mda_))))))))
+
+;;; -----------------------------------------------------------------------
 ;;; 5. THE ROWS R4 CHANGED, RE-TRANSCRIBED against b25dd06 (agent META-7, 2026-10-14).  Binders: md7*_.
 
 ;; THE WALK BELOW THE TOP OF AN ATOM (pi--sob-walk, 1061-1079).  One step: from an application of a strict
@@ -599,12 +617,18 @@
 ;; NBGSEP (2026-10-25): md14g_ md14x2_ md14l2_ bounded by (IN v SET) -- each a component of
 ;; the tuple equated to md14y_ (through the ENC-IN / ENC-UNION codes), a set by the list
 ;; doctrine; the meaning is unchanged and the separations are predicative.
+;; K1FIX (2026-11-19): J-UDEC carries the entries' definedness, derivable in the local context: the kernel's
+;; union-decompose macete owes each entry's  S_i = S_i  (its instantiation discipline), and the core's union-mem
+;; has them as premises (meta-core.scm 4.6).
 (def-functoid 'J-UDEC '(md14t_)
   '(SEP md14y_ RW-UNIV (FORSOME md14g_ (FORSOME md14x2_ (FORSOME md14l2_ (FORSOME md14f2_
      (AND (IN md14g_ SET) (AND (IN md14x2_ SET) (AND (IN md14l2_ SET)
      (AND (= md14y_ (LIST 2 md14g_ (ENC-IN md14x2_ (ENC-UNION md14l2_)) md14f2_))
           (AND (IN (LIST 0 md14f2_) (RF-SET 4 md14x2_ md14l2_))
-               (AND (IN (ENC-IN md14x2_ (ENC-UNION md14l2_)) CLF) (IN md14f2_ CLF)))))))))))))
+               (AND (IN (ENC-IN md14x2_ (ENC-UNION md14l2_)) CLF)
+                    (AND (IN md14f2_ CLF)
+                         (FORALL md14i_ (IMPLIES (IN md14i_ NN) (IMPLIES (<= 1 md14i_) (IMPLIES (<= md14i_ (LENGTH md14l2_))
+                            (IN (LIST md14g_ (ENC-EQ (NTH md14i_ md14l2_) (NTH md14i_ md14l2_))) (DERIVABLE md14t_)))))))))))))))))))
 (def-functoid 'J-IDEC '(md14t_)
   '(SEP md14y_ RW-UNIV (FORSOME md14g_ (FORSOME md14x2_ (FORSOME md14l2_ (FORSOME md14f2_
      (AND (IN md14g_ SET) (AND (IN md14x2_ SET) (AND (IN md14l2_ SET)

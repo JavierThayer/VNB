@@ -326,10 +326,15 @@
   (mc--ex '(mcg_ mctm_) (mc--and '(= mcc_ (LIST mcg_ (ENC-QEQ mctm_ mctm_))) '(= mchs_ (LIST)))))
 
 ;;; 4.6 STRUCTURAL MEMBERSHIP AND TUPLE SCHEMAS, each a goal with no premise unless marked.
+;; K1FIX (2026-11-19, the user's decision): ONE PREMISE PER ENTRY, [g, S_i = S_i].  UNION is strict in every
+;; entry (STRICT-HEAD 11): with S_2 non-denoting and x in S_1, the right side held and the left did not, and
+;; the core derived FALSITY over T = {} (K1ARG K1-2).  The premises in the pattern of CR-DEF-TOTAL.
 (mc--cr! 'CR-UNION-MEM "the core union-mem relates $2 to $3"
   (mc--ex '(mcg_ mcx_ mcl_)
     (mc--and '(= mcc_ (LIST mcg_ (ENC-IFF (ENC-IN mcx_ (ENC-UNION mcl_)) (ENC-ORL mcx_ mcl_ (LENGTH mcl_)))))
-             '(= mchs_ (LIST)))))
+             '(= (LENGTH mchs_) (LENGTH mcl_))
+             '(FORALL mci_ (IMPLIES (IN mci_ NN) (IMPLIES (<= 1 mci_) (IMPLIES (<= mci_ (LENGTH mcl_))
+                (= (NTH mci_ mchs_) (LIST mcg_ (ENC-EQ (NTH mci_ mcl_) (NTH mci_ mcl_)))))))))))
 ;; DEPARTS: n >= 1.  For n = 0 the right side is TRUTH and x a proper class would satisfy it.
 (mc--cr! 'CR-INTERSECTION-MEM "the core intersection-mem relates $2 to $3"
   (mc--ex '(mcg_ mcx_ mcl_)
@@ -344,10 +349,12 @@
                                                    (ENC-AND (ENC-EQ (ENC-LENGTH mcx_) (ENC-NUM (LENGTH mcl_)))
                                                             (ENC-CARTL mcx_ mcl_ (LENGTH mcl_)))))))
              '(<= 1 (LENGTH mcl_)) '(= mchs_ (LIST)))))
+;; K1FIX (2026-11-19, the user's decision): the PREMISE [g, A = A].  TUPLES is strict (STRICT-HEAD 14): at
+;; n = 0 the right side is TRUTH, and for a non-denoting A the core derived FALSITY over T = {} (K1ARG K1-1).
 (mc--cr! 'CR-TUPLES-MEM "the core tuples-mem relates $2 to $3"
   (mc--ex '(mcg_ mcl_ mca_)
     (mc--and '(= mcc_ (LIST mcg_ (ENC-IFF (ENC-IN (ENC-LIST mcl_) (ENC-TUPLES mca_)) (ENC-ANDE mcl_ mca_ (LENGTH mcl_)))))
-             '(= mchs_ (LIST)))))
+             '(= mchs_ (LIST (LIST mcg_ (ENC-EQ mca_ mca_)))))))
 ;; DEPARTS: the list must DENOTE (a premise), by the list doctrine of 2026-10-01: [0, SET] denotes
 ;; nothing, so NTH(1, [0, SET]) == 0 is false.  The kernel's nth-reduce is unguarded.
 (mc--cr! 'CR-NTH-EQ "the core nth-eq relates $2 to $3"
@@ -608,18 +615,24 @@
     (mc--and '(= mcc_ (LIST mcg_ mcf_))
              '(= mchs_ (LIST (LIST mcg_ (ENC-EQ (ENC-IOTA mcp_) (ENC-IOTA mcp_)))
                              (LIST (CTX-ADD mcg_ (EXPR-OPEN mcp_ 0 (ENC-IOTA mcp_))) mcf_))))))
+;; K1FIX (2026-11-19, the user's decision): the third premise [g, D = D].  FUN is strict (STRICT-HEAD 19) and
+;; over an empty domain the typing premise holds for every D: FALSITY with a non-denoting D (K1FIX K1-4).
 (mc--cr! 'CR-LAMBDA-TYPE "the core lambda-type relates $2 to $3"
   (mc--ex '(mcg_ mca_ mcb_ mcd_)
     (mc--and '(= mcc_ (LIST mcg_ (ENC-IN (ENC-LAM mca_ mcb_) (ENC-FUN mca_ mcd_))))
              '(NBG-OK mcb_)
              '(= mchs_ (LIST (LIST mcg_ (ENC-ALL (ENC-IMP (ENC-IN (EBVAR 0) mca_) (ENC-IN mcb_ mcd_))))
-                             (LIST mcg_ (ENC-IN mca_ ENC-SETC)))))))
+                             (LIST mcg_ (ENC-IN mca_ ENC-SETC))
+                             (LIST mcg_ (ENC-EQ mcd_ mcd_)))))))
 ;; DEPARTS: a QUASI-equation.  The note's strict  lambda(u) = b[u]  asserts that b[u] denotes.
+;; K1FIX (2026-11-19, the user's decision; K1ARG K1-3): the second premise, the value b[t] a SET, the kernel's
+;; value test (lambda-beta owes (IN value SET)): a pair [x, b[x]] with b[x] a proper class does not denote.
 (mc--cr! 'CR-LAMBDA-BETA-EQ "the core lambda-beta-eq relates $2 to $3"
   (mc--ex '(mcg_ mca_ mcb_ mctm_)
     (mc--and '(= mcc_ (LIST mcg_ (ENC-QEQ (ENC-APPLY (ENC-LAM mca_ mcb_) mctm_) (EXPR-OPEN mcb_ 0 mctm_))))
              '(NBG-OK mcb_)
-             '(= mchs_ (LIST (LIST mcg_ (ENC-IN mctm_ mca_)))))))
+             '(= mchs_ (LIST (LIST mcg_ (ENC-IN mctm_ mca_))
+                             (LIST mcg_ (ENC-IN (EXPR-OPEN mcb_ 0 mctm_) ENC-SETC)))))))
 
 ;;; 4.7 DEFINEDNESS: THE SCHEMAS ADMITTED BY THE USER'S DECISIONS OF 2026-10-13 AND 2026-10-14.
 ;;; META-5 (structure-library/meta-def.scm, scratchpad/triage/META-5-REPORT.md section 2) transcribed the
@@ -1000,14 +1013,22 @@
 ;; was retired on 2026-10-08 (rule-checkers-logic.scm, primitive-inferences.scm 516) and nothing cited the relation or
 ;; its law adm-contraposition.  The text is in the base tree a320cb6f.
 
-;; rule-checkers-logic.scm 1191-1211 (union-intro k): the rule tag carries the index k, 1 <= k <= n;
-;; the goal (IN x (UNION S1 .. Sn)); one hypothesis, the same context, goal (IN x S_k).
+;; rule-checkers-logic.scm (union-intro k): the rule tag carries the index k, 1 <= k <= n;
+;; the goal (IN x (UNION S1 .. Sn)); the first hypothesis, the same context, goal (IN x S_k).
+;; K1FIX (2026-11-19, the user's decision): the kernel now OWES  Gamma => S_j = S_j  for the entries the
+;; certificate does not accept.  The relation is the OWED form: after the membership, one definedness
+;; sequent per entry, hypothesis i + 1 for the entry i.  (The kernel omits the k-th entry, whose
+;; definedness its membership gives, and the entries its certificate accepts; those omissions are the
+;; ledger's open certified-omission item, as for forall-elim's -K forms.)
 (def-predicate 'REL-UNION-INTRO '(mct_ mchs_ mcc_)
   (mc--and '(IN mcc_ SEQ-SET)
     (mc--ex '(mcg_ mcx_ mcl_ mck_)
       (mc--and '(= mcc_ (LIST mcg_ (ENC-IN mcx_ (ENC-UNION mcl_)))) '(IN mck_ NN) '(<= 1 mck_)
                '(<= mck_ (LENGTH mcl_))
-               '(= mchs_ (LIST (LIST mcg_ (ENC-IN mcx_ (NTH mck_ mcl_)))))))))
+               '(= (LENGTH mchs_) (succ (LENGTH mcl_)))
+               '(= (NTH 1 mchs_) (LIST mcg_ (ENC-IN mcx_ (NTH mck_ mcl_))))
+               '(FORALL mci_ (IMPLIES (IN mci_ NN) (IMPLIES (<= 1 mci_) (IMPLIES (<= mci_ (LENGTH mcl_))
+                  (= (NTH (succ mci_) mchs_) (LIST mcg_ (ENC-EQ (NTH mci_ mcl_) (NTH mci_ mcl_))))))))))))
 (notation! 'REL-UNION-INTRO 'kind 'predicate 'arity 3 'english "the kernel's union-intro relates $2 to $3")
 
 ;;; The five kernel relations of the META-KIT pass (agent META-KIT, 2026-10-08), transcribed from the
@@ -1053,16 +1074,28 @@
                '(= mchs_ (LIST (LIST (CTX-ADD mcg_ (ENC-IN mcx_ (NTH mck_ mcl_))) mcf_)))))))
 (notation! 'REL-INTERSECTION-ELIM 'kind 'predicate 'arity 3 'english "the kernel's intersection-elim relates $2 to $3")
 
-;; rule-checkers-logic.scm 1143-1162 (tuples-intro): the goal (IN [e1 .. en] (TUPLES A)); one
-;; hypothesis per component, the same context, goal (IN e_i A) (none for the empty tuple).
+;; rule-checkers-logic.scm (tuples-intro): the goal (IN [e1 .. en] (TUPLES A)); one hypothesis per
+;; component, the same context, goal (IN e_i A).  K1FIX (2026-11-19): n >= 1 here; the EMPTY tuple, where the
+;; kernel now owes  Gamma => A = A, is REL-TUPLES-INTRO-0 below.
 (def-predicate 'REL-TUPLES-INTRO '(mct_ mchs_ mcc_)
   (mc--and '(IN mcc_ SEQ-SET)
     (mc--ex '(mcg_ mcl_ mca_)
       (mc--and '(= mcc_ (LIST mcg_ (ENC-IN (ENC-LIST mcl_) (ENC-TUPLES mca_))))
+               '(<= 1 (LENGTH mcl_))
                '(= (LENGTH mchs_) (LENGTH mcl_))
                '(FORALL mci_ (IMPLIES (IN mci_ NN) (IMPLIES (<= 1 mci_) (IMPLIES (<= mci_ (LENGTH mcl_))
                   (= (NTH mci_ mchs_) (LIST mcg_ (ENC-IN (NTH mci_ mcl_) mca_)))))))))))
 (notation! 'REL-TUPLES-INTRO 'kind 'predicate 'arity 3 'english "the kernel's tuples-intro relates $2 to $3")
+;; K1FIX (2026-11-19, the user's decision): tuples-intro at the EMPTY tuple (a list of length 0); one hypothesis,
+;; the owed definedness sequent  Gamma => A = A.  (The kernel omits it when its certificate accepts A: the
+;; certified-omission item of the ledger.)
+(def-predicate 'REL-TUPLES-INTRO-0 '(mct_ mchs_ mcc_)
+  (mc--and '(IN mcc_ SEQ-SET)
+    (mc--ex '(mcg_ mcl_ mca_)
+      (mc--and '(= mcc_ (LIST mcg_ (ENC-IN (ENC-LIST mcl_) (ENC-TUPLES mca_))))
+               '(= (LENGTH mcl_) 0)
+               '(= mchs_ (LIST (LIST mcg_ (ENC-EQ mca_ mca_))))))))
+(notation! 'REL-TUPLES-INTRO-0 'kind 'predicate 'arity 3 'english "the kernel's tuples-intro at the empty tuple relates $2 to $3")
 
 ;; rule-checkers-logic.scm 1164-1189 (tuples-elim k): some (IN [e1 .. en] (TUPLES A)) in the conclusion
 ;; context, 1 <= k <= n; one hypothesis, the same goal, the context gains (IN e_k A).

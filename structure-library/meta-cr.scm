@@ -359,7 +359,7 @@
         (mr--and '(= mrx_ (LIST 1 mrg_ (ENC-LENGTH (ENC-LIST mrl_)) (ENC-NUM (LENGTH mrl_))))
                  '(IN (ENC-LENGTH (ENC-LIST mrl_)) CLT) '(IN (ENC-NUM (LENGTH mrl_)) CLT)
                  '(IN (LIST mrg_ (ENC-EQ (ENC-LIST mrl_) (ENC-LIST mrl_))) (DERIVABLE mrt_))))))
-;; lambda-beta: (VNB-LAMBDA A b)(u) -> b[u], u in A derivable in the local context, b PREDICATIVE (NBG-OK,
+;; lambda-beta: (VNB-LAMBDA A b)(u) -> b[u], u in A and b[u] in SET derivable in the local context, b PREDICATIVE (NBG-OK,
 ;; meta-core.scm 4.3a: CR-LAMBDA-BETA-EQ carries it, and the kernel's lambda-beta leaves an impredicative redex
 ;; standing since NBGSEP; agent METACORE, 2026-10-29).
 (def-functoid 'J-LB '(mrt_)
@@ -368,7 +368,10 @@
         (mr--and '(= mrx_ (LIST 1 mrg_ (ENC-APPLY (ENC-LAM mra_ mrb_) mre_) (EXPR-OPEN mrb_ 0 mre_)))
                  '(NBG-OK mrb_)
                  '(IN (ENC-APPLY (ENC-LAM mra_ mrb_) mre_) CLT) '(IN (EXPR-OPEN mrb_ 0 mre_) CLT)
-                 '(IN (LIST mrg_ (ENC-IN mre_ mra_)) (DERIVABLE mrt_))))))
+                 '(IN (LIST mrg_ (ENC-IN mre_ mra_)) (DERIVABLE mrt_))
+                 ;; K1FIX (2026-11-19): the value a SET, derivable in the local context -- the kernel's lambda-beta
+                 ;; owes (IN value SET) since BVAL, and CR-LAMBDA-BETA-EQ now has it as a premise (K1ARG K1-3)
+                 '(IN (LIST mrg_ (ENC-IN (EXPR-OPEN mrb_ 0 mre_) ENC-SETC)) (DERIVABLE mrt_))))))
 ;; macete: a member of T of ONE schema variable and one condition, ALL(c IMP (l == r)) (a term
 ;; macete) or ALL(c IMP (l IFF r)) (a formula macete), a sentence (theorem-assumption concludes a
 ;; sequent), instantiated at a term e that DENOTES in the local context, with the condition c[e]
@@ -390,7 +393,7 @@
 (for-each (lambda (e) (notation! (car e) 'kind 'functoid 'arity 1 'english (cadr e)))
   '((J-NTH "the local NTH-of-a-list redexes over $1, the list denoting")
     (J-LEN "the local LENGTH-of-a-list redexes over $1, the list denoting")
-    (J-LB "the local lambda redexes over $1, the argument in the domain")
+    (J-LB "the local lambda redexes over $1, the argument in the domain and the value a set")
     (J-MAC "the local instances of the one-variable macetes of $1, the condition derivable and the instance denoting")))
 
 ;; functoid-beta (agent META-FUN, 2026-10-21; the user's decision B1): F(l) -> b[l] for a row (F, |l|, b) of

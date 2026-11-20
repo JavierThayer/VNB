@@ -306,40 +306,8 @@
 
 ;;; 5.1 Inversion: the parts of a closed term that the walk reaches are closed terms.
 
-;; an argument of an application that is a closed term is a closed term (a term head is >= 11, and its
-;; arguments are terms: HD-ARGK; a head <= 6 makes a formula, HD-RES, which is no term)
-(sp (make-wff '(FORALL h (FORALL l (FORALL i (IMPLIES (IN (EAPP h l) CLT) (IMPLIES (IN i NN) (IMPLIES (<= 1 i)
-   (IMPLIES (<= i (LENGTH l)) (IN (NTH i l) CLT))))))))))
-(dk-peel!)
-(dk-split-all! (list (dk-meta-iff-r! (dk-meta-iff! 'clt-iff '(EAPP h l)))))
-(dk-split! (dk-cite! 'eapp-expr-inv 'h 'l))
-(dk-meta-iff-r! (dk-meta-iff! 'wf-term '(EAPP h l)))
-(dk-have! '(IN 1 NN) (lambda () (arith)))
-(let* ((kparts (dk-split-all! (list (dk-meta-iff-r! (dk-meta-iff! 'wks-eapp-iff 'h 'l 1)))))
-       (u1 (find-first (lambda (f) (dk-head-is? f 'FORALL)) kparts))
-       (u2 (dk-meta-iff-r! (dk-meta-iff! 'lc-eapp-iff 'h 'l)))
-       (w '(NTH i l)))
-  (dk-meta-nth-in! 'EXPR-SET 'i 'l)
-  (dk-have! `(IN ,w (MAKE-SET l)) (lambda () (dk-meta-in-makeset! 'i 'l 'EXPR-SET)))
-  (dk-apply! u1 w)
-  (dk-apply! u2 w)
-  (use-em '(<= h 6)
-    (lambda ()
-      (dk-have! '(= (HD-RES h) 2)
-        (lambda () (mac 'HD-RES) (dk-if-branch! #t (cadr (dk-goal)) (lambda () (dk-nn! '(<= h 6))) (lambda () (rfl)))))
-      (dk-have! '(= 1 2) (lambda () (subst '(= 2 (HD-RES h))) (ass)))
-      (dk-have! '(NOT (= 1 2)) (lambda () (arith)))
-      (ai '(NOT (= 1 2))))
-    (lambda ()
-      (dk-have! '(= (HD-ARGK h) 1)
-        (lambda () (mac 'HD-ARGK) (dk-if-branch! #f (cadr (dk-goal)) (lambda () (ass)) (lambda () (rfl)))))
-      (dk-rewrite-h! `(IN (HD-ARGK h) (EXPR-WKS ,w)) '(HD-ARGK h) 1)
-      (dk-meta-iff-l! (dk-meta-iff! 'wf-term w))
-      (let ((iff (dk-meta-iff! 'clt-iff w)))
-        (dk-have! (caddr iff) (lambda () (dk-conj-close! (lambda () (ass)))))
-        (dk-meta-iff-l! iff)
-        (ass)))))
-(qed 'clt-eapp-arg)
+;; clt-eapp-arg: MOVED 2026-11-19 (K1FIX) to theorem-library/meta-ind-laws.scm, section O, whose POSN proofs cite it
+;; and load before this file (a cold load in load order did not have it).
 
 ;; the outside argument of a one-argument binder node that is a closed term is a closed term
 ;; (wks-ebind: the outside arguments have kind 1; lcd-ebind: they are closed at the binder's depth)
@@ -1563,10 +1531,19 @@
 
 ;; EVERY INSTANCE OF THE TWO SCHEMAS IS DERIVABLE OVER THE CORE: the core's membership schema, the right fold
 ;; against the left fold at j = 0, the unit of the connective.
+;; K1FIX (2026-11-19): for UNION the core's union-mem has one premise per entry, [g, S_i = S_i] (meta-core.scm 4.6):
+;; der-union-decompose takes their derivability as a hypothesis (STATEMENT CHANGE forced by the repair), and J-UDEC
+;; (meta-def.scm 14) carries it -- the kernel's union-decompose macete owes each entry's definedness.
+(define (md14-entries-defined g l)
+  `(FORALL md14i_ (IMPLIES (IN md14i_ NN) (IMPLIES (<= 1 md14i_) (IMPLIES (<= md14i_ (LENGTH ,l))
+     (IN (LIST ,g (ENC-EQ (NTH md14i_ ,l) (NTH md14i_ ,l))) (DERIVABLE tt)))))))
+(define (md14-dec-concl enc-op)
+  (let ((concl `(IN (LIST g (ENC-IFF (ENC-IN x (,enc-op l)) f)) (DERIVABLE tt))))
+    (if (eq? enc-op 'ENC-UNION) `(IMPLIES ,(md14-entries-defined 'g 'l) ,concl) concl)))
 (define (md14-dec! enc-op elim-law mem-rule rec conn unit unit-law zero-law fold-law clf-law h name)
   (sp (make-wff `(FORALL tt (FORALL g (FORALL x (FORALL l (FORALL f (IMPLIES (IN g CTX-SET)
      (IMPLIES (IN (ENC-IN x (,enc-op l)) CLF) (IMPLIES (IN (LIST 0 f) (RF-SET ,h x l))
-       (IN (LIST g (ENC-IFF (ENC-IN x (,enc-op l)) f)) (DERIVABLE tt))))))))))))
+       ,(md14-dec-concl enc-op)))))))))))
   (dk-peel!)
   (let* ((uu `(ENC-IN x (,enc-op l))) (top `(,rec x l (LENGTH l))) (ff `(ENC-IFF ,uu ,top))
          (r0 `(,conn (,rec x l 0) f)) (u0 `(,conn ,unit f)))
@@ -1578,7 +1555,9 @@
     (dk-cite! 'clf-iff-intro uu top)
     (dk-split! (dk-cite! fold-law 'tt 'g 'x 'l 0 'f))
     (dk-have! '(<= 1 (LENGTH l)) (lambda () (dk-nn! '(<= (succ 0) (LENGTH l)))))
-    (dk-meta-derive! 'tt `(,mem-rule (g ==> ,ff)))
+    (if (eq? enc-op 'ENC-UNION)
+        (begin (dk-meta-seq! 'g ff) (dk-cite! 'derivable-union-mem-c 'tt 'g 'x 'l))
+        (dk-meta-derive! 'tt `(,mem-rule (g ==> ,ff))))
     (let ((d (dk-rewrite-h! (md14-iff 'g top r0) `(,rec x l 0) (caddr (dk-cite! zero-law 'x 'l)))))
       (md12-seq-of! 'g `(ENC-IFF ,top ,u0))
       (dk-split! (dk-cite! 'clf-iff-elim top u0))
@@ -1647,10 +1626,16 @@
 ;; THE BINARY INSTANCES (the catalog's union-membership and intersection-membership, library.scm 753, 763): the pair
 ;; [0, x in a CONN x in b] is a right fold over [a, b] (the base at j = 1, one step), so der-union-decompose /
 ;; der-intersection-decompose gives each instance over the core.  The two theorems also show RF-SET is not empty.
+;; K1FIX (2026-11-19): for UNION, the hypotheses [g, a = a] and [g, b = b] (STATEMENT CHANGE forced by the repair).
+(define (md14-bin-concl enc-op conn)
+  (let ((concl `(IN (LIST g (ENC-IFF (ENC-IN x (,enc-op (LIST a b))) (,conn (ENC-IN x a) (ENC-IN x b)))) (DERIVABLE tt))))
+    (if (eq? enc-op 'ENC-UNION)
+        `(IMPLIES (IN (LIST g (ENC-EQ a a)) (DERIVABLE tt)) (IMPLIES (IN (LIST g (ENC-EQ b b)) (DERIVABLE tt)) ,concl))
+        concl)))
 (define (md14-binary! enc-op conn h conn-intro clt-law enc-unfold dec name)
   (sp (make-wff `(FORALL tt (FORALL g (FORALL x (FORALL a (FORALL b (IMPLIES (IN g CTX-SET) (IMPLIES (IN x CLT)
      (IMPLIES (IN a CLT) (IMPLIES (IN b CLT)
-       (IN (LIST g (ENC-IFF (ENC-IN x (,enc-op (LIST a b))) (,conn (ENC-IN x a) (ENC-IN x b)))) (DERIVABLE tt)))))))))))))
+       ,(md14-bin-concl enc-op conn))))))))))))
   (dk-peel!)
   (let* ((l '(LIST a b)) (n1 `(NTH (succ 0) ,l)) (n2 `(NTH (succ (succ 0)) ,l))
          (e1 `(ENC-IN x ,n1)) (e2 `(ENC-IN x ,n2)) (f `(EAPP ,h (LIST ,e1 ,e2)))
@@ -1696,6 +1681,23 @@
               (dk-apply! u1 '(succ 0))
               (dk-apply! u2 0 e2)
               (ass))))))
+    (if (eq? enc-op 'ENC-UNION)            ; K1FIX: the entries' definedness, entry by entry
+        (dk-have! (md14-entries-defined 'g l)
+          (lambda ()
+            (dk-peel!)
+            (let* ((i (cadr (cadr (caddr (cadr (dk-goal)))))))
+              (dk-have! `(= (LENGTH ,l) 2) (lambda () (len-r) (rfl)))
+              (dk-rewrite-h! `(<= ,i (LENGTH ,l)) `(LENGTH ,l) 2)
+              (use-em `(= ,i 1)
+                (lambda ()
+                  (dk-have! `(= (NTH 1 ,l) a) (lambda () (nth-r) (rfl)))
+                  (subst `(= ,i 1)) (subst `(= (NTH 1 ,l) a)) (ass))
+                (lambda ()
+                  (dk-have! '(IN 1 NN) (lambda () (arith)))
+                  (dk-cite! 'nn-le-ne-succ 1 i)
+                  (dk-have! `(= ,i 2) (lambda () (dk-nn! `(<= (succ 1) ,i) `(<= ,i 2))))
+                  (dk-have! `(= (NTH 2 ,l) b) (lambda () (nth-r) (rfl)))
+                  (subst `(= ,i 2)) (subst `(= (NTH 2 ,l) b)) (ass)))))))
     (dk-cite! dec 'tt 'g 'x l f)
     (dk-rewrite-h! `(IN (LIST g (ENC-IFF ,uu ,f)) (DERIVABLE tt)) f cf)
     (md-close!))

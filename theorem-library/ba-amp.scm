@@ -597,6 +597,8 @@
 (sp (make-wff (forall-guarded '(w v f_) am-Cf (list 'IN '(AMP-STEP v w f_) (list 'FUN am-BOv '(BOUNDED-OPS (HSUM w v) (HSUM w v)))))))
 (dk-peel!)
 (dk-cite! 'bounded-ops-is-set 'v 'v)
+;; K1FIX (2026-11-19): lam-t owes the codomain's definedness; its sethood certifies it
+(am-cips! am-HS) (dk-cite! 'bounded-ops-is-set am-HS am-HS)
 (am-lam-type! 'AMP-STEP
   (lambda ()
     (let ((t (cadr (cadddr (cadr (dk-goal))))))

@@ -1418,7 +1418,15 @@
                         "no CARTESIAN membership in the context yields the component added"))))))))
 
 ;;; tuples-intro: goal (IN (LIST e1..en) (TUPLES A)); one hypothesis (IN e_i A)
-;;; per component (none at all for the empty tuple, which closes the node).
+;;; per component.  K1FIX (2026-11-19, the user's decision): for the EMPTY tuple, the class A must
+;;; be certified defined in the context (chk-elim-certified?), or the one hypothesis is the owed
+;;; definedness sequent  Gamma => A = A.  (With a component, (IN e1 A) certifies A.)  Without the
+;;; condition the empty tuple closed [] in TUPLES(i) for a non-denoting i: FALSITY (K1ARG K1-1).
+(define (chk-owed-eq-of? h concl t)       ; h is  Gamma => t = t  in the conclusion's context
+  (let ((side (chk-goal h)))
+    (and (pair? side) (eq? (car side) '=) (= (length side) 3)
+         (chk-same? (binary-left side) t) (chk-same? (binary-right side) t)
+         (chk-ctx=? h concl))))
 (register-rule-checker! 'tuples-intro
   (lambda (rule hyps concl)
     (let ((g (chk-goal concl)))
@@ -1429,6 +1437,14 @@
           "the goal is not  [e1..en] in TUPLES(A)"
           (let ((elems (cdr (cadr g))) (a (cadr (caddr g))))
             (cond
+              ((null? elems)
+               (cond ((chk-arity? hyps 1)
+                      (if (chk-owed-eq-of? (car hyps) concl a) #t
+                          "the empty tuple's one hypothesis is not the owed definedness sequent  Gamma => A = A"))
+                     ((not (chk-arity? hyps 0))
+                      "the empty tuple takes no hypothesis, or the owed  Gamma => A = A")
+                     ((chk-elim-certified? concl a) #t)
+                     (else "the empty tuple: A is not certified defined in the context, and no definedness sequent  A = A  is owed")))
               ((not (chk-arity? hyps (length elems)))
                "one hypothesis per component is required")
               ((not (chk-every2 (lambda (h e)
@@ -1465,7 +1481,12 @@
                         #t
                         "no TUPLES membership in the context yields the component added"))))))))
 
-;;; union-intro (k): goal (IN x (UNION S1..Sn)); one hypothesis (IN x S_k).
+;;; union-intro (k): goal (IN x (UNION S1..Sn)); the first hypothesis (IN x S_k).
+;;; K1FIX (2026-11-19, the user's decision): every OTHER entry S_j must be S_k itself, certified
+;;; defined in the context (chk-elim-certified?), or covered by a further hypothesis, the owed
+;;; definedness sequent  Gamma => S_j = S_j; every further hypothesis is such a sequent for some
+;;; entry.  Without the condition the rule closed [] in UNION(TUPLES(SET), i) for a non-denoting i,
+;;; whose strictness then certified i: FALSITY (K1ARG K1-2).
 (register-rule-checker! 'union-intro
   (lambda (rule hyps concl)
     (let ((g (chk-goal concl)))
@@ -1475,15 +1496,23 @@
         ((not (and (pair? g) (eq? (car g) 'IN) (= (length g) 3)
                    (pair? (caddr g)) (eq? (car (caddr g)) 'UNION)))
          "the goal is not a UNION membership")
-        ((not (chk-arity? hyps 1)) "union-intro takes one hypothesis")
+        ((null? hyps) "union-intro takes the membership hypothesis, then the owed definedness sequents")
         (else
-         (let ((k (cadr rule)) (sets (cdr (caddr g))))
-           (cond ((not (and (<= 1 k) (<= k (length sets))))
-                  "the index is out of range")
+         (let* ((k (cadr rule)) (sets (cdr (caddr g)))
+                (sk (and (<= 1 k) (<= k (length sets)) (list-ref sets (- k 1)))))
+           (cond ((not sk) "the index is out of range")
                  ((not (chk-ctx=? (car hyps) concl)) "the context changed")
-                 ((not (chk-same? (chk-goal (car hyps))
-                                  (list 'IN (cadr g) (list-ref sets (- k 1)))))
+                 ((not (chk-same? (chk-goal (car hyps)) (list 'IN (cadr g) sk)))
                   "the hypothesis is not membership in the k-th set")
+                 ((not (chk-every (lambda (h) (chk-any (lambda (s) (chk-owed-eq-of? h concl s)) sets))
+                                  (cdr hyps)))
+                  "a further hypothesis is not the owed definedness sequent  Gamma => S_j = S_j  of an entry")
+                 ((not (chk-every (lambda (s)
+                                    (or (chk-same? s sk)
+                                        (chk-any (lambda (h) (chk-owed-eq-of? h concl s)) (cdr hyps))
+                                        (chk-elim-certified? concl s)))
+                                  sets))
+                  "an entry other than the k-th is not certified defined in the context, and no definedness sequent  S_j = S_j  is owed")
                  (else #t))))))))
 
 ;;; union-elim: the context holds (IN x (UNION S1..Sn)); it is replaced, in one

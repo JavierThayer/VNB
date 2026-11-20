@@ -430,3 +430,71 @@
      (== AX-ORD-SUCC-ABOVE (ENC-ALL (ENC-IMP (ENC-IN (EBVAR 0) ENC-ORDC) (ENC-ORDLT (EBVAR 0) (ENC-SUCCO (EBVAR 0))))))))
 (notation! 'AX-LIMIT-IFF 'kind 'constant 'arity 0 'english "the encoded axiom limit-ord-iff")
 (notation! 'AX-ORD-SUCC-ABOVE 'kind 'constant 'arity 0 'english "the encoded axiom ord-succ-above")
+
+;;; -----------------------------------------------------------------------
+;;; 6. LAMBDA-TYPE AT A BINDER LIST (agent POSN, 2026-11-19; the K2 ledger's row 52, S1).
+;;; THE KERNEL FIGURE (rule-checkers-schema.scm, rcs-lambda-type with rcs--lambda-typing-ok?): for the binder list
+;;; (LIST x1 .. xn) over the literal product (CARTESIAN A1 .. An), n the length of both,
+;;;     G => forall v1. v1 in A1 => .. forall vn. vn in An => b[x := v] in B        G => (CARTESIAN A1 .. An) in SET
+;;;     -------------------------------------------------------------------------------------------------------
+;;;     G => (VNB-LAMBDA (LIST x1 .. xn) (CARTESIAN A1 .. An) b) in FUN(CARTESIAN A1 .. An, B)
+;;; the domains in the guards the factors of the lambda's own domain, the lambda's body predicative (NBGSEP).
+;;; THE ENCODING (the reduction to the one-binder case through tuples).  The core has one-binder lambdas only
+;;; (BIND-SIG: VNB-LAMBDA binds one variable).  A destructuring lambda is the set of the pairs <w, b[x_i := NTH(i, w)]>
+;;; for w in the product (every member of a product is the list of its projections: CR-TUPLE-ETA), so the translator
+;;; writes it as the one-binder ENC-LAM(ENC-CART(A1 .. An), c), c the body b with each x_i replaced by the projection
+;;; ENC-NTH(i, EBVAR 0).  In the typing hypothesis the binders are indices: under the n guarded universals x_i is the
+;;; index n - i, so the body b is closed at depth n.  The relation states the translator's c by the one property the
+;;; rule needs: opened at a name y, c is b opened at the projections of y (index n - i at NTH(i, y)), in the order in
+;;; which instantiating the n universals opens them; and c predicative (it is b with names replaced by terms).
+;;; K1FIX (2026-11-19, the user's decision): the kernel's lambda-type now owes  G => B = B  (the codomain) unless its
+;;; certificate accepts B, and CR-LAMBDA-TYPE has the premise; each relation below has it as the THIRD hypothesis (the
+;;; owed form; the certified omission is the ledger's open item).
+;;; REL-LAMBDA-TYPE-n is stated, by the generator below, for each FIXED n = 1 .. 4: n = 1 is the one-entry binder of
+;;; the user's decision of 2026-10-15, n = 2 the arity of the library's destructuring lambdas, n = 4 the largest
+;;; product the library forms (cartesian4-set).  The statement for a VARIABLE n is not made here: its typing
+;;; hypothesis is a chain of n universals over the entries of a list (a recursion like CCHS, section 3) and its
+;;; proof an induction on the chain with an open law for it (as cchs-open).
+;; the variables: mia1_ .. mian_ the factors; the body opened, in the order of instantiation, index n - k at NTH(k, y)
+(define (mi--lt-factors n) (map (lambda (k) (symbol-append 'mia (string->symbol (number->string k)) '_)) (iota n 1)))
+(define (mi--lt-opened n)
+  (let loop ((k 1) (acc 'mib_))
+    (if (> k n) acc
+        (loop (+ k 1) `(EXPR-OPEN ,acc ,(- n k) (ENC-NTH (ENC-NUM ,k) (EFVAR miy_)))))))
+(define (mi--lt-chain as)
+  (fold-right (lambda (a acc) `(ENC-ALL (ENC-IMP (ENC-IN (EBVAR 0) ,a) ,acc))) '(ENC-IN mib_ mid_) as))
+(define (mi--lambda-type-rel! n)
+  (let* ((as (mi--lt-factors n)) (ca `(ENC-CART (LIST ,@as)))
+         (name (symbol-append 'REL-LAMBDA-TYPE- (string->symbol (number->string n)))))
+    (mi--rel! name "the kernel's lambda-type at a binder list of fixed length relates $2 to $3"
+      (mi--ex (append '(mig_) as '(mib_ mid_ mie_))
+        (mi--and `(= mic_ (LIST mig_ (ENC-IN (ENC-LAM ,ca mie_) (ENC-FUN ,ca mid_))))
+                 '(NBG-OK mie_)
+                 `(FORALL miy_ (IMPLIES (IN miy_ NN) (= (EXPR-OPEN mie_ 0 (EFVAR miy_)) ,(mi--lt-opened n))))
+                 `(= mihs_ (LIST (LIST mig_ ,(mi--lt-chain as)) (LIST mig_ (ENC-IN ,ca ENC-SETC))
+                                 (LIST mig_ (ENC-EQ mid_ mid_)))))))))
+(for-each mi--lambda-type-rel! '(1 2 3 4))
+
+;;; THE VARIABLE LENGTH.  LTCH(a, b, d, n, k): the chain of the guarded universals over the LAST k of the n entries of
+;;; the list a, around the innermost formula (ENC-IN b d) (built from the inside out, as CCHS); the typing hypothesis of
+;;; the kernel figure is LTCH(a, b, d, n, n), n = LENGTH(a).  LTOP(b, y, n, k): b opened at the first k projections of
+;;; the name y, index n - i at NTH(i, y), in the order of instantiation.  For n = 1 .. 4 the two are the formulas of
+;;; REL-LAMBDA-TYPE-n above.  REL-LAMBDA-TYPE-N is the kernel figure at every length n >= 1; the conjunct b in EXPR-SET
+;;; is the well-formedness of the translator's data (b is a subexpression of a sentence).
+(def-by-nn-recursion 'LTCH '(m52a_ m52b_ m52d_ m52n_) '(ENC-IN m52b_ m52d_) '(m52k_ m52v_)
+  '(ENC-ALL (ENC-IMP (ENC-IN (EBVAR 0) (NTH (- m52n_ m52k_) m52a_)) m52v_)))
+(notation! 'LTCH 'kind 'functoid 'arity 5
+           'english "the chain of guarded universals over the last $5 of the $4 entries of $1 around $2 in $3")
+(def-by-nn-recursion 'LTOP '(m52b_ m52y_ m52n_) 'm52b_ '(m52k_ m52v_)
+  '(EXPR-OPEN m52v_ (- m52n_ (succ m52k_)) (ENC-NTH (ENC-NUM (succ m52k_)) (EFVAR m52y_))))
+(notation! 'LTOP 'kind 'functoid 'arity 4 'english "$1 opened at the first $4 projections of the name $2, of $3")
+(mi--rel! 'REL-LAMBDA-TYPE-N "the kernel's lambda-type at a binder list relates $2 to $3"
+  (mi--ex '(mig_ mia_ mib_ mid_ mie_)
+    (mi--and '(= mic_ (LIST mig_ (ENC-IN (ENC-LAM (ENC-CART mia_) mie_) (ENC-FUN (ENC-CART mia_) mid_))))
+             '(<= 1 (LENGTH mia_)) '(IN mib_ EXPR-SET)
+             '(NBG-OK mie_)
+             '(FORALL miy_ (IMPLIES (IN miy_ NN)
+                (= (EXPR-OPEN mie_ 0 (EFVAR miy_)) (LTOP mib_ miy_ (LENGTH mia_) (LENGTH mia_)))))
+             '(= mihs_ (LIST (LIST mig_ (LTCH mia_ mib_ mid_ (LENGTH mia_) (LENGTH mia_)))
+                             (LIST mig_ (ENC-IN (ENC-CART mia_) ENC-SETC))
+                             (LIST mig_ (ENC-EQ mid_ mid_)))))))

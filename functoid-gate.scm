@@ -145,8 +145,8 @@
 ;;; -----------------------------------------------------------------------
 ;;; THE FUNCTOID HYPOTHESES GATE -- H1-H4 and H6 of the
 ;;; functoid argument (meta-report, functoid-argument.tex, s. "The hypotheses the
-;;; map needs").  WARN-ONLY: each hypothesis is reported with its backlog; it goes
-;;; fatal, hypothesis by hypothesis, once that backlog is zero (a separate decision).
+;;; map needs").  The gate itself reports; FATAL in a strict load since 2026-11-19
+;;; (FGATE: backlog zero) through functoid-hypotheses-enforce! below.
 ;;;
 ;;;   H1  the parameters of a def-functoid are distinct symbols;
 ;;;   H2  b_F mentions only heads defined before F (no recursion, direct or mutual);
@@ -216,6 +216,13 @@
                 (lambda (k) (with-exception-handler (lambda (c) (k '())) (lambda () *vnb-files*)))))
     t))
 
+;;; A declared structure species (a key of *structure-table*, structures.scm), read as a
+;;; class constant by H4.  Not a registered constant: that would make it head-only.
+(define (fha--structure-species? v)
+  (and (symbol? v)
+       (hash-table-ref/default *structure-table* v #f)
+       #t))
+
 (define (functoid-hypotheses-audit #!optional reg log defs)
   (let* ((reg  (if (default-object? reg) (fha--live-registry) reg))
          (log  (if (default-object? log) (fha--live-log) log))
@@ -272,10 +279,13 @@
              (note! (list 'H1 'repeated name pvars)))))
     (define (check-h4 name pvars body)
       ;; a registered constant or a class name cannot be bound (constant-binder-audit,
-      ;; fatal), and a defined head is a constant of the tables read, so none of them
-      ;; is a variable of the body; every other free symbol is
+      ;; fatal), a declared structure species is a class constant of its class axiom
+      ;; (STRUCTURE-class, e.g. DIRECTED-SET in PTWISE-NET-LIMITS), and a defined head is a
+      ;; constant of the tables read, so none of them is a variable of the body; every
+      ;; other free symbol is
       (let ((fv (filter (lambda (v) (and (symbol? v) (not (memq v pvars)) (not (constant-head? v))
                                          (not (memq v *class-name-constants*))
+                                         (not (fha--structure-species? v))
                                          (not (defined-head? v))
                                          (not (memq v '(TRUTH FALSITY)))))
                         (free-vars body))))
@@ -407,6 +417,31 @@
              (newline)
              (cons h k)))
          titles)))
+
+;;; THE FATAL FORM (FGATE, 2026-11-19).  The backlog reached zero with the two repairs of
+;;; that day (dual-space.scm moved after numeric-instances in load.scm, H2; a declared
+;;; structure species such as DIRECTED-SET read by H4 as a class constant, H4), so every hypothesis the gate
+;;; reads goes fatal at once, as the other gates do once their backlog is zero.  FATAL? #t
+;;; raises after the report when any hypothesis has a violation; FATAL? #f reports only.
+;;; run-load-end! (load.scm) passes #t in a strict load and #f under keep-going.  H3 without
+;;; a definition log counts 0 (not checkable is not a violation).  The optional arguments
+;;; are those of the gate (the suite's controls).  Returns the counts, as the gate does.
+(define (functoid-hypotheses-enforce! fatal? #!optional reg log defs)
+  (let* ((counts (cond ((default-object? reg) (functoid-hypotheses-gate!))
+                       ((default-object? log) (functoid-hypotheses-gate! reg))
+                       ((default-object? defs) (functoid-hypotheses-gate! reg log))
+                       (#t (functoid-hypotheses-gate! reg log defs))))
+         (bad (filter (lambda (c) (> (cdr c) 0)) counts)))
+    (if (pair? bad)
+        (begin
+          (display ";; functoid-hypotheses gate: ")
+          (display (apply + (map cdr bad))) (display " violation(s) of ")
+          (write (map car bad))
+          (display (if fatal? " (FATAL)\n" " (reported under keep-going)\n"))
+          (if fatal?
+              (error "functoid-hypotheses gate: a def-functoid violates the hypotheses of the functoid argument; see the report above"
+                     bad))))
+    counts))
 
 ;;; Arm the log now: def-functoid exists (structures.scm has loaded) and no file
 ;;; after structures.scm has defined a functoid yet.

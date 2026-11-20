@@ -17515,6 +17515,57 @@
                   (suite-proven? 'cchs-fwd) (suite-proven? 'cchs-bwd) (suite-proven? 'der-cartesian-decompose))))
 (check-true "ROW 57: with the CLF guard of J-CART (D6), J-CART(T) is inside EQV(T) and cartesian-decompose is admissible (j-cart-sub, adm-cartesian-decompose-1, -7)"
   (lambda () (and (suite-proven? 'j-cart-sub) (suite-proven? 'adm-cartesian-decompose-1) (suite-proven? 'adm-cartesian-decompose-7))))
+;;; 2026-11-19, BRIDGE: THE CERTIFICATE AS A WHOLE (structure-library/meta-nbg.scm and theorem-library/meta-nbg-laws.scm,
+;;; section D).  DEF-DERIVABLE(T), the least set closed under the definedness rows, is inside DERIVABLE(T)
+;;; (def-derivable-sub, lemma (*) for those rows), and the kernel forms -KD of rows 8, 15, 24, 26, 27 (the definedness of
+;;; the term read off the rows), the TRUTH arm of reflexivity and the adds-nothing arm are admissible.  The accepted check
+;;; derives [g, t = t] from its membership in DEF-DERIVABLE(T) by citing the lemma (on the old tree the name does not
+;;; resolve and the check errors); the control asks the same of a sequent that is merely a sequent (SEQ-SET): refused.
+(define (brg-run! cls)
+  (fluid-let ((*ps* #f))
+    (sp (make-wff `(FORALL tt (FORALL g (FORALL w
+       (IMPLIES (IN (LIST g (ENC-EQ w w)) ,cls) (IN (LIST g (ENC-EQ w w)) (DERIVABLE tt))))))))
+    (dk-peel!)
+    (dk-cite! 'def-derivable-sub 'tt '(LIST g (ENC-EQ w w)))
+    (ass)
+    (proof-done? *ps*)))
+(check-true "BRIDGE: a sequent the definedness rows reach is derivable (def-derivable-sub; fails on the old tree: no such theorem)"
+  (lambda () (quietly (lambda () (brg-run! '(DEF-DERIVABLE tt))))))
+(check-true "BRIDGE CONTROL: the lemma does not make an arbitrary sequent [g, t = t] derivable"
+  (lambda () (not (eq? #t (quietly (lambda () (vnb-guard (lambda () (brg-run! 'SEQ-SET)))))))))
+(check-true "BRIDGE: the rows' closure and the kernel forms -KD are proven (def-closed-derivable, adm-forall-elim-kd, adm-forsome-intro-kd, adm-reflexivity-kd, adm-reflexivity-kt, adm-if-true-kd, adm-if-false-kd, adm-adds-nothing-k, adm-def-len-tuples)"
+  (lambda () (and (suite-proven? 'def-closed-derivable) (suite-proven? 'def-derivable-sub)
+                  (suite-proven? 'adm-forall-elim-kd) (suite-proven? 'adm-forsome-intro-kd)
+                  (suite-proven? 'adm-reflexivity-kd) (suite-proven? 'adm-reflexivity-kt)
+                  (suite-proven? 'adm-if-true-kd) (suite-proven? 'adm-if-false-kd)
+                  (suite-proven? 'adm-adds-nothing-k) (suite-proven? 'adm-def-len-tuples))))
+;;; 2026-11-19, POSN: THE REWRITING RULES AT FINITELY MANY POSITIONS (structure-library/meta-nbg.scm and
+;;; theorem-library/meta-nbg-laws.scm, section E) and LAMBDA-TYPE AT A BINDER LIST (meta-ind.scm section 6, meta-ind-laws.scm
+;;; sections O, O2).  REWRS(J), the chains of one-position rewrites, is inside EQV(T) when J is (crs-s): the accepted check
+;;; reads a member of REWRS(J) into EQV(T) by citing the lemma (on the old tree the name does not resolve and the check
+;;; errors); the control asks the same of a mere rewrite tuple (RW-UNIV): refused.
+(define (posn-run! cls)
+  (fluid-let ((*ps* #f))
+    (sp (make-wff `(FORALL tt (FORALL jj (FORALL x
+       (IMPLIES (SUBSET jj (EQV tt)) (IMPLIES (IN x ,cls) (IN x (EQV tt)))))))))
+    (dk-peel!)
+    (dk-cite! 'crs-s 'tt 'jj 'x)
+    (ass)
+    (proof-done? *ps*)))
+(check-true "POSN: a rewrite at finitely many positions justified inside EQV(T) is in EQV(T) (crs-s; fails on the old tree: no such theorem)"
+  (lambda () (quietly (lambda () (posn-run! '(REWRS jj))))))
+(check-true "POSN CONTROL: the lemma does not put an arbitrary rewrite tuple in EQV(T)"
+  (lambda () (not (eq? #t (quietly (lambda () (vnb-guard (lambda () (posn-run! 'RW-UNIV)))))))))
+(check-true "POSN: the chains of one-position rewrites and the nine P1 rows at finitely many positions are proven (rewrs-base, rewrs-refl, rewrs-trans, adm-rewrite-s, adm-rewrite-hyp-s, adm-<rule>-s)"
+  (lambda () (every suite-proven?
+                    '(rewrs-base rewrs-refl rewrs-trans eqv-rws-closed crs-s adm-rewrite-s adm-rewrite-hyp-s
+                      adm-nth-reduce-s adm-length-reduce-s adm-functoid-beta-s adm-lambda-beta-s adm-lambda-beta-hyp-s
+                      adm-macete-s adm-macete-hyp-s adm-macete-n-s adm-macete-n-hyp-s adm-union-decompose-s
+                      adm-union-decompose-hyp-s adm-intersection-decompose-s adm-intersection-decompose-hyp-s
+                      adm-tuple-eq-decompose-s adm-cartesian-decompose-s))))
+(check-true "POSN: lambda-type at a binder list over a product is admissible (adm-lambda-type-1 .. -4, adm-lambda-type-n)"
+  (lambda () (every suite-proven? '(adm-lambda-type-1 adm-lambda-type-2 adm-lambda-type-3 adm-lambda-type-4
+                                    ltch-expr ltop-expr ltch-open der-imp-mp ltch-inst adm-lambda-type-n))))
 (check-true "META-FUN: CR is closed at stage 6 (cr-closed-6) and at stage 7 (cr-closed-7, eqv-desc-body; for every T since 2026-11-11, W2E), der-comp-cr proven"
   (lambda () (and (suite-proven? 'cr-closed-6) (suite-proven? 'cr-goal-6) (suite-proven? 'der-comp-cr)
                   (suite-proven? 'eqv-desc-body) (suite-proven? 'cr-closed-7) (suite-proven? 'cr-goal-7))))
@@ -18892,6 +18943,17 @@
 ;;; =======================================================================
 (if (not (environment-bound? (the-environment) 'functoid-hypotheses-audit))
     (load (string-append *prover-dir* "functoid-gate.scm")))
+;; FGATE (2026-11-19): over a band that holds the W2C gate but not its fatal form, the
+;; file is reloaded for functoid-hypotheses-enforce!, keeping the band's definition log,
+;; its counter and its armed def-functoid (a plain reload would empty the log and wrap
+;; def-functoid a second time).
+(if (not (environment-bound? (the-environment) 'functoid-hypotheses-enforce!))
+    (let ((log *functoid-def-log*) (seq *functoid-def-seq*) (df def-functoid))
+      (load (string-append *prover-dir* "functoid-gate.scm"))
+      (set! def-functoid df)
+      (set! *functoid-def-log* log)
+      (set! *functoid-def-seq* seq)
+      (set! *functoid-def-log-armed?* #t)))
 (define (w2c-gate reg #!optional log defs)
   (functoid-hypotheses-audit reg (if (default-object? log) '() log) (if (default-object? defs) '() defs)))
 (check "FGATE (accepted): a clean toy registry has no violation"
@@ -18991,11 +19053,14 @@
 (check "FGATE gate! prints one line per hypothesis and returns the counts"
   (lambda () (functoid-hypotheses-gate! '((w2c-dup (x_ x_) (+ x_ w2c_y) #f)) '() '()))
   '((h1 . 1) (h2 . 0) (h3 . 0) (h4 . 1) (h6 . 0)))
-;; The live library, against the backlog documented in W2C-REPORT.md (2026-11-10):
-;; H2 DUAL -> RR-NORMED-FIELD (dual-space loads before numeric-instances), H4
-;; PTWISE-NET-LIMITS free=(DIRECTED-SET) (a structure species is not a registered
-;; constant).  The log is read as the LOAD left it (records with a source file).
-(check "FGATE live library: H1, H3, H6 clean; H2 and H4 exactly the documented sites"
+;; The live library.  The backlog W2C documented (W2C-REPORT.md, 2026-11-10) was H2
+;; DUAL -> RR-NORMED-FIELD (dual-space loaded before numeric-instances) and H4
+;; PTWISE-NET-LIMITS free=(DIRECTED-SET) (a structure species not registered as a
+;; constant).  FGATE (2026-11-19) repaired both (load.scm order; nets.scm registers
+;; DIRECTED-SET), so the loaded image must show no site at all.  The log is read as the
+;; LOAD left it (records with a source file).  On a band built before the repairs this
+;; check fails and names exactly those two sites.
+(check "FGATE live library: the gate reports 0 sites on the loaded image (H1 H2 H3 H4 H6)"
   (lambda ()
     (let ((vs (functoid-hypotheses-audit (fha--live-registry)
                                          (filter (lambda (r) (list-ref r 4)) *functoid-def-log*)
@@ -19003,7 +19068,54 @@
       (map (lambda (h) (cons h (sort (map caddr (filter (lambda (v) (eq? (car v) h)) vs))
                                      (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
            '(h1 h2 h3 h4 h6))))
-  '((h1) (h2 dual) (h3) (h4 ptwise-net-limits) (h6)))
+  '((h1) (h2) (h3) (h4) (h6)))
+;; FGATE (2026-11-19): the FATAL form, functoid-hypotheses-enforce!.  FATAL? #t raises on
+;; any violation (one refused control per hypothesis), returns the counts on a clean
+;; registry (accepted), and FATAL? #f (keep-going) reports without raising.  The strict
+;; wiring: run-load-end! passes *functoid-hypotheses-gate-fatal?*, #t.
+(define (fgate-raises? thunk)              ; 'raised when THE GATE raised, else the value or the other error
+  (call-with-current-continuation
+    (lambda (k) (with-exception-handler
+                  (lambda (e)
+                    (let ((msg (if (condition? e) (condition/report-string e) (write-to-string e))))
+                      (k (if (string-search-forward "functoid-hypotheses gate:" msg 0) 'raised (list 'other-error msg)))))
+                  thunk))))
+(check "FGATE fatal (accepted): a clean toy registry passes the fatal gate and returns zero counts"
+  (lambda () (fgate-raises? (lambda () (functoid-hypotheses-enforce! #t
+                 '((w2c-ok (x_ y_) (+ x_ (FORALL w2c_z (IN w2c_z (SEP w2c_u SET (IN w2c_u y_))))) #f)) '() '()))))
+  '((h1 . 0) (h2 . 0) (h3 . 0) (h4 . 0) (h6 . 0)))
+(check "FGATE fatal H1 (refused): a repeated parameter stops a strict load"
+  (lambda () (fgate-raises? (lambda () (functoid-hypotheses-enforce! #t '((w2c-dup (x_ x_) (+ x_ 1) #f)) '() '()))))
+  'raised)
+(check "FGATE fatal H2 (refused): a forward reference recorded by the log stops a strict load"
+  (lambda () (fgate-raises? (lambda () (functoid-hypotheses-enforce! #t
+                 '((w2c-early (x_) (w2c-later x_) #f) (w2c-later (x_) x_ #f))
+                 (list (list 2 'w2c-later '(x_) 'x_ #f '() #f #f '())
+                       (list 1 'w2c-early '(x_) '(w2c-later x_) #f '(w2c-later) #f #f '()))
+                 '()))))
+  'raised)
+(check "FGATE fatal H3 (refused): a changed redefinition stops a strict load"
+  (lambda () (fgate-raises? (lambda () (functoid-hypotheses-enforce! #t '((w2c-re (x_) (+ x_ 2) #f))
+                 (list (list 2 'w2c-re '(x_) '(+ x_ 2) #f '() 'changed '((x_) (+ x_ 1) #f) '())
+                       (list 1 'w2c-re '(x_) '(+ x_ 1) #f '() #f #f '()))
+                 '()))))
+  'raised)
+(check "FGATE fatal H4 (refused): a free variable in a body stops a strict load"
+  (lambda () (fgate-raises? (lambda () (functoid-hypotheses-enforce! #t '((w2c-free (x_) (+ x_ w2c_y) #f)) '() '()))))
+  'raised)
+(check "FGATE fatal H6 (refused): a head in both tables stops a strict load"
+  (lambda () (fgate-raises? (lambda () (functoid-hypotheses-enforce! #t '((w2c-both (x_) x_ #f)) '()
+                 '((w2c-both (w2c-both-def . (= (w2c-both 0) 0))))))))
+  'raised)
+(check "FGATE fatal (keep-going): FATAL? #f reports a violation and returns the counts without raising"
+  (lambda () (fgate-raises? (lambda () (functoid-hypotheses-enforce! #f '((w2c-dup (x_ x_) (+ x_ w2c_y) #f)) '() '()))))
+  '((h1 . 1) (h2 . 0) (h3 . 0) (h4 . 1) (h6 . 0)))
+(define fgate-strict-flag
+  (and (environment-bound? (the-environment) '*functoid-hypotheses-gate-fatal?*)
+       (eval '*functoid-hypotheses-gate-fatal?* (the-environment))))
+(check "FGATE fatal (wiring): the strict load's flag is set; DIRECTED-SET is a species read by H4, not a registered (head-only) constant"
+  (lambda () (list fgate-strict-flag (fha--structure-species? 'DIRECTED-SET) (constant-head? 'DIRECTED-SET)))
+  '(#t #t #f))
 
 ;;; KIT-ALG self-test (2026-11-10, agent KIT-ALG; moved into the suite 2026-11-11 on the user's word):
 ;;; dk-alg-norm! (driver-kit.scm) on the law sets of theorem-library/kal-laws.  Each accepted
@@ -19266,6 +19378,152 @@
   (lambda ()
     (null? (filter (lambda (e) (memq (car e) '(zero-ring-def eplus-def etimes-def cc-inf-in-set)))
                    (install-validation-failures)))))
+
+;;; =====================================================================
+;;; K1FIX (2026-11-19, the user's decision): tuples-intro at the EMPTY tuple, union-intro at every
+;;; entry other than the k-th, and lambda-type at the CODOMAIN owe the definedness sequent
+;;; Gamma => A = A unless the certificate accepts A in Gamma; the core rules CR-TUPLES-MEM,
+;;; CR-UNION-MEM, CR-LAMBDA-TYPE and CR-LAMBDA-BETA-EQ carry the matching premises.  Accept / refuse
+;;; pairs per rule; the three FALSITY scripts (K1ARG K1-1, K1-2; K1FIX K1-4) as REFUSED controls.
+(define k1fix-i '(IOTA k1z_ (AND (IN k1z_ NN) FALSITY)))
+(rcl--accept "K1FIX tuples-intro: the empty tuple over a certified class owes nothing" 'tuples-intro
+  (rcl--h '() '(IN (LIST) (TUPLES NN))) '())
+(rcl--accept "K1FIX tuples-intro: the empty tuple over an uncertified class with the owed A = A" 'tuples-intro
+  (rcl--h '() `(IN (LIST) (TUPLES ,k1fix-i))) (list (rcl--h '() `(= ,k1fix-i ,k1fix-i))))
+(rcl--refuse "K1FIX CONTROL tuples-intro: the empty tuple over an uncertified class with nothing owed" 'tuples-intro
+  (rcl--h '() `(IN (LIST) (TUPLES ,k1fix-i))) '())
+(rcl--refuse "K1FIX CONTROL tuples-intro: the owed sequent of another term" 'tuples-intro
+  (rcl--h '() `(IN (LIST) (TUPLES ,k1fix-i))) (list (rcl--h '() '(= NN NN))))
+(rcl--accept "K1FIX union-intro: the other entries certified, nothing owed" '(union-intro 1)
+  (rcl--h '() '(IN x (UNION NN RR))) (list (rcl--h '() '(IN x NN))))
+(rcl--accept "K1FIX union-intro: an uncertified other entry with its owed S_j = S_j" '(union-intro 1)
+  (rcl--h '() `(IN x (UNION NN ,k1fix-i))) (list (rcl--h '() '(IN x NN)) (rcl--h '() `(= ,k1fix-i ,k1fix-i))))
+(rcl--refuse "K1FIX CONTROL union-intro: an uncertified other entry with nothing owed" '(union-intro 1)
+  (rcl--h '() `(IN x (UNION NN ,k1fix-i))) (list (rcl--h '() '(IN x NN))))
+(check-true "K1FIX lambda-type: an uncertified codomain with the owed B = B is accepted"
+  (lambda ()
+    (rcs-chk--accepts? 'lambda-type
+      `((() (FORALL v_ (IMPLIES (IN v_ EMPTY-SET) (IN 0 ,k1fix-i)))) (() (IN EMPTY-SET SET)) (() (= ,k1fix-i ,k1fix-i)))
+      `(() (IN (VNB-LAMBDA x_ EMPTY-SET 0) (FUN EMPTY-SET ,k1fix-i))))))
+(check-true "K1FIX CONTROL lambda-type: an uncertified codomain with nothing owed is refused"
+  (lambda ()
+    (rcs-chk--refuses? 'lambda-type
+      `((() (FORALL v_ (IMPLIES (IN v_ EMPTY-SET) (IN 0 ,k1fix-i)))) (() (IN EMPTY-SET SET)))
+      `(() (IN (VNB-LAMBDA x_ EMPTY-SET 0) (FUN EMPTY-SET ,k1fix-i))))))
+(define (k1fix--leaf-goals) (map (lambda (l) (wff-formula (sequent-node-assertion l))) (proof-open-leaves *ps*)))
+(check "K1FIX builders: ti / ui / lam-t post the owed sequent as a LEAF, and nothing at a certified argument"
+  (lambda ()
+    (quietly
+     (lambda ()
+       (list
+        (begin (sp (make-wff `(IN (LIST) (TUPLES ,k1fix-i)))) (ti) (k1fix--leaf-goals))
+        (begin (sp (make-wff '(IN (LIST) (TUPLES SET)))) (ti) (proof-done? *ps*))
+        (begin (sp (make-wff `(IN (LIST) (UNION (TUPLES SET) ,k1fix-i)))) (ui 1)
+               (length (filter (lambda (g) (equal? g `(= ,k1fix-i ,k1fix-i))) (k1fix--leaf-goals))))
+        (begin (sp (make-wff `(IN (VNB-LAMBDA x_ EMPTY-SET 0) (FUN EMPTY-SET ,k1fix-i)))) (lam-t)
+               (length (filter (lambda (g) (equal? g `(= ,k1fix-i ,k1fix-i))) (k1fix--leaf-goals))))))))
+  `(((= ,k1fix-i ,k1fix-i)) #t 1 1))
+;;; The three FALSITY routes, as run on the band before the repair (each proven modulo 0 then).
+(define (k1fix--route! which)
+  (let ((i '(IOTA kq_ (AND (= kq_ kq_) FALSITY))))
+    (define (focus-goal! f)
+      (let ((l (find (lambda (l) (equal? (wff-formula (sequent-node-assertion l)) f)) (proof-open-leaves *ps*))))
+        (if l (dk-focus! l))))
+    (sp (make-wff 'FALSITY))
+    (case which
+      ((1) (cut `(IN (LIST) (TUPLES ,i))) (focus-goal! `(IN (LIST) (TUPLES ,i))) (ti))
+      ((2) (cut `(IN (LIST) (UNION (TUPLES SET) ,i))) (focus-goal! `(IN (LIST) (UNION (TUPLES SET) ,i))) (ui 1)
+           (focus-goal! '(IN (LIST) (TUPLES SET))) (ti))
+      ((4) (cut `(IN (VNB-LAMBDA lq_ EMPTY-SET 0) (FUN EMPTY-SET ,i)))
+           (focus-goal! `(IN (VNB-LAMBDA lq_ EMPTY-SET 0) (FUN EMPTY-SET ,i))) (lam-t)
+           (focus-goal! '(IN EMPTY-SET SET)) (ta 'empty-set-is-set) (ass)
+           (let ((l (find (lambda (l) (let ((g (wff-formula (sequent-node-assertion l)))) (and (pair? g) (eq? (car g) 'FORALL))))
+                          (proof-open-leaves *ps*))))
+             (dk-focus! l))
+           (di)
+           (let* ((l (find (lambda (l) (equal? (wff-formula (sequent-node-assertion l)) `(IN 0 ,i))) (proof-open-leaves *ps*)))
+                  (v (let loop ((as (map wff-formula (sequent-node-assumptions l))))
+                       (cond ((null? as) #f)
+                             ((and (pair? (car as)) (eq? (caar as) 'IN) (eq? (caddr (car as)) 'EMPTY-SET)) (cadr (car as)))
+                             (#t (loop (cdr as)))))))
+             (dk-focus! l) (fact 'empty-set-has-no-members v) (ai `(NOT (IN ,v EMPTY-SET)))))
+      (else #f))
+    (focus-goal! 'FALSITY)
+    (cut `(= ,i ,i)) (focus-goal! `(= ,i ,i)) (vnb-guard (lambda () (rfl)))
+    (focus-goal! 'FALSITY) (iota-e i) (ai `(AND (= ,i ,i) FALSITY)) (ass)))
+(check "K1FIX CONTROL: the K1-1, K1-2 and K1-4 FALSITY scripts no longer reach qed"
+  (lambda ()
+    (let ((saved *vnb-qed-failures*))
+      (let ((r (map (lambda (w nm)
+                      (call-with-current-continuation
+                       (lambda (k)
+                         (with-exception-handler (lambda (e) (k 'raised))
+                           (lambda ()
+                             (quietly (lambda () (k1fix--route! w) (vnb-guard (lambda () (qed nm)))))
+                             (and (hash-table-ref/default *theorem-table* nm #f)
+                                  (memq (provenance-of nm) '(proven certified)) #t))))))
+                    '(1 2 4) '(k1fix-ctl-falsity-1 k1fix-ctl-falsity-2 k1fix-ctl-falsity-4))))
+        (set! *vnb-qed-failures* saved)
+        (map (lambda (x) (eq? x #t)) r))))
+  '(#f #f #f))
+;;; The CHOICE variants (K1AUDIT s.4, C1-C3; each proven modulo 0 on the band before the repair):
+;;; c := CHOICE(EMPTY-SET), statement c = c, the three rules' strictness the only route.
+(define (k1fix--choice-route! which)
+  (let ((c '(CHOICE EMPTY-SET)))
+    (define (focus-goal! f)
+      (let ((l (find (lambda (l) (equal? (wff-formula (sequent-node-assertion l)) f)) (proof-open-leaves *ps*))))
+        (if l (dk-focus! l))))
+    (sp (make-wff `(= ,c ,c)))
+    (case which
+      ((1) (cut `(IN (LIST) (TUPLES ,c))) (focus-goal! `(IN (LIST) (TUPLES ,c))) (ti))
+      ((2) (cut `(IN (LIST) (UNION (TUPLES SET) ,c))) (focus-goal! `(IN (LIST) (UNION (TUPLES SET) ,c))) (ui 1)
+           (focus-goal! '(IN (LIST) (TUPLES SET))) (ti))
+      ((3) (cut `(IN (VNB-LAMBDA lq_ EMPTY-SET 0) (FUN EMPTY-SET ,c)))
+           (focus-goal! `(IN (VNB-LAMBDA lq_ EMPTY-SET 0) (FUN EMPTY-SET ,c))) (lam-t)
+           (focus-goal! '(IN EMPTY-SET SET)) (ta 'empty-set-is-set) (ass)
+           (let ((l (find (lambda (l) (let ((g (wff-formula (sequent-node-assertion l)))) (and (pair? g) (eq? (car g) 'FORALL))))
+                          (proof-open-leaves *ps*))))
+             (dk-focus! l))
+           (di)
+           (let* ((l (find (lambda (l) (equal? (wff-formula (sequent-node-assertion l)) `(IN 0 ,c))) (proof-open-leaves *ps*)))
+                  (v (let loop ((as (map wff-formula (sequent-node-assumptions l))))
+                       (cond ((null? as) #f)
+                             ((and (pair? (car as)) (eq? (caar as) 'IN) (eq? (caddr (car as)) 'EMPTY-SET)) (cadr (car as)))
+                             (#t (loop (cdr as)))))))
+             (dk-focus! l) (fact 'empty-set-has-no-members v) (ai `(NOT (IN ,v EMPTY-SET)))))
+      (else #f))
+    (let ((l (find (lambda (l) (pair? (sequent-node-assumptions l))) (proof-open-leaves *ps*))))
+      (if l (dk-focus! l)))
+    (vnb-guard (lambda () (rfl)))))
+(check "K1FIX CONTROL: the CHOICE(EMPTY-SET) variants C1-C3 (K1AUDIT) no longer reach qed"
+  (lambda ()
+    (let ((saved *vnb-qed-failures*))
+      (let ((r (map (lambda (w nm)
+                      (call-with-current-continuation
+                       (lambda (k)
+                         (with-exception-handler (lambda (e) (k 'raised))
+                           (lambda ()
+                             (quietly (lambda () (k1fix--choice-route! w) (vnb-guard (lambda () (qed nm)))))
+                             (and (hash-table-ref/default *theorem-table* nm #f)
+                                  (memq (provenance-of nm) '(proven certified)) #t))))))
+                    '(1 2 3) '(k1fix-ctl-choice-1 k1fix-ctl-choice-2 k1fix-ctl-choice-3))))
+        (set! *vnb-qed-failures* saved)
+        (map (lambda (x) (eq? x #t)) r))))
+  '(#f #f #f))
+
+(define (k1fix--has? e pred) (or (pred e) (and (pair? e) (any (lambda (x) (k1fix--has? x pred)) e))))
+(define (k1fix--self-eq? e) (and (pair? e) (eq? (car e) 'ENC-EQ) (= (length e) 3) (equal? (cadr e) (caddr e))))
+(check "K1FIX core: CR-TUPLES-MEM, CR-UNION-MEM and CR-LAMBDA-TYPE carry a definedness premise, CR-LAMBDA-BETA-EQ the value's sethood"
+  (lambda ()
+    (list (k1fix--has? (lookup-theorem 'cr-tuples-mem) k1fix--self-eq?)
+          (k1fix--has? (lookup-theorem 'cr-union-mem)
+                       (lambda (e) (and (pair? e) (eq? (car e) 'ENC-EQ) (= (length e) 3) (equal? (cadr e) (caddr e))
+                                        (pair? (cadr e)) (eq? (car (cadr e)) 'NTH))))
+          (k1fix--has? (lookup-theorem 'cr-lambda-type) k1fix--self-eq?)
+          (k1fix--has? (lookup-theorem 'cr-lambda-beta-eq)
+                       (lambda (e) (and (pair? e) (eq? (car e) 'ENC-IN) (= (length e) 3) (eq? (caddr e) 'ENC-SETC)
+                                        (pair? (cadr e)) (eq? (car (cadr e)) 'EXPR-OPEN))))))
+  '(#t #t #t #t))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

@@ -390,6 +390,7 @@
 (dk-peel!)
 (kcb-base!)
 (kcb-vec-set! kcb-Y)
+(kcb-vec-set! kcb-X)   ; K1FIX (2026-11-19): lam-t owes the codomain's definedness; its sethood certifies it
 (mac 'CL2-INT-OP)
 (dk-lam-type!
   (lambda ()

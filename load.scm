@@ -75,7 +75,23 @@
            (display ";             Generated files (reference/, printouts/) will not be written.")
            (newline)))))
 
+;;; SESSION OUTPUT (2026-11-18).  An interactive session started by `VNB' sets
+;;; VNB_OUTPUT_DIR (~/.cache/vnb/session by default), seeded there with a copy of
+;;; the tree's reference/ and printouts/.  Everything the session generates --
+;;; the .md indexes Show PSS / the catalog rewrite, the HTML pages, the structure
+;;; graph, proof printouts -- then goes to that copy, and the tree itself is never
+;;; written by a session: a signed tree (vnb-trust) stays signed after use.  Unset
+;;; (a build, the exam, a probe), output goes into the tree as before.
+(define (vnb-output-redirect!)
+  (let ((out (get-environment-variable "VNB_OUTPUT_DIR")))
+    (if (and out (not (string-null? out)))
+        (let ((o (if (string-suffix? "/" out) out (string-append out "/"))))
+          (set! *reference-dir* (string-append o "reference/"))
+          (set! *printouts-dir* (string-append o "printouts/"))))))
+
 (add-event-receiver! event:after-restore vnb-reroot!)
+(add-event-receiver! event:after-restore vnb-output-redirect!)
+(vnb-output-redirect!)
 
 
 ;;; PROOF CERTIFICATES (certificates.scm, 2026-09-24).  #t while the file loop
@@ -338,18 +354,22 @@
     ;; (vocabulary): IS-LINEAR-FUNCTIONAL, IS-BOUNDED-LINEAR-FUNCTIONAL,
     ;; DUAL-NORM (IOTA least-upper-bound).  Loads after normed-vector-space.
     "structure-library/linear-functional"
-    ;; THE DUAL as an OBJECT: DUAL-VEC(m) (the bounded functionals) and the
-    ;; NORMED-VECTOR-SPACE 7-tuple DUAL(m) over it, with DUAL-NORM in the norm
-    ;; slot.  Vocabulary only; reuses linear-functional.scm's predicates rather
-    ;; than restating them.  Loads after linear-functional (DUAL-NORM) and
-    ;; normed-vector-space (the 7-slot shape).
-    "structure-library/dual-space"
     "structure-library/complex"
     ;; REDUCE + FAM-OF-LIST: kiddie n-ary <-> adult finite-fold bridge.
     ;; Consumed by numeric-instances (nary-plus-N-list axioms) and by
     ;; sequences (sum-ag-as-reduce); kernel-only deps (LIST/NTH/LENGTH/NN).
     "structure-library/reduce"
     "structure-library/numeric-instances"
+    ;; THE DUAL as an OBJECT: DUAL-VEC(m) (the bounded functionals) and the
+    ;; NORMED-VECTOR-SPACE 7-tuple DUAL(m) over it, with DUAL-NORM in the norm
+    ;; slot.  Vocabulary only; reuses linear-functional.scm's predicates rather
+    ;; than restating them.  Loads after linear-functional (DUAL-NORM),
+    ;; normed-vector-space (the 7-slot shape) and numeric-instances: DUAL's body
+    ;; names RR-NORMED-FIELD, which numeric-instances' declare-instance! makes.
+    ;; MOVED here from above complex (FGATE, 2026-11-19): before, DUAL mentioned
+    ;; RR-NORMED-FIELD before it existed (functoid hypotheses gate, H2 forward).
+    ;; complex, reduce and numeric-instances mention neither DUAL nor DUAL-VEC.
+    "structure-library/dual-space"
     ;; 2026-09-20 (batch 12): SUBSPACE-MS / RESTRICT, and IS-DIFF-ON / DERIV-ON / HOLOMORPHIC-ON
     ;; (the derivative over a normed field on an OPEN set; docs/diff-on-open-sets-2026-09-20.md).
     "structure-library/metric-subspace"
@@ -5312,6 +5332,10 @@
               (error "binder-predicativity gate: SEP / BIG-UNION / VNB-LAMBDA terms quantify beyond sets; NBG separation and replacement are predicative"
                      (length imp)))))))
 
+;;; The functoid hypotheses gate (functoid-gate.scm, functoid-hypotheses-enforce!):
+;;; fatal in a strict load once its backlog is zero (FGATE, 2026-11-19).
+(define *functoid-hypotheses-gate-fatal?* #t)
+
 ;;; THE END-OF-LOAD BLOCK, as ONE procedure (2026-09-23): the catalog and
 ;;; reference writers, the gates, the page audit, the band record and the
 ;;; session reset.  `vnb-extend-band!' (extend-band.scm) calls the same
@@ -5576,9 +5600,10 @@
   ;; parameters, H2 no recursion and no forward reference, H3 no redefinition and no
   ;; theorem surviving one, H4 no free variable in a body, H6 no head both a
   ;; def-functoid and a library definition -- the hypotheses of the hand-written
-  ;; functoid argument (meta-report).  WARN-ONLY: one line per hypothesis with its
-  ;; backlog; a hypothesis goes fatal once its backlog is zero (a separate decision).
-  (functoid-hypotheses-gate!)
+  ;; functoid argument (meta-report).  One line per hypothesis with its backlog.
+  ;; FATAL in a strict load since 2026-11-19 (FGATE: the two sites of the W2C backlog
+  ;; repaired, backlog zero); reported, not fatal, under keep-going.
+  (functoid-hypotheses-enforce! (and *functoid-hypotheses-gate-fatal?* (not *vnb-keep-going?*)))
 
   ;; Soundness gate: a bound variable named like a registered constant (accessor /
   ;; operator / functoid / predicate / defined fn) is read as that CONSTANT in head

@@ -421,6 +421,8 @@
 (have! r8l-t-HCOORD
     (lambda ()
       (let ((nv (dk-di-var!)))
+        ;; K1FIX (2026-11-19): lam-t owes the codomain's definedness; IS-METRIC-SPACE(ms n) types PTS(ms n)
+        (dk-apply! r8l-t-HMS nv)
         (dk-lam-t!)
         (let ((iv (dk-di-var!)))
           (fact 'fun-apply-type-c r8l-t-seq 'NN (list 'PRODUCT-CARRIER r8l-t-ms) iv)

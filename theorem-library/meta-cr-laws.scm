@@ -1455,10 +1455,14 @@
          (vs (dk-meta-unpack! ex))
          (lhs (lhs-of vs)) (rhs (rhs-of vs)) (g (car vs)) (side (side-of vs))
          (q `(ENC-QEQ ,lhs ,rhs)))
-    (dk-cite! 'der-in-seq 'tt `(LIST ,g ,side))
-    (dk-split! (dk-meta-iff-r! (dk-meta-iff! 'seq-iff g side)))
-    (dk-cite! 'clf-qeq-intro lhs rhs)
-    (dk-derive! 'tt `(,core (,g ==> ,q) (given (,g ==> ,side))))
+    ;; K1FIX (2026-11-19): SIDE may be a list of side sequents' formulas (lambda-beta-eq has two premises)
+    (let ((sides (if (and (pair? side) (eq? (car side) 'sides)) (cdr side) (list side))))
+      (for-each (lambda (sd)
+                  (dk-cite! 'der-in-seq 'tt `(LIST ,g ,sd))
+                  (dk-split! (dk-meta-iff-r! (dk-meta-iff! 'seq-iff g sd))))
+                sides)
+      (dk-cite! 'clf-qeq-intro lhs rhs)
+      (dk-derive! 'tt `(,core (,g ==> ,q) ,@(map (lambda (sd) `(given (,g ==> ,sd))) sides))))
     (subst `(= ,x (LIST 1 ,g ,lhs ,rhs)))
     (dk-cite! 'eqv-t-intro 'tt g lhs rhs)
     (ass)))
@@ -1476,7 +1480,7 @@
 (mr-jsub! 'J-LB 'lambda-beta-eq
   (lambda (vs) `(ENC-APPLY (ENC-LAM ,(cadr vs) ,(caddr vs)) ,(cadddr vs)))
   (lambda (vs) `(EXPR-OPEN ,(caddr vs) 0 ,(cadddr vs)))
-  (lambda (vs) `(ENC-IN ,(cadddr vs) ,(cadr vs))))
+  (lambda (vs) `(sides (ENC-IN ,(cadddr vs) ,(cadr vs)) (ENC-IN (EXPR-OPEN ,(caddr vs) 0 ,(cadddr vs)) ENC-SETC))))
 (qed 'j-lb-sub)
 
 ;; OPEN of an application over a literal 2-list, entrywise (the analogue of subst-app2).

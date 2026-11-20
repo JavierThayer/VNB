@@ -348,6 +348,10 @@
 (dk-peel!) (g4s-base!)
 (subst (dk-cite! 'gns-space-eq 'a 'f))
 (mac 'GNS-REP)
+;; K1FIX (2026-11-19): lam-t owes the codomain's definedness; its sethood certifies it
+(g4s-cite*! 'gns-hmod-is-module 'a 'f) (g4s-cite*! 'gns-hmod-scal 'a 'f) (g4s-cite*! 'gns-hform-ipf 'a 'f)
+(g4s-cite*! 'hilbert-completion-is-cips g4s-HM g4s-HF)
+(dk-cite! 'bounded-ops-is-set (list 'HILBERT-COMPLETION g4s-HM g4s-HF) (list 'HILBERT-COMPLETION g4s-HM g4s-HF))
 (dk-lam-type!
   (lambda ()
     (dk-peel!)

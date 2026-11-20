@@ -29,6 +29,11 @@
   (law (FORALL dsa_ (IMPLIES (IN dsa_ (PTS s)) (FORALL dsb_ (IMPLIES (IN dsb_ (PTS s))
          (FORSOME dsc_ (AND (IN dsc_ (PTS s)) (AND (IN (LIST dsa_ dsc_) (DLEQ s)) (IN (LIST dsb_ dsc_) (DLEQ s)))))))))))
 
+;;; The SPECIES as a class.  declare-structure makes the bare symbol DIRECTED-SET a class through
+;;; the axiom directed-set-class; it is NOT a registered constant (registering it would make it
+;;; head-only, and `pwd_ in DIRECTED-SET' below would be refused as a formula).  The functoid
+;;; hypotheses gate (H4) reads a declared structure species as a constant instead.
+
 (def-predicate 'IS-EVENTUALLY-IN '(d x u)
   '(FORSOME evi_ (AND (IN evi_ (PTS d))
      (FORALL evj_ (IMPLIES (IN evj_ (PTS d)) (IMPLIES (IN (LIST evi_ evj_) (DLEQ d)) (IN (x evj_) u)))))))

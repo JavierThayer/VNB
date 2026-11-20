@@ -77,7 +77,7 @@
 <p>The VNB universe has SETS (the elements of <code>SET</code>), CLASSES, and further entities about which VNB makes no commitment.  A term-forming operator is classified by WHAT IT DENOTES:</p>
 <ul><li>A <strong>function</strong> denotes an element of a set: specifically a set-function, an element of some <code>FUN(A, B)</code> with <code>A</code>,<code>B</code> sets.  This class is DERIVED, not listed: a head appears here exactly when some installed formula states <code>head in FUN(...)</code>, and the entry names that statement.  Being <em>applicable</em> is not the criterion and never was — <a class="x" href="THEOREMS.html#t-app-graph"><code>app-graph</code></a> makes <code>f(x)</code> a well-formed term for any <code>f</code> at all, defined or not.  <code>vnb-lambda</code> is the binder that constructs a set-function.</li><li>A <strong>syntax</strong> head forms terms and denotes NOTHING itself.  <code>+</code> is not an object of the theory: there is no <code>+ in SET</code> to be had, and <code>x + y + z</code> is the flat node <code>(+ x y z)</code>, so the head is not even of fixed arity (<code>nary-plus-3/4/5</code> interpret the 3-, 4- and 5-ary forms).  When a binary addition must be NAMED as an object, that object is <code>binplus</code>, tied to the syntax by <code>x + y == binplus(x, y)</code>.  The theory characterizes the APPLICATIONS of these heads by axiom and says nothing about the heads.</li><li>A <strong>functoid</strong> denotes something that is not required to be an element of <code>SET</code>.  This is a large, somewhat amorphous category: the kernel set- and tuple-builders (<code>union</code>, <code>sep</code>, <code>power</code>, <code>fun</code>, <code>image</code>, …) whose arguments range over a proper class; every library constructor (<a class="x" href="DEFINITIONS.html#d-matmul"><code>matmul</code></a>, <a class="x" href="DEFINITIONS.html#d-mat-ring"><code>mat-ring</code></a>, the structure accessors, …); and the recursively-defined ones.  Some functoids can be regarded as functions, but a functoid is not required to be one.  <code>lambdoid</code> is the binder that constructs a functoid — the class-domain sibling of <code>vnb-lambda</code>.  Application is implicit: writing <code>f(args)</code> denotes <code>apply-functoid(f, args)</code> when <code>f</code> is a functoid and <code>apply-function(f, args)</code> when <code>f</code> is a function — these two application operators are never written by hand.  Whether an operator is a kernel primitive or a library definition is a matter of ORIGIN, recorded as metadata; it is not a VNB distinction and carries no semantic weight.  A kernel set-former is a functoid exactly as a library constructor is.</li><li>A <strong>predicate</strong> is an operator whose application to argument terms is a proposition — an entity whose value is either true or false.  The proposition and its truth value are two separate things in the mathematical universe: a predicate applied to terms always denotes a proposition, but the truth value of that proposition may not be known.</li></ul>
 <p>Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An <strong>undeclared</strong> head is a defect.</p>
-<p>2064 operators: 3 functions, 11 syntax, 1201 functoids, 845 predicates, 4 undeclared.</p>
+<p>2135 operators: 3 functions, 11 syntax, 1228 functoids, 889 predicates, 4 undeclared.</p>
 <p>&gt; <strong>⚠ Undeclared heads (mushrooms):</strong> <code>cos</code> <code>delete-at</code> <code>exp</code> <code>sin</code> — registered and usable but backed by no def or axiom.</p>
 <h3 id="OPERATORS__functions-3">Functions  (3)</h3>
 <p>A head is listed here exactly when the theory STATES that it is an element of a <code>FUN</code> set; the statement is named.  Nothing is claimed on a head&#x27;s behalf: this section was a hand-typed list until 2026-08-31, and every one of the fifteen heads on it (<code>+ - * recip abs exp sin cos sqrt</code> …) turned out to have no such statement anywhere in the theory.</p>
@@ -95,7 +95,7 @@
 <h4 id="OPERATORS__recip-syntax-the-head-denotes-nothing"><code>recip</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__rpow-syntax-the-head-denotes-nothing"><code>rpow</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__succ-syntax-the-head-denotes-nothing"><code>succ</code>  — syntax: the head denotes nothing</h4>
-<h3 id="OPERATORS__functoids-1201">Functoids  (1201)</h3>
+<h3 id="OPERATORS__functoids-1228">Functoids  (1228)</h3>
 <p>Term-valued operators that do NOT denote an element of <code>SET</code> — the big amorphous category.  Sub-labelled by how each is declared (<code>kernel term-former</code>; <code>def-functoid</code> body; <code>def-by-nn-recursion</code>; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  <code>def-functor</code> bridges live in <code>STRUCTURE-INDEX.md</code>; <code>lambdoid</code> (the functoid binder) is a parser-level form, not a registered head.</p>
 <h4 id="OPERATORS__/-characterized-by-axiom-s"><code>/</code>  — characterized by axiom(s)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-amgm-2-sqrt"><code>amgm-2-sqrt</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-le-arg"><code>bdd-fn-le-arg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-lt-one"><code>bdd-fn-lt-one</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-mono"><code>bdd-fn-mono</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-nonneg"><code>bdd-fn-nonneg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-subadd"><code>bdd-fn-subadd</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-zero"><code>bdd-fn-zero</code></a> <a class="x" href="THEOREMS.html#t-bdd-metric-distance"><code>bdd-metric-distance</code></a></p>
@@ -167,6 +167,8 @@
 <p>&gt; _Reads as:_  the encoded axiom class-extensionality</p>
 <h4 id="OPERATORS__ax-fun-app-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-ax-fun-app"><code>ax-fun-app</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
 <p>&gt; _Reads as:_  the encoded axiom fun-domain-apply-def</p>
+<h4 id="OPERATORS__ax-len-nn-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-ax-len-nn"><code>ax-len-nn</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
+<p>&gt; _Reads as:_  the encoded axiom length-in-nn</p>
 <h4 id="OPERATORS__ax-limit-iff-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-ax-limit-iff"><code>ax-limit-iff</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
 <p>&gt; _Reads as:_  the encoded axiom limit-ord-iff</p>
 <h4 id="OPERATORS__ax-mem-set-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-ax-mem-set"><code>ax-mem-set</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
@@ -483,6 +485,9 @@
 <h4 id="OPERATORS__cdual-vec-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-cdual-vec"><code>cdual-vec</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the bounded complex-linear functionals on baa_</p>
 <pre>cdual-vec(baa_) := {baf_ in fun(vec(baa_), cc): is-cc-linear-on(baa_, baf_) and forsome([bam_ in rr], forall([bax_ in vec(baa_)], magnitude(baf_(bax_)) &lt;= bam_ * (vnrm(baa_))(bax_)))}</pre>
+<h4 id="OPERATORS__cdual-weak-star-top-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-cdual-weak-star-top"><code>cdual-weak-star-top</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the weak* topology on the dual of g4ha_</p>
+<pre>cdual-weak-star-top(g4ha_) := subspace-top(tproduct-top(vec(g4ha_), vnb-lambda(bgx_, vec(g4ha_), metric-top(cc-ms))), cdual-vec(g4ha_))</pre>
 <h4 id="OPERATORS__centre-set-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-centre-set"><code>centre-set</code></a>  — def-functoid · set-valued</h4>
 <pre>centre-set(s, r, f) := image(vnb-lambda(b, f, choice(centres(s, b, r))), f)</pre>
 <h4 id="OPERATORS__centres-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-centres"><code>centres</code></a>  — def-functoid · set-valued</h4>
@@ -493,6 +498,12 @@
 <h4 id="OPERATORS__cf-cons-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-cf-cons"><code>cf-cons</code></a>  — def-functoid · function-valued</h4>
 <p>&gt; _Reads as:_  the sequence b followed by c</p>
 <pre>cf-cons(b, c) := vnb-lambda(pfk_, nn, b * 0 ^ pfk_ + (1 - 0 ^ pfk_) * c(nn-minus(pfk_, 1)))</pre>
+<h4 id="OPERATORS__cfc-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-cfc"><code>cfc</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  gnvf_ of gnvx_ (the continuous functional calculus of gnva_)</p>
+<pre>cfc(gnva_, gnvx_, gnvf_) := choice({gnvy_ in vec(gnva_): (gelfand-transform(gnva_))(gnvy_) = compose(gnvf_, (gelfand-transform(gnva_))(gnvx_))})</pre>
+<h4 id="OPERATORS__cfc-n-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-cfc-n"><code>cfc-n</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  gnvf_ of the normal element gnvx_ of gnvb_</p>
+<pre>cfc-n(gnvb_, gnvx_, gnvf_) := cfc(sub-ucsa(gnvb_, cstar-gen(gnvb_, gnvx_)), gnvx_, gnvf_)</pre>
 <h4 id="OPERATORS__char-mat-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-char-mat"><code>char-mat</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the matrix x I - a over f[x]</p>
 <pre>char-mat(f, a, n) := matof(n, n, vnb-lambda([gmi_, gmj_], cartesian(interval(1, n), interval(1, n)), (add(poly(f)))(if(gmi_ = gmj_, monomial(f, one(f), 1), zero(poly(f))), (neg(poly(f)))(monomial(f, entry(a, gmi_, gmj_), 0)))))</pre>
@@ -616,6 +627,9 @@
 <h4 id="OPERATORS__commutant-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-commutant"><code>commutant</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the commutant of vns_ in the bounded operators on vnv_</p>
 <pre>commutant(vnv_, vns_) := {vnt_ in bounded-ops(vnv_, vnv_): forall([vna_ in vns_], bop-comp(vnv_, vnt_, vna_) = bop-comp(vnv_, vna_, vnt_))}</pre>
+<h4 id="OPERATORS__commutant-el-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-commutant-el"><code>commutant-el</code></a>  — def-functoid · set-valued</h4>
+<p>&gt; _Reads as:_  the commutant of gnvt_ in gnvb_</p>
+<pre>commutant-el(gnvb_, gnvt_) := {gnvy_ in vec(gnvb_): forall([gnvz_ in gnvt_], (vmul(gnvb_))(gnvy_, gnvz_) = (vmul(gnvb_))(gnvz_, gnvy_))}</pre>
 <h4 id="OPERATORS__comp-kernel-term-former"><code>comp</code>  — kernel term-former</h4>
 <h4 id="OPERATORS__compact-ops-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-compact-ops"><code>compact-ops</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the compact operators from kqv_ to kqw_</p>
@@ -628,6 +642,9 @@
 <pre>completion(m) := [quotient(cauchy-setoid(m)), completion-dist(m)]</pre>
 <h4 id="OPERATORS__completion-dist-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-completion-dist"><code>completion-dist</code></a>  — def-functoid · function-valued</h4>
 <pre>completion-dist(m) := vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, dval in rr and forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))</pre>
+<h4 id="OPERATORS__completion-lift-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-completion-lift"><code>completion-lift</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the extension of g4ht_ to the completion of g4hm_</p>
+<pre>completion-lift(g4hm_, g4ht_) := descend(cauchy-setoid(g4hm_), vnb-lambda(g4hf_, cseq(g4hm_), class(cauchy-setoid(g4hm_), seq-map(g4ht_, g4hf_))))</pre>
 <h4 id="OPERATORS__completion-measure-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-completion-measure"><code>completion-measure</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the completion of the measure mu on ca</p>
 <pre>completion-measure(omega, ca, mu) := res(method-i-outer(omega, ca, mu), completion-sigma(omega, ca, mu))</pre>
@@ -757,6 +774,9 @@
 <pre>dbj(m, xs) := vnb-lambda(dbf_, dual-unit-ball(m), vnb-lambda(dbn_, nn, dbf_(xs(dbn_))))</pre>
 <h4 id="OPERATORS__dc-iter-recursively-defined-def-by-nn-recursion"><a class="x" href="DEFINITIONS.html#d-dc-iter"><code>dc-iter</code></a>  — recursively defined (def-by-nn-recursion)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-dc-iter-zero"><code>dc-iter-zero</code></a> <a class="x" href="THEOREMS.html#t-dc-iter-succ"><code>dc-iter-succ</code></a></p>
+<h4 id="OPERATORS__def-derivable-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-def-derivable"><code>def-derivable</code></a>  — def-functoid · set-valued</h4>
+<p>&gt; _Reads as:_  the sequents the definedness rows over mnkt_ reach</p>
+<pre>def-derivable(mnkt_) := {mnkq_ in seq-set: forall([mnks_ in power(seq-set)], def-closed(mnkt_, mnks_) implies mnkq_ in mnks_)}</pre>
 <h4 id="OPERATORS__deg-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-deg"><code>deg</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the degree of p</p>
 <pre>deg(a, p) := iota(n_, n_ in nn and deg-bound(a, p, n_) and forall([j_ in nn], deg-bound(a, p, j_) implies n_ &lt;= j_))</pre>
@@ -831,10 +851,16 @@
 <h4 id="OPERATORS__dual-ball-ms-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-dual-ball-ms"><code>dual-ball-ms</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the dual unit ball of m with the metric of the dense sequence xs</p>
 <pre>dual-ball-ms(m, xs) := pullback-ms(product-metric(dbi(m, xs)), dual-unit-ball(m), dbj(m, xs))</pre>
+<h4 id="OPERATORS__dual-map-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-dual-map"><code>dual-map</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  the dual map of gnvf_ on the characters of gnvb_</p>
+<pre>dual-map(gnvb_, gnvf_) := vnb-lambda(gnvw_, characters(gnvb_), compose(gnvw_, gnvf_))</pre>
 <h4 id="OPERATORS__dual-norm-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-dual-norm"><code>dual-norm</code></a>  — def-functoid · element/number-valued</h4>
 <pre>dual-norm(m, f) := iota(c_, c_ in rr and 0 &lt;= c_ and forall([x_ in vec(m)], abs(f(x_)) &lt;= c_ * (vnrm(m))(x_)) and forall([d_], d_ in rr and 0 &lt;= d_ and forall([x_ in vec(m)], abs(f(x_)) &lt;= d_ * (vnrm(m))(x_)) implies c_ &lt;= d_))</pre>
 <h4 id="OPERATORS__dual-norm-on-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-dual-norm-on"><code>dual-norm-on</code></a>  — def-functoid · element/number-valued</h4>
 <pre>dual-norm-on(m, s, f) := iota(c_, c_ in rr and 0 &lt;= c_ and forall([x_ in s], abs(f(x_)) &lt;= c_ * (vnrm(m))(x_)) and forall([d_], d_ in rr and 0 &lt;= d_ and forall([x_ in s], abs(f(x_)) &lt;= d_ * (vnrm(m))(x_)) implies c_ &lt;= d_))</pre>
+<h4 id="OPERATORS__dual-pull-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-dual-pull"><code>dual-pull</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  the homomorphism from gnva_ to gnvb_ whose dual map is gnvg_</p>
+<pre>dual-pull(gnva_, gnvb_, gnvg_) := vnb-lambda(gnvx_, vec(gnva_), choice({gnvy_ in vec(gnvb_): (gelfand-transform(gnvb_))(gnvy_) = compose((gelfand-transform(gnva_))(gnvx_), gnvg_)}))</pre>
 <h4 id="OPERATORS__dual-unit-ball-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-dual-unit-ball"><code>dual-unit-ball</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the closed unit ball of the dual of the normed space m</p>
 <pre>dual-unit-ball(m) := {dbf_ in dual-vec(m): dual-norm(m, dbf_) &lt;= 1}</pre>
@@ -1077,6 +1103,9 @@
 <h4 id="OPERATORS__eval-at-points-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-eval-at-points"><code>eval-at-points</code></a>  — def-functoid · function-valued</h4>
 <p>&gt; _Reads as:_  the evaluation at the points th(1), ..., th(m + 1)</p>
 <pre>eval-at-points(a, th, m) := vnb-lambda(gep_, poly-le(a, m), vnb-lambda(gei_, interval(1, succ(m)), poly-eval(a, gep_, th(gei_))))</pre>
+<h4 id="OPERATORS__eval-seminorms-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-eval-seminorms"><code>eval-seminorms</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  the evaluation seminorms on the complex functions on g4hu_</p>
+<pre>eval-seminorms(g4hu_) := vnb-lambda(g4hy_, g4hu_, vnb-lambda(g4hf_, fun(g4hu_, cc), magnitude(g4hf_(g4hy_))))</pre>
 <h4 id="OPERATORS__ex-spine-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-ex-spine"><code>ex-spine</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the conjunctive spine of the body mnbb_, with depths</p>
 <pre>ex-spine(mnbb_) := {mnbz_ in cartesian(expr-set, nn): forall([mnbv_ in power(cartesian(expr-set, nn))], [mnbb_, 0] in mnbv_ implies ex-spine-closed(mnbv_) implies mnbz_ in mnbv_)}</pre>
@@ -1216,6 +1245,9 @@
 <p>&gt; _Reads as:_  the metric space of the seminorms fam on m</p>
 <pre>fr-metric-space(m, fam) := c-metric(fr-c-space(m, fam))</pre>
 <h4 id="OPERATORS__fun-kernel-term-former"><code>fun</code>  — kernel term-former</h4>
+<h4 id="OPERATORS__functional-star-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-functional-star"><code>functional-star</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  the adjoint functional of tdf_</p>
+<pre>functional-star(tdv_, tdf_) := vnb-lambda(tda_, bounded-ops(tdv_, tdv_), conjugate(tdf_(op-adjoint(tdv_, tdv_, tda_))))</pre>
 <h4 id="OPERATORS__fv-stage-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-fv-stage"><code>fv-stage</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
 <p>&gt; _Reads as:_  fv-stage()</p>
 <h4 id="OPERATORS__gamma-ext-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-gamma-ext"><code>gamma-ext</code></a>  — def-functoid · element/number-valued</h4>
@@ -1248,6 +1280,12 @@
 <h4 id="OPERATORS__gns-form-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-gns-form"><code>gns-form</code></a>  — def-functoid · function-valued</h4>
 <p>&gt; _Reads as:_  the form (x, y) |-&gt; g4gf_(y* x) on g4ga_</p>
 <pre>gns-form(g4ga_, g4gf_) := vnb-lambda([g4gx_, g4gy_], cartesian(vec(g4ga_), vec(g4ga_)), g4gf_((vmul(g4ga_))((vstar(g4ga_))(g4gy_), g4gx_)))</pre>
+<h4 id="OPERATORS__gns-hform-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-gns-hform"><code>gns-hform</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the inner product of the GNS pre-Hilbert space of g4hp_</p>
+<pre>gns-hform(g4ha_, g4hp_) := form-qip(gns-module(g4ha_), gns-form(g4ha_, g4hp_))</pre>
+<h4 id="OPERATORS__gns-hmod-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-gns-hmod"><code>gns-hmod</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the quotient module of the GNS pre-Hilbert space of g4hp_</p>
+<pre>gns-hmod(g4ha_, g4hp_) := quotient-module(gns-module(g4ha_), form-null(gns-module(g4ha_), gns-form(g4ha_, g4hp_)))</pre>
 <h4 id="OPERATORS__gns-module-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-gns-module"><code>gns-module</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  g4ga_ as a complex module</p>
 <pre>gns-module(g4ga_) := uba-as-module(uiba-as-uba(g4ga_))</pre>
@@ -1257,12 +1295,21 @@
 <h4 id="OPERATORS__gns-pre-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-gns-pre"><code>gns-pre</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the GNS pre-Hilbert space of g4gf_</p>
 <pre>gns-pre(g4ga_, g4gf_) := form-quotient(gns-module(g4ga_), gns-form(g4ga_, g4gf_))</pre>
+<h4 id="OPERATORS__gns-rep-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-gns-rep"><code>gns-rep</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  the GNS representation of g4hp_</p>
+<pre>gns-rep(g4ha_, g4hp_) := vnb-lambda(g4hx_, vec(g4ha_), completion-lift(form-ms(gns-hmod(g4ha_, g4hp_), gns-hform(g4ha_, g4hp_)), gns-op(g4ha_, g4hp_, g4hx_)))</pre>
 <h4 id="OPERATORS__gns-setoid-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-gns-setoid"><code>gns-setoid</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  congruence modulo the null space of g4gf_</p>
 <pre>gns-setoid(g4ga_, g4gf_) := qmod-setoid(gns-module(g4ga_), form-null(gns-module(g4ga_), gns-form(g4ga_, g4gf_)))</pre>
+<h4 id="OPERATORS__gns-space-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-gns-space"><code>gns-space</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the GNS Hilbert space of g4hp_</p>
+<pre>gns-space(g4ha_, g4hp_) := hilbert-completion(gns-hmod(g4ha_, g4hp_), gns-hform(g4ha_, g4hp_))</pre>
 <h4 id="OPERATORS__gns-vector-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-gns-vector"><code>gns-vector</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the GNS cyclic vector of g4gf_</p>
 <pre>gns-vector(g4ga_, g4gf_) := class(gns-setoid(g4ga_, g4gf_), vone(g4ga_))</pre>
+<h4 id="OPERATORS__gns-xi-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-gns-xi"><code>gns-xi</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the GNS cyclic vector of g4hp_</p>
+<pre>gns-xi(g4ha_, g4hp_) := (hc-embed(gns-hmod(g4ha_, g4hp_), gns-hform(g4ha_, g4hp_)))(gns-vector(g4ha_, g4hp_))</pre>
 <h4 id="OPERATORS__gpow-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-gpow"><code>gpow</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
 <p>&gt; _Reads as:_  gpow()</p>
 <h4 id="OPERATORS__graph-adjoint-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-graph-adjoint"><code>graph-adjoint</code></a>  — def-functoid · set-valued</h4>
@@ -1666,8 +1713,8 @@
 <p>&gt; _Reads as:_  the local instances over md14t_ of the catalog&#x27;s intersection-decompose</p>
 <pre>j-idec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14g_ in set and md14x2_ in set and md14l2_ in set and md14y_ = [2, md14g_, enc-in(md14x2_, enc-inter(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(3, md14x2_, md14l2_) and enc-in(md14x2_, enc-inter(md14l2_)) in clf and md14f2_ in clf)}</pre>
 <h4 id="OPERATORS__j-lb-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-j-lb"><code>j-lb</code></a>  — def-functoid · set-valued</h4>
-<p>&gt; _Reads as:_  the local lambda redexes over mrt_, the argument in the domain</p>
-<pre>j-lb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mra_, mrb_, mre_], mrg_ in set and mra_ in set and mrb_ in set and mre_ in set and mrx_ = [1, mrg_, enc-apply(enc-lam(mra_, mrb_), mre_), expr-open(mrb_, 0, mre_)] and nbg-ok(mrb_) and enc-apply(enc-lam(mra_, mrb_), mre_) in clt and expr-open(mrb_, 0, mre_) in clt and [mrg_, enc-in(mre_, mra_)] in derivable(mrt_))}</pre>
+<p>&gt; _Reads as:_  the local lambda redexes over mrt_, the argument in the domain and the value a set</p>
+<pre>j-lb(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mra_, mrb_, mre_], mrg_ in set and mra_ in set and mrb_ in set and mre_ in set and mrx_ = [1, mrg_, enc-apply(enc-lam(mra_, mrb_), mre_), expr-open(mrb_, 0, mre_)] and nbg-ok(mrb_) and enc-apply(enc-lam(mra_, mrb_), mre_) in clt and expr-open(mrb_, 0, mre_) in clt and [mrg_, enc-in(mre_, mra_)] in derivable(mrt_) and [mrg_, enc-in(expr-open(mrb_, 0, mre_), enc-setc)] in derivable(mrt_))}</pre>
 <h4 id="OPERATORS__j-len-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-j-len"><code>j-len</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the local LENGTH-of-a-list redexes over mrt_, the list denoting</p>
 <pre>j-len(mrt_) := {mrx_ in rw-univ: forsome([mrg_, mrl_], mrg_ in set and mrl_ in set and mrx_ = [1, mrg_, enc-length(enc-list(mrl_)), enc-num(length(mrl_))] and enc-length(enc-list(mrl_)) in clt and enc-num(length(mrl_)) in clt and [mrg_, enc-eq(enc-list(mrl_), enc-list(mrl_))] in derivable(mrt_))}</pre>
@@ -1685,7 +1732,7 @@
 <pre>j-teq(mit_) := {mix_ in rw-univ: forsome([mig_, mia_, mib_, mif_], mia_ in set and mib_ in set and mif_ in set and mix_ = [2, mig_, enc-eq(enc-list(mia_), enc-list(mib_)), mif_] and mig_ in ctx-set and length(mia_) = length(mib_) and enc-eq(enc-list(mia_), enc-list(mib_)) in clf and mif_ in clf and (length(mia_) = 0 and mif_ = enc-truth or [0, mif_] in tf-set(mia_, mib_)) and [mig_, enc-eq(enc-list(mia_), enc-list(mia_))] in derivable(mit_) and [mig_, enc-eq(enc-list(mib_), enc-list(mib_))] in derivable(mit_))}</pre>
 <h4 id="OPERATORS__j-udec-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-j-udec"><code>j-udec</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the local instances over md14t_ of the catalog&#x27;s union-decompose</p>
-<pre>j-udec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14g_ in set and md14x2_ in set and md14l2_ in set and md14y_ = [2, md14g_, enc-in(md14x2_, enc-union(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(4, md14x2_, md14l2_) and enc-in(md14x2_, enc-union(md14l2_)) in clf and md14f2_ in clf)}</pre>
+<pre>j-udec(md14t_) := {md14y_ in rw-univ: forsome([md14g_, md14x2_, md14l2_, md14f2_], md14g_ in set and md14x2_ in set and md14l2_ in set and md14y_ = [2, md14g_, enc-in(md14x2_, enc-union(md14l2_)), md14f2_] and [0, md14f2_] in rf-set(4, md14x2_, md14l2_) and enc-in(md14x2_, enc-union(md14l2_)) in clf and md14f2_ in clf and forall([md14i_ in nn], 1 &lt;= md14i_ implies md14i_ &lt;= length(md14l2_) implies [md14g_, enc-eq(nth(md14i_, md14l2_), nth(md14i_, md14l2_))] in derivable(md14t_)))}</pre>
 <h4 id="OPERATORS__jop-structure-accessor-element-slot-value"><code>jop</code>  — structure accessor · element (slot value)</h4>
 <p>&gt; _Reads as:_  the complex structure of s</p>
 <h4 id="OPERATORS__juxta-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-juxta"><code>juxta</code></a>  — def-functoid · function-valued</h4>
@@ -1871,8 +1918,12 @@
 <h4 id="OPERATORS__lst-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-lst"><code>lst</code></a>  — def-functoid · tuple/structure-valued</h4>
 <p>&gt; _Reads as:_  the list message of sml_</p>
 <pre>lst(sml_) := [1, sml_]</pre>
+<h4 id="OPERATORS__ltch-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-ltch"><code>ltch</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
+<p>&gt; _Reads as:_  ltch()</p>
 <h4 id="OPERATORS__ltkey-structure-accessor-element-slot-value"><code>ltkey</code>  — structure accessor · element (slot value)</h4>
 <p>&gt; _Reads as:_  the ltkey slot of s</p>
+<h4 id="OPERATORS__ltop-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-ltop"><code>ltop</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
+<p>&gt; _Reads as:_  ltop()</p>
 <h4 id="OPERATORS__make-metric-group-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-make-metric-group"><code>make-metric-group</code></a>  — def-functoid · tuple/structure-valued</h4>
 <p>&gt; _Reads as:_  the group mmg_ with the distance of mmm_</p>
 <pre>make-metric-group(mmm_, mmg_) := [carr(mmg_), opr(mmg_), iden(mmg_), inv(mmg_), dist(mmm_)]</pre>
@@ -2213,6 +2264,9 @@
 <h4 id="OPERATORS__op-trace-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-op-trace"><code>op-trace</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the trace of kqt_</p>
 <pre>op-trace(kqv_, kqt_) := cc-family-sum(vnb-lambda(kqe_, canon-onb(kqv_), (ip(kqv_))(kqt_(kqe_), kqe_)))</pre>
+<h4 id="OPERATORS__op-unit-ball-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-op-unit-ball"><code>op-unit-ball</code></a>  — def-functoid · set-valued</h4>
+<p>&gt; _Reads as:_  the unit ball of L(wuv_): the bounded operators of norm at most 1</p>
+<pre>op-unit-ball(wuv_) := {wub_ in bounded-ops(wuv_, wuv_): opnorm(wuv_, wuv_, wub_) &lt;= 1}</pre>
 <h4 id="OPERATORS__op-zero-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-op-zero"><code>op-zero</code></a>  — def-functoid · function-valued</h4>
 <pre>op-zero(goz-md_) := vnb-lambda(gozw_, vec(goz-md_), vzero(goz-md_))</pre>
 <h4 id="OPERATORS__open-fun-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-open-fun"><code>open-fun</code></a>  — def-functoid · function-valued</h4>
@@ -2247,7 +2301,7 @@
 <h4 id="OPERATORS__ord-le-unknown-registry-kind"><code>ord-le</code>  — unknown registry kind</h4>
 <h4 id="OPERATORS__ord-lt-unknown-registry-kind"><code>ord-lt</code>  — unknown registry kind</h4>
 <h4 id="OPERATORS__ord-segment-characterized-by-axiom-s"><code>ord-segment</code>  — characterized by axiom(s)</h4>
-<p>Declared by: <a class="x" href="THEOREMS.html#t-ord-segment-insert"><code>ord-segment-insert</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-is-set"><code>ord-segment-is-set</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-membership"><code>ord-segment-membership</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-nn-succ"><code>ord-segment-nn-succ</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-pigeonhole-guarded"><code>ord-segment-pigeonhole-guarded</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-self"><code>ord-segment-self</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-succ"><code>ord-segment-succ</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-succ-sub"><code>ord-segment-succ-sub</code></a></p>
+<p>Declared by: <a class="x" href="THEOREMS.html#t-finsum-ord-segment-partial-sum"><code>finsum-ord-segment-partial-sum</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-insert"><code>ord-segment-insert</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-is-set"><code>ord-segment-is-set</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-membership"><code>ord-segment-membership</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-nn-succ"><code>ord-segment-nn-succ</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-pigeonhole-guarded"><code>ord-segment-pigeonhole-guarded</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-self"><code>ord-segment-self</code></a> <a class="x" href="THEOREMS.html#t-ord-segment-succ"><code>ord-segment-succ</code></a></p>
 <h4 id="OPERATORS__pad-ones-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-pad-ones"><code>pad-ones</code></a>  — def-functoid · function-valued</h4>
 <p>&gt; _Reads as:_  the sequence of k ones followed by f, of length m</p>
 <pre>pad-ones(m, k, f) := vnb-lambda(poj_, interval(1, m), if(poj_ &lt;= k, 1, f(nn-minus(poj_, k))))</pre>
@@ -2548,6 +2602,9 @@
 <h4 id="OPERATORS__r-exp-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-r-exp"><code>r-exp</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the exponential of y_</p>
 <pre>r-exp(y_) := iota(x_, x_ in rr and 0 &lt; x_ and log(x_) = y_)</pre>
+<h4 id="OPERATORS__radical-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-radical"><code>radical</code></a>  — def-functoid · set-valued</h4>
+<p>&gt; _Reads as:_  the radical of g4ha_</p>
+<pre>radical(g4ha_) := {g4hx_ in vec(g4ha_): forall([g4hv_, g4hq_], is-representation(g4ha_, g4hv_, g4hq_) implies g4hq_(g4hx_) = bop-zero(g4hv_, g4hv_))}</pre>
 <h4 id="OPERATORS__ran-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-ran"><code>ran</code></a>  — def-functoid · set-valued</h4>
 <pre>ran(f) := image(f, dom(f))</pre>
 <h4 id="OPERATORS__rank-one-op-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-rank-one-op"><code>rank-one-op</code></a>  — def-functoid · function-valued</h4>
@@ -2606,9 +2663,18 @@
 <h4 id="OPERATORS__rewr-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-rewr"><code>rewr</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the one-position rewrites justified by mrt_, of stage at most mrk_</p>
 <pre>rewr(mrt_, mrk_) := {mrx_ in rw-univ: forall([mrs_ in power(rw-univ)], rw-closed(mrt_, mrk_, mrs_) implies mrx_ in mrs_)}</pre>
+<h4 id="OPERATORS__rewrs-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-rewrs"><code>rewrs</code></a>  — def-functoid · set-valued</h4>
+<p>&gt; _Reads as:_  the rewrites at finitely many positions justified by mpoj_</p>
+<pre>rewrs(mpoj_) := {mpox_ in rw-univ: forall([mpos_ in power(rw-univ)], rws-closed(mpoj_, mpos_) implies mpox_ in mpos_)}</pre>
 <h4 id="OPERATORS__rf-set-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-rf-set"><code>rf-set</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the right folds by md14h_ of the memberships of md14x_ in the entries of md14l_ from an index on</p>
 <pre>rf-set(md14h_, md14x_, md14l_) := {md14p_ in cartesian(nn, expr-set): forall([md14w_ in power(cartesian(nn, expr-set))], rf-closed(md14h_, md14x_, md14l_, md14w_) implies md14p_ in md14w_)}</pre>
+<h4 id="OPERATORS__rfn-module-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-rfn-module"><code>rfn-module</code></a>  — def-functoid · tuple/structure-valued</h4>
+<p>&gt; _Reads as:_  the real vector space of the complex functions on g4hu_</p>
+<pre>rfn-module(g4hu_) := [normed-field-as-commutative-ring(rr-normed-field), fun(g4hu_, cc), vnb-lambda([g4hf_, g4hg_], cartesian(fun(g4hu_, cc), fun(g4hu_, cc)), vnb-lambda(g4hy_, g4hu_, g4hf_(g4hy_) + g4hg_(g4hy_))), vnb-lambda(g4hy_, g4hu_, 0), vnb-lambda(g4hf_, fun(g4hu_, cc), vnb-lambda(g4hy_, g4hu_, -g4hf_(g4hy_))), vnb-lambda([g4hr_, g4hf_], cartesian(rr, fun(g4hu_, cc)), vnb-lambda(g4hy_, g4hu_, g4hr_ * g4hf_(g4hy_)))]</pre>
+<h4 id="OPERATORS__rfn-top-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-rfn-top"><code>rfn-top</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the topology of pointwise convergence on the complex functions on g4hu_</p>
+<pre>rfn-top(g4hu_) := seminorm-top(rfn-module(g4hu_), g4hu_, eval-seminorms(g4hu_))</pre>
 <h4 id="OPERATORS__ring-as-module-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-ring-as-module"><code>ring-as-module</code></a>  — def-functoid · tuple/structure-valued</h4>
 <p>&gt; _Reads as:_  r as a module over itself</p>
 <pre>ring-as-module(r) := [r, carr(r), add(r), zero(r), neg(r), mul(r)]</pre>
@@ -2764,6 +2830,9 @@
 <h4 id="OPERATORS__seq-limit-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-seq-limit"><code>seq-limit</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the limit of the sequence f</p>
 <pre>seq-limit(f) := if(converges(rr-ms, f), iota(lm_, converges-to(rr-ms, f, lm_)), 0)</pre>
+<h4 id="OPERATORS__seq-map-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-seq-map"><code>seq-map</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  the sequence g4ht_ o g4hf_</p>
+<pre>seq-map(g4ht_, g4hf_) := vnb-lambda(g4hn_, nn, g4ht_(g4hf_(g4hn_)))</pre>
 <h4 id="OPERATORS__seq-proj-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-seq-proj"><code>seq-proj</code></a>  — def-functoid · function-valued</h4>
 <p>&gt; _Reads as:_  the spk_-th section of the sequence spz_</p>
 <pre>seq-proj(spk_, spz_) := vnb-lambda(spj_, nn, spz_(nnpair(spk_, spj_)))</pre>
@@ -2885,6 +2954,9 @@
 <h4 id="OPERATORS__span2-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-span2"><code>span2</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the subspace of s2m_ generated by s2e_ and s2x_</p>
 <pre>span2(s2m_, s2e_, s2x_) := {s2v_ in vec(s2m_): forsome([s2r_ in rr, s2s_ in rr], s2v_ = (vadd(s2m_))((act(s2m_))(s2r_, s2e_), (act(s2m_))(s2s_, s2x_)))}</pre>
+<h4 id="OPERATORS__spec-top-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-spec-top"><code>spec-top</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the spectrum of gnvx_ in gnva_, as a subspace of C</p>
+<pre>spec-top(gnva_, gnvx_) := subspace-top(metric-top(cc-ms), spectrum(gnva_, gnvx_))</pre>
 <h4 id="OPERATORS__spectral-radius-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-spectral-radius"><code>spectral-radius</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the spectral radius of bax_ in baa_</p>
 <pre>spectral-radius(baa_, bax_) := einf({bsw_ in rr: forsome([bsn_ in nn], 1 &lt;= bsn_ and bsw_ = rpow-star((vnrm(baa_))(el-pow(baa_, bax_, bsn_)), recip-star(bsn_)))})</pre>
@@ -2928,6 +3000,9 @@
 <h4 id="OPERATORS__sub-nf-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-sub-nf"><code>sub-nf</code></a>  — def-functoid · tuple/structure-valued</h4>
 <p>&gt; _Reads as:_  the normed field sns_ with the structure of snk_ restricted to it</p>
 <pre>sub-nf(snk_, sns_) := [sns_, vnb-lambda([snu_, snv_], cartesian(sns_, sns_), (add(snk_))(snu_, snv_)), vnb-lambda([snu_, snv_], cartesian(sns_, sns_), (mul(snk_))(snu_, snv_)), vnb-lambda(snu_, sns_, (neg(snk_))(snu_)), zero(snk_), one(snk_), vnb-lambda(snu_, sns_, (fnrm(snk_))(snu_))]</pre>
+<h4 id="OPERATORS__sub-ucsa-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-sub-ucsa"><code>sub-ucsa</code></a>  — def-functoid · tuple/structure-valued</h4>
+<p>&gt; _Reads as:_  the subalgebra gnvs_ of gnvb_ with the restricted operations</p>
+<pre>sub-ucsa(gnvb_, gnvs_) := [normed-field-as-commutative-ring(cc-normed-field), gnvs_, vnb-lambda([gnvu_, gnvv_], cartesian(gnvs_, gnvs_), (vadd(gnvb_))(gnvu_, gnvv_)), vzero(gnvb_), vnb-lambda(gnvu_, gnvs_, (vneg(gnvb_))(gnvu_)), vnb-lambda([gnvc_, gnvu_], cartesian(cc, gnvs_), (act(gnvb_))(gnvc_, gnvu_)), vnb-lambda(gnvu_, gnvs_, (vnrm(gnvb_))(gnvu_)), vnb-lambda([gnvu_, gnvv_], cartesian(gnvs_, gnvs_), (vmul(gnvb_))(gnvu_, gnvv_)), vone(gnvb_), vnb-lambda(gnvu_, gnvs_, (vstar(gnvb_))(gnvu_))]</pre>
 <h4 id="OPERATORS__subadd-reg-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-subadd-reg"><code>subadd-reg</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the infimum of the sums of srg_ over the factorisations of srx_ in srm_</p>
 <pre>subadd-reg(srm_, srg_, srx_) := einf(fact-sums(srm_, srg_, srx_))</pre>
@@ -2991,6 +3066,9 @@
 <h4 id="OPERATORS__sym-difference-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-sym-difference"><code>sym-difference</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the symmetric difference of sda_ and sdb_</p>
 <pre>sym-difference(sda_, sdb_) := union(complement-in(sda_, sdb_), complement-in(sdb_, sda_))</pre>
+<h4 id="OPERATORS__tau-op-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-tau-op"><code>tau-op</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  the trace functional of tds_ on the bounded operators on tdv_</p>
+<pre>tau-op(tdv_, tds_) := vnb-lambda(tda_, bounded-ops(tdv_, tdv_), op-trace(tdv_, bop-comp(tdv_, tda_, tds_)))</pre>
 <h4 id="OPERATORS__taylor-aux-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-taylor-aux"><code>taylor-aux</code></a>  — def-functoid · function-valued</h4>
 <p>&gt; _Reads as:_  the Taylor auxiliary function of d of order n on a to b</p>
 <pre>taylor-aux(d, n, a, b) := vnb-lambda(tu_, ccint(a, b), taylor-sum(d, n, b, tu_))</pre>
@@ -3268,7 +3346,7 @@
 <h4 id="OPERATORS__zz-units-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-zz-units"><code>zz-units</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the unit vectors of Z^n</p>
 <pre>zz-units(n) := matof(n, 1, vnb-lambda([zua_, zub_], cartesian(interval(1, n), interval(1, 1)), vnb-lambda(zut_, interval(1, n), entry(unitrow(zz-ring, n, zua_), 1, zut_))))</pre>
-<h3 id="OPERATORS__predicates-845">Predicates  (845)</h3>
+<h3 id="OPERATORS__predicates-889">Predicates  (889)</h3>
 <p>Proposition-valued operators.  Their defining axiom is an <code>iff</code> on the applied head.  Full definitions in <code>DEFINITIONS.md</code>.</p>
 <h4 id="OPERATORS__&lt;-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-&lt;"><code>&lt;</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  x is less than y</p>
@@ -3314,6 +3392,8 @@
 <p>&gt; _Reads as:_  the core over mdt_ is closed under def-strict-pred</p>
 <h4 id="OPERATORS__adm-def-struct-hyp-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-adm-def-struct-hyp"><code>adm-def-struct-hyp</code></a>  — def-predicate · proposition (arity 1)</h4>
 <p>&gt; _Reads as:_  the core over mdt_ is closed under def-struct-hyp</p>
+<h4 id="OPERATORS__ale-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-ale"><code>ale</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  gnvx_ &lt;= gnvy_ in the natural order of gnva_</p>
 <h4 id="OPERATORS__all-confined-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-all-confined"><code>all-confined</code></a>  — def-predicate · proposition (arity 1)</h4>
 <p>&gt; _Reads as:_  the universal with body mnbb_ is confined to sets</p>
 <h4 id="OPERATORS__all-spine-closed-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-all-spine-closed"><code>all-spine-closed</code></a>  — def-predicate · proposition (arity 1)</h4>
@@ -3346,6 +3426,8 @@
 <p>&gt; _Reads as:_  a and b are column equivalent</p>
 <h4 id="OPERATORS__col-step-row-def-predicate-proposition-arity-4"><a class="x" href="THEOREMS.html#t-col-step-row"><code>col-step-row</code></a>  — def-predicate · proposition (arity 4)</h4>
 <p>&gt; _Reads as:_  row i of b is a row of a reduced column step matrix</p>
+<h4 id="OPERATORS__cone-le-def-predicate-proposition-arity-4"><a class="x" href="THEOREMS.html#t-cone-le"><code>cone-le</code></a>  — def-predicate · proposition (arity 4)</h4>
+<p>&gt; _Reads as:_  g4rx_ is below g4ry_ in the order of the cone g4rc_</p>
 <h4 id="OPERATORS__conj-closed-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-conj-closed"><code>conj-closed</code></a>  — def-predicate · proposition (arity 1)</h4>
 <p>&gt; _Reads as:_  mnbw_ is closed under the sides of conjunctions</p>
 <h4 id="OPERATORS__conj-step-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-conj-step"><code>conj-step</code></a>  — def-predicate · proposition (arity 2)</h4>
@@ -3488,6 +3570,8 @@
 <p>&gt; _Reads as:_  the definedness rule binder-domain relates mdhs_ to mdc_</p>
 <h4 id="OPERATORS__def-cert-hyp-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-def-cert-hyp"><code>def-cert-hyp</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the definedness rule certifying-hypothesis relates mdhs_ to mdc_</p>
+<h4 id="OPERATORS__def-closed-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-def-closed"><code>def-closed</code></a>  — def-predicate · proposition (arity 2)</h4>
+<p>&gt; _Reads as:_  mnks_ is closed under the definedness rows over mnkt_</p>
 <h4 id="OPERATORS__def-comp-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-def-comp"><code>def-comp</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the definedness rule comprehension relates mdhs_ to mdc_</p>
 <h4 id="OPERATORS__def-comp-closed-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-def-comp-closed"><code>def-comp-closed</code></a>  — def-predicate · proposition (arity 1)</h4>
@@ -3502,6 +3586,8 @@
 <p>&gt; _Reads as:_  the definedness rule functoid-strict-step relates mdhs_ to mdc_</p>
 <h4 id="OPERATORS__def-in-closed-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-def-in-closed"><code>def-in-closed</code></a>  — def-predicate · proposition (arity 1)</h4>
 <p>&gt; _Reads as:_  a derivable member is derivably defined over mit_</p>
+<h4 id="OPERATORS__def-len-tuples-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-def-len-tuples"><code>def-len-tuples</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the definedness rule length-of-tuple relates mdhs_ to mdc_</p>
 <h4 id="OPERATORS__def-list-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-def-list"><code>def-list</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the definedness rule list relates mdhs_ to mdc_</p>
 <h4 id="OPERATORS__def-nth-list-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-def-nth-list"><code>def-nth-list</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -3516,6 +3602,8 @@
 <p>&gt; _Reads as:_  the definedness rule predicate-unfolding relates mdhs_ to mdc_</p>
 <h4 id="OPERATORS__def-pred-unfold-n-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-def-pred-unfold-n"><code>def-pred-unfold-n</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the definedness rule predicate-unfolding (any arity) relates mdhs_ to mdc_</p>
+<h4 id="OPERATORS__def-rule-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-def-rule"><code>def-rule</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  some definedness row over mnkt_ relates mnkhs_ to mnkc_</p>
 <h4 id="OPERATORS__def-strict-arg-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-def-strict-arg"><code>def-strict-arg</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the definedness rule strict-argument relates mdhs_ to mdc_</p>
 <h4 id="OPERATORS__def-strict-dom-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-def-strict-dom"><code>def-strict-dom</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -3738,6 +3826,8 @@
 <p>&gt; _Reads as:_  cbt_ is a bounded operator from cbv_ to cbw_</p>
 <h4 id="OPERATORS__is-cnvs-linear-op-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-cnvs-linear-op"><code>is-cnvs-linear-op</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  cbt_ is a complex-linear map from cbv_ to cbw_</p>
+<h4 id="OPERATORS__is-cofinal-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-cofinal"><code>is-cofinal</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  g4rv_ is cofinal in g4rm_ for the order of the cone g4rc_</p>
 <h4 id="OPERATORS__is-cofinal-monotone-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-cofinal-monotone"><code>is-cofinal-monotone</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  h is a cofinal monotone map from e to d</p>
 <h4 id="OPERATORS__is-column-step-def-predicate-proposition-arity-4"><a class="x" href="THEOREMS.html#t-is-column-step"><code>is-column-step</code></a>  — def-predicate · proposition (arity 4)</h4>
@@ -3900,6 +3990,8 @@
 <p>&gt; _Reads as:_  b is an extremal subset of a in the real vector space v</p>
 <h4 id="OPERATORS__is-extreme-point-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-extreme-point"><code>is-extreme-point</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  epx_ is an extreme point of epk_ in epm_</p>
+<h4 id="OPERATORS__is-extreme-state-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-extreme-state"><code>is-extreme-state</code></a>  — def-predicate · proposition (arity 2)</h4>
+<p>&gt; _Reads as:_  g4hp_ is an extreme point of the state space of g4ha_</p>
 <h4 id="OPERATORS__is-faithful-bicharacter-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-faithful-bicharacter"><code>is-faithful-bicharacter</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  c5w_ is a faithful bicharacter on c5k_</p>
 <h4 id="OPERATORS__is-fg-cc-module-over-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-fg-cc-module-over"><code>is-fg-cc-module-over</code></a>  — def-predicate · proposition (arity 2)</h4>
@@ -4354,6 +4446,8 @@
 <p>&gt; _Reads as:_  s is a public-key strand space</p>
 <h4 id="OPERATORS__is-point-separating-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-point-separating"><code>is-point-separating</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  rsa_ separates the points of rst_</p>
+<h4 id="OPERATORS__is-pointed-cone-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-pointed-cone"><code>is-pointed-cone</code></a>  — def-predicate · proposition (arity 2)</h4>
+<p>&gt; _Reads as:_  g4rc_ is a pointed cone of g4rm_</p>
 <h4 id="OPERATORS__is-pole-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-pole"><code>is-pole</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  mrf_ has a pole of order mrn_ at mra_</p>
 <h4 id="OPERATORS__is-polish-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-is-polish"><code>is-polish</code></a>  — def-predicate · proposition (arity 1)</h4>
@@ -4370,6 +4464,8 @@
 <p>&gt; _Reads as:_  g4f_ is a positive linear functional on g4a_</p>
 <h4 id="OPERATORS__is-positive-op-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-positive-op"><code>is-positive-op</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  kqt_ is a positive operator on kqv_</p>
+<h4 id="OPERATORS__is-positive-op-functional-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-positive-op-functional"><code>is-positive-op-functional</code></a>  — def-predicate · proposition (arity 2)</h4>
+<p>&gt; _Reads as:_  tdf_ is a positive functional on the bounded operators on tdv_</p>
 <h4 id="OPERATORS__is-power-bounded-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-power-bounded"><code>is-power-bounded</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the n-by-n matrix tm over k is power bounded</p>
 <h4 id="OPERATORS__is-power-bounded-by-def-predicate-proposition-arity-4"><a class="x" href="THEOREMS.html#t-is-power-bounded-by"><code>is-power-bounded-by</code></a>  — def-predicate · proposition (arity 4)</h4>
@@ -4460,6 +4556,8 @@
 <p>&gt; _Reads as:_  pgam is a road with derivative dgam on the interval [a, b]</p>
 <h4 id="OPERATORS__is-self-adjoint-el-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-self-adjoint-el"><code>is-self-adjoint-el</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  bax_ is self-adjoint in baa_</p>
+<h4 id="OPERATORS__is-self-adjoint-functional-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-self-adjoint-functional"><code>is-self-adjoint-functional</code></a>  — def-predicate · proposition (arity 2)</h4>
+<p>&gt; _Reads as:_  tdf_ is a self-adjoint functional on the bounded operators on tdv_</p>
 <h4 id="OPERATORS__is-self-adjoint-graph-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-self-adjoint-graph"><code>is-self-adjoint-graph</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  ubg_ is a self-adjoint graph</p>
 <h4 id="OPERATORS__is-self-adjoint-op-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-self-adjoint-op"><code>is-self-adjoint-op</code></a>  — def-predicate · proposition (arity 2)</h4>
@@ -4688,6 +4786,8 @@
 <p>&gt; _Reads as:_  f is pointwise at most g on omega</p>
 <h4 id="OPERATORS__qnode-ok-def-predicate-proposition-arity-1"><a class="x" href="THEOREMS.html#t-qnode-ok"><code>qnode-ok</code></a>  — def-predicate · proposition (arity 1)</h4>
 <p>&gt; _Reads as:_  the node mnbe_ is not an unconfined quantifier</p>
+<h4 id="OPERATORS__rel-adds-nothing-k-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-adds-nothing-k"><code>rel-adds-nothing-k</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  a kernel rule whose hypothesis adds nothing relates mnkhs_ to mnkc_</p>
 <h4 id="OPERATORS__rel-and-elim-k-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-and-elim-k"><code>rel-and-elim-k</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s and-elim relates mnkhs_ to mnkc_</p>
 <h4 id="OPERATORS__rel-big-union-mem-elim-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-big-union-mem-elim"><code>rel-big-union-mem-elim</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -4700,6 +4800,8 @@
 <p>&gt; _Reads as:_  the kernel&#x27;s cartesian-decompose, at one position, relates mihs_ to mic_</p>
 <h4 id="OPERATORS__rel-cartesian-decompose-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-cartesian-decompose-7"><code>rel-cartesian-decompose-7</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s cartesian-decompose, at one position at any stage, relates mihs_ to mic_</p>
+<h4 id="OPERATORS__rel-cartesian-decompose-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-cartesian-decompose-s"><code>rel-cartesian-decompose-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
 <h4 id="OPERATORS__rel-cartesian-elim-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-cartesian-elim"><code>rel-cartesian-elim</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s cartesian-elim relates mihs_ to mic_</p>
 <h4 id="OPERATORS__rel-cartesian-intro-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-cartesian-intro"><code>rel-cartesian-intro</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -4712,20 +4814,30 @@
 <p>&gt; _Reads as:_  the kernel&#x27;s detach relates mchs_ to mcc_</p>
 <h4 id="OPERATORS__rel-forall-elim-k-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-forall-elim-k"><code>rel-forall-elim-k</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s forall-elim at a certified term relates mnkhs_ to mnkc_</p>
+<h4 id="OPERATORS__rel-forall-elim-kd-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-forall-elim-kd"><code>rel-forall-elim-kd</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s forall-elim at a term certified by the rows relates mnkhs_ to mnkc_</p>
 <h4 id="OPERATORS__rel-forsome-elim-k-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-forsome-elim-k"><code>rel-forsome-elim-k</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s forsome-elim relates mnkhs_ to mnkc_</p>
 <h4 id="OPERATORS__rel-forsome-intro-k-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-forsome-intro-k"><code>rel-forsome-intro-k</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s forsome-intro with a certified witness relates mnkhs_ to mnkc_</p>
+<h4 id="OPERATORS__rel-forsome-intro-kd-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-forsome-intro-kd"><code>rel-forsome-intro-kd</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s forsome-intro with a witness certified by the rows relates mnkhs_ to mnkc_</p>
 <h4 id="OPERATORS__rel-free-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-free"><code>rel-free</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the n vectors u are linearly independent in md</p>
 <h4 id="OPERATORS__rel-functoid-beta-1-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-functoid-beta-1"><code>rel-functoid-beta-1</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel rule, at one position, relates mrhs_ to mrc_</p>
 <h4 id="OPERATORS__rel-functoid-beta-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-functoid-beta-7"><code>rel-functoid-beta-7</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel rule, at one position of any stage, relates mrhs_ to mrc_</p>
+<h4 id="OPERATORS__rel-functoid-beta-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-functoid-beta-s"><code>rel-functoid-beta-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
 <h4 id="OPERATORS__rel-if-false-k-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-if-false-k"><code>rel-if-false-k</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s if-false at a certified branch relates mnkhs_ to mnkc_</p>
+<h4 id="OPERATORS__rel-if-false-kd-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-if-false-kd"><code>rel-if-false-kd</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s if-false at a branch certified by the rows relates mnkhs_ to mnkc_</p>
 <h4 id="OPERATORS__rel-if-true-k-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-if-true-k"><code>rel-if-true-k</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s if-true at a certified branch relates mnkhs_ to mnkc_</p>
+<h4 id="OPERATORS__rel-if-true-kd-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-if-true-kd"><code>rel-if-true-kd</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s if-true at a branch certified by the rows relates mnkhs_ to mnkc_</p>
 <h4 id="OPERATORS__rel-iff-elim-k-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-iff-elim-k"><code>rel-iff-elim-k</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s iff-elim relates mnkhs_ to mnkc_</p>
 <h4 id="OPERATORS__rel-intersection-decompose-1-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-intersection-decompose-1"><code>rel-intersection-decompose-1</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -4736,6 +4848,10 @@
 <p>&gt; _Reads as:_  the kernel&#x27;s rewrite by the catalog&#x27;s n-ary decomposition, at one position, relates md14hs_ to md14c_</p>
 <h4 id="OPERATORS__rel-intersection-decompose-hyp-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-intersection-decompose-hyp-7"><code>rel-intersection-decompose-hyp-7</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s rewrite by the catalog&#x27;s n-ary decomposition, at one position, relates md14hs_ to md14c_</p>
+<h4 id="OPERATORS__rel-intersection-decompose-hyp-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-intersection-decompose-hyp-s"><code>rel-intersection-decompose-hyp-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
+<h4 id="OPERATORS__rel-intersection-decompose-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-intersection-decompose-s"><code>rel-intersection-decompose-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
 <h4 id="OPERATORS__rel-intersection-elim-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-intersection-elim"><code>rel-intersection-elim</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s intersection-elim relates mchs_ to mcc_</p>
 <h4 id="OPERATORS__rel-intersection-intro-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-intersection-intro"><code>rel-intersection-intro</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -4750,10 +4866,28 @@
 <p>&gt; _Reads as:_  the kernel rule, at one position, relates mrhs_ to mrc_</p>
 <h4 id="OPERATORS__rel-lambda-beta-hyp-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-lambda-beta-hyp-7"><code>rel-lambda-beta-hyp-7</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel rule, at one position of any stage, relates mrhs_ to mrc_</p>
+<h4 id="OPERATORS__rel-lambda-beta-hyp-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-lambda-beta-hyp-s"><code>rel-lambda-beta-hyp-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
+<h4 id="OPERATORS__rel-lambda-beta-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-lambda-beta-s"><code>rel-lambda-beta-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
+<h4 id="OPERATORS__rel-lambda-type-1-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-lambda-type-1"><code>rel-lambda-type-1</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s lambda-type at a binder list of fixed length relates mihs_ to mic_</p>
+<h4 id="OPERATORS__rel-lambda-type-2-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-lambda-type-2"><code>rel-lambda-type-2</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s lambda-type at a binder list of fixed length relates mihs_ to mic_</p>
+<h4 id="OPERATORS__rel-lambda-type-3-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-lambda-type-3"><code>rel-lambda-type-3</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s lambda-type at a binder list of fixed length relates mihs_ to mic_</p>
+<h4 id="OPERATORS__rel-lambda-type-4-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-lambda-type-4"><code>rel-lambda-type-4</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s lambda-type at a binder list of fixed length relates mihs_ to mic_</p>
+<h4 id="OPERATORS__rel-lambda-type-k-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-lambda-type-k"><code>rel-lambda-type-k</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s lambda-type at one binder, the codomain certified, relates mnkhs_ to mnkc_</p>
+<h4 id="OPERATORS__rel-lambda-type-n-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-lambda-type-n"><code>rel-lambda-type-n</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s lambda-type at a binder list relates mihs_ to mic_</p>
 <h4 id="OPERATORS__rel-length-reduce-1-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-length-reduce-1"><code>rel-length-reduce-1</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel rule, at one position, relates mrhs_ to mrc_</p>
 <h4 id="OPERATORS__rel-length-reduce-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-length-reduce-7"><code>rel-length-reduce-7</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel rule, at one position of any stage, relates mrhs_ to mrc_</p>
+<h4 id="OPERATORS__rel-length-reduce-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-length-reduce-s"><code>rel-length-reduce-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
 <h4 id="OPERATORS__rel-macete-1-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-macete-1"><code>rel-macete-1</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel rule, at one position, relates mrhs_ to mrc_</p>
 <h4 id="OPERATORS__rel-macete-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-macete-7"><code>rel-macete-7</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -4762,6 +4896,8 @@
 <p>&gt; _Reads as:_  the kernel rule, at one position, relates mrhs_ to mrc_</p>
 <h4 id="OPERATORS__rel-macete-hyp-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-macete-hyp-7"><code>rel-macete-hyp-7</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel rule, at one position of any stage, relates mrhs_ to mrc_</p>
+<h4 id="OPERATORS__rel-macete-hyp-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-macete-hyp-s"><code>rel-macete-hyp-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
 <h4 id="OPERATORS__rel-macete-n-1-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-macete-n-1"><code>rel-macete-n-1</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s macete of any number of schema variables, at one position, relates md13hs_ to md13c_</p>
 <h4 id="OPERATORS__rel-macete-n-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-macete-n-7"><code>rel-macete-n-7</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -4770,6 +4906,12 @@
 <p>&gt; _Reads as:_  the kernel&#x27;s macete of any number of schema variables, at one position, relates md13hs_ to md13c_</p>
 <h4 id="OPERATORS__rel-macete-n-hyp-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-macete-n-hyp-7"><code>rel-macete-n-hyp-7</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s macete of any number of schema variables, at one position, relates md13hs_ to md13c_</p>
+<h4 id="OPERATORS__rel-macete-n-hyp-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-macete-n-hyp-s"><code>rel-macete-n-hyp-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
+<h4 id="OPERATORS__rel-macete-n-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-macete-n-s"><code>rel-macete-n-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
+<h4 id="OPERATORS__rel-macete-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-macete-s"><code>rel-macete-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
 <h4 id="OPERATORS__rel-nn-induction-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-nn-induction"><code>rel-nn-induction</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s nn-induction relates mihs_ to mic_</p>
 <h4 id="OPERATORS__rel-nn-induction-nbg-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-nn-induction-nbg"><code>rel-nn-induction-nbg</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -4778,10 +4920,16 @@
 <p>&gt; _Reads as:_  the kernel rule, at one position, relates mrhs_ to mrc_</p>
 <h4 id="OPERATORS__rel-nth-reduce-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-nth-reduce-7"><code>rel-nth-reduce-7</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel rule, at one position of any stage, relates mrhs_ to mrc_</p>
+<h4 id="OPERATORS__rel-nth-reduce-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-nth-reduce-s"><code>rel-nth-reduce-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
 <h4 id="OPERATORS__rel-or-elim-k-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-or-elim-k"><code>rel-or-elim-k</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s or-elim relates mnkhs_ to mnkc_</p>
 <h4 id="OPERATORS__rel-reflexivity-k-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-reflexivity-k"><code>rel-reflexivity-k</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s reflexivity at a certified term relates mnkhs_ to mnkc_</p>
+<h4 id="OPERATORS__rel-reflexivity-kd-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-reflexivity-kd"><code>rel-reflexivity-kd</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s reflexivity at a term certified by the rows relates mnkhs_ to mnkc_</p>
+<h4 id="OPERATORS__rel-reflexivity-kt-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-reflexivity-kt"><code>rel-reflexivity-kt</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s reflexivity at TRUTH relates mnkhs_ to mnkc_</p>
 <h4 id="OPERATORS__rel-rewrite-1-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-rewrite-1"><code>rel-rewrite-1</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  mrhs_ is mrc_ with its goal rewritten at one position justified by mrt_</p>
 <h4 id="OPERATORS__rel-rewrite-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-rewrite-7"><code>rel-rewrite-7</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -4790,6 +4938,10 @@
 <p>&gt; _Reads as:_  mrhs_ is mrc_ with one assumption rewritten at one position justified by mrt_</p>
 <h4 id="OPERATORS__rel-rewrite-hyp-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-rewrite-hyp-7"><code>rel-rewrite-hyp-7</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  mrhs_ is mrc_ with one assumption rewritten at one position of any stage justified by mrt_</p>
+<h4 id="OPERATORS__rel-rewrite-hyp-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-rewrite-hyp-s"><code>rel-rewrite-hyp-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  mpohs_ is mpocc_ with one assumption rewritten at finitely many positions justified by mpoj_</p>
+<h4 id="OPERATORS__rel-rewrite-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-rewrite-s"><code>rel-rewrite-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  mpohs_ is mpocc_ with its goal rewritten at finitely many positions justified by mpoj_</p>
 <h4 id="OPERATORS__rel-sep-mem-elim-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-sep-mem-elim"><code>rel-sep-mem-elim</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s sep-mem-elim relates mihs_ to mic_</p>
 <h4 id="OPERATORS__rel-sep-mem-intro-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-sep-mem-intro"><code>rel-sep-mem-intro</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -4808,10 +4960,16 @@
 <p>&gt; _Reads as:_  the kernel&#x27;s tuple-equality-decompose, at one position, relates mihs_ to mic_</p>
 <h4 id="OPERATORS__rel-tuple-eq-decompose-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-tuple-eq-decompose-7"><code>rel-tuple-eq-decompose-7</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s tuple-equality-decompose, at one position at any stage, relates mihs_ to mic_</p>
+<h4 id="OPERATORS__rel-tuple-eq-decompose-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-tuple-eq-decompose-s"><code>rel-tuple-eq-decompose-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
 <h4 id="OPERATORS__rel-tuples-elim-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-tuples-elim"><code>rel-tuples-elim</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s tuples-elim relates mchs_ to mcc_</p>
 <h4 id="OPERATORS__rel-tuples-intro-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-tuples-intro"><code>rel-tuples-intro</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s tuples-intro relates mchs_ to mcc_</p>
+<h4 id="OPERATORS__rel-tuples-intro-0-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-tuples-intro-0"><code>rel-tuples-intro-0</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s tuples-intro at the empty tuple relates mchs_ to mcc_</p>
+<h4 id="OPERATORS__rel-tuples-intro-0k-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-tuples-intro-0k"><code>rel-tuples-intro-0k</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel&#x27;s tuples-intro at the empty tuple, the class certified, relates mnkhs_ to mnkc_</p>
 <h4 id="OPERATORS__rel-union-decompose-1-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-union-decompose-1"><code>rel-union-decompose-1</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s rewrite by the catalog&#x27;s n-ary decomposition, at one position, relates md14hs_ to md14c_</p>
 <h4 id="OPERATORS__rel-union-decompose-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-union-decompose-7"><code>rel-union-decompose-7</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -4820,6 +4978,10 @@
 <p>&gt; _Reads as:_  the kernel&#x27;s rewrite by the catalog&#x27;s n-ary decomposition, at one position, relates md14hs_ to md14c_</p>
 <h4 id="OPERATORS__rel-union-decompose-hyp-7-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-union-decompose-hyp-7"><code>rel-union-decompose-hyp-7</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s rewrite by the catalog&#x27;s n-ary decomposition, at one position, relates md14hs_ to md14c_</p>
+<h4 id="OPERATORS__rel-union-decompose-hyp-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-union-decompose-hyp-s"><code>rel-union-decompose-hyp-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
+<h4 id="OPERATORS__rel-union-decompose-s-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-union-decompose-s"><code>rel-union-decompose-s</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  the kernel rule, at finitely many positions, relates mpohs_ to mpocc_</p>
 <h4 id="OPERATORS__rel-union-elim-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-union-elim"><code>rel-union-elim</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the kernel&#x27;s union-elim relates mchs_ to mcc_</p>
 <h4 id="OPERATORS__rel-union-intro-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rel-union-intro"><code>rel-union-intro</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -4886,6 +5048,10 @@
 <p>&gt; _Reads as:_  the rewrite clause BIG-UNION / LAMBDA-body relates mrs_ to mrx_</p>
 <h4 id="OPERATORS__rw-top-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rw-top"><code>rw-top</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  the rewrite clause TOP relates mrs_ to mrx_</p>
+<h4 id="OPERATORS__rws-closed-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-rws-closed"><code>rws-closed</code></a>  — def-predicate · proposition (arity 2)</h4>
+<p>&gt; _Reads as:_  mpos_ holds the one-position rewrites justified by mpoj_ and is closed under composing formula rewrites</p>
+<h4 id="OPERATORS__rws-rule-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-rws-rule"><code>rws-rule</code></a>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  mpox_ is a one-position rewrite justified by mpoj_, an empty rewrite, or the composition of two rewrites in mpos_</p>
 <h4 id="OPERATORS__same-strand-before-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-same-strand-before"><code>same-strand-before</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  ssn_ comes strictly before ssm_ on one strand of ssp_</p>
 <h4 id="OPERATORS__same-strand-upto-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-same-strand-upto"><code>same-strand-upto</code></a>  — def-predicate · proposition (arity 3)</h4>
