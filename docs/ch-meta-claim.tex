@@ -175,8 +175,8 @@ one is adopted, it accepts no more than \texttt{pi--defined?} does
   that turns it off.
 \item A refusal prints a line beginning \texttt{;VNB RULE CHECKER
   REFUSED}, also inside \texttt{quietly}, and is recorded.  The load ends
-  with \texttt{inference checking: $N$ verified, $M$ refusal(s)}; a
-  strict load is an error when $M>0$.
+  with \texttt{inference checking: $N$ verified, $M$ refusal(s)}; an
+  ordinary load (Section~\ref{sec:meta-gates}) is an error when $M>0$.
 \item The suite checks that the switch is on after the load, that more
   than a thousand inferences were verified, that no rule is accepted on
   trust, and that an unregistered tag is refused.
@@ -205,9 +205,19 @@ The stamps \texttt{primitive} and \texttt{definitional} bill nothing.  A
 stamp therefore records what it assumes (\DS{15}), and a guarded
 definitional equation says nothing off its guards (\DS{31}).
 
-\subsection{The gates that stop a strict load}
+\subsection{The gates that stop a load}\label{sec:meta-gates}
 
-Among the end-of-load gates, the following are fatal in a strict load:
+An \emph{ordinary load} is any load of VNB without the variable
+\texttt{VNB\_KEEP\_GOING=1}: the prover, the band build and the exam.
+That variable selects a development mode, the \emph{keep-going load}, in
+which an error in a proof file is recorded and the load goes on, so that
+every broken file is listed in one load.  A band built that way has holes
+in its library, and the end of the load says so.  (This is unrelated to
+\texttt{VNB\_CERTIFIED=strict}, which concerns certificates,
+Chapter~\ref{ch:provenance}.)
+
+Among the end-of-load gates, the following stop an ordinary load and are
+only reported in a keep-going one:
 \begin{itemize}
 \item inference checking: any refusal;
 \item the \texttt{qed}-failure gate: a \texttt{qed} that failed;
@@ -263,7 +273,7 @@ range over sets.  The kernel keeps to that (\DS{38}).
 \item \texttt{comp-predicativity-audit} and
   \texttt{binder-predicativity-audit} (\texttt{proof-debt.scm}) list every
   impredicative term named by a proof, an installed formula or a functoid
-  body.  Both gates are fatal in a strict load.
+  body.  Both gates stop an ordinary load.
 \item The induction census prints
   \texttt{;; NBG induction census: $n$ impredicative induction(s)}; with
   \texttt{*nbg-induction-fatal?*} on, $n=0$ in any load that completes.

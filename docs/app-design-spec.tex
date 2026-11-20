@@ -53,13 +53,13 @@ Part~\ref{part:meta} cites them as DS-$n$.
 \begin{description}[style=nextline,leftmargin=1.4cm]
 \item[DS-33]\phantomsection\label{ds:33} Functoids stand outside quantification: a quantifier instance or witness is an object, never a def-functoid name, an anonymous record, or a bare operator or predicate name. A bare operator, functoid or predicate name is refused as a term.
 \item[DS-34]\phantomsection\label{ds:34} A functoid unfolding is schematic: F(a) == body[a] holds at every argument, denoting or not, and owes nothing.
-\item[DS-35]\phantomsection\label{ds:35} The hypotheses of the functoid argument (H1 distinct parameters, H2 no forward or recursive reference, H3 one definition per head, H4 no free variable in a body outside the parameters, H6 no head both a def-functoid and a library definition) are checked by a load-end gate, fatal in a strict load and reported under keep-going.
+\item[DS-35]\phantomsection\label{ds:35} The hypotheses of the functoid argument (H1 distinct parameters, H2 no forward or recursive reference, H3 one definition per head, H4 no free variable in a body outside the parameters, H6 no head both a def-functoid and a library definition) are checked by a load-end gate, fatal in an ordinary load and reported under keep-going.
 \item[DS-36]\phantomsection\label{ds:36} def-functor proves each view typing it would install; a view whose obligation fails is refused.
 \item[DS-37]\phantomsection\label{ds:37} The install grader accepts the symbol its own defining formula defines.
 \end{description}
 \section*{Predicativity (staying within NBG)}
 \begin{description}[style=nextline,leftmargin=1.4cm]
-\item[DS-38]\phantomsection\label{ds:38} Comprehension is predicative: COMP, SEP, BIG-UNION and VNB-LAMBDA, and the three induction rules, accept a condition or body only when every quantifier in it is confined to sets, read through defined heads. The gates are fatal in a strict load.
+\item[DS-38]\phantomsection\label{ds:38} Comprehension is predicative: COMP, SEP, BIG-UNION and VNB-LAMBDA, and the three induction rules, accept a condition or body only when every quantifier in it is confined to sets, read through defined heads. The gates are fatal in an ordinary load.
 \item[DS-39]\phantomsection\label{ds:39} The encoded core is NBG-strength: each schema that forms a class carries the premise NBG-OK on its condition or body.
 \end{description}
 \section*{The core}

@@ -245,7 +245,8 @@ ordinary definition of that system.
   $\texttt{is-\textit{cat}-arrow}(a, b, f) \iff \texttt{is-\textit{name}}(a) \wedge \texttt{is-\textit{name}}(b) \wedge f \in \mathtt{fun}(c(a), c(b)) \wedge \mathtt{BODY}$
   and hom-set \texttt{hom-\textit{cat}}$(a, b)$.  The three category laws are
   then recorded as \emph{obligations}, not as theorems.  An obligation not yet
-  proven stops a strict load and is listed by a keep-going one
+  proven stops an ordinary load and is listed by a keep-going one
+  (Section~\ref{sec:meta-gates})
   (\texttt{category-obligations-audit}).  The library declares four such
   categories: \texttt{lipschitz}, \texttt{uniformly-continuous} and
   \texttt{continuous} on \texttt{metric-space}, and \texttt{bounded-linear} on

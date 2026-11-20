@@ -149,7 +149,7 @@ The functoid-hypotheses gate (\texttt{functoid-gate.scm}) runs at the end
 of every load, a cold load, a certified build and an extension of the
 band alike.  It reads the registry of functoids and the log of
 definitions, which records for each \texttt{def-functoid} the heads and
-constants defined at that moment.  In a strict load a violation of any of
+constants defined at that moment.  In an ordinary load (Section~\ref{sec:meta-gates}) a violation of any of
 H1--H4 or H6 is an error, with one line naming the hypotheses violated;
 under keep-going it is reported and the load continues.  The library has
 no violation.
