@@ -57,6 +57,13 @@ conflates them, and most of what follows is aimed at pulling them apart.
   everywhere at once rather than re-derived context after context.
 \end{itemize}
 
+At present the PSS of the library is empty, and so is the class of
+asserted results: every result in the library is a definition, an axiom
+or a theorem with a proof.  Whether the
+library as distributed keeps an empty PSS will depend on how it is
+used.  A user is free to add members to the PSS, each with its warrant
+(Section~\ref{sec:warrants}).
+
 \begin{remark}
 The PSS exists for a practical reason.  Pushing into new
 mathematical territory, a proof constantly bumps into basic --- and
@@ -264,64 +271,3 @@ Excluding these leaves every genuine circular dependency intact --- such a loop
 runs through \emph{proven} citations, which are always kept --- so the gate
 neither cries wolf on sound induction nor lets a real circle through.
 
-%% =========================================================
-\section{The exam}
-\label{sec:vnb-test}
-
-The \emph{exam} is the standing examination of the \textbf{theorem}
-bucket.  It is a full library build in which every proof script runs,
-every proof page is typed back in and must reach a grounded graph, and
-every certificate in \texttt{certificates/} is rewritten from the run.
-Definitions and PSS members are excused by construction: the former have
-nothing to prove, the latter are accepted on a warrant.
-
-\begin{VNBsnip}
-vnb-band WORKER --build --exam
-\end{VNBsnip}
-
-\noindent
-runs it on a worker machine; \texttt{vnb-nightly-exam} runs it every
-night, skips a tree that the last exam already passed, and records the
-outcome in \texttt{last-exam.json}.  The everyday build is the
-\emph{certified} build: a theorem whose certificate is still valid is
-installed without running its proof, and only the theorems whose
-statement, citations or definitions changed since the exam are proved
-again.  A change to a kernel file invalidates every certificate, so the
-everyday build after such a change is itself an exam.
-
-\begin{remark}
-The exam is \emph{not} the regression suite.  \texttt{test-suite.scm}
-checks that the machinery behaves; the exam checks that the library's
-theorems still derive.  The two answer different questions and both are
-run.
-\end{remark}
-
-\begin{remark}
-The script \texttt{./vnb-test} and its stamp
-\nolinkurl{reference/certification.scm} are not maintained; the exam is
-run by the command above.
-\end{remark}
-
-%% =========================================================
-\section{Inspecting a result}
-\label{sec:status-query}
-
-Three commands expose the classification at the REPL.
-
-\begin{itemize}
-\item \texttt{(status 'name)} prints, on one screen, a result's
-  provenance, whether it is a PSS member, any warrant it carries, and the
-  bill.
-
-\item \texttt{(status-audit)} writes \texttt{reference/STATUS-AUDIT.md}: a
-  census of the whole library by kind, flagging hygiene issues --- asserted
-  results with no warrant, theorem-shaped names that have drifted out of
-  the theorem bucket, and the like.
-
-\item \texttt{(pss-letter 'name)} drafts a plain-English ``recommendation
-  letter'' for a candidate PSS member: an English rendering of what it
-  says, its current standing, and an assessment against the admission
-  gates (true; a sound, terminating rewrite shape; general rather than
-  bespoke; non-redundant).  It is an aid to deciding whether a result
-  belongs in the curated support set, not an automatic admission.
-\end{itemize}

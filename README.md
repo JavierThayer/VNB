@@ -204,7 +204,8 @@ Javier Thayer's release signing key (ed25519), added 2026-11-17:
 
 Its fingerprint is `SHA256:pvv9BBY6uAVZrlz0H7G/xub84NareBQos+3Af8jHTvk` (`ssh-keygen -lf` on a file holding the key prints it).
 Compare it with the key GitHub lists for the account `JavierThayer`, and with the
-fingerprint published off GitHub, in the author's Bluesky profile:
+fingerprint published off GitHub, in the author's Bluesky profile, as text in
+the profile description and in the banner image:
 <https://bsky.app/profile/javiertf.bsky.social>.  If any of them
 differ, stop.
 

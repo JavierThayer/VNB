@@ -19,6 +19,12 @@ is checked:
 \item signed releases, by which the author records the files of a
   published version (Section~\ref{sec:signed-releases}).
 \end{itemize}
+The last two concern the copy of VNB rather than a single theorem: a
+certificate is a plain file of the copy, so what a load accepts as
+proven is only as sound as the copy it is read from.  This chapter says
+what the two signatures are and what they protect.  The commands that
+make and check them are in Chapter~\ref{ch:checking}
+(Sections~\ref{sec:signed-trees-use} and~\ref{sec:signed-releases-use}).
 The word is used in the sense it has for a single theorem, whose
 provenance (\texttt{proven}, \texttt{certified}, \texttt{asserted},
 \ldots) says where it came from: here the question is asked of the
@@ -114,9 +120,15 @@ run of the test, not a proof.  The everyday mechanism is the proof
 certificate above: the exam that writes the store is the run that
 re-proves the library.
 
+%% =========================================================
 \section{Signed trees}
 \label{sec:signed-trees}
 \index{signed tree}\index{vnb-trust@\texttt{vnb-trust}}\index{vnb-start@\texttt{vnb-start}}
+
+This section says what a signed tree is and what it protects.  The
+commands, \texttt{vnb-trust} and \texttt{vnb-start}, the contents of the
+signed list, and the procedure for work that must withstand an
+adversary are in Section~\ref{sec:signed-trees-use}.
 
 A user obtains VNB as a copy of its repository: a clone from GitHub,
 or an archive of it.  That copy is one directory,
@@ -133,14 +145,14 @@ or an archive of it.  That copy is one directory,
 \item the compiled code (\texttt{.com} files) and the \emph{band}, a
   saved image of the loaded library from which VNB starts.  However,
   the repository does not contain them: a user who clones it makes them on
-  the first run.  A copy pulled from a server that has built them, as
-  in the author's setup below, brings them along.
+  the first run.  A copy taken from a machine that has built them
+  brings them along.
 \end{itemize}
 There is no stand-alone executable in the tree.  The program that runs
 it is MIT Scheme, with GNU Emacs for the workspace; both are installed
 on the computer separately and are not part of the tree.  But the
 compiled files and the band are machine code that MIT Scheme runs, so
-they are as much the program as the source is, and the manifest below
+they are as much the program as the source is, and the signature
 covers them.
 
 VNB does not rerun every proof each time it starts.  It installs most
@@ -187,62 +199,29 @@ the most thorough:
 Only the third establishes anything about the proofs themselves.  The
 first two establish where the files came from.
 
-\paragraph{The pieces.}  Two scripts, \texttt{vnb-trust} and
-\texttt{vnb-start}, whose master copies are in the tree under
-\texttt{trust/}.  The user copies them once, after checking the
-tree, into \texttt{\textasciitilde/bin}, outside the tree, so that a
-later change to the tree cannot change them too:
-\begin{verbatim}
-  cp trust/vnb-trust trust/vnb-start ~/bin/
-\end{verbatim}
-\begin{itemize}
-\item \texttt{vnb-trust} has the commands \texttt{setup KEY} (once),
-  \texttt{accept DIR}, \texttt{verify DIR}, \texttt{list} and
-  \texttt{release-sign} (the last is for an author signing a
-  release).
-\item \texttt{vnb-start} runs \texttt{vnb-trust verify} on the tree and
-  starts VNB only if it succeeds.  On a mismatch it lists the changed
-  files and offers to stop, to fetch a fresh copy, or to start anyway
-  once the word \texttt{unverified} is typed in full.
-\end{itemize}
-The signature is an SSH signature (\texttt{ssh-keygen -Y sign}) in its
-own namespace, \texttt{vnb-tree}, so it cannot be mistaken for any
-other signature made with the same key.  The hashes are SHA-256.
-
-\paragraph{The manifest.}  To \emph{accept} a tree is to run
-\texttt{vnb-trust accept DIR} on it.  The command hashes the files,
-shows a summary and asks \texttt{Accept and sign this tree? [y/N]}.  On
-\texttt{y}, and the key's passphrase, it writes a \emph{manifest} to
-\texttt{\textasciitilde/vnb-signed/}, with its signature beside it: a
-few header lines, then one line per file, its SHA-256 hash and its
-path.  Every file of the tree is
-listed except
-\begin{itemize}
-\item \texttt{.git/}, \texttt{scratch/}, \texttt{scratchpad/}, and the
-  files \texttt{*.bci}, \texttt{*.ext}, \texttt{*.elc};
-\item the documents under \texttt{docs/} and \texttt{reference/}, which
-  VNB never loads.  The \texttt{.sexp} and \texttt{.scm} files there are
-  listed, because the load reads some of them.
-\end{itemize}
-So the source, the compiled files, the band, the certificates and the
-Emacs files are all covered.  A session of VNB does not change any
-listed file, so an accepted tree stays accepted while it is used.  The
-manifest and its signature stay on the user's computer.
-
-\paragraph{Updating.}  A new copy, a new release or an update fetched
-from elsewhere, is compared in the same way and, until the user
-accepts it, is refused with the list of files that differ.  The user
-then checks it by one of the three ways above and accepts it, or keeps
-the old copy.
-
 \paragraph{What it protects, and what it does not.}  The private key
 exists only on the user's computer.  Nothing elsewhere can sign a tree
 for the user.  So
 \begin{itemize}
 \item a copy that differs from every tree the user accepted is refused
   at the next \texttt{vnb-start}, with the differing files named;
+\item a proof certificate (Section~\ref{sec:proof-certificate}) is not
+  signed, and everything in it can be computed from the tree.  Anyone
+  who can write the files of a tree can therefore add a statement to a
+  library file and write a certificate for it that the certified load
+  accepts.  The statement is then installed without its proof, with the
+  provenance \texttt{certified} and an empty bill, and a theorem proved
+  from it looks proved.  The signature detects the changed files at the
+  next \texttt{vnb-start}; the exam, which ignores the certificates and
+  runs every proof, fails at the statement, whose proof does not
+  prove it;
 \item VNB started without \texttt{vnb-start}, for instance from Emacs
-  directly or by \texttt{\textasciitilde/prover/VNB}, is not checked;
+  directly or by \texttt{\textasciitilde/prover/VNB}, is not checked,
+  and neither is a tree accepted without a check: the certificate above
+  passes both;
+\item the check is made when VNB starts.  A file that VNB reads later
+  in a session, for instance a library file loaded again, is not
+  checked again;
 \item MIT Scheme and Emacs are outside the tree and are not checked;
   they are as trustworthy as the way they were installed;
 \item the web browser is outside the tree too.  VNB opens its home page
@@ -261,52 +240,15 @@ for the user.  So
 The signature says ``I accepted this tree.''  It is not a proof, and it
 shows no more about the proofs than the check that preceded it.
 
-Two rules keep these signatures meaningful.  The copies of \texttt{vnb-trust} and
-\texttt{vnb-start} in \texttt{\textasciitilde/bin} must not be replaced
-without reading the change.  And the signing key should have a
-passphrase.  The setup takes a few commands; they are in the
-repository's \texttt{README.md}, under ``Keeping your copy checked''.
 
-\paragraph{For work that must withstand an adversary.}  The steps are
-those above, with every choice made the strict way.  Three things
-differ from ordinary use.
-\begin{itemize}
-\item The copy is a copy of a published release, and its signature is
-  checked (Section~\ref{sec:signed-releases}) with the author's key
-  compared in both places it is published, on GitHub and in the
-  author's Bluesky profile.  Ordinary use may
-  accept a copy on lighter grounds.
-\item Before accepting, the user runs the exam on the user's own
-  computer:
-\begin{verbatim}
-  VNB_CERTIFIED=off ./prover --build-band
-\end{verbatim}
-  It reruns every proof through the kernel and rebuilds the
-  certificates and the band.  This is the step that matters most.  In
-  ordinary use the certificates and the band come from the author;
-  after the exam, the user relies on nothing the author or the
-  author's server did, only on the kernel, whose source is in the
-  tree.
-\item VNB is started only with \texttt{vnb-start}, never directly.
-\end{itemize}
-The limits listed under ``What it protects, and what it does not''
-still apply.
-
-\paragraph{In the author's development setup.}  VNB is developed on a
-server where automated agents also work, and the author's own copy is
-pulled from it.  There, a third script, \texttt{pull-prover.sh}, pulls
-into a staging copy and calls \texttt{vnb-trust verify} on it.  When the
-copy is new, its choice \texttt{a} runs \texttt{vnb-trust accept}.  The
-author's check before accepting is the result of the exam, which runs
-on that server every night.  A signature made on the author's computer
-cannot be made by anything on the server, so no file changed there
-reaches the author's copy unaccepted.  It does not show that the exam
-itself was honest, since the exam runs on machines the agents can
-reach.
-
+%% =========================================================
 \section{Signed releases}
 \label{sec:signed-releases}
 \index{signed release}
+
+This section says what a signed release is and what it shows.  How the
+author makes one and how anyone checks one are in
+Section~\ref{sec:signed-releases-use}.
 
 A signed tree (Section~\ref{sec:signed-trees}) records a check made by
 the user.  A \emph{signed release} records one made by the author: it
@@ -324,34 +266,16 @@ ones the author published.
   \texttt{vnb-release}.
 \end{itemize}
 
-\paragraph{How the author makes one.}  The order is:
-\begin{enumerate}
-\item the author checks the tree, in the author's own setup by the
-  exam, and accepts it (Section~\ref{sec:signed-trees});
-\item on the server, \texttt{vnb-release-manifest} \textit{VERSION}
-  writes the manifest straight from git's object store;
-\item on the author's computer, \texttt{vnb-trust release-sign}
-  compares every file of the manifest with the same file in the
-  accepted tree, and signs only if all agree.  Files under
-  \texttt{scratch/} and \texttt{scratchpad/}, which the author's pull
-  does not copy and VNB does not load, are counted and shown, not compared;
-\item the signature is copied back, both files are committed, and the
-  release commit is tagged and pushed.
-\end{enumerate}
-So a release is exactly a tree the author accepted.
-
-\paragraph{How anyone checks one.}  With standard tools only:
-\texttt{ssh-keygen -Y verify} for the signature, then
-\texttt{git ls-files -z | xargs -0 sha256sum} at the release commit,
-compared with the manifest.  The commands are in the repository's
-\texttt{README.md}, under ``Verifying a release''.  The author's public key is published in two places, under two
+\paragraph{The author's key.}  The author's public key is published in two places, under two
 different accounts, so that taking over one account is not enough to
 replace it:
 \begin{itemize}
 \item on GitHub, in the author's list of signing keys
   (\url{https://api.github.com/users/JavierThayer/ssh_signing_keys});
 \item away from GitHub, in the author's Bluesky profile
-  (\url{https://bsky.app/profile/javiertf.bsky.social}).
+  (\url{https://bsky.app/profile/javiertf.bsky.social}): its
+  fingerprint, as text in the profile description and in the banner
+  image.
 \end{itemize}
 The key is an ed25519 key, added 2026-11-17, with fingerprint
 \begin{center}
@@ -388,5 +312,5 @@ Nor does a valid signature show that the code is harmless: VNB is a
 program, and running it means trusting its author or reading it.  And
 it shows nothing about the proofs.  For those, no trust in the author
 is needed: the exam, run by the user, reruns every proof through the
-kernel (Section~\ref{sec:signed-trees}, ``For work that must withstand
-an adversary'').
+kernel (Section~\ref{sec:signed-trees-use}, ``For work that must
+withstand an adversary'').

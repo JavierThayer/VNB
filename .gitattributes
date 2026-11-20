@@ -1,0 +1,7 @@
+# How GitHub counts the languages of this repository (linguist).  Changes nothing in VNB.
+# .scm is also Tree-sitter's query extension; these are all MIT Scheme.
+*.scm                    linguist-language=Scheme
+# The command list Emacs reads for completion, generated from tactics-help.scm (not Common Lisp).
+emacs/vnb-commands.lisp  linguist-generated
+# The generated reference pages are documentation.
+reference/**             linguist-documentation

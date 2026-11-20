@@ -38,6 +38,28 @@ else
     done
 fi
 PROVER_DIR="$(cd "$(dirname "$VNB_SELF")" && pwd)"
+
+# SESSION OUTPUT (2026-11-18).  The session writes its generated files (indexes,
+# HTML pages, the structure graph, proof printouts) into a copy of reference/ and
+# printouts/ under $VNB_OUTPUT_DIR, refreshed from the tree at every start, never
+# into the tree: see load.scm, vnb-output-redirect!.  VNB_OUTPUT_DIR=none keeps the
+# old behaviour (write into the tree).
+VNB_OUTPUT_DIR=${VNB_OUTPUT_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/vnb/session}
+if [ "$VNB_OUTPUT_DIR" = none ]; then
+    unset VNB_OUTPUT_DIR
+else
+    for d in reference printouts; do
+        mkdir -p "$VNB_OUTPUT_DIR/$d"
+        if [ -d "$PROVER_DIR/$d" ]; then
+            if command -v rsync >/dev/null 2>&1; then
+                rsync -a --delete "$PROVER_DIR/$d/" "$VNB_OUTPUT_DIR/$d/"
+            else
+                rm -rf "$VNB_OUTPUT_DIR/$d" && cp -pR "$PROVER_DIR/$d" "$VNB_OUTPUT_DIR/$d"
+            fi
+        fi
+    done
+    export VNB_OUTPUT_DIR
+fi
 # The elisp bundle lives under emacs/ (root declutter 2026-06-06).
 LAUNCH_EL="$PROVER_DIR/emacs/vnb-launch.el"
 

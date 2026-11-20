@@ -22,8 +22,15 @@
 resources (structure-notes, examples, user-additions, file-picker defaults).")
 
 (defconst vnb-launch--ref-dir
-  (file-name-as-directory (expand-file-name "reference" vnb-launch--dir))
-  "Generated-index directory (THEOREMS.md, STRUCTURE-INDEX.md, ...).")
+  (file-name-as-directory
+   (let ((out (getenv "VNB_OUTPUT_DIR")))
+     (if (and out (not (string= out "")))
+         (expand-file-name "reference" out)
+       (expand-file-name "reference" vnb-launch--dir))))
+  "Generated-index directory (THEOREMS.md, STRUCTURE-INDEX.md, ...).
+In a session started by `VNB' this is the session copy under VNB_OUTPUT_DIR
+\(~/.cache/vnb/session/reference/), which the prover writes too; the tree's own
+reference/ is never written by a session (see load.scm, vnb-output-redirect!).")
 
 (defconst vnb-launch--docs-dir
   (file-name-as-directory (expand-file-name "docs" vnb-launch--dir))
@@ -3246,6 +3253,24 @@ Workspace is always the front door."
 (defvar vnb--home-server nil
   "The home-page localhost listener process, or nil when not running.")
 
+(defvar vnb--home-token nil
+  "The listener's secret for this Emacs: 32 hex digits, made when the listener
+starts and written into home.html.  A request without it is refused, so a web
+page other than the lobby VNB built cannot trigger the workbench commands.")
+
+(defun vnb--home-make-token ()
+  "32 random hex digits, from /dev/urandom when there is one."
+  (or (ignore-errors
+        (with-temp-buffer
+          (set-buffer-multibyte nil)
+          (when (eq 0 (call-process "head" nil t nil "-c" "16" "/dev/urandom"))
+            (let ((s (buffer-string)))
+              (when (= (length s) 16)
+                (mapconcat (lambda (c) (format "%02x" c)) s ""))))))
+      (substring (secure-hash 'sha256 (format "%S %S %S %S" (random t) (current-time)
+                                              (emacs-pid) (garbage-collect)))
+                 0 32)))
+
 (defconst vnb--home-actions
   '(("start-proof"     . vnb-ws-start-proof)
     ("first-proof"     . vnb-ws-first-proof)
@@ -3268,16 +3293,16 @@ two are kept in sync by hand.")
   (ignore-errors
     (process-send-string
      proc (concat "HTTP/1.1 " status "\r\n"
-                  "Access-Control-Allow-Origin: *\r\n"
                   "Content-Length: 0\r\nConnection: close\r\n\r\n"))
     (delete-process proc)))
 
 (defun vnb--home-filter (proc data)
   "Parse the HTTP request line in DATA and dispatch a whitelisted action."
-  (if (not (string-match "GET /do\\?fn=\\([A-Za-z0-9_-]+\\)" data))
+  (if (not (string-match "\\`GET /do\\?fn=\\([A-Za-z0-9_-]+\\)&t=\\([0-9a-f]+\\)[ &]" data))
       (vnb--home-respond proc "404 Not Found")
-    (let ((cmd (cdr (assoc (match-string 1 data) vnb--home-actions))))
-      (if (not cmd)
+    (let ((cmd (cdr (assoc (match-string 1 data) vnb--home-actions)))
+          (tok (match-string 2 data)))
+      (if (not (and cmd vnb--home-token (string= tok vnb--home-token)))
           (vnb--home-respond proc "403 Forbidden")
         (vnb--home-respond proc "204 No Content")
         ;; defer out of the process filter; raise Emacs so the user lands here.
@@ -3295,6 +3320,7 @@ two are kept in sync by hand.")
 (defun vnb--home-server-ensure ()
   "Start the loopback listener if it is not already up; return the port."
   (unless (and vnb--home-server (process-live-p vnb--home-server))
+    (setq vnb--home-token (vnb--home-make-token))
     (setq vnb--home-server
           (make-network-process
            :name "vnb-home" :server t :host 'local
@@ -3311,8 +3337,9 @@ the actual proving keeps happening in Emacs."
   (let ((port (vnb--home-server-ensure))
         (html (expand-file-name "home.html" vnb-launch--ref-dir)))
     (vnb-launch--html-build
-     (format "(build-home-html %s %d)"
-             (vnb-launch--scheme-string vnb-launch--ref-dir) port)
+     (format "(build-home-html %s %d %s)"
+             (vnb-launch--scheme-string vnb-launch--ref-dir) port
+             (vnb-launch--scheme-string vnb--home-token))
      " *vnb-home-html*")
     (unless (file-exists-p html)
       (user-error "home.html was not produced"))

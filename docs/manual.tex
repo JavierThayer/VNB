@@ -142,6 +142,8 @@
 \tableofcontents
 \newpage
 
+\part{The system}\label{part:system}
+
 %% =========================================================
 \input{ch-intro}
 
@@ -152,16 +154,10 @@
 \input{ch-expressions}
 
 %% =========================================================
-\input{ch-syntax}
-
-%% =========================================================
 \input{ch-proofs}
 
 %% =========================================================
 \input{ch-provenance}
-
-%% =========================================================
-\input{ch-proving}
 
 %% =========================================================
 \input{ch-defs}
@@ -169,11 +165,22 @@
 %% =========================================================
 \input{ch-categories}
 
+\part{Using VNB}\label{part:using}
+
 %% =========================================================
 \input{ch-math}
 
 %% =========================================================
 \input{ch-quickstart}
+
+%% =========================================================
+\input{ch-proving}
+
+%% =========================================================
+\input{ch-formulas}
+
+%% =========================================================
+\input{ch-checking}
 
 %% =========================================================
 \appendix
@@ -192,7 +199,8 @@
 %% F. J. Thayer, "Inteligencia artificial y modelos de lenguaje en la
 %% investigacion matematica" (~/docs/article.pdf, 2026), supplied by the author.
 %% Bernays1937, Godel1940 and vonNeumann1925 are the BibTeX entries the author supplied in
-%% ~/docs/notes-34.txt (2026-09-20).  Gentzen1935 checked 2026-11-17 against EuDML
+%% ~/docs/notes-34.txt (2026-09-20).  Farmer2023 (Springer, DOI 10.1007/978-3-031-21112-6) and LittleTheories (DOI 10.1007/3-540-55602-8_192)
+%% checked 2026-11-19 against the publisher's records.  Gentzen1935 checked 2026-11-17 against EuDML
 %% (eudml.org/doc/168546, /168556); Godel1931 checked 2026-11-17 (DOI 10.1007/BF01700692).  Add no entry that has not been checked against its source.
 
 \bibitem{Bernays1937}
@@ -209,6 +217,18 @@ in \textit{Automated Deduction -- CADE-25}, pages 378--388, Springer, 2015.
 W.~M.~Farmer, J.~D.~Guttman, F.~J.~Thayer,
 IMPS: an Interactive Mathematical Proof System,
 \textit{Journal of Automated Reasoning}, 11:213--248, 1993.
+
+\bibitem{Farmer2023}
+W.~M.~Farmer,
+\textit{Simple Type Theory: A Practical Logic for Expressing and Reasoning
+About Mathematical Ideas},
+Computer Science Foundations and Applied Logic, Birkh\"auser, Cham, 2023.
+
+\bibitem{LittleTheories}
+W.~M.~Farmer, J.~D.~Guttman, F.~J.~Thayer,
+Little theories,
+in \textit{Automated Deduction -- CADE-11}, Lecture Notes in Computer
+Science~607, pages 567--581, Springer, 1992.
 
 \bibitem{Gentzen1935}
 G.~Gentzen,

@@ -229,21 +229,10 @@ False if either is undefined.  In particular:
 \item \texttt{george(s) = george(s)} is \emph{false} for the same
   reason.
 \item A term $t$ is defined iff $t = t$:
-  $\mathtt{DEF}(t) \;\equiv\; (t = t)$.
+  $\mathtt{DEF}(t) \;\equiv\; (t = t)$.  Section~\ref{sec:definedness}
+  says more.
 \end{itemize}
 
-\noindent
-Universal instantiation respects this: from \texttt{forall([x], p)} the
-checker concludes $p[x := t]$ only for a term $t$ that denotes.  A
-variable denotes; so does a class term built from defined arguments
-(\texttt{sep}, \texttt{fun}, \texttt{interval}, \ldots) and an
-accessor of a structure the context knows (\texttt{carr(s)} under
-\texttt{is-ring(s)}); for any other term the instantiation leaves the
-obligation $t = t$ as an open goal, to be closed by a typing fact
-(\texttt{t in A}).  In particular \texttt{choice([])} is not assumed
-to denote.  Without this obligation the rule would prove
-\texttt{recip(0) = recip(0)}.  The policy is stated in
-\texttt{docs/definedness-instantiation-2026-09-18.md}.
 
 \paragraph{Quasi-equality \texttt{$a$ == $b$}.}
 True iff both \texttt{a} and \texttt{b} are defined and equal, \emph{or}
@@ -274,22 +263,6 @@ the sum, so this is invisible inside a proof; it is visible in a statement
 that applies \texttt{+} to members of an unconstrained class.  The full
 account is Section~\ref{sec:arith-symbols}.
 
-Variables and class constants (\texttt{ord}, \texttt{rr},
-\texttt{empty-set}, \ldots) are always defined.  The application
-\texttt{f(x)} is defined when \texttt{f in fun(A, B)} and
-\texttt{x in A} are provable for some $A$, $B$.
-
-\paragraph{Reflexivity in proofs.}
-\texttt{cmd-quasi-reflexivity} (\texttt{qrfl}) closes any goal of the form
-\texttt{a == a} unconditionally.
-\texttt{cmd-reflexivity} (\texttt{rfl}) closes \texttt{a = a} only when
-\texttt{a} is demonstrably defined: either \emph{syntactically} (a variable
-or constant, ground arithmetic that evaluates, or a tree of total class
-constructors over defined arguments) or by a \emph{context} witness --- an
-assumption \texttt{a in $S$} (membership entails definedness) or a strict
-\texttt{a = $\cdots$}.  For a term whose definedness is not established, use
-\texttt{qrfl}; the strict reflexivity is \emph{not} a triviality.
-
 \paragraph{Definitions: \texttt{$t$ := $s$}.}
 A definition is a different speech act from an equation.  Writing
 \texttt{$t$ := $s$} introduces $t$ \emph{as} $s$: $t$ is defined exactly when
@@ -305,6 +278,145 @@ operation --- e.g.\ \texttt{(compose(f, g))(x) := f(g(x))} --- and reserve
 undefined, and \texttt{=}, being strict, is then false --- whereas
 \texttt{==} is true).
 
+\paragraph{Why \texttt{==} is not a function.}
+Quasi-equality cannot be a function, or a defined constant, in a logic
+whose application is strict.  A function applied to an undefined argument
+yields nothing, whereas $t$~\texttt{==}~$s$ must be true when $t$ and $s$
+are both undefined.  IMPS~\cite{IMPS}, where equality is a constructor
+with values in the sort of propositions, makes \texttt{==} a
+\emph{quasi-constructor}: an abbreviation that the reader expands into
+$(t{\downarrow} \lor s{\downarrow}) \supset t = s$, so that no
+application ever takes place.  In VNB \texttt{==}, like \texttt{=}, is
+a formula former, not a function symbol: $t$~\texttt{==}~$s$ is a
+formula, never a term, and nothing is applied to it.
+
+\section{Definedness}
+\label{sec:definedness}
+\index{definedness}
+
+A formula always has a truth value (Remark~\ref{remark:27137-52766-301830}).
+A term need not have a value: it may fail to denote, and is then
+\emph{undefined}.  This section says which terms denote, how VNB states
+and proves that a term denotes, how that can fail, and why there is no
+separate predicate for it.
+
+\subsection{Which terms denote}
+
+Always defined:
+\begin{itemize}
+\item variables, and constants such as \texttt{ord}, \texttt{rr},
+  \texttt{empty-set};
+\item a total class constructor (\texttt{sep}, \texttt{fun},
+  \texttt{interval}, \ldots, Section~\ref{sec:class-set-discipline})
+  applied to defined arguments.
+\end{itemize}
+Defined only under a condition:
+\begin{itemize}
+\item an application $f(x)$: it is defined when $f \in \mathtt{fun}(A, B)$
+  and $x \in A$ for some $A$, $B$ (Section~\ref{sec:funapp});
+\item a description $\iota x.\, p$: it is defined when exactly one object
+  satisfies $p$;
+\item \texttt{choice($A$)}: it is defined when $A$ is nonempty;
+\item a list $[e_1, \ldots, e_n]$: it is defined when every $e_i$ is a
+  set.  So $[0, \mathtt{set}]$ denotes nothing, and neither does
+  $\{\mathtt{set}\}$.
+\end{itemize}
+Undefinedness propagates: a term with an undefined subterm is undefined,
+so if \texttt{george(s)} is undefined, so is \texttt{george(s) + 1}.
+
+The arithmetic symbols are a different case.  On two objects outside
+every number system, $a + b$ is not undefined but unspecified: no axiom
+says what it is (Section~\ref{sec:arith-symbols}).
+
+\subsection{$t = t$ says that $t$ is defined}
+
+Equality is strict (Section~\ref{sec:equality}): $a = b$ is true exactly
+when both terms are defined and equal.  So $t = t$ is true exactly when
+$t$ is defined, and VNB uses it as the statement ``$t$ is defined'':
+\[
+  \mathtt{DEF}(t) \;\equiv\; (t = t).
+\]
+
+Every atomic formula is strict in the same way.  $t \in A$,
+$a \le b$ and $P(t)$ are false when one of their terms is undefined.
+So a true atomic formula shows that each of its terms denotes: $t \in A$
+implies $t = t$ for any $A$.  The formula $t \in \mathtt{set}$ says more,
+namely that $t$ denotes a \emph{set}.  It is the form most axioms ask
+for; the image axiom, for instance, asks for the sethood of $f(x)$.
+
+Two pitfalls:
+\begin{itemize}
+\item $t == t$ is true for every term, defined or not, so it says nothing
+  about $t$;
+\item a defining equation written with $=$ asserts that both sides are
+  defined everywhere; use $:=$ (Section~\ref{sec:equality}).
+\end{itemize}
+
+\subsection{How definedness is proved}
+
+A proof establishes $t = t$ in one of two ways.
+\begin{itemize}
+\item By the \emph{definedness certificate}
+  (Section~\ref{sec:definedness-certificate}), a fixed test on $t$ and
+  the context.  It accepts a variable or constant, a class term on
+  defined arguments, a term typed or equated in a hypothesis, $f(a)$ with
+  $f$ typed and $a$ in its domain, and a few other forms.  It never
+  accepts a choice, a description or an untyped application.
+\item By proving a typing fact $t \in A$, from which $t = t$ follows.
+\end{itemize}
+Two kernel operations need definedness and consult the certificate:
+\begin{itemize}
+\item \texttt{rfl} closes $t = t$ only when the certificate accepts $t$.
+  \texttt{qrfl} closes $t == t$ with no condition.  So the strict
+  reflexivity is not a triviality.
+\item \texttt{forall-elim} concludes $p[x := t]$ from
+  $\forall x.\, p$ only for a term $t$ that denotes.  When the
+  certificate declines, it leaves $t = t$ as an open goal, to be closed
+  by a typing fact.  Without that goal the rule would prove
+  $\mathtt{recip}(0) = \mathtt{recip}(0)$.  The policy is stated in
+  \texttt{docs/definedness-instantiation-2026-09-18.md}.
+\end{itemize}
+
+\subsection{How it can fail}
+
+Within the logic, $t = t$ is false for an undefined $t$, and so is any
+atomic formula that types or equates it.  A statement about an undefined
+term is false, not meaningless: \texttt{george(s) = george(s)} is false
+when \texttt{george} is not a function.
+
+Within the checker, the certificate draws one inference from
+strictness: a term that occurs in a true atomic hypothesis is defined.
+That inference is sound only if every rule that concludes an atomic
+formula has established that the formula's terms denote.  A rule that
+concluded, for instance, $[\,] \in \mathtt{tuples}(A)$ for every $A$
+would break it.  Take $i = \iota x.\,(x = x \wedge \textsc{falsity})$,
+a description of nothing, for $A$.  The certificate would then accept
+$i$, \texttt{rfl} would give $i = i$, and \texttt{iota-in-elim} would
+give $i = i \wedge \textsc{falsity}$, hence \textsc{falsity}.  So each
+kernel rule that concludes an atomic formula owes the definedness of
+the terms in it, its class arguments included.
+
+\subsection{Why there is no \texttt{is-defined($t$)}}
+
+It would be $t = t$ under another name.  Every atomic formula is strict,
+so a primitive \texttt{is-defined($t$)} would be an atomic formula true
+exactly when $t$ denotes, which is the truth condition of $t = t$.  A
+second primitive would need its own kernel rules and checkers, and the
+definedness certificate would have to treat both forms alike: more code
+to trust, and nothing new to say.
+
+What to write instead:
+\begin{itemize}
+\item $t = t$, for ``$t$ is defined'';
+\item $t \in \mathtt{set}$, for ``$t$ is a set'', the stronger and more
+  common requirement;
+\item $t \in A$, for ``$t$ is defined and lies in $A$''.
+\end{itemize}
+A surface spelling such as \texttt{defined($t$)}, read by the parser as
+$t = t$ (as $:=$ is read as $==$), would change nothing in the kernel.
+The system does not have one.
+
+%% =========================================================
 \section{Class constructors}
 \label{sec:class-set-discipline}
 
@@ -1161,281 +1273,3 @@ Destructuring bindings compose freely with plain and bounded bindings
 forall([[pp, dd] in metric-space, u in pp], dd(u, u) = 0)
 \end{VNBsnip}
 
-
-\section{Parser and printer}
-\label{sec:parser-printer}
-
-Four entry points provide string-level access to VNB formulas:
-
-\begin{VNBsnip}
-(make-wff-from-string str)  ; string -> <wff>  (validates via make-wff)
-(parse-string str)          ; string -> raw S-expression (no validation)
-(wff->string w)             ; <wff>  -> string
-(pp w)                      ; display wff->string then newline
-\end{VNBsnip}
-
-\noindent
-\texttt{parse-string} converts a string to a raw S-expression without
-validation; it is used internally by the interactive commands and is
-available for low-level \texttt{cmd-*} calls.  For normal use, pass
-formula strings directly to \texttt{ai}, \texttt{bc}, \texttt{inst},
-\texttt{cut}, \texttt{wk}, and \texttt{vnb-create-num-theorem}.
-\texttt{make-wff-from-string} is the right choice when constructing a
-formula to prove (for \texttt{sp}).
-
-\paragraph{Operator precedence (high to low).}
-\begin{center}
-\small
-\begin{tabular}{lll}
-\toprule
-Level & Operators & Associativity \\
-\midrule
-primary & atoms, \texttt{f(a,b)}, \texttt{[a,b]}, \texttt{(expr)} & --- \\
-power & \texttt{\textasciicircum} & right \\
-unary & \texttt{-x} & right \\
-mul & \texttt{*}, \texttt{/} & left (n-ary \texttt{*}) \\
-add & \texttt{+}, \texttt{-} & left (n-ary \texttt{+}) \\
-cmp & \texttt{in}, \texttt{=}, \texttt{==}, \texttt{<=} & binary \\
-and & \texttt{and} & left (n-ary) \\
-or & \texttt{or} & left (n-ary) \\
-iff & \texttt{iff} & left (n-ary) \\
-implies & \texttt{implies} & right \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\paragraph{Division and negation sugar.}
-\begin{VNBsnip}
-x / y    =>  (* x (recip y))   ; division is syntactic sugar
--x       =>  (- x)             ; unary minus; lower prec than ^
--x ^ 2   =>  (- (power x 2))  ; i.e. -(x^2), not (-x)^2
-\end{VNBsnip}
-
-\paragraph{Quantifier syntax.}
-Quantifiers use the binding-list form:
-\begin{VNBsnip}
-forall([x], body)              ; bare variable (all classes)
-forall([x in A], body)         ; guarded variable
-forall([[a, b, c] in A], body) ; tuple destructuring
-forall([x in A, y, z in B], body)  ; mixed bindings
-forsome([x in NN], body)       ; existential; same forms
-\end{VNBsnip}
-
-\noindent
-The bracket syntax after the function name distinguishes quantifiers
-from ordinary function calls.
-
-\paragraph{Display conventions (\texttt{wff->string} / \texttt{pp}).}
-\begin{itemize}
-\item \begin{sloppypar}\textbf{Quantifiers} print in binding-list form:
-  the primitive expanded form is reverse-engineered.
-  \texttt{forall([x in nn, y], p(x, y))}\end{sloppypar}
-\item \textbf{Logical connectives} \texttt{and}, \texttt{or}, \texttt{iff}
-  print n-ary infix with surrounding parentheses:
-  \texttt{((p and q) and r)}.
-  \texttt{implies} prints binary infix: \texttt{(p implies q)}.
-\item \textbf{Comparisons} \texttt{in}, \texttt{=}, \texttt{==},
-  \texttt{<=} print binary infix: \texttt{(x in nn)}, \texttt{(x = y)}.
-\item \textbf{Arithmetic} \texttt{+}, \texttt{*} print n-ary infix:
-  \texttt{(x + y + z)}.  Binary \texttt{-} prints as \texttt{(x - y)};
-  unary as \texttt{-x}.  Exponentiation as \texttt{(x \textasciicircum{} y)}.
-\item \textbf{Lists} \texttt{[a, b, c]} in both input and output: the
-  list syntax is the same in string form (internally stored as \texttt{list}).
-\item \textbf{All other compound terms} use functional notation
-  \texttt{f(x, y, z)}: \texttt{nth}, \texttt{cartesian}, \texttt{fun},
-  \texttt{power} (unary set power), \texttt{not}, and user-defined heads.
-  Nullary symbols print without parentheses.
-\end{itemize}
-
-\paragraph{Example round-trips.}
-\begin{VNBsnip}
-(pp (make-wff-from-string "forall([x in NN, y in NN], x + y = y + x)"))
-; => forall([x in nn, y in nn], ((x + y) = (y + x)))
-
-(pp (make-wff-from-string "not(P) implies falsity"))
-; => (not(p) implies falsity)
-
-(pp (make-wff-from-string "2 ^ 10 = 1024"))
-; => ((2 ^ 10) = 1024)
-
-(expression->string '(forall x (implies (in x nn)
-                       (forall y (implies (in y nn) (= (+ x y) (+ y x)))))))
-; => "forall([x in nn, y in nn], ((x + y) = (y + x)))"
-\end{VNBsnip}
-
-\noindent
-All identifiers are case-folded to lowercase by MIT~Scheme, so
-\texttt{NN} and \texttt{nn} are the same symbol; \texttt{FORALL} and
-\texttt{forall} are also identical.  The printer always emits lowercase.
-
-%% =========================================================
-
-\section{Naming the parts of a formula}
-\label{sec:parts}
-
-The parser and printer of the previous section are the surface-conforming
-way to \emph{build} and \emph{display} a formula.  This section gives the
-surface-conforming way to \emph{take one apart}.
-
-A script or a piece of scratch-workspace code must never reach into the
-internal S-expression by position --- \texttt{(caddr (cadr f))} and the
-like.  Such code is welded to a representation accident and breaks the
-moment the internal form shifts (the \texttt{and}-nesting, the
-\texttt{+}/\texttt{binplus} split, a new sugar): it is the
-representation-independence sin one level down.  The accessors in
-\texttt{parts.scm} name the parts the way the \emph{external} syntax names
-them, so the code that uses them survives changes to the internal form.
-
-There are three entry points: \texttt{formula-kind} classifies the top
-construct, \texttt{part} navigates to a named sub-part, and \texttt{match}
-fills in the blanks of a surface pattern.  All three accept a wff, a
-surface string, or a raw S-expression interchangeably.
-
-\subsection{\texttt{formula-kind} --- what is this, at the top?}
-
-\texttt{(formula-kind \textit{x})} returns a single symbol naming the
-outermost surface construct, without committing to any internal detail
-below it:
-
-\begin{VNBsnip}
-(formula-kind "p(x) implies q(x)")       ; => implication
-(formula-kind "x = y")                   ; => equation
-(formula-kind "p(x) and q(x) and r(x)")  ; => conjunction
-(formula-kind "forall([x in nn], p(x))") ; => universal
-(formula-kind "x in nn")                 ; => membership
-(formula-kind "f(a, b)")                 ; => application
-(formula-kind '((MUL R) a b))            ; => op-application
-\end{VNBsnip}
-
-\noindent
-The complete set of tags follows.
-
-\begin{itemize}
-\item \texttt{truth}, \texttt{falsity} --- the logical constants.
-\item \texttt{atom} --- a bare symbol; \texttt{number} --- a numeric literal.
-\item \texttt{implication} (\texttt{implies}), \texttt{biconditional}
-  (\texttt{iff}), \texttt{conjunction} (\texttt{and}), \texttt{disjunction}
-  (\texttt{or}), \texttt{negation} (\texttt{not}) --- the connectives.
-\item \texttt{equation} (\texttt{=}), \texttt{equivalence} (\texttt{==}),
-  \texttt{membership} (\texttt{in}), \texttt{inequality} (\texttt{<=}),
-  \texttt{subset} (\texttt{subset}) --- the binary relations.
-\item \texttt{universal} (\texttt{forall}), \texttt{existential}
-  (\texttt{forsome}), \texttt{description} (\texttt{iota}) --- the binders.
-\item \texttt{arithmetic} (\texttt{+}, \texttt{*}).
-\item \texttt{set-construction} (\texttt{union}, \texttt{intersection},
-  \texttt{cartesian}).
-\item \texttt{op-application} --- a structure operator such as
-  \texttt{(mul R)} applied to arguments.
-\item \texttt{application} --- a named predicate or function applied.
-\item \texttt{unknown} --- anything that matches none of the above.
-\end{itemize}
-
-\begin{remark}
-This vocabulary is meant to be \emph{closed}.  Each tag names a construct
-the surface grammar actually has, so the list grows only if the grammar
-itself does --- a rare event.  The pull to add a tag for some derived or
-compound form should be resisted: such forms already classify as
-\texttt{application}, \texttt{op-application}, or \texttt{unknown}, and a
-proliferation of fine-grained tags would couple the classifier to passing
-notational fashion rather than to the language.
-\end{remark}
-
-\subsection{\texttt{part} --- navigate to a sub-part}
-
-\texttt{(part \textit{x} \textit{step} \ldots)} walks a path of selector
-steps and returns the part reached.  A single result is itself a wff (it
-prints through the normal verbalizer and round-trips); a \emph{plural}
-selector returns a \emph{list} of wffs and must be the last step.
-
-\begin{center}
-\footnotesize
-\begin{tabular}{@{}llp{6.0cm}@{}}
-\toprule
-Selector & Applies to & Yields \\
-\midrule
-\texttt{antecedent}, \texttt{consequent} & implication & the two sides \\[2pt]
-\texttt{lhs}/\texttt{left}, \texttt{rhs}/\texttt{right} & any binary relation (\texttt{= == iff in <= subset}) & the two sides \\[2pt]
-\texttt{negand} & negation & the negated formula \\[2pt]
-\texttt{conjuncts}, \texttt{disjuncts} & conjunction / disjunction & \emph{(plural)} the flattened list of conjuncts / disjuncts \\[2pt]
-\texttt{(conjunct \textit{N})}, \texttt{(disjunct \textit{N})} & conjunction / disjunction & the \textit{N}-th, 1-indexed \\[2pt]
-\texttt{binder} & quantifier (\texttt{forall}/\texttt{forsome}/\texttt{iota}) & the bound variable \\[2pt]
-\texttt{matrix}/\texttt{scope}/\texttt{body} & quantifier & the scope \\[2pt]
-\texttt{operator}/\texttt{op}/\texttt{head} & application & the operator (e.g.\ \texttt{(mul r)}) \\[2pt]
-\texttt{operands}/\texttt{args} & application & \emph{(plural)} the argument list \\[2pt]
-\texttt{(operand \textit{N})} & application & the \textit{N}-th argument, 1-indexed \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\begin{VNBsnip}
-(part "p(x) implies q(x)" 'antecedent)         ; => p(x)
-(part "x = y" 'lhs)                            ; => x
-(part "p(x) and q(x) and r(x)" '(conjunct 2))  ; => q(x)
-(part "p(x) and q(x) and r(x)" 'conjuncts)     ; => (p(x) q(x) r(x))
-(part "f(a, b, c)" '(operand 2))               ; => b
-(part "f(a, b, c)" 'operands)                  ; => (a b c)
-(part "forall([x in nn], p(x))" 'binder)       ; => x
-(part "forall([x in nn], p(x))" 'matrix)       ; => (x in nn implies p(x))
-
-;; steps chain left-to-right: descend, then descend again
-(part "p(x) implies y = z" 'consequent 'lhs)   ; => y
-\end{VNBsnip}
-
-\noindent
-The selectors are \emph{total over their declared shape and loud
-otherwise}: \texttt{(part "x = y" 'antecedent)} is an \emph{error}, not a
-silent \texttt{\#f} --- the same partial-\texttt{=} definedness discipline
-that runs through the rest of the system (Section~\ref{sec:funapp}).
-
-\begin{remark}
-The accessors honour the \emph{surface structure} of a formula --- the
-string-syntax view laid out in Section~\ref{sec:parser-printer} --- not the
-internal S-expression that stores it.  \texttt{conjuncts} flattens the
-associative spine, so \texttt{p and q and r} yields three conjuncts however
-the binary \texttt{and} happens to be nested.  \texttt{operands} de-tuples the apply-tupling convention
-(Section~\ref{sec:curried-tupled-apply}), so the single internal
-\texttt{(list a b)} argument comes back as the operand list
-\texttt{(a~b)}.  And the binary structure-op application \texttt{(mul
-R)(a, b)} is first-class: \texttt{operator} gives \texttt{(mul r)},
-\texttt{operands} gives \texttt{(a b)}.
-\end{remark}
-
-\subsection{\texttt{match} --- fill the blanks of a pattern}
-
-\texttt{(match \textit{pattern-string} \textit{x})} matches a surface
-pattern against \textit{x}.  The pattern is an ordinary formula in which
-some sub-parts are left \emph{blank}, each blank written as a name with a
-leading question mark --- \texttt{?P}, \texttt{?Q}, \texttt{?a} --- standing
-for an arbitrary sub-formula or term.  The call returns an association list
-\texttt{((?v\ .\ \textit{wff})\ \ldots)} pairing each blank with what it
-matched, or \texttt{\#f} if the pattern does not fit.
-
-\begin{VNBsnip}
-(match "?P implies ?Q" "x in nn implies x in zz")
-; => ((?q . x in zz) (?p . x in nn))
-
-(match "?P and ?Q" "x in nn implies x in zz")
-; => #f
-\end{VNBsnip}
-
-\noindent
-Matching reuses the macete one-way matcher
-(Section~\ref{sec:macetes}) rather than introducing a second pattern
-engine, and binder desugaring is applied to both sides so a quantified
-pattern matches a quantified target.  Where \texttt{part} is the right tool
-when the shape is known in advance, \texttt{match} is the right tool when
-the shape is the thing being tested.
-
-\begin{remark}
-Input is coerced uniformly: \texttt{part} and friends accept a wff, a
-surface string, or a raw S-expression.  Given a wff or string they hand
-back wffs (re-wrapped in the same library); given a bare S-expression there
-is no wff parent to re-wrap against, so the parts come back as raw
-S-expressions.  One asymmetry follows from \texttt{make-wff} validation: a
-standalone \emph{term} string such as \texttt{"x + y"} is not a wff, so
-\texttt{(formula-kind "x + y")} signals an error --- classify a term by
-passing the S-expression, \texttt{(formula-kind '(+ x y))}, or reach it as
-a \texttt{part} of the formula it sits in.
-\end{remark}
-
-%% =========================================================

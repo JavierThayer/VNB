@@ -401,9 +401,10 @@
                      font-size:1.05rem; padding:.6rem 0 .2rem; }
 ")
 
-(define (rh--home-js port)
+(define (rh--home-js port token)
   (string-append "
  const PORT = " (number->string port) ";
+ const TOKEN = '" token "';
  function flash(msg) {
    const f = document.getElementById('flash');
    f.textContent = msg; f.classList.add('show');
@@ -411,7 +412,7 @@
  }
  function poke(ev, fn, label) {
    ev.preventDefault();
-   fetch('http://127.0.0.1:' + PORT + '/do?fn=' + encodeURIComponent(fn),
+   fetch('http://127.0.0.1:' + PORT + '/do?fn=' + encodeURIComponent(fn) + '&t=' + TOKEN,
          {mode:'no-cors'})
      .then(() => flash('\\u2192 ' + label + ' (see Emacs)'))
      .catch(() => flash('Emacs listener not reachable \x2014; start it from the launcher'));
@@ -454,9 +455,13 @@ not a PSS member.</p>
                  "<div class=\"t\">" (rh--esc label) "</div>"
                  "<div class=\"b\">" (rh--esc blurb) "</div></a>"))
 
-(define (build-home-html #!optional out-dir port)
+(define (build-home-html #!optional out-dir port token)
+  ;; TOKEN: the listener's per-launch secret (vnb-launch.el); the workbench links
+  ;; carry it, and the listener refuses a request without it.  Absent, the links
+  ;; are written with an empty token and do nothing.
   (let* ((dir (rh--dir out-dir))
          (port (if (or (default-object? port) (not port)) 8973 port))
+         (token (if (or (default-object? token) (not token)) "" token))
          (out (string-append dir "home.html"))
          (refs (rh--concat (map (lambda (r) (apply rh--home-ref-card r))
                                 rh--home-ref-links)))
@@ -492,7 +497,7 @@ not a PSS member.</p>
 " works "
 " rh--home-classify "
 </main>
-<script>" (rh--home-js port) "</script>
+<script>" (rh--home-js port token) "</script>
 </body></html>
 ")))
     (rh--write out doc)

@@ -239,6 +239,33 @@
 
 (define *cert-kernel-hash* #f)            ; computed once per load; the suite binds it
 
+;;; THE PRIOR KERNEL (the user, 2026-11-19: a kernel change is examined by the sliced exam
+;;; at once, not by a 10-hour single exam).  After a kernel change every certificate carries
+;;; the old hash.  A slice of the sliced exam runs ITS OWN files in off mode, every proof
+;;; under the new kernel, and installs the files outside it from their certificates; with
+;;; VNB_CERT_PRIOR_KERNEL=HASH it accepts, for those, records carrying HASH as well as this
+;;; tree's.  Sound for the exam as a whole: every proof of the tree runs once, under the new
+;;; kernel, in the slice that owns its file; a statement taken from a prior-kernel record is
+;;; one whose own proof runs in another slice; the merge keeps each file's certificates
+;;; from its owning slice only, and the strict build that follows accepts the merged store
+;;; only if every record carries the NEW hash.  Refused outside a slice, and never in
+;;; strict mode.
+(define *cert-prior-kernel*
+  (let ((v (get-environment-variable "VNB_CERT_PRIOR_KERNEL"))
+        (s (get-environment-variable "VNB_EXAM_SLICE")))
+    (cond ((or (not v) (string-null? v)) #f)
+          ((or (not s) (string-null? s))
+           (error "VNB_CERT_PRIOR_KERNEL is for a slice of the sliced exam only; VNB_EXAM_SLICE is unset"))
+          (else
+           (display (string-append ";VNB certificates: kernel change -- files outside this slice accept records of the prior kernel " v))
+           (newline)
+           v))))
+
+;;; Is a record's kernel hash H acceptable in this load?
+(define (cert-kernel-acceptable? h)
+  (or (equal? h (cert-kernel-hash))
+      (and *cert-prior-kernel* (eq? (cert-mode) 'on) (equal? h *cert-prior-kernel*))))
+
 (define (cert-kernel-hash)
   (or *cert-kernel-hash*
       (begin
@@ -511,7 +538,7 @@
 ;;; of the statement computed HERE must be recorded (a record written before
 ;;; 2026-10-17 has only the heads the statement mentions).
 (define (cert-record-invalid-reason rec #!optional stmt)
-  (cond ((not (equal? (cert-rec-field1 rec 'kernel) (cert-kernel-hash))) "kernel changed")
+  (cond ((not (cert-kernel-acceptable? (cert-rec-field1 rec 'kernel))) "kernel changed")
         ((not (assq 'uses (cdddr rec))) "no uses list")
         ((find-first (lambda (p) (not (equal? (cert-name-hash (car p)) (cdr p))))
                      (cert-rec-field rec 'cites))
@@ -1026,8 +1053,8 @@
     (cond ((eq? mode 'off) (cert--load-off! f path make-env))
           ((and (eq? mode 'on)
                 (or (not store)
-                    (not (equal? (let ((k (assq 'kernel (cddr (car store))))) (and k (cadr k)))
-                                 (cert-kernel-hash)))))
+                    (not (cert-kernel-acceptable?
+                          (let ((k (assq 'kernel (cddr (car store))))) (and k (cadr k)))))))
            ;; nothing in the store can be used: prove the file the fast way
            (cert--load-off! f path make-env))
           (#t (cert--load-certified! f path make-env mode (if store (cdr store) '()))))))

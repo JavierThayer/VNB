@@ -27,30 +27,50 @@ HOL~\cite{HOL} on higher-order logic.  VNB is built on set theory, the
 formalism in which most mathematics is written.
 
 This project is, among other things, a proof of concept: a rigorous
-mathematical proof system built entirely by AI,
-with architectural direction from F.~J.~Thayer.  It is inspired by
-ideas from IMPS~\cite{IMPS}.
+mathematical proof system built entirely by AI, with design
+specifications and subsequent direction from F.~J.~Thayer
+(Section~\ref{sec:vnb-lean}).
 
 %% =========================================================
-\section{VNB and Lean}
+\section{VNB and comparable systems}
 \label{sec:vnb-lean}
 
-Lean~\cite{Lean} is the system with which VNB is most naturally compared.
+VNB is one of several proof checkers for mathematics.  Others are
+HOL~\cite{HOL}, Isabelle, Rocq~\cite{Rocq}, Mizar and Lean~\cite{Lean}.
+Mizar is founded on set theory, as VNB is.  The system most comparable to
+VNB is Lean: both aim at a large library of ordinary mathematics whose
+proofs are checked by a small kernel, and Lean's library is the usual
+point of reference for such work.  The rest of this section compares VNB
+with Lean.
+
 Lean is based on dependent type theory (the calculus of inductive
 constructions with universes); its mathematical library is Mathlib; it is
 implemented in Lean~4 and C++; its proofs are checked by a small kernel,
-and independent external checkers of that kernel exist.  Three differences
+and independent external checkers of that kernel exist.  Four differences
 follow.
 
 \begin{enumerate}
 \item \textbf{Authorship and lineage.}  VNB is written entirely by a large
-  language model, with architectural direction from F.~J.~Thayer.  Its
-  kernel follows IMPS~\cite{IMPS}: proofs are sequent-based deduction
-  graphs and rewriting is done by macetes.  It does not take over the
-  formal type theory of IMPS (LUTINS, a typed logic of partial
+  language model.  It is the result of the VNB project, begun in 2026
+  with design specifications and subsequent direction from
+  F.~J.~Thayer.  It is partly inspired by IMPS~\cite{IMPS}: proofs are
+  sequent-based deduction graphs, terms can be undefined, and rewriting
+  is done by what IMPS called macetes.  The project is also indebted to
+  the work of L.~G.~Monk on local contexts~\cite{Monk1988}, and to that
+  of W.~M.~Farmer, among other things for the use of undefined terms and
+  for the design of practical reasoning systems~\cite{Farmer2023}.
+
+  VNB does not take over the formal type theory of IMPS (LUTINS, a typed logic of partial
   functions).  Where IMPS uses sorts, VNB uses set-theoretic membership
   guards: a function in \texttt{fun($A$, $B$)} is defined exactly on $A$,
   and a hypothesis $x \in A$ plays the part of a typing judgement.
+
+  The little-theories approach of IMPS~\cite{LittleTheories} appears in a
+  smaller role: the structures of the library and the relations between
+  them (refinement, and viewing one structure as another,
+  Section~\ref{sec:view-as}) are drawn as a graph, the structure graph,
+  one of the reference pages that the workspace opens
+  (Section~\ref{sec:emacs}).
 \item \textbf{Naive set theory with a formal foundation.}  In practice VNB
   is a kind of naive set theory, although its foundation is formal
   (von~Neumann--Bernays--G\"odel set theory, NBG; consistency is relative to
@@ -66,31 +86,27 @@ follow.
   Section~\ref{sec:meta} describes what has been built in this direction
   and what has not.  No claim is made here about the difficulty of the
   corresponding task for Lean.
-
-  VNB is developed on a server, and its user runs it on a computer of
-  their own.  What the user runs is a copy of the whole \emph{tree}: the
-  directory holding VNB's source files, its compiled files, the saved
-  image of the loaded library, and the proof certificates.  A script
-  copies the tree from the server, then launches VNB from the copy.
-
-  This copy can be made to accept only what the user has approved.  The
-  order is:
+\item \textbf{Provenance of a copy.}  A copy of VNB is one directory,
+  the \emph{tree}: VNB's source files,
+  its compiled files, the saved image of the loaded library, and the
+  proof certificates.  A copy can be made to accept only what has been
+  approved:
   \begin{enumerate}
-  \item the nightly exam reruns every proof on the server;
-  \item the user reads the exam's result and \emph{signs} the tree: a
-    list of a cryptographic hash of every file VNB loads, signed with a
-    key that exists only on the user's computer;
-  \item each later copy is checked against the lists the user signed
-    before VNB is launched from it.  If any file differs, the copy is
-    refused, the differing files are named, and the previous copy stays
-    in use.
+  \item the copy is checked, most thoroughly by the exam, which reruns
+    every proof through the kernel;
+  \item the tree is then \emph{signed}: a list of a cryptographic hash
+    of every file VNB loads, signed with a key that exists only on the
+    computer that runs the copy;
+  \item each later copy is compared with the signed lists before VNB is
+    started from it.  If any file differs, the copy is refused, the
+    differing files are named, and the previous copy stays in use.
   \end{enumerate}
-  So nothing VNB loads (source, compiled code, certificates, axioms) can
-  come from the server into the user's copy without the user's
-  signature, and nothing on the server can produce that signature.  A
-  file changed on the user's own computer is caught at the next start,
-  when VNB is started with \texttt{vnb-start}
-  (Section~\ref{sec:signed-trees}).
+  So nothing VNB loads (source, compiled code, certificates, axioms)
+  changes without a new signature, and nothing on another machine can
+  produce that signature.  The check is made at every start made with
+  \texttt{vnb-start} (Section~\ref{sec:signed-trees}).  Chapter~\ref{ch:provenance}
+  describes this together with the records of where each theorem comes
+  from.
 \end{enumerate}
 
 %% =========================================================
@@ -352,5 +368,7 @@ straightforward.
 %% =========================================================
 
 %% =========================================================
+
+Part~\ref{part:system} describes the system: its classification of results, its expression language, its deductive system, the records of provenance, definitions and structures.  Part~\ref{part:using} describes how to use it: the library, getting started, writing proofs, working with formulas from Scheme, and checking results and copies.
 
 Chapter~\ref{ch:quickstart} (Getting started) gives the installation steps and walks through a first session in the workspace, including a complete proof and a macete example.

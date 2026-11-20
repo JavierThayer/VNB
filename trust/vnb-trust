@@ -16,9 +16,11 @@
 #
 # What is hashed: every file of the tree EXCEPT
 #   - what the pull itself skips: .git/ scratch/ scratchpad/ *.bci *.ext *.elc
-#   - under docs/ and reference/, the documents (.tex .pdf .md .html and the rest),
-#     which VNB never loads.  The .sexp and .scm files there ARE hashed: load.scm reads
-#     docs/major-theorems-table.sexp, and the kernel-map audit reads reference/*.sexp.
+#   - under docs/, the documents (.tex .pdf .md and the rest), which VNB never loads.
+#     The .sexp and .scm files there ARE hashed: load.scm reads
+#     docs/major-theorems-table.sexp.
+#   reference/ is hashed whole (2026-11-18): VNB shows its pages in the browser, and a
+#   session no longer writes there (it writes a copy under ~/.cache/vnb/session).
 #
 # Needs: bash, OpenSSH 8.0 or newer (ssh-keygen -Y), sha256sum or shasum.
 set -euo pipefail
@@ -47,8 +49,8 @@ body() {
       case "$f" in
         *.bci|*.ext|*.elc) continue ;;
         */scratch/*|*/scratchpad/*) continue ;;
-        docs/*.sexp|docs/*.scm|reference/*.sexp|reference/*.scm) ;;
-        docs/*|reference/*) continue ;;
+        docs/*.sexp|docs/*.scm) ;;
+        docs/*) continue ;;
       esac
       printf '%s\0' "$f"
     done |

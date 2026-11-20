@@ -49,7 +49,7 @@ PROVER=/home/ubuntu/prover
 METRICS=/home/ubuntu/mailbox/metrics
 ES=$METRICS/exam-slice
 LOG=$METRICS/nightly-exam.log
-RESUME=""; SINGLE_W=worker-05; SINGLE_HEAP=1200000; WORKERS=""; TYPE=m7i.large; HEAP=500000; FORCE=0; DRY=0; COMPARE=0; NOCORE=0; REFK=0
+RESUME=""; SINGLE_ON_KC=0; PRIOR_ENV=""; SINGLE_W=worker-05; SINGLE_HEAP=1200000; WORKERS=""; TYPE=m7i.large; HEAP=500000; FORCE=0; DRY=0; COMPARE=0; NOCORE=0; REFK=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --workers) WORKERS=$2; shift 2 ;;
@@ -62,6 +62,7 @@ while [ $# -gt 0 ]; do
     --reference-from) REFK=$2; shift 2 ;;
     --single-worker) SINGLE_W=$2; shift 2 ;;    # the single exam this hands over to on a kernel change
     --single-heap) SINGLE_HEAP=$2; shift 2 ;;
+    --single-on-kernel-change) SINGLE_ON_KC=1; shift ;;   # the old way: a kernel change hands over to the single exam
     --resume) RESUME=${2%/}; shift 2 ;;
     *) echo "vnb-nightly-exam-sliced: unknown option $1" >&2; exit 2 ;;
   esac
@@ -79,6 +80,14 @@ if [ -n "$RESUME" ]; then
 fi
 TAG="sliced"; [ "$COMPARE" = 1 ] && TAG="sliced-compare"
 say() { echo "$(date -u +%FT%TZ) nightly-exam[$TAG]: $*" | tee -a "$LOG"; }
+# ONE EXAM AT A TIME (the user, 2026-11-19): an exam started by hand (a kernel change is
+# examined at once) may still run at 06:00Z; two exams on the same workers break each other.
+# The lock is held for the whole run, across the exec into vnb-nightly-exam.
+if [ "$DRY" = 0 ] && [ -z "${VNB_EXAM_LOCK_HELD:-}" ]; then
+  exec 9> "$METRICS/exam.lock"
+  flock -n 9 || { say "skip: another exam is running (exam.lock held)"; exit 0; }
+  export VNB_EXAM_LOCK_HELD=1
+fi
 LAST=$METRICS/last-exam.json; [ "$COMPARE" = 1 ] && LAST=$ES/last-sliced-compare.json
 REPORT=/home/ubuntu/notes/exam-report.txt; [ "$COMPARE" = 1 ] && REPORT=$ES/report-$STAMP.txt
 LOG0=$( [ -f "$LOG" ] && wc -l < "$LOG" || echo 0 )
@@ -141,12 +150,19 @@ PY
 )
 STORE_KH=$(grep -rhom1 '(kernel "[0-9a-f]*")' "$PROVER/certificates" 2>/dev/null | sed 's/.*"\(.*\)".*/\1/' | sort | uniq -c | sort -rn | head -1 | awk '{print $2}')
 if [ -z "$KH" ] || [ "$KH" != "$STORE_KH" ]; then
-  say "kernel hash of the tree ($KH) differs from the certificate store's ($STORE_KH): every certificate is invalid, a sliced night would re-prove the whole tree on every worker"
-  if [ "$COMPARE" = 1 ] || [ "$DRY" = 1 ]; then exit 2; fi
-  say "handing over to the single exam (vnb-nightly-exam)"
-  trap - EXIT
-  SINGLE=(--worker "$SINGLE_W" --heap "$SINGLE_HEAP"); [ "$FORCE" = 1 ] && SINGLE+=(--force); [ "$NOCORE" = 1 ] && SINGLE+=(--no-core-replay)
-  exec "$PROVER/vnb-nightly-exam" "${SINGLE[@]}"
+  if [ -z "$KH" ] || [ -z "$STORE_KH" ] || [ "$SINGLE_ON_KC" = 1 ]; then
+    say "kernel hash of the tree ($KH) differs from the certificate store's ($STORE_KH): handing over to the single exam (vnb-nightly-exam)"
+    if [ "$COMPARE" = 1 ] || [ "$DRY" = 1 ]; then exit 2; fi
+    trap - EXIT
+    SINGLE=(--worker "$SINGLE_W" --heap "$SINGLE_HEAP"); [ "$FORCE" = 1 ] && SINGLE+=(--force); [ "$NOCORE" = 1 ] && SINGLE+=(--no-core-replay)
+    exec "$PROVER/vnb-nightly-exam" "${SINGLE[@]}"
+  fi
+  # THE KERNEL-CHANGE MODE (the user, 2026-11-19): each slice runs its own files under the
+  # new kernel and installs the others from the certificates of the prior kernel
+  # (certificates.scm, VNB_CERT_PRIOR_KERNEL); the merge and the strict build are as on any
+  # night, and the strict build passes only if every merged record carries the new hash.
+  say "kernel change: tree $KH, certificate store $STORE_KH -- each slice installs the files outside it from the prior kernel's certificates"
+  PRIOR_ENV="VNB_CERT_PRIOR_KERNEL=$STORE_KH"
 fi
 pull_slice() { # pull_slice K WORKER PORT [SUBDIR ...]  (default: certificates core-pages exam-slice reference)
   local k=$1 w=$2 port=$3 d=$RUN/slice-$1 KEY=~/.ssh/vnb-secondary
@@ -240,7 +256,7 @@ slice_up() { # slice_up K WORKER -> prints "JOB <id>" or "FAIL <why>"
   capataz run "$w" --json --user ubuntu "md5sum /home/ubuntu/exam-slice-plan/plan.tsv" 2>/dev/null | grep -q "$pm" || { echo "FAIL plan md5"; return; }
   capataz run "$w" --json --user ubuntu "rm -rf $PROVER/vnb.band $PROVER/vnb.band.new $PROVER/exam-slice" > /dev/null 2>&1 || { echo "FAIL clear-band"; return; }
   local book=""; [ "$REFK" != 0 ] && [ "$k" = "$REFK" ] && book="VNB_WRITE_BOOK=1"
-  local script="cd $PROVER && VNB_TIME_LOAD=1 VNB_HOST=$w VNB_CERTIFIED=on VNB_EXAM_SLICE=$k/$N VNB_EXAM_SLICE_PLAN=/home/ubuntu/exam-slice-plan/plan.tsv $CORE_ENV $book VNB_BUILD_HEAP=$HEAP ./prover --build-band"
+  local script="cd $PROVER && VNB_TIME_LOAD=1 VNB_HOST=$w VNB_CERTIFIED=on VNB_EXAM_SLICE=$k/$N VNB_EXAM_SLICE_PLAN=/home/ubuntu/exam-slice-plan/plan.tsv $CORE_ENV $PRIOR_ENV $book VNB_BUILD_HEAP=$HEAP ./prover --build-band"
   local job
   job=$(capataz run "$w" --detach --json --user ubuntu --job-name band "$script" | python3 -c 'import json,sys; print(json.load(sys.stdin)["job"])' 2>/dev/null)
   [ -n "$job" ] && echo "JOB $job" || echo "FAIL detach"

@@ -76,6 +76,14 @@ while [ $# -gt 0 ]; do
 done
 mkdir -p "$METRICS"
 say() { echo "$(date -u +%FT%TZ) nightly-exam: $*" | tee -a "$LOG"; }
+# ONE EXAM AT A TIME (the user, 2026-11-19): an exam started by hand (a kernel change is
+# examined at once) may still run at 06:00Z; two exams on the same workers break each other.
+# The lock is held for the whole run, across the exec into vnb-nightly-exam.
+if [ -z "${VNB_EXAM_LOCK_HELD:-}" ]; then
+  exec 9> "$METRICS/exam.lock"
+  flock -n 9 || { say "skip: another exam is running (exam.lock held)"; exit 0; }
+  export VNB_EXAM_LOCK_HELD=1
+fi
 # CORE: the core-replay summary lines of the exam (core-pages/SUMMARY.txt on the worker), set
 # once the exam has run; empty before that or when the exam ran without VNB_CORE_REPLAY.
 CORE=""
